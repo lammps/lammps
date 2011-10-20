@@ -6,23 +6,23 @@
 
 :line
 
-pair_style line command :h3
+pair_style line/lj command :h3
 
 [Syntax:]
 
-pair_style line cutoff :pre
+pair_style line/lj cutoff :pre
 
 cutoff = global cutoff for interactions (distance units)
 
 [Examples:]
 
-pair_style line 3.0
+pair_style line/lj 3.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5 :pre
 
 [Description:]
 
-Style {line} treats particles which are line segments as a set of
+Style {line/lj} treats particles which are line segments as a set of
 small spherical particles that tile the line segment length as
 explained below.  Interactions between two line segments, each with N1
 and N2 spherical particles, are calculated as the pairwise sum of
@@ -61,10 +61,10 @@ computed using only sigma_II values, specific to the line segment's
 type, this means that any specified sigma_IJ values (for I != J) are
 effectively ignored.
 
-For style {line}, the following coefficients must be defined for each
-pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
-the examples above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
+For style {line/lj}, the following coefficients must be defined for
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command
+as in the examples above, or in the data file or restart files read by
+the "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
 epsilon (energy units)
@@ -107,6 +107,6 @@ line/line or line/particle interactions requires the use the
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_style tri/lj"_pair_tri_lj.html
 
 [Default:] none

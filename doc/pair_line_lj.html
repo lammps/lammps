@@ -9,23 +9,23 @@
 
 <HR>
 
-<H3>pair_style line command 
+<H3>pair_style line/lj command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style line cutoff 
+<PRE>pair_style line/lj cutoff 
 </PRE>
 <P>cutoff = global cutoff for interactions (distance units)
 </P>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style line 3.0
+<PRE>pair_style line/lj 3.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>line</I> treats particles which are line segments as a set of
+<P>Style <I>line/lj</I> treats particles which are line segments as a set of
 small spherical particles that tile the line segment length as
 explained below.  Interactions between two line segments, each with N1
 and N2 spherical particles, are calculated as the pairwise sum of
@@ -64,10 +64,10 @@ computed using only sigma_II values, specific to the line segment's
 type, this means that any specified sigma_IJ values (for I != J) are
 effectively ignored.
 </P>
-<P>For style <I>line</I>, the following coefficients must be defined for each
-pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in
-the examples above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+<P>For style <I>line/lj</I>, the following coefficients must be defined for
+each pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command
+as in the examples above, or in the data file or restart files read by
+the <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands:
 </P>
 <UL><LI>epsilon (energy units)
@@ -110,7 +110,7 @@ line/line or line/particle interactions requires the use the
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_tri_lj.html">pair_style tri/lj</A>
 </P>
 <P><B>Default:</B> none
 </P>

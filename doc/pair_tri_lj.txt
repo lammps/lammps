@@ -6,23 +6,23 @@
 
 :line
 
-pair_style tri command :h3
+pair_style tri/lj command :h3
 
 [Syntax:]
 
-pair_style tri cutoff :pre
+pair_style tri/lj cutoff :pre
 
 cutoff = global cutoff for interactions (distance units)
 
 [Examples:]
 
-pair_style tri 3.0
+pair_style tri/lj 3.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5 :pre
 
 [Description:]
 
-Style {tri} treats particles which are triangles as a set of small
+Style {tri/lj} treats particles which are triangles as a set of small
 spherical particles that tile the triangle surface as explained below.
 Interactions between two triangles, each with N1 and N2 spherical
 particles, are calculated as the pairwise sum of N1*N2 Lennard-Jones
@@ -64,10 +64,10 @@ using only sigma_II values, specific to the triangles's type, this
 means that any specified sigma_IJ values (for I != J) are effectively
 ignored.
 
-For style {tri}, the following coefficients must be defined for each
-pair of atoms types via the "pair_coeff"_pair_coeff.html command as in
-the examples above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
+For style {tri/lj}, the following coefficients must be defined for
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command
+as in the examples above, or in the data file or restart files read by
+the "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
 epsilon (energy units)
@@ -110,6 +110,6 @@ tri"_atom_style.html command.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_style line/lj"_pair_line_lj.html
 
 [Default:] none

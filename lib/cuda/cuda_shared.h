@@ -81,6 +81,7 @@ struct cuda_shared_atom		// relevent data from atom class
 	
  	int update_nlocal;
  	int update_nmax;
+ 	int update_neigh;
  	
 	dev_array xhold;	    // position at last neighboring
  	X_FLOAT triggerneighsq;		// maximum square movement before reneighboring

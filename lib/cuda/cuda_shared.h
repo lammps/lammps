@@ -141,6 +141,7 @@ struct cuda_shared_pair		// relevent data from pair class
 	int collect_forces_later;
 	int use_block_per_atom;
 	int override_block_per_atom;
+	bool neighall;
 	
 };
 
@@ -217,7 +218,7 @@ struct cuda_shared_pppm
    int nlower;
    int nupper;
    PPPM_FLOAT shiftone;
-   
+   PPPM_FLOAT3* fH;
 };
 
 struct cuda_shared_comm

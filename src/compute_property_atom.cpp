@@ -11,10 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "math.h"
 #include "string.h"
 #include "compute_property_atom.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "update.h"
 #include "domain.h"
 #include "memory.h"
@@ -173,39 +177,39 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyAtom::pack_angmomz;
 
     } else if (strcmp(arg[iarg],"shapex") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapex;
     } else if (strcmp(arg[iarg],"shapey") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapey;
     } else if (strcmp(arg[iarg],"shapez") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapez;
     } else if (strcmp(arg[iarg],"quatw") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
-      avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec) error->all(FLERR,"Compute property/atom for "
-			    "atom property that isn't allocated");
+      avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
+				      "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatk;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
@@ -243,6 +247,83 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Compute property/atom for "
 		   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_erforce;
+
+    } else if (strcmp(arg[iarg],"end1x") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end1x;
+    } else if (strcmp(arg[iarg],"end1y") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end1y;
+    } else if (strcmp(arg[iarg],"end1z") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end1z;
+    } else if (strcmp(arg[iarg],"end2x") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end2x;
+    } else if (strcmp(arg[iarg],"end2y") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end2y;
+    } else if (strcmp(arg[iarg],"end2z") == 0) {
+      avec_line = (AtomVecLine *) atom->style_match("line");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_end2z;
+
+    } else if (strcmp(arg[iarg],"corner1x") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner1x;
+    } else if (strcmp(arg[iarg],"corner1y") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner1y;
+    } else if (strcmp(arg[iarg],"corner1z") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner1z;
+    } else if (strcmp(arg[iarg],"corner2x") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner2x;
+    } else if (strcmp(arg[iarg],"corner2y") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner2y;
+    } else if (strcmp(arg[iarg],"corner2z") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner2z;
+    } else if (strcmp(arg[iarg],"corner3x") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner3x;
+    } else if (strcmp(arg[iarg],"corner3y") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner3y;
+    } else if (strcmp(arg[iarg],"corner3z") == 0) {
+      avec_tri = (AtomVecTri *) atom->style_match("tri");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
+				 "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
     } else error->all(FLERR,"Invalid keyword in compute property/atom command");
   }
@@ -994,7 +1075,7 @@ void ComputePropertyAtom::pack_angmomz(int n)
 
 void ComputePropertyAtom::pack_shapex(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1011,7 +1092,7 @@ void ComputePropertyAtom::pack_shapex(int n)
 
 void ComputePropertyAtom::pack_shapey(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1028,7 +1109,7 @@ void ComputePropertyAtom::pack_shapey(int n)
 
 void ComputePropertyAtom::pack_shapez(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1045,7 +1126,7 @@ void ComputePropertyAtom::pack_shapez(int n)
 
 void ComputePropertyAtom::pack_quatw(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1062,7 +1143,7 @@ void ComputePropertyAtom::pack_quatw(int n)
 
 void ComputePropertyAtom::pack_quati(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1079,7 +1160,7 @@ void ComputePropertyAtom::pack_quati(int n)
 
 void ComputePropertyAtom::pack_quatj(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1096,7 +1177,7 @@ void ComputePropertyAtom::pack_quatj(int n)
 
 void ComputePropertyAtom::pack_quatk(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1210,6 +1291,297 @@ void ComputePropertyAtom::pack_erforce(int n)
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = erforce[i];
     else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end1x(int n)
+{
+  AtomVecLine::Bonus *bonus = avec_line->bonus;
+  int *line = atom->line;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && line[i] >= 0)
+      buf[n] = x[i][0] - 0.5*bonus[line[i]].length*cos(bonus[line[i]].theta);
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end1y(int n)
+{
+  AtomVecLine::Bonus *bonus = avec_line->bonus;
+  int *line = atom->line;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && line[i] >= 0)
+      buf[n] = x[i][1] - 0.5*bonus[line[i]].length*sin(bonus[line[i]].theta);
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end1z(int n)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = x[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end2x(int n)
+{
+  AtomVecLine::Bonus *bonus = avec_line->bonus;
+  int *line = atom->line;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && line[i] >= 0)
+      buf[n] = x[i][0] + 0.5*bonus[line[i]].length*cos(bonus[line[i]].theta);
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end2y(int n)
+{
+  AtomVecLine::Bonus *bonus = avec_line->bonus;
+  int *line = atom->line;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && line[i] >= 0)
+      buf[n] = x[i][1] + 0.5*bonus[line[i]].length*sin(bonus[line[i]].theta);
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_end2z(int n)
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = x[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner1x(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c1,c);
+      buf[n] = x[i][0] + c[0];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner1y(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c1,c);
+      buf[n] = x[i][1] + c[1];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner1z(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c1,c);
+      buf[n] = x[i][2] + c[2];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner2x(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c2,c);
+      buf[n] = x[i][0] + c[0];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner2y(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c2,c);
+      buf[n] = x[i][1] + c[1];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner2z(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c2,c);
+      buf[n] = x[i][2] + c[2];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner3x(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c3,c);
+      buf[n] = x[i][0] + c[0];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner3y(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c3,c);
+      buf[n] = x[i][1] + c[1];
+    } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_corner3z(int n)
+{
+  AtomVecTri::Bonus *bonus = avec_tri->bonus;
+  int *tri = atom->tri;
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double p[3][3],c[3];
+  for (int i = 0; i < nlocal; i++) {
+    if ((mask[i] & groupbit) && tri[i] >= 0) {
+      MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+      MathExtra::matvec(p,bonus[tri[i]].c3,c);
+      buf[n] = x[i][2] + c[2];
+    } else buf[n] = 0.0;
     n += nvalues;
   }
 }

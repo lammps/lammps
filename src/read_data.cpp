@@ -21,6 +21,8 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -42,7 +44,10 @@ using namespace LAMMPS_NS;
 #define DELTA 4            // must be 2 or larger
 
                            // customize for new sections
-#define NSECTIONS 21       // change when add to header::section_keywords
+#define NSECTIONS 23       // change when add to header::section_keywords
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -60,6 +65,10 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 
   nellipsoids = 0;
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  nlines = 0;
+  avec_line = (AtomVecLine *) atom->style_match("line");
+  ntris = 0;
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +160,17 @@ void ReadData::command(int narg, char **arg)
       if (!avec_ellipsoid) 
 	error->all(FLERR,"Invalid data file section: Ellipsoids");
       if (atomflag == 0) error->all(FLERR,"Must read Atoms before Ellipsoids");
-      ellipsoids();
+      bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
+    } else if (strcmp(keyword,"Lines") == 0) {
+      if (!avec_line) 
+	error->all(FLERR,"Invalid data file section: Lines");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Lines");
+      bonus(nlines,(AtomVec *) avec_line,"lines");
+    } else if (strcmp(keyword,"Triangles") == 0) {
+      if (!avec_tri) 
+	error->all(FLERR,"Invalid data file section: Triangles");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Triangles");
+      bonus(ntris,(AtomVec *) avec_tri,"triangles");
 
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (atom->avec->bonds_allow == 0) 
@@ -222,25 +241,31 @@ void ReadData::command(int narg, char **arg)
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before MiddleBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "MiddleBondTorsion Coeffs");
       dihedralcoeffs(1);
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before EndBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before EndBondTorsion Coeffs");
       dihedralcoeffs(2);
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before AngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before AngleTorsion Coeffs");
       dihedralcoeffs(3);
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before AngleAngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "AngleAngleTorsion Coeffs");
       dihedralcoeffs(4);
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
@@ -274,7 +299,8 @@ void ReadData::command(int narg, char **arg)
   
   // error if natoms > 0 yet no atoms were read
 
-  if (atom->natoms > 0 && atomflag == 0) error->all(FLERR,"No atoms in data file");
+  if (atom->natoms > 0 && atomflag == 0) 
+    error->all(FLERR,"No atoms in data file");
 
   // create bond topology now that system is defined
 
@@ -303,7 +329,7 @@ void ReadData::header(int flag)
   // customize for new sections
 
   char *section_keywords[NSECTIONS] = 
-    {"Atoms","Velocities","Ellipsoids",
+    {"Atoms","Velocities","Ellipsoids","Lines","Triangles",
      "Bonds","Angles","Dihedrals","Impropers",
      "Masses","Pair Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
@@ -373,6 +399,14 @@ void ReadData::header(int flag)
       if (!avec_ellipsoid)
 	error->all(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
+    } else if (strstr(line,"lines")) {
+      if (!avec_line)
+	error->all(FLERR,"No lines allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&nlines);
+    } else if (strstr(line,"triangles")) {
+      if (!avec_tri)
+	error->all(FLERR,"No triangles allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&ntris);
     }
 
     else if (strstr(line,"xlo xhi")) 
@@ -475,7 +509,8 @@ void ReadData::atoms()
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
-  if (natoms != atom->natoms) error->all(FLERR,"Did not assign all atoms correctly");
+  if (natoms != atom->natoms) 
+    error->all(FLERR,"Did not assign all atoms correctly");
   
   // if any atom ID < 0, error
   // if all atom IDs = 0, tag_enable = 0
@@ -568,11 +603,11 @@ void ReadData::velocities()
 }
 
 /* ----------------------------------------------------------------------
-   read all ellipsoids
+   read all bonus data
    to find atoms, must build atom map if not a molecular system 
 ------------------------------------------------------------------------- */
 
-void ReadData::ellipsoids()
+void ReadData::bonus(bigint nbonus, AtomVec *ptr, char *type)
 {
   int i,m,nchunk;
 
@@ -585,7 +620,7 @@ void ReadData::ellipsoids()
   }
 
   bigint nread = 0;
-  bigint natoms = nellipsoids;
+  bigint natoms = nbonus;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
@@ -603,7 +638,7 @@ void ReadData::ellipsoids()
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    atom->data_bonus(nchunk,buffer,avec_ellipsoid);
+    atom->data_bonus(nchunk,buffer,ptr);
     nread += nchunk;
   }
 
@@ -613,8 +648,8 @@ void ReadData::ellipsoids()
   }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " %s\n",natoms,type);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " %s\n",natoms,type);
   }
 }
 
@@ -660,7 +695,8 @@ void ReadData::bonds()
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",sum/factor);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
   }
-  if (sum != factor*atom->nbonds) error->all(FLERR,"Bonds assigned incorrectly");
+  if (sum != factor*atom->nbonds) 
+    error->all(FLERR,"Bonds assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -705,7 +741,8 @@ void ReadData::angles()
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",sum/factor);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
   }
-  if (sum != factor*atom->nangles) error->all(FLERR,"Angles assigned incorrectly");
+  if (sum != factor*atom->nangles) 
+    error->all(FLERR,"Angles assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1010,6 +1047,8 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   int natoms = static_cast<int> (atom->natoms);
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   int ellipsoid_flag = 0;
+  int line_flag = 0;
+  int tri_flag = 0;
 
   // customize for new sections
   // allocate topology counting vector
@@ -1031,6 +1070,14 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 	error->all(FLERR,"Invalid data file section: Ellipsoids");
       ellipsoid_flag = 1;
       skip_lines(nellipsoids);
+    } else if (strcmp(keyword,"Lines") == 0) {
+      if (!avec_line) error->all(FLERR,"Invalid data file section: Lines");
+      line_flag = 1;
+      skip_lines(nlines);
+    } else if (strcmp(keyword,"Triangles") == 0) {
+      if (!avec_tri) error->all(FLERR,"Invalid data file section: Triangles");
+      tri_flag = 1;
+      skip_lines(ntris);
 
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
@@ -1077,25 +1124,31 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before MiddleBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "MiddleBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before EndBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before EndBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before AngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before AngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
 	error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all(FLERR,"Must define dihedral_style before AngleAngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "AngleAngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
@@ -1251,6 +1304,10 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   // error check that Bonus sections were speficied in file
 
   if (nellipsoids && !ellipsoid_flag)
+    error->one(FLERR,"Needed bonus data not in data file");
+  if (nlines && !line_flag)
+    error->one(FLERR,"Needed bonus data not in data file");
+  if (ntris && !tri_flag)
     error->one(FLERR,"Needed bonus data not in data file");
 }
 

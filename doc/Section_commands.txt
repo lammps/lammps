@@ -807,8 +807,10 @@ package"_Section_accelerate.html.
 "resquared/gpu"_pair_resquared.html 
 "resquared/omp"_pair_resquared.html,
 "soft/omp"_pair_soft.html,
+"sw/cuda"_pair_sw.html,
 "sw/omp"_pair_sw.html,
 "table/omp"_pair_table.html,
+"tersoff/cuda"_pair_tersoff.html,
 "tersoff/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
 "yukawa/omp"_pair_yukawa.html,

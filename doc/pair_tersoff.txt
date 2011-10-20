@@ -11,6 +11,7 @@ pair_style tersoff command :h3
 [Syntax:]
 
 pair_style tersoff :pre
+pair_style tersoff/cuda :pre
 pair_style tersoff/omp :pre
 
 [Examples:]

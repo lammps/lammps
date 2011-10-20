@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(tri,PairTri)
+PairStyle(tri/lj,PairTriLJ)
 
 #else
 
-#ifndef LMP_PAIR_TRI_H
-#define LMP_PAIR_TRI_H
+#ifndef LMP_PAIR_TRI_LJ_H
+#define LMP_PAIR_TRI_LJ_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairTri : public Pair {
+class PairTriLJ : public Pair {
  public:
-  PairTri(class LAMMPS *);
-  ~PairTri();
+  PairTriLJ(class LAMMPS *);
+  ~PairTriLJ();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

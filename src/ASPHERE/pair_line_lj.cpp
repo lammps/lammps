@@ -15,7 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "pair_line.h"
+#include "pair_line_lj.h"
 #include "atom.h"
 #include "atom_vec_line.h"
 #include "force.h"
@@ -30,10 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLine::PairLine(LAMMPS *lmp) : Pair(lmp)
+PairLineLJ::PairLineLJ(LAMMPS *lmp) : Pair(lmp)
 {
   avec = (AtomVecLine *) atom->style_match("line");
-  if (!avec) error->all(FLERR,"Pair line requires atom style line");
+  if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
 
   dmax = nmax = 0;
   discrete = NULL;
@@ -44,7 +44,7 @@ PairLine::PairLine(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairLine::~PairLine()
+PairLineLJ::~PairLineLJ()
 {
   memory->sfree(discrete);
   memory->destroy(dnum);
@@ -66,7 +66,7 @@ PairLine::~PairLine()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLine::compute(int eflag, int vflag)
+void PairLineLJ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst;
@@ -307,7 +307,7 @@ void PairLine::compute(int eflag, int vflag)
    allocate all arrays 
 ------------------------------------------------------------------------- */
 
-void PairLine::allocate()
+void PairLineLJ::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -332,7 +332,7 @@ void PairLine::allocate()
    global settings 
 ------------------------------------------------------------------------- */
 
-void PairLine::settings(int narg, char **arg)
+void PairLineLJ::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
@@ -352,7 +352,7 @@ void PairLine::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLine::coeff(int narg, char **arg)
+void PairLineLJ::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 5) 
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -386,7 +386,7 @@ void PairLine::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLine::init_one(int i, int j)
+double PairLineLJ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -415,7 +415,7 @@ double PairLine::init_one(int i, int j)
    store new discrete particles in Discrete list
 ------------------------------------------------------------------------- */
 
-void PairLine::discretize(int i, double sigma)
+void PairLineLJ::discretize(int i, double sigma)
 {
   AtomVecLine::Bonus *bonus = avec->bonus;
   double length = bonus[atom->line[i]].length;

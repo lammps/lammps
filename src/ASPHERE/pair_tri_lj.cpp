@@ -15,7 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "pair_tri.h"
+#include "pair_tri_lj.h"
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_tri.h"
@@ -31,10 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairTri::PairTri(LAMMPS *lmp) : Pair(lmp)
+PairTriLJ::PairTriLJ(LAMMPS *lmp) : Pair(lmp)
 {
   avec = (AtomVecTri *) atom->style_match("tri");
-  if (!avec) error->all(FLERR,"Pair tri requires atom style tri");
+  if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
 
   dmax = nmax = 0;
   discrete = NULL;
@@ -45,7 +45,7 @@ PairTri::PairTri(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairTri::~PairTri()
+PairTriLJ::~PairTriLJ()
 {
   memory->sfree(discrete);
   memory->destroy(dnum);
@@ -67,7 +67,7 @@ PairTri::~PairTri()
 
 /* ---------------------------------------------------------------------- */
 
-void PairTri::compute(int eflag, int vflag)
+void PairTriLJ::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst;
@@ -391,7 +391,7 @@ void PairTri::compute(int eflag, int vflag)
    allocate all arrays 
 ------------------------------------------------------------------------- */
 
-void PairTri::allocate()
+void PairTriLJ::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -416,7 +416,7 @@ void PairTri::allocate()
    global settings 
 ------------------------------------------------------------------------- */
 
-void PairTri::settings(int narg, char **arg)
+void PairTriLJ::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
@@ -436,7 +436,7 @@ void PairTri::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairTri::coeff(int narg, char **arg)
+void PairTriLJ::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 5) 
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -470,7 +470,7 @@ void PairTri::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairTri::init_one(int i, int j)
+double PairTriLJ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -501,7 +501,7 @@ double PairTri::init_one(int i, int j)
    store new discrete particles in Discrete list
 ------------------------------------------------------------------------- */
 
-void PairTri::discretize(int i, double sigma,
+void PairTriLJ::discretize(int i, double sigma,
 			  double *c1, double *c2, double *c3)
 {
   double c1c2[3],c2c3[3],c1c3[3];
@@ -579,7 +579,7 @@ void PairTri::discretize(int i, double sigma,
 ------------------------------------------------------------------------- */
 
 /*
-void PairTri::discretize(int i, double sigma,
+void PairTriLJ::discretize(int i, double sigma,
 			  double *c1, double *c2, double *c3)
 {
   double centroid[3],dc1[3],dc2[3],dc3[3];

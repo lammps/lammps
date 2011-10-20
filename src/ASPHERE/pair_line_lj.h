@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(line,PairLine)
+PairStyle(line/lj,PairLineLJ)
 
 #else
 
-#ifndef LMP_PAIR_LINE_H
-#define LMP_PAIR_LINE_H
+#ifndef LMP_PAIR_LINE_LJ_H
+#define LMP_PAIR_LINE_LJ_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairLine : public Pair {
+class PairLineLJ : public Pair {
  public:
-  PairLine(class LAMMPS *);
-  ~PairLine();
+  PairLineLJ(class LAMMPS *);
+  ~PairLineLJ();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

@@ -26,19 +26,18 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -550,9 +549,9 @@ void ImproperClass2::coeff(int narg, char **arg)
       aa_k1[i] = k1_one;
       aa_k2[i] = k2_one;
       aa_k3[i] = k3_one;
-      aa_theta0_1[i] = theta0_1_one/180.0 * PI;
-      aa_theta0_2[i] = theta0_2_one/180.0 * PI;
-      aa_theta0_3[i] = theta0_3_one/180.0 * PI;
+      aa_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      aa_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
+      aa_theta0_3[i] = theta0_3_one/180.0 * MY_PI;
       setflag_aa[i] = 1;
       count++;
     }
@@ -567,7 +566,7 @@ void ImproperClass2::coeff(int narg, char **arg)
 
     for (int i = ilo; i <= ihi; i++) {
       k0[i] = k0_one;
-      chi0[i] = chi0_one/180.0 * PI;
+      chi0[i] = chi0_one/180.0 * MY_PI;
       setflag_i[i] = 1;
       count++;
     }

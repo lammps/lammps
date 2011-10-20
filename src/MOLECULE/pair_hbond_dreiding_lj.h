@@ -38,7 +38,6 @@ class PairHbondDreidingLJ : public Pair {
  protected:
   double cut_inner_global,cut_outer_global,cut_angle_global;
   int ap_global;
-  double PI;
 
   struct Param {
     double epsilon,sigma;

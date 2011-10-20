@@ -29,10 +29,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
@@ -52,8 +54,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ----------------------------------------------------------------------
@@ -1218,8 +1218,8 @@ double PairAIREBO::Sp(double Xij, double Xmin, double Xmax, double &dX)
     dX = 0.0;
   } 
   else {
-    cutoff = 0.5 * (1.0+cos(PI*t));
-    dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
+    cutoff = 0.5 * (1.0+cos(MY_PI*t));
+    dX = (-MY_PI2*sin(MY_PI*t)) / (Xmax-Xmin);
   }
   return cutoff;
 }

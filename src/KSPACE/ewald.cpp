@@ -26,10 +26,12 @@
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.00001
 
@@ -40,7 +42,6 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   precision = atof(arg[0]);
-  PI = 4.0*atan(1.0);
 
   kmax = 0;
   kxvecs = kyvecs = kzvecs = NULL;
@@ -165,17 +166,17 @@ void Ewald::setup()
   double zprd_slab = zprd*slab_volfactor;
   volume = xprd * yprd * zprd_slab;
 
-  unitk[0] = 2.0*PI/xprd;
-  unitk[1] = 2.0*PI/yprd;
-  unitk[2] = 2.0*PI/zprd_slab;
+  unitk[0] = 2.0*MY_PI/xprd;
+  unitk[1] = 2.0*MY_PI/yprd;
+  unitk[2] = 2.0*MY_PI/zprd_slab;
 
   // determine kmax
   // function of current box size, precision, G_ewald (short-range cutoff)
 
-  int nkxmx = static_cast<int> ((g_ewald*xprd/PI) * sqrt(-log(precision)));
-  int nkymx = static_cast<int> ((g_ewald*yprd/PI) * sqrt(-log(precision)));
+  int nkxmx = static_cast<int> ((g_ewald*xprd/MY_PI) * sqrt(-log(precision)));
+  int nkymx = static_cast<int> ((g_ewald*yprd/MY_PI) * sqrt(-log(precision)));
   int nkzmx = 
-    static_cast<int> ((g_ewald*zprd_slab/PI) * sqrt(-log(precision)));
+    static_cast<int> ((g_ewald*zprd_slab/MY_PI) * sqrt(-log(precision)));
 
   int kmax_old = kmax;
   kmax = MAX(nkxmx,nkymx);
@@ -281,9 +282,8 @@ void Ewald::compute(int eflag, int vflag)
     for (k = 0; k < kcount; k++)
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
 			 sfacim_all[k]*sfacim_all[k]);
-    PI = 4.0*atan(1.0);
     energy -= g_ewald*qsqsum/1.772453851 + 
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
 
@@ -495,7 +495,7 @@ void Ewald::coeffs()
   double unitky = unitk[1];
   double unitkz = unitk[2];
   double g_ewald_sq_inv = 1.0 / (g_ewald*g_ewald);
-  double preu = 4.0*PI/volume;
+  double preu = 4.0*MY_PI/volume;
 
   kcount = 0;
 
@@ -817,13 +817,13 @@ void Ewald::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   
   if (eflag) energy += qqrd2e*scale * e_slabcorr;
 
   // add on force corrections
 
-  double ffact = -4.0*PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;

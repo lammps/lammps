@@ -30,6 +30,7 @@
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"
+#include "math_const.h"
 #include "error.h"
 #include "memory.h"
 
@@ -38,6 +39,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define NCOLORS 140
 #define NELEMENTS 109
@@ -56,8 +58,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
-
-  PI = 4.0*atan(1.0);
 
   // set filetype based on filename suffix
 
@@ -95,8 +95,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     bdiamvalue = 0.5;
   }
   width = height = 512;
-  theta = 60.0 * PI/180.0;
-  phi = 30.0 * PI/180.0;
+  theta = 60.0 * MY_PI/180.0;
+  phi = 30.0 * MY_PI/180.0;
   thetastr = phistr = NULL;
   cflag = STATIC;
   cx = cy = cz = 0.5;
@@ -171,7 +171,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 	theta = atof(arg[iarg+1]);
 	if (theta < 0.0 || theta > 180.0)
 	  error->all(FLERR,"Invalid dump image theta value");
-	theta *= PI/180.0;
+	theta *= MY_PI/180.0;
       }
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
@@ -179,7 +179,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 	strcpy(phistr,&arg[iarg+2][2]);
       } else {
 	phi = atof(arg[iarg+2]);
-	phi *= PI/180.0;
+	phi *= MY_PI/180.0;
       }
       iarg += 3;
 
@@ -358,25 +358,25 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // static parameters
 
-  FOV = PI/6.0;              // 30 degrees
+  FOV = MY_PI/6.0;              // 30 degrees
   ambientColor[0] = 0.0;
   ambientColor[1] = 0.0;
   ambientColor[2] = 0.0;
 
-  keyLightPhi = -PI/4.0;     // -45 degrees
-  keyLightTheta = PI/6.0;    // 30 degrees
+  keyLightPhi = -MY_PI4;     // -45 degrees
+  keyLightTheta = MY_PI/6.0;    // 30 degrees
   keyLightColor[0] = 0.9;
   keyLightColor[1] = 0.9;
   keyLightColor[2] = 0.9;
 
-  fillLightPhi = PI/6.0;     // 30 degrees
+  fillLightPhi = MY_PI/6.0;     // 30 degrees
   fillLightTheta = 0; 
   fillLightColor[0] = 0.45;
   fillLightColor[1] = 0.45;
   fillLightColor[2] = 0.45;
 
-  backLightPhi = PI;         // 180 degrees
-  backLightTheta = PI/12.0;  // 15 degrees
+  backLightPhi = MY_PI;         // 180 degrees
+  backLightTheta = MY_PI/12.0;  // 15 degrees
   backLightColor[0] = 0.9;
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
@@ -676,11 +676,11 @@ void DumpImage::view_params()
     theta = input->variable->compute_equal(thetavar);
     if (theta < 0.0 || theta > 180.0)
       error->all(FLERR,"Invalid dump image theta value");
-    theta *= PI/180.0;
+    theta *= MY_PI/180.0;
   }
   if (phistr) {
     phi = input->variable->compute_equal(phivar);
-    phi *= PI/180.0;
+    phi *= MY_PI/180.0;
   }
 
   camDir[0] = sin(theta)*cos(phi);
@@ -764,7 +764,7 @@ void DumpImage::view_params()
   if (ssao) {
     SSAORadius = maxdel * 0.05 * ssaoint;
     SSAOSamples = static_cast<int> (8.0 + 32.0*ssaoint);
-    SSAOJitter = PI / 12;
+    SSAOJitter = MY_PI / 12;
     ambientColor[0] = 0.5;
     ambientColor[1] = 0.5;
     ambientColor[2] = 0.5;
@@ -1358,7 +1358,7 @@ void DumpImage::compute_SSAO()
 {
   // used for rasterizing the spheres
 
-  double delTheta = 2.0*PI / SSAOSamples;
+  double delTheta = 2.0*MY_PI / SSAOSamples;
 
   // typical neighborhood value for shading
 

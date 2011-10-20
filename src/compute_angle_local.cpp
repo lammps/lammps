@@ -20,10 +20,12 @@
 #include "domain.h"
 #include "force.h"
 #include "angle.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 
@@ -133,7 +135,6 @@ int ComputeAngleLocal::compute_angles(int flag)
   }
 
   Angle *angle = force->angle;
-  double PI = 4.0*atan(1.0);
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -170,7 +171,7 @@ int ComputeAngleLocal::compute_angles(int flag)
 	  c /= r1*r2;
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  tbuf[n] = 180.0*acos(c)/PI;
+	  tbuf[n] = 180.0*acos(c)/MY_PI;
 	}
 
 	if (eflag >= 0) {

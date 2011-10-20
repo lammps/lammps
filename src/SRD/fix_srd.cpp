@@ -34,10 +34,12 @@
 #include "fix_wall_srd.h"
 #include "random_mars.h"
 #include "random_park.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{SLIP,NOSLIP};
 enum{SPHERE,ELLIPSOID,WALL};
@@ -2087,8 +2089,6 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
 
 void FixSRD::parameterize()
 {
-  double PI = 4.0*atan(1.0);
-
   // timesteps
 
   dt_big = update->dt;
@@ -2194,20 +2194,20 @@ void FixSRD::parameterize()
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
 	if (radius && radius[i] > 0.0)
-	  volbig += 4.0/3.0*PI*radius[i]*radius[i]*radius[i];
+	  volbig += 4.0/3.0*MY_PI*radius[i]*radius[i]*radius[i];
 	else if (ellipsoid && ellipsoid[i] >= 0) {
 	  double *shape = ebonus[ellipsoid[i]].shape;
-	  volbig += 4.0/3.0*PI * shape[0]*shape[1]*shape[2];
+	  volbig += 4.0/3.0*MY_PI * shape[0]*shape[1]*shape[2];
 	}
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
 	if (radius && radius[i] > 0.0)
-	  volbig += PI*radius[i]*radius[i];
+	  volbig += MY_PI*radius[i]*radius[i];
 	else if (ellipsoid && ellipsoid[i] >= 0) {
 	  double *shape = ebonus[ellipsoid[i]].shape;
-	  volbig += PI*shape[0]*shape[1];
+	  volbig += MY_PI*shape[0]*shape[1];
 	}
       }
   }

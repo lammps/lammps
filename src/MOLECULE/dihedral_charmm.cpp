@@ -27,10 +27,12 @@
 #include "force.h"
 #include "pair.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 
@@ -344,14 +346,12 @@ void DihedralCharmm::coeff(int narg, char **arg)
   if (weight_one < 0.0 || weight_one > 1.0) 
     error->all(FLERR,"Incorrect weight arg for dihedral coefficients");
 
-  double PI = 4.0*atan(1.0);
-                       
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
     shift[i] = shift_one;
-    cos_shift[i] = cos(PI*shift_one/180.0);
-    sin_shift[i] = sin(PI*shift_one/180.0);
+    cos_shift[i] = cos(MY_PI*shift_one/180.0);
+    sin_shift[i] = sin(MY_PI*shift_one/180.0);
     multiplicity[i] = multiplicity_one;
     weight[i] = weight_one;
     setflag[i] = 1;
@@ -420,10 +420,9 @@ void DihedralCharmm::read_restart(FILE *fp)
   MPI_Bcast(&shift[1],atom->ndihedraltypes,MPI_INT,0,world);
   MPI_Bcast(&weight[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
 
-  double PI = 4.0*atan(1.0);
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     setflag[i] = 1;
-    cos_shift[i] = cos(PI*shift[i]/180.0);
-    sin_shift[i] = sin(PI*shift[i]/180.0);
+    cos_shift[i] = cos(MY_PI*shift[i]/180.0);
+    sin_shift[i] = sin(MY_PI*shift[i]/180.0);
   }
 }

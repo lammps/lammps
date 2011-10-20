@@ -53,7 +53,6 @@ class FixShakeCuda : public Fix {
  private:
   class Cuda *cuda;
   int me,nprocs;
-  double PI;
   double tolerance;                      // SHAKE tolerance
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often

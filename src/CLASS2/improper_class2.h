@@ -38,7 +38,6 @@ class ImproperClass2 : public Improper {
   double *k0,*chi0;
   double *aa_k1,*aa_k2,*aa_k3,*aa_theta0_1,*aa_theta0_2,*aa_theta0_3;
   int *setflag_i,*setflag_aa;
-  double PI;
 
   void allocate();
   void angleangle(int, int);

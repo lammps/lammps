@@ -19,10 +19,12 @@
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -259,7 +261,6 @@ double PairLJExpand::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-    double PI = 4.0*atan(1.0);
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double shiftcut = shift[i][j] - cut[i][j];
@@ -273,11 +274,11 @@ double PairLJExpand::init_one(int i, int j)
     double rc12 = rc11*shiftcut;
     double shift2 = shift[i][j]*shift[i][j];
     double shift3 = shift2*shift[i][j];
-    etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6*((-1.0/(9.0*rc9) + shift[i][j]/(5.0*rc10) -
              shift2/(11.0*rc11))*sig6 + 
 	    1.0/(3.0*rc3) - shift[i][j]/(2.0*rc4) + shift2/(5.0*rc5));
-    ptail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6* ((-4.0/(3.0*rc9) + 18.0*shift[i][j]/(5.0*rc10) -
 	     36.0*shift2/(11.0*rc11) + shift3/rc12)*sig6 + 
 	     2.0/rc3 - 9.0*shift[i][j]/(2.0*rc4) + 

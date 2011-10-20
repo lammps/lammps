@@ -30,10 +30,12 @@
 #include "random_park.h"
 #include "force.h"
 #include "pair.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,10 +73,9 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // compute beta, lambda, sigma, and the zz factor
   
   beta = 1.0/(force->boltz*reservoir_temperature);
-  double PI = 4.0*atan(1.0);
   double gas_mass = atom->mass[ntype];
   double lambda = sqrt(force->hplanck*force->hplanck/
-		       (2.0*PI*gas_mass*force->mvv2e*
+		       (2.0*MY_PI*gas_mass*force->mvv2e*
 			force->boltz*reservoir_temperature));
   sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
   zz = exp(beta*chemical_potential)/(pow(lambda,3));

@@ -26,11 +26,13 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
+#include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 #define CHUNK 8
@@ -43,8 +45,6 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   // due to using map() to find bonded H atoms which are not near donor atom
 
   no_virial_fdotr_compute = 1;
-
-  PI = 4.0*atan(1.0);
 
   nparams = maxparam = 0;
   params = NULL;
@@ -159,7 +159,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 	  if (c < -1.0) c = -1.0;
 	  ac = acos(c);
 
-	  if (ac > pm->cut_angle && ac < (2.0*PI - pm->cut_angle)) {
+	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
 	    s = sqrt(1.0 - c*c);
 	    if (s < SMALL) s = SMALL;
 
@@ -279,7 +279,7 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
   ap_global = force->inumeric(arg[0]);  
   cut_inner_global = force->numeric(arg[1]);
   cut_outer_global = force->numeric(arg[2]);
-  cut_angle_global = force->numeric(arg[3]) * PI/180.0;
+  cut_angle_global = force->numeric(arg[3]) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -316,7 +316,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = force->numeric(arg[9]) * PI/180.0;
+  if (narg == 10) cut_angle_one = force->numeric(arg[9]) * MY_PI/180.0;
   // grow params array if necessary
 
   if (nparams == maxparam) {
@@ -500,7 +500,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     if (c < -1.0) c = -1.0;
     ac = acos(c);
 
-    if (ac < pm->cut_angle || ac > (2.0*PI - pm->cut_angle)) return 0.0;
+    if (ac < pm->cut_angle || ac > (2.0*MY_PI - pm->cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
 

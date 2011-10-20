@@ -25,10 +25,12 @@
 #include "domain.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -269,7 +271,7 @@ void ImproperUmbrella::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     kw[i] = k_one;
-    w0[i] = w_one/180.0 * PI;
+    w0[i] = w_one/180.0 * MY_PI;
     if (w_one == 0) C[i] = 1.0;
     else C[i] = kw[i]/(pow(sin(w0[i]),2));
     setflag[i] = 1;

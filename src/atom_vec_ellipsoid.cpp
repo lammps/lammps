@@ -25,10 +25,12 @@
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 #define DELTA_BONUS 10000
@@ -52,8 +54,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp, int narg, char **arg) :
 
   atom->ellipsoid_flag = 1;
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
-
-  PI = 4.0*atan(1.0);
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = NULL;
@@ -1200,7 +1200,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  rmass[m] *= 4.0*PI/3.0 * shape[0]*shape[1]*shape[2];
+  rmass[m] *= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
 
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;

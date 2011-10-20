@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -323,7 +325,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
     // convert theta0 from degrees to radians
-    theta0[i] = theta0_one/180.0 * PI;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     epsilon[i] = epsilon_one;
     sigma[i] = sigma_one;
     rcut[i] = rcut_one; 

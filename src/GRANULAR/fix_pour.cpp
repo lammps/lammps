@@ -27,10 +27,12 @@
 #include "region_block.h"
 #include "region_cylinder.h"
 #include "random_park.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define EPSILON 0.001
 
@@ -53,8 +55,6 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   seed = atoi(arg[5]);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix pour command");
-
-  PI = 4.0*atan(1.0);
 
   // option defaults
 
@@ -214,11 +214,11 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       double dy = yhi - ylo;
       if (dy < 1.0) dy = 1.0;
       volume = (xhi-xlo) * dy * (zhi-zlo);
-    } else volume = PI*rc*rc * (zhi-zlo);
-    volume_one = 4.0/3.0 * PI * radius_hi*radius_hi*radius_hi;
+    } else volume = MY_PI*rc*rc * (zhi-zlo);
+    volume_one = 4.0/3.0 * MY_PI * radius_hi*radius_hi*radius_hi;
   } else {
     volume = (xhi-xlo) * (yhi-ylo);
-    volume_one = PI * radius_hi*radius_hi;
+    volume_one = MY_PI * radius_hi*radius_hi;
   }
 
   nper = static_cast<int> (volfrac*volume/volume_one);
@@ -472,7 +472,7 @@ void FixPour::pre_exchange()
       m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->radius[m] = radtmp;
-      atom->rmass[m] = 4.0*PI/3.0 * radtmp*radtmp*radtmp * denstmp;
+      atom->rmass[m] = 4.0*MY_PI/3.0 * radtmp*radtmp*radtmp * denstmp;
       atom->mask[m] = 1 | groupbit;
       atom->v[m][0] = vxtmp;
       atom->v[m][1] = vytmp;

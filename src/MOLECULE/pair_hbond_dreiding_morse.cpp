@@ -26,11 +26,13 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
+#include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 #define CHUNK 8
@@ -128,7 +130,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	  if (c < -1.0) c = -1.0;
 	  ac = acos(c);
 
-	  if (ac > pm->cut_angle && ac < (2.0*PI - pm->cut_angle)) {
+	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
 	    s = sqrt(1.0 - c*c);
 	    if (s < SMALL) s = SMALL;
 
@@ -242,7 +244,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg > 10) cut_angle_one = force->numeric(arg[10]) * PI/180.0;
+  if (narg > 10) cut_angle_one = force->numeric(arg[10]) * MY_PI/180.0;
 
   // grow params array if necessary
 
@@ -404,7 +406,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     if (c < -1.0) c = -1.0;
     ac = acos(c);
 
-    if (ac < pm->cut_angle || ac > (2.0*PI - pm->cut_angle)) return 0.0;
+    if (ac < pm->cut_angle || ac > (2.0*MY_PI - pm->cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
 

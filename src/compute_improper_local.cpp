@@ -20,10 +20,12 @@
 #include "domain.h"
 #include "force.h"
 #include "improper.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 
@@ -129,8 +131,6 @@ int ComputeImproperLocal::compute_impropers(int flag)
     }
   }
 
-  double PI = 4.0*atan(1.0);
-
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
@@ -188,7 +188,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  cbuf[n] = 180.0*acos(c)/PI;
+	  cbuf[n] = 180.0*acos(c)/MY_PI;
 	}
 	n += nvalues;
       }

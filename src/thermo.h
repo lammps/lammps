@@ -96,8 +96,6 @@ class Thermo : protected Pointers {
   char **id_variable;          // list of variable names
   int *variables;              // list of Variable indices
 
-  double PI;
-
   // private methods
 
   void allocate();

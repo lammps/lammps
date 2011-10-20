@@ -14,7 +14,7 @@ if (test $1 = 1) then
   cp pair_gayberne.cpp ..
   cp pair_line_lj.cpp ..
   cp pair_resquared.cpp ..
-  cp pair_tri_Lj.cpp ..
+  cp pair_tri_lj.cpp ..
 
   cp compute_erotate_asphere.h ..
   cp compute_temp_asphere.h ..

@@ -33,10 +33,7 @@ keyword = {lamda} or {collision} or {overlap} or {inside} or {exact} or {radius}
   {cubic} values = style tolerance
     style = {error} or {warn}
     tolerance = fractional difference allowed (0 <= tol <= 1)
-  {shift} values = style seed
-    style = {no} or {yes} or {possible}
-    seed = random # seed (positive integer)
-  {stream} value = {yes} or {no} = whether or not streaming velocity is added for shear deformation :pre
+  {tstat} value = {yes} or {no} = thermostat SRD particles or not :pre
 :ule
 
 [Examples:]
@@ -52,13 +49,14 @@ particles that serve as a background solvent when interacting with big
 in "(Hecht)"_#Hecht.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
-can be spheroids, ellipsoids, or rigid bodies containing multiples
-spherioids and ellipsoids.  The collision and rotation properties of
-the model imbue the SRD particles with fluid-like properties,
-including an effective viscosity.  Thus simulations with large solute
-particles can be run more quickly, to measure solute propoerties like
-diffusivity and viscosity in a background fluid.  The usual LAMMPS
-fixes for such simulations, such as "fix deform"_fix_deform.html, "fix
+can be spheroids, ellipsoids, or line segments, or triangles, or rigid
+bodies containing multiple spherioids or ellipsoids or line segments
+or triangles.  The collision and rotation properties of the model
+imbue the SRD particles with fluid-like properties, including an
+effective viscosity.  Thus simulations with large solute particles can
+be run more quickly, to measure solute propoerties like diffusivity
+and viscosity in a background fluid.  The usual LAMMPS fixes for such
+simulations, such as "fix deform"_fix_deform.html, "fix
 viscosity"_fix_viscosity.html, and "fix nvt/sllod"_fix_nvt_sllod.html,
 can be used in conjunction with the SRD model.
 
@@ -266,15 +264,19 @@ must still be specified.
 Note that shifting of SRD coordinates requires extra communication,
 hence it should not normally be enabled unless required.
 
-The {stream} keyword should be used when SRD particles are used with
-the "fix deform"_fix_deform.html command to perform a simulation
-undergoing shear, e.g. to measure a viscosity.  If the {stream} style
-is set to {yes}, then the mean velocity of each bin of SRD particles
-is set to the streaming velocity of the deforming box, each time SRD
-velocities are reset, every N timesteps.  If the {stream} style is set
-to {no}, then the mean velocity is unchanged, which may mean that it
-takes a long time for the SRD fluid to come to equilibrium with a
-velocity profile that matches the simulation box deformation.
+The {tstat} keyword will thermostat the SRD particles to the specified
+{Tsrd}.  This is done every N timesteps, during the velocity rotation
+operation, by rescaling the thermal velocity of particles in each SRD
+bin to the desired temperature.  If there is a streaming velocity
+associated with the system, e.g. due to use of the "fix
+deform"_fix_deform.html command to perform a simulation undergoing
+shear, then that is also accounted for.  The mean velocity of each bin
+of SRD particles is set to the position-dependent streaming velocity,
+based on the coordinates of the center of the SRD bin.  Note that for
+streaming simulations, if no thermostatting is performed (the
+default), then it may take a long time for the SRD fluid to come to
+equilibrium with a velocity profile that matches the simulation box
+deformation.
 
 :line
 
@@ -352,7 +354,7 @@ for more info on packages.
 
 The option defaults are lamda inferred from Tsrd, collision = noslip,
 overlap = no, inside = error, exact = yes, radius = 1.0, bounce = 0,
-search = hgrid, cubic = error 0.01, shift = no, stream = yes.
+search = hgrid, cubic = error 0.01, shift = no, tstat = no.
 
 :line
 

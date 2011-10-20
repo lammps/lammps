@@ -25,15 +25,19 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the rotational kinetic energy of
-a group of aspherical particles.
+a group of aspherical particles.  The aspherical particles can be
+ellipsoids, or line segments, or triangles.  See the
+<A HREF = "atom_style.html">atom_style</A> and <A HREF = "read_data.html">read_data</A> commands
+for descriptions of these options.
 </P>
-<P>The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-inertia tensor for the aspherical particle and w is its angular
-velocity, which is computed from its angular momentum.
+<P>For all 3 types of particles, the rotational kinetic energy is
+computed as 1/2 I w^2, where I is the inertia tensor for the
+aspherical particle and w is its angular velocity, which is computed
+from its angular momentum if needed.
 </P>
-<P>IMPORTANT NOTE: For <A HREF = "dimension.html">2d models</A>, particles are treated
-as ellipsoids, not ellipses, meaning their moments of inertia will be
-the same as in 3d.
+<P>IMPORTANT NOTE: For <A HREF = "dimension.html">2d models</A>, ellipsoidal particles
+are treated as ellipsoids, not ellipses, meaning their moments of
+inertia will be the same as in 3d.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -47,9 +51,17 @@ scalar value will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that atoms store a shape and quaternion
-orientation and angular momentum as defined by the <A HREF = "atom_style.html">atom_style
-ellipsoid</A> command.
+<P>This compute requires that ellipsoidal particles atoms store a shape
+and quaternion orientation and angular momentum as defined by the
+<A HREF = "atom_style.html">atom_style ellipsoid</A> command.
+</P>
+<P>This compute requires that line segment particles atoms store a length
+and orientation and angular velocity as defined by the <A HREF = "atom_style.html">atom_style
+line</A> command.
+</P>
+<P>This compute requires that triangular particles atoms store a size and
+shape and quaternion orientation and angular momentum as defined by
+the <A HREF = "atom_style.html">atom_style tri</A> command.
 </P>
 <P>All particles in the group must be finite-size.  They cannot be point
 particles.

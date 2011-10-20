@@ -78,12 +78,13 @@ portions of a large biomolecule such as a protein.
 <P>Example of small rigid bodies are patchy nanoparticles, such as those
 modeled in <A HREF = "#Zhang">this paper</A> by Sharon Glotzer's group, clumps of
 granular particles, lipid molecules consiting of one or more point
-dipoles connected to other spheroids or ellipsoids, and coarse-grain
-models of nano or colloidal particles consisting of a small number of
-constituent particles.  Note that the <A HREF = "fix_shake.html">fix shake</A>
-command can also be used to rigidify small molecules of 2, 3, or 4
-atoms, e.g. water molecules.  That fix treats the constituent atoms as
-point masses.
+dipoles connected to other spheroids or ellipsoids, irregular
+particles built from line segments (2d) or triangles (3d), and
+coarse-grain models of nano or colloidal particles consisting of a
+small number of constituent particles.  Note that the <A HREF = "fix_shake.html">fix
+shake</A> command can also be used to rigidify small
+molecules of 2, 3, or 4 atoms, e.g. water molecules.  That fix treats
+the constituent atoms as point masses.
 </P>
 <P>These fixes also update the positions and velocities of the atoms in
 each rigid body via time integration.  The <I>rigid</I> and <I>rigid/nve</I>
@@ -118,14 +119,14 @@ setforce</A> command), and integrating them as usual
 <HR>
 
 <P>The constituent particles within a rigid body can be point particles
-(the default in LAMMPS) or finite-size particles, such as spheres and
-ellipsoids.  See the <A HREF = "atom_style.html">atom_style sphere and ellipsoid</A>
-commands for more details on these kinds of particles.  Finite-size
-particles contribute differently to the moment of inertia of a rigid
-body than do point particles.  Finite-size particles can also
-experience torque (e.g. due to <A HREF = "pair_gran.html">frictional granular
-interactions</A>) and have an orientation.  These
-contributions are accounted for by these fixes.
+(the default in LAMMPS) or finite-size particles, such as spheres or
+ellipsoids or line segments or triangles.  See the <A HREF = "atom_style.html">atom_style sphere
+and ellipsoid and line and tri</A> commands for more
+details on these kinds of particles.  Finite-size particles contribute
+differently to the moment of inertia of a rigid body than do point
+particles.  Finite-size particles can also experience torque (e.g. due
+to <A HREF = "pair_gran.html">frictional granular interactions</A>) and have an
+orientation.  These contributions are accounted for by these fixes.
 </P>
 <P>Forces between particles within a body do not contribute to the
 external force or torque on the body.  Thus for computational

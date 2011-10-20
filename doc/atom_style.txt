@@ -13,8 +13,8 @@ atom_style command :h3
 atom_style style args :pre
 
 style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {meso} or {molecular} or \
-	{peri} or {sphere} or {hybrid} :ul
+        {electron} or {ellipsoid} or {full} or {line} or {meso} or \
+	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
 
@@ -58,10 +58,12 @@ quantities.
 {electron} | charge and spin and eradius | electronic force field |
 {ellipsoid} | shape, quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
+{line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
 {sphere} | diameter, mass, angular velocity | granular models |
+{tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
 All of the styles assign mass to particles on a per-type basis, using
@@ -69,8 +71,8 @@ the "mass"_mass.html command, except for the finite-size particle
 styles discussed below.  They assign mass on a per-atom basis.
 
 All of the styles define point particles, except the {sphere},
-{ellipsoid}, {electron}, {peri}, and {wavepacket} styles, which define
-finite-size particles.
+{ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, and {tri}
+styles, which define finite-size particles.
 
 For the {sphere} style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
@@ -100,6 +102,14 @@ cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
 have identical {etag} values.
 
+For the {line} style, the particles are idealized line segments and
+each stores a per-particle mass and length and orientation (i.e. the
+end points of the line segment).
+
+For the {tri} style, the particles are planar triangles and each
+stores a per-particle mass and size and orientation (i.e. the corner
+points of the triangle).
+
 :line
 
 Typically, simulations require only a single (non-hybrid) atom style.
@@ -126,14 +136,14 @@ This command cannot be used after the simulation box is defined by a
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
 MOLECULAR package.  The {dipole} style is part of the "dipole"
-package.  The {ellipsoid} style is part of the "asphere" package.  The
-{peri} style is part of the PERI package for Peridynamics.  The
-{electron} style is part of the USER-EFF package for "electronic force
-fields"_pair_eff.html.  The {meso} style is part of the USER-SPH
-package for smoothed particle hydrodyanmics (SPH).  See "this PDF
-guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in LAMMPS.  The
-{wavepacket} style is part of the USER-AWPMD package for the
-"antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
+package.  The {ellipsoid}, {line}, and {tri} styles are part of the
+"asphere" package.  The {peri} style is part of the PERI package for
+Peridynamics.  The {electron} style is part of the USER-EFF package
+for "electronic force fields"_pair_eff.html.  The {meso} style is part
+of the USER-SPH package for smoothed particle hydrodyanmics (SPH).
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.  The {wavepacket} style is part of the USER-AWPMD package for
+the "antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
 only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 

@@ -23,8 +23,11 @@ input = one or more atom attributes :l
 			angmomx, angmomy, angmomz,
 			shapex,shapey, shapez,
 		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
-			spin, eradius, ervel, erforce :pre
-
+			spin, eradius, ervel, erforce
+			end1x, end1y, end1z, end2x, end2y, end2z,
+			corner1x, corner1y, corner1z,
+			corner2x, corner2y, corner2z,
+			corner3x, corner3y, corner3z :pre
       id = atom ID
       mol = molecule ID
       type = atom type
@@ -41,13 +44,15 @@ input = one or more atom attributes :l
       radius,diameter = radius,diameter of spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
+      shapex,shapey,shapez = 3 diameters of aspherical particle
+      quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
       ervel = electron radial velocity
       erforce = electron radial force
-      shapex,shapey,shapez = 3 diameters of aspherical particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles :pre
+      end12x, end12y, end12z = end points of line segment
+      coner123x, corner123y, corner123z = corner points of triangle :pre
 :ule
 
 [Examples:]
@@ -86,6 +91,13 @@ and {quatk} are also defined for ellipsoidal particles and store the
 4-vector quaternion representing the orientation of each particle.
 See the "set"_set.html command for an explanation of the quaternion
 vector.
+
+{End1x}, {end1y}, {end1z}, {end2x}, {end2y}, {end2z}, are defined for
+line segment particles and define the end points of each line segment.
+
+{Corner1x}, {corner1y}, {corner1z}, {corner2x}, {corner2y},
+{corner2z}, {corner3x}, {corner3y}, {corner3z}, are defined for
+triangular particles and define the corner points of each triangle.
 
 [Output info:]
 

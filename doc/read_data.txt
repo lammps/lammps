@@ -77,6 +77,8 @@ is different than the default.
 {improper types} = # of improper types in system
 {extra bond per atom} = leave space for this many new bonds per atom
 {ellipsoids} = # of ellipsoids in system
+{lines} = # of line segments in system
+{triangles} = # of triangles in system
 {xlo xhi} = simulation box boundaries in x dimension
 {ylo yhi} = simulation box boundaries in y dimension
 {zlo zhi} = simulation box boundaries in z dimension
@@ -153,16 +155,19 @@ added to the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds.
 
-The "ellipsoids" setting is only used with atom_style
-ellipsoid"_atom_style.html and specifies how many of the atoms are
-finite-size ellipsoids; the remainder are point particles.  See the
-discussion of ellipsoidflag and the {Ellipsoids} section below.
+The "ellipsoids" and "lines" and "triangles" settings are only used
+with "atom_style ellipsoid or line or tri"_atom_style.html and
+specifies how many of the atoms are finite-size ellipsoids or lines or
+triangles; the remainder are point particles.  See the discussion of
+ellipsoidflag and the {Ellipsoids} section below.  See the discussion
+of lineflag and the {Lines} section below.  See the discussion of
+triangleflag and the {Triangles} section below.
 
 :line
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Ellipsoids, Masses} = atom-property sections 
+{Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
@@ -270,10 +275,12 @@ dipole: atom-ID atom-type q x y z mux muy muz
 electron: atom-ID atom-type q spin eradius x y z
 ellipsoid: atom-ID atom-type ellipsoidflag density x y z
 full: atom-ID molecule-ID atom-type q x y z
+line: atom-ID molecule-ID atom-type lineflag density x y z
 meso: atom-ID atom-type rho e cv x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
 sphere: atom-ID atom-type diameter density x y z
+tri: atom-ID molecule-ID atom-type triangleflag density x y z
 wavepacket: atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
 
@@ -285,7 +292,9 @@ atom-type = type of atom (1-Ntype)
 q = charge on atom (charge units)
 diameter = diameter of spherical atom (distance units)
 ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
-density = density of atom (mass/distance^3 units)
+lineflag = 1 for line segment particles, 0 for point particles
+triangleflag = 1 for triangular particles, 0 for point particles
+density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 volume = volume of atom (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = components of dipole moment of atom (dipole units)
@@ -321,9 +330,13 @@ keep track of molecule assignments.
 The diameter specifies the size of a finite-size spherical particle.
 It can be set to 0.0, which means that atom is a point particle.
 
-The ellipsoidflag determines whether the particle is a finite-size
-ellipsoid of finite size, or a point particle.  Additional attributes
-must be defined for each ellipsoid in the {Ellipsoids} section.
+The ellipsoidflag, lineflag, and triangleflag determine whether the
+particle is a finite-size ellipsoid or line or triangle of finite
+size, or a point particle.  Additional attributes must be defined for
+each ellipsoid in the {Ellipsoids} section.  Additional attributes
+must be defined for each line in the {Lines} section.  Additional
+attributes must be defined for each triangle in the {Triangles}
+section.
 
 Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
@@ -331,8 +344,10 @@ the doc pages of individual commands for details.
 
 The density is used in conjunction with the particle volume for
 finite-size particles to set the mass of the particle as mass =
-density * volume.  If the volume is 0.0, meaning a point particle,
-then the density value is used as the mass.
+density * volume.  In this context, volume can be a 3d quantity (for
+spheres or ellipsoids), a 2d quantity (for triangles), or a 1d
+quantity (for line segments).  If the volume is 0.0, meaning a point
+particle, then the density value is used as the mass.
 
 For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
@@ -560,6 +575,33 @@ values in this section must be integers (1, not 1.0).
 
 :line
 
+{Lines} section:
+
+one line per line segment :ulb,l
+line syntax: atom-ID x1 y1 x2 y2 :l
+  atom-ID = ID of atom which is a line segment
+  x1,y1 = 1st end point
+  x2,y2 = 2nd end point
+example: :l
+  12 1.0 0.0 2.0 0.0 :pre
+:ule
+
+The {Lines} section must appear if "atom_style line"_atom_style.html
+is used and any atoms are listed in the {Atoms} section with a
+lineflag = 1.  The number of lines should be specified in the header
+section via the "lines" keyword.
+
+The 2 end points are the end points of the line segment.  The ordering
+of the 2 points should be such that using a right-hand rule to cross
+the line segment with a unit vector in the +z direction, gives an
+"outward" normal vector perpendicular to the line segment.
+I.e. normal = (c2-c1) x (0,0,1).  This orientation may be important
+for defining some interactions.
+
+The {Lines} section must appear after the {Atoms} section.
+
+:line
+
 {Masses} section:
 
 one line per atom type :ulb,l
@@ -602,6 +644,33 @@ pair style.  See the "pair_style"_pair_style.html and
 "pair_coeff"_pair_coeff.html commands for details.  Coefficients can
 also be set via the "pair_coeff"_pair_coeff.html command in the input
 script.
+
+:line
+
+{Triangles} section:
+
+one line per triangle :ulb,l
+line syntax: atom-ID x1 y1 x2 y2 :l
+  atom-ID = ID of atom which is a line segment
+  x1,y1,z1 = 1st corner point
+  x2,y2,z2 = 2nd corner point
+  x3,y3,z3 = 3rd corner point
+example: :l
+  12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0 :pre
+:ule
+
+The {Triangles} section must appear if "atom_style
+tri"_atom_style.html is used and any atoms are listed in the {Atoms}
+section with a triangleflag = 1.  The number of lines should be
+specified in the header section via the "triangles" keyword.
+
+The 3 corner points are the corner points of the triangle.  The
+ordering of the 3 points should be such that using a right-hand rule
+to go from point1 to point2 to point3 gives an "outward" normal vector
+to the face of the triangle.  I.e. normal = (c2-c1) x (c3-c1).  This
+orientation may be important for defining some interactions.
+
+The {Triangles} section must appear after the {Atoms} section.
 
 :line
 

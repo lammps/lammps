@@ -64,38 +64,52 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Only zhi currently implemented for append_atoms");
       xloflag = 1;
       iarg++;
-      if (domain->boundary[0][0] != 3) error->all(FLERR,"Must shrink-wrap with minimum the append boundary");
+      if (domain->boundary[0][0] != 3) 
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       xhiflag = 1;
       iarg++;
-      if (domain->boundary[0][1] != 3) error->all(FLERR,"Must shrink-wrap with minimum th append boundary");
+      if (domain->boundary[0][1] != 3) 
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"ylo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       yloflag = 1;
       iarg++;
-      if (domain->boundary[1][0] != 3) error->all(FLERR,"Must shrink-wrap with minimum th append boundary");
+      if (domain->boundary[1][0] != 3) 
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"yhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       yhiflag = 1;
       iarg++;
-      if (domain->boundary[1][1] != 3) error->all(FLERR,"Must shrink-wrap with minimum th append boundary");
+      if (domain->boundary[1][1] != 3) 
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"zlo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       zloflag = 1;
       iarg++;
-      if (domain->boundary[2][0] != 3) error->all(FLERR,"Must shrink-wrap with minimum th append boundary");
+      if (domain->boundary[2][0] != 3)
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"zhi") == 0) {
       zhiflag = 1;
       iarg++;
-      if (domain->boundary[2][1] != 3) error->all(FLERR,"Must shrink-wrap with minimum th append boundary");
+      if (domain->boundary[2][1] != 3) 
+	error->all(FLERR,
+		   "Must shrink-wrap with minimum the append boundary");
     } else if (strcmp(arg[iarg],"freq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
       freq = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"spatial") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append_atoms command");
-      if (strcmp(arg[iarg+1],"f_") == 0) error->all(FLERR,"Bad fix ID in fix append_atoms command");
+      if (strcmp(arg[iarg+1],"f_") == 0)
+	error->all(FLERR,
+		   "Bad fix ID in fix append_atoms command");
       spatflag = 1;
       int n = strlen(arg[iarg+1]);
       spatlead = atof(arg[iarg+2]);
@@ -106,7 +120,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       strcpy(spatialid,suffix);
       delete [] suffix;
       iarg += 3;
- // NEED TO CHECK TO MAKE SURE FIX IS AN AVE/SPATIAL
+      // NEED TO CHECK TO MAKE SURE FIX IS AN AVE/SPATIAL
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
       size = atof(arg[iarg+1]);
@@ -152,7 +166,8 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   if ((zloflag || zhiflag) && domain->zperiodic)
     error->all(FLERR,"Cannot use append_atoms in periodic dimension");
 
-  if (domain->triclinic == 1) error->all(FLERR,"Cannot append atoms to a triclinic box");
+  if (domain->triclinic == 1) 
+    error->all(FLERR,"Cannot append atoms to a triclinic box");
 
   // setup scaling
 

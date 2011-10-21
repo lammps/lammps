@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -318,7 +320,7 @@ void AngleClass2::coeff(int narg, char **arg)
     // convert theta0 from degrees to radians
 
     for (int i = ilo; i <= ihi; i++) {
-      theta0[i] = theta0_one/180.0 * PI;
+      theta0[i] = theta0_one/180.0 * MY_PI;
       k2[i] = k2_one;
       k3[i] = k3_one;
       k4[i] = k4_one;

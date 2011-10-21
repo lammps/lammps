@@ -23,7 +23,7 @@
 
 extern __shared__ ENERGY_FLOAT sharedmem[];
 
-static inline __device__ void PairVirialCompute_A_Kernel(int &eflag,int &vflag,int coulflag=0)
+static inline __device__ void PairVirialCompute_A_Kernel(int eflag,int vflag,int coulflag=0)
 {
 	__syncthreads();
 	ENERGY_FLOAT* shared=sharedmem;

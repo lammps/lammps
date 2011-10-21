@@ -29,12 +29,11 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "group.h"
 #include "update.h"
-
 #include "math_const.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

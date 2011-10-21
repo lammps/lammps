@@ -27,10 +27,12 @@
 #include "comm.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -192,9 +194,9 @@ void DihedralHelix::compute(int eflag, int vflag)
     siinv = 1.0/si;
 
     p = aphi[type]*(1.0 - c) + bphi[type]*(1.0 + cos(3.0*phi)) +
-      cphi[type]*(1.0 + cos(phi + 0.25*PI));
+      cphi[type]*(1.0 + cos(phi + MY_PI4));
     pd = -aphi[type] + 3.0*bphi[type]*sin(3.0*phi)*siinv +
-      cphi[type]*sin(phi + 0.25*PI)*siinv;
+      cphi[type]*sin(phi + MY_PI4)*siinv;
 
     if (eflag) edihedral = p;
 

@@ -34,7 +34,6 @@ class Ewald : public KSpace {
   double memory_usage();
 
  protected:
-  double PI;
   double precision;
   int kcount,kmax,kmax3d,kmax_created;
   double qqrd2e;

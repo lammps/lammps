@@ -16,6 +16,8 @@
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"
@@ -36,9 +38,12 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
-    error->all(FLERR,"Compute erotate/asphere requires atom style ellipsoid");
+  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  if (!avec_ellipsoid && !avec_line && !avec_tri) 
+    error->all(FLERR,"Compute erotate/asphere requires "
+	       "atom style ellipsoid or line or tri");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,13 +54,21 @@ void ComputeERotateAsphere::init()
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  int flag;
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
-      if (ellipsoid[i] < 0)
+    if (mask[i] & groupbit) {
+      flag = 0;
+      if (ellipsoid && ellipsoid[i] >= 0) flag = 1;
+      if (line && line[i] >= 0) flag = 1;
+      if (tri && tri[i] >= 0) flag = 1;
+      if (!flag)
 	error->one(FLERR,"Compute erotate/asphere requires extended particles");
+    }
 
   pfactor = 0.5 * force->mvv2e;
 }
@@ -66,8 +79,16 @@ double ComputeERotateAsphere::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
+  AtomVecLine::Bonus *lbonus;
+  if (avec_line) lbonus = avec_line->bonus;
+  AtomVecTri::Bonus *tbonus;
+  if (avec_tri) tbonus = avec_tri->bonus;
   int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  double **omega = atom->omega;
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -76,6 +97,7 @@ double ComputeERotateAsphere::compute_scalar()
   // sum rotational energy for each particle
   // no point particles since divide by inertia
 
+  double length;
   double *shape,*quat;
   double wbody[3],inertia[3];
   double rot[3][3];
@@ -83,28 +105,54 @@ double ComputeERotateAsphere::compute_scalar()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
+	shape = ebonus[ellipsoid[i]].shape;
+	quat = ebonus[ellipsoid[i]].quat;
 
-      shape = bonus[ellipsoid[i]].shape;
-      quat = bonus[ellipsoid[i]].quat;
+	// principal moments of inertia
+	
+	inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+	inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+	inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+	
+	// wbody = angular velocity in body frame
+	
+	MathExtra::quat_to_mat(quat,rot);
+	MathExtra::transpose_matvec(rot,angmom[i],wbody);
+	wbody[0] /= inertia[0];
+	wbody[1] /= inertia[1];
+	wbody[2] /= inertia[2];
+	
+	erotate += inertia[0]*wbody[0]*wbody[0] +
+	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
 
-      // principal moments of inertia
+      } else if (line && line[i] >= 0) {
+	length = lbonus[line[i]].length;
 
-      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+	erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+		    omega[i][2]*omega[i][2]) * length*length*rmass[i] / 12.0;
 
-      // wbody = angular velocity in body frame
+      } else if (tri && tri[i] >= 0) {
 
-      MathExtra::quat_to_mat(quat,rot);
-      MathExtra::transpose_matvec(rot,angmom[i],wbody);
-      wbody[0] /= inertia[0];
-      wbody[1] /= inertia[1];
-      wbody[2] /= inertia[2];
-      
-      erotate += inertia[0]*wbody[0]*wbody[0] +
-	inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+	// principal moments of inertia
+
+	inertia[0] = tbonus[tri[i]].inertia[0];
+	inertia[1] = tbonus[tri[i]].inertia[1];
+	inertia[2] = tbonus[tri[i]].inertia[2];
+
+	// wbody = angular velocity in body frame
+	
+	MathExtra::quat_to_mat(tbonus[tri[i]].quat,rot);
+	MathExtra::transpose_matvec(rot,angmom[i],wbody);
+	wbody[0] /= inertia[0];
+	wbody[1] /= inertia[1];
+	wbody[2] /= inertia[2];
+	
+	erotate += inertia[0]*wbody[0]*wbody[0] +
+	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+      }
     }
-
+  
   MPI_Allreduce(&erotate,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   scalar *= pfactor;
   return scalar;

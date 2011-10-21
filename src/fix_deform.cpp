@@ -27,10 +27,12 @@
 #include "lattice.h"
 #include "force.h"
 #include "modify.h"
+#include "math_const.h"
 #include "kspace.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
@@ -305,7 +307,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (force_reneighbor) irregular = new Irregular(lmp);
   else irregular = NULL;
 
-  TWOPI = 8.0*atan(1.0);
+  TWOPI = 2.0*MY_PI;
 }
 
 /* ---------------------------------------------------------------------- */

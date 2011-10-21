@@ -22,15 +22,19 @@ compute 1 all erotate/asphere :pre
 [Description:]
 
 Define a computation that calculates the rotational kinetic energy of
-a group of aspherical particles.
+a group of aspherical particles.  The aspherical particles can be
+ellipsoids, or line segments, or triangles.  See the
+"atom_style"_atom_style.html and "read_data"_read_data.html commands
+for descriptions of these options.
 
-The rotational kinetic energy is computed as 1/2 I w^2, where I is the
-inertia tensor for the aspherical particle and w is its angular
-velocity, which is computed from its angular momentum.
+For all 3 types of particles, the rotational kinetic energy is
+computed as 1/2 I w^2, where I is the inertia tensor for the
+aspherical particle and w is its angular velocity, which is computed
+from its angular momentum if needed.
 
-IMPORTANT NOTE: For "2d models"_dimension.html, particles are treated
-as ellipsoids, not ellipses, meaning their moments of inertia will be
-the same as in 3d.
+IMPORTANT NOTE: For "2d models"_dimension.html, ellipsoidal particles
+are treated as ellipsoids, not ellipses, meaning their moments of
+inertia will be the same as in 3d.
 
 [Output info:]
 
@@ -44,9 +48,17 @@ scalar value will be in energy "units"_units.html.
 
 [Restrictions:]
 
-This compute requires that atoms store a shape and quaternion
-orientation and angular momentum as defined by the "atom_style
-ellipsoid"_atom_style.html command.
+This compute requires that ellipsoidal particles atoms store a shape
+and quaternion orientation and angular momentum as defined by the
+"atom_style ellipsoid"_atom_style.html command.
+
+This compute requires that line segment particles atoms store a length
+and orientation and angular velocity as defined by the "atom_style
+line"_atom_style.html command.
+
+This compute requires that triangular particles atoms store a size and
+shape and quaternion orientation and angular momentum as defined by
+the "atom_style tri"_atom_style.html command.
 
 All particles in the group must be finite-size.  They cannot be point
 particles.

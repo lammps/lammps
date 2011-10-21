@@ -28,10 +28,12 @@
 #include "neigh_request.h"
 #include "comm.h"
 #include "output.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG 1000000000
 
@@ -77,7 +79,6 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
-  PI = 4.0*atan(1.0);
   half_fcc_nn = 6;
   use_xismooth = false;
   double xicutoff = 1.57;
@@ -344,10 +345,10 @@ void FixOrientFCC::post_force(int vflag)
       edelta = Vxi;
       order[i][1] = 1.0;
     } else {
-      omega = (0.5*PI)*(xi_total-xi0) / (xi1-xi0);
-      nbr[i].duxi = PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
+      omega = MY_PI2*(xi_total-xi0) / (xi1-xi0);
+      nbr[i].duxi = MY_PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
       edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
-      order[i][1] = omega / (0.5*PI);
+      order[i][1] = omega / MY_PI2;
     }
     added_energy += edelta;
   }

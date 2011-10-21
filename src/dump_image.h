@@ -69,8 +69,6 @@ class DumpImage : public DumpCustom {
 
   // constant view params
 
-  double PI;
-
   double FOV;
   double ambientColor[3];
 

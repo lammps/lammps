@@ -174,7 +174,6 @@ void DihedralMultiHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
       int me = comm->me;
-
       if (screen) {
 	char str[128];
 	sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",

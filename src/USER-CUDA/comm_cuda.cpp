@@ -41,6 +41,9 @@ using namespace LAMMPS_NS;
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
+
+
+
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};
@@ -137,6 +140,7 @@ void CommCuda::init()
 
 void CommCuda::setup()
 {
+  if(cuda->shared_data.pair.neighall) cutghostuser = MAX(2.0*neighbor->cutneighmax,cutghostuser);
   Comm::setup();
    
   //upload changed geometry to device

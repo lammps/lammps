@@ -61,8 +61,10 @@
 #include "cuda_wrapper_cu.h"
 #include "pppm_cuda_cu.h"
 #include "cuda.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 4096
@@ -109,7 +111,7 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, (narg==2?1:nar
   if(narg>1)
   precisionmodify=arg[1][0];
   else precisionmodify='=';
-
+  
   nfactors = 3;
   factors = new int[nfactors];
   factors[0] = 2;
@@ -966,7 +968,7 @@ else
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*MY_PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e;
   }
 

@@ -16,10 +16,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -28,8 +30,6 @@ Angle::Angle(LAMMPS *lmp) : Pointers(lmp)
   energy = 0.0;
 
   allocated = 0;
-  PI = 4.0*atan(1.0);
-  THIRD = 1.0/3.0;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;

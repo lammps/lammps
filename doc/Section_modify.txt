@@ -140,43 +140,48 @@ features that can be added in the manner just described:
 
 10.1 Atom styles :link(mod_1),h4
 
-Classes that define an atom style are derived from the Atom class.
-The atom style determines what quantities are associated with an atom.
-A new atom style can be created if one of the existing atom styles
-does not define all the arrays you need to store and communicate with
-atoms.
+Classes that define an atom style are derived from the AtomVec class
+and managed by the Atom class.  The atom style determines what
+quantities are associated with an atom. A new atom style can be
+created if one of the existing atom styles does not define all
+the arrays you need to store and communicate with atoms.
 
 Atom_vec_atomic.cpp is a simple example of an atom style.
 
 Here is a brief description of methods you define in your new derived
-class.  See atom.h for details.
+class.  See atom_vec.h for details.
 
-grow: re-allocate atom arrays to longer lengths
-copy: copy info for one atom to another atom's array locations
-pack_comm: store an atom's info in a buffer communicated every timestep
-pack_comm_vel: add velocity info to buffer
-pack_comm_one: store extra info unique to this atom style
-unpack_comm: retrieve an atom's info from the buffer
-unpack_comm_vel: also retrieve velocity info
-unpack_comm_one: retreive extra info unique to this atom style
-pack_reverse: store an atom's info in a buffer communicating partial forces
-pack_reverse_one: store extra info unique to this atom style
-unpack_reverse: retrieve an atom's info from the buffer
-unpack_reverse_one: retreive extra info unique to this atom style
-pack_border: store an atom's info in a buffer communicated on neighbor re-builds
-pack_border_vel: add velocity info to buffer
-pack_border_one: store extra info unique to this atom style
-unpack_border: retrieve an atom's info from the buffer
-unpack_border_vel: also retrieve velocity info
-unpack_border_one: retreive extra info unique to this atom style
-pack_exchange: store all an atom's info to migrate to another processor
-unpack_exchange: retrieve an atom's info from the buffer
-size_restart: number of restart quantities associated with proc's atoms
-pack_restart: pack atom quantities into a buffer
-unpack_restart: unpack atom quantities from a buffer
-create_atom: create an individual atom of this style
-data_atom: parse an atom line from the data file
-memory_usage: tally memory allocated by atom arrays :tb(s=:)
+init: one time setup (optional)
+grow: re-allocate atom arrays to longer lengths (required)
+grow_reset: make array pointers in Atom and AtomVec classes consistent (required)
+copy: copy info for one atom to another atom's array locations (required)
+pack_comm: store an atom's info in a buffer communicated every timestep (required)
+pack_comm_vel: add velocity info to communication buffer (required)
+pack_comm_hybrid: store extra info unique to this atom style (optional)
+unpack_comm: retrieve an atom's info from the buffer (required)
+unpack_comm_vel: also retrieve velocity info (required)
+unpack_comm_hybrid: retreive extra info unique to this atom style (optional)
+pack_reverse: store an atom's info in a buffer communicating partial forces  (required)
+pack_reverse_hybrid: store extra info unique to this atom style (optional)
+unpack_reverse: retrieve an atom's info from the buffer (required)
+unpack_reverse_hybrid: retreive extra info unique to this atom style (optional)
+pack_border: store an atom's info in a buffer communicated on neighbor re-builds (required)
+pack_border_vel: add velocity info to buffer (required)
+pack_border_hybrid: store extra info unique to this atom style (optional)
+unpack_border: retrieve an atom's info from the buffer (required)
+unpack_border_vel: also retrieve velocity info (required)
+unpack_border_hybrid: retreive extra info unique to this atom style (optional)
+pack_exchange: store all an atom's info to migrate to another processor (required)
+unpack_exchange: retrieve an atom's info from the buffer (required)
+size_restart: number of restart quantities associated with proc's atoms (required)
+pack_restart: pack atom quantities into a buffer (required)
+unpack_restart: unpack atom quantities from a buffer (required)
+create_atom: create an individual atom of this style (required)
+data_atom: parse an atom line from the data file (required)
+data_atom_hybrid: parse additional atom info unique to this atom style (optional)
+data_vel: parse one line of velocity information from data file (optional)
+data_vel_hybrid: parse additional velocity data unique to this atom style (optional)
+memory_usage: tally memory allocated by atom arrays (required) :tb(s=:)
 
 The constructor of the derived class sets values for several variables
 that you must set when defining a new atom style, which are documented
@@ -196,15 +201,20 @@ Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
 the harmonic forms of the angle, dihedral, and improper style
 commands.
 
-Here is a brief description of methods you define in your new derived
-bond class.  See bond.h, angle.h, dihedral.h, and improper.h for
-details.
+Here is a brief description of common methods you define in your
+new derived class.  See bond.h, angle.h, dihedral.h, and improper.h
+for details and specific additional methods.
 
-compute: compute the molecular interactions
-coeff: set coefficients for one bond type
-equilibrium_distance: length of bond, used by SHAKE
-write & read_restart: writes/reads coeffs to restart files
-single: force and energy of a single bond :tb(s=:)
+init: check if all coefficients are set, calls {init_style} (optional)
+init_style: check if style specific conditions are met (optional)
+compute: compute the molecular interactions (required)
+settings: apply global settings for all types (optional)
+coeff: set coefficients for one type (required)
+equilibrium_distance: length of bond, used by SHAKE (required, bond only)
+equilibrium_angle: opening of angle, used by SHAKE (required, angle only)
+write & read_restart: writes/reads coeffs to restart files (required)
+single: force and energy of a single bond or angle (required, bond or angle only)
+memory_usage: tally memory allocated by the style (optional) :tb(s=:)
 
 :line
 
@@ -223,14 +233,21 @@ per-atom kinetic energy.
 Here is a brief description of methods you define in your new derived
 class.  See compute.h for details.
 
-compute_scalar: compute a scalar quantity
-compute_vector: compute a vector of quantities
-compute_peratom: compute one or more quantities per atom
-pack_comm: pack a buffer with items to communicate
-unpack_comm: unpack the buffer
-pack_reverse: pack a buffer with items to reverse communicate
-unpack_reverse: unpack the buffer
-memory_usage: tally memory usage :tb(s=:)
+init: perform one time setup (required)
+init_list: neighbor list setup, if needed (optional)
+compute_scalar: compute a scalar quantity (optional)
+compute_vector: compute a vector of quantities (optional)
+compute_peratom: compute one or more quantities per atom (optional)
+compute_local: compute one or more quantities per processor (optional)
+pack_comm: pack a buffer with items to communicate (optional)
+unpack_comm: unpack the buffer (optional)
+pack_reverse: pack a buffer with items to reverse communicate (optional)
+unpack_reverse: unpack the buffer (optional)
+remove_bias: remove velocity bias from one atom (optional)
+remove_bias_all: remove velocity bias from all atoms in group (optional)
+restore_bias: restore velocity bias for one atom after remove_bias (optional)
+restore_bias_all: same as before, but for all atoms in group (optional)
+memory_usage: tally memory usage (optional) :tb(s=:)
 
 :line
 
@@ -283,34 +300,59 @@ implement.
 Here is a brief description of methods you can define in your new
 derived class.  See fix.h for details.
 
-setmask: determines when the fix is called during the timestep
-init: initialization before a run
-setup: called immediately before the 1st timestep
-initial_integrate: called at very beginning of each timestep
-pre_exchange: called before atom exchange on re-neighboring steps
-pre_neighbor: called before neighbor list build
-post_force: called after pair & molecular forces are computed
-final_integrate: called at end of each timestep
-end_of_step: called at very end of timestep
-write_restart: dumps fix info to restart file
-restart: uses info from restart file to re-initialize the fix
-grow_arrays: allocate memory for atom-based arrays used by fix
-copy_arrays: copy atom info when an atom migrates to a new processor
-memory_usage: report memory used by fix
-pack_exchange: store atom's data in a buffer
-unpack_exchange: retrieve atom's data from a buffer
-pack_restart: store atom's data for writing to restart file
-unpack_restart: retrieve atom's data from a restart file buffer
-size_restart: size of atom's data
-maxsize_restart: max size of atom's data
-initial_integrate_respa: same as initial_integrate, but for rRESPA
-post_force_respa: same as post_force, but for rRESPA
-final_integrate_respa: same as final_integrate, but for rRESPA
-pack_comm: pack a buffer to communicate a per-atom quantity
-unpack_comm: unpack a buffer to communicate a per-atom quantity
-pack_reverse_comm: pack a buffer to reverse communicate a per-atom quantity
-unpack_reverse_comm: unpack a buffer to reverse communicate a per-atom quantity
-thermo: compute quantities for thermodynamic output :tb(s=:)
+setmask: determines when the fix is called during the timestep (required)
+init: initialization before a run (optional)
+setup_pre_exchange: called before atom exchange in setup (optional)
+setup_pre_force: called before force computation in setup (optional)
+setup: called immediately before the 1st timestep and after forces are computed (optional)
+min_setup_pre_force: like setup_pre_force, but for minimizations instead of MD runs (optional)
+min_setup: like setup, but for minimizations instead of MD runs (optional)
+initial_integrate: called at very beginning of each timestep (optional)
+pre_exchange: called before atom exchange on re-neighboring steps (optional)
+pre_neighbor: called before neighbor list build (optional)
+pre_force: called after pair & molecular forces are computed (optional)
+post_force: called after pair & molecular forces are computed and communicated (optional)
+final_integrate: called at end of each timestep (optional)
+end_of_step: called at very end of timestep (optional)
+write_restart: dumps fix info to restart file (optional)
+restart: uses info from restart file to re-initialize the fix (optional)
+grow_arrays: allocate memory for atom-based arrays used by fix (optional)
+copy_arrays: copy atom info when an atom migrates to a new processor (optional)
+pack_exchange: store atom's data in a buffer (optional)
+unpack_exchange: retrieve atom's data from a buffer (optional)
+pack_restart: store atom's data for writing to restart file (optional)
+unpack_restart: retrieve atom's data from a restart file buffer (optional)
+size_restart: size of atom's data (optional)
+maxsize_restart: max size of atom's data (optional)
+setup_pre_force_respa: same as setup_pre_force, but for rRESPA (optional)
+initial_integrate_respa: same as initial_integrate, but for rRESPA (optional)
+post_integrate_respa: called after the first half integration step is done in rRESPA (optional)
+pre_force_respa: same as pre_force, but for rRESPA (optional)
+post_force_respa: same as post_force, but for rRESPA (optional)
+final_integrate_respa: same as final_integrate, but for rRESPA (optional)
+min_pre_force: called after pair & molecular forces are computed in minimizer (optional)
+min_post_force: called after pair & molecular forces are computed and communicated in minmizer (optional)
+min_store: store extra data for linesearch based minimization on a LIFO stack (optional)
+min_pushstore: push the minimization LIFO stack one element down (optional)
+min_popstore: pop the minimization LIFO stack one element up (optional)
+min_clearstore: clear minimization LIFO stack (optional)
+min_step: reset or move forward on line search minimization (optional)
+min_dof: report number of degrees of freedom {added} by this fix in minimization (optional)
+max_alpha: report maximum allowed step size during linesearch minimization (optional)
+pack_comm: pack a buffer to communicate a per-atom quantity (optional)
+unpack_comm: unpack a buffer to communicate a per-atom quantity (optional)
+pack_reverse_comm: pack a buffer to reverse communicate a per-atom quantity (optional)
+unpack_reverse_comm: unpack a buffer to reverse communicate a per-atom quantity (optional)
+dof: report number of degrees of freedom {removed} by this fix during MD (optional)
+compute_scalar: return a global scalar property that the fix computes (optional)
+compute_vector: return a component of a vector property that the fix computes (optional)
+compute_array: return a component of an array property that the fix computes (optional)
+deform: called when the box size is changed (optional)
+reset_target: called when a change of the target temperature is requested during a run (optional)
+reset_dt: is called when a change of the time step is requested during a run (optional)
+modify_param: called when a fix_modify request is executed (optional)
+memory_usage: report memory used by fix (optional)
+thermo: compute quantities for thermodynamic output (optional) :tb(s=:)
 
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix

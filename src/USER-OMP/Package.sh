@@ -1,4 +1,3 @@
-#/bin/sh
 # Update package files in LAMMPS
 # copy package file to src if it doesn't exists or is different
 # do not copy OpenMP style files, if a non-OpenMP version does 

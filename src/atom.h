@@ -51,7 +51,7 @@ class Atom : protected Pointers {
   double **omega,**angmom,**torque;
   double *radius,*rmass,*vfrac,*s0;
   double **x0;
-  int *ellipsoid;
+  int *ellipsoid,*line,*tri;
   int *spin;
   double *eradius,*ervel,*erforce,*ervelforce;
   double *cs,*csforce,*vforce;
@@ -84,7 +84,7 @@ class Atom : protected Pointers {
   // atom style and per-atom array existence flags
   // customize by adding new flag
 
-  int sphere_flag,ellipsoid_flag,peri_flag,electron_flag;
+  int sphere_flag,ellipsoid_flag,line_flag,tri_flag,peri_flag,electron_flag;
   int wavepacket_flag,sph_flag;
 
   int molecule_flag,q_flag,mu_flag;

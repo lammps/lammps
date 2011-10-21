@@ -24,10 +24,12 @@
 #include "kspace.h"
 #include "input.h"
 #include "variable.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{PAIR,KSPACE,ATOM};
 enum{DIAMETER};
@@ -309,7 +311,6 @@ void FixAdapt::change_settings()
       if (ad->aparam == DIAMETER) {
 	int mflag = 0;
 	if (atom->rmass_flag) mflag = 1;
-	double PI = 4.0*atan(1.0);
 	double density;
 
 	double *radius = atom->radius;
@@ -324,9 +325,11 @@ void FixAdapt::change_settings()
 	} else {
 	  for (i = 0; i < nlocal; i++)
 	    if (mask[i] & groupbit) {
-	      density = rmass[i] / (4.0*PI/3.0 * radius[i]*radius[i]*radius[i]);
+	      density = rmass[i] / (4.0*MY_PI/3.0 * 
+				    radius[i]*radius[i]*radius[i]);
 	      radius[i] = 0.5*value;
-	      rmass[i] = 4.0*PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+	      rmass[i] = 4.0*MY_PI/3.0 * 
+		radius[i]*radius[i]*radius[i] * density;
 	    }
 	}
       }

@@ -36,6 +36,9 @@ enum COUL_FORCES {COUL_NONE,COUL_CHARMM,COUL_CHARMM_IMPLICIT,COUL_CUT,COUL_LONG,
 #define DATA_V_RADIUS 512
 #define DATA_OMEGA_RMASS 1024
 
+#define SBBITS 30
+#define NEIGHMASK 0x3FFFFFFF
+
 #define MY_PREFIX cuda_pair
 #define IncludeCommonNeigh
 #include "cuda_shared.h"
@@ -858,6 +861,9 @@ void Cuda_Pair_PostKernel_AllStyles(cuda_shared_data* sdata, dim3& grid, int& sh
 
 #include "cuda_pair_kernel.cu"
 
+#include "pair_manybody_const.h"
+#include "pair_tersoff_cuda.cu"
+#include "pair_sw_cuda.cu"
 
 void Cuda_Pair_UpdateNmax(cuda_shared_data* sdata)
 {

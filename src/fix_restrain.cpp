@@ -26,10 +26,12 @@
 #include "comm.h"
 #include "respa.h"
 #include "input.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{DIHEDRAL};
 
@@ -83,13 +85,12 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   // special treatment for dihedral restraints
 
   if (rstyle == DIHEDRAL) {
-    double PI = 4.0*atan(1.0);
     cos_shift = (double *)
       memory->smalloc(n_bonds * sizeof(double), "restrain:cos_shift");
     sin_shift = (double *)
       memory->smalloc(n_bonds * sizeof(double), "restrain:sin_shift");
     for (ibond = 0; ibond < n_bonds; ibond++) {
-      double my_arg = PI * (180.0 + target[ibond]) / 180.0;
+      double my_arg = MY_PI * (180.0 + target[ibond]) / 180.0;
       cos_shift[ibond] = cos(my_arg);
       sin_shift[ibond] = sin(my_arg);
     }

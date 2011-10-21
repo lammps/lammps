@@ -35,7 +35,6 @@ class Set : protected Pointers {
   int style,ivalue,newtype,count;
   int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
   double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
-  double PI;
 
   void selection(int);
   void set(int);

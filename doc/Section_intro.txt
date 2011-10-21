@@ -121,7 +121,8 @@ Particle and model types :h4
   metals
   granular materials
   coarse-grained mesoscale models
-  extended spherical and ellipsoidal particles
+  finite-size spherical and ellipsoidal particles
+  finite-size  line segment (2d) and triangle (3d) particles
   point dipolar particles
   rigid collections of particles
   hybrid combinations of these :ul

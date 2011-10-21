@@ -6,7 +6,6 @@ for file in *_omp.cpp *_omp.h; do
    ofile=`echo $file | sed -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.\\\\\\(h\\\\\\|cpp\\\\\\),\\\\1.\\\\2,`
 
   if (test $1 = 1) then
-
     if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") then
       :  # always install those files.
     elif (test ! -e ../$ofile) then
@@ -16,11 +15,9 @@ for file in *_omp.cpp *_omp.h; do
     cp $file ..
 
   elif (test $1 = 0) then
-
     rm -f ../$file
   fi
 done
-
 
 if (test $1 = 1) then
 

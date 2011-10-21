@@ -26,20 +26,19 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.0000001
 
 /* ---------------------------------------------------------------------- */
 
-DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -697,8 +696,8 @@ void DihedralClass2::coeff(int narg, char **arg)
       at_f1_2[i] = f1_2_one;
       at_f2_2[i] = f2_2_one;
       at_f3_2[i] = f3_2_one;
-      at_theta0_1[i] = theta0_1_one/180.0 * PI;
-      at_theta0_2[i] = theta0_2_one/180.0 * PI;
+      at_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      at_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
       setflag_at[i] = 1;
       count++;
     }
@@ -714,8 +713,8 @@ void DihedralClass2::coeff(int narg, char **arg)
     
     for (int i = ilo; i <= ihi; i++) {
       aat_k[i] = k_one;
-      aat_theta0_1[i] = theta0_1_one/180.0 * PI;
-      aat_theta0_2[i] = theta0_2_one/180.0 * PI;
+      aat_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      aat_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
       setflag_aat[i] = 1;
       count++;
     }
@@ -749,11 +748,11 @@ void DihedralClass2::coeff(int narg, char **arg)
 
     for (int i = ilo; i <= ihi; i++) {
       k1[i] = k1_one;
-      phi1[i] = phi1_one/180.0 * PI;
+      phi1[i] = phi1_one/180.0 * MY_PI;
       k2[i] = k2_one;
-      phi2[i] = phi2_one/180.0 * PI;
+      phi2[i] = phi2_one/180.0 * MY_PI;
       k3[i] = k3_one;
-      phi3[i] = phi3_one/180.0 * PI;
+      phi3[i] = phi3_one/180.0 * MY_PI;
       setflag_d[i] = 1;
       count++;
     }

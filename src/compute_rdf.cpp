@@ -28,10 +28,12 @@
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "group.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -267,10 +269,9 @@ void ComputeRDF::compute_array()
   //   assuming J atoms are at uniform density
 
   double constant,nideal,gr,ncoord,rlower,rupper;
-  double PI = 4.0*atan(1.0);
 
   if (domain->dimension == 3) {
-    constant = 4.0*PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
+    constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
@@ -289,7 +290,7 @@ void ComputeRDF::compute_array()
     }
 
   } else {
-    constant = PI / (domain->xprd*domain->yprd);
+    constant = MY_PI / (domain->xprd*domain->yprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;

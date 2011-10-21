@@ -23,10 +23,12 @@
 #include "force.h"
 #include "fix.h"
 #include "fix_adapt.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 
@@ -50,8 +52,6 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp, int narg, char **arg) :
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag = 
     atom->torque_flag = 1;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -929,7 +929,7 @@ void AtomVecSphere::create_atom(int itype, double *coord)
   v[nlocal][2] = 0.0;
 
   radius[nlocal] = 0.5;
-  rmass[nlocal] = 4.0*PI/3.0 * radius[nlocal]*radius[nlocal]*radius[nlocal];
+  rmass[nlocal] = 4.0*MY_PI/3.0 * radius[nlocal]*radius[nlocal]*radius[nlocal];
   omega[nlocal][0] = 0.0;
   omega[nlocal][1] = 0.0;
   omega[nlocal][2] = 0.0;
@@ -965,7 +965,7 @@ void AtomVecSphere::data_atom(double *coord, int imagetmp, char **values)
 
   if (radius[nlocal] == 0.0) rmass[nlocal] = density;
   else 
-    rmass[nlocal] = 4.0*PI/3.0 *
+    rmass[nlocal] = 4.0*MY_PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density;
 
   x[nlocal][0] = coord[0];
@@ -1002,7 +1002,7 @@ int AtomVecSphere::data_atom_hybrid(int nlocal, char **values)
 
   if (radius[nlocal] == 0.0) rmass[nlocal] = density;
   else 
-    rmass[nlocal] = 4.0*PI/3.0 *
+    rmass[nlocal] = 4.0*MY_PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density;
 
   return 2;

@@ -63,7 +63,8 @@ class PairTersoff : public Pair {
   void setup();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
-  virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
+  virtual void force_zeta(Param *, double, double, double &, 
+			  double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
 		  double *, double *, double *);
 
@@ -74,7 +75,15 @@ class PairTersoff : public Pair {
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
 
-  inline double ters_gijk(const double costheta, const Param * const param) const {
+  void ters_zetaterm_d(double, double *, double, double *, double,
+			       double *, double *, double *, Param *);
+  void costheta_d(double *, double, double *, double,
+		  double *, double *, double *);
+
+  // inlined functions for efficiency
+
+  inline double ters_gijk(const double costheta,
+			  const Param * const param) const {
     const double ters_c = param->c * param->c;
     const double ters_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -82,7 +91,8 @@ class PairTersoff : public Pair {
     return param->gamma*(1.0 + ters_c/ters_d - ters_c / (ters_d + hcth*hcth));
   }
 
-  inline double ters_gijk_d(const double costheta, const Param * const param) const {
+  inline double ters_gijk_d(const double costheta, 
+			    const Param * const param) const {
     const double ters_c = param->c * param->c;
     const double ters_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -90,13 +100,6 @@ class PairTersoff : public Pair {
     const double denominator = 1.0/(ters_d + hcth*hcth);
     return param->gamma*numerator*denominator*denominator;
   }
-
-  void ters_zetaterm_d(double, double *, double, double *, double,
-			       double *, double *, double *, Param *);
-  void costheta_d(double *, double, double *, double,
-		  double *, double *, double *);
-
-  // vector functions, inline for efficiency
 
   inline double vec3_dot(const double x[3], const double y[3]) const {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];

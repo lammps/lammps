@@ -30,10 +30,12 @@
 #include "comm.h"
 #include "group.h"
 #include "fix_respa.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
@@ -45,8 +47,6 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
-
-  PI = 4.0*atan(1.0);
 
   virial_flag = 1;
   create_attribute = 1;
@@ -2114,7 +2114,7 @@ void FixShake::stats()
       r3 = sqrt(delx*delx + dely*dely + delz*delz);
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
-      angle *= 180.0/PI;
+      angle *= 180.0/MY_PI;
       m = shake_type[i][2];
       a_count[m]++;
       a_ave[m] += angle;

@@ -89,7 +89,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   int iarg = 0;
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
-      int jarg = iarg+2;
+      int jarg = iarg+3;
       while (jarg < argc && argv[jarg][0] != '-') jarg++;
       variable->set(argv[iarg+1],jarg-iarg-2,&argv[iarg+2]);
       iarg = jarg;

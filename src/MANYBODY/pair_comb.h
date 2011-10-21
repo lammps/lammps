@@ -58,7 +58,6 @@ class PairComb : public Pair {
     int powermint;
   };
   
-  double PI,PI2,PI4,PIsq;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

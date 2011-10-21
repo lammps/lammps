@@ -38,7 +38,9 @@ class ComputePropertyAtom : public Compute {
   double *vector;
   double **array;
   double *buf;
-  class AtomVecEllipsoid *avec;
+  class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
 
   typedef void (ComputePropertyAtom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
@@ -101,6 +103,21 @@ class ComputePropertyAtom : public Compute {
   void pack_eradius(int);
   void pack_ervel(int);
   void pack_erforce(int);
+  void pack_end1x(int);
+  void pack_end1y(int);
+  void pack_end1z(int);
+  void pack_end2x(int);
+  void pack_end2y(int);
+  void pack_end2z(int);
+  void pack_corner1x(int);
+  void pack_corner1y(int);
+  void pack_corner1z(int);
+  void pack_corner2x(int);
+  void pack_corner2y(int);
+  void pack_corner2z(int);
+  void pack_corner3x(int);
+  void pack_corner3y(int);
+  void pack_corner3z(int);
 };
 
 }

@@ -43,7 +43,6 @@ class PairSoft : public Pair {
   void *extract(char *, int &);
 
  protected:
-  double PI;
   double cut_global;
   double **prefactor;
   double **cut;

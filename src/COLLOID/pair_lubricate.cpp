@@ -28,11 +28,13 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "memory.h"
 #include "random_mars.h"
+#include "math_const.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,7 +75,6 @@ void PairLubricate::compute(int eflag, int vflag)
   double P_dot_wrel_1,P_dot_wrel_2,P_dot_wrel_3;
   double a_squeeze,a_shear,a_pump,a_twist;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double PI = 4.0*atan(1.0);
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -190,16 +191,16 @@ void PairLubricate::compute(int eflag, int vflag)
         h_sep = r - 2.0*radi;
 
 	if (flag1)
-	  a_squeeze = (3.0*PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep);
+	  a_squeeze = (3.0*MY_PI*mu*2.0*radi/2.0) * (2.0*radi/4.0/h_sep);
 	if (flag2) 
-	  a_shear = (PI*mu*2.*radi/2.0) *
+	  a_shear = (MY_PI*mu*2.*radi/2.0) *
 	    log(2.0*radi/2.0/h_sep)*(2.0*radi+h_sep)*(2.0*radi+h_sep)/4.0;
 	if (flag3) 
-	  a_pump = (PI*mu*pow(2.0*radi,4)/8.0) *
+	  a_pump = (MY_PI*mu*pow(2.0*radi,4)/8.0) *
 	    ((3.0/20.0) * log(2.0*radi/2.0/h_sep) + 
 	     (63.0/250.0) * (h_sep/2.0/radi) * log(2.0*radi/2.0/h_sep));
 	if (flag4)
-	  a_twist = (PI*mu*pow(2.0*radi,4)/4.0) *
+	  a_twist = (MY_PI*mu*pow(2.0*radi,4)/4.0) *
 	    (h_sep/2.0/radi) * log(2.0/(2.0*h_sep));
 
         if (h_sep >= cut_inner[itype][jtype]) {
@@ -231,7 +232,7 @@ void PairLubricate::compute(int eflag, int vflag)
 	  torque[i][2] += vxmu2f * tz;
 
         } else {
-	  a_squeeze = (3.0*PI*mu*2.0*radi/2.0) * 
+	  a_squeeze = (3.0*MY_PI*mu*2.0*radi/2.0) * 
 	    (2.0*radi/4.0/cut_inner[itype][jtype]);
 	  fpair = -a_squeeze*vnnr;
 	  fpair *= vxmu2f;

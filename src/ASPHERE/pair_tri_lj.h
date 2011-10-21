@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairTriLJ : public Pair {
  public:
   PairTriLJ(class LAMMPS *);
-  ~PairTriLJ();
-  void compute(int, int);
+  virtual ~PairTriLJ();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

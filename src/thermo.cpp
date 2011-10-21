@@ -36,10 +36,12 @@
 #include "kspace.h"
 #include "output.h"
 #include "timer.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
@@ -147,8 +149,6 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   format_float_user = NULL;
   format_int_user = NULL;
   format_bigint_user = NULL;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1894,7 +1894,7 @@ void Thermo::compute_cellalpha()
     double* h = domain->h;
     double cosalpha = (h[5]*h[4]+h[1]*h[3])/
       sqrt((h[1]*h[1]+h[5]*h[5])*(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]));
-    dvalue = acos(cosalpha)*180.0/PI;
+    dvalue = acos(cosalpha)*180.0/MY_PI;
   }    
 }
 
@@ -1910,7 +1910,7 @@ void Thermo::compute_cellbeta()
 
     double* h = domain->h;
     double cosbeta = h[4]/sqrt(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]);
-    dvalue = acos(cosbeta)*180.0/PI;
+    dvalue = acos(cosbeta)*180.0/MY_PI;
   }
 }
 
@@ -1926,6 +1926,6 @@ void Thermo::compute_cellgamma()
 
     double* h = domain->h;
     double cosgamma = h[5]/sqrt(h[1]*h[1]+h[5]*h[5]);
-    dvalue = acos(cosgamma)*180.0/PI;
+    dvalue = acos(cosgamma)*180.0/MY_PI;
   }
 }

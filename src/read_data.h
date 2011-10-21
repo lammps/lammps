@@ -40,6 +40,10 @@ class ReadData : protected Pointers {
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
+  bigint nlines;
+  class AtomVecLine *avec_line;
+  bigint ntris;
+  class AtomVecTri *avec_tri;
 
   void open(char *);
   void scan(int &, int &, int &, int &);
@@ -51,7 +55,7 @@ class ReadData : protected Pointers {
 
   void atoms();
   void velocities();
-  void ellipsoids();
+  void bonus(bigint, class AtomVec *, char *);
 
   void bonds();
   void angles();

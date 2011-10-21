@@ -21,6 +21,7 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -55,6 +56,7 @@
 using namespace LAMMPS_NS;
 
 #define MAKETIMEING
+
 
 VerletCuda::VerletCuda(LAMMPS *lmp, int narg, char **arg) : Verlet(lmp, narg, arg) {	
   cuda = lmp->cuda;
@@ -132,20 +134,19 @@ void VerletCuda::setup()
   cuda->uploadAll();
   neighbor->build();
   neighbor->ncalls = 0;
-  cuda->uploadAllNeighborLists();
+
   if(atom->mass)
   cuda->cu_mass->upload();
  
   if(cuda->cu_map_array)
   cuda->cu_map_array->upload();
- 
+
   // compute all forces
 
   ev_set(update->ntimestep);
   if(elist_atom) cuda->shared_data.atom.need_eatom = 1;
   if(vlist_atom) cuda->shared_data.atom.need_vatom = 1;
   if(elist_atom||vlist_atom) cuda->checkResize();
-  
 
   int test_BpA_vs_TpA = true;
   timespec starttime;

@@ -46,7 +46,6 @@ class DihedralClass2 : public Dihedral {
   double *bb13t_k,*bb13t_r10,*bb13t_r30;
   int *setflag_d,*setflag_mbt,*setflag_ebt;
   int *setflag_at,*setflag_aat,*setflag_bb13t;
-  double PI;
 
   void allocate();
 };

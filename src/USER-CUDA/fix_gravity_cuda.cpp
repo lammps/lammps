@@ -30,12 +30,13 @@
 #include "update.h"
 #include "domain.h"
 #include "respa.h"
-#include "error.h"
 #include "cuda.h"
 #include "cuda_modify_flags.h"
-
+#include "math_const.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
 
@@ -79,8 +80,7 @@ FixGravityCuda::FixGravityCuda(LAMMPS *lmp, int narg, char **arg) :
     zdir = atof(arg[7]);
   } else error->all(FLERR,"Illegal fix gravity command");
 
-  double PI = 4.0*atan(1.0);
-  degree2rad = PI/180.0;
+  degree2rad = MY_PI/180.0;
 
   if (style == CHUTE || style == SPHERICAL || style == GRADIENT) {
     if (domain->dimension == 3) {

@@ -11,6 +11,7 @@ pair_style tersoff command :h3
 [Syntax:]
 
 pair_style tersoff :pre
+pair_style tersoff/cuda :pre
 pair_style tersoff/omp :pre
 
 [Examples:]
@@ -129,7 +130,7 @@ equivalent form for alloys, which we will refer to as Tersoff_2
 potential "(Tersoff_2)"_#Tersoff_2.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
-gamma = 1, just as for Tersoff_1, but now lambda3 = 0 and the value of
+gamma_ijk = omega_ik, lambda3 = 0 and the value of
 m has no effect.  The parameters for species i and j can be calculated
 using the Tersoff_2 mixing rules:
 

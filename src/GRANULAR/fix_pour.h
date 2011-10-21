@@ -56,7 +56,6 @@ class FixPour : public Fix {
 
   int me,nprocs;
   int *recvcounts,*displs;
-  double PI;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
   class FixShearHistory *fix_history;

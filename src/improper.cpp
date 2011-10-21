@@ -27,7 +27,6 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
   energy = 0.0;
 
   allocated = 0;
-  PI = 4.0*atan(1.0);
 
   maxeatom = maxvatom = 0;
   eatom = NULL;

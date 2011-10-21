@@ -30,10 +30,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -770,15 +772,14 @@ double PairLJCutCoulLong::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
   } 
 

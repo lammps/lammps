@@ -243,10 +243,10 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
 	  int exclude=sneighlist->nex_mol|sneighlist->nex_group|sneighlist->nex_type;			
 	  if(exclude)
 		NeighborBuildFullBin_Kernel<1><<<grid,threads,shared_size>>>
-		(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff,sdata->pair.use_block_per_atom);
+		(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff,sdata->pair.use_block_per_atom,sdata->pair.neighall);
 	  else
 		NeighborBuildFullBin_Kernel<0><<<grid,threads,shared_size>>>
-		(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff,sdata->pair.use_block_per_atom);	  
+		(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff,sdata->pair.use_block_per_atom,sdata->pair.neighall);
 	}
 	//NeighborBuildFullBin_Kernel_Restrict<<<grid,threads,(2*sizeof(int)+3*sizeof(X_FLOAT))*threads.x+sizeof(int)>>>
 	//	(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff);

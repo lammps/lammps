@@ -19,8 +19,10 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 1.0e-4
 
@@ -122,7 +124,7 @@ void PairSoftOMP::eval(double **f, int iifrom, int iito, int tid)
 
       if (rsq < cutsq[itype][jtype]) {
 	r = sqrt(rsq);
-	arg = PI/cut[itype][jtype];
+	arg = MY_PI/cut[itype][jtype];
 	if (r > SMALL) fpair = factor_lj * prefactor[itype][jtype] * 
 		       sin(arg*r) * arg/r;
 	else fpair = 0.0;

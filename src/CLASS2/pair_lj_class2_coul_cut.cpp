@@ -20,10 +20,12 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -307,14 +309,13 @@ double PairLJClass2CoulCut::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
     double sig6 = sig3*sig3;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
-    etail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] *
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (sig3 - 3.0*rc3) / (3.0*rc6);
-    ptail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig3 - 2.0*rc3) / rc6;
   } 
 

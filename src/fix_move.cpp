@@ -26,10 +26,12 @@
 #include "respa.h"
 #include "input.h"
 #include "variable.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{LINEAR,WIGGLE,ROTATE,VARIABLE};
 enum{EQUAL,ATOM};
@@ -216,10 +218,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // set omega_rotate from period
 
-  if (mstyle == WIGGLE || mstyle == ROTATE) {
-    double PI = 4.0 * atan(1.0);
-    omega_rotate = 2.0*PI / period;
-  }
+  if (mstyle == WIGGLE || mstyle == ROTATE) omega_rotate = 2.0*MY_PI / period;
 
   // runit = unit vector along rotation axis
 

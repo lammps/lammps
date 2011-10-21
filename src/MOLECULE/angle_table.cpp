@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{LINEAR,SPLINE};
 
@@ -238,8 +240,8 @@ void AngleTable::coeff(int narg, char **arg)
   // convert theta from degrees to radians
 
   for (int i = 0; i < tb->ninput; i++){
-    tb->afile[i] *= PI/180.0;
-    tb->ffile[i] *= 180.0/PI; 
+    tb->afile[i] *= MY_PI/180.0;
+    tb->ffile[i] *= 180.0/MY_PI; 
   }
 
   // spline read-in and compute a,e,f vectors within table
@@ -442,7 +444,7 @@ void AngleTable::compute_table(Table *tb)
   // delta = table spacing in angle for N-1 bins
 
   int tlm1 = tablength-1;
-  tb->delta = PI/ tlm1;
+  tb->delta = MY_PI / tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   
@@ -501,8 +503,8 @@ void AngleTable::param_extract(Table *tb, char *line)
       tb->fplo = atof(word);
       word = strtok(NULL," \t\n\r\f");
       tb->fphi = atof(word);
-      tb->fplo *= (180.0/PI)*(180.0/PI);
-      tb->fphi *= (180.0/PI)*(180.0/PI);
+      tb->fplo *= (180.0/MY_PI)*(180.0/MY_PI);
+      tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
       word = strtok(NULL," \t\n\r\f");
       tb->theta0 = atof(word);

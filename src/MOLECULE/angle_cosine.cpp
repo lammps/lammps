@@ -19,10 +19,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -174,7 +176,7 @@ void AngleCosine::coeff(int narg, char **arg)
 
 double AngleCosine::equilibrium_angle(int i)
 {
-  return PI;
+  return MY_PI;
 }
 
 /* ----------------------------------------------------------------------

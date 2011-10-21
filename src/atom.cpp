@@ -75,7 +75,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   radius = rmass = NULL;
   vfrac = s0 = NULL;
   x0 = NULL;
-  ellipsoid = NULL;
+  ellipsoid = line = tri = NULL;
   spin = NULL;
   eradius = ervel = erforce = NULL;
   cs = csforce = vforce = ervelforce = NULL;
@@ -106,7 +106,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom style and array existence flags
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
+  peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
 
   molecule_flag = q_flag = mu_flag = 0;
@@ -185,6 +186,8 @@ Atom::~Atom()
   memory->destroy(s0);
   memory->destroy(x0);
   memory->destroy(ellipsoid);
+  memory->destroy(line);
+  memory->destroy(tri);
   memory->destroy(spin);
   memory->destroy(eradius);
   memory->destroy(ervel);
@@ -259,8 +262,9 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   // may have been set by old avec
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = peri_flag = electron_flag = 0;
-
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
+  peri_flag = electron_flag = 0;
+    
   molecule_flag = q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;

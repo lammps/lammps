@@ -26,10 +26,12 @@
 #include "pair.h"
 #include "modify.h"
 #include "respa.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};    // XYZ PLANE need to be 0,1,2
 enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
@@ -159,10 +161,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   // setup oscillations
 
-  if (wiggle) {
-    double PI = 4.0 * atan(1.0);
-    omega = 2.0*PI / period;
-  }
+  if (wiggle) omega = 2.0*MY_PI / period;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class

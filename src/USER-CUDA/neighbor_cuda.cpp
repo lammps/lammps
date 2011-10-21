@@ -26,6 +26,9 @@
 
 using namespace LAMMPS_NS;
 
+
+
+
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
 /* ---------------------------------------------------------------------- */
@@ -56,9 +59,9 @@ void NeighborCuda::choose_build(int index, NeighRequest *rq)
 {
   Neighbor::choose_build(index,rq);
   
-  if (rq->full && style == NSQ && rq->ghost == 0 && rq->cudable)
+  if (rq->full && style == NSQ && rq->cudable)
     pair_build[index] = (Neighbor::PairPtr) &NeighborCuda::full_nsq_cuda;
-  else if (rq->full && style == BIN && rq->ghost == 0 && rq->cudable)
+  else if (rq->full && style == BIN && rq->cudable)
     pair_build[index] = (Neighbor::PairPtr) &NeighborCuda::full_bin_cuda;
 }
 

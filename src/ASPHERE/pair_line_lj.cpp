@@ -96,6 +96,7 @@ void PairLineLJ::compute(int eflag, int vflag)
   // grow discrete list if necessary and initialize
 
   if (nall > nmax) {
+    nmax = nall;
     memory->destroy(dnum);
     memory->destroy(dfirst);
     memory->create(dnum,nall,"pair:dnum");

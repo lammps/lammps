@@ -100,6 +100,7 @@ void PairTriLJ::compute(int eflag, int vflag)
   // grow discrete list if necessary and initialize
 
   if (nall > nmax) {
+    nmax = nall;
     memory->destroy(dnum);
     memory->destroy(dfirst);
     memory->create(dnum,nall,"pair:dnum");
@@ -118,7 +119,7 @@ void PairTriLJ::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;

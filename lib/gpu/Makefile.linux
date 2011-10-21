@@ -20,8 +20,10 @@
 CUDA_HOME = /usr/local/cuda
 NVCC = nvcc
 
+# Tesla CUDA
+CUDA_ARCH = -arch=sm_21
 # newer CUDA
-CUDA_ARCH = -arch=sm_13
+#CUDA_ARCH = -arch=sm_13
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
 

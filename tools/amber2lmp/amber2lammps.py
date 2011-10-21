@@ -7,7 +7,7 @@
 # Copyright 1999, 2000 Keir E. Novik; all rights reserved.
 # 
 # Modified by Vikas Varshney, U Akron, 5 July 2005, as described in README
-#
+# Bug Fixed :Third argument in Dihedral Coeffs section is an integer - Ketan S Khare September 26, 2011
 
 #============================================================
 

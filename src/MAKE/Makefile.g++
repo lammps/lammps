@@ -6,10 +6,10 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++4
+CC =		g++
 CCFLAGS =	-g -O # -Wunused
 DEPFLAGS =	-M
-LINK =		g++4
+LINK =		g++
 LINKFLAGS =	-g -O
 LIB =           
 ARCHIVE =	ar
@@ -35,7 +35,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX
 MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -57,7 +57,7 @@ FFT_LIB =	-lfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	/usr/local/lib/libjpeg.a
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

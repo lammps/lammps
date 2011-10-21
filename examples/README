@@ -29,6 +29,7 @@ colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel

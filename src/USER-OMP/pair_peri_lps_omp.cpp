@@ -26,8 +26,10 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -179,7 +181,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 	// of the bond-based theory used in PMB model
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
-	  (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+	  (MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
         rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);

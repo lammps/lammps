@@ -144,8 +144,8 @@ void EwaldOMP::compute(int eflag, int vflag)
 	  eng_tmp += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
 			      sfacim_all[k]*sfacim_all[k]);
 
-	eng_tmp -= g_ewald*qsqsum/1.772453851 + 
-	  0.5*MY_PI*qsum*qsum / (g_ewald*g_ewald*volume);
+	eng_tmp -= g_ewald*qsqsum/MY_PIS +
+	  MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
 	eng_tmp *= qqrd2e*scale;
 	energy = eng_tmp;
       }

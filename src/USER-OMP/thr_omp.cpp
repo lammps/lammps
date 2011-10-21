@@ -137,7 +137,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 
   case THR_PAIR: {
     Pair * const pair = lmp->force->pair;
-    
+  
     if (pair->vflag_fdotr) {
       if (lmp->neighbor->includegroup == 0)
 	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
@@ -205,96 +205,111 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
   }
     break;
 
-  case THR_BOND: {
-    Bond * const bond = lmp->force->bond;
+  case THR_BOND:
 
+    if (evflag) {
+      Bond * const bond = lmp->force->bond;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-    {
-      bond->energy += thr->eng_bond;
-      for (int i=0; i < 6; ++i)
-	bond->virial[i] += thr->virial_bond[i];
-    }
-  }
-    break;
-
-  case THR_ANGLE: {
-    Angle * const angle = lmp->force->angle;
-
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      angle->energy += thr->eng_angle;
-      for (int i=0; i < 6; ++i)
-	angle->virial[i] += thr->virial_angle[i];
-    }
-  }
-    break;
-
-  case THR_DIHEDRAL: {
-    Dihedral * const dihedral = lmp->force->dihedral;
-
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      dihedral->energy += thr->eng_dihed;
-      for (int i=0; i < 6; ++i)
-	dihedral->virial[i] += thr->virial_dihed[i];
-    }
-  }
-    break;
-
-  case THR_DIHEDRAL|THR_CHARMM: { // special case for CHARMM dihedrals
-    Dihedral * const dihedral = lmp->force->dihedral;
-    Pair * const pair = lmp->force->pair;
-
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    {
-      if (eflag & 1) {
-	dihedral->energy += thr->eng_dihed;
-     	pair->eng_vdwl += thr->eng_vdwl;
-	pair->eng_coul += thr->eng_coul;
+      {
+	bond->energy += thr->eng_bond;
+	for (int i=0; i < 6; ++i)
+	  bond->virial[i] += thr->virial_bond[i];
       }
+    }
+    break;
 
-      if (vflag & 3) {
-	for (int i=0; i < 6; ++i) {
+  case THR_ANGLE:
+
+    if (evflag) {
+      Angle * const angle = lmp->force->angle;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	angle->energy += thr->eng_angle;
+	for (int i=0; i < 6; ++i)
+	  angle->virial[i] += thr->virial_angle[i];
+      }
+    }
+    break;
+
+  case THR_DIHEDRAL:
+    
+    if (evflag) {
+      Dihedral * const dihedral = lmp->force->dihedral;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	dihedral->energy += thr->eng_dihed;
+	for (int i=0; i < 6; ++i)
 	  dihedral->virial[i] += thr->virial_dihed[i];
-	  pair->virial[i] += thr->virial_pair[i];
+      }
+    }
+    break;
+
+  case THR_DIHEDRAL|THR_CHARMM: // special case for CHARMM dihedrals
+
+    if (evflag) {
+      Dihedral * const dihedral = lmp->force->dihedral;
+      Pair * const pair = lmp->force->pair;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	if (eflag & 1) {
+	  dihedral->energy += thr->eng_dihed;
+	  pair->eng_vdwl += thr->eng_vdwl;
+	  pair->eng_coul += thr->eng_coul;
+	}
+
+	if (vflag & 3) {
+	  for (int i=0; i < 6; ++i) {
+	    dihedral->virial[i] += thr->virial_dihed[i];
+	    pair->virial[i] += thr->virial_pair[i];
+	  }
 	}
       }
     }
-  }
     break;
 
-  case THR_IMPROPER: {
-    Improper *improper = lmp->force->improper;
+  case THR_IMPROPER:
 
+    if (evflag) {
+      Improper *improper = lmp->force->improper;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-    {
-      improper->energy += thr->eng_imprp;
-      for (int i=0; i < 6; ++i)
-	improper->virial[i] += thr->virial_imprp[i];
+      {
+	improper->energy += thr->eng_imprp;
+	for (int i=0; i < 6; ++i)
+	  improper->virial[i] += thr->virial_imprp[i];
+      }
     }
-  }
     break;
 
   case THR_KSPACE|THR_PROXY: // fallthrough
-  case THR_KSPACE: {
-    // nothing to do
-  }
+  case THR_KSPACE:
+    // nothing to do (for now)
+#if 0
+    if (evflag) {
+      KSpace *kspace = lmp->force->kspace;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+	kspace->energy += thr->eng_kspce;
+	for (int i=0; i < 6; ++i)
+	  kspace->virial[i] += thr->virial_kspce[i];
+      }
+    }
+#endif
     break;
 
   default:
-  {
     printf("tid:%d unhandled thr_style case %d\n", tid, thr_style);
-  }
     break;
   }
     

@@ -30,7 +30,7 @@ class Bond;
 class Angle;
 class Dihedral;
 class Improper;
-class Kspace;
+class KSpace;
 
 class ThrOMP {
 

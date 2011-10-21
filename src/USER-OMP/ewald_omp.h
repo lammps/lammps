@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,47 +13,27 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(ewald,Ewald)
+KSpaceStyle(ewald/omp,EwaldOMP)
 
 #else
 
-#ifndef LMP_EWALD_H
-#define LMP_EWALD_H
+#ifndef LMP_EWALD_OMP_H
+#define LMP_EWALD_OMP_H
 
-#include "kspace.h"
+#include "ewald.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class Ewald : public KSpace {
+  class EwaldOMP : public Ewald, public ThrOMP {
  public:
-  Ewald(class LAMMPS *, int, char **);
-  virtual ~Ewald();
-  void init();
-  void setup();
+  EwaldOMP(class LAMMPS *, int, char **);
+  virtual ~EwaldOMP() { };
+  virtual void allocate();
   virtual void compute(int, int);
-  double memory_usage();
 
  protected:
-  double PI;
-  double precision;
-  int kcount,kmax,kmax3d,kmax_created;
-  double qqrd2e;
-  double gsqmx,qsum,qsqsum,volume;
-  int nmax;
-
-  double unitk[3];
-  int *kxvecs,*kyvecs,*kzvecs;
-  double *ug;
-  double **eg,**vg;
-  double **ek;
-  double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
-  double ***cs,***sn;
-
   virtual void eik_dot_r();
-  void coeffs();
-  virtual void allocate();
-  void deallocate();
-  void slabcorr(int);
 };
 
 }

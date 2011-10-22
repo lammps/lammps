@@ -750,6 +750,7 @@ package"_Section_accelerate.html.
 "gran/hooke/omp"_pair_gran.html,
 "hbond/dreiding/lj/omp"_pair_hbond_dreiding.html,
 "hbond/dreiding/morse/omp"_pair_hbond_dreiding.html,
+"line/lj/omp"_pair_line_lj.html,
 "lj/charmm/coul/charmm/cuda"_pair_charmm.html,
 "lj/charmm/coul/charmm/omp"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit/cuda"_pair_charmm.html,
@@ -758,6 +759,7 @@ package"_Section_accelerate.html.
 "lj/charmm/coul/long/gpu"_pair_charmm.html,
 "lj/charmm/coul/long/omp"_pair_charmm.html,
 "lj/charmm/coul/long/opt"_pair_charmm.html,
+"lj/charmm/coul/pppm/omp"_pair_charmm.html,
 "lj/class2/coul/cut/cuda"_pair_class2.html,
 "lj/class2/coul/cut/omp"_pair_class2.html,
 "lj/class2/coul/long/cuda"_pair_class2.html,
@@ -778,6 +780,8 @@ package"_Section_accelerate.html.
 "lj/cut/coul/long/opt"_pair_lj.html,
 "lj/cut/coul/long/tip4p/omp"_pair_lj.html,
 "lj/cut/coul/long/tip4p/opt"_pair_lj.html,
+"lj/cut/coul/pppm/omp"_pair_lj.html,
+"lj/cut/coul/pppm/tip4p/omp"_pair_lj.html,
 "lj/cut/cuda"_pair_lj.html,
 "lj/cut/experimental/cuda"_pair_lj.html,
 "lj/cut/gpu"_pair_lj.html,
@@ -813,6 +817,7 @@ package"_Section_accelerate.html.
 "tersoff/cuda"_pair_tersoff.html,
 "tersoff/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
+"tri/lj/omp"_pair_tri_lj.html,
 "yukawa/omp"_pair_yukawa.html,
 "yukawa/colloid/omp"_pair_yukawa_colloid.html :tb(c=4,ea=c)
 
@@ -978,5 +983,8 @@ These are accelerated Kspace solvers, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
+"ewald/omp"_kspace_style.html,
 "pppm/cuda"_kspace_style.html,
-"pppm/gpu"_kspace_style.html :tb(c=4,ea=c)
+"pppm/gpu"_kspace_style.html,
+"pppm/omp"_kspace_style.html,
+"pppm/proxy"_kspace_style.html :tb(c=4,ea=c)

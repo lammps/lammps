@@ -133,6 +133,8 @@ void PairRESquared::compute(int eflag, int vflag)
       // compute if less than cutoff
 
       if (rsq < cutsq[itype][jtype]) {
+	fforce[0] = fforce[1] = fforce[2] = 0.0;
+
         switch (form[itype][jtype]) {
 
          case SPHERE_SPHERE:

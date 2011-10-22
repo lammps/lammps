@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class ImproperClass2 : public Improper {
  public:
   ImproperClass2(class LAMMPS *);
-  ~ImproperClass2();
-  void compute(int, int);
+  virtual ~ImproperClass2();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *k0,*chi0;
   double *aa_k1,*aa_k2,*aa_k3,*aa_theta0_1,*aa_theta0_2,*aa_theta0_3;
   int *setflag_i,*setflag_aa;

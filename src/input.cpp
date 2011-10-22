@@ -1030,7 +1030,7 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg);
+  force->create_kspace(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */

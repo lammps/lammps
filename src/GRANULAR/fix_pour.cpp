@@ -168,8 +168,10 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // assume grav = -magnitude at this point, enforce in init()
 
   int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
+  for (ifix = 0; ifix < modify->nfix; ifix++) {
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"gravity/omp") == 0) break;
+  }
   if (ifix == modify->nfix) 
     error->all(FLERR,"No fix gravity defined for fix pour");
   grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
@@ -267,8 +269,10 @@ void FixPour::init()
   // else insertion cannot work
 
   int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
+  for (ifix = 0; ifix < modify->nfix; ifix++) {
     if (strcmp(modify->fix[ifix]->style,"gravity") == 0) break;
+    if (strcmp(modify->fix[ifix]->style,"gravity/omp") == 0) break;
+  }
   if (ifix == modify->nfix) 
     error->all(FLERR,"No fix gravity defined for fix pour");
 

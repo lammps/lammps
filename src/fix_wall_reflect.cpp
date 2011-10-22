@@ -194,13 +194,18 @@ void FixWallReflect::post_integrate()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double scale;
 
   if (varflag) modify->clearstep_compute();
 
   for (int m = 0; m < nwall; m++) {
-    if (wallstyle[m] == VARIABLE)
+    if (wallstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(varindex[m]);
-    else coord = coord0[m];
+      if (wallwhich[m] < YLO) scale = domain->lattice->xlattice;
+      else if (wallwhich[m] < ZLO) scale = domain->lattice->ylattice;
+      else scale = domain->lattice->zlattice;
+      coord *= scale;
+    } else coord = coord0[m];
 
     dim = wallwhich[m] / 2;
     side = wallwhich[m] % 2;

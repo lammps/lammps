@@ -79,7 +79,7 @@ class NeighList : protected Pointers {
   ~NeighList();
   void grow(int);                       // grow maxlocal
   void stencil_allocate(int, int);      // allocate stencil arrays
-  int **add_pages();                    // add pages to neigh list
+  int **add_pages(int howmany=1);       // add pages to neigh list
   void copy_skip_info(int *, int **);   // copy skip info from a neigh request
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatoms;}

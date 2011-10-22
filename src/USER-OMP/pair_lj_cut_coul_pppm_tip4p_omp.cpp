@@ -69,8 +69,8 @@ void PairLJCutCoulPPPMTIP4POMP::init_style()
   if (comm->nthreads < 2)
     error->all(FLERR,"need at least two threads per MPI task for this pair style");
 
-  if (strcmp(force->kspace_style,"pppm/proxy") != 0)
-    error->all(FLERR,"kspace style pppm/proxy is required with this pair style");
+  if (strcmp(force->kspace_style,"pppm/tip4p/proxy") != 0)
+    error->all(FLERR,"kspace style pppm/tip4p/proxy is required with this pair style");
 
   kspace = static_cast<PPPMProxy *>(force->kspace);
 

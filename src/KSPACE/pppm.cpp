@@ -155,7 +155,8 @@ void PPPM::init()
 
   qdist = 0.0;
 
-  if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
+  if ( (strcmp(force->kspace_style,"pppm/tip4p") == 0) ||
+       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
     if (force->pair == NULL)
       error->all(FLERR,"KSpace style is incompatible with Pair style");
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
@@ -182,6 +183,16 @@ void PPPM::init()
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (cos(0.5*theta) * blen);
+  }
+
+  // if we have a /proxy pppm version check if the pair style is compatible
+
+  if ( (strcmp(force->kspace_style,"pppm/proxy") == 0) ||
+       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
+    if (force->pair == NULL)
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
+    if (strstr(force->pair_style,"pppm/") == NULL )
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
   }
 
   // compute qsum & qsqsum and warn if not charge-neutral

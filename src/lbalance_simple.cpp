@@ -46,12 +46,12 @@ LbalanceSimple::LbalanceSimple(class LAMMPS *lmp,int narg, char **arg): Lbalance
     //NP do not parse here for derived classes such as hybrid
     if(strncmp(style,"nlocal/",6)) return;
 
-    if(narg < iarg+2)  error->all("Loadbalance simple: Not enough arguments");
+    if(narg < iarg+2)  error->all(FLERR,"Loadbalance simple: Not enough arguments");
 
-    if(strcmp(arg[iarg++],"ntry")) error->all("Loadbalance nlocal/simple: Expecting 'ntry'");
+    if(strcmp(arg[iarg++],"ntry")) error->all(FLERR,"Loadbalance nlocal/simple: Expecting 'ntry'");
     ntry_simple = atoi(arg[iarg++]);
-    if(ntry_simple < 1) error->all("Loadbalance max: ntry too small");
-    if(ntry_simple > 10) error->warning("Loadbalance max: ntry >10 might result in high comm cost");
+    if(ntry_simple < 1) error->all(FLERR,"Loadbalance max: ntry too small");
+    if(ntry_simple > 10) error->warning(FLERR,"Loadbalance max: ntry >10 might result in high comm cost");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,7 +78,7 @@ void LbalanceSimple::loadbalance_local_boxes()
     // do not do anything if there is no reasonable # of particles in the system
     if(atom->natoms < 10 * comm->nprocs) return;
 
-    if(domain->triclinic) error->all("Load balancing not implemented for triclinic boxes");
+    if(domain->triclinic) error->all(FLERR,"Load balancing not implemented for triclinic boxes");
 
     /*NL*/ //if(comm->me == 0) fprintf(screen,"Loadbalancing: %f particles\n",atom->natoms);
 
@@ -116,7 +116,7 @@ void LbalanceSimple::loadbalance_local_boxes_simple(int *lodim, int *hidim)
   //NP should not occur since minextent is accounted for in apply_border()
   for (int i = 0; i < 3; i++) 
       if(boxhi[i] - boxlo[i] < procgrid[i] * minextent) 
-         error->all("Domain too small for this processor grid and this cutoff size: Enlarge domain, reduce # prcessors or choose smaller cutoff");
+         error->all(FLERR,"Domain too small for this processor grid and this cutoff size: Enlarge domain, reduce # prcessors or choose smaller cutoff");
 
   /*NL*/ if(LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"minextent %f\n",minextent);
 
@@ -169,7 +169,7 @@ void LbalanceSimple::loadbalance_local_boxes_simple(int *lodim, int *hidim)
            apply_border(bal_sublo,bal_subhi,idim,idim_proc);
         }
   }
-  //NP error->all("loadbalance finished");
+  //NP error->all(FLERR,"loadbalance finished");
 }
 
 /*NP ----------------------------------------------------------------------
@@ -189,7 +189,7 @@ double LbalanceSimple::calc_border(int ntry,int dim,int ncount_ideal,double *bor
   //NP recursive binary search
   if(ntry > 0)
   {
-      if(ncount[0] > ncount_ideal || ncount[2] < ncount_ideal) error->all("Illegal situation in LbalanceSimple::calc_border");
+      if(ncount[0] > ncount_ideal || ncount[2] < ncount_ideal) error->all(FLERR,"Illegal situation in LbalanceSimple::calc_border");
       if(ncount[1] == ncount_ideal) return border[1];
 
       //NP adjust hi and lo border accordingly
@@ -312,7 +312,7 @@ void LbalanceSimple::apply_border(double *bal_sublo, double *bal_subhi,int idim,
               /*NL*/ if(LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"    border result after max shift extent: %f\n",subhi[idim]);
 
               //NP warn if maximum shift distance did override
-              if(subhi[idim] - sublo[idim] < minextent ) error->warning("Minimum sub-domain extent could not be obeyed because particles would have been lost (did you insert large particles?). Inaccuracies may result.");
+              if(subhi[idim] - sublo[idim] < minextent ) error->warning(FLERR,"Minimum sub-domain extent could not be obeyed because particles would have been lost (did you insert large particles?). Inaccuracies may result.");
 
               //if(idim ==2) fprintf(screen,"Processor %d: boundaries finally calculated for dim %d: %f / %f\n",comm->me,idim,sublo[idim],subhi[idim]);
            }

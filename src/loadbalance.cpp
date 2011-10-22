@@ -39,17 +39,17 @@ Loadbalance::Loadbalance(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Loadbalance::command(int narg, char **arg)
 {
-  if (narg < 1) error->all("Illegal loadbalance command, not enough arguments");
+  if (narg < 1) error->all(FLERR,"Illegal loadbalance command, not enough arguments");
   if(strcmp(arg[0],"off") == 0) domain->lbalance = NULL;
   else
   {
       if (comm->nprocs == 1)
       {
-          error->warning("Running in serial, loadbalance command has no effects");
+          error->warning(FLERR,"Running in serial, loadbalance command has no effects");
           return;
       }
 
-      if(comm->me == 0) error->warning("Loadbalance command: This is a beta feature, and does not work with respa");
+      if(comm->me == 0) error->warning(FLERR,"Loadbalance command: This is a beta feature, and does not work with respa");
 
       if (0) return;
       #define LB_CLASS
@@ -57,6 +57,6 @@ void Loadbalance::command(int narg, char **arg)
       else if (strcmp(arg[0],#key) == 0) domain->lbalance = new Class(lmp,narg,arg);
       #include "style_lb.h"
       #undef LB_CLASS
-      else error->all("Illegal loadbalance command: Unknown style");
+      else error->all(FLERR,"Illegal loadbalance command: Unknown style");
    }
 }

@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/pppm/tip4pomp,PairLJCutCoulPPPMTIP4POMP)
+PairStyle(lj/cut/coul/pppm/tip4p/omp,PairLJCutCoulPPPMTIP4POMP)
 
 #else
 

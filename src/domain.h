@@ -109,6 +109,10 @@ class Domain : protected Pointers {
   void set_boundary(int, char **);
   void print_box(const char *);
 
+  // load balancing
+  int decide_loadbalance();
+  class Lbalance *lbalance;
+
   virtual void lamda2x(int);
   virtual void x2lamda(int);
   void lamda2x(double *, double *);

@@ -6,7 +6,9 @@
 # removed
 for file in *_omp.cpp *_omp.h pppm_proxy.h pppm_proxy.cpp thr_data.h thr_data.cpp; do
   # let us see if the "rain man" can count the toothpicks...
-  ofile=`echo $file | sed -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.\\\\\\(h\\\\\\|cpp\\\\\\),\\\\1.\\\\2,`
+  ofile=`echo $file | sed  -e s,_pppm_tip4p_omp,_long_tip4p_omp, \
+   -e s,pppm_proxy,pppm_omp, -e s,_pppm_omp,_long_omp, \
+   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.\\\\\\(h\\\\\\|cpp\\\\\\),\\\\1.\\\\2,`
   if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") \
       || (test $file = "thr_data.h") || (test $file = "thr_data.cpp") then
     if (test ! -e ../$file) then
@@ -16,28 +18,11 @@ for file in *_omp.cpp *_omp.h pppm_proxy.h pppm_proxy.cpp thr_data.h thr_data.cp
       echo "  updating src/$file"
       cp $file ..
     fi
-  elif (test $file = "pppm_proxy.h") || (test $file = "pppm_proxy.cpp") \
-      || (test $file = "pair_lj_charmm_coul_pppm_omp.h") \
-      || (test $file = "pair_lj_charmm_coul_pppm_omp.cpp") then
-    if (test ! -e ../pair_lj_charmm_coul_long.h ) then
-      echo "  removing src/$file"
-      rm -f ../$file
-    else
-      if (test ! -e ../$file) then
-        echo "  creating src/$file"
-        cp $file ..
-      elif ! cmp -s $file ../$file ; then
-        echo "  updating src/$file"
-        cp $file ..
-      fi
-    fi
-    continue
   elif (test ! -e ../$ofile) then
     if (test -e ../$file) then
       echo "  removing src/$file"
       rm -f ../$file
     fi
-    continue
   else
     if (test ! -e ../$file) then
       echo "  creating src/$file"

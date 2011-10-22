@@ -17,23 +17,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/charmm/coul/pppm/omp,PairLJCharmmCoulPPPMOMP)
+PairStyle(lj/cut/coul/pppm/omp,PairLJCutCoulPPPMOMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CHARMM_COUL_PPPM_OMP_H
-#define LMP_PAIR_LJ_CHARMM_COUL_PPPM_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
 
-#include "pair_lj_charmm_coul_long.h"
+#include "pair_lj_cut_coul_long.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCharmmCoulPPPMOMP : public PairLJCharmmCoulLong, public ThrOMP {
+class PairLJCutCoulPPPMOMP : public PairLJCutCoulLong, public ThrOMP {
 
  public:
-  PairLJCharmmCoulPPPMOMP(class LAMMPS *);
-  virtual ~PairLJCharmmCoulPPPMOMP() {};
+  PairLJCutCoulPPPMOMP(class LAMMPS *);
+  virtual ~PairLJCutCoulPPPMOMP() {};
 
   virtual void init_style();
 

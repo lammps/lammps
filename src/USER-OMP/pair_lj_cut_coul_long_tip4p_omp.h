@@ -39,7 +39,6 @@ class PairLJCutCoulLongTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
   virtual double memory_usage();
 
  protected:
-
   // this is to cache m-shift corrected positions.
   int maxmpos;        // size of the following arrays
   int *h1idx, *h2idx; // local index of hydrogen atoms

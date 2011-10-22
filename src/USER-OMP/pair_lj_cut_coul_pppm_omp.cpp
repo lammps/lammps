@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_charmm_coul_pppm_omp.h"
+#include "pair_lj_cut_coul_pppm_omp.h"
 #include "pppm_proxy.h"
 #include "atom.h"
 #include "comm.h"
@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulPPPMOMP::PairLJCharmmCoulPPPMOMP(LAMMPS *lmp) :
-  PairLJCharmmCoulLong(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
+PairLJCutCoulPPPMOMP::PairLJCutCoulPPPMOMP(LAMMPS *lmp) :
+  PairLJCutCoulLong(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
 {
   respa_enable = 0;
   nproxy=1;
@@ -48,7 +48,7 @@ PairLJCharmmCoulPPPMOMP::PairLJCharmmCoulPPPMOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulPPPMOMP::init_style()
+void PairLJCutCoulPPPMOMP::init_style()
 {
   if (comm->nthreads < 2)
     error->all(FLERR,"need at least two threads per MPI task for this pair style");
@@ -58,12 +58,12 @@ void PairLJCharmmCoulPPPMOMP::init_style()
 
   kspace = static_cast<PPPMProxy *>(force->kspace);
 
-  PairLJCharmmCoulLong::init_style();
+  PairLJCutCoulLong::init_style();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulPPPMOMP::compute(int eflag, int vflag)
+void PairLJCutCoulPPPMOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -106,18 +106,16 @@ void PairLJCharmmCoulPPPMOMP::compute(int eflag, int vflag)
     reduce_thr(eflag, vflag, thr, nproxy);
   } // end of omp parallel region
 }
-
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCharmmCoulPPPMOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairLJCutCoulPPPMOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
-  double philj,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -191,18 +189,9 @@ void PairLJCharmmCoulPPPMOMP::eval(int iifrom, int iito, ThrData * const thr)
 	  }
 	} else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq) {
+	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
 	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	      (rsq-cut_lj_innersq) / denom_lj;
-	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    forcelj = forcelj*switch1 + philj*switch2;
-	  }
 	  forcelj *= factor_lj;
 	} else forcelj = 0.0;
 
@@ -228,17 +217,13 @@ void PairLJCharmmCoulPPPMOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
 	  } else ecoul = 0.0;
 
-	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-	    if (rsq > cut_lj_innersq) {
-	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-	      evdwl *= switch1;
-	    }
+	  if (rsq < cut_ljsq[itype][jtype]) {
+	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	      offset[itype][jtype];
 	    evdwl *= factor_lj;
 	  } else evdwl = 0.0;
 	}
-	
+
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
@@ -251,10 +236,10 @@ void PairLJCharmmCoulPPPMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCharmmCoulPPPMOMP::memory_usage()
+double PairLJCutCoulPPPMOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCharmmCoulLong::memory_usage();
+  bytes += PairLJCutCoulLong::memory_usage();
 
   return bytes;
 }

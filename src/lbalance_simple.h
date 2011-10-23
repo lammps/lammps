@@ -58,7 +58,7 @@ class LbalanceSimple : public Lbalance {
    protected:
     virtual void loadbalance_local_boxes();
 
-    void loadbalance_local_boxes_simple(int *lodim, int *hidim);
+    void loadbalance_local_boxes_simple();
 
     void calc_max_shift(int ,int);
     int count_particles(int,double);

@@ -90,10 +90,10 @@ void LbalanceSimple::loadbalance_local_boxes()
     hidim[1] = procgrid[1]-1;
     hidim[2] = procgrid[2]-1;
 
-    loadbalance_local_boxes_simple(lodim,hidim);
+    loadbalance_local_boxes_simple();
 }
 
-void LbalanceSimple::loadbalance_local_boxes_simple(int *lodim, int *hidim)
+void LbalanceSimple::loadbalance_local_boxes_simple()
 {
   // new borders for load-balanced system
   double bal_sublo[3],bal_subhi[3];
@@ -115,59 +115,61 @@ void LbalanceSimple::loadbalance_local_boxes_simple(int *lodim, int *hidim)
   //NP error if domain is too small to be loadbalanced
   //NP should not occur since minextent is accounted for in apply_border()
   for (int i = 0; i < 3; i++) 
-      if(boxhi[i] - boxlo[i] < procgrid[i] * minextent) 
-         error->all(FLERR,"Domain too small for this processor grid and this cutoff size: Enlarge domain, reduce # prcessors or choose smaller cutoff");
+    if ( (procgrid[i] > 1) && (boxhi[i] - boxlo[i] < procgrid[i] * minextent) )
+      error->all(FLERR,"Domain too small for this processor grid and this cutoff size: Enlarge domain, reduce # prcessors or choose smaller cutoff");
+  
+  /*NL*/ if (LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"minextent %f\n",minextent);
 
-  /*NL*/ if(LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"minextent %f\n",minextent);
+  for (idim = 0; idim < 3; idim++) {
+    if (procgrid[idim] < 2) continue;
 
-  for(idim = 0; idim < 3; idim++)
-  {
-        nproc_grid = hidim[idim] - lodim[idim] + 1;
-        /*NL*/ //if(LMP_DEBUGMODE_LBALANCE_SIMPLE && idim == 2) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"Processor %d:, nlocal %d\n",comm->me,atom->nlocal);
+    nproc_grid = hidim[idim] - lodim[idim] + 1;
+    /*NL*/ //if(LMP_DEBUGMODE_LBALANCE_SIMPLE && idim == 2) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"Processor %d:, nlocal
+	   //%d\n",comm->me,atom->nlocal);
 
-        //NP loop proc stencil
-        for(idim_proc = lodim[idim]; idim_proc <= hidim[idim]; idim_proc++)
-        {
-            //NP first calculate the maximum allowable border shift
-            //NP this ensures that no proc is skipped - i.e. particles are always communicated to a neigh proc
-            calc_max_shift(idim, idim_proc);
+    //NP loop proc stencil
+    for(idim_proc = lodim[idim]; idim_proc <= hidim[idim]; idim_proc++)
+      {
+	//NP first calculate the maximum allowable border shift
+	//NP this ensures that no proc is skipped - i.e. particles are always communicated to a neigh proc
+	calc_max_shift(idim, idim_proc);
 
-           //--------------------------
-           //step 1- calculate lo bound
-           //--------------------------
+	//--------------------------
+	//step 1- calculate lo bound
+	//--------------------------
 
-           //NP for the first proc - take boxlo
-           if(idim_proc == 0) bal_sublo[idim] = boxlo[idim];
-           //otherwise last hi limit as lo limit
-           else bal_sublo[idim] = bal_subhi[idim];
+	//NP for the first proc - take boxlo
+	if(idim_proc == 0) bal_sublo[idim] = boxlo[idim];
+	//otherwise last hi limit as lo limit
+	else bal_sublo[idim] = bal_subhi[idim];
 
-           //--------------------------
-           //step2 - calculate hi bound
-           //--------------------------
+	//--------------------------
+	//step2 - calculate hi bound
+	//--------------------------
 
-           //NP for the last proc - take boxhi
-           if(idim_proc == procgrid[idim]-1) bal_subhi[idim] = boxhi[idim];
-           else
-           {
-              //NP ideal particle count for the slice
-              ncount_ideal = (idim_proc - lodim[idim] + 1) * static_cast<int>(natoms / nproc_grid);
+	//NP for the last proc - take boxhi
+	if(idim_proc == procgrid[idim]-1) bal_subhi[idim] = boxhi[idim];
+	else
+	  {
+	    //NP ideal particle count for the slice
+	    ncount_ideal = (idim_proc - lodim[idim] + 1) * static_cast<int>(natoms / nproc_grid);
 
-              /*NL*/ //if(LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"ncount_ideal %d\n",ncount_ideal);
+	    /*NL*/ //if(LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"ncount_ideal %d\n",ncount_ideal);
 
-              //NP init and perform recursive search
-              border[0] = boxlo[idim];
-              border[2] = boxhi[idim];
-              ncount[0] = 0;
-              ncount[2] = natoms;
-              bal_subhi[idim] = calc_border(ntry_simple,idim,ncount_ideal,border,ncount);
-           }
+	    //NP init and perform recursive search
+	    border[0] = boxlo[idim];
+	    border[2] = boxhi[idim];
+	    ncount[0] = 0;
+	    ncount[2] = natoms;
+	    bal_subhi[idim] = calc_border(ntry_simple,idim,ncount_ideal,border,ncount);
+	  }
 
-           //--------------------------
-           //step3 - apply bounds
-           //--------------------------
-           // this may change the value for bal_subhi if necesary
-           apply_border(bal_sublo,bal_subhi,idim,idim_proc);
-        }
+	//--------------------------
+	//step3 - apply bounds
+	//--------------------------
+	// this may change the value for bal_subhi if necesary
+	apply_border(bal_sublo,bal_subhi,idim,idim_proc);
+      }
   }
   //NP error->all(FLERR,"loadbalance finished");
 }

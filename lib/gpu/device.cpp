@@ -139,7 +139,8 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                          const int host_nlocal, const int nall,
                          Neighbor *nbor, const int maxspecial,
                          const int gpu_host, const int max_nbors, 
-                         const double cell_size, const bool pre_cut) {
+                         const double cell_size, const bool pre_cut,
+                         const int threads_per_atom) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
@@ -184,7 +185,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
 
   if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
-                  _block_cell_id, _block_nbor_build))
+                  _block_cell_id, _block_nbor_build, threads_per_atom))
     return -3;
   nbor->cell_size(cell_size);
 
@@ -587,9 +588,13 @@ int DeviceT::compile_kernels() {
     _threads_per_atom=_warp_size;
   if (_warp_size%_threads_per_atom!=0)
     _threads_per_atom=1;
+  if (_threads_per_atom & (_threads_per_atom - 1))
+    _threads_per_atom=1;
   if (_threads_per_charge>_warp_size)
     _threads_per_charge=_warp_size;
   if (_warp_size%_threads_per_charge!=0)
+    _threads_per_charge=1;
+  if (_threads_per_charge & (_threads_per_charge - 1))
     _threads_per_charge=1;
 
   return flag;    

@@ -18,9 +18,10 @@
 #endif
 
 __kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,
-                            const int inum) {
-  // ii indexes the two interacting particles in gi
-  int ii=GLOBAL_ID_X;
+                            const int inum, const int t_per_atom) {
+  int tid=THREAD_ID_X;
+  int offset=tid & (t_per_atom-1);
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
 
   if (ii<inum) {
     __global int *nbor=dev_nbor+ii+inum;
@@ -28,10 +29,13 @@ __kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,
     nbor+=inum;
     __global int *list=dev_ij+*nbor;
     __global int *list_end=list+numj;
-  
+    list+=offset;
+    nbor+=mul24(ii,t_per_atom-1)+offset;
+    int stride=mul24(t_per_atom,inum);
+      
     for ( ; list<list_end; list++) {
       *nbor=*list;
-      nbor+=inum;
+      nbor+=stride;
     }
   } // if ii
 }

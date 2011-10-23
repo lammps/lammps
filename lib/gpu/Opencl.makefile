@@ -7,6 +7,8 @@ OCL_H  = $(wildcard ./geryon/ocl*.h) $(UCL_H)
 PAIR_H  = atom.h answer.h neighbor_shared.h \
           neighbor.h precision.h device.h \
           balance.h pppm.h
+# Headers for Preprocessor/Auxiliary Functions
+PRE1_H = preprocessor.h lal_aux_fun1.h
 
 ALL_H = $(OCL_H) $(PAIR_H)
 
@@ -113,8 +115,8 @@ $(OBJ_DIR)/re_squared.o: $(ALL_H) re_squared.h re_squared.cpp $(OBJ_DIR)/re_squa
 $(OBJ_DIR)/re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/re_squared.o re_squared_ext.cpp
 	$(OCL) -o $@ -c re_squared_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_cl.h: lj.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj preprocessor.h lj.cu $(OBJ_DIR)/lj_cl.h;
+$(OBJ_DIR)/lj_cl.h: lj.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj $(PRE1_H) lj.cu $(OBJ_DIR)/lj_cl.h;
 
 $(OBJ_DIR)/lj.o: $(ALL_H) lj.h lj.cpp  $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c lj.cpp -I$(OBJ_DIR)
@@ -122,8 +124,8 @@ $(OBJ_DIR)/lj.o: $(ALL_H) lj.h lj.cpp  $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)/lj_cl.h $(O
 $(OBJ_DIR)/lj_ext.o: $(ALL_H) lj.h lj_ext.cpp base_atomic.h
 	$(OCL) -o $@ -c lj_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul_cl.h: lj_coul.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj_coul preprocessor.h lj_coul.cu $(OBJ_DIR)/lj_coul_cl.h;
+$(OBJ_DIR)/lj_coul_cl.h: lj_coul.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul $(PRE1_H) lj_coul.cu $(OBJ_DIR)/lj_coul_cl.h;
 
 $(OBJ_DIR)/lj_coul.o: $(ALL_H) lj_coul.h lj_coul.cpp  $(OBJ_DIR)/lj_coul_cl.h $(OBJ_DIR)/lj_coul_cl.h $(OBJ_DIR)/base_charge.o
 	$(OCL) -o $@ -c lj_coul.cpp -I$(OBJ_DIR)
@@ -131,8 +133,8 @@ $(OBJ_DIR)/lj_coul.o: $(ALL_H) lj_coul.h lj_coul.cpp  $(OBJ_DIR)/lj_coul_cl.h $(
 $(OBJ_DIR)/lj_coul_ext.o: $(ALL_H) lj_coul.h lj_coul_ext.cpp base_charge.h
 	$(OCL) -o $@ -c lj_coul_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul_long_cl.h: lj_coul_long.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj_coul_long preprocessor.h lj_coul_long.cu $(OBJ_DIR)/lj_coul_long_cl.h;
+$(OBJ_DIR)/lj_coul_long_cl.h: lj_coul_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul_long $(PRE1_H) lj_coul_long.cu $(OBJ_DIR)/lj_coul_long_cl.h;
 
 $(OBJ_DIR)/lj_coul_long.o: $(ALL_H) lj_coul_long.h lj_coul_long.cpp  $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/base_charge.o
 	$(OCL) -o $@ -c lj_coul_long.cpp -I$(OBJ_DIR)
@@ -140,8 +142,8 @@ $(OBJ_DIR)/lj_coul_long.o: $(ALL_H) lj_coul_long.h lj_coul_long.cpp  $(OBJ_DIR)/
 $(OBJ_DIR)/lj_coul_long_ext.o: $(ALL_H) lj_coul_long.h lj_coul_long_ext.cpp base_charge.h
 	$(OCL) -o $@ -c lj_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_class2_long_cl.h: lj_class2_long.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj_class2_long preprocessor.h lj_class2_long.cu $(OBJ_DIR)/lj_class2_long_cl.h;
+$(OBJ_DIR)/lj_class2_long_cl.h: lj_class2_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_class2_long $(PRE1_H) lj_class2_long.cu $(OBJ_DIR)/lj_class2_long_cl.h;
 
 $(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp  $(OBJ_DIR)/lj_class2_long_cl.h $(OBJ_DIR)/base_charge.o
 	$(OCL) -o $@ -c lj_class2_long.cpp -I$(OBJ_DIR)
@@ -149,8 +151,8 @@ $(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp  $(OBJ
 $(OBJ_DIR)/lj_class2_long_ext.o: $(ALL_H) lj_class2_long.h lj_class2_long_ext.cpp base_charge.h
 	$(OCL) -o $@ -c lj_class2_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/coul_long_cl.h: coul_long.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh coul_long preprocessor.h coul_long.cu $(OBJ_DIR)/coul_long_cl.h;
+$(OBJ_DIR)/coul_long_cl.h: coul_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh coul_long $(PRE1_H) coul_long.cu $(OBJ_DIR)/coul_long_cl.h;
 
 $(OBJ_DIR)/coul_long.o: $(ALL_H) coul_long.h coul_long.cpp  $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/base_charge.o
 	$(OCL) -o $@ -c coul_long.cpp -I$(OBJ_DIR)
@@ -158,8 +160,8 @@ $(OBJ_DIR)/coul_long.o: $(ALL_H) coul_long.h coul_long.cpp  $(OBJ_DIR)/coul_long
 $(OBJ_DIR)/coul_long_ext.o: $(ALL_H) coul_long.h coul_long_ext.cpp base_charge.h
 	$(OCL) -o $@ -c coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/morse_cl.h: morse.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh morse preprocessor.h morse.cu $(OBJ_DIR)/morse_cl.h;
+$(OBJ_DIR)/morse_cl.h: morse.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh morse $(PRE1_H) morse.cu $(OBJ_DIR)/morse_cl.h;
 
 $(OBJ_DIR)/morse.o: $(ALL_H) morse.h morse.cpp  $(OBJ_DIR)/morse_cl.h $(OBJ_DIR)/morse_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c morse.cpp -I$(OBJ_DIR)
@@ -167,8 +169,8 @@ $(OBJ_DIR)/morse.o: $(ALL_H) morse.h morse.cpp  $(OBJ_DIR)/morse_cl.h $(OBJ_DIR)
 $(OBJ_DIR)/morse_ext.o: $(ALL_H) morse.h morse_ext.cpp base_atomic.h
 	$(OCL) -o $@ -c morse_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/charmm_long_cl.h: charmm_long.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh charmm_long preprocessor.h charmm_long.cu $(OBJ_DIR)/charmm_long_cl.h;
+$(OBJ_DIR)/charmm_long_cl.h: charmm_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh charmm_long $(PRE1_H) charmm_long.cu $(OBJ_DIR)/charmm_long_cl.h;
 
 $(OBJ_DIR)/charmm_long.o: $(ALL_H) charmm_long.h charmm_long.cpp  $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/base_charge.o
 	$(OCL) -o $@ -c charmm_long.cpp -I$(OBJ_DIR)
@@ -176,8 +178,8 @@ $(OBJ_DIR)/charmm_long.o: $(ALL_H) charmm_long.h charmm_long.cpp  $(OBJ_DIR)/cha
 $(OBJ_DIR)/charmm_long_ext.o: $(ALL_H) charmm_long.h charmm_long_ext.cpp base_charge.h
 	$(OCL) -o $@ -c charmm_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj96_cl.h: lj96.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj96 preprocessor.h lj96.cu $(OBJ_DIR)/lj96_cl.h;
+$(OBJ_DIR)/lj96_cl.h: lj96.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj96 $(PRE1_H) lj96.cu $(OBJ_DIR)/lj96_cl.h;
 
 $(OBJ_DIR)/lj96.o: $(ALL_H) lj96.h lj96.cpp  $(OBJ_DIR)/lj96_cl.h $(OBJ_DIR)/lj96_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c lj96.cpp -I$(OBJ_DIR)
@@ -185,8 +187,8 @@ $(OBJ_DIR)/lj96.o: $(ALL_H) lj96.h lj96.cpp  $(OBJ_DIR)/lj96_cl.h $(OBJ_DIR)/lj9
 $(OBJ_DIR)/lj96_ext.o: $(ALL_H) lj96.h lj96_ext.cpp base_atomic.h
 	$(OCL) -o $@ -c lj96_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_expand_cl.h: lj_expand.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh lj_expand preprocessor.h lj_expand.cu $(OBJ_DIR)/lj_expand_cl.h;
+$(OBJ_DIR)/lj_expand_cl.h: lj_expand.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_expand $(PRE1_H) lj_expand.cu $(OBJ_DIR)/lj_expand_cl.h;
 
 $(OBJ_DIR)/lj_expand.o: $(ALL_H) lj_expand.h lj_expand.cpp  $(OBJ_DIR)/lj_expand_cl.h $(OBJ_DIR)/lj_expand_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c lj_expand.cpp -I$(OBJ_DIR)
@@ -194,8 +196,8 @@ $(OBJ_DIR)/lj_expand.o: $(ALL_H) lj_expand.h lj_expand.cpp  $(OBJ_DIR)/lj_expand
 $(OBJ_DIR)/lj_expand_ext.o: $(ALL_H) lj_expand.h lj_expand_ext.cpp base_atomic.h
 	$(OCL) -o $@ -c lj_expand_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_cl.h: cg_cmm.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh cg_cmm preprocessor.h cg_cmm.cu $(OBJ_DIR)/cg_cmm_cl.h;
+$(OBJ_DIR)/cg_cmm_cl.h: cg_cmm.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh cg_cmm $(PRE1_H) cg_cmm.cu $(OBJ_DIR)/cg_cmm_cl.h;
 
 $(OBJ_DIR)/cg_cmm.o: $(ALL_H) cg_cmm.h cg_cmm.cpp  $(OBJ_DIR)/cg_cmm_cl.h $(OBJ_DIR)/cg_cmm_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c cg_cmm.cpp -I$(OBJ_DIR)
@@ -203,8 +205,8 @@ $(OBJ_DIR)/cg_cmm.o: $(ALL_H) cg_cmm.h cg_cmm.cpp  $(OBJ_DIR)/cg_cmm_cl.h $(OBJ_
 $(OBJ_DIR)/cg_cmm_ext.o: $(ALL_H) cg_cmm.h cg_cmm_ext.cpp base_atomic.h
 	$(OCL) -o $@ -c cg_cmm_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_long_cl.h: cg_cmm_long.cu preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_long preprocessor.h cg_cmm_long.cu $(OBJ_DIR)/cg_cmm_long_cl.h;
+$(OBJ_DIR)/cg_cmm_long_cl.h: cg_cmm_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_long $(PRE1_H) cg_cmm_long.cu $(OBJ_DIR)/cg_cmm_long_cl.h;
 
 $(OBJ_DIR)/cg_cmm_long.o: $(ALL_H) cg_cmm_long.h cg_cmm_long.cpp  $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/base_atomic.o
 	$(OCL) -o $@ -c cg_cmm_long.cpp -I$(OBJ_DIR)

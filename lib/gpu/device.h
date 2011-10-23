@@ -61,6 +61,8 @@ class Device {
     * \param cell_size cutoff+skin 
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel 
+    * \param threads_per_atom value to be used by the neighbor list only
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -70,7 +72,8 @@ class Device {
   int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
            const int nlocal, const int host_nlocal, const int nall,
            Neighbor *nbor, const int maxspecial, const int gpu_host,
-           const int max_nbors, const double cell_size, const bool pre_cut);
+           const int max_nbors, const double cell_size, const bool pre_cut,
+           const int threads_per_atom);
 
   /// Initialize the device for Atom storage only
   /** \param nlocal Total number of local particles to allocate memory for

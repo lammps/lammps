@@ -22,6 +22,121 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 #include "preprocessor.h"
 #endif
 
+#define atom_info(t_per_atom, ii, tid, offset)                               \
+  tid=THREAD_ID_X;                                                           \
+  offset=tid & (t_per_atom-1);                                               \
+  ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
+
+#define nbor_info_e(nbor_mem, nbor_stride, t_per_atom, ii, offset,           \
+                    i, numj, stride, list_end, nbor)                         \
+    nbor=nbor_mem+ii;                                                        \
+    i=*nbor;                                                                 \
+    nbor+=nbor_stride;                                                       \
+    numj=*nbor;                                                              \
+    nbor+=nbor_stride;                                                       \
+    list_end=nbor+mul24(nbor_stride,numj);                                   \
+    nbor+=mul24(offset,nbor_stride);                                         \
+    stride=mul24(t_per_atom,nbor_stride);
+
+#define store_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
+                      eflag, vflag, ans, engv)                              \
+  if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
+    red_acc[0][tid]=f.x;                                                    \
+    red_acc[1][tid]=f.y;                                                    \
+    red_acc[2][tid]=f.z;                                                    \
+    red_acc[3][tid]=energy;                                                 \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s) {                                                     \
+        for (int r=0; r<4; r++)                                             \
+          red_acc[r][tid] += red_acc[r][tid+s];                             \
+      }                                                                     \
+    }                                                                       \
+    f.x=red_acc[0][tid];                                                    \
+    f.y=red_acc[1][tid];                                                    \
+    f.z=red_acc[2][tid];                                                    \
+    energy=red_acc[3][tid];                                                 \
+    if (vflag>0) {                                                          \
+      for (int r=0; r<6; r++)                                               \
+        red_acc[r][tid]=virial[r];                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        if (offset < s) {                                                   \
+          for (int r=0; r<6; r++)                                           \
+            red_acc[r][tid] += red_acc[r][tid+s];                           \
+        }                                                                   \
+      }                                                                     \
+      for (int r=0; r<6; r++)                                               \
+        virial[r]=red_acc[r][tid];                                          \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv=energy;                                                         \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+  }
+
+#define store_answers_t(f, tor, energy, virial, ii, astride, tid,           \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[7][BLOCK_PAIR];                                  \
+    red_acc[0][tid]=f.x;                                                    \
+    red_acc[1][tid]=f.y;                                                    \
+    red_acc[2][tid]=f.z;                                                    \
+    red_acc[3][tid]=tor.x;                                                  \
+    red_acc[4][tid]=tor.y;                                                  \
+    red_acc[5][tid]=tor.z;                                                  \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s) {                                                     \
+        for (int r=0; r<6; r++)                                             \
+          red_acc[r][tid] += red_acc[r][tid+s];                             \
+      }                                                                     \
+    }                                                                       \
+    f.x=red_acc[0][tid];                                                    \
+    f.y=red_acc[1][tid];                                                    \
+    f.z=red_acc[2][tid];                                                    \
+    tor.x=red_acc[3][tid];                                                  \
+    tor.y=red_acc[4][tid];                                                  \
+    tor.z=red_acc[5][tid];                                                  \
+    if (eflag>0 || vflag>0) {                                               \
+      for (int r=0; r<6; r++)                                               \
+        red_acc[r][tid]=virial[r];                                          \
+      red_acc[6][tid]=energy;                                               \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        if (offset < s) {                                                   \
+          for (int r=0; r<7; r++)                                           \
+            red_acc[r][tid] += red_acc[r][tid+s];                           \
+        }                                                                   \
+      }                                                                     \
+      for (int r=0; r<6; r++)                                               \
+        virial[r]=red_acc[r][tid];                                          \
+      energy=red_acc[6][tid];                                               \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    __global acctyp *ap1=engv+ii;                                           \
+    if (eflag>0) {                                                          \
+      *ap1=energy;                                                          \
+      ap1+=astride;                                                         \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *ap1=virial[i];                                                     \
+        ap1+=astride;                                                       \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+    ans[ii+astride]=tor;                                                    \
+  }
+
 /* ----------------------------------------------------------------------
    dot product of 2 vectors
 ------------------------------------------------------------------------- */

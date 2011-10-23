@@ -101,16 +101,12 @@ __kernel void kernel_calc_cell_counts(unsigned *cell_id,
   }
 }
 
-__kernel void calc_neigh_list_cell(numtyp4 *pos,
-				     int *cell_particle_id, 
-				     int *cell_counts,
-				     int *nbor_list,
-				     int *host_nbor_list,
-				     int *host_numj, 
-				     int neigh_bin_size, 
-				     numtyp cell_size,
-				     int ncellx, int ncelly, int ncellz,
-				     int inum, int nt, int nall)
+__kernel void calc_neigh_list_cell(numtyp4 *pos, int *cell_particle_id, 
+                                   int *cell_counts, int *nbor_list,
+                                   int *host_nbor_list, int *host_numj, 
+                                   int neigh_bin_size, numtyp cell_size,
+                                   int ncellx, int ncelly, int ncellz,
+                                   int inum, int nt, int nall, int t_per_atom)
 {
   int tid = threadIdx.x;
   int ix = blockIdx.x;
@@ -147,7 +143,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
     if (pid_i < inum) {
       stride=inum;
       neigh_counts=nbor_list+stride+pid_i;
-      neigh_list=neigh_counts+stride;
+      neigh_list=neigh_counts+stride+pid_i*(t_per_atom-1);
+      stride=stride*t_per_atom-t_per_atom;
       nbor_list[pid_i]=pid_i;
     } else {
       stride=1;
@@ -171,7 +168,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
           int num_iter = (int)ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD);
 
           for (int k = 0; k < num_iter; k++) {
-            int end_idx = min(BLOCK_NBOR_BUILD, num_atom_cell-k*BLOCK_NBOR_BUILD);
+            int end_idx = min(BLOCK_NBOR_BUILD, 
+                              num_atom_cell-k*BLOCK_NBOR_BUILD);
 	    
             if (tid < end_idx) {
               pid_j =  cell_particle_id[tid+k*BLOCK_NBOR_BUILD+jcell_begin];
@@ -193,11 +191,13 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos,
 		
                 r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
                 if (r2 < cell_size*cell_size && r2 > 1e-5) {
+                  cnt++;
                   if (cnt < neigh_bin_size) {
                     *neigh_list = pid_j;
-                    neigh_list+=stride;
+                    neigh_list++;
+                    if ((cnt & (t_per_atom-1))==0)
+                      neigh_list=neigh_list+stride;
                   }
-                  cnt++;
                 }		
               }
             }
@@ -215,9 +215,11 @@ __kernel void kernel_special(__global int *dev_nbor,
                              __global int *host_nbor_list, 
                              __global int *host_numj, __global int *tag,
                              __global int *nspecial, __global int *special,
-                             int inum, int nt, int max_nbors) {
-  // ii indexes the two interacting particles in gi
-  int ii=GLOBAL_ID_X;
+                             int inum, int nt, int max_nbors, int t_per_atom) {
+  int tid=THREAD_ID_X;
+  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  ii+=tid/t_per_atom;
+  int offset=tid & (t_per_atom-1);
 
   if (ii<nt) {
     int stride;
@@ -232,13 +234,16 @@ __kernel void kernel_special(__global int *dev_nbor,
       stride=inum;
       list=dev_nbor+stride+ii;
       numj=*list;
-      list+=stride;
+      list+=stride+mul24(ii,t_per_atom-1);
+      stride=mul24(inum,t_per_atom);
+      list_end=list+mul24(int(numj/t_per_atom),stride)+(numj & (t_per_atom-1));
+      list+=offset;
     } else {
       stride=1;
       list=host_nbor_list+(ii-inum)*max_nbors;
       numj=host_numj[ii-inum];
+      list_end=list+mul24(numj,stride);
     }
-    list_end=list+numj*stride;
   
     for ( ; list<list_end; list+=stride) {
       int nbor=*list;
@@ -260,3 +265,4 @@ __kernel void kernel_special(__global int *dev_nbor,
     }
   } // if ii
 }
+

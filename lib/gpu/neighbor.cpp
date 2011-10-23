@@ -36,9 +36,11 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
                        const int maxspecial, UCL_Device &devi, 
                        const int gpu_nbor, const int gpu_host, 
                        const bool pre_cut, const int block_cell_2d,
-                       const int block_cell_id, const int block_nbor_build) {
+                       const int block_cell_id, const int block_nbor_build,
+                       const int threads_per_atom) {
   clear();
 
+  _threads_per_atom=threads_per_atom;
   _block_cell_2d=block_cell_2d;
   _block_cell_id=block_cell_id;
   _block_nbor_build=block_nbor_build;
@@ -260,9 +262,11 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
   
   if (_use_packing==false) {
     time_kernel.start();
-    int GX=static_cast<int>(ceil(static_cast<double>(inum)/block_size));
+    int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
+                                 block_size));
     _shared->k_nbor.set_size(GX,block_size);
-    _shared->k_nbor.run(&dev_nbor.begin(), &dev_packed.begin(), &inum);
+    _shared->k_nbor.run(&dev_nbor.begin(), &dev_packed.begin(), &inum,
+                        &_threads_per_atom);
     time_kernel.stop();
   }
 }
@@ -405,7 +409,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                             &dev_cell_counts.begin(), &dev_nbor.begin(),
                             &dev_host_nbor.begin(), &dev_host_numj.begin(),
                             &_max_nbors,&cell_size_cast,
-                            &ncellx, &ncelly, &ncellz, &inum, &nt, &nall);
+                            &ncellx, &ncelly, &ncellz, &inum, &nt, &nall,
+                            &_threads_per_atom);
 
   /* Get the maximum number of nbors and realloc if necessary */
   UCL_D_Vec<int> numj;
@@ -457,12 +462,13 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   }
   
   if (_maxspecial>0) {
-    const int GX2=static_cast<int>(ceil(static_cast<double>(nt)/cell_block));
+    const int GX2=static_cast<int>(ceil(static_cast<double>
+                                          (nt*_threads_per_atom)/cell_block));
     _shared->k_special.set_size(GX2,cell_block);
     _shared->k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
                            &dev_host_numj.begin(), &atom.dev_tag.begin(), 
                            &dev_nspecial.begin(), &dev_special.begin(), 
-                           &inum, &nt, &_max_nbors);
+                           &inum, &nt, &_max_nbors, &_threads_per_atom);
   }
   time_kernel.stop();
 

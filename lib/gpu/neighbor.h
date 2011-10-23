@@ -59,12 +59,14 @@ class Neighbor {
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
     *                 2 if gpu_nbor is true, and host needs a full nbor list
     * \param pre_cut True if cutoff test will be performed in separate kernel
-    *                than the force kernel **/
+    *                than the force kernel 
+    * \param threads_per_atom Number of threads used per atom for force
+    *                         calculation **/
   bool init(NeighborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
             const int gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
-            const int block_nbor_build);
+            const int block_nbor_build, const int threads_per_atom);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -212,6 +214,7 @@ class Neighbor {
   void alloc(bool &success);
   
   int _block_cell_2d, _block_cell_id, _block_nbor_build, _ncells;
+  int _threads_per_atom;
 };
 
 }

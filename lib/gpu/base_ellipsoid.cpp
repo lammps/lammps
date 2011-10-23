@@ -69,7 +69,8 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   _threads_per_atom=device->threads_per_charge();
     
   int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,
-                           maxspecial,_gpu_host,max_nbors,cell_size,true);
+                           maxspecial,_gpu_host,max_nbors,cell_size,true,
+                           1);
   if (success!=0)
     return success;
 

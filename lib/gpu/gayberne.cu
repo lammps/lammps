@@ -196,7 +196,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
               kappa[1]*=r;
               kappa[2]*=r;
           
-              int mtype=mul24(ntypes,itype)+jtype;
+              int mtype=fast_mul(ntypes,itype)+jtype;
               numtyp sigma = sig_eps[mtype].x;
               numtyp epsilon = sig_eps[mtype].y;
               numtyp varrho = sigma/(h12+gum[0]*sigma);

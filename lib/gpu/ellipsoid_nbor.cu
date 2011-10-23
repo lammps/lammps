@@ -37,12 +37,12 @@ __kernel void kernel_nbor(__global numtyp4 *x_, __global numtyp2 *cut_form,
     nbor+=nbor_pitch;
     int numj=*nbor;
     nbor+=nbor_pitch;
-    __global int *list_end=nbor+mul24(numj,nbor_pitch);
+    __global int *list_end=nbor+fast_mul(numj,nbor_pitch);
     __global int *packed=dev_nbor+ii+nbor_pitch+nbor_pitch;
   
     numtyp4 ix=x_[i];
     int iw=ix.w;
-    int itype=mul24(iw,ntypes);
+    int itype=fast_mul(iw,ntypes);
     int newj=0;  
     for ( ; nbor<list_end; nbor+=nbor_pitch) {
       int j=*nbor;
@@ -90,7 +90,7 @@ __kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
     cutsq[ii]=cut_form[ii].x;
     form[ii]=cut_form[ii].y;
   }
-  ii+=mul24((int)BLOCK_SIZE_X,(int)BLOCK_ID_X)+start;
+  ii+=fast_mul((int)BLOCK_SIZE_X,(int)BLOCK_ID_X)+start;
   __syncthreads();
 
   if (ii<inum) {
@@ -99,12 +99,12 @@ __kernel void kernel_nbor_fast(__global numtyp4 *x_, __global numtyp2 *cut_form,
     nbor+=nbor_pitch;
     int numj=*nbor;
     nbor+=nbor_pitch;
-    __global int *list_end=nbor+mul24(numj,nbor_pitch);
+    __global int *list_end=nbor+fast_mul(numj,nbor_pitch);
     __global int *packed=dev_nbor+ii+nbor_pitch+nbor_pitch;
   
     numtyp4 ix=x_[i];
     int iw=ix.w;
-    int itype=mul24((int)MAX_SHARED_TYPES,iw);
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     int newj=0;  
     for ( ; nbor<list_end; nbor+=nbor_pitch) {

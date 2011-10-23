@@ -53,7 +53,7 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 
   // Resequence the atom indices to avoid collisions during atomic ops
   int nthreads=GLOBAL_SIZE_X;
-  ii=mul24(ii,PPPM_BLOCK_1D);
+  ii=fast_mul(ii,PPPM_BLOCK_1D);
   ii-=(ii/nthreads)*(nthreads-1);
 
   int nx,ny,nz;
@@ -130,21 +130,21 @@ __kernel void make_rho(__global int *counts, __global grdtyp4 *atoms,
     y_stop-=ny-nlocal_y+1;
   if (nz>=nlocal_z)
     z_stop-=nz-nlocal_z+1;
-  int z_stride=mul24(nlocal_x,nlocal_y);
+  int z_stride=fast_mul(nlocal_x,nlocal_y);
 
   int loop_count=npts_x/PENCIL_SIZE+1;
   int nx=fid;
-  int pt=mul24(nz,mul24(npts_y,npts_x))+mul24(ny,npts_x)+nx;
+  int pt=fast_mul(nz,fast_mul(npts_y,npts_x))+fast_mul(ny,npts_x)+nx;
   for (int i=0 ; i<loop_count; i++) {
     for (int n=0; n<order; n++)
       ans[n][tid]=(grdtyp)0.0;
     if (nx<nlocal_x && nz<npts_z) {
-      int z_pos=mul24(nz+z_start-order_m_1,z_stride);
+      int z_pos=fast_mul(nz+z_start-order_m_1,z_stride);
       for (int m=z_start; m<z_stop; m++) {
-        int y_pos=mul24(ny+y_start-order_m_1,nlocal_x);
+        int y_pos=fast_mul(ny+y_start-order_m_1,nlocal_x);
         for (int l=y_start; l<y_stop; l++) {
           int pos=z_pos+y_pos+nx;
-          int natoms=mul24(counts[pos],atom_stride);
+          int natoms=fast_mul(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
             grdtyp4 delta=atoms[row];
       
@@ -240,13 +240,13 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
         }
       }
         
-      int mz=mul24(nz,npts_yx)+nx;
+      int mz=fast_mul(nz,npts_yx)+nx;
       for (int n=0; n<order; n++) {
         grdtyp rho1d_2=(grdtyp)0.0;
         for (int k=order2+n; k>=n; k-=order)
           rho1d_2=rho_coeff[k]+rho1d_2*dz;
         grdtyp z0=qs*rho1d_2;
-        int my=mz+mul24(ny,npts_x);
+        int my=mz+fast_mul(ny,npts_x);
         for (int m=0; m<order; m++) {
           grdtyp y0=z0*rho1d_1[m][tid];
   	      for (int l=0; l<order; l++) {

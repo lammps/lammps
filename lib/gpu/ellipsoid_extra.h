@@ -25,7 +25,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 #define atom_info(t_per_atom, ii, tid, offset)                               \
   tid=THREAD_ID_X;                                                           \
   offset=tid & (t_per_atom-1);                                               \
-  ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
+  ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
 
 #define nbor_info_e(nbor_mem, nbor_stride, t_per_atom, ii, offset,           \
                     i, numj, stride, list_end, nbor)                         \
@@ -34,9 +34,9 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
     nbor+=nbor_stride;                                                       \
     numj=*nbor;                                                              \
     nbor+=nbor_stride;                                                       \
-    list_end=nbor+mul24(nbor_stride,numj);                                   \
-    nbor+=mul24(offset,nbor_stride);                                         \
-    stride=mul24(t_per_atom,nbor_stride);
+    list_end=nbor+fast_mul(nbor_stride,numj);                                   \
+    nbor+=fast_mul(offset,nbor_stride);                                         \
+    stride=fast_mul(t_per_atom,nbor_stride);
 
 #define store_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
                       eflag, vflag, ans, engv)                              \

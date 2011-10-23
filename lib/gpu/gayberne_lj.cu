@@ -131,7 +131,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
               kappa[1]*=r;
               kappa[2]*=r;
           
-              int mtype=mul24(ntypes,itype)+jtype;
+              int mtype=fast_mul(ntypes,itype)+jtype;
               numtyp sigma = sig_eps[mtype].x;
               numtyp epsilon = sig_eps[mtype].y;
               numtyp varrho = sigma/(h12+gum[0]*sigma);
@@ -357,7 +357,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
 
     numtyp4 ix=x_[i];
     int iw=ix.w;
-    int itype=mul24((int)MAX_SHARED_TYPES,iw);
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
     for ( ; nbor<list_end; nbor+=n_stride) {

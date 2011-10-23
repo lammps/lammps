@@ -8,6 +8,6 @@ mkdir /tmp/cpp5678/lgpu
 foreach file ( $files )
 #	/bin/cp $file /tmp/cpp5678/$file:t:t
 	# ------ Sed Replace
-	sed -i 's/atom->dev_engv/ans->dev_engv/g' $file
+	sed -i.bak 's/atom->dev_engv/ans->dev_engv/g' $file
 end
 

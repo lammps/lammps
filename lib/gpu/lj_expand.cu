@@ -142,7 +142,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
     int iw=ix.w;
-    int itype=mul24((int)MAX_SHARED_TYPES,iw);
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
     for ( ; nbor<list_end; nbor+=n_stride) {

@@ -197,7 +197,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       gpu_times3(aTe1,a1,temp);
 
       numtyp sigma, epsilon;
-      int mtype=mul24(ntypes,itype)+jtype;
+      int mtype=fast_mul(ntypes,itype)+jtype;
       sigma = sig_eps[mtype].x;
       epsilon = sig_eps[mtype].y*factor_lj;
 

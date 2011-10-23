@@ -105,10 +105,10 @@ ucl_inline double fetch_q(const int& i, const double *q) { return q[i]; }
 #endif
 
 #if (__CUDA_ARCH__ < 200)
-#define mul24 __mul24
+#define fast_mul __mul24
 #define MEM_THREADS 16
 #else
-#define mul24(X,Y) (X)*(Y)
+#define fast_mul(X,Y) (X)*(Y)
 #define MEM_THREADS 32
 #endif
 
@@ -144,6 +144,7 @@ typedef struct _double4 double4;
 
 #ifdef GENERIC_OCL
 
+#define fast_mul mul24
 #define GLOBAL_ID_X get_global_id(0)
 #define THREAD_ID_X get_local_id(0)
 #define BLOCK_ID_X get_group_id(0)

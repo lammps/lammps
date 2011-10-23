@@ -217,7 +217,7 @@ __kernel void kernel_special(__global int *dev_nbor,
                              __global int *nspecial, __global int *special,
                              int inum, int nt, int max_nbors, int t_per_atom) {
   int tid=THREAD_ID_X;
-  int ii=mul24((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
+  int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;
   int offset=tid & (t_per_atom-1);
 
@@ -234,15 +234,15 @@ __kernel void kernel_special(__global int *dev_nbor,
       stride=inum;
       list=dev_nbor+stride+ii;
       numj=*list;
-      list+=stride+mul24(ii,t_per_atom-1);
-      stride=mul24(inum,t_per_atom);
-      list_end=list+mul24(int(numj/t_per_atom),stride)+(numj & (t_per_atom-1));
+      list+=stride+fast_mul(ii,t_per_atom-1);
+      stride=fast_mul(inum,t_per_atom);
+      list_end=list+fast_mul(int(numj/t_per_atom),stride)+(numj & (t_per_atom-1));
       list+=offset;
     } else {
       stride=1;
       list=host_nbor_list+(ii-inum)*max_nbors;
       numj=host_numj[ii-inum];
-      list_end=list+mul24(numj,stride);
+      list_end=list+fast_mul(numj,stride);
     }
   
     for ( ; list<list_end; list+=stride) {

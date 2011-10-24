@@ -50,12 +50,12 @@ void Cuda_CommCuda_UpdateBuffer(cuda_shared_data* sdata,int n)
 
 void Cuda_CommCuda_UpdateNmax(cuda_shared_data* sdata)
 {
-		cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
-		cudaMemcpyToSymbol(MY_CONST(nmax)    , & sdata->atom.nmax          , sizeof(int)      );
-		cudaMemcpyToSymbol(MY_CONST(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*) );
-		cudaMemcpyToSymbol(MY_CONST(v)       , & sdata->atom.v    .dev_data, sizeof(X_FLOAT*) );
-		cudaMemcpyToSymbol(MY_CONST(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*) );
-		cudaMemcpyToSymbol(MY_CONST(type)    , & sdata->atom.type .dev_data, sizeof(int*) 	  );
+		cudaMemcpyToSymbolAsync(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
+		cudaMemcpyToSymbolAsync(MY_CONST(nmax)    , & sdata->atom.nmax          , sizeof(int)      );
+		cudaMemcpyToSymbolAsync(MY_CONST(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*) );
+		cudaMemcpyToSymbolAsync(MY_CONST(v)       , & sdata->atom.v    .dev_data, sizeof(X_FLOAT*) );
+		cudaMemcpyToSymbolAsync(MY_CONST(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*) );
+		cudaMemcpyToSymbolAsync(MY_CONST(type)    , & sdata->atom.type .dev_data, sizeof(int*) 	  );
 }
 
 
@@ -444,7 +444,9 @@ int Cuda_CommCuda_BuildSendlist(cuda_shared_data* sdata,int bordergroup,int inee
 {
 	MYDBG(printf(" # CUDA: CommCuda_BuildSendlist\n");)
     timespec time1,time2;
+	if(sdata->atom.update_nmax)
 	Cuda_CommCuda_UpdateNmax(sdata);
+  if(sdata->atom.update_nlocal)
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	if(sdata->buffer_new or (80>sdata->buffersize))
 		Cuda_CommCuda_UpdateBuffer(sdata,10);

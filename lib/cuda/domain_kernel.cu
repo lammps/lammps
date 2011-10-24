@@ -205,7 +205,7 @@ __global__ void Domain_PBC_Kernel(int deform_remap,int deform_groupbit,int box_c
   	maxz=sharedmem[0];
   	__syncthreads();
   }
-  else {minx=lo[2];maxx=hi[2];}
+  else {minz=lo[2];maxz=hi[2];}
   	if(threadIdx.x==0)
   	{
   	  buf=(X_FLOAT*) _buffer;

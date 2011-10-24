@@ -32,11 +32,11 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 {
   if (nbytes == 0) return NULL;
 
-#if 0
-  void *ptr = malloc(nbytes);
-#else
+#if defined(LAMMPS_MEMALIGN)
   void *ptr;
-  posix_memalign(&ptr, 16, nbytes);
+  posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
+#else
+  void *ptr = malloc(nbytes);
 #endif
   if (ptr == NULL) {
     char str[128];

@@ -43,7 +43,7 @@ void ThrData::check_tid(int tid)
 
 /* ---------------------------------------------------------------------- */
 
-void ThrData::init_clear(int nall, double **f, double **torque,
+void ThrData::init_force(int nall, double **f, double **torque,
 			 double *erforce, double *de, double *drho)
 {
   eng_vdwl=eng_coul=eng_bond=eng_angle=eng_dihed=eng_imprp=eng_kspce=0.0;

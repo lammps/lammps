@@ -35,6 +35,8 @@
 
 #include "math_const.h"
 
+#include <string.h>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -66,52 +68,70 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   const int tid = thr->get_tid();
   
   if (thr_style & THR_PAIR) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_pair = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_pair = vatom + tid*nall;
+      memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
+    }
   }
 
   if (thr_style & THR_BOND) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_bond = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_bond = vatom + tid*nall;
+      memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
+    }
   }
 
   if (thr_style & THR_ANGLE) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_angle = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_angle[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_angle = vatom + tid*nall;
+      memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
+    }
   }
 
   if (thr_style & THR_DIHEDRAL) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_dihed = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_dihed[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_dihed = vatom + tid*nall;
+      memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
+    }
   }
 
   if (thr_style & THR_IMPROPER) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_imprp = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_imprp[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_imprp = vatom + tid*nall;
+      memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
+    }
   }
 
 #if 0 /* not supported (yet) */
   if (thr_style & THR_KSPACE) {
-    if (eflag & 2)
+    if (eflag & 2) {
       thr->eatom_kspce = eatom + tid*nall;
-
-    if (vflag & 4)
+      memset(&(thr->eatom_kspce[0]),0,nall*sizeof(double));
+    }
+    if (vflag & 4) {
       thr->vatom_kspce = vatom + tid*nall;
+      memset(&(thr->vatom_kspce[0][0]),0,nall*6*sizeof(double));
+    }
   }
 #endif
 }

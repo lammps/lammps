@@ -224,7 +224,7 @@ void FixOMP::pre_force(int)
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->init_clear(nall,f,torque,erforce,de,drho);
+    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
   }
 }
 

@@ -39,7 +39,7 @@ class ThrData {
   int get_tid() const { return _tid; }; // our thread id.
 
   // erase accumulator contents and hook up force arrays
-  void init_clear(int, double **, double **, double *, double *, double *);
+  void init_force(int, double **, double **, double *, double *, double *);
 
   // give access to per-thread offset arrays
   double **get_f() const { return _f; };

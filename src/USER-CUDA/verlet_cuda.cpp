@@ -564,6 +564,7 @@ void VerletCuda::run(int n)
   cuda->shared_data.atom.reneigh_flag=0;
   cuda->shared_data.atom.update_nlocal=1;
   cuda->shared_data.atom.update_nmax=1;
+  cuda->shared_data.atom.update_neigh=1;
   cuda->shared_data.domain.update=1;
   cuda->shared_data.buffer_new=1;
   cuda->uploadtime=0;
@@ -627,14 +628,12 @@ void VerletCuda::run(int n)
 		          
 		          //start force calculation asynchronus
 			      cuda->shared_data.comm.comm_phase=1;
-			    //  printf("Pre Force Compute\n");
 		          force->pair->compute(eflag, vflag);
 			      timer->stamp(TIME_PAIR);
                   //CudaWrapper_Sync();
 				
 				  //download comm buffers from GPU, perform MPI communication and upload buffers again
 				  clock_gettime(CLOCK_REALTIME,&starttime);
-			   //   printf("Pre forward_comm(2)\n");
 				  comm->forward_comm(2);
  				  clock_gettime(CLOCK_REALTIME,&endtime);
 				  cuda->shared_data.cuda_timings.comm_forward_total+=
@@ -642,16 +641,13 @@ void VerletCuda::run(int n)
  				  timer->stamp(TIME_COMM);
  				  
  				  //wait for force calculation
-			      //printf("Pre Synch\n");
 				  CudaWrapper_Sync();
 				  timer->stamp(TIME_PAIR);			
 				
 				  //unpack communication buffers
 				  clock_gettime(CLOCK_REALTIME,&starttime);
-			    //  printf("Pre forward_comm(3)\n");
 				  comm->forward_comm(3);
 				  clock_gettime(CLOCK_REALTIME,&endtime);
-			  //    printf("Post forward_comm(3)\n");
 				  cuda->shared_data.cuda_timings.comm_forward_total+=
  						endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000;
 				
@@ -663,11 +659,9 @@ void VerletCuda::run(int n)
 			    else
 			    {
 			  	  //perform standard forward communication
-				//printf("Forward_comm\n");
 				  clock_gettime(CLOCK_REALTIME,&starttime);
 				  comm->forward_comm();
 				  clock_gettime(CLOCK_REALTIME,&endtime);
-				//printf("Forward_comm_done\n");
 				  cuda->shared_data.cuda_timings.comm_forward_total+=
  					endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000;
  				  timer->stamp(TIME_COMM);
@@ -677,13 +671,13 @@ void VerletCuda::run(int n)
 			else
 			{
  				int nlocalold=cuda->shared_data.atom.nlocal;
- 				//if(firstreneigh)
+ 				if(firstreneigh)
  				{
  				  cuda->shared_data.atom.update_nlocal=1; 
-  				  cuda->shared_data.atom.update_nmax=1;
+  				cuda->shared_data.atom.update_nmax=1;
  				  firstreneigh=0;
  				}
- 				  cuda->shared_data.buffer_new=1;
+ 				cuda->shared_data.buffer_new=1;
 				MYDBG( printf("# CUDA VerletCuda::iterate: neighbor\n"); )
  				cuda->setDomainParams();
 				if(n_pre_exchange) modify->pre_exchange();
@@ -759,10 +753,10 @@ void VerletCuda::run(int n)
 				cuda->shared_data.cuda_timings.test2+=
  					endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000;
 			    
-			    //rebuild neighbor list
-			    test_atom(testatom,"Pre Neighbor");
+			  //rebuild neighbor list
+			  test_atom(testatom,"Pre Neighbor");
 				neighbor->build();
-				timer->stamp(TIME_NEIGHBOR);
+  			timer->stamp(TIME_NEIGHBOR);
 				MYDBG( printf("# CUDA VerletCuda::iterate: neighbor done\n"); )
 				
 				//if bonded interactions are used (in this case collect_forces_later is true), transfer data which only changes upon exchange/border routines from GPU to CPU 
@@ -772,7 +766,7 @@ void VerletCuda::run(int n)
 					cuda->cu_tag->download();
 					cuda->cu_type->download();
 					cuda->cu_mask->download();
-		      		if(cuda->cu_q) cuda->cu_q->download();
+		   		if(cuda->cu_q) cuda->cu_q->download();
 				}
 				cuda->shared_data.comm.comm_phase=3;
 			}
@@ -969,14 +963,16 @@ void VerletCuda::run(int n)
 			test_atom(testatom,"post output");
 			
 			if(cuda->shared_data.atom.update_nlocal>0)
-			cuda->shared_data.atom.update_nlocal--;
-  			if(cuda->shared_data.atom.update_nmax>0)
-  			cuda->shared_data.atom.update_nmax--;
-  			if(cuda->shared_data.domain.update>0)
+			  cuda->shared_data.atom.update_nlocal--;
+  		if(cuda->shared_data.atom.update_nmax>0)
+  		  cuda->shared_data.atom.update_nmax--;
+      if(cuda->shared_data.atom.update_neigh>0)
+        cuda->shared_data.atom.update_neigh--;
+  		if(cuda->shared_data.domain.update>0)
   			cuda->shared_data.domain.update--;
-  			if(cuda->shared_data.buffer_new>0)
+  		if(cuda->shared_data.buffer_new>0)
   			cuda->shared_data.buffer_new--;
-    		cuda->shared_data.atom.reneigh_flag=0;
+    	cuda->shared_data.atom.reneigh_flag=0;
 		}
 
 
@@ -984,6 +980,7 @@ void VerletCuda::run(int n)
  		cuda->downloadAllNeighborLists();
   		cuda->shared_data.atom.update_nlocal=1;
   		cuda->shared_data.atom.update_nmax=1;
+      cuda->shared_data.atom.update_neigh=1;
   		cuda->shared_data.buffer_new=1;
   		cuda->shared_data.domain.update=1;
   		cuda->oncpu = true;

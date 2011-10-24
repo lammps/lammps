@@ -130,11 +130,11 @@ Cuda::Cuda(LAMMPS *lmp) : Pointers(lmp)
 	downloadtime=0;
 	dotiming=false;
 
-    dotestatom = false;
-    testatom = 0;	
+  dotestatom = false;
+  testatom = 0;
 	oncpu = true;
 
-    self_comm = 0;
+  self_comm = 0;
 	MYDBG( printf("# CUDA: Cuda::Cuda Done...\n");)
 	//cCudaData<double, float, yx >  
 }
@@ -267,10 +267,10 @@ void Cuda::accelerator(int narg, char** arg)
 	cu_virial     = 0;
 	cu_eatom      = 0;
 	cu_vatom      = 0;
-	cu_radius	  = 0;
+	cu_radius	    = 0;
 	cu_density	  = 0;
-	cu_omega	  = 0;
-	cu_torque	  = 0;
+	cu_omega	    = 0;
+	cu_torque	    = 0;
 	
 	cu_special 	  = 0;
 	cu_nspecial   = 0;
@@ -299,8 +299,11 @@ void Cuda::setSharedDataZero()
 	shared_data.atom.q_flag = 0;
 	shared_data.atom.need_eatom = 0;
 	shared_data.atom.need_vatom = 0;
+  shared_data.atom.update_nmax = 1;
+  shared_data.atom.update_nlocal = 1;
+  shared_data.atom.update_neigh = 1;
 	
-    shared_data.pair.cudable_force = 0;
+  shared_data.pair.cudable_force = 0;
 	shared_data.pair.collect_forces_later = 0;
 	shared_data.pair.use_block_per_atom = 0;
 	shared_data.pair.override_block_per_atom = -1;
@@ -429,25 +432,12 @@ void Cuda::checkResize()
 		if(cu_atom->q_flag)
 			{delete cu_q;          cu_q         = new cCudaData<double, F_FLOAT, x > ((double*)atom->q, & cu_atom->q         , atom->nmax  );}// cu_q->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
 
-/*
-		if(force->pair)
-		if(force->pair->eatom)
-			{delete cu_eatom;          cu_eatom         = new cCudaData<double, ENERGY_FLOAT, x > (force->pair->eatom, & cu_atom->eatom         , atom->nmax  );}// cu_eatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
-		if(force->pair)
-		if(force->pair->vatom)
-			{delete cu_vatom;          cu_vatom         = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)force->pair->vatom, & cu_atom->vatom         , atom->nmax,6  );}// cu_vatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
-*/
 		if(atom->radius)
 		{
 			delete cu_radius;     cu_radius    = new cCudaData<double, X_FLOAT, x > (atom->radius    , & cu_atom->radius     , atom->nmax  );
 		    delete cu_v_radius;   cu_v_radius  = new cCudaData<V_FLOAT, V_FLOAT, x> (v_radius , & cu_atom->v_radius      , atom->nmax*4);
 		    delete cu_omega_rmass;   cu_omega_rmass  = new cCudaData<V_FLOAT, V_FLOAT, x> (omega_rmass , & cu_atom->omega_rmass      , atom->nmax*4);
 		}
-
-		/*		
-		if(atom->density)
-			{delete cu_density;    cu_density   = new cCudaData<double, F_FLOAT, x > (atom->density   , & cu_atom->density     , atom->nmax  );}
-		*/
 
 		if(atom->omega)
 			{delete cu_omega;      cu_omega     = new cCudaData<double, V_FLOAT, yx > (((double*) atom->omega)    , & cu_atom->omega     , atom->nmax,3  );}
@@ -464,12 +454,10 @@ void Cuda::checkResize()
 		shared_data.atom.special_flag = neighbor->special_flag;
 		shared_data.atom.molecular = atom->molecular;
 		   
-  	    cu_atom->update_nmax = 2;
-	    cu_atom->nmax        = atom->nmax;
+    cu_atom->update_nmax = 2;
+    cu_atom->nmax        = atom->nmax;
 	    
-	    //delete [] x_type; 			x_type 		= new X_FLOAT4[atom->nmax];
 		delete cu_x_type;           cu_x_type   = new cCudaData<X_FLOAT, X_FLOAT, x> (x_type , & cu_atom->x_type      , atom->nmax*4);
-	   // shared_data.buffer_new = 2;
 	}
 
 	if(((cu_xhold==NULL)||(cu_xhold->get_dim()[0]<neighbor->maxhold))&&neighbor->xhold)
@@ -487,6 +475,12 @@ void Cuda::checkResize()
 	  if((cu_map_array==NULL))
 	  {
 	  	cu_map_array   = new cCudaData<int, int, x > (atom->get_map_array()   , & cu_atom->map_array     , atom->get_map_size()  );
+	  }
+	  else
+	  if(cu_map_array->dev_size()/sizeof(int)<atom->get_map_size())
+	  {
+	    delete cu_map_array;
+      cu_map_array   = new cCudaData<int, int, x > (atom->get_map_array()   , & cu_atom->map_array     , atom->get_map_size()  );
 	  }
 	}
 	
@@ -511,11 +505,6 @@ void Cuda::checkResize()
 	
 	if(atom->radius)
 	if(cu_radius->get_host_data() != atom->radius) cu_radius->set_host_data((double*) (atom->radius));
-
-	/*
-	if(atom->density)
-	if(cu_density->get_host_data() != atom->density) cu_density->set_host_data((double*) (atom->density));
-	*/
 
 	if(atom->omega)
 	if(cu_omega->get_host_data() != atom->omega) cu_omega->set_host_data((double*) (atom->omega));
@@ -558,7 +547,7 @@ void Cuda::evsetup_eatom_vatom(int eflag_atom,int vflag_atom)
     	if(not cu_vatom) 
     		cu_vatom         = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)force->pair->vatom, & (shared_data.atom.vatom)         , atom->nmax ,6 );// cu_vatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
     	cu_vatom->set_host_data((double*)force->pair->vatom); 
-		cu_vatom->memset_device(0);
+		  cu_vatom->memset_device(0);
     }
 }
 
@@ -579,16 +568,9 @@ void Cuda::uploadAll()
 	cu_image->upload();
 	if(shared_data.atom.q_flag) cu_q    ->upload();
 	
-	//printf("A3\n");
-	//if(shared_data.atom.need_eatom) cu_eatom->upload();
-	//printf("A4\n");
-	//if(shared_data.atom.need_vatom) cu_vatom->upload();
-	//printf("A5\n");
-	
 	if(atom->rmass)             cu_rmass->upload();
 
 	if(atom->radius)            cu_radius->upload();
-	//	if(atom->density)           cu_density->upload();
 	if(atom->omega)             cu_omega->upload();
 	if(atom->torque)            cu_torque->upload();
 	if(atom->special)           cu_special->upload();
@@ -631,7 +613,6 @@ void Cuda::downloadAll()
 	if(atom->rmass)             cu_rmass->download();
 	
 	if(atom->radius)            cu_radius->download();
-	//	if(atom->density)           cu_density->download();
 	if(atom->omega)             cu_omega->download();
 	if(atom->torque)            cu_torque->download();
 	if(atom->special)           cu_special->download();
@@ -747,13 +728,13 @@ void Cuda::setTimingsZero()
 	shared_data.cuda_timings.neigh_special = 0;
 	
 	//PPPM
- 	shared_data.cuda_timings.pppm_particle_map; 
-    shared_data.cuda_timings.pppm_make_rho; 
-    shared_data.cuda_timings.pppm_brick2fft; 
-    shared_data.cuda_timings.pppm_poisson; 
-    shared_data.cuda_timings.pppm_fillbrick; 
-    shared_data.cuda_timings.pppm_fieldforce; 
-    shared_data.cuda_timings.pppm_compute; 
+ 	shared_data.cuda_timings.pppm_particle_map = 0;
+  shared_data.cuda_timings.pppm_make_rho = 0;
+  shared_data.cuda_timings.pppm_brick2fft = 0;
+  shared_data.cuda_timings.pppm_poisson = 0;
+  shared_data.cuda_timings.pppm_fillbrick = 0;
+  shared_data.cuda_timings.pppm_fieldforce = 0;
+  shared_data.cuda_timings.pppm_compute = 0;
 	
 	CudaWrapper_CheckUploadTime(true);
 	CudaWrapper_CheckDownloadTime(true);
@@ -789,8 +770,8 @@ void Cuda::print_timings()
 	printf(" Exchange MPI            \t %lf \n",shared_data.cuda_timings.comm_exchange_mpi);
 	printf(" Exchange Kernel Pack    \t %lf \n",shared_data.cuda_timings.comm_exchange_kernel_pack);
 	printf(" Exchange Kernel Unpack  \t %lf \n",shared_data.cuda_timings.comm_exchange_kernel_unpack);
-    printf(" Exchange Kernel Fill    \t %lf \n",shared_data.cuda_timings.comm_exchange_kernel_fill);
-    printf(" Exchange CPU Pack	     \t %lf \n",shared_data.cuda_timings.comm_exchange_cpu_pack);
+  printf(" Exchange Kernel Fill    \t %lf \n",shared_data.cuda_timings.comm_exchange_kernel_fill);
+  printf(" Exchange CPU Pack	     \t %lf \n",shared_data.cuda_timings.comm_exchange_cpu_pack);
 	printf(" Exchange Upload         \t %lf \n",shared_data.cuda_timings.comm_exchange_upload);
 	printf(" Exchange Download       \t %lf \n",shared_data.cuda_timings.comm_exchange_download);
 	printf("\n");

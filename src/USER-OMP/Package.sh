@@ -4,7 +4,7 @@
 # not exist. Do remove OpenMP style files that have no matching
 # non-OpenMP version installed, e.g. after a package has been
 # removed
-for file in *_omp.cpp *_omp.h pppm_proxy.h pppm_proxy.cpp thr_data.h thr_data.cpp; do
+for file in *_omp.cpp *_omp.h pppm*proxy.h pppm*proxy.cpp thr_data.h thr_data.cpp; do
   # let us see if the "rain man" can count the toothpicks...
    ofile=`echo $file | sed  -e s,_pppm_tip4p_omp,_long_tip4p_omp, \
    -e s,pppm.\\*_proxy,pppm_omp, -e s,_pppm_omp,_long_omp, \

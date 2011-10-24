@@ -28,10 +28,13 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
     sigma = size factor for wall-particle interaction (distance units)
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {units} :l
+keyword = {units} or {fld} :l
   {units} value = {lattice} or {box}
     {lattice} = the wall position is defined in lattice units
-    {box} = the wall position is defined in simulation box units :pre
+    {box} = the wall position is defined in simulation box units
+  {fld} value = {yes} or {no}
+    {yes} = invoke the wall constraint to be compatible with implicit FLD
+    {yes} = invoke the wall constraint in the normal way :pre
 :ule
 
 [Examples:]
@@ -147,6 +150,13 @@ A {box} value selects standard distance units as defined by the
 A {lattice} value means the distance units are in lattice spacings.
 The "lattice"_lattice.html command must have been previously used to
 define the lattice spacings.
+
+The {fld} keyword can be used with a {yes} setting to invoke the wall
+constraint before pairwise interactions are computed.  This allows an
+implicit FLD model using "pair_style lubricateU"_pair_lubricateU.html
+to include the wall force in its calculations.  If the setting is
+{no}, wall forces are imposed after pairwise interactions, in the
+usual manner.
 
 :line
 

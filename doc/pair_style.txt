@@ -90,6 +90,8 @@ the pair_style command, and coefficients specified by the associated
 "pair_style airebo"_pair_airebo.html - AIREBO potential of Stuart
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulomb
+"pair_style brownian"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics
+"pair_style brownian/poly"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics with polydispersity
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
@@ -130,6 +132,9 @@ the pair_style command, and coefficients specified by the associated
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential
 "pair_style lubricate"_pair_lubricate.html - hydrodynamic lubrication forces
+"pair_style lubricate/poly"_pair_lubricate.html - hydrodynamic lubrication forces with polydispersity
+"pair_style lubricateU"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication Dynamics
+"pair_style lubricateU/poly"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style morse"_pair_morse.html - Morse potential
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential

@@ -178,7 +178,7 @@ void PPPMCG::compute(int eflag, int vflag)
     energy = energy_all;
    
     energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/1.772453851 +
+    energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }

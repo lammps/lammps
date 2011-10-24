@@ -26,15 +26,15 @@ namespace LAMMPS_NS {
 class AngleCosineShiftExp : public Angle {
  public:
   AngleCosineShiftExp(class LAMMPS *);
-  ~AngleCosineShiftExp();
-  void compute(int, int);
+  virtual ~AngleCosineShiftExp();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   bool *doExpansion;
   double *umin,*a,*opt1;
   double *theta0;

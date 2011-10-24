@@ -1022,7 +1022,8 @@ void Input::improper_style()
 
 void Input::kspace_modify()
 {
-  if (force->kspace == NULL) error->all(FLERR,"KSpace style has not yet been set");
+  if (force->kspace == NULL) 
+    error->all(FLERR,"KSpace style has not yet been set");
   force->kspace->modify_params(narg,arg);
 }
 
@@ -1030,7 +1031,7 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg);
+  force->create_kspace(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */

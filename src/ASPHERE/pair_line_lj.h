@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLineLJ : public Pair {
  public:
   PairLineLJ(class LAMMPS *);
-  ~PairLineLJ();
-  void compute(int, int);
+  virtual ~PairLineLJ();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

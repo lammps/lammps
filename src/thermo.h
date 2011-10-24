@@ -38,12 +38,12 @@ class Thermo : protected Pointers {
   int evaluate_keyword(char *, double *);
 
  private:
-  int me;
-
   char *line;
-  int nfield,nfield_initial;
   char **keyword;
   int *vtype;
+
+  int nfield,nfield_initial;
+  int me;
 
   char **format,**format_user;
   char *format_float_one_def,*format_float_multi_def;

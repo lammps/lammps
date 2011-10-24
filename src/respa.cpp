@@ -599,6 +599,8 @@ void Respa::force_clear(int newtonflag)
 {
   int i;
 
+  if (external_force_clear) return;
+
   // clear global force array
   // nall includes ghosts only if newton flag is set
 

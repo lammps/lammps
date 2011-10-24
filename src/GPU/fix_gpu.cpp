@@ -43,7 +43,8 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->cuda) error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
+  if (lmp->cuda) 
+    error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
 
   if (narg < 7) error->all(FLERR,"Illegal fix GPU command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix GPU command");
@@ -113,10 +114,8 @@ int FixGPU::setmask()
 
 void FixGPU::init()
 {
-  // Can only have 1 gpu fix that must be the first fix for a run
-  if ((void*)modify->fix[0] != (void*)this)
-    error->all(FLERR,"GPU is not the first fix for this run");
-  // Hybrid cannot be used with force/neigh option
+  // hybrid cannot be used with force/neigh option
+
   if (_gpu_mode == GPU_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||
 	force->pair_match("hybrid/overlay",1) != NULL)

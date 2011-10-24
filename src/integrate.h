@@ -33,6 +33,7 @@ class Integrate : protected Pointers {
  protected:
   int eflag,vflag;                  // flags for energy/virial computation
   int virial_style;                 // compute virial explicitly or implicitly
+  int external_force_clear;         // clear forces locally or externally
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

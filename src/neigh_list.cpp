@@ -15,16 +15,11 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "update.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-
-
-
-#include "update.h"
-
-
 
 using namespace LAMMPS_NS;
 
@@ -255,6 +250,8 @@ void NeighList::print_attributes()
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
   printf("  %d = ghost\n",rq->ghost);
+  printf("  %d = cudable\n",rq->cudable);
+  printf("  %d = omp\n",rq->omp);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);

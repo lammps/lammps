@@ -118,6 +118,11 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
 
 /* ----------------------------------------------------------------------
    Reduce per thread data into the regular structures
+   Reduction of global properties is serialized with a "critical"
+   directive, so that only one thread at a time will access the
+   global variables. Since we are not synchronized, this should
+   come with little overhead. The reduction of per-atom properties
+   in contrast is parallelized over threads in the same way as forces.
    ---------------------------------------------------------------------- */
 
 void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, const int nproxy)
@@ -162,6 +167,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	    thr->virial_pair[i] = 0.0;
 	  }
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
   }
     break;
@@ -201,6 +214,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	    }
 	}
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
   }
     break;
@@ -217,6 +238,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	for (int i=0; i < 6; ++i)
 	  bond->virial[i] += thr->virial_bond[i];
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
     break;
 
@@ -232,6 +261,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	for (int i=0; i < 6; ++i)
 	  angle->virial[i] += thr->virial_angle[i];
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
     break;
 
@@ -246,6 +283,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	dihedral->energy += thr->eng_dihed;
 	for (int i=0; i < 6; ++i)
 	  dihedral->virial[i] += thr->virial_dihed[i];
+      }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
     break;
@@ -272,6 +317,16 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	  }
 	}
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
     break;
 
@@ -286,6 +341,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	improper->energy += thr->eng_imprp;
 	for (int i=0; i < 6; ++i)
 	  improper->virial[i] += thr->virial_imprp[i];
+      }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
     break;
@@ -304,6 +367,14 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
 	for (int i=0; i < 6; ++i)
 	  kspace->virial[i] += thr->virial_kspce[i];
       }
+      if (eflag & 2) {
+	sync_threads();
+	data_reduce_thr(&(kspace->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+	sync_threads();
+	data_reduce_thr(&(kspace->vatom[0][0]), nall, nthreads, 6, tid);
+      }
     }
 #endif
     break;
@@ -313,7 +384,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
     break;
   }
     
-  if (thr_style & fix->last_omp_style) {
+    if (thr_style & fix->last_omp_style) { // XXX not safe for hybrid styles.
     sync_threads();
     data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
     if (lmp->atom->torque)

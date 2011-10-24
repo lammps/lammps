@@ -948,11 +948,6 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
 
-  rij[0] = rij0[0];
-  rij[1] = rij0[1];
-  rij[2] = rij0[2];
-  rijmag = rij0mag;
-
   bij = 0.0;
   tmp = 0.0;
   tmp2 = 0.0;

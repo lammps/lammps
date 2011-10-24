@@ -13,6 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Ase Henry (MIT)
+   Bugfixes and optimizations:
+     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -2068,11 +2070,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
   
-  rij[0] = rij0[0];
-  rij[1] = rij0[1];
-  rij[2] = rij0[2];
-  rijmag = rij0mag; 
-  
   bij = 0.0;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -3079,7 +3076,7 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
    if (typei == 0 && typej == 1){
      if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
      if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
-      if (NijH < pCHdom[0][0]) NijH=pCHdom[1][0];
+      if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
       if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
  
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {

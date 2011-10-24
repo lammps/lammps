@@ -21,7 +21,8 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
-#include <math.h>
+#include "math.h"
+#include "math_const.h"
 
 namespace LAMMPS_NS {
 
@@ -77,12 +78,12 @@ class PairAIREBO : public Pair {
 
   double PCCf[5][5],PCCdfdx[5][5],PCCdfdy[5][5],PCHf[5][5];
   double PCHdfdx[5][5],PCHdfdy[5][5];
-  double piCCf[5][5][11],piCCdfdx[5][5][10];
-  double piCCdfdy[5][5][10],piCCdfdz[5][5][10];
-  double piCHf[5][5][11],piCHdfdx[5][5][10];
-  double piCHdfdy[5][5][10],piCHdfdz[5][5][10];
-  double piHHf[5][5][10],piHHdfdx[5][5][10];
-  double piHHdfdy[5][5][10],piHHdfdz[5][5][10];
+  double piCCf[5][5][11],piCCdfdx[5][5][11];
+  double piCCdfdy[5][5][11],piCCdfdz[5][5][11];
+  double piCHf[5][5][11],piCHdfdx[5][5][11];
+  double piCHdfdy[5][5][11],piCHdfdz[5][5][11];
+  double piHHf[5][5][11],piHHdfdx[5][5][11];
+  double piHHdfdy[5][5][11],piHHdfdz[5][5][11];
   double Tf[5][5][10],Tdfdx[5][5][10],Tdfdy[5][5][10],Tdfdz[5][5][10];
 
   void REBO_neigh();
@@ -93,6 +94,21 @@ class PairAIREBO : public Pair {
   double bondorder(int, int, double *, double, double, double **, int);
   double bondorderLJ(int, int, double *, double, double,
 		     double *, double, double **, int);
+
+  double gSpline(double, double, int, double *, double *);
+  double PijSpline(double, double, int, int, double *);
+  double piRCSpline(double, double, double, int, int, double *);
+  double TijSpline(double, double, double, double *);
+
+  void add_pages(int howmany=1 /* PGDELTA */);
+  void read_file(char *);
+
+  double Sp5th(double, double *, double *);
+  double Spbicubic(double, double, double *, double *);
+  double Sptricubic(double, double, double, double *, double *);
+  void spline_init();
+
+  void allocate();
 
   // ----------------------------------------------------------------------
   // S'(t) and S(t) cutoff functions
@@ -105,7 +121,7 @@ class PairAIREBO : public Pair {
      no side effects
   ------------------------------------------------------------------------- */
 
-  double Sp(double Xij, double Xmin, double Xmax, double &dX) const {
+  inline double Sp(double Xij, double Xmin, double Xmax, double &dX) const {
     double cutoff;
 
     double t = (Xij-Xmin) / (Xmax-Xmin);
@@ -116,8 +132,8 @@ class PairAIREBO : public Pair {
       cutoff = 0.0;
       dX = 0.0;
     } else {
-      cutoff = 0.5 * (1.0+cos(M_PI*t));
-      dX = (-0.5*M_PI*sin(M_PI*t)) / (Xmax-Xmin);
+      cutoff = 0.5 * (1.0+cos(t*MathConst::MY_PI));
+      dX = (-0.5*MathConst::MY_PI*sin(t*MathConst::MY_PI)) / (Xmax-Xmin);
     }
     return cutoff;
   };
@@ -128,7 +144,7 @@ class PairAIREBO : public Pair {
      no side effects
   ------------------------------------------------------------------------- */
 
-  double Sp2(double Xij, double Xmin, double Xmax, double &dX) const {
+  inline double Sp2(double Xij, double Xmin, double Xmax, double &dX) const {
     double cutoff;
 
     double t = (Xij-Xmin) / (Xmax-Xmin);
@@ -145,25 +161,11 @@ class PairAIREBO : public Pair {
     return cutoff;
   };
 
-  double gSpline(double, double, int, double *, double *);
-  double PijSpline(double, double, int, int, double *);
-  double piRCSpline(double, double, double, int, int, double *);
-  double TijSpline(double, double, double, double *);
-
   /* kronecker delta function returning a double */
-  double kronecker(const int a, const int b) const {
+  inline double kronecker(const int a, const int b) const {
     return (a == b) ? 1.0 : 0.0;
   };
 
-  void add_pages(int howmany=1);
-  void read_file(char *);
-
-  double Sp5th(double, double *, double *);
-  double Spbicubic(double, double, double *, double *);
-  double Sptricubic(double, double, double, double *, double *);
-  void spline_init();
-
-  void allocate();
 };
 
 }

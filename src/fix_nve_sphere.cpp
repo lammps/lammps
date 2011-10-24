@@ -61,21 +61,11 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixNVESphere::setmask()
-{
-  int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= FINAL_INTEGRATE;
-  mask |= INITIAL_INTEGRATE_RESPA;
-  mask |= FINAL_INTEGRATE_RESPA;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNVESphere::init()
 {
-  // check that all particles are finite-size
+  FixNVE::init();
+
+  // check that all particles are finite-size spheres
   // no point particles allowed
 
   double *radius = atom->radius;
@@ -86,8 +76,6 @@ void FixNVESphere::init()
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
 	error->one(FLERR,"Fix nve/sphere requires extended particles");
-
-  FixNVE::init();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -13,29 +13,26 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(nve/noforce,FixNVENoforce)
+FixStyle(nve/asphere/noforce,FixNVEAsphereNoforce)
 
 #else
 
-#ifndef LMP_FIX_NVE_NOFORCE_H
-#define LMP_FIX_NVE_NOFORCE_H
+#ifndef LMP_FIX_NVE_ASPHERE_NOFORCE_H
+#define LMP_FIX_NVE_ASPHERE_NOFORCE_H
 
-#include "fix.h"
+#include "fix_nve_noforce.h"
 
 namespace LAMMPS_NS {
 
-class FixNVENoforce : public Fix {
+class FixNVEAsphereNoforce : public FixNVENoforce {
  public:
-  FixNVENoforce(class LAMMPS *, int, char **);
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  void initial_integrate_respa(int, int, int);
-  void reset_dt();
-
- protected:
-  double dtv;
-  double *step_respa;
+  FixNVEAsphereNoforce(class LAMMPS *, int, char **);
+  void initial_integrate(int);
+  void init();
+  
+ private:
+  double dtq;
+  class AtomVecEllipsoid *avec;
 };
 
 }

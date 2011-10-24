@@ -93,15 +93,16 @@ class Domain : protected Pointers {
   virtual void set_local_box();
   virtual void reset_box();
   virtual void pbc();
-  void remap(double *, int &);
-  void remap(double *);
-  void remap_near(double *, double *);
-  void unmap(double *, int);
-  void unmap(double *, int, double *);
-  int minimum_image_check(double, double, double);
-  void minimum_image(double &, double &, double &);
-  void minimum_image(double *);
-  void closest_image(double *, double *, double *);
+  virtual void remap(double *, int &);
+  virtual void remap(double *);
+  virtual void remap_near(double *, double *);
+  virtual void unmap(double *, int);
+  virtual void unmap(double *, int, double *);
+  virtual int minimum_image_check(double, double, double);
+  virtual void minimum_image(double &, double &, double &);
+  virtual void minimum_image(double *);
+  virtual void closest_image(double *, double *, double *);
+
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);

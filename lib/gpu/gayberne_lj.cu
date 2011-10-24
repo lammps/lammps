@@ -28,6 +28,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
                                const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
+  ii+=start;
 
   __local numtyp sp_lj[4];
   sp_lj[0]=gum[3];    
@@ -245,6 +246,7 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
                         const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
+  ii+=start;
 
   __local numtyp sp_lj[4];
   sp_lj[0]=gum[3];    
@@ -312,8 +314,8 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
+    acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
   } // if ii
 }
 
@@ -326,6 +328,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                              const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
+  ii+=start;
 
   __local numtyp sp_lj[4];                              
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -399,8 +402,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
+    acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
   } // if ii
 }
-

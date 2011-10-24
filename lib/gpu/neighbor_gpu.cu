@@ -147,7 +147,7 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos, int *cell_particle_id,
       stride=stride*t_per_atom-t_per_atom;
       nbor_list[pid_i]=pid_i;
     } else {
-      stride=1;
+      stride=0;
     	neigh_counts=host_numj+pid_i-inum;
       neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
     }

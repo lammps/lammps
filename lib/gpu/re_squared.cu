@@ -445,7 +445,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       }
 
     } // for nbor
-    store_answers_t(f,tor,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,
+    store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
                     vflag,ans,engv);
   } // if ii
 }

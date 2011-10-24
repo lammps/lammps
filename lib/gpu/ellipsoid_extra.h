@@ -137,6 +137,56 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
     ans[ii+astride]=tor;                                                    \
   }
 
+#define acc_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset,   \
+                    eflag, vflag, ans, engv)                                \
+  if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
+    red_acc[0][tid]=f.x;                                                    \
+    red_acc[1][tid]=f.y;                                                    \
+    red_acc[2][tid]=f.z;                                                    \
+    red_acc[3][tid]=energy;                                                 \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s) {                                                     \
+        for (int r=0; r<4; r++)                                             \
+          red_acc[r][tid] += red_acc[r][tid+s];                             \
+      }                                                                     \
+    }                                                                       \
+    f.x=red_acc[0][tid];                                                    \
+    f.y=red_acc[1][tid];                                                    \
+    f.z=red_acc[2][tid];                                                    \
+    energy=red_acc[3][tid];                                                 \
+    if (vflag>0) {                                                          \
+      for (int r=0; r<6; r++)                                               \
+        red_acc[r][tid]=virial[r];                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        if (offset < s) {                                                   \
+          for (int r=0; r<6; r++)                                           \
+            red_acc[r][tid] += red_acc[r][tid+s];                           \
+        }                                                                   \
+      }                                                                     \
+      for (int r=0; r<6; r++)                                               \
+        virial[r]=red_acc[r][tid];                                          \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv+=energy;                                                        \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv+=virial[i];                                                   \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    acctyp4 old=ans[ii];                                                    \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+  }
+
 /* ----------------------------------------------------------------------
    dot product of 2 vectors
 ------------------------------------------------------------------------- */

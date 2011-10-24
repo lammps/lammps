@@ -1,0 +1,10 @@
+*~
+*.o
+*.cu_o
+*.ptx
+*_ptx.h
+*.a
+Obj_*
+log.*
+*.x
+*.exe

@@ -261,8 +261,8 @@ void PRD::command(int narg, char **arg)
   quench();
   ncoincident = 0;
   share_event(0,0);
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start(Timer::LOOP);
+  time_start = timer->get_wall(Timer::LOOP);
   log_event();
 
   // do full init/setup since are starting all replicas after event
@@ -286,8 +286,8 @@ void PRD::command(int narg, char **arg)
   nbuild = ndanger = 0;
   time_dephase = time_dynamics = time_quench = time_comm = time_output = 0.0;
 
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start(Timer::LOOP);
+  time_start = timer->get_wall(Timer::LOOP);
 
   while (update->ntimestep < update->endstep) {
     dephase();
@@ -342,7 +342,7 @@ void PRD::command(int narg, char **arg)
     lmp->init();
     update->integrate->setup();
 
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start(Timer::LOOP);
     if (t_corr > 0) replicate(ireplica);
     if (temp_flag == 0) {
       if (ireplica == universe->iworld)
@@ -350,29 +350,29 @@ void PRD::command(int narg, char **arg)
       MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[ireplica],
         	      universe->uworld);
     }
-    timer->barrier_stop(TIME_LOOP);
-    time_comm += timer->array[TIME_LOOP];
+    timer->barrier_stop(Timer::LOOP);
+    time_comm += timer->get_wall(Timer::LOOP);
     
     // write restart file of hot coords
 
     if (restart_flag) {
-      timer->barrier_start(TIME_LOOP);
+      timer->barrier_start(Timer::LOOP);
       output->write_restart(update->ntimestep);
-      timer->barrier_stop(TIME_LOOP);
-      time_output += timer->array[TIME_LOOP];
+      timer->barrier_stop(Timer::LOOP);
+      time_output += timer->get_wall(Timer::LOOP);
     }
   }
 
   // set total timers and counters so Finish() will process them
 
-  timer->array[TIME_LOOP] = time_start;
-  timer->barrier_stop(TIME_LOOP);
+  timer->set_wall(Timer::LOOP, time_start);
+  timer->barrier_stop(Timer::LOOP);
 
-  timer->array[TIME_PAIR] = time_dephase;
-  timer->array[TIME_BOND] = time_dynamics;
-  timer->array[TIME_KSPACE] = time_quench;
-  timer->array[TIME_COMM] = time_comm;
-  timer->array[TIME_OUTPUT] = time_output;
+  timer->set_wall(Timer::PAIR, time_dephase);
+  timer->set_wall(Timer::BOND, time_dynamics);
+  timer->set_wall(Timer::KSPACE, time_quench);
+  timer->set_wall(Timer::COMM, time_comm);
+  timer->set_wall(Timer::OUTPUT, time_output);
 
   neighbor->ncalls = nbuild;
   neighbor->ndanger = ndanger;
@@ -382,12 +382,12 @@ void PRD::command(int narg, char **arg)
       fprintf(universe->uscreen,
 	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
 	      " atoms\n",
-	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+	      timer->get_wall(Timer::LOOP),nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
 	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
 	      " atoms\n",
-              timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::LOOP),nprocs_universe,nsteps,atom->natoms);
   }
   
   finish->end(2);
@@ -432,7 +432,7 @@ void PRD::dephase()
   update->whichflag = 1;
   update->nsteps = n_dephase*t_dephase;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
 
   for (int i = 0; i < n_dephase; i++) {
     int seed = static_cast<int> (random_dephase->uniform() * MAXSMALLINT);
@@ -442,8 +442,8 @@ void PRD::dephase()
     if (temp_flag == 0) temp_dephase = temperature->compute_scalar();
   }
 
-  timer->barrier_stop(TIME_LOOP);
-  time_dephase += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_dephase += timer->get_wall(Timer::LOOP);
 
   update->integrate->cleanup();
   finish->end(0);
@@ -471,10 +471,10 @@ void PRD::dynamics()
   //modify->addstep_compute_all(update->ntimestep);
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   update->integrate->run(t_event);
-  timer->barrier_stop(TIME_LOOP);
-  time_dynamics += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_dynamics += timer->get_wall(Timer::LOOP);
 
   nbuild += neighbor->ncalls - ncalls;
   ndanger += neighbor->ndanger;
@@ -513,10 +513,10 @@ void PRD::quench()
 
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   update->minimize->run(maxiter);
-  timer->barrier_stop(TIME_LOOP);
-  time_quench += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_quench += timer->get_wall(Timer::LOOP);
 
   if (neighbor->ncalls == ncalls) quench_reneighbor = 0;
   else quench_reneighbor = 1;
@@ -549,7 +549,7 @@ int PRD::check_event(int replica_num)
   if (compute_event->compute_scalar() > 0.0) worldflag = 1;
   if (replica_num >= 0 && replica_num != universe->iworld) worldflag = 0;
   
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   if (me == 0) MPI_Allreduce(&worldflag,&universeflag,1,
 		             MPI_INT,MPI_SUM,comm_replica);
   MPI_Bcast(&universeflag,1,MPI_INT,0,world);
@@ -571,8 +571,8 @@ int PRD::check_event(int replica_num)
   			     MPI_INT,MPI_SUM,comm_replica);
     MPI_Bcast(&ireplica,1,MPI_INT,0,world);
   }
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_comm += timer->get_wall(Timer::LOOP);
   return ireplica;
 }
 
@@ -587,14 +587,14 @@ int PRD::check_event(int replica_num)
 
 void PRD::share_event(int ireplica, int flag)
 {
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
 
   // communicate quenched coords to all replicas and store as event
   // decrement event counter if flag = 0 since not really an event
 
   replicate(ireplica);
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_comm += timer->get_wall(Timer::LOOP);
   
   // adjust time for last correlated event check (not on first event)
 
@@ -629,21 +629,21 @@ void PRD::share_event(int ireplica, int flag)
   // addstep_compute_all insures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start(Timer::LOOP);
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
     output->write_dump(update->ntimestep);
-    timer->barrier_stop(TIME_LOOP);
-    time_output += timer->array[TIME_LOOP];
+    timer->barrier_stop(Timer::LOOP);
+    time_output += timer->get_wall(Timer::LOOP);
   }
 
   // restore and communicate hot coords to all replicas
 
   fix_event->restore_state();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   replicate(ireplica);
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_comm += timer->get_wall(Timer::LOOP);
 }
 
 /* ----------------------------------------------------------------------
@@ -652,13 +652,13 @@ void PRD::share_event(int ireplica, int flag)
 
 void PRD::log_event()
 {
-  timer->array[TIME_LOOP] = time_start;
+  timer->set_wall(Timer::LOOP, time_start);
   if (universe->me == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
 	      BIGINT_FORMAT " %.3f %d %d %d %d %d\n",
               fix_event->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
 	      fix_event->ncoincident,
@@ -667,7 +667,7 @@ void PRD::log_event()
       fprintf(universe->ulogfile,
 	      BIGINT_FORMAT " %.3f %d %d %d %d %d\n",
               fix_event->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
 	      fix_event->ncoincident,

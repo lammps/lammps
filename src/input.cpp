@@ -1022,7 +1022,8 @@ void Input::improper_style()
 
 void Input::kspace_modify()
 {
-  if (force->kspace == NULL) error->all(FLERR,"KSpace style has not yet been set");
+  if (force->kspace == NULL) 
+    error->all(FLERR,"KSpace style has not yet been set");
   force->kspace->modify_params(narg,arg);
 }
 
@@ -1030,7 +1031,7 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg);
+  force->create_kspace(narg,arg,lmp->suffix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1140,25 +1141,15 @@ void Input::package()
     delete [] fixarg;
 
   } else if (strcmp(arg[0],"omp") == 0) {
-
-#ifdef _OPENMP
-    if (narg != 2) error->all(FLERR,"Illegal package command");
-    comm->nthreads = atoi(arg[1]);
-    if (comm->nthreads < 1) error->all(FLERR,"Illegal package command");
-
-    omp_set_num_threads(comm->nthreads);
-    if (me == 0) {
-      if (screen)
-	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n",
-		comm->nthreads);
-      if (logfile)
-	fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n",
-		comm->nthreads);
-    }
-#else
-    error->all(FLERR,"Cannot use package omp command with no OpenMP support");
-#endif
-
+    char **fixarg = new char*[2+narg];
+    fixarg[0] = "package_omp";
+    fixarg[1] = "all";
+    fixarg[2] = "OMP";
+    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
+    modify->allow_early_fix = 1;
+    modify->add_fix(2+narg,fixarg,NULL);
+    modify->allow_early_fix = 0;
+    delete [] fixarg;
   } else error->all(FLERR,"Illegal package command");
 }
 

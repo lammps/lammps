@@ -7,11 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O2 \
-		-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
+			-march=native -ffast-math -mpc64 -finline-functions \
+			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++
-LINKFLAGS =	-O
+LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
@@ -25,7 +26,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -34,7 +35,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       
+MPI_INC =       -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
 MPI_LIB =	
 

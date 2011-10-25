@@ -14,6 +14,7 @@
 #include "math.h"
 #include "angle.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -78,12 +79,12 @@ void Angle::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators
@@ -216,7 +217,7 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
 
 double Angle::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

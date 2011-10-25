@@ -208,29 +208,33 @@ void Cuda_UpdateBuffer(cuda_shared_data* sdata,int size)
 	CUT_CHECK_ERROR("Cuda_Pair_UpdateBuffer_AllStyles failed");
 }
 
+void Cuda_Pair_UpdateNeighbor_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
+{
+  //Neighbor
+  cudaMemcpyToSymbol(MY_CONST(neighbor_maxlocal)  , & sneighlist->firstneigh.dim[0]  , sizeof(unsigned) );
+  cudaMemcpyToSymbol(MY_CONST(firstneigh)     , & sneighlist->firstneigh.dev_data, sizeof(int*) );
+  cudaMemcpyToSymbol(MY_CONST(ilist)          , & sneighlist->ilist     .dev_data, sizeof(int*) );
+  cudaMemcpyToSymbol(MY_CONST(inum)           , & sneighlist->inum               , sizeof(int)  );
+  cudaMemcpyToSymbol(MY_CONST(numneigh)       , & sneighlist->numneigh  .dev_data, sizeof(int*) );
+  cudaMemcpyToSymbol(MY_CONST(neighbors)      , & sneighlist->neighbors  .dev_data, sizeof(int*) );
+  cudaMemcpyToSymbol(MY_CONST(maxneighbors)       , & sneighlist->maxneighbors     , sizeof(int)  );
+  cudaMemcpyToSymbol(MY_CONST(overlap_comm)       , & sdata->overlap_comm, sizeof(int) );
+
+if(sdata->overlap_comm)
+{
+  cudaMemcpyToSymbol(MY_CONST(numneigh_border)  , & sneighlist->numneigh_border .dev_data, sizeof(int*));
+  cudaMemcpyToSymbol(MY_CONST(numneigh_inner)   , & sneighlist->numneigh_inner  .dev_data, sizeof(int*));
+  cudaMemcpyToSymbol(MY_CONST(neighbors_border) , & sneighlist->neighbors_border.dev_data, sizeof(int*));
+  cudaMemcpyToSymbol(MY_CONST(neighbors_inner)  , & sneighlist->neighbors_inner .dev_data, sizeof(int*));
+  cudaMemcpyToSymbol(MY_CONST(ilist_border)     , & sneighlist->ilist_border    .dev_data, sizeof(int*));
+  cudaMemcpyToSymbol(MY_CONST(inum_border)      , & sneighlist->inum_border     .dev_data, sizeof(int*) );
+}
+
+}
 //Update constants after nmax change which are generally needed by all pair styles 
 void Cuda_Pair_UpdateNmax_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
 	CUT_CHECK_ERROR("Cuda_Pair_UpdateNmax_AllStyles: Begin");
-	  //Neighbor
-		cudaMemcpyToSymbol(MY_CONST(neighbor_maxlocal) 	, & sneighlist->firstneigh.dim[0]  , sizeof(unsigned) );
-		cudaMemcpyToSymbol(MY_CONST(firstneigh)			, & sneighlist->firstneigh.dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(ilist)     			, & sneighlist->ilist     .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(inum)      			, & sneighlist->inum               , sizeof(int)  );
-		cudaMemcpyToSymbol(MY_CONST(numneigh)  			, & sneighlist->numneigh  .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(neighbors)  		, & sneighlist->neighbors  .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(maxneighbors)     	, & sneighlist->maxneighbors	   , sizeof(int)  );
-		cudaMemcpyToSymbol(MY_CONST(overlap_comm)     	, & sdata->overlap_comm, sizeof(int) );
-		
-	if(sdata->overlap_comm) 
-	{
-		cudaMemcpyToSymbol(MY_CONST(numneigh_border)  , & sneighlist->numneigh_border .dev_data, sizeof(int*));
-		cudaMemcpyToSymbol(MY_CONST(numneigh_inner)   , & sneighlist->numneigh_inner  .dev_data, sizeof(int*));
-		cudaMemcpyToSymbol(MY_CONST(neighbors_border) , & sneighlist->neighbors_border.dev_data, sizeof(int*));
-		cudaMemcpyToSymbol(MY_CONST(neighbors_inner)  , & sneighlist->neighbors_inner .dev_data, sizeof(int*));
-		cudaMemcpyToSymbol(MY_CONST(ilist_border)     , & sneighlist->ilist_border    .dev_data, sizeof(int*));
-		cudaMemcpyToSymbol(MY_CONST(inum_border)      , & sneighlist->inum_border     .dev_data, sizeof(int*) );		
-	}
 
 	  //System
 		cudaMemcpyToSymbol(MY_CONST(nlocal)    			, & sdata->atom.nlocal             , sizeof(int)  );
@@ -757,6 +761,8 @@ timespec startpairtime, endpairtime;
 //Function which is called prior to kernel invocation, determins grid, Binds Textures, updates constant memory if necessary
 void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist,int eflag, int vflag, dim3& grid, dim3& threads, int& sharedperproc,bool need_q=false,int maxthreads=256)
 {
+  if(sdata->atom.update_neigh)
+    Cuda_Pair_UpdateNeighbor_AllStyles(sdata,sneighlist);
 	if(sdata->atom.update_nmax) 
 		Cuda_Pair_UpdateNmax_AllStyles(sdata,sneighlist);
 	if(sdata->atom.update_nlocal) 		
@@ -880,7 +886,7 @@ void Cuda_Pair_UpdateNmax(cuda_shared_data* sdata)
 		cudaMemcpyToSymbol(MY_CONST(v_radius)  , & sdata->atom.v_radius   .dev_data, sizeof(V_FLOAT4*) );
 		cudaMemcpyToSymbol(MY_CONST(omega)     , & sdata->atom.omega      .dev_data, sizeof(V_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(rmass)     , & sdata->atom.rmass      .dev_data, sizeof(V_FLOAT*) );
-	    cudaMemcpyToSymbol(MY_CONST(omega_rmass),& sdata->atom.omega_rmass.dev_data, sizeof(V_FLOAT4*) );
+	  cudaMemcpyToSymbol(MY_CONST(omega_rmass),& sdata->atom.omega_rmass.dev_data, sizeof(V_FLOAT4*) );
 	CUT_CHECK_ERROR("Cuda_Pair: updateNmax failed");
 }
 
@@ -888,9 +894,13 @@ void Cuda_Pair_UpdateNmax(cuda_shared_data* sdata)
 void Cuda_Pair_GenerateXType(cuda_shared_data* sdata)
 {
 	MYDBG(printf(" # CUDA: GenerateXType ... start %i %i %i %p %p %p %p\n",sdata->atom.nlocal,sdata->atom.nall,sdata->atom.nmax,sdata->atom.x.dev_data,sdata->atom.x_type.dev_data,sdata->atom.xhold.dev_data,sdata->atom.type.dev_data); )
+	if(sdata->atom.update_nmax)
 	Cuda_Pair_UpdateNmax(sdata);
-	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
-	cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );
+  if(sdata->atom.update_nlocal)
+  {
+	  cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
+	  cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );
+  }
 	MYDBG(printf(" # CUDA: GenerateXType ... getgrid\n"); fflush(stdout); )
 
 	int3 layout=getgrid(sdata->atom.nall);
@@ -907,6 +917,7 @@ void Cuda_Pair_GenerateXType(cuda_shared_data* sdata)
 void Cuda_Pair_RevertXType(cuda_shared_data* sdata)
 {
 	MYDBG(printf(" # CUDA: RevertXType ... start\n"); )
+  if(sdata->atom.update_nmax)
 	Cuda_Pair_UpdateNmax(sdata);
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
 	cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );
@@ -924,6 +935,7 @@ void Cuda_Pair_RevertXType(cuda_shared_data* sdata)
 void Cuda_Pair_GenerateVRadius(cuda_shared_data* sdata)
 {
 	MYDBG(printf(" # CUDA: GenerateVRadius ... start %i %i %i %p %p %p %p\n",sdata->atom.nlocal,sdata->atom.nall,sdata->atom.nmax,sdata->atom.x.dev_data,sdata->atom.x_type.dev_data,sdata->atom.xhold.dev_data,sdata->atom.type.dev_data); )
+  if(sdata->atom.update_nmax)
 	Cuda_Pair_UpdateNmax(sdata);
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
 	cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );
@@ -943,6 +955,7 @@ void Cuda_Pair_GenerateVRadius(cuda_shared_data* sdata)
 void Cuda_Pair_GenerateOmegaRmass(cuda_shared_data* sdata)
 {
 	MYDBG(printf(" # CUDA: GenerateOmegaRmass ... start %i %i %i %p %p %p %p\n",sdata->atom.nlocal,sdata->atom.nall,sdata->atom.nmax,sdata->atom.x.dev_data,sdata->atom.x_type.dev_data,sdata->atom.xhold.dev_data,sdata->atom.type.dev_data); )
+  if(sdata->atom.update_nmax)
 	Cuda_Pair_UpdateNmax(sdata);
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
 	cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );
@@ -961,6 +974,7 @@ void Cuda_Pair_GenerateOmegaRmass(cuda_shared_data* sdata)
 
 void Cuda_Pair_BuildXHold(cuda_shared_data* sdata)
 {
+  if(sdata->atom.update_nmax)
 	Cuda_Pair_UpdateNmax(sdata);
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)  );
 	cudaMemcpyToSymbol(MY_CONST(nall)    , & sdata->atom.nall          , sizeof(int)  );

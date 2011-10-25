@@ -554,7 +554,7 @@ void PairComb::init_style()
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages(0);
+  if (maxpage == 0) add_pages();
 }
 
 /* ----------------------------------------------------------------------
@@ -1241,27 +1241,6 @@ double PairComb::comb_bij_d(double zeta, Param *param)
 }
 
 /* ---------------------------------------------------------------------- */
-
-double PairComb::comb_gijk(double costheta, Param *param)
-{
-  double comb_c = param->c;
-  double comb_d = param->d;
-
-  return (1.0 + pow(comb_c/comb_d,2.0) -
-    pow(comb_c,2.0) / (pow(comb_d,2.0) + pow(param->h - costheta,2.0)));
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairComb::comb_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return numerator/denominator;
-}
-
-/*------------------------------------------------------------------------- */
 
 void PairComb::attractive(Param *param, double prefactor,
 			  double rsqij, double rsqik,
@@ -2107,7 +2086,7 @@ void PairComb::Short_neigh()
     if(pgsize - npntj < oneatom) {
       npntj = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == maxpage) add_pages();
     }
  
     nj = 0;
@@ -2142,11 +2121,12 @@ void PairComb::Short_neigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::add_pages(int npage)
+void PairComb::add_pages(int howmany)
 {
-  maxpage += PGDELTA;
+  int npage = maxpage;
+  maxpage += howmany*PGDELTA;
   pages = (int **)
-  memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
+    memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
   for (int i = npage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"pair:pages[i]");
 }

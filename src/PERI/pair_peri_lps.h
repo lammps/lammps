@@ -46,7 +46,6 @@ class PairPeriLPS : public Pair {
   void compute_dilatation();   
 
  protected:
-  int ifix_peri;
   double **bulkmodulus;                
   double **shearmodulus;               
   double **s00, **alpha;                  
@@ -55,6 +54,9 @@ class PairPeriLPS : public Pair {
   double *s0_new;                  
   double *theta;                      
   int nmax;
+
+  int ifix_peri;
+  char *fix_name;
 
   void allocate();
 };

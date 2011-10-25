@@ -17,33 +17,35 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lubricate/omp,PairLubricateOMP)
+PairStyle(lj/cut/coul/pppm/omp,PairLJCutCoulPPPMOMP)
 
 #else
 
-#ifndef LMP_PAIR_LUBRICATE_OMP_H
-#define LMP_PAIR_LUBRICATE_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
 
-#include "pair_lubricate.h"
+#include "pair_lj_cut_coul_long.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLubricateOMP : public PairLubricate, public ThrOMP {
+class PairLJCutCoulPPPMOMP : public PairLJCutCoulLong, public ThrOMP {
 
  public:
-  PairLubricateOMP(class LAMMPS *);
-  virtual ~PairLubricateOMP();
+  PairLJCutCoulPPPMOMP(class LAMMPS *);
+  virtual ~PairLJCutCoulPPPMOMP() {};
+
+  virtual void init_style();
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
- protected:
-  class RanMars **random_thr;
-
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, double **torque, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
+
+  class PPPMProxy *kspace;
+  int nproxy;
 };
 
 }

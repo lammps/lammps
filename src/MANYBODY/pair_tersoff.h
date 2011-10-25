@@ -82,7 +82,7 @@ class PairTersoff : public Pair {
 
   // inlined functions for efficiency
 
-  inline double ters_gijk(const double costheta, 
+  inline double ters_gijk(const double costheta,
 			  const Param * const param) const {
     const double ters_c = param->c * param->c;
     const double ters_d = param->d * param->d;

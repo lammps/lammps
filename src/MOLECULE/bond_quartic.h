@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class BondQuartic : public Bond {
  public:
   BondQuartic(class LAMMPS *);
-  ~BondQuartic();
-  void compute(int, int);
+  virtual ~BondQuartic();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
   double equilibrium_distance(int);
@@ -37,7 +37,7 @@ class BondQuartic : public Bond {
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double TWO_1_3;
   double *k,*b1,*b2,*rc,*u0;
 

@@ -212,7 +212,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strstr(arg[i],"gran/hooke")) i += 6;
     if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
+    while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     nstyles++;
   }
 
@@ -253,7 +253,7 @@ void PairHybrid::settings(int narg, char **arg)
     if (strstr(arg[i],"gran/hooke")) i += 6;
     if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
+    while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
     nstyles++;
   }

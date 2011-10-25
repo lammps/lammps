@@ -24,8 +24,10 @@
 #include "random_mars.h"
 #include "force.h"
 #include "comm.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -203,7 +205,7 @@ void FixWallPiston::post_integrate()
   }
   else if (rampNL1flag) {
     paccelz = maxvz / tott;
-    angfreq = 6.283185 / (0.5 * tott);
+    angfreq = MY_2PI / (0.5 * tott);
 
     if (zloflag) {
       zlo = z0 + paccelz * (0.5*tt + 1.0/(angfreq*angfreq) - 1.0/(angfreq*angfreq)*cos(angfreq*t));
@@ -213,7 +215,7 @@ void FixWallPiston::post_integrate()
   }
   else if (rampNL2flag) {
     paccelz = maxvz / tott;
-    angfreq = 18.84956 / tott;
+    angfreq = 3.0*MY_2PI / tott;
 
     if (zloflag) {
       zlo = z0 + paccelz * (0.5*tt + 4.0/(3.0*angfreq*angfreq)*(1.0-cos(angfreq*t)) + 1.0/(6.0*angfreq*angfreq)*(1.0-cos(2.0*angfreq*t)));

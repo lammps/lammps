@@ -58,10 +58,10 @@
 0.32	     bLJmin_HH 
 0.81	     bLJmax_CC 
 0.9	     bLJmax_CH 
-0.42	     bLJmax_HH 
-0.0028437324 epsilon_CC 
-0.0020639767 epsilon_CH 
-0.0014994226 epsilon_HH 
+0.42	     bLJmax_HH
+0.002843732471143 epsilon_CC
+0.002064935027177 epsilon_CH
+0.001499422575693 epsilon_HH
 3.4	     sigma_CC 
 3.025	     sigma_CH 
 2.65	     sigma_HH 

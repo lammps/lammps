@@ -17,6 +17,7 @@
 #include "string.h"
 #include "atom_vec_line.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "force.h"
@@ -83,6 +84,8 @@ void AtomVecLine::grow(int n)
   if (n == 0) nmax += DELTA;
   else nmax = n;
   atom->nmax = nmax;
+  if (nmax < 0 || nmax > MAXSMALLINT)
+    error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
@@ -90,12 +93,12 @@ void AtomVecLine::grow(int n)
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax,3,"atom:f");
+  f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
   molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   omega = memory->grow(atom->omega,nmax,3,"atom:omega");
-  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
+  torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
   line = memory->grow(atom->line,nmax,"atom:line");
 
   if (atom->nextra_grow)
@@ -1115,12 +1118,12 @@ bigint AtomVecLine::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("line")) bytes += memory->usage(line,nmax);
 
   bytes += nmax_bonus*sizeof(Bonus);

@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "lbalance.h"
 
 using namespace LAMMPS_NS;
 
@@ -80,6 +81,8 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   lattice = NULL;
   nregion = maxregion = 0;
   regions = NULL;
+
+  lbalance = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -336,7 +339,10 @@ void Domain::reset_box()
   }
 
   set_global_box();
-  set_local_box();
+  if(decide_loadbalance())
+      lbalance->loadbalance_local_boxes();
+  else
+      set_local_box();
 
   // if shrink-wrapped, convert to lamda coords for new box
   // must re-invoke pbc() b/c x2lamda result can be outside 0,1 due to roundoff
@@ -345,6 +351,12 @@ void Domain::reset_box()
     x2lamda(atom->nlocal);
     pbc();
   }
+}
+
+int Domain::decide_loadbalance()
+{
+   if (lbalance) return 1;
+   return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -603,7 +615,7 @@ void Domain::minimum_image(double *delta)
    for triclinic, also add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(double *xi, double *xj, double *xjimage)
+void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)
 {
   double dx,dy,dz;
 

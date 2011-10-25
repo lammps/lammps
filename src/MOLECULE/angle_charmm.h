@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class AngleCharmm : public Angle {
  public:
   AngleCharmm(class LAMMPS *);
-  ~AngleCharmm();
-  void compute(int, int);
+  virtual ~AngleCharmm();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   double *k,*theta0,*k_ub,*r_ub;
 
   void allocate();

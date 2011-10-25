@@ -161,6 +161,16 @@ can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 
+Styles {lj/cut/coul/pppm/omp} and {lj/cut/coul/pppm/tip4p/omp}
+are variants of  {lj/cut/coul/long/omp} and {lj/cut/coul/long/tip4p/omp}
+for use with k-space styles "{pppm/proxy}"_kspace_style.html and
+"{pppm/tip4p/proxy}"_kspace_style.html, respectively and OpenMP
+multi-threading and will perform the corresponding reciprocal
+space calculation concurrently with the pair calculation
+in a separate thread. For certain parallel setups, this may have
+a performance benefit over performing k-space style and pair style
+separately and one after the other.
+
 :line
 
 Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 

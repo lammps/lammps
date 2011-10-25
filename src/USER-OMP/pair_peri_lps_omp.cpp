@@ -26,15 +26,18 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
 PairPeriLPSOMP::PairPeriLPSOMP(LAMMPS *lmp) :
-  PairPeriLPS(lmp), ThrOMP(lmp, PAIR)
+  PairPeriLPS(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
+  fix_name = "PERI_NEIGH_OMP";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -43,7 +46,6 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -61,38 +63,34 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
@@ -103,9 +101,10 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
   double fxtmp,fytmp,fztmp;
 
   double *vfrac = atom->vfrac;
@@ -151,7 +150,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
- 
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -182,7 +181,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 	// of the bond-based theory used in PMB model
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
-	  (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+	  (MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
         rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
@@ -199,7 +198,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 
         if (EFLAG) evdwl = 0.5*rk*dr;
 	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
-				 fpair*vfrac[i],delx,dely,delz,tid);
+				 fpair*vfrac[i],delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;
@@ -214,7 +213,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 #if defined(_OPENMP)
   // each thread works on a fixed chunk of atoms.
   const int idelta = 1 + nlocal/comm->nthreads;
-  iifrom = tid*idelta;
+  iifrom = thr->get_tid()*idelta;
   iito   = iifrom + idelta;
   if (iito > nlocal)
     iito = nlocal;
@@ -234,7 +233,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 #endif
   { // communicate dilatation (theta) of each particle	
     comm->forward_comm_pair(this);
-    // communicate wighted volume (wvolume) upon every reneighbor
+    // communicate weighted volume (wvolume) upon every reneighbor
     if (neighbor->ago == 0)
       comm->forward_comm_fix(modify->fix[ifix_peri]);
   }
@@ -245,10 +244,8 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
   if (EFLAG) {
     for (i = iifrom; i < iito; i++) {   
       itype = type[i];
-      if (eflag_global)
-	eng_vdwl_thr[tid] += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
-      if (eflag_atom)
-	eatom_thr[tid][i] += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
+      e_tally_thr(this, i, i, nlocal, NEWTON_PAIR,
+		  0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]), 0.0, thr);
     }
   }
 
@@ -332,7 +329,7 @@ void PairPeriLPSOMP::eval(double **f, int iifrom, int iito, int tid)
 		   omega_plus*(deviatoric_extension * deviatoric_extension) *
 		   vfrac[j] * vfrac_scale;
       if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.5*evdwl,0.0,
-			       0.5*fbond*vfrac[i],delx,dely,delz,tid);
+			       0.5*fbond*vfrac[i],delx,dely,delz,thr);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep

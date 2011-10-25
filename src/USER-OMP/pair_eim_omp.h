@@ -39,7 +39,7 @@ class PairEIMOMP : public PairEIM, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, double *rho_t, double *fp_t, int iifrom, int iito, int tid);
+  void eval(int iifrom, int iito, ThrData * const thr);
 };
 
 }

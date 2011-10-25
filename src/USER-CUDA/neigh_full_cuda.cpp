@@ -250,6 +250,7 @@ void NeighborCuda::full_bin_cuda(NeighList *list)
   }*/
   list->cuda_list->cu_numneigh->download();
   list->cuda_list->cu_ilist->download();
+  cuda->shared_data.atom.update_neigh=2;
 	//printf("Done\n");
   
   MYDBG(printf(" # CUDA::NeighFullBinCuda ... end\n");)

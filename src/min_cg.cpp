@@ -48,7 +48,7 @@ int MinCG::iterate(int maxiter)
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
 
-  int nlimit = static_cast<int> (MIN(MAXSMALLINT,ndoftotal));
+  int nlimit = MIN<bigint>(MAXSMALLINT,ndoftotal);
 
   // initialize working vectors
 
@@ -176,7 +176,7 @@ int MinCG::iterate(int maxiter)
     if (output->next == ntimestep) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 

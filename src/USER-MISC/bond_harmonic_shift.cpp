@@ -75,7 +75,6 @@ void BondHarmonicShift::compute(int eflag, int vflag)
 
     rsq = delx*delx + dely*dely + delz*delz;
     r = sqrt(rsq);
-    
     dr = r - r0[type];
     rk = k[type] * dr;
 

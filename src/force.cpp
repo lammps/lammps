@@ -478,24 +478,61 @@ Improper *Force::new_improper(const char *style, const char *suffix, int &sflag)
    new kspace style 
 ------------------------------------------------------------------------- */
 
-void Force::create_kspace(int narg, char **arg)
+void Force::create_kspace(int narg, char **arg, const char *suffix)
 {
   delete [] kspace_style;
   if (kspace) delete kspace;
 
-  if (strcmp(arg[0],"none") == 0) kspace = NULL;
+  int sflag;
+  kspace = new_kspace(narg,arg,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+    int n = strlen(estyle) + 1;
+    kspace_style = new char[n];
+    strcpy(kspace_style,estyle);
+  } else {
+    int n = strlen(arg[0]) + 1;
+    kspace_style = new char[n];
+    strcpy(kspace_style,arg[0]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   generate a kspace class
+------------------------------------------------------------------------- */
+
+KSpace *Force::new_kspace(int narg, char **arg, const char *suffix, int &sflag)
+{
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+
+    if (0) return NULL;
 
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) kspace = new Class(lmp,narg-1,&arg[1]);
+  else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
+#include "style_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
+
+  }
+
+  sflag = 0;
+
+  if (strcmp(arg[0],"none") == 0) return NULL;
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) \
+  else if (strcmp(arg[0],#key) == 0) return  new Class(lmp,narg-1,&arg[1]);
 #include "style_kspace.h"
 #undef KSPACE_CLASS
 
   else error->all(FLERR,"Invalid kspace style");
-
-  int n = strlen(arg[0]) + 1;
-  kspace_style = new char[n];
-  strcpy(kspace_style,arg[0]);
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

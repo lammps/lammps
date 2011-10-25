@@ -101,13 +101,17 @@ class Domain : protected Pointers {
   int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
-  void closest_image(double *, double *, double *);
+  void closest_image(const double * const, const double * const, double * const);
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);
   int find_region(char *);
   void set_boundary(int, char **);
   void print_box(const char *);
+
+  // load balancing
+  int decide_loadbalance();
+  class Lbalance *lbalance;
 
   virtual void lamda2x(int);
   virtual void x2lamda(int);

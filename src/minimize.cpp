@@ -53,9 +53,9 @@ void Minimize::command(int narg, char **arg)
   lmp->init();
   update->minimize->setup();
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   update->minimize->run(update->nsteps);
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop(Timer::LOOP);
 
   update->minimize->cleanup();
 

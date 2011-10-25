@@ -13,42 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lubricate,PairLubricate)
+PairStyle(rebo/omp,PairREBOOMP)
 
 #else
 
-#ifndef LMP_PAIR_LUBRICATE_H
-#define LMP_PAIR_LUBRICATE_H
+#ifndef LMP_PAIR_REBO_OMP_H
+#define LMP_PAIR_REBO_OMP_H
 
-#include "pair.h"
+#include "pair_airebo_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLubricate : public Pair {
+class PairREBOOMP : public PairAIREBOOMP {
  public:
-  PairLubricate(class LAMMPS *);
-  virtual ~PairLubricate();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void *extract(char *, int &);
-
- protected:
-  double cut_inner_global,cut_global;
-  double t_target,mu;
-  int flag1,flag2,flag3,flag4;
-  int seed;
-  double **cut_inner,**cut;
-
-  class RanMars *random;
-
-  void allocate();
+  PairREBOOMP(class LAMMPS *);
+  virtual void settings(int, char **);
 };
 
 }

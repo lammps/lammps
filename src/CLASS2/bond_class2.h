@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class BondClass2 : public Bond {
  public:
   BondClass2(class LAMMPS *);
-  ~BondClass2();
-  void compute(int, int);
+  virtual ~BondClass2();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double *r0,*k2,*k3,*k4;
 
   void allocate();

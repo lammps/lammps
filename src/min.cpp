@@ -57,6 +57,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
+  external_force_clear = 0;
 
   nextra_global = 0;
   fextra = NULL;
@@ -133,6 +134,10 @@ void Min::init()
 
   ev_setup();
 
+  // detect if fix omp is present and will clear force arrays for us
+  int ifix = modify->find_fix("package_omp");
+  if (ifix >= 0) external_force_clear = 1;
+
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
 
@@ -157,7 +162,8 @@ void Min::init()
   
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
-      error->warning(FLERR,"Resetting reneighboring criteria during minimization");
+      error->warning(FLERR,
+		     "Resetting reneighboring criteria during minimization");
   }
 
   neighbor->every = 1;
@@ -227,9 +233,11 @@ void Min::setup()
   // remove these restriction eventually
 
   if (nextra_global && searchflag == 0)
-    error->all(FLERR,"Cannot use a damped dynamics min style with fix box/relax");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with fix box/relax");
   if (nextra_atom && searchflag == 0)
-    error->all(FLERR,"Cannot use a damped dynamics min style with per-atom DOF");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with per-atom DOF");
 
   // atoms may have migrated in comm->exchange()
 
@@ -422,9 +430,13 @@ double Min::energy_force(int resetflag)
   if (nflag == 0) {
     timer->stamp();
     comm->forward_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   } else {
-    if (modify->n_min_pre_exchange) modify->min_pre_exchange();
+    if (modify->n_min_pre_exchange) {
+      timer->stamp();
+      modify->min_pre_exchange();
+      timer->stamp(Timer::MODIFY);
+    }
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     if (domain->box_change) {
@@ -438,20 +450,24 @@ double Min::energy_force(int resetflag)
 	update->ntimestep >= atom->nextsort) atom->sort();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
     neighbor->build();
-    timer->stamp(TIME_NEIGHBOR);
+    timer->stamp(Timer::NEIGHBOR);
   }
 
   ev_set(update->ntimestep);
   force_clear();
-  if (modify->n_min_pre_force) modify->min_pre_force(vflag);
 
   timer->stamp();
 
+  if (modify->n_min_pre_force) {
+    modify->min_pre_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
+
   if (force->pair) {
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
 
   if (atom->molecular) {
@@ -459,17 +475,17 @@ double Min::energy_force(int resetflag)
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
     if (force->improper) force->improper->compute(eflag,vflag);
-    timer->stamp(TIME_BOND);
+    timer->stamp(Timer::BOND);
   }
 
   if (force->kspace) {
     force->kspace->compute(eflag,vflag);
-    timer->stamp(TIME_KSPACE);
+    timer->stamp(Timer::KSPACE);
   }
 
   if (force->newton) {
     comm->reverse_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   }
 
   // update per-atom minimization variables stored by pair styles
@@ -480,7 +496,11 @@ double Min::energy_force(int resetflag)
 
   // fixes that affect minimization
 
-  if (modify->n_min_post_force) modify->min_post_force(vflag);
+  if (modify->n_min_post_force) {
+     timer->stamp();
+     modify->min_post_force(vflag);
+     timer->stamp(Timer::MODIFY);
+  }
 
   // compute potential energy of system
   // normalize if thermo PE does
@@ -508,7 +528,11 @@ double Min::energy_force(int resetflag)
 
 void Min::force_clear()
 {
+  if (external_force_clear) return;
+
   int i;
+
+  if (external_force_clear) return;
 
   // clear global force array
   // nall includes ghosts only if either newton flag is set
@@ -516,38 +540,14 @@ void Min::force_clear()
   int nall;
   if (force->newton) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
-  int ntot = nall * comm->nthreads;
 
-  double **f = atom->f;
-  for (i = 0; i < ntot; i++) {
-    f[i][0] = 0.0;
-    f[i][1] = 0.0;
-    f[i][2] = 0.0;
-  }
+  size_t nbytes = sizeof(double) * nall;
 
-  if (torqueflag) {
-    double **torque = atom->torque;
-    for (i = 0; i < nall; i++) {
-      torque[i][0] = 0.0;
-      torque[i][1] = 0.0;
-      torque[i][2] = 0.0;
-    }
-  }
-
-  if (erforceflag) {
-    double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++) erforce[i] = 0.0;
-  }
-
-  if (e_flag) {
-    double *de = atom->de;
-    for (i = 0; i < nall; i++) de[i] = 0.0;
-  }
-  
-  if (rho_flag) {
-    double *drho = atom->drho;
-    for (i = 0; i < nall; i++) drho[i] = 0.0;
-  }
+  memset(&(atom->f[0][0]),0,3*nbytes);
+  if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
+  if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
+  if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
+  if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
 }
 
 /* ----------------------------------------------------------------------

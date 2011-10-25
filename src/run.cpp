@@ -173,9 +173,9 @@ void Run::command(int narg, char **arg)
       output->setup(0);
     }
 
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start(Timer::LOOP);
     update->integrate->run(nsteps);
-    timer->barrier_stop(TIME_LOOP);
+    timer->barrier_stop(Timer::LOOP);
 
     update->integrate->cleanup();
 
@@ -213,9 +213,9 @@ void Run::command(int narg, char **arg)
 	output->setup(0);
       }
 
-      timer->barrier_start(TIME_LOOP);
+      timer->barrier_start(Timer::LOOP);
       update->integrate->run(nsteps);
-      timer->barrier_stop(TIME_LOOP);
+      timer->barrier_stop(Timer::LOOP);
 
       update->integrate->cleanup();
 

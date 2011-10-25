@@ -32,7 +32,12 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 {
   if (nbytes == 0) return NULL;
 
+#if defined(LAMMPS_MEMALIGN)
+  void *ptr;
+  posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
+#else
   void *ptr = malloc(nbytes);
+#endif
   if (ptr == NULL) {
     char str[128];
     sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",

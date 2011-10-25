@@ -57,7 +57,7 @@ void AngleCosineShiftExp::compute(int eflag, int vflag)
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3],ff;
-  double rsq1,rsq2,r1,r2,c,s,cc,ss,a11,a12,a22;
+  double rsq1,rsq2,r1,r2,c,s,a11,a12,a22;
   double exp2,aa,uumin,cccpsss,cssmscc;            
 
   eangle = 0.0;

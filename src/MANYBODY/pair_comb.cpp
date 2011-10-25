@@ -2124,7 +2124,7 @@ void PairComb::Short_neigh()
 void PairComb::add_pages(int howmany)
 {
   int npage = maxpage;
-  maxpage += howmany;
+  maxpage += howmany*PGDELTA;
   pages = (int **)
     memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
   for (int i = npage; i < maxpage; i++)

@@ -184,7 +184,7 @@ void NeighList::stencil_allocate(int smax, int style)
 int **NeighList::add_pages(int howmany)
 {
   int npage = maxpage;
-  maxpage += howmany;
+  maxpage += howmany*PGDELTA;
 
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");

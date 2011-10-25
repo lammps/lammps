@@ -100,7 +100,7 @@ class PairAIREBO : public Pair {
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  void add_pages(int howmany=1 /* PGDELTA */);
+  void add_pages(int howmany=1);
   void read_file(char *);
 
   double Sp5th(double, double *, double *);

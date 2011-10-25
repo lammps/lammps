@@ -3288,7 +3288,7 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 void PairAIREBO::add_pages(int howmany)
 {
   int npage = maxpage;
-  maxpage += howmany;
+  maxpage += howmany*PGDELTA;
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
   for (int i = npage; i < maxpage; i++)

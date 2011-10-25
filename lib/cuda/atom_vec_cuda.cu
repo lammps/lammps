@@ -78,12 +78,12 @@ void Cuda_AtomVecCuda_UpdateNmax(cuda_shared_data* sdata)
 		cudaMemcpyToSymbol(MY_CONST(type)    , & sdata->atom.type .dev_data, sizeof(int*) );
 		cudaMemcpyToSymbol(MY_CONST(mask)    , & sdata->atom.mask .dev_data, sizeof(int*) );
 		cudaMemcpyToSymbol(MY_CONST(image)   , & sdata->atom.image.dev_data, sizeof(int*) );
-		if(data_mask & Q_MASK) cudaMemcpyToSymbol(MY_CONST(q)       , & sdata->atom.q    .dev_data, sizeof(F_FLOAT*) );
-		if(data_mask & MOLECULE_MASK) cudaMemcpyToSymbol(MY_CONST(molecule)   , & sdata->atom.molecule.dev_data, sizeof(int*) );
-		if(data_mask & RADIUS_MASK) cudaMemcpyToSymbol(MY_CONST(radius)   , & sdata->atom.radius.dev_data, sizeof(int*) );
-		if(data_mask & DENSITY_MASK) cudaMemcpyToSymbol(MY_CONST(density)   , & sdata->atom.density.dev_data, sizeof(int*) );
-		if(data_mask & RMASS_MASK) cudaMemcpyToSymbol(MY_CONST(rmass)   , & sdata->atom.rmass.dev_data, sizeof(int*) );
-		if(data_mask & OMEGA_MASK) cudaMemcpyToSymbol(MY_CONST(omega)   , & sdata->atom.omega.dev_data, sizeof(int*) );
+		if(data_mask & Q_MASK) cudaMemcpyToSymbolAsync(MY_CONST(q)       , & sdata->atom.q    .dev_data, sizeof(F_FLOAT*) );
+		if(data_mask & MOLECULE_MASK) cudaMemcpyToSymbolAsync(MY_CONST(molecule)   , & sdata->atom.molecule.dev_data, sizeof(int*) );
+		if(data_mask & RADIUS_MASK) cudaMemcpyToSymbolAsync(MY_CONST(radius)   , & sdata->atom.radius.dev_data, sizeof(int*) );
+		if(data_mask & DENSITY_MASK) cudaMemcpyToSymbolAsync(MY_CONST(density)   , & sdata->atom.density.dev_data, sizeof(int*) );
+		if(data_mask & RMASS_MASK) cudaMemcpyToSymbolAsync(MY_CONST(rmass)   , & sdata->atom.rmass.dev_data, sizeof(int*) );
+		if(data_mask & OMEGA_MASK) cudaMemcpyToSymbolAsync(MY_CONST(omega)   , & sdata->atom.omega.dev_data, sizeof(int*) );
 		//if(data_mask & NSPECIAL_MASK) cudaMemcpyToSymbol(MY_CONST(nspecial)   , & sdata->atom.nspecial.dev_data, sizeof(int*) );
 		cudaMemcpyToSymbol(MY_CONST(flag)    , & sdata->flag, sizeof(int*) );
 }
@@ -92,12 +92,16 @@ template <const unsigned int data_mask>
 void Cuda_AtomVecCuda_Init(cuda_shared_data* sdata)
 {
 	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_Init ... start\n"); )
+	if(sdata->atom.update_nmax)
 	Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
+  if(sdata->atom.update_nlocal)
+    cudaMemcpyToSymbolAsync(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_Init ... post Nmax\n"); )
-    cudaMemcpyToSymbol(MY_CONST(prd)   , sdata->domain.prd, 3*sizeof(X_FLOAT));
-	cudaMemcpyToSymbol(MY_CONST(sublo)   , & sdata->domain.sublo, 3*sizeof(X_FLOAT) );
-	cudaMemcpyToSymbol(MY_CONST(subhi)   , & sdata->domain.subhi, 3*sizeof(X_FLOAT) );
-	cudaMemcpyToSymbol(MY_CONST(flag)   , & sdata->flag, sizeof(int*) );
+    cudaMemcpyToSymbolAsync(MY_CONST(prd)   , sdata->domain.prd, 3*sizeof(X_FLOAT));
+	cudaMemcpyToSymbolAsync(MY_CONST(sublo)   , & sdata->domain.sublo, 3*sizeof(X_FLOAT) );
+	cudaMemcpyToSymbolAsync(MY_CONST(subhi)   , & sdata->domain.subhi, 3*sizeof(X_FLOAT) );
+	cudaMemcpyToSymbolAsync(MY_CONST(flag)   , & sdata->flag, sizeof(int*) );
+	cudaThreadSynchronize();
 	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_Init ... end\n"); )
 }
 
@@ -110,7 +114,7 @@ int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata,int n,int iswap,void* buf_
 	if(sdata->atom.update_nmax) 
 		Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
 	if(sdata->atom.update_nlocal) 		
-		cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
+		cudaMemcpyToSymbolAsync(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	int n_data_items=AtomVecCuda_CountDataItems(data_mask);
 	int size=(n*n_data_items)*sizeof(X_FLOAT);
 	if(sdata->buffer_new or (size>sdata->buffersize))
@@ -265,6 +269,7 @@ template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_PackExchangeList(cuda_shared_data* sdata,int n,int dim,void* buf_send)
 {
 	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_PackExchangeList ... start dim %i \n",dim); )
+      CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: pre Kernel execution failed");
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	Cuda_AtomVecCuda_Init<data_mask>(sdata);
 	int size=n*sizeof(double);
@@ -280,7 +285,7 @@ int Cuda_AtomVecCuda_PackExchangeList(cuda_shared_data* sdata,int n,int dim,void
     timespec time1,time2;
 	clock_gettime(CLOCK_REALTIME,&time1);
     
-    Cuda_AtomVecCuda_PackExchangeList_Kernel<<<grid, threads,(threads.x+1)*sizeof(int)>>>(n-1,dim);
+  Cuda_AtomVecCuda_PackExchangeList_Kernel<<<grid, threads,(threads.x+1)*sizeof(int)>>>(n-1,dim);
 	cudaThreadSynchronize();
 	CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: Kernel execution failed");
 
@@ -290,7 +295,9 @@ int Cuda_AtomVecCuda_PackExchangeList(cuda_shared_data* sdata,int n,int dim,void
 
 	cudaMemcpy(buf_send, sdata->buffer, sizeof(double), cudaMemcpyDeviceToHost);
 	int return_value = ((int*) buf_send)[0];
-	cudaMemcpy(buf_send, sdata->buffer, (1+return_value)*sizeof(double), cudaMemcpyDeviceToHost);
+	if(n>1+return_value)
+  cudaMemcpy(buf_send, sdata->buffer, (1+return_value)*sizeof(double), cudaMemcpyDeviceToHost);
+  CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: return copy failed");
 
 clock_gettime(CLOCK_REALTIME,&time1);
 sdata->cuda_timings.comm_exchange_download+=
@@ -304,9 +311,11 @@ template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_PackExchange(cuda_shared_data* sdata,int nsend,void* buf_send,void* copylist)
 {
 	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_PackExchange ... start \n"); )
+	if(sdata->atom.update_nmax)
 	Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
+	//if(sdata->atom.update_nlocal)
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
-	
+
 	int n_data_items=AtomVecCuda_CountDataItems(data_mask)+1;
 	int size=(nsend*n_data_items+1)*sizeof(double);
 	if(sdata->buffer_new or (size>sdata->buffersize))
@@ -323,7 +332,7 @@ int Cuda_AtomVecCuda_PackExchange(cuda_shared_data* sdata,int nsend,void* buf_se
 
     Cuda_AtomVecCuda_PackExchange_Kernel<data_mask><<<grid, threads,0>>>(nsend,(int*) copylist);
 	cudaThreadSynchronize();
-	CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: Kernel execution failed");
+	CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchange: Kernel execution failed");
 	
 	clock_gettime(CLOCK_REALTIME,&time2);
 	sdata->cuda_timings.comm_exchange_kernel_pack+=
@@ -335,7 +344,7 @@ int Cuda_AtomVecCuda_PackExchange(cuda_shared_data* sdata,int nsend,void* buf_se
 	sdata->cuda_timings.comm_exchange_download+=
       	time1.tv_sec-time2.tv_sec+1.0*(time1.tv_nsec-time2.tv_nsec)/1000000000;
 	
-	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_PackExchangeList ... done\n"); )
+	MYDBG( printf("# CUDA: Cuda_AtomVecCuda_PackExchange ... done\n"); )
 	return nsend*n_data_items+1;
 }
 
@@ -393,6 +402,7 @@ int Cuda_AtomVecCuda_PackBorder(cuda_shared_data* sdata,int nsend,int iswap,void
  	if(sdata->atom.update_nmax) 
 		Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
 
+ 	if(sdata->atom.update_nlocal)
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	  clock_gettime(CLOCK_REALTIME,&atime2);
 	  sdata->cuda_timings.test1+=
@@ -451,6 +461,7 @@ int Cuda_AtomVecCuda_PackBorder_Self(cuda_shared_data* sdata,int n,int iswap,int
 	if(sdata->atom.update_nmax) 
 		Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
 
+	if(sdata->atom.update_nlocal)
 	cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 
 	int n_data_items=AtomVecCuda_CountDataItems(data_mask);
@@ -503,7 +514,7 @@ int Cuda_AtomVecCuda_UnpackBorder(cuda_shared_data* sdata,int n,int first,void* 
 	if(sdata->atom.update_nmax) 
 		Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
 
-	//if(sdata->atom.update_nlocal) 
+	if(sdata->atom.update_nlocal)
 	  cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	  clock_gettime(CLOCK_REALTIME,&atime2);
 	  sdata->cuda_timings.test1+=

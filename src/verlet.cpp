@@ -309,6 +309,8 @@ void Verlet::force_clear()
   if (external_force_clear) return;
   int i;
 
+  if (external_force_clear) return;
+
   // clear force on all particles
   // if either newton flag is set, also include ghosts
   // when using threads always clear all forces.

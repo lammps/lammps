@@ -108,7 +108,7 @@ void Neighbor::full_nsq(NeighList *list)
 
 /* ----------------------------------------------------------------------
    N^2 search for all neighbors
-   include neighbors of ghost atoms (no "special neighbors" for ghosts)
+   include neighbors of ghost atoms, but no "special neighbors" for ghosts
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -198,7 +198,8 @@ void Neighbor::full_nsq_ghost(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,
+		 "Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = atom->nlocal;
@@ -292,7 +293,8 @@ void Neighbor::full_bin(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,
+		 "Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -301,7 +303,7 @@ void Neighbor::full_bin(NeighList *list)
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   include neighbors of ghost atoms (no "special neighbors" for ghosts)
+   include neighbors of ghost atoms, but no "special neighbors" for ghosts
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -416,7 +418,8 @@ void Neighbor::full_bin_ghost(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,
+		 "Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = atom->nlocal;

@@ -111,6 +111,7 @@ void CudaNeighList::dev_alloc()
 	neighbors_inner = new int[sneighlist.maxlocal*sneighlist.maxneighbors];
 	cu_neighbors_inner = new cCudaData<int, int, x> (neighbors_inner	 , & sneighlist.neighbors_inner , sneighlist.maxlocal*sneighlist.maxneighbors );
 	}
+	cuda->shared_data.atom.update_neigh=2;
 	MYDBG( printf("# CUDA: CudaNeighList::dev_alloc() ... end\n"); )
 }
 

@@ -28,7 +28,6 @@ class FixNVESphere : public FixNVE {
  public:
   FixNVESphere(class LAMMPS *, int, char **);
   virtual ~FixNVESphere() {}
-  int setmask();
   void init();
   virtual void initial_integrate(int);
   virtual void final_integrate();

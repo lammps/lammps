@@ -806,7 +806,6 @@ package"_Section_accelerate.html.
 "lj96/cut/cuda"_pair_lj96.html,
 "lj96/cut/gpu"_pair_lj96.html,
 "lj96/cut/omp"_pair_lj96.html,
-"lubricate/omp"_pair_lubricate.html,
 "morse/cuda"_pair_morse.html,
 "morse/gpu"_pair_morse.html,
 "morse/omp"_pair_morse.html,

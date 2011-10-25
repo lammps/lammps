@@ -26,8 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHLJ::PairSPHLJ(LAMMPS *lmp) :
-  Pair(lmp) {
+PairSPHLJ::PairSPHLJ(LAMMPS *lmp) : Pair(lmp)
+{
+  restartinfo = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -737,7 +737,11 @@ void ReadRestart::force_fields()
 
       force->create_pair(style);
       delete [] style;
-      force->pair->read_restart(fp);
+      if (force->pair->restartinfo) force->pair->read_restart(fp);
+      else {
+	delete force->pair;
+	force->pair = NULL;
+      }
 
     } else if (flag == BOND) {
       if (me == 0) fread(&n,sizeof(int),1,fp);

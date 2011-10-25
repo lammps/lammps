@@ -39,6 +39,7 @@ class Pair : protected Pointers {
   int comm_reverse;              // size of reverse communication (0 if none)
 
   int single_enable;             // 1 if single() routine exists
+  int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()

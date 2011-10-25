@@ -33,10 +33,6 @@ class PairAIREBO : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   double memory_usage();
 
  protected:

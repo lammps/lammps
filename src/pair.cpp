@@ -50,6 +50,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = 0;
 
   single_enable = 1;
+  restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
   no_virial_fdotr_compute = 0;

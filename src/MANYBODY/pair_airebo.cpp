@@ -45,6 +45,7 @@ using namespace MathConst;
 PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   ghostneigh = 1;
 
@@ -4235,52 +4236,6 @@ void PairAIREBO::spline_init()
 
   Tf[2][2][1] = -0.035140;
   for (i = 2; i < 10; i++) Tf[2][2][i] = -0.0040480;
-}
-
-/* ----------------------------------------------------------------------
-  proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-void PairAIREBO::write_restart(FILE *fp)
-{
-  write_restart_settings(fp);
-}
-
-/* ----------------------------------------------------------------------
-  proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-void PairAIREBO::read_restart(FILE *fp)
-{
-  read_restart_settings(fp);
-  allocate();
-}
-
-/* ----------------------------------------------------------------------
-  proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-void PairAIREBO::write_restart_settings(FILE *fp)
-{
-  fwrite(&cutlj,sizeof(double),1,fp);
-  fwrite(&ljflag,sizeof(int),1,fp);
-  fwrite(&torflag,sizeof(int),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-  proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-void PairAIREBO::read_restart_settings(FILE *fp)
-{
-  if (comm->me == 0) {
-    fread(&cutlj,sizeof(double),1,fp);
-    fread(&ljflag,sizeof(int),1,fp);
-    fread(&torflag,sizeof(int),1,fp);
-  }
-  MPI_Bcast(&cutlj,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&ljflag,1,MPI_INT,0,world);
-  MPI_Bcast(&torflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

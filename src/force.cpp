@@ -166,7 +166,6 @@ Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
 #undef PAIR_CLASS
 
   else error->all(FLERR,"Invalid pair style");
-
   return NULL;
 }
 

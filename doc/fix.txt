@@ -193,11 +193,12 @@ list of fix styles available in LAMMPS:
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
 "nve"_fix_nve.html - constant NVE time integration
-"nve/asphere"_fix_nve_asphere.html - NVT for aspherical particles
-"nve/limit"_fix_nve_limit.html - NVE with limited step length
+"nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
+"nve/asphere/noforce"_fix_nve_asphere_noforce.html - NVE for aspherical particles without forces"
+nve/limit"_fix_nve_limit.html - NVE with limited step length
 "nve/line"_fix_nve_line.html - NVE for line segments
 "nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
-"nve/sphere"_fix_nve_sphere.html - NVT for spherical particles
+"nve/sphere"_fix_nve_sphere.html - NVE for spherical particles
 "nve/tri"_fix_nve_tri.html - NVE for triangles
 "nvt"_fix_nh.html - constant NVT time integration via Nose/Hoover
 "nvt/asphere"_fix_nvt_asphere.html - NVT for aspherical particles

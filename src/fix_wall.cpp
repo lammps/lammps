@@ -45,6 +45,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   nwall = 0;
   int scaleflag = 1;
+  fldflag = 0;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -92,6 +93,12 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all(FLERR,"Illegal fix wall command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"fld") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
+      if (strcmp(arg[iarg+1],"no") == 0) fldflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) fldflag = 1;
       else error->all(FLERR,"Illegal fix wall command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix wall command");
@@ -169,7 +176,12 @@ FixWall::~FixWall()
 int FixWall::setmask()
 {
   int mask = 0;
-  mask |= POST_FORCE;
+
+  // FLD implicit needs to invoke wall forces before pair style
+
+  if (fldflag) mask != PRE_FORCE;
+  else mask |= POST_FORCE;
+
   mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
@@ -204,7 +216,7 @@ void FixWall::init()
 void FixWall::setup(int vflag)
 {
   if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
+    if (!fldflag) post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
@@ -215,6 +227,15 @@ void FixWall::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 
 void FixWall::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   only called if fldflag set, in place of post_force
+------------------------------------------------------------------------- */
+
+void FixWall::pre_force(int vflag)
 {
   post_force(vflag);
 }

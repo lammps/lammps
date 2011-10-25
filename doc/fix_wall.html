@@ -40,11 +40,14 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>units</I> 
+<LI>keyword = <I>units</I> or <I>fld</I> 
 
 <PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
     <I>lattice</I> = the wall position is defined in lattice units
-    <I>box</I> = the wall position is defined in simulation box units 
+    <I>box</I> = the wall position is defined in simulation box units
+  <I>fld</I> value = <I>yes</I> or <I>no</I>
+    <I>yes</I> = invoke the wall constraint to be compatible with implicit FLD
+    <I>yes</I> = invoke the wall constraint in the normal way 
 </PRE>
 
 </UL>
@@ -161,6 +164,13 @@ position.
 A <I>lattice</I> value means the distance units are in lattice spacings.
 The <A HREF = "lattice.html">lattice</A> command must have been previously used to
 define the lattice spacings.
+</P>
+<P>The <I>fld</I> keyword can be used with a <I>yes</I> setting to invoke the wall
+constraint before pairwise interactions are computed.  This allows an
+implicit FLD model using <A HREF = "pair_lubricateU.html">pair_style lubricateU</A>
+to include the wall force in its calculations.  If the setting is
+<I>no</I>, wall forces are imposed after pairwise interactions, in the
+usual manner.
 </P>
 <HR>
 

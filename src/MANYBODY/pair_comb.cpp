@@ -555,7 +555,7 @@ void PairComb::init_style()
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages(0);
+  if (maxpage == 0) add_pages();
 }
 
 /* ----------------------------------------------------------------------
@@ -2077,10 +2077,12 @@ double PairComb::memory_usage()
 
 void PairComb::Short_neigh()
 {
-  int nj,npntj,*neighptrj,itype,jtype;
-  int iparam_ij,*ilist,*jlist,*numneigh,**firstneigh;
+  int nj,itype,jtype,iparam_ij;
   int inum,jnum,i,j,ii,jj;
+  int *neighptrj,*ilist,*jlist,*numneigh;
+  int **firstneigh;
   double xtmp,ytmp,ztmp,rr,rsq,delrj[3];
+
   double **x = atom->x;
   int *type  = atom->type;
   int nlocal = atom->nlocal;
@@ -2099,16 +2101,17 @@ void PairComb::Short_neigh()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  npage = npntj = 0;
+  int npntj = 0;
+  int npage = 0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
 
-    if(pgsize - npntj < oneatom) {
+    if (pgsize - npntj < oneatom) {
       npntj = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == maxpage) add_pages();
     }
  
     nj = 0;
@@ -2135,6 +2138,7 @@ void PairComb::Short_neigh()
       if (rsq > cutmin) continue;
       neighptrj[nj++] = j;
     }
+
     sht_first[i] = neighptrj;
     sht_num[i] = nj;
     npntj += nj;
@@ -2143,12 +2147,14 @@ void PairComb::Short_neigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::add_pages(int npage)
+void PairComb::add_pages()
 {
+  int toppage = maxpage;
   maxpage += PGDELTA;
+
   pages = (int **)
-  memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
-  for (int i = npage; i < maxpage; i++)
+    memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
+  for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"pair:pages[i]");
 }
 

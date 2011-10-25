@@ -327,7 +327,6 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 

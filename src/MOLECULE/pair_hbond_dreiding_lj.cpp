@@ -45,6 +45,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   // due to using map() to find bonded H atoms which are not near donor atom
 
   no_virial_fdotr_compute = 1;
+  restartinfo = 0;
 
   nparams = maxparam = 0;
   params = NULL;

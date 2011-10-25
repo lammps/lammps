@@ -37,6 +37,7 @@ using namespace LAMMPS_NS;
 PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
 
   setfl = NULL;

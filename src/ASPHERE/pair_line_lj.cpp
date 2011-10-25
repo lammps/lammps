@@ -40,6 +40,7 @@ PairLineLJ::PairLineLJ(LAMMPS *lmp) : Pair(lmp)
   dnum = dfirst = NULL;
 
   single_enable = 0;
+  restartinfo = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -4238,6 +4238,52 @@ void PairAIREBO::spline_init()
 }
 
 /* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairAIREBO::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairAIREBO::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairAIREBO::write_restart_settings(FILE *fp)
+{
+  fwrite(&cutlj,sizeof(double),1,fp);
+  fwrite(&ljflag,sizeof(int),1,fp);
+  fwrite(&torflag,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairAIREBO::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0) {
+    fread(&cutlj,sizeof(double),1,fp);
+    fread(&ljflag,sizeof(int),1,fp);
+    fread(&torflag,sizeof(int),1,fp);
+  }
+  MPI_Bcast(&cutlj,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ljflag,1,MPI_INT,0,world);
+  MPI_Bcast(&torflag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 

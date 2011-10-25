@@ -307,7 +307,8 @@ void ReadRestart::command(int narg, char **arg)
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
-  if (natoms != atom->natoms) error->all(FLERR,"Did not assign all atoms correctly");
+  if (natoms != atom->natoms) 
+    error->all(FLERR,"Did not assign all atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {
@@ -501,7 +502,8 @@ void ReadRestart::header()
       int dimension = read_int();
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
-	error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
+	error->all(FLERR,
+		   "Cannot run 2d simulation with nonperiodic Z dimension");
 
       // read nprocs from restart file, warn if different
 
@@ -531,14 +533,16 @@ void ReadRestart::header()
       int newton_pair_file = read_int();
       if (force->newton_pair != 1) {
 	if (newton_pair_file != force->newton_pair && me == 0)
-	  error->warning(FLERR,"Restart file used different newton pair setting, "
+	  error->warning(FLERR,
+			 "Restart file used different newton pair setting, "
 			 "using input script value");
       }
     } else if (flag == NEWTON_BOND) {
       int newton_bond_file = read_int();
       if (force->newton_bond != 1) {
 	if (newton_bond_file != force->newton_bond && me == 0)
-	  error->warning(FLERR,"Restart file used different newton bond setting, "
+	  error->warning(FLERR,
+			 "Restart file used different newton bond setting, "
 			 "using restart file value");
       }
       force->newton_bond = newton_bond_file;
@@ -707,7 +711,8 @@ void ReadRestart::type_arrays()
       atom->set_mass(mass);
       delete [] mass;
 
-    } else error->all(FLERR,"Invalid flag in type arrays section of restart file");
+    } else error->all(FLERR,
+		      "Invalid flag in type arrays section of restart file");
 
     flag = read_int();
   }
@@ -778,7 +783,8 @@ void ReadRestart::force_fields()
       delete [] style;
       force->improper->read_restart(fp);
 
-    } else error->all(FLERR,"Invalid flag in force field section of restart file");
+    } else error->all(FLERR,
+		      "Invalid flag in force field section of restart file");
 
     flag = read_int();
   }

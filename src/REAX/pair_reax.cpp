@@ -1051,6 +1051,55 @@ void PairREAX::sparse_product(const int &n, const int &nlocal,
 }
 
 /* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairREAX::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairREAX::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairREAX::write_restart_settings(FILE *fp)
+{
+  fwrite(&hbcut,sizeof(double),1,fp);
+  fwrite(&ihbnew,sizeof(int),1,fp);
+  fwrite(&itripstaball,sizeof(int),1,fp);
+  fwrite(&precision,sizeof(double),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairREAX::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0) {
+    fread(&hbcut,sizeof(double),1,fp);
+    fread(&ihbnew,sizeof(int),1,fp);
+    fread(&itripstaball,sizeof(int),1,fp);
+    fread(&precision,sizeof(double),1,fp);
+  }
+  MPI_Bcast(&hbcut,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ihbnew,1,MPI_INT,0,world);
+  MPI_Bcast(&itripstaball,1,MPI_INT,0,world);
+  MPI_Bcast(&precision,1,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based arrays 
 ------------------------------------------------------------------------- */
 

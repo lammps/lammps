@@ -21,6 +21,8 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
+#include "math.h"
+#include "math_const.h"
 
 namespace LAMMPS_NS {
 
@@ -28,7 +30,7 @@ class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
   virtual ~PairAIREBO();
-  void compute(int, int);
+  virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -36,15 +38,15 @@ class PairAIREBO : public Pair {
   double memory_usage();
 
  protected:
+  int **pages;                     // neighbor list pages
+  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
+
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays
-  int **pages;                     // neighbor list pages
   int maxpage;                     // # of pages currently allocated
   int pgsize;                      // size of neighbor page
   int oneatom;                     // max # of neighbors for one atom
-  int npage;                       // current page in page list
-  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
@@ -77,12 +79,12 @@ class PairAIREBO : public Pair {
 
   double PCCf[5][5],PCCdfdx[5][5],PCCdfdy[5][5],PCHf[5][5];
   double PCHdfdx[5][5],PCHdfdy[5][5];
-  double piCCf[5][5][10],piCCdfdx[5][5][10];
-  double piCCdfdy[5][5][10],piCCdfdz[5][5][10];
-  double piCHf[5][5][10],piCHdfdx[5][5][10];
-  double piCHdfdy[5][5][10],piCHdfdz[5][5][10];
-  double piHHf[5][5][10],piHHdfdx[5][5][10];
-  double piHHdfdy[5][5][10],piHHdfdz[5][5][10];
+  double piCCf[5][5][11],piCCdfdx[5][5][11];
+  double piCCdfdy[5][5][11],piCCdfdz[5][5][11];
+  double piCHf[5][5][11],piCHdfdx[5][5][11];
+  double piCHdfdy[5][5][11],piCHdfdz[5][5][11];
+  double piHHf[5][5][11],piHHdfdx[5][5][11];
+  double piHHdfdy[5][5][11],piHHdfdz[5][5][11];
   double Tf[5][5][10],Tdfdx[5][5][10],Tdfdy[5][5][10],Tdfdz[5][5][10];
 
   void REBO_neigh();
@@ -94,17 +96,12 @@ class PairAIREBO : public Pair {
   double bondorderLJ(int, int, double *, double, double,
 		     double *, double, double **, int);
 
-  double Sp(double, double, double, double &);
-  double Sp2(double, double, double, double &);
-
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  double kronecker(int, int);
-
-  void add_pages(int);
+  void add_pages();
   void read_file(char *);
 
   double Sp5th(double, double *, double *);
@@ -113,6 +110,63 @@ class PairAIREBO : public Pair {
   void spline_init();
 
   void allocate();
+
+  // ----------------------------------------------------------------------
+  // S'(t) and S(t) cutoff functions
+  // added to header for inlining
+  // ----------------------------------------------------------------------
+
+  /* ----------------------------------------------------------------------
+     cutoff function Sprime
+     return cutoff and dX = derivative
+     no side effects
+  ------------------------------------------------------------------------- */
+
+  inline double Sp(double Xij, double Xmin, double Xmax, double &dX) const {
+    double cutoff;
+
+    double t = (Xij-Xmin) / (Xmax-Xmin);
+    if (t <= 0.0) {
+      cutoff = 1.0;
+      dX = 0.0;
+    } else if (t >= 1.0) {
+      cutoff = 0.0;
+      dX = 0.0;
+    } else {
+      cutoff = 0.5 * (1.0+cos(t*MathConst::MY_PI));
+      dX = (-0.5*MathConst::MY_PI*sin(t*MathConst::MY_PI)) / (Xmax-Xmin);
+    }
+    return cutoff;
+  };
+
+  /* ----------------------------------------------------------------------
+     LJ cutoff function Sp2
+     return cutoff and dX = derivative
+     no side effects
+  ------------------------------------------------------------------------- */
+
+  inline double Sp2(double Xij, double Xmin, double Xmax, double &dX) const {
+    double cutoff;
+
+    double t = (Xij-Xmin) / (Xmax-Xmin);
+    if (t <= 0.0) {
+      cutoff = 1.0;
+      dX = 0.0;
+    } else if (t >= 1.0) {
+      cutoff = 0.0;
+      dX = 0.0;
+    } else {
+      cutoff = (1.0-(t*t*(3.0-2.0*t)));
+      dX = 6.0*(t*t-t) / (Xmax-Xmin);
+    }
+    return cutoff;
+  };
+
+  /* kronecker delta function returning a double */
+  inline double kronecker(const int a, const int b) const {
+    return (a == b) ? 1.0 : 0.0;
+  };
+
 };
 
 }

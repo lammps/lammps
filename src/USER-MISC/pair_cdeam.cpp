@@ -52,6 +52,8 @@ using namespace LAMMPS_NS;
 PairCDEAM::PairCDEAM(LAMMPS *lmp, int _cdeamVersion) : PairEAM(lmp), PairEAMAlloy(lmp), cdeamVersion(_cdeamVersion)
 {
 	single_enable = 0;
+	restartinfo = 0;
+
 	rhoB = NULL;
 	D_values = NULL;
 	hcoeff = NULL;

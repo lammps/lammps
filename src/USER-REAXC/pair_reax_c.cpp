@@ -54,6 +54,10 @@ using namespace LAMMPS_NS;
 
 PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 {
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
+
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
   control = (control_params *) 

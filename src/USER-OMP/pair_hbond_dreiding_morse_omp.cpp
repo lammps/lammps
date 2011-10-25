@@ -93,7 +93,7 @@ void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 
   // reduce per thread hbond data

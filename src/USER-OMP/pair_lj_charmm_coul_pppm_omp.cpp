@@ -103,7 +103,7 @@ void PairLJCharmmCoulPPPMOMP::compute(int eflag, int vflag)
     }
     
     sync_threads();
-    reduce_thr(eflag, vflag, thr, nproxy);
+    reduce_thr(this, eflag, vflag, thr, nproxy);
   } // end of omp parallel region
 }
 

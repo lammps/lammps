@@ -132,7 +132,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
     error->all(FLERR,"unsupported eam/cd pair style variant");
     }
     
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 

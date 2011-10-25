@@ -66,7 +66,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
     if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,thr);
 
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 

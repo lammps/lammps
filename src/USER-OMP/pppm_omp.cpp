@@ -135,7 +135,7 @@ void PPPMOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 

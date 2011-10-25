@@ -50,8 +50,8 @@ class FixOMP : public Fix {
 
  protected:
   ThrData **thr;
-  int last_omp_style; // indicate which style needs
-                      // to do the force reduction
+  void *last_omp_style; // pointer to the style that needs
+						// to do the force reduction
   
  public:
   bool get_neighbor() const {return _neighbor;};

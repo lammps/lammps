@@ -164,7 +164,7 @@ void EwaldOMP::compute(int eflag, int vflag)
       }
     }
 
-    reduce_thr(eflag,vflag,thr);
+    reduce_thr(this, eflag,vflag,thr);
   } // end of omp parallel region
 
   if (slabflag) slabcorr(eflag);

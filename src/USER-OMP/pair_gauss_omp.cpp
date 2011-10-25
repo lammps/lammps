@@ -67,7 +67,7 @@ void PairGaussOMP::compute(int eflag, int vflag)
       else occ = eval<0,0,0>(ifrom, ito, thr);
     }
 
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 
   if (eflag_global) pvector[0] = occ;

@@ -74,7 +74,7 @@ void PairBuckCoulLongOMP::compute(int eflag, int vflag)
     }
 
     // reduce per thread forces into global force array.
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 

@@ -64,7 +64,7 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
       else eval<0,0,0>(ifrom, ito, thr);
     }
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 

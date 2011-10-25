@@ -62,7 +62,7 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
       if (shearupdate) eval<0,1>(ifrom, ito, thr);
       else eval<0,0>(ifrom, ito, thr);
 
-    reduce_thr(eflag, vflag, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
   laststep = update->ntimestep;
 }

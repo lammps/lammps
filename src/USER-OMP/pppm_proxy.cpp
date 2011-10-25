@@ -48,7 +48,7 @@ void PPPMProxy::compute(int eflag, int vflag)
 #endif
 
     ThrData *thr = fix->get_thr(tid);
-    reduce_thr(eflag,vflag,thr);
+    reduce_thr(this, eflag,vflag,thr);
   }
 }
 

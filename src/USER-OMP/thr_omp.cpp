@@ -145,7 +145,8 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
    in contrast is parallelized over threads in the same way as forces.
    ---------------------------------------------------------------------- */
 
-void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, const int nproxy)
+void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
+			ThrData *const thr, const int nproxy)
 {
   const int nlocal = lmp->atom->nlocal;
   const int nghost = lmp->atom->nghost;
@@ -404,7 +405,7 @@ void ThrOMP::reduce_thr(const int eflag, const int vflag, ThrData *const thr, co
     break;
   }
     
-    if (thr_style & fix->last_omp_style) { // XXX not safe for hybrid styles.
+    if (style == fix->last_omp_style) {
     sync_threads();
     data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
     if (lmp->atom->torque)

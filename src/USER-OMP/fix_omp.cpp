@@ -30,6 +30,8 @@
 #include "thr_data.h"
 #include "thr_omp.h"
 
+#include "pair_hybrid.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,7 +50,7 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL), last_omp_style(ThrOMP::THR_NONE), _nthr(-1), _neighbor(true), _newton(false)
+  thr(NULL), last_omp_style(NULL), _nthr(-1), _neighbor(true), _newton(false)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
@@ -161,28 +163,40 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
-  last_omp_style = ThrOMP::THR_NONE;
+  int check_hybrid;
+  last_omp_style = NULL;
 
-#define CheckStyleForOMP(name,def)			\
-  if (force->name) {					\
-    int len = strlen(force->name ## _style);		\
-    char *suffix = force->name ## _style + len - 4;	\
-    if (strcmp(suffix,"/omp") == 0)			\
-      last_omp_style = ThrOMP::def;			\
+#define CheckStyleForOMP(name)						\
+  check_hybrid = 0;							\
+  if (force->name) {							\
+    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||		\
+         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )	\
+      check_hybrid=1;							\
+    int len = strlen(force->name ## _style);				\
+    char *suffix = force->name ## _style + len - 4;			\
+    if (strcmp(suffix,"/omp") == 0)					\
+      last_omp_style = (void *) force->name;				\
   }
 
   // determine which is the last force style with OpenMP
   // support as this is the one that has to reduce the forces
-  CheckStyleForOMP(pair,THR_PAIR);
-  CheckStyleForOMP(bond,THR_BOND);
-  CheckStyleForOMP(angle,THR_ANGLE);
-  CheckStyleForOMP(dihedral,THR_DIHEDRAL);
-  CheckStyleForOMP(improper,THR_IMPROPER);
-  CheckStyleForOMP(kspace,THR_KSPACE);
+  CheckStyleForOMP(pair);
+  if (check_hybrid) {
+    PairHybrid *style = (PairHybrid *) force->pair;
+    for (int i=0; i < style->nstyles; i++) {
+      int len = strlen(style->keywords[i]);
+      char *suffix = style->keywords[i] + len - 4;
+      if (strcmp(suffix,"/omp") == 0)
+        last_omp_style = (void *) style;
+    }
+  }
+  CheckStyleForOMP(bond);
+  CheckStyleForOMP(angle);
+  CheckStyleForOMP(dihedral);
+  CheckStyleForOMP(improper);
+  CheckStyleForOMP(kspace);
 
 #undef CheckStyleForOMP
-
-  fprintf(stderr,"%s:%d last_omp_style=%d\n",__FILE__, __LINE__, last_omp_style);
 
   set_neighbor_omp();
 }

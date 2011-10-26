@@ -39,6 +39,7 @@ class FixWallReflect : public Fix {
   char *varstr[6];
   int varindex[6];
   int varflag;
+  double xscale,yscale,zscale;
 };
 
 }

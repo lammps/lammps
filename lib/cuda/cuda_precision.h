@@ -78,22 +78,37 @@
 //-----------PPPM-----------------
 //--------------------------------
 
+#ifndef PPPM_PRECISION
+  #define PPPM_PRECISION CUDA_PRECISION 
+#endif
+
 #ifdef PPPM_PRECISION
   #if PPPM_PRECISION == 1
     #define PPPM_FLOAT float
+    #ifdef float3
+    #define PPPM_FLOAT3 float3
+    #else
+  struct PPPM_FLOAT3
+  {
+      PPPM_FLOAT x;
+      PPPM_FLOAT y;
+      PPPM_FLOAT z;
+  };
+    #endif
     #define PPPM_F(x) x##f 
   #endif 
   #if PPPM_PRECISION == 2
     #define PPPM_FLOAT double
+	struct PPPM_FLOAT3
+	{
+  	  PPPM_FLOAT x;
+  	  PPPM_FLOAT y;
+   	  PPPM_FLOAT z;
+	};
     #define PPPM_F(x) x 
   #endif
 #endif
 
-#ifndef PPPM_PRECISION
-  #define PPPM_FLOAT CUDA_FLOAT
-  #define PPPM_F(x) CUDA_F(x) 
-  #define PPPM_PRECISION CUDA_PRECISION 
-#endif
 
 //--------------------------------
 //-----------FORCE-----------------

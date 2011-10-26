@@ -35,7 +35,7 @@ FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
-    error->all("Compute nvt/nph/npt asphere requires atom style ellipsoid");
+    error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -52,7 +52,7 @@ void FixNHAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one("Fix nvt/nph/npt asphere requires extended particles");
+	error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
 
   FixNH::init();
 }

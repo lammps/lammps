@@ -47,7 +47,6 @@ class PPPM : public KSpace {
 
  protected:
   int me,nprocs;
-  double PI;
   double precision;
   int nfactors;
   int *factors;

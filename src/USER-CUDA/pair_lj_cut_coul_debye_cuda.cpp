@@ -46,16 +46,13 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulDebyeCuda::PairLJCutCoulDebyeCuda(LAMMPS *lmp) : PairLJCutCoulDebye(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cuda->shared_data.pair.cudable_force = 1;
@@ -124,7 +121,7 @@ void PairLJCutCoulDebyeCuda::coeff(int narg, char **arg)
 void PairLJCutCoulDebyeCuda::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/debye/cuda requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/debye/cuda requires atom attribute q");
   // request regular or rRESPA neighbor lists
 
   int irequest;

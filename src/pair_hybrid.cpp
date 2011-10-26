@@ -27,9 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
@@ -177,7 +174,7 @@ void PairHybrid::settings(int narg, char **arg)
 {
   int i,m,istyle;
 
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   // delete old lists, since cannot just change settings
 
@@ -198,10 +195,11 @@ void PairHybrid::settings(int narg, char **arg)
   allocated = 0;
 
   // count sub-styles by skipping numeric args
-  // exception is 1st arg of style "table", which is non-numeric word
-  // exception is 1st two args of style "lj/coul", which are non-numeric
-  // exception is 1st two args of style "buck/coul", which are non-numeric
+  // exception is 1st arg of table style, which is non-numeric word
+  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
+  // execption is 1st 6 args of gran styles, which can have NULLs
   // need a better way to skip these exceptions
 
   nstyles = 0;
@@ -211,6 +209,8 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
+    if (strstr(arg[i],"gran/hooke")) i += 6;
+    if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -223,25 +223,26 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style and call its settings() with subset of args
   // define subset of args for a sub-style by skipping numeric args
-  // exception is 1st arg of style "table", which is non-numeric
-  // exception is 1st two args of style "lj/coul", which are non-numeric
-  // exception is 1st two args of style "buck/coul", which are non-numeric
+  // exception is 1st arg of table style, which is non-numeric word
+  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
+  // execption is 1st 6 args of gran styles, which can have NULLs
   // need a better way to skip these exceptions
 
   int dummy;
-
   nstyles = 0;
   i = 0;
+
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all("Pair style hybrid cannot use same pair style twice");
+	error->all(FLERR,"Pair style hybrid cannot use same pair style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Pair style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
-      error->all("Pair style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_pair(arg[i],NULL,dummy);
+      error->all(FLERR,"Pair style hybrid cannot have none as an argument");
+    styles[nstyles] = force->new_pair(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;
@@ -249,6 +250,8 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
+    if (strstr(arg[i],"gran/hooke")) i += 6;
+    if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
@@ -283,7 +286,7 @@ void PairHybrid::settings(int narg, char **arg)
 
 void PairHybrid::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -300,7 +303,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all("Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -346,7 +349,7 @@ void PairHybrid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +370,7 @@ void PairHybrid::init_style()
       for (jtype = itype; jtype <= ntypes; jtype++)
 	for (m = 0; m < nmap[itype][jtype]; m++)
 	  if (map[itype][jtype][m] == istyle) used = 1;
-    if (used == 0) error->all("Pair hybrid sub-style is not used");
+    if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
   }
 
   // each sub-style makes its neighbor list request(s)
@@ -455,7 +458,7 @@ double PairHybrid::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])
-      error->one("All pair coeffs are not set");
+      error->one(FLERR,"All pair coeffs are not set");
     nmap[i][j] = 1;
     map[i][j][0] = map[i][i][0];
   }
@@ -585,7 +588,7 @@ void PairHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m],NULL,dummy);
+    styles[m] = force->new_pair(keywords[m],lmp->suffix,dummy);
     styles[m]->read_restart_settings(fp);
   }
 }
@@ -601,7 +604,7 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 			  double &fforce)
 {
   if (nmap[itype][jtype] == 0)
-    error->one("Invoked pair single on pair style none");
+    error->one(FLERR,"Invoked pair single on pair style none");
 
   double fone;
   fforce = 0.0;
@@ -610,7 +613,7 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
       if (styles[map[itype][jtype][m]]->single_enable == 0)
-	error->all("Pair hybrid sub-style does not support single call");
+	error->all(FLERR,"Pair hybrid sub-style does not support single call");
       esum += styles[map[itype][jtype][m]]->
 	single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
@@ -663,7 +666,7 @@ void *PairHybrid::extract(char *str, int &dim)
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && newvalue != cutvalue)
-	error->all("Coulomb cutoffs of pair hybrid sub-styles do not match");
+	error->all(FLERR,"Coulomb cutoffs of pair hybrid sub-styles do not match");
       cutptr = ptr;
       cutvalue = newvalue;
     } else if (ptr) return ptr;

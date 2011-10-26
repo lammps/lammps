@@ -38,9 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -115,7 +112,7 @@ void Force::init()
    create a pair style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_pair(const char *style, char *suffix)
+void Force::create_pair(const char *style, const char *suffix)
 {
   delete [] pair_style;
   if (pair) delete pair;
@@ -140,7 +137,7 @@ void Force::create_pair(const char *style, char *suffix)
    generate a pair class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
+Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
 {
   if (suffix && lmp->suffix_enable) {
     sflag = 1;
@@ -168,8 +165,7 @@ Pair *Force::new_pair(const char *style, char *suffix, int &sflag)
 #include "style_pair.h"
 #undef PAIR_CLASS
 
-  else error->all("Invalid pair style");
-
+  else error->all(FLERR,"Invalid pair style");
   return NULL;
 }
 
@@ -188,26 +184,26 @@ Pair *Force::pair_match(const char *word, int exact)
   if (exact && strcmp(pair_style,word) == 0) return pair;
   else if (!exact && strstr(pair_style,word)) return pair;
 
-  else if (strcmp(pair_style,"hybrid") == 0) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
-    count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (exact && strcmp(hybrid->keywords[i],word) == 0)
-	return hybrid->styles[i];
-      if (!exact && strstr(hybrid->keywords[i],word)) {
-	iwhich = i;
-	count++;
-      }
-    }
-    if (!exact && count == 1) return hybrid->styles[iwhich];
-
-  } else if (strcmp(pair_style,"hybrid/overlay") == 0) {
+  else if (strstr(pair_style,"hybrid/overlay")) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++) {
       if (exact && strcmp(hybrid->keywords[i],word) == 0)
 	return hybrid->styles[i];
       else if (!exact && strstr(hybrid->keywords[i],word)) {
+	iwhich = i;
+	count++;
+      }
+    }
+    if (!exact && count == 1) return hybrid->styles[iwhich];
+
+  } else if (strstr(pair_style,"hybrid")) {
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    count = 0;
+    for (int i = 0; i < hybrid->nstyles; i++) {
+      if (exact && strcmp(hybrid->keywords[i],word) == 0)
+	return hybrid->styles[i];
+      if (!exact && strstr(hybrid->keywords[i],word)) {
 	iwhich = i;
 	count++;
       }
@@ -222,23 +218,50 @@ Pair *Force::pair_match(const char *word, int exact)
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_bond(const char *style)
+void Force::create_bond(const char *style, const char *suffix)
 {
   delete [] bond_style;
   if (bond) delete bond;
 
-  bond = new_bond(style);
-  int n = strlen(style) + 1;
-  bond_style = new char[n];
-  strcpy(bond_style,style);
+  int sflag;
+  bond = new_bond(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    bond_style = new char[n];
+    strcpy(bond_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    bond_style = new char[n];
+    strcpy(bond_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   generate a bond class
+   generate a bond class, fist with suffix appended
 ------------------------------------------------------------------------- */
 
-Bond *Force::new_bond(const char *style)
+Bond *Force::new_bond(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define BOND_CLASS
+#define BondStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define BOND_CLASS
@@ -247,7 +270,7 @@ Bond *Force::new_bond(const char *style)
 #include "style_bond.h"
 #undef BOND_CLASS
 
-  else error->all("Invalid bond style");
+  else error->all(FLERR,"Invalid bond style");
   return NULL;
 }
 
@@ -270,23 +293,51 @@ Bond *Force::bond_match(const char *style)
    create an angle style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_angle(const char *style)
+void Force::create_angle(const char *style, const char *suffix)
 {
   delete [] angle_style;
   if (angle) delete angle;
 
-  angle = new_angle(style);
-  int n = strlen(style) + 1;
-  angle_style = new char[n];
-  strcpy(angle_style,style);
+  int sflag;
+  angle = new_angle(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    angle_style = new char[n];
+    strcpy(angle_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    angle_style = new char[n];
+    strcpy(angle_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate an angle class
 ------------------------------------------------------------------------- */
 
-Angle *Force::new_angle(const char *style)
+Angle *Force::new_angle(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define ANGLE_CLASS
@@ -295,7 +346,7 @@ Angle *Force::new_angle(const char *style)
 #include "style_angle.h"
 #undef ANGLE_CLASS
 
-  else error->all("Invalid angle style");
+  else error->all(FLERR,"Invalid angle style");
   return NULL;
 }
 
@@ -303,32 +354,61 @@ Angle *Force::new_angle(const char *style)
    create a dihedral style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_dihedral(const char *style)
+void Force::create_dihedral(const char *style, const char *suffix)
 {
   delete [] dihedral_style;
   if (dihedral) delete dihedral;
 
-  dihedral = new_dihedral(style);
-  int n = strlen(style) + 1;
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,style);
+  int sflag;
+  dihedral = new_dihedral(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    dihedral_style = new char[n];
+    strcpy(dihedral_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    dihedral_style = new char[n];
+    strcpy(dihedral_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate a dihedral class
 ------------------------------------------------------------------------- */
 
-Dihedral *Force::new_dihedral(const char *style)
+Dihedral *Force::new_dihedral(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) \
   else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style_dihedral.h"
+#undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
-  else error->all("Invalid dihedral style");
+  else error->all(FLERR,"Invalid dihedral style");
   return NULL;
 }
 
@@ -336,23 +416,51 @@ Dihedral *Force::new_dihedral(const char *style)
    create an improper style, called from input script or restart file
 ------------------------------------------------------------------------- */
 
-void Force::create_improper(const char *style)
+void Force::create_improper(const char *style, const char *suffix)
 {
   delete [] improper_style;
   if (improper) delete improper;
 
-  improper = new_improper(style);
-  int n = strlen(style) + 1;
-  improper_style = new char[n];
-  strcpy(improper_style,style);
+  int sflag;
+  improper = new_improper(style,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    improper_style = new char[n];
+    strcpy(improper_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    improper_style = new char[n];
+    strcpy(improper_style,style);
+  }
 }
 
 /* ----------------------------------------------------------------------
    generate a improper class
 ------------------------------------------------------------------------- */
 
-Improper *Force::new_improper(const char *style)
+Improper *Force::new_improper(const char *style, const char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
+
+  }
+
+  sflag = 0;
+
   if (strcmp(style,"none") == 0) return NULL;
 
 #define IMPROPER_CLASS
@@ -361,7 +469,7 @@ Improper *Force::new_improper(const char *style)
 #include "style_improper.h"
 #undef IMPROPER_CLASS
 
-  else error->all("Invalid improper style");
+  else error->all(FLERR,"Invalid improper style");
   return NULL;
 }
 
@@ -369,24 +477,61 @@ Improper *Force::new_improper(const char *style)
    new kspace style 
 ------------------------------------------------------------------------- */
 
-void Force::create_kspace(int narg, char **arg)
+void Force::create_kspace(int narg, char **arg, const char *suffix)
 {
   delete [] kspace_style;
   if (kspace) delete kspace;
 
-  if (strcmp(arg[0],"none") == 0) kspace = NULL;
+  int sflag;
+  kspace = new_kspace(narg,arg,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+    int n = strlen(estyle) + 1;
+    kspace_style = new char[n];
+    strcpy(kspace_style,estyle);
+  } else {
+    int n = strlen(arg[0]) + 1;
+    kspace_style = new char[n];
+    strcpy(kspace_style,arg[0]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   generate a kspace class
+------------------------------------------------------------------------- */
+
+KSpace *Force::new_kspace(int narg, char **arg, const char *suffix, int &sflag)
+{
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[0],suffix);
+
+    if (0) return NULL;
 
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) kspace = new Class(lmp,narg-1,&arg[1]);
+  else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
+#include "style_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
+
+  }
+
+  sflag = 0;
+
+  if (strcmp(arg[0],"none") == 0) return NULL;
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) \
+  else if (strcmp(arg[0],#key) == 0) return  new Class(lmp,narg-1,&arg[1]);
 #include "style_kspace.h"
 #undef KSPACE_CLASS
 
-  else error->all("Invalid kspace style");
-
-  int n = strlen(arg[0]) + 1;
-  kspace_style = new char[n];
-  strcpy(kspace_style,arg[0]);
+  else error->all(FLERR,"Invalid kspace style");
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -395,12 +540,12 @@ void Force::create_kspace(int narg, char **arg)
 
 void Force::set_special(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal special_bonds command");
+  if (narg == 0) error->all(FLERR,"Illegal special_bonds command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"amber") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.5;
@@ -409,7 +554,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 5.0/6.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"charmm") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.0;
@@ -418,7 +563,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 0.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"dreiding") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 1.0;
@@ -427,7 +572,7 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 1.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"fene") == 0) {
-      if (iarg+1 > narg) error->all("Illegal special_bonds command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 1.0;
       special_lj[3] = 1.0;
@@ -436,48 +581,48 @@ void Force::set_special(int narg, char **arg)
       special_coul[3] = 1.0;
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
       special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
       special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_lj[1] = atof(arg[iarg+1]);
       special_lj[2] = atof(arg[iarg+2]);
       special_lj[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
-      if (iarg+4 > narg) error->all("Illegal special_bonds command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_coul[1] = atof(arg[iarg+1]);
       special_coul[2] = atof(arg[iarg+2]);
       special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       if (strcmp(arg[iarg+1],"no") == 0) special_angle = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) special_angle = 1;
-      else error->all("Illegal special_bonds command");
+      else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       if (strcmp(arg[iarg+1],"no") == 0) special_dihedral = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
-      else error->all("Illegal special_bonds command");
+      else error->all(FLERR,"Illegal special_bonds command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all("Illegal special_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
       special_extra = atoi(arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal special_bonds command");
+    } else error->all(FLERR,"Illegal special_bonds command");
   }
 
   for (int i = 1; i <= 3; i++)
     if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
 	special_coul[i] < 0.0 || special_coul[i] > 1.0)
-      error->all("Illegal special_bonds command");
+      error->all(FLERR,"Illegal special_bonds command");
 
-  if (special_extra < 0) error->all("Illegal special_bonds command");
+  if (special_extra < 0) error->all(FLERR,"Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------
@@ -524,7 +669,7 @@ double Force::numeric(char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all("Expected floating point parameter in "
+    error->all(FLERR,"Expected floating point parameter in "
 	       "input script or data file");
   }
 
@@ -542,7 +687,7 @@ int Force::inumeric(char *str)
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all("Expected integer parameter in input script or data file");
+    error->all(FLERR,"Expected integer parameter in input script or data file");
   }
 
   return atoi(str);

@@ -46,9 +46,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -62,7 +59,7 @@ PairLJCharmmCoulLongCuda::PairLJCharmmCoulLongCuda(LAMMPS *lmp) : PairLJCharmmCo
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cuda->shared_data.pair.cudable_force = 1;
@@ -139,7 +136,7 @@ void PairLJCharmmCoulLongCuda::coeff(int narg, char **arg)
 void PairLJCharmmCoulLongCuda::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmm/coul/long requires atom attribute q");
   // request regular or rRESPA neighbor lists
 
   int irequest;
@@ -151,7 +148,7 @@ void PairLJCharmmCoulLongCuda::init_style()
     neighbor->requests[irequest]->cudable = 1; 
  
   if (cut_lj_inner >= cut_lj) 
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;
@@ -165,13 +162,13 @@ void PairLJCharmmCoulLongCuda::init_style()
   cuda->shared_data.pair.cut_coulsq_global=cut_coulsq;
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
   cuda->shared_data.pair.g_ewald=g_ewald;
   cuda->shared_data.pppm.qqrd2e=force->qqrd2e;
   
 
-  if(ncoultablebits) error->warning("# CUDA: You asked for the useage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
+  if(ncoultablebits) error->warning(FLERR,"# CUDA: You asked for the useage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
 }
 
 void PairLJCharmmCoulLongCuda::init_list(int id, NeighList *ptr)

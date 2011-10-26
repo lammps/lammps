@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -19,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "torsion_angles.h"
 #include "bond_orders.h"
@@ -195,6 +200,10 @@ void Torsion_Angles( reax_system *system, control_params *control,
   reax_list *thb_intrs = (*lists) + THREE_BODIES;
   // char  fname[100];
   // FILE *ftor;
+
+  // Virial tallying variables
+  real delil[3], deljl[3], delkl[3];
+  real eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
   // sprintf( fname, "tor%d.out", system->my_rank );
   // ftor = fopen( fname, "w" );
@@ -473,6 +482,39 @@ void Torsion_Angles( reax_system *system, control_params *control,
 		    rvec_iMultiply( ext_press, rel_box_jl, force );
 		    rvec_Add( data->my_ext_press, ext_press );
 		  }
+
+		  /* tally into per-atom virials */
+		  if( system->vflag_atom || system->evflag) {
+
+		    // acquire vectors
+		    rvec_ScaledSum( delil, 1., system->my_atoms[l].x,
+					  -1., system->my_atoms[i].x );
+		    rvec_ScaledSum( deljl, 1., system->my_atoms[l].x,
+					  -1., system->my_atoms[j].x );
+		    rvec_ScaledSum( delkl, 1., system->my_atoms[l].x,
+					  -1., system->my_atoms[k].x );
+		    // dcos_theta_ijk
+		    rvec_Scale( fi_tmp, CEtors7 + CEconj4, p_ijk->dcos_dk );
+		    rvec_Scale( fj_tmp, CEtors7 + CEconj4, p_ijk->dcos_dj );
+		    rvec_Scale( fk_tmp, CEtors7 + CEconj4, p_ijk->dcos_di );
+
+		    // dcos_theta_jkl
+		    rvec_ScaledAdd( fj_tmp, CEtors8 + CEconj5, p_jkl->dcos_di );
+		    rvec_ScaledAdd( fk_tmp, CEtors8 + CEconj5, p_jkl->dcos_dj );
+
+		    // dcos_omega
+		    rvec_ScaledAdd( fi_tmp, CEtors9 + CEconj6, dcos_omega_di );
+		    rvec_ScaledAdd( fj_tmp, CEtors9 + CEconj6, dcos_omega_dj );
+		    rvec_ScaledAdd( fk_tmp, CEtors9 + CEconj6, dcos_omega_dk );
+
+		    // tally
+		    eng_tmp = e_tor + e_con;
+		    if( system->evflag)
+			    system->pair_ptr->ev_tally(j,k,natoms,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
+		    if( system->vflag_atom)
+			    system->pair_ptr->v_tally4(i,j,k,l,fi_tmp,fj_tmp,fk_tmp,delil,deljl,delkl);
+		  }
+		  
 
 #ifdef TEST_ENERGY
 		  /* fprintf( out_control->etor, 

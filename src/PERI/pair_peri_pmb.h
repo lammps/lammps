@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairPeriPMB : public Pair {
  public:
   PairPeriPMB(class LAMMPS *);
-  ~PairPeriPMB();
-  void compute(int, int);
+  virtual ~PairPeriPMB();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -38,7 +38,7 @@ class PairPeriPMB : public Pair {
   void write_restart_settings(FILE *) {}
   void read_restart_settings(FILE *) {}
   double single(int, int, int, int, double, double, double, double &);
-  double memory_usage();
+  virtual double memory_usage();
 
  protected:
   int ifix_peri;

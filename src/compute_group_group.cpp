@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute group/group command");
+  if (narg != 4) error->all(FLERR,"Illegal compute group/group command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 3;
@@ -47,7 +47,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   strcpy(group2,arg[3]);
 
   jgroup = group->find(group2);
-  if (jgroup == -1) error->all("Compute group/group group ID does not exist");
+  if (jgroup == -1) error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
   vector = new double[3];
@@ -66,13 +66,13 @@ ComputeGroupGroup::~ComputeGroupGroup()
 void ComputeGroupGroup::init()
 {
   if (force->pair == NULL)
-    error->all("No pair style defined for compute group/group");
+    error->all(FLERR,"No pair style defined for compute group/group");
 
   // if non-hybrid, then error if single_enable = 0
   // if hybrid, let hybrid determine if sub-style sets single_enable = 0
 
   if (force->pair_match("hybrid",0) == NULL && force->pair->single_enable == 0)
-    error->all("Pair style does not support compute group/group");
+    error->all(FLERR,"Pair style does not support compute group/group");
 
   pair = force->pair;
   cutsq = force->pair->cutsq;
@@ -80,7 +80,7 @@ void ComputeGroupGroup::init()
   // recheck that group 2 has not been deleted
 
   jgroup = group->find(group2);
-  if (jgroup == -1) error->all("Compute group/group group ID does not exist");
+  if (jgroup == -1) error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
   // need an occasional half neighbor list

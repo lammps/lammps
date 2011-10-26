@@ -25,10 +25,12 @@
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 #define DELTA_BONUS 10000
@@ -53,8 +55,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   atom->ellipsoid_flag = 1;
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
-  PI = 4.0*atan(1.0);
-
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = NULL;
 }
@@ -78,7 +78,7 @@ void AtomVecEllipsoid::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
   type = memory->grow(atom->type,nmax,"atom:type");
@@ -86,11 +86,11 @@ void AtomVecEllipsoid::grow(int n)
   image = memory->grow(atom->image,nmax,"atom:image");
   x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
-  f = memory->grow(atom->f,nmax,3*comm->nthreads,"atom:f");
+  f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
-  torque = memory->grow(atom->torque,nmax,3,"atom:torque");
+  torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
   ellipsoid = memory->grow(atom->ellipsoid,nmax,"atom:ellipsoid");
 
   if (atom->nextra_grow)
@@ -118,7 +118,7 @@ void AtomVecEllipsoid::grow_bonus()
 {
   nmax_bonus += DELTA_BONUS;
   if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
 				     "atom:bonus");
@@ -1121,20 +1121,20 @@ void AtomVecEllipsoid::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   ellipsoid[nlocal] = atoi(values[2]);
   if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
   else if (ellipsoid[nlocal] == 1) ellipsoid[nlocal] = 0;
-  else error->one("Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   rmass[nlocal] = atof(values[3]);
   if (rmass[nlocal] <= 0.0)
-    error->one("Invalid density in Atoms section of data file");
+    error->one(FLERR,"Invalid density in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -1163,11 +1163,11 @@ int AtomVecEllipsoid::data_atom_hybrid(int nlocal, char **values)
   ellipsoid[nlocal] = atoi(values[0]);
   if (ellipsoid[nlocal] == 0) ellipsoid[nlocal] = -1;
   else if (ellipsoid[nlocal] == 1) ellipsoid[nlocal] = 0;
-  else error->one("Invalid atom type in Atoms section of data file");
+  else error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   rmass[nlocal] = atof(values[1]);
   if (rmass[nlocal] <= 0.0)
-    error->one("Invalid density in Atoms section of data file");
+    error->one(FLERR,"Invalid density in Atoms section of data file");
 
   return 2;
 }
@@ -1179,7 +1179,7 @@ int AtomVecEllipsoid::data_atom_hybrid(int nlocal, char **values)
 void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
 {
   if (ellipsoid[m])
-    error->one("Assigning ellipsoid parameters to non-ellipsoid atom");
+    error->one(FLERR,"Assigning ellipsoid parameters to non-ellipsoid atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
@@ -1188,7 +1188,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   shape[1] = 0.5 * atof(values[1]);
   shape[2] = 0.5 * atof(values[2]);
   if (shape[0] <= 0.0 || shape[1] <= 0.0 || shape[2] <= 0.0)
-    error->one("Invalid shape in Ellipsoids section of data file");
+    error->one(FLERR,"Invalid shape in Ellipsoids section of data file");
 
   double *quat = bonus[nlocal_bonus].quat;
   quat[0] = atof(values[3]);
@@ -1200,7 +1200,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  rmass[m] *= 4.0*PI/3.0 * shape[0]*shape[1]*shape[2];
+  rmass[m] *= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
 
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;
@@ -1246,11 +1246,11 @@ bigint AtomVecEllipsoid::memory_usage()
   if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax,3*comm->nthreads);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("ellipsoid")) bytes += memory->usage(ellipsoid,nmax);
   
   bytes += nmax_bonus*sizeof(Bonus);

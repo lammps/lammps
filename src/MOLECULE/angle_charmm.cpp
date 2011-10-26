@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -193,7 +195,7 @@ void AngleCharmm::allocate()
 
 void AngleCharmm::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all("Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -209,14 +211,14 @@ void AngleCharmm::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one/180.0 * PI;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     k_ub[i] = k_ub_one;
     r_ub[i] = r_ub_one;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

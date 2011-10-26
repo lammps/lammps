@@ -93,6 +93,8 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_airebo.html">pair_style airebo</A> - AIREBO potential of Stuart
 <LI><A HREF = "pair_born.html">pair_style born</A> - Born-Mayer-Huggins potential
 <LI><A HREF = "pair_born.html">pair_style born/coul/long</A> - Born-Mayer-Huggins with long-range Coulomb
+<LI><A HREF = "pair_brownian.html">pair_style brownian</A> - Brownian potential for Fast Lubrication Dynamics
+<LI><A HREF = "pair_brownian.html">pair_style brownian/poly</A> - Brownian potential for Fast Lubrication Dynamics with polydispersity
 <LI><A HREF = "pair_buck.html">pair_style buck</A> - Buckingham potential
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/cut</A> - Buckingham with cutoff Coulomb
 <LI><A HREF = "pair_buck.html">pair_style buck/coul/long</A> - Buckingham with long-range Coulomb
@@ -115,6 +117,7 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_gran.html">pair_style gran/hooke/history</A> - granular potential without history effects
 <LI><A HREF = "pair_hbond_dreiding.html">pair_style hbond/dreiding/lj</A> - DREIDING hydrogen bonding LJ potential
 <LI><A HREF = "pair_hbond_dreiding.html">pair_style hbond/dreiding/morse</A> - DREIDING hydrogen bonding Morse potential
+<LI><A HREF = "pair_line_lj.html">pair_style line/lj</A> - LJ potential between line segments
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm</A> - CHARMM potential with cutoff Coulomb
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm/implicit</A> - CHARMM for implicit solvent
 <LI><A HREF = "pair_charmm.html">pair_style lj/charmm/coul/long</A> - CHARMM with long-range Coulomb
@@ -132,6 +135,9 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_lj_smooth.html">pair_style lj/smooth</A> - smoothed Lennard-Jones potential
 <LI><A HREF = "pair_lj96.html">pair_style lj96/cut</A> - Lennard-Jones 9/6 potential
 <LI><A HREF = "pair_lubricate.html">pair_style lubricate</A> - hydrodynamic lubrication forces
+<LI><A HREF = "pair_lubricate.html">pair_style lubricate/poly</A> - hydrodynamic lubrication forces with polydispersity
+<LI><A HREF = "pair_lubricateU.html">pair_style lubricateU</A> - hydrodynamic lubrication forces for Fast Lubrication Dynamics
+<LI><A HREF = "pair_lubricateU.html">pair_style lubricateU/poly</A> - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 <LI><A HREF = "pair_meam.html">pair_style meam</A> - modified embedded atom method (MEAM)
 <LI><A HREF = "pair_morse.html">pair_style morse</A> - Morse potential
 <LI><A HREF = "pair_peri.html">pair_style peri/lps</A> - peridynamic LPS potential
@@ -144,18 +150,19 @@ the pair_style command, and coefficients specified by the associated
 <LI><A HREF = "pair_table.html">pair_style table</A> - tabulated pair potential
 <LI><A HREF = "pair_tersoff.html">pair_style tersoff</A> - Tersoff 3-body potential
 <LI><A HREF = "pair_tersoff_zbl.html">pair_style tersoff/zbl</A> - Tersoff/ZBL 3-body potential
+<LI><A HREF = "pair_tri_lj.html">pair_style tri/lj</A> - LJ potential between triangles
 <LI><A HREF = "pair_yukawa.html">pair_style yukawa</A> - Yukawa potential
 <LI><A HREF = "pair_yukawa_colloid.html">pair_style yukawa/colloid</A> - screened Yukawa potential for finite-size particles 
 </UL>
 <P>There are also additional pair styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the pair section of <A HREF = "Section_commands.html#3_5">this
+the individual styles are given in the pair section of <A HREF = "Section_commands.html#cmd_5">this
 page</A>.
 </P>
 <P>There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs and GPUs.  The list
 of these with links to the individual styles are given in the pair
-section of <A HREF = "Section_commands.html#3_5">this page</A>.
+section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
 </P>
 <HR>
 
@@ -166,9 +173,9 @@ section of <A HREF = "Section_commands.html#3_5">this page</A>.
 <A HREF = "read_restart.html">read_restart</A> commands.
 </P>
 <P>Some pair styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info on packages.  The
-doc pages for individual pair potentials tell if it is part of a
+if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
+The doc pages for individual pair potentials tell if it is part of a
 package.
 </P>
 <P><B>Related commands:</B>

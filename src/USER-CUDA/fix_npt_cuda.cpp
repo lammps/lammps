@@ -25,12 +25,12 @@ FixNPTCuda::FixNPTCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   if (!tstat_flag)
-    error->all("Temperature control must be used with fix npt");
+    error->all(FLERR,"Temperature control must be used with fix npt");
   if (!pstat_flag)
-    error->all("Pressure control must be used with fix npt");
+    error->all(FLERR,"Pressure control must be used with fix npt");
 
   // create a new compute temp style
   // id = fix-ID + temp

@@ -43,10 +43,11 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->cuda) error->all("Cannot use fix GPU with USER-CUDA mode enabled");
+  if (lmp->cuda) 
+    error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
 
-  if (narg < 7) error->all("Illegal fix GPU command");
-  if (strcmp(arg[1],"all") != 0) error->all("Illegal fix GPU command");
+  if (narg < 7) error->all(FLERR,"Illegal fix GPU command");
+  if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix GPU command");
 
   int first_gpu, last_gpu;
 
@@ -55,20 +56,21 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[3],"force/neigh") == 0) {
     _gpu_mode = GPU_NEIGH;
     if (domain->triclinic)
-      error->all("Cannot use force/neigh with triclinic box");
+      error->all(FLERR,"Cannot use force/neigh with triclinic box");
   } else if (strcmp(arg[3],"force/hybrid_neigh") == 0) {
     _gpu_mode = GPU_HYB_NEIGH;
     if (domain->triclinic)
-      error->all("Cannot use force/hybrid_neigh with triclinic box");
+      error->all(FLERR,
+                 "Cannot use force/hybrid_neigh with triclinic box");
   } else
-    error->all("Illegal fix GPU command");
+    error->all(FLERR,"Illegal fix GPU command");
 
   first_gpu = atoi(arg[4]);
   last_gpu = atoi(arg[5]);
 
   _particle_split = force->numeric(arg[6]);
   if (_particle_split==0 || _particle_split>1)
-    error->all("Illegal fix GPU command");
+    error->all(FLERR,"Illegal fix GPU command");
     
   int nthreads = 1;
   int threads_per_atom = -1;
@@ -78,16 +80,16 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[7],"nthreads") == 0)
       nthreads = atoi(arg[8]);
     else
-      error->all("Illegal fix GPU command");
+      error->all(FLERR,"Illegal fix GPU command");
   } else if (narg != 7)
-    error->all("Illegal fix GPU command");
+    error->all(FLERR,"Illegal fix GPU command");
 
   if (nthreads < 1)
-    error->all("Illegal fix GPU command");
+    error->all(FLERR,"Illegal fix GPU command");
     
   #ifndef _OPENMP
   if (nthreads > 1)
-    error->all("No OpenMP support compiled in");
+    error->all(FLERR,"No OpenMP support compiled in");
   #endif
 
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
@@ -117,18 +119,16 @@ int FixGPU::setmask()
 
 void FixGPU::init()
 {
-  // Can only have 1 gpu fix that must be the first fix for a run
-  if ((void*)modify->fix[0] != (void*)this)
-    error->all("GPU is not the first fix for this run");
-  // Hybrid cannot be used with force/neigh option
+  // hybrid cannot be used with force/neigh option
+
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||
 	force->pair_match("hybrid/overlay",1) != NULL)
-      error->all("Cannot use pair hybrid with GPU neighbor builds");
+      error->all(FLERR,"Cannot use pair hybrid with GPU neighbor builds");
   if (_particle_split < 0)
     if (force->pair_match("hybrid",1) != NULL ||
 	force->pair_match("hybrid/overlay",1) != NULL)
-      error->all("Fix GPU split must be positive for hybrid pair styles");
+      error->all(FLERR,"Fix GPU split must be positive for hybrid pair styles");
 }
 
 /* ---------------------------------------------------------------------- */

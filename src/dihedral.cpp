@@ -14,7 +14,7 @@
 #include "math.h"
 #include "dihedral.h"
 #include "atom.h"
-#include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "pair.h"
 #include "memory.h"
@@ -32,7 +32,6 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
   energy = 0.0;
 
   allocated = 0;
-  PI = 4.0*atan(1.0);
 
   maxeatom = maxvatom = 0;
   eatom = NULL;
@@ -53,9 +52,9 @@ Dihedral::~Dihedral()
 
 void Dihedral::init()
 {
-  if (!allocated) error->all("Dihedral coeffs are not set");
+  if (!allocated) error->all(FLERR,"Dihedral coeffs are not set");
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (setflag[i] == 0) error->all("All dihedral coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All dihedral coeffs are not set");
   init_style();
 }
 
@@ -83,12 +82,12 @@ void Dihedral::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators
@@ -243,7 +242,7 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4,
 
 double Dihedral::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

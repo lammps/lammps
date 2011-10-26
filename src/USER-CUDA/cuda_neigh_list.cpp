@@ -37,7 +37,7 @@ CudaNeighList::CudaNeighList(LAMMPS *lmp, class NeighList* neigh_list) : Pointer
 {
         cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	MYDBG(printf("# CUDA: CudaNeighList::cudaNeighList() ... start\n");)
 	this->neigh_list = neigh_list;
@@ -111,6 +111,7 @@ void CudaNeighList::dev_alloc()
 	neighbors_inner = new int[sneighlist.maxlocal*sneighlist.maxneighbors];
 	cu_neighbors_inner = new cCudaData<int, int, x> (neighbors_inner	 , & sneighlist.neighbors_inner , sneighlist.maxlocal*sneighlist.maxneighbors );
 	}
+	cuda->shared_data.atom.update_neigh=2;
 	MYDBG( printf("# CUDA: CudaNeighList::dev_alloc() ... end\n"); )
 }
 

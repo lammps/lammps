@@ -139,16 +139,16 @@ in a time-dependent fashion using equal-style
 <A HREF = "variable.html">variables</A>.
 </P>
 <PRE>variable ramp equal ramp(0,10)
-fix 1 all wall xlo v_ramp 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_ramp 
 </PRE>
 <PRE>variable linear equal vlinear(0,20)
-fix 1 all wall xlo v_linear 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_linear 
 </PRE>
 <PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_wiggle  
 </PRE>
 <PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_wiggle 
 </PRE>
 <P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
 hi over the course of a run.  The linear(c0,velocity) function does
@@ -177,9 +177,9 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix computes a global array of values which can be accessed by
-various <A HREF = "Section_howto.html#4_15">output commands</A>.  The number of rows
-in the array is equal to the number of walls defined by the fix.  The
-number of columns is 3, for the x,y,z components of force on each
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The number of
+rows in the array is equal to the number of walls defined by the fix.
+The number of columns is 3, for the x,y,z components of force on each
 wall.
 </P>
 <P>Note that an outward normal force on a wall will be a negative value

@@ -29,9 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define LOOKUP 0
 #define LINEAR 1
 #define SPLINE 2
@@ -119,24 +116,24 @@ void PairTable::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
 	tb = &tables[tabindex[itype][jtype]];
 	if (rsq < tb->innersq)
-	  error->one("Pair distance < table inner cutoff");
+	  error->one(FLERR,"Pair distance < table inner cutoff");
  
 	if (tabstyle == LOOKUP) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  fpair = factor_lj * tb->f[itable];
 	} else if (tabstyle == LINEAR) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  value = tb->f[itable] + fraction*tb->df[itable];
 	  fpair = factor_lj * value;
 	} else if (tabstyle == SPLINE) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 	  if (itable >= tlm1)
-	    error->one("Pair distance > table outer cutoff");
+	    error->one(FLERR,"Pair distance > table outer cutoff");
 	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  a = 1.0 - b;
 	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
@@ -206,7 +203,7 @@ void PairTable::allocate()
 
 void PairTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   // new settings
 
@@ -214,10 +211,10 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
-  else error->all("Unknown table style in pair_style command");
+  else error->all(FLERR,"Unknown table style in pair_style command");
 
   tablength = force->inumeric(arg[1]);
-  if (tablength < 2) error->all("Illegal number of pair table entries");
+  if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -241,7 +238,7 @@ void PairTable::settings(int narg, char **arg)
 
 void PairTable::coeff(int narg, char **arg)
 {
-  if (narg != 4 && narg != 5) error->all("Illegal pair_coeff command");
+  if (narg != 4 && narg != 5) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -267,7 +264,7 @@ void PairTable::coeff(int narg, char **arg)
   // insure cutoff is within table
   // for BITMAP tables, file values can be in non-ascending order
 
-  if (tb->ninput <= 1) error->one("Invalid pair table length");
+  if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
   double rlo,rhi;
   if (tb->rflag == 0) {
     rlo = tb->rfile[0];
@@ -276,8 +273,8 @@ void PairTable::coeff(int narg, char **arg)
     rlo = tb->rlo;
     rhi = tb->rhi;
   }
-  if (tb->cut <= rlo || tb->cut > rhi) error->all("Invalid pair table cutoff");
-  if (rlo <= 0.0) error->all("Invalid pair table cutoff");
+  if (tb->cut <= rlo || tb->cut > rhi) error->all(FLERR,"Invalid pair table cutoff");
+  if (rlo <= 0.0) error->all(FLERR,"Invalid pair table cutoff");
 
   // match = 1 if don't need to spline read-in tables
   // this is only the case if r values needed by final tables
@@ -290,7 +287,7 @@ void PairTable::coeff(int narg, char **arg)
   if (tabstyle == BITMAP && tb->ninput == 1 << tablength && 
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
   if (tb->rflag == BMP && tb->match == 0)
-    error->all("Bitmapped table in file does not match requested table");
+    error->all(FLERR,"Bitmapped table in file does not match requested table");
 
   // spline read-in values and compute r,e,f vectors within table
 
@@ -308,7 +305,7 @@ void PairTable::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Illegal pair_coeff command");
+  if (count == 0) error->all(FLERR,"Illegal pair_coeff command");
   ntables++;
 }
 
@@ -318,7 +315,7 @@ void PairTable::coeff(int narg, char **arg)
 
 double PairTable::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   tabindex[j][i] = tabindex[i][j];
 
@@ -342,14 +339,14 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   // loop until section found with matching keyword
 
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL)
-      error->one("Did not find keyword in table file");
+      error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     if (strstr(line,keyword) == line) break;               // matching keyword
@@ -375,7 +372,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   if (tb->rflag == BMP) {
     while (1 << tb->ntablebits < tb->ninput) tb->ntablebits++;
     if (1 << tb->ntablebits != tb->ninput)
-      error->one("Bitmapped table is incorrect length in table file");
+      error->one(FLERR,"Bitmapped table is incorrect length in table file");
     init_bitmap(tb->rlo,tb->rhi,tb->ntablebits,masklo,maskhi,nmask,nshiftbits);
   }
 
@@ -509,12 +506,12 @@ void PairTable::param_extract(Table *tb, char *line)
       tb->fphi = atof(word);
     } else {
       printf("WORD: %s\n",word);
-      error->one("Invalid keyword in pair table parameters");
+      error->one(FLERR,"Invalid keyword in pair table parameters");
     }
     word = strtok(NULL," \t\n\r\f");
   }
 
-  if (tb->ninput == 0) error->one("Pair table parameters did not set N");
+  if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
 }
 
 /* ----------------------------------------------------------------------
@@ -901,21 +898,21 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
   int tlm1 = tablength - 1;
 
   Table *tb = &tables[tabindex[itype][jtype]];
-  if (rsq < tb->innersq) error->one("Pair distance < table inner cutoff");
+  if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
 
   if (tabstyle == LOOKUP) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
     fforce = factor_lj * tb->f[itable];
   } else if (tabstyle == LINEAR) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
     fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
     value = tb->f[itable] + fraction*tb->df[itable];
     fforce = factor_lj * value;
   } else if (tabstyle == SPLINE) {
     itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
-    if (itable >= tlm1) error->one("Pair distance > table outer cutoff");
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
     b = (rsq - tb->rsq[itable]) * tb->invdelta;
     a = 1.0 - b;
     value = a * tb->f[itable] + b * tb->f[itable+1] + 
@@ -952,12 +949,12 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
 void *PairTable::extract(char *str, int &dim)
 {
   if (strcmp(str,"cut_coul") != 0) return NULL;
-  if (ntables == 0) error->all("All pair coeffs are not set");
+  if (ntables == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut_coul = tables[0].cut;
   for (int m = 1; m < ntables; m++)
     if (tables[m].cut != cut_coul)
-      error->all("Pair table cutoffs must all be equal to use with KSpace");
+      error->all(FLERR,"Pair table cutoffs must all be equal to use with KSpace");
   dim = 0;
   return &tables[0].cut;
 }

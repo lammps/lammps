@@ -47,7 +47,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // ID GROUP atc PHYSICSTYPE [PARAMETERFILE]
   // can have either 4 or 5 args, only arg[3] and arg[4] are used by this class
-  if (narg > 5 || narg < 4) lmp->error->all("Illegal fix atc command");
+  if (narg > 5 || narg < 4) lmp->error->all(FLERR,"Illegal fix atc command");
 
   // Set LAMMPS pointer on LammpsInterface
   ATC::LammpsInterface::instance()->set_lammps(lmp);
@@ -240,7 +240,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     }
     else 
     {
-      lmp->error->all("Unknown physics type in ATC");
+      lmp->error->all(FLERR,"Unknown physics type in ATC");
     }
   }
   catch (ATC::ATC_Error& atcError) {

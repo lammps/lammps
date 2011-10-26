@@ -28,23 +28,25 @@
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "group.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4 || (narg-4) % 2) error->all("Illegal compute rdf command");
+  if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
 
   array_flag = 1;
   extarray = 0;
 
   nbin = atoi(arg[3]);
-  if (nbin < 1) error->all("Illegal compute rdf command");
+  if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
   if (narg == 4) npairs = 1;
   else npairs = (narg-4)/2;
 
@@ -71,7 +73,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       force->bounds(arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
       force->bounds(arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
       if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
-	error->all("Illegal compute rdf command");
+	error->all(FLERR,"Illegal compute rdf command");
       npairs++;
       iarg += 2;
     }
@@ -120,7 +122,7 @@ void ComputeRDF::init()
   int i,m;
 
   if (force->pair) delr = force->pair->cutforce / nbin;
-  else error->all("Compute rdf requires a pair style be defined");
+  else error->all(FLERR,"Compute rdf requires a pair style be defined");
   delrinv = 1.0/delr;
 
   // set 1st column of output array to bin coords
@@ -267,10 +269,9 @@ void ComputeRDF::compute_array()
   //   assuming J atoms are at uniform density
 
   double constant,nideal,gr,ncoord,rlower,rupper;
-  double PI = 4.0*atan(1.0);
 
   if (domain->dimension == 3) {
-    constant = 4.0*PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
+    constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
@@ -289,7 +290,7 @@ void ComputeRDF::compute_array()
     }
 
   } else {
-    constant = PI / (domain->xprd*domain->yprd);
+    constant = MY_PI / (domain->xprd*domain->yprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;

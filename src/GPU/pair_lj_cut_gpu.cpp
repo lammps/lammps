@@ -36,9 +36,6 @@
 #include "string.h"
 #include "gpu_extra.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 // External functions from cuda library for atom decomposition
 
 int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
@@ -110,7 +107,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 		    vflag_atom, host_start, cpu_time, success);
   }
   if (!success)
-    error->one("Out of memory on GPGPU");
+    error->one(FLERR,"Out of memory on GPGPU");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();
@@ -128,7 +125,7 @@ void PairLJCutGPU::init_style()
   cut_respa = NULL;
 
   if (force->newton_pair) 
-    error->all("Cannot use newton pair with lj/cut/gpu pair style");
+    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

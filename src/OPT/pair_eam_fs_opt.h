@@ -25,10 +25,6 @@ PairStyle(eam/fs/opt,PairEAMFSOpt)
 
 namespace LAMMPS_NS {
 
-// multiple inheritance from two parent classes
-// optimized compute() from PairEAMOpt
-// everything else from PairEAMFS
-
 class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
  public:
   PairEAMFSOpt(class LAMMPS *);
@@ -37,5 +33,4 @@ class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
 }
 
 #endif
-
 #endif

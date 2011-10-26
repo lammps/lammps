@@ -25,10 +25,10 @@ using namespace LAMMPS_NS;
 ComputeCOMMolecule::ComputeCOMMolecule(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute com/molecule command");
+  if (narg != 3) error->all(FLERR,"Illegal compute com/molecule command");
 
   if (atom->molecular == 0)
-    error->all("Compute com/molecule requires molecular atom style");
+    error->all(FLERR,"Compute com/molecule requires molecular atom style");
 
   array_flag = 1;
   size_array_cols = 3;
@@ -88,7 +88,7 @@ void ComputeCOMMolecule::init()
 {
   int ntmp = molecules_in_group(idlo,idhi);
   if (ntmp != nmolecules)
-    error->all("Molecule count changed in compute com/molecule");
+    error->all(FLERR,"Molecule count changed in compute com/molecule");
 }
 
 /* ---------------------------------------------------------------------- */

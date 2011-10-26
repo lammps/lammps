@@ -28,7 +28,7 @@ class PairTersoff : public Pair {
  public:
   PairTersoff(class LAMMPS *);
   virtual ~PairTersoff();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -49,22 +49,22 @@ class PairTersoff : public Pair {
     double ZBLcut,ZBLexpscale;
   };
   
-  double PI,PI2,PI4;
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
+  Param *params;                // parameter set for an I-J-K interaction
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters
   int *map;                     // mapping from atom types to elements
+  double cutmax;                // max cutoff for all elements
+  int nelements;                // # of unique elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
 
   void allocate();
   virtual void read_file(char *);
   void setup();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
-  void force_zeta(Param *, double, double, double &, double &, int, double &);
+  virtual void force_zeta(Param *, double, double, double &, 
+			  double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
 		  double *, double *, double *);
 
@@ -74,26 +74,52 @@ class PairTersoff : public Pair {
   virtual double ters_fa_d(double, Param *);
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
-  double ters_gijk(double, Param *);
-  double ters_gijk_d(double, Param *);
+
   void ters_zetaterm_d(double, double *, double, double *, double,
 			       double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
 		  double *, double *, double *);
 
-  // vector functions, inline for efficiency
+  // inlined functions for efficiency
 
-  inline double vec3_dot(double *x, double *y) {
+  inline double ters_gijk(const double costheta, 
+			  const Param * const param) const {
+    const double ters_c = param->c * param->c;
+    const double ters_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+
+    return param->gamma*(1.0 + ters_c/ters_d - ters_c / (ters_d + hcth*hcth));
+  }
+
+  inline double ters_gijk_d(const double costheta, 
+			    const Param * const param) const {
+    const double ters_c = param->c * param->c;
+    const double ters_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+    const double numerator = -2.0 * ters_c * hcth;
+    const double denominator = 1.0/(ters_d + hcth*hcth);
+    return param->gamma*numerator*denominator*denominator;
+  }
+
+  inline double vec3_dot(const double x[3], const double y[3]) const {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
-  inline void vec3_add(double *x, double *y, double *z) {
+
+  inline void vec3_add(const double x[3], const double y[3], 
+		       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
-  inline void vec3_scale(double k, double *x, double *y) {
+
+  inline void vec3_scale(const double k, const double x[3],
+			 double y[3]) const {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
-  inline void vec3_scaleadd(double k, double *x, double *y, double *z) {
-    z[0] = k*x[0]+y[0];  z[1] = k*x[1]+y[1];  z[2] = k*x[2]+y[2];
+
+  inline void vec3_scaleadd(const double k, const double x[3], 
+			    const double y[3], double * const z) const {
+    z[0] = k*x[0]+y[0];
+    z[1] = k*x[1]+y[1];
+    z[2] = k*x[2]+y[2];
   }
 };
 

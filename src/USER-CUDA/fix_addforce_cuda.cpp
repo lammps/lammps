@@ -45,9 +45,9 @@ FixAddForceCuda::FixAddForceCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg < 6) error->all("Illegal fix addforce/cuda command");
+  if (narg < 6) error->all(FLERR,"Illegal fix addforce/cuda command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -67,14 +67,14 @@ FixAddForceCuda::FixAddForceCuda(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix addforce/cuda command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce/cuda command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix addforce/cuda region ID does not exist");
+      if (iregion == -1) error->all(FLERR,"Fix addforce/cuda region ID does not exist");
       iarg += 2;
-    } else error->all("Illegal fix addforce/cuda command");
+    } else error->all(FLERR,"Illegal fix addforce/cuda command");
   }
   
-  if(iregion!=-1) error->all("Error: fix addforce/cuda does not currently support 'region' option");
+  if(iregion!=-1) error->all(FLERR,"Error: fix addforce/cuda does not currently support 'region' option");
   
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;

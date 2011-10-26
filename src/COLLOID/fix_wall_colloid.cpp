@@ -36,7 +36,7 @@ FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) :
 void FixWallColloid::init()
 {
   if (!atom->sphere_flag) 
-    error->all("Fix wall/colloid requires atom style sphere");
+    error->all(FLERR,"Fix wall/colloid requires atom style sphere");
 
   // insure all particles in group are extended particles
 
@@ -51,7 +51,7 @@ void FixWallColloid::init()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Fix wall/colloid requires extended particles");
+  if (flagall) error->all(FLERR,"Fix wall/colloid requires extended particles");
 
   FixWall::init();
 }
@@ -154,5 +154,5 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       ewall[m+1] += fwall;
     }
 
-  if (onflag) error->one("Particle on or inside fix wall surface");
+  if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");
 }

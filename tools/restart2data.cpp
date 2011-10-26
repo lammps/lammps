@@ -13,9 +13,7 @@
 
 // Convert a LAMMPS binary restart file into an ASCII text data file
 //
-// Syntax: restart2data switch arg ... restart-file data-file (input-file)
-//         optional switch = -s
-//           arg = suffix to remove from style names
+// Syntax: restart2data restart-file data-file (input-file)
 //         restart-file and data-file are mandatory
 //         input-file is optional
 //           if specified it will contain LAMMPS input script commands
@@ -80,7 +78,6 @@ class Data {
 
   char *version;
   int size_smallint,size_tagint,size_bigint;
-  char *suffix;
   bigint ntimestep;
   int nprocs;
   char *unit_style;
@@ -316,7 +313,7 @@ int atom_molecular(double *, Data &, int);
 int atom_peri(double *, Data &, int);
 int atom_sphere(double *, Data &, int);
 
-void strip_suffix(char *, char *);
+void strip_suffix(char *);
 
 int read_int(FILE *fp);
 double read_double(FILE *fp);
@@ -331,19 +328,16 @@ int main (int narg, char **arg)
 {
   // process command-line args
 
-  char *suffix = NULL;
-
   int iarg = 1;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"-s") == 0) {
-      if (iarg+2 > narg) {
-	printf("Syntax: restart2data switch arg ... "
-	       "restart-file data-file (input-file)\n");
-	return 1;
-      }
-      suffix = arg[iarg+1];
-      iarg += 2;
-    } else break;
+  if (strcmp(arg[iarg],"-h") == 0) {
+    printf("Syntax: restart2data switch arg ... "
+	   "restart-file data-file (input-file)\n");
+    printf("  restart-file and data-file are mandatory");
+    printf("  input-file is optional");
+    printf("    if specified it will contain LAMMPS input script commands");
+    printf("    for mass and force field info");
+    printf("    only a few force field styles support this option");
+    return 0;
   }
 
   if ((narg-iarg != 2) && (narg-iarg != 3)) {
@@ -367,7 +361,7 @@ int main (int narg, char **arg)
   FILE *fp;
 
   int multiproc = 0;
-  if (ptr = strchr(restartfile,'%')) {
+  if ( (ptr = strchr(restartfile,'%')) ) {
     multiproc = 1;
     char *basefile = new char[strlen(restartfile) + 16];
     *ptr = '\0';
@@ -388,12 +382,6 @@ int main (int narg, char **arg)
   // read beginning of restart file
 
   Data data;
-
-  if (suffix) {
-    int n = strlen(suffix) + 1;
-    data.suffix = new char[n];
-    strcpy(data.suffix,suffix);
-  } else data.suffix = NULL;
 
   header(fp,data);
   if (data.size_smallint != sizeof(int) || 
@@ -490,7 +478,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "25 Jun 2011";
+  char *version = "19 Aug 2011";
 
   data.triclinic = 0;
 
@@ -541,7 +529,7 @@ void header(FILE *fp, Data &data)
 	data.style_molecular = data.style_peri = data.style_sphere = 0;
 
       data.atom_style = read_char(fp);
-      strip_suffix(data.atom_style,data.suffix);
+      strip_suffix(data.atom_style);
       set_style(data.atom_style,data,1);
 
       if (strcmp(data.atom_style,"hybrid") == 0) {
@@ -631,7 +619,6 @@ void groups(FILE *fp)
 {
   int ngroup = read_int(fp);
 
-  int n;
   char *name;
 
   // use count to not change restart format with deleted groups
@@ -688,23 +675,23 @@ void force_fields(FILE *fp, Data &data)
 
     if (flag == PAIR) {
       data.pair_style = read_char(fp);
-      strip_suffix(data.pair_style,data.suffix);
+      strip_suffix(data.pair_style);
       pair(fp,data,data.pair_style,1);
     } else if (flag == BOND) {
       data.bond_style = read_char(fp);
-      strip_suffix(data.bond_style,data.suffix);
+      strip_suffix(data.bond_style);
       bond(fp,data);
     } else if (flag == ANGLE) {
       data.angle_style = read_char(fp);
-      strip_suffix(data.angle_style,data.suffix);
+      strip_suffix(data.angle_style);
       angle(fp,data);
     } else if (flag == DIHEDRAL) {
       data.dihedral_style = read_char(fp);
-      strip_suffix(data.dihedral_style,data.suffix);
+      strip_suffix(data.dihedral_style);
       dihedral(fp,data);
     } else if (flag == IMPROPER) {
       data.improper_style = read_char(fp);
-      strip_suffix(data.improper_style,data.suffix);
+      strip_suffix(data.improper_style);
       improper(fp,data);
     } else {
       printf("ERROR: Invalid flag in force fields section of restart file %d\n",
@@ -1393,6 +1380,36 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"brownian") == 0) {
+    double mu = read_double(fp);
+    int flag1 = read_int(fp);
+    double cut_inner_global = read_double(fp);
+    double cut_global = read_double(fp);
+    double t_target = read_double(fp);
+    int seed = read_int(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"buck") == 0)  ||
 	     (strcmp(style,"buck/coul/cut") == 0) ||
 	     (strcmp(style,"buck/coul/long") == 0) ||
@@ -2037,6 +2054,35 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if ((strcmp(style,"lubricate2") == 0) ||
+	     (strcmp(style,"lubricateU") == 0)) {
+    double mu = read_double(fp);
+    int flag = read_int(fp);
+    double cut_inner_global = read_double(fp);
+    double cut_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if (strcmp(style,"meam") == 0) {
 
   } else if (strcmp(style,"morse") == 0) {
@@ -2113,8 +2159,9 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"tersoff") == 0) {
   } else if (strcmp(style,"tersoff/zbl") == 0) {
 
-  } else if (strcmp(style,"yukawa") == 0) {
-
+  } else if ((strcmp(style,"yukawa") == 0) || 
+	     (strcmp(style,"yukawa/colloid") == 0)) {
+    
     double kappa = read_double(fp);
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -2145,6 +2192,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if ((strcmp(style,"cg/cmm") == 0) ||
              (strcmp(style,"cg/cmm/coul/cut") == 0) ||
              (strcmp(style,"cg/cmm/coul/long") == 0)) {
+
     m = 0;
     data.cut_lj_global = read_double(fp);
     data.cut_coul_global = read_double(fp);
@@ -2859,6 +2907,7 @@ void Data::write(FILE *fp, FILE *fp2)
     if ((strcmp(pair_style,"none") != 0) &&
 	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
+	(strcmp(pair_style,"brownian") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
 	(strcmp(pair_style,"coul/long") != 0) &&
@@ -2870,6 +2919,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
 	(strcmp(pair_style,"gran/hertzian") != 0) &&
+	(strcmp(pair_style,"lubricate2") != 0) &&
+	(strcmp(pair_style,"lubricateU") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
 	(strcmp(pair_style,"reax/c") != 0) &&
@@ -2976,7 +3027,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g\n",i,
 		pair_soft_A[i]);
 
-    } else if (strcmp(pair_style,"yukawa") == 0) {
+    } else if ((strcmp(pair_style,"yukawa") == 0) || 
+	       (strcmp(pair_style,"yukawa/colloid") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g\n",i,
 		pair_yukawa_A[i]);
@@ -3320,7 +3372,7 @@ void Data::write(FILE *fp, FILE *fp2)
     fprintf(fp,"\nAtoms\n\n");
 
     int ix,iy,iz;
-    for (uint64_t i = 0; i < natoms; i++) {
+    for (bigint i = 0; i < natoms; i++) {
 
       ix = (image[i] & 1023) - 512;
       iy = (image[i] >> 10 & 1023) - 512;
@@ -3361,7 +3413,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (natoms) {
     fprintf(fp,"\nVelocities\n\n");
-    for (uint64_t i = 0; i < natoms; i++)
+    for (bigint i = 0; i < natoms; i++)
 
       if (style_hybrid == 0) {
 	if (style_angle) write_vel_angle(fp,i);
@@ -3396,7 +3448,7 @@ void Data::write(FILE *fp, FILE *fp2)
  
   if (nellipsoids) {
     fprintf(fp,"\nEllipsoids\n\n");
-    for (uint64_t i = 0; i < natoms; i++) {
+    for (bigint i = 0; i < natoms; i++) {
       if (ellipsoid[i])
 	fprintf(fp,"%d %-1.16e %-1.16e %-1.16e "
 		"%-1.16e %-1.16e %-1.16e %-1.16e \n",
@@ -3407,21 +3459,21 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (nbonds) {
     fprintf(fp,"\nBonds\n\n");
-    for (uint64_t i = 0; i < nbonds; i++)
+    for (bigint i = 0; i < nbonds; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d\n",
 	      i+1,bond_type[i],bond_atom1[i],bond_atom2[i]);
   }
 
   if (nangles) {
     fprintf(fp,"\nAngles\n\n");
-    for (uint64_t i = 0; i < nangles; i++)
+    for (bigint i = 0; i < nangles; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d\n",
 	      i+1,angle_type[i],angle_atom1[i],angle_atom2[i],angle_atom3[i]);
   }
 
   if (ndihedrals) {
     fprintf(fp,"\nDihedrals\n\n");
-    for (uint64_t i = 0; i < ndihedrals; i++)
+    for (bigint i = 0; i < ndihedrals; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,dihedral_type[i],dihedral_atom1[i],dihedral_atom2[i],
 	      dihedral_atom3[i],dihedral_atom4[i]);
@@ -3429,7 +3481,7 @@ void Data::write(FILE *fp, FILE *fp2)
 
   if (nimpropers) {
     fprintf(fp,"\nImpropers\n\n");
-    for (uint64_t i = 0; i < nimpropers; i++)
+    for (bigint i = 0; i < nimpropers; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,improper_type[i],improper_atom1[i],improper_atom2[i],
 	      improper_atom3[i],improper_atom4[i]);
@@ -3499,7 +3551,7 @@ void Data::write_atom_molecular(FILE *fp, int i, int ix, int iy, int iz)
 
 void Data::write_atom_peri(FILE *fp, int i, int ix, int iy, int iz)
 {
-  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
+  fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d",
 	  tag[i],type[i],vfrac[i],rmass[i],x[i],y[i],z[i],ix,iy,iz);
 }
 
@@ -3552,7 +3604,7 @@ void Data::write_atom_molecular_extra(FILE *fp, int i)
 
 void Data::write_atom_peri_extra(FILE *fp, int i)
 {
-  fprintf(fp," %-1.16e %-1.16e %-1.16e",vfrac[i],rmass[i]);
+  fprintf(fp," %-1.16e %-1.16e",vfrac[i],rmass[i]);
 }
 
 // ---------------------------------------------------------------------
@@ -3639,17 +3691,26 @@ void Data::write_vel_molecular_extra(FILE *fp, int i) {}
 void Data::write_vel_peri_extra(FILE *fp, int i) {}
 
 // ---------------------------------------------------------------------
-// strip suffix from style name if suffix is defined
+// strip known accelerator suffixes from style name
 // ---------------------------------------------------------------------
 
-void strip_suffix(char *style, char *suffix)
+void strip_suffix(char *style)
 {
-  if (!suffix) return;
-  int n = strlen(suffix) + 2;
-  char *esuffix = new char[n];
-  sprintf(esuffix,"/%s",suffix);
-  char *ptr = strstr(style,esuffix);
-  if (ptr && ptr-style+1+strlen(suffix) == strlen(style)) *ptr = '\0';
+  char *slash = strrchr(style,'/');
+  if (slash == NULL) return;
+
+  int i=0;
+
+  const char *suffix_list[] = {	"/opt", "/gpu", "/cuda", "/omp", NULL };
+  const char *suffix = suffix_list[0];
+  while (suffix != NULL) {
+    if (strcmp(slash,suffix) == 0) {
+      *slash = '\0';
+      return;
+    }
+    ++i;
+    suffix = suffix_list[i];
+  }
 }
 
 // ---------------------------------------------------------------------

@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
@@ -188,7 +185,7 @@ void PairDPD::allocate()
 
 void PairDPD::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal pair_style command");
+  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   temperature = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);
@@ -196,7 +193,7 @@ void PairDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -216,7 +213,7 @@ void PairDPD::settings(int narg, char **arg)
 
 void PairDPD::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -240,7 +237,7 @@ void PairDPD::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -250,12 +247,12 @@ void PairDPD::coeff(int narg, char **arg)
 void PairDPD::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all("Pair dpd requires ghost atoms store velocity");
+    error->all(FLERR,"Pair dpd requires ghost atoms store velocity");
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(
+  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
       "Pair dpd needs newton pair on for momentum conservation");
 
   neighbor->request(this);
@@ -267,7 +264,7 @@ void PairDPD::init_style()
 
 double PairDPD::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
      

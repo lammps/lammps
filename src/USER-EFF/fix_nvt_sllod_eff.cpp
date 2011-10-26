@@ -33,9 +33,9 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
   FixNHEff(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all("Temperature control must be used with fix nvt/sllod/eff");
+    error->all(FLERR,"Temperature control must be used with fix nvt/sllod/eff");
   if (pstat_flag)
-    error->all("Pressure control can not be used with fix nvt/sllod/eff");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod/eff");
 
   // default values
 
@@ -66,7 +66,7 @@ void FixNVTSllodEff::init()
   FixNHEff::init();
 
   if (!temperature->tempbias)
-    error->all("Temperature for fix nvt/sllod/eff does not have a bias");
+    error->all(FLERR,"Temperature for fix nvt/sllod/eff does not have a bias");
 
   nondeformbias = 0;
   if (strcmp(temperature->style,"temp/deform/eff") != 0) nondeformbias = 1;
@@ -77,12 +77,12 @@ void FixNVTSllodEff::init()
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
-	error->all("Using fix nvt/sllod/eff with inconsistent fix deform "
+	error->all(FLERR,"Using fix nvt/sllod/eff with inconsistent fix deform "
 		   "remap option");
       break;
     }
   if (i == modify->nfix)
-    error->all("Using fix nvt/sllod/eff with no fix deform defined");
+    error->all(FLERR,"Using fix nvt/sllod/eff with no fix deform defined");
 }
 
 

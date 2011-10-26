@@ -33,7 +33,7 @@ enum{NONE,DIPOLE};
 FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal fix nve/sphere command");
+  if (narg < 3) error->all(FLERR,"Illegal fix nve/sphere command");
 
   time_integrate = 1;
 
@@ -44,38 +44,28 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix nve/sphere command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nve/sphere command");
       if (strcmp(arg[iarg+1],"dipole") == 0) extra = DIPOLE;
-      else error->all("Illegal fix nve/sphere command");
+      else error->all(FLERR,"Illegal fix nve/sphere command");
       iarg += 2;
-    } else error->all("Illegal fix nve/sphere command");
+    } else error->all(FLERR,"Illegal fix nve/sphere command");
   }
 
   // error checks
 
   if (!atom->sphere_flag)
-    error->all("Fix nve/sphere requires atom style sphere");
+    error->all(FLERR,"Fix nve/sphere requires atom style sphere");
   if (extra == DIPOLE && !atom->mu_flag)
-    error->all("Fix nve/sphere requires atom attribute mu");
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixNVESphere::setmask()
-{
-  int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= FINAL_INTEGRATE;
-  mask |= INITIAL_INTEGRATE_RESPA;
-  mask |= FINAL_INTEGRATE_RESPA;
-  return mask;
+    error->all(FLERR,"Fix nve/sphere requires atom attribute mu");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVESphere::init()
 {
-  // check that all particles are finite-size
+  FixNVE::init();
+
+  // check that all particles are finite-size spheres
   // no point particles allowed
 
   double *radius = atom->radius;
@@ -85,9 +75,7 @@ void FixNVESphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-	error->one("Fix nve/sphere requires extended particles");
-
-  FixNVE::init();
+	error->one(FLERR,"Fix nve/sphere requires extended particles");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -61,6 +61,8 @@
 #define MAX_CONNECTIONS 6
 #define MAX_STRING 50
 
+
+
 struct ResidueList {
   int start;
   int end;
@@ -168,6 +170,8 @@ _EX  char   rootname[20];
 _EX  char   path[20];
 _EX  double pbc[9];
 _EX  int    periodic   _ARG( 1 ); /* 0= nonperiodic 1= 3-D periodic */
+// Added triclinic flag for non-orthogonal boxes Oct 5, 2010 SLTM
+_EX  int TriclinicFlag; // 1 for non-orthoganal boxes, 0 for orthogonal boxes
 _EX  int    forcefield _ARG( 0 ); /* 0= ClassI      1= ClassII */
 _EX  int    pflag;
 _EX  int    *no_atoms;

@@ -30,15 +30,14 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
 PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+
   nmax = 0;
   rho = NULL;
   fp = NULL;
@@ -332,7 +331,7 @@ void PairEAM::allocate()
 
 void PairEAM::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all("Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -344,7 +343,7 @@ void PairEAM::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3) error->all("Incorrect args for pair coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // parse pair of atom types
 
@@ -384,7 +383,7 @@ void PairEAM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -440,7 +439,7 @@ void PairEAM::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 

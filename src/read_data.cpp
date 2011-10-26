@@ -21,6 +21,8 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
@@ -42,10 +44,7 @@ using namespace LAMMPS_NS;
 #define DELTA 4            // must be 2 or larger
 
                            // customize for new sections
-#define NSECTIONS 21       // change when add to header::section_keywords
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define NSECTIONS 23       // change when add to header::section_keywords
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,6 +62,10 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
 
   nellipsoids = 0;
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  nlines = 0;
+  avec_line = (AtomVecLine *) atom->style_match("line");
+  ntris = 0;
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,12 +82,12 @@ ReadData::~ReadData()
 
 void ReadData::command(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal read_data command");
+  if (narg != 1) error->all(FLERR,"Illegal read_data command");
 
   if (domain->box_exist) 
-    error->all("Cannot read_data after simulation box is defined");
+    error->all(FLERR,"Cannot read_data after simulation box is defined");
   if (domain->dimension == 2 && domain->zperiodic == 0)
-    error->all("Cannot run 2d simulation with nonperiodic Z dimension");
+    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
 
   // scan data file to determine max topology needed per atom 
   // allocate initial topology arrays
@@ -147,122 +150,138 @@ void ReadData::command(int narg, char **arg)
       atoms();
       atomflag = 1;
     } else if (strcmp(keyword,"Velocities") == 0) {
-      if (atomflag == 0) error->all("Must read Atoms before Velocities");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Velocities");
       velocities();
 
     } else if (strcmp(keyword,"Ellipsoids") == 0) {
       if (!avec_ellipsoid) 
-	error->all("Invalid data file section: Ellipsoids");
-      if (atomflag == 0) error->all("Must read Atoms before Ellipsoids");
-      ellipsoids();
+	error->all(FLERR,"Invalid data file section: Ellipsoids");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Ellipsoids");
+      bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
+    } else if (strcmp(keyword,"Lines") == 0) {
+      if (!avec_line) 
+	error->all(FLERR,"Invalid data file section: Lines");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Lines");
+      bonus(nlines,(AtomVec *) avec_line,"lines");
+    } else if (strcmp(keyword,"Triangles") == 0) {
+      if (!avec_tri) 
+	error->all(FLERR,"Invalid data file section: Triangles");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Triangles");
+      bonus(ntris,(AtomVec *) avec_tri,"triangles");
 
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (atom->avec->bonds_allow == 0) 
-	error->all("Invalid data file section: Bonds");
-      if (atomflag == 0) error->all("Must read Atoms before Bonds");
+	error->all(FLERR,"Invalid data file section: Bonds");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bonds");
       bonds();
     } else if (strcmp(keyword,"Angles") == 0) {
       if (atom->avec->angles_allow == 0)
-	error->all("Invalid data file section: Angles");
-      if (atomflag == 0) error->all("Must read Atoms before Angles");
+	error->all(FLERR,"Invalid data file section: Angles");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Angles");
       angles();
     } else if (strcmp(keyword,"Dihedrals") == 0) {
       if (atom->avec->dihedrals_allow == 0)
-	error->all("Invalid data file section: Dihedrals");
-      if (atomflag == 0) error->all("Must read Atoms before Dihedrals");
+	error->all(FLERR,"Invalid data file section: Dihedrals");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
       dihedrals();
     } else if (strcmp(keyword,"Impropers") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->all("Invalid data file section: Impropers");
-      if (atomflag == 0) error->all("Must read Atoms before Impropers");
+	error->all(FLERR,"Invalid data file section: Impropers");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Impropers");
       impropers();
 
     } else if (strcmp(keyword,"Masses") == 0) {
       mass();
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
-	error->all("Must define pair_style before Pair Coeffs");
+	error->all(FLERR,"Must define pair_style before Pair Coeffs");
       paircoeffs();
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0) 
-	error->all("Invalid data file section: Bond Coeffs");
+	error->all(FLERR,"Invalid data file section: Bond Coeffs");
       if (force->bond == NULL) 
-	error->all("Must define bond_style before Bond Coeffs");
+	error->all(FLERR,"Must define bond_style before Bond Coeffs");
       bondcoeffs();
     } else if (strcmp(keyword,"Angle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: Angle Coeffs");
+	error->all(FLERR,"Invalid data file section: Angle Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before Angle Coeffs");
+	error->all(FLERR,"Must define angle_style before Angle Coeffs");
       anglecoeffs(0);
     } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: Dihedral Coeffs");
+	error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before Dihedral Coeffs");
+	error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
       dihedralcoeffs(0);
     } else if (strcmp(keyword,"Improper Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->all("Invalid data file section: Improper Coeffs");
+	error->all(FLERR,"Invalid data file section: Improper Coeffs");
       if (force->improper == NULL) 
-	error->all("Must define improper_style before Improper Coeffs");
+	error->all(FLERR,"Must define improper_style before Improper Coeffs");
       impropercoeffs(0);
 
     } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: BondBond Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before BondBond Coeffs");
+	error->all(FLERR,"Must define angle_style before BondBond Coeffs");
       anglecoeffs(1);
     } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: BondAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before BondAngle Coeffs");
+	error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
       anglecoeffs(2);
 
     } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: MiddleBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before MiddleBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "MiddleBondTorsion Coeffs");
       dihedralcoeffs(1);
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: EndBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before EndBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before EndBondTorsion Coeffs");
       dihedralcoeffs(2);
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: AngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before AngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before AngleTorsion Coeffs");
       dihedralcoeffs(3);
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: AngleAngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before AngleAngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "AngleAngleTorsion Coeffs");
       dihedralcoeffs(4);
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: BondBond13 Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before BondBond13 Coeffs");
+	error->all(FLERR,"Must define dihedral_style before BondBond13 Coeffs");
       dihedralcoeffs(5);
 
     } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->all("Invalid data file section: AngleAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
       if (force->improper == NULL) 
-	error->all("Must define improper_style before AngleAngle Coeffs");
+	error->all(FLERR,"Must define improper_style before AngleAngle Coeffs");
       impropercoeffs(1);
 
     } else {
       char str[128];
       sprintf(str,"Unknown identifier in data file: %s",keyword);
-      error->all(str);
+      error->all(FLERR,str);
     }
 
     parse_keyword(0,1);
@@ -277,7 +296,8 @@ void ReadData::command(int narg, char **arg)
   
   // error if natoms > 0 yet no atoms were read
 
-  if (atom->natoms > 0 && atomflag == 0) error->all("No atoms in data file");
+  if (atom->natoms > 0 && atomflag == 0) 
+    error->all(FLERR,"No atoms in data file");
 
   // create bond topology now that system is defined
 
@@ -306,7 +326,7 @@ void ReadData::header(int flag)
   // customize for new sections
 
   char *section_keywords[NSECTIONS] = 
-    {"Atoms","Velocities","Ellipsoids",
+    {"Atoms","Velocities","Ellipsoids","Lines","Triangles",
      "Bonds","Angles","Dihedrals","Impropers",
      "Masses","Pair Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
@@ -318,7 +338,7 @@ void ReadData::header(int flag)
 
   if (me == 0) {
     char *eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one("Unexpected end of data file");
+    if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
   }
 
   // customize for new header lines
@@ -374,8 +394,16 @@ void ReadData::header(int flag)
 
     else if (strstr(line,"ellipsoids")) {
       if (!avec_ellipsoid)
-	error->all("No ellipsoids allowed with this atom style");
+	error->all(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
+    } else if (strstr(line,"lines")) {
+      if (!avec_line)
+	error->all(FLERR,"No lines allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&nlines);
+    } else if (strstr(line,"triangles")) {
+      if (!avec_tri)
+	error->all(FLERR,"No triangles allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&ntris);
     }
 
     else if (strstr(line,"xlo xhi")) 
@@ -397,8 +425,8 @@ void ReadData::header(int flag)
       atom->nangles < 0 || atom->nangles > MAXBIGINT ||
       atom->ndihedrals < 0 || atom->ndihedrals > MAXBIGINT ||
       atom->nimpropers < 0 || atom->nimpropers > MAXBIGINT) {
-    if (flag == 0) error->one("System in data file is too big");
-    else error->all("System in data file is too big");
+    if (flag == 0) error->one(FLERR,"System in data file is too big");
+    else error->all(FLERR,"System in data file is too big");
   }
 
   // check that exiting string is a valid section keyword
@@ -409,32 +437,32 @@ void ReadData::header(int flag)
   if (n == NSECTIONS) {
     char str[128];
     sprintf(str,"Unknown identifier in data file: %s",keyword);
-    error->all(str);
+    error->all(FLERR,str);
   }
 
   // error check on consistency of header values
 
   if ((atom->nbonds || atom->nbondtypes) && 
       atom->avec->bonds_allow == 0)
-    error->one("No bonds allowed with this atom style");
+    error->one(FLERR,"No bonds allowed with this atom style");
   if ((atom->nangles || atom->nangletypes) && 
       atom->avec->angles_allow == 0)
-    error->one("No angles allowed with this atom style");
+    error->one(FLERR,"No angles allowed with this atom style");
   if ((atom->ndihedrals || atom->ndihedraltypes) && 
       atom->avec->dihedrals_allow == 0)
-    error->one("No dihedrals allowed with this atom style");
+    error->one(FLERR,"No dihedrals allowed with this atom style");
   if ((atom->nimpropers || atom->nimpropertypes) && 
       atom->avec->impropers_allow == 0)
-    error->one("No impropers allowed with this atom style");
+    error->one(FLERR,"No impropers allowed with this atom style");
 
   if (atom->nbonds > 0 && atom->nbondtypes <= 0)
-    error->one("Bonds defined but no bond types");
+    error->one(FLERR,"Bonds defined but no bond types");
   if (atom->nangles > 0 && atom->nangletypes <= 0)
-    error->one("Angles defined but no angle types");
+    error->one(FLERR,"Angles defined but no angle types");
   if (atom->ndihedrals > 0 && atom->ndihedraltypes <= 0)
-    error->one("Dihedrals defined but no dihedral types");
+    error->one(FLERR,"Dihedrals defined but no dihedral types");
   if (atom->nimpropers > 0 && atom->nimpropertypes <= 0)
-    error->one("Impropers defined but no improper types");
+    error->one(FLERR,"Impropers defined but no improper types");
 }
 
 /* ----------------------------------------------------------------------
@@ -456,7 +484,7 @@ void ReadData::atoms()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -478,7 +506,8 @@ void ReadData::atoms()
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " atoms\n",natoms);
   }
 
-  if (natoms != atom->natoms) error->all("Did not assign all atoms correctly");
+  if (natoms != atom->natoms) 
+    error->all(FLERR,"Did not assign all atoms correctly");
   
   // if any atom ID < 0, error
   // if all atom IDs = 0, tag_enable = 0
@@ -494,7 +523,7 @@ void ReadData::atoms()
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
-    error->all("Invalid atom ID in Atoms section of data file");
+    error->all(FLERR,"Invalid atom ID in Atoms section of data file");
 
   flag = 0;
   for (int i = 0; i < nlocal; i++)
@@ -508,7 +537,7 @@ void ReadData::atoms()
       if (tag[i] == 0) flag = 1;
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
     if (flag_all)
-      error->all("Invalid atom ID in Atoms section of data file");
+      error->all(FLERR,"Invalid atom ID in Atoms section of data file");
   }
 
   // create global mapping
@@ -547,7 +576,7 @@ void ReadData::velocities()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -571,11 +600,11 @@ void ReadData::velocities()
 }
 
 /* ----------------------------------------------------------------------
-   read all ellipsoids
+   read all bonus data
    to find atoms, must build atom map if not a molecular system 
 ------------------------------------------------------------------------- */
 
-void ReadData::ellipsoids()
+void ReadData::bonus(bigint nbonus, AtomVec *ptr, char *type)
 {
   int i,m,nchunk;
 
@@ -588,7 +617,7 @@ void ReadData::ellipsoids()
   }
 
   bigint nread = 0;
-  bigint natoms = nellipsoids;
+  bigint natoms = nbonus;
 
   while (nread < natoms) {
     if (natoms-nread > CHUNK) nchunk = CHUNK;
@@ -598,7 +627,7 @@ void ReadData::ellipsoids()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -606,7 +635,7 @@ void ReadData::ellipsoids()
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
 
-    atom->data_bonus(nchunk,buffer,avec_ellipsoid);
+    atom->data_bonus(nchunk,buffer,ptr);
     nread += nchunk;
   }
 
@@ -616,8 +645,8 @@ void ReadData::ellipsoids()
   }
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
-    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " ellipsoids\n",natoms);
+    if (screen) fprintf(screen,"  " BIGINT_FORMAT " %s\n",natoms,type);
+    if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " %s\n",natoms,type);
   }
 }
 
@@ -637,7 +666,7 @@ void ReadData::bonds()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -663,7 +692,8 @@ void ReadData::bonds()
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",sum/factor);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " bonds\n",sum/factor);
   }
-  if (sum != factor*atom->nbonds) error->all("Bonds assigned incorrectly");
+  if (sum != factor*atom->nbonds) 
+    error->all(FLERR,"Bonds assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -682,7 +712,7 @@ void ReadData::angles()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -708,7 +738,8 @@ void ReadData::angles()
     if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",sum/factor);
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",sum/factor);
   }
-  if (sum != factor*atom->nangles) error->all("Angles assigned incorrectly");
+  if (sum != factor*atom->nangles) 
+    error->all(FLERR,"Angles assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -727,7 +758,7 @@ void ReadData::dihedrals()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -754,7 +785,7 @@ void ReadData::dihedrals()
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",sum/factor);
   }
   if (sum != factor*atom->ndihedrals) 
-    error->all("Dihedrals assigned incorrectly");
+    error->all(FLERR,"Dihedrals assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -773,7 +804,7 @@ void ReadData::impropers()
       m = 0;
       for (i = 0; i < nchunk; i++) {
 	eof = fgets(&buffer[m],MAXLINE,fp);
-	if (eof == NULL) error->one("Unexpected end of data file");
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	m += strlen(&buffer[m]);
       }
       m++;
@@ -800,7 +831,7 @@ void ReadData::impropers()
     if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",sum/factor);
   }
   if (sum != factor*atom->nimpropers) 
-    error->all("Impropers assigned incorrectly");
+    error->all(FLERR,"Impropers assigned incorrectly");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -816,7 +847,7 @@ void ReadData::mass()
     m = 0;
     for (i = 0; i < atom->ntypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -845,7 +876,7 @@ void ReadData::paircoeffs()
     m = 0;
     for (i = 0; i < atom->ntypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -876,7 +907,7 @@ void ReadData::bondcoeffs()
     m = 0;
     for (i = 0; i < atom->nbondtypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -907,7 +938,7 @@ void ReadData::anglecoeffs(int which)
     m = 0;
     for (i = 0; i < atom->nangletypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -940,7 +971,7 @@ void ReadData::dihedralcoeffs(int which)
     m = 0;
     for (i = 0; i < atom->ndihedraltypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -976,7 +1007,7 @@ void ReadData::impropercoeffs(int which)
     m = 0;
     for (i = 0; i < atom->nimpropertypes; i++) {
       eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one("Unexpected end of data file");
+      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
       buf[m-1] = '\0';
     }
@@ -1006,13 +1037,15 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   char *eof;
 
   if (atom->natoms > MAXSMALLINT)
-    error->all("Molecular data file has too many atoms");
+    error->all(FLERR,"Molecular data file has too many atoms");
 
   // customize for new sections
 
   int natoms = static_cast<int> (atom->natoms);
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   int ellipsoid_flag = 0;
+  int line_flag = 0;
+  int tri_flag = 0;
 
   // customize for new sections
   // allocate topology counting vector
@@ -1031,86 +1064,100 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 
     else if (strcmp(keyword,"Ellipsoids") == 0) {
       if (!avec_ellipsoid) 
-	error->all("Invalid data file section: Ellipsoids");
+	error->all(FLERR,"Invalid data file section: Ellipsoids");
       ellipsoid_flag = 1;
       skip_lines(nellipsoids);
+    } else if (strcmp(keyword,"Lines") == 0) {
+      if (!avec_line) error->all(FLERR,"Invalid data file section: Lines");
+      line_flag = 1;
+      skip_lines(nlines);
+    } else if (strcmp(keyword,"Triangles") == 0) {
+      if (!avec_tri) error->all(FLERR,"Invalid data file section: Triangles");
+      tri_flag = 1;
+      skip_lines(ntris);
 
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
-	error->all("Must define pair_style before Pair Coeffs");
+	error->all(FLERR,"Must define pair_style before Pair Coeffs");
       skip_lines(atom->ntypes);
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0) 
-	error->all("Invalid data file section: Bond Coeffs");
+	error->all(FLERR,"Invalid data file section: Bond Coeffs");
       if (force->bond == NULL) 
-	error->all("Must define bond_style before Bond Coeffs");
+	error->all(FLERR,"Must define bond_style before Bond Coeffs");
       skip_lines(atom->nbondtypes);
     } else if (strcmp(keyword,"Angle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: Angle Coeffs");
+	error->all(FLERR,"Invalid data file section: Angle Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before Angle Coeffs");
+	error->all(FLERR,"Must define angle_style before Angle Coeffs");
       skip_lines(atom->nangletypes);
     } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
       skip_lines(atom->ndihedraltypes);
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: Dihedral Coeffs");
+	error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before Dihedral Coeffs");
+	error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
     }  else if (strcmp(keyword,"Improper Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->all("Invalid data file section: Improper Coeffs");
+	error->all(FLERR,"Invalid data file section: Improper Coeffs");
       if (force->improper == NULL) 
-	error->all("Must define improper_style before Improper Coeffs");
+	error->all(FLERR,"Must define improper_style before Improper Coeffs");
       skip_lines(atom->nimpropertypes);
 
     } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: BondBond Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before BondBond Coeffs");
+	error->all(FLERR,"Must define angle_style before BondBond Coeffs");
       skip_lines(atom->nangletypes);
     } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->all("Invalid data file section: BondAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
       if (force->angle == NULL) 
-	error->all("Must define angle_style before BondAngle Coeffs");
+	error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
       skip_lines(atom->nangletypes);
     } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: MiddleBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before MiddleBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "MiddleBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: EndBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before EndBondTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before EndBondTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: AngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before AngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before AngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: AngleAngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before AngleAngleTorsion Coeffs");
+	error->all(FLERR,
+		   "Must define dihedral_style before "
+		   "AngleAngleTorsion Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->all("Invalid data file section: BondBond13 Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
       if (force->dihedral == NULL) 
-	error->all("Must define dihedral_style before BondBond13 Coeffs");
+	error->all(FLERR,"Must define dihedral_style before BondBond13 Coeffs");
       skip_lines(atom->ndihedraltypes);
     } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->all("Invalid data file section: AngleAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
       if (force->improper == NULL) 
-	error->all("Must define improper_style before AngleAngle Coeffs");
+	error->all(FLERR,"Must define improper_style before AngleAngle Coeffs");
       skip_lines(atom->nimpropertypes);
 
     } else if (strcmp(keyword,"Bonds") == 0) {
@@ -1118,7 +1165,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->newton_bond)
 	for (i = 0; i < atom->nbonds; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d",&tmp1,&tmp2,&atom1,&atom2);
 	  if (atom1 >= cmax) cmax = reallocate(&count,cmax,atom1);
 	  count[atom1]++;
@@ -1126,7 +1173,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       else
 	for (i = 0; i < atom->nbonds; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d",&tmp1,&tmp2,&atom1,&atom2);
 	  int amax = MAX(atom1,atom2);
 	  if (amax >= cmax) cmax = reallocate(&count,cmax,amax);
@@ -1142,7 +1189,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->newton_bond)
 	for (i = 0; i < atom->nangles; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d",&tmp1,&tmp2,&atom1,&atom2,&atom3);
 	  if (atom2 >= cmax) cmax = reallocate(&count,cmax,atom2);
 	  count[atom2]++;
@@ -1150,7 +1197,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       else
 	for (i = 0; i < atom->nangles; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d",&tmp1,&tmp2,&atom1,&atom2,&atom3);
 	  int amax = MAX(atom1,atom2);
 	  amax = MAX(amax,atom3);
@@ -1168,7 +1215,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->newton_bond)
 	for (i = 0; i < atom->ndihedrals; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d %d",
 		 &tmp1,&tmp2,&atom1,&atom2,&atom3,&atom4);
 	  if (atom2 >= cmax) cmax = reallocate(&count,cmax,atom2);
@@ -1177,7 +1224,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       else
 	for (i = 0; i < atom->ndihedrals; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d %d",
 		 &tmp1,&tmp2,&atom1,&atom2,&atom3,&atom4);
 	  int amax = MAX(atom1,atom2);
@@ -1201,7 +1248,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->newton_bond)
 	for (i = 0; i < atom->nimpropers; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d %d",
 		 &tmp1,&tmp2,&atom1,&atom2,&atom3,&atom4);
 	  if (atom2 >= cmax) cmax = reallocate(&count,cmax,atom2);
@@ -1210,7 +1257,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       else
 	for (i = 0; i < atom->nimpropers; i++) {
 	  eof = fgets(line,MAXLINE,fp);
-	  if (eof == NULL) error->one("Unexpected end of data file");
+	  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 	  sscanf(line,"%d %d %d %d %d %d",
 		 &tmp1,&tmp2,&atom1,&atom2,&atom3,&atom4);
 	  int amax = MAX(atom1,atom2);
@@ -1232,7 +1279,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
     } else {
       char str[128];
       sprintf(str,"Unknown identifier in data file: %s",keyword);
-      error->one(str);
+      error->one(FLERR,str);
     }
 
     parse_keyword(0,0);
@@ -1248,13 +1295,17 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       (atom->nangles && !angle_per_atom) ||
       (atom->ndihedrals && !dihedral_per_atom) ||
       (atom->nimpropers && !improper_per_atom)) 
-    error->one("Needed topology not in data file");
+    error->one(FLERR,"Needed topology not in data file");
 
   // customize for new sections
   // error check that Bonus sections were speficied in file
 
   if (nellipsoids && !ellipsoid_flag)
-    error->one("Needed bonus data not in data file");
+    error->one(FLERR,"Needed bonus data not in data file");
+  if (nlines && !line_flag)
+    error->one(FLERR,"Needed bonus data not in data file");
+  if (ntris && !tri_flag)
+    error->one(FLERR,"Needed bonus data not in data file");
 }
 
 /* ----------------------------------------------------------------------
@@ -1288,14 +1339,14 @@ void ReadData::open(char *file)
     sprintf(gunzip,"gunzip -c %s",file);
     fp = popen(gunzip,"r");
 #else
-    error->one("Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file");
 #endif
   }
 
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 }
 
@@ -1362,7 +1413,7 @@ void ReadData::skip_lines(int n)
 {
   char *eof;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one("Unexpected end of data file");
+  if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
 }
 
 /* ----------------------------------------------------------------------

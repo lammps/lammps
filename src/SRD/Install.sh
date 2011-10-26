@@ -1,6 +1,6 @@
 # Install/unInstall package files in LAMMPS
 
-if (test $1 == 1) then
+if (test $1 = 1) then
 
   cp fix_srd.cpp ..
   cp fix_wall_srd.cpp ..
@@ -8,7 +8,7 @@ if (test $1 == 1) then
   cp fix_srd.h ..
   cp fix_wall_srd.h ..
 
-elif (test $1 == 0) then
+elif (test $1 = 0) then
 
   rm -f ../fix_srd.cpp
   rm -f ../fix_wall_srd.cpp

@@ -36,9 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -72,10 +69,10 @@ void PairBuckCoul::options(char **arg, int order)
   char *option[] = {"long", "cut", "off", NULL};
   int i;
 
-  if (!*arg) error->all(PAIR_ILLEGAL);
+  if (!*arg) error->all(FLERR,PAIR_ILLEGAL);
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(PAIR_ILLEGAL);
+    default: error->all(FLERR,PAIR_ILLEGAL);
     case 0: ewald_order |= 1<<order; break;		// set kspace r^-order
     case 2: ewald_off |= 1<<order;			// turn r^-order off
     case 1: break;
@@ -85,19 +82,19 @@ void PairBuckCoul::options(char **arg, int order)
 
 void PairBuckCoul::settings(int narg, char **arg)
 {
-  if (narg != 3 && narg != 4) error->all("Illegal pair_style command");
+  if (narg != 3 && narg != 4) error->all(FLERR,"Illegal pair_style command");
  
   ewald_order = 0;
   ewald_off = 0;
   options(arg, 6);
   options(++arg, 1);
-  if (!comm->me && ewald_order&(1<<6)) error->warning(PAIR_MIX);
-  if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(PAIR_LARGEST);
-  if (!*(++arg)) error->all(PAIR_MISSING);
-  if (ewald_off&(1<<6)) error->all(PAIR_LJ_OFF);
-  if (!((ewald_order^ewald_off)&(1<<1))) error->all(PAIR_COUL_CUT);
+  if (!comm->me && ewald_order&(1<<6)) error->warning(FLERR,PAIR_MIX);
+  if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(FLERR,PAIR_LARGEST);
+  if (!*(++arg)) error->all(FLERR,PAIR_MISSING);
+  if (ewald_off&(1<<6)) error->all(FLERR,PAIR_LJ_OFF);
+  if (!((ewald_order^ewald_off)&(1<<1))) error->all(FLERR,PAIR_COUL_CUT);
   cut_buck_global = force->numeric(*(arg++));
-  if (*arg&&(ewald_order&0x42==0x42)) error->all(PAIR_CUTOFF);
+  if (*arg&&(ewald_order&0x42==0x42)) error->all(FLERR,PAIR_CUTOFF);
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 
@@ -191,7 +188,7 @@ void *PairBuckCoul::extract(char *id, int &dim)
 
 void PairBuckCoul::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -217,7 +214,7 @@ void PairBuckCoul::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -230,7 +227,7 @@ void PairBuckCoul::init_style()
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(
+    error->all(FLERR,
 	"Invoking coulombic in pair style lj/coul requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
@@ -282,12 +279,12 @@ void PairBuckCoul::init_style()
 
   if (ewald_order&(1<<1)) {				// r^-1 kspace
     if (force->kspace == NULL) 
-      error->all("Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style is incompatible with KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
   if (ewald_order&(1<<6)) {				// r^-6 kspace
     if (!force->kspace && strcmp(force->kspace_style,"ewald/n"))
-      error->all("Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style is incompatible with KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
 
@@ -315,7 +312,7 @@ void PairBuckCoul::init_list(int id, NeighList *ptr)
 
 double PairBuckCoul::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   cut_buck[i][j] = cut_buck_read[i][j];
   buck_a[i][j] = buck_a_read[i][j];
@@ -333,7 +330,7 @@ double PairBuckCoul::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && MIN(cut_buck[i][j],cut_coul) < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
      
   if (offset_flag) {
     double rexp = exp(-cut_buck[i][j]/buck_rho[i][j]);

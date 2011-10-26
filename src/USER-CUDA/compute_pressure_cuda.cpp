@@ -64,7 +64,7 @@ ComputePressureCuda::ComputePressureCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
   cudable = 1;
   
   // store temperature ID used by pressure computation
@@ -78,7 +78,7 @@ ComputePressureCuda::ComputePressureCuda(LAMMPS *lmp, int narg, char **arg) :
   delete [] id_temp;
   if (modify->compute[icompute]->cudable == 0)
   {
-    error->warning("Compute pressure/cuda temperature ID is not cudable! Try a temp/cuda style.");
+    error->warning(FLERR,"Compute pressure/cuda temperature ID is not cudable! Try a temp/cuda style.");
     cudable = 0;
   }
   
@@ -87,7 +87,7 @@ ComputePressureCuda::ComputePressureCuda(LAMMPS *lmp, int narg, char **arg) :
 double ComputePressureCuda::compute_scalar()
 {
   if(not temperature->cudable && cuda->finished_setup) cuda->downloadAll();
-  ComputePressure::compute_scalar();
+  return ComputePressure::compute_scalar();
 }
 
 void ComputePressureCuda::compute_vector()

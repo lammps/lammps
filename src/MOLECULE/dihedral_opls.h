@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class DihedralOPLS : public Dihedral {
  public:
   DihedralOPLS(class LAMMPS *);
-  ~DihedralOPLS();
-  void compute(int, int);
+  virtual ~DihedralOPLS();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *k1,*k2,*k3,*k4;
 
   void allocate();

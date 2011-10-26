@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix external command");
+  if (narg != 3) error->all(FLERR,"Illegal fix external command");
 
   callback = NULL;
 
@@ -55,7 +55,7 @@ int FixExternal::setmask()
 
 void FixExternal::init()
 {
-  if (callback == NULL) error->all("Fix external callback function not set");
+  if (callback == NULL) error->all(FLERR,"Fix external callback function not set");
 }
 
 /* ---------------------------------------------------------------------- */

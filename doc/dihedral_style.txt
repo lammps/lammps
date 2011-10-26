@@ -87,7 +87,7 @@ specified by the associated "dihedral_coeff"_dihedral_coeff.html command:
 There are also additional dihedral styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the dihedral section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 
@@ -96,11 +96,11 @@ page"_Section_commands.html#3_5.
 Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
 
-Most dihedral styles are part of the "molecular" package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual dihedral potentials tell if it is part of a
-package.
+Most dihedral styles are part of the MOLECULAR package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+The doc pages for individual dihedral potentials tell if it is part of
+a package.
 
 [Related commands:]
 

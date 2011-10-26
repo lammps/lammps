@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute displace/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute displace/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 4;
@@ -77,7 +77,7 @@ void ComputeDisplaceAtom::init()
   // set fix which stores original atom coords
 
   int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all("Could not find compute displace/atom fix ID");
+  if (ifix < 0) error->all(FLERR,"Could not find compute displace/atom fix ID");
   fix = modify->fix[ifix];
 }
 

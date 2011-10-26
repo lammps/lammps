@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -35,8 +40,8 @@
 #define CUBE(x)       ((x)*(x)*(x))
 #define DEG2RAD(a)    ((a)*constPI/180.0)
 #define RAD2DEG(a)    ((a)*180.0/constPI)
-#define MAX(x,y)      (((x) > (y)) ? (x) : (y))
-#define MIN(x,y)      (((x) < (y)) ? (x) : (y))
+// #define MAX(x,y)      (((x) > (y)) ? (x) : (y))
+// #define MIN(x,y)      (((x) < (y)) ? (x) : (y))
 #define MAX3(x,y,z)   MAX( MAX(x,y), z)
 
 #define constPI        3.14159265

@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -297,7 +299,7 @@ void AngleCGCMM::allocate()
 
 void AngleCGCMM::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for angle coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -307,7 +309,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
   double theta0_one = atof(arg[2]);
 
   int cg_type_one=find_cg_type(arg[3]);
-  if (cg_type_one == CG_NOT_SET) error->all("Error reading CG type flag.");
+  if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
   
   double epsilon_one = atof(arg[4]);
   double sigma_one = atof(arg[5]);
@@ -323,7 +325,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
     // convert theta0 from degrees to radians
-    theta0[i] = theta0_one/180.0 * PI;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     epsilon[i] = epsilon_one;
     sigma[i] = sigma_one;
     rcut[i] = rcut_one; 
@@ -332,7 +334,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

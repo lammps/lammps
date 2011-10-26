@@ -28,7 +28,7 @@ class PairLJSmooth : public Pair {
  public:
   PairLJSmooth(class LAMMPS *);
   virtual ~PairLJSmooth();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

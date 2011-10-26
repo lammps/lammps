@@ -19,10 +19,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -152,7 +154,7 @@ void AngleCosine::allocate()
 
 void AngleCosine::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all("Incorrect args for angle coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -167,14 +169,14 @@ void AngleCosine::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double AngleCosine::equilibrium_angle(int i)
 {
-  return PI;
+  return MY_PI;
 }
 
 /* ----------------------------------------------------------------------

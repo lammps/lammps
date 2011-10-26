@@ -33,9 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-
 #define MAXNEAR 16
 #define MAXCOMMON 8
 
@@ -47,13 +44,13 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute cna/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
   double cutoff = atof(arg[3]);
-  if (cutoff < 0.0) error->all("Illegal compute cna/atom command");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal compute cna/atom command");
   cutsq = cutoff*cutoff;
 
   nmax = 0;
@@ -76,22 +73,22 @@ ComputeCNAAtom::~ComputeCNAAtom()
 void ComputeCNAAtom::init()
 {
   if (force->pair == NULL) 
-    error->all("Compute cna/atom requires a pair style be defined");
+    error->all(FLERR,"Compute cna/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce) 
-    error->all("Compute cna/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute cna/atom cutoff is longer than pairwise cutoff");
 
   // cannot use neighbor->cutneighmax b/c neighbor has not yet been init
 
   if (2.0*sqrt(cutsq) > force->pair->cutforce + neighbor->skin && 
       comm->me == 0)
-    error->warning("Compute cna/atom cutoff may be too large to find "
+    error->warning(FLERR,"Compute cna/atom cutoff may be too large to find "
 		   "ghost atom neighbors");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"cna/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute cna/atom defined");
+    error->warning(FLERR,"More than one compute cna/atom defined");
 
   // need an occasional full neighbor list
 
@@ -192,7 +189,7 @@ void ComputeCNAAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many neighbors in CNA for %d atoms",nerrorall);
-    error->warning(str,0);
+    error->warning(FLERR,str,0);
   }
 
   // compute CNA for each atom in group
@@ -353,7 +350,7 @@ void ComputeCNAAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many common neighbors in CNA %d times",nerrorall);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 }
 

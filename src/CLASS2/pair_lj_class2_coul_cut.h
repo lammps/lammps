@@ -28,7 +28,7 @@ class PairLJClass2CoulCut : public Pair {
  public:
   PairLJClass2CoulCut(class LAMMPS *);
   virtual ~PairLJClass2CoulCut();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();

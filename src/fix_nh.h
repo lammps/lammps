@@ -31,9 +31,10 @@ class FixNH : public Fix {
   void final_integrate_respa(int, int);
   void pre_exchange();
   double compute_scalar();
-  double compute_vector(int);
+  virtual double compute_vector(int);
   void write_restart(FILE *);
-  void restart(char *);
+  virtual int pack_restart_data(double *); // pack restart data
+  virtual void restart(char *);
   int modify_param(int, char **);
   void reset_target(double);
   void reset_dt();
@@ -42,7 +43,9 @@ class FixNH : public Fix {
   int dimension,which;
   double dtv,dtf,dthalf,dt4,dt8,dto;
   double boltz,nktv2p,tdof;
-  double vol0,t0;
+  double vol0;                      // reference volume
+  double t0;                        // reference temperature 
+                                    // used for barostat mass
 
   double t_start,t_stop;
   double t_current,t_target,ke_target;
@@ -100,6 +103,10 @@ class FixNH : public Fix {
 
   double mtk_term1,mtk_term2;      // Martyna-Tobias-Klein corrections
 
+  int eta_mass_flag;               // 1 if eta_mass updated, 0 if not.
+  int omega_mass_flag;             // 1 if omega_mass updated, 0 if not.
+  int etap_mass_flag;              // 1 if etap_mass updated, 0 if not.
+
   int scaleyz;                     // 1 if yz scaled with lz 
   int scalexz;                     // 1 if xz scaled with lz 
   int scalexy;                     // 1 if xy scaled with ly 
@@ -114,6 +121,7 @@ class FixNH : public Fix {
   virtual void nh_v_press();
   virtual void nh_v_temp();
   virtual void compute_temp_target();
+  virtual int size_restart_global();
 
   void compute_sigma();
   void compute_deviatoric();

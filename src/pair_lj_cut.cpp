@@ -29,13 +29,12 @@
 #include "update.h"
 #include "integrate.h"
 #include "respa.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -427,7 +426,7 @@ void PairLJCut::allocate()
 
 void PairLJCut::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -447,7 +446,7 @@ void PairLJCut::settings(int narg, char **arg)
 
 void PairLJCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -471,7 +470,7 @@ void PairLJCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -569,7 +568,7 @@ double PairLJCut::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && cut[i][j] < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
@@ -586,15 +585,14 @@ double PairLJCut::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
   } 
 

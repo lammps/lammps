@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -19,6 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
+#include "pair_reax_c.h"
 #include "reaxc_types.h"
 #if defined(PURE_REAX)
 #include "nonbonded.h"
@@ -32,24 +38,26 @@
 #include "reaxc_vector.h"
 #endif
 
-
 void vdW_Coulomb_Energy( reax_system *system, control_params *control, 
 			 simulation_data *data, storage *workspace, 
 			 reax_list **lists, output_controls *out_control )
 {
   int i, j, pj, natoms;
-  int start_i, end_i, orig_i, orig_j;
+  int start_i, end_i, orig_i, orig_j, flag;
   real p_vdW1, p_vdW1i;
   real powr_vdW1, powgi_vdW1;
   real tmp, r_ij, fn13, exp1, exp2;
   real Tap, dTap, dfn13, CEvd, CEclmb, de_core;
   real dr3gamij_1, dr3gamij_3;
-  real e_ele, e_vdW, e_core;
+  real e_ele, e_vdW, e_core, SMALL = 0.0001;
   rvec temp, ext_press;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
   // rtensor temp_rtensor, total_rtensor;
+
+  // Tallying variables:
+  real pe_vdw, f_tmp, delij[3];
 
   natoms = system->n;
   far_nbrs = (*lists) + FAR_NBRS;
@@ -69,9 +77,28 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
 
+#if defined(PURE_REAX)
       if( nbr_pj->d <= control->nonb_cut && (j < natoms || orig_i < orig_j) ) {
-	r_ij = nbr_pj->d;
-	twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
+#elif defined(LAMMPS_REAX)
+      flag = 0;
+      if(nbr_pj->d <= control->nonb_cut) { 
+	if (j < natoms) flag = 1;
+	else if (orig_i < orig_j) flag = 1;
+	else if (orig_i == orig_j) {
+	  if (nbr_pj->dvec[2] > SMALL) flag = 1;
+	  else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+	    if (nbr_pj->dvec[1] > SMALL) flag = 1;
+	    else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+	      flag = 1;
+	  }
+	}
+      }
+      
+      if (flag) {
+#endif
+
+      r_ij = nbr_pj->d;
+      twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
 		                       [ system->my_atoms[j].type ]);
 
       /* Calculate Taper and its derivative */
@@ -138,13 +165,23 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       data->my_en.e_ele += e_ele = 
 	C_ele * system->my_atoms[i].q * system->my_atoms[j].q * tmp;
 		
-	  
       CEclmb = C_ele * system->my_atoms[i].q * system->my_atoms[j].q * 
 	( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
-      // fprintf( fout, "%5d %5d %10.6f %10.6f\n",
-      //   MIN( system->my_atoms[i].orig_id, system->my_atoms[j].orig_id ),
-      //   MAX( system->my_atoms[i].orig_id, system->my_atoms[j].orig_id ), 
-      //   CEvd, CEclmb );       	  		  
+
+      /* tally into per-atom energy */
+      if( system->evflag || system->vflag_atom) {
+        pe_vdw = Tap * (e_vdW + e_core);
+	rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+			      -1., system->my_atoms[j].x );
+	f_tmp = -(CEvd + CEclmb);
+        system->pair_ptr->ev_tally(i,j,natoms,1,pe_vdw,e_ele,
+			f_tmp,delij[0],delij[1],delij[2]);
+      }	
+
+      /* fprintf(stderr, "%5d %5d %10.6f %10.6f\n",
+        MIN( system->my_atoms[i].orig_id, system->my_atoms[j].orig_id ),
+        MAX( system->my_atoms[i].orig_id, system->my_atoms[j].orig_id ), 
+        CEvd, CEclmb );       	  */
 
       if( control->virial == 0 ) {
 	rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
@@ -161,13 +198,13 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 	rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
 	rvec_Add( data->my_ext_press, ext_press );
 	    
-	// fprintf( stderr, "nonbonded(%d,%d): rel_box (%f %f %f)
-	//   force(%f %f %f) ext_press (%12.6f %12.6f %12.6f)\n", 
-	//   i, j, nbr_pj->rel_box[0], nbr_pj->rel_box[1], nbr_pj->rel_box[2],
-	//   temp[0], temp[1], temp[2],
-	//   data->ext_press[0], data->ext_press[1], data->ext_press[2] );
+	/* fprintf( stderr, "nonbonded(%d,%d): rel_box (%f %f %f) 
+	  force(%f %f %f) ext_press (%12.6f %12.6f %12.6f)\n", 
+	  i, j, nbr_pj->rel_box[0], nbr_pj->rel_box[1], nbr_pj->rel_box[2],
+	  temp[0], temp[1], temp[2],
+	  data->ext_press[0], data->ext_press[1], data->ext_press[2] );  	*/
       }
-
+      
 #ifdef TEST_ENERGY
       // fprintf( out_control->evdw, 
       // "%12.9f%12.9f%12.9f%12.9f%12.9f%12.9f%12.9f%12.9f\n", 
@@ -212,10 +249,12 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 {
   int i, j, pj, r, natoms, steps, update_freq, update_energies;
   int type_i, type_j, tmin, tmax;
-  int start_i, end_i, orig_i, orig_j;
+  int start_i, end_i, orig_i, orig_j, flag;
   real r_ij, base, dif;
   real e_vdW, e_ele;
-  real CEvd, CEclmb;
+  real CEvd, CEclmb, SMALL = 0.0001;
+  real f_tmp, delij[3];
+
   rvec temp, ext_press;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
@@ -239,9 +278,28 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
 
+#if defined(PURE_REAX)
       if( nbr_pj->d <= control->nonb_cut && (j < natoms || orig_i < orig_j) ) {
+#elif defined(LAMMPS_REAX)
+      flag = 0;
+      if(nbr_pj->d <= control->nonb_cut) { 
+	if (j < natoms) flag = 1;
+	else if (orig_i < orig_j) flag = 1;
+	else if (orig_i == orig_j) {
+	  if (nbr_pj->dvec[2] > SMALL) flag = 1;
+	  else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+	    if (nbr_pj->dvec[1] > SMALL) flag = 1;
+	    else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+	      flag = 1;
+	  }
+	}
+      }
+      
+      if (flag) {
+#endif
       j = nbr_pj->nbr;
       type_j = system->my_atoms[j].type;
+
       r_ij   = nbr_pj->d;
       tmin  = MIN( type_i, type_j );
       tmax  = MAX( type_i, type_j );
@@ -273,7 +331,17 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       CEclmb = ((t->CEclmb[r].d*dif+t->CEclmb[r].c)*dif+t->CEclmb[r].b)*dif + 
 	t->CEclmb[r].a;
       CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
-      
+
+
+      /* tally into per-atom energy */
+      if( system->evflag || system->vflag_atom) {
+	rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+			      -1., system->my_atoms[j].x );
+	f_tmp = -(CEvd + CEclmb);
+        system->pair_ptr->ev_tally(i,j,natoms,1,e_vdW,e_ele,
+			f_tmp,delij[0],delij[1],delij[2]);
+      }	
+
       if( control->virial == 0 ) {
 	rvec_ScaledAdd( workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec );
 	rvec_ScaledAdd( workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec );
@@ -319,16 +387,20 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
 {
   int  i, type_i;
-  real q;
+  real q, en_tmp;
 
   data->my_en.e_pol = 0.0;
   for( i = 0; i < system->n; i++ ) {
     q = system->my_atoms[i].q;
     type_i = system->my_atoms[i].type;
       
-    data->my_en.e_pol += 
-      KCALpMOL_to_EV * (system->reax_param.sbp[type_i].chi * q + 
-			(system->reax_param.sbp[type_i].eta / 2.) * SQR(q));
+    en_tmp = KCALpMOL_to_EV * (system->reax_param.sbp[type_i].chi * q + 
+		(system->reax_param.sbp[type_i].eta / 2.) * SQR(q));
+    data->my_en.e_pol += en_tmp;
+
+    /* tally into per-atom energy */
+    if( system->evflag) 
+      system->pair_ptr->ev_tally(i,i,system->n,1,0.0,en_tmp,0.0,0.0,0.0,0.0);
   }
 }
 

@@ -22,13 +22,12 @@
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -202,7 +201,7 @@ void PairLJClass2CoulLong::allocate()
 
 void PairLJClass2CoulLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -224,7 +223,7 @@ void PairLJClass2CoulLong::settings(int narg, char **arg)
 
 void PairLJClass2CoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -248,7 +247,7 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -258,7 +257,7 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
 void PairLJClass2CoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/class2/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/class2/coul/long requires atom attribute q");
 
   neighbor->request(this);
 
@@ -267,7 +266,7 @@ void PairLJClass2CoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 }
 
@@ -324,14 +323,13 @@ double PairLJClass2CoulLong::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
     double sig6 = sig3*sig3;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
-    etail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] *
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (sig3 - 3.0*rc3) / (3.0*rc6);
-    ptail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig3 - 2.0*rc3) / rc6;
   } 
 

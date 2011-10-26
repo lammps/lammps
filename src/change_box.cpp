@@ -32,27 +32,27 @@ ChangeBox::ChangeBox(LAMMPS *lmp) : Pointers(lmp) {}
 void ChangeBox::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
-    error->all("Change_box command before simulation box is defined");
-  if (narg != 1) error->all("Illegal change_box command");
+    error->all(FLERR,"Change_box command before simulation box is defined");
+  if (narg != 1) error->all(FLERR,"Illegal change_box command");
 
   int style;
   if (strcmp(arg[0],"ortho") == 0) style = ORTHO;
   else if (strcmp(arg[0],"triclinic") == 0) style = TRICLINIC;
-  else error->all("Illegal change_box command");
+  else error->all(FLERR,"Illegal change_box command");
 
   if (style == ORTHO && domain->triclinic == 0)
-    error->all("Change_box operation is invalid");
+    error->all(FLERR,"Change_box operation is invalid");
   if (style == TRICLINIC && domain->triclinic == 1)
-    error->all("Change_box operation is invalid");
+    error->all(FLERR,"Change_box operation is invalid");
   if (style == ORTHO && 
       (domain->xy != 0.0 || domain->yz != 0.0 || domain->xz != 0.0))
-      error->all("Cannot change box to orthogonal when tilt is non-zero");
+      error->all(FLERR,"Cannot change box to orthogonal when tilt is non-zero");
 
   if (output->ndump)
-    error->all("Cannot change box with dumps defined");
+    error->all(FLERR,"Cannot change box with dumps defined");
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->no_change_box)
-      error->all("Cannot change box with certain fixes defined");
+      error->all(FLERR,"Cannot change box with certain fixes defined");
 
   if (style == ORTHO) domain->triclinic = 0;
   else domain->triclinic = 1;

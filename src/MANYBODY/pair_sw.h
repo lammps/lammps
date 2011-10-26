@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairSW : public Pair {
  public:
   PairSW(class LAMMPS *);
-  ~PairSW();
-  void compute(int, int);
+  virtual ~PairSW();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
 
- private:
+ protected:
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;

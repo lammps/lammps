@@ -43,9 +43,9 @@ class FixSRD : public Fix {
   int me,nprocs;
   int bigexist,biggroup,biggroupbit;
   int collidestyle,lamdaflag,overlap,insideflag,exactflag,maxbounceallow;
-  int cubicflag,shiftuser,shiftseed,shiftflag,streamflag;
+  int cubicflag,shiftuser,shiftseed,shiftflag,tstat;
   double gridsrd,gridsearch,lamda,radfactor,cubictol;
-  int triclinic,change_size,change_shape;
+  int triclinic,change_size,change_shape,deformflag;
   
   double dt_big,dt_srd;
   double mass_big,mass_srd;
@@ -64,6 +64,8 @@ class FixSRD : public Fix {
   double walltrigger;
 
   class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
 
   // for orthogonal box, these are in box units
   // for triclinic box, these are in lamda units
@@ -92,18 +94,21 @@ class FixSRD : public Fix {
 
   struct Big {
     int index;                 // local index of particle/wall
-    int type;                  // SPHERE or ELLIPSOID or WALL
+    int type;                  // SPHERE or ELLIPSOID or LINE or TRI or WALL
     double radius,radsq;       // radius of sphere
     double aradsqinv;          // 3 ellipsoid radii
     double bradsqinv;
     double cradsqinv;
+    double length;             // length of line segment
+    double normbody[3];        // normal of tri in body-frame
     double cutbinsq;           // add big to bin if within this distance
-    double omega[3];           // current omega for sphere or ellipsoid
-    double ex[3],ey[3],ez[3];  // current orientation vecs for ellipsoid
+    double omega[3];           // current omega for sphere/ellipsoid/tri/line
+    double ex[3],ey[3],ez[3];  // current orientation vecs for ellipsoid/tri
+    double norm[3];            // current unit normal of tri in space-frame
+    double theta;              // current orientation of line
   };
 
   Big *biglist;           // list of info for each owned & ghost big and wall
-  int any_ellipsoids;     // 1 if any big particles are ellipsoids
   int torqueflag;         // 1 if any big particle is torqued
 
   // current size of particle-based arrays
@@ -123,7 +128,7 @@ class FixSRD : public Fix {
     int owner;           // 1 if I am owner of this bin, 0 if not
     int n;               // # of SRD particles in bin
     double xctr[3];      // center point of bin, only used for triclinic
-    double vave[3];      // sum of v components for SRD particles in bin
+    double vsum[3];      // sum of v components for SRD particles in bin
     double random;       // random value if I am owner
   };
 
@@ -167,6 +172,17 @@ class FixSRD : public Fix {
   int maxstencil;        // max # of bins stencil array can hold
   int **stencil;         // list of 3d bin offsets a big particle can overlap
 
+  // persistent data for line/tri collision calculations
+
+  double tfraction,theta0,theta1;
+  double xs0[3],xs1[3],xsc[3];
+  double xb0[3],xb1[3],xbc[3];
+  double nbc[3];
+
+  // shared data for triangle collision calculations
+
+  // private functions
+
   void reset_velocities();
   void vbin_comm(int);
   void vbin_pack(BinAve *, int, int *, double *);
@@ -177,6 +193,8 @@ class FixSRD : public Fix {
 
   int inside_sphere(double *, double *, Big *);
   int inside_ellipsoid(double *, double *, Big *);
+  int inside_line(double *, double *, double *, double *, Big *, double);
+  int inside_tri(double *, double *, double *, double *, Big *, double);
   int inside_wall(double *, int);
 
   double collision_sphere_exact(double *, double *, double *, double *,
@@ -187,18 +205,19 @@ class FixSRD : public Fix {
 				   Big *, double *, double *, double *);
   void collision_ellipsoid_inexact(double *, double *,
 				   Big *, double *, double *, double *);
+  double collision_line_exact(double *, double *, double *, double *,
+			      Big *, double, double *, double *, double *);
+  double collision_tri_exact(double *, double *, double *, double *,
+			     Big *, double, double *, double *, double *);
   double collision_wall_exact(double *, int, double *,
 			      double *, double *, double *);
   void collision_wall_inexact(double *, int, double *, double *, double *);
 
-  void slip_sphere(double *, double *, double *, double *);
-  void slip_ellipsoid(double *, double *, double *, Big *,
-		      double *, double *,  double *);
+  void slip(double *, double *, double *, Big *,
+	    double *, double *,  double *);
   void slip_wall(double *, int, double *, double *);
-
-  void noslip(double *, double *, double *, Big *,
+  void noslip(double *, double *, double *, Big *, int,
 	      double *, double *,  double *);
-  void noslip_wall(double *, int, double *, double *, double *);
 
   void force_torque(double *, double *, double *,
 		    double *, double *,  double *);
@@ -217,10 +236,11 @@ class FixSRD : public Fix {
 
   double point_bin_distance(double *, int, int, int);
   double bin_bin_distance(int, int, int);
-  void exyz_from_q(double *, double *, double *, double *);
-  void omega_from_mq(double *, double *, double *, double *,
-		     double, double *, double *);
   void velocity_stats(int);
+
+  double newton_raphson(double, double);
+  void lineside(double, double &, double &);
+  void triside(double, double &, double &);
 
   double distance(int, int);
   void print_collision(int, int, int, double, double,

@@ -45,16 +45,16 @@ using namespace LAMMPS_NS;
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
 {
-  if (narg < 1) error->all("Illegal run_style respa command");
+  if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
   nlevels = atoi(arg[0]);
-  if (nlevels < 1) error->all("Respa levels must be >= 1");
+  if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
 
-  if (narg < nlevels) error->all("Illegal run_style respa command");
+  if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
   loop = new int[nlevels];
   for (int iarg = 1; iarg < nlevels; iarg++) {
     loop[iarg-1] = atoi(arg[iarg]);
-    if (loop[iarg-1] <= 0) error->all("Illegal run_style respa command");
+    if (loop[iarg-1] <= 0) error->all(FLERR,"Illegal run_style respa command");
   }
   loop[nlevels-1] = 1;
 
@@ -68,64 +68,64 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   int iarg = nlevels;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bond") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_bond = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"angle") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_angle = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_dihedral = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"improper") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_improper = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_pair = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"inner") == 0) {
-      if (iarg+4 > narg) error->all("Illegal run_style respa command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_inner = atoi(arg[iarg+1]) - 1;
       cutoff[0] = atof(arg[iarg+2]);
       cutoff[1] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"middle") == 0) {
-      if (iarg+4 > narg) error->all("Illegal run_style respa command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_middle = atoi(arg[iarg+1]) - 1;
       cutoff[2] = atof(arg[iarg+2]);
       cutoff[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"outer") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_outer = atoi(arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all("Illegal run_style respa command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
       level_kspace = atoi(arg[iarg+1]) - 1;
       iarg += 2;
-    } else error->all("Illegal run_style respa command");
+    } else error->all(FLERR,"Illegal run_style respa command");
   }
 
   // cannot specify both pair and inner/middle/outer
 
   if (level_pair >= 0 && 
       (level_inner >= 0 || level_middle >= 0 || level_outer >= 0))
-    error->all("Cannot set both respa pair and inner/middle/outer");
+    error->all(FLERR,"Cannot set both respa pair and inner/middle/outer");
 
   // if either inner and outer is specified, then both must be
 
   if ((level_inner >= 0 && level_outer == -1) || 
       (level_outer >= 0 && level_inner == -1))
-    error->all("Must set both respa inner and outer");
+    error->all(FLERR,"Must set both respa inner and outer");
 
   // middle cannot be set without inner/outer
 
   if (level_middle >= 0 && level_inner == -1)
-    error->all("Cannot set respa middle without inner/outer");
+    error->all(FLERR,"Cannot set respa middle without inner/outer");
 
   // set defaults if user did not specify level
   // bond to innermost level
@@ -183,20 +183,20 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   
   if (level_angle < level_bond || level_dihedral < level_angle ||
       level_improper < level_dihedral)
-    error->all("Invalid order of forces within respa levels");
+    error->all(FLERR,"Invalid order of forces within respa levels");
   if (level_pair >= 0) {
     if (level_pair < level_improper || level_kspace < level_pair)
-      error->all("Invalid order of forces within respa levels");
+      error->all(FLERR,"Invalid order of forces within respa levels");
   }
   if (level_pair == -1 && level_middle == -1) {
     if (level_inner < level_improper || level_outer < level_inner ||
 	level_kspace != level_outer)
-      error->all("Invalid order of forces within respa levels");
+      error->all(FLERR,"Invalid order of forces within respa levels");
   }
   if (level_pair == -1 && level_middle >= 0) {
     if (level_inner < level_improper || level_middle < level_inner ||
 	level_outer < level_inner || level_kspace != level_outer)
-      error->all("Invalid order of forces within respa levels");
+      error->all(FLERR,"Invalid order of forces within respa levels");
   }
 
   // warn if any levels are devoid of forces
@@ -207,14 +207,14 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
 	level_improper != i && level_pair != i && level_inner != i &&
 	level_middle != i && level_outer != i && level_kspace != i) flag = 1;
   if (flag && comm->me == 0) 
-    error->warning("One or more respa levels compute no forces");
+    error->warning(FLERR,"One or more respa levels compute no forces");
 
   // check cutoff consistency if inner/middle/outer are enabled
 
   if (level_inner >= 0 && cutoff[1] < cutoff[0])
-    error->all("Respa inner cutoffs are invalid");
+    error->all(FLERR,"Respa inner cutoffs are invalid");
   if (level_middle >= 0 && (cutoff[3] < cutoff[2] || cutoff[2] < cutoff[1]))
-    error->all("Respa middle cutoffs are invalid");
+    error->all(FLERR,"Respa middle cutoffs are invalid");
 
   // set outer pair of cutoffs to inner pair if middle is not enabled
 
@@ -247,7 +247,7 @@ void Respa::init()
   // warn if no fixes
 
   if (modify->nfix == 0 && comm->me == 0)
-    error->warning("No fixes defined, atoms won't move");
+    error->warning(FLERR,"No fixes defined, atoms won't move");
 
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
@@ -267,7 +267,7 @@ void Respa::init()
 
   if (level_inner >= 0)
     if (force->pair && force->pair->respa_enable == 0)
-      error->all("Pair style does not support rRESPA inner/middle/outer");
+      error->all(FLERR,"Pair style does not support rRESPA inner/middle/outer");
 
   // virial_style = 1 (explicit) since never computed implicitly like Verlet
 
@@ -278,12 +278,16 @@ void Respa::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques,erforce if arrays exists
+  // need to clear additionals arrays if they exist
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
   erforceflag = 0;
   if (atom->erforce_flag) erforceflag = 1;
+  e_flag = 0;
+  if (atom->e_flag) e_flag = 1;
+  rho_flag = 0;
+  if (atom->rho_flag) rho_flag = 1;
 
   // step[] = timestep for each level
 
@@ -595,15 +599,18 @@ void Respa::force_clear(int newtonflag)
 {
   int i;
 
+  if (external_force_clear) return;
+
   // clear global force array
   // nall includes ghosts only if newton flag is set
 
   int nall;
   if (newtonflag) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
+  int ntot = nall * comm->nthreads;
 
   double **f = atom->f;
-  for (i = 0; i < nall; i++) {
+  for (i = 0; i < ntot; i++) {
     f[i][0] = 0.0;
     f[i][1] = 0.0;
     f[i][2] = 0.0;
@@ -620,8 +627,17 @@ void Respa::force_clear(int newtonflag)
 
   if (erforceflag) {
     double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++)
-      erforce[i] = 0.0;
+    for (i = 0; i < nall; i++) erforce[i] = 0.0;
+  }
+
+  if (e_flag) {
+    double *de = atom->de;
+    for (i = 0; i < nall; i++) de[i] = 0.0;
+  }
+  
+  if (rho_flag) {
+    double *drho = atom->drho;
+    for (i = 0; i < nall; i++) drho[i] = 0.0;
   }
 }
 

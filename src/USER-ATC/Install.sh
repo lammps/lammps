@@ -35,4 +35,3 @@ elif (test $1 = 0) then
   rm -f ../fix_atc.cpp
 
 fi
-

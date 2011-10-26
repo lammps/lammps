@@ -26,7 +26,10 @@
 #include "memory.h"
 #include "pppm_cg.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define OFFSET 16384
 #define SMALLQ 0.00001
@@ -40,7 +43,7 @@ using namespace LAMMPS_NS;
 
 PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
-  if ((narg < 1) || (narg > 2)) error->all("Illegal kspace_style pppm/cg command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
   if (narg == 2)
     smallq = atof(arg[1]);
@@ -175,8 +178,8 @@ void PPPMCG::compute(int eflag, int vflag)
     energy = energy_all;
    
     energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+    energy -= g_ewald*qsqsum/MY_PIS +
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
 
@@ -232,7 +235,7 @@ void PPPMCG::particle_map()
 	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
   }
 
-  if (flag) error->one("Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------
@@ -372,13 +375,13 @@ void PPPMCG::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   
   if (eflag) energy += qqrd2e*scale * e_slabcorr;
 
   // add on force corrections
 
-  double ffact = -4.0*PI*dipole_all/volume * qqrd2e * scale; 
+  double ffact = -4.0*MY_PI*dipole_all/volume * qqrd2e * scale; 
   double **f = atom->f;
 
   for (int j = 0; j < num_charged; j++) {

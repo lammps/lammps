@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -451,7 +456,7 @@ typedef struct
   real ghost_cutoff;
 } boundary_cutoff;
 
-
+using LAMMPS_NS::Pair;
 
 typedef struct
 {
@@ -469,6 +474,10 @@ typedef struct
   boundary_cutoff  bndry_cuts;
 
   reax_atom       *my_atoms;
+
+  int evflag;
+  int vflag_atom;
+  class Pair *pair_ptr;
 } reax_system;
 
 

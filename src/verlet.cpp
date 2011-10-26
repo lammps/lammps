@@ -49,7 +49,7 @@ void Verlet::init()
   // warn if no fixes
 
   if (modify->nfix == 0 && comm->me == 0)
-    error->warning("No fixes defined, atoms won't move");
+    error->warning(FLERR,"No fixes defined, atoms won't move");
 
   // virial_style:
   // 1 if computed explicitly by pair->compute via sum over pair interactions
@@ -63,12 +63,16 @@ void Verlet::init()
   ev_setup();
 
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques,erforce if arrays exists
+  // need to clear additionals arrays if they exist
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
   erforceflag = 0;
   if (atom->erforce_flag) erforceflag = 1;
+  e_flag = 0;
+  if (atom->e_flag) e_flag = 1;
+  rho_flag = 0;
+  if (atom->rho_flag) rho_flag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -304,6 +308,8 @@ void Verlet::force_clear()
 {
   int i;
 
+  if (external_force_clear) return;
+
   // clear force on all particles
   // if either newton flag is set, also include ghosts
 
@@ -311,9 +317,10 @@ void Verlet::force_clear()
     int nall;
     if (force->newton) nall = atom->nlocal + atom->nghost;
     else nall = atom->nlocal;
+    int ntot = nall * comm->nthreads;
 
     double **f = atom->f;
-    for (i = 0; i < nall; i++) {
+    for (i = 0; i < ntot; i++) {
       f[i][0] = 0.0;
       f[i][1] = 0.0;
       f[i][2] = 0.0;
@@ -330,8 +337,17 @@ void Verlet::force_clear()
 
     if (erforceflag) {
       double *erforce = atom->erforce;
-      for (i = 0; i < nall; i++)
-	erforce[i] = 0.0;
+      for (i = 0; i < nall; i++) erforce[i] = 0.0;
+    }
+
+    if (e_flag) {
+      double *de = atom->de;
+      for (i = 0; i < nall; i++) de[i] = 0.0;
+    }
+
+    if (rho_flag) {
+      double *drho = atom->drho;
+      for (i = 0; i < nall; i++) drho[i] = 0.0;
     }
 
   // neighbor includegroup flag is set
@@ -359,8 +375,17 @@ void Verlet::force_clear()
 
     if (erforceflag) {
       double *erforce = atom->erforce;
-      for (i = 0; i < nall; i++)
-	erforce[i] = 0.0;
+      for (i = 0; i < nall; i++) erforce[i] = 0.0;
+    }
+
+    if (e_flag) {
+      double *de = atom->de;
+      for (i = 0; i < nall; i++) de[i] = 0.0;
+    }
+
+    if (rho_flag) {
+      double *drho = atom->drho;
+      for (i = 0; i < nall; i++) drho[i] = 0.0;
     }
 
     if (force->newton) {
@@ -383,8 +408,17 @@ void Verlet::force_clear()
 
       if (erforceflag) {
 	double *erforce = atom->erforce;
-	for (i = atom->nlocal; i < nall; i++)
-	  erforce[i] = 0.0;
+	for (i = atom->nlocal; i < nall; i++) erforce[i] = 0.0;
+      }
+
+      if (e_flag) {
+	double *de = atom->de;
+	for (i = 0; i < nall; i++) de[i] = 0.0;
+      }
+
+      if (rho_flag) {
+	double *drho = atom->drho;
+	for (i = 0; i < nall; i++) drho[i] = 0.0;
       }
     }
   }

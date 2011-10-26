@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix deposit command");
+  if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
   restart_global = 1;
   time_depend = 1;
@@ -48,7 +48,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   nfreq = atoi(arg[5]);
   seed = atoi(arg[6]);
 
-  if (seed <= 0) error->all("Illegal fix deposit command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
   // set defaults
 
@@ -68,11 +68,11 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks on region and its extent being inside simulation box
 
-  if (iregion == -1) error->all("Must specify a region in fix deposit");
+  if (iregion == -1) error->all(FLERR,"Must specify a region in fix deposit");
   if (domain->regions[iregion]->bboxflag == 0)
-    error->all("Fix deposit region does not support a bounding box");
+    error->all(FLERR,"Fix deposit region does not support a bounding box");
   if (domain->regions[iregion]->dynamic_check())
-    error->all("Fix deposit region cannot be dynamic");
+    error->all(FLERR,"Fix deposit region cannot be dynamic");
 
   xlo = domain->regions[iregion]->extent_xlo;
   xhi = domain->regions[iregion]->extent_xhi;
@@ -85,18 +85,18 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
     if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] || 
 	ylo < domain->boxlo[1] || yhi > domain->boxhi[1] || 
 	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
-      error->all("Deposition region extends outside simulation box");
+      error->all(FLERR,"Deposition region extends outside simulation box");
   } else {
     if (xlo < domain->boxlo_bound[0] || xhi > domain->boxhi_bound[0] || 
 	ylo < domain->boxlo_bound[1] || yhi > domain->boxhi_bound[1] || 
 	zlo < domain->boxlo_bound[2] || zhi > domain->boxhi_bound[2])
-      error->all("Deposition region extends outside simulation box");
+      error->all(FLERR,"Deposition region extends outside simulation box");
   }
 
   // setup scaling
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of fix deposit with undefined lattice");
+    error->all(FLERR,"Use of fix deposit with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
@@ -162,7 +162,7 @@ void FixDeposit::init()
   // set index and check validity of region
 
   iregion = domain->find_region(idregion);
-  if (iregion == -1) error->all("Region ID for fix deposit does not exist");
+  if (iregion == -1) error->all(FLERR,"Region ID for fix deposit does not exist");
 }
 
 /* ----------------------------------------------------------------------
@@ -323,7 +323,7 @@ void FixDeposit::pre_exchange()
   // warn if not successful b/c too many attempts or no proc owned particle
 
   if (!success && comm->me == 0)
-    error->warning("Particle deposition was unsuccessful",0);
+    error->warning(FLERR,"Particle deposition was unsuccessful",0);
 
   // reset global natoms
   // set tag # of new particle beyond all previous atoms
@@ -356,28 +356,28 @@ void FixDeposit::pre_exchange()
 
 void FixDeposit::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal fix indent command");
+  if (narg < 0) error->all(FLERR,"Illegal fix indent command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix deposit command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all("Region ID for fix deposit does not exist");
+	error->all(FLERR,"Region ID for fix deposit does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"global") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix deposit command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       globalflag = 1;
       localflag = 0;
       lo = atof(arg[iarg+1]);
       hi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix deposit command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
       localflag = 1;
       globalflag = 0;
       lo = atof(arg[iarg+1]);
@@ -385,40 +385,40 @@ void FixDeposit::options(int narg, char **arg)
       deltasq = atof(arg[iarg+3])*atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"near") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix deposit command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       nearsq = atof(arg[iarg+1])*atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"attempt") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix deposit command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       maxattempt = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"rate") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix deposit command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       rateflag = 1;
       rate = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix deposit command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       vxlo = atof(arg[iarg+1]);
       vxhi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix deposit command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       vylo = atof(arg[iarg+1]);
       vyhi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix deposit command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       vzlo = atof(arg[iarg+1]);
       vzhi = atof(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix deposit command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix deposit command");
+      else error->all(FLERR,"Illegal fix deposit command");
       iarg += 2;
-    } else error->all("Illegal fix deposit command");
+    } else error->all(FLERR,"Illegal fix deposit command");
   }
 }
 

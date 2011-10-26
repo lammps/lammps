@@ -42,7 +42,7 @@ __global__ void Cuda_ComputeTempPartialCuda_Scalar_Kernel(int groupbit,int xflag
   ENERGY_FLOAT* buffer=(ENERGY_FLOAT*) _buffer;
   if(threadIdx.x==0) 
   {
-  	buffer[blockIdx.x]=sharedmem[0];	
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y]=sharedmem[0];
   }
 }
 
@@ -76,12 +76,12 @@ __global__ void Cuda_ComputeTempPartialCuda_Vector_Kernel(int groupbit,int xflag
   ENERGY_FLOAT* buffer=(ENERGY_FLOAT*) _buffer;
   if(threadIdx.x==0) 
   {
-  	buffer[blockIdx.x]=sharedmem[0];	
-  	buffer[blockIdx.x+gridDim.x]=sharedmem[blockDim.x];	
-  	buffer[blockIdx.x+2*gridDim.x]=sharedmem[2*blockDim.x];	
-  	buffer[blockIdx.x+3*gridDim.x]=sharedmem[3*blockDim.x];	
-  	buffer[blockIdx.x+4*gridDim.x]=sharedmem[4*blockDim.x];	
-  	buffer[blockIdx.x+5*gridDim.x]=sharedmem[5*blockDim.x];	
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y]=sharedmem[0];
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y+gridDim.x*gridDim.y]=sharedmem[blockDim.x];
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y+2*gridDim.x*gridDim.y]=sharedmem[2*blockDim.x];
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y+3*gridDim.x*gridDim.y]=sharedmem[3*blockDim.x];
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y+4*gridDim.x*gridDim.y]=sharedmem[4*blockDim.x];
+  	buffer[blockIdx.x*gridDim.y+blockIdx.y+5*gridDim.x*gridDim.y]=sharedmem[5*blockDim.x];
   }
 }
 

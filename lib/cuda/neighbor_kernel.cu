@@ -21,6 +21,8 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
+#define SBBITS 30
+
 __global__ void Binning_Kernel(int* binned_id,int bin_nmax,int bin_dim_x,int bin_dim_y,int bin_dim_z,
 							   CUDA_FLOAT rez_bin_size_x,CUDA_FLOAT rez_bin_size_y,CUDA_FLOAT rez_bin_size_z)
 {
@@ -109,8 +111,9 @@ __device__ inline int find_special(int3 &n, int* list,int & tag,int3 flag)
 }
 
 template <const unsigned int exclude>
-__global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_dim_x,int bin_dim_y,CUDA_FLOAT globcutoff,int block_style)
+__global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_dim_x,int bin_dim_y,CUDA_FLOAT globcutoff,int block_style, bool neighall)
 {
+  int natoms = neighall?_nall:_nlocal;
 	//const bool domol=false;
 	int bin_dim_z=gridDim.y;
 	CUDA_FLOAT* binned_x=(CUDA_FLOAT*) _buffer;
@@ -152,7 +155,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 	int jnum=0;
 	int itype;
 	
-	if(i<_nlocal)
+	if(i<natoms)
 	{
 	   jnum = 0;
 	   _ilist[i]=i;
@@ -186,7 +189,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 	int kk=threadIdx.x;
 	for(int k = 0; k < MIN(bin_c-otherActOffset,blockDim.x); ++k)
 	{
-		if(i<_nlocal)
+		if(i<natoms)
 		{
 			kk++;
 			kk=kk<MIN(bin_c-otherActOffset,blockDim.x)?kk:0;
@@ -209,7 +212,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 		  	       	 if(block_style)
  			         _neighbors[i*_maxneighbors+jnum]= j;
 		  	       	 else
- 			         _neighbors[i+jnum*_nlocal]= j;
+ 			         _neighbors[i+jnum*natoms]= j;
  			      }
  			      ++jnum;
 			}
@@ -244,7 +247,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 		
 		for(int k = 0; k < MIN(blockDim.x,obin_c-otherActOffset); ++k)
 		{
-			if(i<_nlocal)
+			if(i<natoms)
 			{
 				int j = other_id[k];
 				if(exclude && exclusion(i,j,itype,_type[j])) continue;			
@@ -266,7 +269,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 			  	      if(block_style)
 	 			      _neighbors[i*_maxneighbors+jnum]= j;
 			  	      else
-	 			      _neighbors[i+jnum*_nlocal]= j;
+	 			      _neighbors[i+jnum*natoms]= j;
 			  	    }
 	 			      ++jnum;
 				}
@@ -279,7 +282,7 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id,int bin_nmax,int bin_
 	
     if(jnum > _maxneighbors) ((int*)_buffer)[0] = -jnum;
 
-	if(i<_nlocal)
+	if(i<natoms)
 	_numneigh[i] = jnum;
     }
 }
@@ -341,9 +344,9 @@ __global__ void FindSpecial(int block_style)
    	  if(which>0)
    	  {
    	    if(block_style)
-	      _neighbors[i*_maxneighbors+k]=j+which*_nall;
+	      _neighbors[i*_maxneighbors+k]=j ^ (which << SBBITS);
 	    else
-	      _neighbors[i+k*_nlocal]=j+which*_nall;
+	      _neighbors[i+k*_nlocal]=j ^ (which << SBBITS);
    	  }
    	  else if(which<0)
    	  {

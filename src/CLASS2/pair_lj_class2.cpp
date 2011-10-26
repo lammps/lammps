@@ -19,13 +19,12 @@
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -161,7 +160,7 @@ void PairLJClass2::allocate()
 
 void PairLJClass2::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -181,7 +180,7 @@ void PairLJClass2::settings(int narg, char **arg)
 
 void PairLJClass2::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -205,7 +204,7 @@ void PairLJClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -257,14 +256,13 @@ double PairLJClass2::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
     double sig6 = sig3*sig3;
     double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
     double rc6 = rc3*rc3;
-    etail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] *
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (sig3 - 3.0*rc3) / (3.0*rc6);
-    ptail_ij = 2.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig3 - 2.0*rc3) / rc6;
   } 
 

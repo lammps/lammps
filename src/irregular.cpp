@@ -28,9 +28,6 @@ using namespace LAMMPS_NS;
 #define BUFMIN 1000
 #define BUFEXTRA 1000
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)

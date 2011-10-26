@@ -47,12 +47,12 @@ void PairEAMAlloy::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read EAM setfl file
 
@@ -79,7 +79,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     for (j = 0; j < setfl->nelements; j++)
       if (strcmp(arg[i],setfl->elements[j]) == 0) break;
     if (j < setfl->nelements) map[i-2] = j;
-    else error->all("No matching element in EAM potential file");
+    else error->all(FLERR,"No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -103,7 +103,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -125,7 +125,7 @@ void PairEAMAlloy::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -146,7 +146,7 @@ void PairEAMAlloy::read_file(char *filename)
   sscanf(line,"%d",&file->nelements);
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
-    error->all("Incorrect element names in EAM potential file");
+    error->all(FLERR,"Incorrect element names in EAM potential file");
   
   char **words = new char*[file->nelements+1];
   nwords = 0;

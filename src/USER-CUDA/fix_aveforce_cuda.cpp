@@ -44,9 +44,9 @@ FixAveForceCuda::FixAveForceCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg != 6) error->all("Illegal fix aveforce command");
+  if (narg != 6) error->all(FLERR,"Illegal fix aveforce command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -68,15 +68,15 @@ FixAveForceCuda::FixAveForceCuda(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix aveforce command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix aveforce command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Fix aveforce region ID does not exist");
+      if (iregion == -1) error->all(FLERR,"Fix aveforce region ID does not exist");
       iarg += 2;
-    } else error->all("Illegal fix aveforce command");
+    } else error->all(FLERR,"Illegal fix aveforce command");
 
   }
   
-  if(iregion!=-1) error->all("Error: fix aveforce/cuda does not currently support 'region' option");
+  if(iregion!=-1) error->all(FLERR,"Error: fix aveforce/cuda does not currently support 'region' option");
 
   foriginal_all[0] = foriginal_all[1] = foriginal_all[2] = foriginal_all[3] = 0.0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;

@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute ke/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute ke/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -52,7 +52,7 @@ void ComputeKEAtom::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"ke/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute ke/atom");
+    error->warning(FLERR,"More than one compute ke/atom");
 }
 
 /* ---------------------------------------------------------------------- */

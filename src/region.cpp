@@ -60,27 +60,27 @@ void Region::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for region does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for region does not exist");
     if (!input->variable->equalstyle(xvar))
-      error->all("Variable for region is invalid style");
+      error->all(FLERR,"Variable for region is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for region does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for region does not exist");
     if (!input->variable->equalstyle(yvar))
-      error->all("Variable for region is not equal style");
+      error->all(FLERR,"Variable for region is not equal style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for region does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for region does not exist");
     if (!input->variable->equalstyle(zvar))
-      error->all("Variable for region is not equal style");
+      error->all(FLERR,"Variable for region is not equal style");
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all("Variable name for region does not exist");
+    if (tvar < 0) error->all(FLERR,"Variable name for region does not exist");
     if (!input->variable->equalstyle(tvar))
-      error->all("Variable for region is not equal style");
+      error->all(FLERR,"Variable for region is not equal style");
   }
 }
 
@@ -275,7 +275,7 @@ void Region::rotate(double &x, double &y, double &z, double angle)
 
 void Region::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal region command");
+  if (narg < 0) error->all(FLERR,"Illegal region command");
 
   // option defaults
 
@@ -286,37 +286,37 @@ void Region::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal region command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal region command");
+      else error->all(FLERR,"Illegal region command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all("Illegal region command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
       if (strcmp(arg[iarg+1],"in") == 0) interior = 1;
       else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
-      else error->all("Illegal region command");
+      else error->all(FLERR,"Illegal region command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"move") == 0) {
-      if (iarg+4 > narg) error->all("Illegal region command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal region command");
       if (strcmp(arg[iarg+1],"NULL") != 0) {
 	if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
-	  error->all("Illegal region command");
+	  error->all(FLERR,"Illegal region command");
 	int n = strlen(&arg[iarg+1][2]) + 1;
 	xstr = new char[n];
 	strcpy(xstr,&arg[iarg+1][2]);
       }
       if (strcmp(arg[iarg+2],"NULL") != 0) {
 	if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) 
-	  error->all("Illegal region command");
+	  error->all(FLERR,"Illegal region command");
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	ystr = new char[n];
 	strcpy(ystr,&arg[iarg+2][2]);
       }
       if (strcmp(arg[iarg+3],"NULL") != 0) {
 	if (strstr(arg[iarg+3],"v_") != arg[iarg+3]) 
-	  error->all("Illegal region command");
+	  error->all(FLERR,"Illegal region command");
 	int n = strlen(&arg[iarg+3][2]) + 1;
 	zstr = new char[n];
 	strcpy(zstr,&arg[iarg+3][2]);
@@ -325,9 +325,9 @@ void Region::options(int narg, char **arg)
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (iarg+8 > narg) error->all("Illegal region command");
+      if (iarg+8 > narg) error->all(FLERR,"Illegal region command");
       if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
-	error->all("Illegal region command");
+	error->all(FLERR,"Illegal region command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       tstr = new char[n];
       strcpy(tstr,&arg[iarg+1][2]);
@@ -339,19 +339,19 @@ void Region::options(int narg, char **arg)
       axis[2] = atof(arg[iarg+7]);
       rotateflag = 1;
       iarg += 8;
-    } else error->all("Illegal region command");
+    } else error->all(FLERR,"Illegal region command");
   }
 
   // error check
   
   if ((moveflag || rotateflag) && 
       (strcmp(style,"union") == 0 || strcmp(style,"intersect") == 0))
-    error->all("Region union or intersect cannot be dynamic");
+    error->all(FLERR,"Region union or intersect cannot be dynamic");
 
   // setup scaling
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of region with undefined lattice");
+    error->all(FLERR,"Use of region with undefined lattice");
 
   if (scaleflag) {
     xscale = domain->lattice->xlattice;
@@ -371,7 +371,7 @@ void Region::options(int narg, char **arg)
   if (rotateflag) {
     double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
     if (len == 0.0) 
-      error->all("Region cannot have 0 length rotation vector");
+      error->all(FLERR,"Region cannot have 0 length rotation vector");
     runit[0] = axis[0]/len;
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;

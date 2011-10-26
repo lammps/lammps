@@ -81,6 +81,7 @@ struct cuda_shared_atom		// relevent data from atom class
 	
  	int update_nlocal;
  	int update_nmax;
+ 	int update_neigh;
  	
 	dev_array xhold;	    // position at last neighboring
  	X_FLOAT triggerneighsq;		// maximum square movement before reneighboring
@@ -141,6 +142,7 @@ struct cuda_shared_pair		// relevent data from pair class
 	int collect_forces_later;
 	int use_block_per_atom;
 	int override_block_per_atom;
+	bool neighall;
 	
 };
 
@@ -217,7 +219,7 @@ struct cuda_shared_pppm
    int nlower;
    int nupper;
    PPPM_FLOAT shiftone;
-   
+   PPPM_FLOAT3* fH;
 };
 
 struct cuda_shared_comm

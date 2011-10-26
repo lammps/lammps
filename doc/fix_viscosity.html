@@ -103,12 +103,12 @@ you cannot accurately infer a viscosity and should try increasing
 the Nevery parameter.
 </P>
 <P>An alternative method for calculating a viscosity is to run a NEMD
-simulation, as described in <A HREF = "Section_howto.html#4_13">this section</A> of
-the manual.  NEMD simulations deform the simmulation box via the <A HREF = "fix_deform.html">fix
-deform</A> command.  Thus they cannot be run on a charged
-system using a <A HREF = "kspace_style.html">PPPM solver</A> since PPPM does not
-currently support non-orthogonal boxes.  Using fix viscosity keeps the
-box orthogonal; thus it does not suffer from this limitation.
+simulation, as described in <A HREF = "Section_howto.html#howto_13">this section</A>
+of the manual.  NEMD simulations deform the simmulation box via the
+<A HREF = "fix_deform.html">fix deform</A> command.  Thus they cannot be run on a
+charged system using a <A HREF = "kspace_style.html">PPPM solver</A> since PPPM does
+not currently support non-orthogonal boxes.  Using fix viscosity keeps
+the box orthogonal; thus it does not suffer from this limitation.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -117,7 +117,7 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is the
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
 cummulative momentum transferred between the bottom and middle of the
 simulation box (in the <I>pdim</I> direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined

@@ -20,7 +20,6 @@
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -28,6 +27,10 @@
 #define A3        1.421413741
 #define A4       -1.453152027
 #define A5        1.061405429
+
+inline __device__ int sbmask(int j) {
+  return j >> SBBITS & 3;
+}
 
 template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_atom)
@@ -88,8 +91,8 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_at
 		fytmp = F_F(0.0);
 		fztmp = F_F(0.0);
 
-        if(coul_type!=COUL_NONE)
-  			qtmp = fetchQ(i);
+    if(coul_type!=COUL_NONE)
+      qtmp = fetchQ(i);
 
 		jnum = _numneigh[i];
 		jlist = &_neighbors[i];
@@ -103,10 +106,10 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_at
 		{
 			fpair=F_F(0.0);
 			j = jlist[jj*_nlocal];
-			factor_lj = j<_nall ? F_F(1.0) : _special_lj[j/_nall];
-            if(coul_type!=COUL_NONE)
-			  factor_coul = j<_nall ? F_F(1.0) : _special_coul[j/_nall];
-			j = j<_nall ? j : j % _nall;
+			factor_lj =  _special_lj[sbmask(j)];
+      if(coul_type!=COUL_NONE)
+			  factor_coul = _special_coul[sbmask(j)];
+			j &= NEIGHMASK;
 			
 			myxtype = fetchXType(j);
 			delx = xtmp - myxtype.x;
@@ -230,7 +233,6 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_at
 	    	        fpair += forcecoul*r2inv;
 				  }
 				    break;
-				    
 			    }
 		      }
 		      in_cutoff=in_cutoff || in_coul_cutoff;
@@ -388,12 +390,12 @@ template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned
 		{
 			fpair=F_F(0.0);
 			j = jlist[jj];
-			factor_lj   = j<_nall ? F_F(1.0) : _special_lj[j/_nall];
-        	if(coul_type!=COUL_NONE)
-				factor_coul = j<_nall ? F_F(1.0) : _special_coul[j/_nall];
-			j 			= j<_nall ? j : j % _nall;
-  	    
-  	    	myxtype = fetchXType(j);
+      factor_lj =  _special_lj[sbmask(j)];
+      if(coul_type!=COUL_NONE)
+        factor_coul = _special_coul[sbmask(j)];
+      j &= NEIGHMASK;
+
+  	  myxtype = fetchXType(j);
 
 			delx = xtmp - myxtype.x;
 			dely = ytmp - myxtype.y;

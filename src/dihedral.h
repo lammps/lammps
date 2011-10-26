@@ -20,6 +20,8 @@
 namespace LAMMPS_NS {
 
 class Dihedral : protected Pointers {
+ friend class ThrOMP;
+
  public:
   int allocated;
   int *setflag;
@@ -39,8 +41,6 @@ class Dihedral : protected Pointers {
   virtual double memory_usage();
 
  protected:
-  double PI;
-
   int evflag;
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;

@@ -37,9 +37,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
@@ -164,7 +161,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
         dr = r - d_ij;
 
         rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
-	  (dr / sqrt(cutsq[itype][jtype]));
+	  (dr / cut[itype][jtype]);
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
 
@@ -185,7 +182,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   // grow bond forces array if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(s0_new);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
@@ -226,7 +223,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -301,7 +298,7 @@ void PairPeriPMB::allocate()
 
 void PairPeriPMB::settings(int narg, char **arg)
 {
-  if (narg) error->all("Illegal pair_style command");
+  if (narg) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -310,7 +307,7 @@ void PairPeriPMB::settings(int narg, char **arg)
 
 void PairPeriPMB::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for pair coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -334,7 +331,7 @@ void PairPeriPMB::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -343,11 +340,12 @@ void PairPeriPMB::coeff(int narg, char **arg)
 
 double PairPeriPMB::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
@@ -360,16 +358,16 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) error->all("Pair style peri requires atom style peri");
+  if (!atom->peri_flag) error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0) 
-    error->all("Pair peri requires an atom map, see atom_modify");
+    error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice == NULL)
-    error->all("Pair peri requires a lattice be defined");
+    error->all(FLERR,"Pair peri requires a lattice be defined");
   if (domain->lattice->xlattice != domain->lattice->ylattice || 
       domain->lattice->xlattice != domain->lattice->zlattice || 
       domain->lattice->ylattice != domain->lattice->zlattice)
-    error->all("Pair peri lattice is not identical in x, y, and z");
+    error->all(FLERR,"Pair peri lattice is not identical in x, y, and z");
 
   // if first init, create Fix needed for storing fixed neighbors
 
@@ -387,7 +385,7 @@ void PairPeriPMB::init_style()
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all("Fix peri neigh does not exist");
+  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
 
   neighbor->request(this);
 }

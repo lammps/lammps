@@ -15,7 +15,7 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(user-cuda_SYSPATH) |' ../Makefile.package
   fi
 
-  if (test -e ../Makefile.package.include) then
+  if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*cuda.*$/d' ../Makefile.package.settings
     sed -i '4 i include ..\/..\/lib\/cuda\/Makefile.lammps' ../Makefile.package.settings
   fi
@@ -82,6 +82,12 @@ if (test $1 = 1) then
     cp pair_eam_alloy_cuda.h ..
     cp pair_eam_cuda.h ..
     cp pair_eam_fs_cuda.h ..
+    cp pair_sw_cuda.h ..
+    cp pair_sw_cuda.cpp ..
+    cp pair_tersoff_cuda.h ..
+    cp pair_tersoff_cuda.cpp ..
+    cp pair_tersoff_zbl_cuda.h ..
+    cp pair_tersoff_zbl_cuda.cpp ..
   fi
 
   if (test -e ../pair_gran_hooke.cpp) then
@@ -148,7 +154,6 @@ if (test $1 = 1) then
   cp pair_lj_gromacs_cuda.cpp ..
   cp pair_lj_smooth_cuda.cpp ..
   cp pair_morse_cuda.cpp ..
-  cp pppm_cuda.cpp ..
   cp verlet_cuda.cpp ..
 
   cp cuda.cpp ..
@@ -194,12 +199,9 @@ if (test $1 = 1) then
   cp verlet_cuda.h ..
 
   cp cuda.h ..
-  cp cuda_common.h ..
   cp cuda_data.h ..
   cp cuda_modify_flags.h ..
   cp cuda_neigh_list.h ..
-  cp cuda_precision.h ..
-  cp cuda_shared.h ..
 
 elif (test $1 = 0) then
 
@@ -342,12 +344,15 @@ elif (test $1 = 0) then
   rm -f ../pppm_cuda.h
   rm -f ../verlet_cuda.h
 
+  rm -f ../pair_sw_cuda.h 
+  rm -f ../pair_sw_cuda.cpp
+  rm -f ../pair_tersoff_cuda.h 
+  rm -f ../pair_tersoff_cuda.cpp 
+  rm -f ../pair_tersoff_zbl_cuda.h 
+  rm -f ../pair_tersoff_zbl_cuda.cpp   
+  
   rm -f ../cuda.h
-  rm -f ../cuda_common.h
   rm -f ../cuda_data.h
   rm -f ../cuda_modify_flags.h
   rm -f ../cuda_neigh_list.h
-  rm -f ../cuda_precision.h
-  rm -f ../cuda_shared.h
-
 fi

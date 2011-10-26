@@ -28,7 +28,7 @@
 <LI>style_name = <I>nvt</I> or <I>npt</I> or <I>nph</I> 
 
 <PRE>one or more keyword value pairs may be appended
-keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I>
+keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I> or <I>scaleyz</I> or <I>scalexz</I> or <I>scalexy</I>
   <I>temp</I> values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -322,8 +322,8 @@ have their temperature controlled by another fix - e.g. by <A HREF = "fix_nh.htm
 langevin</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>
 commands.
 </P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting and barostatting.
 </P>
 <HR>
@@ -380,14 +380,14 @@ run faster, depending on your available hardware, as discussed in
 styles take the same arguments and should produce the same results,
 except for round-off and precision issues.
 </P>
-<P>These accelerated styles are part of the "user-cuda" package.  They
-are only enabled if LAMMPS was built with that package.  See the
-<A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#2_6">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can use
-the <A HREF = "suffix.html">suffix</A> command in your input script.
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
 </P>
 <P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
 instructions on how to use the accelerated styles effectively.
@@ -428,7 +428,7 @@ and barostatting to the system's potential energy as part of
 <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
 <P>These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The scalar value calculated by
 these fixes is "extensive"; the vector values are "intensive".
 </P>

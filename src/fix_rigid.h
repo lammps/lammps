@@ -56,6 +56,7 @@ class FixRigid : public Fix {
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
+  double MINUSPI,TWOPI;
 
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
@@ -82,11 +83,11 @@ class FixRigid : public Fix {
   int **remapflag;          // PBC remap flags for each rigid body
 
   int extended;             // 1 if any particles have extended attributes
+  int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
-  int qorientflag;          // 1 if particles store quat orientation
 
   int *eflags;              // flags for extended particles
-  double **qorient;         // rotation state of ext particle wrt rigid body
+  double **orient;          // orientation vector of particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
 
   double tfactor;           // scale factor on temperature of rigid bodies
@@ -104,10 +105,10 @@ class FixRigid : public Fix {
 
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
 
-                            // bitmasks for eflags
-  int INERTIA_POINT,INERTIA_SPHERE,INERTIA_ELLIPSOID;
-  int ORIENT_DIPOLE,ORIENT_QUAT;
+  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
   void no_squish_rotate(int, double *, double *, double *, double);

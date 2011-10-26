@@ -35,7 +35,7 @@ enum{INT,DOUBLE};
 DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) : 
   Dump(lmp, narg, arg)
 {
-  if (narg == 5) error->all("No dump local arguments specified");
+  if (narg == 5) error->all(FLERR,"No dump local arguments specified");
 
   clearstep = 1;
 
@@ -123,7 +123,7 @@ DumpLocal::~DumpLocal()
 void DumpLocal::init_style()
 {
   if (sort_flag && sortcol == 0)
-    error->all("Dump local cannot sort by atom ID");
+    error->all(FLERR,"Dump local cannot sort by atom ID");
 
   delete [] format;
   char *str;
@@ -152,17 +152,17 @@ void DumpLocal::init_style()
   int icompute;
   for (int i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find dump local compute ID");
+    if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
     compute[i] = modify->compute[icompute];
   }
 
   int ifix;
   for (int i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find dump local fix ID");
+    if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->local_freq)
-      error->all("Dump local and fix not computed at compatible times");
+      error->all(FLERR,"Dump local and fix not computed at compatible times");
   }
 
   // open single file, one time only
@@ -175,7 +175,7 @@ void DumpLocal::init_style()
 int DumpLocal::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"label") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     delete [] label;
     int n = strlen(arg[1]) + 1;
     label = new char[n];
@@ -223,13 +223,13 @@ int DumpLocal::count()
   for (int i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
-      error->one("Dump local count is not consistent across input fields");
+      error->one(FLERR,"Dump local count is not consistent across input fields");
   }
 
   for (int i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
-      error->one("Dump local count is not consistent across input fields");
+      error->one(FLERR,"Dump local count is not consistent across input fields");
   }
 
   return nmine;
@@ -290,22 +290,22 @@ void DumpLocal::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump local command");
+	  error->all(FLERR,"Invalid attribute in dump local command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_compute(suffix);
-      if (n < 0) error->all("Could not find dump local compute ID");
+      if (n < 0) error->all(FLERR,"Could not find dump local compute ID");
       if (modify->compute[n]->local_flag == 0)
-	error->all("Dump local compute does not compute local info");
+	error->all(FLERR,"Dump local compute does not compute local info");
       if (argindex[i] == 0 && modify->compute[n]->size_local_cols > 0)
-	error->all("Dump local compute does not calculate local vector");
+	error->all(FLERR,"Dump local compute does not calculate local vector");
       if (argindex[i] > 0 && modify->compute[n]->size_local_cols == 0)
-	error->all("Dump local compute does not calculate local array");
+	error->all(FLERR,"Dump local compute does not calculate local array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->compute[n]->size_local_cols)
-	error->all("Dump local compute vector is accessed out-of-range");
+	error->all(FLERR,"Dump local compute vector is accessed out-of-range");
 
       field2index[i] = add_compute(suffix);
       delete [] suffix;
@@ -325,31 +325,31 @@ void DumpLocal::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump local command");
+	  error->all(FLERR,"Invalid attribute in dump local command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_fix(suffix);
-      if (n < 0) error->all("Could not find dump local fix ID");
+      if (n < 0) error->all(FLERR,"Could not find dump local fix ID");
       if (modify->fix[n]->local_flag == 0)
-	error->all("Dump local fix does not compute local info");
+	error->all(FLERR,"Dump local fix does not compute local info");
       if (argindex[i] == 0 && modify->fix[n]->size_local_cols > 0)
-	error->all("Dump local fix does not compute local vector");
+	error->all(FLERR,"Dump local fix does not compute local vector");
       if (argindex[i] > 0 && modify->fix[n]->size_local_cols == 0)
-	error->all("Dump local fix does not compute local array");
+	error->all(FLERR,"Dump local fix does not compute local array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->fix[n]->size_local_cols)
-	error->all("Dump local fix vector is accessed out-of-range");
+	error->all(FLERR,"Dump local fix vector is accessed out-of-range");
 
       field2index[i] = add_fix(suffix);
       delete [] suffix;
 
-    } else error->all("Invalid attribute in dump local command");
+    } else error->all(FLERR,"Invalid attribute in dump local command");
   }
 
   if (computefixflag == 0)
-    error->all("Dump local attributes contain no compute or fix");
+    error->all(FLERR,"Dump local attributes contain no compute or fix");
 }
 
 /* ----------------------------------------------------------------------

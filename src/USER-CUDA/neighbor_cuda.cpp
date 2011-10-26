@@ -26,8 +26,8 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
@@ -37,7 +37,7 @@ NeighborCuda::NeighborCuda(LAMMPS *lmp) : Neighbor(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,9 +59,9 @@ void NeighborCuda::choose_build(int index, NeighRequest *rq)
 {
   Neighbor::choose_build(index,rq);
   
-  if (rq->full && style == NSQ && rq->ghost == 0 && rq->cudable)
+  if (rq->full && style == NSQ && rq->cudable)
     pair_build[index] = (Neighbor::PairPtr) &NeighborCuda::full_nsq_cuda;
-  else if (rq->full && style == BIN && rq->ghost == 0 && rq->cudable)
+  else if (rq->full && style == BIN && rq->cudable)
     pair_build[index] = (Neighbor::PairPtr) &NeighborCuda::full_bin_cuda;
 }
 
@@ -206,7 +206,7 @@ void NeighborCuda::build()
   // check that neighbor list with special bond flags will not overflow
 
   if (atom->nlocal+atom->nghost > NEIGHMASK)
-    error->one("Too many local+ghost atoms for neighbor list");
+    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set

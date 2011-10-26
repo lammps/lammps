@@ -37,9 +37,6 @@ using namespace LAMMPS_NS;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.cpp
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -656,7 +653,7 @@ void PairLJCharmmCoulLong::allocate()
 
 void PairLJCharmmCoulLong::settings(int narg, char **arg)
 {
-  if (narg != 2 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 2 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
   cut_lj = force->numeric(arg[1]);
@@ -670,7 +667,7 @@ void PairLJCharmmCoulLong::settings(int narg, char **arg)
 
 void PairLJCharmmCoulLong::coeff(int narg, char **arg)
 {
-  if (narg != 4 && narg != 6) error->all("Illegal pair_coeff command");
+  if (narg != 4 && narg != 6) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -698,7 +695,7 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -708,7 +705,7 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
 void PairLJCharmmCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmm/coul/long requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 
@@ -749,7 +746,7 @@ void PairLJCharmmCoulLong::init_style()
   // require cut_lj_inner < cut_lj
 
   if (cut_lj_inner >= cut_lj) 
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;
@@ -765,15 +762,15 @@ void PairLJCharmmCoulLong::init_style()
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (MIN(cut_lj,cut_coul) < cut_respa[3])
-      error->all("Pair cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair cutoff < Respa interior cutoff");
     if (cut_lj_inner < cut_respa[1])
-      error->all("Pair inner cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair inner cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
   
   // setup force tables

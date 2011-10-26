@@ -527,6 +527,14 @@ pair_lj_cut_coul_cut_gpu.cpp
 pair_lj_cut_coul_cut_gpu.h
 pair_lj_cut_coul_long_gpu.cpp
 pair_lj_cut_coul_long_gpu.h
+pair_lj_sdk.cpp
+pair_lj_sdk.h
+pair_lj_sdk_omp.cpp
+pair_lj_sdk_omp.h
+pair_lj_sdk_coul_long.cpp
+pair_lj_sdk_coul_long.h
+pair_lj_sdk_coul_long_omp.cpp
+pair_lj_sdk_coul_long_omp.h
 pair_lj_sf.cpp
 pair_lj_sf.h
 pair_lj_sf_omp.cpp

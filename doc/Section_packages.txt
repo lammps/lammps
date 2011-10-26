@@ -40,6 +40,7 @@ ASPHERE, aspherical particles, -, "howto"_Section_howto.html#howto_14, ellipse, 
 CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
+FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
 GPU, GPU-enabled potentials, Mike Brown (ORNL), "accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
 GRANULAR, granular systems, -, "howto"_Section_howto.html#howto_6, pour, -
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
@@ -47,7 +48,7 @@ MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
 MOLECULE, molecular system force fields, -, "howto"_Section_howto.html#howto_3, peptide, -
-OPT, optimized pair potentials, Fischer & Richie & Natoli (1), "howto"_Section_accelerate.html#acc_1, -, -
+OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "howto"_Section_accelerate.html#acc_1, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
@@ -60,7 +61,10 @@ XTC, dumps in XTC format, -, "dump"_dump.html, -, -
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 
-(1) The OPT package was created by James Fischer (High Performance
+(1) The FLD package was created by Amit Kumar and Michael Bybee from
+Jonathan Higdon's group at UIUC.
+
+(2) The OPT package was created by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
 Technolgy).
 

@@ -599,7 +599,7 @@ void PairCombOMP::Short_neigh_thr()
     int iito   = iifrom + iidelta;
     if (iito > inum) iito = inum;
 
-    npage = tid;
+    int npage = tid;
     npntj = 0;
 
     for (ii = iifrom; ii < iito; ii++) {

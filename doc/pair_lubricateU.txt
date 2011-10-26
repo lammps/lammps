@@ -58,7 +58,7 @@ computed.  Using a {cutoff} less than 3 radii is recommended if
 {flaglog} is set to 1.
 
 The other component is due to the Fast Lubrication Dynamics (FLD)
-approximation, described in "(Higdon)"_#Higdon.  The equation being
+approximation, described in "(Kumar)"_#Kumar.  The equation being
 solved to balance the forces and torques is
 
 :c,image(Eqs/fld2.jpg)
@@ -187,5 +187,5 @@ lubricate"_pair_lubricate.html
 :link(Ball)
 [(Ball)] Ball and Melrose, Physica A, 247, 444-472 (1997).
 
-:link(Higdon)
-[(Higdon)] Amit and Higdon, Phys Rev E (2010).
+:link(Kumar)
+[(Kumar)] Kumar and Higdon, Phys Rev E, 82, 051401 (2010).

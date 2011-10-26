@@ -26,9 +26,9 @@ namespace LAMMPS_NS {
 
 class PairDipoleCut : public Pair {
  public:
-    PairDipoleCut(class LAMMPS *);
-  ~PairDipoleCut();
-  void compute(int, int);
+  PairDipoleCut(class LAMMPS *);
+  virtual ~PairDipoleCut();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -38,7 +38,7 @@ class PairDipoleCut : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
   double cut_lj_global,cut_coul_global;
   double **cut_lj,**cut_ljsq;
   double **cut_coul,**cut_coulsq;

@@ -31,15 +31,14 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
 PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+
   nmax = 0;
   rho = NULL;
   fp = NULL;
@@ -423,7 +422,7 @@ void PairADP::allocate()
 
 void PairADP::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all("Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -438,12 +437,12 @@ void PairADP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read ADP parameter file
 
@@ -472,7 +471,7 @@ void PairADP::coeff(int narg, char **arg)
     for (j = 0; j < setfl->nelements; j++)
       if (strcmp(arg[i],setfl->elements[j]) == 0) break;
     if (j < setfl->nelements) map[i-2] = j;
-    else error->all("No matching element in ADP potential file");
+    else error->all(FLERR,"No matching element in ADP potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -496,7 +495,7 @@ void PairADP::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -549,7 +548,7 @@ void PairADP::read_file(char *filename)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open ADP potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -570,7 +569,7 @@ void PairADP::read_file(char *filename)
   sscanf(line,"%d",&file->nelements);
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
-    error->all("Incorrect element names in ADP potential file");
+    error->all(FLERR,"Incorrect element names in ADP potential file");
   
   char **words = new char*[file->nelements+1];
   nwords = 0;
@@ -1025,8 +1024,7 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairADP::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = Pair::memory_usage();
   bytes += 21 * nmax * sizeof(double);
   return bytes;
 }

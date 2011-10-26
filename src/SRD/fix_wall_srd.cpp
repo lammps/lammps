@@ -36,7 +36,7 @@ enum{NONE,EDGE,CONSTANT,VARIABLE};
 FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix wall/srd command");
+  if (narg < 4) error->all(FLERR,"Illegal fix wall/srd command");
 
   // parse args
 
@@ -48,7 +48,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
 	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
 	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all("Illegal fix wall/srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/srd command");
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -60,7 +60,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; m < nwall; m++)
 	if (newwall == wallwhich[m])
-	  error->all("Wall defined twice in fix wall/srd command");
+	  error->all(FLERR,"Wall defined twice in fix wall/srd command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
@@ -83,30 +83,30 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal wall/srd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/srd command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix wall/srd command");
+      else error->all(FLERR,"Illegal fix wall/srd command");
       iarg += 2;
-    } else error->all("Illegal fix wall/srd command");
+    } else error->all(FLERR,"Illegal fix wall/srd command");
   }
 
   // error check
 
-  if (nwall == 0) error->all("Illegal fix wall command");
+  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all("Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all("Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all("Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all("Cannot use fix wall/srd zlo/zhi for a 2d simulation");
+      error->all(FLERR,"Cannot use fix wall/srd zlo/zhi for a 2d simulation");
 
   // setup wall force array
 
@@ -127,7 +127,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
-      error->all("Use of fix wall with undefined lattice");
+      error->all(FLERR,"Use of fix wall with undefined lattice");
 
     double xscale,yscale,zscale;
     if (scaleflag) {
@@ -188,15 +188,15 @@ void FixWallSRD::init()
   int flag = 0;
   for (int m = 0; m < modify->nfix; m++)
     if (strcmp(modify->fix[m]->style,"srd") == 0) flag = 1;
-  if (!flag) error->all("Cannot use fix wall/srd without fix srd");
+  if (!flag) error->all(FLERR,"Cannot use fix wall/srd without fix srd");
 
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all("Variable name for fix wall/srd does not exist");
+      error->all(FLERR,"Variable name for fix wall/srd does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all("Variable for fix wall/srd is invalid style");
+      error->all(FLERR,"Variable for fix wall/srd is invalid style");
   }
 
   dt = update->dt;

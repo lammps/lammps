@@ -53,9 +53,6 @@ using namespace LAMMPS_NS;
 
 #include "cuda_modify_flags.h"
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
@@ -64,7 +61,7 @@ ModifyCuda::ModifyCuda(LAMMPS *lmp) : Modify(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   n_initial_integrate_cuda = 0;
   n_post_integrate_cuda = 0;
@@ -242,7 +239,7 @@ void ModifyCuda::init()
   int checkall;
   MPI_Allreduce(&check,&checkall,1,MPI_INT,MPI_SUM,world);
   if (comm->me == 0 && checkall)
-    error->warning("One or more atoms are time integrated more than once");
+    error->warning(FLERR,"One or more atoms are time integrated more than once");
 }
 
 /* ----------------------------------------------------------------------

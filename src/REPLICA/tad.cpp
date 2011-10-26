@@ -80,17 +80,17 @@ void TAD::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0) 
-    error->all("Tad command before simulation box is defined");
+    error->all(FLERR,"Tad command before simulation box is defined");
   if (universe->nworlds == 1) 
-    error->all("Cannot use TAD with a single replica for NEB");
+    error->all(FLERR,"Cannot use TAD with a single replica for NEB");
   if (universe->nworlds != universe->nprocs)
-    error->all("Can only use TAD with 1-processor replicas for NEB");
+    error->all(FLERR,"Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
-    error->all("Cannot use TAD with atom_modify sort enabled for NEB");
+    error->all(FLERR,"Cannot use TAD with atom_modify sort enabled for NEB");
   if (atom->map_style == 0) 
-    error->all("Cannot use TAD unless atom map exists for NEB");
+    error->all(FLERR,"Cannot use TAD unless atom map exists for NEB");
 
-  if (narg < 7) error->universe_all("Illegal tad command");
+  if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
   nsteps = atoi(arg[0]);
   t_event = atoi(arg[1]);
@@ -106,15 +106,15 @@ void TAD::command(int narg, char **arg)
 
   // total # of timesteps must be multiple of t_event
 
-  if (t_event <= 0) error->universe_all("Invalid t_event in tad command");
+  if (t_event <= 0) error->universe_all(FLERR,"Invalid t_event in tad command");
   if (nsteps % t_event) 
-    error->universe_all("TAD nsteps must be multiple of t_event");
+    error->universe_all(FLERR,"TAD nsteps must be multiple of t_event");
 
   if (delta_conf <= 0.0 || delta_conf >= 1.0) 
-    error->universe_all("Invalid delta_conf in tad command");
+    error->universe_all(FLERR,"Invalid delta_conf in tad command");
 
   if (tmax <= 0.0) 
-    error->universe_all("Invalid tmax in tad command");
+    error->universe_all(FLERR,"Invalid tmax in tad command");
 
   // deltconf = (ln(1/delta))/freq_min (timestep units)
 
@@ -171,7 +171,7 @@ void TAD::command(int narg, char **arg)
   // necessary so it will know atom coords at last event
 
   int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all("Could not find compute ID for TAD");
+  if (icompute < 0) error->all(FLERR,"Could not find compute ID for TAD");
   compute_event = modify->compute[icompute];
   compute_event->reset_extra_compute_fix("tad_event");
 
@@ -183,7 +183,7 @@ void TAD::command(int narg, char **arg)
 
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (me_universe == 0) 
-      error->warning("Resetting reneighboring criteria during TAD");
+      error->warning(FLERR,"Resetting reneighboring criteria during TAD");
   }
 
   neighbor->every = 1;
@@ -198,7 +198,7 @@ void TAD::command(int narg, char **arg)
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all(FLERR,"Too many timesteps");
 
   lmp->init();
 
@@ -470,7 +470,7 @@ void TAD::quench()
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many iterations");
+    error->all(FLERR,"Too many iterations");
 
   // full init works
 
@@ -570,7 +570,7 @@ void TAD::log_event(int ievent)
 
 void TAD::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal tad command");
+  if (narg < 0) error->all(FLERR,"Illegal tad command");
 
   // set defaults
   
@@ -594,18 +594,18 @@ void TAD::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
-      if (iarg+5 > narg) error->all("Illegal tad command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal tad command");
       etol = atof(arg[iarg+1]);
       ftol = atof(arg[iarg+2]);
       maxiter = atoi(arg[iarg+3]);
       maxeval = atoi(arg[iarg+4]);
       if (maxiter < 0 || maxeval < 0 || 
 	  etol < 0.0 || ftol < 0.0 ) 
-	error->all("Illegal tad command");
+	error->all(FLERR,"Illegal tad command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"neb") == 0) {
-      if (iarg+6 > narg) error->all("Illegal tad command");
+      if (iarg+6 > narg) error->all(FLERR,"Illegal tad command");
       etol_neb = atof(arg[iarg+1]);
       ftol_neb = atof(arg[iarg+2]);
       n1steps_neb = atoi(arg[iarg+3]);
@@ -613,11 +613,11 @@ void TAD::options(int narg, char **arg)
       nevery_neb = atoi(arg[iarg+5]);
       if (etol_neb < 0.0 || ftol_neb < 0.0 || 
 	  n1steps_neb < 0 || n2steps_neb < 0 ||
-	  nevery_neb < 0) error->all("Illegal tad command");
+	  nevery_neb < 0) error->all(FLERR,"Illegal tad command");
       iarg += 6;
       
     } else if (strcmp(arg[iarg],"min_style") == 0) {
-      if (iarg+2 > narg) error->all("Illegal tad command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       int n = strlen(arg[iarg+1]) + 1;
       delete [] min_style;
       min_style = new char[n];
@@ -625,7 +625,7 @@ void TAD::options(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_style") == 0) {
-      if (iarg+2 > narg) error->all("Illegal tad command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       int n = strlen(arg[iarg+1]) + 1;
       delete [] min_style_neb;
       min_style_neb = new char[n];
@@ -634,7 +634,7 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
       delete [] neb_logfilename;
-      if (iarg+2 > narg) error->all("Illegal tad command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = NULL;
       else {
 	int n = strlen(arg[iarg+1]) + 1;
@@ -642,7 +642,7 @@ void TAD::options(int narg, char **arg)
 	strcpy(neb_logfilename,arg[iarg+1]);
       }
       iarg += 2;
-    } else error->all("Illegal tad command");
+    } else error->all(FLERR,"Illegal tad command");
   }
 }
 

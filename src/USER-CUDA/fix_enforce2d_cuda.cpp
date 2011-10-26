@@ -54,9 +54,9 @@ FixEnforce2DCuda::FixEnforce2DCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg != 3) error->all("Illegal fix enforce2d command");
+  if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,15 +75,15 @@ int FixEnforce2DCuda::setmask()
 void FixEnforce2DCuda::init()
 {
   if (domain->dimension == 3)
-    error->all("Cannot use fix enforce2d/cuda with 3d simulation");
+    error->all(FLERR,"Cannot use fix enforce2d/cuda with 3d simulation");
   if (atom->omega_flag) 
-    error->warning("Enforce2d/cuda does not support omega_flag on gpu yet. Will be handled on cpu.");
+    error->warning(FLERR,"Enforce2d/cuda does not support omega_flag on gpu yet. Will be handled on cpu.");
   	
   if (atom->angmom_flag)
-    error->warning("Enforce2d/cuda does not support angmom_flag (angular momentum) on gpu yet. Will be handled on cpu.");
+    error->warning(FLERR,"Enforce2d/cuda does not support angmom_flag (angular momentum) on gpu yet. Will be handled on cpu.");
 
   if (atom->torque_flag) 
-    error->warning("Enforce2d/cuda does not support torque_flag on gpu yet. Will be handled on cpu.");
+    error->warning(FLERR,"Enforce2d/cuda does not support torque_flag on gpu yet. Will be handled on cpu.");
 }
 
 /* ---------------------------------------------------------------------- */

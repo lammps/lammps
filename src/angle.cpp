@@ -14,11 +14,14 @@
 #include "math.h"
 #include "angle.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -27,8 +30,6 @@ Angle::Angle(LAMMPS *lmp) : Pointers(lmp)
   energy = 0.0;
 
   allocated = 0;
-  PI = 4.0*atan(1.0);
-  THIRD = 1.0/3.0;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;
@@ -49,9 +50,9 @@ Angle::~Angle()
 
 void Angle::init()
 {
-  if (!allocated) error->all("Angle coeffs are not set");
+  if (!allocated) error->all(FLERR,"Angle coeffs are not set");
   for (int i = 1; i <= atom->nangletypes; i++)
-    if (setflag[i] == 0) error->all("All angle coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All angle coeffs are not set");
 }
 
 /* ----------------------------------------------------------------------
@@ -78,12 +79,12 @@ void Angle::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators
@@ -216,7 +217,7 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
 
 double Angle::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

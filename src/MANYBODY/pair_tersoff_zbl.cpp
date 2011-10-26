@@ -31,7 +31,9 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -54,7 +56,7 @@ PairTersoffZBL::PairTersoffZBL(LAMMPS *lmp) : PairTersoff(lmp)
     global_a_0 = 0.529;
     global_epsilon_0 = 0.00552635 * 0.043365121;
     global_e = 1.0;
-  } else error->all("Pair tersoff/zbl requires metal or real units");
+  } else error->all(FLERR,"Pair tersoff/zbl requires metal or real units");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +78,7 @@ void PairTersoffZBL::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Tersoff potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -126,7 +128,7 @@ void PairTersoffZBL::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in Tersoff potential file");
+      error->all(FLERR,"Incorrect format in Tersoff potential file");
 
     // words = ptrs to all words in line
 
@@ -195,7 +197,7 @@ void PairTersoffZBL::read_file(char *file)
 	params[nparams].gamma < 0.0 ||
 	params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
 	params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
-      error->all("Illegal Tersoff parameter");
+      error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;
   }
@@ -224,7 +226,7 @@ void PairTersoffZBL::repulsive(Param *param, double rsq, double &fforce,
   double esq = pow(global_e,2.0);
   double a_ij = (0.8854*global_a_0) / 
     (pow(param->Z_i,0.23) + pow(param->Z_j,0.23));
-  double premult = (param->Z_i * param->Z_j * esq)/(4.0*PI*global_epsilon_0);
+  double premult = (param->Z_i * param->Z_j * esq)/(4.0*MY_PI*global_epsilon_0);
   double r_ov_a = r/a_ij;
   double phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) + 
     0.2802*exp(-0.4029*r_ov_a) + 0.02817*exp(-0.2016*r_ov_a);
@@ -232,7 +234,7 @@ void PairTersoffZBL::repulsive(Param *param, double rsq, double &fforce,
 			      0.9423*0.5099*exp(-0.9423*r_ov_a) - 
 			      0.4029*0.2802*exp(-0.4029*r_ov_a) - 
 			      0.2016*0.02817*exp(-0.2016*r_ov_a));
-  double fforce_ZBL = premult*-pow(r,-2.0)* phi + premult*pow(r,-1.0)*dphi;
+  double fforce_ZBL = premult*-phi/rsq + premult*dphi/r;
   double eng_ZBL = premult*(1.0/r)*phi;
   
   // combine two parts with smoothing by Fermi-like function

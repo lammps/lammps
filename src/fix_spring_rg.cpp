@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal fix spring/rg command");
+  if (narg != 5) error->all(FLERR,"Illegal fix spring/rg command");
 
   k = atof(arg[3]);
   rg0_flag = 0;

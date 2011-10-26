@@ -1,26 +1,5 @@
-The files in this directory are a user-contributed package for LAMMPS.
-
-The person who created these files is Andres Jaramillo-Botero at
-CalTech (ajaramil@wag.caltech.edu).  Contact him directly if you have
-questions.
-
---------------------------------------
-
-Andres Jaramillo-Botero
-California Institute of Technology (Caltech)
-Chemistry and Chemical Engineering, 139-74
-1200 E. California Blvd., Pasadena, CA 91125
-Phone: (626) 395-3591
-e-mail: ajaramil@wag.caltech.edu
-
-Co-Authors: 
-Julius Su (jsu@wag.caltech.edu)
-William A. Goddard III (wag@wag.caltech.edu)
-
-PACKAGE DESCRIPTION:
-
-Contains a LAMMPS implementation of the electron Force Field (eFF)
-currently under development at Caltech, as described in
+This package contains a LAMMPS implementation of the electron Force
+Field (eFF) currently under development at Caltech, as described in
 A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC,
 2010. The eFF potential was first introduced by Su and Goddard, in
 2007.
@@ -45,14 +24,31 @@ The necessary customizations to the LAMMPS core are in place to
 enable the correct handling of explicit electron properties during
 minimization and dynamics.
 
-INSTALLATION:
+See the doc page for the pair_style eff/cut command to get started.
 
-via a normal LAMMPS package installation: make yes-user-eff
+There are example scripts for using this package in
+examples/USER/eff.
 
-OTHERS FILES INCLUDED:
+There are auxiliary tools for using this package in tools/eff.
 
-User examples are under examples/USER/eff
-eFF tools are under tools/eff
+The person who created this package is Andres Jaramillo-Botero at
+CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
+have questions.
+
+-------------------------
+
+AUTHOR INFORMATION:
+
+Andres Jaramillo-Botero
+California Institute of Technology (Caltech)
+Chemistry and Chemical Engineering, 139-74
+1200 E. California Blvd., Pasadena, CA 91125
+Phone: (626) 395-3591
+e-mail: ajaramil@wag.caltech.edu
+
+Co-Authors: 
+Julius Su (jsu@wag.caltech.edu)
+William A. Goddard III (wag@wag.caltech.edu)
 
 ACKNOWLEDGMENTS:
 
@@ -70,11 +66,11 @@ Version 01/2010: Special thanks to:
 - Qi An (Caltech) for providing feedback on usage, application cases, and testing.
 
 VERSION NOTES:
-01/2010: Added support for fixed-core and effective core pseudopotentials [ECP]
-(useful for C, Al, Si, O and other elements).  Cleaned up the code to make it
-easier to maintain, revised support for real units, upgraded post-processing
-and visualization tools, added support for "compute pair eff" to allow thermo
-prints with the different eFF energy components (eke, epauli, ecoul and errestrain), 
+
+01/2010: Added support for fixed-core and effective core
+pseudopotentials [ECP] (useful for C, Al, Si, O and other elements).
+Cleaned up the code to make it easier to maintain, revised support for
+real units, upgraded post-processing and visualization tools, added
+support for "compute pair eff" to allow thermo prints with the
+different eFF energy components (eke, epauli, ecoul and errestrain),
 fixed radial scaling factors in the eff langevin thermostat.
-
-

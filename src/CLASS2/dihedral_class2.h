@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class DihedralClass2 : public Dihedral {
  public:
   DihedralClass2(class LAMMPS *);
-  ~DihedralClass2();
-  void compute(int, int);
+  virtual ~DihedralClass2();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
- private:
+ protected:
   double *k1,*k2,*k3;
   double *phi1,*phi2,*phi3;
   double *mbt_f1,*mbt_f2,*mbt_f3,*mbt_r0;
@@ -46,7 +46,6 @@ class DihedralClass2 : public Dihedral {
   double *bb13t_k,*bb13t_r10,*bb13t_r30;
   int *setflag_d,*setflag_mbt,*setflag_ebt;
   int *setflag_at,*setflag_aat,*setflag_bb13t;
-  double PI;
 
   void allocate();
 };

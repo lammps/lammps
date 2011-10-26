@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal dump atom command");
+  if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 
   scale_flag = 1;
   image_flag = 0;
@@ -120,16 +120,16 @@ void DumpAtom::init_style()
 int DumpAtom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"scale") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"yes") == 0) scale_flag = 1;
     else if (strcmp(arg[1],"no") == 0) scale_flag = 0;
-    else error->all("Illegal dump_modify command");
+    else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   } else if (strcmp(arg[0],"image") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"yes") == 0) image_flag = 1;
     else if (strcmp(arg[1],"no") == 0) image_flag = 0;
-    else error->all("Illegal dump_modify command");
+    else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
   return 0;

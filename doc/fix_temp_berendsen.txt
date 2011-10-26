@@ -52,8 +52,8 @@ normally be used on atoms that also have their temperature controlled
 by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html commands.
 
-See "this howto section"_Section_howto.html#4_16 of the manual for a
-discussion of different ways to compute temperature and perform
+See "this howto section"_Section_howto.html#howto_16 of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting.
 
 This fix computes a temperature each timestep.  To do this, the fix
@@ -100,14 +100,14 @@ run faster, depending on your available hardware, as discussed in
 styles take the same arguments and should produce the same results,
 except for round-off and precision issues.
 
-These accelerated styles are part of the "user-cuda" package.  They
-are only enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.
+These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line
-switch"_Section_start.html#2_6 when you invoke LAMMPS, or you can use
-the "suffix"_suffix.html command in your input script.
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
 
 See "this section"_Section_accelerate.html of the manual for more
 instructions on how to use the accelerated styles effectively.
@@ -131,7 +131,7 @@ system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
 This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#4_15.  The scalar is the
+"output commands"_Section_howto.html#howto_15.  The scalar is the
 cummulative energy change due to this fix.  The scalar value
 calculated by this fix is "extensive".
 

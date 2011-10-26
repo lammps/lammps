@@ -91,10 +91,10 @@ void Update::init()
 
   if (whichflag == 1 && lmp->cuda)
     if (strstr(integrate_style,"cuda") == NULL)
-      error->all("USER-CUDA mode requires CUDA variant of run style");
+      error->all(FLERR,"USER-CUDA mode requires CUDA variant of run style");
   if (whichflag == 2 && lmp->cuda)
     if (strstr(minimize_style,"cuda") == NULL)
-      error->all("USER-CUDA mode requires CUDA variant of min style");
+      error->all(FLERR,"USER-CUDA mode requires CUDA variant of min style");
 
   // init the appropriate integrate and/or minimize class
   // if neither (e.g. from write_restart) then just return
@@ -118,6 +118,7 @@ void Update::set_units(const char *style)
   
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
+    force->hplanck = 0.18292026;  // using LJ parameters for argon
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -135,6 +136,7 @@ void Update::set_units(const char *style)
     
   } else if (strcmp(style,"real") == 0) {
     force->boltz = 0.0019872067;
+    force->hplanck = 95.306976368;
     force->mvv2e = 48.88821291 * 48.88821291;
     force->ftm2v = 1.0 / 48.88821291 / 48.88821291;
     force->mv2d = 1.0 / 0.602214179;
@@ -152,6 +154,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"metal") == 0) {
     force->boltz = 8.617343e-5;
+    force->hplanck = 4.135667403e-3;
     force->mvv2e = 1.0364269e-4;
     force->ftm2v = 1.0 / 1.0364269e-4;
     force->mv2d = 1.0 / 0.602214179;
@@ -169,6 +172,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"si") == 0) {
     force->boltz = 1.3806504e-23;
+    force->hplanck = 6.62606896e-34;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -186,6 +190,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"cgs") == 0) {
     force->boltz = 1.3806504e-16;
+    force->hplanck = 6.62606896e-27;
     force->mvv2e = 1.0;
     force->ftm2v = 1.0;
     force->mv2d = 1.0;
@@ -203,6 +208,7 @@ void Update::set_units(const char *style)
 
   } else if (strcmp(style,"electron") == 0) {
     force->boltz = 3.16681534e-6;  
+    force->hplanck = 0.1519829846;
     force->mvv2e = 1.06657236;     
     force->ftm2v = 0.937582899;    
     force->mv2d = 1.0;             
@@ -218,7 +224,7 @@ void Update::set_units(const char *style)
     dt = 0.001;
     neighbor->skin = 2.0;
     
-  } else error->all("Illegal units command");
+  } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
   int n = strlen(style) + 1;
@@ -230,7 +236,7 @@ void Update::set_units(const char *style)
 
 void Update::create_integrate(int narg, char **arg, char *suffix)
 {
-  if (narg < 1) error->all("Illegal run_style command");
+  if (narg < 1) error->all(FLERR,"Illegal run_style command");
 
   delete [] integrate_style;
   delete integrate;
@@ -290,7 +296,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
-    else error->all("Illegal integrate style");
+    else error->all(FLERR,"Illegal integrate style");
   }
 }
 
@@ -298,7 +304,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
 void Update::create_minimize(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal min_style command");
+  if (narg != 1) error->all(FLERR,"Illegal min_style command");
 
   delete [] minimize_style;
   delete minimize;
@@ -311,7 +317,7 @@ void Update::create_minimize(int narg, char **arg)
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
 
-  else error->all("Illegal min_style command");
+  else error->all(FLERR,"Illegal min_style command");
 
   int n = strlen(arg[0]) + 1;
   minimize_style = new char[n];
@@ -331,21 +337,21 @@ void Update::create_minimize(int narg, char **arg)
 
 void Update::reset_timestep(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal reset_timestep command");
+  if (narg != 1) error->all(FLERR,"Illegal reset_timestep command");
 
   for (int i = 0; i < output->ndump; i++)
     if (output->last_dump[i] >= 0)
-      error->all("Cannot reset timestep with dump file already written to");
+      error->all(FLERR,"Cannot reset timestep with dump file already written to");
   if (output->restart && output->last_restart >= 0)
-    error->all("Cannot reset timestep with restart file already written");
+    error->all(FLERR,"Cannot reset timestep with restart file already written");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
-      error->all("Cannot reset timestep with a time-dependent fix defined");
+      error->all(FLERR,"Cannot reset timestep with a time-dependent fix defined");
 
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())
-      error->all("Cannot reset timestep with a dynamic region defined");
+      error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
 
   eflag_global = vflag_global = -1;
 
@@ -361,8 +367,8 @@ void Update::reset_timestep(int narg, char **arg)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
 
   ntimestep = ATOBIGINT(arg[0]);
-  if (ntimestep < 0) error->all("Timestep must be >= 0");
-  if (ntimestep > MAXBIGINT) error->all("Too big a timestep");
+  if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
+  if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
 }
 
 /* ----------------------------------------------------------------------

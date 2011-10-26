@@ -89,8 +89,8 @@ void BondFENE::compute(int eflag, int vflag)
       char str[128];
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %d %d %g",
 	      update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(str,0);
-      if (rlogarg <= -3.0) error->one("Bad FENE bond");
+      error->warning(FLERR,str,0);
+      if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
     }
 
@@ -151,7 +151,7 @@ void BondFENE::allocate()
 
 void BondFENE::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all("Incorrect args for bond coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -172,7 +172,7 @@ void BondFENE::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -186,7 +186,7 @@ void BondFENE::init_style()
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0) {
     if (comm->me == 0)
-      error->warning("Use special bonds = 0,1,1 with bond style fene");
+      error->warning(FLERR,"Use special bonds = 0,1,1 with bond style fene");
   }
 }
 
@@ -246,8 +246,8 @@ double BondFENE::single(int type, double rsq, int i, int j)
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
 	    update->ntimestep,sqrt(rsq));
-    error->warning(str,0);
-    if (rlogarg <= -3.0) error->one("Bad FENE bond");
+    error->warning(FLERR,str,0);
+    if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
     rlogarg = 0.1;
   }
 

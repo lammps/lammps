@@ -21,20 +21,16 @@
 #include "force.h"
 #include "update.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,9 +94,9 @@ void PairSoft::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r = sqrt(rsq);
-	arg = PI*r/cut[itype][jtype];
+	arg = MY_PI*r/cut[itype][jtype];
 	if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] * 
-		       sin(arg) * PI/cut[itype][jtype]/r;
+		       sin(arg) * MY_PI/cut[itype][jtype]/r;
 	else fpair = 0.0;
 
 	f[i][0] += delx*fpair;
@@ -150,7 +146,7 @@ void PairSoft::allocate()
 
 void PairSoft::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -170,7 +166,7 @@ void PairSoft::settings(int narg, char **arg)
 
 void PairSoft::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -192,7 +188,7 @@ void PairSoft::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -293,9 +289,9 @@ double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
   double r,arg,philj;
 
   r = sqrt(rsq);
-  arg = PI*r/cut[itype][jtype];
+  arg = MY_PI*r/cut[itype][jtype];
   fforce = factor_lj * prefactor[itype][jtype] * 
-    sin(arg) * PI/cut[itype][jtype]/r;
+    sin(arg) * MY_PI/cut[itype][jtype]/r;
   
   philj = prefactor[itype][jtype] * (1.0+cos(arg));
   return factor_lj*philj;

@@ -36,9 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 enum{R,RSQ,BMP};
 
@@ -53,6 +50,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = 0;
 
   single_enable = 1;
+  restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
@@ -92,40 +90,40 @@ Pair::~Pair()
 
 void Pair::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal pair_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mix") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       if (strcmp(arg[iarg+1],"geometric") == 0) mix_flag = GEOMETRIC;
       else if (strcmp(arg[iarg+1],"arithmetic") == 0) mix_flag = ARITHMETIC;
       else if (strcmp(arg[iarg+1],"sixthpower") == 0) mix_flag = SIXTHPOWER;
-      else error->all("Illegal pair_modify command");
+      else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"shift") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) offset_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) offset_flag = 0;
-      else error->all("Illegal pair_modify command");
+      else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       ncoultablebits = atoi(arg[iarg+1]);
       if (ncoultablebits > sizeof(float)*CHAR_BIT) 
-        error->all("Too many total bits for bitmapped lookup table");
+        error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       tabinner = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) tail_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) tail_flag = 0;
-      else error->all("Illegal pair_modify command");
+      else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
-    } else error->all("Illegal pair_modify command");
+    } else error->all(FLERR,"Illegal pair_modify command");
   }
 }
 
@@ -136,19 +134,19 @@ void Pair::init()
   int i,j;
 
   if (offset_flag && tail_flag)
-    error->all("Cannot have both pair_modify shift and tail set to yes");
+    error->all(FLERR,"Cannot have both pair_modify shift and tail set to yes");
   if (tail_flag && domain->dimension == 2)
-    error->all("Cannot use pair tail corrections with 2d simulations");
+    error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
-    error->warning("Using pair tail corrections with nonperiodic system");
+    error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
 
-  if (!allocated) error->all("All pair coeffs are not set");
+  if (!allocated) error->all(FLERR,"All pair coeffs are not set");
 
   // I,I coeffs must be set
   // init_one() will check if I,J is set explicitly or inferred by mixing
 
   for (i = 1; i <= atom->ntypes; i++)
-    if (setflag[i][i] == 0) error->all("All pair coeffs are not set");
+    if (setflag[i][i] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // style-specific initialization
 
@@ -284,12 +282,12 @@ void Pair::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"pair:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"pair:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
   }
 
   // zero accumulators
@@ -764,6 +762,28 @@ void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
 
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
+   called by REAX/C potential, newton_pair is always on
+   fi is magnitude of force on atom i
+------------------------------------------------------------------------- */
+
+void Pair::v_tally(int i, double *fi)
+{
+  double v[6];
+  double **x = atom->x;
+  
+  v[0] = x[i][0]*fi[0];
+  v[1] = x[i][1]*fi[1];
+  v[2] = x[i][2]*fi[2];
+  v[3] = x[i][0]*fi[1];
+  v[4] = x[i][0]*fi[1];
+  v[5] = x[i][1]*fi[2];
+
+  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
    called by AIREBO potential, newton_pair is always on
    fpair is magnitude of force on atom I
 ------------------------------------------------------------------------- */
@@ -959,15 +979,15 @@ void Pair::virial_fdotr_compute()
 
 void Pair::write_file(int narg, char **arg)
 {
-  if (narg < 8) error->all("Illegal pair_write command");
-  if (single_enable == 0) error->all("Pair style does not support pair_write");
+  if (narg < 8) error->all(FLERR,"Illegal pair_write command");
+  if (single_enable == 0) error->all(FLERR,"Pair style does not support pair_write");
 
   // parse arguments
 
   int itype = atoi(arg[0]);
   int jtype = atoi(arg[1]);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
-    error->all("Invalid atom types in pair_write command");
+    error->all(FLERR,"Invalid atom types in pair_write command");
 
   int n = atoi(arg[2]);
 
@@ -975,12 +995,12 @@ void Pair::write_file(int narg, char **arg)
   if (strcmp(arg[3],"r") == 0) style = R;
   else if (strcmp(arg[3],"rsq") == 0) style = RSQ;
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
-  else error->all("Invalid style in pair_write command");
+  else error->all(FLERR,"Invalid style in pair_write command");
 
   double inner = atof(arg[4]);
   double outer = atof(arg[5]);
   if (inner <= 0.0 || inner >= outer)
-    error->all("Invalid cutoffs in pair_write command");
+    error->all(FLERR,"Invalid cutoffs in pair_write command");
 
   // open file in append mode
   // print header in format used by pair_style table
@@ -990,7 +1010,7 @@ void Pair::write_file(int narg, char **arg)
   FILE *fp;
   if (me == 0) {
     fp = fopen(arg[6],"a");
-    if (fp == NULL) error->one("Cannot open pair_write file");
+    if (fp == NULL) error->one(FLERR,"Cannot open pair_write file");
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
 	    force->pair_style,itype,jtype);
     if (style == R) 
@@ -1084,12 +1104,12 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
              int &masklo, int &maskhi, int &nmask, int &nshiftbits)
 {
   if (sizeof(int) != sizeof(float))
-    error->all("Bitmapped lookup tables require int/float be same size");
+    error->all(FLERR,"Bitmapped lookup tables require int/float be same size");
   
   if (ntablebits > sizeof(float)*CHAR_BIT) 
-    error->all("Too many total bits for bitmapped lookup table");
+    error->all(FLERR,"Too many total bits for bitmapped lookup table");
           
-  if (inner >= outer) error->warning("Table inner cutoff >= outer cutoff");
+  if (inner >= outer) error->warning(FLERR,"Table inner cutoff >= outer cutoff");
     
   int nlowermin = 1;
   while (!((pow(double(2),nlowermin) <= inner*inner) && 
@@ -1110,10 +1130,10 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   int nmantbits = ntablebits - nexpbits;
 
   if (nexpbits > sizeof(float)*CHAR_BIT - FLT_MANT_DIG) 
-    error->all("Too many exponent bits for lookup table");
+    error->all(FLERR,"Too many exponent bits for lookup table");
   if (nmantbits+1 > FLT_MANT_DIG)
-    error->all("Too many mantissa bits for lookup table");
-  if (nmantbits < 3) error->all("Too few bits for lookup table");
+    error->all(FLERR,"Too many mantissa bits for lookup table");
+  if (nmantbits < 3) error->all(FLERR,"Too few bits for lookup table");
 
   nshiftbits = FLT_MANT_DIG - (nmantbits+1);
 
@@ -1132,7 +1152,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
 double Pair::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

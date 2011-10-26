@@ -53,7 +53,7 @@ enum{INT,DOUBLE,STRING};
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg)
 {
-  if (narg == 5) error->all("No dump custom arguments specified");
+  if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
   clearstep = 1;
 
@@ -97,7 +97,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   ioptional = parse_fields(narg,arg);
 
   if (ioptional < narg && strcmp(style,"image") != 0)
-    error->all("Invalid attribute in dump custom command");
+    error->all(FLERR,"Invalid attribute in dump custom command");
   size_one = nfield = ioptional - 5;
 
   // atom selection arrays
@@ -250,23 +250,23 @@ void DumpCustom::init_style()
   int icompute;
   for (int i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find dump custom compute ID");
+    if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
     compute[i] = modify->compute[icompute];
   }
 
   int ifix;
   for (int i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find dump custom fix ID");
+    if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all("Dump custom and fix not computed at compatible times");
+      error->all(FLERR,"Dump custom and fix not computed at compatible times");
   }
 
   int ivariable;
   for (int i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all("Could not find dump custom variable name");
+    if (ivariable < 0) error->all(FLERR,"Could not find dump custom variable name");
     variable[i] = ivariable;
   }
 
@@ -274,7 +274,7 @@ void DumpCustom::init_style()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for dump custom does not exist");
+    if (iregion == -1) error->all(FLERR,"Region ID for dump custom does not exist");
   }
 
   // open single file, one time only
@@ -448,7 +448,7 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
 	if (!atom->molecule_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	int *molecule = atom->molecule;
 	for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
 	ptr = dchoose;
@@ -704,108 +704,108 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == Q) {
 	if (!atom->q_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = atom->q;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][0];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][1];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][2];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MU) {
 	if (!atom->mu_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][3];
 	nstride = 4;
 
       } else if (thresh_array[ithresh] == RADIUS) {
 	if (!atom->radius_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = atom->radius;
 	nstride = 1;
       } else if (thresh_array[ithresh] == DIAMETER) {
 	if (!atom->radius_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	double *radius = atom->radius;
 	for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
 	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
 	if (!atom->omega_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMX) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMY) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMZ) {
 	if (!atom->angmom_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQX) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
 	if (!atom->torque_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][2];
 	nstride = 3;
 
       } else if (thresh_array[ithresh] == SPIN) {
 	if (!atom->spin_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
         int *spin = atom->spin;
         for (i = 0; i < nlocal; i++) dchoose[i] = spin[i];
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERADIUS) {
 	if (!atom->eradius_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
         ptr = atom->eradius;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERVEL) {
 	if (!atom->ervel_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
         ptr = atom->ervel;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERFORCE) {
 	if (!atom->erforce_flag)
-	  error->all("Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
         ptr = atom->erforce;
         nstride = 1;				
 
@@ -934,7 +934,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"type") == 0) {
@@ -1023,104 +1023,104 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_q;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mux;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_muz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mu;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_radius;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_diameter;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegax;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegay;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_omegaz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_angmomz;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqx;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqy;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-	error->all("Dumping an atom property that isn't allocated");
+	error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"spin") == 0) {
       if (!atom->spin_flag)
-        error->all("Dumping an atom quantity that isn't allocated");
+        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_spin;
       vtype[i] = INT;
     } else if (strcmp(arg[iarg],"eradius") == 0) {
       if (!atom->eradius_flag)
-        error->all("Dumping an atom quantity that isn't allocated");
+        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_eradius;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"ervel") == 0) {
       if (!atom->ervel_flag)
-        error->all("Dumping an atom quantity that isn't allocated");
+        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_ervel;
       vtype[i] = DOUBLE;
     } else if (strcmp(arg[iarg],"erforce") == 0) {
       if (!atom->erforce_flag)
-        error->all("Dumping an atom quantity that isn't allocated");
+        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_erforce;
       vtype[i] = DOUBLE;
 
@@ -1138,22 +1138,22 @@ int DumpCustom::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump custom command");
+	  error->all(FLERR,"Invalid attribute in dump custom command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_compute(suffix);
-      if (n < 0) error->all("Could not find dump custom compute ID");
+      if (n < 0) error->all(FLERR,"Could not find dump custom compute ID");
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump custom compute does not compute per-atom info");
+	error->all(FLERR,"Dump custom compute does not compute per-atom info");
       if (argindex[i] == 0 && modify->compute[n]->size_peratom_cols > 0)
-	error->all("Dump custom compute does not calculate per-atom vector");
+	error->all(FLERR,"Dump custom compute does not calculate per-atom vector");
       if (argindex[i] > 0 && modify->compute[n]->size_peratom_cols == 0)
-	error->all("Dump custom compute does not calculate per-atom array");
+	error->all(FLERR,"Dump custom compute does not calculate per-atom array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->compute[n]->size_peratom_cols)
-	error->all("Dump custom compute vector is accessed out-of-range");
+	error->all(FLERR,"Dump custom compute vector is accessed out-of-range");
 
       field2index[i] = add_compute(suffix);
       delete [] suffix;
@@ -1172,22 +1172,22 @@ int DumpCustom::parse_fields(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump custom command");
+	  error->all(FLERR,"Invalid attribute in dump custom command");
 	argindex[i] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_fix(suffix);
-      if (n < 0) error->all("Could not find dump custom fix ID");
+      if (n < 0) error->all(FLERR,"Could not find dump custom fix ID");
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump custom fix does not compute per-atom info");
+	error->all(FLERR,"Dump custom fix does not compute per-atom info");
       if (argindex[i] == 0 && modify->fix[n]->size_peratom_cols > 0)
-	error->all("Dump custom fix does not compute per-atom vector");
+	error->all(FLERR,"Dump custom fix does not compute per-atom vector");
       if (argindex[i] > 0 && modify->fix[n]->size_peratom_cols == 0)
-	error->all("Dump custom fix does not compute per-atom array");
+	error->all(FLERR,"Dump custom fix does not compute per-atom array");
       if (argindex[i] > 0 && 
 	  argindex[i] > modify->fix[n]->size_peratom_cols)
-	error->all("Dump custom fix vector is accessed out-of-range");
+	error->all(FLERR,"Dump custom fix vector is accessed out-of-range");
 
       field2index[i] = add_fix(suffix);
       delete [] suffix;
@@ -1205,9 +1205,9 @@ int DumpCustom::parse_fields(int narg, char **arg)
       argindex[i] = 0;
 
       n = input->variable->find(suffix);
-      if (n < 0) error->all("Could not find dump custom variable name");
+      if (n < 0) error->all(FLERR,"Could not find dump custom variable name");
       if (input->variable->atomstyle(n) == 0)
-	error->all("Dump custom variable is not atom-style variable");
+	error->all(FLERR,"Dump custom variable is not atom-style variable");
 
       field2index[i] = add_variable(suffix);
       delete [] suffix;
@@ -1302,11 +1302,11 @@ int DumpCustom::add_variable(char *id)
 int DumpCustom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) iregion = -1;
     else {
       iregion = domain->find_region(arg[1]);
-      if (iregion == -1) error->all("Dump_modify region ID does not exist");
+      if (iregion == -1) error->all(FLERR,"Dump_modify region ID does not exist");
       int n = strlen(arg[1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[1]);
@@ -1315,7 +1315,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     
   } else if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
-      error->all("Dump modify element names do not match atom types");
+      error->all(FLERR,"Dump modify element names do not match atom types");
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
@@ -1332,7 +1332,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     return ntypes+1;
 
   } else if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
 	memory->destroy(thresh_array);
@@ -1346,7 +1346,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
     
-    if (narg < 4) error->all("Illegal dump_modify command");
+    if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
     
     // grow threshhold arrays
     
@@ -1453,25 +1453,25 @@ int DumpCustom::modify_param(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump modify command");
+	  error->all(FLERR,"Invalid attribute in dump modify command");
 	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_compute(suffix);
-      if (n < 0) error->all("Could not find dump modify compute ID");
+      if (n < 0) error->all(FLERR,"Could not find dump modify compute ID");
 
       if (modify->compute[n]->peratom_flag == 0)
-	error->all("Dump modify compute ID does not compute per-atom info");
+	error->all(FLERR,"Dump modify compute ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
 	  modify->compute[n]->size_peratom_cols > 0)
-	error->all("Dump modify compute ID does not compute per-atom vector");
+	error->all(FLERR,"Dump modify compute ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
 	  modify->compute[n]->size_peratom_cols == 0)
-	error->all("Dump modify compute ID does not compute per-atom array");
+	error->all(FLERR,"Dump modify compute ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
 	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom_cols)
-	error->all("Dump modify compute ID vector is not large enough");
+	error->all(FLERR,"Dump modify compute ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_compute(suffix);
       delete [] suffix;
@@ -1491,25 +1491,25 @@ int DumpCustom::modify_param(int narg, char **arg)
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid attribute in dump modify command");
+	  error->all(FLERR,"Invalid attribute in dump modify command");
 	argindex[nfield+nthresh] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nfield+nthresh] = 0;
       
       n = modify->find_fix(suffix);
-      if (n < 0) error->all("Could not find dump modify fix ID");
+      if (n < 0) error->all(FLERR,"Could not find dump modify fix ID");
 
       if (modify->fix[n]->peratom_flag == 0)
-	error->all("Dump modify fix ID does not compute per-atom info");
+	error->all(FLERR,"Dump modify fix ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
 	  modify->fix[n]->size_peratom_cols > 0)
-	error->all("Dump modify fix ID does not compute per-atom vector");
+	error->all(FLERR,"Dump modify fix ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
 	  modify->fix[n]->size_peratom_cols == 0)
-	error->all("Dump modify fix ID does not compute per-atom array");
+	error->all(FLERR,"Dump modify fix ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
 	  argindex[nfield+nthresh] > modify->fix[n]->size_peratom_cols)
-	error->all("Dump modify fix ID vector is not large enough");
+	error->all(FLERR,"Dump modify fix ID vector is not large enough");
 
       field2index[nfield+nthresh] = add_fix(suffix);
       delete [] suffix;
@@ -1528,14 +1528,14 @@ int DumpCustom::modify_param(int narg, char **arg)
       argindex[nfield+nthresh] = 0;
       
       n = input->variable->find(suffix);
-      if (n < 0) error->all("Could not find dump modify variable name");
+      if (n < 0) error->all(FLERR,"Could not find dump modify variable name");
       if (input->variable->atomstyle(n) == 0)
-	error->all("Dump modify variable is not atom-style variable");
+	error->all(FLERR,"Dump modify variable is not atom-style variable");
 
       field2index[nfield+nthresh] = add_variable(suffix);
       delete [] suffix;
 
-    } else error->all("Invalid dump_modify threshhold operator");
+    } else error->all(FLERR,"Invalid dump_modify threshhold operator");
 
     // set operation type of threshhold
 
@@ -1545,7 +1545,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = GE;
     else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
-    else error->all("Invalid dump_modify threshhold operator");
+    else error->all(FLERR,"Invalid dump_modify threshhold operator");
 
     // set threshhold value
 

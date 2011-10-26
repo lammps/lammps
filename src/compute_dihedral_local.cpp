@@ -20,26 +20,25 @@
 #include "domain.h"
 #include "force.h"
 #include "dihedral.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-#define SMALL     0.001
+#define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute dihedral/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
   if (atom->avec->dihedrals_allow == 0)
-    error->all("Compute dihedral/local used when dihedrals are not allowed");
+    error->all(FLERR,"Compute dihedral/local used when dihedrals are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -53,7 +52,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
     if (strcmp(arg[iarg],"phi") == 0) pflag = nvalues++;
-    else error->all("Invalid keyword in compute dihedral/local command");
+    else error->all(FLERR,"Invalid keyword in compute dihedral/local command");
   }
 
   nmax = 0;
@@ -74,7 +73,7 @@ ComputeDihedralLocal::~ComputeDihedralLocal()
 void ComputeDihedralLocal::init()
 {
   if (force->dihedral == NULL) 
-    error->all("No dihedral style is defined for compute dihedral/local");
+    error->all(FLERR,"No dihedral style is defined for compute dihedral/local");
 
   // do initial memory allocation so that memory_usage() is correct
 
@@ -130,8 +129,6 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
       if (pflag >= 0) pbuf = &array[0][pflag];
     }
   }
-
-  double PI = 4.0*atan(1.0);
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -193,7 +190,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  pbuf[n] = 180.0*atan2(s,c)/PI;
+	  pbuf[n] = 180.0*atan2(s,c)/MY_PI;
 	}
 	n += nvalues;
       }

@@ -11,7 +11,7 @@ tad command :h3
 [Syntax:]
 
 tad N t_event T_lo T_hi delta tmax compute-ID \
-seed keyword value ... :pre
+keyword value ... :pre
 
 N = # of timesteps to run (not including dephasing/quenching) :ulb,l
 t_event = timestep interval between event checks :l
@@ -41,8 +41,8 @@ keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l
 
 [Examples:]
 
-tad 2000 50 1800 2300 0.01 0.01 event 54985
-tad 2000 50 1800 2300 0.01 0.01 event 54985 &
+tad 2000 50 1800 2300 0.01 0.01 event
+tad 2000 50 1800 2300 0.01 0.01 event &
     min 1e-05 1e-05 100 100 &
     neb 0.0 0.01 200 200 20 &
     min_style cg &
@@ -91,9 +91,8 @@ restricts you to having exactly one processor per replica. For more
 information, see the documentation for the "neb"_neb.html command.  In
 the current LAMMPS implementation of TAD, all the non-NEB TAD
 operations are performed on the first partition, while the other
-partitions remain idle. See "this
-section"_Section_howto.html#4_5 of the manual for further discussion
-of multi-replica simulations.
+partitions remain idle. See "this section"_Section_howto.html#howto_5
+of the manual for further discussion of multi-replica simulations.
 
 
 A TAD run has several stages, which are repeated each time an event is
@@ -193,10 +192,14 @@ high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
 
-On lines for executed events, with status {E}, the global event number
-is incremented by one, and the timestep, local event number, energy
-barrier, {t_lo}, and {delt_lo} match the last event with status {DF}
-in the immediately preceding block of detected events.
+On lines for executed events, with status {E}, the global event number 
+is incremented by one, 
+the local event number and time margin are reset to zero, 
+while the global event number, energy barrier, and 
+{delt_lo} match the last event with status {DF} 
+in the immediately preceding block of detected events.  
+The low-temperature event time {t_lo} is incremented by {delt_lo}.
+
 
 The NEB statistics are written to the file specified by the {neb_log}
 keyword. If the keyword value is "none", then no NEB statistics are
@@ -260,9 +263,9 @@ are always monotonically increasing.
 
 [Restrictions:]
 
-This command can only be used if LAMMPS was built with the "replica"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+This command can only be used if LAMMPS was built with the REPLICA
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 {N} setting must be integer multiple of {t_event}.
 

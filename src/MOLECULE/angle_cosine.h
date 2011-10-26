@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class AngleCosine : public Angle {
  public:
   AngleCosine(class LAMMPS *);
-  ~AngleCosine();
-  void compute(int, int);
+  virtual ~AngleCosine();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   double *k;
 
   void allocate();

@@ -164,7 +164,7 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int exclusion(int, int, int, int, int *, int *);  // test for pair exclusion
+  int exclusion(int, int, int, int, int *, int *) const;  // test for pair exclusion
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 

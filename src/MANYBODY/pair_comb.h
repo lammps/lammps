@@ -58,7 +58,6 @@ class PairComb : public Pair {
     int powermint;
   };
   
-  double PI,PI2,PI4,PIsq;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -76,6 +75,7 @@ class PairComb : public Pair {
   double *charge;
   int **intype, *typeno;
   int *NCo, cor_flag, cuo_flag, cuo_flag1, cuo_flag2;
+  double **bbij;
 
   void allocate();
   virtual void read_file(char *);
@@ -83,8 +83,8 @@ class PairComb : public Pair {
   virtual void repulsive(Param *, double, double &, int, 
 			 double &, double, double);
   double zeta(Param *, double, double, double *, double *);
-  void force_zeta(Param *, double, double, double &, double &, 
-		  int, double &, double,double);
+  void force_zeta(Param *, int, int, int, double, double, double, double, 
+		  double &, double &, double &);
   void attractive(Param *, double, double, double, double *, double *,
 		  double *, double *, double *);
   double elp(Param *, double, double, double *, double *);
@@ -115,7 +115,8 @@ class PairComb : public Pair {
 	double,double,double,double &,double &);
   void field(Param *,double,double,double,double &,double &);
   double qfo_self(Param *, double, double);
-  void qfo_short(Param *, double, double, double, double, double &, double &);
+  void qfo_short(Param *, int, int, double, double, double,
+		  double &, double &);
   void qfo_direct (int, int, int, int, double, double, double, double, 
 	double, double &);
   void qfo_field(Param *, double,double ,double ,double &, double &);
@@ -125,6 +126,14 @@ class PairComb : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   int pack_comm(int , int *, double *, int, int *);
   void unpack_comm(int , int , double *);
+
+  // Short range neighbor list
+
+  void add_pages();
+  void Short_neigh();
+  int maxpage, pgsize, oneatom, **pages;
+  int *sht_num, **sht_first;	// short-range neighbor list
+  double cutmin;
 
   // vector functions, inline for efficiency
 

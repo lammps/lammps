@@ -55,9 +55,9 @@ static inline void fwrite_int32(FILE* fd, uint32_t i)
 
 DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal dump dcd command");
+  if (narg != 5) error->all(FLERR,"Illegal dump dcd command");
   if (binary || compressed || multifile || multiproc)
-    error->all("Invalid dump dcd filename");
+    error->all(FLERR,"Invalid dump dcd filename");
 
   size_one = 3;
   sort_flag = 1;
@@ -69,7 +69,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/sizeof(float)) error->all("Too many atoms for dump dcd");
+  if (n > MAXSMALLINT/sizeof(float)) error->all(FLERR,"Too many atoms for dump dcd");
   natoms = static_cast<int> (n);
 
   memory->create(coords,3*natoms,"dump:coords");
@@ -95,7 +95,7 @@ DumpDCD::~DumpDCD()
 void DumpDCD::init_style()
 {
   if (sort_flag == 0 || sortcol != 0)
-    error->all("Dump dcd requires sorting by atom ID");
+    error->all(FLERR,"Dump dcd requires sorting by atom ID");
 
   // check that dump frequency has not changed and is not a variable
 
@@ -103,11 +103,11 @@ void DumpDCD::init_style()
   for (idump = 0; idump < output->ndump; idump++)
     if (strcmp(id,output->dump[idump]->id) == 0) break;
   if (output->every_dump[idump] == 0)
-    error->all("Cannot use variable every setting for dump dcd");
+    error->all(FLERR,"Cannot use variable every setting for dump dcd");
 
   if (nevery_save == 0) nevery_save = output->every_dump[idump];
   else if (nevery_save != output->every_dump[idump])
-    error->all("Cannot change dump_modify every for dump dcd");
+    error->all(FLERR,"Cannot change dump_modify every for dump dcd");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +116,7 @@ void DumpDCD::openfile()
 {
   if (me == 0) {
     fp = fopen(filename,"wb");
-    if (fp == NULL) error->one("Cannot open dump file");
+    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
   }
 }
 
@@ -124,9 +124,9 @@ void DumpDCD::openfile()
 
 void DumpDCD::write_header(bigint n)
 {
-  if (n != natoms) error->all("Dump dcd of non-matching # of atoms");
+  if (n != natoms) error->all(FLERR,"Dump dcd of non-matching # of atoms");
   if (update->ntimestep > MAXSMALLINT)
-    error->all("Too big a timestep for dump dcd");
+    error->all(FLERR,"Too big a timestep for dump dcd");
 
   // first time, write header for entire file
 
@@ -266,10 +266,10 @@ void DumpDCD::write_data(int n, double *mybuf)
 int DumpDCD::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"unwrap") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
     else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all("Illegal dump_modify command");
+    else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
   return 0;

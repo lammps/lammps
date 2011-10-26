@@ -1,0 +1,6 @@
+#!/usr/bin/gnuplot
+
+# compare SPH shock output with exact solution
+plot 'dump.3d.last' u 3:6, "exact_solution.dat" w l
+pause -1
+

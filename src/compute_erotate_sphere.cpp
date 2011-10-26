@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 ComputeERotateSphere::ComputeERotateSphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute erotate/sphere command");
+  if (narg != 3) error->all(FLERR,"Illegal compute erotate/sphere command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -38,7 +38,7 @@ ComputeERotateSphere::ComputeERotateSphere(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (!atom->sphere_flag) 
-    error->all("Compute erotate/sphere requires atom style sphere");
+    error->all(FLERR,"Compute erotate/sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */

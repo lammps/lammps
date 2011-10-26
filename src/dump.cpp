@@ -36,9 +36,6 @@ Dump *Dump::dumpptr;
 #define IBIG 2147483647
 #define EPSILON 1.0e-6
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 enum{ASCEND,DESCEND};
 
 /* ---------------------------------------------------------------------- */
@@ -170,14 +167,14 @@ void Dump::init()
 
   if (sort_flag) {
     if (sortcol == 0 && atom->tag_enable == 0)
-      error->all("Cannot dump sort on atom IDs with no atom IDs defined");
+      error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
-      error->all("Dump sort column is invalid");
+      error->all(FLERR,"Dump sort column is invalid");
     if (nprocs > 1 && irregular == NULL)
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXSMALLINT) error->all("Too many atoms to dump sort");
+    if (size > MAXSMALLINT) error->all(FLERR,"Too many atoms to dump sort");
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -281,7 +278,7 @@ void Dump::write()
 
   if (nmax > maxbuf) {
     if ((bigint) nmax * size_one > MAXSMALLINT)
-      error->all("Too much per-proc info for dump");
+      error->all(FLERR,"Too much per-proc info for dump");
     maxbuf = nmax;
     memory->destroy(buf);
     memory->create(buf,maxbuf*size_one,"dump:buf");
@@ -382,7 +379,7 @@ void Dump::openfile()
       sprintf(gzip,"gzip -6 > %s",filecurrent);
       fp = popen(gzip,"w");
 #else
-      error->one("Cannot open gzipped file");
+      error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
@@ -392,7 +389,7 @@ void Dump::openfile()
       fp = fopen(filecurrent,"w");
     }
 
-    if (fp == NULL) error->one("Cannot open dump file");
+    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
   } else fp = NULL;
 
   // delete string with timestep replaced
@@ -622,18 +619,18 @@ int Dump::bufcompare_reverse(const void *pi, const void *pj)
 
 void Dump::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal dump_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal dump_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"append") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) append_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) append_flag = 0;
-      else error->all("Illegal dump_modify command");
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
 	if (strcmp(id,output->dump[idump]->id) == 0) break;
@@ -646,24 +643,24 @@ void Dump::modify_params(int narg, char **arg)
 	n = 0;
       } else {
 	n = atoi(arg[iarg+1]);
-	if (n <= 0) error->all("Illegal dump_modify command");
+	if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
       output->every_dump[idump] = n;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) first_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) first_flag = 0;
-      else error->all("Illegal dump_modify command");
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"flush") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
-      else error->all("Illegal dump_modify command");
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       delete [] format_user;
       format_user = NULL;
       if (strcmp(arg[iarg+1],"none")) {
@@ -673,12 +670,12 @@ void Dump::modify_params(int narg, char **arg)
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"pad") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       padflag = atoi(arg[iarg+1]);
-      if (padflag < 0) error->all("Illegal dump_modify command");
+      if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+2 > narg) error->all("Illegal dump_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
       else if (strcmp(arg[iarg+1],"id") == 0) {
 	sort_flag = 1;
@@ -688,7 +685,7 @@ void Dump::modify_params(int narg, char **arg)
 	sort_flag = 1;
 	sortcol = atoi(arg[iarg+1]);
 	sortorder = ASCEND;
-	if (sortcol == 0) error->all("Illegal dump_modify command");
+	if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
 	if (sortcol < 0) {
 	  sortorder = DESCEND;
 	  sortcol = -sortcol;
@@ -698,7 +695,7 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all("Illegal dump_modify command");
+      if (n == 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += n;
     }
   }

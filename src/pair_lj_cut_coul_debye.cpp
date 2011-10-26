@@ -131,7 +131,7 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
 
 void PairLJCutCoulDebye::settings(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   kappa = force->numeric(arg[0]);
   cut_lj_global = force->numeric(arg[1]);

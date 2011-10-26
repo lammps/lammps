@@ -21,13 +21,12 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -185,7 +184,7 @@ void PairLJCutCoulCut::allocate()
 
 void PairLJCutCoulCut::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -210,7 +209,7 @@ void PairLJCutCoulCut::settings(int narg, char **arg)
 
 void PairLJCutCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -237,7 +236,7 @@ void PairLJCutCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -247,7 +246,7 @@ void PairLJCutCoulCut::coeff(int narg, char **arg)
 void PairLJCutCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/cut requires atom attribute q");
 
   neighbor->request(this);
 }
@@ -303,15 +302,14 @@ double PairLJCutCoulCut::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
   } 
 

@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal compute temp/partial command");
+  if (narg != 6) error->all(FLERR,"Illegal compute temp/partial command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -44,7 +44,7 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
   if (zflag && domain->dimension == 2)
-    error->all("Compute temp/partial cannot use vz for 2d systemx");
+    error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
   maxbias = 0;
   vbiasall = NULL;

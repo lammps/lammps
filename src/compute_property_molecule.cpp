@@ -26,10 +26,10 @@ ComputePropertyMolecule::
 ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute property/molecule command");
+  if (narg < 4) error->all(FLERR,"Illegal compute property/molecule command");
 
   if (atom->molecular == 0)
-    error->all("Compute property/molecule requires molecular atom style");
+    error->all(FLERR,"Compute property/molecule requires molecular atom style");
 
   nvalues = narg - 3;
 
@@ -43,7 +43,7 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyMolecule::pack_mol;
     else if (strcmp(arg[iarg],"count") == 0)
       pack_choice[i] = &ComputePropertyMolecule::pack_count;
-    else error->all("Invalid keyword in compute property/molecule command");
+    else error->all(FLERR,"Invalid keyword in compute property/molecule command");
   }
 
   // setup molecule-based data
@@ -93,7 +93,7 @@ void ComputePropertyMolecule::init()
 {
   int ntmp = molecules_in_group(idlo,idhi);
   if (ntmp != nmolecules)
-    error->all("Molecule count changed in compute property/molecule");
+    error->all(FLERR,"Molecule count changed in compute property/molecule");
 }
 
 /* ---------------------------------------------------------------------- */

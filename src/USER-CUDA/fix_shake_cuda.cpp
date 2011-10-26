@@ -34,13 +34,13 @@
 #include "error.h"
 #include "cuda.h"
 #include "cuda_modify_flags.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,13 +49,12 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   cuda->accelerator(0,NULL);
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   neighbor_step=true;
-  PI = 4.0*atan(1.0);
 
   virial_flag = 1;
   create_attribute = 1;
@@ -63,7 +62,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (atom->molecular == 0)
-    error->all("Cannot use fix shake with non-molecular system");
+    error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -88,7 +87,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
 
   // parse SHAKE args
 
-  if (narg < 8) error->all("Illegal fix shake command");
+  if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
   tolerance = atof(arg[3]);
   max_iter = atoi(arg[4]);
@@ -123,28 +122,28 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
     } else if (mode == 'b') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nbondtypes) 
-	error->all("Invalid bond type index for fix shake");
+	error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nangletypes) 
-	error->all("Invalid angle type index for fix shake");
+	error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->ntypes) 
-	error->all("Invalid atom type index for fix shake");
+	error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = atof(arg[next]);
-      if (massone == 0.0) error->all("Invalid atom mass for fix shake");
-      if (nmass == atom->ntypes) error->all("Too many masses for fix shake");
+      if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
+      if (nmass == atom->ntypes) error->all(FLERR,"Too many masses for fix shake");
       mass_list[nmass++] = massone;
 
-    } else error->all("Illegal fix shake command");
+    } else error->all(FLERR,"Illegal fix shake command");
     next++;
   }
 
@@ -312,13 +311,13 @@ void FixShakeCuda::init()
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  if (count > 1) error->all("More than one fix shake");
+  if (count > 1) error->all(FLERR,"More than one fix shake");
 
   // cannot use with minimization since SHAKE turns off bonds
   // that should contribute to potential energy
 
   if (update->whichflag == 2)
-    error->all("Fix shake cannot be used with minimization");
+    error->all(FLERR,"Fix shake cannot be used with minimization");
 
   // error if npt,nph fix comes before shake fix
 
@@ -329,7 +328,7 @@ void FixShakeCuda::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"shake") == 0)
-	error->all("Shake fix must come before NPT/NPH fix");
+	error->all(FLERR,"Shake fix must come before NPT/NPH fix");
   }
 
   // if rRESPA, find associated fix that must exist
@@ -347,7 +346,7 @@ void FixShakeCuda::init()
   // set equilibrium bond distances
 
   if (force->bond == NULL)
-    error->all("Bond potential must be defined for SHAKE");
+    error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++) 
     bond_distance[i] = force->bond->equilibrium_distance(i);
 
@@ -358,7 +357,7 @@ void FixShakeCuda::init()
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
     if (force->angle == NULL)
-      error->all("Angle potential must be defined for SHAKE");
+      error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
     // extract bond types for the 2 bonds in the cluster
@@ -385,7 +384,7 @@ void FixShakeCuda::init()
     // error check for any bond types that are not the same
     
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
-    if (flag_all) error->all("Shake angles have different bond types");
+    if (flag_all) error->all(FLERR,"Shake angles have different bond types");
     
     // insure all procs have bond types
     
@@ -500,7 +499,7 @@ void FixShakeCuda::pre_neighbor()
 	  sprintf(str,
 		  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
@@ -514,7 +513,7 @@ void FixShakeCuda::pre_neighbor()
 		  BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
@@ -530,7 +529,7 @@ void FixShakeCuda::pre_neighbor()
 		  shake_atom[i][0],shake_atom[i][1],
 		  shake_atom[i][2],shake_atom[i][3],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) 
 	  list[nlist++] = i;
@@ -906,7 +905,7 @@ void FixShakeCuda::find_clusters()
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Did not find fix shake partner info");
+  if (flag_all) error->all(FLERR,"Did not find fix shake partner info");
 
   // -----------------------------------------------------
   // identify SHAKEable bonds
@@ -1040,7 +1039,7 @@ void FixShakeCuda::find_clusters()
   flag = 0;
   for (i = 0; i < nlocal; i++) if (nshake[i] > 3) flag = 1;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake cluster of more than 4 atoms");
+  if (flag_all) error->all(FLERR,"Shake cluster of more than 4 atoms");
 
   flag = 0;
   for (i = 0; i < nlocal; i++) {
@@ -1049,7 +1048,7 @@ void FixShakeCuda::find_clusters()
       if (partner_shake[i][j] && partner_nshake[i][j] > 1) flag = 1;
   }
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake clusters are connected");
+  if (flag_all) error->all(FLERR,"Shake clusters are connected");
 
   // -----------------------------------------------------
   // set SHAKE arrays that are stored with atoms & add angle constraints
@@ -1418,7 +1417,7 @@ void FixShakeCuda::shake2(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning("Shake determinant < 0.0");
+    error->warning(FLERR,"Shake determinant < 0.0");
     determ = 0.0;
   }
 
@@ -1537,7 +1536,7 @@ void FixShakeCuda::shake3(int m)
   // inverse of matrix
 
   double determ = a11*a22 - a12*a21;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = a22*determinv;
@@ -1731,7 +1730,7 @@ void FixShakeCuda::shake4(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);
@@ -1972,7 +1971,7 @@ void FixShakeCuda::shake3angle(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);
@@ -2185,7 +2184,7 @@ void FixShakeCuda::stats()
       r3 = sqrt(delx*delx + dely*dely + delz*delz);
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
-      angle *= 180.0/PI;
+      angle *= 180.0/MY_PI;
       m = shake_type[i][2];
       a_count[m]++;
       a_ave[m] += angle;

@@ -16,18 +16,16 @@
    Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "pair_cg_cmm_coul_long.h"
 #include "memory.h"
 #include "atom.h"
 #include "force.h"
 #include "kspace.h"
 
-#include "string.h"
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define EWALD_F   1.12837917
-
 using namespace LAMMPS_NS;
+
+#define EWALD_F   1.12837917
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,7 +89,7 @@ void PairCGCMMCoulLong::free_tables()
 void PairCGCMMCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style cg/cut/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style cg/cut/coul/long requires atom attribute q");
   
   PairCMMCommon::init_style();
 
@@ -105,7 +103,7 @@ void PairCGCMMCoulLong::init_style()
   // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -122,7 +120,7 @@ double PairCGCMMCoulLong::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && MIN(cut_lj[i][j],cut_coul_global) < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   return mycut;
 }

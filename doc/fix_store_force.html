@@ -28,7 +28,7 @@
 timestep when the fix is invoked, as described below.  This is useful
 for storing forces before constraints or other boundary conditions are
 computed which modify the forces, so that unmodified forces can be
-<A HREF = "dump.html">written to a dump file</A> or accessed by other <A HREF = "Section_howto.html#4_15">output
+<A HREF = "dump.html">written to a dump file</A> or accessed by other <A HREF = "Section_howto.html#howto_15">output
 commands</A> that use per-atom quantities.
 </P>
 <P>This fix is invoked at the point in the velocity-Verlet timestepping
@@ -58,9 +58,9 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix produces a per-atom array which can be accessed by various
-<A HREF = "Section_howto.html#4_15">output commands</A>.  The number of columns for
-each atom is 3, and the columns store the x,y,z forces on each atom.
-The per-atom values be accessed on any timestep.
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The number of columns
+for each atom is 3, and the columns store the x,y,z forces on each
+atom.  The per-atom values be accessed on any timestep.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

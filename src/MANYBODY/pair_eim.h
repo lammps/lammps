@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class PairEIM : public Pair {
  public:
   PairEIM(class LAMMPS *);
-  ~PairEIM();
-  void compute(int, int);
+  virtual ~PairEIM();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -41,7 +41,7 @@ class PairEIM : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
- private:
+ protected:
   double **cutforcesq,cutmax;
   int nmax;
   double *rho,*fp;

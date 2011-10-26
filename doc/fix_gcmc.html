@@ -1,0 +1,187 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix gcmc command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID gcmc N X M type seed T mu displace keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>gcmc = style name of this fix command 
+
+<LI>N = invoke this fix every N steps 
+
+<LI>X = number of exchanges to attempt every N steps 
+
+<LI>M = number of MC displacements to attempt every N steps 
+
+<LI>type = atom type of exchanged particles 
+
+<LI>seed = random # seed (positive integer) 
+
+<LI>T = temperature of the ideal gas reservoir (temperature units) 
+
+<LI>mu = chemical potential of the ideal gas reservoir (energy units) 
+
+<LI>displace = maximum Monte Carlo displacement distance (length units) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<PRE>keyword = <I>molecule</I>
+  <I>molecule</I> value = <I>no</I> or <I>yes</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 2 all gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
+fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix performs grand canonical Monte Carlo (GCMC) exchanges of
+particles of the given type with an imaginary ideal gas reservoir at
+the specified T and chemical potential (mu) as discussed in
+<A HREF = "#Frenkel">(Frenkel)</A>. If used with the <A HREF = "fix_nh.html">fix nvt</A> command,
+simulations in the grand canonical enemble (muVT, constant chemical
+potential, constant volume, and constant temperature) can be
+performed.  Specific uses include computing isotherms in microporous
+materials, or computing vapor-liquid coexistence curves.
+</P>
+<P>Perform up to X exchanges of particles of the given type between the
+simulation domain and the imaginary reservoir every N timesteps. Also
+perform M Monte Carlo displacements of particles of the given type
+within the simulation domain. M should typically be chosen to be
+approximately equal to the expected number of particles of the given
+type within the domain, which will result in roughly one MC
+translation per particle per MC cycle.
+</P>
+<P>This fix cannot be used to perform MC displacements of particles other
+than the exchanged type. All particles in the simulation domain can be
+moved using regular time integration displacements, e.g. via
+<A HREF = "fix_nvt.html">fix_nvt</A>, resulting in a hybrid GCMC+MD simulation.
+</P>
+<P>If used with <A HREF = "fix_nvt.html">fix_nvt</A>, the temperature of the imaginary
+reservoir, T, should be set to be equivalent to the target temperature
+used in <A HREF = "fix_nvt.html">fix_nvt</A>. Otherwise, the imaginary reservoir
+will not be in thermal equilibrium with the simulation domain.
+</P>
+<P>Note that neighbor lists are re-built every timestep that this fix is
+invoked, so you should not set N to be too small.  However, periodic
+rebuilds are necessary in order to avoid dangerous rebuilds and missed
+interactions. Specifically, avoid performing so many MC displacements
+per timestep that a particle can move beyond the neighbor list skin
+distance. See the <A HREF = "neighbor.html">neighbor</A> command for details.
+</P>
+<P>When a particle is to be inserted, its coordinates are chosen as a
+random position within the current simulation domain, and its velocity
+is randomly chosen from the specified temperature distribution given
+by T.
+</P>
+<P>Exchanged particles have the specified atom type and are assigned to
+two groups: the default group "all" and the group specified in the fix
+gcmc command (which can also be "all").
+</P>
+<P>If the setting for the <I>molecule</I> keyword is <I>no</I>, then only single
+atoms are exchanged.  In this case, you should ensure you do not
+delete only a portion of a molecule (only some of its atoms), or
+LAMMPS will soon generate an error when it tries to find those atoms.
+LAMMPS will warn you if any of the atoms eligible for deletion have a
+non-zero molecule ID, but does not check for this at the time of
+deletion.
+</P>
+<P>If the setting for the <I>molecule</I> keyword is <I>yes</I>, entire molecules
+are exchanged. This feature is not yet supported.
+</P>
+<P>Use of this fix typically will cause the number of atoms to fluctuate,
+therefore, you will want to use the
+<A HREF = "compute_modify.html">compute_modify</A> command to insure that the
+current number of atoms is used as a normalizing factor each time
+temperature is computed.  Here is the necessary command:
+</P>
+<PRE>compute_modify thermo_temp dynamic yes 
+</PRE>
+<P>If LJ units are used, note that a value of 0.18292026 is used by this
+fix as the reduced value for Planck's constant.  This value was
+derived from LJ paramters for argon, where h* = h/sqrt(sigma^2 *
+epsilon * mass), sigma = 3.429 angstroms, epsilon/k = 121.85 K, and
+mass = 39.948 amu.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart
+files</A>.  This includes information about the random
+number generator seed, the next timestep for MC exchanges, etc.  See
+the <A HREF = "read_restart.html">read_restart</A> command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>This fix computes a global vector of length 6, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The vector
+values are the following global cummulative quantities:
+</P>
+<UL><LI>1 = displacement attempts
+<LI>2 = displacement successes
+<LI>3 = deletion attempts
+<LI>4 = deletion successes
+<LI>5 = insertion attempts
+<LI>6 = insertion successes 
+</UL>
+<P>The vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Do not set "neigh_modify once yes" or else this fix will never be
+called.  Reneighboring is required.
+</P>
+<P>You cannot currently exchange charged particles or molecules with a
+net charge.
+</P>
+<P>Only pairwise interactions, as defined by the
+<A HREF = "pair_style.html">pair_style</A> command, are included in this
+calculation.  Long-range interactions due to a
+<A HREF = "kspace_style.html">kspace_style</A> command are not included.  Not all
+pair potentials can be evaluated in a pairwise mode as required by
+this fix.  For example, 3-body potentials, such as
+<A HREF = "pair_tersoff.html">Tersoff</A> and <A HREF = "pair_sw.html">Stillinger-Weber</A> cannot
+be used.  <A HREF = "pair_eam.html">EAM</A> potentials for metals only include the
+pair potential portion of the EAM interaction, not the embedding term.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nvt.html">fix_nvt</A>, <A HREF = "neighbor.html">neighbor</A>, 
+<A HREF = "fix_deposit.html">fix_deposit</A>, <A HREF = "fix_evaporate.html">fix_evaporate</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are molecule = no.
+</P>
+<HR>
+
+<A NAME = "Frenkel"></A>
+
+<P><B>(Frenkel)</B> Frenkel and Smit, Understanding Molecular Simulation, 
+Academic Press, London, 2002.
+</P>
+</HTML>

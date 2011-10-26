@@ -27,9 +27,6 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
@@ -38,42 +35,42 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[2],"INF") == 0 || strcmp(arg[2],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else xlo = domain->boxlo[0];
   } else xlo = xscale*atof(arg[2]);
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else xhi = domain->boxhi[0];
   } else xhi = xscale*atof(arg[3]);
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else ylo = domain->boxlo[1];
   } else ylo = yscale*atof(arg[4]);
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else yhi = domain->boxhi[1];
   } else yhi = yscale*atof(arg[5]);
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else zlo = domain->boxlo[2];
   } else zlo = zscale*atof(arg[6]);
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else zhi = domain->boxhi[2];
   } else zhi = zscale*atof(arg[7]);
@@ -87,22 +84,22 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   // non-zero tilt values cannot be used if either dim is INF on both ends
 
   if (xlo >= xhi || ylo >= yhi || zlo >= zhi)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
 
   if (xy != 0.0 && xlo == -BIG && xhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
   if (xy != 0.0 && ylo == -BIG && yhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
 
   if (xz != 0.0 && xlo == -BIG && xhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
   if (xz != 0.0 && zlo == -BIG && zhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
 
   if (yz != 0.0 && ylo == -BIG && yhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
   if (yz != 0.0 && zlo == -BIG && zhi == BIG)
-    error->all("Illegal region prism command");
+    error->all(FLERR,"Illegal region prism command");
 
   // extent of prism
   

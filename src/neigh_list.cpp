@@ -15,16 +15,11 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "update.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-
-
-
-#include "update.h"
-
-
 
 using namespace LAMMPS_NS;
 
@@ -188,18 +183,18 @@ void NeighList::stencil_allocate(int smax, int style)
 
 int **NeighList::add_pages()
 {
-  int npage = maxpage;
+  int toppage = maxpage;
   maxpage += PGDELTA;
 
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");
-  for (int i = npage; i < maxpage; i++)
+  for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"neighlist:pages[i]");
 
   if (dnum) {
     dpages = (double **) 
       memory->srealloc(dpages,maxpage*sizeof(double *),"neighlist:dpages");
-    for (int i = npage; i < maxpage; i++)
+    for (int i = toppage; i < maxpage; i++)
       memory->create(dpages[i],dnum*pgsize,"neighlist:dpages[i]");
   }
 
@@ -255,6 +250,8 @@ void NeighList::print_attributes()
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
   printf("  %d = ghost\n",rq->ghost);
+  printf("  %d = cudable\n",rq->cudable);
+  printf("  %d = omp\n",rq->omp);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);

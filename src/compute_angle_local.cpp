@@ -20,10 +20,12 @@
 #include "domain.h"
 #include "force.h"
 #include "angle.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 
@@ -32,10 +34,10 @@ using namespace LAMMPS_NS;
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute angle/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 
   if (atom->avec->angles_allow == 0)
-    error->all("Compute angle/local used when angles are not allowed");
+    error->all(FLERR,"Compute angle/local used when angles are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -50,7 +52,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
     i = iarg-3;
     if (strcmp(arg[iarg],"theta") == 0) tflag = nvalues++;
     else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
-    else error->all("Invalid keyword in compute angle/local command");
+    else error->all(FLERR,"Invalid keyword in compute angle/local command");
   }
 
   nmax = 0;
@@ -71,7 +73,7 @@ ComputeAngleLocal::~ComputeAngleLocal()
 void ComputeAngleLocal::init()
 {
   if (force->angle == NULL) 
-    error->all("No angle style is defined for compute angle/local");
+    error->all(FLERR,"No angle style is defined for compute angle/local");
 
   // do initial memory allocation so that memory_usage() is correct
 
@@ -133,7 +135,6 @@ int ComputeAngleLocal::compute_angles(int flag)
   }
 
   Angle *angle = force->angle;
-  double PI = 4.0*atan(1.0);
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -170,7 +171,7 @@ int ComputeAngleLocal::compute_angles(int flag)
 	  c /= r1*r2;
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  tbuf[n] = 180.0*acos(c)/PI;
+	  tbuf[n] = 180.0*acos(c)/MY_PI;
 	}
 
 	if (eflag >= 0) {

@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 ComputeGyration::ComputeGyration(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute gyration command");
+  if (narg != 3) error->all(FLERR,"Illegal compute gyration command");
 
   scalar_flag = 1;
   extscalar = 0;

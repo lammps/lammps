@@ -28,7 +28,7 @@ class PairLJClass2 : public Pair {
  public:
   PairLJClass2(class LAMMPS *);
   virtual ~PairLJClass2();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

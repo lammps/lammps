@@ -35,9 +35,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
@@ -45,7 +42,7 @@ using namespace LAMMPS_NS;
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 15) error->all("Illegal fix ttm command");
+  if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 
   vector_flag = 1;
   size_vector = 2;
@@ -70,38 +67,38 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   if (fpr == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",arg[13]);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   nfileevery = atoi(arg[14]);
 
   if (nfileevery) {
-    if (narg != 16) error->all("Illegal fix ttm command");
+    if (narg != 16) error->all(FLERR,"Illegal fix ttm command");
     MPI_Comm_rank(world,&me);
     if (me == 0) {
       fp = fopen(arg[15],"w");
       if (fp == NULL) {
         char str[128];
         sprintf(str,"Cannot open fix ttm file %s",arg[15]);
-        error->one(str);
+        error->one(FLERR,str);
       }
     }
   }
 
   // error check
 
-  if (seed <= 0) error->all("Invalid random number seed in fix ttm command");
+  if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
   if (electronic_specific_heat <= 0.0) 
-    error->all("Fix ttm electronic_specific_heat must be > 0.0");
+    error->all(FLERR,"Fix ttm electronic_specific_heat must be > 0.0");
   if (electronic_density <= 0.0) 
-    error->all("Fix ttm electronic_density must be > 0.0");
+    error->all(FLERR,"Fix ttm electronic_density must be > 0.0");
   if (electronic_thermal_conductivity < 0.0)
-    error->all("Fix ttm electronic_thermal_conductivity must be >= 0.0");
-  if (gamma_p <= 0.0) error->all("Fix ttm gamma_p must be > 0.0");
-  if (gamma_s < 0.0) error->all("Fix ttm gamma_s must be >= 0.0");
-  if (v_0 < 0.0) error->all("Fix ttm v_0 must be >= 0.0");
+    error->all(FLERR,"Fix ttm electronic_thermal_conductivity must be >= 0.0");
+  if (gamma_p <= 0.0) error->all(FLERR,"Fix ttm gamma_p must be > 0.0");
+  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
+  if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
-    error->all("Fix ttm number of nodes must be > 0");
+    error->all(FLERR,"Fix ttm number of nodes must be > 0");
 
   v_0_sq = v_0*v_0;
 
@@ -194,11 +191,11 @@ int FixTTM::setmask()
 void FixTTM::init()
 {
   if (domain->dimension == 2)
-    error->all("Cannot use fix ttm with 2d simulation");
+    error->all(FLERR,"Cannot use fix ttm with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all("Cannot use nonperiodic boundares with fix ttm");
+    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm");
   if (domain->triclinic)
-    error->all("Cannot use fix ttm with triclinic box");
+    error->all(FLERR,"Cannot use fix ttm with triclinic box");
 
   // set force prefactors
 
@@ -262,7 +259,7 @@ void FixTTM::post_force(int vflag)
       while (iznode < 0) iznode += nznodes;
 
       if (T_electron[ixnode][iynode][iznode] < 0) 
-        error->all("Electronic temperature dropped below zero");
+        error->all(FLERR,"Electronic temperature dropped below zero");
 
       double tsqrt = sqrt(T_electron[ixnode][iynode][iznode]);
 
@@ -345,7 +342,7 @@ void FixTTM::read_initial_electron_temperatures()
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
     sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one("Fix ttm electron temperatures must be > 0.0");
+    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
@@ -354,7 +351,7 @@ void FixTTM::read_initial_electron_temperatures()
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one("Initial temperatures not all set in fix ttm");
+          error->one(FLERR,"Initial temperatures not all set in fix ttm");
 
   // close file
 
@@ -420,7 +417,7 @@ void FixTTM::end_of_step()
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000) 
-      error->warning("Too many inner timesteps in fix ttm",0);
+      error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
   }
 
   for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps; 

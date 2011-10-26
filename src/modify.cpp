@@ -53,9 +53,6 @@ using namespace LAMMPS_NS;
 #define MIN_ENERGY             131072
 #define POST_RUN               262144
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
@@ -240,7 +237,7 @@ void Modify::init()
   int checkall;
   MPI_Allreduce(&check,&checkall,1,MPI_INT,MPI_SUM,world);
   if (comm->me == 0 && checkall)
-    error->warning("One or more atoms are time integrated more than once");
+    error->warning(FLERR,"One or more atoms are time integrated more than once");
 }
 
 /* ----------------------------------------------------------------------
@@ -595,13 +592,13 @@ int Modify::min_reset_ref()
 void Modify::add_fix(int narg, char **arg, char *suffix)
 {
   if (domain->box_exist == 0 && allow_early_fix == 0) 
-    error->all("Fix command before simulation box is defined");
-  if (narg < 3) error->all("Illegal fix command");
+    error->all(FLERR,"Fix command before simulation box is defined");
+  if (narg < 3) error->all(FLERR,"Illegal fix command");
 
   // check group ID
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find fix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
 
   // if fix ID exists:
   //   set newflag = 0 so create new fix in same location in fix list
@@ -623,9 +620,9 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
   if (ifix < nfix) {
     newflag = 0;
     if (strcmp(arg[2],fix[ifix]->style) != 0)
-      error->all("Replacing a fix, but new style != old style");
+      error->all(FLERR,"Replacing a fix, but new style != old style");
     if (fix[ifix]->igroup != igroup && comm->me == 0)
-      error->warning("Replacing a fix, but new group != old group");
+      error->warning(FLERR,"Replacing a fix, but new group != old group");
     delete fix[ifix];
     fix[ifix] = NULL;
   } else {
@@ -668,7 +665,7 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 #undef FixStyle
 #undef FIX_CLASS
 
-    else error->all("Invalid fix style");
+    else error->all(FLERR,"Invalid fix style");
   }
 
   // set fix mask values and increment nfix (if new)
@@ -714,14 +711,14 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 
 void Modify::modify_fix(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal fix_modify command");
+  if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
 
   // lookup Fix ID
 
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(arg[0],fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all("Could not find fix_modify ID");
+  if (ifix == nfix) error->all(FLERR,"Could not find fix_modify ID");
   
   fix[ifix]->modify_params(narg-1,&arg[1]);
 }
@@ -734,7 +731,7 @@ void Modify::modify_fix(int narg, char **arg)
 void Modify::delete_fix(const char *id)
 {
   int ifix = find_fix(id);
-  if (ifix < 0) error->all("Could not find fix ID to delete");
+  if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
   delete fix[ifix];
   atom->update_callback(ifix);
 
@@ -765,13 +762,13 @@ int Modify::find_fix(const char *id)
 
 void Modify::add_compute(int narg, char **arg, char *suffix)
 {
-  if (narg < 3) error->all("Illegal compute command");
+  if (narg < 3) error->all(FLERR,"Illegal compute command");
 
   // error check
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all("Reuse of compute ID");
+      error->all(FLERR,"Reuse of compute ID");
 
   // extend Compute list if necessary
 
@@ -814,7 +811,7 @@ void Modify::add_compute(int narg, char **arg, char *suffix)
 #undef ComputeStyle
 #undef COMPUTE_CLASS
 
-    else error->all("Invalid compute style");
+    else error->all(FLERR,"Invalid compute style");
   }
 
   ncompute++;
@@ -826,14 +823,14 @@ void Modify::add_compute(int narg, char **arg, char *suffix)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal compute_modify command");
+  if (narg < 2) error->all(FLERR,"Illegal compute_modify command");
 
   // lookup Compute ID
 
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all("Could not find compute_modify ID");
+  if (icompute == ncompute) error->all(FLERR,"Could not find compute_modify ID");
   
   compute[icompute]->modify_params(narg-1,&arg[1]);
 }
@@ -845,7 +842,7 @@ void Modify::modify_compute(int narg, char **arg)
 void Modify::delete_compute(char *id)
 {
   int icompute = find_compute(id);
-  if (icompute < 0) error->all("Could not find compute ID to delete");
+  if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
   delete compute[icompute];
 
   // move other Computes down in list one slot

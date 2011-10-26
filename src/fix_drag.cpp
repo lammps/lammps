@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix drag command");
+  if (narg != 8) error->all(FLERR,"Illegal fix drag command");
 
   vector_flag = 1;
   size_vector = 3;

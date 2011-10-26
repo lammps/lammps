@@ -16,17 +16,12 @@
    Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "pair_cg_cmm_coul_cut.h"
 #include "memory.h"
 #include "atom.h"
 
-#include "string.h"
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
- 
-/* ---------------------------------------------------------------------- */
 
 PairCGCMMCoulCut::PairCGCMMCoulCut(LAMMPS *lmp) : PairCMMCommon(lmp)
 {
@@ -67,7 +62,7 @@ void PairCGCMMCoulCut::allocate()
 void PairCGCMMCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style cg/cut/coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style cg/cut/coul/cut requires atom attribute q");
 
   PairCMMCommon::init_style();
 
@@ -88,7 +83,7 @@ double PairCGCMMCoulCut::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && MIN(cut_lj[i][j],cut_coul[i][j]) < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   return mycut;
 }

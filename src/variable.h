@@ -35,7 +35,6 @@ class Variable : protected Pointers {
   double evaluate_boolean(char *);
 
  private:
-  int me;
   int nvar;                // # of defined variables
   int maxvar;              // max # of variables arrays can hold
   char **names;            // name of each variable
@@ -44,13 +43,13 @@ class Variable : protected Pointers {
   int *which;              // next available value for each variable
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   char ***data;            // str value of each variable's values
-  double PI;
 
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
 
   int precedence[16];      // precedence level of math operators
                            // set length to include OR in enum
+  int me;
 
   struct Tree {            // parse tree for atom-style variables
     double value;

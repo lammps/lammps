@@ -35,7 +35,7 @@ enum{BOX,LATTICE,FRACTION};
 FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix recenter command");
+  if (narg < 6) error->all(FLERR,"Illegal fix recenter command");
 
   xcom = ycom = zcom = 0.0;
   xflag = yflag = zflag = 1;
@@ -60,22 +60,22 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"shift") == 0) {
       int igroup2 = group->find(arg[iarg+1]);
-      if (igroup2 < 0) error->all("Could not find fix recenter group ID");
+      if (igroup2 < 0) error->all(FLERR,"Could not find fix recenter group ID");
       group2bit = group->bitmask[igroup2];
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
       else if (strcmp(arg[iarg+1],"fraction") == 0) scaleflag = FRACTION;
-      else error->all("Illegal fix recenter command");
+      else error->all(FLERR,"Illegal fix recenter command");
       iarg += 2;
-    } else error->all("Illegal fix recenter command");
+    } else error->all(FLERR,"Illegal fix recenter command");
   }
 
   // scale xcom,ycom,zcom
 
   if (scaleflag == LATTICE && domain->lattice == NULL)
-    error->all("Use of fix recenter with undefined lattice");
+    error->all(FLERR,"Use of fix recenter with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag == LATTICE) {
@@ -92,7 +92,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0)
-    error->all("Fix recenter group has no atoms");
+    error->all(FLERR,"Fix recenter group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,7 +117,7 @@ void FixRecenter::init()
     else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
   }
   if (flag && comm->me == 0)
-    error->warning("Fix recenter should come after all other integration fixes");
+    error->warning(FLERR,"Fix recenter should come after all other integration fixes");
 
   masstotal = group->mass(igroup);
 

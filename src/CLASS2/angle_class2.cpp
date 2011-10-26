@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -267,7 +269,7 @@ void AngleClass2::allocate()
 
 void AngleClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Incorrect args for angle coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -276,7 +278,7 @@ void AngleClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"bb") == 0) {
-    if (narg != 5) error->all("Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double bb_k_one = force->numeric(arg[2]);
     double bb_r1_one = force->numeric(arg[3]);
@@ -291,7 +293,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ba") == 0) {
-    if (narg != 6) error->all("Incorrect args for angle coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double ba_k1_one = force->numeric(arg[2]);
     double ba_k2_one = force->numeric(arg[3]);
@@ -308,7 +310,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 5) error->all("Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double theta0_one = force->numeric(arg[1]);
     double k2_one = force->numeric(arg[2]);
@@ -318,7 +320,7 @@ void AngleClass2::coeff(int narg, char **arg)
     // convert theta0 from degrees to radians
 
     for (int i = ilo; i <= ihi; i++) {
-      theta0[i] = theta0_one/180.0 * PI;
+      theta0[i] = theta0_one/180.0 * MY_PI;
       k2[i] = k2_one;
       k3[i] = k3_one;
       k4[i] = k4_one;
@@ -327,7 +329,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_a[i] == 1 && setflag_bb[i] == 1 && setflag_ba[i] == 1)

@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairCoulDebye : public PairCoulCut {
  public:
   PairCoulDebye(class LAMMPS *);
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double kappa;
 };
 

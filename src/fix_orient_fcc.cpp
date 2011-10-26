@@ -28,15 +28,14 @@
 #include "neigh_request.h"
 #include "comm.h"
 #include "output.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG 1000000000
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +44,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 {
   MPI_Comm_rank(world,&me);
 
-  if (narg != 11) error->all("Illegal fix orient/fcc command");
+  if (narg != 11) error->all(FLERR,"Illegal fix orient/fcc command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -76,11 +75,10 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     n = strlen(arg[10]) + 1;
     chifilename = new char[n];
     strcpy(chifilename,arg[10]);
-  } else error->all("Illegal fix orient/fcc command");
+  } else error->all(FLERR,"Illegal fix orient/fcc command");
 
   // initializations
 
-  PI = 4.0*atan(1.0);
   half_fcc_nn = 6;
   use_xismooth = false;
   double xicutoff = 1.57;
@@ -96,22 +94,22 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *infile = fopen(xifilename,"r");
-    if (infile == NULL) error->one("Fix orient/fcc file open failed");
+    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
       result = fgets(line,512,infile);
-      if (!result) error->one("Fix orient/fcc file read failed");
+      if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
-      if (count != 3) error->one("Fix orient/fcc file read failed");
+      if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
     fclose(infile);
 
     infile = fopen(chifilename,"r");
-    if (infile == NULL) error->one("Fix orient/fcc file open failed");
+    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
       result = fgets(line,512,infile);
-      if (!result) error->one("Fix orient/fcc file read failed");
+      if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
-      if (count != 3) error->one("Fix orient/fcc file read failed");
+      if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
     fclose(infile);
   }
@@ -347,10 +345,10 @@ void FixOrientFCC::post_force(int vflag)
       edelta = Vxi;
       order[i][1] = 1.0;
     } else {
-      omega = (0.5*PI)*(xi_total-xi0) / (xi1-xi0);
-      nbr[i].duxi = PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
+      omega = MY_PI2*(xi_total-xi0) / (xi1-xi0);
+      nbr[i].duxi = MY_PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
       edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
-      order[i][1] = omega / (0.5*PI);
+      order[i][1] = omega / MY_PI2;
     }
     added_energy += edelta;
   }
@@ -396,7 +394,7 @@ void FixOrientFCC::post_force(int vflag)
 
       for (k = 0; k < nn; k++) {
 	if (id_self == nbr[m].id[k]) {
-	  if (found_myself) error->one("Fix orient/fcc found self twice");
+	  if (found_myself) error->one(FLERR,"Fix orient/fcc found self twice");
 	  found_myself = true;
 	  duxi_other = nbr[m].duxi;
 	  dxiptr = &nbr[m].dxi[k][0];

@@ -30,8 +30,8 @@
 #include "kissfft.h"
 #endif
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ----------------------------------------------------------------------
    Data layout for 3d FFTs:

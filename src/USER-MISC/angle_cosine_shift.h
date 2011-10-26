@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class AngleCosineShift : public Angle {
  public:
   AngleCosineShift(class LAMMPS *);
-  ~AngleCosineShift();
+  virtual ~AngleCosineShift();
   virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_angle(int);
@@ -36,7 +36,7 @@ class AngleCosineShift : public Angle {
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   double *k;
   double *a;
   double *theta;

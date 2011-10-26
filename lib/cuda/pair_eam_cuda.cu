@@ -134,18 +134,22 @@ void Cuda_PairEAMCuda_UpdateBuffer(cuda_shared_data* sdata, cuda_shared_neighlis
 	CUT_CHECK_ERROR("Cuda_PairEAMCuda: updateBuffer failed");
 }
 
+void Cuda_PairEAMCuda_UpdateNeighbor(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
+{
+cudaMemcpyToSymbol(MY_CONST(neighbor_maxlocal) , & sneighlist->firstneigh.dim[0]  , sizeof(unsigned) );
+cudaMemcpyToSymbol(MY_CONST(firstneigh), & sneighlist->firstneigh.dev_data, sizeof(int*) );
+cudaMemcpyToSymbol(MY_CONST(ilist)     , & sneighlist->ilist     .dev_data, sizeof(int*) );
+cudaMemcpyToSymbol(MY_CONST(inum)      , & sneighlist->inum               , sizeof(int)  );
+cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal               , sizeof(int)      );
+cudaMemcpyToSymbol(MY_CONST(nmax)      , & sdata->atom.nmax               , sizeof(int)  );
+cudaMemcpyToSymbol(MY_CONST(numneigh)  , & sneighlist->numneigh  .dev_data, sizeof(int*) );
+cudaMemcpyToSymbol(MY_CONST(neighbors)      , & sneighlist->neighbors  .dev_data, sizeof(int*) );
+cudaMemcpyToSymbol(MY_CONST(maxneighbors)       , & sneighlist->maxneighbors     , sizeof(int)  );
+}
+
 void Cuda_PairEAMCuda_UpdateNmax(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
 	CUT_CHECK_ERROR("Cuda_PairEAMCuda: before updateNmax failed");
-		cudaMemcpyToSymbol(MY_CONST(neighbor_maxlocal) , & sneighlist->firstneigh.dim[0]  , sizeof(unsigned) );
-		cudaMemcpyToSymbol(MY_CONST(firstneigh), & sneighlist->firstneigh.dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(ilist)     , & sneighlist->ilist     .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(inum)      , & sneighlist->inum               , sizeof(int)  );
-		cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal               , sizeof(int)      );
-		cudaMemcpyToSymbol(MY_CONST(nmax)      , & sdata->atom.nmax               , sizeof(int)  );
-		cudaMemcpyToSymbol(MY_CONST(numneigh)  , & sneighlist->numneigh  .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(neighbors)  		, & sneighlist->neighbors  .dev_data, sizeof(int*) );
-		cudaMemcpyToSymbol(MY_CONST(maxneighbors)     	, & sneighlist->maxneighbors	   , sizeof(int)  );
 		cudaMemcpyToSymbol(MY_CONST(x)         , & sdata->atom.x         .dev_data, sizeof(X_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(x_type)         	, & sdata->atom.x_type    .dev_data, sizeof(X_FLOAT4*) );
 		cudaMemcpyToSymbol(MY_CONST(f)         			, & sdata->atom.f         .dev_data, sizeof(F_FLOAT*) );
@@ -228,6 +232,8 @@ void Cuda_PairEAM1Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
 	
 	if(sdata->atom.update_nmax) 
 		Cuda_PairEAMCuda_UpdateNmax(sdata,sneighlist);
+  if(sdata->atom.update_neigh)
+    Cuda_PairEAMCuda_UpdateNeighbor(sdata,sneighlist);
 	if(sdata->atom.update_nlocal) 		
 		cudaMemcpyToSymbol(MY_CONST(nlocal)  , & sdata->atom.nlocal        , sizeof(int)      );
 	if(sdata->buffer_new)

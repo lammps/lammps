@@ -40,10 +40,11 @@ lmp_g++ < in.script :pre
 
 since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems.  This can be worked around
-by using the "-in command-line argument"_Section_start.html#2_6 or the
-"-var command-line argument"_Section_start.html#2_6 to pass the script
-name as a variable to the input script In the latter case, the "fname"
-"variable"_variable.html could be used in place of SELF.  E.g.
+by using the "-in command-line argument"_Section_start.html#start_6 or
+the "-var command-line argument"_Section_start.html#start_6 to pass
+the script name as a variable to the input script In the latter case,
+the "fname" "variable"_variable.html could be used in place of SELF.
+E.g.
 
 lmp_g++ -in in.script :pre
 lmp_g++ -var fname n.script < in.script :pre

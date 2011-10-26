@@ -58,7 +58,6 @@ class FixOrientFCC : public Fix {
 
  private:
   int me;
-  double PI;
   int nlevels_respa;
 
   int direction_of_motion;         // 1 = center shrinks, 0 = center grows

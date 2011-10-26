@@ -61,7 +61,6 @@ class AtomVecSphere : public AtomVec {
   bigint memory_usage();
 
  private:
-  double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   double *radius,*density,*rmass;

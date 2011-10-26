@@ -21,9 +21,6 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
@@ -32,7 +29,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   
   if (strcmp(arg[2],"INF") == 0 || strcmp(arg[2],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else if (domain->triclinic == 0) xlo = domain->boxlo[0];
     else xlo = domain->boxlo_bound[0];
@@ -40,7 +37,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else if (domain->triclinic == 0) xhi = domain->boxhi[0];
     else xhi = domain->boxhi_bound[0];
@@ -48,7 +45,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else if (domain->triclinic == 0) ylo = domain->boxlo[1];
     else ylo = domain->boxlo_bound[1];
@@ -56,7 +53,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else if (domain->triclinic == 0) yhi = domain->boxhi[1];
     else yhi = domain->boxhi_bound[1];
@@ -64,7 +61,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else if (domain->triclinic == 0) zlo = domain->boxlo[2];
     else zlo = domain->boxlo_bound[2];
@@ -72,7 +69,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else if (domain->triclinic == 0) zhi = domain->boxhi[2];
     else zhi = domain->boxhi_bound[2];
@@ -81,7 +78,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   // error check
 
   if (xlo > xhi || ylo > yhi || zlo > zhi)
-    error->all("Illegal region block command");
+    error->all(FLERR,"Illegal region block command");
 
   // extent of block
 

@@ -37,19 +37,19 @@ using namespace LAMMPS_NS;
 FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix reax/bonds command");
+  if (narg < 5) error->all(FLERR,"Illegal fix reax/bonds command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = atoi(arg[3]);
-  if (nevery < 1) error->all("Illegal fix reax/bonds command");
+  if (nevery < 1) error->all(FLERR,"Illegal fix reax/bonds command");
 
   if (me == 0) {
     fp = fopen(arg[4],"w");
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open fix reax/bonds file %s",arg[4]);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 }
@@ -86,7 +86,7 @@ void FixReaxBonds::init()
   // insure ReaxFF is defined
 
   if (force->pair_match("reax",1) == NULL)
-    error->all("Cannot use fix reax/bonds without pair_style reax");
+    error->all(FLERR,"Cannot use fix reax/bonds without pair_style reax");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -195,7 +195,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
 	if (numbonds > nsbmax_most) {
 	  char str[128];
 	  sprintf(str,"Fix reax/bonds numbonds > nsbmax_most");
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 
 	// print connection table

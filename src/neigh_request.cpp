@@ -44,6 +44,8 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is encode special bond flags
   // default is no auxiliary floating point values
   // default is no neighbors of ghosts
+  // default is no CUDA neighbor list build
+  // default is no multi-threaded neighbor list build
 
   occasional = 0;
   newton = 0;
@@ -51,6 +53,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   dnum = 0;
   ghost = 0;
   cudable = 0;
+  omp = 0;
 
   // default is no copy or skip
 
@@ -101,6 +104,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
   if (cudable != other->cudable) same = 0;
+  if (omp != other->omp) same = 0;
 
   if (copy != other->copy) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -129,6 +133,7 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (newton != other->newton) same = 0;
   if (ghost != other->ghost) same = 0;
   if (cudable != other->cudable) same = 0;
+  if (omp != other->omp) same = 0;
 
   return same;
 }
@@ -178,4 +183,5 @@ void NeighRequest::copy_request(NeighRequest *other)
   dnum = other->dnum;
   ghost = other->ghost;
   cudable = other->cudable;
+  omp = other->omp;
 }

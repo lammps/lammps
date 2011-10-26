@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp) {}
@@ -162,10 +159,10 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
 	  } else ecoul = 0.0;
 	  if (rsq < cut_ljsq) {
 	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+	    evdwl += ljsw5[itype][jtype];
             if (rsq > cut_lj_innersq) {
               eswitch = tlj*tlj*tlj * 
-	      (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	      ljsw5[itype][jtype];
+		(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
               evdwl += eswitch;
             }
 	    evdwl *= factor_lj;
@@ -217,7 +214,7 @@ void PairLJGromacsCoulGromacs::allocate()
 void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 4) 
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
   cut_lj = force->numeric(arg[1]);
@@ -230,9 +227,9 @@ void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
   }
 
   if (cut_lj_inner <= 0.0 || cut_coul_inner < 0.0)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
   if (cut_lj_inner > cut_lj || cut_coul_inner > cut_coul)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -241,7 +238,7 @@ void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
 
 void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for pair coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -261,7 +258,7 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -271,7 +268,7 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
 void PairLJGromacsCoulGromacs::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/gromacs/coul/gromacs requires atom attribute q");
+    error->all(FLERR,"Pair style lj/gromacs/coul/gromacs requires atom attribute q");
 
   neighbor->request(this);
 
@@ -474,10 +471,10 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+    philj += ljsw5[itype][jtype];
     if (rsq > cut_lj_innersq) {
       phiswitch = tlj*tlj*tlj * 
-	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	ljsw5[itype][jtype];
+	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
       philj += phiswitch;
     }
     eng += factor_lj*philj;

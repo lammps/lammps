@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -44,15 +50,12 @@ using namespace LAMMPS_NS;
 #define MIN_CAP 50
 #define MIN_NBRS 100
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix qeq/reax command"); 
+  if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command"); 
   
   nevery = atoi(arg[3]);
   swa = atof(arg[4]);
@@ -142,13 +145,13 @@ void FixQEqReax::pertype_parameters(char *arg)
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
     Pair *pair = force->pair_match("reax/c",1);
-    if (pair == NULL) error->all("No pair reax/c for fix qeq/reax");
+    if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax");
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if (chi == NULL || eta == NULL || gamma == NULL)
-      error->all("Fix qeq/reax could not extract params from pair reax/c");
+      error->all(FLERR,"Fix qeq/reax could not extract params from pair reax/c");
     return;
   }
 
@@ -165,17 +168,17 @@ void FixQEqReax::pertype_parameters(char *arg)
 
   if (comm->me == 0) {
     if ((pf = fopen(arg,"r")) == NULL)
-      error->one("Fix qeq/reax parameter file could not be found");
+      error->one(FLERR,"Fix qeq/reax parameter file could not be found");
     
     for (i = 1; i <= ntypes && !feof(pf); i++) {
       fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
       if (itype < 1 || itype > ntypes)
-	error->one("Fix qeq/reax invalid atom type in param file");
+	error->one(FLERR,"Fix qeq/reax invalid atom type in param file");
       chi[itype] = v1;
       eta[itype] = v2;
       gamma[itype] = v3;
     }
-    if (i <= ntypes) error->one("Invalid param file for fix qeq/reax");
+    if (i <= ntypes) error->one(FLERR,"Invalid param file for fix qeq/reax");
     fclose(pf);
   }
 
@@ -281,7 +284,7 @@ void FixQEqReax::reallocate_matrix()
 
 void FixQEqReax::init()
 {
-  if (!atom->q_flag) error->all("Fix qeq/reax requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 	
   // need a half neighbor list w/ Newton off
   // built whenever re-neighboring occurs
@@ -327,11 +330,11 @@ void FixQEqReax::init_taper()
   double d7, swa2, swa3, swb2, swb3;
 
   if (fabs(swa) > 0.01 && comm->me == 0)
-    error->warning("Fix qeq/reax has non-zero lower Taper radius cutoff");
+    error->warning(FLERR,"Fix qeq/reax has non-zero lower Taper radius cutoff");
   if (swb < 0)
-    error->all( "Fix qeq/reax has negative upper Taper radius cutoff");
+    error->all(FLERR, "Fix qeq/reax has negative upper Taper radius cutoff");
   else if (swb < 5 && comm->me == 0)
-    error->warning("Fix qeq/reax has very low Taper radius cutoff");
+    error->warning(FLERR,"Fix qeq/reax has very low Taper radius cutoff");
 
   d7 = pow( swb - swa, 7 );
   swa2 = SQR( swa );
@@ -471,19 +474,20 @@ void FixQEqReax::init_matvec()
 void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, temp, newnbr;
-  int *type;
-  double **x;
+  int i, j, ii, jj, temp, newnbr, flag;
+  int *type, *tag;
+  double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 
   type = atom->type;
+  tag = atom->tag;
   x = atom->x;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+  
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
@@ -492,16 +496,30 @@ void FixQEqReax::compute_H()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     H.firstnbr[i] = m_fill;
-
+    
     for( jj = 0; jj < jnum; jj++ ) {
       j = jlist[jj];
-
-      dx = x[i][0] - x[j][0];
-      dy = x[i][1] - x[j][1];
-      dz = x[i][2] - x[j][2];
+      
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
       r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
       
-      if( r_sqr <= SQR(swb) && (j < n || atom->tag[i] <= atom->tag[j]) ) {
+      flag = 0;
+      if (r_sqr <= SQR(swb)) {
+        if (j < n) flag = 1;
+        else if (tag[i] < tag[j]) flag = 1;
+	else if (tag[i] == tag[j]) {
+          if (dz > SMALL) flag = 1;
+          else if (fabs(dz) < SMALL) {
+            if (dy > SMALL) flag = 1;
+            else if (fabs(dy) < SMALL && dx > SMALL)
+              flag = 1;
+          }
+        }
+      }
+      
+      if( flag ) {
 	H.jlist[m_fill] = j;
 	H.val[m_fill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
 	m_fill++;
@@ -515,8 +533,8 @@ void FixQEqReax::compute_H()
     char str[128];
     sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
 	     m_fill, H.m );
-    error->warning(str);
-    error->all("Fix qeq/reax has insufficient QEq matrix size");
+    error->warning(FLERR,str);
+    error->all(FLERR,"Fix qeq/reax has insufficient QEq matrix size");
   }
 }
 
@@ -585,7 +603,7 @@ int FixQEqReax::CG( double *b, double *x )
   }
 
   if (i >= 100 && comm->me == 0)
-    error->warning("Fix qeq/reax CG convergence failed");
+    error->warning(FLERR,"Fix qeq/reax CG convergence failed");
 
   return i;
 }

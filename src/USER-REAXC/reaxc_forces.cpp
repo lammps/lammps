@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -19,7 +24,7 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_types.h"
+#include "pair_reax_c.h"
 #if defined(PURE_REAX)
 #include "forces.h"
 #include "bond_orders.h"
@@ -147,7 +152,7 @@ void Compute_Total_Force( reax_system *system, control_params *control,
     for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
       if( i < bonds->select.bond_list[pj].nbr ) {
 	if( control->virial == 0 )
-	  Add_dBond_to_Forces( i, pj, workspace, lists );
+	  Add_dBond_to_Forces( system, i, pj, workspace, lists );
 	else 
 	  Add_dBond_to_Forces_NPT( i, pj, data, workspace, lists );
       }

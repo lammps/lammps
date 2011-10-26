@@ -62,16 +62,13 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairCGCMMCoulLongCuda::PairCGCMMCoulLongCuda(LAMMPS *lmp) : PairCGCMMCoulLong(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
 	cg_type_double = NULL;
@@ -174,7 +171,7 @@ void PairCGCMMCoulLongCuda::init_style()
   cuda->shared_data.pair.g_ewald=g_ewald;
   cuda->shared_data.pppm.qqrd2e=force->qqrd2e;
   cut_respa=NULL;
-  if (force->newton) error->warning("Pair style uses does not use \"newton\" setting. You might test if \"newton off\" makes the simulation run faster.");
+  if (force->newton) error->warning(FLERR,"Pair style uses does not use \"newton\" setting. You might test if \"newton off\" makes the simulation run faster.");
   MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_style end\n"); )
 }
 

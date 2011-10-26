@@ -49,6 +49,7 @@ class Min : protected Pointers {
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly
+  int external_force_clear;   // clear forces locally or externally
 
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic
@@ -60,9 +61,10 @@ class Min : protected Pointers {
   class Compute **vlist_global;
   class Compute **vlist_atom;
 
+  int triclinic;              // 0 if domain is orthog, 1 if triclinic
   int pairflag;
   int torqueflag,erforceflag;
-  int triclinic;              // 0 if domain is orthog, 1 if triclinic
+  int e_flag,rho_flag;
 
   int narray;                       // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;  // fix that stores auxiliary data

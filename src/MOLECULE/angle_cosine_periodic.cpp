@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -199,7 +201,7 @@ void AngleCosinePeriodic::allocate()
 
 void AngleCosinePeriodic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for angle coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -208,7 +210,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   double c_one = atof(arg[1]);
   int b_one = atoi(arg[2]);
   int n_one = atoi(arg[3]);
-  if (n_one <= 0) error->all("Incorrect args for angle coefficients");
+  if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -219,14 +221,14 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return PI;
+  return MY_PI;
 }
 
 /* ----------------------------------------------------------------------

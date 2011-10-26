@@ -27,7 +27,7 @@ PairREBO::PairREBO(LAMMPS *lmp) : PairAIREBO(lmp) {}
 
 void PairREBO::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 
   cutlj = 0.0;
   ljflag = torflag = 0;

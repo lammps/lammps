@@ -46,7 +46,7 @@ void Neighbor::bond_all()
 	sprintf(str,
 		"Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		tag[i],bond_atom[i][m],me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
@@ -85,7 +85,7 @@ void Neighbor::bond_partial()
 	sprintf(str,
 		"Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		tag[i],bond_atom[i][m],me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
@@ -128,7 +128,7 @@ void Neighbor::angle_all()
 		BIGINT_FORMAT,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
@@ -173,7 +173,7 @@ void Neighbor::angle_partial()
 		BIGINT_FORMAT,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
@@ -220,7 +220,7 @@ void Neighbor::dihedral_all()
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
@@ -270,7 +270,7 @@ void Neighbor::dihedral_partial()
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
@@ -319,7 +319,7 @@ void Neighbor::improper_all()
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
@@ -369,7 +369,7 @@ void Neighbor::improper_partial()
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {

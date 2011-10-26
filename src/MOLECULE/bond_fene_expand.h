@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class BondFENEExpand : public Bond {
  public:
   BondFENEExpand(class LAMMPS *);
-  ~BondFENEExpand();
-  void compute(int, int);
+  virtual ~BondFENEExpand();
+  virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
   double equilibrium_distance(int);
@@ -37,7 +37,7 @@ class BondFENEExpand : public Bond {
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double TWO_1_3;
   double *k,*r0,*epsilon,*sigma,*shift;
 

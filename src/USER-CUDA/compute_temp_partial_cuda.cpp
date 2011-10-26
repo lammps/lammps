@@ -60,9 +60,9 @@ ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg != 6) error->all("Illegal compute temp/partial command");
+  if (narg != 6) error->all(FLERR,"Illegal compute temp/partial command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -75,7 +75,7 @@ ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
   if (zflag && domain->dimension == 2)
-    error->all("Compute temp/partial cannot use vz for 2d systemx");
+    error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
   maxbias = 0;
   vbiasall = NULL;
@@ -181,7 +181,7 @@ double ComputeTempPartialCuda::compute_scalar()
   	for(int i=0;i<atom->nlocal;i++) 
   	if((v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2])>1e5) 
   	printf("%i %i // %lf %lf %lf // %lf %lf %lf\n",atom->tag[i],atom->type[i],x[i][0], x[i][1], x[i][2],v[i][0], v[i][1], v[i][2]);
-  	error->all("Temperature out of range. Simulations will be abortet.\n");
+  	error->all(FLERR,"Temperature out of range. Simulations will be abortet.\n");
   }
   return scalar;
 }

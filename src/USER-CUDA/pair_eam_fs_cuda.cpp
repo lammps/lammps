@@ -34,7 +34,7 @@ PairEAMFSCuda::PairEAMFSCuda(LAMMPS *lmp) : PairEAMCuda(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
   one_coeff = 1;
 }
@@ -51,12 +51,12 @@ void PairEAMFSCuda::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read EAM Finnis-Sinclair file
 
@@ -83,7 +83,7 @@ void PairEAMFSCuda::coeff(int narg, char **arg)
     for (j = 0; j < fs->nelements; j++)
       if (strcmp(arg[i],fs->elements[j]) == 0) break;
     if (j < fs->nelements) map[i-2] = j;
-    else error->all("No matching element in EAM potential file");
+    else error->all(FLERR,"No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -107,7 +107,7 @@ void PairEAMFSCuda::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -129,7 +129,7 @@ void PairEAMFSCuda::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -150,7 +150,7 @@ void PairEAMFSCuda::read_file(char *filename)
   sscanf(line,"%d",&file->nelements);
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
-    error->all("Incorrect element names in EAM potential file");
+    error->all(FLERR,"Incorrect element names in EAM potential file");
   
   char **words = new char*[file->nelements+1];
   nwords = 0;

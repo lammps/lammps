@@ -28,9 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairGranHertzHistory::PairGranHertzHistory(LAMMPS *lmp) :
@@ -256,7 +253,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 void PairGranHertzHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all("Illegal pair_style command");
+  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   kn = force->numeric(arg[0]);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
@@ -272,7 +269,7 @@ void PairGranHertzHistory::settings(int narg, char **arg)
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   // convert Kn and Kt from pressure units to force/distance^2
 

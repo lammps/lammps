@@ -24,13 +24,12 @@
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -174,7 +173,7 @@ void PairBorn::allocate()
 
 void PairBorn::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = atof(arg[0]);
 
@@ -194,7 +193,7 @@ void PairBorn::settings(int narg, char **arg)
 
 void PairBorn::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all("Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -204,7 +203,7 @@ void PairBorn::coeff(int narg, char **arg)
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[5]);
   double d_one = force->numeric(arg[6]);
 
@@ -225,7 +224,7 @@ void PairBorn::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -234,7 +233,7 @@ void PairBorn::coeff(int narg, char **arg)
 
 double PairBorn::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   rhoinv[i][j] = 1.0/rho[i][j];
   born1[i][j] = a[i][j]/rho[i][j];
@@ -272,7 +271,6 @@ double PairBorn::init_one(int i, int j)
      } 
      MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-     double PI = 4.0*atan(1.0);
      double rho1 = rho[i][j];
      double rho2 = rho1*rho1;
      double rho3 = rho2*rho1;
@@ -280,11 +278,11 @@ double PairBorn::init_one(int i, int j)
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
-     etail_ij = 2.0*PI*all[0]*all[1] * 
+     etail_ij = 2.0*MY_PI*all[0]*all[1] * 
        (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1* 
 	(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
 	c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
-     ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1] * 
+     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1] * 
        (-a[i][j]*exp((sigma[i][j]-rc)/rho1) * 
 	(rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 
 	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 

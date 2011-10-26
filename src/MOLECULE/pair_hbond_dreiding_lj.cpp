@@ -26,14 +26,13 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
+#include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define SMALL 0.001
 #define CHUNK 8
@@ -46,8 +45,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   // due to using map() to find bonded H atoms which are not near donor atom
 
   no_virial_fdotr_compute = 1;
-
-  PI = 4.0*atan(1.0);
+  restartinfo = 0;
 
   nparams = maxparam = 0;
   params = NULL;
@@ -79,7 +77,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype;
   double delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
-  double factor_hb,force_angle,force_kernel,evdwl,eng_lj;
+  double factor_hb,force_angle,force_kernel,evdwl,eng_lj,ehbond;
   double c,s,a,b,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r2inv,r10inv;
@@ -87,7 +85,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   int *ilist,*jlist,*klist,*numneigh,**firstneigh;
   Param *pm;
 
-  evdwl = 0.0;
+  evdwl = ehbond = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -162,7 +160,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 	  if (c < -1.0) c = -1.0;
 	  ac = acos(c);
 
-	  if (ac > pm->cut_angle && ac < (2.0*PI - pm->cut_angle)) {
+	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
 	    s = sqrt(1.0 - c*c);
 	    if (s < SMALL) s = SMALL;
 
@@ -189,6 +187,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 	    if (eflag) {
 	      evdwl = eng_lj * pow(c,pm->ap);
 	      evdwl *= factor_hb;
+	      ehbond += evdwl;
 	    }
 
 	    a = factor_hb*force_angle/s;
@@ -237,7 +236,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   
   if (eflag_global) {
     pvector[0] = hbcount;
-    pvector[1] = evdwl;
+    pvector[1] = ehbond;
   }
 }
 
@@ -276,12 +275,12 @@ void PairHbondDreidingLJ::allocate()
 
 void PairHbondDreidingLJ::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
   
   ap_global = force->inumeric(arg[0]);  
   cut_inner_global = force->numeric(arg[1]);
   cut_outer_global = force->numeric(arg[2]);
-  cut_angle_global = force->numeric(arg[3]) * PI/180.0;
+  cut_angle_global = force->numeric(arg[3]) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -291,7 +290,7 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
 void PairHbondDreidingLJ::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 9)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
   
   int ilo,ihi,jlo,jhi,klo,khi;
@@ -302,7 +301,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
-  else error->all("Incorrect args for pair coefficients");
+  else error->all(FLERR,"Incorrect args for pair coefficients");
 
   double epsilon_one = force->numeric(arg[4]);
   double sigma_one = force->numeric(arg[5]);
@@ -316,9 +315,9 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
     cut_outer_one = force->numeric(arg[8]);
   }
   if (cut_inner_one>cut_outer_one)
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = force->numeric(arg[9]) * PI/180.0;
+  if (narg == 10) cut_angle_one = force->numeric(arg[9]) * MY_PI/180.0;
   // grow params array if necessary
 
   if (nparams == maxparam) {
@@ -352,7 +351,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
       }
   nparams++;
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -367,14 +366,14 @@ void PairHbondDreidingLJ::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == 0)
-    error->all("Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
-    error->all("Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
   if (atom->map_style == 0) 
-    error->all("Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
 	       "see atom_modify");
   if (force->newton_pair == 0)
-    error->all("Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -390,7 +389,7 @@ void PairHbondDreidingLJ::init_style()
 	  acceptor[j] = 1;
 	}
 
-  if (!anyflag) error->all("No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
 
   // set additional param values
   // offset is for LJ only, angle term is not included
@@ -502,7 +501,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     if (c < -1.0) c = -1.0;
     ac = acos(c);
 
-    if (ac < pm->cut_angle || ac > (2.0*PI - pm->cut_angle)) return 0.0;
+    if (ac < pm->cut_angle || ac > (2.0*MY_PI - pm->cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
 

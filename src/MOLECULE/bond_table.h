@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class BondTable : public Bond {
  public:
   BondTable(class LAMMPS *);
-  ~BondTable();
-  void compute(int, int);
+  virtual ~BondTable();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double equilibrium_distance(int);
@@ -37,7 +37,7 @@ class BondTable : public Bond {
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   int tabstyle,tablength;
   double *r0;
 

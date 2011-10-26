@@ -61,17 +61,16 @@
 #include "cuda_wrapper_cu.h"
 #include "pppm_cuda_cu.h"
 #include "cuda.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 4096
 #define SMALL 0.00001
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 
 void printArray(double* data,int nx, int ny, int nz)
@@ -102,17 +101,16 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, (narg==2?1:nar
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if ((narg > 3)||(narg<1)) error->all("Illegal kspace_style pppm/cuda command");
+  if ((narg > 3)||(narg<1)) error->all(FLERR,"Illegal kspace_style pppm/cuda command");
   #ifndef FFT_CUFFT
-  error->all("Using kspace_style pppm/cuda without cufft is not possible. Compile with cufft=1 to include cufft. Aborting.");
+  error->all(FLERR,"Using kspace_style pppm/cuda without cufft is not possible. Compile with cufft=1 to include cufft. Aborting.");
   #endif
   precision = atof(arg[0]);
   if(narg>1)
   precisionmodify=arg[1][0];
   else precisionmodify='=';
-  PI = 4.0*atan(1.0);
   
   nfactors = 3;
   factors = new int[nfactors];
@@ -213,23 +211,23 @@ void PPPMCuda::init()
   // error check
 
   if (domain->triclinic)
-    error->all("Cannot (yet) use PPPMCuda with triclinic box");
-  if (domain->dimension == 2) error->all("Cannot use PPPMCuda with 2d simulation");
+    error->all(FLERR,"Cannot (yet) use PPPMCuda with triclinic box");
+  if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPMCuda with 2d simulation");
 
-  if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with PPPMCuda");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMCuda");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab PPPMCuda");
+      error->all(FLERR,"Incorrect boundaries with slab PPPMCuda");
   }
 
   if (order > MAXORDER) {
     char str[128];
     sprintf(str,"PPPMCuda order cannot be greater than %d",MAXORDER);
-    error->all(str);
+    error->all(FLERR,str);
   }
   // free all arrays previously allocated
 
@@ -240,11 +238,11 @@ void PPPMCuda::init()
   qqrd2e = force->qqrd2e;
 
   if (force->pair == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int itmp=0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
@@ -253,14 +251,14 @@ void PPPMCuda::init()
 
   if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
     if (force->pair == NULL)
-      error->all("KSpace style is incompatible with Pair style");
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
     int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all("KSpace style is incompatible with Pair style");
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
     qdist = *p_qdist;
     typeO = *p_typeO;
     typeH = *p_typeH;
@@ -268,7 +266,7 @@ void PPPMCuda::init()
     int typeB = *p_typeB;
 
     if (force->angle == NULL || force->bond == NULL)
-      error->all("Bond and angle potentials must be defined for TIP4P");
+      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (2.0 * cos(0.5*theta) * blen);
@@ -289,11 +287,11 @@ void PPPMCuda::init()
   qsqsum = tmp;
 
   if (qsqsum == 0.0)
-    error->all("Cannot use kspace solver on system with no charge");
+    error->all(FLERR,"Cannot use kspace solver on system with no charge");
   if (fabs(qsum) > SMALL && me == 0) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 
   // setup FFT grid resolution and g_ewald
@@ -305,14 +303,14 @@ void PPPMCuda::init()
   while (order > 0) {
 
     if (iteration && me == 0)
-      error->warning("Reducing PPPMCuda order b/c stencil extends "
+      error->warning(FLERR,"Reducing PPPMCuda order b/c stencil extends "
 		     "beyond neighbor processor");
     iteration++;
 
     set_grid();
 
     if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-      error->all("PPPMCuda grid is too large");
+      error->all(FLERR,"PPPMCuda grid is too large");
 
     // global indices of PPPMCuda grid range from 0 to N-1
     // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -484,7 +482,7 @@ void PPPMCuda::init()
     order--;
   }
 
-  if (order == 0) error->all("PPPMCuda order has been reduced to 0");
+  if (order == 0) error->all(FLERR,"PPPMCuda order has been reduced to 0");
   //printf("PPPMCuda: order is %i\n");
 
 
@@ -651,9 +649,9 @@ void PPPMCuda::setup()
 
   delvolinv = delxinv*delyinv*delzinv;
 
-  double unitkx = (2.0*PI/xprd);
-  double unitky = (2.0*PI/yprd);
-  double unitkz = (2.0*PI/zprd_slab);
+  double unitkx = (2.0*MY_PI/xprd);
+  double unitky = (2.0*MY_PI/yprd);
+  double unitkz = (2.0*MY_PI/zprd_slab);
 
   // fkx,fky,fkz for my FFT grid pts
   Cuda_PPPM_Setup_fkxyz_vg(nx_pppm, ny_pppm,nz_pppm,unitkx,unitky,unitkz,g_ewald);
@@ -750,11 +748,11 @@ double sqk;
   double sum1,dot1,dot2;
   double numerator,denominator;
 
-  int nbx = static_cast<int> ((g_ewald*xprd/(PI*nx_pppm)) * 
+  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nby = static_cast<int> ((g_ewald*yprd/(PI*ny_pppm)) * 
+  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
-  int nbz = static_cast<int> ((g_ewald*zprd_slab/(PI*nz_pppm)) * 
+  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
 			      pow(-log(EPS_HOC),0.25));
   Cuda_PPPM_setup_greensfn(nx_pppm,ny_pppm,nz_pppm,unitkx,unitky,unitkz,g_ewald,
 nbx,nby,nbz,xprd,yprd,zprd_slab);
@@ -970,7 +968,7 @@ else
    
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e;
   }
 
@@ -1395,7 +1393,7 @@ void PPPMCuda::set_grid()
     g_ewald = gew2;
     fmid = diffpr(h_x,h_y,h_z,q2,acons);
 
-    if (f*fmid >= 0.0) error->all("Cannot compute PPPMCuda G");
+    if (f*fmid >= 0.0) error->all(FLERR,"Cannot compute PPPMCuda G");
     rtb = f < 0.0 ? (dgew=gew2-gew1,gew1) : (dgew=gew1-gew2,gew2);
     ncount = 0;
     while (fabs(dgew) > SMALL && fmid != 0.0) {
@@ -1404,7 +1402,7 @@ void PPPMCuda::set_grid()
       fmid = diffpr(h_x,h_y,h_z,q2,acons);      
       if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
-      if (ncount > LARGE) error->all("Cannot compute PPPMCuda G");
+      if (ncount > LARGE) error->all(FLERR,"Cannot compute PPPMCuda G");
     }
   }
 
@@ -1449,7 +1447,7 @@ void PPPMCuda::make_power_of_prime(int* n)
 {
 
 	if((precisionmodify!='+')&&(precisionmodify!='-')&&(precisionmodify!='c'))
-    {error->all("Unknown Option for PPPMCuda, assumeing '='");return;}
+    {error->all(FLERR,"Unknown Option for PPPMCuda, assumeing '='");return;}
     int oldn=*n;
     int* primelist=new int[1000];
     int count=0;
@@ -1555,7 +1553,7 @@ void PPPMCuda::particle_map()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPMCuda!");
+  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPMCuda!");
 }
 
 /* ----------------------------------------------------------------------
@@ -1731,11 +1729,11 @@ void PPPMCuda::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   
   if (eflag) energy += qqrd2e*scale * e_slabcorr;
   
-  double ffact = -4.0*PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume; 
  
   cuda_slabcorr_force(&cuda->shared_data,ffact);
 }

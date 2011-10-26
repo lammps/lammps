@@ -20,8 +20,11 @@ namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
   friend class BondQuartic;
+  friend class BondQuarticOMP;
   friend class DihedralCharmm;
+  friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class ThrOMP;
 
  public:
   double eng_vdwl,eng_coul;      // accumulated energies
@@ -36,6 +39,7 @@ class Pair : protected Pointers {
   int comm_reverse;              // size of reverse communication (0 if none)
 
   int single_enable;             // 1 if single() routine exists
+  int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
@@ -69,6 +73,17 @@ class Pair : protected Pointers {
   void write_file(int, char **);
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
+
+  // need to be public, so can be called by pair_style reaxc
+
+  void v_tally(int, double *);
+  void ev_tally(int, int, int, int, double, double, double,
+		double, double, double);
+  void ev_tally3(int, int, int, double, double,
+		 double *, double *, double *, double *);
+  void v_tally3(int, int, int, double *, double *, double *, double *);
+  void v_tally4(int, int, int, int, double *, double *, double *,
+		double *, double *, double *);
 
   // general child-class methods
 
@@ -124,26 +139,20 @@ class Pair : protected Pointers {
   int evflag;                          // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;
+
   int vflag_fdotr;
   int maxeatom,maxvatom;
 
   virtual void ev_setup(int, int);
-  void ev_tally(int, int, int, int, double, double, double,
-		double, double, double);
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz(int, int, int, int, double, double,
 		    double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
 			 double, double, double, double, double, double);
-  void ev_tally3(int, int, int, double, double,
-		 double *, double *, double *, double *);
   void ev_tally4(int, int, int, int, double,
 		 double *, double *, double *, double *, double *, double *);
   void ev_tally_list(int, int *, double, double *);
   void v_tally2(int, int, double, double *);
-  void v_tally3(int, int, int, double *, double *, double *, double *);
-  void v_tally4(int, int, int, int, double *, double *, double *,
-		double *, double *, double *);
   void v_tally_tensor(int, int, int, int,
 		      double, double, double, double, double, double);
   void virial_fdotr_compute();

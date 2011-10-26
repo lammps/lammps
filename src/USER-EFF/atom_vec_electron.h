@@ -60,7 +60,6 @@ class AtomVecElectron : public AtomVec {
   bigint memory_usage();
   
  private:
-  double PI;
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   int *spin;

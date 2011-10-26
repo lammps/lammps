@@ -13,6 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Ase Henry (MIT)
+   Bugfixes and optimizations:
+     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -29,13 +31,12 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
@@ -55,8 +56,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
-
-  PI = 4.0*atan(1.0);
 }
 
 /* ----------------------------------------------------------------------
@@ -135,7 +134,7 @@ void PairAIREBO::allocate()
 
 void PairAIREBO::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   cutlj = force->numeric(arg[0]);
 
@@ -155,12 +154,12 @@ void PairAIREBO::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
   // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
@@ -173,7 +172,7 @@ void PairAIREBO::coeff(int narg, char **arg)
       map[i-2] = 0;
     } else if (strcmp(arg[i],"H") == 0) {
       map[i-2] = 1;
-    } else error->all("Incorrect args for pair coefficients");
+    } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // read potential file and initialize fitting splines
@@ -198,7 +197,7 @@ void PairAIREBO::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -208,9 +207,9 @@ void PairAIREBO::coeff(int narg, char **arg)
 void PairAIREBO::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style AIREBO requires atom IDs");
+    error->all(FLERR,"Pair style AIREBO requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style AIREBO requires newton pair on");
+    error->all(FLERR,"Pair style AIREBO requires newton pair on");
 
   // need a full neighbor list, including neighbors of ghosts
 
@@ -223,7 +222,7 @@ void PairAIREBO::init_style()
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages(0);
+  if (maxpage == 0) add_pages();
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +231,7 @@ void PairAIREBO::init_style()
 
 double PairAIREBO::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   // convert to C,H types
 
@@ -306,7 +305,7 @@ void PairAIREBO::REBO_neigh()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (nall > maxlocal) {
+  if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
     memory->sfree(REBO_firstneigh);
@@ -327,7 +326,7 @@ void PairAIREBO::REBO_neigh()
   // store all REBO neighs of owned and ghost atoms
   // scan full neighbor list of I
 
-  npage = 0;
+  int npage = 0;
   int npnt = 0;
 
   for (ii = 0; ii < allnum; ii++) {
@@ -336,7 +335,7 @@ void PairAIREBO::REBO_neigh()
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage++;
-      if (npage == maxpage) add_pages(npage);
+      if (npage == maxpage) add_pages();
     }
     neighptr = &pages[npage][npnt];
     n = 0;
@@ -371,7 +370,7 @@ void PairAIREBO::REBO_neigh()
     REBO_numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 }
 
@@ -1196,60 +1195,6 @@ void PairAIREBO::TORSION(int eflag, int vflag)
       }
     }
   }
-}
-
-// ----------------------------------------------------------------------
-// S'(t) and S(t) cutoff functions
-// ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   cutoff function Sprime
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  else if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  else {
-    cutoff = 0.5 * (1.0+cos(PI*t));
-    dX = (-0.5*PI*sin(PI*t)) / (Xmax-Xmin);
-  }
-  return cutoff;
-}
-
-/* ----------------------------------------------------------------------
-   LJ cutoff function Sp2
-   return cutoff and dX = derivative
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp2(double Xij, double Xmin, double Xmax, double &dX)
-{
-  double cutoff;
-
-  double t = (Xij-Xmin) / (Xmax-Xmin);
-  if (t <= 0.0) {
-    cutoff = 1.0;
-    dX = 0.0;
-  } 
-  if (t >= 1.0) {
-    cutoff = 0.0;
-    dX = 0.0;
-  } 
-  if (t>0.0 && t<1.0) {
-    cutoff = (1.0-(t*t*(3.0-2.0*t)));
-    dX = 6.0*(t*t-t) / (Xmax-Xmin);
-  }
-  return cutoff;
 }
 
 /* ----------------------------------------------------------------------
@@ -2124,11 +2069,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   NijH = nH[atomi]-(wij*kronecker(jtype,1));
   NjiC = nC[atomj]-(wij*kronecker(itype,0));
   NjiH = nH[atomj]-(wij*kronecker(itype,1));
-  
-  rij[0] = rij0[0];
-  rij[1] = rij0[1];
-  rij[2] = rij0[2];
-  rijmag = rij0mag; 
   
   bij = 0.0;
   tmp = 0.0;
@@ -3135,7 +3075,7 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
    if (typei == 0 && typej == 1){
      if (NijC < pCHdom[0][0]) NijC=pCHdom[0][0];
      if (NijC > pCHdom[0][1]) NijC=pCHdom[0][1];
-      if (NijH < pCHdom[0][0]) NijH=pCHdom[1][0];
+      if (NijH < pCHdom[1][0]) NijH=pCHdom[1][0];
       if (NijH > pCHdom[1][1]) NijH=pCHdom[1][1];
  
     if (fabs(NijC-floor(NijC)) < TOL && fabs(NijH-floor(NijH)) < TOL) {
@@ -3340,27 +3280,17 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 }
 
 /* ----------------------------------------------------------------------
-   Kronecker delta function
+   add pages to REBO neighbor list
 ------------------------------------------------------------------------- */
 
-double PairAIREBO::kronecker(int a, int b)
+void PairAIREBO::add_pages()
 {
-  double kd;
-  if (a == b) kd = 1.0;
-  else kd = 0.0;
-  return kd;
-}
-
-/* ----------------------------------------------------------------------
-   add pages to REBO neighbor list, starting at npage
-------------------------------------------------------------------------- */
-
-void PairAIREBO::add_pages(int npage)
-{
+  int toppage = maxpage;
   maxpage += PGDELTA;
+
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
-  for (int i = npage; i < maxpage; i++)
+  for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"AIREBO:pages[i]");
 }
 
@@ -3401,7 +3331,7 @@ void PairAIREBO::read_file(char *filename)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open AIREBO potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
 
     // skip initial comment lines
@@ -3956,17 +3886,23 @@ void PairAIREBO::read_file(char *filename)
 
 double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
 {
-  double f;
-  int i;
-  i = 0;
-  f = 0.0;
-  *df = 0.0;
+  double f, d;
+  const double x2 = x*x;
+  const double x3 = x2*x;
 
-  for (i = 0; i<6; i++) {
-    f += coeffs[i]*pow(x,((double) i));
-    if (i > 0) *df += coeffs[i]*((double) i)*pow(x,((double) i-1.0));
-  }
+  f  = coeffs[0];
+  f += coeffs[1]*x;
+  d  = coeffs[1];
+  f += coeffs[2]*x2;
+  d += 2.0*coeffs[2]*x;
+  f += coeffs[3]*x3;
+  d += 3.0*coeffs[3]*x2;
+  f += coeffs[4]*x2*x2;
+  d += 4.0*coeffs[4]*x3;
+  f += coeffs[5]*x2*x3;
+  d += 5.0*coeffs[5]*x2*x2;
 
+  *df = d;
   return f;
 }
 
@@ -3977,25 +3913,28 @@ double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
 double PairAIREBO::Spbicubic(double x, double y,
 			     double coeffs[16], double df[2])
 {
-  double f;
-  int i,j,cn;
+  double f,xn,yn,xn1,yn1,c;
+  int i,j;
   
   f = 0.0;
   df[0] = 0.0;
   df[1] = 0.0;
-  cn = 0;
 
+  xn = 1.0;
   for (i = 0; i < 4; i++) {
+    yn = 1.0;
     for (j = 0; j < 4; j++) {
-      f += coeffs[cn]*pow(x,((double) i))*pow(y,((double) j));
-      if (i > 0) df[0] +=
-		   (coeffs[cn]*((double) i)*pow(x,((double) i-1.0)) *
-		    pow(y,((double) j)));
-      if (j > 0) df[1] += 
-		   (coeffs[cn]*((double) j)*pow(x,((double) i)) * 
-		    pow(y,((double) j-1.0)));
-      cn++;
+      c = coeffs[i*4+j];
+
+      f += c*xn*yn;
+      if (i > 0) df[0] += c * ((double) i) * xn1 * yn; 
+      if (j > 0) df[1] += c * ((double) j) * xn * yn1;
+
+      yn1 = yn;
+      yn *= y;
     }
+    xn1 = xn;
+    xn *= x;
   }
 
   return f;
@@ -4008,31 +3947,36 @@ double PairAIREBO::Spbicubic(double x, double y,
 double PairAIREBO::Sptricubic(double x, double y, double z,
 			      double coeffs[64], double df[3])
 {
-  double f,ir,jr,kr;
-  int i,j,k,cn;
+  double f,ir,jr,kr,xn,yn,zn,xn1,yn1,zn1,c;
+  int i,j,k;
 
   f = 0.0;
   df[0] = 0.0;
   df[1] = 0.0;
   df[2] = 0.0;
-  cn = 0;
 
+  xn = 1.0;
   for (i = 0; i < 4; i++) {
     ir = (double) i;
+    yn = 1.0;
     for (j = 0; j < 4; j++) {
       jr = (double) j;
+      zn = 1.0;
       for (k = 0; k < 4; k++) {
 	kr = (double) k;
-	f += (coeffs[cn]*pow(x,ir)*pow(y,jr)*pow(z,kr));
-	if (i > 0) df[0] +=
-		     (coeffs[cn]*ir*pow(x,ir-1.0)*pow(y,jr)*pow(z,kr));
-	if (j > 0) df[1] +=
-		     (coeffs[cn]*jr*pow(x,ir)*pow(y,jr-1.0)*pow(z,kr));
-	if (k > 0) df[2] +=
-		     (coeffs[cn]*kr*pow(x,ir)*pow(y,jr)*pow(z,kr-1.0));
-	cn++;
+	c = coeffs[16*i+4*j+k];
+	f += c*xn*yn*zn;
+	if (i > 0) df[0] += c * ir * xn1 * yn * zn;
+	if (j > 0) df[1] += c * jr * xn * yn1 * zn;
+	if (k > 0) df[2] += c * kr * xn * yn * zn1;
+	zn1 = zn;
+	zn *= z;
       }
+      yn1 = yn;
+      yn *= y;
     }
+    xn1 = xn;
+    xn *= x;
   }
 
   return f;

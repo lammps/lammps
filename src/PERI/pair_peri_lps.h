@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairPeriLPS : public Pair {    
  public:
   PairPeriLPS(class LAMMPS *);       
-  ~PairPeriLPS();                                   
+  virtual ~PairPeriLPS();                                   
   int pack_comm(int, int *, double *, int, int *);  
   void unpack_comm(int, int, double *);             
 
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);

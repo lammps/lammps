@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixWallGran : public Fix {
  public:
   FixWallGran(class LAMMPS *, int, char **);
-  ~FixWallGran();
+  virtual ~FixWallGran();
   int setmask();
   void init();
   void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
+  virtual void post_force(int);
+  virtual void post_force_respa(int, int, int);
 
   double memory_usage();
   void grow_arrays(int);
@@ -46,7 +46,7 @@ class FixWallGran : public Fix {
   int maxsize_restart();
   void reset_dt();
 
- private:
+ protected:
   int wallstyle,pairstyle,wiggle,wshear,axis;
   double kn,kt,gamman,gammat,xmu;
   double lo,hi,cylradius;

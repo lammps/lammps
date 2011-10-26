@@ -40,7 +40,7 @@ enum{INSIDE,OUTSIDE};
 FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix indent command");
+  if (narg < 4) error->all(FLERR,"Illegal fix indent command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -59,7 +59,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   // setup scaling
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of fix indent with undefined lattice");
+    error->all(FLERR,"Use of fix indent with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
@@ -80,7 +80,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
     if (cdim == 0 && !pstr) pvalue *= xscale;
     else if (cdim == 1 && !pstr) pvalue *= yscale;
     else if (cdim == 2 && !pstr) pvalue *= zscale;
-  } else error->all("Illegal fix indent command");
+  } else error->all(FLERR,"Illegal fix indent command");
 
   varflag = 0;
   if (xstr || ystr || zstr || rstr || pstr) varflag = 1;
@@ -118,33 +118,33 @@ void FixIndent::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for fix indent does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(xvar))
-      error->all("Variable for fix indent is invalid style");
+      error->all(FLERR,"Variable for fix indent is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for fix indent does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(yvar))
-      error->all("Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for fix indent does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(zvar))
-      error->all("Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (rstr) {
     rvar = input->variable->find(rstr);
-    if (rvar < 0) error->all("Variable name for fix indent does not exist");
+    if (rvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(rvar))
-      error->all("Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (pstr) {
     pvar = input->variable->find(pstr);
-    if (pvar < 0) error->all("Variable name for fix indent does not exist");
+    if (pvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(pvar))
-      error->all("Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable for fix indent is not equal style");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -396,7 +396,7 @@ double FixIndent::compute_vector(int n)
 
 void FixIndent::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal fix indent command");
+  if (narg < 0) error->all(FLERR,"Illegal fix indent command");
 
   istyle = NONE;
   xstr = ystr = zstr = rstr = pstr = NULL;
@@ -407,7 +407,7 @@ void FixIndent::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sphere") == 0) {
-      if (iarg+5 > narg) error->all("Illegal fix indent command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
 
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
 	int n = strlen(&arg[iarg+1][2]) + 1;
@@ -434,7 +434,7 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"cylinder") == 0) {
-      if (iarg+5 > narg) error->all("Illegal fix indent command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
 
       if (strcmp(arg[iarg+1],"x") == 0) {
 	cdim = 0;
@@ -472,7 +472,7 @@ void FixIndent::options(int narg, char **arg)
 	  ystr = new char[n];
 	  strcpy(ystr,&arg[iarg+3][2]);
 	} else yvalue = atof(arg[iarg+3]);
-      } else error->all("Illegal fix indent command");
+      } else error->all(FLERR,"Illegal fix indent command");
 
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
 	int n = strlen(&arg[iarg+4][2]) + 1;
@@ -484,11 +484,11 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"plane") == 0) {
-      if (iarg+4 > narg) error->all("Illegal fix indent command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix indent command");
       if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
-      else error->all("Illegal fix indent command");
+      else error->all(FLERR,"Illegal fix indent command");
 
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
 	int n = strlen(&arg[iarg+2][2]) + 1;
@@ -498,23 +498,23 @@ void FixIndent::options(int narg, char **arg)
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;
-      else error->all("Illegal fix indent command");
+      else error->all(FLERR,"Illegal fix indent command");
       istyle = PLANE;
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix indent command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix indent command");
+      else error->all(FLERR,"Illegal fix indent command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix indent command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
       if (strcmp(arg[iarg+1],"in") == 0) side = INSIDE;
       else if (strcmp(arg[iarg+1],"out") == 0) side = OUTSIDE;
-      else error->all("Illegal fix indent command");
+      else error->all(FLERR,"Illegal fix indent command");
       iarg += 2;
-    } else error->all("Illegal fix indent command");
+    } else error->all(FLERR,"Illegal fix indent command");
   }
 }

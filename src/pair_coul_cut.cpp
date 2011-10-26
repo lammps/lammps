@@ -26,9 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {}
@@ -149,7 +146,7 @@ void PairCoulCut::allocate()
 
 void PairCoulCut::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -169,7 +166,7 @@ void PairCoulCut::settings(int narg, char **arg)
 
 void PairCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -189,7 +186,7 @@ void PairCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -200,7 +197,7 @@ void PairCoulCut::coeff(int narg, char **arg)
 void PairCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style coul/cut requires atom attribute q");
 
   neighbor->request(this);
 }

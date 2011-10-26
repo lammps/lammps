@@ -39,7 +39,7 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute temp/deform command");
+  if (narg != 3) error->all(FLERR,"Illegal compute temp/deform command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -78,12 +78,12 @@ void ComputeTempDeform::init()
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP && 
 	  comm->me == 0)
-	error->warning("Using compute temp/deform with inconsistent "
+	error->warning(FLERR,"Using compute temp/deform with inconsistent "
 		       "fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning("Using compute temp/deform with no fix deform defined");
+    error->warning(FLERR,"Using compute temp/deform with no fix deform defined");
 }
 
 /* ---------------------------------------------------------------------- */

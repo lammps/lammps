@@ -61,9 +61,9 @@ FixTempBerendsenCuda::FixTempBerendsenCuda(LAMMPS *lmp, int narg, char **arg) :
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
-        error->all("You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-  if (narg != 6) error->all("Illegal fix temp/berendsen/cuda command");
+  if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen/cuda command");
 
   // Berendsen thermostat should be applied every step
 
@@ -75,7 +75,7 @@ FixTempBerendsenCuda::FixTempBerendsenCuda(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all("Fix temp/berendsen/cuda period must be > 0.0");
+  if (t_period <= 0.0) error->all(FLERR,"Fix temp/berendsen/cuda period must be > 0.0");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -119,10 +119,10 @@ void FixTempBerendsenCuda::init()
 {
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) 
-    error->all("Temperature ID for fix temp/berendsen/cuda does not exist");
+    error->all(FLERR,"Temperature ID for fix temp/berendsen/cuda does not exist");
   temperature = modify->compute[icompute];
   if(not temperature->cudable) 
-	error->warning("Fix temp/berendsen/cuda uses non cudable temperature compute");
+	error->warning(FLERR,"Fix temp/berendsen/cuda uses non cudable temperature compute");
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
@@ -137,7 +137,7 @@ void FixTempBerendsenCuda::end_of_step()
   if(not temperature->cudable) {cuda->cu_x->download();cuda->cu_v->download();}
   t_current = temperature->compute_scalar();
   if (t_current == 0.0)
-    error->all("Computed temperature for fix temp/berendsen/cuda cannot be 0.0");
+    error->all(FLERR,"Computed temperature for fix temp/berendsen/cuda cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -185,7 +185,7 @@ void FixTempBerendsenCuda::end_of_step()
 int FixTempBerendsenCuda::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -196,13 +196,13 @@ int FixTempBerendsenCuda::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;

@@ -16,7 +16,7 @@
 // every LAMMPS class inherits from Pointers to access lammps.h ptrs
 // these variables are auto-initialized by Pointer class constructor
 // *& variables are really pointers to the pointers in lammps.h
-// & enables them to be accessed directly in any class, e.g. error->all()
+// & enables them to be accessed directly in any class, e.g. atom->x
 
 #ifndef LMP_POINTERS_H
 #define LMP_POINTERS_H
@@ -26,6 +26,13 @@
 #include "lammps.h"
 
 namespace LAMMPS_NS {
+
+// universal defines inside namespace
+
+#define FLERR __FILE__,__LINE__
+
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 class Pointers {
  public:

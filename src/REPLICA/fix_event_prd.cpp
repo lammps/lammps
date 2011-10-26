@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 FixEventPRD::FixEventPRD(LAMMPS *lmp, int narg, char **arg) :
   FixEvent(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix event command");
+  if (narg != 3) error->all(FLERR,"Illegal fix event command");
 
   restart_global = 1;
 

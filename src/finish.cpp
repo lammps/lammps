@@ -18,6 +18,7 @@
 #include "finish.h"
 #include "timer.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
@@ -29,9 +30,6 @@
 #include "memory.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 /* ---------------------------------------------------------------------- */
 
@@ -82,7 +80,22 @@ void Finish::end(int flag)
     time_loop = tmp/nprocs;
 
     // overall loop time
-    
+
+#if defined(_OPENMP)    
+    if (me == 0) {
+      int ntasks = nprocs * comm->nthreads;
+      if (screen) fprintf(screen,
+			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+			  "for %d steps with " BIGINT_FORMAT " atoms\n",
+			  time_loop,ntasks,nprocs,comm->nthreads,
+			  update->nsteps,atom->natoms);
+      if (logfile) fprintf(logfile,
+			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+			  "for %d steps with " BIGINT_FORMAT " atoms\n",
+			  time_loop,ntasks,nprocs,comm->nthreads,
+			  update->nsteps,atom->natoms);
+    }
+#else
     if (me == 0) {
       if (screen) fprintf(screen,
 			  "Loop time of %g on %d procs for %d steps with " 
@@ -92,7 +105,8 @@ void Finish::end(int flag)
 			   "Loop time of %g on %d procs for %d steps with " 
 			   BIGINT_FORMAT " atoms\n",
 			   time_loop,nprocs,update->nsteps,atom->natoms);
-  }
+    }
+#endif
 
     if (time_loop == 0.0) time_loop = 1.0;
   }

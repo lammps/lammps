@@ -243,6 +243,8 @@ typedef struct _double4 double4;
 #define BLOCK_ID_X get_group_id(0)
 #define BLOCK_SIZE_X get_local_size(0)
 #define GLOBAL_SIZE_X get_global_size(0)
+#define THREAD_ID_Y get_local_id(1)
+#define BLOCK_ID_Y get_group_id(1)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define ucl_inline inline
 #define fetch_pos(i,y) x_[i]

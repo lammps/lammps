@@ -40,7 +40,7 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_class2_long_cl.h \
        $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/morse_cl.h \
        $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/cg_cmm_cl.h \
-       $(OBJ_DIR)/cg_cmm_long_cl.h 
+       $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
@@ -58,7 +58,10 @@ $(OBJ_DIR)/ans.o: answer.cpp answer.h $(OCL_H)
 $(OBJ_DIR)/neighbor_cpu_cl.h: neighbor_cpu.cu preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh neighbor_cpu preprocessor.h neighbor_cpu.cu $(OBJ_DIR)/neighbor_cpu_cl.h
 
-$(OBJ_DIR)/neighbor_shared.o: neighbor_shared.cpp neighbor_shared.h $(OCL_H) $(OBJ_DIR)/neighbor_cpu_cl.h
+$(OBJ_DIR)/neighbor_gpu_cl.h: neighbor_gpu.cu preprocessor.h
+	$(BSH) ./geryon/file_to_cstr.sh neighbor_gpu preprocessor.h neighbor_gpu.cu $(OBJ_DIR)/neighbor_gpu_cl.h
+
+$(OBJ_DIR)/neighbor_shared.o: neighbor_shared.cpp neighbor_shared.h $(OCL_H) $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h
 	$(OCL) -o $@ -c neighbor_shared.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/neighbor.o: neighbor.cpp neighbor.h $(OCL_H) neighbor_shared.h

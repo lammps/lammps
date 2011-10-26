@@ -18,6 +18,7 @@
 
 #ifdef USE_OPENCL
 #include "neighbor_cpu_cl.h"
+#include "neighbor_gpu_cl.h"
 #else
 #include "neighbor_cpu_ptx.h"
 #include "neighbor_gpu_ptx.h"
@@ -52,21 +53,15 @@ void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor) {
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable -D"+
                     std::string(OCL_VENDOR);
 
-  if (gpu_nbor==0) {
+  if (_gpu_nbor==0) {
     nbor_program=new UCL_Program(dev);
     nbor_program->load_string(neighbor_cpu,flags.c_str());
     k_nbor.set_function(*nbor_program,"kernel_unpack");
   } else {
     build_program=new UCL_Program(dev);
-    #ifdef USE_OPENCL
-    if (gpu_nbor==1) {
-      std::cerr << "CANNOT CURRENTLY USE GPU NEIGHBORING WITH OPENCL\n";
-      exit(1);
-    }
-    #else
     build_program->load_string(neighbor_gpu,flags.c_str());
-    #endif
-    if (gpu_nbor==1) {
+
+    if (_gpu_nbor==1) {
       k_cell_id.set_function(*build_program,"calc_cell_id");
       k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");
     }

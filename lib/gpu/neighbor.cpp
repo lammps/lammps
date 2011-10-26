@@ -97,8 +97,8 @@ void Neighbor::alloc(bool &success) {
   host_acc.clear();
   int nt=_max_atoms+_max_host;
   if (_use_packing==false || _gpu_nbor>0) 
-    success=success && (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev,
-                                       UCL_READ_ONLY)==UCL_SUCCESS);
+    success=success && 
+            (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev)==UCL_SUCCESS);
   else 
     success=success && (dev_nbor.alloc(3*_max_atoms,*dev,
                                        UCL_READ_ONLY)==UCL_SUCCESS);
@@ -428,8 +428,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   if (mn>_max_nbors) {  
     mn=static_cast<int>(static_cast<double>(mn)*1.10);
     dev_nbor.clear();
-    success=success && (dev_nbor.alloc((mn+1)*_max_atoms,atom.dev_cell_id,
-                        UCL_READ_ONLY)==UCL_SUCCESS);
+    success=success && 
+            (dev_nbor.alloc((mn+1)*_max_atoms,atom.dev_x)==UCL_SUCCESS);
     _gpu_bytes=dev_nbor.row_bytes();
     if (_max_host>0) {
       host_nbor.clear();

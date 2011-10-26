@@ -193,7 +193,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       sigma1=ucl_recip(sigma1);
       sigma2=ucl_recip(sigma2);
 
-      nu = ucl_sqrt(dH/(sigma1+sigma2));
+      nu = ucl_rsqrt((sigma1+sigma2)/dH);
       gpu_times3(aTe1,a1,temp);
 
       numtyp sigma, epsilon;

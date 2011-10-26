@@ -1,4 +1,4 @@
-OCL_CPP = mpic++ -O3 -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK -I/usr/local/cuda/include/
+OCL_CPP = mpic++ -O3 -DFERMI_OCL -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK -I/usr/local/cuda/include/
 OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 

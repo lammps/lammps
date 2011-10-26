@@ -99,7 +99,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
             inv1=r2inv*r2inv;
             inv2=inv1*inv1;
           } else if (lj3[mtype].x == (numtyp)1) {
-            inv2=r2inv*ucl_sqrt(r2inv);
+            inv2=r2inv*ucl_rsqrt(rsq);
             inv1=inv2*inv2;
           } else {
             inv1=r2inv*r2inv*r2inv;
@@ -244,7 +244,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
             inv1=r2inv*r2inv;
             inv2=inv1*inv1;
           } else if (lj3[mtype].x == (numtyp)1) {
-            inv2=r2inv*ucl_sqrt(r2inv);
+            inv2=r2inv*ucl_rsqrt(rsq);
             inv1=inv2*inv2;
           } else {
             inv1=r2inv*r2inv*r2inv;

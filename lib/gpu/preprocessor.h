@@ -178,6 +178,34 @@ typedef struct _double4 double4;
 #endif
 
 // -------------------------------------------------------------------------
+//                            FERMI OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef FERMI_OCL
+
+#define USE_OPENCL
+#define fast_mul(X,Y) (X)*(Y)
+#define ARCH 0
+#define DRIVER 0
+#define MEM_THREADS 32
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 8
+#define BLOCK_PAIR 128
+#define MAX_SHARED_TYPES 11
+#define BLOCK_NBOR_BUILD 128
+#define BLOCK_BIO_PAIR 128
+
+#define WARP_SIZE 32
+#define PPPM_BLOCK_1D 64
+#define BLOCK_CELL_2D 8
+#define BLOCK_CELL_ID 128
+#define MAX_BIO_SHARED_TYPES 128
+
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
+
+// -------------------------------------------------------------------------
 //                            GENERIC OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 
@@ -239,7 +267,7 @@ typedef struct _double4 double4;
 #define ucl_powr native_powr
 #define ucl_rsqrt native_rsqrt
 #define ucl_sqrt native_sqrt
-#define ucl_recip(x) native_recip
+#define ucl_recip native_recip
 
 #endif
 

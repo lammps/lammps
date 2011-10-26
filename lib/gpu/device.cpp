@@ -269,7 +269,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
       } else
         sname+="Double Precision)";
 
-      fprintf(screen,"GPU %d: %s\n",i,sname.c_str());         
+      fprintf(screen,"GPU %d: %s\n",i,sname.c_str());
+      #ifdef OCL_VENDOR
+      fprintf(screen,"OpenCL Parameters for: %s\n",OCL_VENDOR);
+      #endif
     }
 
     fprintf(screen,"-------------------------------------");

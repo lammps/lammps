@@ -105,7 +105,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_rsqrt(r2inv);
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
@@ -234,7 +234,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_rsqrt(r2inv);
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);

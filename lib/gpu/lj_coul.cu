@@ -94,7 +94,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
           force_lj = (numtyp)0.0;
 
         if (rsq < lj1[mtype].w) 
-          forcecoul = qqrd2e*qtmp*fetch_q(j,q_)*ucl_sqrt(r2inv)*factor_coul;
+          forcecoul = qqrd2e*qtmp*fetch_q(j,q_)*ucl_rsqrt(rsq)*factor_coul;
         else
           forcecoul = (numtyp)0.0;
 
@@ -201,7 +201,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
           force_lj = (numtyp)0.0;
 
         if (rsq < lj1[mtype].w)
-          forcecoul = qqrd2e*qtmp*fetch_q(j,q_)*ucl_sqrt(r2inv)*factor_coul;
+          forcecoul = qqrd2e*qtmp*fetch_q(j,q_)*ucl_rsqrt(rsq)*factor_coul;
         else
           forcecoul = (numtyp)0.0;
 

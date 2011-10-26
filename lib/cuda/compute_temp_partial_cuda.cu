@@ -83,7 +83,7 @@ void Cuda_ComputeTempPartialCuda_Vector(cuda_shared_data* sdata, int groupbit,EN
 	  cudaThreadSynchronize();
 	  CUT_CHECK_ERROR("Cuda_ComputeTempPartialCuda_Vector: compute_vector Kernel execution failed");
   
-	  int oldgrid=grid.x;
+	  int oldgrid=grid.x*grid.y;
 	  grid.x=6;
 	  threads.x=512;
       Cuda_ComputeTempPartialCuda_Reduce_Kernel<<<grid, threads,threads.x*sizeof(ENERGY_FLOAT)>>> (oldgrid,t);
@@ -111,7 +111,7 @@ void Cuda_ComputeTempPartialCuda_Scalar(cuda_shared_data* sdata, int groupbit,EN
 	  cudaThreadSynchronize();
 	  CUT_CHECK_ERROR("Cuda_ComputeTempPartialCuda_Scalar: compute_scalar Kernel execution failed");
   
-	  int oldgrid=grid.x;
+	  int oldgrid=grid.x*grid.y;
 	  grid.x=1;
 	  threads.x=512;
       Cuda_ComputeTempPartialCuda_Reduce_Kernel<<<grid, threads,threads.x*sizeof(ENERGY_FLOAT)>>> (oldgrid,t);

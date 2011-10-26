@@ -49,6 +49,7 @@ class Min : protected Pointers {
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly
+  int external_force_clear;   // clear forces locally or externally
 
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic

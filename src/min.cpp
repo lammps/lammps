@@ -157,7 +157,8 @@ void Min::init()
   
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
-      error->warning(FLERR,"Resetting reneighboring criteria during minimization");
+      error->warning(FLERR,
+		     "Resetting reneighboring criteria during minimization");
   }
 
   neighbor->every = 1;
@@ -227,9 +228,11 @@ void Min::setup()
   // remove these restriction eventually
 
   if (nextra_global && searchflag == 0)
-    error->all(FLERR,"Cannot use a damped dynamics min style with fix box/relax");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with fix box/relax");
   if (nextra_atom && searchflag == 0)
-    error->all(FLERR,"Cannot use a damped dynamics min style with per-atom DOF");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with per-atom DOF");
 
   // atoms may have migrated in comm->exchange()
 
@@ -509,6 +512,8 @@ double Min::energy_force(int resetflag)
 void Min::force_clear()
 {
   int i;
+
+  if (external_force_clear) return;
 
   // clear global force array
   // nall includes ghosts only if either newton flag is set

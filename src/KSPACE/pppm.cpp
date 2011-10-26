@@ -155,7 +155,8 @@ void PPPM::init()
 
   qdist = 0.0;
 
-  if (strcmp(force->kspace_style,"pppm/tip4p") == 0) {
+  if ( (strcmp(force->kspace_style,"pppm/tip4p") == 0) ||
+       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
     if (force->pair == NULL)
       error->all(FLERR,"KSpace style is incompatible with Pair style");
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
@@ -182,6 +183,16 @@ void PPPM::init()
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (cos(0.5*theta) * blen);
+  }
+
+  // if we have a /proxy pppm version check if the pair style is compatible
+
+  if ( (strcmp(force->kspace_style,"pppm/proxy") == 0) ||
+       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
+    if (force->pair == NULL)
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
+    if (strstr(force->pair_style,"pppm/") == NULL )
+      error->all(FLERR,"KSpace style is incompatible with Pair style");
   }
 
   // compute qsum & qsqsum and warn if not charge-neutral
@@ -709,7 +720,7 @@ void PPPM::compute(int eflag, int vflag)
     energy = energy_all;
    
     energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/1.772453851 +
+    energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qqrd2e*scale;
   }
@@ -1515,8 +1526,7 @@ void PPPM::make_rho()
 
   // clear 3d density array
 
-  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
-  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1777,17 +1787,19 @@ void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
 			 const FFT_SCALAR &dz)
 {
   int k,l;
+  FFT_SCALAR r1,r2,r3;
 
   for (k = (1-order)/2; k <= order/2; k++) {
-    rho1d[0][k] = ZEROF;
-    rho1d[1][k] = ZEROF;
-    rho1d[2][k] = ZEROF;
+    r1 = r2 = r3 = ZEROF;
 
     for (l = order-1; l >= 0; l--) {
-      rho1d[0][k] = rho_coeff[l][k] + rho1d[0][k]*dx;
-      rho1d[1][k] = rho_coeff[l][k] + rho1d[1][k]*dy;
-      rho1d[2][k] = rho_coeff[l][k] + rho1d[2][k]*dz;
+      r1 = rho_coeff[l][k] + r1*dx;
+      r2 = rho_coeff[l][k] + r2*dy;
+      r3 = rho_coeff[l][k] + r3*dz;
     }
+    rho1d[0][k] = r1;
+    rho1d[1][k] = r2;
+    rho1d[2][k] = r3;
   }
 }
 

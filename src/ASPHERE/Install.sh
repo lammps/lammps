@@ -8,6 +8,7 @@ if (test $1 = 1) then
   cp fix_nph_asphere.cpp ..
   cp fix_npt_asphere.cpp ..
   cp fix_nve_asphere.cpp ..
+  cp fix_nve_asphere_noforce.cpp ..
   cp fix_nve_line.cpp ..
   cp fix_nve_tri.cpp ..
   cp fix_nvt_asphere.cpp ..
@@ -22,6 +23,7 @@ if (test $1 = 1) then
   cp fix_nph_asphere.h ..
   cp fix_npt_asphere.h ..
   cp fix_nve_asphere.h ..
+  cp fix_nve_asphere_noforce.h ..
   cp fix_nve_line.h ..
   cp fix_nve_tri.h ..
   cp fix_nvt_asphere.h ..
@@ -38,6 +40,7 @@ elif (test $1 = 0) then
   rm -f ../fix_nph_asphere.cpp
   rm -f ../fix_npt_asphere.cpp
   rm -f ../fix_nve_asphere.cpp
+  rm -f ../fix_nve_asphere_noforce.cpp
   rm -f ../fix_nve_line.cpp
   rm -f ../fix_nve_tri.cpp
   rm -f ../fix_nvt_asphere.cpp
@@ -52,6 +55,7 @@ elif (test $1 = 0) then
   rm -f ../fix_nph_asphere.h
   rm -f ../fix_npt_asphere.h
   rm -f ../fix_nve_asphere.h
+  rm -f ../fix_nve_asphere_noforce.h
   rm -f ../fix_nve_line.h
   rm -f ../fix_nve_tri.h
   rm -f ../fix_nvt_asphere.h

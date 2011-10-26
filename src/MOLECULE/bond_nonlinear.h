@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class BondNonlinear : public Bond {
  public:
   BondNonlinear(class LAMMPS *);
-  ~BondNonlinear();
-  void compute(int, int);
+  virtual ~BondNonlinear();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double *epsilon,*r0,*lamda;
 
   void allocate();

@@ -1380,6 +1380,36 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"brownian") == 0) {
+    double mu = read_double(fp);
+    int flag1 = read_int(fp);
+    double cut_inner_global = read_double(fp);
+    double cut_global = read_double(fp);
+    double t_target = read_double(fp);
+    int seed = read_int(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"buck") == 0)  ||
 	     (strcmp(style,"buck/coul/cut") == 0) ||
 	     (strcmp(style,"buck/coul/long") == 0) ||
@@ -2024,6 +2054,35 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if ((strcmp(style,"lubricate2") == 0) ||
+	     (strcmp(style,"lubricateU") == 0)) {
+    double mu = read_double(fp);
+    int flag = read_int(fp);
+    double cut_inner_global = read_double(fp);
+    double cut_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  } else {
+	    double cut_inner = read_double(fp);
+	    double cut = read_double(fp);
+	  }
+	}
+      }
+
   } else if (strcmp(style,"meam") == 0) {
 
   } else if (strcmp(style,"morse") == 0) {
@@ -2100,8 +2159,9 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if (strcmp(style,"tersoff") == 0) {
   } else if (strcmp(style,"tersoff/zbl") == 0) {
 
-  } else if (strcmp(style,"yukawa") == 0) {
-
+  } else if ((strcmp(style,"yukawa") == 0) || 
+	     (strcmp(style,"yukawa/colloid") == 0)) {
+    
     double kappa = read_double(fp);
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
@@ -2132,6 +2192,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if ((strcmp(style,"cg/cmm") == 0) ||
              (strcmp(style,"cg/cmm/coul/cut") == 0) ||
              (strcmp(style,"cg/cmm/coul/long") == 0)) {
+
     m = 0;
     data.cut_lj_global = read_double(fp);
     data.cut_coul_global = read_double(fp);
@@ -2846,6 +2907,7 @@ void Data::write(FILE *fp, FILE *fp2)
     if ((strcmp(pair_style,"none") != 0) &&
 	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
+	(strcmp(pair_style,"brownian") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
 	(strcmp(pair_style,"coul/long") != 0) &&
@@ -2857,6 +2919,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
 	(strcmp(pair_style,"gran/hertzian") != 0) &&
+	(strcmp(pair_style,"lubricate2") != 0) &&
+	(strcmp(pair_style,"lubricateU") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
 	(strcmp(pair_style,"reax/c") != 0) &&
@@ -2963,7 +3027,8 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g\n",i,
 		pair_soft_A[i]);
 
-    } else if (strcmp(pair_style,"yukawa") == 0) {
+    } else if ((strcmp(pair_style,"yukawa") == 0) || 
+	       (strcmp(pair_style,"yukawa/colloid") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g\n",i,
 		pair_yukawa_A[i]);

@@ -11,35 +11,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef FIX_CLASS
 
-BondStyle(morse,BondMorse)
+FixStyle(nve/asphere/noforce,FixNVEAsphereNoforce)
 
 #else
 
-#ifndef LMP_BOND_MORSE_H
-#define LMP_BOND_MORSE_H
+#ifndef LMP_FIX_NVE_ASPHERE_NOFORCE_H
+#define LMP_FIX_NVE_ASPHERE_NOFORCE_H
 
-#include "stdio.h"
-#include "bond.h"
+#include "fix_nve_noforce.h"
 
 namespace LAMMPS_NS {
 
-class BondMorse : public Bond {
+class FixNVEAsphereNoforce : public FixNVENoforce {
  public:
-  BondMorse(class LAMMPS *);
-  virtual ~BondMorse();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int);
-
- protected:
-  double *d0,*alpha,*r0;
-
-  void allocate();
+  FixNVEAsphereNoforce(class LAMMPS *, int, char **);
+  void initial_integrate(int);
+  void init();
+  
+ private:
+  double dtq;
+  class AtomVecEllipsoid *avec;
 };
 
 }

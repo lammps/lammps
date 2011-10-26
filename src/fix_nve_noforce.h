@@ -28,12 +28,12 @@ class FixNVENoforce : public Fix {
  public:
   FixNVENoforce(class LAMMPS *, int, char **);
   int setmask();
-  void init();
-  void initial_integrate(int);
+  virtual void init();
+  virtual void initial_integrate(int);
   void initial_integrate_respa(int, int, int);
   void reset_dt();
 
- private:
+ protected:
   double dtv;
   double *step_respa;
 };

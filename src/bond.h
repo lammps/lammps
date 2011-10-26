@@ -20,6 +20,7 @@
 namespace LAMMPS_NS {
 
 class Bond : protected Pointers {
+  friend class ThrOMP;
  public:
   int allocated;
   int *setflag;

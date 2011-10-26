@@ -45,7 +45,7 @@ FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNVEAsphere::init()
 {
-  // check that all particles are finite-size
+  // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
 
   int *ellipsoid = atom->ellipsoid;

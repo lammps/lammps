@@ -286,14 +286,14 @@ int AtomVecAtomicCuda::pack_exchange(int dim, double *buf)
   }
   
   if(max_nsend==0) grow_copylist(200);
-  
+
   int nsend_atoms = Cuda_AtomVecAtomicCuda_PackExchangeList(&cuda->shared_data,*maxsend,dim,*buf_pointer);
   
   if(nsend_atoms>max_nsend) {grow_copylist(nsend_atoms+100);}
   if(nsend_atoms*NCUDAEXCHANGE>*maxsend) 
   {
   	grow_send((int) (nsend_atoms+100)*NCUDAEXCHANGE,buf_pointer,0);
-  	Cuda_AtomVecAtomicCuda_PackExchangeList(&cuda->shared_data,*maxsend,dim,*buf_pointer);
+   	Cuda_AtomVecAtomicCuda_PackExchangeList(&cuda->shared_data,*maxsend,dim,*buf_pointer);
   }
   
   int nlocal=atom->nlocal-nsend_atoms;
@@ -395,6 +395,7 @@ int AtomVecAtomicCuda::unpack_exchange(double *buf)
     }
   }
   cuda->shared_data.atom.nlocal=nlocal;
+  if(atom->nlocal!=nlocal)
   cuda->shared_data.atom.update_nlocal=2;
   atom->nlocal=nlocal;
   mfirst+=m;

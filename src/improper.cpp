@@ -14,6 +14,7 @@
 #include "math.h"
 #include "improper.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -76,12 +77,12 @@ void Improper::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators
@@ -236,7 +237,7 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
 
 double Improper::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class BondHarmonicShift : public Bond {
  public:
   BondHarmonicShift(class LAMMPS *);
-  ~BondHarmonicShift();
-  void compute(int, int);
+  virtual ~BondHarmonicShift();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double *k,*r0,*r1;
 
   void allocate();

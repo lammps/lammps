@@ -251,6 +251,9 @@ void DeviceT::init_message(FILE *screen, const char *name,
     #ifdef _OPENMP
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
     #endif
+    #ifdef OCL_VENDOR
+    fprintf(screen,"-  with OpenCL Parameters for: %s\n",OCL_VENDOR);
+    #endif
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
 
@@ -274,9 +277,6 @@ void DeviceT::init_message(FILE *screen, const char *name,
         sname+="Double Precision)";
 
       fprintf(screen,"GPU %d: %s\n",i,sname.c_str());
-      #ifdef OCL_VENDOR
-      fprintf(screen,"OpenCL Parameters for: %s\n",OCL_VENDOR);
-      #endif
     }
 
     fprintf(screen,"-------------------------------------");

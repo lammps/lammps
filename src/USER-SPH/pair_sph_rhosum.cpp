@@ -29,8 +29,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) :
-  Pair(lmp) {
+PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp)
+{
+  restartinfo = 0;
 
   // set comm size needed by this Pair
 

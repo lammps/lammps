@@ -46,9 +46,6 @@ using namespace LAMMPS_NS;
                            // customize for new sections
 #define NSECTIONS 23       // change when add to header::section_keywords
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)

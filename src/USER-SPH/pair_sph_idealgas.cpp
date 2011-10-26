@@ -26,8 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) :
-  Pair(lmp) {
+PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) : Pair(lmp)
+{
+  restartinfo = 0;
 }
 
 /* ---------------------------------------------------------------------- */

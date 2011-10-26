@@ -139,16 +139,16 @@ in a time-dependent fashion using equal-style
 <A HREF = "variable.html">variables</A>.
 </P>
 <PRE>variable ramp equal ramp(0,10)
-fix 1 all wall xlo v_ramp 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_ramp 
 </PRE>
 <PRE>variable linear equal vlinear(0,20)
-fix 1 all wall xlo v_linear 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_linear 
 </PRE>
 <PRE>variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_wiggle  
 </PRE>
 <PRE>variable wiggle equal cwiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5 
+fix 1 all wall/srd xlo v_wiggle 
 </PRE>
 <P>The ramp(lo,hi) function adjusts the wall position linearly from lo to
 hi over the course of a run.  The linear(c0,velocity) function does

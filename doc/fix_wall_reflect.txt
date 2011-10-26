@@ -100,7 +100,7 @@ variable linear equal vlinear(0,20)
 fix 1 all wall/reflect xlo v_linear :pre
 
 variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall/reflect xlo v_wiggle :pre
+fix 1 all wall/reflect xlo v_wiggle  :pre
 
 variable wiggle equal cwiggle(0.0,5.0,3.0)
 fix 1 all wall/reflect xlo v_wiggle :pre

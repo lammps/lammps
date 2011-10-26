@@ -41,6 +41,7 @@ using namespace LAMMPS_NS;
 PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
 
   nelements = 0;

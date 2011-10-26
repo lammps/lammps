@@ -26,8 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHTaitwater::PairSPHTaitwater(LAMMPS *lmp) :
-  Pair(lmp) {
+PairSPHTaitwater::PairSPHTaitwater(LAMMPS *lmp) : Pair(lmp)
+{
+  restartinfo = 0;
 
   first = 1;
 }

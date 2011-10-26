@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
   no_virial_fdotr_compute = 1;
   

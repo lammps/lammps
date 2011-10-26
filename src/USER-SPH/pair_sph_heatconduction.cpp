@@ -26,8 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHHeatConduction::PairSPHHeatConduction(LAMMPS *lmp) :
-  Pair(lmp) {
+PairSPHHeatConduction::PairSPHHeatConduction(LAMMPS *lmp) : Pair(lmp)
+{
+  restartinfo = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -40,6 +40,7 @@ class PairAIREBO : public Pair {
  protected:
   int **pages;                     // neighbor list pages
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
+
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
   int maxlocal;                    // size of numneigh, firstneigh arrays

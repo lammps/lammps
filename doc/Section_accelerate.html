@@ -150,7 +150,7 @@ it as follows:
 </P>
 <PRE>env OMP_NUM_THREADS=4 lmp_serial -sf omp -in in.script
 env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
-mpirun -x OMP_NUM_THRADS=2 -np 2 lmp_machine -sf omp -in in.script 
+mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script 
 </PRE>
 <P>The value of the environment variable OMP_NUM_THREADS determines how
 many threads per MPI task are launched. All three examples above use

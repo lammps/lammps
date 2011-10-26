@@ -36,6 +36,8 @@ using namespace LAMMPS_NS;
 
 PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+
   nmax = 0;
   rho = NULL;
   fp = NULL;

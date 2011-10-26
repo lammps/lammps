@@ -36,9 +36,9 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
   
   __local numtyp b_alpha, cr60, solv_f_a, solv_f_r;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=pow((numtyp)60.0,(numtyp)1.0/(numtyp)3.0);    
-  solv_f_a = (numtyp)3.0/((numtyp)16.0*atan((numtyp)1.0)*-(numtyp)36.0);
-  solv_f_r = (numtyp)3.0/((numtyp)16.0*atan((numtyp)1.0)*(numtyp)2025.0);
+  cr60=ucl_cbrt((numtyp)60.0);    
+  solv_f_a = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*-(numtyp)36.0);
+  solv_f_r = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*(numtyp)2025.0);
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -94,7 +94,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       r[1] = jx.y-ix.y;
       r[2] = jx.z-ix.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = rsqrt(rnorm);
+      rnorm = ucl_rsqrt(rnorm);
       rhat[0] = r[0]*rnorm;
       rhat[1] = r[1]*rnorm;
       rhat[2] = r[2]*rnorm;
@@ -121,7 +121,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       gpu_times3(aTs,a,gamma);
       gpu_mldivide3(gamma,rhat,s,err_flag);
 
-      numtyp sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      numtyp sigma12 = ucl_rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       numtyp temp[9], w[3];
       gpu_times3(aTe,a,temp);
       temp[0] += (numtyp)1.0;
@@ -129,7 +129,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       temp[8] += (numtyp)1.0;
       gpu_mldivide3(temp,rhat,w,err_flag);
 
-      numtyp h12 = (numtyp)1.0/rnorm-sigma12;
+      numtyp h12 = ucl_recip(rnorm)-sigma12;
       numtyp chi = (numtyp)2.0*gpu_dot3(rhat,w);
       numtyp sigh = sigma/h12;
       numtyp tprod = chi*sigh;
@@ -164,19 +164,19 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       spr[1] = (numtyp)0.5*sigma12p3*s[1];
       spr[2] = (numtyp)0.5*sigma12p3*s[2];
 
-      stemp = (numtyp)1.0/(ishape.x*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.y*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.z*(numtyp)2.0+h12)+
+      stemp = ucl_recip(ishape.x*(numtyp)2.0+h12)+
+              ucl_recip(ishape.y*(numtyp)2.0+h12)+
+              ucl_recip(ishape.z*(numtyp)2.0+h12)+
               (numtyp)3.0/h12;
-      numtyp hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
-      numtyp dspu = (numtyp)1.0/h12-hsec+stemp;
+      numtyp hsec = ucl_recip(h12+(numtyp)3.0*sec);
+      numtyp dspu = ucl_recip(h12)-hsec+stemp;
       numtyp pbsu = (numtyp)3.0*sigma*hsec;
   
-      stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
-              (numtyp)1.0/(ishape.y*cr60+h12)+
-              (numtyp)1.0/(ishape.z*cr60+h12)+
+      stemp = ucl_recip(ishape.x*cr60+h12)+
+              ucl_recip(ishape.y*cr60+h12)+
+              ucl_recip(ishape.z*cr60+h12)+
               (numtyp)3.0/h12;
-      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      hsec = ucl_recip(h12+b_alpha*sec);
       numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
       numtyp pbsr = b_alpha*sigma*hsec;
   
@@ -351,9 +351,9 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
   
   __local numtyp b_alpha, cr60, solv_f_a, solv_f_r;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=pow((numtyp)60.0,(numtyp)1.0/(numtyp)3.0);    
-  solv_f_a = (numtyp)3.0/((numtyp)16.0*atan((numtyp)1.0)*-(numtyp)36.0);
-  solv_f_r = (numtyp)3.0/((numtyp)16.0*atan((numtyp)1.0)*(numtyp)2025.0);
+  cr60=ucl_cbrt((numtyp)60.0);    
+  solv_f_a = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*-(numtyp)36.0);
+  solv_f_r = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*(numtyp)2025.0);
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -397,7 +397,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       r[1] = ix.y-jx.y;
       r[2] = ix.z-jx.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = rsqrt(rnorm);
+      rnorm = ucl_rsqrt(rnorm);
       rhat[0] = r[0]*rnorm;
       rhat[1] = r[1]*rnorm;
       rhat[2] = r[2]*rnorm;
@@ -424,7 +424,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       gpu_times3(aTs,a,gamma);
       gpu_mldivide3(gamma,rhat,s,err_flag);
 
-      numtyp sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      numtyp sigma12 = ucl_rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       numtyp temp[9], w[3];
       gpu_times3(aTe,a,temp);
       temp[0] += (numtyp)1.0;
@@ -432,7 +432,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       temp[8] += (numtyp)1.0;
       gpu_mldivide3(temp,rhat,w,err_flag);
 
-      numtyp h12 = (numtyp)1.0/rnorm-sigma12;
+      numtyp h12 = ucl_recip(rnorm)-sigma12;
       numtyp chi = (numtyp)2.0*gpu_dot3(rhat,w);
       numtyp sigh = sigma/h12;
       numtyp tprod = chi*sigh;
@@ -468,19 +468,19 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       spr[1] = (numtyp)0.5*sigma12p3*s[1];
       spr[2] = (numtyp)0.5*sigma12p3*s[2];
 
-      stemp = (numtyp)1.0/(ishape.x*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.y*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.z*(numtyp)2.0+h12)+
+      stemp = ucl_recip(ishape.x*(numtyp)2.0+h12)+
+              ucl_recip(ishape.y*(numtyp)2.0+h12)+
+              ucl_recip(ishape.z*(numtyp)2.0+h12)+
               (numtyp)3.0/h12;
-      numtyp hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
-      numtyp dspu = (numtyp)1.0/h12-hsec+stemp;
+      numtyp hsec = ucl_recip(h12+(numtyp)3.0*sec);
+      numtyp dspu = ucl_recip(h12)-hsec+stemp;
       numtyp pbsu = (numtyp)3.0*sigma*hsec;
   
-      stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
-              (numtyp)1.0/(ishape.y*cr60+h12)+
-              (numtyp)1.0/(ishape.z*cr60+h12)+
+      stemp = ucl_recip(ishape.x*cr60+h12)+
+              ucl_recip(ishape.y*cr60+h12)+
+              ucl_recip(ishape.z*cr60+h12)+
               (numtyp)3.0/h12;
-      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      hsec = ucl_recip(h12+b_alpha*sec);
       numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
       numtyp pbsr = b_alpha*sigma*hsec;
   
@@ -578,7 +578,7 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
         
       int ii=itype*lj_types+jtype;
       if (r2inv<lj1[ii].z && lj1[ii].w==SPHERE_SPHERE) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[ii].x*r6inv-lj1[ii].y);
         force*=factor_lj;
@@ -666,7 +666,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<lj1[mtype].z && lj1[mtype].w==SPHERE_SPHERE) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
       

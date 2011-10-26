@@ -52,7 +52,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
   
   __local numtyp b_alpha, cr60;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=pow((numtyp)60.0,(numtyp)1.0/(numtyp)3.0);    
+  cr60=ucl_cbrt((numtyp)60.0);    
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -112,9 +112,9 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       gpu_transpose_times3(lA1_2,sa1,lAsa1_2);
       gpu_plus3(lAsa1_2,lAtwo1_2,lAsa1_2);
     }
-    ishape2.x=(numtyp)1.0/ishape2.x;
-    ishape2.y=(numtyp)1.0/ishape2.y;
-    ishape2.z=(numtyp)1.0/ishape2.z;
+    ishape2.x=ucl_recip(ishape2.x);
+    ishape2.y=ucl_recip(ishape2.y);
+    ishape2.z=ucl_recip(ishape2.z);
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -132,7 +132,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       r[1] = jx.y-ix.y;
       r[2] = jx.z-ix.z;
       rnorm = gpu_dot3(r,r);
-      rnorm = rsqrt(rnorm);
+      rnorm = ucl_rsqrt(rnorm);
       rhat[0] = r[0]*rnorm;
       rhat[1] = r[1]*rnorm;
       rhat[2] = r[2]*rnorm;
@@ -158,7 +158,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       numtyp sigma12, sigma1, sigma2;
       gpu_plus3(gamma1,gamma2,temp);
       gpu_mldivide3(temp,rhat,s,err_flag);
-      sigma12 = rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
+      sigma12 = ucl_rsqrt((numtyp)0.5*gpu_dot3(s,rhat));
       gpu_times_column3(a1,rhat,z1);
       gpu_times_column3(a2,rhat,z2);
       v1[0] = z1[0]*ishape2.x;
@@ -167,8 +167,8 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       v2[0] = z2[0]/jshape2.x;
       v2[1] = z2[1]/jshape2.y;
       v2[2] = z2[2]/jshape2.z;
-      sigma1 = sqrt(gpu_dot3(z1,v1));
-      sigma2 = sqrt(gpu_dot3(z2,v2));
+      sigma1 = ucl_sqrt(gpu_dot3(z1,v1));
+      sigma2 = ucl_sqrt(gpu_dot3(z2,v2));
 
       numtyp H12[9];
       numtyp dH;
@@ -190,10 +190,10 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       lambda = ilshape*sigma1p2 + jlshape*sigma2p2;
 
 
-      sigma1=(numtyp)1.0/sigma1;
-      sigma2=(numtyp)1.0/sigma2;
+      sigma1=ucl_recip(sigma1);
+      sigma2=ucl_recip(sigma2);
 
-      nu = sqrt(dH/(sigma1+sigma2));
+      nu = ucl_sqrt(dH/(sigma1+sigma2));
       gpu_times3(aTe1,a1,temp);
 
       numtyp sigma, epsilon;
@@ -208,7 +208,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       gpu_times3(aTe2,a2,temp2);
       gpu_plus3(temp,temp2,temp);
       gpu_mldivide3(temp,rhat,w,err_flag);
-      h12 = (numtyp)1.0/rnorm-sigma12;
+      h12 = ucl_recip(rnorm)-sigma12;
       eta = lambda/nu;
       chi = (numtyp)2.0*gpu_dot3(rhat,w);
       sprod = ilshape * jlshape;
@@ -283,24 +283,24 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       spr[2] = (numtyp)0.5*sigma12p3*s[2];
 
       numtyp hsec, dspu, pbsu;
-      stemp = (numtyp)1.0/(ishape.x*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.y*(numtyp)2.0+h12)+
-              (numtyp)1.0/(ishape.z*(numtyp)2.0+h12)+
-              (numtyp)1.0/(jshape.x*(numtyp)2.0+h12)+
-              (numtyp)1.0/(jshape.y*(numtyp)2.0+h12)+
-              (numtyp)1.0/(jshape.z*(numtyp)2.0+h12);
-      hsec = (numtyp)1.0/(h12+(numtyp)3.0*sec);
-      dspu = (numtyp)1.0/h12-hsec+stemp;
+      stemp = ucl_recip(ishape.x*(numtyp)2.0+h12)+
+              ucl_recip(ishape.y*(numtyp)2.0+h12)+
+              ucl_recip(ishape.z*(numtyp)2.0+h12)+
+              ucl_recip(jshape.x*(numtyp)2.0+h12)+
+              ucl_recip(jshape.y*(numtyp)2.0+h12)+
+              ucl_recip(jshape.z*(numtyp)2.0+h12);
+      hsec = ucl_recip(h12+(numtyp)3.0*sec);
+      dspu = ucl_recip(h12)-hsec+stemp;
       pbsu = (numtyp)3.0*sigma*hsec;
   
       numtyp dspr, pbsr;
-      stemp = (numtyp)1.0/(ishape.x*cr60+h12)+
-              (numtyp)1.0/(ishape.y*cr60+h12)+
-              (numtyp)1.0/(ishape.z*cr60+h12)+
-              (numtyp)1.0/(jshape.x*cr60+h12)+
-              (numtyp)1.0/(jshape.y*cr60+h12)+
-              (numtyp)1.0/(jshape.z*cr60+h12);
-      hsec = (numtyp)1.0/(h12+b_alpha*sec);
+      stemp = ucl_recip(ishape.x*cr60+h12)+
+              ucl_recip(ishape.y*cr60+h12)+
+              ucl_recip(ishape.z*cr60+h12)+
+              ucl_recip(jshape.x*cr60+h12)+
+              ucl_recip(jshape.y*cr60+h12)+
+              ucl_recip(jshape.z*cr60+h12);
+      hsec = ucl_recip(h12+b_alpha*sec);
       dspr = (numtyp)7.0/h12-hsec+stemp;
       pbsr = b_alpha*sigma*hsec;
   
@@ -361,7 +361,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       }
 
       // torque on i
-      sigma1=(numtyp)1.0/sigma1;
+      sigma1=ucl_recip(sigma1);
 
       numtyp fwae[3], p[3];
       gpu_row_times3(fourw,aTe1,fwae);

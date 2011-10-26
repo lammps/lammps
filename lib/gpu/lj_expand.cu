@@ -72,10 +72,10 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
         
       int mtype=itype*lj_types+jtype;
       if (r2inv<lj1[mtype].z) {
-        numtyp r = sqrt(r2inv);
+        numtyp r = ucl_sqrt(r2inv);
 	numtyp rshift = r - lj1[mtype].w;
 	numtyp rshiftsq = rshift*rshift;
-	r2inv = (numtyp) 1.0/rshiftsq;
+	r2inv = ucl_recip(rshiftsq);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         force*=factor_lj/rshift/r;
@@ -161,10 +161,10 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<lj1[mtype].z) {
-        numtyp r = sqrt(r2inv);
+        numtyp r = ucl_sqrt(r2inv);
 	numtyp rshift = r - lj1[mtype].w;
 	numtyp rshiftsq = rshift*rshift;
-	r2inv = 1.0/rshiftsq;
+	r2inv = ucl_recip(rshiftsq);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         force*=factor_lj/rshift/r;

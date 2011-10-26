@@ -72,14 +72,14 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
         
       int mtype=itype*lj_types+jtype;
       if (r2inv<lj1[mtype].x) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp inv1,inv2;
         
         if (lj1[mtype].y == 2) {
           inv1=r2inv*r2inv;
           inv2=inv1*inv1;
         } else if (lj1[mtype].y == 1) {
-          inv2=r2inv*sqrt(r2inv);
+          inv2=r2inv*ucl_sqrt(r2inv);
           inv1=inv2*inv2;
         } else {
           inv1=r2inv*r2inv*r2inv;
@@ -166,14 +166,14 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<lj1[mtype].x) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp inv1,inv2;
         
         if (lj1[mtype].y == (numtyp)2) {
           inv1=r2inv*r2inv;
           inv2=inv1*inv1;
         } else if (lj1[mtype].y == (numtyp)1) {
-          inv2=r2inv*sqrt(r2inv);
+          inv2=r2inv*ucl_sqrt(r2inv);
           inv1=inv2*inv2;
         } else {
           inv1=r2inv*r2inv*r2inv;

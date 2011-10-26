@@ -136,6 +136,45 @@ typedef struct _double4 double4;
 #define atom_add atomicAdd
 #define ucl_inline static __inline__ __device__ 
 
+
+#ifndef _DOUBLE_DOUBLE
+
+#define ucl_exp exp
+#define ucl_powr pow
+#define ucl_atan atan
+#define ucl_cbrt cbrt
+#define ucl_ceil ceil
+#define ucl_abs fabs
+#define ucl_rsqrt rsqrt
+#define ucl_sqrt sqrt
+#define ucl_recip(x) ((numtyp)1.0/(x))
+
+#else
+
+#define ucl_atan atanf
+#define ucl_cbrt cbrtf
+#define ucl_ceil ceilf
+#define ucl_abs fabsf
+#define ucl_recip(x) ((numtyp)1.0/(x))
+
+#ifdef NO_HARDWARE_TRANSCENDENTALS
+
+#define ucl_exp expf
+#define ucl_powr powf
+#define ucl_rsqrt rsqrtf
+#define ucl_sqrt sqrtf
+
+#else
+
+#define ucl_exp __expf
+#define ucl_powr __powf
+#define ucl_rsqrt __rsqrtf
+#define ucl_sqrt __sqrtf
+
+#endif
+
+#endif
+
 #endif
 
 // -------------------------------------------------------------------------
@@ -144,12 +183,8 @@ typedef struct _double4 double4;
 
 #ifdef GENERIC_OCL
 
+#define USE_OPENCL
 #define fast_mul mul24
-#define GLOBAL_ID_X get_global_id(0)
-#define THREAD_ID_X get_local_id(0)
-#define BLOCK_ID_X get_group_id(0)
-#define BLOCK_SIZE_X get_local_size(0)
-#define GLOBAL_SIZE_X get_global_size(0)
 #define ARCH 0
 #define DRIVER 0
 #define MEM_THREADS 16
@@ -166,12 +201,47 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
+
+// -------------------------------------------------------------------------
+//                     OPENCL Stuff for All Hardware
+// -------------------------------------------------------------------------
+#ifdef USE_OPENCL
+
+#define GLOBAL_ID_X get_global_id(0)
+#define THREAD_ID_X get_local_id(0)
+#define BLOCK_ID_X get_group_id(0)
+#define BLOCK_SIZE_X get_local_size(0)
+#define GLOBAL_SIZE_X get_global_size(0)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define ucl_inline inline
 #define fetch_pos(i,y) x_[i]
 #define fetch_q(i,y) q_[i]
 
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#define ucl_atan atan
+#define ucl_cbrt cbrt
+#define ucl_ceil ceil
+#define ucl_abs fabs
+
+#ifdef NO_HARDWARE_TRANSCENDENTALS
+
+#define ucl_exp exp
+#define ucl_powr powr
+#define ucl_rsqrt rsqrt
+#define ucl_sqrt sqrt
+#define ucl_recip(x) ((numtyp)1.0/(x))
+
+#else
+
+#define ucl_exp native_exp
+#define ucl_powr native_powr
+#define ucl_rsqrt native_rsqrt
+#define ucl_sqrt native_sqrt
+#define ucl_recip(x) native_recip
+
+#endif
 
 #endif
 

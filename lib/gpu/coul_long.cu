@@ -75,13 +75,13 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq < cut_coulsq) {
-	numtyp r2inv=(numtyp)1.0/rsq;
+	numtyp r2inv=ucl_recip(rsq);
 	numtyp force, prefactor, _erfc;
 
-	numtyp r = sqrt(rsq);
+	numtyp r = ucl_sqrt(rsq);
 	numtyp grij = g_ewald * r;
-	numtyp expm2 = exp(-grij*grij);
-	numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
+	numtyp expm2 = ucl_exp(-grij*grij);
+	numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
 	_erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 	prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
 	force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
@@ -212,13 +212,13 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq < cut_coulsq) {
-	numtyp r2inv=(numtyp)1.0/rsq;
+	numtyp r2inv=ucl_recip(rsq);
 	numtyp force, prefactor, _erfc;
 
-	numtyp r = sqrt(rsq);
+	numtyp r = ucl_sqrt(rsq);
 	numtyp grij = g_ewald * r;
-	numtyp expm2 = exp(-grij*grij);
-	numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
+	numtyp expm2 = ucl_exp(-grij*grij);
+	numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
 	_erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 	prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
 	force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;

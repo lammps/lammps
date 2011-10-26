@@ -23,7 +23,7 @@ ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape
   numtyp den = m[3]*m[2]*m[7]-m[0]*m[5]*m[7]-
     m[2]*m[6]*m[4]+m[1]*m[6]*m[5]-
     m[3]*m[1]*m[8]+m[0]*m[4]*m[8];
-  den = (numtyp)1.0/den;
+  den = ucl_recip(den);
   
   ans[0] = shape.x*(m[5]*m[1]*m2[2]+(numtyp)2.0*m[4]*m[8]*m2[0]-
 		    m[4]*m2[2]*m[2]-(numtyp)2.0*m[5]*m2[0]*m[7]+
@@ -146,8 +146,8 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       r12[2] = jx.z-ix.z;
       numtyp ir = gpu_dot3(r12,r12);
 
-      ir = rsqrt(ir);
-      numtyp r = (numtyp)1.0/ir;
+      ir = ucl_rsqrt(ir);
+      numtyp r = ucl_recip(ir);
 
       numtyp a2[9];
       gpu_quat_to_mat_trans(q,j,a2);
@@ -188,7 +188,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
               // Compute distance of closest approach
               numtyp h12, sigma12;
               sigma12 = gpu_dot3(r12,kappa);
-              sigma12 = rsqrt((numtyp)0.5*sigma12);
+              sigma12 = ucl_rsqrt((numtyp)0.5*sigma12);
               h12 = r-sigma12;
 
               // -- kappa is now ok
@@ -232,7 +232,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
         {
           eta = (numtyp)2.0*lshape[itype]*lshape[jtype];
           numtyp det_g12 = gpu_det3(g12);
-          eta = pow(eta/det_g12,gum[1]);
+          eta = ucl_powr(eta/det_g12,gum[1]);
         }
     
         // Compute teta
@@ -290,7 +290,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
         r12[1]*=ir;
         r12[2]*=ir;
         chi = gpu_dot3(r12,iota);
-        chi = pow(chi*(numtyp)2.0,gum[2]);
+        chi = ucl_powr(chi*(numtyp)2.0,gum[2]);
 
         // -- iota is now ok
         iota[0]*=r;
@@ -298,7 +298,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
         iota[2]*=r;
 
         numtyp temp1 = gpu_dot3(iota,r12);
-        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*pow(chi,(gum[2]-(numtyp)1.0)/
+        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*ucl_powr(chi,(gum[2]-(numtyp)1.0)/
                                                           gum[2]);
         dchi[0] = temp2*(iota[0]-temp1*r12[0]);
         dchi[1] = temp2*(iota[1]-temp1*r12[1]);

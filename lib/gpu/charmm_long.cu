@@ -85,7 +85,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<cut_bothsq) {
-        numtyp r2inv=(numtyp)1.0/rsq;
+        numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, force_lj, force, r6inv, prefactor, _erfc, switch1;
 
         if (rsq < cut_ljsq) {
@@ -105,10 +105,10 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = sqrt(rsq);
+          numtyp r = ucl_sqrt(rsq);
           numtyp grij = g_ewald * r;
-          numtyp expm2 = exp(-grij*grij);
-          numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
+          numtyp expm2 = ucl_exp(-grij*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
@@ -207,12 +207,12 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<cut_bothsq) {
-        numtyp r2inv=(numtyp)1.0/rsq;
+        numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, force_lj, force, prefactor, _erfc, switch1;
         numtyp lj3, lj4;
 
         if (rsq < cut_ljsq) {
-          numtyp eps = sqrt(ljd[itype].x*ljd[jtype].x);
+          numtyp eps = ucl_sqrt(ljd[itype].x*ljd[jtype].x);
           numtyp sig6 = (numtyp)0.5 * (ljd[itype].y+ljd[jtype].y);
 
           numtyp sig_r_6 = sig6*sig6*r2inv;
@@ -234,10 +234,10 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
           force_lj = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = sqrt(rsq);
+          numtyp r = ucl_sqrt(rsq);
           numtyp grij = g_ewald * r;
-          numtyp expm2 = exp(-grij*grij);
-          numtyp t = (numtyp)1.0 / ((numtyp)1.0 + EWALD_P*grij);
+          numtyp expm2 = ucl_exp(-grij*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
           forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);

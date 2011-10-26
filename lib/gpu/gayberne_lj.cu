@@ -74,8 +74,8 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       r12[2] = jx.z-ix.z;
       numtyp ir = gpu_dot3(r12,r12);
 
-      ir = rsqrt(ir);
-      numtyp r = (numtyp)1.0/ir;
+      ir = ucl_rsqrt(ir);
+      numtyp r = ucl_recip(ir);
       
       numtyp r12hat[3];
       r12hat[0]=r12[0]*ir;
@@ -124,7 +124,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
               // Compute distance of closest approach
               numtyp h12, sigma12;
               sigma12 = gpu_dot3(r12hat,kappa);
-              sigma12 = rsqrt((numtyp)0.5*sigma12);
+              sigma12 = ucl_rsqrt((numtyp)0.5*sigma12);
               h12 = r-sigma12;
 
               // -- kappa is now ok
@@ -158,7 +158,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         {
           eta = (numtyp)2.0*lshape[itype]*lshape[jtype];
           numtyp det_g12 = gpu_det3(g12);
-          eta = pow(eta/det_g12,gum[1]);
+          eta = ucl_powr(eta/det_g12,gum[1]);
         }
       }
   
@@ -190,7 +190,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         iota[1]*=ir;
         iota[2]*=ir;
         chi = gpu_dot3(r12hat,iota);
-        chi = pow(chi*(numtyp)2.0,gum[2]);
+        chi = ucl_powr(chi*(numtyp)2.0,gum[2]);
 
         // -- iota is now ok
         iota[0]*=r;
@@ -198,7 +198,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
         iota[2]*=r;
 
         numtyp temp1 = gpu_dot3(iota,r12hat);
-        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*pow(chi,(gum[2]-(numtyp)1.0)/
+        numtyp temp2 = (numtyp)-4.0*ir*ir*gum[2]*ucl_powr(chi,(gum[2]-(numtyp)1.0)/
                                                      gum[2]);
         dchi[0] = temp2*(iota[0]-temp1*r12hat[0]);
         dchi[1] = temp2*(iota[1]-temp1*r12hat[1]);
@@ -290,7 +290,7 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
         
       int ii=itype*lj_types+jtype;
       if (r2inv<lj1[ii].z && lj1[ii].w==SPHERE_SPHERE) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[ii].x*r6inv-lj1[ii].y);
         force*=factor_lj;
@@ -379,7 +379,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
         
       if (r2inv<lj1[mtype].z && lj1[mtype].w==SPHERE_SPHERE) {
-        r2inv=(numtyp)1.0/r2inv;
+        r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
       

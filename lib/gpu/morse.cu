@@ -72,9 +72,9 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *mor1,
         
       int mtype=itype*lj_types+jtype;
       if (r<mor1[mtype].x) {
-        r=sqrt(r);
+        r=ucl_sqrt(r);
         numtyp dexp=r-mor1[mtype].z;
-        dexp=exp(-mor1[mtype].w*dexp);
+        dexp=ucl_exp(-mor1[mtype].w*dexp);
         numtyp dm=dexp*dexp-dexp;
         numtyp force = mor1[mtype].y*dm/r*factor_lj;
       
@@ -159,9 +159,9 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *mor1_in,
       numtyp r = delx*delx+dely*dely+delz*delz;
         
       if (r<mor1[mtype].x) {
-        r=sqrt(r);
+        r=ucl_sqrt(r);
         numtyp dexp=r-mor1[mtype].z;
-        dexp=exp(-mor1[mtype].w*dexp);
+        dexp=ucl_exp(-mor1[mtype].w*dexp);
         numtyp dm=dexp*dexp-dexp;
         numtyp force = mor1[mtype].y*dm/r*factor_lj;
       

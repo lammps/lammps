@@ -1,6 +1,6 @@
 #!/bin/tcsh
 
-set files = `echo *.h *.cpp *.cu`
+set files = `echo *.h *.cu`
 rm -rf /tmp/cpp5678
 mkdir /tmp/cpp5678
 mkdir /tmp/cpp5678/lgpu
@@ -8,6 +8,6 @@ mkdir /tmp/cpp5678/lgpu
 foreach file ( $files )
 #	/bin/cp $file /tmp/cpp5678/$file:t:t
 	# ------ Sed Replace
-	sed -i.bak 's/atom->dev_engv/ans->dev_engv/g' $file
+	sed -i.bak 's/(numtyp)1\.0\/rsq/ucl_recip(rsq)/g' $file
 end
 

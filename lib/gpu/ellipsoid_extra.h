@@ -309,14 +309,14 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
   aug[9] = m[7];
   aug[10] = m[8];
 
-  if (fabs(aug[4]) > fabs(aug[0])) {
+  if (ucl_abs(aug[4]) > ucl_abs(aug[0])) {
     numtyp swapt;
     swapt=aug[0]; aug[0]=aug[4]; aug[4]=swapt;
     swapt=aug[1]; aug[1]=aug[5]; aug[5]=swapt;
     swapt=aug[2]; aug[2]=aug[6]; aug[6]=swapt;
     swapt=aug[3]; aug[3]=aug[7]; aug[7]=swapt;
   }
-  if (fabs(aug[8]) > fabs(aug[0])) {
+  if (ucl_abs(aug[8]) > ucl_abs(aug[0])) {
     numtyp swapt;
     swapt=aug[0]; aug[0]=aug[8]; aug[8]=swapt;
     swapt=aug[1]; aug[1]=aug[9]; aug[9]=swapt;
@@ -360,7 +360,7 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
   aug[10]-=t*aug[2];
   aug[11]-=t*aug[3];
 
-  if (fabs(aug[9]) > fabs(aug[5])) {
+  if (ucl_abs(aug[9]) > ucl_abs(aug[5])) {
     numtyp swapt;
     swapt=aug[4]; aug[4]=aug[8]; aug[8]=swapt;
     swapt=aug[5]; aug[5]=aug[9]; aug[9]=swapt;

@@ -59,8 +59,8 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    _ia=(numtyp)-1.0/sqrt(cut_coulsq);
-    _ia2=(numtyp)-1.0/cut_coulsq;
+    _ia=-ucl_rsqrt(cut_coulsq);
+    _ia2=ucl_recip(cut_coulsq);
     _ia3=_ia2*_ia;
     
     __global int *nbor, *list_end;
@@ -92,14 +92,14 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].x) {
         numtyp forcecoul, force_lj, force, inv1, inv2, prefactor;
-        numtyp r2inv=(numtyp)1.0/rsq;
+        numtyp r2inv=ucl_recip(rsq);
 
         if (rsq < lj1[mtype].y) {
           if (lj3[mtype].x == (numtyp)2) {
             inv1=r2inv*r2inv;
             inv2=inv1*inv1;
           } else if (lj3[mtype].x == (numtyp)1) {
-            inv2=r2inv*sqrt(r2inv);
+            inv2=r2inv*ucl_sqrt(r2inv);
             inv1=inv2*inv2;
           } else {
             inv1=r2inv*r2inv*r2inv;
@@ -111,7 +111,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
 
         numtyp ir, r2_ia2, r4_ia4, r6_ia6;
         if (rsq < cut_coulsq) {
-          ir = (numtyp)1.0/sqrt(rsq);
+          ir = ucl_rsqrt(rsq);
           prefactor = qqrd2e*qtmp*fetch_q(j,q_);
           r2_ia2 = rsq*_ia2;
           r4_ia4 = r2_ia2*r2_ia2;
@@ -202,8 +202,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   __local numtyp _ia;
   __local numtyp _ia2;
   __local numtyp _ia3;
-  _ia=(numtyp)-1.0/sqrt(cut_coulsq);
-  _ia2=(numtyp)1.0/cut_coulsq;
+  _ia=-ucl_rsqrt(cut_coulsq);
+  _ia2=ucl_recip(cut_coulsq);
   _ia3=_ia2*_ia;
   __syncthreads();
   
@@ -237,14 +237,14 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
 
       if (rsq<lj1[mtype].x) {
         numtyp forcecoul, force_lj, force, inv1, inv2, prefactor;
-        numtyp r2inv=(numtyp)1.0/rsq;
+        numtyp r2inv=ucl_recip(rsq);
 
         if (rsq < lj1[mtype].y) {
           if (lj3[mtype].x == (numtyp)2) {
             inv1=r2inv*r2inv;
             inv2=inv1*inv1;
           } else if (lj3[mtype].x == (numtyp)1) {
-            inv2=r2inv*sqrt(r2inv);
+            inv2=r2inv*ucl_sqrt(r2inv);
             inv1=inv2*inv2;
           } else {
             inv1=r2inv*r2inv*r2inv;
@@ -256,7 +256,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
 
         numtyp ir, r2_ia2, r4_ia4, r6_ia6;
         if (rsq < cut_coulsq) {
-          ir = (numtyp)1.0/sqrt(rsq);
+          ir = ucl_rsqrt(rsq);
           prefactor = qqrd2e*qtmp*fetch_q(j,q_);
           r2_ia2 = rsq*_ia2;
           r4_ia4 = r2_ia2*r2_ia2;

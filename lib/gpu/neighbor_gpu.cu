@@ -127,7 +127,8 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos, int *cell_particle_id,
 
   numtyp4 diff;
   numtyp r2;
-  for (int ii = 0; ii < ceil((numtyp)(icell_end - icell_begin)/blockDim.x); ii++) {
+  int cap=ucl_ceil((numtyp)(icell_end - icell_begin)/blockDim.x);
+  for (int ii = 0; ii < cap; ii++) {
     int i = icell_begin + tid + ii*blockDim.x;
     int pid_i = nall, pid_j, stride;
     numtyp4 atom_i, atom_j;
@@ -165,7 +166,7 @@ __kernel void calc_neigh_list_cell(numtyp4 *pos, int *cell_particle_id,
           int num_atom_cell = jcell_end - jcell_begin;
 	  
           // load jcell to shared memory
-          int num_iter = (int)ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD);
+          int num_iter = int(ucl_ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD));
 
           for (int k = 0; k < num_iter; k++) {
             int end_idx = min(BLOCK_NBOR_BUILD, 

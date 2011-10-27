@@ -3,6 +3,7 @@ lammps-icms-win.exe
 lammps-icms-win.zip
 lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
+lmp_*
 
 angle_cg_cmm.cpp
 angle_cg_cmm.h
@@ -218,6 +219,8 @@ fix_npt_asphere.cpp
 fix_npt_asphere.h
 fix_nve_asphere.cpp
 fix_nve_asphere.h
+fix_nve_asphere_noforce.cpp
+fix_nve_asphere_noforce.h
 fix_nvt_asphere.cpp
 fix_nvt_asphere.h
 fix_nh_eff.cpp
@@ -301,7 +304,7 @@ improper_umbrella.h
 improper_umbrella_omp.cpp
 improper_umbrella_omp.h
 kissfft.h
-lmp_*
+lj_sdk_common.h
 math_complex.h
 math_vector.h
 neb.cpp

@@ -2130,6 +2130,7 @@ void PairComb::add_pages(int howmany)
 {
   int toppage = maxpage;
   maxpage += howmany*PGDELTA;
+
   pages = (int **)
     memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
   for (int i = toppage; i < maxpage; i++)

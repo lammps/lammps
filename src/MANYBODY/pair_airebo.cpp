@@ -3046,7 +3046,6 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
   y = 0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  Pij = 0.0;
   done = 0;
 
   // if inputs are out of bounds set them back to a point in bounds
@@ -3121,7 +3120,6 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   y=0;
   z=0;
   i=0;
-  piRC=0.0;
 
   done=0;
 
@@ -3282,13 +3280,14 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 }
 
 /* ----------------------------------------------------------------------
-   add pages to REBO neighbor list, starting at npage
+   add pages to REBO neighbor list
 ------------------------------------------------------------------------- */
 
 void PairAIREBO::add_pages(int howmany)
 {
   int toppage = maxpage;
   maxpage += howmany*PGDELTA;
+
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
   for (int i = toppage; i < maxpage; i++)

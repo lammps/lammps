@@ -41,6 +41,7 @@ class PairLJSDK : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
+  virtual double memory_usage();
 
  protected:
   int **lj_type; // type of lennard jones potential

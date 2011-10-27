@@ -11,35 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(wall/reflect,FixWallReflect)
+PairStyle(brownian/poly,PairBrownianPoly)
 
 #else
 
-#ifndef LMP_FIX_WALL_REFLECT_H
-#define LMP_FIX_WALL_REFLECT_H
+#ifndef LMP_PAIR_BROWNIAN_POLY_H
+#define LMP_PAIR_BROWNIAN_POLY_H
 
-#include "fix.h"
+#include "pair_brownian.h"
 
 namespace LAMMPS_NS {
 
-class FixWallReflect : public Fix {
+class PairBrownianPoly : public PairBrownian {
  public:
-  FixWallReflect(class LAMMPS *, int, char **);
-  virtual ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
-
- protected:
-  int nwall;
-  int wallwhich[6],wallstyle[6];
-  double coord0[6];
-  char *varstr[6];
-  int varindex[6];
-  int varflag;
-  double xscale,yscale,zscale;
+  PairBrownianPoly(class LAMMPS *);
+  ~PairBrownianPoly() {}
+  void compute(int, int); 
+  double init_one(int, int);
+  void init_style();
 };
 
 }

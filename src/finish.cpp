@@ -35,18 +35,20 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 			  MPI_Comm world, const int nprocs, const int me,
 			  double time_loop, FILE *screen, FILE *logfile)
 {
-  double tmp;
+  double tmp, time_max, time_min, time_wall;
   double time = t->get_wall(tt);
 
 #if defined(_OPENMP)
   double time_cpu = t->get_cpu(tt);
-  if (time == 0.0)
-    time_cpu = 0.0;
+  if (time/time_loop < 0.001)  // insufficient timer resolution!
+    time_cpu = 1.0;
   else
-    time_cpu = time_cpu / time * 100.0;
+    time_cpu = time_cpu / time;
 #endif
 
   MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&time,&time_min,1,MPI_DOUBLE,MPI_MIN,world);
+  MPI_Allreduce(&time,&time_max,1,MPI_DOUBLE,MPI_MAX,world);
   time = tmp/nprocs;
 
 #if defined(_OPENMP)
@@ -55,11 +57,11 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"%5s time (%%) = %g (%g)  (%%CPU = %g)\n",
-	      label,time,time/time_loop*100.0,time_cpu);
+      fprintf(screen,"%6s min/avg/max time (%%) = %- 12.4g/%- 12.4g/%- 12.4g (%6.2f)  (#CPU = %4.1fx)\n",
+	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
     if (logfile)
-      fprintf(logfile,"%5s  time (%%) = %g (%g)  (%%CPU = %g)\n",
-	      label,time,time/time_loop*100.0,time_cpu);
+      fprintf(screen,"%6s min/avg/max time (%%) = %- 12.4g/%- 12.4g/%- 12.4g (%6.2f)  (#CPU = %4.1fx)\n",
+	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
   }
 #else
   if (me == 0) {
@@ -360,29 +362,45 @@ void Finish::end(int flag)
       if (logfile) fprintf(logfile,"\n");
     }
 
-    print_timings("Pair ",timer,Timer::PAIR,world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Pair  ",timer,Timer::PAIR,
+		  world,nprocs,me,time_loop,screen,logfile);
 
     if (atom->molecular)
-      print_timings("Bond ",timer,Timer::BOND,world,nprocs,me,time_loop,screen,logfile);
+      print_timings("Bond  ",timer,Timer::BOND,
+		    world,nprocs,me,time_loop,screen,logfile);
     
     if (force->kspace)
-      print_timings("Kspce",timer,Timer::KSPACE,world,nprocs,me,time_loop,screen,logfile);
+      print_timings("Kspace",timer,Timer::KSPACE,
+		    world,nprocs,me,time_loop,screen,logfile);
 
-    print_timings("Neigh",timer,Timer::NEIGHBOR,world,nprocs,me,time_loop,screen,logfile);
-    print_timings("Comm ",timer,Timer::COMM,    world,nprocs,me,time_loop,screen,logfile);
-    print_timings("Outpt",timer,Timer::OUTPUT,  world,nprocs,me,time_loop,screen,logfile);
-    print_timings("Modfy",timer,Timer::MODIFY,  world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Neigh ",timer,Timer::NEIGHBOR,
+		  world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Comm  ",timer,Timer::COMM,
+		  world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Output",timer,Timer::OUTPUT,
+		  world,nprocs,me,time_loop,screen,logfile);
+    print_timings("Modify",timer,Timer::MODIFY,
+		  world,nprocs,me,time_loop,screen,logfile);
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
+#if defined(_OPENMP)
+      if (screen) 
+	fprintf(screen,"Other      avg     time (%%) =              %- 12.4g"
+		"              (%6.2f)\n",time,time/time_loop*100.0);
+      if (logfile) 
+	fprintf(logfile,"Other      avg     time (%%) =              %- 12.4g"
+		"              (%6.2f)\n",time,time/time_loop*100.0);
+#else
       if (screen) 
 	fprintf(screen,"Other time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
       if (logfile) 
 	fprintf(logfile,"Other time (%%) = %g (%g)\n",
 		time,time/time_loop*100.0);
+#endif
     }
   }
   

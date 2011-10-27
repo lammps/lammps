@@ -116,7 +116,8 @@ void LbalanceSimple::loadbalance_local_boxes_simple()
   //NP should not occur since minextent is accounted for in apply_border()
   for (int i = 0; i < 3; i++) 
     if ( (procgrid[i] > 1) && (boxhi[i] - boxlo[i] < procgrid[i] * minextent) )
-      error->all(FLERR,"Domain too small for this processor grid and this cutoff size: Enlarge domain, reduce # prcessors or choose smaller cutoff");
+      error->all(FLERR,"Domain too small for this processor grid and this cutoff size:\n"
+		"  Enlarge domain, reduce # of processors, or choose smaller cutoff");
   
   /*NL*/ if (LMP_DEBUGMODE_LBALANCE_SIMPLE) fprintf(LMP_DEBUG_OUT_LBALANCE_SIMPLE,"minextent %f\n",minextent);
 

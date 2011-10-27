@@ -14,7 +14,7 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
-#include "preprocessor.h"
+#include "lal_preprocessor.h"
 #endif
 
 #define atom_info(t_per_atom, ii, tid, offset)                               \

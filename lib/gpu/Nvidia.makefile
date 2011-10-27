@@ -9,11 +9,11 @@ GPU_LIB = $(LIB_DIR)/libgpu.a
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)
-NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) preprocessor.h
+NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h
 # Headers for Pair Stuff
-PAIR_H  = atom.h answer.h neighbor_shared.h \
-          neighbor.h precision.h device.h \
-          balance.h pppm.h
+PAIR_H  = lal_atom.h lal_answer.h lal_neighbor_shared.h \
+          lal_neighbor.h lal_precision.h lal_device.h \
+          lal_balance.h lal_pppm.h
 
 ALL_H = $(NVD_H) $(PAIR_H)
 
@@ -21,25 +21,25 @@ EXECS = $(BIN_DIR)/nvc_get_devices
 CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
-OBJS = $(OBJ_DIR)/atom.o $(OBJ_DIR)/ans.o \
-       $(OBJ_DIR)/neighbor.o $(OBJ_DIR)/neighbor_shared.o \
-       $(OBJ_DIR)/device.o $(OBJ_DIR)/base_atomic.o \
-       $(OBJ_DIR)/base_charge.o $(OBJ_DIR)/base_ellipsoid.o \
-       $(OBJ_DIR)/pppm.o $(OBJ_DIR)/pppm_ext.o \
-       $(OBJ_DIR)/gayberne.o $(OBJ_DIR)/gayberne_ext.o \
-       $(OBJ_DIR)/re_squared.o $(OBJ_DIR)/re_squared_ext.o \
-       $(OBJ_DIR)/lj.o $(OBJ_DIR)/lj_ext.o \
-       $(OBJ_DIR)/lj96.o $(OBJ_DIR)/lj96_ext.o \
-       $(OBJ_DIR)/lj_expand.o $(OBJ_DIR)/lj_expand_ext.o \
-       $(OBJ_DIR)/lj_coul.o $(OBJ_DIR)/lj_coul_ext.o \
-       $(OBJ_DIR)/lj_coul_long.o $(OBJ_DIR)/lj_coul_long_ext.o \
-       $(OBJ_DIR)/lj_class2_long.o $(OBJ_DIR)/lj_class2_long_ext.o \
-       $(OBJ_DIR)/coul_long.o $(OBJ_DIR)/coul_long_ext.o \
-       $(OBJ_DIR)/morse.o $(OBJ_DIR)/morse_ext.o \
-       $(OBJ_DIR)/charmm_long.o $(OBJ_DIR)/charmm_long_ext.o \
-       $(OBJ_DIR)/cg_cmm.o $(OBJ_DIR)/cg_cmm_ext.o \
-       $(OBJ_DIR)/cg_cmm_long.o $(OBJ_DIR)/cg_cmm_long_ext.o \
-       $(OBJ_DIR)/cg_cmm_msm.o $(OBJ_DIR)/cg_cmm_msm_ext.o \
+OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
+       $(OBJ_DIR)/lal_neighbor.o $(OBJ_DIR)/lal_neighbor_shared.o \
+       $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \
+       $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_base_ellipsoid.o \
+       $(OBJ_DIR)/lal_pppm.o $(OBJ_DIR)/lal_pppm_ext.o \
+       $(OBJ_DIR)/lal_gayberne.o $(OBJ_DIR)/lal_gayberne_ext.o \
+       $(OBJ_DIR)/lal_re_squared.o $(OBJ_DIR)/lal_re_squared_ext.o \
+       $(OBJ_DIR)/lal_lj.o $(OBJ_DIR)/lal_lj_ext.o \
+       $(OBJ_DIR)/lal_lj96.o $(OBJ_DIR)/lal_lj96_ext.o \
+       $(OBJ_DIR)/lal_lj_expand.o $(OBJ_DIR)/lal_lj_expand_ext.o \
+       $(OBJ_DIR)/lal_lj_coul.o $(OBJ_DIR)/lal_lj_coul_ext.o \
+       $(OBJ_DIR)/lal_lj_coul_long.o $(OBJ_DIR)/lal_lj_coul_long_ext.o \
+       $(OBJ_DIR)/lal_lj_class2_long.o $(OBJ_DIR)/lal_lj_class2_long_ext.o \
+       $(OBJ_DIR)/lal_coul_long.o $(OBJ_DIR)/lal_coul_long_ext.o \
+       $(OBJ_DIR)/lal_morse.o $(OBJ_DIR)/lal_morse_ext.o \
+       $(OBJ_DIR)/lal_charmm_long.o $(OBJ_DIR)/lal_charmm_long_ext.o \
+       $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
+       $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
+       $(OBJ_DIR)/lal_cg_cmm_msm.o $(OBJ_DIR)/lal_cg_cmm_msm_ext.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
@@ -85,83 +85,83 @@ $(OBJ_DIR)/radixsort_app.cu_o: cudpp_mini/radixsort_app.cu
 $(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
 	$(CUDA) -o $@ -c cudpp_mini/scan_app.cu
 
-$(OBJ_DIR)/atom.ptx: atom.cu preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ atom.cu
+$(OBJ_DIR)/atom.ptx: lal_atom.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_atom.cu
 
 $(OBJ_DIR)/atom_ptx.h: $(OBJ_DIR)/atom.ptx
 	$(BSH) ./geryon/file_to_cstr.sh atom $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h
 
-$(OBJ_DIR)/atom.o: atom.cpp atom.h $(NVD_H) $(OBJ_DIR)/atom_ptx.h
-	$(CUDR) -o $@ -c atom.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_atom.o: lal_atom.cpp lal_atom.h $(NVD_H) $(OBJ_DIR)/atom_ptx.h
+	$(CUDR) -o $@ -c lal_atom.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ans.o: answer.cpp answer.h $(NVD_H)
-	$(CUDR) -o $@ -c answer.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_ans.o: lal_answer.cpp lal_answer.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_answer.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/neighbor_cpu.ptx: neighbor_cpu.cu preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ neighbor_cpu.cu
+$(OBJ_DIR)/neighbor_cpu.ptx: lal_neighbor_cpu.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_neighbor_cpu.cu
 
 $(OBJ_DIR)/neighbor_cpu_ptx.h: $(OBJ_DIR)/neighbor_cpu.ptx
 	$(BSH) ./geryon/file_to_cstr.sh neighbor_cpu $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h
 
-$(OBJ_DIR)/neighbor_gpu.ptx: neighbor_gpu.cu preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ neighbor_gpu.cu
+$(OBJ_DIR)/neighbor_gpu.ptx: lal_neighbor_gpu.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_neighbor_gpu.cu
 
 $(OBJ_DIR)/neighbor_gpu_ptx.h: $(OBJ_DIR)/neighbor_gpu.ptx
 	$(BSH) ./geryon/file_to_cstr.sh neighbor_gpu $(OBJ_DIR)/neighbor_gpu.ptx $(OBJ_DIR)/neighbor_gpu_ptx.h
 
-$(OBJ_DIR)/neighbor_shared.o: neighbor_shared.cpp neighbor_shared.h $(OBJ_DIR)/neighbor_cpu_ptx.h $(OBJ_DIR)/neighbor_gpu_ptx.h $(NVD_H)
-	$(CUDR) -o $@ -c neighbor_shared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_neighbor_shared.o: lal_neighbor_shared.cpp lal_neighbor_shared.h $(OBJ_DIR)/neighbor_cpu_ptx.h $(OBJ_DIR)/neighbor_gpu_ptx.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_neighbor_shared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/neighbor.o: neighbor.cpp neighbor.h neighbor_shared.h $(NVD_H)
-	$(CUDR) -o $@ -c neighbor.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_neighbor.o: lal_neighbor.cpp lal_neighbor.h lal_neighbor_shared.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_neighbor.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/device.ptx: device.cu preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ device.cu
+$(OBJ_DIR)/device.ptx: lal_device.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_device.cu
 
 $(OBJ_DIR)/device_ptx.h: $(OBJ_DIR)/device.ptx
 	$(BSH) ./geryon/file_to_cstr.sh device $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h
 
-$(OBJ_DIR)/device.o: device.cpp device.h $(ALL_H) $(OBJ_DIR)/device_ptx.h
-	$(CUDR) -o $@ -c device.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_device.o: lal_device.cpp lal_device.h $(ALL_H) $(OBJ_DIR)/device_ptx.h
+	$(CUDR) -o $@ -c lal_device.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/base_atomic.o: $(ALL_H) base_atomic.h base_atomic.cpp
-	$(CUDR) -o $@ -c base_atomic.cpp
+$(OBJ_DIR)/lal_base_atomic.o: $(ALL_H) lal_base_atomic.h lal_base_atomic.cpp
+	$(CUDR) -o $@ -c lal_base_atomic.cpp
 
-$(OBJ_DIR)/base_charge.o: $(ALL_H) base_charge.h base_charge.cpp
-	$(CUDR) -o $@ -c base_charge.cpp
+$(OBJ_DIR)/lal_base_charge.o: $(ALL_H) lal_base_charge.h lal_base_charge.cpp
+	$(CUDR) -o $@ -c lal_base_charge.cpp
 
-$(OBJ_DIR)/base_ellipsoid.o: $(ALL_H) base_ellipsoid.h base_ellipsoid.cpp $(OBJ_DIR)/ellipsoid_nbor_ptx.h
-	$(CUDR) -o $@ -c base_ellipsoid.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_base_ellipsoid.o: $(ALL_H) lal_base_ellipsoid.h lal_base_ellipsoid.cpp $(OBJ_DIR)/ellipsoid_nbor_ptx.h
+	$(CUDR) -o $@ -c lal_base_ellipsoid.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pppm_f.ptx: pppm.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ pppm.cu
+$(OBJ_DIR)/pppm_f.ptx: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ lal_pppm.cu
 
 $(OBJ_DIR)/pppm_f_ptx.h: $(OBJ_DIR)/pppm_f.ptx
 	$(BSH) ./geryon/file_to_cstr.sh pppm_f $(OBJ_DIR)/pppm_f.ptx $(OBJ_DIR)/pppm_f_ptx.h
 
-$(OBJ_DIR)/pppm_d.ptx: pppm.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ pppm.cu
+$(OBJ_DIR)/pppm_d.ptx: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ lal_pppm.cu
 
 $(OBJ_DIR)/pppm_d_ptx.h: $(OBJ_DIR)/pppm_d.ptx
 	$(BSH) ./geryon/file_to_cstr.sh pppm_d $(OBJ_DIR)/pppm_d.ptx $(OBJ_DIR)/pppm_d_ptx.h
 
-$(OBJ_DIR)/pppm.o: $(ALL_H) pppm.h pppm.cpp $(OBJ_DIR)/pppm_f_ptx.h $(OBJ_DIR)/pppm_d_ptx.h
-	$(CUDR) -o $@ -c pppm.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_pppm.o: $(ALL_H) lal_pppm.h lal_pppm.cpp $(OBJ_DIR)/pppm_f_ptx.h $(OBJ_DIR)/pppm_d_ptx.h
+	$(CUDR) -o $@ -c lal_pppm.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pppm_ext.o: $(ALL_H) pppm.h pppm_ext.cpp
-	$(CUDR) -o $@ -c pppm_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_pppm_ext.o: $(ALL_H) lal_pppm.h lal_pppm_ext.cpp
+	$(CUDR) -o $@ -c lal_pppm_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ellipsoid_nbor.ptx: ellipsoid_nbor.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ ellipsoid_nbor.cu
+$(OBJ_DIR)/ellipsoid_nbor.ptx: lal_ellipsoid_nbor.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_ellipsoid_nbor.cu
 
 $(OBJ_DIR)/ellipsoid_nbor_ptx.h: $(OBJ_DIR)/ellipsoid_nbor.ptx
 	$(BSH) ./geryon/file_to_cstr.sh ellipsoid_nbor $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/ellipsoid_nbor_ptx.h
 
-$(OBJ_DIR)/gayberne.ptx: gayberne.cu precision.h ellipsoid_extra.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne.cu
+$(OBJ_DIR)/gayberne.ptx: lal_gayberne.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_gayberne.cu
 
-$(OBJ_DIR)/gayberne_lj.ptx: gayberne_lj.cu precision.h ellipsoid_extra.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne_lj.cu
+$(OBJ_DIR)/gayberne_lj.ptx: lal_gayberne_lj.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_gayberne_lj.cu
 
 $(OBJ_DIR)/gayberne_ptx.h: $(OBJ_DIR)/gayberne.ptx
 	$(BSH) ./geryon/file_to_cstr.sh gayberne $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_ptx.h
@@ -169,17 +169,17 @@ $(OBJ_DIR)/gayberne_ptx.h: $(OBJ_DIR)/gayberne.ptx
 $(OBJ_DIR)/gayberne_lj_ptx.h: $(OBJ_DIR)/gayberne_lj.ptx
 	$(BSH) ./geryon/file_to_cstr.sh gayberne_lj $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_lj_ptx.h
 
-$(OBJ_DIR)/gayberne.o: $(ALL_H) gayberne.h gayberne.cpp $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/gayberne_lj_ptx.h $(OBJ_DIR)/base_ellipsoid.o
-	$(CUDR) -o $@ -c gayberne.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_gayberne.o: $(ALL_H) lal_gayberne.h lal_gayberne.cpp $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/gayberne_lj_ptx.h $(OBJ_DIR)/lal_base_ellipsoid.o
+	$(CUDR) -o $@ -c lal_gayberne.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/gayberne.o gayberne_ext.cpp
-	$(CUDR) -o $@ -c gayberne_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/lal_gayberne.o lal_gayberne_ext.cpp
+	$(CUDR) -o $@ -c lal_gayberne_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/re_squared.ptx: re_squared.cu precision.h ellipsoid_extra.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared.cu
+$(OBJ_DIR)/re_squared.ptx: lal_re_squared.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_re_squared.cu
 
-$(OBJ_DIR)/re_squared_lj.ptx: re_squared_lj.cu precision.h ellipsoid_extra.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared_lj.cu
+$(OBJ_DIR)/re_squared_lj.ptx: lal_re_squared_lj.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_re_squared_lj.cu
 
 $(OBJ_DIR)/re_squared_ptx.h: $(OBJ_DIR)/re_squared.ptx
 	$(BSH) ./geryon/file_to_cstr.sh re_squared $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_ptx.h
@@ -187,155 +187,155 @@ $(OBJ_DIR)/re_squared_ptx.h: $(OBJ_DIR)/re_squared.ptx
 $(OBJ_DIR)/re_squared_lj_ptx.h: $(OBJ_DIR)/re_squared_lj.ptx
 	$(BSH) ./geryon/file_to_cstr.sh re_squared_lj $(OBJ_DIR)/re_squared_lj.ptx $(OBJ_DIR)/re_squared_lj_ptx.h
 
-$(OBJ_DIR)/re_squared.o: $(ALL_H) re_squared.h re_squared.cpp $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/re_squared_lj_ptx.h $(OBJ_DIR)/base_ellipsoid.o
-	$(CUDR) -o $@ -c re_squared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_re_squared.o: $(ALL_H) lal_re_squared.h lal_re_squared.cpp $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/re_squared_lj_ptx.h $(OBJ_DIR)/lal_base_ellipsoid.o
+	$(CUDR) -o $@ -c lal_re_squared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/re_squared.o re_squared_ext.cpp
-	$(CUDR) -o $@ -c re_squared_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/lal_re_squared.o lal_re_squared_ext.cpp
+	$(CUDR) -o $@ -c lal_re_squared_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj.ptx: lj.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj.cu
+$(OBJ_DIR)/lj.ptx: lal_lj.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj.cu
 
 $(OBJ_DIR)/lj_ptx.h: $(OBJ_DIR)/lj.ptx $(OBJ_DIR)/lj.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj $(OBJ_DIR)/lj.ptx $(OBJ_DIR)/lj_ptx.h
 
-$(OBJ_DIR)/lj.o: $(ALL_H) lj.h lj.cpp $(OBJ_DIR)/lj_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c lj.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj.o: $(ALL_H) lal_lj.h lal_lj.cpp $(OBJ_DIR)/lj_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_ext.o: $(ALL_H) lj.h lj_ext.cpp base_atomic.h
-	$(CUDR) -o $@ -c lj_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_ext.o: $(ALL_H) lal_lj.h lal_lj_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul.ptx: lj_coul.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_coul.cu
+$(OBJ_DIR)/lj_coul.ptx: lal_lj_coul.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_coul.cu
 
 $(OBJ_DIR)/lj_coul_ptx.h: $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj_coul $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul_ptx.h
 
-$(OBJ_DIR)/lj_coul.o: $(ALL_H) lj_coul.h lj_coul.cpp $(OBJ_DIR)/lj_coul_ptx.h $(OBJ_DIR)/base_charge.o
-	$(CUDR) -o $@ -c lj_coul.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul.o: $(ALL_H) lal_lj_coul.h lal_lj_coul.cpp $(OBJ_DIR)/lj_coul_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_coul.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul_ext.o: $(ALL_H) lj_coul.h lj_coul_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c lj_coul_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul_ext.o: $(ALL_H) lal_lj_coul.h lal_lj_coul_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_coul_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_class2_long.ptx: lj_class2_long.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_class2_long.cu
+$(OBJ_DIR)/lj_class2_long.ptx: lal_lj_class2_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_class2_long.cu
 
 $(OBJ_DIR)/lj_class2_long_ptx.h: $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj_class2_long $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long_ptx.h
 
-$(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp $(OBJ_DIR)/lj_class2_long_ptx.h $(OBJ_DIR)/base_charge.o
-	$(CUDR) -o $@ -c lj_class2_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_class2_long.o: $(ALL_H) lal_lj_class2_long.h lal_lj_class2_long.cpp $(OBJ_DIR)/lj_class2_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_class2_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_class2_long_ext.o: $(ALL_H) lj_class2_long.h lj_class2_long_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c lj_class2_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_class2_long_ext.o: $(ALL_H) lal_lj_class2_long.h lal_lj_class2_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_class2_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/coul_long.ptx: coul_long.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ coul_long.cu
+$(OBJ_DIR)/coul_long.ptx: lal_coul_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_coul_long.cu
 
 $(OBJ_DIR)/coul_long_ptx.h: $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long.ptx
 	$(BSH) ./geryon/file_to_cstr.sh coul_long $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long_ptx.h
 
-$(OBJ_DIR)/coul_long.o: $(ALL_H) coul_long.h coul_long.cpp $(OBJ_DIR)/coul_long_ptx.h $(OBJ_DIR)/base_charge.o
-	$(CUDR) -o $@ -c coul_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_coul_long.o: $(ALL_H) lal_coul_long.h lal_coul_long.cpp $(OBJ_DIR)/coul_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_coul_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/coul_long_ext.o: $(ALL_H) coul_long.h coul_long_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c coul_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_coul_long_ext.o: $(ALL_H) lal_coul_long.h lal_coul_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul_long.ptx: lj_coul_long.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_coul_long.cu
+$(OBJ_DIR)/lj_coul_long.ptx: lal_lj_coul_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_coul_long.cu
 
 $(OBJ_DIR)/lj_coul_long_ptx.h: $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj_coul_long $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long_ptx.h
 
-$(OBJ_DIR)/lj_coul_long.o: $(ALL_H) lj_coul_long.h lj_coul_long.cpp $(OBJ_DIR)/lj_coul_long_ptx.h $(OBJ_DIR)/base_charge.o
-	$(CUDR) -o $@ -c lj_coul_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul_long.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long.cpp $(OBJ_DIR)/lj_coul_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_coul_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_coul_long_ext.o: $(ALL_H) lj_coul_long.h lj_coul_long_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c lj_coul_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul_long_ext.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/morse.ptx: morse.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ morse.cu
+$(OBJ_DIR)/morse.ptx: lal_morse.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_morse.cu
 
 $(OBJ_DIR)/morse_ptx.h: $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse.ptx
 	$(BSH) ./geryon/file_to_cstr.sh morse $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h
 
-$(OBJ_DIR)/morse.o: $(ALL_H) morse.h morse.cpp $(OBJ_DIR)/morse_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c morse.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_morse.o: $(ALL_H) lal_morse.h lal_morse.cpp $(OBJ_DIR)/morse_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_morse.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/morse_ext.o: $(ALL_H) morse.h morse_ext.cpp base_atomic.h
-	$(CUDR) -o $@ -c morse_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_morse_ext.o: $(ALL_H) lal_morse.h lal_morse_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_morse_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/charmm_long.ptx: charmm_long.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ charmm_long.cu
+$(OBJ_DIR)/charmm_long.ptx: lal_charmm_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_charmm_long.cu
 
 $(OBJ_DIR)/charmm_long_ptx.h: $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long.ptx
 	$(BSH) ./geryon/file_to_cstr.sh charmm_long $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h
 
-$(OBJ_DIR)/charmm_long.o: $(ALL_H) charmm_long.h charmm_long.cpp $(OBJ_DIR)/charmm_long_ptx.h $(OBJ_DIR)/base_charge.o
-	$(CUDR) -o $@ -c charmm_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_charmm_long.o: $(ALL_H) lal_charmm_long.h lal_charmm_long.cpp $(OBJ_DIR)/charmm_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_charmm_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/charmm_long_ext.o: $(ALL_H) charmm_long.h charmm_long_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c charmm_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_charmm_long_ext.o: $(ALL_H) lal_charmm_long.h lal_charmm_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_charmm_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj96.ptx: lj96.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj96.cu
+$(OBJ_DIR)/lj96.ptx: lal_lj96.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj96.cu
 
 $(OBJ_DIR)/lj96_ptx.h: $(OBJ_DIR)/lj96.ptx $(OBJ_DIR)/lj96.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj96 $(OBJ_DIR)/lj96.ptx $(OBJ_DIR)/lj96_ptx.h
 
-$(OBJ_DIR)/lj96.o: $(ALL_H) lj96.h lj96.cpp $(OBJ_DIR)/lj96_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c lj96.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj96.o: $(ALL_H) lal_lj96.h lal_lj96.cpp $(OBJ_DIR)/lj96_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj96.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj96_ext.o: $(ALL_H) lj96.h lj96_ext.cpp base_atomic.h
-	$(CUDR) -o $@ -c lj96_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj96_ext.o: $(ALL_H) lal_lj96.h lal_lj96_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj96_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_expand.ptx: lj_expand.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_expand.cu
+$(OBJ_DIR)/lj_expand.ptx: lal_lj_expand.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_expand.cu
 
 $(OBJ_DIR)/lj_expand_ptx.h: $(OBJ_DIR)/lj_expand.ptx $(OBJ_DIR)/lj_expand.ptx
 	$(BSH) ./geryon/file_to_cstr.sh lj_expand $(OBJ_DIR)/lj_expand.ptx $(OBJ_DIR)/lj_expand_ptx.h
 
-$(OBJ_DIR)/lj_expand.o: $(ALL_H) lj_expand.h lj_expand.cpp $(OBJ_DIR)/lj_expand_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c lj_expand.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_expand.o: $(ALL_H) lal_lj_expand.h lal_lj_expand.cpp $(OBJ_DIR)/lj_expand_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj_expand.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_expand_ext.o: $(ALL_H) lj_expand.h lj_expand_ext.cpp base_atomic.h
-	$(CUDR) -o $@ -c lj_expand_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_expand_ext.o: $(ALL_H) lal_lj_expand.h lal_lj_expand_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_expand_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm.ptx: cg_cmm.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cg_cmm.cu
+$(OBJ_DIR)/cg_cmm.ptx: lal_cg_cmm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm.cu
 
 $(OBJ_DIR)/cg_cmm_ptx.h: $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm.ptx
 	$(BSH) ./geryon/file_to_cstr.sh cg_cmm $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h
 
-$(OBJ_DIR)/cg_cmm.o: $(ALL_H) cg_cmm.h cg_cmm.cpp $(OBJ_DIR)/cg_cmm_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c cg_cmm.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm.cpp $(OBJ_DIR)/cg_cmm_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_cg_cmm.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_ext.o: $(ALL_H) cg_cmm.h cg_cmm_ext.cpp base_atomic.h
-	$(CUDR) -o $@ -c cg_cmm_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_ext.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_cg_cmm_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_long.ptx: cg_cmm_long.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cg_cmm_long.cu
+$(OBJ_DIR)/cg_cmm_long.ptx: lal_cg_cmm_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm_long.cu
 
 $(OBJ_DIR)/cg_cmm_long_ptx.h: $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long.ptx
 	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_long $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h
 
-$(OBJ_DIR)/cg_cmm_long.o: $(ALL_H) cg_cmm_long.h cg_cmm_long.cpp $(OBJ_DIR)/cg_cmm_long_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c cg_cmm_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_long.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long.cpp $(OBJ_DIR)/cg_cmm_long_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_cg_cmm_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_long_ext.o: $(ALL_H) cg_cmm_long.h cg_cmm_long_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c cg_cmm_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_long_ext.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_cg_cmm_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_msm.ptx: cg_cmm_msm.cu precision.h preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cg_cmm_msm.cu
+$(OBJ_DIR)/cg_cmm_msm.ptx: lal_cg_cmm_msm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm_msm.cu
 
 $(OBJ_DIR)/cg_cmm_msm_ptx.h: $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm.ptx
 	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_msm $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h
 
-$(OBJ_DIR)/cg_cmm_msm.o: $(ALL_H) cg_cmm_msm.h cg_cmm_msm.cpp $(OBJ_DIR)/cg_cmm_msm_ptx.h $(OBJ_DIR)/base_atomic.o
-	$(CUDR) -o $@ -c cg_cmm_msm.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_msm.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm.cpp $(OBJ_DIR)/cg_cmm_msm_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_cg_cmm_msm.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cg_cmm_msm_ext.o: $(ALL_H) cg_cmm_msm.h cg_cmm_msm_ext.cpp base_charge.h
-	$(CUDR) -o $@ -c cg_cmm_msm_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_msm_ext.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_cg_cmm_msm_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 
@@ -348,3 +348,4 @@ clean:
 
 veryclean: clean
 	rm -rf *~ *.linkinfo
+

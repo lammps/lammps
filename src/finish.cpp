@@ -57,10 +57,10 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"%6s min/avg/max time (%%) = %- 12.4g/%- 12.4g/%- 12.4g (%6.2f)  (#CPU = %4.1fx)\n",
+      fprintf(screen,"%-8s|%- 12.4g|%- 12.4g|%- 12.4g|%6.2f | %4.1fx\n",
 	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
     if (logfile)
-      fprintf(screen,"%6s min/avg/max time (%%) = %- 12.4g/%- 12.4g/%- 12.4g (%6.2f)  (#CPU = %4.1fx)\n",
+      fprintf(logfile,"%-8s|%- 12.4g|%- 12.4g|%- 12.4g|%6.2f | %4.1fx\n",
 	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
   }
 #else
@@ -358,24 +358,36 @@ void Finish::end(int flag)
 
   if (timeflag) {
     if (me == 0) {
-      if (screen) fprintf(screen,"\n");
-      if (logfile) fprintf(logfile,"\n");
+      if (screen) fputs("\n",screen);
+      if (logfile) fputs("\n",logfile);
+
+#if defined(_OPENMP)
+      if (screen)
+	fputs("Section |  min time  |  avg time  |  max time  "
+	      "|%total |  #Thr\n------------------------------"
+	      "--------------------------------\n",screen);
+
+      if (logfile)
+	fputs("Section |  min time  |  avg time  |  max time  "
+	      "|%total |  #Thr\n------------------------------"
+	      "--------------------------------\n",logfile);
+#endif
     }
 
-    print_timings("Pair  ",timer,Timer::PAIR,
+    print_timings("Pair",timer,Timer::PAIR,
 		  world,nprocs,me,time_loop,screen,logfile);
 
     if (atom->molecular)
-      print_timings("Bond  ",timer,Timer::BOND,
+      print_timings("Bond",timer,Timer::BOND,
 		    world,nprocs,me,time_loop,screen,logfile);
     
     if (force->kspace)
       print_timings("Kspace",timer,Timer::KSPACE,
 		    world,nprocs,me,time_loop,screen,logfile);
 
-    print_timings("Neigh ",timer,Timer::NEIGHBOR,
+    print_timings("Neigh",timer,Timer::NEIGHBOR,
 		  world,nprocs,me,time_loop,screen,logfile);
-    print_timings("Comm  ",timer,Timer::COMM,
+    print_timings("Comm",timer,Timer::COMM,
 		  world,nprocs,me,time_loop,screen,logfile);
     print_timings("Output",timer,Timer::OUTPUT,
 		  world,nprocs,me,time_loop,screen,logfile);
@@ -388,11 +400,11 @@ void Finish::end(int flag)
     if (me == 0) {
 #if defined(_OPENMP)
       if (screen) 
-	fprintf(screen,"Other      avg     time (%%) =              %- 12.4g"
-		"              (%6.2f)\n",time,time/time_loop*100.0);
+	fprintf(screen,"Other   |            |%- 12.4g|            |"
+		"%6.2f |\n",time,time/time_loop*100.0);
       if (logfile) 
-	fprintf(logfile,"Other      avg     time (%%) =              %- 12.4g"
-		"              (%6.2f)\n",time,time/time_loop*100.0);
+	fprintf(logfile,"Other   |            |%- 12.4g|            |"
+		"%6.2f |\n",time,time/time_loop*100.0);
 #else
       if (screen) 
 	fprintf(screen,"Other time (%%) = %g (%g)\n",

@@ -44,6 +44,7 @@ class FixWall : public Fix {
   int varindex[6];
   int eflag,varflag;
   double ewall[7],ewall_all[7];
+  double xscale,yscale,zscale;
   int nlevels_respa;
   double dt;
   int fldflag;

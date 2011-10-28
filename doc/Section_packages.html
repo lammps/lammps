@@ -45,6 +45,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >CLASS2</TD><TD > class 2 force fields</TD><TD > -</TD><TD > <A HREF = "pair_class2.html">pair_style lj/class2</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >COLLOID</TD><TD > colloidal particles</TD><TD > -</TD><TD > <A HREF = "atom_style.html">atom_style colloid</A></TD><TD > colloid</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >DIPOLE</TD><TD > point dipole particles</TD><TD > -</TD><TD > <A HREF = "pair_dipole.html">pair_style dipole/cut</A></TD><TD > dipole</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >FLD</TD><TD > Fast Lubrication Dynamics</TD><TD > Kumar & Bybee & Higdon (1)</TD><TD > <A HREF = "pair_lubricateU.html">pair_style lubricateU</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled potentials</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "Section_accelerate.html#acc_3">accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
 <TR ALIGN="center"><TD >GRANULAR</TD><TD > granular systems</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_6">howto</A></TD><TD > pour</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > -</TD></TR>
@@ -52,7 +53,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
 <TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">howto</A></TD><TD > peptide</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (1)</TD><TD > <A HREF = "Section_accelerate.html#acc_1">howto</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "Section_accelerate.html#acc_1">howto</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >PERI</TD><TD > Peridynamics models</TD><TD > Mike Parks (Sandia)</TD><TD > <A HREF = "pair_peri.html">pair_style peri</A></TD><TD > peri</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >POEMS</TD><TD > coupled rigid body motion</TD><TD > Rudra Mukherjee (JPL)</TD><TD > <A HREF = "fix_poems.html">fix poems</A></TD><TD > rigid</TD><TD > lib/poems</TD></TR>
 <TR ALIGN="center"><TD >REAX</TD><TD > ReaxFF potential</TD><TD > Aidan Thompson (Sandia)</TD><TD > <A HREF = "pair_reax.html">pair_style reax</A></TD><TD > reax</TD><TD >  lib/reax</TD></TR>
@@ -66,7 +67,10 @@ packages, more details are provided.
 <P>The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 </P>
-<P>(1) The OPT package was created by James Fischer (High Performance
+<P>(1) The FLD package was created by Amit Kumar and Michael Bybee from
+Jonathan Higdon's group at UIUC.
+</P>
+<P>(2) The OPT package was created by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
 Technolgy).
 </P>

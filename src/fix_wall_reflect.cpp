@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 
 enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
-enum{NONE,EDGE,CONSTANT,VARIABLE};
+enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -104,32 +104,31 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all(FLERR,"Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
+      error->all(FLERR,
+		 "Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
 
-  // scale coord for CONSTANT walls
+  // scale factors for CONSTANT and VARIABLE walls
 
   int flag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == CONSTANT) flag = 1;
+    if (wallstyle[m] != EDGE) flag = 1;
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
       error->all(FLERR,"Use of fix wall with undefined lattice");
 
-    double xscale,yscale,zscale;
     if (scaleflag) {
       xscale = domain->lattice->xlattice;
       yscale = domain->lattice->ylattice;
       zscale = domain->lattice->zlattice;
     }
     else xscale = yscale = zscale = 1.0;
-
-    double scale;
+    
     for (int m = 0; m < nwall; m++) {
-      if (wallwhich[m] < YLO) scale = xscale;
-      else if (wallwhich[m] < ZLO) scale = yscale;
-      else scale = zscale;
-      if (wallstyle[m] == CONSTANT) coord0[m] *= scale;
+      if (wallstyle[m] != CONSTANT) continue;
+      if (wallwhich[m] < YLO) coord0[m] *= xscale;
+      else if (wallwhich[m] < ZLO) coord0[m] *= yscale;
+      else coord0[m] *= zscale;
     }
   }
 
@@ -198,9 +197,12 @@ void FixWallReflect::post_integrate()
   if (varflag) modify->clearstep_compute();
 
   for (int m = 0; m < nwall; m++) {
-    if (wallstyle[m] == VARIABLE)
+    if (wallstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(varindex[m]);
-    else coord = coord0[m];
+      if (wallwhich[m] < YLO) coord *= xscale;
+      else if (wallwhich[m] < ZLO) coord *= yscale;
+      else coord *= zscale;
+    } else coord = coord0[m];
 
     dim = wallwhich[m] / 2;
     side = wallwhich[m] % 2;

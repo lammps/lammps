@@ -93,6 +93,8 @@ void PairLJSDK::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 } 
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJSDK::eval()
 {
@@ -116,7 +118,7 @@ void PairLJSDK::eval()
 
   // loop over neighbors of my atoms
 
-  for (ii = 0; ii < inum; ++ii) {
+  for (ii = 0; ii < inum; ii++) {
 
     i = ilist[ii];
     xtmp = x[i][0];
@@ -191,8 +193,9 @@ void PairLJSDK::eval()
     f[i][2] += fztmp;
   }
 }
+
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJSDK::allocate()
@@ -224,7 +227,7 @@ void PairLJSDK::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJSDK::settings(int narg, char **arg)
@@ -282,15 +285,6 @@ void PairLJSDK::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairLJSDK::init_style()
-{
-  neighbor->request(this);
-}
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
@@ -298,7 +292,7 @@ double PairLJSDK::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
     error->all(FLERR,"No mixing support for lj/sdk. "
-	       "Coefficients for all pairs need to be set manually.");
+	       "Coefficients for all pairs need to be set explicitly.");
 
   const int ljt = lj_type[i][j];
 
@@ -327,30 +321,8 @@ double PairLJSDK::init_one(int i, int j)
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
 
-  if (tail_flag) {
+  if (tail_flag)
     error->all(FLERR,"Tail flag not supported by lj/sdk pair style");
-    
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-
-    double count[2],all[2];
-    count[0] = count[1] = 0.0;
-    for (int k = 0; k < nlocal; k++) {
-      if (type[k] == i) count[0] += 1.0;
-      if (type[k] == j) count[1] += 1.0;
-    }
-    MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-        
-    double sig2 = sigma[i][j]*sigma[i][j];
-    double sig6 = sig2*sig2*sig2;
-    double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
-    double rc6 = rc3*rc3;
-    double rc9 = rc3*rc6;
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
-  } 
 
   return cut[i][j];
 }
@@ -468,6 +440,10 @@ void *PairLJSDK::extract(char *str, int &dim)
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"lj_type") == 0) return (void *) lj_type;
+  if (strcmp(str,"lj1") == 0) return (void *) lj1;
+  if (strcmp(str,"lj2") == 0) return (void *) lj2;
+  if (strcmp(str,"lj3") == 0) return (void *) lj3;
+  if (strcmp(str,"lj4") == 0) return (void *) lj4;
   return NULL;
 }
 
@@ -479,9 +455,9 @@ double PairLJSDK::memory_usage()
   int n = atom->ntypes;
 
   // setflag/lj_type
-  bytes += (n+1)*(n+1)*sizeof(int)*2; 
+  bytes += 2 * (n+1)*(n+1)*sizeof(int); 
   // cut/cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4
-  bytes += (n+1)*(n+1)*sizeof(double)*9; 
+  bytes += 9 * (n+1)*(n+1)*sizeof(double); 
 
   return bytes;
 }

@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-OPENMP= -fopenmp -DLMP_OPENMP
+OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions \

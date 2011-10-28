@@ -53,6 +53,13 @@ Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing
 Molecular Dynamics on Hybrid High Performance Computers - Short Range 
 Forces. Computer Physics Communications. 2011. 182: p. 898-911. 
 
+and
+
+Brown, W.M., Kohlmeyer, A. Plimpton, S.J., Tharrington, A.N. Implementing 
+Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle 
+Particle-Mesh. Computer Physics Communications. 2011. In press. 
+
+
 NOTE: Installation of the CUDA SDK is not required.
 
 Current styles supporting GPU acceleration:

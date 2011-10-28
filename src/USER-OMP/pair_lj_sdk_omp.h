@@ -17,50 +17,30 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/sdk,PairLJSDK)
-PairStyle(cg/cmm,PairLJSDK)
+PairStyle(lj/sdk/omp,PairLJSDKOMP)
+PairStyle(cg/cmm/omp,PairLJSDKOMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_SDK_H
-#define LMP_PAIR_LJ_SDK_H
+#ifndef LMP_PAIR_LJ_SDK_OMP_H
+#define LMP_PAIR_LJ_SDK_OMP_H
 
-#include "pair.h"
+#include "pair_lj_sdk.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
-class LAMMPS;
-  
-class PairLJSDK : public Pair {
+
+class PairLJSDKOMP : public PairLJSDK, public ThrOMP {
+
  public:
-  PairLJSDK(LAMMPS *);
-  virtual ~PairLJSDK();
+  PairLJSDKOMP(class LAMMPS *);
+
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *, int &);
   virtual double memory_usage();
 
- protected:
-  int **lj_type; // type of lennard jones potential
-
-  double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
-
-  double cut_global;
-
-  void allocate();
-
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
-
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval_thr(int ifrom, int ito, ThrData * const thr);
 };
 
 }

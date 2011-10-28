@@ -45,7 +45,6 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
                                   const double cell_size,
                                   const double gpu_split, FILE *_screen,
                                   const char *pair_program) {
-  nbor_time_avail=false;
   screen=_screen;
 
   int gpu_nbor=0;
@@ -132,8 +131,6 @@ int * BaseChargeT::reset_nbors(const int nall, const int inum, int *ilist,
                                    int *numj, int **firstneigh, bool &success) {
   success=true;
 
-  nbor_time_avail=true;
-
   int mn=nbor->max_nbor_loop(inum,numj,ilist);
   resize_atom(inum,nall,success);
   resize_local(inum,mn,success);
@@ -159,8 +156,6 @@ inline void BaseChargeT::build_nbor_list(const int inum, const int host_inum,
                                          double *subhi, int *tag, 
                                          int **nspecial, int **special,
                                          bool &success) {
-  nbor_time_avail=true;
-
   success=true;
   resize_atom(inum,nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),success);

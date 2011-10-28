@@ -1202,6 +1202,11 @@ in LAMMPS. :dd
 
 No atoms in system have a non-zero charge. :dd
 
+{Cannot use neigh_modify exclude with GPU neighbor builds} :dt
+
+This is a current limitation of the GPU implementation
+in LAMMPS. :dd
+
 {Cannot use neighbor bins - box size << cutoff} :dt
 
 Too many neighbor bins will be created.  This typically happens when

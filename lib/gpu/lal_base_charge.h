@@ -98,11 +98,7 @@ class BaseCharge {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      if (nbor_time_avail) {
-        nbor->time_nbor.add_to_total();
-        nbor->time_kernel.add_to_total();
-        nbor_time_avail=false;
-      }
+      nbor->acc_timers();
       time_pair.add_to_total();
       atom->acc_timers();
       ans->acc_timers();
@@ -111,7 +107,6 @@ class BaseCharge {
 
   /// Zero timers
   inline void zero_timers() {
-    nbor_time_avail=false;
     time_pair.zero();
     atom->zero_timers();
     ans->zero_timers();
@@ -175,9 +170,6 @@ class BaseCharge {
 
   /// Neighbor data
   Neighbor *nbor;
-
-  /// True if we need to accumulate time for neighboring
-  bool nbor_time_avail;
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;

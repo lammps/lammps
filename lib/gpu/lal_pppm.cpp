@@ -207,6 +207,7 @@ void PPPMT::clear(const double cpu_time) {
   time_rho.clear();
   time_interp.clear();
 
+  ans->clear();
   device->clear();
 }
 

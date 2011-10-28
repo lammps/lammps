@@ -51,7 +51,6 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               FILE *_screen, const int ntypes, int **h_form,
                               const char *ellipsoid_program,
                               const char *lj_program, const bool ellip_sphere) {
-  nbor_time_avail=false;
   screen=_screen;
   _ellipsoid_sphere=ellip_sphere;
 
@@ -170,7 +169,8 @@ void BaseEllipsoidT::output_times() {
   double single[10], times[10];
 
   single[0]=atom->transfer_time()+ans->transfer_time();
-  single[1]=nbor->time_nbor.total_seconds();
+  single[1]=nbor->time_nbor.total_seconds()+nbor->time_hybrid1.total_seconds()+
+            nbor->time_hybrid2.total_seconds();
   single[2]=time_nbor1.total_seconds()+time_nbor2.total_seconds()+
             time_nbor3.total_seconds()+nbor->time_nbor.total_seconds();
   single[3]=time_ellipsoid.total_seconds()+time_ellipsoid2.total_seconds()+
@@ -225,10 +225,6 @@ void BaseEllipsoidT::output_times() {
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[8]/replica_size);
       fprintf(screen,"-------------------------------------");
       fprintf(screen,"--------------------------------\n\n");
-
-
-      fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
     }
   _max_bytes=0.0;
 }
@@ -265,8 +261,6 @@ void BaseEllipsoidT::reset_nbors(const int nall, const int inum,
                                  bool &success) {
   success=true;
     
-  nbor_time_avail=true;
-
   int mn=nbor->max_nbor_loop(osize,numj,ilist);
   resize_atom(nall,success);
   resize_local(inum,0,mn,osize,success);
@@ -315,8 +309,6 @@ inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
                                             double *subhi, int *tag, 
                                             int **nspecial, int **special,
                                             bool &success) {
-  nbor_time_avail=true;
-
   success=true;
   resize_atom(nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),0,success);

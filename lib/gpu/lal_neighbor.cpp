@@ -37,7 +37,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
                        const int gpu_nbor, const int gpu_host, 
                        const bool pre_cut, const int block_cell_2d,
                        const int block_cell_id, const int block_nbor_build,
-                       const int threads_per_atom) {
+                       const int threads_per_atom, const bool time_device) {
   clear();
 
   _threads_per_atom=threads_per_atom;
@@ -47,6 +47,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   _shared=shared;
   dev=&devi;
   _gpu_nbor=gpu_nbor;
+  _time_device=time_device;
   if (gpu_host==0)
     _gpu_host=false;
   else if (gpu_host==1)
@@ -63,10 +64,15 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   bool success=true;
     
   // Initialize timers for the selected GPU
+  _nbor_time_avail=false;
   time_nbor.init(*dev);
   time_kernel.init(*dev);
+  time_hybrid1.init(*dev);
+  time_hybrid2.init(*dev);
   time_nbor.zero();
   time_kernel.zero();
+  time_hybrid1.zero();
+  time_hybrid2.zero();
 
   _max_atoms=static_cast<int>(static_cast<double>(inum)*1.10);
   if (_max_atoms==0)
@@ -174,6 +180,7 @@ void Neighbor::clear() {
   }
   if (_allocated) {
     _allocated=false;
+    _nbor_time_avail=false;
 
     host_packed.clear();
     host_acc.clear();
@@ -190,6 +197,8 @@ void Neighbor::clear() {
 
     time_kernel.clear();
     time_nbor.clear();
+    time_hybrid1.clear();
+    time_hybrid2.clear();
   }
 }
 
@@ -207,6 +216,7 @@ double Neighbor::host_memory_usage() const {
 
 void Neighbor::get_host(const int inum, int *ilist, int *numj,
                            int **firstneigh, const int block_size) {  
+  _nbor_time_avail=true;
   time_nbor.start();
 
   UCL_H_Vec<int> ilist_view;
@@ -277,6 +287,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                                double *sublo, double *subhi, int *tag, 
                                int **nspecial, int **special, bool &success,
                                int &mn) {
+  _nbor_time_avail=true;
   const int nt=inum+host_inum;
 
   // Calculate number of cells and allocate storage for binning as necessary
@@ -342,14 +353,18 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       host_cell_counts[i]+=host_cell_counts[i-1];
       cell_iter[i]=host_cell_counts[i];
     }
+    time_hybrid1.start();
     ucl_copy(dev_cell_counts,host_cell_counts,true);
+    time_hybrid1.stop();
     for (int i=0; i<nall; i++) {
       int celli=cell_id[i];
       int ploc=cell_iter[celli];
       cell_iter[celli]++;
       particle_id[ploc]=i;
     }
+    time_hybrid2.start();
     ucl_copy(atom.dev_particle_id,atom.host_particle_id,true);
+    time_hybrid2.stop();
     _bin_time+=MPI_Wtime()-stime;
   }        
 
@@ -363,7 +378,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     ucl_copy(dev_special_t,view_special,nt*_maxspecial,false);
     ucl_copy(atom.dev_tag,view_tag,nall,false);
     time_nbor.stop();
-    time_nbor.add_to_total();
+    if (_time_device)
+      time_nbor.add_to_total();
     time_kernel.start();
     const int b2x=_block_cell_2d;
     const int b2y=_block_cell_2d;
@@ -455,7 +471,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       return;
     _max_nbors=mn;
     time_kernel.stop();
-    time_kernel.add_to_total();
+    if (_time_device)
+      time_kernel.add_to_total();
     build_nbor_list(x, inum, host_inum, nall, atom, sublo, subhi, tag, nspecial,
                     special, success, mn);
     return;

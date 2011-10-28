@@ -189,7 +189,8 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
 
   if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
-                  _block_cell_id, _block_nbor_build, threads_per_atom))
+                  _block_cell_id, _block_nbor_build, threads_per_atom,
+                  _time_device))
     return -3;
   nbor->cell_size(cell_size);
 
@@ -251,7 +252,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
     #ifdef _OPENMP
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
     #endif
-    #ifdef OCL_VENDOR
+    #ifdef USE_OPENCL
     fprintf(screen,"-  with OpenCL Parameters for: %s\n",OCL_VENDOR);
     #endif
     fprintf(screen,"-------------------------------------");
@@ -407,7 +408,8 @@ void DeviceT::output_times(UCL_Timer &time_pair,
   double single[9], times[9];
 
   single[0]=atom.transfer_time()+ans.transfer_time();
-  single[1]=nbor.time_nbor.total_seconds();
+  single[1]=nbor.time_nbor.total_seconds()+nbor.time_hybrid1.total_seconds()+
+            nbor.time_hybrid2.total_seconds();
   single[2]=nbor.time_kernel.total_seconds();
   single[3]=time_pair.total_seconds();
   single[4]=atom.cast_time()+ans.cast_time();

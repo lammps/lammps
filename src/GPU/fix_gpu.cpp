@@ -25,6 +25,7 @@
 #include "domain.h"
 #include "universe.h"
 #include "gpu_extra.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -135,6 +136,10 @@ void FixGPU::init()
 
 void FixGPU::setup(int vflag)
 {
+  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
+    if (neighbor->exclude_setting()!=0)
+      error->all(FLERR,
+		 "Cannot use neigh_modify exclude with GPU neighbor builds");
   post_force(vflag);
 }
 

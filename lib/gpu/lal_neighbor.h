@@ -66,7 +66,8 @@ class Neighbor {
             const int max_nbors, const int maxspecial, UCL_Device &dev,
             const int gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
-            const int block_nbor_build, const int threads_per_atom);
+            const int block_nbor_build, const int threads_per_atom,
+            const bool time_device);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -100,6 +101,18 @@ class Neighbor {
       if (max_nbor>_max_nbors)
         _max_nbors=static_cast<int>(static_cast<double>(max_nbor)*1.10);
       alloc(success);
+    }
+  }
+
+  inline void acc_timers() {
+    if (_nbor_time_avail) {
+      time_nbor.add_to_total();
+      time_kernel.add_to_total();
+      if (_gpu_nbor==2) {
+        time_hybrid1.add_to_total();
+        time_hybrid2.add_to_total();
+      }
+      _nbor_time_avail=false;
     }
   }
 
@@ -200,12 +213,12 @@ class Neighbor {
   UCL_D_Vec<int> dev_cell_counts;
 
   /// Device timers
-  UCL_Timer time_nbor, time_kernel;
+  UCL_Timer time_nbor, time_kernel, time_hybrid1, time_hybrid2;
   
  private:
   NeighborShared *_shared;
   UCL_Device *dev;
-  bool _allocated, _use_packing;
+  bool _allocated, _use_packing, _nbor_time_avail, _time_device;
   int _gpu_nbor, _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
   bool _gpu_host, _alloc_packed;
   double _cell_size, _bin_time;

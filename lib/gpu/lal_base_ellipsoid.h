@@ -104,11 +104,7 @@ class BaseEllipsoid {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      if (nbor_time_avail) {
-        nbor->time_nbor.add_to_total();
-        nbor->time_nbor.add_to_total();
-        nbor_time_avail=false;
-      }
+      nbor->acc_timers();
       time_nbor1.add_to_total();
       time_ellipsoid.add_to_total();
       if (_multiple_forms) {
@@ -127,7 +123,6 @@ class BaseEllipsoid {
   
   /// Zero timers
   inline void zero_timers() {
-    nbor_time_avail=false;
     time_nbor1.zero();
     time_ellipsoid.zero();
     if (_multiple_forms) {
@@ -217,8 +212,6 @@ class BaseEllipsoid {
   Neighbor *nbor;
   /// ilist with particles sorted by type
   UCL_H_Vec<int> host_olist;
-  /// True if we need to accumulate time for neighboring
-  bool nbor_time_avail;
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *nbor_program, *ellipsoid_program, *lj_program;

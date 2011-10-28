@@ -1628,10 +1628,10 @@ void PairComb::field(Param *param, double rsq, double iq,double jq,
 
 double PairComb::yasu_char(double *qf_fix, int &igroup)
 {
-  int i,j,k,ii,jj,kk,jnum,itag,jtag;
-  int itype,jtype,ktype,iparam_i,iparam_ij,iparam_ijk;
+  int i,j,ii,jj,jnum,itag,jtag;
+  int itype,jtype,iparam_i,iparam_ij;
   double xtmp,ytmp,ztmp;
-  double rsq1,rsq2,delr1[3],delr2[3],zeta_ij;
+  double rsq1,delr1[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   double iq,jq,fqi,fqj,fqij,fqjj;
   double potal,fac11,fac11e,sr1,sr2,sr3;

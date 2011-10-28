@@ -76,7 +76,7 @@
 #if (ARCH < 200)
 
 #define THREADS_PER_ATOM 1
-#define THREADS_PER_CHARGE 8
+#define THREADS_PER_CHARGE 16
 #define BLOCK_NBOR_BUILD 64
 #define BLOCK_PAIR 64
 #define BLOCK_BIO_PAIR 64
@@ -84,7 +84,7 @@
 
 #else
 
-#define THREADS_PER_ATOM 1
+#define THREADS_PER_ATOM 4
 #define THREADS_PER_CHARGE 8
 #define BLOCK_NBOR_BUILD 128
 #define BLOCK_PAIR 128
@@ -188,7 +188,7 @@ typedef struct _double4 double4;
 #define ARCH 0
 #define DRIVER 0
 #define MEM_THREADS 32
-#define THREADS_PER_ATOM 1
+#define THREADS_PER_ATOM 4
 #define THREADS_PER_CHARGE 8
 #define BLOCK_PAIR 128
 #define MAX_SHARED_TYPES 11

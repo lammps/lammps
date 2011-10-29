@@ -702,6 +702,7 @@ package"_Section_start.html#start_3.
 "sph/rhosum"_pair_rhosum.html,
 "sph/taitwater"_pair_taitwater.html,
 "sph/taitwater/morris"_pair_taitwater_morris.html :tb(c=4,ea=c)
+"tersoff/table"_pair_tersoff.html,
 
 These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -821,6 +822,7 @@ package"_Section_accelerate.html.
 "table/omp"_pair_table.html,
 "tersoff/cuda"_pair_tersoff.html,
 "tersoff/omp"_pair_tersoff.html,
+"tersoff/table/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
 "tri/lj/omp"_pair_tri_lj.html,
 "yukawa/omp"_pair_yukawa.html,

@@ -10,12 +10,13 @@ pair_style tersoff command :h3
 pair_style tersoff/table command :h3
 pair_style tersoff/cuda :h3
 pair_style tersoff/omp :h3
+pair_style tersoff/table/omp command :h3
 
 [Syntax:]
 
 pair_style style :pre
 
-style = {tersoff} or {tersoff/table} or {tersoff/cuda} or {tersoff/omp}
+style = {tersoff} or {tersoff/table} or {tersoff/cuda} or {tersoff/omp} or {tersoff/table/omp}
 
 [Examples:]
 

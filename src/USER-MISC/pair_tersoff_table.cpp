@@ -72,6 +72,7 @@ PairTersoffTable::~PairTersoffTable()
     delete [] map;
     
     deallocateGrids();
+    deallocatePreLoops();
   }
 }
 
@@ -82,6 +83,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
   int i,j,k,ii,inum,jnum;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   double xtmp,ytmp,ztmp;
+  double fxtmp,fytmp,fztmp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
 
@@ -122,6 +124,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    fxtmp = fytmp = fztmp = 0.0;
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -352,9 +355,9 @@ void PairTersoffTable::compute(int eflag, int vflag)
       f[j][1] += f_ij[1];
       f[j][2] += f_ij[2];
 
-      f[i][0] -= f_ij[0];
-      f[i][1] -= f_ij[1];
-      f[i][2] -= f_ij[2];
+      fxtmp -= f_ij[0];
+      fytmp -= f_ij[1];
+      fztmp -= f_ij[2];
 
       // potential energy
       evdwl = cutoffFunctionIJ * repulsivePotential + cutoffFunctionIJ * attractivePotential * betaZetaPowerIJK;
@@ -420,9 +423,9 @@ void PairTersoffTable::compute(int eflag, int vflag)
           f[k][1] -= f_ik[1];
           f[k][2] -= f_ik[2];
 
-          f[i][0] += f_ij[0] + f_ik[0];
-          f[i][1] += f_ij[1] + f_ik[1];
-          f[i][2] += f_ij[2] + f_ik[2];
+          fxtmp += f_ij[0] + f_ik[0];
+          fytmp += f_ij[1] + f_ik[1];
+          fztmp += f_ij[2] + f_ik[2];
 
           // potential energy
           evdwl = 0.0;
@@ -486,9 +489,9 @@ void PairTersoffTable::compute(int eflag, int vflag)
           f[k][1] -= f_ik[1];
           f[k][2] -= f_ik[2];
 
-          f[i][0] += f_ij[0] + f_ik[0];
-          f[i][1] += f_ij[1] + f_ik[1];
-          f[i][2] += f_ij[2] + f_ik[2];
+          fxtmp += f_ij[0] + f_ik[0];
+          fytmp += f_ij[1] + f_ik[1];
+          fztmp += f_ij[2] + f_ik[2];
 
           // potential energy
           evdwl = 0.0;
@@ -497,7 +500,9 @@ void PairTersoffTable::compute(int eflag, int vflag)
          
       }
     } // loop on J
-
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   } // loop on I
 
   if (vflag_fdotr) virial_fdotr_compute();

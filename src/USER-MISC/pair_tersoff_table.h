@@ -36,14 +36,14 @@ namespace LAMMPS_NS {
 class PairTersoffTable : public Pair {
  public:
   PairTersoffTable(class LAMMPS *);
-  ~PairTersoffTable();
-  void compute(int, int);
+  virtual ~PairTersoffTable();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
 
- private:
+ protected:
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;

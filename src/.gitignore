@@ -45,6 +45,8 @@ angle_harmonic_omp.cpp
 angle_harmonic_omp.h
 angle_hybrid.cpp
 angle_hybrid.h
+angle_sdk.cpp
+angle_sdk.h
 angle_table.cpp
 angle_table.h
 angle_table_omp.cpp
@@ -591,6 +593,8 @@ pair_tersoff.cpp
 pair_tersoff.h
 pair_tersoff_omp.cpp
 pair_tersoff_omp.h
+pair_tersoff_table.cpp
+pair_tersoff_table.h
 pair_tersoff_zbl.cpp
 pair_tersoff_zbl.h
 pair_tersoff_zbl_omp.cpp

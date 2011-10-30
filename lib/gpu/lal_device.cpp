@@ -123,8 +123,12 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   gpu=new UCL_Device();
   if (my_gpu>=gpu->num_devices())
     return -2;
+    
+  if (_procs_per_gpu>1 && gpu->sharing_supported(my_gpu)==false)
+    return -7;
   
-  gpu->set(my_gpu);
+  if (gpu->set(my_gpu)!=UCL_SUCCESS)
+    return -6;
 
   _long_range_precompute=0;
 

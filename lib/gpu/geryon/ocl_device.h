@@ -82,8 +82,10 @@ class UCL_Device {
   inline int num_devices() { return _num_devices; }
 
   /// Set the OpenCL device to the specified device number
-  /** A context and default command queue will be created for the device **/
-  void set(int num);
+  /** A context and default command queue will be created for the device *
+    * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
+    * be allocated for use **/
+  int set(int num);
 
   /// Get the current device number
   inline int device_num() { return _device; }
@@ -200,6 +202,14 @@ class UCL_Device {
   /// Return the maximum memory pitch in bytes
   inline size_t max_pitch(const int i) { return 0; }
 
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported() { return sharing_supported(_device); }
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported(const int i)
+    { return true; }
+
   /// List all devices along with all properties
   void print_all(std::ostream &out);
   
@@ -219,7 +229,7 @@ class UCL_Device {
   std::vector<OCLProperties> _properties; // Properties for each device
   
   void add_properties(cl_device_id);
-  void create_context();
+  int create_context();
   
 };
 
@@ -272,7 +282,7 @@ inline UCL_Device::~UCL_Device() {
   }
 }
 
-inline void UCL_Device::create_context() {
+inline int UCL_Device::create_context() {
   cl_int errorv;
   cl_context_properties props[3];
   props[0]=CL_CONTEXT_PLATFORM;
@@ -280,10 +290,15 @@ inline void UCL_Device::create_context() {
   props[2]=0;
   _context=clCreateContext(0,1,&_cl_device,NULL,NULL,&errorv);
   if (errorv!=CL_SUCCESS) {
-    std::cerr << "Could not create context on device: " << name() << std::endl;
+    #ifndef UCL_NO_EXIT
+    std::cerr << "UCL Error: Could not access accelerator number " << _device
+              << " for use.\n";
     exit(1);
+    #endif
+    return UCL_ERROR;
   }
   push_command_queue();
+  return UCL_SUCCESS;
 }
 
 inline void UCL_Device::add_properties(cl_device_id device_list) {
@@ -375,9 +390,9 @@ inline int UCL_Device::device_type(const int i) {
 }
 
 // Set the CUDA device to the specified device number
-inline void UCL_Device::set(int num) {
+inline int UCL_Device::set(int num) {
   if (_device==num)
-    return;
+    return UCL_SUCCESS;
   
   if (_device>-1) {
     for (size_t i=0; i<_cq.size(); i++) {
@@ -394,7 +409,7 @@ inline void UCL_Device::set(int num) {
 
   _device=num;
   _cl_device=device_list[_device];
-  create_context();
+  return create_context();
 }
 
 // List all devices along with all properties

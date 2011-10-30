@@ -43,7 +43,9 @@ class Device {
     * Returns:
     * -  0 if successfull
     * - -2 if GPU not found
-    * - -4 if GPU library not compiled for GPU **/
+    * - -4 if GPU library not compiled for GPU
+    * - -6 if GPU could not be initialized for use
+    * - -7 if accelerator sharing is not currently allowed on system **/
   int init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu, 
                    const int last_gpu, const int gpu_mode, 
                    const double particle_split, const int nthreads,

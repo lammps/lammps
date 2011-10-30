@@ -54,6 +54,7 @@ struct NVDProperties {
   int canMapHostMemory;
   int concurrentKernels;
   int ECCEnabled;
+  int computeMode;
 };
 
 /// Class for looking at device properties
@@ -78,8 +79,10 @@ class UCL_Device {
   inline int num_devices() { return _properties.size(); }
 
   /// Set the CUDA device to the specified device number
-  /** A context and default command queue will be created for the device **/
-  void set(int num);
+  /** A context and default command queue will be created for the device
+    * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
+    * be allocated for use **/
+  int set(int num);
 
   /// Get the current device number
   inline int device_num() { return _device; }
@@ -191,6 +194,14 @@ class UCL_Device {
   /// Return the maximum memory pitch in bytes
   inline size_t max_pitch(const int i) { return _properties[i].p.memPitch; }
 
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported() { return sharing_supported(_device); }
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported(const int i)
+    { return (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT); }
+
   /// List all devices along with all properties
   void print_all(std::ostream &out);
  
@@ -238,6 +249,8 @@ inline UCL_Device::UCL_Device() {
     CU_SAFE_CALL_NS(cuDeviceGetAttribute(
                       &_properties.back().canMapHostMemory, 
                       CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
+    CU_SAFE_CALL_NS(cuDeviceGetAttribute(&_properties.back().computeMode, 
+                      CU_DEVICE_ATTRIBUTE_COMPUTE_MODE,dev));
     #endif
     #if CUDA_VERSION >= 3010
     CU_SAFE_CALL_NS(cuDeviceGetAttribute(
@@ -261,16 +274,25 @@ inline UCL_Device::~UCL_Device() {
 }
 
 // Set the CUDA device to the specified device number
-inline void UCL_Device::set(int num) {
+inline int UCL_Device::set(int num) {
   if (_device==num)
-    return;
+    return UCL_SUCCESS;
   if (_device>-1) {
     CU_SAFE_CALL_NS(cuCtxDestroy(_context));
     for (int i=1; i<num_queues(); i++) pop_command_queue();
   }
   _device=_properties[num].device_id;
   CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
-  CU_SAFE_CALL_NS(cuCtxCreate(&_context,0,_cu_device));
+  CUresult err=cuCtxCreate(&_context,0,_cu_device);
+  if (err!=CUDA_SUCCESS) {
+    #ifndef UCL_NO_EXIT
+    std::cerr << "UCL Error: Could not access accelerator number " << num
+              << " for use.\n";
+    exit(1);
+    #endif
+    return UCL_ERROR;
+  }
+  return UCL_SUCCESS;
 }
 
 // List all devices along with all properties
@@ -344,6 +366,19 @@ inline void UCL_Device::print_all(std::ostream &out) {
       out << "Yes\n";
     else
       out << "No\n";
+    out << "  Compute mode:                                  ";
+    if (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT)
+      out << "Default\n"; // multiple threads can use device
+    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE)
+      out << "Exclusive\n"; // only thread can use device
+    else if (_properties[i].computeMode == CU_COMPUTEMODE_PROHIBITED)
+      out << "Prohibited\n"; // no thread can use device
+    #if CUDART_VERSION >= 4000
+    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE_PROCESS)
+      out << "Exclusive Process\n"; // multiple threads 1 process
+    #endif
+    else
+      out << "Unknown\n";
     #endif
     #if CUDA_VERSION >= 3010
     out << "  Concurrent kernel execution:                   ";

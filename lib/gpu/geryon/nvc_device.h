@@ -64,7 +64,9 @@ class UCL_Device {
   inline int num_devices() { return _properties.size(); }
 
   /// Set the CUDA device to the specified device number
-  void set(int num);
+  /** Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
+    * be allocated for use **/
+  int set(int num);
 
   /// Get the current device number
   inline int device_num() { return _device; }
@@ -160,9 +162,17 @@ class UCL_Device {
   /// Return the maximum memory pitch in bytes
   inline size_t max_pitch(const int i) { return _properties[i].memPitch; }
 
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported() { return sharing_supported(_device); }
+  /// Returns false if accelerator cannot be shared by multiple processes
+  /** If it cannot be determined, true is returned **/
+  inline bool sharing_supported(const int i)
+    { return (_properties[i].computeMode == cudaComputeModeDefault); }
+
   /// List all devices along with all properties
   void print_all(std::ostream &out);
- 
+  
  private:
   int _device, _num_devices;
   std::vector<cudaDeviceProp> _properties;
@@ -191,13 +201,22 @@ inline UCL_Device::~UCL_Device() {
 }
 
 // Set the CUDA device to the specified device number
-inline void UCL_Device::set(int num) {
+inline int UCL_Device::set(int num) {
   if (_device==num)
-    return;
+    return UCL_SUCCESS;
   for (int i=1; i<num_queues(); i++) pop_command_queue();
   cudaThreadExit();
-  CUDA_SAFE_CALL_NS(cudaSetDevice(_device_ids[num]));
+  cudaError err=cudaSetDevice(_device_ids[num]);
+  if (err!=cudaSuccess) {
+    #ifndef UCL_NO_EXIT
+    std::cerr << "UCL Error: Could not access accelerator number " << num
+              << " for use.\n";
+    exit(1);
+    #endif
+    return UCL_ERROR;
+  }
   _device=num;
+  return UCL_SUCCESS;
 }
 
 // List all devices along with all properties
@@ -289,6 +308,10 @@ inline void UCL_Device::print_all(std::ostream &out) {
       out << "Exclusive\n"; // only thread can use device
     else if (_properties[i].computeMode == cudaComputeModeProhibited)
       out << "Prohibited\n"; // no thread can use device
+    #if CUDART_VERSION >= 4000
+    else if (_properties[i].computeMode == cudaComputeModeExclusiveProcess)
+      out << "Exclusive Process\n"; // multiple threads 1 process
+    #endif
     else
       out << "Unknown\n";
     #endif

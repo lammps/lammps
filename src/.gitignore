@@ -595,6 +595,8 @@ pair_tersoff_omp.cpp
 pair_tersoff_omp.h
 pair_tersoff_table.cpp
 pair_tersoff_table.h
+pair_tersoff_table_omp.cpp
+pair_tersoff_table_omp.h
 pair_tersoff_zbl.cpp
 pair_tersoff_zbl.h
 pair_tersoff_zbl_omp.cpp

@@ -25,7 +25,7 @@ pair_coeff * * Si.tersoff Si
 pair_coeff * * SiC.tersoff Si C Si :pre
 
 pair_style tersoff/table
-pair_coeff * * SiCGe.tersoff Si (D) :pre
+pair_coeff * * SiCGe.tersoff Si(D) :pre
 
 [Description:]
 
@@ -38,10 +38,10 @@ where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D. 
 
-The {tersoff/table} style used tabulated forms for the two-body, 
+The {tersoff/table} style uses tabulated forms for the two-body, 
 environment and angular functions. Linear interpolation is performed
-between adjacent table entries. The table length is choosen to for
-an accuracy of 10^-6 with respect to the {tersoff} style energy.
+between adjacent table entries. The table length is chosen to be
+accurate within 10^-6 with respect to the {tersoff} style energy.
 The {tersoff/table} should give better performance in terms of speed.
 
 Only a single pair_coeff command is used with the {tersoff} style
@@ -144,7 +144,7 @@ potential "(Tersoff_2)"_#Tersoff_2. The {tersoff/table} style implements
 Teroff_2 parameterization only.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
-gamma = 1, just as for Tersoff_1, but now lambda3 = 0 and the value of
+gamma_ijk = omega_ik, lambda3 = 0 and the value of
 m has no effect.  The parameters for species i and j can be calculated
 using the Tersoff_2 mixing rules:
 

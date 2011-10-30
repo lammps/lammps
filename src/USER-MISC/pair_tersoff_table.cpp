@@ -87,18 +87,18 @@ void PairTersoffTable::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
 
-    int interpolIDX;
-    double r_ik_x, r_ik_y, r_ik_z;
-    double directorCos_ij_x, directorCos_ij_y, directorCos_ij_z, directorCos_ik_x, directorCos_ik_y, directorCos_ik_z;
-    double invR_ij, invR_ik, cosTeta;
-    double repulsivePotential, attractivePotential;
-    double exponentRepulsivePotential, exponentAttractivePotential,interpolTMP,interpolDeltaX,interpolY1;
-    double interpolY2, cutoffFunctionIJ, attractiveExponential, repulsiveExponential, cutoffFunctionDerivedIJ,zeta; 
-    double gtetaFunctionIJK,gtetaFunctionDerivedIJK,cutoffFunctionIK;
-    double cutoffFunctionDerivedIK,factor_force3_ij,factor_1_force3_ik;
-    double factor_2_force3_ik,betaZetaPowerIJK,betaZetaPowerDerivedIJK,factor_force_tot;
-    double factor_force_ij;
-    double gtetaFunctionDerived_temp,gtetaFunction_temp;
+  int interpolIDX;
+  double r_ik_x, r_ik_y, r_ik_z;
+  double directorCos_ij_x, directorCos_ij_y, directorCos_ij_z, directorCos_ik_x, directorCos_ik_y, directorCos_ik_z;
+  double invR_ij, invR_ik, cosTeta;
+  double repulsivePotential, attractivePotential;
+  double exponentRepulsivePotential, exponentAttractivePotential,interpolTMP,interpolDeltaX,interpolY1;
+  double interpolY2, cutoffFunctionIJ, attractiveExponential, repulsiveExponential, cutoffFunctionDerivedIJ,zeta; 
+  double gtetaFunctionIJK,gtetaFunctionDerivedIJK,cutoffFunctionIK;
+  double cutoffFunctionDerivedIK,factor_force3_ij,factor_1_force3_ik;
+  double factor_2_force3_ik,betaZetaPowerIJK,betaZetaPowerDerivedIJK,factor_force_tot;
+  double factor_force_ij;
+  double gtetaFunctionDerived_temp,gtetaFunction_temp;
 
   double evdwl = 0.0;
 
@@ -169,47 +169,47 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
 
       for (int neighbor_k = neighbor_j + 1; neighbor_k < jnum; neighbor_k++) {
-          double dr_ik[3], r_ik;
+	double dr_ik[3], r_ik;
 
-          k = jlist[neighbor_k];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+	k = jlist[neighbor_k];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = xtmp -x[k][0];
-          dr_ik[1] = ytmp -x[k][1];
-          dr_ik[2] = ztmp -x[k][2];
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+	dr_ik[0] = xtmp -x[k][0];
+	dr_ik[1] = ytmp -x[k][1];
+	dr_ik[2] = ztmp -x[k][2];
+	r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+	if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
+	r_ik = sqrt(r_ik);
 
-          invR_ik = 1.0 / r_ik;
+	invR_ik = 1.0 / r_ik;
           
-          directorCos_ik_x = invR_ik * dr_ik[0];
-          directorCos_ik_y = invR_ik * dr_ik[1];
-          directorCos_ik_z = invR_ik * dr_ik[2];
+	directorCos_ik_x = invR_ik * dr_ik[0];
+	directorCos_ik_y = invR_ik * dr_ik[1];
+	directorCos_ik_z = invR_ik * dr_ik[2];
           
-          cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
+	cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
           
-          // preGtetaFunction
-          interpolDeltaX=cosTeta+1.0;
-          interpolTMP = (interpolDeltaX * GRIDDENSITY_GTETA);
-          interpolIDX = (int) interpolTMP;
-          interpolY1 = gtetaFunction[itype][interpolIDX];
-          interpolY2 = gtetaFunction[itype][interpolIDX+1];
-          gtetaFunction_temp = interpolY1 + (interpolY2 - interpolY1) * (interpolTMP - interpolIDX);
-          // preGtetaFunctionDerived
-          interpolY1 = gtetaFunctionDerived[itype][interpolIDX];
-          interpolY2 = gtetaFunctionDerived[itype][interpolIDX+1];
-          gtetaFunctionDerived_temp = interpolY1 + (interpolY2 - interpolY1) * (interpolTMP - interpolIDX);
+	// preGtetaFunction
+	interpolDeltaX=cosTeta+1.0;
+	interpolTMP = (interpolDeltaX * GRIDDENSITY_GTETA);
+	interpolIDX = (int) interpolTMP;
+	interpolY1 = gtetaFunction[itype][interpolIDX];
+	interpolY2 = gtetaFunction[itype][interpolIDX+1];
+	gtetaFunction_temp = interpolY1 + (interpolY2 - interpolY1) * (interpolTMP - interpolIDX);
+	// preGtetaFunctionDerived
+	interpolY1 = gtetaFunctionDerived[itype][interpolIDX];
+	interpolY2 = gtetaFunctionDerived[itype][interpolIDX+1];
+	gtetaFunctionDerived_temp = interpolY1 + (interpolY2 - interpolY1) * (interpolTMP - interpolIDX);
           
-          preGtetaFunction[neighbor_j][neighbor_k]=params[ijkparam].gamma*gtetaFunction_temp;
-          preGtetaFunctionDerived[neighbor_j][neighbor_k]=params[ijkparam].gamma*gtetaFunctionDerived_temp;
-          preGtetaFunction[neighbor_k][neighbor_j]=params[ijkparam].gamma*gtetaFunction_temp;
-          preGtetaFunctionDerived[neighbor_k][neighbor_j]=params[ijkparam].gamma*gtetaFunctionDerived_temp;
+	preGtetaFunction[neighbor_j][neighbor_k]=params[ijkparam].gamma*gtetaFunction_temp;
+	preGtetaFunctionDerived[neighbor_j][neighbor_k]=params[ijkparam].gamma*gtetaFunctionDerived_temp;
+	preGtetaFunction[neighbor_k][neighbor_j]=params[ijkparam].gamma*gtetaFunction_temp;
+	preGtetaFunctionDerived[neighbor_k][neighbor_j]=params[ijkparam].gamma*gtetaFunctionDerived_temp;
 
       } // loop on K
 
@@ -269,67 +269,66 @@ void PairTersoffTable::compute(int eflag, int vflag)
             
       // first loop over neighbours of atom i except j - part 1/2
       for (int neighbor_k = 0; neighbor_k < neighbor_j; neighbor_k++) {
-          double dr_ik[3], r_ik;
+	double dr_ik[3], r_ik;
 
-          k = jlist[neighbor_k];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+	k = jlist[neighbor_k];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = xtmp -x[k][0];
-          dr_ik[1] = ytmp -x[k][1];
-          dr_ik[2] = ztmp -x[k][2];
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+	dr_ik[0] = xtmp -x[k][0];
+	dr_ik[1] = ytmp -x[k][1];
+	dr_ik[2] = ztmp -x[k][2];
+	r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+	if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
+	r_ik = sqrt(r_ik);
 
-          invR_ik = 1.0 / r_ik;
+	invR_ik = 1.0 / r_ik;
           
-          directorCos_ik_x = invR_ik * r_ik_x;
-          directorCos_ik_y = invR_ik * r_ik_y;
-          directorCos_ik_z = invR_ik * r_ik_z;
+	directorCos_ik_x = invR_ik * r_ik_x;
+	directorCos_ik_y = invR_ik * r_ik_y;
+	directorCos_ik_z = invR_ik * r_ik_z;
           
-          gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
+	gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
           
-          cutoffFunctionIK = preCutoffFunction[neighbor_k];
+	cutoffFunctionIK = preCutoffFunction[neighbor_k];
           
-          zeta += cutoffFunctionIK * gtetaFunctionIJK;
+	zeta += cutoffFunctionIK * gtetaFunctionIJK;
           
       }
 
       // first loop over neighbours of atom i except j - part 2/2
-      for (int neighbor_k = neighbor_j+1; neighbor_k < jnum; neighbor_k++)
-      {
-          double dr_ik[3], r_ik;
+      for (int neighbor_k = neighbor_j+1; neighbor_k < jnum; neighbor_k++) {
+	double dr_ik[3], r_ik;
 
-          k = jlist[neighbor_k];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+	k = jlist[neighbor_k];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = xtmp -x[k][0];
-          dr_ik[1] = ytmp -x[k][1];
-          dr_ik[2] = ztmp -x[k][2];
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+	dr_ik[0] = xtmp -x[k][0];
+	dr_ik[1] = ytmp -x[k][1];
+	dr_ik[2] = ztmp -x[k][2];
+	r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+	if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
-          invR_ik = 1.0 / r_ik;
+	r_ik = sqrt(r_ik);
+	invR_ik = 1.0 / r_ik;
           
-          directorCos_ik_x = invR_ik * dr_ik[0];
-          directorCos_ik_y = invR_ik * dr_ik[1];
-          directorCos_ik_z = invR_ik * dr_ik[2];
+	directorCos_ik_x = invR_ik * dr_ik[0];
+	directorCos_ik_y = invR_ik * dr_ik[1];
+	directorCos_ik_z = invR_ik * dr_ik[2];
           
-          gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
+	gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
           
-          cutoffFunctionIK = preCutoffFunction[neighbor_k];
+	cutoffFunctionIK = preCutoffFunction[neighbor_k];
           
-          zeta += cutoffFunctionIK * gtetaFunctionIJK;
+	zeta += cutoffFunctionIK * gtetaFunctionIJK;
       }
             
       // betaZetaPowerIJK 
@@ -368,135 +367,133 @@ void PairTersoffTable::compute(int eflag, int vflag)
       factor_force_tot= 0.5*cutoffFunctionIJ*attractivePotential*betaZetaPowerDerivedIJK;
 
       // second loop over neighbours of atom i except j, forces and virial only - part 1/2
-      for (int neighbor_k = 0; neighbor_k < neighbor_j; neighbor_k++)
-      {
-          double dr_ik[3], r_ik, f_ik[3];
+      for (int neighbor_k = 0; neighbor_k < neighbor_j; neighbor_k++) {
+	double dr_ik[3], r_ik, f_ik[3];
 
-          k = jlist[neighbor_k];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+	k = jlist[neighbor_k];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = xtmp -x[k][0];
-          dr_ik[1] = ytmp -x[k][1];
-          dr_ik[2] = ztmp -x[k][2];
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+	dr_ik[0] = xtmp -x[k][0];
+	dr_ik[1] = ytmp -x[k][1];
+	dr_ik[2] = ztmp -x[k][2];
+	r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+	if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
-          invR_ik = 1.0 / r_ik;
+	r_ik = sqrt(r_ik);
+	invR_ik = 1.0 / r_ik;
           
-          directorCos_ik_x = invR_ik * dr_ik[0];
-          directorCos_ik_y = invR_ik * dr_ik[1];
-          directorCos_ik_z = invR_ik * dr_ik[2];
+	directorCos_ik_x = invR_ik * dr_ik[0];
+	directorCos_ik_y = invR_ik * dr_ik[1];
+	directorCos_ik_z = invR_ik * dr_ik[2];
           
-          cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
+	cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
           
-          gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
+	gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
           
-          gtetaFunctionDerivedIJK = preGtetaFunctionDerived[neighbor_j][neighbor_k];
+	gtetaFunctionDerivedIJK = preGtetaFunctionDerived[neighbor_j][neighbor_k];
           
-          cutoffFunctionIK = preCutoffFunction[neighbor_k];
+	cutoffFunctionIK = preCutoffFunction[neighbor_k];
           
-          cutoffFunctionDerivedIK = preCutoffFunctionDerived[neighbor_k];
+	cutoffFunctionDerivedIK = preCutoffFunctionDerived[neighbor_k];
           
-          factor_force3_ij= cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ij *factor_force_tot;
+	factor_force3_ij= cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ij *factor_force_tot;
           
-          f_ij[0] = factor_force3_ij * (directorCos_ij_x*cosTeta - directorCos_ik_x);
-          f_ij[1] = factor_force3_ij * (directorCos_ij_y*cosTeta - directorCos_ik_y);
-          f_ij[2] = factor_force3_ij * (directorCos_ij_z*cosTeta - directorCos_ik_z);
+	f_ij[0] = factor_force3_ij * (directorCos_ij_x*cosTeta - directorCos_ik_x);
+	f_ij[1] = factor_force3_ij * (directorCos_ij_y*cosTeta - directorCos_ik_y);
+	f_ij[2] = factor_force3_ij * (directorCos_ij_z*cosTeta - directorCos_ik_z);
           
-          factor_1_force3_ik = (cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ik)*factor_force_tot;
-          factor_2_force3_ik = -(cutoffFunctionDerivedIK * gtetaFunctionIJK)*factor_force_tot;
+	factor_1_force3_ik = (cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ik)*factor_force_tot;
+	factor_2_force3_ik = -(cutoffFunctionDerivedIK * gtetaFunctionIJK)*factor_force_tot;
           
-          f_ik[0] = factor_1_force3_ik * (directorCos_ik_x*cosTeta - directorCos_ij_x) + factor_2_force3_ik * directorCos_ik_x;
-          f_ik[1] = factor_1_force3_ik * (directorCos_ik_y*cosTeta - directorCos_ij_y) + factor_2_force3_ik * directorCos_ik_y;
-          f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z) + factor_2_force3_ik * directorCos_ik_z;
+	f_ik[0] = factor_1_force3_ik * (directorCos_ik_x*cosTeta - directorCos_ij_x) + factor_2_force3_ik * directorCos_ik_x;
+	f_ik[1] = factor_1_force3_ik * (directorCos_ik_y*cosTeta - directorCos_ij_y) + factor_2_force3_ik * directorCos_ik_y;
+	f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z) + factor_2_force3_ik * directorCos_ik_z;
           
-          f[j][0] -= f_ij[0];
-          f[j][1] -= f_ij[1];
-          f[j][2] -= f_ij[2];
+	f[j][0] -= f_ij[0];
+	f[j][1] -= f_ij[1];
+	f[j][2] -= f_ij[2];
 
-          f[k][0] -= f_ik[0];
-          f[k][1] -= f_ik[1];
-          f[k][2] -= f_ik[2];
+	f[k][0] -= f_ik[0];
+	f[k][1] -= f_ik[1];
+	f[k][2] -= f_ik[2];
 
-          fxtmp += f_ij[0] + f_ik[0];
-          fytmp += f_ij[1] + f_ik[1];
-          fztmp += f_ij[2] + f_ik[2];
+	fxtmp += f_ij[0] + f_ik[0];
+	fytmp += f_ij[1] + f_ik[1];
+	fztmp += f_ij[2] + f_ik[2];
 
-          // potential energy
-          evdwl = 0.0;
+	// potential energy
+	evdwl = 0.0;
 
-          if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
+	if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
       }
             
       // second loop over neighbours of atom i except j, forces and virial only - part 2/2
-      for (int neighbor_k = neighbor_j+1; neighbor_k < jnum; neighbor_k++)
-      {
-          double dr_ik[3], r_ik, f_ik[3];
+      for (int neighbor_k = neighbor_j+1; neighbor_k < jnum; neighbor_k++) {
+	double dr_ik[3], r_ik, f_ik[3];
 
-          k = jlist[neighbor_k];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+	k = jlist[neighbor_k];
+	k &= NEIGHMASK;
+	ktype = map[type[k]];
+	ikparam = elem2param[itype][ktype][ktype];
+	ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = xtmp -x[k][0];
-          dr_ik[1] = ytmp -x[k][1];
-          dr_ik[2] = ztmp -x[k][2];
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+	dr_ik[0] = xtmp -x[k][0];
+	dr_ik[1] = ytmp -x[k][1];
+	dr_ik[2] = ztmp -x[k][2];
+	r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+	if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
-          invR_ik = 1.0 / r_ik;
+	r_ik = sqrt(r_ik);
+	invR_ik = 1.0 / r_ik;
           
-          directorCos_ik_x = invR_ik * dr_ik[0];
-          directorCos_ik_y = invR_ik * dr_ik[1];
-          directorCos_ik_z = invR_ik * dr_ik[2];
+	directorCos_ik_x = invR_ik * dr_ik[0];
+	directorCos_ik_y = invR_ik * dr_ik[1];
+	directorCos_ik_z = invR_ik * dr_ik[2];
           
-          cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
+	cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y + directorCos_ij_z * directorCos_ik_z;
           
-          gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
+	gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
           
-          gtetaFunctionDerivedIJK = preGtetaFunctionDerived[neighbor_j][neighbor_k];
+	gtetaFunctionDerivedIJK = preGtetaFunctionDerived[neighbor_j][neighbor_k];
           
-          cutoffFunctionIK = preCutoffFunction[neighbor_k];
+	cutoffFunctionIK = preCutoffFunction[neighbor_k];
           
-          cutoffFunctionDerivedIK = preCutoffFunctionDerived[neighbor_k];
+	cutoffFunctionDerivedIK = preCutoffFunctionDerived[neighbor_k];
           
-          factor_force3_ij= cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ij *factor_force_tot;
+	factor_force3_ij= cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ij *factor_force_tot;
           
-          f_ij[0] = factor_force3_ij * (directorCos_ij_x*cosTeta - directorCos_ik_x);
-          f_ij[1] = factor_force3_ij * (directorCos_ij_y*cosTeta - directorCos_ik_y);
-          f_ij[2] = factor_force3_ij * (directorCos_ij_z*cosTeta - directorCos_ik_z);
+	f_ij[0] = factor_force3_ij * (directorCos_ij_x*cosTeta - directorCos_ik_x);
+	f_ij[1] = factor_force3_ij * (directorCos_ij_y*cosTeta - directorCos_ik_y);
+	f_ij[2] = factor_force3_ij * (directorCos_ij_z*cosTeta - directorCos_ik_z);
           
-          factor_1_force3_ik = (cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ik)*factor_force_tot;
-          factor_2_force3_ik = -(cutoffFunctionDerivedIK * gtetaFunctionIJK)*factor_force_tot;
+	factor_1_force3_ik = (cutoffFunctionIK * gtetaFunctionDerivedIJK * invR_ik)*factor_force_tot;
+	factor_2_force3_ik = -(cutoffFunctionDerivedIK * gtetaFunctionIJK)*factor_force_tot;
           
-          f_ik[0] = factor_1_force3_ik * (directorCos_ik_x*cosTeta - directorCos_ij_x) + factor_2_force3_ik * directorCos_ik_x;
-          f_ik[1] = factor_1_force3_ik * (directorCos_ik_y*cosTeta - directorCos_ij_y) + factor_2_force3_ik * directorCos_ik_y;
-          f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z) + factor_2_force3_ik * directorCos_ik_z;
+	f_ik[0] = factor_1_force3_ik * (directorCos_ik_x*cosTeta - directorCos_ij_x) + factor_2_force3_ik * directorCos_ik_x;
+	f_ik[1] = factor_1_force3_ik * (directorCos_ik_y*cosTeta - directorCos_ij_y) + factor_2_force3_ik * directorCos_ik_y;
+	f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z) + factor_2_force3_ik * directorCos_ik_z;
           
-          f[j][0] -= f_ij[0];
-          f[j][1] -= f_ij[1];
-          f[j][2] -= f_ij[2];
+	f[j][0] -= f_ij[0];
+	f[j][1] -= f_ij[1];
+	f[j][2] -= f_ij[2];
 
-          f[k][0] -= f_ik[0];
-          f[k][1] -= f_ik[1];
-          f[k][2] -= f_ik[2];
+	f[k][0] -= f_ik[0];
+	f[k][1] -= f_ik[1];
+	f[k][2] -= f_ik[2];
 
-          fxtmp += f_ij[0] + f_ik[0];
-          fytmp += f_ij[1] + f_ik[1];
-          fztmp += f_ij[2] + f_ik[2];
+	fxtmp += f_ij[0] + f_ik[0];
+	fytmp += f_ij[1] + f_ik[1];
+	fztmp += f_ij[2] + f_ik[2];
 
-          // potential energy
-          evdwl = 0.0;
+	// potential energy
+	evdwl = 0.0;
 
-          if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
+	if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
          
       }
     } // loop on J
@@ -533,206 +530,172 @@ void PairTersoffTable::deallocateGrids()
 { 
   int i,j;
 
-    memory->destroy(exponential);
-    memory->destroy(gtetaFunction);
-    memory->destroy(gtetaFunctionDerived);
-
-    for (i = 0; i < nelements; i++)
-    {
-        for (j=0; j< nelements; j++)
-            free (cutoffFunction[i][j]);
-    }
-    for (i = 0; i < nelements; i++)
-        free (cutoffFunction[i]);
-    free (cutoffFunction);
-    
-    for (i = 0; i < nelements; i++)
-    {
-        for (j=0; j< nelements; j++)
-            free (cutoffFunctionDerived[i][j]);
-    }
-    for (i = 0; i < nelements; i++)
-        free (cutoffFunctionDerived[i]);
-    free (cutoffFunctionDerived);
-    
-    for (i = 0; i < nelements; i++)
-        free (betaZetaPower[i]);
-    free (betaZetaPower);
-
-    for (i = 0; i < nelements; i++)
-        free (betaZetaPowerDerived[i]);
-    free (betaZetaPowerDerived);
+  memory->destroy(exponential);
+  memory->destroy(gtetaFunction);
+  memory->destroy(gtetaFunctionDerived);
+  memory->destroy(cutoffFunction);
+  memory->destroy(cutoffFunctionDerived);
+  memory->destroy(betaZetaPower);
+  memory->destroy(betaZetaPowerDerived);
 }
 
 void PairTersoffTable::allocateGrids(void)
 {
-    register int   i, j, l;
+  int   i, j, l;
       
-    int     numGridPointsExponential, numGridPointsGtetaFunction, numGridPointsOneCutoffFunction;
-    int     numGridPointsNotOneCutoffFunction, numGridPointsCutoffFunction, numGridPointsBetaZetaPower;
-    // double minArgumentExponential;
-    double  deltaArgumentCutoffFunction, deltaArgumentExponential, deltaArgumentBetaZetaPower;
-    double  deltaArgumentGtetaFunction;
-    double  r, minMu, maxLambda, maxCutoff;
-    double const PI=acos(-1.0);
+  int     numGridPointsExponential, numGridPointsGtetaFunction, numGridPointsOneCutoffFunction;
+  int     numGridPointsNotOneCutoffFunction, numGridPointsCutoffFunction, numGridPointsBetaZetaPower;
+  // double minArgumentExponential;
+  double  deltaArgumentCutoffFunction, deltaArgumentExponential, deltaArgumentBetaZetaPower;
+  double  deltaArgumentGtetaFunction;
+  double  r, minMu, maxLambda, maxCutoff;
+  double const PI=acos(-1.0);
 
-    // exponential 
+  // exponential 
 
-    // find min and max argument
-    minMu=params[0].lam2;
-    maxLambda=params[0].lam1;
-    for (i=1; i<nparams; i++)
+  // find min and max argument
+  minMu=params[0].lam2;
+  maxLambda=params[0].lam1;
+  for (i=1; i<nparams; i++) {
+    if (params[i].lam2 < minMu) minMu = params[i].lam2;
+    if (params[i].lam1 > maxLambda) maxLambda = params[i].lam1;
+  }
+  maxCutoff=cutmax;
+    
+  minArgumentExponential=minMu*GRIDSTART;
+    
+  numGridPointsExponential=(int)((maxLambda*maxCutoff-minArgumentExponential)*GRIDDENSITY_EXP)+2;
+
+  memory->create(exponential,numGridPointsExponential,"tersofftable:exponential");
+
+  r = minArgumentExponential;
+  deltaArgumentExponential = 1.0 / GRIDDENSITY_EXP;
+  for (i = 0; i < numGridPointsExponential; i++)
     {
-        if (params[i].lam2 < minMu) minMu = params[i].lam2;
-        if (params[i].lam1 > maxLambda) maxLambda = params[i].lam1;
-    }
-    maxCutoff=cutmax;
-    
-    minArgumentExponential=minMu*GRIDSTART;
-    
-    numGridPointsExponential=(int)((maxLambda*maxCutoff-minArgumentExponential)*GRIDDENSITY_EXP)+2;
-
-    memory->create(exponential,numGridPointsExponential,"tersofftable:exponential");
-
-    r = minArgumentExponential;
-    deltaArgumentExponential = 1.0 / GRIDDENSITY_EXP;
-    for (i = 0; i < numGridPointsExponential; i++)
-    {
-        exponential[i] = exp(-r);
-        r += deltaArgumentExponential;
-    }
-    
-
-    // gtetaFunction
-
-    numGridPointsGtetaFunction=(int)(2.0*GRIDDENSITY_GTETA)+2;
-
-    memory->create(gtetaFunction,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunction");
-    memory->create(gtetaFunctionDerived,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunctionDerived");
-    
-    r = minArgumentExponential;
-    for (i=0; i<nelements; i++)
-    {
-        r = -1.0;
-        deltaArgumentGtetaFunction = 1.0 / GRIDDENSITY_GTETA;
-    
-        int iparam = elem2param[i][i][i];
-        double c = params[iparam].c;
-        double d = params[iparam].d;
-        double h = params[iparam].h;
-
-        for (j = 0; j < numGridPointsGtetaFunction; j++)
-        {
-            gtetaFunction[i][j]=1.0+(c*c)/(d*d)-(c*c)/(d*d+(h-r)*(h-r));
-            gtetaFunctionDerived[i][j]= -2.0 * c * c * (h-r) / ((d*d+(h-r)*(h-r))*(d*d+(h-r)*(h-r)));
-            r += deltaArgumentGtetaFunction;
-        }
-    }
-
-    
-    // cutoffFunction
-
-    if ((cutoffFunction = (double ***) malloc (nelements * sizeof(double **)))==NULL)
-    {
-      error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-    }
-    if ((cutoffFunctionDerived = (double ***) malloc (nelements * sizeof(double **)))==NULL)
-    {
-      error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
+      exponential[i] = exp(-r);
+      r += deltaArgumentExponential;
     }
     
-    for (i=0; i<nelements; i++)
-    {
-        if ((cutoffFunction[i]= (double **) malloc (nelements * sizeof(double*)))==NULL)
-        {
-          error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-        }
-        if ((cutoffFunctionDerived[i]= (double **) malloc (nelements * sizeof(double*)))==NULL)
-        {
-          error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-        }
-        for (j=0; j<nelements; j++)
-        {
-            int ijparam = elem2param[i][j][j];
-            double cutoffR = params[ijparam].cutoffR;
-            double cutoffS = params[ijparam].cutoffS;
 
-            numGridPointsOneCutoffFunction=(int) ((cutoffR-GRIDSTART)*GRIDDENSITY_FCUTOFF)+1;
-            numGridPointsNotOneCutoffFunction=(int) ((cutoffS-cutoffR)*GRIDDENSITY_FCUTOFF)+2;
-            numGridPointsCutoffFunction=numGridPointsOneCutoffFunction+numGridPointsNotOneCutoffFunction;
-            if ((cutoffFunction[i][j]= (double *) malloc (numGridPointsCutoffFunction * sizeof(double)))==NULL)
-            {
-              error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-            }
-            if ((cutoffFunctionDerived[i][j]= (double *) malloc (numGridPointsCutoffFunction * sizeof(double)))==NULL)
-            {
-              error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-            }
+  // gtetaFunction
 
-            r = GRIDSTART;
-            deltaArgumentCutoffFunction = 1.0 / GRIDDENSITY_FCUTOFF;
+  numGridPointsGtetaFunction=(int)(2.0*GRIDDENSITY_GTETA)+2;
+
+  memory->create(gtetaFunction,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunction");
+  memory->create(gtetaFunctionDerived,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunctionDerived");
+    
+  r = minArgumentExponential;
+  for (i=0; i<nelements; i++) {
+    r = -1.0;
+    deltaArgumentGtetaFunction = 1.0 / GRIDDENSITY_GTETA;
+    
+    int iparam = elem2param[i][i][i];
+    double c = params[iparam].c;
+    double d = params[iparam].d;
+    double h = params[iparam].h;
+
+    for (j = 0; j < numGridPointsGtetaFunction; j++) {
+      gtetaFunction[i][j]=1.0+(c*c)/(d*d)-(c*c)/(d*d+(h-r)*(h-r));
+      gtetaFunctionDerived[i][j]= -2.0 * c * c * (h-r) / ((d*d+(h-r)*(h-r))*(d*d+(h-r)*(h-r)));
+      r += deltaArgumentGtetaFunction;
+    }
+  }
+
+    
+  // cutoffFunction, zetaFunction, find grids.
+
+  int ngrid_max = -1;
+  int zeta_max = -1;
+
+  for (i=0; i<nelements; i++) {
+
+    int iparam = elem2param[i][i][i];
+    double c = params[iparam].c;
+    double d = params[iparam].d;
+    double beta = params[iparam].beta;
+
+    numGridPointsBetaZetaPower=(int)(((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ))+2;
+    zeta_max = MAX(zeta_max,numGridPointsBetaZetaPower);
+
+    for (j=0; j<nelements; j++) {
+      for (j=0; j<nelements; j++) {
+
+	int ijparam = elem2param[i][j][j];
+	double cutoffR = params[ijparam].cutoffR;
+	double cutoffS = params[ijparam].cutoffS;
+
+	numGridPointsOneCutoffFunction=(int) ((cutoffR-GRIDSTART)*GRIDDENSITY_FCUTOFF)+1;
+	numGridPointsNotOneCutoffFunction=(int) ((cutoffS-cutoffR)*GRIDDENSITY_FCUTOFF)+2;
+	numGridPointsCutoffFunction=numGridPointsOneCutoffFunction+numGridPointsNotOneCutoffFunction;
+
+	ngrid_max = MAX(ngrid_max,numGridPointsCutoffFunction);
+      }
+    }
+  }
+    
+  memory->create(cutoffFunction,nelements,nelements,ngrid_max,"tersoff:cutfunc");
+  memory->create(cutoffFunctionDerived,nelements,nelements,ngrid_max,"tersoff:cutfuncD");
+    
+  // cutoffFunction, compute.
+
+  for (i=0; i<nelements; i++) {
+    for (j=0; j<nelements; j++) {
+      for (j=0; j<nelements; j++) {
+	int ijparam = elem2param[i][j][j];
+	double cutoffR = params[ijparam].cutoffR;
+	double cutoffS = params[ijparam].cutoffS;
+
+	numGridPointsOneCutoffFunction=(int) ((cutoffR-GRIDSTART)*GRIDDENSITY_FCUTOFF)+1;
+	numGridPointsNotOneCutoffFunction=(int) ((cutoffS-cutoffR)*GRIDDENSITY_FCUTOFF)+2;
+	numGridPointsCutoffFunction=numGridPointsOneCutoffFunction+numGridPointsNotOneCutoffFunction;
+
+	r = GRIDSTART;
+	deltaArgumentCutoffFunction = 1.0 / GRIDDENSITY_FCUTOFF;
 		
-            for (l = 0; l < numGridPointsOneCutoffFunction; l++)
-            {
-                cutoffFunction[i][j][l] = 1.0;
-                cutoffFunctionDerived[i][j][l]=0.0;
-                r += deltaArgumentCutoffFunction;
-            }
-            for (l = numGridPointsOneCutoffFunction; l < numGridPointsCutoffFunction; l++)
-            {
-                cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
-                cutoffFunctionDerived[i][j][l] =  -0.5 * PI * sin (PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR) ;
-                r += deltaArgumentCutoffFunction;
-            }
-       
-        }
+	for (l = 0; l < numGridPointsOneCutoffFunction; l++) {
+	  cutoffFunction[i][j][l] = 1.0;
+	  cutoffFunctionDerived[i][j][l]=0.0;
+	  r += deltaArgumentCutoffFunction;
+	}
+
+	for (l = numGridPointsOneCutoffFunction; l < numGridPointsCutoffFunction; l++) {
+	  cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
+	  cutoffFunctionDerived[i][j][l] =  -0.5 * PI * sin (PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR) ;
+	  r += deltaArgumentCutoffFunction;
+	}
+      }
     }
+  }
 
-
-    // betaZetaPower
+  // betaZetaPower, compute
     
-    if ((betaZetaPower = (double **) malloc (nelements * sizeof(double *)))==NULL)
-    {
-      error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-    }
-    if ((betaZetaPowerDerived = (double **) malloc (nelements * sizeof(double *)))==NULL)
-    {
-      error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-    }
-    
-    for (i=0; i<nelements; i++)
-    {
-        int iparam = elem2param[i][i][i];
-        double c = params[iparam].c;
-        double d = params[iparam].d;
-        double beta = params[iparam].beta;
+  memory->create(betaZetaPower,nelements,zeta_max,"tersoff:zetafunc");
+  memory->create(betaZetaPowerDerived,nelements,zeta_max,"tersoff:zetafuncD");
 
-        numGridPointsBetaZetaPower=(int)(((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*PairTersoffTable::leadingDimensionInteractionList*GRIDDENSITY_BIJ))+2;
-        if ((betaZetaPower[i]= (double *) malloc (numGridPointsBetaZetaPower * sizeof(double)))==NULL)
-        {
-          error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-        }
-        if ((betaZetaPowerDerived[i]= (double *) malloc (numGridPointsBetaZetaPower * sizeof(double)))==NULL)
-        {
-          error->all(FLERR,"Memory allocation failure in pair_tersoff_table");
-        }
-        
-        r=0.0;
-        deltaArgumentBetaZetaPower = 1.0 / GRIDDENSITY_BIJ;
-        
-        betaZetaPower[i][0]=1.0;
+  for (i=0; i<nelements; i++) {
 
-        r += deltaArgumentBetaZetaPower;
+    int iparam = elem2param[i][i][i];
+    double c = params[iparam].c;
+    double d = params[iparam].d;
+    double beta = params[iparam].beta;
+
+    numGridPointsBetaZetaPower=(int)(((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ))+2;
+
+    r=0.0;
+    deltaArgumentBetaZetaPower = 1.0 / GRIDDENSITY_BIJ;
+  
+    betaZetaPower[i][0]=1.0;
+
+    r += deltaArgumentBetaZetaPower;
             
-        for (j = 1; j < numGridPointsBetaZetaPower; j++)
-        {
-            double powern=params[iparam].powern;
-            betaZetaPower[i][j]=pow((1+pow(r,powern)),-1/(2*powern));
-            betaZetaPowerDerived[i][j]=-0.5*pow(r,powern-1.0)*pow((1+pow(r,powern)),-1/(2*powern)-1) ;
-            r += deltaArgumentBetaZetaPower;
-        }
-       betaZetaPowerDerived[i][0]=(betaZetaPower[i][1]-1.0)*GRIDDENSITY_BIJ;
+    for (j = 1; j < numGridPointsBetaZetaPower; j++) {
+      double powern=params[iparam].powern;
+      betaZetaPower[i][j]=pow((1+pow(r,powern)),-1/(2*powern));
+      betaZetaPowerDerived[i][j]=-0.5*pow(r,powern-1.0)*pow((1+pow(r,powern)),-1/(2*powern)-1) ;
+      r += deltaArgumentBetaZetaPower;
     }
+    betaZetaPowerDerived[i][0]=(betaZetaPower[i][1]-1.0)*GRIDDENSITY_BIJ;
+  }
 }
 
 void PairTersoffTable::allocate()

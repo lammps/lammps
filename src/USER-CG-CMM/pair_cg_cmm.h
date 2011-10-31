@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm,PairCGCMM)
+PairStyle(cg/cmm/old,PairCGCMM)
 
 #else
 

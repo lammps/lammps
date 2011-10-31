@@ -36,6 +36,7 @@ class AngleHybrid : public Angle {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  void init_style();
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);

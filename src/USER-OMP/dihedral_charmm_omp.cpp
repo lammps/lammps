@@ -52,7 +52,7 @@ void DihedralCharmmOMP::compute(int eflag, int vflag)
   const int inum = neighbor->ndihedrallist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;

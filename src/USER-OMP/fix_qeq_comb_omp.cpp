@@ -124,9 +124,6 @@ void FixQEQCombOMP::post_force(int vflag)
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
     for (i = 0; i < nlocal ; i++)
       if (mask[i] & groupbit) {
 	q2[i] = enegtot-qf[i];
@@ -147,9 +144,6 @@ void FixQEQCombOMP::post_force(int vflag)
 	      "enegmax %.6g, fq deviation: %.6g\n",
 	      iloop,enegtot,enegmax,enegchk); 
 
-#if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
-#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
 	q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 

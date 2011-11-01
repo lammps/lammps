@@ -251,7 +251,7 @@ void AngleSDK::coeff(int narg, char **arg)
 
   double k_one = force->numeric(arg[1]);
   double theta0_one = force->numeric(arg[2]);
-  double repscale_one = 0.0;
+  double repscale_one = 1.0;
 
   // backward compatibility with old cg/cmm style input:
   // this had <lj_type> <epsilon> <sigma>

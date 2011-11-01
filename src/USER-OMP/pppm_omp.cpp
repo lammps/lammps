@@ -154,7 +154,7 @@ void PPPMOMP::make_rho()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(atom,fix,density_brick,part2grid,boxlo,delxinv,delyinv,delzinv,delvolinv,ngrid,nlower,nupper,shiftone,nxlo_out,nylo_out,nzhi_out,nzlo_out)
+#pragma omp parallel default(none)
   {  
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();

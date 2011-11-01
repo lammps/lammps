@@ -88,9 +88,14 @@ void EwaldOMP::compute(int eflag, int vflag)
   const double * const q = atom->q;
   const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
+  const double qscale = force->qqrd2e * scale;
+
+  double eng_tmp = 0.0;
+  double v0,v1,v2,v3,v4,v5;
+  v0=v1=v2=v3=v4=v5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:eng_tmp,v0,v1,v2,v3,v4,v5)
 #endif
   {
 
@@ -126,7 +131,6 @@ void EwaldOMP::compute(int eflag, int vflag)
     }
 
     // convert E-field to force
-    const double qscale = force->qqrd2e * scale;
 
     for (i = ifrom; i < ito; i++) {
       const double fac = qscale*q[i];
@@ -137,37 +141,49 @@ void EwaldOMP::compute(int eflag, int vflag)
  
     // energy if requested
 
-    if (tid == 0) {
+    if (eflag) {
+#if defined(_OPENMP)
+#pragma omp for private(k)
+#endif
+      for (k = 0; k < kcount; k++)
+	eng_tmp += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
+			    sfacim_all[k]*sfacim_all[k]);
+    }
 
-      if (eflag) {
-	double eng_tmp = 0.0;
+    // virial if requested
 
-	for (k = 0; k < kcount; k++)
-	  eng_tmp += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
-			      sfacim_all[k]*sfacim_all[k]);
-
-	eng_tmp -= g_ewald*qsqsum/MY_PIS +
-	  MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-	eng_tmp *= qscale;
-	energy = eng_tmp;
-      }
-
-      // virial if requested
-
-      if (vflag) {
-	double uk,v[6]= {0.0,0.0,0.0,0.0,0.0,0.0};
-
-	for (k = 0; k < kcount; k++) {
-	  uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-	  for (i = 0; i < 6; i++) v[i] += uk*vg[k][i];
-	}
-
-	for (i = 0; i < 6; i++) virial[i] = v[i] * qscale;
+    if (vflag) {
+#if defined(_OPENMP)
+#pragma omp for private(k)
+#endif
+      for (k = 0; k < kcount; k++) {
+	double uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
+	v0 += uk*vg[k][0];
+	v1 += uk*vg[k][1];
+	v2 += uk*vg[k][2];
+	v3 += uk*vg[k][3];
+	v4 += uk*vg[k][4];
+	v5 += uk*vg[k][5];
       }
     }
 
     reduce_thr(this, eflag,vflag,thr);
   } // end of omp parallel region
+
+  if (eflag) {
+    eng_tmp -= g_ewald*qsqsum/MY_PIS +
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
+    energy = eng_tmp * qscale;
+  }
+
+  if (vflag) {
+    virial[0] = v0 * qscale;
+    virial[1] = v1 * qscale;
+    virial[2] = v2 * qscale;
+    virial[3] = v3 * qscale;
+    virial[4] = v4 * qscale;
+    virial[5] = v5 * qscale;
+  }
 
   if (slabflag) slabcorr(eflag);
 }
@@ -180,7 +196,7 @@ void EwaldOMP::eik_dot_r()
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
   const int nthreads = comm->nthreads;
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -363,8 +379,8 @@ void EwaldOMP::eik_dot_r()
     }
 
     sync_threads();
-    data_reduce_thr(sfacrl,kmax3d,comm->nthreads,1,tid);
-    data_reduce_thr(sfacim,kmax3d,comm->nthreads,1,tid);
+    data_reduce_thr(sfacrl,kmax3d,nthreads,1,tid);
+    data_reduce_thr(sfacim,kmax3d,nthreads,1,tid);
 
   } // end of parallel region
 }

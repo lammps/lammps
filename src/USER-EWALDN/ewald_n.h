@@ -57,7 +57,7 @@ class EwaldN : public KSpace {
   hvector *hvec;
   kvector *kvec;
 
-  double qqrd2e, mumurd2e, dielectric, *B, volume;
+  double mumurd2e, dielectric, *B, volume;
   struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
   complex *cek_local, *cek_global;
  

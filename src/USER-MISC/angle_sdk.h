@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -32,6 +32,7 @@ class AngleSDK : public Angle {
   virtual ~AngleSDK();
   virtual void compute(int, int);
   void coeff(int, char **);
+  void init_style();
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -40,9 +41,14 @@ class AngleSDK : public Angle {
  protected:
   double *k,*theta0;
 
-  double **sigma;
+  // scaling factor for repulsive 1-3 interaction
+  double *repscale;
+  // parameters from SDK pair style
   int **lj_type;
-  double **lj13_1,**lj13_2, **lj13_3, **lj13_4;
+  double **lj1,**lj2, **lj3, **lj4;
+  double **rminsq,**emin;
+
+  int repflag; // 1 if we have to handle 1-3 repulsion
 
   void ev_tally_lj13(int, int, int, int, double, double, 
                      double, double, double);

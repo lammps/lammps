@@ -139,7 +139,6 @@ void PPPM::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  qqrd2e = force->qqrd2e;
   scale = 1.0;
 
   if (force->pair == NULL)
@@ -714,6 +713,8 @@ void PPPM::compute(int eflag, int vflag)
 
   // sum energy across procs and add in volume-dependent term
 
+  const double qscale = force->qqrd2e * scale;
+
   if (eflag) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -722,7 +723,7 @@ void PPPM::compute(int eflag, int vflag)
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
+    energy *= qscale;
   }
 
   // sum virial across procs
@@ -730,7 +731,7 @@ void PPPM::compute(int eflag, int vflag)
   if (vflag) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*scale*volume*virial_all[i];
+    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
   // 2d slab correction
@@ -1734,7 +1735,7 @@ void PPPM::fieldforce()
     }
 
     // convert E-field to force
-    const double qfactor = qqrd2e*scale*q[i];
+    const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     f[i][2] += qfactor*ekz;
@@ -1887,16 +1888,17 @@ void PPPM::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  if (eflag) energy += qscale * e_slabcorr;
 
   // add on force corrections
 
   double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

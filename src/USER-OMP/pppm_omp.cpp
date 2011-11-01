@@ -18,6 +18,7 @@
 #include "pppm_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "force.h"
 #include "memory.h"
 
 #include <string.h>
@@ -153,7 +154,7 @@ void PPPMOMP::make_rho()
   const int nthreads = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(atom,fix,density_brick,part2grid,boxlo,delxinv,delyinv,delzinv,delvolinv,ngrid,nlower,nupper,shiftone,nxlo_out,nylo_out,nzhi_out,nzlo_out)
   {  
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
@@ -233,6 +234,8 @@ void PPPMOMP::fieldforce()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
+  const int nthreads = comm->nthreads;
+  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -240,7 +243,7 @@ void PPPMOMP::fieldforce()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = atom->nlocal;
-    const int idelta = 1 + inum/comm->nthreads;
+    const int idelta = 1 + inum/nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else

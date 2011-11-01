@@ -95,7 +95,6 @@ void Ewald::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  qqrd2e = force->qqrd2e;
   scale = 1.0;
 
   if (force->pair == NULL)
@@ -270,10 +269,12 @@ void Ewald::compute(int eflag, int vflag)
 
   // convert E-field to force
 
+  const double qscale = force->qqrd2e * scale;
+
   for (i = 0; i < nlocal; i++) {
-    f[i][0] += qqrd2e*scale * q[i]*ek[i][0];
-    f[i][1] += qqrd2e*scale * q[i]*ek[i][1];
-    f[i][2] += qqrd2e*scale * q[i]*ek[i][2];
+    f[i][0] += qscale * q[i]*ek[i][0];
+    f[i][1] += qscale * q[i]*ek[i][1];
+    f[i][2] += qscale * q[i]*ek[i][2];
   }
  
   // energy if requested
@@ -284,7 +285,7 @@ void Ewald::compute(int eflag, int vflag)
 			 sfacim_all[k]*sfacim_all[k]);
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
+    energy *= qscale;
   }
 
   // virial if requested
@@ -295,7 +296,7 @@ void Ewald::compute(int eflag, int vflag)
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (n = 0; n < 6; n++) virial[n] += uk*vg[k][n];
     }
-    for (n = 0; n < 6; n++) virial[n] *= qqrd2e*scale;
+    for (n = 0; n < 6; n++) virial[n] *= qscale;
   }
 
   if (slabflag) slabcorr(eflag);
@@ -817,16 +818,17 @@ void Ewald::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  if (eflag) energy += qscale * e_slabcorr;
 
   // add on force corrections
 
   double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

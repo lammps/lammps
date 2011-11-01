@@ -19,6 +19,7 @@
 #include "ewald_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "force.h"
 #include "memory.h"
 
 #include <math.h>
@@ -125,9 +126,10 @@ void EwaldOMP::compute(int eflag, int vflag)
     }
 
     // convert E-field to force
+    const double qscale = force->qqrd2e * scale;
 
     for (i = ifrom; i < ito; i++) {
-      const double fac = qqrd2e*scale*q[i];
+      const double fac = qscale*q[i];
       f[i][0] += fac*ek[i][0];
       f[i][1] += fac*ek[i][1];
       f[i][2] += fac*ek[i][2];
@@ -146,7 +148,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
 	eng_tmp -= g_ewald*qsqsum/MY_PIS +
 	  MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-	eng_tmp *= qqrd2e*scale;
+	eng_tmp *= qscale;
 	energy = eng_tmp;
       }
 
@@ -160,7 +162,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 	  for (i = 0; i < 6; i++) v[i] += uk*vg[k][i];
 	}
 
-	for (i = 0; i < 6; i++) virial[i] = v[i] * qqrd2e*scale;
+	for (i = 0; i < 6; i++) virial[i] = v[i] * qscale;
       }
     }
 
@@ -180,7 +182,7 @@ void EwaldOMP::eik_dot_r()
   const int nthreads = comm->nthreads;
   
 #if defined(_OPENMP)
-#pragma omp parallel
+#pragma omp parallel default(none)
 #endif
   {
     int i,ifrom,ito,k,l,m,n,ic,tid;

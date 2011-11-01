@@ -112,7 +112,7 @@ static void data_reduce_fft(FFT_SCALAR *dall, int nall, int nthreads, int ndim, 
 void PPPMOMP::deallocate()
 {
   PPPM::deallocate();
-  for (int i; i < comm->nthreads; ++i) {
+  for (int i=0; i < comm->nthreads; ++i) {
     ThrData * thr = fix->get_thr(i);
     double ** rho1d_thr = static_cast<double **>(thr->get_rho1d());
     memory->destroy2d_offset(rho1d_thr,-order/2);

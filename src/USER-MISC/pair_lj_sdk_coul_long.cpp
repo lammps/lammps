@@ -75,6 +75,9 @@ PairLJSDKCoulLong::~PairLJSDKCoulLong()
     memory->destroy(lj4);
     memory->destroy(offset);
 
+    memory->destroy(rminsq);
+    memory->destroy(emin);
+
     allocated = 0;   
   }
   if (ftable) free_tables();
@@ -288,6 +291,9 @@ void PairLJSDKCoulLong::allocate()
   memory->create(lj4,n+1,n+1,"pair:lj4");
 
   memory->create(offset,n+1,n+1,"pair:offset");
+
+  memory->create(rminsq,n+1,n+1,"pair:rminsq");
+  memory->create(emin,n+1,n+1,"pair:emin");
 }
 
 /* ----------------------------------------------------------------------
@@ -410,6 +416,19 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
   lj_type[j][i] = lj_type[i][j];
+
+  // compute LJ derived parameters for SDK angle potential (LJ only!)
+
+  const double eps = epsilon[i][j];
+  const double sig = sigma[i][j];
+  const double rmin = sig*exp(1.0/(lj_pow1[ljt]-lj_pow2[ljt])
+			      *log(lj_pow1[ljt]/lj_pow2[ljt]) );
+  rminsq[j][i] = rminsq[i][j] = rmin*rmin;
+
+  const double ratio = sig/rmin;
+  const double emin_one = lj_prefact[ljt] * eps * (pow(ratio,lj_pow1[ljt])
+						   - pow(ratio,lj_pow2[ljt]));
+  emin[j][i] = emin[i][j] = emin_one;
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
@@ -715,6 +734,9 @@ void *PairLJSDKCoulLong::extract(char *str, int &dim)
   if (strcmp(str,"lj2") == 0) return (void *) lj2;
   if (strcmp(str,"lj3") == 0) return (void *) lj3;
   if (strcmp(str,"lj4") == 0) return (void *) lj4;
+  if (strcmp(str,"rminsq") == 0) return (void *) rminsq;
+  if (strcmp(str,"emin") == 0) return (void *) emin;
+  
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
@@ -729,8 +751,8 @@ double PairLJSDKCoulLong::memory_usage()
 
   // setflag/lj_type
   bytes += 2 * (n+1)*(n+1)*sizeof(int); 
-  // lj_cut/lj_cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4
-  bytes += 9 * (n+1)*(n+1)*sizeof(double);
+  // lj_cut/lj_cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4/rminsq/emin
+  bytes += 11 * (n+1)*(n+1)*sizeof(double);
 
   if (ncoultablebits) {
     int ntable = 1<<ncoultablebits;

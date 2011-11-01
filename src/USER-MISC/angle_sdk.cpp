@@ -11,11 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Variant of the harmonic angle potential for use with the
+   lj/sdk potential for coarse grained MD simulations.
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #include "math.h"
 #include "stdlib.h"
 #include "angle_sdk.h"
 #include "atom.h"
 #include "neighbor.h"
+#include "pair.h"
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
@@ -23,14 +30,17 @@
 #include "memory.h"
 #include "error.h"
 
+#include "lj_sdk_common.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace LJSDKParms;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-AngleSDK::AngleSDK(LAMMPS *lmp) : Angle(lmp) {}
+AngleSDK::AngleSDK(LAMMPS *lmp) : Angle(lmp) { repflag = 0;}
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,6 +50,9 @@ AngleSDK::~AngleSDK()
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);
+    memory->destroy(repscale);
+
+    allocated = 0;
   }
 }
 
@@ -48,14 +61,20 @@ AngleSDK::~AngleSDK()
 void AngleSDK::compute(int eflag, int vflag)
 {
   int i1,i2,i3,n,type;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double eangle,f1[3],f3[3];
+  double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
+  double eangle,f1[3],f3[3],e13,f13;
   double dtheta,tk;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
+  double rsq1,rsq2,rsq3,r1,r2,r3,c,s,a,a11,a12,a22;
 
   eangle = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
+
+  // make sure pair->ev_tally() will use 1-3 virial contribution
+  // even if the pair style was using fdotr_virial_compute()
+
+  if (repflag && vflag_global == 2)
+    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -102,6 +121,57 @@ void AngleSDK::compute(int eflag, int vflag)
     if (s < SMALL) s = SMALL;
     s = 1.0/s;
 
+    // 1-3 LJ interaction. 
+    // we only want to use the repulsive part,
+    // and it can be scaled (or off).
+    // so this has to be done here and not in the
+    // general non-bonded code.
+
+    if (repflag) {
+      
+      delx3 = x[i1][0] - x[i3][0];
+      dely3 = x[i1][1] - x[i3][1];
+      delz3 = x[i1][2] - x[i3][2];
+      domain->minimum_image(delx3,dely3,delz3);
+      rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
+
+      const int type1 = atom->type[i1];
+      const int type3 = atom->type[i3];
+      
+      f13=0.0;
+      e13=0.0;
+    
+      if (rsq3 < rminsq[type1][type3]) {
+	const int ljt = lj_type[type1][type3];
+	const double r2inv = 1.0/rsq3;
+
+	if (ljt == LJ12_4) {
+	  const double r4inv=r2inv*r2inv;
+
+	  f13 = r4inv*(lj1[type1][type3]*r4inv*r4inv - lj2[type1][type3]);
+	  if (eflag) e13 = r4inv*(lj3[type1][type3]*r4inv*r4inv - lj4[type1][type3]);
+	  
+	} else if (ljt == LJ9_6) {
+	  const double r3inv = r2inv*sqrt(r2inv);
+	  const double r6inv = r3inv*r3inv;
+
+	  f13 = r6inv*(lj1[type1][type3]*r3inv - lj2[type1][type3]);
+	  if (eflag) e13 = r6inv*(lj3[type1][type3]*r3inv - lj4[type1][type3]);
+
+	} else if (ljt == LJ12_6) {
+	  const double r6inv = r2inv*r2inv*r2inv;
+
+	  f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
+	  if (eflag) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+	}
+
+	// make sure energy is 0.0 at the cutoff.
+	if (eflag) e13 -= emin[type1][type3];
+
+	f13 *= r2inv;
+      }
+    }
+
     // force & energy
 
     dtheta = acos(c) - theta0[type];
@@ -121,12 +191,12 @@ void AngleSDK::compute(int eflag, int vflag)
     f3[1] = a22*dely2 + a12*dely1;
     f3[2] = a22*delz2 + a12*delz1;
 
-    // apply force to each of 3 atoms
+    // apply force to each of the 3 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += f1[0];
-      f[i1][1] += f1[1];
-      f[i1][2] += f1[2];
+      f[i1][0] += f1[0] + f13*delx3;
+      f[i1][1] += f1[1] + f13*dely3;
+      f[i1][2] += f1[2] + f13*delz3;
     }
 
     if (newton_bond || i2 < nlocal) {
@@ -136,13 +206,17 @@ void AngleSDK::compute(int eflag, int vflag)
     }
 
     if (newton_bond || i3 < nlocal) {
-      f[i3][0] += f3[0];
-      f[i3][1] += f3[1];
-      f[i3][2] += f3[2];
+      f[i3][0] += f3[0] - f13*delx3;
+      f[i3][1] += f3[1] - f13*dely3;
+      f[i3][2] += f3[2] - f13*delz3;
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
 			 delx1,dely1,delz1,delx2,dely2,delz2);
+
+    if (evflag) force->pair->ev_tally(i1,i3,nlocal,newton_bond,
+				      e13,0.0,f13,delx3,dely3,delz3);
+
   }
 }
 
@@ -155,6 +229,7 @@ void AngleSDK::allocate()
 
   memory->create(k,n+1,"angle:k");
   memory->create(theta0,n+1,"angle:theta0");
+  memory->create(repscale,n+1,"angle:repscale");
 
   memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -166,7 +241,9 @@ void AngleSDK::allocate()
 
 void AngleSDK::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients");
+  if ((narg < 3) || (narg > 6))
+    error->all(FLERR,"Incorrect args for angle coefficients");
+
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -174,18 +251,64 @@ void AngleSDK::coeff(int narg, char **arg)
 
   double k_one = force->numeric(arg[1]);
   double theta0_one = force->numeric(arg[2]);
+  double repscale_one = 0.0;
 
-  // convert theta0 from degrees to radians
+  // backward compatibility with old cg/cmm style input:
+  // this had <lj_type> <epsilon> <sigma>
+  // if epsilon is set to 0.0 we accept it as repscale 0.0
+  // otherwise assume repscale 1.0, since we were using 
+  // epsilon to turn repulsion on or off.
+  if (narg == 6) {
+    repscale_one = force->numeric(arg[4]);
+    if (repscale_one > 0.0) repscale_one = 1.0;
+  } else if (narg == 3) repscale_one = force->numeric(arg[3]);
+  else error->all(FLERR,"Incorrect args for angle coefficients");
+
+  // convert theta0 from degrees to radians and store coefficients
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
     theta0[i] = theta0_one/180.0 * MY_PI;
+    repscale[i] = repscale_one;
     setflag[i] = 1;
     count++;
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   error check and initialize all values needed for force computation 
+------------------------------------------------------------------------- */
+
+void AngleSDK::init_style()
+{
+
+  // make sure we use an SDK pair_style and that we need the 1-3 repulsion
+
+  repflag = 0;
+  for (int i = 1; i <= atom->nangletypes; i++)
+    if (repscale[i] > 0.0) repflag = 1;
+
+  // set up pointers to access SDK LJ parameters for 1-3 interactions
+
+  if (repflag) {
+    int itmp;
+    if (force->pair == NULL)
+      error->all(FLERR,"Angle style SDK requires use of a compatible with Pair style");
+
+    lj1 = (double **) force->pair->extract("lj1",itmp);
+    lj2 = (double **) force->pair->extract("lj2",itmp);
+    lj3 = (double **) force->pair->extract("lj3",itmp);
+    lj4 = (double **) force->pair->extract("lj4",itmp);
+    lj_type = (int **) force->pair->extract("lj_type",itmp);
+    rminsq = (double **) force->pair->extract("rminsq",itmp);
+    emin = (double **) force->pair->extract("emin",itmp);
+
+    if (!lj1 || !lj2 || !lj3 || !lj4 || !lj_type || !rminsq || !emin)
+      error->all(FLERR,"Angle style SDK is incompatible with Pair style");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,6 +326,7 @@ void AngleSDK::write_restart(FILE *fp)
 {
   fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&repscale[1],sizeof(double),atom->nangletypes,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -216,9 +340,11 @@ void AngleSDK::read_restart(FILE *fp)
   if (comm->me == 0) {
     fread(&k[1],sizeof(double),atom->nangletypes,fp);
     fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+    fread(&repscale[1],sizeof(double),atom->nangletypes,fp);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&repscale[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -246,7 +372,32 @@ double AngleSDK::single(int type, int i1, int i2, int i3)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
+  // 1-3 LJ interaction. 
+  double delx3 = x[i1][0] - x[i3][0];
+  double dely3 = x[i1][1] - x[i3][1];
+  double delz3 = x[i1][2] - x[i3][2];
+  domain->minimum_image(delx3,dely3,delz3);
+
+  const double r3 = sqrt(delx3*delx3 + dely3*dely3 + delz3*delz3);
+
+  double e13=0.0;
+
+#if 0    
+  if (r3 < rcut[type]) {
+    const int cgt = cg_type[type];
+    const double cgpow1 = cg_pow1[cgt];
+    const double cgpow2 = cg_pow2[cgt];
+    const double cgpref = cg_prefact[cgt];
+        
+    const double ratio = sigma[type]/r3;
+    const double eps = epsilon[type];
+
+    e13 = eps + cgpref*eps * (pow(ratio,cgpow1) 
+                              - pow(ratio,cgpow2));
+  }
+#endif
+
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
-  return tk*dtheta;
+  return tk*dtheta + e13;
 }

@@ -52,6 +52,13 @@ class PairLJSDKCoulLong : public Pair {
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
   int **lj_type;
+
+  // cutoff and offset for minimum of LJ potential
+  // to be used in SDK angle potential, which 
+  // uses only the repulsive part of the potential
+
+  double **rminsq, **emin;
+
   double cut_lj_global;
   double g_ewald;
 

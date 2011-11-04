@@ -5,6 +5,7 @@ lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 lmp_*
 
+
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -287,6 +288,7 @@ fix_wall_piston.cpp
 fix_wall_piston.h
 fix_wall_srd.cpp
 fix_wall_srd.h
+gpu_extra.h
 improper_class2.cpp
 improper_class2.h
 improper_class2_omp.cpp
@@ -377,6 +379,8 @@ pair_coul_diel_omp.cpp
 pair_coul_diel_omp.h
 pair_coul_long.cpp
 pair_coul_long.h
+pair_coul_long_gpu.cpp
+pair_coul_long_gpu.h
 pair_coul_long_omp.cpp
 pair_coul_long_omp.h
 pair_dipole_cut.cpp
@@ -478,6 +482,8 @@ pair_lj_charmm_coul_pppm_omp.cpp
 pair_lj_charmm_coul_pppm_omp.h
 pair_lj_class2.cpp
 pair_lj_class2.h
+pair_lj_class2_gpu.cpp
+pair_lj_class2_gpu.h
 pair_lj_class2_omp.cpp
 pair_lj_class2_omp.h
 pair_lj_class2_coul_cut.cpp
@@ -486,6 +492,8 @@ pair_lj_class2_coul_cut_omp.cpp
 pair_lj_class2_coul_cut_omp.h
 pair_lj_class2_coul_long.cpp
 pair_lj_class2_coul_long.h
+pair_lj_class2_coul_long_gpu.cpp
+pair_lj_class2_coul_long_gpu.h
 pair_lj_class2_coul_long_omp.cpp
 pair_lj_class2_coul_long_omp.h
 pair_lj_coul.cpp
@@ -520,6 +528,10 @@ pair_lj_cut_omp.cpp
 pair_lj_cut_omp.h
 pair_lj_cut_opt.cpp
 pair_lj_cut_opt.h
+pair_lj_cut_tgpu.cpp
+pair_lj_cut_tgpu.h
+pair_lj_expand_gpu.cpp
+pair_lj_expand_gpu.h
 pair_lj_expand_omp.cpp
 pair_lj_expand_omp.h
 pair_lj_gromacs_omp.cpp
@@ -554,12 +566,16 @@ pair_lubricate_omp.cpp
 pair_lubricate_omp.h
 pair_meam.cpp
 pair_meam.h
+pair_morse_gpu.cpp
+pair_morse_gpu.h
 pair_morse_omp.cpp
 pair_morse_omp.h
 pair_morse_opt.cpp
 pair_morse_opt.h
 pair_omp.cpp
 pair_omp.h
+pair_omp_gpu.cpp
+pair_omp_gpu.h
 pair_peri_lps.cpp
 pair_peri_lps.h
 pair_peri_lps_omp.cpp
@@ -579,6 +595,8 @@ pair_rebo_omp.cpp
 pair_rebo_omp.h
 pair_resquared.cpp
 pair_resquared.h
+pair_resquared_gpu.cpp
+pair_resquared_gpu.h
 pair_resquared_omp.cpp
 pair_resquared_omp.h
 pair_soft_omp.cpp
@@ -615,6 +633,8 @@ pppm.cpp
 pppm.h
 pppm_cg.cpp
 pppm_cg.h
+pppm_gpu.cpp
+pppm_gpu.h
 pppm_omp.cpp
 pppm_omp.h
 pppm_proxy.cpp

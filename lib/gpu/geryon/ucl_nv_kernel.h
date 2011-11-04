@@ -55,10 +55,7 @@ typedef struct _double4 double4;
 #define __local __shared__
 #define __global  
 #define atom_add atomicAdd
-
-#ifndef __inline
-#define __inline static __inline__ __device__ 
-#endif
+#define ucl_inline static __inline__ __device__ 
 
 #endif
 

@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Mike Brown (ORNL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
@@ -19,6 +23,7 @@
 #include "timer.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "memory.h"
@@ -34,116 +39,17 @@ using namespace LAMMPS_NS;
 
 FixReportBalance::FixReportBalance(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-/*  if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
-  nevery = atoi(arg[3]);
-  if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
+  writefile = 0;
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
 
-  // count # of adaptations
-
-  nadapt = 0;
-
-  int iarg = 4;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 6;
-    } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"atom") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 3;
-    } else break;
-  }
-
-  if (nadapt == 0) error->all(FLERR,"Illegal fix adapt command");
-  adapt = new ReportBalance[nadapt];
-
-  // parse keywords
-
-  nadapt = 0;
-  diamflag = 0;
-
-  iarg = 4;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
-      adapt[nadapt].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].pstyle = new char[n];
-      strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].pparam = new char[n];
-      strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(arg[iarg+3],atom->ntypes,
-		    adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(arg[iarg+4],atom->ntypes,
-		    adapt[nadapt].jlo,adapt[nadapt].jhi);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-	n = strlen(&arg[iarg+5][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
-      } else error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 6;
-    } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
-      } else error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"atom") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
-      adapt[nadapt].which = ATOM;
-      if (strcmp(arg[iarg+1],"diameter") == 0) {
-	adapt[nadapt].aparam = DIAMETER;
-	diamflag = 1;
-      } else error->all(FLERR,"Illegal fix adapt command");
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-	int n = strlen(&arg[iarg+2][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
-      } else error->all(FLERR,"Illegal fix adapt command");
-      nadapt++;
-      iarg += 3;
-    } else break;
-  }
-
-  // optional keywords
-
-  resetflag = 0;
-  scaleflag = 0;
-
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"reset") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all(FLERR,"Illegal fix adapt command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix adapt command");
-      iarg += 2;
-    } else error->all(FLERR,"Illegal fix adapt command");
-  }
-
-  // allocate pair style arrays
-
-  int n = atom->ntypes;
-  for (int m = 0; m < nadapt; m++)
-    if (adapt[m].which == PAIR)
-      memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
-*/
+  if (narg == 5) {
+    if (strcmp(arg[3],"file") != 0) 
+      error->all(FLERR,"Illegal fix report/balance command");
+    writefile = 1;
+    strncpy(outfile,arg[4],512);
+  } else if (narg != 3)      
+    error->all(FLERR,"Illegal fix report/balance command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,10 +72,6 @@ int FixReportBalance::setmask()
 void FixReportBalance::post_run()
 {
   double time_other;
-  int me,nprocs;
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
 
   time_other = timer->array[TIME_LOOP] -
     (timer->array[TIME_PAIR] + timer->array[TIME_BOND] + 
@@ -193,15 +95,28 @@ void FixReportBalance::post_run()
   }
   
   double **timer_mat = memory->create(timer_mat,6,nprocs,"report/balance");
-  report_time(timer->array[TIME_PAIR],me,nprocs,"pair   ",timer_mat[0]);
-  report_time(timer->array[TIME_NEIGHBOR],me,nprocs,"neigh  ",timer_mat[1]);
-  report_time(timer->array[TIME_COMM],me,nprocs,"comm   ",timer_mat[2]);
-  report_time(timer->array[TIME_BOND],me,nprocs,"bond   ",timer_mat[3]);
-  report_time(timer->array[TIME_KSPACE],me,nprocs,"kspace ",timer_mat[4]);
-  report_time(time_other,me,nprocs,"other  ",timer_mat[5]);
-  memory->destroy(timer_mat);
+  report_time(timer->array[TIME_PAIR],"pair   ",timer_mat[0]);
+  report_time(timer->array[TIME_NEIGHBOR],"neigh  ",timer_mat[1]);
+  report_time(timer->array[TIME_COMM],"comm   ",timer_mat[2]);
+  report_time(timer->array[TIME_BOND],"bond   ",timer_mat[3]);
+  report_time(timer->array[TIME_KSPACE],"kspace ",timer_mat[4]);
+  report_time(time_other,"other  ",timer_mat[5]);
   
-  echo "plot 'mat.txt' using 1 title 'pair' with lines, 'mat.txt' using 2 title 'comm' with lines" | gnuplot -persist
+  if (writefile) {
+    if (me == 0) {
+      FILE *fp = fopen(outfile,"w");
+      if (fp == NULL) {
+        char str[612];
+        sprintf(str,"Cannot open fix report/balance file %s",outfile);
+        error->one(FLERR,str);
+      }
+      output_per_process(fp,timer_mat);
+      fclose(fp);
+    } else
+      output_per_process(NULL,timer_mat);
+  }
+      
+  memory->destroy(timer_mat);
   
   if (me == 0 && screen)
     fprintf(screen,"---------------------------------------------\n");
@@ -211,8 +126,8 @@ void FixReportBalance::post_run()
 
 /* ---------------------------------------------------------------------- */
 
-void FixReportBalance::report_time(double ptime, int me, int nprocs,
-                                   const char *name, double *ptimes)
+void FixReportBalance::report_time(double ptime, const char *name, 
+                                   double *ptimes)
 {
   double min_time, max_time, avg_time, std_time;
   
@@ -241,3 +156,31 @@ void FixReportBalance::report_time(double ptime, int me, int nprocs,
                                                  max_time,std_time);
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixReportBalance::output_per_process(FILE *fp, double **mat)
+{
+  int name_length;
+  char node_name[MPI_MAX_PROCESSOR_NAME];
+  char node_names[MPI_MAX_PROCESSOR_NAME*nprocs];
+  MPI_Get_processor_name(node_name,&name_length);
+  MPI_Gather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
+             MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,world);
+
+  if (fp) {
+    fprintf(fp,"# plot '%s' using 1:3 title 'pair' with lines, ",outfile);
+    fprintf(fp,"'%s' using 1:4 title 'neigh' with lines, ",outfile);
+    fprintf(fp,"'%s' using 1:5 title 'comm' with lines, ",outfile);
+    fprintf(fp,"'%s' using 1:6 title 'bond' with lines, ",outfile);
+    fprintf(fp,"'%s' using 1:7 title 'kspace' with lines, ",outfile);
+    fprintf(fp,"'%s' using 1:8 title 'other' with lines\n",outfile);
+    fprintf(fp,"#\n#\n");
+    fprintf(fp,"# rank node pair neigh comm bond kspace other\n");
+    for (int i = 0; i < nprocs; i++)
+      fprintf(fp,"%d %s %.3f %.3f %.3f %.3f %.3f %.3f\n",i,
+              &node_names[i*MPI_MAX_PROCESSOR_NAME],mat[0][i],mat[1][i],
+              mat[2][i],mat[3][i],mat[4][i],mat[5][i]);
+  }
+}
+

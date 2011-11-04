@@ -32,7 +32,10 @@ class FixReportBalance : public Fix {
   void post_run();
 
  private:
-  void report_time(double, int, int, const char *, double *);
+  void report_time(double, const char *, double *);
+  void output_per_process(FILE *fp, double **mat);
+  int me, nprocs, writefile;
+  char outfile[512];
 };
 
 }

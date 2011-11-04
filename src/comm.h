@@ -76,6 +76,7 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
+  int numa_nodes;                   // >0 if twolevel factorization for grid map
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap

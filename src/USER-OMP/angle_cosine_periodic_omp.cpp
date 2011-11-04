@@ -155,8 +155,8 @@ void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
       un_2 = un_1;
       un_1 = un;
     }
-    tn = b_factor*pow((-1),m)*tn;
-    un = b_factor*pow((-1),m)*m*un;
+    tn = b_factor*pow(-1.0,m)*tn;
+    un = b_factor*pow(-1.0,m)*m*un;
 
     if (EFLAG) eangle = 2*k[type]*(1.0 - tn);
 

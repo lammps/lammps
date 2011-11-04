@@ -206,6 +206,34 @@ typedef struct _double4 double4;
 #endif
 
 // -------------------------------------------------------------------------
+//                            AMD CYPRESS OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef CYPRESS_OCL
+
+#define USE_OPENCL
+#define fast_mul mul24
+#define ARCH 0
+#define DRIVER 0
+#define MEM_THREADS 16
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 1
+#define BLOCK_PAIR 64
+#define MAX_SHARED_TYPES 8
+#define BLOCK_NBOR_BUILD 64
+#define BLOCK_BIO_PAIR 64
+
+#define WARP_SIZE 1
+#define PPPM_BLOCK_1D 64
+#define BLOCK_CELL_2D 8
+#define BLOCK_CELL_ID 128
+#define MAX_BIO_SHARED_TYPES 128
+
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
+
+// -------------------------------------------------------------------------
 //                            GENERIC OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 

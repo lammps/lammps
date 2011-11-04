@@ -179,7 +179,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   // calculate the force on my particles
 
-  FFT_SCALAR qqrd2e_scale=qqrd2e*scale;
+  FFT_SCALAR qqrd2e_scale=force->qqrd2e*scale;
   PPPM_GPU_API(interp)(qqrd2e_scale);
 
   // sum energy across procs and add in volume-dependent term
@@ -192,7 +192,7 @@ void PPPMGPU::compute(int eflag, int vflag)
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
+    energy *= force->qqrd2e*scale;
   }
 
   // sum virial across procs
@@ -200,7 +200,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   if (vflag) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*scale*volume*virial_all[i];
+    for (i = 0; i < 6; i++) virial[i] = 0.5*force->qqrd2e*scale*volume*virial_all[i];
   }
 
   // 2d slab correction

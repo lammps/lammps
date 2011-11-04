@@ -139,6 +139,28 @@ void Finish::end(int flag)
 			  "for %d steps with " BIGINT_FORMAT " atoms\n",
 			  time_loop,ntasks,nprocs,comm->nthreads,
 			  update->nsteps,atom->natoms);
+
+
+      if ( timeflag && !minflag && !prdflag && !tadflag &&
+	   (update->nsteps > 0) &&
+	   ((strcmp(update->unit_style,"metal") == 0) ||
+	    (strcmp(update->unit_style,"real") == 0)) ) {
+        float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
+
+        // conversion factor to femtoseconds
+        if (strcmp(update->unit_style,"metal") == 0) one_fs = 0.001;
+        t_step = (float)time_loop / ((float) update->nsteps);
+        tps = 1.0/t_step;
+        hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 60.0 / 60.0;
+        ns_day = 24.0 * 60.0 * 60.0 / t_step * update->dt / one_fs / 1000000.0;
+
+        if (screen) 
+          fprintf(screen, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
+                  ns_day, hrs_ns, tps);
+        if (logfile) 
+          fprintf(logfile, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
+                  ns_day, hrs_ns, tps);
+      }
     }
 #else
     if (me == 0) {

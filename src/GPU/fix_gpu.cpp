@@ -25,10 +25,11 @@
 #include "domain.h"
 #include "universe.h"
 #include "gpu_extra.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
-enum{GPU_FORCE, GPU_NEIGH};
+enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
@@ -57,6 +58,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     _gpu_mode = GPU_NEIGH;
     if (domain->triclinic)
       error->all(FLERR,"Cannot use force/neigh with triclinic box");
+  } else if (strcmp(arg[3],"force/hybrid_neigh") == 0) {
+    _gpu_mode = GPU_HYB_NEIGH;
+    if (domain->triclinic)
+      error->all(FLERR,
+                 "Cannot use force/hybrid_neigh with triclinic box");
   } else
     error->all(FLERR,"Illegal fix GPU command");
 
@@ -116,7 +122,7 @@ void FixGPU::init()
 {
   // hybrid cannot be used with force/neigh option
 
-  if (_gpu_mode == GPU_NEIGH)
+  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||
 	force->pair_match("hybrid/overlay",1) != NULL)
       error->all(FLERR,"Cannot use pair hybrid with GPU neighbor builds");
@@ -130,6 +136,10 @@ void FixGPU::init()
 
 void FixGPU::setup(int vflag)
 {
+  if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
+    if (neighbor->exclude_setting()!=0)
+      error->all(FLERR,
+		 "Cannot use neigh_modify exclude with GPU neighbor builds");
   post_force(vflag);
 }
 

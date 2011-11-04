@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mike Brown (SNL)
+   Contributing author: Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -73,7 +73,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) : 
-  PairCoulLong(lmp), gpu_mode(GPU_PAIR)
+  PairCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -100,7 +100,7 @@ void PairCoulLongGPU::compute(int eflag, int vflag)
   
   bool success = true;
   int *ilist, *numneigh, **firstneigh;    
-  if (gpu_mode == GPU_NEIGH) {
+  if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = cl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				  atom->type, domain->sublo, domain->subhi,
@@ -166,7 +166,7 @@ void PairCoulLongGPU::init_style()
 
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode != GPU_NEIGH) {
+  if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;

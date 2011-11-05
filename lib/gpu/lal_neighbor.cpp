@@ -146,6 +146,10 @@ void Neighbor::alloc(bool &success) {
       ptr+=_max_nbors;
     }                                                 
     _c_bytes+=dev_host_nbor.row_bytes()+dev_host_numj.row_bytes();
+  } else {
+    // Some OpenCL implementations return errors for NULL pointers as args
+    dev_host_nbor.view(dev_nbor);
+    dev_host_numj.view(dev_nbor);
   }
   if (_maxspecial>0) {
     dev_nspecial.clear();
@@ -460,7 +464,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
         ptr+=mn;
       }                                                 
       _gpu_bytes+=dev_host_nbor.row_bytes();
-    }
+    } else
+      dev_host_nbor.view(dev_nbor);
     if (_alloc_packed) {
       dev_packed.clear();
       success=success && (dev_packed.alloc((mn+2)*_max_atoms,*dev,

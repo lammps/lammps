@@ -104,6 +104,11 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
     maxsendlist[i] = BUFMIN;
     memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
+  numa_nodes = 0;
+  
+#ifdef NUMA_NODES
+  numa_nodes = NUMA_NODES;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,6 +137,13 @@ Comm::~Comm()
 
 void Comm::set_procs()
 {
+#ifdef NUMA_NODES
+  if (numa_nodes) {
+    numa_set_procs();
+    return;
+  }
+#endif
+
   procs2box();
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
@@ -1384,3 +1396,341 @@ bigint Comm::memory_usage()
   bytes += memory->usage(buf_recv,maxrecv);
   return bytes;
 }
+
+#ifdef NUMA_NODES
+
+#include <map>
+#include <string>
+
+/* ----------------------------------------------------------------------
+   Get the index to the neighboring processors in a dimension
+------------------------------------------------------------------------- */
+void Comm::numa_shift(int myloc, int num_procs, int &minus, int &plus) {
+  minus = myloc - 1;
+  if (minus < 0)
+    minus = num_procs - 1;
+  plus = myloc + 1;
+  if (plus == num_procs)
+    plus = 0;
+}
+
+/* ----------------------------------------------------------------------
+   setup 3d grid of procs based on box size, group neighbors by numa node
+------------------------------------------------------------------------- */
+
+void Comm::numa_set_procs()
+{
+  // Get the names of all nodes
+  int name_length;
+  char node_name[MPI_MAX_PROCESSOR_NAME];
+  char node_names[MPI_MAX_PROCESSOR_NAME*nprocs];
+  MPI_Get_processor_name(node_name,&name_length);
+  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
+                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
+  std::string node_string = std::string(node_name);
+  
+  // Get the number of procs per node                
+  std::map<std::string,int> name_map;
+  std::map<std::string,int>::iterator np;
+  for (int i = 0; i < nprocs; i++) {
+    std::string i_string = std::string(&node_names[i*MPI_MAX_PROCESSOR_NAME]);
+    np = name_map.find(i_string);
+    if (np == name_map.end())
+      name_map[i_string] = 1;
+    else
+      np->second++;
+  }
+  int procs_per_node = name_map.begin()->second;
+  int procs_per_numa = procs_per_node / numa_nodes;
+  
+  // Use regular mapping if:
+/*  
+  if (procs_per_numa < 3 ||               // 2 or less procs per numa node
+      procs_per_node % numa_nodes != 0 || // Different # of procs per numa node
+      nprocs % procs_per_numa != 0 ||     // Different # of procs per numa node
+      nprocs <= procs_per_numa) {         // Only 1 numa node used
+    numa_nodes = 0;
+    if (me == 0) {
+      if (screen) fprintf(screen,"  1 by 1 by 1 NUMA grid\n");
+      if (logfile) fprintf(logfile,"  1 by 1 by 1 NUMA grid\n");
+    }
+    set_procs();
+    return;
+  }
+*/
+  // User settings for the factorization per numa node - currently always zero
+  int user_numagrid[3];
+  user_numagrid[0] = user_numagrid[1] = user_numagrid[2] = 0;
+
+  // Get an initial factorization for each numa node if the user has not
+  // set the number of processors
+  int numagrid[3];
+  numa_factor_box(procs_per_numa,user_numagrid,numagrid,1,1,1);
+  if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
+    error->all(FLERR,"Bad NUMA grid of processors");
+
+if (me == 0) {
+  if (screen) fprintf(screen,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
+  if (logfile) fprintf(logfile,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
+}
+
+  // Get a factorization for the grid of numa nodes
+  int node_count = nprocs / procs_per_numa;
+  numa_factor_box(node_count,user_procgrid,procgrid,numagrid[0],numagrid[1],
+                  numagrid[2]);
+  if (procgrid[0]*procgrid[1]*procgrid[2] != node_count)
+    error->all(FLERR,"Bad grid of processors");
+    
+if (me == 0) {
+if (screen) fprintf(screen,"  %d by %d by %d node grid\n",
+  procgrid[0],procgrid[1],procgrid[2]);
+if (logfile) fprintf(logfile,"  %d by %d by %d node grid\n",
+	 procgrid[0],procgrid[1],procgrid[2]);
+}
+
+  // Repeat the numa node factorization using the subdomain sizes
+  // This will refine the factorization if the user specified the node layout
+  numa_factor_box(procs_per_numa,user_numagrid,numagrid,procgrid[0],procgrid[1],
+                  procgrid[2]);
+  if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
+    error->all(FLERR,"Bad NUMA grid of processors");
+  if (domain->dimension == 2 && (procgrid[2] != 1 || numagrid[2] != 1))
+    error->all(FLERR,"Processor count in z must be 1 for 2d simulation");
+
+if (me == 0) {
+  if (screen) fprintf(screen,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
+  if (logfile) fprintf(logfile,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
+fflush(screen);
+}
+
+  // Assign a unique id to each node
+  int node_num = 0, node_id = 0;
+  for (np = name_map.begin(); np != name_map.end(); ++np) {
+    if (np->first == node_string)
+      node_id = node_num;
+    node_num++;
+  }
+//std::cerr << "LOC1\n";  
+  // Set up a per node communicator and find rank within
+  MPI_Comm node_comm;
+  MPI_Comm_split(world, node_num, 0, &node_comm);  
+  int node_rank;
+  MPI_Comm_rank(node_comm, &node_rank);
+//std::cerr << "LOC2\n";  
+  
+  // Set up a per numa communicator and find rank within
+  MPI_Comm numa_comm;
+  int local_numa = node_rank / procs_per_numa;
+  MPI_Comm_split(node_comm, local_numa, 0, &numa_comm);     
+  int numa_rank;
+  MPI_Comm_rank(numa_comm, &numa_rank);
+//std::cerr << "LOC3\n";  
+  
+  // Set up a communicator with the rank 0 procs from each numa node
+  MPI_Comm numa_leaders;
+  MPI_Comm_split(world, numa_rank, 0, &numa_leaders);
+//std::cerr << "LOC4\n";  
+
+  // Use the MPI Cartesian routines to map the nodes to the grid
+  int reorder = 0;
+  int periods[3];
+  periods[0] = periods[1] = periods[2] = 1;
+  MPI_Comm cartesian;
+  if (numa_rank == 0) {
+    MPI_Cart_create(numa_leaders,3,procgrid,periods,reorder,&cartesian);
+    MPI_Cart_get(cartesian,3,procgrid,periods,myloc);
+  }
+//std::cerr << "LOC5\n";  
+  
+  // Broadcast numa node location in grid to other procs in numa node
+  MPI_Bcast(myloc,3,MPI_INT,0,numa_comm);
+
+  // Get storage for the process mapping
+  if (grid2proc) memory->destroy(grid2proc);
+  memory->create(grid2proc,procgrid[0]*numagrid[0],procgrid[1]*numagrid[1],
+                 procgrid[2]*numagrid[2],"comm:grid2proc");
+//std::cerr << "LOC6\n";  
+  
+  // Compute my location within the grid
+  int z_offset = numa_rank / (numagrid[0] * numagrid[1]);
+  int y_offset = (numa_rank % (numagrid[0] * numagrid[1]))/numagrid[0];
+  int x_offset = numa_rank % numagrid[0];
+  myloc[0] = myloc[0] * numagrid[0] + x_offset;
+  myloc[1] = myloc[1] * numagrid[1] + y_offset;
+  myloc[2] = myloc[2] * numagrid[2] + z_offset;
+  procgrid[0] *= numagrid[0];
+  procgrid[1] *= numagrid[1];
+  procgrid[2] *= numagrid[2];
+//std::cerr << "LOC7\n";  
+
+  // Allgather of locations to fill grid2proc
+  int **gridi;
+  memory->create(gridi,nprocs,3,"comm:gridi");
+  MPI_Allgather(&myloc,3,MPI_INT,gridi[0],3,MPI_INT,world);
+  for (int i = 0; i < nprocs; i++)
+    grid2proc[gridi[i][0]][gridi[i][1]][gridi[i][2]] = i;
+  memory->destroy(gridi);
+//std::cerr << "LOC8\n";  
+  
+  // Get my neighbors
+  int minus, plus;
+  for (int i = 0; i < 3; i++) {
+    numa_shift(myloc[i],procgrid[i],minus,plus);
+    procneigh[i][0] = minus;
+    procneigh[i][1] = plus;
+  }
+  procneigh[0][0] = grid2proc[procneigh[0][0]][myloc[1]][myloc[2]];
+  procneigh[0][1] = grid2proc[procneigh[0][1]][myloc[1]][myloc[2]];
+  procneigh[1][0] = grid2proc[myloc[0]][procneigh[1][0]][myloc[2]];
+  procneigh[1][1] = grid2proc[myloc[0]][procneigh[1][1]][myloc[2]];
+  procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][procneigh[2][0]];
+  procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][procneigh[2][1]];
+//std::cerr << "LOC9\n";  
+
+  if (numa_rank == 0)
+    MPI_Comm_free(&cartesian);
+  MPI_Comm_free(&numa_leaders);
+  MPI_Comm_free(&numa_comm);
+  MPI_Comm_free(&node_comm);
+
+// Check for correctness
+if (me == 0)
+fprintf(screen,"TESTING CORRECTNESS...");
+std::map<int,int> loc_map;
+std::map<int,int>::iterator ni;
+for (int i = 0; i < procgrid[0]; i++) {
+  for (int j = 0; j < procgrid[1]; j++) {
+    for (int k = 0; k < procgrid[2]; k++) {
+      ni = loc_map.find(grid2proc[i][j][k]);
+      if (ni == loc_map.end())
+        loc_map[grid2proc[i][j][k]] = 1;
+      else
+        error->one(FLERR,"DUPLICATE PROC LOC");
+    }
+  }
+}
+if (me == 0)
+fprintf(screen,"DONE.\n");
+
+  // set lamda box params after procs are assigned
+  if (domain->triclinic) domain->set_lamda_box();
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"  %d by %d by %d NUMA grid\n",
+			numagrid[0],numagrid[1],numagrid[2]);
+    if (logfile) fprintf(logfile,"  %d by %d by %d NUMA grid\n",
+			 numagrid[0],numagrid[1],numagrid[2]);
+    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
+			procgrid[0],procgrid[1],procgrid[2]);
+    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
+			 procgrid[0],procgrid[1],procgrid[2]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   factor num_procs to 3d box to minimize the surface area
+   user_factors = if non-zero, dimension specified by user
+   factors      = resulting # procs in each dimension
+   sx           = box x dimension is divided by sx (not used for triclinic)
+   sy           = box y dimension is divided by sy (not used for triclinic)
+   sz           = box z dimension is divided by sz (not used for triclinic)
+   area = surface area of each of 3 faces of simulation box
+   for triclinic, area = cross product of 2 edge vectors stored in h matrix
+------------------------------------------------------------------------- */
+
+void Comm::numa_factor_box(int num_procs, int user_factors[3], int factors[3], 
+                           const int sx, const int sy, const int sz) {
+  factors[0] = user_factors[0];
+  factors[1] = user_factors[1];
+  factors[2] = user_factors[2];
+
+  // all 3 proc counts are specified
+
+  if (factors[0] && factors[1] && factors[2]) return;
+
+  // 2 out of 3 proc counts are specified
+
+  if (factors[0] > 0 && factors[1] > 0) {
+    factors[2] = nprocs/(factors[0]*factors[1]);
+    return;
+  } else if (factors[0] > 0 && factors[2] > 0) {
+    factors[1] = nprocs/(factors[0]*factors[2]);
+    return;
+  } else if (factors[1] > 0 && factors[2] > 0) {
+    factors[0] = nprocs/(factors[1]*factors[2]);
+    return;
+  } 
+
+  // determine cross-sectional areas for orthogonal and triclinic boxes
+  // area[0] = xy, area[1] = xz, area[2] = yz
+
+  double area[3];
+  if (domain->triclinic == 0) {
+    area[0] = domain->xprd * domain->yprd / (sx * sy);
+    area[1] = domain->xprd * domain->zprd / (sx * sz);
+    area[2] = domain->yprd * domain->zprd / (sy * sz);
+  } else {
+    double *h = domain->h;
+    double x,y,z;
+    cross(h[0],0.0,0.0,h[5],h[1],0.0,x,y,z);
+    area[0] = sqrt(x*x + y*y + z*z);
+    cross(h[0],0.0,0.0,h[4],h[3],h[2],x,y,z);
+    area[1] = sqrt(x*x + y*y + z*z);
+    cross(h[5],h[1],0.0,h[4],h[3],h[2],x,y,z);
+    area[2] = sqrt(x*x + y*y + z*z);
+  }
+
+  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
+
+  // loop thru all possible factorizations of num_procs
+  // only consider valid cases that match procgrid settings
+  // surf = surface area of a proc sub-domain
+
+  int ipx,ipy,ipz,valid;
+  double surf;
+
+  ipx = 1;
+  while (ipx <= num_procs) {
+    valid = 1;
+    if (user_factors[0] && ipx != user_factors[0]) valid = 0;
+    if (num_procs % ipx) valid = 0;
+    if (!valid) {
+      ipx++;
+      continue;
+    }
+
+    ipy = 1;
+    while (ipy <= num_procs/ipx) {
+      valid = 1;
+      if (user_factors[1] && ipy != user_factors[1]) valid = 0;
+      if ((num_procs/ipx) % ipy) valid = 0;
+      if (!valid) {
+	ipy++;
+	continue;
+      }
+      
+      ipz = num_procs/ipx/ipy;
+      valid = 1;
+      if (user_factors[2] && ipz != user_factors[2]) valid = 0;
+      if (domain->dimension == 2 && ipz != 1) valid = 0;
+      if (!valid) {
+	ipy++;
+	continue;
+      }
+      
+      surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
+      if (surf < bestsurf) {
+	bestsurf = surf;
+	factors[0] = ipx;
+	factors[1] = ipy;
+	factors[2] = ipz;
+      }
+      ipy++;
+    }
+
+    ipx++;
+  }
+}
+
+#endif
+

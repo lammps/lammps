@@ -76,6 +76,7 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
+  int numa_nodes;                   // >0 if twolevel factorization for grid map
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
@@ -98,8 +99,15 @@ class Comm : protected Pointers {
   virtual void allocate_multi(int);         // allocate multi arrays
   virtual void free_swap();                 // free swap arrays
   virtual void free_multi();                // free multi arrays
+
+#ifdef NUMA_NODES
+  void numa_shift(int, int, int &, int &);
+  void numa_set_procs();
+  void numa_factor_box(int, int[3], int[3], const int, const int, const int);
+#endif
 };
 
 }
 
 #endif
+

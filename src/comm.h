@@ -99,8 +99,15 @@ class Comm : protected Pointers {
   virtual void allocate_multi(int);         // allocate multi arrays
   virtual void free_swap();                 // free swap arrays
   virtual void free_multi();                // free multi arrays
+
+#ifdef NUMA_NODES
+  void numa_shift(int, int, int &, int &);
+  void numa_set_procs();
+  void numa_factor_box(int, int[3], int[3], const int, const int, const int);
+#endif
 };
 
 }
 
 #endif
+

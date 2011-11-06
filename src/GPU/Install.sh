@@ -58,10 +58,6 @@ if (test $1 = 1) then
   if (test -e ../pair_cg_cmm_coul_long.cpp) then
     cp pair_cg_cmm_coul_long_gpu.cpp ..
     cp pair_cg_cmm_coul_long_gpu.h ..
-    cp pair_cg_cmm_coul_msm.cpp ..
-    cp pair_cg_cmm_coul_msm.h ..
-    cp pair_cg_cmm_coul_msm_gpu.cpp ..
-    cp pair_cg_cmm_coul_msm_gpu.h ..
   fi
 
   if (test -e ../pppm.cpp) then
@@ -120,8 +116,6 @@ elif (test $1 = 0) then
   rm -f ../pair_coul_long_gpu.cpp
   rm -f ../pair_cg_cmm_gpu.cpp
   rm -f ../pair_cg_cmm_coul_long_gpu.cpp
-  rm -f ../pair_cg_cmm_coul_msm.cpp
-  rm -f ../pair_cg_cmm_coul_msm_gpu.cpp
 
   rm -f ../fix_gpu.cpp
   rm -f ../pair_omp_gpu.cpp
@@ -143,8 +137,6 @@ elif (test $1 = 0) then
   rm -f ../pair_coul_long_gpu.h
   rm -f ../pair_cg_cmm_gpu.h
   rm -f ../pair_cg_cmm_coul_long_gpu.h
-  rm -f ../pair_cg_cmm_coul_msm.h
-  rm -f ../pair_cg_cmm_coul_msm_gpu.h
 
   rm -f ../fix_gpu.h
   rm -f ../gpu_extra.h

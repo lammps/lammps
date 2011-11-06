@@ -1,4 +1,4 @@
-OCL  = $(OCL_CPP) $(OCL_PREC) -DUSE_OPENCL
+OCL  = $(OCL_CPP) $(OCL_PREC) $(OCL_TUNE) -DUSE_OPENCL
 OCL_LIB = $(LIB_DIR)/libgpu.a
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)

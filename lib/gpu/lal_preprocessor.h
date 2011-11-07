@@ -212,18 +212,18 @@ typedef struct _double4 double4;
 #ifdef CYPRESS_OCL
 
 #define USE_OPENCL
-#define fast_mul mul24
+#define fast_mul(X,Y) (X)*(Y)
 #define ARCH 0
 #define DRIVER 0
-#define MEM_THREADS 16
-#define THREADS_PER_ATOM 1
-#define THREADS_PER_CHARGE 1
-#define BLOCK_PAIR 64
+#define MEM_THREADS 32
+#define THREADS_PER_ATOM 4
+#define THREADS_PER_CHARGE 8
+#define BLOCK_PAIR 128
 #define MAX_SHARED_TYPES 8
 #define BLOCK_NBOR_BUILD 64
 #define BLOCK_BIO_PAIR 64
 
-#define WARP_SIZE 1
+#define WARP_SIZE 32
 #define PPPM_BLOCK_1D 64
 #define BLOCK_CELL_2D 8
 #define BLOCK_CELL_ID 128

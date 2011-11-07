@@ -1,6 +1,7 @@
-OCL_CPP = mpic++ -O3 -g -DFERMI_OCL -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK -I/usr/local/cuda/include/
+OCL_CPP = mpic++ -O3 -g -DMPI_GERYON -DMPICH_IGNORE_CXX_SEEK -I/usr/local/cuda/include/
 OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_SINGLE
+OCL_TUNE = -DFERMI_OCL
 
 BIN_DIR =  /home/wb8/bin
 OBJ_DIR = /home/wb8/obj/lammps

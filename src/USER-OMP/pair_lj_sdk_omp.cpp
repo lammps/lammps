@@ -73,6 +73,8 @@ void PairLJSDKOMP::compute(int eflag, int vflag)
   } // end of omp parallel region
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJSDKOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 {
@@ -89,7 +91,6 @@ void PairLJSDKOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
   const double * const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
 
-  const int inum = list->inum;
   const int * const ilist = list->ilist;
   const int * const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;

@@ -190,7 +190,10 @@ void PairLJSDKCoulLong::eval()
 	      forcecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  }
-	} else forcecoul = 0.0;
+	} else {
+	  forcecoul = 0.0;
+	  ecoul = 0.0;
+	}
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 
@@ -219,43 +222,46 @@ void PairLJSDKCoulLong::eval()
 	    if (EFLAG)
 	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  } else forcelj = 0.0;
-
-	  fpair = (forcecoul + factor_lj*forcelj) * r2inv;
-
-	  fxtmp += delx*fpair;
-	  fytmp += dely*fpair;
-	  fztmp += delz*fpair;
-	  if (NEWTON_PAIR || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
 	  }
-
-	  if (EFLAG) {
-	    if (rsq < cut_coulsq) {
-	      if (!ncoultablebits || rsq <= tabinnersq)
-		ecoul = prefactor*erfc;
-	      else {
-		table = etable[itable] + fraction*detable[itable];
-		ecoul = qtmp*q[j] * table;
-	      }
-	      if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	    } else ecoul = 0.0;
-
-	    if (rsq < cut_ljsq[itype][jtype]) {
-	      evdwl *= factor_lj;
-	    } else evdwl = 0.0;
-	  }
-
-	  if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			       evdwl,ecoul,fpair,delx,dely,delz);
+	} else {
+	  forcelj=0.0;
+	  evdwl = 0.0;
 	}
+
+	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+
+	fxtmp += delx*fpair;
+	fytmp += dely*fpair;
+	fztmp += delz*fpair;
+	if (NEWTON_PAIR || j < nlocal) {
+	  f[j][0] -= delx*fpair;
+	  f[j][1] -= dely*fpair;
+	  f[j][2] -= delz*fpair;
+	}
+
+	if (EFLAG) {
+	  if (rsq < cut_coulsq) {
+	    if (!ncoultablebits || rsq <= tabinnersq)
+	      ecoul = prefactor*erfc;
+	    else {
+	      table = etable[itable] + fraction*detable[itable];
+	      ecoul = qtmp*q[j] * table;
+	    }
+	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	  } else ecoul = 0.0;
+
+	  if (rsq < cut_ljsq[itype][jtype]) {
+	    evdwl *= factor_lj;
+	  } else evdwl = 0.0;
+	}
+
+	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+			       evdwl,ecoul,fpair,delx,dely,delz);
       }
-      f[i][0] += fxtmp;
-      f[i][1] += fytmp;
-      f[i][2] += fztmp;
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 }
 
@@ -643,10 +649,6 @@ void PairLJSDKCoulLong::free_tables()
   memory->destroy(dctable);
   memory->destroy(etable);
   memory->destroy(detable);
-  memory->destroy(vtable);
-  memory->destroy(dvtable);
-  memory->destroy(ptable);
-  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

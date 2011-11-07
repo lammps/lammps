@@ -64,7 +64,7 @@ class PairLJSDKCoulLong : public Pair {
 
   double tabinnersq;
   double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-  double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
+  double *etable,*detable;
   int ncoulshiftbits,ncoulmask;
 
   void allocate();

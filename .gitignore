@@ -8,3 +8,4 @@ Obj_*
 log.*
 *.x
 *.exe
+.*.swp

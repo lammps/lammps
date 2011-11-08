@@ -39,7 +39,6 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_charmm_long.o $(OBJ_DIR)/lal_charmm_long_ext.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
-       $(OBJ_DIR)/lal_cg_cmm_msm.o $(OBJ_DIR)/lal_cg_cmm_msm_ext.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
@@ -62,8 +61,7 @@ PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h \
        $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h \
        $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
-       $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h \
-       $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h
+       $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h 
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -324,18 +322,6 @@ $(OBJ_DIR)/lal_cg_cmm_long.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long.cpp $(O
 
 $(OBJ_DIR)/lal_cg_cmm_long_ext.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long_ext.cpp lal_base_charge.h
 	$(CUDR) -o $@ -c lal_cg_cmm_long_ext.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cg_cmm_msm.ptx: lal_cg_cmm_msm.cu lal_precision.h lal_preprocessor.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm_msm.cu
-
-$(OBJ_DIR)/cg_cmm_msm_ptx.h: $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm.ptx
-	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_msm $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h
-
-$(OBJ_DIR)/lal_cg_cmm_msm.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm.cpp $(OBJ_DIR)/cg_cmm_msm_ptx.h $(OBJ_DIR)/lal_base_atomic.o
-	$(CUDR) -o $@ -c lal_cg_cmm_msm.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/lal_cg_cmm_msm_ext.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm_ext.cpp lal_base_charge.h
-	$(CUDR) -o $@ -c lal_cg_cmm_msm_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 

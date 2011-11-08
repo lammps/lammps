@@ -3,7 +3,7 @@
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Function for LAMMPS access to cg/cmm/coul/msm pair acceleration routines.
+  Function for LAMMPS access to lj/sdk/coul/msm pair acceleration routines.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -44,7 +44,7 @@ int cmmm_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   int gpu_rank=CMMMMF.device->gpu_rank();
   int procs_per_gpu=CMMMMF.device->procs_per_gpu();
 
-  CMMMMF.device->init_message(screen,"cg/cmm/coul/msm",first_gpu,last_gpu);
+  CMMMMF.device->init_message(screen,"lj/sdk/coul/msm",first_gpu,last_gpu);
 
   bool message=false;
   if (CMMMMF.device->replica_me()==0 && screen)

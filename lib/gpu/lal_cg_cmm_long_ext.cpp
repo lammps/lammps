@@ -3,7 +3,7 @@
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Functions for LAMMPS access to cg/cmm/coul/long acceleration functions
+  Functions for LAMMPS access to lj/sdk/coul/long acceleration functions
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -44,7 +44,7 @@ int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   int gpu_rank=CMMLMF.device->gpu_rank();
   int procs_per_gpu=CMMLMF.device->procs_per_gpu();
 
-  CMMLMF.device->init_message(screen,"cg/cmm/coul/long",first_gpu,last_gpu);
+  CMMLMF.device->init_message(screen,"lj/sdk/coul/long",first_gpu,last_gpu);
 
   bool message=false;
   if (CMMLMF.device->replica_me()==0 && screen)

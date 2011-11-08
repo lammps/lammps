@@ -70,8 +70,11 @@ class ThrOMP {
   void reduce_thr(void * const style, const int eflag, const int vflag, ThrData * const thr, const int nproxy=0);
 
  protected:
+
   // threading adapted versions of the ev_tally infrastructure
   // style specific versions (need access to style class flags)
+
+  // Pair
   void e_tally_thr(Pair * const, const int, const int, const int,
 		   const int, const double, const double, ThrData * const);
   void v_tally_thr(Pair * const, const int, const int, const int,
@@ -92,21 +95,28 @@ class ThrOMP {
 		     const double * const, const double * const, const double * const,
 		     const double * const, ThrData * const);
 
+  // Bond
   void ev_tally_thr(Bond * const, const int, const int, const int, const int,
 		    const double, const double, const double, const double,
 		    const double, ThrData * const);
 
+  // Angle
   void ev_tally_thr(Angle * const, const int, const int, const int, const int, const int,
 		    const double, const double * const, const double * const,
 		    const double, const double, const double, const double, const double,
 		    const double, ThrData * const thr);
+  void ev_tally13_thr(Angle * const, const int, const int, const int, const int,
+		      const double, const double, const double, const double,
+		      const double, ThrData * const thr);
 
+  // Dihedral
   void ev_tally_thr(Dihedral * const, const int, const int, const int, const int, const int,
 		    const int, const double, const double * const, const double * const,
 		    const double * const, const double, const double, const double,
 		    const double, const double, const double, const double, const double,
 		    const double, ThrData * const);
 
+  // Improper
   void ev_tally_thr(Improper * const, const int, const int, const int, const int, const int,
 		    const int, const double, const double * const, const double * const,
 		    const double * const, const double, const double, const double,

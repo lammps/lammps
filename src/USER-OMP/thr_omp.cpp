@@ -828,6 +828,61 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
   }
 }
 
+/* ----------------------------------------------------------------------
+   tally energy and virial from 1-3 repulsion of SDK angle into accumulators
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
+			    const int nlocal, const int newton_bond,
+			    const double epair, const double fpair,
+			    const double delx, const double dely,
+			    const double delz, ThrData * const thr)
+{
+
+  if (angle->eflag_either) {
+    const double epairhalf = 0.5 * epair;
+
+    if (angle->eflag_global) {
+      if (newton_bond || i1 < nlocal)
+	thr->eng_angle += epairhalf;
+      if (newton_bond || i3 < nlocal)
+	thr->eng_angle += epairhalf;
+    }
+
+    if (angle->eflag_atom) {
+      if (newton_bond || i1 < nlocal) thr->eatom_angle[i1] += epairhalf;
+      if (newton_bond || i3 < nlocal) thr->eatom_angle[i3] += epairhalf;
+    }
+  }
+  
+  if (angle->vflag_either) {
+    double v[6];
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (angle->vflag_global) {
+      double * const va = thr->virial_angle;
+      if (newton_bond || i1 < nlocal) v_tally(va,0.5,v);
+      if (newton_bond || i3 < nlocal) v_tally(va,0.5,v);
+    }
+
+    if (angle->vflag_atom) {
+      if (newton_bond || i1 < nlocal) {
+	double * const va = thr->vatom_angle[i1];
+	v_tally(va,0.5,v);
+      }
+      if (newton_bond || i3 < nlocal) {
+	double * const va = thr->vatom_angle[i3];
+	v_tally(va,0.5,v);
+      }
+    }
+  }  
+}
+
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators

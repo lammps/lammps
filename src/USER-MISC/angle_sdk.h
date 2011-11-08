@@ -50,8 +50,8 @@ class AngleSDK : public Angle {
 
   int repflag; // 1 if we have to handle 1-3 repulsion
 
-  void ev_tally_lj13(int, int, int, int, double, double, 
-                     double, double, double);
+  void ev_tally13(int, int, int, int, double, double, 
+		  double, double, double);
   
   void allocate();
 };

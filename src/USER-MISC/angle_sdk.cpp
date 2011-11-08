@@ -64,17 +64,11 @@ void AngleSDK::compute(int eflag, int vflag)
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
   double eangle,f1[3],f3[3],e13,f13;
   double dtheta,tk;
-  double rsq1,rsq2,rsq3,r1,r2,r3,c,s,a,a11,a12,a22;
+  double rsq1,rsq2,rsq3,r1,r2,c,s,a,a11,a12,a22;
 
   eangle = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
-
-  // make sure pair->ev_tally() will use 1-3 virial contribution
-  // even if the pair style was using fdotr_virial_compute()
-
-  if (repflag && vflag_global == 2)
-    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -211,12 +205,11 @@ void AngleSDK::compute(int eflag, int vflag)
       f[i3][2] += f3[2] - f13*delz3;
     }
 
-    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
+    if (evflag) {
+      ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
 			 delx1,dely1,delz1,delx2,dely2,delz2);
-
-    if (evflag) force->pair->ev_tally(i1,i3,nlocal,newton_bond,
-				      e13,0.0,f13,delx3,dely3,delz3);
-
+      ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);
+    }
   }
 }
 
@@ -351,6 +344,88 @@ void AngleSDK::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
+void AngleSDK::ev_tally13(int i, int j, int nlocal, int newton_bond, 
+			  double evdwl, double fpair,
+			  double delx, double dely, double delz)
+{
+  double v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) {
+        energy += evdwl;
+      } else {
+        if (i < nlocal)
+          energy += 0.5*evdwl;
+        if (j < nlocal)
+          energy += 0.5*evdwl;
+      }
+    }
+    if (eflag_atom) {
+      if (newton_bond || i < nlocal) eatom[i] += 0.5*evdwl;
+      if (newton_bond || j < nlocal) eatom[i] += 0.5*evdwl;
+    }
+  }
+  
+  if (vflag_either) {
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5*v[0];
+        vatom[i][1] += 0.5*v[1];
+        vatom[i][2] += 0.5*v[2];
+        vatom[i][3] += 0.5*v[3];
+        vatom[i][4] += 0.5*v[4];
+        vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5*v[0];
+        vatom[j][1] += 0.5*v[1];
+        vatom[j][2] += 0.5*v[2];
+        vatom[j][3] += 0.5*v[3];
+        vatom[j][4] += 0.5*v[4];
+        vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 double AngleSDK::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
@@ -372,30 +447,45 @@ double AngleSDK::single(int type, int i1, int i2, int i3)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  // 1-3 LJ interaction. 
-  double delx3 = x[i1][0] - x[i3][0];
-  double dely3 = x[i1][1] - x[i3][1];
-  double delz3 = x[i1][2] - x[i3][2];
-  domain->minimum_image(delx3,dely3,delz3);
-
-  const double r3 = sqrt(delx3*delx3 + dely3*dely3 + delz3*delz3);
-
   double e13=0.0;
+  if (repflag) {
 
-#if 0    
-  if (r3 < rcut[type]) {
-    const int cgt = cg_type[type];
-    const double cgpow1 = cg_pow1[cgt];
-    const double cgpow2 = cg_pow2[cgt];
-    const double cgpref = cg_prefact[cgt];
-        
-    const double ratio = sigma[type]/r3;
-    const double eps = epsilon[type];
+    // 1-3 LJ interaction. 
+    double delx3 = x[i1][0] - x[i3][0];
+    double dely3 = x[i1][1] - x[i3][1];
+    double delz3 = x[i1][2] - x[i3][2];
+    domain->minimum_image(delx3,dely3,delz3);
 
-    e13 = eps + cgpref*eps * (pow(ratio,cgpow1) 
-                              - pow(ratio,cgpow2));
+    const int type1 = atom->type[i1];
+    const int type3 = atom->type[i3];
+      
+    const double rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
+  
+    if (rsq3 < rminsq[type1][type3]) {
+      const int ljt = lj_type[type1][type3];
+      const double r2inv = 1.0/rsq3;
+
+      if (ljt == LJ12_4) {
+	const double r4inv=r2inv*r2inv;
+
+	e13 = r4inv*(lj3[type1][type3]*r4inv*r4inv - lj4[type1][type3]);
+	  
+      } else if (ljt == LJ9_6) {
+	const double r3inv = r2inv*sqrt(r2inv);
+	const double r6inv = r3inv*r3inv;
+
+	e13 = r6inv*(lj3[type1][type3]*r3inv - lj4[type1][type3]);
+
+      } else if (ljt == LJ12_6) {
+	const double r6inv = r2inv*r2inv*r2inv;
+
+	e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+      }
+
+      // make sure energy is 0.0 at the cutoff.
+      e13 -= emin[type1][type3];
+    }
   }
-#endif
 
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;

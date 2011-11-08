@@ -48,6 +48,8 @@ angle_hybrid.cpp
 angle_hybrid.h
 angle_sdk.cpp
 angle_sdk.h
+angle_sdk_omp.cpp
+angle_sdk_omp.h
 angle_table.cpp
 angle_table.h
 angle_table_omp.cpp

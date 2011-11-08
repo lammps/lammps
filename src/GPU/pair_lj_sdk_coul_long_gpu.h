@@ -13,22 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/coul/long/gpu,PairCGCMMCoulLongGPU)
+PairStyle(lj/sdk/coul/long/gpu,PairLJSDKCoulLongGPU)
+PairStyle(cg/cmm/coul/long/gpu,PairLJSDKCoulLongGPU)
 
 #else
 
-#ifndef LMP_PAIR_CG_CMM_COUL_LONG_GPU_H
-#define LMP_PAIR_CG_CMM_COUL_LONG_GPU_H
+#ifndef LMP_PAIR_LJ_SDK_COUL_LONG_GPU_H
+#define LMP_PAIR_LJ_SDK_COUL_LONG_GPU_H
 
-#include "pair_cg_cmm_coul_long.h"
+#include "pair_lj_sdk_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairCGCMMCoulLongGPU : public PairCGCMMCoulLong {
+class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
  public:
-  PairCGCMMCoulLongGPU(LAMMPS *lmp);
-  ~PairCGCMMCoulLongGPU();
-  void cpu_compute(int, int, int, int, int *, int *, int **);
+  PairLJSDKCoulLongGPU(LAMMPS *lmp);
+  ~PairLJSDKCoulLongGPU();
+  template <int, int>
+  void cpu_compute(int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();

@@ -244,7 +244,7 @@ void AngleSDK::coeff(int narg, char **arg)
 
   double k_one = force->numeric(arg[1]);
   double theta0_one = force->numeric(arg[2]);
-  double repscale_one = 1.0;
+  double repscale_one;
 
   // backward compatibility with old cg/cmm style input:
   // this had <lj_type> <epsilon> <sigma>
@@ -254,7 +254,8 @@ void AngleSDK::coeff(int narg, char **arg)
   if (narg == 6) {
     repscale_one = force->numeric(arg[4]);
     if (repscale_one > 0.0) repscale_one = 1.0;
-  } else if (narg == 3) repscale_one = force->numeric(arg[3]);
+  } else if (narg == 4) repscale_one = force->numeric(arg[3]);
+  else if (narg == 3) repscale_one = 1.0;
   else error->all(FLERR,"Incorrect args for angle coefficients");
 
   // convert theta0 from degrees to radians and store coefficients

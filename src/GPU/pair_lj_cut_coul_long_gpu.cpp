@@ -76,7 +76,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) : 
+PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
@@ -144,7 +144,7 @@ void PairLJCutCoulLongGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long/gpu requires atom attribute q");
   if (force->newton_pair) 
-    error->all(FLERR,"Cannot use newton pair with lj/cut/could/cut/gpu pair style");
+    error->all(FLERR,"Cannot use newton pair with lj/cut/coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

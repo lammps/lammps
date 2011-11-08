@@ -18,6 +18,7 @@
 #ifdef ANGLE_CLASS
 
 AngleStyle(sdk/omp,AngleSDKOMP)
+AngleStyle(cg/cmm/omp,AngleSDKOMP)
 
 #else
 

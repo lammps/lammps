@@ -47,7 +47,7 @@
 
 // External functions from cuda library for atom decomposition
 
-int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
+int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
 		  double **host_lj1, double **host_lj2, double **host_lj3,
 		  double **host_lj4, double **offset, double *special_lj,
 		  const int nlocal, const int nall, const int max_nbors,
@@ -79,7 +79,8 @@ using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) : PairLJSDKCoulLong(lmp), gpu_mode(GPU_FORCE)
+PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) :
+  PairLJSDKCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -165,6 +166,8 @@ void PairLJSDKCoulLongGPU::init_style()
     }
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;
+
+  cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 

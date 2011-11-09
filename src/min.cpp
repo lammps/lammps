@@ -57,7 +57,6 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
 
   elist_global = elist_atom = NULL;
   vlist_global = vlist_atom = NULL;
-  external_force_clear = 0;
 
   nextra_global = 0;
   fextra = NULL;

@@ -174,9 +174,9 @@ void Comm::set_procs()
   if (domain->triclinic) domain->set_lamda_box();
 
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
+    if (screen) fprintf(screen,"  %d by %d by %d MPI processor grid\n",
 			procgrid[0],procgrid[1],procgrid[2]);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
+    if (logfile) fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
 			 procgrid[0],procgrid[1],procgrid[2]);
   }
 }

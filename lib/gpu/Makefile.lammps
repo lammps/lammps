@@ -1,12 +1,11 @@
 # Settings that the LAMMPS build will import when this package library is used
-# settings for CUDA BUILDS
+# settings for Nvidia CUDA and OpenCL builds
 gpu_SYSINC =
 gpu_SYSLIB =  -lOpenCL -lcudart -lcuda
 gpu_SYSPATH = -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64
 
-# Settings for OpenCL BUILDS
+# Settings for generic OpenCL BUILDS
 #gpu_SYSINC =
 #gpu_SYSLIB = -lOpenCL
-#gpu_SYSPATH = -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64
-
+#gpu_SYSPATH = 
 

@@ -50,7 +50,6 @@ class PairGaussCut : public Pair {
   double **cut;
   double **hgauss,**sigmah,**rmh;
   double **pgauss,**offset;
-  double *cut_respa;
 
   void allocate();
 };

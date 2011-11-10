@@ -11,47 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(gauss/cut,PairGaussCut)
+PairStyle(gauss/cut/omp,PairGaussCutOMP)
 
 #else
 
-#ifndef LMP_PAIR_GAUSS_CUT_H
-#define LMP_PAIR_GAUSS_CUT_H
+#ifndef LMP_PAIR_GAUSS_CUT_OMP_H
+#define LMP_PAIR_GAUSS_CUT_OMP_H
 
-#include "pair.h"
+#include "pair_gauss_cut.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairGaussCut : public Pair {
+class PairGaussCutOMP : public PairGaussCut, public ThrOMP {
+
  public:
-  PairGaussCut(class LAMMPS *);
-  ~PairGaussCut();
+  PairGaussCutOMP(class LAMMPS *);
 
   virtual void compute(int, int);
-
-  virtual double single(int, int, int, int, double, double, double, double &);
-
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-
-  virtual double init_one(int, int);
-
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-
   virtual double memory_usage();
 
- protected:
-  double cut_global;
-  double **cut;
-  double **hgauss,**sigmah,**rmh;
-  double **pgauss,**offset;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

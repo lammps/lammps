@@ -731,52 +731,50 @@ void FixAveHisto::end_of_step()
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
 
-  if (ntimestep >= startstep) {
-    if (ave == ONE) {
-      stats_total[0] = stats[0];
-      stats_total[1] = stats[1];
-      stats_total[2] = stats[2];
-      stats_total[3] = stats[3];
-      for (i = 0; i < nbins; i++) bin_total[i] = bin[i];
-
-    } else if (ave == RUNNING) {
-      stats_total[0] += stats[0];
-      stats_total[1] += stats[1];
-      stats_total[2] = MIN(stats_total[2],stats[2]);
-      stats_total[3] = MAX(stats_total[3],stats[3]);
-      for (i = 0; i < nbins; i++) bin_total[i] += bin[i];
-      
-    } else if (ave == WINDOW) {
-      stats_total[0] += stats[0];
-      if (window_limit) stats_total[0] -= stats_list[iwindow][0];
-      stats_list[iwindow][0] = stats[0];
-      stats_total[1] += stats[1];
-      if (window_limit) stats_total[1] -= stats_list[iwindow][1];
-      stats_list[iwindow][1] = stats[1];
-
-      if (window_limit) m = nwindow;
-      else m = iwindow+1;
-
-      stats_list[iwindow][2] = stats[2];
-      stats_total[2] = stats_list[0][2];
-      for (i = 1; i < m; i++) 
-	stats_total[2] = MIN(stats_total[2],stats_list[i][2]);
-      stats_list[iwindow][3] = stats[3];
-      stats_total[3] = stats_list[0][3];
-      for (i = 1; i < m; i++) 
-	stats_total[3] = MAX(stats_total[3],stats_list[i][3]);
-
-      for (i = 0; i < nbins; i++) {
-	bin_total[i] += bin[i];
-	if (window_limit) bin_total[i] -= bin_list[iwindow][i];
-	bin_list[iwindow][i] = bin[i];
-      }
-      
-      iwindow++;
-      if (iwindow == nwindow) {
-	iwindow = 0;
-	window_limit = 1;
-      }
+  if (ave == ONE) {
+    stats_total[0] = stats[0];
+    stats_total[1] = stats[1];
+    stats_total[2] = stats[2];
+    stats_total[3] = stats[3];
+    for (i = 0; i < nbins; i++) bin_total[i] = bin[i];
+    
+  } else if (ave == RUNNING) {
+    stats_total[0] += stats[0];
+    stats_total[1] += stats[1];
+    stats_total[2] = MIN(stats_total[2],stats[2]);
+    stats_total[3] = MAX(stats_total[3],stats[3]);
+    for (i = 0; i < nbins; i++) bin_total[i] += bin[i];
+    
+  } else if (ave == WINDOW) {
+    stats_total[0] += stats[0];
+    if (window_limit) stats_total[0] -= stats_list[iwindow][0];
+    stats_list[iwindow][0] = stats[0];
+    stats_total[1] += stats[1];
+    if (window_limit) stats_total[1] -= stats_list[iwindow][1];
+    stats_list[iwindow][1] = stats[1];
+    
+    if (window_limit) m = nwindow;
+    else m = iwindow+1;
+    
+    stats_list[iwindow][2] = stats[2];
+    stats_total[2] = stats_list[0][2];
+    for (i = 1; i < m; i++) 
+      stats_total[2] = MIN(stats_total[2],stats_list[i][2]);
+    stats_list[iwindow][3] = stats[3];
+    stats_total[3] = stats_list[0][3];
+    for (i = 1; i < m; i++) 
+      stats_total[3] = MAX(stats_total[3],stats_list[i][3]);
+    
+    for (i = 0; i < nbins; i++) {
+      bin_total[i] += bin[i];
+      if (window_limit) bin_total[i] -= bin_list[iwindow][i];
+      bin_list[iwindow][i] = bin[i];
+    }
+    
+    iwindow++;
+    if (iwindow == nwindow) {
+      iwindow = 0;
+      window_limit = 1;
     }
   }
 
@@ -979,11 +977,13 @@ void FixAveHisto::allocate_values(int n)
    calculate nvalid = next step on which end_of_step does something
    can be this timestep if multiple of nfreq and nrepeat = 1
    else backup from next multiple of nfreq
+   startstep is lower bound on nfreq multiple
 ------------------------------------------------------------------------- */
 
 bigint FixAveHisto::nextvalid()
 {
   bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  while (nvalid < startstep) nvalid += nfreq;
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

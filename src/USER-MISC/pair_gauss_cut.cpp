@@ -34,9 +34,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairGaussCut::PairGaussCut(LAMMPS *lmp) : Pair(lmp)
@@ -85,7 +82,7 @@ void PairGaussCut::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {

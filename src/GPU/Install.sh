@@ -70,7 +70,6 @@ if (test $1 = 1) then
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_expand_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
-  cp pair_lj_cut_tgpu.cpp ..
 
   cp fix_gpu.cpp ..
 
@@ -79,17 +78,10 @@ if (test $1 = 1) then
   cp pair_lj96_cut_gpu.h ..
   cp pair_lj_expand_gpu.h ..
   cp pair_lj_cut_coul_cut_gpu.h ..
-  cp pair_lj_cut_tgpu.h ..
   
   cp fix_gpu.h ..
   cp gpu_extra.h ..
 
-  cp pair_omp_gpu.cpp ..
-  cp pair_lj_cut_tgpu.cpp ..
-
-  cp pair_omp_gpu.h ..
-  cp pair_lj_cut_tgpu.h ..
-  
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then

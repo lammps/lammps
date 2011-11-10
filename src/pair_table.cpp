@@ -273,7 +273,8 @@ void PairTable::coeff(int narg, char **arg)
     rlo = tb->rlo;
     rhi = tb->rhi;
   }
-  if (tb->cut <= rlo || tb->cut > rhi) error->all(FLERR,"Invalid pair table cutoff");
+  if (tb->cut <= rlo || tb->cut > rhi)
+    error->all(FLERR,"Invalid pair table cutoff");
   if (rlo <= 0.0) error->all(FLERR,"Invalid pair table cutoff");
 
   // match = 1 if don't need to spline read-in tables

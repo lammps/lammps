@@ -31,6 +31,7 @@ class Angle;
 class Dihedral;
 class Improper;
 class KSpace;
+class Fix;
 
 class ThrOMP {
 
@@ -55,7 +56,7 @@ class ThrOMP {
 
   enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
 	THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
-	THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8};
+	THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8,THR_FIX=1<<9};
 
  protected:
   // extra ev_tally setup work for threaded styles

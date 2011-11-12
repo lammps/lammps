@@ -169,6 +169,7 @@ void FixOMP::init()
 {
   int check_hybrid;
   last_omp_style = NULL;
+  char *last_omp_name = NULL;
 
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
@@ -181,8 +182,10 @@ void FixOMP::init()
       check_hybrid=1;							\
     int len = strlen(force->name ## _style);				\
     char *suffix = force->name ## _style + len - 4;			\
-    if (strcmp(suffix,"/omp") == 0)					\
+    if (strcmp(suffix,"/omp") == 0) {					\
+      last_omp_name = force->name ## _style;				\
       last_omp_style = (void *) force->name;				\
+    }									\
   }
 
 #define CheckHybridForOMP(name,Class)					\
@@ -191,21 +194,28 @@ void FixOMP::init()
     for (int i=0; i < style->nstyles; i++) {				\
       int len = strlen(style->keywords[i]);				\
       char *suffix = style->keywords[i] + len - 4;			\
-      if (strcmp(suffix,"/omp") == 0)					\
-        last_omp_style = (void *) style;				\
+      if (strcmp(suffix,"/omp") == 0) {					\
+	last_omp_name = force->name ## _style;				\
+	last_omp_style = (void *) force->name;				\
+      }									\
     }									\
   }
 
   CheckStyleForOMP(pair);
   CheckHybridForOMP(pair,Pair);
+
   CheckStyleForOMP(bond);
   CheckHybridForOMP(bond,Bond);
+
   CheckStyleForOMP(angle);
   CheckHybridForOMP(angle,Angle);
+
   CheckStyleForOMP(dihedral);
   CheckHybridForOMP(dihedral,Dihedral);
+
   CheckStyleForOMP(improper);
   CheckHybridForOMP(improper,Improper);
+
   CheckStyleForOMP(kspace);
 
 #undef CheckStyleForOMP

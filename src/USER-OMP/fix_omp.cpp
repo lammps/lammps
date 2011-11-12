@@ -167,6 +167,9 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
+  if (strstr(update->integrate_style,"respa") != NULL)
+    error->all(FLERR,"Cannot use r-RESPA with /omp styles");
+
   int check_hybrid;
   last_omp_style = NULL;
   char *last_omp_name = NULL;

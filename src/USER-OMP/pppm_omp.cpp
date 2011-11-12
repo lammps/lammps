@@ -50,7 +50,6 @@ void PPPMOMP::allocate()
   PPPM::allocate();
 
   const int nthreads = comm->nthreads;
-  const int nzend = (nzhi_out-nzlo_out+1)*nthreads + nzlo_out -1;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -65,8 +64,10 @@ void PPPMOMP::allocate()
     FFT_SCALAR **rho1d_thr;
     memory->create2d_offset(rho1d_thr,3,-order/2,order/2,"pppm:rho1d_thr");
     ThrData *thr = fix->get_thr(tid);
-    thr->init_pppm(rho1d_thr);
+    thr->init_pppm(static_cast<void *>(rho1d_thr));
   }
+
+  const int nzend = (nzhi_out-nzlo_out+1)*nthreads + nzlo_out -1;
 
   // reallocate density brick, so it fits our needs
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
@@ -74,6 +75,7 @@ void PPPMOMP::allocate()
 			  nxlo_out,nxhi_out,"pppm:density_brick");
 }
 
+// NOTE: special version of reduce_data for FFT_SCALAR data type.
 // reduce per thread data into the first part of the data
 // array that is used for the non-threaded parts and reset
 // the temporary storage to 0.0. this routine depends on
@@ -115,9 +117,8 @@ void PPPMOMP::deallocate()
   PPPM::deallocate();
   for (int i=0; i < comm->nthreads; ++i) {
     ThrData * thr = fix->get_thr(i);
-    double ** rho1d_thr = static_cast<double **>(thr->get_rho1d());
+    FFT_SCALAR ** rho1d_thr = static_cast<FFT_SCALAR **>(thr->get_rho1d());
     memory->destroy2d_offset(rho1d_thr,-order/2);
-    rho1d_thr = NULL;
   }
 }
 
@@ -177,7 +178,7 @@ void PPPMOMP::make_rho()
     memset(&(db[nzlo_out][nylo_out][nxlo_out]),0,ngrid*sizeof(FFT_SCALAR));
 
     ThrData *thr = fix->get_thr(tid);
-    double * const * const r1d = static_cast<double **>(thr->get_rho1d());
+    FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     // loop over my charges, add their contribution to nearby grid points
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -219,7 +220,6 @@ void PPPMOMP::make_rho()
 #endif
 }
 
-
 /* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles 
 ------------------------------------------------------------------------- */
@@ -253,7 +253,7 @@ void PPPMOMP::fieldforce()
 #endif
     ThrData *thr = fix->get_thr(tid);
     double * const * const f = thr->get_f();
-    double * const * const r1d =  static_cast<double **>(thr->get_rho1d());
+    FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
     
     int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -298,12 +298,11 @@ void PPPMOMP::fieldforce()
 #endif
 }
 
-
 /* ----------------------------------------------------------------------
    charge assignment into rho1d
    dx,dy,dz = distance of particle from "lower left" grid point 
 ------------------------------------------------------------------------- */
-void PPPMOMP::compute_rho1d_thr(double * const * const r1d, const FFT_SCALAR &dx,
+void PPPMOMP::compute_rho1d_thr(FFT_SCALAR * const * const r1d, const FFT_SCALAR &dx,
 				const FFT_SCALAR &dy, const FFT_SCALAR &dz)
 {
   int k,l;

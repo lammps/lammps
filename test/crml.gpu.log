@@ -1,0 +1,103 @@
+LAMMPS (25 Oct 2011)
+  using 1 OpenMP thread(s) per MPI task
+package gpu force 0 0 1
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 10*$x
+variable	xx equal 10*1
+variable	yy equal 10*$y
+variable	yy equal 10*1
+variable	zz equal 10*$z
+variable	zz equal 10*1
+
+units		lj
+atom_style	charge
+newton      off
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 10 0 ${yy} 0 ${zz}
+region		box block 0 10 0 10 0 ${zz}
+region		box block 0 10 0 10 0 10
+region    half block 0 ${xx} 0 ${yy} 0 4.5
+region    half block 0 10 0 ${yy} 0 4.5
+region    half block 0 10 0 10 0 4.5
+create_box	2 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 1 by 3 processor grid
+create_atoms	1 box
+Created 4000 atoms
+group     ga region box 
+4000 atoms in group ga
+group     gp region half
+2000 atoms in group gp
+group     gn subtract ga gp
+2000 atoms in group gn
+set group gp charge 0.5
+  2000 settings made for charge
+set group gn charge -0.5
+  2000 settings made for charge
+set group gn type 2
+  2000 settings made for type
+
+mass		1 1.0
+mass            2 1.1
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style  lj/charmm/coul/long/gpu 3 5
+pair_coeff	1 1 1.0 1.0
+pair_coeff      2 2 0.8 0.85
+kspace_style    pppm 1e-4
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep 0.003
+thermo   100
+thermo_style custom step temp evdwl ecoul epair etotal press
+
+run		400
+PPPM initialization ...
+  G vector = 0.58028
+  grid = 24 24 24
+  stencil order = 5
+  RMS precision = 4.53695e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 10933 4608 7569
+Memory usage per processor = 8.83334 Mbytes
+Step Temp E_vdwl E_coul E_pair TotEng Press 
+       0         1.44   -4.8899636   0.59246617    2.6419485    4.8014085   -2.1553006 
+     100    1.5653158   -3.9971061   0.53227236    2.4535605    4.8009473    4.4827929 
+     200    1.9120684   -3.6115323    0.5024865     1.932934    4.8003196     7.531849 
+     300    2.0762334   -3.6068436   0.48634631    1.6868846    4.8004561    7.7874615 
+     400    2.1645346   -3.5670297   0.45603604    1.5544424    4.8004326    7.6602168 
+Loop time of 1.82223 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+
+Pair  time (%) = 0.0998038 (5.47701)
+Kspce time (%) = 1.02758 (56.3914)
+Neigh time (%) = 0.612222 (33.5974)
+Comm  time (%) = 0.0701782 (3.85122)
+Outpt time (%) = 0.000178337 (0.00978674)
+Other time (%) = 0.0122681 (0.673244)
+
+FFT time (% of Kspce) = 0.392901 (38.2355)
+FFT Gflps 3d (1d only) = 2.68363 4.52012
+
+Nlocal:    1333.33 ave 1515 max 1240 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Nghost:    8970.67 ave 9172 max 8653 min
+Histogram: 1 0 0 0 0 0 0 0 1 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 705820 ave 803574 max 641532 min
+Histogram: 1 1 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 2117460
+Ave neighs/atom = 529.365
+Neighbor list builds = 20
+Dangerous builds = 0

@@ -1,0 +1,69 @@
+LAMMPS (25 Oct 2011)
+  using 1 OpenMP thread(s) per MPI task
+package gpu force 0 0 -1
+units		lj
+atom_style	molecular
+newton      off
+
+pair_style  lj/cut/gpu 2.5
+bond_style harmonic
+
+read_data lj_bonds.data
+  3 = max bonds/atom
+  orthogonal box = (0 0 0) to (8.39798 8.39798 8.39798)
+  1 by 1 by 3 processor grid
+  500 atoms
+  500 velocities
+  419 bonds
+  3 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  14 = max # of 1-4 neighbors
+  17 = max # of special neighbors
+
+pair_coeff	1 1 1.0 1.0 2.5
+bond_coeff 1 80.0 1.2
+special_bonds lj 0.2 0.5 0.9
+  3 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  14 = max # of 1-4 neighbors
+  17 = max # of special neighbors
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep 0.003
+thermo   100
+run 400
+Memory usage per processor = 5.26715 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    1.3466461    -5.109478    1.0635883   -2.0299605    1.1359108 
+     100    1.4593305   -4.7587435   0.54533964    -2.028786    2.4513119 
+     200    1.4771563   -4.7655367   0.52660343   -2.0276304    2.4342747 
+     300    1.4210979   -4.6501365   0.49187375   -2.0308791    2.9192247 
+     400    1.4183235   -4.7191522   0.56623001   -2.0296919     2.812619 
+Loop time of 0.161233 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 500 atoms
+
+Pair  time (%) = 0.103294 (64.0653)
+Bond  time (%) = 0.00304683 (1.88971)
+Neigh time (%) = 0.0209943 (13.0211)
+Comm  time (%) = 0.0321368 (19.9319)
+Outpt time (%) = 0.000200192 (0.124163)
+Other time (%) = 0.00156037 (0.967775)
+
+Nlocal:    166.667 ave 180 max 156 min
+Histogram: 1 0 0 1 0 0 0 0 0 1
+Nghost:    1261.33 ave 1272 max 1248 min
+Histogram: 1 0 0 0 0 0 1 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 12519.3 ave 13659 max 11803 min
+Histogram: 1 1 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 37558
+Ave neighs/atom = 75.116
+Ave special neighs/atom = 5.732
+Neighbor list builds = 20
+Dangerous builds = 0
+

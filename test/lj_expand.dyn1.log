@@ -1,0 +1,71 @@
+LAMMPS (25 Oct 2011)
+  using 1 OpenMP thread(s) per MPI task
+package gpu force 0 0 -1 threads_per_atom 1
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 10*$x
+variable	xx equal 10*1
+variable	yy equal 10*$y
+variable	yy equal 10*1
+variable	zz equal 10*$z
+variable	zz equal 10*1
+
+units		lj
+atom_style	atomic
+newton      off
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 10 0 ${yy} 0 ${zz}
+region		box block 0 10 0 10 0 ${zz}
+region		box block 0 10 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 1 by 3 processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style  lj/expand/gpu 2.5
+pair_coeff	1 1 1.0 1.0 0.1 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep 0.003
+thermo   100
+run		400
+Memory usage per processor = 3.44443 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -7.4738515            0   -5.3143915    3.8049824 
+     100   0.74137345   -6.4690953            0   -5.3573132    8.1807293 
+     200   0.74251755    -6.470579            0   -5.3570811    8.1819108 
+     300   0.74457336   -6.4733971            0   -5.3568163    8.1713901 
+     400   0.74303904   -6.4707299            0   -5.3564499    8.1816533 
+Loop time of 0.446379 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+
+Pair  time (%) = 0.210223 (47.0952)
+Neigh time (%) = 0.122237 (27.384)
+Comm  time (%) = 0.102081 (22.8686)
+Outpt time (%) = 0.00101717 (0.227872)
+Other time (%) = 0.0108213 (2.42423)
+
+Nlocal:    1333.33 ave 1400 max 1297 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Nghost:    3641.67 ave 3793 max 3339 min
+Histogram: 1 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 108747 ave 114297 max 105677 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 326240
+Ave neighs/atom = 81.56
+Neighbor list builds = 20
+Dangerous builds = 0

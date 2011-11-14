@@ -1444,7 +1444,7 @@ void Comm::numa_set_procs()
   int procs_per_numa = procs_per_node / numa_nodes;
   
   // Use regular mapping if:
-/*  
+  
   if (procs_per_numa < 3 ||               // 2 or less procs per numa node
       procs_per_node % numa_nodes != 0 || // Different # of procs per numa node
       nprocs % procs_per_numa != 0 ||     // Different # of procs per numa node
@@ -1457,7 +1457,7 @@ void Comm::numa_set_procs()
     set_procs();
     return;
   }
-*/
+
   // User settings for the factorization per numa node - currently always zero
   int user_numagrid[3];
   user_numagrid[0] = user_numagrid[1] = user_numagrid[2] = 0;

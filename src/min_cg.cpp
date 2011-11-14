@@ -48,7 +48,7 @@ int MinCG::iterate(int maxiter)
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
 
-  int nlimit = MIN<bigint>(MAXSMALLINT,ndoftotal);
+  int nlimit = MIN(MAXSMALLINT,ndoftotal);
 
   // initialize working vectors
 

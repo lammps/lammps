@@ -40,6 +40,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_msm.o $(OBJ_DIR)/lal_cg_cmm_msm_ext.o \
+       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
        $(CUDPP)
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
@@ -63,7 +64,8 @@ PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h \
        $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
        $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h \
-       $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h
+       $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h \
+       $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam_ptx.h 
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -336,6 +338,18 @@ $(OBJ_DIR)/lal_cg_cmm_msm.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm.cpp $(OBJ_
 
 $(OBJ_DIR)/lal_cg_cmm_msm_ext.o: $(ALL_H) lal_cg_cmm_msm.h lal_cg_cmm_msm_ext.cpp lal_base_charge.h
 	$(CUDR) -o $@ -c lal_cg_cmm_msm_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/eam.ptx: lal_eam.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_eam.cu
+  
+$(OBJ_DIR)/eam_ptx.h: $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam.ptx
+	$(BSH) ./geryon/file_to_cstr.sh eam $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam_ptx.h
+    
+$(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp $(OBJ_DIR)/eam_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_eam.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_eam_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 

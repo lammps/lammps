@@ -1,0 +1,35 @@
+
+run             100
+Memory usage per processor = 10.5238 Mbytes
+Step PotEng TotEng Temp 
+       0   -44795.248   -41770.367         1500 
+      10   -44801.675   -41770.368    1503.1865 
+      20   -44822.255   -41770.377    1513.3872 
+      30   -44835.799    -41770.38    1520.1021 
+      40   -44835.718   -41770.373    1520.0653 
+      50   -44842.833   -41770.376    1523.5921 
+      60   -44867.539   -41770.387    1535.8379 
+      70   -44900.613   -41770.385    1552.2404 
+      80   -44935.632   -41770.385    1569.6056 
+      90   -44971.473   -41770.403    1587.3697 
+     100   -45003.993   -41770.405    1603.4949 
+Loop time of 2.79958 on 1 procs for 100 steps with 15602 atoms
+
+Pair  time (%) = 2.76078 (98.6141)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000117064 (0.00418147)
+Outpt time (%) = 0.00108886 (0.0388936)
+Other time (%) = 0.0375938 (1.34284)
+
+Nlocal:    15602 ave 15602 max 15602 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.17878e+06 ave 1.17878e+06 max 1.17878e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1178775
+Ave neighs/atom = 75.5528
+Neighbor list builds = 0
+Dangerous builds = 0
+

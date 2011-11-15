@@ -66,6 +66,8 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   extra_peratom = extra_nlen = NULL;
   extra_max = NULL;
   requestor = NULL;
+
+  external_force_clear = 0;
 }
 
 /* ---------------------------------------------------------------------- */

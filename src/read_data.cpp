@@ -660,7 +660,7 @@ void ReadData::bonds()
   bigint nbonds = atom->nbonds;
 
   while (nread < nbonds) {
-    nchunk = MIN<bigint>(nbonds-nread,CHUNK);
+    nchunk = MIN(nbonds-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -706,7 +706,7 @@ void ReadData::angles()
   bigint nangles = atom->nangles;
 
   while (nread < nangles) {
-    nchunk = MIN<bigint>(nangles-nread,CHUNK);
+    nchunk = MIN(nangles-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -752,7 +752,7 @@ void ReadData::dihedrals()
   bigint ndihedrals = atom->ndihedrals;
 
   while (nread < ndihedrals) {
-    nchunk = MIN<bigint>(ndihedrals-nread,CHUNK);
+    nchunk = MIN(ndihedrals-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;
@@ -798,7 +798,7 @@ void ReadData::impropers()
   bigint nimpropers = atom->nimpropers;
 
   while (nread < nimpropers) {
-    nchunk = MIN<bigint>(nimpropers-nread,CHUNK);
+    nchunk = MIN(nimpropers-nread,CHUNK);
     if (me == 0) {
       char *eof;
       m = 0;

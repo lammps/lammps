@@ -283,6 +283,10 @@ typedef struct _double4 double4;
 #define ucl_ceil ceil
 #define ucl_abs fabs
 
+#ifdef _DOUBLE_DOUBLE
+#define NO_HARDWARE_TRANSCENDENTALS
+#endif
+
 #ifdef NO_HARDWARE_TRANSCENDENTALS
 
 #define ucl_exp exp

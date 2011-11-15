@@ -1,35 +1,37 @@
 
 run             100
-Memory usage per processor = 10.5238 Mbytes
+Memory usage per processor = 5.42156 Mbytes
 Step PotEng TotEng Temp 
-       0   -44795.248   -41770.367         1500 
-      10   -44801.675   -41770.368    1503.1865 
-      20   -44822.255   -41770.377    1513.3872 
-      30   -44835.799    -41770.38    1520.1021 
-      40   -44835.718   -41770.373    1520.0653 
-      50   -44842.833   -41770.376    1523.5921 
-      60   -44867.539   -41770.387    1535.8379 
-      70   -44900.613   -41770.385    1552.2404 
-      80   -44935.632   -41770.385    1569.6056 
-      90   -44971.473   -41770.403    1587.3697 
-     100   -45003.993   -41770.405    1603.4949 
-Loop time of 2.79958 on 1 procs for 100 steps with 15602 atoms
+       0   -44795.244   -41770.363         1500 
+      10   -44801.675   -41770.368    1503.1866 
+      20    -44822.26   -41770.382    1513.3873 
+      30   -44835.808    -41770.39    1520.1019 
+      40   -44835.722   -41770.378    1520.0649 
+      50    -44842.83   -41770.375    1523.5915 
+      60   -44867.538   -41770.387    1535.8373 
+      70   -44900.625   -41770.397    1552.2399 
+      80   -44935.647   -41770.401    1569.6051 
+      90   -44971.476   -41770.407     1587.369 
+     100   -45003.993   -41770.407     1603.494 
+Loop time of 2.06346 on 12 procs (3 MPI x 4 OpenMP) for 100 steps with 15602 atoms
 
-Pair  time (%) = 2.76078 (98.6141)
-Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000117064 (0.00418147)
-Outpt time (%) = 0.00108886 (0.0388936)
-Other time (%) = 0.0375938 (1.34284)
+Pair  time (%) = 1.88483 (91.3432)
+Neigh time (%) = 0.102419 (4.96347)
+Comm  time (%) = 0.0412393 (1.99855)
+Outpt time (%) = 0.0151782 (0.735569)
+Other time (%) = 0.0197936 (0.959241)
 
-Nlocal:    15602 ave 15602 max 15602 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    0 ave 0 max 0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.17878e+06 ave 1.17878e+06 max 1.17878e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    5200.67 ave 8353 max 3620 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Nghost:    587 ave 921 max 412 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 789515 ave 1.26788e+06 max 549194 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 1178775
-Ave neighs/atom = 75.5528
-Neighbor list builds = 0
+Total # of neighbors = 2368546
+Ave neighs/atom = 151.81
+Neighbor list builds = 5
 Dangerous builds = 0
 

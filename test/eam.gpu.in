@@ -2,7 +2,7 @@
 
 newton off
 
-package gpu force/neigh 0 0 1.0
+package gpu force 0 0 1.0
 
 units           metal
 boundary        p p p
@@ -24,7 +24,7 @@ velocity	particles create 1500 102932
 fix  1		particles nve
 
 neighbor        5.0 bin
-neigh_modify    delay 10
+neigh_modify    delay 0 every 20 check no
 
 thermo          10
 

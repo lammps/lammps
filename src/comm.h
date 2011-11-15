@@ -16,6 +16,10 @@
 
 #include "pointers.h"
 
+#ifdef NODE_PARTITION
+#define NUMA_NODES 1
+#endif
+
 namespace LAMMPS_NS {
 
 class Comm : protected Pointers {

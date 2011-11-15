@@ -1405,7 +1405,9 @@ bigint Comm::memory_usage()
 /* ----------------------------------------------------------------------
    Get the index to the neighboring processors in a dimension
 ------------------------------------------------------------------------- */
-void Comm::numa_shift(int myloc, int num_procs, int &minus, int &plus) {
+
+void Comm::numa_shift(int myloc, int num_procs, int &minus, int &plus) 
+{
   minus = myloc - 1;
   if (minus < 0)
     minus = num_procs - 1;
@@ -1445,64 +1447,55 @@ void Comm::numa_set_procs()
   
   // Use regular mapping if:
   
-  if (procs_per_numa < 3 ||               // 2 or less procs per numa node
+  if (procs_per_numa < 4 ||               // 3 or less procs per numa node
       procs_per_node % numa_nodes != 0 || // Different # of procs per numa node
       nprocs % procs_per_numa != 0 ||     // Different # of procs per numa node
-      nprocs <= procs_per_numa) {         // Only 1 numa node used
+      nprocs <= procs_per_numa ||         // Only 1 numa node used
+      user_procgrid[0] > 1 ||             // User specified grid dimension
+      user_procgrid[1] > 1 ||             //    that is greater than 1
+      user_procgrid[2] > 1) {             //    in any dimension
     numa_nodes = 0;
     if (me == 0) {
-      if (screen) fprintf(screen,"  1 by 1 by 1 NUMA grid\n");
-      if (logfile) fprintf(logfile,"  1 by 1 by 1 NUMA grid\n");
+      if (screen) fprintf(screen,"  1 by 1 by 1 Node grid\n");
+      if (logfile) fprintf(logfile,"  1 by 1 by 1 Node grid\n");
     }
     set_procs();
     return;
   }
-
+  
   // User settings for the factorization per numa node - currently always zero
   int user_numagrid[3];
   user_numagrid[0] = user_numagrid[1] = user_numagrid[2] = 0;
-
+  
+  // If the 1 is specified by user for a proc grid dimension, also use
+  // 1 for the node grid dimension
+  if (user_procgrid[0] == 1) user_numagrid[0] = 1;
+  if (user_procgrid[1] == 1) user_numagrid[1] = 1;
+  if (user_procgrid[2] == 1) user_numagrid[2] = 1;
+  
   // Get an initial factorization for each numa node if the user has not
   // set the number of processors
   int numagrid[3];
   numa_factor_box(procs_per_numa,user_numagrid,numagrid,1,1,1);
-  if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
-    error->all(FLERR,"Bad NUMA grid of processors");
-
-if (me == 0) {
-  if (screen) fprintf(screen,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
-  if (logfile) fprintf(logfile,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
-}
-
+  if (numagrid[0] * numagrid[1] * numagrid[2] != procs_per_numa)
+    error->all(FLERR,"Bad Node grid of processors");
+  
   // Get a factorization for the grid of numa nodes
   int node_count = nprocs / procs_per_numa;
   numa_factor_box(node_count,user_procgrid,procgrid,numagrid[0],numagrid[1],
                   numagrid[2]);
-  if (procgrid[0]*procgrid[1]*procgrid[2] != node_count)
+  if (procgrid[0] * procgrid[1] * procgrid[2] != node_count)
     error->all(FLERR,"Bad grid of processors");
-    
-if (me == 0) {
-if (screen) fprintf(screen,"  %d by %d by %d node grid\n",
-  procgrid[0],procgrid[1],procgrid[2]);
-if (logfile) fprintf(logfile,"  %d by %d by %d node grid\n",
-	 procgrid[0],procgrid[1],procgrid[2]);
-}
-
+  
   // Repeat the numa node factorization using the subdomain sizes
   // This will refine the factorization if the user specified the node layout
-  numa_factor_box(procs_per_numa,user_numagrid,numagrid,procgrid[0],procgrid[1],
-                  procgrid[2]);
+  numa_factor_box(procs_per_numa,user_numagrid,numagrid,procgrid[0],
+		  procgrid[1],procgrid[2]);
   if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
-    error->all(FLERR,"Bad NUMA grid of processors");
+    error->all(FLERR,"Bad Node grid of processors");
   if (domain->dimension == 2 && (procgrid[2] != 1 || numagrid[2] != 1))
     error->all(FLERR,"Processor count in z must be 1 for 2d simulation");
-
-if (me == 0) {
-  if (screen) fprintf(screen,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
-  if (logfile) fprintf(logfile,"DEBUG  %d by %d by %d process grid per node\n",numagrid[0],numagrid[1],numagrid[2]);
-fflush(screen);
-}
-
+  
   // Assign a unique id to each node
   int node_num = 0, node_id = 0;
   for (np = name_map.begin(); np != name_map.end(); ++np) {
@@ -1510,13 +1503,12 @@ fflush(screen);
       node_id = node_num;
     node_num++;
   }
-//std::cerr << "LOC1\n";  
+  
   // Set up a per node communicator and find rank within
   MPI_Comm node_comm;
-  MPI_Comm_split(world, node_num, 0, &node_comm);  
+  MPI_Comm_split(world, node_id, 0, &node_comm);  
   int node_rank;
   MPI_Comm_rank(node_comm, &node_rank);
-//std::cerr << "LOC2\n";  
   
   // Set up a per numa communicator and find rank within
   MPI_Comm numa_comm;
@@ -1524,13 +1516,11 @@ fflush(screen);
   MPI_Comm_split(node_comm, local_numa, 0, &numa_comm);     
   int numa_rank;
   MPI_Comm_rank(numa_comm, &numa_rank);
-//std::cerr << "LOC3\n";  
   
   // Set up a communicator with the rank 0 procs from each numa node
   MPI_Comm numa_leaders;
   MPI_Comm_split(world, numa_rank, 0, &numa_leaders);
-//std::cerr << "LOC4\n";  
-
+  
   // Use the MPI Cartesian routines to map the nodes to the grid
   int reorder = 0;
   int periods[3];
@@ -1540,16 +1530,14 @@ fflush(screen);
     MPI_Cart_create(numa_leaders,3,procgrid,periods,reorder,&cartesian);
     MPI_Cart_get(cartesian,3,procgrid,periods,myloc);
   }
-//std::cerr << "LOC5\n";  
   
   // Broadcast numa node location in grid to other procs in numa node
   MPI_Bcast(myloc,3,MPI_INT,0,numa_comm);
-
+  
   // Get storage for the process mapping
   if (grid2proc) memory->destroy(grid2proc);
   memory->create(grid2proc,procgrid[0]*numagrid[0],procgrid[1]*numagrid[1],
                  procgrid[2]*numagrid[2],"comm:grid2proc");
-//std::cerr << "LOC6\n";  
   
   // Compute my location within the grid
   int z_offset = numa_rank / (numagrid[0] * numagrid[1]);
@@ -1561,8 +1549,7 @@ fflush(screen);
   procgrid[0] *= numagrid[0];
   procgrid[1] *= numagrid[1];
   procgrid[2] *= numagrid[2];
-//std::cerr << "LOC7\n";  
-
+  
   // Allgather of locations to fill grid2proc
   int **gridi;
   memory->create(gridi,nprocs,3,"comm:gridi");
@@ -1570,7 +1557,6 @@ fflush(screen);
   for (int i = 0; i < nprocs; i++)
     grid2proc[gridi[i][0]][gridi[i][1]][gridi[i][2]] = i;
   memory->destroy(gridi);
-//std::cerr << "LOC8\n";  
   
   // Get my neighbors
   int minus, plus;
@@ -1585,40 +1571,20 @@ fflush(screen);
   procneigh[1][1] = grid2proc[myloc[0]][procneigh[1][1]][myloc[2]];
   procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][procneigh[2][0]];
   procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][procneigh[2][1]];
-//std::cerr << "LOC9\n";  
-
+  
   if (numa_rank == 0)
     MPI_Comm_free(&cartesian);
   MPI_Comm_free(&numa_leaders);
   MPI_Comm_free(&numa_comm);
   MPI_Comm_free(&node_comm);
-
-// Check for correctness
-if (me == 0)
-fprintf(screen,"TESTING CORRECTNESS...");
-std::map<int,int> loc_map;
-std::map<int,int>::iterator ni;
-for (int i = 0; i < procgrid[0]; i++) {
-  for (int j = 0; j < procgrid[1]; j++) {
-    for (int k = 0; k < procgrid[2]; k++) {
-      ni = loc_map.find(grid2proc[i][j][k]);
-      if (ni == loc_map.end())
-        loc_map[grid2proc[i][j][k]] = 1;
-      else
-        error->one(FLERR,"DUPLICATE PROC LOC");
-    }
-  }
-}
-if (me == 0)
-fprintf(screen,"DONE.\n");
-
+  
   // set lamda box params after procs are assigned
   if (domain->triclinic) domain->set_lamda_box();
-
+  
   if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d NUMA grid\n",
+    if (screen) fprintf(screen,"  %d by %d by %d Node grid\n",
 			numagrid[0],numagrid[1],numagrid[2]);
-    if (logfile) fprintf(logfile,"  %d by %d by %d NUMA grid\n",
+    if (logfile) fprintf(logfile,"  %d by %d by %d Node grid\n",
 			 numagrid[0],numagrid[1],numagrid[2]);
     if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
 			procgrid[0],procgrid[1],procgrid[2]);
@@ -1631,9 +1597,9 @@ fprintf(screen,"DONE.\n");
    factor num_procs to 3d box to minimize the surface area
    user_factors = if non-zero, dimension specified by user
    factors      = resulting # procs in each dimension
-   sx           = box x dimension is divided by sx (not used for triclinic)
-   sy           = box y dimension is divided by sy (not used for triclinic)
-   sz           = box z dimension is divided by sz (not used for triclinic)
+   sx           = box x dimension is divided by sx
+   sy           = box y dimension is divided by sy
+   sz           = box z dimension is divided by sz
    area = surface area of each of 3 faces of simulation box
    for triclinic, area = cross product of 2 edge vectors stored in h matrix
 ------------------------------------------------------------------------- */
@@ -1673,11 +1639,11 @@ void Comm::numa_factor_box(int num_procs, int user_factors[3], int factors[3],
     double *h = domain->h;
     double x,y,z;
     cross(h[0],0.0,0.0,h[5],h[1],0.0,x,y,z);
-    area[0] = sqrt(x*x + y*y + z*z);
+    area[0] = sqrt(x*x + y*y + z*z) / (sx * sy);
     cross(h[0],0.0,0.0,h[4],h[3],h[2],x,y,z);
-    area[1] = sqrt(x*x + y*y + z*z);
+    area[1] = sqrt(x*x + y*y + z*z) / (sx * sz);
     cross(h[5],h[1],0.0,h[4],h[3],h[2],x,y,z);
-    area[2] = sqrt(x*x + y*y + z*z);
+    area[2] = sqrt(x*x + y*y + z*z) / (sy * sz);
   }
 
   double bestsurf = 2.0 * (area[0]+area[1]+area[2]);

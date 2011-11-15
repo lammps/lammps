@@ -74,27 +74,19 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   _nrhor=nrhor;
   _nz2r=nz2r;
   _nr=nr;
- 
-  UCL_H_Vec<numtyp2> dview_type(lj_types*lj_types,*(this->ucl_device),
+  
+  UCL_H_Vec<numtyp> dview_type(lj_types*lj_types*2,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
   
-  for (int i=0; i<lj_types*lj_types; i++) {
-    dview_type[i].x=(numtyp)0.0; 
-    dview_type[i].y=(numtyp)0.0; 
-  }
+  for (int i=0; i<lj_types*lj_types*2; i++)
+    dview_type[i]=(numtyp)0.0; 
                                 
   // pack type2rhor and type2z2r
   type2rhor_z2r.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   
-  for (int ix=0; ix<ntypes; ix++)
-    for (int iy=0; iy<ntypes; iy++) {
-      dview_type[ix*lj_types+iy].x = host_type2rhor[ix][iy];
-      dview_type[ix*lj_types+iy].y = host_type2z2r[ix][iy];
-  }
-  
-  ucl_copy(type2rhor_z2r,dview_type,false);
-  
-
+  this->atom->type_pack2(ntypes,lj_types,type2rhor_z2r,dview_type,
+                        host_type2rhor,
+                        host_type2z2r);
 
   // pack rhor_spline
   UCL_H_Vec<numtyp> dview_rhor_spline(nrhor*(nr+1)*7,*(this->ucl_device),

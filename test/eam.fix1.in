@@ -2,7 +2,7 @@
 
 newton off
 
-package gpu force 0 0 1
+package gpu force 0 0 0.8 threads_per_atom 1
 
 units           metal
 boundary        p p p

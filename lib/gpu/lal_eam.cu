@@ -227,7 +227,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         numtyp z2p = (coeff0*p + coeff1)*p + coeff2;
         numtyp z2 = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
 
-        numtyp recip = 1.0/r;
+        numtyp recip = (numtyp)1.0/r;
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
         numtyp psip = ifp*rhojp + jfp*rhoip + phip;

@@ -67,6 +67,22 @@
 
 #ifdef NV_KERNEL
 
+#define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
+#define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
+#define GLOBAL_SIZE_X mul24(gridDim.x,blockDim.x);
+#define GLOBAL_SIZE_Y mul24(gridDim.y,blockDim.y);
+#define THREAD_ID_X threadIdx.x
+#define THREAD_ID_Y threadIdx.y
+#define BLOCK_ID_X blockIdx.x
+#define BLOCK_ID_Y blockIdx.y
+#define BLOCK_SIZE_X blockDim.x
+#define BLOCK_SIZE_Y blockDim.y
+#define __kernel extern "C" __global__
+#define __local __shared__
+#define __global  
+#define atom_add atomicAdd
+#define ucl_inline static __inline__ __device__ 
+
 #ifdef __CUDA_ARCH__
 #define ARCH __CUDA_ARCH__
 #else
@@ -120,24 +136,7 @@ struct __builtin_align__(16) _double4
 typedef struct _double4 double4;
 #endif
 
-#define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
-#define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
-#define GLOBAL_SIZE_X mul24(gridDim.x,blockDim.x);
-#define GLOBAL_SIZE_Y mul24(gridDim.y,blockDim.y);
-#define THREAD_ID_X threadIdx.x
-#define THREAD_ID_Y threadIdx.y
-#define BLOCK_ID_X blockIdx.x
-#define BLOCK_ID_Y blockIdx.y
-#define BLOCK_SIZE_X blockDim.x
-#define BLOCK_SIZE_Y blockDim.y
-#define __kernel extern "C" __global__
-#define __local __shared__
-#define __global  
-#define atom_add atomicAdd
-#define ucl_inline static __inline__ __device__ 
-
-
-#ifndef _DOUBLE_DOUBLE
+#ifdef _DOUBLE_DOUBLE
 
 #define ucl_exp exp
 #define ucl_powr pow

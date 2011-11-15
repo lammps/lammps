@@ -11,35 +11,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 
-FixStyle(wall/reflect,FixWallReflect)
+PairStyle(lubricate/poly,PairLubricatePoly)
 
 #else
 
-#ifndef LMP_FIX_WALL_REFLECT_H
-#define LMP_FIX_WALL_REFLECT_H
+#ifndef LMP_PAIR_LUBRICATE_POLY_H
+#define LMP_PAIR_LUBRICATE_POLY_H
 
-#include "fix.h"
+#include "pair_lubricate.h"
 
 namespace LAMMPS_NS {
 
-class FixWallReflect : public Fix {
+class PairLubricatePoly : public PairLubricate {
  public:
-  FixWallReflect(class LAMMPS *, int, char **);
-  virtual ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
-
- protected:
-  int nwall;
-  int wallwhich[6],wallstyle[6];
-  double coord0[6];
-  char *varstr[6];
-  int varindex[6];
-  int varflag;
-  double xscale,yscale,zscale;
+  PairLubricatePoly(class LAMMPS *);
+  ~PairLubricatePoly() {}
+  void compute(int, int);
+  void init_style();
 };
 
 }

@@ -88,9 +88,10 @@ box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
-to define a wall position, but only when a numeric constant is used.
-It is not relevant when EDGE or a variable is used to specify a face
-position.
+to define a wall position, but only when a numeric constant or
+variable is used.  It is not relevant when EDGE is used to specify a
+face position.  In the variable case, the variable is assumed to
+produce a value compatible with the <I>units</I> setting you specify.
 </P>
 <P>A <I>box</I> value selects standard distance units as defined by the
 <A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.

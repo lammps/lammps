@@ -32,7 +32,5 @@ thermo_style    custom step pe etotal temp
 
 timestep        0.001
 
-log		eam.gpu.log
-
 run             100
 

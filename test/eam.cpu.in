@@ -28,6 +28,4 @@ thermo_style    custom step pe etotal temp
 
 timestep        0.001
 
-log		eam.cpu.log
-
 run             100

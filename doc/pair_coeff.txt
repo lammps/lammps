@@ -94,6 +94,7 @@ the pair_style command, and coefficients specified by the associated
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
+"pair_style comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "pair_style coul/cut"_pair_coul.html - cutoff Coulombic potential
 "pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential

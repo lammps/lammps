@@ -593,32 +593,30 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
 
-  if (ntimestep >= startstep) {
-    if (ave == ONE) {
-      for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
-      norm = 1;
-
-    } else if (ave == RUNNING) {
-      for (i = 0; i < nvalues; i++) vector_total[i] += vector[i];
-      norm++;
-      
-    } else if (ave == WINDOW) {
-      for (i = 0; i < nvalues; i++) {
-	vector_total[i] += vector[i];
-	if (window_limit) vector_total[i] -= vector_list[iwindow][i];
-	vector_list[iwindow][i] = vector[i];
-      }
-      
-      iwindow++;
-      if (iwindow == nwindow) {
-	iwindow = 0;
-	window_limit = 1;
-      }
-      if (window_limit) norm = nwindow;
-      else norm = iwindow;
+  if (ave == ONE) {
+    for (i = 0; i < nvalues; i++) vector_total[i] = vector[i];
+    norm = 1;
+    
+  } else if (ave == RUNNING) {
+    for (i = 0; i < nvalues; i++) vector_total[i] += vector[i];
+    norm++;
+    
+  } else if (ave == WINDOW) {
+    for (i = 0; i < nvalues; i++) {
+      vector_total[i] += vector[i];
+      if (window_limit) vector_total[i] -= vector_list[iwindow][i];
+      vector_list[iwindow][i] = vector[i];
     }
+    
+    iwindow++;
+    if (iwindow == nwindow) {
+      iwindow = 0;
+      window_limit = 1;
+    }
+    if (window_limit) norm = nwindow;
+    else norm = iwindow;
   }
-
+  
   // insure any columns with offcol set are effectively set to last value
 
   for (i = 0; i < nvalues; i++)
@@ -729,33 +727,31 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // if ave = RUNNING, combine with all previous Nfreq timestep values
   // if ave = WINDOW, combine with nwindow most recent Nfreq timestep values
   
-  if (ntimestep >= startstep) {
-    if (ave == ONE) {
-      for (i = 0; i < nrows; i++)
-	for (j = 0; j < nvalues; j++) array_total[i][j] = array[i][j];
-      norm = 1;
-      
-    } else if (ave == RUNNING) {
-      for (i = 0; i < nrows; i++)
-	for (j = 0; j < nvalues; j++) array_total[i][j] += array[i][j];
-      norm++;
-      
-    } else if (ave == WINDOW) {
-      for (i = 0; i < nrows; i++)
-	for (j = 0; j < nvalues; j++) {
-	  array_total[i][j] += array[i][j];
-	  if (window_limit) array_total[i][j] -= array_list[iwindow][i][j];
-	  array_list[iwindow][i][j] = array[i][j];
-	}
-      
-      iwindow++;
-      if (iwindow == nwindow) {
-	iwindow = 0;
-	window_limit = 1;
+  if (ave == ONE) {
+    for (i = 0; i < nrows; i++)
+      for (j = 0; j < nvalues; j++) array_total[i][j] = array[i][j];
+    norm = 1;
+    
+  } else if (ave == RUNNING) {
+    for (i = 0; i < nrows; i++)
+      for (j = 0; j < nvalues; j++) array_total[i][j] += array[i][j];
+    norm++;
+    
+  } else if (ave == WINDOW) {
+    for (i = 0; i < nrows; i++)
+      for (j = 0; j < nvalues; j++) {
+	array_total[i][j] += array[i][j];
+	if (window_limit) array_total[i][j] -= array_list[iwindow][i][j];
+	array_list[iwindow][i][j] = array[i][j];
       }
-      if (window_limit) norm = nwindow;
-      else norm = iwindow;
+    
+    iwindow++;
+    if (iwindow == nwindow) {
+      iwindow = 0;
+      window_limit = 1;
     }
+    if (window_limit) norm = nwindow;
+    else norm = iwindow;
   }
   
   // insure any columns with offcol set are effectively set to last value
@@ -913,11 +909,13 @@ void FixAveTime::allocate_values(int n)
    calculate nvalid = next step on which end_of_step does something
    can be this timestep if multiple of nfreq and nrepeat = 1
    else backup from next multiple of nfreq
+   startstep is lower bound on nfreq multiple
 ------------------------------------------------------------------------- */
 
 bigint FixAveTime::nextvalid()
 {
   bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
+  while (nvalid < startstep) nvalid += nfreq;
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else

@@ -15,6 +15,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "update.h"
+#include "integrate.h"
+#include "min.h"
 #include "style_integrate.h"
 #include "style_minimize.h"
 #include "neighbor.h"

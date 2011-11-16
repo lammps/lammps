@@ -155,20 +155,18 @@ typedef struct _double4 double4;
 #define ucl_ceil ceilf
 #define ucl_abs fabsf
 #define ucl_recip(x) ((numtyp)1.0/(x))
+#define ucl_rsqrt rsqrtf
+#define ucl_sqrt sqrtf
 
 #ifdef NO_HARDWARE_TRANSCENDENTALS
 
 #define ucl_exp expf
 #define ucl_powr powf
-#define ucl_rsqrt rsqrtf
-#define ucl_sqrt sqrtf
 
 #else
 
 #define ucl_exp __expf
 #define ucl_powr __powf
-#define ucl_rsqrt __rsqrtf
-#define ucl_sqrt __sqrtf
 
 #endif
 

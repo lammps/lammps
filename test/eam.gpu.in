@@ -2,11 +2,7 @@
 
 newton off
 
-<<<<<<< HEAD
 package gpu force 0 0 1
-=======
-package gpu force 0 0 1.0
->>>>>>> ea346772202c63b86b63ef58a94b89365e209909
 
 units           metal
 boundary        p p p

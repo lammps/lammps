@@ -84,6 +84,10 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
+This fix style is part of the SHOCK package.  It is only enabled if
+LAMMPS was built with that package. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
 The zhi boundary on which atoms are added with append_atoms must be shrink-wrapped.
 The zlo boundary may be any boundary type other than periodic.
 

@@ -77,7 +77,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
-        int m=__float2int_rn(p);
+        int m=__float2int_rd(p);
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
@@ -192,7 +192,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
-        int m=__float2int_rn(p);
+        int m=__float2int_rd(p);
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
@@ -227,7 +227,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         numtyp z2p = (coeff0*p + coeff1)*p + coeff2;
         numtyp z2 = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
 
-        numtyp recip = 1.0/r;
+        numtyp recip = (numtyp)1.0/r;
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
         numtyp psip = ifp*rhojp + jfp*rhoip + phip;

@@ -148,10 +148,10 @@ operation of the fix continues in an uninterrupted fashion.
 
 The "fix_modify"_fix_modify.html {e0}, {v0} and {p0} keywords
 can be used to define the values of E0, V0, and P0. Note the
-the values for {e0} and {p0} are extensive, and so must correspond
+the values for {e0} and {v0} are extensive, and so must correspond
 to the total energy and volume of the entire system, not energy and 
 volume per atom. If any of these quantities are not specified, then the
-instanteous value in the system at the start of the simulation is used.
+instantaneous value in the system at the start of the simulation is used.
 
 The "fix_modify"_fix_modify.html {temp} and {press} options are
 supported by these fixes.  You can use them to assign a

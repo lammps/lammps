@@ -43,6 +43,8 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4) error->all(FLERR,"Illegal fix append_atoms command");
 
+  // default settings
+
   scaleflag = 1;
   spatflag=0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
@@ -65,42 +67,36 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       xloflag = 1;
       iarg++;
       if (domain->boundary[0][0] != 3) 
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       xhiflag = 1;
       iarg++;
       if (domain->boundary[0][1] != 3) 
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"ylo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       yloflag = 1;
       iarg++;
       if (domain->boundary[1][0] != 3) 
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"yhi") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       yhiflag = 1;
       iarg++;
       if (domain->boundary[1][1] != 3) 
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zlo") == 0) {
       error->all(FLERR,"Only zhi currently implemented for append_atom");
       zloflag = 1;
       iarg++;
-      if (domain->boundary[2][0] != 3)
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+      if (domain->boundary[2][0] != 3) 
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zhi") == 0) {
       zhiflag = 1;
       iarg++;
       if (domain->boundary[2][1] != 3) 
-	error->all(FLERR,
-		   "Must shrink-wrap with minimum the append boundary");
+	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"freq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
       freq = atoi(arg[iarg+1]);
@@ -120,7 +116,6 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       strcpy(spatialid,suffix);
       delete [] suffix;
       iarg += 3;
-      // NEED TO CHECK TO MAKE SURE FIX IS AN AVE/SPATIAL
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
       size = atof(arg[iarg+1]);
@@ -259,9 +254,7 @@ int FixAppendAtoms::get_spatial()
       val[loop] = fix->compute_vector(2*loop+1);
     }
 
-// Always ignor the first and last
-// SHOULD HAVE A MEMORY OF MIN AND MAX ENERGY
-// CAPTURE BINSIZE FROM SPATIAL
+// Always ignore the first and last
 
     double binsize = 2.0; 
     double min_energy=0.0;
@@ -361,7 +354,9 @@ void FixAppendAtoms::post_force(int vflag)
     double ftm2v = force->ftm2v;
 
     for (int i = 0; i < nlocal; i++) {
-      // SET TEMP AHEAD OF SHOCK
+
+      // set temp ahead of shock
+
       if (tempflag && x[i][2] >= domain->boxhi[2] - t_extent ) {
         gamma1 = -rmass[i] / t_period / ftm2v;
         gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
@@ -370,7 +365,9 @@ void FixAppendAtoms::post_force(int vflag)
         f[i][1] += gamma1*v[i][1] + gamma2*(randomt->uniform()-0.5);
         f[i][2] += gamma1*v[i][2] + gamma2*(randomt->uniform()-0.5);
       }
-      // FREEZE ATOMS AT BOUNDARY
+
+      // freeze atoms at boundary
+
       if (x[i][2] >= domain->boxhi[2] - size) {
         f[i][0] = 0.0;
         f[i][1] = 0.0;

@@ -164,7 +164,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifdef USE_OPENCL
+  #ifndef USE_CUDPP
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif

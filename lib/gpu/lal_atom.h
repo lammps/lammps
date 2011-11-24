@@ -28,12 +28,15 @@ using namespace ucl_opencl;
 
 #else
 
-#include "cudpp.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 #include "geryon/nvd_kernel.h"
 using namespace ucl_cudadr;
 
+#endif
+
+#ifdef USE_CUDPP
+#include "cudpp.h"
 #endif
 
 #include "lal_precision.h"
@@ -416,7 +419,7 @@ class Atom {
   
   double _max_gpu_bytes;
   
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;
   #endif

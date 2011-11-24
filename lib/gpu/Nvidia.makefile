@@ -1,7 +1,7 @@
 CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) -Icudpp_mini $(CUDA_ARCH) \
              $(CUDA_PRECISION)
 CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
-        -Icudpp_mini
+         $(CUDPP_OPT)
 CUDA_LINK = $(CUDA_LIB) -lcudart
 
 GPU_LIB = $(LIB_DIR)/libgpu.a
@@ -18,9 +18,11 @@ PAIR_H  = lal_atom.h lal_answer.h lal_neighbor_shared.h \
 ALL_H = $(NVD_H) $(PAIR_H)
 
 EXECS = $(BIN_DIR)/nvc_get_devices
+ifdef CUDPP_OPT
 CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
+endif
 OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_neighbor.o $(OBJ_DIR)/lal_neighbor_shared.o \
        $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \

@@ -18,5 +18,7 @@ LIB_DIR = /home/wb8/obj/lammps
 AR = ar
 BSH = /bin/sh
 
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+
 include Nvidia.makefile
 

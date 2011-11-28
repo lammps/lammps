@@ -244,7 +244,7 @@ Phillpot, Phys Rev B, 81, 125328 (2010).
 [(Tersoff)] J. Tersoff, Phys Rev B, 37, 6991 (1988).
 
 :link(Rick)
-[(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 16141
+[(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
 
 :link(Wolf)

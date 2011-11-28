@@ -16,7 +16,7 @@ fix ID group-ID addforce fx fy fz keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 addforce = style name of this fix command :l
 fx,fy,fz = force component values (force units) :l
-any of fx,fy,fz can be a variable (see below) :l
+  any of fx,fy,fz can be a variable (see below) :pre
 zero or more keyword/value pairs may be appended to args :l
 keyword = {region} or {energy} :l
   {region} value = region-ID

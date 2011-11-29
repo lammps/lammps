@@ -17,7 +17,6 @@ if (test $1 = 1) then
   cp pair_dipole_sf.cpp ..
   cp pair_edip.cpp ..
   cp pair_gauss_cut.cpp ..
-  cp pair_lj_sdk.cpp ..
   cp pair_lj_sf.cpp ..
 
   cp angle_cosine_shift.h ..
@@ -30,14 +29,11 @@ if (test $1 = 1) then
   cp fix_addtorque.h ..
   cp fix_imd.h ..
   cp fix_smd.h ..
-  cp lj_sdk_common.h ..
   cp pair_cdeam.h ..
   cp pair_coul_diel.h ..
   cp pair_dipole_sf.h ..
   cp pair_edip.h ..
   cp pair_gauss_cut.h ..
-  cp pair_lj_sdk.h ..
-  cp pair_lj_sf.h ..
 
 elif (test $1 = 0) then
 
@@ -56,7 +52,6 @@ elif (test $1 = 0) then
   rm -f ../pair_dipole_sf.cpp
   rm -f ../pair_edip.cpp
   rm -f ../pair_gauss_cut.cpp
-  rm -f ../pair_lj_sdk.cpp
   rm -f ../pair_lj_sf.cpp
 
   rm -f ../angle_cosine_shift.h
@@ -69,13 +64,11 @@ elif (test $1 = 0) then
   rm -f ../fix_addtorque.h
   rm -f ../fix_imd.h
   rm -f ../fix_smd.h
-  rm -f ../lj_sdk_common.h
   rm -f ../pair_cdeam.h
   rm -f ../pair_coul_diel.h
   rm -f ../pair_dipole_sf.h
   rm -f ../pair_edip.h
   rm -f ../pair_gauss_cut.h
-  rm -f ../pair_lj_sdk.h
   rm -f ../pair_lj_sf.h
 
 fi

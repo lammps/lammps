@@ -42,8 +42,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_msm.o $(OBJ_DIR)/lal_cg_cmm_msm_ext.o \
-       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
-       $(CUDPP)
+       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
        $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h \
@@ -356,12 +355,14 @@ $(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
 
-$(GPU_LIB): $(OBJS)
-	$(AR) -crusv $(GPU_LIB) $(OBJS)
+$(GPU_LIB): $(OBJS) $(CUDPP)
+	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
 
 clean:
-	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(PTXS) *.linkinfo
+	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(PTXS) *.linkinfo
 
 veryclean: clean
 	rm -rf *~ *.linkinfo
 
+cleanlib:
+	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(PTXS) *.linkinfo

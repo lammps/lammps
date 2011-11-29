@@ -42,8 +42,11 @@ using namespace LAMMPS_NS;
 
 int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
+                 int *host_type2frho, 
                  double ***host_rhor_spline, double ***host_z2r_spline,
-                 double rdr, int nrhor, int nz2r, int nr,
+                 double ***host_frho_spline,
+                 double rdr, double rdrho, int nrhor, int nrho, 
+                 int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors, 
                  const int maxspecial, const double cell_size, 
                  int &gpu_mode, FILE *screen);
@@ -55,13 +58,27 @@ int** eam_gpu_compute_n(const int ago, const int inum_full,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
                          bool &success, double *host_fp, double *boxlo,
-                         double *prd);
+                         double *prd, int inum);
 void eam_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
                       const double cpu_time, bool &success, double *host_fp,
                       const int nlocal, double *boxlo, double *prd);
+int** eam_gpu_compute_energy_n(const int ago, const int inum_full,
+                         const int nall, double **host_x, int *host_type,
+                         double *sublo, double *subhi, int *tag, int **nspecial, 
+                         int **special, const bool eflag, const bool vflag,
+                         const bool eatom, const bool vatom, int &host_start,
+                         int **ilist, int **jnum,  const double cpu_time,
+                         bool &success, double *host_fp, double *boxlo,
+                         double *prd, double *evdwl, int &inum);
+void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success, double *host_fp,
+                      const int nlocal, double *boxlo, double *prd, double *evdwl);
 double eam_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -93,11 +110,8 @@ double PairEAMGPU::memory_usage()
 
 void PairEAMGPU::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
-  double *coeff;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,ii,jj,m,jnum,itype,jtype;
+  double evdwl,*coeff;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -113,6 +127,101 @@ void PairEAMGPU::compute(int eflag, int vflag)
     memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
   }
+
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+
+  // zero out density
+
+  if (newton_pair) {
+    m = nlocal + atom->nghost;
+    for (i = 0; i < m; i++) rho[i] = 0.0; 
+  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0; 
+
+  
+  // compute density on each atom on GPU
+
+  int nall = atom->nlocal + atom->nghost;  
+  int inum, host_start, inum_dev;
+  
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh; 
+  if (gpu_mode != GPU_FORCE) { 
+    inum = atom->nlocal;
+    
+    firstneigh = eam_gpu_compute_energy_n(neighbor->ago, inum, nall, atom->x,
+             atom->type, domain->sublo, domain->subhi,
+             atom->tag, atom->nspecial, atom->special,
+             eflag, vflag, eflag_atom, vflag_atom,
+             host_start, &ilist, &numneigh, cpu_time,
+             success, fp, domain->boxlo, 
+             domain->prd, &eng_vdwl, inum_dev);
+  } else { // gpu_mode == GPU_FORCE
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
+    eam_gpu_compute_energy(neighbor->ago, inum, nall, atom->x, atom->type,
+		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		    vflag_atom, host_start, cpu_time, success, fp,
+		    atom->nlocal, domain->boxlo, domain->prd, &eng_vdwl);
+  }
+    
+  if (!success)
+    error->one(FLERR,"Out of memory on GPGPU");
+
+  if (host_start<inum) {
+    cpu_time = MPI_Wtime();
+    cpu_compute_energy(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
+    cpu_time = MPI_Wtime() - cpu_time;
+  }
+  
+  // communicate derivative of embedding function
+
+  comm->forward_comm_pair(this);
+    
+  // compute forces on each atom on GPU
+
+  if (gpu_mode != GPU_FORCE) {
+    inum = atom->nlocal;
+    firstneigh = eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				   atom->type, domain->sublo, domain->subhi,
+				   atom->tag, atom->nspecial, atom->special,
+				   eflag, vflag, eflag_atom, vflag_atom,
+				   host_start, &ilist, &numneigh, cpu_time,
+				   success, fp, domain->boxlo, 
+				   domain->prd, inum_dev);
+  } else { // gpu_mode == GPU_FORCE
+    inum = list->inum;
+    ilist = list->ilist;
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
+    eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		    vflag_atom, host_start, cpu_time, success, fp,
+		    atom->nlocal, domain->boxlo, domain->prd);
+  }
+  if (!success)
+    error->one(FLERR,"Out of memory on GPGPU");
+
+  if (host_start<inum) {
+    double cpu_time2 = MPI_Wtime();
+    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
+    cpu_time += MPI_Wtime() - cpu_time2;
+  }
+  
+  if (vflag_fdotr) virial_fdotr_compute();
+}
+
+void PairEAMGPU::cpu_compute_energy(int start, int inum, int eflag, int vflag,
+				      int *ilist, int *numneigh,
+				      int **firstneigh) 
+{
+  int i,j,ii,jj,m,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r,p,rhoip,rhojp,phi;
+  double *coeff;
+  int *jlist;
   
   double **x = atom->x;
   double **f = atom->f;
@@ -120,23 +229,10 @@ void PairEAMGPU::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  
-  // zero out density
-
-  if (newton_pair) {
-    m = nlocal + atom->nghost;
-    for (i = 0; i < m; i++) rho[i] = 0.0;
-  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
- 
-  
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-  for (ii = 0; ii < inum; ii++) {
+  for (ii = start; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -163,12 +259,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 	p = MIN(p,1.0);
 	coeff = rhor_spline[type2rhor[jtype][itype]][m];
 	rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	if (newton_pair || j < nlocal && gpu_mode != GPU_FORCE) {
-	  coeff = rhor_spline[type2rhor[itype][jtype]][m];
-	  rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	}
-      }
-      
+	    }
     }
   }
 
@@ -180,7 +271,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
   
-  for (ii = 0; ii < inum; ii++) {
+  for (ii = start; ii < inum; ii++) {
     i = ilist[ii];
     p = rho[i]*rdrho + 1.0;    
     m = static_cast<int> (p);
@@ -197,54 +288,6 @@ void PairEAMGPU::compute(int eflag, int vflag)
     
     }
   }
-
-  // communicate derivative of embedding function
-
-  comm->forward_comm_pair(this);
-  
-//  printf("\nBefore computing force: eng_vdwl = %f\n", eng_vdwl);
-  
-  // compute forces on each atom on GPU
-  {
-  int nall = atom->nlocal + atom->nghost;  
-  int inum, host_start;
-  
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;  
-  if (gpu_mode != GPU_FORCE) {
-    inum = atom->nlocal;
-    firstneigh = eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				   atom->type, domain->sublo, domain->subhi,
-				   atom->tag, atom->nspecial, atom->special,
-				   eflag, vflag, eflag_atom, vflag_atom,
-				   host_start, &ilist, &numneigh, cpu_time,
-				   success, fp, domain->boxlo, 
-				   domain->prd);
-  } else { // gpu_mode == GPU_FORCE
-    inum = list->inum;
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-    eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success, fp,
-		    atom->nlocal, domain->boxlo, domain->prd);
-  }
-  if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
-
-  if (host_start<inum) {
-    cpu_time = MPI_Wtime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
-  }
-  
-  }
-
-//  printf("\nAfter computing force: eng_vdwl = %f\n", eng_vdwl);
-  
-  if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -369,17 +412,16 @@ void PairEAMGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq,
-          type2rhor, type2z2r, rhor_spline, z2r_spline,
-          rdr, nrhor, nz2r, nr, atom->nlocal, 
+          type2rhor, type2z2r, type2frho,
+          rhor_spline, z2r_spline, frho_spline,
+          rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, atom->nlocal, 
           atom->nlocal+atom->nghost, 300, maxspecial,
           cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
   
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-  } else neighbor->request(this);
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 }
 
 

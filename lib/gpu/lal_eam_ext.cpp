@@ -1,9 +1,9 @@
 // **************************************************************************
-//                           lal_lj_coul_fsww_ext.cpp
+//                               lal_eam_ext.cpp
 //                             -------------------
 //                     W. Michael Brown, Trung Dac Nguyen (ORNL)
 //
-//  Class for acceleration of the lj/cut/coul/fsww/cut pair style
+//  Class for acceleration of the eam pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -28,9 +28,11 @@ static EAM<PRECISION,ACC_PRECISION> EAMMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int eam_gpu_init(const int ntypes, double host_cutforcesq, 
-                 int **host_type2rhor, int **host_type2z2r,
+                 int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
-                 double rdr, int nrhor, int nz2r, int nr, 
+                 double ***host_frho_spline,
+                 double rdr, double rdrho, int nrhor, 
+                 int nrho, int nz2r, int nfrho, int nr, 
                  const int nlocal, const int nall, const int max_nbors, 
                  const int maxspecial, const double cell_size, 
                  int &gpu_mode, FILE *screen) {
@@ -57,11 +59,12 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
   int init_ok=0;
   if (world_me==0)
     init_ok=EAMMF.init(ntypes, host_cutforcesq,
-                        host_type2rhor, host_type2z2r,
-                        host_rhor_spline, host_z2r_spline,
-                        rdr, nrhor, nz2r, nr, 
-                        nlocal, nall, 300, maxspecial,
-                        cell_size, gpu_split, screen);
+                    host_type2rhor, host_type2z2r, host_type2frho,
+                    host_rhor_spline, host_z2r_spline,
+                    host_frho_spline,
+                    rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, 
+                    nlocal, nall, 300, maxspecial,
+                    cell_size, gpu_split, screen);
 
   EAMMF.device->world_barrier();
   if (message)
@@ -78,11 +81,12 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=EAMMF.init(ntypes, host_cutforcesq,
-                        host_type2rhor, host_type2z2r,
-                        host_rhor_spline, host_z2r_spline,
-                        rdr, nrhor, nz2r, nr, 
-                        nlocal, nall, 300, maxspecial,
-                        cell_size, gpu_split, screen);
+                    host_type2rhor, host_type2z2r, host_type2frho,
+                    host_rhor_spline, host_z2r_spline,
+                    host_frho_spline,
+                    rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, 
+                    nlocal, nall, 300, maxspecial,
+                    cell_size, gpu_split, screen);
 
     EAMMF.device->gpu_barrier();
     if (message) 
@@ -107,11 +111,11 @@ int ** eam_gpu_compute_n(const int ago, const int inum_full,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
                          bool &success, double *host_fp, double *boxlo,
-                         double *prd) {
+                         double *prd, int inum) {
   return EAMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
-                        host_fp, boxlo, prd);
+                        host_fp, boxlo, prd, inum);
 }  
 			
 void eam_gpu_compute(const int ago, const int inum_full, const int nall,
@@ -123,6 +127,31 @@ void eam_gpu_compute(const int ago, const int inum_full, const int nall,
   EAMMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
                 host_fp,nlocal,boxlo,prd);
+}
+
+int ** eam_gpu_compute_energy_n(const int ago, const int inum_full,
+                         const int nall, double **host_x, int *host_type,
+                         double *sublo, double *subhi, int *tag, int **nspecial, 
+                         int **special, const bool eflag, const bool vflag,
+                         const bool eatom, const bool vatom, int &host_start,
+                         int **ilist, int **jnum,  const double cpu_time,
+                         bool &success, double *host_fp, double *boxlo,
+                         double *prd, double *eng_vdwl, int &inum) {
+  return EAMMF.compute_energy(ago, inum_full, nall, host_x, host_type, sublo,
+                        subhi, tag, nspecial, special, eflag, vflag, eatom,
+                        vatom, host_start, ilist, jnum, cpu_time, success,
+                        host_fp, boxlo, prd, eng_vdwl, inum);
+}  
+
+void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success, double *host_fp,
+                      const int nlocal, double *boxlo, double *prd, double* evdwl) {
+  EAMMF.compute_energy(ago,inum_full,nall,host_x,host_type,ilist,numj,
+                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
+                host_fp,nlocal,boxlo,prd,evdwl);
 }
 
 double eam_gpu_bytes() {

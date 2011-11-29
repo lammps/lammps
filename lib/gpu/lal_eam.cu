@@ -1,9 +1,9 @@
 // **************************************************************************
 //                             lal_eam.cu
 //                             -------------------
-//                     W. Michael Brown, Trung Dac Nguyen (ORNL)
+//                     Trung Dac Nguyen, W. Michael Brown (ORNL)
 //
-//  Device code for acceleration of the lj/cut/coul/fsww/cut pair style
+//  Device code for acceleration of the eam pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -26,6 +26,105 @@ ucl_inline float fetch_q(const int& i, const float *q)
 #endif
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
+
+__kernel void kernel_energy(__global numtyp4 *x_, 
+                    __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
+                    __global numtyp *rhor_spline, __global numtyp *frho_spline,
+                    __global int *dev_nbor, __global int *dev_packed,
+                    __global acctyp *fp_, 
+                    __global acctyp *engv, const int eflag, 
+                    const int vflag, const int inum, 
+                    const int nbor_pitch,
+                    const int ntypes, const numtyp cutforcesq, 
+                    const numtyp rdr, const numtyp rdrho,
+                    const int nrho, const int nr,
+                    const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+  
+  acctyp rho = (acctyp)0;
+  acctyp energy = (acctyp)0;
+   
+  if (ii<inum) {
+    __global int *nbor, *list_end;
+    int i, numj, n_stride;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,list_end,nbor);
+  
+    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    int itype=ix.w;
+    
+    for ( ; nbor<list_end; nbor+=n_stride) {
+      int j=*nbor;
+      j &= NEIGHMASK;
+
+      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      int jtype=jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      
+      if (rsq<cutforcesq) {
+        numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
+        int m=p;
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,(numtyp)1.0);
+        
+        int mtype = jtype*ntypes+itype;
+        int index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
+        numtyp coeff3 = rhor_spline[index+3];
+        numtyp coeff4 = rhor_spline[index+4];
+        numtyp coeff5 = rhor_spline[index+5];
+        numtyp coeff6 = rhor_spline[index+6];
+        rho += ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+      }
+    } // for nbor
+    
+    // reduce to get the density at atom ii
+    
+    if (t_per_atom>1) {
+      __local acctyp red_acc[BLOCK_PAIR];                               
+      red_acc[tid]=rho;                                                 
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                      
+        if (offset < s)                                        
+          red_acc[tid] += red_acc[tid+s];
+      }                                                                    
+      rho=red_acc[tid];                                                 
+    }
+    
+    // calculate the embedded force for ii
+    if (offset==0) {
+      numtyp p = rho*rdrho + (numtyp)1.0;
+      int m=p;
+      m = MAX(1,MIN(m,nrho-1));
+      p -= m;
+      p = MIN(p,(numtyp)1.0);
+      
+      int index = type2frho[itype]*(nr+1)*7+m*7;
+      numtyp coeff0 = frho_spline[index+0];
+      numtyp coeff1 = frho_spline[index+1];
+      numtyp coeff2 = frho_spline[index+2];
+      numtyp fp = (coeff0*p + coeff1)*p + coeff2;
+      fp_[ii]=fp;                       
+      
+      engv+=ii;  
+      if (eflag>0) {
+        numtyp coeff3 = frho_spline[index+3];
+        numtyp coeff4 = frho_spline[index+4];
+        numtyp coeff5 = frho_spline[index+5];
+        numtyp coeff6 = frho_spline[index+6];
+        energy = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+        *engv=energy;
+      }
+    }
+  } // if ii
+}
+
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
@@ -35,7 +134,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global acctyp *engv, const int eflag, 
                           const int vflag, const int inum, const int nbor_pitch,
                           const int ntypes, const numtyp cutforcesq, 
-                          const numtyp rdr, const int nrhor, const int nz2r, const int nr,
+                          const numtyp rdr, const int nr,
                           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -77,7 +176,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
-        int m=__float2int_rd(p);
+        int m=p;
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
@@ -150,7 +249,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
                           const int eflag, const int vflag, const int inum, 
                           const int nbor_pitch,
                           const numtyp cutforcesq, 
-                          const numtyp rdr, const int nrhor, const int nz2r, const int nr,
+                          const numtyp rdr, const int nr,
                           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -192,7 +291,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
-        int m=__float2int_rd(p);
+        int m=p;
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);

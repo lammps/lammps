@@ -686,9 +686,8 @@ package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
-"cg/cmm"_pair_cmm.html,
-"cg/cmm/coul/cut"_pair_cmm.html,
-"cg/cmm/coul/long"_pair_cmm.html,
+"lj/sdk"_pair_sdk.html,
+"lj/sdk/coul/long"_pair_sdk.html,
 "dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
 "edip"_pair_edip.html,
@@ -720,12 +719,10 @@ package"_Section_accelerate.html.
 "buck/coul/omp"_pair_buck_coul.html,
 "buck/cuda"_pair_buck.html,
 "buck/omp"_pair_buck.html,
-"cg/cmm/coul/cut/cuda"_pair_cmm.html,
-"cg/cmm/coul/debye/cuda"_pair_cmm.html,
-"cg/cmm/coul/long/cuda"_pair_cmm.html,
-"cg/cmm/coul/long/gpu"_pair_cmm.html,
-"cg/cmm/cuda"_pair_cmm.html,
-"cg/cmm/gpu"_pair_cmm.html,
+"lj/sdk/gpu"_pair_sdk.html,
+"lj/sdk/omp"_pair_sdk.html,
+"lj/sdk/coul/long/gpu"_pair_sdk.html,
+"lj/sdk/coul/long/omp"_pair_sdk.html,
 "colloid/omp"_pair_colloid.html,
 "comb/omp"_pair_comb.html,
 "coul/cut/omp"_pair_coul.html,
@@ -890,7 +887,7 @@ These are angle styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"cg/cmm"_angle_cmm.html,
+"sdk"_angle_sdk.html,
 "cosine/shift"_angle_cosine_shift.html,
 "cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
 

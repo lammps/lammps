@@ -21,6 +21,8 @@
 
 <LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
 
+<PRE>  Tstart can be a variable (see below) 
+</PRE>
 <LI>damp = damping parameter (time units) 
 
 <LI>seed = random number seed to use for white noise (positive integer) 
@@ -33,7 +35,7 @@
     <I>no</I> = do not thermostat rotational degrees of freedom via the angular momentum
     <I>yes</I> = do thermostat rotational degrees of freedom via the angular momentum
   <I>omega</I> value = <I>no</I> or <I>yes</I>
-    <I>no</I> = do not thermostat rotational degrees of freedom via then angular velocity
+    <I>no</I> = do not thermostat rotational degrees of freedom via the angular velocity
     <I>yes</I> = do thermostat rotational degrees of freedom via the angular velocity
   <I>scale</I> values = type ratio
     type = atom type (1-N)
@@ -112,6 +114,23 @@ thermostatting.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
 run from <I>Tstart</I> to <I>Tstop</I>.
+</P>
+<P><I>Tstart</I> can be specified as an equal-style or atom-style
+<A HREF = "variable.html">variable</A>.  In this case, the <I>Tstop</I> setting is
+ignored.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+</P>
+<P>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+temperature with optional time-dependence as well.
 </P>
 <P>Like other fixes that perform thermostatting, this fix can be used
 with <A HREF = "compute.html">compute commands</A> that remove a "bias" from the

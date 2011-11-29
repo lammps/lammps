@@ -24,7 +24,7 @@ lammps_library = Extension("_lammps_serial",
                            )
 
 setup(name = "lammps_serial",
-      version = "26Oct10",
+      version = "28Nov11",
       author = "Steve Plimpton",
       author_email = "sjplimp@sandia.gov",
       url = "http://lammps.sandia.gov",

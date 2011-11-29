@@ -45,11 +45,15 @@ class FixLangevin : public Fix {
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;
+  double tsqrt;
+  int tstyle,tvar;
+  char *tstr;
 
   class AtomVecEllipsoid *avec;
 
-  int nmax;
+  int maxatom1,maxatom2;
   double **flangevin;
+  double *tforce;
 
   char *id_temp;
   class Compute *temperature;
@@ -59,8 +63,8 @@ class FixLangevin : public Fix {
 
   virtual void post_force_no_tally();
   virtual void post_force_tally();
-  void omega_thermostat(double);
-  void angmom_thermostat(double);
+  void omega_thermostat();
+  void angmom_thermostat();
 };
 
 }

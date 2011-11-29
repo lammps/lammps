@@ -172,7 +172,7 @@ by Argonne National Labs.  From within the mpich directory, type
 
 :link(mpich,http://www-unix.mcs.anl.gov/mpi)
 
-./configure --enable-sharedlib=gcc
+./configure --enable-shared
 make
 make install :pre
 
@@ -185,8 +185,8 @@ static and shared MPI library.  This will be fine for running LAMMPS
 from Python since it only uses the shared library.  But if you now try
 to build LAMMPS by itself as a stand-alone program (cd lammps/src;
 make foo) or build other codes that expect to link against libmpich.a,
-then those builds will typically fail if the linker uses libmpich.so
-instead.  This means you will need to remove the file
+then those builds may fail if the linker uses libmpich.so instead.  If
+this happens, it means you will need to remove the file
 /usr/local/lib/libmich.so before building LAMMPS again as a
 stand-alone code.
 

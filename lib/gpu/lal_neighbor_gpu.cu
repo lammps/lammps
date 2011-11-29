@@ -200,7 +200,7 @@ __kernel void calc_neigh_list_cell(__global numtyp4 *x_,
                 r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
                 if (r2 < cell_size*cell_size && r2 > 1e-5) {
                   cnt++;
-                  if (cnt < neigh_bin_size) {
+                  if (cnt <= neigh_bin_size) {
                     *neigh_list = pid_j;
                     neigh_list++;
                     if ((cnt & (t_per_atom-1))==0)

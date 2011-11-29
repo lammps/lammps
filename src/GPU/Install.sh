@@ -21,6 +21,10 @@ if (test $1 = 1) then
   if (test -e ../pair_eam.cpp) then
     cp pair_eam_gpu.cpp ..
     cp pair_eam_gpu.h ..
+    cp pair_eam_alloy_gpu.cpp ..
+    cp pair_eam_alloy_gpu.h ..
+    cp pair_eam_fs_gpu.cpp ..
+    cp pair_eam_fs_gpu.h ..
   fi
   
   if (test -e ../pair_gayberne.cpp) then

@@ -42,7 +42,12 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_msm.o $(OBJ_DIR)/lal_cg_cmm_msm_ext.o \
-       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o
+       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
+       $(OBJ_DIR)/lal_buck.o $(OBJ_DIR)/lal_buck_ext.o \
+       $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
+       $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
+       $(OBJ_DIR)/lal_table.o $(OBJ_DIR)/lal_table_ext.o \
+       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
        $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h \
@@ -66,7 +71,12 @@ PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
        $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h \
        $(OBJ_DIR)/cg_cmm_msm.ptx $(OBJ_DIR)/cg_cmm_msm_ptx.h \
-       $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam_ptx.h 
+       $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam_ptx.h \
+       $(OBJ_DIR)/buck.ptx $(OBJ_DIR)/buck_ptx.h \
+       $(OBJ_DIR)/buck_coul.ptx $(OBJ_DIR)/buck_coul_ptx.h \
+       $(OBJ_DIR)/buck_coul_long.ptx $(OBJ_DIR)/buck_coul_long_ptx.h \
+       $(OBJ_DIR)/table.ptx $(OBJ_DIR)/table_ptx.h \
+       $(OBJ_DIR)/yukawa.ptx $(OBJ_DIR)/yukawa_ptx.h
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -351,6 +361,66 @@ $(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp $(OBJ_DIR)/eam_ptx.h $(OBJ_
 
 $(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h
 	$(CUDR) -o $@ -c lal_eam_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck.ptx: lal_buck.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_buck.cu
+  
+$(OBJ_DIR)/buck_ptx.h: $(OBJ_DIR)/buck.ptx $(OBJ_DIR)/buck.ptx
+	$(BSH) ./geryon/file_to_cstr.sh buck $(OBJ_DIR)/buck.ptx $(OBJ_DIR)/buck_ptx.h
+    
+$(OBJ_DIR)/lal_buck.o: $(ALL_H) lal_buck.h lal_buck.cpp $(OBJ_DIR)/buck_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_buck.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_ext.o: $(ALL_H) lal_buck.h lal_buck_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_buck_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck_coul.ptx: lal_buck_coul.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_buck_coul.cu
+  
+$(OBJ_DIR)/buck_coul_ptx.h: $(OBJ_DIR)/buck_coul.ptx $(OBJ_DIR)/buck_coul.ptx
+	$(BSH) ./geryon/file_to_cstr.sh buck_coul $(OBJ_DIR)/buck_coul.ptx $(OBJ_DIR)/buck_coul_ptx.h
+    
+$(OBJ_DIR)/lal_buck_coul.o: $(ALL_H) lal_buck_coul.h lal_buck_coul.cpp $(OBJ_DIR)/buck_coul_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_buck_coul.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_coul_ext.o: $(ALL_H) lal_buck_coul.h lal_buck_coul_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_buck_coul_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck_coul_long.ptx: lal_buck_coul_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_buck_coul_long.cu
+  
+$(OBJ_DIR)/buck_coul_long_ptx.h: $(OBJ_DIR)/buck_coul_long.ptx $(OBJ_DIR)/buck_coul_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh buck_coul_long $(OBJ_DIR)/buck_coul_long.ptx $(OBJ_DIR)/buck_coul_long_ptx.h
+    
+$(OBJ_DIR)/lal_buck_coul_long.o: $(ALL_H) lal_buck_coul_long.h lal_buck_coul_long.cpp $(OBJ_DIR)/buck_coul_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_buck_coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_coul_long_ext.o: $(ALL_H) lal_buck_coul_long.h lal_buck_coul_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_buck_coul_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/table.ptx: lal_table.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_table.cu
+  
+$(OBJ_DIR)/table_ptx.h: $(OBJ_DIR)/table.ptx $(OBJ_DIR)/table.ptx
+	$(BSH) ./geryon/file_to_cstr.sh table $(OBJ_DIR)/table.ptx $(OBJ_DIR)/table_ptx.h
+    
+$(OBJ_DIR)/lal_table.o: $(ALL_H) lal_table.h lal_table.cpp $(OBJ_DIR)/table_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_table.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_table_ext.o: $(ALL_H) lal_table.h lal_table_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_table_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/yukawa.ptx: lal_yukawa.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_yukawa.cu
+  
+$(OBJ_DIR)/yukawa_ptx.h: $(OBJ_DIR)/yukawa.ptx $(OBJ_DIR)/yukawa.ptx
+	$(BSH) ./geryon/file_to_cstr.sh yukawa $(OBJ_DIR)/yukawa.ptx $(OBJ_DIR)/yukawa_ptx.h
+    
+$(OBJ_DIR)/lal_yukawa.o: $(ALL_H) lal_yukawa.h lal_yukawa.cpp $(OBJ_DIR)/yukawa_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_yukawa.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_yukawa_ext.o: $(ALL_H) lal_yukawa.h lal_yukawa_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_yukawa_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 

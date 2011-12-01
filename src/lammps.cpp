@@ -467,14 +467,15 @@ void LAMMPS::create()
 }
 
 /* ----------------------------------------------------------------------
-   invoke package-specific commands
-   called from LAMMPS instance constructor and after clear() command
+   invoke package-specific setup commands
+   called from LAMMPS constructor and after clear() command
    only invoke if suffix is set and enabled
 ------------------------------------------------------------------------- */
 
 void LAMMPS::post_create()
 {
   if (suffix && suffix_enable) {
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu force/neigh 0 0 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp *");
   }
 }

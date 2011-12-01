@@ -1151,6 +1151,7 @@ void Input::package()
     modify->add_fix(2+narg,fixarg,NULL);
     modify->allow_early_fix = 0;
     delete [] fixarg;
+
   } else error->all(FLERR,"Illegal package command");
 }
 

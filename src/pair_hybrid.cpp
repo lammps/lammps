@@ -45,6 +45,8 @@ PairHybrid::~PairHybrid()
     delete [] keywords;
   }
 
+  delete [] svector;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -265,19 +267,32 @@ void PairHybrid::settings(int narg, char **arg)
     if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
   }
 
-  // single_enable = 0 if any sub-style = 0
+  // single_enable = 1 if any sub-style is set
   // respa_enable = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
 
+  single_enable = 0;
   for (m = 0; m < nstyles; m++)
-    if (styles[m]->single_enable == 0) single_enable = 0;
+    if (styles[m]->single_enable) single_enable = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->respa_enable) respa_enable = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->ghostneigh) ghostneigh = 1;
+
+  // single_extra = min of all sub-style single_extra
+  // allocate svector
+
+  single_extra = styles[0]->single_extra;
+  for (m = 1; m < nstyles; m++)
+    single_extra = MIN(single_extra,styles[m]->single_extra);
+
+  if (single_extra) {
+    delete [] svector;
+    svector = new double[single_extra];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -613,10 +628,17 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
       if (styles[map[itype][jtype][m]]->single_enable == 0)
-	error->all(FLERR,"Pair hybrid sub-style does not support single call");
+	error->one(FLERR,"Pair hybrid sub-style does not support single call");
+
       esum += styles[map[itype][jtype][m]]->
 	single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
+
+      // copy substyle extra values into hybrid's svector
+
+      if (single_extra && styles[map[itype][jtype][m]]->single_extra)
+	for (m = 0; m < single_extra; m++)
+	  svector[m] = styles[map[itype][jtype][m]]->svector[m];
     }
   }
 
@@ -666,7 +688,8 @@ void *PairHybrid::extract(char *str, int &dim)
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && newvalue != cutvalue)
-	error->all(FLERR,"Coulomb cutoffs of pair hybrid sub-styles do not match");
+	error->all(FLERR,
+		   "Coulomb cutoffs of pair hybrid sub-styles do not match");
       cutptr = ptr;
       cutvalue = newvalue;
     } else if (ptr) return ptr;

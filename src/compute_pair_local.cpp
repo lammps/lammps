@@ -13,6 +13,7 @@
 
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_pair_local.h"
 #include "atom.h"
 #include "update.h"
@@ -29,6 +30,8 @@ using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
+enum{DIST,ENG,FORCE,FX,FY,FZ,PN};
+
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
@@ -41,17 +44,31 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
-  dflag = eflag = fflag = -1;
-  nvalues = 0;
+  pstyle = new int[nvalues];
+  pindex = new int[nvalues];
 
-  int i;
+  nvalues = 0;
   for (int iarg = 3; iarg < narg; iarg++) {
-    i = iarg-3;
-    if (strcmp(arg[iarg],"dist") == 0) dflag = nvalues++;
-    else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
-    else if (strcmp(arg[iarg],"force") == 0) fflag = nvalues++;
-    else error->all(FLERR,"Invalid keyword in compute pair/local command");
+    if (strcmp(arg[iarg],"dist") == 0) pstyle[nvalues++] = DIST;
+    else if (strcmp(arg[iarg],"eng") == 0) pstyle[nvalues++] = ENG;
+    else if (strcmp(arg[iarg],"force") == 0) pstyle[nvalues++] = FORCE;
+    else if (strcmp(arg[iarg],"fx") == 0) pstyle[nvalues++] = FX;
+    else if (strcmp(arg[iarg],"fy") == 0) pstyle[nvalues++] = FY;
+    else if (strcmp(arg[iarg],"fz") == 0) pstyle[nvalues++] = FZ;
+    else if (arg[iarg][0] == 'p') {
+      int n = atoi(&arg[iarg][1]);
+      if (n <= 0) error->all(FLERR,
+			     "Invalid keyword in compute pair/local command");
+      pstyle[nvalues] = PN;
+      pindex[nvalues++] = n-1;
+    } else error->all(FLERR,"Invalid keyword in compute pair/local command");
   }
+
+  // set singleflag if need to call pair->single()
+
+  singleflag = 0;
+  for (int i = 0; i < nvalues; i++)
+    if (pstyle[i] != DIST) singleflag = 1;
 
   nmax = 0;
   vector = NULL;
@@ -64,16 +81,23 @@ ComputePairLocal::~ComputePairLocal()
 {
   memory->destroy(vector);
   memory->destroy(array);
+  delete [] pstyle;
+  delete [] pindex;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputePairLocal::init()
 {
-  if (force->pair == NULL) 
+  if (singleflag && force->pair == NULL) 
     error->all(FLERR,"No pair style is defined for compute pair/local");
-  if (force->pair->single_enable == 0)
+  if (singleflag && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pair/local");
+
+  for (int i = 0; i < nvalues; i++)
+    if (pstyle[i] == PN && pindex[i] >= force->pair->single_extra)
+      error->all(FLERR,"Pair style does not have single field"
+		 " requested by compute pair/local");
 
   // need an occasional half neighbor list
 
@@ -101,7 +125,7 @@ void ComputePairLocal::compute_local()
   ncount = compute_pairs(0);
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
-  ncount = compute_pairs(1);
+  compute_pairs(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -117,7 +141,7 @@ int ComputePairLocal::compute_pairs(int flag)
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq,eng,fpair,factor_coul,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double *dbuf,*ebuf,*fbuf;
+  double *ptr;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -138,23 +162,13 @@ int ComputePairLocal::compute_pairs(int flag)
 
   // loop over neighbors of my atoms
   // skip if I or J are not in group
-
-  if (flag) {
-    if (nvalues == 1) {
-      if (dflag >= 0) dbuf = vector;
-      if (eflag >= 0) ebuf = vector;
-      if (fflag >= 0) fbuf = vector;
-    } else {
-      if (dflag >= 0) dbuf = &array[0][dflag];
-      if (eflag >= 0) ebuf = &array[0][eflag];
-      if (fflag >= 0) fbuf = &array[0][fflag];
-    }
-  }
+  // for flag = 0, just count pair interactions within force cutoff
+  // for flag = 1, calculate requested output fields
 
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  m = n = 0;
+  m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
@@ -183,13 +197,37 @@ int ComputePairLocal::compute_pairs(int flag)
       if (rsq >= cutsq[itype][jtype]) continue;
 	
       if (flag) {
-	if (dflag >= 0) dbuf[n] = sqrt(rsq);
-	if (eflag >= 0 || fflag >= 0) {
+	if (singleflag)
 	  eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-	  if (eflag >= 0) ebuf[n] = eng;
-	  if (fflag >= 0) fbuf[n] = sqrt(rsq)*fpair;
+
+	if (nvalues == 1) ptr = &vector[m];
+	else ptr = array[m];
+
+	for (n = 0; n < nvalues; n++) {
+	  switch (pstyle[n]) {
+	  case DIST:
+	    ptr[n] = sqrt(rsq);
+	    break;
+	  case ENG:
+	    ptr[n] = eng;
+	    break;
+	  case FORCE:
+	    ptr[n] = sqrt(rsq)*fpair;
+	    break;
+	  case FX:
+	    ptr[n] = delx*fpair;
+	    break;
+	  case FY:
+	    ptr[n] = dely*fpair;
+	    break;
+	  case FZ:
+	    ptr[n] = delz*fpair;
+	    break;
+	  case PN:
+	    ptr[n] = pair->svector[pindex[n]];
+	    break;
+	  }
 	}
-	n += nvalues;
       }
 
       m++;

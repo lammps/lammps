@@ -13,9 +13,14 @@
 </H3>
 <H3>pair_style gauss/omp command 
 </H3>
+<H3>pair_style gauss/cut command 
+</H3>
+<H3>pair_style gauss/cut/omp command 
+</H3>
 <P><B>Syntax:</B> 
 </P>
-<PRE>pair_style gauss cutoff 
+<PRE>pair_style gauss cutoff
+pair_style gauss/cut cutoff 
 </PRE>
 <UL><LI>cutoff = global cutoff for Gauss interactions (distance units) 
 </UL>
@@ -24,6 +29,9 @@
 <PRE>pair_style gauss 12.0 
 pair_coeff * * 1.0 0.9
 pair_coeff 1 4 1.0 0.9 10.0 
+</PRE>
+<PRE>pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112 
 </PRE>
 <P><B>Description:</B> 
 </P>
@@ -47,12 +55,38 @@ commands:
 <P>The last coefficient is optional. If not specified, the global cutoff
 is used.
 </P>
+<P>Style <I>gauss/cut</I> computes a generalized Gaussian interaction potential 
+between pairs of particles:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gauss_cut.jpg">
+</CENTER>
+<P>where H determines together with the standard deviation sigma_h the
+peak height of the Gaussian function, and r_mh the peak position.
+Examples of the use of the Gaussian potentials include implicit
+solvent simulations of salt ions <A HREF = "#Lenart">(Lenart)</A> and of surfactants
+<A HREF = "#Jusufi">(Jusufi)</A>.  In these instances the Gaussian potential mimics
+the hydration barrier between a pair of particles. The hydration
+barrier is located at r_mh and has a width of sigma_h. The prefactor
+determines the hight of the potential barrier.
+</P>
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>H (energy * distance units)
+<LI>r_mh (distance units)
+<LI>sigma_h (distance units) 
+</UL>
+<P>The global cutoff (r_c) specified in the pair_style command is used.
+</P>
 <HR>
 
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally 
-the same as the corresponding style without the suffix.  They have 
-been optimized to run faster, depending on your available hardware, 
-as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
 The accelerated styles take the same arguments and should produce the
 same results, except for round-off and precision issues.
 </P>
@@ -73,12 +107,16 @@ instructions on how to use the accelerated styles effectively.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>This pair style does not support mixing.  Thus, coefficients for all
+<P>These pair style do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 </P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+<P>The <I>gauss</I> style does not support the <A HREF = "pair_modify.html">pair_modify</A>
 shift option. There is no effect due to the Gaussian well beyond the
 cutoff; hence reasonable cutoffs need to be specified.
+</P>
+<P>The <I>gauss/cut</I> style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Gauss-potential portion of the pair
+interaction.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
 relevant for this pair style.
@@ -95,7 +133,7 @@ to be specified in an input script that reads a restart file.
 <A HREF = "run_style.html">run_style respa</A> command.  It does not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
-<P>This pair style tallies an "occupancy" count of how many Gaussian-well
+<P>Thes <I>gauss</I> pair style tallies an "occupancy" count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
 = sqrt(0.5/b).  This quantity can be accessed via the <A HREF = "compute_pair.html">compute
 pair</A> command as a vector of values of length 1.
@@ -109,11 +147,16 @@ thermo_style custom step temp epair v_occ
 </PRE>
 <HR>
 
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>gauss/cut</I> style is part of the "user-misc" package. It is only enabled
+if LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of LAMMPS</A>
+section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, 
+<A HREF = "pair_coul_diel.html">pair_style coul/diel</A>
 </P>
 <P><B>Default:</B> none
 </P>

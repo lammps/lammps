@@ -7,18 +7,25 @@
 :line
 
 pair_style tersoff command :h3
+pair_style tersoff/table command :h3
+pair_style tersoff/cuda :h3
+pair_style tersoff/omp :h3
+pair_style tersoff/table/omp command :h3
 
 [Syntax:]
 
-pair_style tersoff :pre
-pair_style tersoff/cuda :pre
-pair_style tersoff/omp :pre
+pair_style style :pre
+
+style = {tersoff} or {tersoff/table} or {tersoff/cuda} or {tersoff/omp} or {tersoff/table/omp}
 
 [Examples:]
 
 pair_style tersoff
 pair_coeff * * Si.tersoff Si
 pair_coeff * * SiC.tersoff Si C Si :pre
+
+pair_style tersoff/table
+pair_coeff * * SiCGe.tersoff Si(D) :pre
 
 [Description:]
 
@@ -30,6 +37,12 @@ The {tersoff} style computes a 3-body Tersoff potential
 where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D. 
+
+The {tersoff/table} style uses tabulated forms for the two-body, 
+environment and angular functions. Linear interpolation is performed
+between adjacent table entries. The table length is chosen to be
+accurate within 10^-6 with respect to the {tersoff} style energy.
+The {tersoff/table} should give better performance in terms of speed.
 
 Only a single pair_coeff command is used with the {tersoff} style
 which specifies a Tersoff potential file with parameters for all
@@ -127,7 +140,8 @@ it reduces to the form of "Albe et al."_#Albe when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential "(Tersoff_2)"_#Tersoff_2.
+potential "(Tersoff_2)"_#Tersoff_2. The {tersoff/table} style implements
+Teroff_2 parameterization only.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of

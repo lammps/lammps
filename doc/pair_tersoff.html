@@ -11,19 +11,28 @@
 
 <H3>pair_style tersoff command 
 </H3>
+<H3>pair_style tersoff/table command 
+</H3>
+<H3>pair_style tersoff/cuda 
+</H3>
+<H3>pair_style tersoff/omp 
+</H3>
+<H3>pair_style tersoff/table/omp command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style tersoff 
+<PRE>pair_style style 
 </PRE>
-<PRE>pair_style tersoff/cuda 
-</PRE>
-<PRE>pair_style tersoff/omp 
-</PRE>
+<P>style = <I>tersoff</I> or <I>tersoff/table</I> or <I>tersoff/cuda</I> or <I>tersoff/omp</I> or <I>tersoff/table/omp</I>
+</P>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style tersoff
 pair_coeff * * Si.tersoff Si
 pair_coeff * * SiC.tersoff Si C Si 
+</PRE>
+<PRE>pair_style tersoff/table
+pair_coeff * * SiCGe.tersoff Si(D) 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -35,6 +44,12 @@ pair_coeff * * SiC.tersoff Si C Si
 <P>where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D. 
+</P>
+<P>The <I>tersoff/table</I> style uses tabulated forms for the two-body, 
+environment and angular functions. Linear interpolation is performed
+between adjacent table entries. The table length is chosen to be
+accurate within 10^-6 with respect to the <I>tersoff</I> style energy.
+The <I>tersoff/table</I> should give better performance in terms of speed.
 </P>
 <P>Only a single pair_coeff command is used with the <I>tersoff</I> style
 which specifies a Tersoff potential file with parameters for all
@@ -132,7 +147,8 @@ it reduces to the form of <A HREF = "#Albe">Albe et al.</A> when beta = 1 and m 
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential <A HREF = "#Tersoff_2">(Tersoff_2)</A>.
+potential <A HREF = "#Tersoff_2">(Tersoff_2)</A>. The <I>tersoff/table</I> style implements
+Teroff_2 parameterization only.
 </P>
 <P>LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of

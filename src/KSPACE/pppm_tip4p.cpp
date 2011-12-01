@@ -19,6 +19,7 @@
 #include "pppm_tip4p.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -205,7 +206,7 @@ void PPPMTIP4P::fieldforce()
     }
 
     // convert E-field to force
-    const double qfactor = qqrd2e*scale*q[i];
+    const double qfactor = force->qqrd2e * scale * q[i];
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;

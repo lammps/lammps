@@ -51,7 +51,6 @@ class PPPM : public KSpace {
   int nfactors;
   int *factors;
   double qsum,qsqsum;
-  double qqrd2e;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;

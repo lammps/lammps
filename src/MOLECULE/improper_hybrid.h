@@ -27,6 +27,10 @@ namespace LAMMPS_NS {
 
 class ImproperHybrid : public Improper {
  public:
+  int nstyles;                  // # of different improper styles
+  Improper **styles;            // class list for each Improper style
+  char **keywords;              // keyword for each improper style
+
   ImproperHybrid(class LAMMPS *);
   ~ImproperHybrid();
   void compute(int, int);
@@ -37,9 +41,6 @@ class ImproperHybrid : public Improper {
   double memory_usage();
 
  private:
-  int nstyles;                  // # of different improper styles
-  Improper **styles;            // class list for each Improper style
-  char **keywords;              // keyword for each improper style
   int *map;                     // which style each improper type points to
 
   int *nimproperlist;           // # of impropers in sub-style improperlists

@@ -28,16 +28,16 @@ class PairComb : public Pair {
  public:
   PairComb(class LAMMPS *);
   virtual ~PairComb();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
   double memory_usage();
 
-  double yasu_char(double *, int &);
+  virtual double yasu_char(double *, int &);
 
- private:
+ protected:
   struct Param {
     double lam11,lam12,lam21,lam22;
     double c,d,h;
@@ -100,8 +100,24 @@ class PairComb : public Pair {
   virtual double comb_fa_d(double, Param *, double,double);
   double comb_bij(double, Param *);
   double comb_bij_d(double, Param *);
-  double comb_gijk(double, Param *);
-  double comb_gijk_d(double, Param *);
+
+  inline double comb_gijk(const double costheta, const Param * const param) const {
+    const double comb_c = param->c * param->c;
+    const double comb_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+
+    return param->gamma*(1.0 + comb_c/comb_d - comb_c / (comb_d + hcth*hcth));
+  }
+
+  inline double comb_gijk_d(const double costheta, const Param * const param) const {
+    const double comb_c = param->c * param->c;
+    const double comb_d = param->d * param->d;
+    const double hcth = param->h - costheta;
+    const double numerator = -2.0 * comb_c * hcth;
+    const double denominator = 1.0/(comb_d + hcth*hcth);
+    return param->gamma*numerator*denominator*denominator;
+  }
+
   void comb_zetaterm_d(double, double *, double, double *, double,
 			       double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
@@ -129,7 +145,7 @@ class PairComb : public Pair {
 
   // Short range neighbor list
 
-  void add_pages();
+  void add_pages(int howmany=1);
   void Short_neigh();
   int maxpage, pgsize, oneatom, **pages;
   int *sht_num, **sht_first;	// short-range neighbor list
@@ -137,17 +153,25 @@ class PairComb : public Pair {
 
   // vector functions, inline for efficiency
 
-  inline double vec3_dot(double *x, double *y) {
+  inline double vec3_dot(const double x[3], const double y[3]) const {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
-  inline void vec3_add(double *x, double *y, double *z) {
+
+  inline void vec3_add(const double x[3], const double y[3], 
+		       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
-  inline void vec3_scale(double k, double *x, double *y) {
+
+  inline void vec3_scale(const double k, const double x[3],
+			 double y[3]) const {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
-  inline void vec3_scaleadd(double k, double *x, double *y, double *z) {
-    z[0] = k*x[0]+y[0];  z[1] = k*x[1]+y[1];  z[2] = k*x[2]+y[2];
+
+  inline void vec3_scaleadd(const double k, const double x[3], 
+			    const double y[3], double * const z) const {
+    z[0] = k*x[0]+y[0];
+    z[1] = k*x[1]+y[1];
+    z[2] = k*x[2]+y[2];
   }
 };
 

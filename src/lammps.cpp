@@ -394,6 +394,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // allocate top-level classes
 
   create();
+  post_create();
 
   // if helpflag set, print help and exit
 
@@ -463,6 +464,19 @@ void LAMMPS::create()
                               // must be after modify so can create Computes
   update = new Update(this);  // must be after output, force, neighbor
   timer = new Timer(this);
+}
+
+/* ----------------------------------------------------------------------
+   invoke package-specific commands
+   called from LAMMPS instance constructor and after clear() command
+   only invoke if suffix is set and enabled
+------------------------------------------------------------------------- */
+
+void LAMMPS::post_create()
+{
+  if (suffix && suffix_enable) {
+    if (strcmp(suffix,"omp") == 0) input->one("package omp *");
+  }
 }
 
 /* ----------------------------------------------------------------------

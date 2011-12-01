@@ -509,14 +509,7 @@ void Input::clear()
   if (narg > 0) error->all(FLERR,"Illegal clear command");
   lmp->destroy();
   lmp->create();
-
-  // use of "omp" suffix implies using "package omp"
-  // re-create the effect of that package command which creates a fix
-
-  if (lmp->suffix && lmp->suffix_enable) {
-    if (strcmp(lmp->suffix,"omp") == 0)
-      lmp->input->one("package omp *");
-  }
+  lmp->post_create();
 }
 
 /* ---------------------------------------------------------------------- */

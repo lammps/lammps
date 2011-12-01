@@ -1223,6 +1223,10 @@ neighbor cutoff.  Use the "nsq" style instead of "bin" style. :dd
 
 See the newton command to change the setting. :dd
 
+{Cannot use newton pair with GPU EAM pair style} :dt
+
+See the newton command to change the setting. :dd
+
 {Cannot use newton pair with GPU Gay-Berne pair style} :dt
 
 See the newton command to change the setting. :dd

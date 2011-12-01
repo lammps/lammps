@@ -252,8 +252,8 @@ class EAM {
   int _ntypes;
 
   /// Per-atom arrays
-  UCL_H_Vec<numtyp> host_fp;
-  UCL_D_Vec<numtyp> dev_fp;
+  UCL_H_Vec<acctyp> host_fp;
+  UCL_D_Vec<acctyp> dev_fp;
   
 protected:
   bool _compiled;

@@ -31,6 +31,7 @@ class Angle : protected Pointers {
   Angle(class LAMMPS *);
   virtual ~Angle();
   virtual void init();
+  virtual void init_style() {}
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **) {}
   virtual void coeff(int, char **) = 0;

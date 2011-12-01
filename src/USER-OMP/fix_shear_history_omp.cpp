@@ -47,7 +47,7 @@ void FixShearHistoryOMP::pre_exchange()
 
   int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel shared(flag)
+#pragma omp parallel default(none) shared(flag)
 #endif
   {
 

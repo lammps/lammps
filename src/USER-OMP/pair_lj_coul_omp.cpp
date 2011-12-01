@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCoulOMP::PairLJCoulOMP(LAMMPS *lmp) :
-  PairLJCoul(lmp), ThrOMP(lmp, PAIR)
+  PairLJCoul(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -45,7 +45,6 @@ void PairLJCoulOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -53,53 +52,50 @@ void PairLJCoulOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCoulOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJCoulOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
 
-  double **x = atom->x;
-  double *q = atom->q;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const double * const q = atom->q;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_coul = force->special_coul;
+  const double * const special_lj = force->special_lj;
+  const double qqrd2e = force->qqrd2e;
 
-  double *x0 = x[0];
+  const double *x0 = x[0];
   double *f0 = f[0], *fi = f0;
 
   int *ilist = list->ilist;
@@ -127,7 +123,7 @@ void PairLJCoulOMP::eval(double **f, int iifrom, int iito, int tid)
       ni = sbmask(j);
       j &= NEIGHMASK;
       
-      { register double *xj = x0+(j+(j<<1));
+      { register const double *xj = x0+(j+(j<<1));
 	d[0] = xi[0] - xj[0];				// pair vector
 	d[1] = xi[1] - xj[1];
 	d[2] = xi[2] - xj[2]; }
@@ -218,7 +214,7 @@ void PairLJCoulOMP::eval(double **f, int iifrom, int iito, int tid)
       }
       
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-			       evdwl,ecoul,fpair,d[0],d[1],d[2],tid);
+			       evdwl,ecoul,fpair,d[0],d[1],d[2],thr);
     }
   }
 }

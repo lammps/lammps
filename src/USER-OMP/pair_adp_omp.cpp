@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairADPOMP::PairADPOMP(LAMMPS *lmp) :
-  PairADP(lmp), ThrOMP(lmp, PAIR)
+  PairADP(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -39,10 +39,10 @@ void PairADPOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
-  const int nall = atom->nlocal + atom->nghost;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
@@ -62,48 +62,39 @@ void PairADPOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, *rho_t, **mu_t, **lambda_t;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    if (force->newton_pair) {
-      rho_t = rho + tid*nall;
-      mu_t = mu + tid*nall;
-      lambda_t = lambda + tid*nall;
-    } else {
-      rho_t = rho + tid*atom->nlocal;
-      mu_t = mu + tid*atom->nlocal;
-      lambda_t = lambda + tid*atom->nlocal;
-    }
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    
+    if (force->newton_pair)
+      thr->init_adp(nall, rho, mu, lambda);
+    else
+      thr->init_adp(nlocal, rho, mu, lambda);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
-	else eval<1,1,0>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
-	else eval<1,0,0>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
-      else eval<0,0,0>(f, rho_t, mu_t, lambda_t, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairADPOMP::eval(double **f, double *rho_t, double **mu_t, 
-		      double **lambda_t, int iifrom, int iito, int tid)
+void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,m,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -117,7 +108,13 @@ void PairADPOMP::eval(double **f, double *rho_t, double **mu_t,
 
   evdwl = 0.0;
 
-  double **x = atom->x;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  double * const rho_t = thr->get_rho();
+  double * const * const mu_t = thr->get_mu();
+  double * const * const lambda_t = thr->get_lambda();
+  const int tid = thr->get_tid();
+
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -127,18 +124,6 @@ void PairADPOMP::eval(double **f, double *rho_t, double **mu_t,
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  // zero out density 
-
-  if (NEWTON_PAIR) {
-    memset(rho_t, 0, nall*sizeof(double));
-    memset(&(mu_t[0][0]), 0, 3*nall*sizeof(double));
-    memset(&(lambda_t[0][0]), 0, 6*nall*sizeof(double));
-  } else {
-    memset(rho_t, 0, nlocal*sizeof(double));
-    memset(&(mu_t[0][0]), 0, 3*nlocal*sizeof(double));
-    memset(&(lambda_t[0][0]), 0, 6*nlocal*sizeof(double));
-  }
 
   // rho = density at each atom
   // loop over neighbors of my atoms
@@ -259,8 +244,7 @@ void PairADPOMP::eval(double **f, double *rho_t, double **mu_t,
 		  lambda[i][4]+lambda[i][5]*lambda[i][5]);
       phi -= 1.0/6.0*(lambda[i][0]+lambda[i][1]+lambda[i][2])*
 	(lambda[i][0]+lambda[i][1]+lambda[i][2]);
-      if (eflag_global) eng_vdwl_thr[tid] += phi;
-      if (eflag_atom) eatom_thr[tid][i] += phi;
+      e_tally_thr(this,i,i,nlocal,/* newton_pair */ 1, phi, 0.0, thr);
     }
   }
 
@@ -384,7 +368,7 @@ void PairADPOMP::eval(double **f, double *rho_t, double **mu_t,
 
 	if (EFLAG) evdwl = phi;
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
-				     fx,fy,fz,delx,dely,delz,tid);
+				     fx,fy,fz,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;
@@ -399,6 +383,6 @@ double PairADPOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairADP::memory_usage();
-
+  bytes += (comm->nthreads-1) * nmax * (10*sizeof(double) + 3*sizeof(double *));
   return bytes;
 }

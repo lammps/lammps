@@ -39,8 +39,7 @@ class PairADPOMP : public PairADP, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(double **f, double *rho_t, double **mu_t, double **lambda_t, 
-	    int iifrom, int iito, int tid);
+  void eval(int iifrom, int iito, ThrData * const thr);
 };
 
 }

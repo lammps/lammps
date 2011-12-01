@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGayBerneOMP::PairGayBerneOMP(LAMMPS *lmp) :
-  PairGayBerne(lmp), ThrOMP(lmp, PAIR)
+  PairGayBerne(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -38,7 +38,6 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -46,40 +45,34 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, **torque;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    torque = atom->torque + tid*nall;
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, torque, ifrom, ito, tid);
-	else eval<1,1,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, torque, ifrom, ito, tid);
-	else eval<1,0,0>(f, torque, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, torque, ifrom, ito, tid);
-      else eval<0,0,0>(f, torque, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces and torques into global arrays.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
-    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int tid)
+void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
@@ -88,11 +81,13 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
   int *ilist,*jlist,*numneigh,**firstneigh;
   double *iquat,*jquat;
 
-  double **x = atom->x;
-  int *ellipsoid = atom->ellipsoid;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  double * const * const tor = thr->get_torque();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_lj = force->special_lj;
+  const int * const ellipsoid = atom->ellipsoid;
 
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
 
@@ -108,6 +103,7 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
 
     i = ilist[ii];
     itype = type[i];
+    fxtmp=fytmp=fztmp=t1tmp=t2tmp=t3tmp=0.0;
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
       iquat = bonus[ellipsoid[i]].quat;
@@ -187,12 +183,12 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
 	ttor[1] *= factor_lj;
 	ttor[2] *= factor_lj;
 
-        f[i][0] += fforce[0];
-	f[i][1] += fforce[1];
-	f[i][2] += fforce[2];
-        tor[i][0] += ttor[0];
-	tor[i][1] += ttor[1];
-	tor[i][2] += ttor[2];
+        fxtmp += fforce[0];
+	fytmp += fforce[1];
+	fztmp += fforce[2];
+        t1tmp += ttor[0];
+	t2tmp += ttor[1];
+	t3tmp += ttor[2];
 
         if (NEWTON_PAIR || j < nlocal) {
           rtor[0] *= factor_lj;
@@ -210,9 +206,15 @@ void PairGayBerneOMP::eval(double **f, double **tor, int iifrom, int iito, int t
 
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
 				     evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				     -r12[0],-r12[1],-r12[2],tid);
+				     -r12[0],-r12[1],-r12[2],thr);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
+    tor[i][0] += t1tmp;
+    tor[i][1] += t2tmp;
+    tor[i][2] += t3tmp;
   }
 }
 

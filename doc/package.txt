@@ -31,7 +31,6 @@ package gpu force 0 0 1.0
 package gpu force 0 0 0.75
 package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
-package cuda blah
 package omp * force/neigh
 package omp 4 force :pre
 
@@ -148,16 +147,29 @@ This command cannot be used after the simulation box is defined by a
 
 The cuda style of this command can only be invoked if LAMMPS was built
 with the USER-CUDA package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.  When using
+styles in the USER-CUDA package, use of the "package cuda" command in
+your input script is not required.
 
 The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.  When using
+styles in the GPU package, use of the "package gpu" command in your
+input script is currently required.
 
 The omp style of this command can only be invoked if LAMMPS was built
 with the USER-OMP package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.  When using
+styles in the USER-OMP package, use of the "package omp" command in
+your input script is not required.  See the information on default
+settings below.
 
-[Related commands:] none
+[Related commands:]
 
-[Default:] none
+"suffix"_suffix.html
+
+[Default:]
+
+If the "-sf omp" "command-line switch"_Section_start.html#2_6 is used
+then "package omp *" is also auto-invoked to specify default OMP
+settings.

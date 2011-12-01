@@ -808,85 +808,170 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 {
   PairPtr pb = NULL;
 
-  if (rq->copy) pb = &Neighbor::copy_from;
+  if (rq->omp == 0) {
 
-  else if (rq->skip) {
-    if (rq->gran && lists[index]->listgranhistory)
-      pb = &Neighbor::skip_from_granular;
-    else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
-    else pb = &Neighbor::skip_from;
+    if (rq->copy) pb = &Neighbor::copy_from;
 
-  } else if (rq->half_from_full) {
-    if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton;
-    else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton;
+    else if (rq->skip) {
+      if (rq->gran && lists[index]->listgranhistory)
+	pb = &Neighbor::skip_from_granular;
+      else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
+      else pb = &Neighbor::skip_from;
 
-  } else if (rq->half) {
-    if (style == NSQ) {
-      if (rq->newton == 0) {
-	if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton;
-	else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
-      } else if (rq->newton == 1) {
-	pb = &Neighbor::half_nsq_newton;
-      } else if (rq->newton == 2) {
-	pb = &Neighbor::half_nsq_no_newton;
+    } else if (rq->half_from_full) {
+      if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton;
+      else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton;
+
+    } else if (rq->half) {
+      if (style == NSQ) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton;
+	  else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
+	} else if (rq->newton == 1) {
+	  pb = &Neighbor::half_nsq_newton;
+	} else if (rq->newton == 2) {
+	  pb = &Neighbor::half_nsq_no_newton;
+	}
+      } else if (style == BIN) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
+	  else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
+	  else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+	} else if (rq->newton == 1) {
+	  if (triclinic == 0) pb = &Neighbor::half_bin_newton;
+	  else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+	} else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton;
+      } else if (style == MULTI) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
+	  else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
+	  else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+	} else if (rq->newton == 1) {
+	  if (triclinic == 0) pb = &Neighbor::half_multi_newton;
+	  else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
+	} else if (rq->newton == 2) pb = &Neighbor::half_multi_no_newton;
       }
-    } else if (style == BIN) {
-      if (rq->newton == 0) {
-	if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
-	else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
-	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
-      } else if (rq->newton == 1) {
-	if (triclinic == 0) pb = &Neighbor::half_bin_newton;
-	else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
-      } else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton;
-    } else if (style == MULTI) {
-      if (rq->newton == 0) {
-	if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
-	else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
-	else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
-      } else if (rq->newton == 1) {
-	if (triclinic == 0) pb = &Neighbor::half_multi_newton;
-	else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri;
-      } else if (rq->newton == 2) pb = &Neighbor::half_multi_no_newton;
+
+    } else if (rq->full) {
+      if (style == NSQ) {
+	if (rq->ghost == 0) pb = &Neighbor::full_nsq;
+	else if (includegroup) 
+	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
+      } else if (style == BIN) {
+	if (rq->ghost == 0) pb = &Neighbor::full_bin;
+	else if (includegroup) 
+	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
+      } else if (style == MULTI) {
+	if (rq->ghost == 0) pb = &Neighbor::full_multi;
+	else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
+      }
+
+    } else if (rq->gran) {
+      if (style == NSQ) {
+	if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton;
+	else if (newton_pair == 1) pb = &Neighbor::granular_nsq_newton;
+      } else if (style == BIN) {
+	if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton;
+	else if (triclinic == 0) pb = &Neighbor::granular_bin_newton;
+	else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri;
+      } else if (style == MULTI)
+	error->all(FLERR,"Neighbor multi not yet enabled for granular");
+
+    } else if (rq->respaouter) {
+      if (style == NSQ) {
+	if (newton_pair == 0) pb = &Neighbor::respa_nsq_no_newton;
+	else if (newton_pair == 1) pb = &Neighbor::respa_nsq_newton;
+      } else if (style == BIN) {
+	if (newton_pair == 0) pb = &Neighbor::respa_bin_no_newton;
+	else if (triclinic == 0) pb = &Neighbor::respa_bin_newton;
+	else if (triclinic == 1) pb = &Neighbor::respa_bin_newton_tri;
+      } else if (style == MULTI)
+	error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
     }
+  } else {
 
-  } else if (rq->full) {
-    if (style == NSQ) {
-      if (rq->ghost == 0) pb = &Neighbor::full_nsq;
-      else if (includegroup) 
-	error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
-      else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
-    } else if (style == BIN) {
-      if (rq->ghost == 0) pb = &Neighbor::full_bin;
-      else if (includegroup) 
-	error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
-      else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
-    } else if (style == MULTI) {
-      if (rq->ghost == 0) pb = &Neighbor::full_multi;
-      else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
+    if (rq->copy) pb = &Neighbor::copy_from;
+
+    else if (rq->skip) {
+      if (rq->gran && lists[index]->listgranhistory)
+	pb = &Neighbor::skip_from_granular;
+      else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
+      else pb = &Neighbor::skip_from;
+
+    } else if (rq->half_from_full) {
+      if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton_omp;
+      else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton_omp;
+
+    } else if (rq->half) {
+      if (style == NSQ) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton_omp;
+	  else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton_omp;
+	} else if (rq->newton == 1) {
+	  pb = &Neighbor::half_nsq_newton_omp;
+	} else if (rq->newton == 2) {
+	  pb = &Neighbor::half_nsq_no_newton_omp;
+	}
+      } else if (style == BIN) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton_omp;
+	  else if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
+	  else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri_omp;
+	} else if (rq->newton == 1) {
+	  if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
+	  else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri_omp;
+	} else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton_omp;
+      } else if (style == MULTI) {
+	if (rq->newton == 0) {
+	  if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton_omp;
+	  else if (triclinic == 0) pb = &Neighbor::half_multi_newton_omp;
+	  else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri_omp;
+	} else if (rq->newton == 1) {
+	  if (triclinic == 0) pb = &Neighbor::half_multi_newton_omp;
+	  else if (triclinic == 1) pb = &Neighbor::half_multi_newton_tri_omp;
+	} else if (rq->newton == 2) pb = &Neighbor::half_multi_no_newton_omp;
+      }
+
+    } else if (rq->full) {
+      if (style == NSQ) {
+	if (rq->ghost == 0) pb = &Neighbor::full_nsq_omp;
+	else if (includegroup) 
+	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost_omp;
+      } else if (style == BIN) {
+	if (rq->ghost == 0) pb = &Neighbor::full_bin_omp;
+	else if (includegroup) 
+	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost_omp;
+      } else if (style == MULTI) {
+	if (rq->ghost == 0) pb = &Neighbor::full_multi_omp;
+	else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
+      }
+
+    } else if (rq->gran) {
+      if (style == NSQ) {
+	if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton_omp;
+	else if (newton_pair == 1) pb = &Neighbor::granular_nsq_newton_omp;
+      } else if (style == BIN) {
+	if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton_omp;
+	else if (triclinic == 0) pb = &Neighbor::granular_bin_newton_omp;
+	else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri_omp;
+      } else if (style == MULTI)
+	error->all(FLERR,"Neighbor multi not yet enabled for granular");
+
+    } else if (rq->respaouter) {
+      if (style == NSQ) {
+	if (newton_pair == 0) pb = &Neighbor::respa_nsq_no_newton_omp;
+	else if (newton_pair == 1) pb = &Neighbor::respa_nsq_newton_omp;
+      } else if (style == BIN) {
+	if (newton_pair == 0) pb = &Neighbor::respa_bin_no_newton_omp;
+	else if (triclinic == 0) pb = &Neighbor::respa_bin_newton_omp;
+	else if (triclinic == 1) pb = &Neighbor::respa_bin_newton_tri_omp;
+      } else if (style == MULTI)
+	error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
     }
-
-  } else if (rq->gran) {
-    if (style == NSQ) {
-      if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton;
-      else if (newton_pair == 1) pb = &Neighbor::granular_nsq_newton;
-    } else if (style == BIN) {
-      if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton;
-      else if (triclinic == 0) pb = &Neighbor::granular_bin_newton;
-      else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri;
-    } else if (style == MULTI)
-      error->all(FLERR,"Neighbor multi not yet enabled for granular");
-
-  } else if (rq->respaouter) {
-    if (style == NSQ) {
-      if (newton_pair == 0) pb = &Neighbor::respa_nsq_no_newton;
-      else if (newton_pair == 1) pb = &Neighbor::respa_nsq_newton;
-    } else if (style == BIN) {
-      if (newton_pair == 0) pb = &Neighbor::respa_bin_no_newton;
-      else if (triclinic == 0) pb = &Neighbor::respa_bin_newton;
-      else if (triclinic == 1) pb = &Neighbor::respa_bin_newton_tri;
-    } else if (style == MULTI)
-      error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
   }
 
   // general error check

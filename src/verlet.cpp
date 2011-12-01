@@ -62,6 +62,11 @@ void Verlet::init()
 
   ev_setup();
 
+  // detect if fix omp is present for clearing force arrays
+
+  int ifix = modify->find_fix("package_omp");
+  if (ifix >= 0) external_force_clear = 1;
+
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
 
@@ -306,49 +311,27 @@ void Verlet::cleanup()
 
 void Verlet::force_clear()
 {
+  if (external_force_clear) return;
   int i;
 
   if (external_force_clear) return;
 
   // clear force on all particles
   // if either newton flag is set, also include ghosts
+  // when using threads always clear all forces.
 
   if (neighbor->includegroup == 0) {
     int nall;
     if (force->newton) nall = atom->nlocal + atom->nghost;
     else nall = atom->nlocal;
-    int ntot = nall * comm->nthreads;
 
-    double **f = atom->f;
-    for (i = 0; i < ntot; i++) {
-      f[i][0] = 0.0;
-      f[i][1] = 0.0;
-      f[i][2] = 0.0;
-    }
-    
-    if (torqueflag) {
-      double **torque = atom->torque;
-      for (i = 0; i < nall; i++) {
-	torque[i][0] = 0.0;
-	torque[i][1] = 0.0;
-	torque[i][2] = 0.0;
-      }
-    }
+    size_t nbytes = sizeof(double) * nall;
 
-    if (erforceflag) {
-      double *erforce = atom->erforce;
-      for (i = 0; i < nall; i++) erforce[i] = 0.0;
-    }
-
-    if (e_flag) {
-      double *de = atom->de;
-      for (i = 0; i < nall; i++) de[i] = 0.0;
-    }
-
-    if (rho_flag) {
-      double *drho = atom->drho;
-      for (i = 0; i < nall; i++) drho[i] = 0.0;
-    }
+    memset(&(atom->f[0][0]),0,3*nbytes);
+    if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
+    if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
+    if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
+    if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
 
   // neighbor includegroup flag is set
   // clear force only on initial nfirst particles

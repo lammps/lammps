@@ -181,10 +181,10 @@ void NeighList::stencil_allocate(int smax, int style)
    add PGDELTA pages to neighbor list
 ------------------------------------------------------------------------- */
 
-int **NeighList::add_pages()
+int **NeighList::add_pages(int howmany)
 {
   int toppage = maxpage;
-  maxpage += PGDELTA;
+  maxpage += howmany*PGDELTA;
 
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");
@@ -249,6 +249,7 @@ void NeighList::print_attributes()
   printf("\n");
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
+  printf("  %d = omp\n",rq->omp);
   printf("  %d = ghost\n",rq->ghost);
   printf("  %d = cudable\n",rq->cudable);
   printf("  %d = omp\n",rq->omp);

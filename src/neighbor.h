@@ -75,6 +75,8 @@ class Neighbor : protected Pointers {
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
+
+  inline int exclude_setting() { return exclude; }
   
  protected:
   int me,nprocs;
@@ -208,6 +210,40 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton(class NeighList *);
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
+
+  // OpenMP multi-threaded neighbor list build versions
+
+  void half_nsq_no_newton_omp(class NeighList *);
+  void half_nsq_newton_omp(class NeighList *);
+
+  void half_bin_no_newton_omp(class NeighList *);
+  void half_bin_newton_omp(class NeighList *);
+  void half_bin_newton_tri_omp(class NeighList *);
+
+  void half_multi_no_newton_omp(class NeighList *);
+  void half_multi_newton_omp(class NeighList *);
+  void half_multi_newton_tri_omp(class NeighList *);
+
+  void full_nsq_omp(class NeighList *);
+  void full_nsq_ghost_omp(class NeighList *);
+  void full_bin_omp(class NeighList *);
+  void full_bin_ghost_omp(class NeighList *);
+  void full_multi_omp(class NeighList *);
+
+  void half_from_full_no_newton_omp(class NeighList *);
+  void half_from_full_newton_omp(class NeighList *);
+
+  void granular_nsq_no_newton_omp(class NeighList *);
+  void granular_nsq_newton_omp(class NeighList *);
+  void granular_bin_no_newton_omp(class NeighList *);
+  void granular_bin_newton_omp(class NeighList *);
+  void granular_bin_newton_tri_omp(class NeighList *);
+
+  void respa_nsq_no_newton_omp(class NeighList *);
+  void respa_nsq_newton_omp(class NeighList *);
+  void respa_bin_no_newton_omp(class NeighList *);
+  void respa_bin_newton_omp(class NeighList *);
+  void respa_bin_newton_tri_omp(class NeighList *);
 
   // pairwise stencil creation functions
 

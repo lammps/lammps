@@ -170,6 +170,9 @@ settings below.
 
 [Default:]
 
-If the "-sf omp" "command-line switch"_Section_start.html#2_6 is used
-then "package omp *" is also auto-invoked to specify default OMP
+If the "-sf omp" "command-line switch"_Section_start.html#start_6 is
+used then "package omp *" is also auto-invoked to specify default OMP
 settings.
+
+The other styles have no defaults.
+

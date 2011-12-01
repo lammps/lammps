@@ -58,6 +58,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   nextra = 0;
   pvector = NULL;
+  single_extra = 0;
+  svector = NULL;
 
   // pair_modify settings
 

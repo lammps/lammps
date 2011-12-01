@@ -15,16 +15,20 @@ compute ID group-ID pair/local input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 pair/local = style name of this compute command :l
 zero or more keywords may be appended :l
-keyword = {dist} or {eng} or {force} :l
-  {dist} = tabulate pairwise distances
-  {eng} = tablutate pairwise energies
-  {force} = tablutate pairwise forces :pre
+keyword = {dist} or {eng} or {force} or {fx} or {fy} or {fz} or {fN} :l
+  {dist} = pairwise distance
+  {eng} = pairwise energy
+  {force} = pairwise force
+  {fx},{fy},{fz} = components of pairwise force
+  {pN} = pair style specific quantities for allowed N values :pre
 :ule
 
 [Examples:]
 
 compute 1 all pair/local eng
-compute 1 all pair/local dist eng force :pre
+compute 1 all pair/local dist eng force
+compute 1 all pair/local dist eng fx fy fz
+compute 1 all pair/local dist fx fy fz p1 p2 p3 :pre
 
 [Description:]
 
@@ -40,9 +44,27 @@ force cutoff distance for that interaction, as defined by the
 "pair_style"_pair_style.html and "pair_coeff"_pair_coeff.html
 commands.
 
+The output {dist} is the distance bewteen the pair of atoms.
+
+The output {eng} is the interaction energy for the pair of atoms.
+
+The output {force} is the force acting between the pair of atoms,
+which is positive for a repulsive force and negative for an attractive
+force.  The outputs {fx}, {fy}, and {fz} are the xyz components of
+{force} on atom I.
+
+A pair style may define additional pairwise quantities which can be
+accessed as {p1} to {pN}, where N is defined by the pair style.  Most
+pair styles do not define any additional quantities, so N = 0.  An
+example of ones that do are the "granular pair styles"_pair_gran.html
+which calculate the tangential force between two particles and return
+its components and magnitude acting on atom I for N = 1,2,3,4.  See
+individual pair styles for detils.
+
 The output {dist} will be in distance "units"_units.html.  The output
-{eng} will be in energy "units"_units.html.  The output {force} will
-be in force "units"_units.html.
+{eng} will be in energy "units"_units.html.  The outputs {force},
+{fx}, {fy}, and {fz} will be in force "units"_units.html.  The output
+{pN} will be in whatever units the pair style defines.
 
 Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array

@@ -529,12 +529,6 @@ void DeviceT::clear() {
     if (_init_count==0) {
       atom.clear();
       _neighbor_shared.clear();
-      if (_compiled) {
-        k_zero.clear();
-        k_info.clear();
-        delete dev_program;
-        _compiled=false;
-      }
     }
   }
 }
@@ -543,6 +537,12 @@ template <class numtyp, class acctyp>
 void DeviceT::clear_device() {
   while (_init_count>0)
     clear();
+  if (_compiled) {
+    k_zero.clear();
+    k_info.clear();
+    delete dev_program;
+    _compiled=false;
+  }
   if (_device_init) {
     delete gpu;
     _device_init=false;

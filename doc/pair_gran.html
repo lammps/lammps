@@ -211,6 +211,17 @@ specified in an input script that reads a restart file.
 <A HREF = "run_style.html">run_style respa</A> command.  They do not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
+<P>The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.  However, the single() function also
+calculates 4 extra pairwise quantities.  The first 3 are the
+components of the tangential force between particles I and J, acting
+on particle I.  <I>P4</I> is the magnitude of this tangential force.  These
+extra quantites can be accessed by the <A HREF = "compute_pair_local.html">compute
+pair/local</A> command, as <I>p1</I>, <I>p2</I>, <I>p3</I>,
+<I>p4</I>.
+</P>
 <HR>
 
 <P><B>Restrictions:</B> none

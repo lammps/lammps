@@ -308,63 +308,6 @@ inline void EAMT::build_nbor_list(const int inum, const int host_inum,
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void EAMT::compute(const int f_ago, const int inum_full,
-                   const int nall, double **host_x, int *host_type,
-                   int *ilist, int *numj, int **firstneigh,
-                   const bool eflag, const bool vflag,
-                   const bool eatom, const bool vatom,
-                   int &host_start, const double cpu_time,
-                   bool &success, double *host_q,
-                   const int nlocal, double *boxlo, double *prd) {
-  acc_timers();
-  
-  // compute density already took care of the neighbor list
-
-  atom->cast_q_data(host_q);
-  atom->add_q_data();
-
-  loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
-  device->add_ans_object(ans);
-}
-
-// ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary and then compute forces, virials, energies
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-int** EAMT::compute(const int ago, const int inum_full,
-                    const int nall, double **host_x, int *host_type,
-                    double *sublo, double *subhi, int *tag,
-                    int **nspecial, int **special, const bool eflag, 
-                    const bool vflag, const bool eatom,
-                    const bool vatom, int &host_start,
-                    int **ilist, int **jnum,
-                    const double cpu_time, bool &success,
-                    double *host_q, double *boxlo, double *prd, int inum) {
-  acc_timers();
-  
-  // use the atom count returned from load balance invoked in compute energy
-  ans->inum(inum);
-  host_start=inum;
-
-  atom->cast_q_data(host_q);
-  hd_balancer.start_timer();
-  atom->add_q_data();
-  *ilist=nbor->host_ilist.begin();
-  *jnum=nbor->host_acc.begin();
-
-  loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom);
-  device->add_ans_object(ans);
-  hd_balancer.stop_timer();
-  
-  return nbor->host_jlist.begin()-host_start;
-}
-
-// ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then compute atom energies/forces
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -411,14 +354,6 @@ void EAMT::compute_energy(const int f_ago, const int inum_full,
   for (int i=0; i<inum; i++) {
     fp[i]=*ap;
     ap++;
-  }
-  
-  if (eflag) {
-    double e=0.0;
-    ucl_copy(ans->host_engv,ans->dev_engv,false); 
-    for (int i=0; i<inum; i++) 
-      e+=ans->host_engv[i];
-    *evdwl+=e;
   }
 
   hd_balancer.stop_timer();
@@ -479,15 +414,64 @@ int** EAMT::compute_energy(const int ago, const int inum_full,
     fp[i]=*ap;
     ap++;
   }
-  
-  if (eflag) {
-    double e=0.0;
-    ucl_copy(ans->host_engv,ans->dev_engv,false); 
-    for (int i=0; i<inum; i++) 
-      e+=ans->host_engv[i];
-    *evdwl+=e;
-  }     
 
+  hd_balancer.stop_timer();
+  
+  return nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Copy nbor list from host if necessary and then calculate forces, virials,..
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+void EAMT::compute(const int f_ago, const int inum_full,
+                   const int nall, double **host_x, int *host_type,
+                   int *ilist, int *numj, int **firstneigh,
+                   const bool eflag, const bool vflag,
+                   const bool eatom, const bool vatom,
+                   int &host_start, const double cpu_time,
+                   bool &success, double *host_q,
+                   const int nlocal, double *boxlo, double *prd) {
+  acc_timers();
+  
+  // compute density already took care of the neighbor list
+
+  atom->cast_q_data(host_q);
+  atom->add_q_data();
+  
+  loop(eflag,vflag);
+  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  device->add_ans_object(ans);
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary and then compute forces, virials, energies
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** EAMT::compute(const int ago, const int inum_full,
+                    const int nall, double **host_x, int *host_type,
+                    double *sublo, double *subhi, int *tag,
+                    int **nspecial, int **special, const bool eflag, 
+                    const bool vflag, const bool eatom,
+                    const bool vatom, int &host_start,
+                    int **ilist, int **jnum,
+                    const double cpu_time, bool &success,
+                    double *host_q, double *boxlo, double *prd, int inum) {
+  acc_timers();
+  
+  // use the atom count returned from load balance invoked in compute energy
+  ans->inum(inum);
+  host_start=inum;
+
+  atom->cast_q_data(host_q);
+  hd_balancer.start_timer();
+  atom->add_q_data();
+  *ilist=nbor->host_ilist.begin();
+  *jnum=nbor->host_acc.begin();
+
+  loop(eflag,vflag);
+  ans->copy_answers(eflag,vflag,eatom,vatom);
+  device->add_ans_object(ans);
   hd_balancer.stop_timer();
   
   return nbor->host_jlist.begin()-host_start;

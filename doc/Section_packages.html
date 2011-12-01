@@ -97,7 +97,7 @@ E.g. "peptide" refers to the examples/peptide directory.
 <TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
-<TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_cmm.html">pair_style cg/cmm</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
@@ -220,8 +220,8 @@ script:
 </UL>
 <P>These styles allow coarse grained MD simulations with the
 parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
-(SDK), with extensions to simulate ionic liquids, electrolytes,
-lipids and charged amino acids.
+(SDK), with extensions to simulate ionic liquids, electrolytes, lipids
+and charged amino acids.
 </P>
 <P>See the doc pages for these commands for details.
 </P>
@@ -229,15 +229,16 @@ lipids and charged amino acids.
 examples/USER/cg-cmm.
 </P>
 <P>This is the second generation implementation reducing the the clutter
-of the previous version. For many systems with long range
-electrostatics, it will be faster to use pair_style hybrid/overlay
-with lj/sdk and coul/long instead of the combined lj/sdk/coul/long
-style, since the number of charged atom types is usually small.  To
-exploit this property, the use of the kspace_style pppm/cg is
-recommended over regular pppm. For all new styles, input file backward
-compatibility is provided.  The old implementation is still available
-through appending the /old suffix. These will be discontinued and
-removed after the new implementation has been fully validated.
+of the previous version. For many systems with electrostatics, it will
+be faster to use pair_style hybrid/overlay with lj/sdk and coul/long
+instead of the combined lj/sdk/coul/long style.  since the number of
+charged atom types is usually small.  For any other coulomb
+interactions this is now required.  To exploit this property, the use
+of the kspace_style pppm/cg is recommended over regular pppm. For all
+new styles, input file backward compatibility is provided.  The old
+implementation is still available through appending the /old
+suffix. These will be discontinued and removed after the new
+implementation has been fully validated.
 </P>
 <P>The current version of this package should be considered beta
 quality. The CG potentials work correctly for "normal" situations, but

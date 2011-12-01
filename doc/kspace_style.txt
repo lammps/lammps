@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} :ulb,l
+style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/proxy} :ulb,l
   {none} value = none
   {ewald} value = precision
     precision = desired accuracy
@@ -26,6 +26,12 @@ style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or
   {ewald/n} value = precision
     precision = desired accuracy
   {pppm/gpu} value = precision
+    precision = desired accuracy
+  {ewald/omp} value = precision
+    precision = desired accuracy
+  {pppm/omp} value = precision
+    precision = desired accuracy
+  {pppm/proxy} value = precision
     precision = desired accuracy :pre
 :ule
 
@@ -79,6 +85,16 @@ long-range potentials.
 Currently, only the {ewald/n} style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 
+The {pppm/proxy} style is a special variant for calculations 
+in hybrid OpenMP/MPI parallel mode. It is functionally equivalent
+with {pppm}, but it its force computation is being executed 
+as a single thread concurrently with a multi-threaded non-bonded
+calculation for a pair style with {pppm/omp} suffix. For calcuations
+across many multi-core nodes, this can have a performance benefit
+over performing the real and reciprocal space part separately,
+specifically when otherwise the time spent on the pair style
+would slightly less than in {pppm} without threading.
+
 Note that the PPPM styles can be used with single-precision FFTs by
 using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
 lo-level Makefile.  This setting also changes some of the PPPM
@@ -108,7 +124,7 @@ options of the K-space solvers that can be set.
 
 :line
 
-Styles with a {cuda}, {gpu}, or {opt} suffix are
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in "this section"_Section_accelerate.html of
@@ -125,9 +141,9 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
-These accelerated styles are part of the USER-CUDA, GPU, and OPT
-packages respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+These accelerated styles are part of the USER-CUDA, GPU, USER-OMP, and
+OPT packages respectively.  They are only enabled if LAMMPS was built
+with those packages.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
 
 See "this section"_Section_accelerate.html of the manual for more

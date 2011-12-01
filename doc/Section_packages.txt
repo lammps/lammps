@@ -89,7 +89,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 USER-MISC, single-file contributions, USER-MISC/README, -, -, -, -
 USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
-USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style cg/cmm"_pair_cmm.html, USER/cg-cmm, "cg"_cg, -
+USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
@@ -208,8 +208,8 @@ angle_style sdk :ul
 
 These styles allow coarse grained MD simulations with the
 parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
-(SDK), with extensions to simulate ionic liquids, electrolytes,
-lipids and charged amino acids.
+(SDK), with extensions to simulate ionic liquids, electrolytes, lipids
+and charged amino acids.
 
 See the doc pages for these commands for details.
 
@@ -217,15 +217,16 @@ There are example scripts for using this package in
 examples/USER/cg-cmm.
 
 This is the second generation implementation reducing the the clutter
-of the previous version. For many systems with long range
-electrostatics, it will be faster to use pair_style hybrid/overlay
-with lj/sdk and coul/long instead of the combined lj/sdk/coul/long
-style, since the number of charged atom types is usually small.  To
-exploit this property, the use of the kspace_style pppm/cg is
-recommended over regular pppm. For all new styles, input file backward
-compatibility is provided.  The old implementation is still available
-through appending the /old suffix. These will be discontinued and
-removed after the new implementation has been fully validated.
+of the previous version. For many systems with electrostatics, it will
+be faster to use pair_style hybrid/overlay with lj/sdk and coul/long
+instead of the combined lj/sdk/coul/long style.  since the number of
+charged atom types is usually small.  For any other coulomb
+interactions this is now required.  To exploit this property, the use
+of the kspace_style pppm/cg is recommended over regular pppm. For all
+new styles, input file backward compatibility is provided.  The old
+implementation is still available through appending the /old
+suffix. These will be discontinued and removed after the new
+implementation has been fully validated.
 
 The current version of this package should be considered beta
 quality. The CG potentials work correctly for "normal" situations, but

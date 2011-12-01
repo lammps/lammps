@@ -181,6 +181,7 @@ within the LAMMPS code.  The options that are currently recogized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
+-DLAMMPS_MEMALIGN
 -DLAMMPS_XDR
 -DLAMMPS_SMALLBIG
 -DLAMMPS_BIGBIG
@@ -198,6 +199,14 @@ If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
 able to write out JPEG image files.  If not, it will only be able to
 write out text-based PPM image files.  For JPEG files, you must also
 link LAMMPS with a JPEG library, as described below.
+
+Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
+posix_memalign() call instead of malloc() when large chunks or memory
+are allocated by LAMMPS.  This can help to make more efficient use of
+vector instructions of modern CPUS, since dynamically allocated memory
+has to be aligned on larger than default byte boundaries (e.g. 16
+bytes instead of 8 bytes on x86 type platforms) for optimal
+performance.
 
 If you use -DLAMMPS_XDR, the build will include XDR compatibility
 files for doing particle dumps in XTC format.  This is only necessary

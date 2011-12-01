@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/proxy</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = precision
@@ -30,6 +30,12 @@
   <I>ewald/n</I> value = precision
     precision = desired accuracy
   <I>pppm/gpu</I> value = precision
+    precision = desired accuracy
+  <I>ewald/omp</I> value = precision
+    precision = desired accuracy
+  <I>pppm/omp</I> value = precision
+    precision = desired accuracy
+  <I>pppm/proxy</I> value = precision
     precision = desired accuracy 
 </PRE>
 
@@ -84,6 +90,16 @@ long-range potentials.
 <P>Currently, only the <I>ewald/n</I> style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 </P>
+<P>The <I>pppm/proxy</I> style is a special variant for calculations 
+in hybrid OpenMP/MPI parallel mode. It is functionally equivalent
+with <I>pppm</I>, but it its force computation is being executed 
+as a single thread concurrently with a multi-threaded non-bonded
+calculation for a pair style with <I>pppm/omp</I> suffix. For calcuations
+across many multi-core nodes, this can have a performance benefit
+over performing the real and reciprocal space part separately,
+specifically when otherwise the time spent on the pair style
+would slightly less than in <I>pppm</I> without threading.
+</P>
 <P>Note that the PPPM styles can be used with single-precision FFTs by
 using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
 lo-level Makefile.  This setting also changes some of the PPPM
@@ -113,7 +129,7 @@ options of the K-space solvers that can be set.
 </P>
 <HR>
 
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, or <I>opt</I> suffix are
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <A HREF = "Section_accelerate.html">this section</A> of
@@ -130,9 +146,9 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 </P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, and OPT
-packages respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP, and
+OPT packages respectively.  They are only enabled if LAMMPS was built
+with those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
 section for more info.
 </P>
 <P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more

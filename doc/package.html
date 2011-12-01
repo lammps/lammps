@@ -25,8 +25,9 @@
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
   <I>cuda</I> args = to be determined
-  <I>omp</I> args = Nthreads
-    Nthreads = # of OpenMP threads to associate with each MPI process 
+  <I>omp</I> args = Nthreads mode
+    Nthreads = # of OpenMP threads to associate with each MPI process
+    mode = force or force/neigh (optional) 
 </PRE>
 
 </UL>
@@ -37,7 +38,8 @@ package gpu force 0 0 0.75
 package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
 package cuda blah
-package omp 4 
+package omp * force/neigh
+package omp 4 force 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -108,17 +110,40 @@ USER-CUDA package.  These still need to be documented.
 <P>The <I>omp</I> style invokes options associated with the use of the
 USER-OMP package.
 </P>
-<P>The only setting to make is the number of OpenMP threads to be
-allocated for each MPI process.  For example, if your system has nodes
-with dual quad-core processors, it has a total of 8 cores per node.
-You could run MPI on 2 cores on each node (e.g. using options for the
-mpirun command), and set the <I>Nthreads</I> setting to 4.  This would
-effectively use all 8 cores on each node.  Since each MPI process
-would spawn 4 threads (one of which runs as part of the MPI process
-itself).
+<P>The first argument allows to explicitly set the number of OpenMP
+threads to be allocated for each MPI process.  For example, if your
+system has nodes with dual quad-core processors, it has a total of 8
+cores per node.  You could run MPI on 2 cores on each node (e.g. using
+options for the mpirun command), and set the <I>Nthreads</I> setting to 4.
+This would effectively use all 8 cores on each node.  Since each MPI
+process would spawn 4 threads (one of which runs as part of the MPI
+process itself).
 </P>
 <P>For performance reasons, you should not set <I>Nthreads</I> to more threads
-than there are physical cores, but LAMMPS does not check for this.
+than there are physical cores (per MPI task), but LAMMPS cannot check
+for this.
+</P>
+<P>An <I>Nthreads</I> value of '*' instructs LAMMPS to use whatever is the
+default for the given OpenMP environment. This is usually determined
+via the <I>OMP_NUM_THREADS</I> environment variable or the compiler
+runtime.  Please note that in most cases the default for OpenMP
+capable compilers is to use one thread for each available CPU core
+when <I>OMP_NUM_THREADS</I> is not set, which can lead to extremely bad
+performance.
+</P>
+<P>Which combination of threads and MPI tasks gives the best performance
+is difficult to predict and can depend on many components of your input.
+Not all features of LAMMPS support OpenMP and the parallel efficiency
+can be very different, too.
+</P>
+<P>The <I>mode</I> setting specifies where neighbor list calculations will be
+multi-threaded as well.  If <I>mode</I> is force, neighbor list calculation
+is performed in serial. If <I>mode</I> is force/neigh, a multi-threaded
+neighbor list build is used. Using the force/neigh setting is almost
+always faster and should produce idential neighbor lists at the
+expense of using some more memory (neighbor list pages are always
+allocated for all threads at the same time and each thread works on
+its own pages).
 </P>
 <HR>
 

@@ -50,7 +50,8 @@ void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor) {
   	return;
   	
   _gpu_nbor=gpu_nbor;
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable -D"+
+  std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
+                    std::string(OCL_PRECISION_COMPILE)+" -D"+
                     std::string(OCL_VENDOR);
 
   if (_gpu_nbor==0) {

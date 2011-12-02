@@ -24,7 +24,18 @@
     first = ID of first GPU to be used on each node
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
-  <I>cuda</I> args = to be determined
+  <I>cuda</I> args = one or more keyword/value pairs may be appended
+    keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
+    gpu/node values = N
+      N = number of GPUs to be used per node
+    gpu/node/special values = N gpu1 .. gpuN
+      N = number of GPUs to be used per node
+      gpu1 .. gpuN = N IDs of the GPUs to use
+    timing values = none
+    test values = id
+      id = atom-ID of a test particle
+    override/bpa values = flag
+      flag = 0 for TpA algorithm, 1 for BpA algorithm 
   <I>omp</I> args = Nthreads mode
     Nthreads = # of OpenMP threads to associate with each MPI process
     mode = force or force/neigh (optional) 
@@ -45,17 +56,25 @@ package omp 4 force
 <P>This command invokes package-specific settings.  Currently the
 following packages use it: GPU, USER-CUDA, and USER-OMP.
 </P>
+<P>To use the accelerated GPU and USER-OMP styles, the use of the package
+command is required.  However, as described in the "Defaults" section
+below, if you use the "-sf gpu" or "-sf omp" <A HREF = "Section_start.html#start_6">command-line
+options</A> to enable use of these styles,
+then default package settings are enabled.  In that case you only need
+to use the package command if you want to change the defaults.
+</P>
+<P>To use the accelerate USER-CUDA styles, the package command is not
+required as defaults are assigned internally.  You only need to use
+the package command if you want to change the defaults.
+</P>
 <P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
-details about using these various packages for accelerating
-a LAMMPS calculation.
+details about using these various packages for accelerating LAMMPS
+calculations.
 </P>
 <HR>
 
 <P>The <I>gpu</I> style invokes options associated with the use of the GPU
-package.  It allows you to select and initialize GPUs to be used for
-acceleration via this package and configure how the GPU acceleration
-is performed.  These settings are required in order to use any style
-with GPU acceleration.
+package. 
 </P>
 <P>The <I>mode</I> setting specifies where neighbor list calculations will be
 performed.  If <I>mode</I> is force, neighbor list calculation is performed
@@ -102,7 +121,54 @@ the other particles.
 <HR>
 
 <P>The <I>cuda</I> style invokes options associated with the use of the
-USER-CUDA package.  These still need to be documented.
+USER-CUDA package.  
+</P>
+<P>The <I>gpu/node</I> setting specifies the number <I>N</I> of GPUs to be used on
+each node.  An MPI process with rank <I>K</I> will use the GPU (K mod N).
+This implies that processes should be assigned with successive ranks
+on each node, which is the default with most (or even all) MPI
+implementations. The default value for <I>N</I> is 2.
+</P>
+<P>The <I>gpu/node/special</I> setting also specifies the number (N) of GPUs
+to be used on each node, but allows more control over their
+specification.  An MPI process with rank <I>K</I> will use the GPU <I>gpuI</I>
+with l = (K mod N) + 1. This implies that processes should be assigned
+with successive ranks on each node, which is the default with most (or
+even all) MPI implementations.  For example if you have three GPUs on
+a machine, one of which is used for the X-Server (the GPU with the ID
+1) while the others (with IDs 0 and 2) are used for computations you
+would specify:
+</P>
+<PRE>package cuda gpu/node/special 2 0 2 
+</PRE>
+<P>A main purpose of the <I>gpu/node/special</I> option is to allow two (or
+more) simulations to be run on one workstation.  In that case one
+would set the first simulation to use GPU 0 and the second to use GPU
+1. This is not necessary though, if the GPUs are in what is called
+<I>compute exclusive</I> mode.  Using that setting, every process will get
+its own GPU automatically.  This <I>compute exclusive</I> mode can be set
+as root using the <I>nvidia-smi</I> tool which is part of the CUDA
+installation.
+</P>
+<P>Note that if the <I>gpu/node/special</I> keyword is not used, the USER-CUDA
+package sorts existing GPUs on each node according to their number of
+multiprocessors.  This way, compute GPUs will be priorized over
+X-Server GPUs.
+</P>
+<P>Use of the <I>timing</I> keyword will output detailed timing information
+for various subroutines.
+</P>
+<P>The <I>test</I> keyword will output info for the the specified atom at
+several points during each time step.  This is mainly usefull for
+debugging purposes.  Note that the simulation will be severly slowed
+down if this option is used.
+</P>
+<P>The <I>override/bpa</I> keyword can be used to specify which mode is used
+for pair-force evaluation.  TpA = one thread per atom; BpA = one block
+per atom.  If this keyword is not used, a short test at the begin of
+each run will determine which method is more effective (the result of
+this test is part of the LAMMPS output).  Therefore it is usually not
+necessary to use this setting.
 </P>
 <HR>
 
@@ -153,22 +219,15 @@ its own pages).
 </P>
 <P>The cuda style of this command can only be invoked if LAMMPS was built
 with the USER-CUDA package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  When using
-styles in the USER-CUDA package, use of the "package cuda" command in
-your input script is not required.
+LAMMPS</A> section for more info.
 </P>
 <P>The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  When using
-styles in the GPU package, use of the "package gpu" command in your
-input script is currently required.
+LAMMPS</A> section for more info.
 </P>
 <P>The omp style of this command can only be invoked if LAMMPS was built
 with the USER-OMP package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  When using
-styles in the USER-OMP package, use of the "package omp" command in
-your input script is not required.  See the information on default
-settings below.
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -176,10 +235,20 @@ settings below.
 </P>
 <P><B>Default:</B>
 </P>
-<P>If the "-sf omp" <A HREF = "Section_start.html#start_6">command-line switch</A> is
-used then "package omp *" is also auto-invoked to specify default OMP
-settings.
+<P>If the "-sf gpu" <A HREF = "Section_start.html#start_6">command-line switch</A> is
+used then it is as if the command "package gpu force/neigh 0 0 1" were
+invoked, to specify default settings for the GPU package.  If the
+command-line switch is not used, then no defaults are set, and you
+must specify the appropriate package command in your input script.
 </P>
-<P>The other styles have no defaults.
+<P>The default settings for the USER CUDA package are "package cuda gpu
+2".  This is the case whether the "-sf cuda" <A HREF = "Section_start.html#start_6">command-line
+switch</A> is used or not.
+</P>
+<P>If the "-sf omp" <A HREF = "Section_start.html#start_6">command-line switch</A> is
+used then it is as if the command "package omp *" were invoked, to
+specify default settings for the USER-OMP package.  If the
+command-line switch is not used, then no defaults are set, and you
+must specify the appropriate package command in your input script.
 </P>
 </HTML>

@@ -998,12 +998,22 @@ lj/cut</A> variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 -suffix switch is used, you do not need to modify your input script.
-The specified suffix (opt,omp,gpu,cuda) is automatically appended whenever
-your input script command creates a new <A HREF = "atom_style.html">atom</A>,
-<A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or
-<A HREF = "run_style.html">run</A> style.  atom, pair, fix, compute, or integrate
-style.  If the variant version does not exist, the standard version is
-created.
+The specified suffix (opt,omp,gpu,cuda) is automatically appended
+whenever your input script command creates a new
+<A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
+<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.  If the variant
+version does not exist, the standard version is created.
+</P>
+<P>For the GPU package, using this command-line switch also invokes the
+default GPU settings, as if the command "package gpu force/neigh 0 0
+1" were used at the top of your input script.  These settings can be
+changed by using the <A HREF = "pacakge.html">package gpu</A> command in your script
+if desired.
+</P>
+<P>For the OMP package, using this command-line switch also invokes the
+default OMP settings, as if the command "package omp *" were used at
+the top of your input script.  These settings can be changed by using
+the <A HREF = "pacakge.html">package omp</A> command in your script if desired.
 </P>
 <P>The <A HREF = "suffix.html">suffix</A> command can also set a suffix and it can also
 turn off/on any suffix setting made via the command line.

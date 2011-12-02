@@ -11,14 +11,15 @@ pair_style coul/cut/omp command :h3
 pair_style coul/debye command :h3
 pair_style coul/debye/omp command :h3
 pair_style coul/long command :h3
-pair_style coul/long/gpu command :h3
 pair_style coul/long/omp command :h3
+pair_style coul/long/gpu command :h3
 
 [Syntax:]
 
 pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/long cutoff
+pair_style coul/long/gpu cutoff :pre
 
 cutoff = global cutoff for Coulombic interactions
 kappa = Debye length (inverse distance units) :ul

@@ -197,24 +197,24 @@ void Cuda::accelerator(int narg, char** arg)
 	{
 	  if(strcmp(arg[i],"gpu/node")==0) 
 	  {
-	  	if(++i==narg) 
-	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number or keyword 'special' after 'gpu/node' option."); 
-	    if(strcmp(arg[i],"special")==0)
-	    {
-	  	   if(++i==narg) 
-	  	     error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'."); 
-	       pppn=atoi(arg[i]);
-	       if(pppn<1) error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'."); 
-	  	   if(i+pppn==narg) 
-	  	     error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting list of device ids after keyword 'gpu/node special'."); 
-	       devicelist=new int[pppn];
-	       for(int k=0;k<pppn;k++)
-	         {i++;devicelist[k]=atoi(arg[i]);}
-	  	   
-	    }
-	    else
+	    if(++i==narg) 
+	      error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'gpu/node' option."); 
 	    pppn=atoi(arg[i]);
+	  } 
+
+	  if(strcmp(arg[i],"gpu/node/special")==0) 
+	  {
+	    if(++i==narg) 
+	      error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node/special'."); 
+	    pppn=atoi(arg[i]);
+	    if(pppn<1) error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'."); 
+	    if(i+pppn==narg) 
+	      error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting list of device ids after keyword 'gpu/node special'."); 
+	    devicelist=new int[pppn];
+	    for(int k=0;k<pppn;k++)
+	      {i++;devicelist[k]=atoi(arg[i]);}
 	  }
+
 	  if(strcmp(arg[i],"pinned")==0) 
 	  {
 	  	if(++i==narg) 
@@ -222,34 +222,40 @@ void Cuda::accelerator(int narg, char** arg)
 	    pinned=atoi(arg[i])==0?false:true;
             if((pinned==false)&&(universe->me==0)) printf(" #CUDA: Pinned memory is not used for communication\n");
 	  }
+
 	  if(strcmp(arg[i],"timing")==0) 
 	  {
 	  	dotiming=true;
 	  }
+
 	  if(strcmp(arg[i],"suffix")==0) 
 	  {
 	  	if(++i==narg) 
 	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a string after 'suffix' option."); 
 	  	strcpy(lmp->suffix,arg[i]);
 	  }
+
 	  if(strcmp(arg[i],"overlap_comm")==0) 
 	  {
 	  	shared_data.overlap_comm=1;
 	  }
+
 	  if(strcmp(arg[i],"test")==0) 
 	  {
 	  	if(++i==narg) 
-	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'dotest' option."); 
+	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'test' option."); 
 	    testatom=atof(arg[i]);
 	    dotestatom=true;
 	  }
+
 	  if(strcmp(arg[i],"override/bpa")==0) 
 	  {
 	  	if(++i==narg) 
-	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'override_bpa' option."); 
+	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'override/bpa' option."); 
 	      shared_data.pair.override_block_per_atom = atoi(arg[i]);
 	  }
 	}
+
 	CudaWrapper_Init(0, (char**)0,universe->me,pppn,devicelist);
 	//if(shared_data.overlap_comm)
 	  	CudaWrapper_AddStreams(3);

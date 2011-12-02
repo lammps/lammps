@@ -14,22 +14,27 @@ package style args :pre
 
 style = {gpu} or {cuda} or {omp} :ulb,l
 args = arguments specific to the style :l
-  {gpu} args = mode first last split
+  {gpu} args = mode first last split keyword value ...
     mode = force or force/neigh
     first = ID of first GPU to be used on each node
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
-  {cuda} args = one or more keyword/value pairs may be appended
+    zero or more keyword/value pairs may be appended
+    keywords = {threads_per_atom}
+    {threads_per_atom} value = Nthreads
+      Nthreads = # of GPU threads used per atom
+  {cuda} args = keyword value ...
+    one or more keyword/value pairs may be appended
     keywords = {gpu/node} or {gpu/node/special} or {timing} or {test} or {override/bpa}
-    gpu/node values = N
+    {gpu/node} value = N
       N = number of GPUs to be used per node
-    gpu/node/special values = N gpu1 .. gpuN
+    {gpu/node/special} values = N gpu1 .. gpuN
       N = number of GPUs to be used per node
       gpu1 .. gpuN = N IDs of the GPUs to use
-    timing values = none
-    test values = id
+    {timing} values = none
+    {test} values = id
       id = atom-ID of a test particle
-    override/bpa values = flag
+    {override/bpa} values = flag
       flag = 0 for TpA algorithm, 1 for BpA algorithm 
   {omp} args = Nthreads mode
     Nthreads = # of OpenMP threads to associate with each MPI process
@@ -42,6 +47,8 @@ package gpu force 0 0 1.0
 package gpu force 0 0 0.75
 package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
+package cuda gpu/node/special 2 0 2
+package cuda test 3948
 package omp * force/neigh
 package omp 4 force :pre
 
@@ -112,18 +119,26 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 
+The {threads_per_atom} keyword allows control of the number of GPU
+threads used per-atom to perform the short range force calculation.
+By default, the value will be chosen based on the pair style, however,
+the value can be set with this keyword to fine-tune performance.  For
+large cutoffs or with a small number of particles per GPU, increasing
+the value can improve performance. The number of threads per atom must
+be a power of 2 and currently cannot be greater than 32.
+
 :line
 
 The {cuda} style invokes options associated with the use of the
 USER-CUDA package.  
 
-The {gpu/node} setting specifies the number {N} of GPUs to be used on
+The {gpu/node} keyword specifies the number {N} of GPUs to be used on
 each node.  An MPI process with rank {K} will use the GPU (K mod N).
 This implies that processes should be assigned with successive ranks
 on each node, which is the default with most (or even all) MPI
 implementations. The default value for {N} is 2.
 
-The {gpu/node/special} setting also specifies the number (N) of GPUs
+The {gpu/node/special} keyword also specifies the number (N) of GPUs
 to be used on each node, but allows more control over their
 specification.  An MPI process with rank {K} will use the GPU {gpuI}
 with l = (K mod N) + 1. This implies that processes should be assigned
@@ -135,7 +150,7 @@ would specify:
 
 package cuda gpu/node/special 2 0 2 :pre
 
-A main purpose of the {gpu/node/special} option is to allow two (or
+A main purpose of the {gpu/node/special} optoin is to allow two (or
 more) simulations to be run on one workstation.  In that case one
 would set the first simulation to use GPU 0 and the second to use GPU
 1. This is not necessary though, if the GPUs are in what is called
@@ -162,7 +177,7 @@ for pair-force evaluation.  TpA = one thread per atom; BpA = one block
 per atom.  If this keyword is not used, a short test at the begin of
 each run will determine which method is more effective (the result of
 this test is part of the LAMMPS output).  Therefore it is usually not
-necessary to use this setting.
+necessary to use this keyword.
 
 :line
 

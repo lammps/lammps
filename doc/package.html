@@ -19,22 +19,27 @@
 
 <LI>args = arguments specific to the style 
 
-<PRE>  <I>gpu</I> args = mode first last split
+<PRE>  <I>gpu</I> args = mode first last split keyword value ...
     mode = force or force/neigh
     first = ID of first GPU to be used on each node
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
-  <I>cuda</I> args = one or more keyword/value pairs may be appended
+    zero or more keyword/value pairs may be appended
+    keywords = <I>threads_per_atom</I>
+    <I>threads_per_atom</I> value = Nthreads
+      Nthreads = # of GPU threads used per atom
+  <I>cuda</I> args = keyword value ...
+    one or more keyword/value pairs may be appended
     keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
-    gpu/node values = N
+    <I>gpu/node</I> value = N
       N = number of GPUs to be used per node
-    gpu/node/special values = N gpu1 .. gpuN
+    <I>gpu/node/special</I> values = N gpu1 .. gpuN
       N = number of GPUs to be used per node
       gpu1 .. gpuN = N IDs of the GPUs to use
-    timing values = none
-    test values = id
+    <I>timing</I> values = none
+    <I>test</I> values = id
       id = atom-ID of a test particle
-    override/bpa values = flag
+    <I>override/bpa</I> values = flag
       flag = 0 for TpA algorithm, 1 for BpA algorithm 
   <I>omp</I> args = Nthreads mode
     Nthreads = # of OpenMP threads to associate with each MPI process
@@ -48,6 +53,8 @@
 package gpu force 0 0 0.75
 package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
+package cuda gpu/node/special 2 0 2
+package cuda test 3948
 package omp * force/neigh
 package omp 4 force 
 </PRE>
@@ -118,18 +125,26 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 </P>
+<P>The <I>threads_per_atom</I> keyword allows control of the number of GPU
+threads used per-atom to perform the short range force calculation.
+By default, the value will be chosen based on the pair style, however,
+the value can be set with this keyword to fine-tune performance.  For
+large cutoffs or with a small number of particles per GPU, increasing
+the value can improve performance. The number of threads per atom must
+be a power of 2 and currently cannot be greater than 32.
+</P>
 <HR>
 
 <P>The <I>cuda</I> style invokes options associated with the use of the
 USER-CUDA package.  
 </P>
-<P>The <I>gpu/node</I> setting specifies the number <I>N</I> of GPUs to be used on
+<P>The <I>gpu/node</I> keyword specifies the number <I>N</I> of GPUs to be used on
 each node.  An MPI process with rank <I>K</I> will use the GPU (K mod N).
 This implies that processes should be assigned with successive ranks
 on each node, which is the default with most (or even all) MPI
 implementations. The default value for <I>N</I> is 2.
 </P>
-<P>The <I>gpu/node/special</I> setting also specifies the number (N) of GPUs
+<P>The <I>gpu/node/special</I> keyword also specifies the number (N) of GPUs
 to be used on each node, but allows more control over their
 specification.  An MPI process with rank <I>K</I> will use the GPU <I>gpuI</I>
 with l = (K mod N) + 1. This implies that processes should be assigned
@@ -141,7 +156,7 @@ would specify:
 </P>
 <PRE>package cuda gpu/node/special 2 0 2 
 </PRE>
-<P>A main purpose of the <I>gpu/node/special</I> option is to allow two (or
+<P>A main purpose of the <I>gpu/node/special</I> optoin is to allow two (or
 more) simulations to be run on one workstation.  In that case one
 would set the first simulation to use GPU 0 and the second to use GPU
 1. This is not necessary though, if the GPUs are in what is called
@@ -168,7 +183,7 @@ for pair-force evaluation.  TpA = one thread per atom; BpA = one block
 per atom.  If this keyword is not used, a short test at the begin of
 each run will determine which method is more effective (the result of
 this test is part of the LAMMPS output).  Therefore it is usually not
-necessary to use this setting.
+necessary to use this keyword.
 </P>
 <HR>
 

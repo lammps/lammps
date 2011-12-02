@@ -141,7 +141,7 @@ Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
 potential "(Tersoff_2)"_#Tersoff_2. The {tersoff/table} style implements
-Teroff_2 parameterization only.
+Tersoff_2 parameterization only.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 gamma_ijk = omega_ik, lambda3 = 0 and the value of

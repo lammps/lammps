@@ -1828,3 +1828,12 @@ bigint Neighbor::memory_usage()
 
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   return the value of exclude - used to check compatibility with GPU
+------------------------------------------------------------------------- */
+
+int Neighbor::exclude_setting()
+{
+  return exclude;
+}

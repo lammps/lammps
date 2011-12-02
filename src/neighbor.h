@@ -75,8 +75,7 @@ class Neighbor : protected Pointers {
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
-
-  inline int exclude_setting() { return exclude; }
+  int exclude_setting();
   
  protected:
   int me,nprocs;

@@ -70,7 +70,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 /* ---------------------------------------------------------------------- */
 
 PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
-                                                gpu_mode(GPU_PAIR)
+                                                gpu_mode(GPU_FORCE)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
@@ -119,7 +119,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
     }
   }
 
-  if (gpu_mode == GPU_NEIGH) {
+  if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				  atom->type, domain->sublo, domain->subhi,
@@ -201,7 +201,7 @@ void PairGayBerneGPU::init_style()
 			    maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode != GPU_NEIGH) {
+  if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;

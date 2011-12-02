@@ -76,7 +76,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCGCMMCoulLongGPU::PairCGCMMCoulLongGPU(LAMMPS *lmp) : PairCGCMMCoulLong(lmp), gpu_mode(GPU_PAIR)
+PairCGCMMCoulLongGPU::PairCGCMMCoulLongGPU(LAMMPS *lmp) : PairCGCMMCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -103,7 +103,7 @@ void PairCGCMMCoulLongGPU::compute(int eflag, int vflag)
   
   bool success = true;
   int *ilist, *numneigh, **firstneigh;    
-  if (gpu_mode == GPU_NEIGH) {
+  if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = cmml_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
 				    atom->type, domain->sublo, domain->subhi,
@@ -183,7 +183,7 @@ void PairCGCMMCoulLongGPU::init_style()
 			      force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode != GPU_NEIGH) {
+  if (gpu_mode == GPU_FORCE) {
     int irequest = neighbor->request(this);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;

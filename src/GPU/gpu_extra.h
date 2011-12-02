@@ -39,6 +39,11 @@ namespace GPU_EXTRA {
       else if (all_success == -5)
 	error->all(FLERR,
 		   "Double precision is not supported on this accelerator");
+      else if (all_success == -6)
+	error->all(FLERR,"Unable to initialize accelerator for use");
+      else if (all_success == -7)
+	error->all(FLERR,
+                   "Accelerator sharing is not currently supported on system");
       else
 	error->all(FLERR,"Unknown error in GPU library");
     }

@@ -209,10 +209,10 @@ void Run::command(int narg, char **arg)
 	lmp->init();
 	update->integrate->setup();
       } else {
-	timer->init();
 	output->setup(0);
       }
 
+      timer->init();
       timer->barrier_start(Timer::LOOP);
       update->integrate->run(nsteps);
       timer->barrier_stop(Timer::LOOP);

@@ -222,7 +222,7 @@ void Cuda::accelerator(int narg, char** arg)
 	    pinned=atoi(arg[i])==0?false:true;
             if((pinned==false)&&(universe->me==0)) printf(" #CUDA: Pinned memory is not used for communication\n");
 	  }
-	  if(strcmp(arg[i],"dotiming")==0) 
+	  if(strcmp(arg[i],"timing")==0) 
 	  {
 	  	dotiming=true;
 	  }
@@ -236,14 +236,14 @@ void Cuda::accelerator(int narg, char** arg)
 	  {
 	  	shared_data.overlap_comm=1;
 	  }
-	  if(strcmp(arg[i],"dotest")==0) 
+	  if(strcmp(arg[i],"test")==0) 
 	  {
 	  	if(++i==narg) 
 	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'dotest' option."); 
 	    testatom=atof(arg[i]);
 	    dotestatom=true;
 	  }
-	  if(strcmp(arg[i],"override_bpa")==0) 
+	  if(strcmp(arg[i],"override/bpa")==0) 
 	  {
 	  	if(++i==narg) 
 	  	  error->all(FLERR,"Invalid Options for 'accelerator' command. Expecting a number after 'override_bpa' option."); 

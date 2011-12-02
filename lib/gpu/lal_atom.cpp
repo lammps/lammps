@@ -190,6 +190,7 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   _rot=rot;
   _other=_charge || _rot;
   dev=&devi;
+  _time_transfer=0;
 
   // Initialize atom and nbor data
   int ef_nall=nall;

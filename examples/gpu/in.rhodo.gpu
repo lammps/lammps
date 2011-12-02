@@ -17,8 +17,7 @@ dihedral_style  charmm
 improper_style  harmonic 
 pair_style      lj/charmm/coul/long/gpu 8.0 10.0 
 pair_modify     mix arithmetic 
-kspace_style    pppm/gpu/single 1e-4 
-kspace_style    pppm/gpu/double 1e-4 
+kspace_style    pppm/gpu 1e-4 
 
 read_data       data.rhodo
 

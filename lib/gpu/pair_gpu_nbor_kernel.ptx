@@ -1,0 +1,118 @@
+	.version 2.3
+	.target sm_20
+	.address_size 64
+	// compiled with /usr/local/cuda/open64/lib//be
+	// nvopencc 4.0 built on 2011-05-12
+
+	//-----------------------------------------------------------
+	// Compiling /tmp/tmpxft_0000bb58_00000000-9_pair_gpu_nbor_kernel.cpp3.i (/home/sjplimp/ccBI#.bBFvWV)
+	//-----------------------------------------------------------
+
+	//-----------------------------------------------------------
+	// Options:
+	//-----------------------------------------------------------
+	//  Target:ptx, ISA:sm_20, Endian:little, Pointer Size:64
+	//  -O3	(Optimization level)
+	//  -g0	(Debug level)
+	//  -m2	(Report advisories)
+	//-----------------------------------------------------------
+
+	.file	1	"<command-line>"
+	.file	2	"/tmp/tmpxft_0000bb58_00000000-8_pair_gpu_nbor_kernel.cudafe2.gpu"
+	.file	3	"/usr/lib/gcc/x86_64-redhat-linux/4.4.5/include/stddef.h"
+	.file	4	"/usr/local/cuda/include/crt/device_runtime.h"
+	.file	5	"/usr/local/cuda/include/host_defines.h"
+	.file	6	"/usr/local/cuda/include/builtin_types.h"
+	.file	7	"/usr/local/cuda/include/device_types.h"
+	.file	8	"/usr/local/cuda/include/driver_types.h"
+	.file	9	"/usr/local/cuda/include/surface_types.h"
+	.file	10	"/usr/local/cuda/include/texture_types.h"
+	.file	11	"/usr/local/cuda/include/vector_types.h"
+	.file	12	"/usr/local/cuda/include/device_launch_parameters.h"
+	.file	13	"/usr/local/cuda/include/crt/storage_class.h"
+	.file	14	"/usr/include/bits/types.h"
+	.file	15	"/usr/include/time.h"
+	.file	16	"pair_gpu_nbor_kernel.cu"
+	.file	17	"/usr/local/cuda/include/common_functions.h"
+	.file	18	"/usr/local/cuda/include/math_functions.h"
+	.file	19	"/usr/local/cuda/include/math_constants.h"
+	.file	20	"/usr/local/cuda/include/device_functions.h"
+	.file	21	"/usr/local/cuda/include/sm_11_atomic_functions.h"
+	.file	22	"/usr/local/cuda/include/sm_12_atomic_functions.h"
+	.file	23	"/usr/local/cuda/include/sm_13_double_functions.h"
+	.file	24	"/usr/local/cuda/include/sm_20_atomic_functions.h"
+	.file	25	"/usr/local/cuda/include/sm_20_intrinsics.h"
+	.file	26	"/usr/local/cuda/include/surface_functions.h"
+	.file	27	"/usr/local/cuda/include/texture_fetch_functions.h"
+	.file	28	"/usr/local/cuda/include/math_functions_dbl_ptx3.h"
+
+
+	.entry kernel_unpack (
+		.param .u64 __cudaparm_kernel_unpack_dev_nbor,
+		.param .u64 __cudaparm_kernel_unpack_dev_ij,
+		.param .s32 __cudaparm_kernel_unpack_inum)
+	{
+	.reg .u32 %r<11>;
+	.reg .u64 %rd<27>;
+	.reg .pred %p<5>;
+	.loc	16	29	0
+$LDWbegin_kernel_unpack:
+	mov.u32 	%r1, %ctaid.x;
+	mov.u32 	%r2, %ntid.x;
+	mul.lo.u32 	%r3, %r1, %r2;
+	mov.u32 	%r4, %tid.x;
+	add.u32 	%r5, %r4, %r3;
+	ld.param.s32 	%r6, [__cudaparm_kernel_unpack_inum];
+	setp.le.s32 	%p1, %r6, %r5;
+	@%p1 bra 	$Lt_0_2050;
+	.loc	16	35	0
+	cvt.s64.s32 	%rd1, %r6;
+	ld.param.u64 	%rd2, [__cudaparm_kernel_unpack_dev_nbor];
+	cvt.s64.s32 	%rd3, %r5;
+	add.u64 	%rd4, %rd3, %rd1;
+	mul.lo.u64 	%rd5, %rd4, 4;
+	add.u64 	%rd6, %rd2, %rd5;
+	ld.global.s32 	%r7, [%rd6+0];
+	.loc	16	36	0
+	mul.wide.s32 	%rd7, %r6, 4;
+	add.u64 	%rd8, %rd6, %rd7;
+	mov.s64 	%rd9, %rd8;
+	.loc	16	37	0
+	ld.param.u64 	%rd10, [__cudaparm_kernel_unpack_dev_ij];
+	ld.global.s32 	%r8, [%rd8+0];
+	cvt.s64.s32 	%rd11, %r8;
+	mul.wide.s32 	%rd12, %r8, 4;
+	add.u64 	%rd13, %rd10, %rd12;
+	.loc	16	38	0
+	cvt.s64.s32 	%rd14, %r7;
+	mul.wide.s32 	%rd15, %r7, 4;
+	add.u64 	%rd16, %rd15, %rd13;
+	setp.le.u64 	%p2, %rd16, %rd13;
+	@%p2 bra 	$Lt_0_2562;
+	add.u64 	%rd17, %rd15, 3;
+	shr.s64 	%rd18, %rd17, 63;
+	mov.s64 	%rd19, 3;
+	and.b64 	%rd20, %rd18, %rd19;
+	add.s64 	%rd21, %rd20, %rd17;
+	shr.s64 	%rd22, %rd21, 2;
+	mov.s64 	%rd23, 1;
+	max.s64 	%rd24, %rd22, %rd23;
+	mov.s64 	%rd25, %rd24;
+$Lt_0_3074:
+ //<loop> Loop body line 38, nesting depth: 1, estimated iterations: unknown
+	.loc	16	41	0
+	ld.global.s32 	%r9, [%rd13+0];
+	st.global.s32 	[%rd9+0], %r9;
+	.loc	16	42	0
+	add.u64 	%rd9, %rd7, %rd9;
+	.loc	16	40	0
+	add.u64 	%rd13, %rd13, 4;
+	setp.gt.u64 	%p3, %rd16, %rd13;
+	@%p3 bra 	$Lt_0_3074;
+$Lt_0_2562:
+$Lt_0_2050:
+	.loc	16	45	0
+	exit;
+$LDWend_kernel_unpack:
+	} // kernel_unpack
+

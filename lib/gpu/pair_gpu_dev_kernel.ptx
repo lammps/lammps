@@ -1,0 +1,134 @@
+	.version 2.3
+	.target sm_20
+	.address_size 64
+	// compiled with /usr/local/cuda/open64/lib//be
+	// nvopencc 4.0 built on 2011-05-12
+
+	//-----------------------------------------------------------
+	// Compiling /tmp/tmpxft_0000bba8_00000000-9_pair_gpu_dev_kernel.cpp3.i (/home/sjplimp/ccBI#.SuFQHy)
+	//-----------------------------------------------------------
+
+	//-----------------------------------------------------------
+	// Options:
+	//-----------------------------------------------------------
+	//  Target:ptx, ISA:sm_20, Endian:little, Pointer Size:64
+	//  -O3	(Optimization level)
+	//  -g0	(Debug level)
+	//  -m2	(Report advisories)
+	//-----------------------------------------------------------
+
+	.file	1	"<command-line>"
+	.file	2	"/tmp/tmpxft_0000bba8_00000000-8_pair_gpu_dev_kernel.cudafe2.gpu"
+	.file	3	"/usr/lib/gcc/x86_64-redhat-linux/4.4.5/include/stddef.h"
+	.file	4	"/usr/local/cuda/include/crt/device_runtime.h"
+	.file	5	"/usr/local/cuda/include/host_defines.h"
+	.file	6	"/usr/local/cuda/include/builtin_types.h"
+	.file	7	"/usr/local/cuda/include/device_types.h"
+	.file	8	"/usr/local/cuda/include/driver_types.h"
+	.file	9	"/usr/local/cuda/include/surface_types.h"
+	.file	10	"/usr/local/cuda/include/texture_types.h"
+	.file	11	"/usr/local/cuda/include/vector_types.h"
+	.file	12	"/usr/local/cuda/include/device_launch_parameters.h"
+	.file	13	"/usr/local/cuda/include/crt/storage_class.h"
+	.file	14	"/usr/include/bits/types.h"
+	.file	15	"/usr/include/time.h"
+	.file	16	"pair_gpu_dev_kernel.cu"
+	.file	17	"/usr/local/cuda/include/common_functions.h"
+	.file	18	"/usr/local/cuda/include/math_functions.h"
+	.file	19	"/usr/local/cuda/include/math_constants.h"
+	.file	20	"/usr/local/cuda/include/device_functions.h"
+	.file	21	"/usr/local/cuda/include/sm_11_atomic_functions.h"
+	.file	22	"/usr/local/cuda/include/sm_12_atomic_functions.h"
+	.file	23	"/usr/local/cuda/include/sm_13_double_functions.h"
+	.file	24	"/usr/local/cuda/include/sm_20_atomic_functions.h"
+	.file	25	"/usr/local/cuda/include/sm_20_intrinsics.h"
+	.file	26	"/usr/local/cuda/include/surface_functions.h"
+	.file	27	"/usr/local/cuda/include/texture_fetch_functions.h"
+	.file	28	"/usr/local/cuda/include/math_functions_dbl_ptx3.h"
+
+
+	.entry kernel_zero (
+		.param .u64 __cudaparm_kernel_zero_mem,
+		.param .s32 __cudaparm_kernel_zero_numel)
+	{
+	.reg .u32 %r<9>;
+	.reg .u64 %rd<6>;
+	.reg .pred %p<3>;
+	.loc	16	95	0
+$LDWbegin_kernel_zero:
+	mov.u32 	%r1, %ctaid.x;
+	mov.u32 	%r2, %ntid.x;
+	mul.lo.u32 	%r3, %r1, %r2;
+	mov.u32 	%r4, %tid.x;
+	add.u32 	%r5, %r4, %r3;
+	ld.param.s32 	%r6, [__cudaparm_kernel_zero_numel];
+	setp.le.s32 	%p1, %r6, %r5;
+	@%p1 bra 	$Lt_0_1026;
+	.loc	16	99	0
+	mov.s32 	%r7, 0;
+	ld.param.u64 	%rd1, [__cudaparm_kernel_zero_mem];
+	cvt.s64.s32 	%rd2, %r5;
+	mul.wide.s32 	%rd3, %r5, 4;
+	add.u64 	%rd4, %rd1, %rd3;
+	st.global.s32 	[%rd4+0], %r7;
+$Lt_0_1026:
+	.loc	16	100	0
+	exit;
+$LDWend_kernel_zero:
+	} // kernel_zero
+
+	.entry kernel_info (
+		.param .u64 __cudaparm_kernel_info_info)
+	{
+	.reg .u32 %r<16>;
+	.reg .u64 %rd<3>;
+	.loc	16	102	0
+$LDWbegin_kernel_info:
+	.loc	16	103	0
+	ld.param.u64 	%rd1, [__cudaparm_kernel_info_info];
+	mov.s32 	%r1, 200;
+	st.global.s32 	[%rd1+0], %r1;
+	.loc	16	104	0
+	mov.s32 	%r2, 32;
+	st.global.s32 	[%rd1+4], %r2;
+	.loc	16	105	0
+	mov.s32 	%r3, 32;
+	st.global.s32 	[%rd1+8], %r3;
+	.loc	16	106	0
+	mov.s32 	%r4, 1;
+	st.global.s32 	[%rd1+12], %r4;
+	.loc	16	107	0
+	mov.s32 	%r5, 8;
+	st.global.s32 	[%rd1+16], %r5;
+	.loc	16	108	0
+	mov.s32 	%r6, 64;
+	st.global.s32 	[%rd1+20], %r6;
+	.loc	16	109	0
+	mov.s32 	%r7, 128;
+	st.global.s32 	[%rd1+24], %r7;
+	.loc	16	110	0
+	mov.s32 	%r8, 11;
+	st.global.s32 	[%rd1+28], %r8;
+	.loc	16	111	0
+	mov.s32 	%r9, 8;
+	st.global.s32 	[%rd1+32], %r9;
+	.loc	16	112	0
+	mov.s32 	%r10, 128;
+	st.global.s32 	[%rd1+36], %r10;
+	.loc	16	113	0
+	mov.s32 	%r11, 128;
+	st.global.s32 	[%rd1+40], %r11;
+	.loc	16	114	0
+	mov.s32 	%r12, 128;
+	st.global.s32 	[%rd1+44], %r12;
+	.loc	16	115	0
+	mov.s32 	%r13, 128;
+	st.global.s32 	[%rd1+48], %r13;
+	.loc	16	116	0
+	mov.s32 	%r14, 8;
+	st.global.s32 	[%rd1+52], %r14;
+	.loc	16	117	0
+	exit;
+$LDWend_kernel_info:
+	} // kernel_info
+

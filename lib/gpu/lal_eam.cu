@@ -16,17 +16,67 @@
 #ifdef NV_KERNEL
 #include "lal_aux_fun1.h"
 texture<float4> pos_tex;
-texture<float> q_tex;
+texture<float> fp_tex;
 #ifndef _DOUBLE_DOUBLE
 ucl_inline float4 fetch_pos(const int& i, const float4 *pos)
   { return tex1Dfetch(pos_tex, i); }
-ucl_inline float fetch_q(const int& i, const float *q) 
-  { return tex1Dfetch(q_tex, i); }
+ucl_inline float fetch_fp(const int& i, const float *fp) 
+  { return tex1Dfetch(fp_tex, i); }
 #endif
 #endif
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+
+#define store_answers_eam(f, energy, e_coul, virial, ii, inum, tid,         \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
+    red_acc[0][tid]=f.x;                                                    \
+    red_acc[1][tid]=f.y;                                                    \
+    red_acc[2][tid]=f.z;                                                    \
+    red_acc[3][tid]=energy;                                                 \
+    red_acc[4][tid]=e_coul;                                                 \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s) {                                                     \
+        for (int r=0; r<5; r++)                                             \
+          red_acc[r][tid] += red_acc[r][tid+s];                             \
+      }                                                                     \
+    }                                                                       \
+    f.x=red_acc[0][tid];                                                    \
+    f.y=red_acc[1][tid];                                                    \
+    f.z=red_acc[2][tid];                                                    \
+    energy=red_acc[3][tid];                                                 \
+    e_coul=red_acc[4][tid];                                                 \
+    if (vflag>0) {                                                          \
+      for (int r=0; r<6; r++)                                               \
+        red_acc[r][tid]=virial[r];                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        if (offset < s) {                                                   \
+          for (int r=0; r<6; r++)                                           \
+            red_acc[r][tid] += red_acc[r][tid+s];                           \
+        }                                                                   \
+      }                                                                     \
+      for (int r=0; r<6; r++)                                               \
+        virial[r]=red_acc[r][tid];                                          \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv+=energy;                                                        \
+      engv+=inum;                                                           \
+      *engv+=e_coul;                                                        \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+  }
 
 __kernel void kernel_energy(__global numtyp4 *x_, 
                     __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
@@ -119,7 +169,7 @@ __kernel void kernel_energy(__global numtyp4 *x_,
         numtyp coeff5 = frho_spline[index+5];
         numtyp coeff6 = frho_spline[index+6];
         energy = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
-        *engv=energy;
+        *engv=(acctyp)2.0*energy;
       }
     }
   } // if ii
@@ -156,7 +206,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
               n_stride,list_end,nbor);
   
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp ifp=fetch_q(i,fp_);  //fp_[i];
+    numtyp ifp=fetch_fp(i,fp_);  //fp_[i];
     int itype=ix.w;
 
     for ( ; nbor<list_end; nbor+=n_stride) {
@@ -164,7 +214,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_q(j,fp_); //fp_[j];
+      numtyp jfp=fetch_fp(j,fp_); //fp_[j];
       int jtype=jx.w;
 
       // Compute r12
@@ -235,7 +285,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       }
   
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+    store_answers_eam(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
   } // if ii
 
@@ -270,7 +320,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
               n_stride,list_end,nbor);
 
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp ifp=fetch_q(i,fp_); //fp_[i];
+    numtyp ifp=fetch_fp(i,fp_); //fp_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
@@ -279,7 +329,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_q(j,fp_); //fp_[j];
+      numtyp jfp=fetch_fp(j,fp_); //fp_[j];
       int jtype=jx.w;
       
       // Compute r12
@@ -350,7 +400,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+    store_answers_eam(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
   } // if ii
 }

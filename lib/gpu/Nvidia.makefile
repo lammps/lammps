@@ -1,23 +1,3 @@
-# /* ----------------------------------------------------------------------   
-#    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator       
-#    http://lammps.sandia.gov, Sandia National Laboratories                   
-#    Steve Plimpton, sjplimp@sandia.gov                                       
-#                                                                             
-#    Copyright (2003) Sandia Corporation.  Under the terms of Contract        
-#    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains   
-#    certain rights in this software.  This software is distributed under      
-#    the GNU General Public License.                                          
-#                                                                             
-#    See the README file in the top-level LAMMPS directory.                   
-# ------------------------------------------------------------------------- */
-#                                                                             
-# /* ----------------------------------------------------------------------   
-#    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov               
-#                          Peng Wang (Nvidia), penwang@nvidia.com
-#                          Inderaj Bains (NVIDIA), ibains@nvidia.com
-#                          Paul Crozier (SNL), pscrozi@sandia.gov             
-# ------------------------------------------------------------------------- */
-
 CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) -Icudpp_mini $(CUDA_ARCH) \
              $(CUDA_PRECISION)
 CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
@@ -29,11 +9,11 @@ GPU_LIB = $(LIB_DIR)/libgpu.a
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVC_H  = $(wildcard ./geryon/nvc*.h) $(UCL_H)
-NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) nv_kernel_def.h
+NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h
 # Headers for Pair Stuff
-PAIR_H  = pair_gpu_atom.h pair_gpu_ans.h pair_gpu_nbor_shared.h \
-          pair_gpu_nbor.h pair_gpu_precision.h pair_gpu_device.h \
-          pair_gpu_balance.h pppm_gpu_memory.h
+PAIR_H  = lal_atom.h lal_answer.h lal_neighbor_shared.h \
+          lal_neighbor.h lal_precision.h lal_device.h \
+          lal_balance.h lal_pppm.h
 
 ALL_H = $(NVD_H) $(PAIR_H)
 
@@ -41,48 +21,47 @@ EXECS = $(BIN_DIR)/nvc_get_devices
 CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
         $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
         $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
-OBJS = $(OBJ_DIR)/pair_gpu_atom.o $(OBJ_DIR)/pair_gpu_ans.o \
-       $(OBJ_DIR)/pair_gpu_nbor.o $(OBJ_DIR)/pair_gpu_nbor_shared.o \
-       $(OBJ_DIR)/pair_gpu_device.o $(OBJ_DIR)/atomic_gpu_memory.o \
-       $(OBJ_DIR)/charge_gpu_memory.o $(OBJ_DIR)/base_ellipsoid.o \
-       $(OBJ_DIR)/pppm_gpu_memory.o $(OBJ_DIR)/pppm_l_gpu.o \
-       $(OBJ_DIR)/gayberne.o $(OBJ_DIR)/gayberne_ext.o \
-       $(OBJ_DIR)/re_squared.o $(OBJ_DIR)/re_squared_ext.o \
-       $(OBJ_DIR)/lj_cut_gpu_memory.o $(OBJ_DIR)/lj_cut_gpu.o \
-       $(OBJ_DIR)/lj96_cut_gpu_memory.o $(OBJ_DIR)/lj96_cut_gpu.o \
-       $(OBJ_DIR)/lj_expand_gpu_memory.o $(OBJ_DIR)/lj_expand_gpu.o \
-       $(OBJ_DIR)/ljc_cut_gpu_memory.o $(OBJ_DIR)/ljc_cut_gpu.o \
-       $(OBJ_DIR)/ljcl_cut_gpu_memory.o $(OBJ_DIR)/ljcl_cut_gpu.o \
-       $(OBJ_DIR)/lj_class2_long.o $(OBJ_DIR)/lj_class2_long_ext.o \
-       $(OBJ_DIR)/coul_long_gpu_memory.o $(OBJ_DIR)/coul_long_gpu.o \
-       $(OBJ_DIR)/morse_gpu_memory.o $(OBJ_DIR)/morse_gpu.o \
-       $(OBJ_DIR)/crml_gpu_memory.o $(OBJ_DIR)/crml_gpu.o \
-       $(OBJ_DIR)/cmm_cut_gpu_memory.o $(OBJ_DIR)/cmm_cut_gpu.o \
-       $(OBJ_DIR)/cmmc_long_gpu_memory.o $(OBJ_DIR)/cmmc_long_gpu.o \
-       $(OBJ_DIR)/cmmc_msm_gpu_memory.o $(OBJ_DIR)/cmmc_msm_gpu.o \
+OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
+       $(OBJ_DIR)/lal_neighbor.o $(OBJ_DIR)/lal_neighbor_shared.o \
+       $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \
+       $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_base_ellipsoid.o \
+       $(OBJ_DIR)/lal_pppm.o $(OBJ_DIR)/lal_pppm_ext.o \
+       $(OBJ_DIR)/lal_gayberne.o $(OBJ_DIR)/lal_gayberne_ext.o \
+       $(OBJ_DIR)/lal_re_squared.o $(OBJ_DIR)/lal_re_squared_ext.o \
+       $(OBJ_DIR)/lal_lj.o $(OBJ_DIR)/lal_lj_ext.o \
+       $(OBJ_DIR)/lal_lj96.o $(OBJ_DIR)/lal_lj96_ext.o \
+       $(OBJ_DIR)/lal_lj_expand.o $(OBJ_DIR)/lal_lj_expand_ext.o \
+       $(OBJ_DIR)/lal_lj_coul.o $(OBJ_DIR)/lal_lj_coul_ext.o \
+       $(OBJ_DIR)/lal_lj_coul_long.o $(OBJ_DIR)/lal_lj_coul_long_ext.o \
+       $(OBJ_DIR)/lal_lj_class2_long.o $(OBJ_DIR)/lal_lj_class2_long_ext.o \
+       $(OBJ_DIR)/lal_coul_long.o $(OBJ_DIR)/lal_coul_long_ext.o \
+       $(OBJ_DIR)/lal_morse.o $(OBJ_DIR)/lal_morse_ext.o \
+       $(OBJ_DIR)/lal_charmm_long.o $(OBJ_DIR)/lal_charmm_long_ext.o \
+       $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
+       $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(CUDPP)
-PTXS = $(OBJ_DIR)/pair_gpu_dev_kernel.ptx  $(OBJ_DIR)/pair_gpu_dev_ptx.h \
-       $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h \
-       $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx $(OBJ_DIR)/pair_gpu_nbor_ptx.h \
-       $(OBJ_DIR)/pair_gpu_build_kernel.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h \
-       $(OBJ_DIR)/pppm_f_gpu_kernel.ptx $(OBJ_DIR)/pppm_f_gpu_ptx.h \
-       $(OBJ_DIR)/pppm_d_gpu_kernel.ptx $(OBJ_DIR)/pppm_d_gpu_ptx.h \
+PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
+       $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
+       $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h \
+       $(OBJ_DIR)/neighbor_gpu.ptx $(OBJ_DIR)/neighbor_gpu_ptx.h \
+       $(OBJ_DIR)/pppm_f.ptx $(OBJ_DIR)/pppm_f_ptx.h \
+       $(OBJ_DIR)/pppm_d.ptx $(OBJ_DIR)/pppm_d_ptx.h \
        $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/ellipsoid_nbor_ptx.h \
        $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_lj.ptx \
-       $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/re_squared.ptx \
-       $(OBJ_DIR)/re_squared_lj.ptx $(OBJ_DIR)/re_squared_ptx.h \
-       $(OBJ_DIR)/lj_cut_gpu_kernel.ptx $(OBJ_DIR)/lj_cut_gpu_ptx.h \
-       $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx $(OBJ_DIR)/lj96_cut_gpu_ptx.h \
-       $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_ptx.h \
-       $(OBJ_DIR)/ljc_cut_gpu_kernel.ptx $(OBJ_DIR)/ljc_cut_gpu_ptx.h \
-       $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx $(OBJ_DIR)/ljcl_cut_gpu_ptx.h \
+       $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/gayberne_lj_ptx.h \
+       $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx \
+       $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/re_squared_lj_ptx.h \
+       $(OBJ_DIR)/lj.ptx $(OBJ_DIR)/lj_ptx.h \
+       $(OBJ_DIR)/lj96.ptx $(OBJ_DIR)/lj96_ptx.h \
+       $(OBJ_DIR)/lj_expand.ptx $(OBJ_DIR)/lj_expand_ptx.h \
+       $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul_ptx.h \
+       $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long_ptx.h \
        $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long_ptx.h \
-       $(OBJ_DIR)/coul_long_gpu_kernel.ptx $(OBJ_DIR)/coul_long_gpu_ptx.h \
-       $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_ptx.h \
-       $(OBJ_DIR)/crml_gpu_kernel.ptx $(OBJ_DIR)/crml_gpu_ptx.h \
-       $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h \
-       $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h \
-       $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h
+       $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long_ptx.h \
+       $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h \
+       $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h \
+       $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
+       $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -104,251 +83,245 @@ $(OBJ_DIR)/radixsort_app.cu_o: cudpp_mini/radixsort_app.cu
 $(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
 	$(CUDA) -o $@ -c cudpp_mini/scan_app.cu
 
-$(OBJ_DIR)/pair_gpu_atom_kernel.ptx: pair_gpu_atom_kernel.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_atom_kernel.cu
+$(OBJ_DIR)/atom.ptx: lal_atom.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_atom.cu
 
-$(OBJ_DIR)/pair_gpu_atom_ptx.h: $(OBJ_DIR)/pair_gpu_atom_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pair_gpu_atom_kernel.ptx $(OBJ_DIR)/pair_gpu_atom_ptx.h
+$(OBJ_DIR)/atom_ptx.h: $(OBJ_DIR)/atom.ptx
+	$(BSH) ./geryon/file_to_cstr.sh atom $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h
 
-$(OBJ_DIR)/pair_gpu_atom.o: pair_gpu_atom.cpp pair_gpu_atom.h $(NVD_H) $(OBJ_DIR)/pair_gpu_atom_ptx.h
-	$(CUDR) -o $@ -c pair_gpu_atom.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_atom.o: lal_atom.cpp lal_atom.h $(NVD_H) $(OBJ_DIR)/atom_ptx.h
+	$(CUDR) -o $@ -c lal_atom.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_ans.o: pair_gpu_ans.cpp pair_gpu_ans.h $(NVD_H)
-	$(CUDR) -o $@ -c pair_gpu_ans.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_ans.o: lal_answer.cpp lal_answer.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_answer.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_nbor_kernel.ptx: pair_gpu_nbor_kernel.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_nbor_kernel.cu
+$(OBJ_DIR)/neighbor_cpu.ptx: lal_neighbor_cpu.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_neighbor_cpu.cu
 
-$(OBJ_DIR)/pair_gpu_nbor_ptx.h: $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pair_gpu_nbor_kernel.ptx $(OBJ_DIR)/pair_gpu_nbor_ptx.h
+$(OBJ_DIR)/neighbor_cpu_ptx.h: $(OBJ_DIR)/neighbor_cpu.ptx
+	$(BSH) ./geryon/file_to_cstr.sh neighbor_cpu $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h
 
-$(OBJ_DIR)/pair_gpu_build_kernel.ptx: pair_gpu_build_kernel.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_build_kernel.cu
+$(OBJ_DIR)/neighbor_gpu.ptx: lal_neighbor_gpu.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_neighbor_gpu.cu
 
-$(OBJ_DIR)/pair_gpu_build_ptx.h: $(OBJ_DIR)/pair_gpu_build_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pair_gpu_build_kernel.ptx $(OBJ_DIR)/pair_gpu_build_ptx.h
+$(OBJ_DIR)/neighbor_gpu_ptx.h: $(OBJ_DIR)/neighbor_gpu.ptx
+	$(BSH) ./geryon/file_to_cstr.sh neighbor_gpu $(OBJ_DIR)/neighbor_gpu.ptx $(OBJ_DIR)/neighbor_gpu_ptx.h
 
-$(OBJ_DIR)/pair_gpu_nbor_shared.o: pair_gpu_nbor_shared.cpp pair_gpu_nbor_shared.h $(OBJ_DIR)/pair_gpu_nbor_ptx.h $(OBJ_DIR)/pair_gpu_build_ptx.h $(NVD_H)
-	$(CUDR) -o $@ -c pair_gpu_nbor_shared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_neighbor_shared.o: lal_neighbor_shared.cpp lal_neighbor_shared.h $(OBJ_DIR)/neighbor_cpu_ptx.h $(OBJ_DIR)/neighbor_gpu_ptx.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_neighbor_shared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_nbor.o: pair_gpu_nbor.cpp pair_gpu_nbor.h pair_gpu_nbor_shared.h $(NVD_H)
-	$(CUDR) -o $@ -c pair_gpu_nbor.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_neighbor.o: lal_neighbor.cpp lal_neighbor.h lal_neighbor_shared.h $(NVD_H)
+	$(CUDR) -o $@ -c lal_neighbor.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pair_gpu_dev_kernel.ptx: pair_gpu_dev_kernel.cu
-	$(CUDA) --ptx -DNV_KERNEL -o $@ pair_gpu_dev_kernel.cu
+$(OBJ_DIR)/device.ptx: lal_device.cu lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_device.cu
 
-$(OBJ_DIR)/pair_gpu_dev_ptx.h: $(OBJ_DIR)/pair_gpu_dev_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pair_gpu_dev_kernel.ptx $(OBJ_DIR)/pair_gpu_dev_ptx.h
+$(OBJ_DIR)/device_ptx.h: $(OBJ_DIR)/device.ptx
+	$(BSH) ./geryon/file_to_cstr.sh device $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h
 
-$(OBJ_DIR)/pair_gpu_device.o: pair_gpu_device.cpp pair_gpu_device.h $(ALL_H) $(OBJ_DIR)/pair_gpu_dev_ptx.h
-	$(CUDR) -o $@ -c pair_gpu_device.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_device.o: lal_device.cpp lal_device.h $(ALL_H) $(OBJ_DIR)/device_ptx.h
+	$(CUDR) -o $@ -c lal_device.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/atomic_gpu_memory.o: $(ALL_H) atomic_gpu_memory.h atomic_gpu_memory.cpp
-	$(CUDR) -o $@ -c atomic_gpu_memory.cpp
+$(OBJ_DIR)/lal_base_atomic.o: $(ALL_H) lal_base_atomic.h lal_base_atomic.cpp
+	$(CUDR) -o $@ -c lal_base_atomic.cpp
 
-$(OBJ_DIR)/charge_gpu_memory.o: $(ALL_H) charge_gpu_memory.h charge_gpu_memory.cpp
-	$(CUDR) -o $@ -c charge_gpu_memory.cpp
+$(OBJ_DIR)/lal_base_charge.o: $(ALL_H) lal_base_charge.h lal_base_charge.cpp
+	$(CUDR) -o $@ -c lal_base_charge.cpp
 
-$(OBJ_DIR)/base_ellipsoid.o: $(ALL_H) base_ellipsoid.h base_ellipsoid.cpp $(OBJ_DIR)/ellipsoid_nbor_ptx.h
-	$(CUDR) -o $@ -c base_ellipsoid.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_base_ellipsoid.o: $(ALL_H) lal_base_ellipsoid.h lal_base_ellipsoid.cpp $(OBJ_DIR)/ellipsoid_nbor_ptx.h
+	$(CUDR) -o $@ -c lal_base_ellipsoid.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pppm_f_gpu_kernel.ptx: pppm_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ pppm_gpu_kernel.cu
+$(OBJ_DIR)/pppm_f.ptx: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ lal_pppm.cu
 
-$(OBJ_DIR)/pppm_f_gpu_ptx.h: $(OBJ_DIR)/pppm_f_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pppm_f_gpu_kernel.ptx $(OBJ_DIR)/pppm_f_gpu_ptx.h
+$(OBJ_DIR)/pppm_f_ptx.h: $(OBJ_DIR)/pppm_f.ptx
+	$(BSH) ./geryon/file_to_cstr.sh pppm_f $(OBJ_DIR)/pppm_f.ptx $(OBJ_DIR)/pppm_f_ptx.h
 
-$(OBJ_DIR)/pppm_d_gpu_kernel.ptx: pppm_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ pppm_gpu_kernel.cu
+$(OBJ_DIR)/pppm_d.ptx: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ lal_pppm.cu
 
-$(OBJ_DIR)/pppm_d_gpu_ptx.h: $(OBJ_DIR)/pppm_d_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/pppm_d_gpu_kernel.ptx $(OBJ_DIR)/pppm_d_gpu_ptx.h
+$(OBJ_DIR)/pppm_d_ptx.h: $(OBJ_DIR)/pppm_d.ptx
+	$(BSH) ./geryon/file_to_cstr.sh pppm_d $(OBJ_DIR)/pppm_d.ptx $(OBJ_DIR)/pppm_d_ptx.h
 
-$(OBJ_DIR)/pppm_gpu_memory.o: $(ALL_H) pppm_gpu_memory.h pppm_gpu_memory.cpp $(OBJ_DIR)/pppm_f_gpu_ptx.h $(OBJ_DIR)/pppm_d_gpu_ptx.h
-	$(CUDR) -o $@ -c pppm_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_pppm.o: $(ALL_H) lal_pppm.h lal_pppm.cpp $(OBJ_DIR)/pppm_f_ptx.h $(OBJ_DIR)/pppm_d_ptx.h
+	$(CUDR) -o $@ -c lal_pppm.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/pppm_l_gpu.o: $(ALL_H) pppm_gpu_memory.h pppm_l_gpu.cpp
-	$(CUDR) -o $@ -c pppm_l_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_pppm_ext.o: $(ALL_H) lal_pppm.h lal_pppm_ext.cpp
+	$(CUDR) -o $@ -c lal_pppm_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ellipsoid_nbor.ptx: ellipsoid_nbor.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ ellipsoid_nbor.cu
+$(OBJ_DIR)/ellipsoid_nbor.ptx: lal_ellipsoid_nbor.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_ellipsoid_nbor.cu
 
 $(OBJ_DIR)/ellipsoid_nbor_ptx.h: $(OBJ_DIR)/ellipsoid_nbor.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/ellipsoid_nbor_ptx.h
+	$(BSH) ./geryon/file_to_cstr.sh ellipsoid_nbor $(OBJ_DIR)/ellipsoid_nbor.ptx $(OBJ_DIR)/ellipsoid_nbor_ptx.h
 
-$(OBJ_DIR)/gayberne.ptx: gayberne.cu pair_gpu_precision.h ellipsoid_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne.cu
+$(OBJ_DIR)/gayberne.ptx: lal_gayberne.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_gayberne.cu
 
-$(OBJ_DIR)/gayberne_lj.ptx: gayberne_lj.cu pair_gpu_precision.h ellipsoid_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ gayberne_lj.cu
+$(OBJ_DIR)/gayberne_lj.ptx: lal_gayberne_lj.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_gayberne_lj.cu
 
-$(OBJ_DIR)/gayberne_ptx.h: $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_lj.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_ptx.h
+$(OBJ_DIR)/gayberne_ptx.h: $(OBJ_DIR)/gayberne.ptx
+	$(BSH) ./geryon/file_to_cstr.sh gayberne $(OBJ_DIR)/gayberne.ptx $(OBJ_DIR)/gayberne_ptx.h
 
-$(OBJ_DIR)/gayberne.o: $(ALL_H) gayberne.h gayberne.cpp $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/base_ellipsoid.o
-	$(CUDR) -o $@ -c gayberne.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/gayberne_lj_ptx.h: $(OBJ_DIR)/gayberne_lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh gayberne_lj $(OBJ_DIR)/gayberne_lj.ptx $(OBJ_DIR)/gayberne_lj_ptx.h
 
-$(OBJ_DIR)/gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/gayberne.o gayberne_ext.cpp
-	$(CUDR) -o $@ -c gayberne_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_gayberne.o: $(ALL_H) lal_gayberne.h lal_gayberne.cpp $(OBJ_DIR)/gayberne_ptx.h $(OBJ_DIR)/gayberne_lj_ptx.h $(OBJ_DIR)/lal_base_ellipsoid.o
+	$(CUDR) -o $@ -c lal_gayberne.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/re_squared.ptx: re_squared.cu pair_gpu_precision.h ellipsoid_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared.cu
+$(OBJ_DIR)/lal_gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/lal_gayberne.o lal_gayberne_ext.cpp
+	$(CUDR) -o $@ -c lal_gayberne_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/re_squared_lj.ptx: re_squared_lj.cu pair_gpu_precision.h ellipsoid_extra.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ re_squared_lj.cu
+$(OBJ_DIR)/re_squared.ptx: lal_re_squared.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_re_squared.cu
 
-$(OBJ_DIR)/re_squared_ptx.h: $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_lj.ptx $(OBJ_DIR)/re_squared_ptx.h
+$(OBJ_DIR)/re_squared_lj.ptx: lal_re_squared_lj.cu lal_precision.h lal_ellipsoid_extra.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_re_squared_lj.cu
 
-$(OBJ_DIR)/re_squared.o: $(ALL_H) re_squared.h re_squared.cpp $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/base_ellipsoid.o
-	$(CUDR) -o $@ -c re_squared.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/re_squared_ptx.h: $(OBJ_DIR)/re_squared.ptx
+	$(BSH) ./geryon/file_to_cstr.sh re_squared $(OBJ_DIR)/re_squared.ptx $(OBJ_DIR)/re_squared_ptx.h
 
-$(OBJ_DIR)/re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/re_squared.o re_squared_ext.cpp
-	$(CUDR) -o $@ -c re_squared_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/re_squared_lj_ptx.h: $(OBJ_DIR)/re_squared_lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh re_squared_lj $(OBJ_DIR)/re_squared_lj.ptx $(OBJ_DIR)/re_squared_lj_ptx.h
 
-$(OBJ_DIR)/lj_cut_gpu_kernel.ptx: lj_cut_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_cut_gpu_kernel.cu
+$(OBJ_DIR)/lal_re_squared.o: $(ALL_H) lal_re_squared.h lal_re_squared.cpp $(OBJ_DIR)/re_squared_ptx.h $(OBJ_DIR)/re_squared_lj_ptx.h $(OBJ_DIR)/lal_base_ellipsoid.o
+	$(CUDR) -o $@ -c lal_re_squared.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_cut_gpu_ptx.h: $(OBJ_DIR)/lj_cut_gpu_kernel.ptx $(OBJ_DIR)/lj_cut_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/lj_cut_gpu_kernel.ptx $(OBJ_DIR)/lj_cut_gpu_ptx.h
+$(OBJ_DIR)/lal_re_squared_ext.o: $(ALL_H) $(OBJ_DIR)/lal_re_squared.o lal_re_squared_ext.cpp
+	$(CUDR) -o $@ -c lal_re_squared_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_cut_gpu_memory.o: $(ALL_H) lj_cut_gpu_memory.h lj_cut_gpu_memory.cpp $(OBJ_DIR)/lj_cut_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c lj_cut_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lj.ptx: lal_lj.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj.cu
 
-$(OBJ_DIR)/lj_cut_gpu.o: $(ALL_H) lj_cut_gpu_memory.h lj_cut_gpu.cpp atomic_gpu_memory.h
-	$(CUDR) -o $@ -c lj_cut_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lj_ptx.h: $(OBJ_DIR)/lj.ptx $(OBJ_DIR)/lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh lj $(OBJ_DIR)/lj.ptx $(OBJ_DIR)/lj_ptx.h
 
-$(OBJ_DIR)/ljc_cut_gpu_kernel.ptx: ljc_cut_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ ljc_cut_gpu_kernel.cu
+$(OBJ_DIR)/lal_lj.o: $(ALL_H) lal_lj.h lal_lj.cpp $(OBJ_DIR)/lj_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ljc_cut_gpu_ptx.h: $(OBJ_DIR)/ljc_cut_gpu_kernel.ptx $(OBJ_DIR)/ljc_cut_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/ljc_cut_gpu_kernel.ptx $(OBJ_DIR)/ljc_cut_gpu_ptx.h
+$(OBJ_DIR)/lal_lj_ext.o: $(ALL_H) lal_lj.h lal_lj_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ljc_cut_gpu_memory.o: $(ALL_H) ljc_cut_gpu_memory.h ljc_cut_gpu_memory.cpp $(OBJ_DIR)/ljc_cut_gpu_ptx.h $(OBJ_DIR)/charge_gpu_memory.o
-	$(CUDR) -o $@ -c ljc_cut_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lj_coul.ptx: lal_lj_coul.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_coul.cu
 
-$(OBJ_DIR)/ljc_cut_gpu.o: $(ALL_H) ljc_cut_gpu_memory.h ljc_cut_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c ljc_cut_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lj_coul_ptx.h: $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul.ptx
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul $(OBJ_DIR)/lj_coul.ptx $(OBJ_DIR)/lj_coul_ptx.h
 
-$(OBJ_DIR)/lj_class2_long.ptx: lj_class2_long.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_class2_long.cu
+$(OBJ_DIR)/lal_lj_coul.o: $(ALL_H) lal_lj_coul.h lal_lj_coul.cpp $(OBJ_DIR)/lj_coul_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_coul.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_coul_ext.o: $(ALL_H) lal_lj_coul.h lal_lj_coul_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_coul_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_class2_long.ptx: lal_lj_class2_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_class2_long.cu
 
 $(OBJ_DIR)/lj_class2_long_ptx.h: $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long_ptx.h
+	$(BSH) ./geryon/file_to_cstr.sh lj_class2_long $(OBJ_DIR)/lj_class2_long.ptx $(OBJ_DIR)/lj_class2_long_ptx.h
 
-$(OBJ_DIR)/lj_class2_long.o: $(ALL_H) lj_class2_long.h lj_class2_long.cpp $(OBJ_DIR)/lj_class2_long_ptx.h $(OBJ_DIR)/charge_gpu_memory.o
-	$(CUDR) -o $@ -c lj_class2_long.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_class2_long.o: $(ALL_H) lal_lj_class2_long.h lal_lj_class2_long.cpp $(OBJ_DIR)/lj_class2_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_class2_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_class2_long_ext.o: $(ALL_H) lj_class2_long.h lj_class2_long_ext.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c lj_class2_long_ext.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_class2_long_ext.o: $(ALL_H) lal_lj_class2_long.h lal_lj_class2_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_class2_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx: ljcl_cut_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ ljcl_cut_gpu_kernel.cu
+$(OBJ_DIR)/coul_long.ptx: lal_coul_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_coul_long.cu
 
-$(OBJ_DIR)/ljcl_cut_gpu_ptx.h: $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/ljcl_cut_gpu_kernel.ptx $(OBJ_DIR)/ljcl_cut_gpu_ptx.h
+$(OBJ_DIR)/coul_long_ptx.h: $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh coul_long $(OBJ_DIR)/coul_long.ptx $(OBJ_DIR)/coul_long_ptx.h
 
-$(OBJ_DIR)/ljcl_cut_gpu_memory.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu_memory.cpp $(OBJ_DIR)/ljcl_cut_gpu_ptx.h $(OBJ_DIR)/charge_gpu_memory.o
-	$(CUDR) -o $@ -c ljcl_cut_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_coul_long.o: $(ALL_H) lal_coul_long.h lal_coul_long.cpp $(OBJ_DIR)/coul_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_coul_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/ljcl_cut_gpu.o: $(ALL_H) ljcl_cut_gpu_memory.h ljcl_cut_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c ljcl_cut_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_coul_long_ext.o: $(ALL_H) lal_coul_long.h lal_coul_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/coul_long_gpu_kernel.ptx: coul_long_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ coul_long_gpu_kernel.cu
+$(OBJ_DIR)/lj_coul_long.ptx: lal_lj_coul_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_coul_long.cu
 
-$(OBJ_DIR)/coul_long_gpu_ptx.h: $(OBJ_DIR)/coul_long_gpu_kernel.ptx $(OBJ_DIR)/coul_long_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/coul_long_gpu_kernel.ptx $(OBJ_DIR)/coul_long_gpu_ptx.h
+$(OBJ_DIR)/lj_coul_long_ptx.h: $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul_long $(OBJ_DIR)/lj_coul_long.ptx $(OBJ_DIR)/lj_coul_long_ptx.h
 
-$(OBJ_DIR)/coul_long_gpu_memory.o: $(ALL_H) coul_long_gpu_memory.h coul_long_gpu_memory.cpp $(OBJ_DIR)/coul_long_gpu_ptx.h $(OBJ_DIR)/charge_gpu_memory.o
-	$(CUDR) -o $@ -c coul_long_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul_long.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long.cpp $(OBJ_DIR)/lj_coul_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_lj_coul_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/coul_long_gpu.o: $(ALL_H) coul_long_gpu_memory.h coul_long_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c coul_long_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_coul_long_ext.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_lj_coul_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/morse_gpu_kernel.ptx: morse_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ morse_gpu_kernel.cu
+$(OBJ_DIR)/morse.ptx: lal_morse.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_morse.cu
 
-$(OBJ_DIR)/morse_gpu_ptx.h: $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/morse_gpu_kernel.ptx $(OBJ_DIR)/morse_gpu_ptx.h
+$(OBJ_DIR)/morse_ptx.h: $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse.ptx
+	$(BSH) ./geryon/file_to_cstr.sh morse $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h
 
-$(OBJ_DIR)/morse_gpu_memory.o: $(ALL_H) morse_gpu_memory.h morse_gpu_memory.cpp $(OBJ_DIR)/morse_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c morse_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_morse.o: $(ALL_H) lal_morse.h lal_morse.cpp $(OBJ_DIR)/morse_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_morse.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/morse_gpu.o: $(ALL_H) morse_gpu_memory.h morse_gpu.cpp atomic_gpu_memory.h
-	$(CUDR) -o $@ -c morse_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_morse_ext.o: $(ALL_H) lal_morse.h lal_morse_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_morse_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/crml_gpu_kernel.ptx: crml_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ crml_gpu_kernel.cu
+$(OBJ_DIR)/charmm_long.ptx: lal_charmm_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_charmm_long.cu
 
-$(OBJ_DIR)/crml_gpu_ptx.h: $(OBJ_DIR)/crml_gpu_kernel.ptx $(OBJ_DIR)/crml_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/crml_gpu_kernel.ptx $(OBJ_DIR)/crml_gpu_ptx.h
+$(OBJ_DIR)/charmm_long_ptx.h: $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh charmm_long $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h
 
-$(OBJ_DIR)/crml_gpu_memory.o: $(ALL_H) crml_gpu_memory.h crml_gpu_memory.cpp $(OBJ_DIR)/crml_gpu_ptx.h $(OBJ_DIR)/charge_gpu_memory.o
-	$(CUDR) -o $@ -c crml_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_charmm_long.o: $(ALL_H) lal_charmm_long.h lal_charmm_long.cpp $(OBJ_DIR)/charmm_long_ptx.h $(OBJ_DIR)/lal_base_charge.o
+	$(CUDR) -o $@ -c lal_charmm_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/crml_gpu.o: $(ALL_H) crml_gpu_memory.h crml_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c crml_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_charmm_long_ext.o: $(ALL_H) lal_charmm_long.h lal_charmm_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_charmm_long_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj96_cut_gpu_kernel.ptx: lj96_cut_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj96_cut_gpu_kernel.cu
+$(OBJ_DIR)/lj96.ptx: lal_lj96.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj96.cu
 
-$(OBJ_DIR)/lj96_cut_gpu_ptx.h: $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/lj96_cut_gpu_kernel.ptx $(OBJ_DIR)/lj96_cut_gpu_ptx.h
+$(OBJ_DIR)/lj96_ptx.h: $(OBJ_DIR)/lj96.ptx $(OBJ_DIR)/lj96.ptx
+	$(BSH) ./geryon/file_to_cstr.sh lj96 $(OBJ_DIR)/lj96.ptx $(OBJ_DIR)/lj96_ptx.h
 
-$(OBJ_DIR)/lj96_cut_gpu_memory.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu_memory.cpp $(OBJ_DIR)/lj96_cut_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c lj96_cut_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj96.o: $(ALL_H) lal_lj96.h lal_lj96.cpp $(OBJ_DIR)/lj96_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj96.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj96_cut_gpu.o: $(ALL_H) lj96_cut_gpu_memory.h lj96_cut_gpu.cpp atomic_gpu_memory.h
-	$(CUDR) -o $@ -c lj96_cut_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj96_ext.o: $(ALL_H) lal_lj96.h lal_lj96_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj96_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_expand_gpu_kernel.ptx: lj_expand_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ lj_expand_gpu_kernel.cu
+$(OBJ_DIR)/lj_expand.ptx: lal_lj_expand.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_lj_expand.cu
 
-$(OBJ_DIR)/lj_expand_gpu_ptx.h: $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/lj_expand_gpu_kernel.ptx $(OBJ_DIR)/lj_expand_gpu_ptx.h
+$(OBJ_DIR)/lj_expand_ptx.h: $(OBJ_DIR)/lj_expand.ptx $(OBJ_DIR)/lj_expand.ptx
+	$(BSH) ./geryon/file_to_cstr.sh lj_expand $(OBJ_DIR)/lj_expand.ptx $(OBJ_DIR)/lj_expand_ptx.h
 
-$(OBJ_DIR)/lj_expand_gpu_memory.o: $(ALL_H) lj_expand_gpu_memory.h lj_expand_gpu_memory.cpp $(OBJ_DIR)/lj_expand_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c lj_expand_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_expand.o: $(ALL_H) lal_lj_expand.h lal_lj_expand.cpp $(OBJ_DIR)/lj_expand_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj_expand.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lj_expand_gpu.o: $(ALL_H) lj_expand_gpu_memory.h lj_expand_gpu.cpp atomic_gpu_memory.h
-	$(CUDR) -o $@ -c lj_expand_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_lj_expand_ext.o: $(ALL_H) lal_lj_expand.h lal_lj_expand_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_expand_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cmm_cut_gpu_kernel.ptx: cmm_cut_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cmm_cut_gpu_kernel.cu
+$(OBJ_DIR)/cg_cmm.ptx: lal_cg_cmm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm.cu
 
-$(OBJ_DIR)/cmm_cut_gpu_ptx.h: $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/cmm_cut_gpu_kernel.ptx $(OBJ_DIR)/cmm_cut_gpu_ptx.h
+$(OBJ_DIR)/cg_cmm_ptx.h: $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm.ptx
+	$(BSH) ./geryon/file_to_cstr.sh cg_cmm $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h
 
-$(OBJ_DIR)/cmm_cut_gpu_memory.o: $(ALL_H) cmm_cut_gpu_memory.h cmm_cut_gpu_memory.cpp $(OBJ_DIR)/cmm_cut_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c cmm_cut_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm.cpp $(OBJ_DIR)/cg_cmm_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_cg_cmm.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cmm_cut_gpu.o: $(ALL_H) cmm_cut_gpu_memory.h cmm_cut_gpu.cpp atomic_gpu_memory.h
-	$(CUDR) -o $@ -c cmm_cut_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_ext.o: $(ALL_H) lal_cg_cmm.h lal_cg_cmm_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_cg_cmm_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cmmc_long_gpu_kernel.ptx: cmmc_long_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cmmc_long_gpu_kernel.cu
+$(OBJ_DIR)/cg_cmm_long.ptx: lal_cg_cmm_long.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_cg_cmm_long.cu
 
-$(OBJ_DIR)/cmmc_long_gpu_ptx.h: $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/cmmc_long_gpu_kernel.ptx $(OBJ_DIR)/cmmc_long_gpu_ptx.h
+$(OBJ_DIR)/cg_cmm_long_ptx.h: $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long.ptx
+	$(BSH) ./geryon/file_to_cstr.sh cg_cmm_long $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h
 
-$(OBJ_DIR)/cmmc_long_gpu_memory.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu_memory.cpp $(OBJ_DIR)/cmmc_long_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c cmmc_long_gpu_memory.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_long.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long.cpp $(OBJ_DIR)/cg_cmm_long_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_cg_cmm_long.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/cmmc_long_gpu.o: $(ALL_H) cmmc_long_gpu_memory.h cmmc_long_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c cmmc_long_gpu.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx: cmmc_msm_gpu_kernel.cu pair_gpu_precision.h
-	$(CUDA) --ptx -DNV_KERNEL -o $@ cmmc_msm_gpu_kernel.cu
-
-$(OBJ_DIR)/cmmc_msm_gpu_ptx.h: $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx
-	$(BSH) ./geryon/file_to_cstr.sh $(OBJ_DIR)/cmmc_msm_gpu_kernel.ptx $(OBJ_DIR)/cmmc_msm_gpu_ptx.h
-
-$(OBJ_DIR)/cmmc_msm_gpu_memory.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu_memory.cpp $(OBJ_DIR)/cmmc_msm_gpu_ptx.h $(OBJ_DIR)/atomic_gpu_memory.o
-	$(CUDR) -o $@ -c cmmc_msm_gpu_memory.cpp -I$(OBJ_DIR)
-
-$(OBJ_DIR)/cmmc_msm_gpu.o: $(ALL_H) cmmc_msm_gpu_memory.h cmmc_msm_gpu.cpp charge_gpu_memory.h
-	$(CUDR) -o $@ -c cmmc_msm_gpu.cpp -I$(OBJ_DIR)
+$(OBJ_DIR)/lal_cg_cmm_long_ext.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long_ext.cpp lal_base_charge.h
+	$(CUDR) -o $@ -c lal_cg_cmm_long_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVC_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDART $(CUDA_LINK) 
@@ -361,3 +334,4 @@ clean:
 
 veryclean: clean
 	rm -rf *~ *.linkinfo
+

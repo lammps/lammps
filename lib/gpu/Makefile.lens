@@ -1,22 +1,3 @@
-# /* ----------------------------------------------------------------------   
-#    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator       
-#    http://lammps.sandia.gov, Sandia National Laboratories                   
-#    Steve Plimpton, sjplimp@sandia.gov                                       
-#                                                                             
-#    Copyright (2003) Sandia Corporation.  Under the terms of Contract        
-#    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains   
-#    certain rights in this software.  This software is distributed under      
-#    the GNU General Public License.                                          
-#                                                                             
-#    See the README file in the top-level LAMMPS directory.                   
-# ------------------------------------------------------------------------- */
-#                                                                             
-# /* ----------------------------------------------------------------------   
-#    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov               
-#                          Peng Wang (Nvidia), penwang@nvidia.com             
-#                          Paul Crozier (SNL), pscrozi@sandia.gov             
-# ------------------------------------------------------------------------- */
-
 CUDA_HOME = /sw/analysis-x64/cuda/3.2/centos5.5_binary/
 NVCC = nvcc
 
@@ -26,7 +7,7 @@ CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
 
-CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -openmp
+CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT # -openmp
 CUDR_OPTS = -O2 -xSSE2 -ip -use-intel-optimized-headers -fno-alias
 
 BIN_DIR = ./

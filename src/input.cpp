@@ -509,13 +509,7 @@ void Input::clear()
   if (narg > 0) error->all(FLERR,"Illegal clear command");
   lmp->destroy();
   lmp->create();
-
-  // using /omp suffix implies running the "package omp"
-  // command with default settings.
-  if (lmp->suffix && lmp->suffix_enable) {
-    if (strcmp(lmp->suffix,"omp") == 0)
-      lmp->input->one("package omp *");
-  }
+  lmp->post_create();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1157,6 +1151,7 @@ void Input::package()
     modify->add_fix(2+narg,fixarg,NULL);
     modify->allow_early_fix = 0;
     delete [] fixarg;
+
   } else error->all(FLERR,"Illegal package command");
 }
 

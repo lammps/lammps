@@ -39,10 +39,18 @@ USER-CUDA package.
 </P>
 <P>These are the variants these packages provide:
 </P>
-<UL><LI>OPT = a handful of pair styles, cache-optimized for faster CPU performance
-<LI>USER-OMP = a collection of pair, dihedral and fix styles with support for OpenMP multi-threading
-<LI>GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
-<LI>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs 
+<UL><LI>OPT = a handful of pair styles, cache-optimized for faster CPU
+performance 
+
+<LI>USER-OMP = a collection of pair, bond, angle, dihedral, improper,
+kspace, compute, and fix styles with support for OpenMP
+multi-threading 
+
+<LI>GPU = a handful of pair styles and the PPPM kspace_style, optimized to
+run on one or more GPUs or multicore CPU/GPU nodes 
+
+<LI>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate
+styles, optimized to run on one or more NVIDIA GPUs 
 </UL>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/opt, lj/cut/omp,
@@ -51,9 +59,12 @@ explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 suffix command is used with the appropriate style, you do not need to
 modify your input script.  The specified suffix (opt,omp,gpu,cuda) is
 automatically appended whenever your input script command creates a
-new <A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
-<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.  If the variant
-version does not exist, the standard version is created.
+new <A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>,
+<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
+<A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>,
+<A HREF = "kspace_style.html">kspace</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or
+<A HREF = "run_style.html">run</A> style.  If the variant version does not exist,
+the standard version is created.
 </P>
 <P>If the specified style is <I>off</I>, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

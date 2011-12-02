@@ -135,7 +135,8 @@ void Min::init()
 
   ev_setup();
 
-  // detect if fix omp is present and will clear force arrays for us
+  // detect if fix omp is present for clearing force arrays
+
   int ifix = modify->find_fix("package_omp");
   if (ifix >= 0) external_force_clear = 1;
 

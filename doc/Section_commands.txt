@@ -686,12 +686,14 @@ package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
+"coul/diel"_pair_coul_diel.html,
 "lj/sdk"_pair_sdk.html,
 "lj/sdk/coul/long"_pair_sdk.html,
 "dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
 "edip"_pair_edip.html,
 "eff/cut"_pair_eff.html,
+"gauss/cut"_pair_gauss.html,
 "lj/coul"_pair_lj_coul.html,
 "lj/sf"_pair_lj_sf.html,
 "reax/c"_pair_reax_c.html,
@@ -700,8 +702,8 @@ package"_Section_start.html#start_3.
 "sph/lj"_pair_lj.html,
 "sph/rhosum"_pair_rhosum.html,
 "sph/taitwater"_pair_taitwater.html,
-"sph/taitwater/morris"_pair_taitwater_morris.html :tb(c=4,ea=c)
-"tersoff/table"_pair_tersoff.html,
+"sph/taitwater/morris"_pair_taitwater_morris.html,
+"tersoff/table"_pair_tersoff.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated

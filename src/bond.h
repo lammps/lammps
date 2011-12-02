@@ -32,7 +32,6 @@ class Bond : protected Pointers {
   virtual ~Bond();
   virtual void init();
   virtual void init_style() {}
-
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **) {}
   virtual void coeff(int, char **) = 0;

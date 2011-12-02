@@ -2136,5 +2136,3 @@ void PairComb::add_pages(int howmany)
   for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"pair:pages[i]");
 }
-
-/* ---------------------------------------------------------------------- */

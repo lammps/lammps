@@ -436,11 +436,11 @@ potentials.  Click on the style itself for a full description:
 package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "pair_awpmd.html">awpmd/cut</A></TD><TD ><A HREF = "pair_buck_coul.html">buck/coul</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/long</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf</A></TD><TD ><A HREF = "pair_eam.html">eam/cd</A></TD><TD ><A HREF = "pair_edip.html">edip</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eff.html">eff/cut</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf</A></TD><TD ><A HREF = "pair_reax_c.html">reax/c</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_heatconduction.html">sph/heatconduction</A></TD><TD ><A HREF = "pair_idealgas.html">sph/idealgas</A></TD><TD ><A HREF = "pair_lj.html">sph/lj</A></TD><TD ><A HREF = "pair_rhosum.html">sph/rhosum</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_taitwater.html">sph/taitwater</A></TD><TD ><A HREF = "pair_taitwater_morris.html">sph/taitwater/morris</A> 
+<TR ALIGN="center"><TD ><A HREF = "pair_awpmd.html">awpmd/cut</A></TD><TD ><A HREF = "pair_buck_coul.html">buck/coul</A></TD><TD ><A HREF = "pair_coul_diel.html">coul/diel</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf</A></TD><TD ><A HREF = "pair_eam.html">eam/cd</A></TD><TD ><A HREF = "pair_edip.html">edip</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eff.html">eff/cut</A></TD><TD ><A HREF = "pair_gauss.html">gauss/cut</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_reax_c.html">reax/c</A></TD><TD ><A HREF = "pair_heatconduction.html">sph/heatconduction</A></TD><TD ><A HREF = "pair_idealgas.html">sph/idealgas</A></TD><TD ><A HREF = "pair_lj.html">sph/lj</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_rhosum.html">sph/rhosum</A></TD><TD ><A HREF = "pair_taitwater.html">sph/taitwater</A></TD><TD ><A HREF = "pair_taitwater_morris.html">sph/taitwater/morris</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/table</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are accelerated pair styles, which can be used if LAMMPS is
@@ -451,31 +451,32 @@ package</A>.
 <TR ALIGN="center"><TD ><A HREF = "pair_adp.html">adp/omp</A></TD><TD ><A HREF = "pair_airebo.html">airebo/omp</A></TD><TD ><A HREF = "pair_born.html">born/coul/long/cuda</A></TD><TD ><A HREF = "pair_born.html">born/coul/long/omp</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_born.html">born/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut/cuda</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/long/cuda</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_buck.html">buck/coul/long/omp</A></TD><TD ><A HREF = "pair_buck_coul.html">buck/coul/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/cuda</A></TD><TD ><A HREF = "pair_buck.html">buck/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/cut/cuda</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/debye/cuda</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/long/cuda</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/long/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_cmm.html">cg/cmm/cuda</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/gpu</A></TD><TD ><A HREF = "pair_colloid.html">colloid/omp</A></TD><TD ><A HREF = "pair_comb.html">comb/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/cut/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/debye/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/long/gpu</A></TD><TD ><A HREF = "pair_coul.html">coul/long/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_dipole.html">dipole/cut/omp</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf/omp</A></TD><TD ><A HREF = "pair_dpd.html">dpd/omp</A></TD><TD ><A HREF = "pair_dpd.html">dpd/tstat/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/alloy/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/cd/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD><TD ><A HREF = "pair_edip.html">edip/omp</A></TD><TD ><A HREF = "pair_eim.html">eim/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gauss.html">gauss/omp</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hertz/history/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hooke/cuda</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/omp</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/lj/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/morse/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/cuda</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/gpu</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/cuda</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sdk.html">lj/sdk/gpu</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/omp</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long/gpu</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_colloid.html">colloid/omp</A></TD><TD ><A HREF = "pair_comb.html">comb/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/cut/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/debye/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/long/gpu</A></TD><TD ><A HREF = "pair_coul.html">coul/long/omp</A></TD><TD ><A HREF = "pair_dipole.html">dipole/cut/omp</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_dpd.html">dpd/omp</A></TD><TD ><A HREF = "pair_dpd.html">dpd/tstat/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/cd/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/fs/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_edip.html">edip/omp</A></TD><TD ><A HREF = "pair_eim.html">eim/omp</A></TD><TD ><A HREF = "pair_gauss.html">gauss/omp</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gayberne.html">gayberne/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hertz/history/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/cuda</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hooke/omp</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/lj/omp</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/morse/omp</A></TD><TD ><A HREF = "pair_line_lj.html">line/lj/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/gpu</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/pppm/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/cuda</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/cuda</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/gpu</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/cuda</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/gpu</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/omp</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/gpu</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/cuda</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/experimental/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/cuda</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj_expand.html">lj/expand/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/cuda</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/cuda</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gromacs.html">lj/gromacs/omp</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf/omp</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/cuda</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj96.html">lj96/cut/cuda</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/gpu</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/omp</A></TD><TD ><A HREF = "pair_lubricate.html">lubricate/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_morse.html">morse/cuda</A></TD><TD ><A HREF = "pair_morse.html">morse/gpu</A></TD><TD ><A HREF = "pair_morse.html">morse/omp</A></TD><TD ><A HREF = "pair_morse.html">morse/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_peri.html">peri/lps/omp</A></TD><TD ><A HREF = "pair_peri.html">peri/pmb/omp</A></TD><TD ><A HREF = "pair_airebo.html">rebo/omp</A></TD><TD ><A HREF = "pair_resquared.html">resquared/gpu</A> <A HREF = "pair_resquared.html">resquared/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_soft.html">soft/omp</A></TD><TD ><A HREF = "pair_sw.html">sw/cuda</A></TD><TD ><A HREF = "pair_sw.html">sw/omp</A></TD><TD ><A HREF = "pair_table.html">table/omp</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_tersoff.html">tersoff/cuda</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/omp</A></TD><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl/omp</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/pppm/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/pppm/tip4p/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/experimental/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_expand.html">lj/expand/cuda</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/gpu</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/cuda</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/omp</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/cuda</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/omp</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/cuda</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj96.html">lj96/cut/omp</A></TD><TD ><A HREF = "pair_morse.html">morse/cuda</A></TD><TD ><A HREF = "pair_morse.html">morse/gpu</A></TD><TD ><A HREF = "pair_morse.html">morse/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_morse.html">morse/opt</A></TD><TD ><A HREF = "pair_peri.html">peri/lps/omp</A></TD><TD ><A HREF = "pair_peri.html">peri/pmb/omp</A></TD><TD ><A HREF = "pair_airebo.html">rebo/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_resquared.html">resquared/gpu</A></TD><TD ><A HREF = "pair_resquared.html">resquared/omp</A></TD><TD ><A HREF = "pair_soft.html">soft/omp</A></TD><TD ><A HREF = "pair_sw.html">sw/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sw.html">sw/omp</A></TD><TD ><A HREF = "pair_table.html">table/omp</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/cuda</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_tersoff.html">tersoff/table/omp</A></TD><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl/omp</A></TD><TD ><A HREF = "pair_tri_lj.html">tri/lj/omp</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa/omp</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid/omp</A> 
 </TD></TR></TABLE></DIV>
 
@@ -500,6 +501,16 @@ package</A>.
 <TR ALIGN="center"><TD ><A HREF = "bond_harmonic_shift.html">harmonic/shift</A></TD><TD ><A HREF = "bond_harmonic_shift_cut.html">harmonic/shift/cut</A> 
 </TD></TR></TABLE></DIV>
 
+<P>These are accelerated bond styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "bond_fene.html">fene/omp</A></TD><TD WIDTH="100"><A HREF = "bond_fene_expand.html">fene/expand/omp</A></TD><TD WIDTH="100"><A HREF = "bond_harmonic.html">harmonic/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_harmonic_shift.html">harmonic/shift/omp</A></TD><TD WIDTH="100"><A HREF = "bond_harmonic_shift_cut.html">harmonic/shift/cut/omp</A></TD><TD WIDTH="100"><A HREF = "bond_morse.html">morse/omp</A></TD><TD WIDTH="100"><A HREF = "bond_nonlinear.html">nonlinear/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_quartic.html">quartic/omp</A></TD><TD WIDTH="100"><A HREF = "bond_table.html">table/omp</A> 
+</TD></TR></TABLE></DIV>
+
 <HR>
 
 <H4>Angle_style potentials 
@@ -518,7 +529,17 @@ angle potentials.  Click on the style itself for a full description:
 package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "angle_cmm.html">cg/cmm</A></TD><TD ><A HREF = "angle_cosine_shift.html">cosine/shift</A></TD><TD ><A HREF = "angle_cosine_shift_exp.html">cosine/shift/exp</A> 
+<TR ALIGN="center"><TD ><A HREF = "angle_sdk.html">sdk</A></TD><TD ><A HREF = "angle_cosine_shift.html">cosine/shift</A></TD><TD ><A HREF = "angle_cosine_shift_exp.html">cosine/shift/exp</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated angle styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_charmm.html">charmm/omp</A></TD><TD WIDTH="100"><A HREF = "angle_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine.html">cosine/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_delta.html">cosine/delta/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_cosine_periodic.html">cosine/periodic/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_shift.html">cosine/shift/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_shift_exp.html">cosine/shift/exp/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_squared.html">cosine/squared/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_harmonic.html">harmonic/omp</A></TD><TD WIDTH="100"><A HREF = "angle_table.html">table/omp</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -564,6 +585,14 @@ description:
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "improper_umbrella.html">umbrella</A> 
 </TD></TR></TABLE></DIV>
 
+<P>These are accelerated improper styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "improper_cvff.html">cvff/omp</A></TD><TD WIDTH="100"><A HREF = "improper_harmonic.html">harmonic/omp</A></TD><TD WIDTH="100"><A HREF = "improper_umbrella.html">umbrella/omp</A> 
+</TD></TR></TABLE></DIV>
+
 <HR>
 
 <H4>Kspace solvers 
@@ -588,7 +617,8 @@ built with the <A HREF = "Section_accelerate.html">appropriate accelerated
 package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "kspace_style.html">pppm/cuda</A></TD><TD ><A HREF = "kspace_style.html">pppm/gpu</A> 
+<TR ALIGN="center"><TD ><A HREF = "kspace_style.html">ewald/omp</A></TD><TD ><A HREF = "kspace_style.html">pppm/cuda</A></TD><TD ><A HREF = "kspace_style.html">pppm/gpu</A></TD><TD ><A HREF = "kspace_style.html">pppm/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "kspace_style.html">pppm/proxy</A> 
 </TD></TR></TABLE></DIV>
 
 </HTML>

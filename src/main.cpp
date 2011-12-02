@@ -28,13 +28,6 @@ int main(int argc, char **argv)
 
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
 
-  // using /omp suffix implies running the "package omp"
-  // command with default settings.
-  if (lammps->suffix && lammps->suffix_enable) {
-    if (strcmp(lammps->suffix,"omp") == 0)
-      lammps->input->one("package omp *");
-  }
-
   lammps->input->file();
   delete lammps;
 

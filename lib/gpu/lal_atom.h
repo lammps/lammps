@@ -138,7 +138,7 @@ class Atom {
       time_quat.zero_total();
     }
     
-    return total+_time_transfer;
+    return total+_time_transfer/1000.0;
   }
   
   /// Return the total time for data cast/pack
@@ -353,10 +353,10 @@ class Atom {
     }
   }
 
-  /// Add in casting time from additional data
+  /// Add in casting time from additional data (seconds)
   inline void add_cast_time(double t) { _time_cast+=t; }
 
-  /// Add in transfer time from additional data
+  /// Add in transfer time from additional data (ms)
   inline void add_transfer_time(double t) { _time_transfer+=t; }
 
   /// Return number of bytes used on device

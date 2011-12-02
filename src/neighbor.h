@@ -15,6 +15,7 @@
 #define LMP_NEIGHBOR_H
 
 #include "pointers.h"
+#include "neigh_style.h"
 
 namespace LAMMPS_NS {
 
@@ -211,6 +212,44 @@ class Neighbor : protected Pointers {
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
 
+#ifdef LAMMPS_USE_NEIGH_OMP_DUMMY
+
+  // OpenMP multi-threaded neighbor list build dummy versions
+
+  void half_nsq_no_newton_omp(class NeighList *) {};
+  void half_nsq_newton_omp(class NeighList *) {};
+
+  void half_bin_no_newton_omp(class NeighList *) {};
+  void half_bin_newton_omp(class NeighList *) {};
+  void half_bin_newton_tri_omp(class NeighList *) {};
+
+  void half_multi_no_newton_omp(class NeighList *) {};
+  void half_multi_newton_omp(class NeighList *) {};
+  void half_multi_newton_tri_omp(class NeighList *) {};
+
+  void full_nsq_omp(class NeighList *) {};
+  void full_nsq_ghost_omp(class NeighList *) {};
+  void full_bin_omp(class NeighList *) {};
+  void full_bin_ghost_omp(class NeighList *) {};
+  void full_multi_omp(class NeighList *) {};
+
+  void half_from_full_no_newton_omp(class NeighList *) {};
+  void half_from_full_newton_omp(class NeighList *) {};
+
+  void granular_nsq_no_newton_omp(class NeighList *) {};
+  void granular_nsq_newton_omp(class NeighList *) {};
+  void granular_bin_no_newton_omp(class NeighList *) {};
+  void granular_bin_newton_omp(class NeighList *) {};
+  void granular_bin_newton_tri_omp(class NeighList *) {};
+
+  void respa_nsq_no_newton_omp(class NeighList *) {};
+  void respa_nsq_newton_omp(class NeighList *) {};
+  void respa_bin_no_newton_omp(class NeighList *) {};
+  void respa_bin_newton_omp(class NeighList *) {};
+  void respa_bin_newton_tri_omp(class NeighList *) {};
+
+#else 
+
   // OpenMP multi-threaded neighbor list build versions
 
   void half_nsq_no_newton_omp(class NeighList *);
@@ -244,6 +283,8 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton_omp(class NeighList *);
   void respa_bin_newton_omp(class NeighList *);
   void respa_bin_newton_tri_omp(class NeighList *);
+
+#endif
 
   // pairwise stencil creation functions
 

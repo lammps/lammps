@@ -1,7 +1,38 @@
-# Make.sh = update Makefile.lib or Makefile.list or style_*.h files
+# Make.sh = update Makefile.lib or Makefile.list or style_*.h 
+# or neigh_style.h files
+#
 # Syntax: sh Make.sh style
 #         sh Make.sh Makefile.lib
 #         sh Make.sh Makefile.list
+#         sh Make.sh neigh
+
+# function to update the neigh_style.h file
+# based on the presence of neighbor_*.h
+# (to be extended, for other optional neighbor builds)
+neigh () {
+  if (test -e neigh_style.tmp) then
+    rm -f neigh_style.tmp
+  fi
+  touch neigh_style.tmp
+  if (test ! -e neigh_style.h) then
+    touch neigh_style.h
+  fi
+  for style in $@; do 
+    STYLE=`echo $style | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+    if (test -f neighbor_$style.h) then
+      echo "#undef LAMMPS_USE_NEIGH_${STYLE}_DUMMY " >> neigh_style.tmp
+    else
+      echo "#define LAMMPS_USE_NEIGH_${STYLE}_DUMMY 1" >> neigh_style.tmp
+    fi
+  done
+  if (test "`diff --brief neigh_style.h neigh_style.tmp`" != "") then
+    mv neigh_style.tmp neigh_style.h
+    rm -f Obj_*/neigh*.d
+    rm -f Obj_*/lammps.d
+  else
+    rm -f neigh_style.tmp
+  fi
+}
 
 # function to create one style_*.h file
 # must whack *.d files that depend on style_*.h file,
@@ -35,7 +66,11 @@ style () {
 # create individual style files
 # called by "make machine"
 
-if (test $1 = "style") then
+if (test $1 = "neigh") then
+
+  neigh omp
+
+elif (test $1 = "style") then
 
   style ANGLE_CLASS     angle_      angle      force
   style ATOM_CLASS      atom_vec_   atom       atom

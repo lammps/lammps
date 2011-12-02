@@ -165,7 +165,9 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int exclusion(int, int, int, int, int *, int *) const;  // test for pair exclusion
+  int exclusion(int, int, int, 
+		int, int *, int *) const;  // test for pair exclusion
+
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
@@ -212,37 +214,7 @@ class Neighbor : protected Pointers {
 
   // OpenMP multi-threaded neighbor list build versions
 
-  void half_nsq_no_newton_omp(class NeighList *);
-  void half_nsq_newton_omp(class NeighList *);
-
-  void half_bin_no_newton_omp(class NeighList *);
-  void half_bin_newton_omp(class NeighList *);
-  void half_bin_newton_tri_omp(class NeighList *);
-
-  void half_multi_no_newton_omp(class NeighList *);
-  void half_multi_newton_omp(class NeighList *);
-  void half_multi_newton_tri_omp(class NeighList *);
-
-  void full_nsq_omp(class NeighList *);
-  void full_nsq_ghost_omp(class NeighList *);
-  void full_bin_omp(class NeighList *);
-  void full_bin_ghost_omp(class NeighList *);
-  void full_multi_omp(class NeighList *);
-
-  void half_from_full_no_newton_omp(class NeighList *);
-  void half_from_full_newton_omp(class NeighList *);
-
-  void granular_nsq_no_newton_omp(class NeighList *);
-  void granular_nsq_newton_omp(class NeighList *);
-  void granular_bin_no_newton_omp(class NeighList *);
-  void granular_bin_newton_omp(class NeighList *);
-  void granular_bin_newton_tri_omp(class NeighList *);
-
-  void respa_nsq_no_newton_omp(class NeighList *);
-  void respa_nsq_newton_omp(class NeighList *);
-  void respa_bin_no_newton_omp(class NeighList *);
-  void respa_bin_newton_omp(class NeighList *);
-  void respa_bin_newton_tri_omp(class NeighList *);
+#include "accelerator_omp.h"
 
   // pairwise stencil creation functions
 

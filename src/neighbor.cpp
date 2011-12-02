@@ -856,16 +856,19 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       if (style == NSQ) {
 	if (rq->ghost == 0) pb = &Neighbor::full_nsq;
 	else if (includegroup) 
-	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	  error->all(FLERR,
+		     "Neighbor include group not allowed with ghost neighbors");
 	else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
       } else if (style == BIN) {
 	if (rq->ghost == 0) pb = &Neighbor::full_bin;
 	else if (includegroup) 
-	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	  error->all(FLERR,
+		     "Neighbor include group not allowed with ghost neighbors");
 	else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
       } else if (style == MULTI) {
 	if (rq->ghost == 0) pb = &Neighbor::full_multi;
-	else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
+	else error->all(FLERR,
+			"Neighbor multi not yet enabled for ghost neighbors");
       }
 
     } else if (rq->gran) {
@@ -938,16 +941,19 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       if (style == NSQ) {
 	if (rq->ghost == 0) pb = &Neighbor::full_nsq_omp;
 	else if (includegroup) 
-	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	  error->all(FLERR,
+		     "Neighbor include group not allowed with ghost neighbors");
 	else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost_omp;
       } else if (style == BIN) {
 	if (rq->ghost == 0) pb = &Neighbor::full_bin_omp;
 	else if (includegroup) 
-	  error->all(FLERR,"Neighbor include group not allowed with ghost neighbors");
+	  error->all(FLERR,
+		     "Neighbor include group not allowed with ghost neighbors");
 	else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost_omp;
       } else if (style == MULTI) {
 	if (rq->ghost == 0) pb = &Neighbor::full_multi_omp;
-	else error->all(FLERR,"Neighbor multi not yet enabled for ghost neighbors");
+	else error->all(FLERR,
+			"Neighbor multi not yet enabled for ghost neighbors");
       }
 
     } else if (rq->gran) {
@@ -977,7 +983,8 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
   // general error check
 
   if (rq->ghost && !rq->full)
-    error->all(FLERR,"Neighbors of ghost atoms only allowed for full neighbor lists");
+    error->all(FLERR,
+	       "Neighbors of ghost atoms only allowed for full neighbor lists");
 
   pair_build[index] = pb;
 }

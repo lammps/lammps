@@ -45,6 +45,10 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
   int gpu_rank=EAMMF.device->gpu_rank();
   int procs_per_gpu=EAMMF.device->procs_per_gpu();
 
+  // disable host/device split for now
+  if (gpu_split != 1.0) 
+    return -8;
+    
   EAMMF.device->init_message(screen,"eam",first_gpu,last_gpu);
 
   bool message=false;
@@ -115,7 +119,7 @@ int ** eam_gpu_compute_energy_n(const int ago, const int inum_full,
   return EAMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
-                        host_fp, boxlo, prd, inum);
+                        host_fp, inum);
 }  
 
 void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
@@ -126,7 +130,7 @@ void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
                       const int nlocal, double *boxlo, double *prd) {
   EAMMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
-                host_fp,nlocal,boxlo,prd);
+                host_fp);
 }
 
 void eam_gpu_compute_n(const int ago, const int inum_full,

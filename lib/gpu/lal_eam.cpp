@@ -28,7 +28,6 @@ extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 EAMT::EAM() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
-  _max_fp_size = 0;
 }
 
 template <class numtyp, class acctyp>
@@ -55,23 +54,32 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
     return success;
   
   // allocate fp
-  _fp_avail=false;
   
   bool cpuview=false;
   if (this->ucl_device->device_type()==UCL_CPU)
     cpuview=true;
   
-  int _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
-  host_fp.alloc(_max_atoms,*(this->ucl_device));
+  _max_fp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+  host_fp.alloc(_max_fp_size,*(this->ucl_device));
   if (cpuview)
     dev_fp.view(host_fp);
   else 
-    dev_fp.alloc(_max_atoms,*(this->ucl_device),UCL_WRITE_ONLY);
+    dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
                                      
   k_energy.set_function(*(this->pair_program),"kernel_energy");
   fp_tex.get_texture(*(this->pair_program),"fp_tex");
   fp_tex.bind_float(dev_fp,1);
+
+  // Initialize timers for selected GPU
+  time_pair2.init(*(this->ucl_device));
+  time_pair2.zero();
   
+  time_fp1.init(*(this->ucl_device));
+  time_fp1.zero();
+  
+  time_fp2.init(*(this->ucl_device));
+  time_fp2.zero();
+
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
@@ -173,7 +181,11 @@ void EAMT::clear() {
   
   host_fp.clear();
   dev_fp.clear();
-
+  
+  time_pair2.clear();
+  time_fp1.clear();
+  time_fp2.clear();
+  
   this->clear_atomic();
 }
 
@@ -192,9 +204,20 @@ void EAMT::compute(const int f_ago, const int inum_full,
                    const bool eflag, const bool vflag,
                    const bool eatom, const bool vatom,
                    int &host_start, const double cpu_time,
-                   bool &success, double *fp,
-                   const int nlocal, double *boxlo, double *prd) {
+                   bool &success, double *fp) {
   this->acc_timers();
+  
+  if (this->device->time_device()) {
+    // Put time from the second part to the total time_pair
+    this->time_pair.add_time_to_total(time_pair2.time());
+    
+    // Add transfer time from device -> host after part 1
+    this->atom->add_transfer_time(time_fp1.time());
+    
+    // Add transfer time from host -> device before part 2
+    this->atom->add_transfer_time(time_fp2.time());
+  }
+  
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
@@ -222,7 +245,7 @@ void EAMT::compute(const int f_ago, const int inum_full,
       dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
     
     fp_tex.bind_float(dev_fp,1);
-  }      
+  }  
 
   // -----------------------------------------------------------------
 
@@ -231,21 +254,24 @@ void EAMT::compute(const int f_ago, const int inum_full,
     if (!success)
       return;
   }
-
+  
   this->atom->cast_x_data(host_x,host_type);
   this->atom->add_x_data(host_x,host_type);
 
   loop(eflag,vflag);
   
   // copy fp from device to host for comm
-  
+  time_fp1.start();
   ucl_copy(host_fp,dev_fp,false);
+  time_fp1.stop();
   
+  double t = MPI_Wtime();
   acctyp *ap=host_fp.begin();
   for (int i=0; i<inum; i++) {
     fp[i]=*ap;
     ap++;
   }
+  this->atom->add_cast_time(MPI_Wtime() - t);
 }
 
 // ---------------------------------------------------------------------------
@@ -260,9 +286,20 @@ int** EAMT::compute(const int ago, const int inum_full,
                     const bool vatom, int &host_start,
                     int **ilist, int **jnum,
                     const double cpu_time, bool &success,
-                    double *fp, double *boxlo, double *prd,
-                    int &inum) {
+                    double *fp, int &inum) {
   this->acc_timers();
+  
+  if (this->device->time_device()) {
+    // Put time from the second part to the total time_pair
+    this->time_pair.add_time_to_total(time_pair2.time());
+    
+    // Add transfer time from device -> host after part 1
+    this->atom->add_transfer_time(time_fp1.time());
+    
+    // Add transfer time from host -> device before part 2
+    this->atom->add_transfer_time(time_fp2.time());
+  }
+  
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
@@ -311,15 +348,18 @@ int** EAMT::compute(const int ago, const int inum_full,
   loop(eflag,vflag);
   
   // copy fp from device to host for comm
-  
+  time_fp1.start();
   ucl_copy(host_fp,dev_fp,false);
+  time_fp1.stop();
   
+  double t = MPI_Wtime();
   acctyp *ap=host_fp.begin();
   for (int i=0; i<inum; i++) {
     fp[i]=*ap;
     ap++;
   }
-
+  this->atom->add_cast_time(MPI_Wtime() - t);
+  
   return this->nbor->host_jlist.begin()-host_start;
 }
 
@@ -329,16 +369,18 @@ int** EAMT::compute(const int ago, const int inum_full,
 template <class numtyp, class acctyp>
 void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
                     const bool eatom, const bool vatom, double *host_fp) {
-  // compute density already took care of the neighbor list
-  cast_fp_data(host_fp);
+  time_fp2.start();
+  this->cast_fp_data(host_fp);
   this->hd_balancer.start_timer();
-  add_fp_data();
+  this->add_fp_data();
+  time_fp2.stop();
   
   loop2(eflag,vflag);
-  if (ilist==NULL)
+  if (ilist == NULL)
     this->ans->copy_answers(eflag,vflag,eatom,vatom);
   else
-    this->ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+    this->ans->copy_answers(eflag,vflag,eatom,vatom, ilist);
+  
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 }
@@ -409,7 +451,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
 
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
-  this->time_pair.start();
+  this->time_pair2.start();
   
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
@@ -433,8 +475,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
                    &this->_threads_per_atom);
   }
 
-  this->time_pair.stop();
+  this->time_pair2.stop();
 }
-
 
 template class EAM<PRECISION,ACC_PRECISION>;

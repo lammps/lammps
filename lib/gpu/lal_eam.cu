@@ -28,18 +28,17 @@ ucl_inline float fetch_fp(const int& i, const float *fp)
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-#define store_answers_eam(f, energy, e_coul, virial, ii, inum, tid,         \
-                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+#define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
+                      eflag, vflag, ans, engv)                              \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[6][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
     red_acc[1][tid]=f.y;                                                    \
     red_acc[2][tid]=f.z;                                                    \
     red_acc[3][tid]=energy;                                                 \
-    red_acc[4][tid]=e_coul;                                                 \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       if (offset < s) {                                                     \
-        for (int r=0; r<5; r++)                                             \
+        for (int r=0; r<4; r++)                                             \
           red_acc[r][tid] += red_acc[r][tid+s];                             \
       }                                                                     \
     }                                                                       \
@@ -47,7 +46,6 @@ ucl_inline float fetch_fp(const int& i, const float *fp)
     f.y=red_acc[1][tid];                                                    \
     f.z=red_acc[2][tid];                                                    \
     energy=red_acc[3][tid];                                                 \
-    e_coul=red_acc[4][tid];                                                 \
     if (vflag>0) {                                                          \
       for (int r=0; r<6; r++)                                               \
         red_acc[r][tid]=virial[r];                                          \
@@ -64,19 +62,18 @@ ucl_inline float fetch_fp(const int& i, const float *fp)
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv+=energy;                                                        \
-      engv+=inum;                                                           \
-      *engv+=e_coul;                                                        \
+      *engv+=energy;                                                         \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i];                                                     \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \
   }
+
 
 __kernel void kernel_energy(__global numtyp4 *x_, 
                     __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
@@ -190,7 +187,6 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
   atom_info(t_per_atom,ii,tid,offset);
 
   acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0;
   f.y=(acctyp)0;
@@ -285,7 +281,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       }
   
     } // for nbor
-    store_answers_eam(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+    store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
   } // if ii
 
@@ -305,7 +301,6 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
   atom_info(t_per_atom,ii,tid,offset);
   
   acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp virial[6];
@@ -400,7 +395,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       }
 
     } // for nbor
-    store_answers_eam(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+    store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
   } // if ii
 }

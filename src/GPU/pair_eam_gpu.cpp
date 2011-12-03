@@ -412,9 +412,11 @@ void PairEAMGPU::init_style()
           cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
   
+  if (gpu_mode == GPU_FORCE) {
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+  }
 }
 
 

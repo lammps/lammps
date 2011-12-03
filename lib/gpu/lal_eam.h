@@ -50,30 +50,24 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   // Cast fp to write buffer
   template<class cpytyp>
   inline void cast_fp_data(cpytyp *host_ptr) {
-    if (_fp_avail==false) {
-      double t=MPI_Wtime();
-      int nall = this->atom->nall();
-      if (this->ucl_device->device_type()==UCL_CPU) {
-        if (sizeof(numtyp)==sizeof(double)) {
-          host_fp.view((numtyp*)host_ptr,nall,*(this->ucl_device));
-          dev_fp.view(host_fp);
-        } else
-          for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
-      } else {
-        if (sizeof(numtyp)==sizeof(double))
-          memcpy(host_fp.begin(),host_ptr,nall*sizeof(numtyp));
-        else
-          for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
-      }
+    int nall = this->atom->nall();
+    if (this->ucl_device->device_type()==UCL_CPU) {
+      if (sizeof(numtyp)==sizeof(double)) {
+        host_fp.view((numtyp*)host_ptr,nall,*(this->ucl_device));
+        dev_fp.view(host_fp);
+      } else
+        for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
+    } else {
+      if (sizeof(numtyp)==sizeof(double))
+        memcpy(host_fp.begin(),host_ptr,nall*sizeof(numtyp));
+      else
+        for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
     }
   }
 
   // Copy charges to device asynchronously
   inline void add_fp_data() {
-    if (_fp_avail==false) {
-      ucl_copy(dev_fp,host_fp,this->atom->nall(),true);
-      _fp_avail=true;
-    }
+    ucl_copy(dev_fp,host_fp,this->atom->nall(),true);
   }
   
   /// Clear all host and device data
@@ -91,8 +85,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *charge,
-               const int nlocal, double *boxlo, double *prd);
+               const double cpu_time, bool &success, double *fp);
                
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
@@ -101,18 +94,23 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 int **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                double *charge, double *boxlo, double *prd, int &inum);
+                double *fp, int &inum);
 
   /// Pair loop with host neighboring
   void compute2(int *ilist, const bool eflag, const bool vflag,
                     const bool eatom, const bool vatom, double *host_fp);
-
+  
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Kernel k_energy;
   
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture fp_tex;
-
+  
+  // --------------------------- DEVICE DATA --------------------------
+  
+  /// Device Timers
+  UCL_Timer time_pair2, time_fp1, time_fp2;
+  
   // --------------------------- TYPE DATA --------------------------
     
   UCL_D_Vec<numtyp2> type2rhor_z2r;
@@ -138,7 +136,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   UCL_D_Vec<acctyp> dev_fp;
   
 protected:
-  bool _allocated, _fp_avail;
+  bool _allocated;
   void loop(const bool _eflag, const bool _vflag);
   void loop2(const bool _eflag, const bool _vflag);
 };

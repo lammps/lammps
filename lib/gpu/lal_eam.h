@@ -117,8 +117,10 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   UCL_D_Vec<numtyp> type2frho;
   
-  UCL_D_Vec<numtyp> frho_spline, rhor_spline, z2r_spline;
-  
+  UCL_D_Vec<numtyp> z2r_spline;
+  UCL_D_Vec<numtyp4> frho_spline1, frho_spline2;
+  UCL_D_Vec<numtyp4> rhor_spline1, rhor_spline2;
+    
   numtyp _cutforcesq,_rdr,_rdrho;
   
   int _nfrho,_nrhor,_nrho,_nz2r,_nr;

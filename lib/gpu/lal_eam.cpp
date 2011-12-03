@@ -123,46 +123,76 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   ucl_copy(type2frho,dview_type2frho,false);
                         
   // pack frho_spline
-  UCL_H_Vec<numtyp> dview_frho_spline(nfrho*(nr+1)*7,*(this->ucl_device),
+  UCL_H_Vec<numtyp4> dview_frho_spline(nfrho*(nr+1),*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
                                
   for (int ix=0; ix<nfrho; ix++)
-    for (int iy=0; iy<nr+1; iy++)
-      for (int iz=0; iz<7; iz++) 
-    dview_frho_spline[ix*(nr+1)*7+iy*7+iz]=host_frho_spline[ix][iy][iz];
-  
-  frho_spline.alloc(nfrho*(nr+1)*7,*(this->ucl_device),UCL_READ_ONLY);
-  ucl_copy(frho_spline,dview_frho_spline,false);
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_frho_spline[ix*(nr+1)+iy].x=host_frho_spline[ix][iy][0];
+    dview_frho_spline[ix*(nr+1)+iy].y=host_frho_spline[ix][iy][1];
+    dview_frho_spline[ix*(nr+1)+iy].z=host_frho_spline[ix][iy][2];
+    dview_frho_spline[ix*(nr+1)+iy].w=0;
+  }
+
+  frho_spline1.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(frho_spline1,dview_frho_spline,false);
+
+  for (int ix=0; ix<nfrho; ix++)
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_frho_spline[ix*(nr+1)+iy].x=host_frho_spline[ix][iy][3];
+    dview_frho_spline[ix*(nr+1)+iy].y=host_frho_spline[ix][iy][4];
+    dview_frho_spline[ix*(nr+1)+iy].z=host_frho_spline[ix][iy][5];
+    dview_frho_spline[ix*(nr+1)+iy].w=host_frho_spline[ix][iy][6];
+  }
+
+  frho_spline2.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(frho_spline2,dview_frho_spline,false);
   
   // pack rhor_spline
-  UCL_H_Vec<numtyp> dview_rhor_spline(nrhor*(nr+1)*7,*(this->ucl_device),
+  UCL_H_Vec<numtyp4> dview_rhor_spline(nrhor*(nr+1),*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
                                
   for (int ix=0; ix<nrhor; ix++)
-    for (int iy=0; iy<nr+1; iy++)
-      for (int iz=0; iz<7; iz++) 
-    dview_rhor_spline[ix*(nr+1)*7+iy*7+iz]=host_rhor_spline[ix][iy][iz];
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_rhor_spline[ix*(nr+1)+iy].x=host_rhor_spline[ix][iy][0];
+    dview_rhor_spline[ix*(nr+1)+iy].y=host_rhor_spline[ix][iy][1];
+    dview_rhor_spline[ix*(nr+1)+iy].z=host_rhor_spline[ix][iy][2];
+    dview_rhor_spline[ix*(nr+1)+iy].w=(numtyp)0;
+  }
+
+  rhor_spline1.alloc(nrhor*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(rhor_spline1,dview_rhor_spline,false);
   
-  rhor_spline.alloc(nrhor*(nr+1)*7,*(this->ucl_device),UCL_READ_ONLY);
-  ucl_copy(rhor_spline,dview_rhor_spline,false);
-  
+  for (int ix=0; ix<nrhor; ix++)
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_rhor_spline[ix*(nr+1)+iy].x=host_rhor_spline[ix][iy][3];
+    dview_rhor_spline[ix*(nr+1)+iy].y=host_rhor_spline[ix][iy][4];
+    dview_rhor_spline[ix*(nr+1)+iy].z=host_rhor_spline[ix][iy][5];
+    dview_rhor_spline[ix*(nr+1)+iy].w=host_rhor_spline[ix][iy][6];
+  }
+
+  rhor_spline2.alloc(nrhor*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(rhor_spline2,dview_rhor_spline,false);
+
   // pack z2r_spline
-  UCL_H_Vec<numtyp> dview_z2r_spline(nz2r*(nr+1)*7,*(this->ucl_device),
+  UCL_H_Vec<numtyp> dview_z2r_spline(nz2r*(nr+1)*8,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
                                
   for (int ix=0; ix<nz2r; ix++)
     for (int iy=0; iy<nr+1; iy++)
       for (int iz=0; iz<7; iz++) 
-    dview_z2r_spline[ix*(nr+1)*7+iy*7+iz]=host_z2r_spline[ix][iy][iz];
+    dview_z2r_spline[ix*(nr+1)*8+iy*8+iz]=host_z2r_spline[ix][iy][iz];
   
-  z2r_spline.alloc(nz2r*(nr+1)*7,*(this->ucl_device),UCL_READ_ONLY);
+  z2r_spline.alloc(nz2r*(nr+1)*8,*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(z2r_spline,dview_z2r_spline,false);
 
   _allocated=true;
   this->_max_bytes=type2rhor_z2r.row_bytes()
         + type2frho.row_bytes()
-        + rhor_spline.row_bytes()+z2r_spline.row_bytes()
-        + frho_spline.row_bytes()
+        + rhor_spline1.row_bytes()+z2r_spline.row_bytes()
+        + rhor_spline2.row_bytes()
+        + frho_spline1.row_bytes()
+        + frho_spline2.row_bytes()
         + dev_fp.row_bytes();
   return 0;
 }
@@ -175,9 +205,11 @@ void EAMT::clear() {
   
   type2rhor_z2r.clear();
   type2frho.clear();
-  rhor_spline.clear();
+  rhor_spline1.clear();
+  rhor_spline2.clear();
   z2r_spline.clear();
-  frho_spline.clear();
+  frho_spline1.clear();
+  frho_spline2.clear();
   
   host_fp.clear();
   dev_fp.clear();
@@ -413,7 +445,8 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   this->k_energy.set_size(GX,BX);
   this->k_energy.run(&this->atom->dev_x.begin(), 
                  &type2rhor_z2r.begin(), &type2frho.begin(),
-                 &rhor_spline.begin(), &frho_spline.begin(),
+                 &rhor_spline2.begin(),
+                 &frho_spline1.begin(),&frho_spline2.begin(), 
                  &this->nbor->dev_nbor.begin(), &this->_nbor_data->begin(),
                  &dev_fp.begin(), 
                  &this->ans->dev_engv.begin(),
@@ -456,7 +489,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
-                   &rhor_spline.begin(), &z2r_spline.begin(),
+                   &rhor_spline1.begin(), &z2r_spline.begin(),
                    &this->nbor->dev_nbor.begin(),
                    &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
@@ -466,7 +499,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
-                   &rhor_spline.begin(), &z2r_spline.begin(),
+                   &rhor_spline1.begin(), &z2r_spline.begin(),
                    &this->nbor->dev_nbor.begin(),
                    &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,

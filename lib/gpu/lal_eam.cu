@@ -76,7 +76,8 @@ ucl_inline float fetch_q(const int& i, const float *fp)
 
 __kernel void kernel_energy(__global numtyp4 *x_, 
                     __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
-                    __global numtyp *rhor_spline, __global numtyp *frho_spline,
+                    __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
+                    __global numtyp4 *frho_spline2,
                     __global int *dev_nbor, __global int *dev_packed,
                     __global numtyp *fp_, 
                     __global acctyp *engv, const int eflag, 
@@ -122,12 +123,9 @@ __kernel void kernel_energy(__global numtyp4 *x_,
         p = MIN(p,(numtyp)1.0);
         
         int mtype = jtype*ntypes+itype;
-        int index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
-        numtyp coeff3 = rhor_spline[index+3];
-        numtyp coeff4 = rhor_spline[index+4];
-        numtyp coeff5 = rhor_spline[index+5];
-        numtyp coeff6 = rhor_spline[index+6];
-        rho += ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+        int index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        numtyp4 coeff = rhor_spline2[index];
+        rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
     
@@ -151,20 +149,16 @@ __kernel void kernel_energy(__global numtyp4 *x_,
       p -= m;
       p = MIN(p,(numtyp)1.0);
       
-      int index = type2frho[itype]*(nr+1)*7+m*7;
-      numtyp coeff0 = frho_spline[index+0];
-      numtyp coeff1 = frho_spline[index+1];
-      numtyp coeff2 = frho_spline[index+2];
-      numtyp fp = (coeff0*p + coeff1)*p + coeff2;
+      int index = type2frho[itype]*(nr+1)+m;
+      numtyp4 coeff = frho_spline1[index];
+      numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;
+
       fp_[ii]=fp;                       
       
       engv+=ii;  
       if (eflag>0) {
-        numtyp coeff3 = frho_spline[index+3];
-        numtyp coeff4 = frho_spline[index+4];
-        numtyp coeff5 = frho_spline[index+5];
-        numtyp coeff6 = frho_spline[index+6];
-        energy = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+        coeff = frho_spline2[index];
+        energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
         *engv=(acctyp)2.0*energy;
       }
     }
@@ -174,7 +168,7 @@ __kernel void kernel_energy(__global numtyp4 *x_,
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
-                          __global numtyp *rhor_spline, __global numtyp *z2r_spline,
+                          __global numtyp4 *rhor_spline1, __global numtyp *z2r_spline,
                           __global int *dev_nbor, __global int *dev_packed, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, 
@@ -228,23 +222,20 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
         
         int mtype,index;
         numtyp coeff0,coeff1,coeff2,coeff3,coeff4,coeff5,coeff6;
-        
+        numtyp4 coeff;
+
         mtype = itype*ntypes+jtype;
-        index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
-        coeff0 = rhor_spline[index+0];
-        coeff1 = rhor_spline[index+1];
-        coeff2 = rhor_spline[index+2];
-        numtyp rhoip = (coeff0*p + coeff1)*p + coeff2;
-        
+        index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        coeff = rhor_spline1[index];
+        numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
+
         mtype = jtype*ntypes+itype;
-        index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
-        coeff0 = rhor_spline[index+0];
-        coeff1 = rhor_spline[index+1];
-        coeff2 = rhor_spline[index+2];
-        numtyp rhojp = (coeff0*p + coeff1)*p + coeff2;
-        
+        index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        coeff = rhor_spline1[index];
+        numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
+              
         mtype = itype*ntypes+jtype;
-        index = type2rhor_z2r[mtype].y*(nr+1)*7+m*7;
+        index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
         coeff0 = z2r_spline[index+0];
         coeff1 = z2r_spline[index+1];
         coeff2 = z2r_spline[index+2];
@@ -288,7 +279,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
-                          __global numtyp *rhor_spline, __global numtyp *z2r_spline,
+                          __global numtyp4 *rhor_spline1, __global numtyp *z2r_spline,
                           __global int *dev_nbor, __global int *dev_packed, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, const int inum, 
@@ -340,24 +331,21 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         p = MIN(p,(numtyp)1.0);
         
         numtyp coeff0,coeff1,coeff2,coeff3,coeff4,coeff5,coeff6;
+        numtyp4 coeff;
         int mtype,index;
         
         mtype = itype+jx.w;
-        index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
-        coeff0 = rhor_spline[index+0];
-        coeff1 = rhor_spline[index+1];
-        coeff2 = rhor_spline[index+2];
-        numtyp rhoip = (coeff0*p + coeff1)*p + coeff2;
+        index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        coeff = rhor_spline1[index]; 
+        numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
         
         mtype = jtype+ix.w;
-        index = type2rhor_z2r[mtype].x*(nr+1)*7+m*7;
-        coeff0 = rhor_spline[index+0];
-        coeff1 = rhor_spline[index+1];
-        coeff2 = rhor_spline[index+2];
-        numtyp rhojp = (coeff0*p + coeff1)*p + coeff2;
+        index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        coeff = rhor_spline1[index]; 
+        numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
         
         mtype = itype+jx.w;
-        index = type2rhor_z2r[mtype].y*(nr+1)*7+m*7;
+        index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
         coeff0 = z2r_spline[index+0];
         coeff1 = z2r_spline[index+1];
         coeff2 = z2r_spline[index+2];

@@ -61,7 +61,7 @@ PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/morse.ptx $(OBJ_DIR)/morse_ptx.h \
        $(OBJ_DIR)/charmm_long.ptx $(OBJ_DIR)/charmm_long_ptx.h \
        $(OBJ_DIR)/cg_cmm.ptx $(OBJ_DIR)/cg_cmm_ptx.h \
-       $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h 
+       $(OBJ_DIR)/cg_cmm_long.ptx $(OBJ_DIR)/cg_cmm_long_ptx.h
 
 all: $(GPU_LIB) $(EXECS)
 

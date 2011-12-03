@@ -349,6 +349,7 @@ void Verlet::force_clear()
       if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
       if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
     }
+
   // neighbor includegroup flag is set
   // clear force only on initial nfirst particles
   // if either newton flag is set, also include ghosts

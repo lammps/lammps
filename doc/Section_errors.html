@@ -181,6 +181,12 @@ the bond topologies you have defined.
 
 <DD>GPU acceleration requires fix gpu in the input script. 
 
+<DT><I>Accelerator sharing is not currently supported on system.</I> 
+
+<DD>You cannot use more MPI processes than accelerators on the
+system as currently configured. For NVIDIA GPUs, the compute
+mode must be changed using nvidia-smi to support sharing. 
+
 <DT><I>All angle coeffs are not set</I> 
 
 <DD>All angle coefficients must be set in the data file or by the
@@ -1204,6 +1210,11 @@ in LAMMPS.
 <DT><I>Cannot use kspace solver on system with no charge</I> 
 
 <DD>No atoms in system have a non-zero charge. 
+
+<DT><I>Cannot use neigh_modify exclude with GPU neighbor builds</I> 
+
+<DD>This is a current limitation of the GPU implementation
+in LAMMPS. 
 
 <DT><I>Cannot use neighbor bins - box size << cutoff</I> 
 
@@ -5798,6 +5809,12 @@ length in that dimension.  E.g. the xy tilt must be between -half and
 <DT><I>Two groups cannot be the same in fix spring couple</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Unable to initialize accelerator for use</I> 
+
+<DD>One or more specified accelerator(s) cannot currently be used by LAMMPS.
+This can happen if the accelerator is already in use by another 
+process. 
 
 <DT><I>Unbalanced quotes in input line</I> 
 

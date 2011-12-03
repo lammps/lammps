@@ -24,7 +24,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DNODE_PARTITION
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -44,15 +44,9 @@ MPI_LIB =	-lmpich -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-# Note: on Jaguar, the normal fftw.h is not installed
-# Thus uou will also need to edit src/fft3d.h and substitute
-# dfftw.h for fftw.h in 2 places
-
-FFTWDIR = /opt/fftw/2.1.5/cnos
-
-FFT_INC =       -DFFT_FFTW -I$(FFTWDIR)/include
-FFT_PATH =	 -L$(FFTWDIR)/lib
-FFT_LIB =	-ldfftw
+FFT_INC =       -DFFT_FFTW3 -I$(FFTW_INC)
+FFT_PATH =	 -L$(FFTW_DIR)
+FFT_LIB =	-lfftw3
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)
@@ -71,7 +65,6 @@ JPG_LIB =
 
 include	Makefile.package.settings
 include	Makefile.package
-include	Makefawpmd.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)

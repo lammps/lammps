@@ -342,12 +342,13 @@ void Verlet::force_clear()
 
     size_t nbytes = sizeof(double) * nall;
 
-    memset(&(atom->f[0][0]),0,3*nbytes);
-    if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
-    if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
-    if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
-    if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
-
+    if (nbytes > 0) {
+      memset(&(atom->f[0][0]),0,3*nbytes);
+      if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
+      if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
+      if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
+      if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
+    }
   // neighbor includegroup flag is set
   // clear force only on initial nfirst particles
   // if either newton flag is set, also include ghosts

@@ -278,7 +278,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
 }
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
-                          __global numtyp2 *type2rhor_z2r,
+                          __global numtyp2 *type2rhor_z2r_in,
                           __global numtyp4 *rhor_spline1, __global numtyp *z2r_spline,
                           __global int *dev_nbor, __global int *dev_packed, 
                           __global acctyp4 *ans, __global acctyp *engv, 
@@ -290,6 +290,12 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
+  __local numtyp2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
+  }
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;

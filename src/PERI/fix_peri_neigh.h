@@ -35,7 +35,7 @@ class FixPeriNeigh : public Fix {
   FixPeriNeigh(class LAMMPS *,int, char **);
   virtual ~FixPeriNeigh();
   int setmask();
-  virtual void init();
+  void init();
   void init_list(int, class NeighList *);
   void setup(int);
   void min_setup(int);
@@ -53,6 +53,7 @@ class FixPeriNeigh : public Fix {
   int maxsize_restart();
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
+
 
  protected:
   int first;                 // flag for first time initialization

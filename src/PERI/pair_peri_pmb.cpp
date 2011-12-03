@@ -45,7 +45,6 @@ PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute=1;
 
   ifix_peri = -1;
-  fix_name = "PERI_NEIGH";
 
   nmax = 0;
   s0_new = NULL;
@@ -60,7 +59,7 @@ PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
 
 PairPeriPMB::~PairPeriPMB()
 {
-  if (ifix_peri >= 0) modify->delete_fix(fix_name);
+  if (ifix_peri >= 0) modify->delete_fix("PERI_NEIGH");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -374,9 +373,9 @@ void PairPeriPMB::init_style()
 
   if (ifix_peri == -1) {
     char **fixarg = new char*[3];
-    fixarg[0] = fix_name;
+    fixarg[0] = (char *) "PERI_NEIGH";
     fixarg[1] = (char *) "all";
-    fixarg[2] = fix_name;
+    fixarg[2] = (char *) "PERI_NEIGH";
     modify->add_fix(3,fixarg);
     delete [] fixarg;
   }
@@ -385,7 +384,7 @@ void PairPeriPMB::init_style()
   // could have changed locations in fix list since created
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,fix_name) == 0) ifix_peri = i;
+    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
 
   neighbor->request(this);

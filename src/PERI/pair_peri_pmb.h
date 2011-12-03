@@ -41,15 +41,13 @@ class PairPeriPMB : public Pair {
   virtual double memory_usage();
 
  protected:
+  int ifix_peri;
   double **kspring;
   double **s00, **alpha;
   double **cut;
  
   double *s0_new;
   int nmax;
-
-  int ifix_peri;
-  char *fix_name;
 
   void allocate();
 };

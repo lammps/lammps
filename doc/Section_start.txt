@@ -990,12 +990,22 @@ lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
 lj/cut/gpu, or lj/cut/cuda.  A variant styles can be specified
 explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 -suffix switch is used, you do not need to modify your input script.
-The specified suffix (opt,omp,gpu,cuda) is automatically appended whenever
-your input script command creates a new "atom"_atom_style.html,
-"pair"_pair_style.html, "fix"_fix.html, "compute"_compute.html, or
-"run"_run_style.html style.  atom, pair, fix, compute, or integrate
-style.  If the variant version does not exist, the standard version is
-created.
+The specified suffix (opt,omp,gpu,cuda) is automatically appended
+whenever your input script command creates a new
+"atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
+"compute"_compute.html, or "run"_run_style.html style.  If the variant
+version does not exist, the standard version is created.
+
+For the GPU package, using this command-line switch also invokes the
+default GPU settings, as if the command "package gpu force/neigh 0 0
+1" were used at the top of your input script.  These settings can be
+changed by using the "package gpu"_pacakge.html command in your script
+if desired.
+
+For the OMP package, using this command-line switch also invokes the
+default OMP settings, as if the command "package omp *" were used at
+the top of your input script.  These settings can be changed by using
+the "package omp"_pacakge.html command in your script if desired.
 
 The "suffix"_suffix.html command can also set a suffix and it can also
 turn off/on any suffix setting made via the command line.

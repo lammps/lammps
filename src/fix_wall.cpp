@@ -250,7 +250,7 @@ void FixWall::post_force(int vflag)
 
   if (varflag) modify->clearstep_compute();
 
-  double coord, scale;
+  double coord;
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(varindex[m]);

@@ -193,7 +193,6 @@ void FixWallReflect::post_integrate()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double scale;
 
   if (varflag) modify->clearstep_compute();
 

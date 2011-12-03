@@ -22,10 +22,26 @@ done
 
 if (test $1 = 1) then
 
+  if (test -e ../Makefile.package) then
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
+  fi
+
+  # force rebuild of files with LMP_USER_OMP switch
+
+  touch ../accelerator_omp.h
+
   cp thr_data.h ..
   cp thr_data.cpp ..
 
 elif (test $1 = 0) then
+
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*OMP[^ \t]* //g' ../Makefile.package
+  fi
+
+  # force rebuild of files with LMP_USER_OMP switch
+
+  touch ../accelerator_omp.h
 
   rm -f ../thr_data.h
   rm -f ../thr_data.cpp

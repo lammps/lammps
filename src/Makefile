@@ -65,7 +65,6 @@ help:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh neigh
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; \
@@ -110,12 +109,10 @@ stubs:
 
 makelib:
 	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh neigh
 	@$(SHELL) Make.sh Makefile.lib
 
 makelist:
 	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh neigh
 	@$(SHELL) Make.sh Makefile.list
 
 # Package management

@@ -29,9 +29,9 @@ class Verlet : public Integrate {
   Verlet(class LAMMPS *, int, char **);
   virtual ~Verlet() {}
   void init();
-  void setup();
-  void setup_minimal(int);
-  void run(int);
+  virtual void setup();
+  virtual void setup_minimal(int);
+  virtual void run(int);
   void cleanup();
 
  protected:

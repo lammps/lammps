@@ -35,7 +35,6 @@ PairPeriPMBOMP::PairPeriPMBOMP(LAMMPS *lmp) :
  PairPeriPMB(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
-  fix_name = "PERI_NEIGH_OMP";
 }
 
 /* ---------------------------------------------------------------------- */

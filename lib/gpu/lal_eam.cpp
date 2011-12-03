@@ -266,7 +266,7 @@ void EAMT::compute(const int f_ago, const int inum_full,
   time_fp1.stop();
   
   double t = MPI_Wtime();
-  acctyp *ap=host_fp.begin();
+  numtyp *ap=host_fp.begin();
   for (int i=0; i<inum; i++) {
     fp[i]=*ap;
     ap++;
@@ -353,7 +353,7 @@ int** EAMT::compute(const int ago, const int inum_full,
   time_fp1.stop();
   
   double t = MPI_Wtime();
-  acctyp *ap=host_fp.begin();
+  numtyp *ap=host_fp.begin();
   for (int i=0; i<inum; i++) {
     fp[i]=*ap;
     ap++;
@@ -409,8 +409,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
-  
-  
+    
   this->k_energy.set_size(GX,BX);
   this->k_energy.run(&this->atom->dev_x.begin(), 
                  &type2rhor_z2r.begin(), &type2frho.begin(),
@@ -418,7 +417,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &this->nbor->dev_nbor.begin(), &this->_nbor_data->begin(),
                  &dev_fp.begin(), 
                  &this->ans->dev_engv.begin(),
-                 &eflag, &vflag, &ainum,
+                 &eflag, &ainum,
                  &nbor_pitch, 
                  &_ntypes, &_cutforcesq, 
                  &_rdr, &_rdrho,

@@ -48,8 +48,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
           const double gpu_split, FILE *_screen);
   
   // Cast fp to write buffer
-  template<class cpytyp>
-  inline void cast_fp_data(cpytyp *host_ptr) {
+//  template<class cpytyp>
+  inline void cast_fp_data(double *host_ptr) {
     int nall = this->atom->nall();
     if (this->ucl_device->device_type()==UCL_CPU) {
       if (sizeof(numtyp)==sizeof(double)) {
@@ -132,8 +132,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   int _max_fp_size;
   
   /// Per-atom arrays
-  UCL_H_Vec<acctyp> host_fp;
-  UCL_D_Vec<acctyp> dev_fp;
+  UCL_H_Vec<numtyp> host_fp;
+  UCL_D_Vec<numtyp> dev_fp;
   
 protected:
   bool _allocated;

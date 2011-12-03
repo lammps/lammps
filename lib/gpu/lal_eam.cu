@@ -20,7 +20,7 @@ texture<float> fp_tex;
 #ifndef _DOUBLE_DOUBLE
 ucl_inline float4 fetch_pos(const int& i, const float4 *pos)
   { return tex1Dfetch(pos_tex, i); }
-ucl_inline float fetch_fp(const int& i, const float *fp) 
+ucl_inline float fetch_q(const int& i, const float *fp) 
   { return tex1Dfetch(fp_tex, i); }
 #endif
 #endif
@@ -28,8 +28,8 @@ ucl_inline float fetch_fp(const int& i, const float *fp)
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-#define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
+#define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
+                      offset, elag, vflag, ans, engv)                       \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[6][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
@@ -62,26 +62,25 @@ ucl_inline float fetch_fp(const int& i, const float *fp)
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv+=energy;                                                         \
+      *engv+=energy;                                                        \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                     \
+        *engv=virial[i];                                                    \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \
   }
 
-
 __kernel void kernel_energy(__global numtyp4 *x_, 
                     __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
                     __global numtyp *rhor_spline, __global numtyp *frho_spline,
                     __global int *dev_nbor, __global int *dev_packed,
-                    __global acctyp *fp_, 
+                    __global numtyp *fp_, 
                     __global acctyp *engv, const int eflag, 
-                    const int vflag, const int inum, 
+                    const int inum, 
                     const int nbor_pitch,
                     const int ntypes, const numtyp cutforcesq, 
                     const numtyp rdr, const numtyp rdrho,
@@ -176,10 +175,10 @@ __kernel void kernel_energy(__global numtyp4 *x_,
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
                           __global numtyp *rhor_spline, __global numtyp *z2r_spline,
-                          __global int *dev_nbor, 
-                          __global int *dev_packed, __global acctyp4 *ans,
-                          __global acctyp *engv, const int eflag, 
-                          const int vflag, const int inum, const int nbor_pitch,
+                          __global int *dev_nbor, __global int *dev_packed, 
+                          __global acctyp4 *ans, __global acctyp *engv, 
+                          const int eflag, const int vflag, 
+                          const int inum, const int nbor_pitch,
                           const int ntypes, const numtyp cutforcesq, 
                           const numtyp rdr, const int nr,
                           const int t_per_atom) {
@@ -202,7 +201,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
               n_stride,list_end,nbor);
   
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp ifp=fetch_fp(i,fp_);  //fp_[i];
+    numtyp ifp=fetch_q(i,fp_);  //fp_[i];
     int itype=ix.w;
 
     for ( ; nbor<list_end; nbor+=n_stride) {
@@ -210,7 +209,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_fp(j,fp_); //fp_[j];
+      numtyp jfp=fetch_q(j,fp_); //fp_[j];
       int jtype=jx.w;
 
       // Compute r12
@@ -307,7 +306,6 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
 
-  
   if (ii<inum) {
     __global int *nbor, *list_end;
     int i, numj, n_stride;
@@ -315,7 +313,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
               n_stride,list_end,nbor);
 
     numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp ifp=fetch_fp(i,fp_); //fp_[i];
+    numtyp ifp=fetch_q(i,fp_); //fp_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
@@ -324,7 +322,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_fp(j,fp_); //fp_[j];
+      numtyp jfp=fetch_q(j,fp_); //fp_[j];
       int jtype=jx.w;
       
       // Compute r12

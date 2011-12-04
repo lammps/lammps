@@ -28,6 +28,35 @@ ucl_inline float fetch_q(const int& i, const float *fp)
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
+#define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
+                     eflag,vflag,engv)                                      \
+  if (t_per_atom>1) {                                                       \
+    __local acctyp red_acc[BLOCK_PAIR];                                     \
+    red_acc[tid]=rho;                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      if (offset < s)                                                       \
+         red_acc[tid] += red_acc[tid+s];                                    \
+      }                                                                     \
+      rho=red_acc[tid];                                                     \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    numtyp p = rho*rdrho + (numtyp)1.0;                                     \
+    int m=p;                                                                \
+    m = MAX(1,MIN(m,nrho-1));                                               \
+    p -= m;                                                                 \
+    p = MIN(p,(numtyp)1.0);                                                 \
+    int index = type2frho[itype]*(nr+1)+m;                                  \
+    numtyp4 coeff = frho_spline1[index];                                    \
+    numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
+    fp_[ii]=fp;                                                             \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      coeff = frho_spline2[index];                                          \
+      energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
+      *engv=(acctyp)2.0*energy;                                             \
+    }                                                                       \
+  }
+
 #define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
                       offset, elag, vflag, ans, engv)                       \
   if (t_per_atom>1) {                                                       \
@@ -129,42 +158,76 @@ __kernel void kernel_energy(__global numtyp4 *x_,
       }
     } // for nbor
     
-    // reduce to get the density at atom ii
-    
-    if (t_per_atom>1) {
-      __local acctyp red_acc[BLOCK_PAIR];                               
-      red_acc[tid]=rho;                                                 
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                      
-        if (offset < s)                                        
-          red_acc[tid] += red_acc[tid+s];
-      }                                                                    
-      rho=red_acc[tid];                                                 
-    }
-    
-    // calculate the embedded force for ii
-    if (offset==0) {
-      numtyp p = rho*rdrho + (numtyp)1.0;
-      int m=p;
-      m = MAX(1,MIN(m,nrho-1));
-      p -= m;
-      p = MIN(p,(numtyp)1.0);
-      
-      int index = type2frho[itype]*(nr+1)+m;
-      numtyp4 coeff = frho_spline1[index];
-      numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;
-
-      fp_[ii]=fp;                       
-      
-      engv+=ii;  
-      if (eflag>0) {
-        coeff = frho_spline2[index];
-        energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
-        *engv=(acctyp)2.0*energy;
-      }
-    }
+    store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
+        eflag,vflag,engv);
   } // if ii
 }
 
+__kernel void kernel_energy_fast(__global numtyp4 *x_, 
+                    __global numtyp2 *type2rhor_z2r_in, __global numtyp *type2frho,
+                    __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
+                    __global numtyp4 *frho_spline2,
+                    __global int *dev_nbor, __global int *dev_packed,
+                    __global numtyp *fp_, 
+                    __global acctyp *engv, const int eflag, 
+                    const int inum, 
+                    const int nbor_pitch,
+                    const int ntypes, const numtyp cutforcesq, 
+                    const numtyp rdr, const numtyp rdrho,
+                    const int nrho, const int nr,
+                    const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+  
+  __local numtyp2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
+  }
+
+  acctyp rho = (acctyp)0;
+  acctyp energy = (acctyp)0;
+   
+  if (ii<inum) {
+    __global int *nbor, *list_end;
+    int i, numj, n_stride;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,list_end,nbor);
+  
+    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    int itype=ix.w;
+    
+    for ( ; nbor<list_end; nbor+=n_stride) {
+      int j=*nbor;
+      j &= NEIGHMASK;
+
+      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      
+      if (rsq<cutforcesq) {
+        numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
+        int m=p;
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,(numtyp)1.0);
+        
+        int jtype=fast_mul((int)MAX_SHARED_TYPES,jx.w);
+        int mtype = jtype+itype;
+        int index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        numtyp4 coeff = rhor_spline2[index];
+        rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
+      }
+    } // for nbor
+    
+    store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
+        eflag,vflag,engv);
+  } // if ii
+}
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
@@ -261,7 +324,6 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
           virial[5] += dely*delz*force;
         }
       }
-  
     } // for nbor
     store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
@@ -371,7 +433,6 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
           virial[5] += dely*delz*force;
         }
       }
-
     } // for nbor
     store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);

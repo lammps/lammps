@@ -84,7 +84,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                     const bool eatom, const bool vatom);
   
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Kernel k_energy;
+  UCL_Kernel k_energy, k_energy_fast;
   
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture fp_tex;

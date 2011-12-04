@@ -67,6 +67,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
     dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
                                      
   k_energy.set_function(*(this->pair_program),"kernel_energy");
+  k_energy_fast.set_function(*(this->pair_program),"kernel_energy_fast");
   fp_tex.get_texture(*(this->pair_program),"fp_tex");
   fp_tex.bind_float(dev_fp,1);
 
@@ -426,9 +427,10 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
-    
-  this->k_energy.set_size(GX,BX);
-  this->k_energy.run(&this->atom->dev_x.begin(), 
+  
+  if (shared_types) {
+    this->k_energy_fast.set_size(GX,BX);
+    this->k_energy_fast.run(&this->atom->dev_x.begin(), 
                  &type2rhor_z2r.begin(), &type2frho.begin(),
                  &rhor_spline2.begin(),
                  &frho_spline1.begin(),&frho_spline2.begin(), 
@@ -441,6 +443,23 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &_rdr, &_rdrho,
                  &_nrho, &_nr,
                  &this->_threads_per_atom);
+  }
+  else {
+    this->k_energy.set_size(GX,BX);
+    this->k_energy.run(&this->atom->dev_x.begin(), 
+                 &type2rhor_z2r.begin(), &type2frho.begin(),
+                 &rhor_spline2.begin(),
+                 &frho_spline1.begin(),&frho_spline2.begin(), 
+                 &this->nbor->dev_nbor.begin(), &this->_nbor_data->begin(),
+                 &dev_fp.begin(), 
+                 &this->ans->dev_engv.begin(),
+                 &eflag, &ainum,
+                 &nbor_pitch, 
+                 &_ntypes, &_cutforcesq, 
+                 &_rdr, &_rdrho,
+                 &_nrho, &_nr,
+                 &this->_threads_per_atom);
+  }
 
   this->time_pair.stop();
 }

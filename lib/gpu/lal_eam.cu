@@ -208,7 +208,7 @@ __kernel void kernel_energy(__global numtyp4 *x_,
 }
 
 __kernel void kernel_energy_fast(__global numtyp4 *x_, 
-                    __global numtyp2 *type2rhor_z2r_in, __global numtyp *type2frho,
+                    __global numtyp2 *type2rhor_z2r_in, __global numtyp *type2frho_in,
                     __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
                     __global numtyp4 *frho_spline2,
                     __global int *dev_nbor, __global int *dev_packed,
@@ -224,9 +224,14 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
   atom_info(t_per_atom,ii,tid,offset);
   
   __local numtyp2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp type2frho[MAX_SHARED_TYPES];
 
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
+  }
+  
+  if (tid<MAX_SHARED_TYPES) {
+    type2frho[tid]=type2frho_in[tid];
   }
 
   acctyp rho = (acctyp)0;

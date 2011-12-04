@@ -137,6 +137,8 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
 
   frho_spline1.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(frho_spline1,dview_frho_spline,false);
+  frho_spline1_tex.get_texture(*(this->pair_program),"frho_sp1_tex");
+  frho_spline1_tex.bind_float(frho_spline1,4);
 
   for (int ix=0; ix<nfrho; ix++)
     for (int iy=0; iy<nr+1; iy++) {
@@ -148,7 +150,9 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
 
   frho_spline2.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(frho_spline2,dview_frho_spline,false);
-  
+  frho_spline2_tex.get_texture(*(this->pair_program),"frho_sp2_tex");
+  frho_spline2_tex.bind_float(frho_spline2,4);
+
   // pack rhor_spline
   UCL_H_Vec<numtyp4> dview_rhor_spline(nrhor*(nr+1),*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
@@ -163,7 +167,9 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
 
   rhor_spline1.alloc(nrhor*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(rhor_spline1,dview_rhor_spline,false);
-  
+  rhor_spline1_tex.get_texture(*(this->pair_program),"rhor_sp1_tex");
+  rhor_spline1_tex.bind_float(rhor_spline1,4);
+
   for (int ix=0; ix<nrhor; ix++)
     for (int iy=0; iy<nr+1; iy++) {
     dview_rhor_spline[ix*(nr+1)+iy].x=host_rhor_spline[ix][iy][3];
@@ -174,26 +180,48 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
 
   rhor_spline2.alloc(nrhor*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(rhor_spline2,dview_rhor_spline,false);
+  rhor_spline2_tex.get_texture(*(this->pair_program),"rhor_sp2_tex");
+  rhor_spline2_tex.bind_float(rhor_spline2,4);
 
   // pack z2r_spline
-  UCL_H_Vec<numtyp> dview_z2r_spline(nz2r*(nr+1)*8,*(this->ucl_device),
+  UCL_H_Vec<numtyp4> dview_z2r_spline(nz2r*(nr+1),*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
                                
   for (int ix=0; ix<nz2r; ix++)
-    for (int iy=0; iy<nr+1; iy++)
-      for (int iz=0; iz<7; iz++) 
-    dview_z2r_spline[ix*(nr+1)*8+iy*8+iz]=host_z2r_spline[ix][iy][iz];
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_z2r_spline[ix*(nr+1)+iy].x=host_z2r_spline[ix][iy][0];
+    dview_z2r_spline[ix*(nr+1)+iy].y=host_z2r_spline[ix][iy][1];
+    dview_z2r_spline[ix*(nr+1)+iy].z=host_z2r_spline[ix][iy][2];
+    dview_z2r_spline[ix*(nr+1)+iy].w=(numtyp)0;
+  }
   
-  z2r_spline.alloc(nz2r*(nr+1)*8,*(this->ucl_device),UCL_READ_ONLY);
-  ucl_copy(z2r_spline,dview_z2r_spline,false);
+  z2r_spline1.alloc(nz2r*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(z2r_spline1,dview_z2r_spline,false);
+  z2r_spline1_tex.get_texture(*(this->pair_program),"z2r_sp1_tex");
+  z2r_spline1_tex.bind_float(z2r_spline1,4);
+  
+  for (int ix=0; ix<nz2r; ix++)
+    for (int iy=0; iy<nr+1; iy++) {
+    dview_z2r_spline[ix*(nr+1)+iy].x=host_z2r_spline[ix][iy][3];
+    dview_z2r_spline[ix*(nr+1)+iy].y=host_z2r_spline[ix][iy][4];
+    dview_z2r_spline[ix*(nr+1)+iy].z=host_z2r_spline[ix][iy][5];
+    dview_z2r_spline[ix*(nr+1)+iy].w=host_z2r_spline[ix][iy][6];
+  }
+  
+  z2r_spline2.alloc(nz2r*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  ucl_copy(z2r_spline2,dview_z2r_spline,false);
+  z2r_spline2_tex.get_texture(*(this->pair_program),"z2r_sp2_tex");
+  z2r_spline2_tex.bind_float(z2r_spline2,4);
 
   _allocated=true;
   this->_max_bytes=type2rhor_z2r.row_bytes()
         + type2frho.row_bytes()
-        + rhor_spline1.row_bytes()+z2r_spline.row_bytes()
+        + rhor_spline1.row_bytes()
         + rhor_spline2.row_bytes()
         + frho_spline1.row_bytes()
         + frho_spline2.row_bytes()
+        + z2r_spline1.row_bytes()
+        + z2r_spline2.row_bytes()
         + dev_fp.row_bytes();
   return 0;
 }
@@ -208,9 +236,10 @@ void EAMT::clear() {
   type2frho.clear();
   rhor_spline1.clear();
   rhor_spline2.clear();
-  z2r_spline.clear();
   frho_spline1.clear();
   frho_spline2.clear();
+  z2r_spline1.clear();
+  z2r_spline2.clear();
   
   host_fp.clear();
   dev_fp.clear();
@@ -493,7 +522,9 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
-                   &rhor_spline1.begin(), &z2r_spline.begin(),
+                   &rhor_spline1.begin(), 
+                   &z2r_spline1.begin(),
+                   &z2r_spline2.begin(), 
                    &this->nbor->dev_nbor.begin(),
                    &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
@@ -503,7 +534,9 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
-                   &rhor_spline1.begin(), &z2r_spline.begin(),
+                   &rhor_spline1.begin(), 
+                   &z2r_spline1.begin(),
+                   &z2r_spline2.begin(),
                    &this->nbor->dev_nbor.begin(),
                    &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,

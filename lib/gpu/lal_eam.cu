@@ -17,12 +17,56 @@
 #include "lal_aux_fun1.h"
 texture<float4> pos_tex;
 texture<float> fp_tex;
+
+texture<float4> rhor_sp1_tex;
+texture<float4> rhor_sp2_tex;
+texture<float4> frho_sp1_tex;
+texture<float4> frho_sp2_tex;
+texture<float4> z2r_sp1_tex;
+texture<float4> z2r_sp2_tex;
+
+#ifdef _DOUBLE_DOUBLE
+ucl_inline double4 fetch_rhor_sp1(const int& i, const double4 *rhor_spline1) { 
+  return rhor_spline1[i]; 
+}
+ucl_inline double4 fetch_rhor_sp2(const int& i, const double4 *rhor_spline2) { 
+  return rhor_spline2[i]; 
+}
+ucl_inline double4 fetch_frho_sp1(const int& i, const double4 *frho_spline1) { 
+  return frho_spline1[i]; 
+}
+ucl_inline double4 fetch_frho_sp2(const int& i, const double4 *frho_spline2) { 
+  return frho_spline2[i]; 
+}
+ucl_inline double4 fetch_z2r_sp1(const int& i, const double4 *z2r_spline1) { 
+  return z2r_spline1[i]; 
+}
+ucl_inline double4 fetch_z2r_sp2(const int& i, const double4 *z2r_spline2) { 
+  return z2r_spline2[i]; 
+}
+#endif
+
 #ifndef _DOUBLE_DOUBLE
 ucl_inline float4 fetch_pos(const int& i, const float4 *pos)
   { return tex1Dfetch(pos_tex, i); }
 ucl_inline float fetch_q(const int& i, const float *fp) 
   { return tex1Dfetch(fp_tex, i); }
+
+ucl_inline float4 fetch_rhor_sp1(const int& i, const float4 *rhor_spline1) 
+  { return tex1Dfetch(rhor_sp1_tex, i); }
+ucl_inline float4 fetch_rhor_sp2(const int& i, const float4 *rhor_spline2) 
+  { return tex1Dfetch(rhor_sp2_tex, i); }
+ucl_inline float4 fetch_frho_sp1(const int& i, const float4 *frho_spline1) 
+  { return tex1Dfetch(frho_sp1_tex, i); }
+ucl_inline float4 fetch_frho_sp2(const int& i, const float4 *frho_spline2) 
+  { return tex1Dfetch(frho_sp2_tex, i); }
+ucl_inline float4 fetch_z2r_sp1(const int& i, const float4 *z2r_spline1) 
+  { return tex1Dfetch(z2r_sp1_tex, i); }
+ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2) 
+  { return tex1Dfetch(z2r_sp2_tex, i); }
 #endif
+
+
 #endif
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
@@ -46,12 +90,12 @@ ucl_inline float fetch_q(const int& i, const float *fp)
     p -= m;                                                                 \
     p = MIN(p,(numtyp)1.0);                                                 \
     int index = type2frho[itype]*(nr+1)+m;                                  \
-    numtyp4 coeff = frho_spline1[index];                                    \
+    numtyp4 coeff = fetch_frho_sp1(index, frho_spline1);                    \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
     fp_[ii]=fp;                                                             \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      coeff = frho_spline2[index];                                          \
+      coeff = fetch_frho_sp2(index, frho_spline2);                          \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
       *engv=(acctyp)2.0*energy;                                             \
     }                                                                       \
@@ -153,7 +197,7 @@ __kernel void kernel_energy(__global numtyp4 *x_,
         
         int mtype = jtype*ntypes+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        numtyp4 coeff = rhor_spline2[index];
+        numtyp4 coeff = fetch_rhor_sp2(index, rhor_spline2);
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
@@ -219,7 +263,7 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
         int jtype=fast_mul((int)MAX_SHARED_TYPES,jx.w);
         int mtype = jtype+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        numtyp4 coeff = rhor_spline2[index];
+        numtyp4 coeff = fetch_rhor_sp2(index, rhor_spline2);
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
@@ -231,7 +275,9 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r,
-                          __global numtyp4 *rhor_spline1, __global numtyp *z2r_spline,
+                          __global numtyp4 *rhor_spline1, 
+                          __global numtyp4 *z2r_spline1,
+                          __global numtyp4 *z2r_spline2,
                           __global int *dev_nbor, __global int *dev_packed, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, 
@@ -287,21 +333,21 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
 
         mtype = itype*ntypes+jtype;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        coeff = rhor_spline1[index];
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
         numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
 
         mtype = jtype*ntypes+itype;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        coeff = rhor_spline1[index];
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
               
         mtype = itype*ntypes+jtype;
-        index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
-        numtyp z2p = (z2r_spline[index+0]*p + z2r_spline[index+1])*p 
-            + z2r_spline[index+2];
-        numtyp z2 = ((z2r_spline[index+3]*p + z2r_spline[index+4])*p 
-            + z2r_spline[index+5])*p + z2r_spline[index+6];
-
+        index = type2rhor_z2r[mtype].y*(nr+1)+m;
+        coeff = fetch_z2r_sp1(index, z2r_spline1);
+        numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
+        coeff = fetch_z2r_sp2(index, z2r_spline2);
+        numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
+ 
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
@@ -333,7 +379,9 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
                           __global numtyp2 *type2rhor_z2r_in,
-                          __global numtyp4 *rhor_spline1, __global numtyp *z2r_spline,
+                          __global numtyp4 *rhor_spline1, 
+                          __global numtyp4 *z2r_spline1,
+                          __global numtyp4 *z2r_spline2,
                           __global int *dev_nbor, __global int *dev_packed, 
                           __global acctyp4 *ans, __global acctyp *engv, 
                           const int eflag, const int vflag, const int inum, 
@@ -395,21 +443,20 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         
         mtype = itype+jw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        coeff = rhor_spline1[index]; 
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
         numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
         
         mtype = jtype+iw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
-        coeff = rhor_spline1[index]; 
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
         
         mtype = itype+jw;
-        index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
-  
-        numtyp z2p = (z2r_spline[index+0]*p + z2r_spline[index+1])*p 
-            + z2r_spline[index+2];
-        numtyp z2 = ((z2r_spline[index+3]*p + z2r_spline[index+4])*p 
-            + z2r_spline[index+5])*p + z2r_spline[index+6];
+        index = type2rhor_z2r[mtype].y*(nr+1)+m;
+        coeff = fetch_z2r_sp1(index, z2r_spline1);
+        numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
+        coeff = fetch_z2r_sp2(index, z2r_spline2);
+        numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
 
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;

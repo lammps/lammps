@@ -88,7 +88,10 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture fp_tex;
-  
+  UCL_Texture rhor_spline1_tex, rhor_spline2_tex;
+  UCL_Texture frho_spline1_tex, frho_spline2_tex;
+  UCL_Texture z2r_spline1_tex, z2r_spline2_tex;
+
   // --------------------------- DEVICE DATA --------------------------
   
   /// Device Timers
@@ -100,7 +103,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   UCL_D_Vec<numtyp> type2frho;
   
-  UCL_D_Vec<numtyp> z2r_spline;
+  UCL_D_Vec<numtyp4> z2r_spline1, z2r_spline2;
   UCL_D_Vec<numtyp4> frho_spline1, frho_spline2;
   UCL_D_Vec<numtyp4> rhor_spline1, rhor_spline2;
     

@@ -47,24 +47,6 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
           const int maxspecial, const double cell_size,
           const double gpu_split, FILE *_screen);
   
-  // Cast fp to write buffer
-//  template<class cpytyp>
-  inline void cast_fp_data(double *host_ptr) {
-    int nall = this->atom->nall();
-    if (this->ucl_device->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_fp.view((numtyp*)host_ptr,nall,*(this->ucl_device));
-        dev_fp.view(host_fp);
-      } else
-        for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
-    } else {
-      if (sizeof(numtyp)==sizeof(double))
-        memcpy(host_fp.begin(),host_ptr,nall*sizeof(numtyp));
-      else
-        for (int i=0; i<nall; i++) host_fp[i]=host_ptr[i];
-    }
-  }
-
   // Copy charges to device asynchronously
   inline void add_fp_data() {
     ucl_copy(dev_fp,host_fp,this->atom->nall(),true);
@@ -85,7 +67,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *fp);
+               const double cpu_time, bool &success,
+               void **fp_ptr);
                
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
@@ -94,11 +77,11 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 int **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                double *fp, int &inum);
+                int &inum, void **fp_ptr);
 
   /// Pair loop with host neighboring
   void compute2(int *ilist, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, double *host_fp);
+                    const bool eatom, const bool vatom);
   
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Kernel k_energy;

@@ -35,7 +35,7 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int nrho, int nz2r, int nfrho, int nr, 
                  const int nlocal, const int nall, const int max_nbors, 
                  const int maxspecial, const double cell_size, 
-                 int &gpu_mode, FILE *screen) {
+                 int &gpu_mode, FILE *screen, int &fp_size) {
   EAMMF.clear();
   gpu_mode=EAMMF.device->gpu_mode();
   double gpu_split=EAMMF.device->particle_split();
@@ -48,6 +48,8 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
   // disable host/device split for now
   if (gpu_split != 1.0) 
     return -8;
+    
+  fp_size=sizeof(PRECISION);
     
   EAMMF.device->init_message(screen,"eam",first_gpu,last_gpu);
 
@@ -114,23 +116,24 @@ int ** eam_gpu_compute_energy_n(const int ago, const int inum_full,
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *host_fp, double *boxlo,
-                         double *prd, int &inum) {
+                         bool &success, double *boxlo,
+                         double *prd, int &inum, void **fp_ptr) {
   return EAMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
-                        host_fp, inum);
+                        inum, fp_ptr);
 }  
 
 void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_fp,
-                      const int nlocal, double *boxlo, double *prd) {
+                      const double cpu_time, bool &success,
+                      const int nlocal, double *boxlo, double *prd, 
+                      void **fp_ptr) {
   EAMMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
-                host_fp);
+                fp_ptr);
 }
 
 void eam_gpu_compute_n(const int ago, const int inum_full,
@@ -139,18 +142,18 @@ void eam_gpu_compute_n(const int ago, const int inum_full,
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *host_fp, double *boxlo,
+                         bool &success, double *boxlo,
                          double *prd, int inum) {
-  EAMMF.compute2(NULL, eflag, vflag, eatom, vatom, host_fp);
+  EAMMF.compute2(NULL, eflag, vflag, eatom, vatom);
 }  
 			
 void eam_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_fp,
+                      const double cpu_time, bool &success,
                       const int nlocal, double *boxlo, double *prd) {
-  EAMMF.compute2(ilist, eflag, vflag, eatom, vatom, host_fp);
+  EAMMF.compute2(ilist, eflag, vflag, eatom, vatom);
 }
 
 double eam_gpu_bytes() {

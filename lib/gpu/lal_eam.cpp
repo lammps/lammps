@@ -236,7 +236,7 @@ void EAMT::compute(const int f_ago, const int inum_full,
                    const bool eflag, const bool vflag,
                    const bool eatom, const bool vatom,
                    int &host_start, const double cpu_time,
-                   bool &success, double *fp) {
+                   bool &success, void **fp_ptr) {
   this->acc_timers();
   
   if (this->device->time_device()) {
@@ -277,7 +277,8 @@ void EAMT::compute(const int f_ago, const int inum_full,
       dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
     
     fp_tex.bind_float(dev_fp,1);
-  }  
+  }
+  *fp_ptr=host_fp.begin();  
 
   // -----------------------------------------------------------------
 
@@ -296,14 +297,6 @@ void EAMT::compute(const int f_ago, const int inum_full,
   time_fp1.start();
   ucl_copy(host_fp,dev_fp,false);
   time_fp1.stop();
-  
-  double t = MPI_Wtime();
-  numtyp *ap=host_fp.begin();
-  for (int i=0; i<inum; i++) {
-    fp[i]=*ap;
-    ap++;
-  }
-  this->atom->add_cast_time(MPI_Wtime() - t);
 }
 
 // ---------------------------------------------------------------------------
@@ -318,7 +311,7 @@ int** EAMT::compute(const int ago, const int inum_full,
                     const bool vatom, int &host_start,
                     int **ilist, int **jnum,
                     const double cpu_time, bool &success,
-                    double *fp, int &inum) {
+                    int &inum, void **fp_ptr) {
   this->acc_timers();
   
   if (this->device->time_device()) {
@@ -361,6 +354,7 @@ int** EAMT::compute(const int ago, const int inum_full,
     
     fp_tex.bind_float(dev_fp,1);
   }      
+  *fp_ptr=host_fp.begin();  
 
   // -----------------------------------------------------------------
 
@@ -384,14 +378,6 @@ int** EAMT::compute(const int ago, const int inum_full,
   ucl_copy(host_fp,dev_fp,false);
   time_fp1.stop();
   
-  double t = MPI_Wtime();
-  numtyp *ap=host_fp.begin();
-  for (int i=0; i<inum; i++) {
-    fp[i]=*ap;
-    ap++;
-  }
-  this->atom->add_cast_time(MPI_Wtime() - t);
-  
   return this->nbor->host_jlist.begin()-host_start;
 }
 
@@ -400,10 +386,9 @@ int** EAMT::compute(const int ago, const int inum_full,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, double *host_fp) {
-  time_fp2.start();
-  this->cast_fp_data(host_fp);
+                    const bool eatom, const bool vatom) {
   this->hd_balancer.start_timer();
+  time_fp2.start();
   this->add_fp_data();
   time_fp2.stop();
   

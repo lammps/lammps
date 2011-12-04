@@ -33,9 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 // External functions from cuda library for atom decomposition
@@ -49,7 +46,7 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors, 
                  const int maxspecial, const double cell_size, 
-                 int &gpu_mode, FILE *screen);
+                 int &gpu_mode, FILE *screen, int &fp_size);
 void eam_gpu_clear();
 int** eam_gpu_compute_energy_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
@@ -57,27 +54,28 @@ int** eam_gpu_compute_energy_n(const int ago, const int inum_full,
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *host_fp, double *boxlo,
-                         double *prd, int &inum);
+                         bool &success, double *boxlo,
+			       double *prd, int &inum, void **fp_ptr);
 void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_fp,
-                      const int nlocal, double *boxlo, double *prd);
+                      const double cpu_time, bool &success,
+			    const int nlocal, double *boxlo, double *prd,
+			    void **fp_ptr);
 void eam_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, int *tag, int **nspecial, 
                          int **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *host_fp, double *boxlo,
+                         bool &success, double *boxlo,
                          double *prd, int inum);
 void eam_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_fp,
+                      const double cpu_time, bool &success,
                       const int nlocal, double *boxlo, double *prd);
 double eam_gpu_bytes();
 
@@ -117,28 +115,9 @@ void PairEAMGPU::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
  
-  // grow energy and fp arrays if necessary
-  // need to be atom->nmax in length
-    
-  if (atom->nmax > nmax) {
-    memory->destroy(rho);
-    memory->destroy(fp);
-    nmax = atom->nmax;
-    memory->create(rho,nmax,"pair:rho");
-    memory->create(fp,nmax,"pair:fp");
-  }
-
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-  // zero out density
-
-  if (newton_pair) {
-    m = nlocal + atom->nghost;
-    for (i = 0; i < m; i++) rho[i] = 0.0; 
-  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0; 
-
-  
   // compute density on each atom on GPU
 
   int nall = atom->nlocal + atom->nghost;  
@@ -154,8 +133,8 @@ void PairEAMGPU::compute(int eflag, int vflag)
              atom->tag, atom->nspecial, atom->special,
              eflag, vflag, eflag_atom, vflag_atom,
              host_start, &ilist, &numneigh, cpu_time,
-             success, fp, domain->boxlo, 
-             domain->prd, inum_dev);
+             success, domain->boxlo, 
+					  domain->prd, inum_dev, &fp_pinned);
   } else { // gpu_mode == GPU_FORCE
     inum = list->inum;
     ilist = list->ilist;
@@ -163,8 +142,9 @@ void PairEAMGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     eam_gpu_compute_energy(neighbor->ago, inum, nall, atom->x, atom->type,
 		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success, fp,
-		    atom->nlocal, domain->boxlo, domain->prd);
+		    vflag_atom, host_start, cpu_time, success,
+			   atom->nlocal, domain->boxlo, domain->prd, 
+			   &fp_pinned);
   }
     
   if (!success)
@@ -189,12 +169,12 @@ void PairEAMGPU::compute(int eflag, int vflag)
 				   atom->tag, atom->nspecial, atom->special,
 				   eflag, vflag, eflag_atom, vflag_atom,
 				   host_start, &ilist, &numneigh, cpu_time,
-				   success, fp, domain->boxlo, 
+				   success, domain->boxlo, 
 				   domain->prd, inum_dev);
   } else { // gpu_mode == GPU_FORCE
     eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
 		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success, fp,
+		    vflag_atom, host_start, cpu_time, success,
 		    atom->nlocal, domain->boxlo, domain->prd);
   }
   
@@ -404,12 +384,13 @@ void PairEAMGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int fp_size;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq,
           type2rhor, type2z2r, type2frho,
           rhor_spline, z2r_spline, frho_spline,
           rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, atom->nlocal, 
           atom->nlocal+atom->nghost, 300, maxspecial,
-          cell_size, gpu_mode, screen);
+			     cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
   
   if (gpu_mode == GPU_FORCE) {
@@ -417,8 +398,52 @@ void PairEAMGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+
+  if (fp_size == sizeof(double))
+    fp_single = false;
+  else
+    fp_single = true;
 }
 
+/* ---------------------------------------------------------------------- */
 
+int PairEAMGPU::pack_comm(int n, int *list, double *buf, int pbc_flag, 
+			  int *pbc)
+{
+  int i,j,m;
 
+  m = 0;
 
+  if (fp_single) {
+    float *fp_ptr = (float *)fp_pinned;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = static_cast<double>(fp_ptr[j]);
+    }
+  } else {
+    double *fp_ptr = (double *)fp_pinned;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = fp_ptr[j];
+    }
+  }
+
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairEAMGPU::unpack_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  if (fp_single) {
+    float *fp_ptr = (float *)fp_pinned;
+    for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
+  } else {
+    double *fp_ptr = (double *)fp_pinned;
+    for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
+  }
+}

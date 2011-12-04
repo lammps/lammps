@@ -36,13 +36,17 @@ class PairEAMGPU : public PairEAM {
   void init_style();
   double memory_usage();
 
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
+
  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
   int *gpulist;
-  
+  void *fp_pinned;
+  bool fp_single;  
 };
 
 }

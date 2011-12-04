@@ -203,7 +203,6 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_q(j,fp_); //fp_[j];
       int jtype=jx.w;
 
       // Compute r12
@@ -221,7 +220,6 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
         p = MIN(p,(numtyp)1.0);
         
         int mtype,index;
-        numtyp coeff0,coeff1,coeff2,coeff3,coeff4,coeff5,coeff6;
         numtyp4 coeff;
 
         mtype = itype*ntypes+jtype;
@@ -236,21 +234,15 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
               
         mtype = itype*ntypes+jtype;
         index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
-        coeff0 = z2r_spline[index+0];
-        coeff1 = z2r_spline[index+1];
-        coeff2 = z2r_spline[index+2];
-        coeff3 = z2r_spline[index+3];
-        coeff4 = z2r_spline[index+4];
-        coeff5 = z2r_spline[index+5];
-        coeff6 = z2r_spline[index+6];
-        
-        numtyp z2p = (coeff0*p + coeff1)*p + coeff2;
-        numtyp z2 = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+        numtyp z2p = (z2r_spline[index+0]*p + z2r_spline[index+1])*p 
+            + z2r_spline[index+2];
+        numtyp z2 = ((z2r_spline[index+3]*p + z2r_spline[index+4])*p 
+            + z2r_spline[index+5])*p + z2r_spline[index+6];
 
-        numtyp recip = (numtyp)1.0/r;
+        numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
-        numtyp psip = ifp*rhojp + jfp*rhoip + phip;
+        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
         numtyp force = -psip*recip;
         
         f.x+=delx*force;
@@ -319,8 +311,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       j &= NEIGHMASK;
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
-      numtyp jfp=fetch_q(j,fp_); //fp_[j];
-      int jtype=jx.w;
+      int jw=jx.w;
+      int jtype=fast_mul((int)MAX_SHARED_TYPES,jw);
       
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -336,37 +328,31 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         p -= m;
         p = MIN(p,(numtyp)1.0);
         
-        numtyp coeff0,coeff1,coeff2,coeff3,coeff4,coeff5,coeff6;
         numtyp4 coeff;
         int mtype,index;
         
-        mtype = itype+jx.w;
+        mtype = itype+jw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
         coeff = rhor_spline1[index]; 
         numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
         
-        mtype = jtype+ix.w;
+        mtype = jtype+iw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
         coeff = rhor_spline1[index]; 
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
         
-        mtype = itype+jx.w;
+        mtype = itype+jw;
         index = type2rhor_z2r[mtype].y*(nr+1)*8+m*8;
-        coeff0 = z2r_spline[index+0];
-        coeff1 = z2r_spline[index+1];
-        coeff2 = z2r_spline[index+2];
-        coeff3 = z2r_spline[index+3];
-        coeff4 = z2r_spline[index+4];
-        coeff5 = z2r_spline[index+5];
-        coeff6 = z2r_spline[index+6];
-        
-        numtyp z2p = (coeff0*p + coeff1)*p + coeff2;
-        numtyp z2 = ((coeff3*p + coeff4)*p + coeff5)*p + coeff6;
+  
+        numtyp z2p = (z2r_spline[index+0]*p + z2r_spline[index+1])*p 
+            + z2r_spline[index+2];
+        numtyp z2 = ((z2r_spline[index+3]*p + z2r_spline[index+4])*p 
+            + z2r_spline[index+5])*p + z2r_spline[index+6];
 
-        numtyp recip = (numtyp)1.0/r;
+        numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
-        numtyp psip = ifp*rhojp + jfp*rhoip + phip;
+        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
         numtyp force = -psip*recip;
         
         f.x+=delx*force;

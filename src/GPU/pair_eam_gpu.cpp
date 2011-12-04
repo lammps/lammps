@@ -48,35 +48,22 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  const int maxspecial, const double cell_size, 
                  int &gpu_mode, FILE *screen, int &fp_size);
 void eam_gpu_clear();
-int** eam_gpu_compute_energy_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, int *tag, int **nspecial, 
-                         int **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *boxlo,
-			       double *prd, int &inum, void **fp_ptr);
-void eam_gpu_compute_energy(const int ago, const int inum_full, const int nall,
-                      double **host_x, int *host_type, int *ilist, int *numj,
-                      int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success,
-			    const int nlocal, double *boxlo, double *prd,
-			    void **fp_ptr);
-void eam_gpu_compute_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, int *tag, int **nspecial, 
-                         int **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *boxlo,
-                         double *prd, int inum);
-void eam_gpu_compute(const int ago, const int inum_full, const int nall,
-                      double **host_x, int *host_type, int *ilist, int *numj,
-                      int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success,
-                      const int nlocal, double *boxlo, double *prd);
+int** eam_gpu_compute_n(const int ago, const int inum_full,
+                 const int nall, double **host_x, int *host_type,
+                 double *sublo, double *subhi, int *tag, int **nspecial, 
+                 int **special, const bool eflag, const bool vflag,
+                 const bool eatom, const bool vatom, int &host_start,
+                 int **ilist, int **jnum,  const double cpu_time,
+                 bool &success, int &inum, void **fp_ptr);
+void eam_gpu_compute(const int ago, const int inum_full, 
+                 const int nall,double **host_x, int *host_type, 
+                 int *ilist, int *numj, int **firstneigh, 
+                 const bool eflag, const bool vflag,
+                 const bool eatom, const bool vatom, int &host_start,
+                 const double cpu_time, bool &success, void **fp_ptr);
+void eam_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom);
+
 double eam_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -127,24 +114,20 @@ void PairEAMGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh; 
   if (gpu_mode != GPU_FORCE) { 
     inum = atom->nlocal;
-    
-    firstneigh = eam_gpu_compute_energy_n(neighbor->ago, inum, nall, atom->x,
-             atom->type, domain->sublo, domain->subhi,
+    firstneigh = eam_gpu_compute_n(neighbor->ago, inum, nall, 
+             atom->x,atom->type, domain->sublo, domain->subhi,
              atom->tag, atom->nspecial, atom->special,
              eflag, vflag, eflag_atom, vflag_atom,
              host_start, &ilist, &numneigh, cpu_time,
-             success, domain->boxlo, 
-					  domain->prd, inum_dev, &fp_pinned);
+             success, inum_dev, &fp_pinned);
   } else { // gpu_mode == GPU_FORCE
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    eam_gpu_compute_energy(neighbor->ago, inum, nall, atom->x, atom->type,
+    eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
 		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success,
-			   atom->nlocal, domain->boxlo, domain->prd, 
-			   &fp_pinned);
+		    vflag_atom, host_start, cpu_time, success, &fp_pinned);
   }
     
   if (!success)
@@ -152,7 +135,8 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();
-    cpu_compute_energy(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
+    cpu_compute_energy(host_start, inum, eflag, vflag, 
+            ilist, numneigh, firstneigh);
     cpu_time = MPI_Wtime() - cpu_time;
   }
   
@@ -161,23 +145,11 @@ void PairEAMGPU::compute(int eflag, int vflag)
   comm->forward_comm_pair(this);
     
   // compute forces on each atom on GPU
+  if (gpu_mode != GPU_FORCE) 
+    eam_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+  else
+    eam_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 
-  
-  if (gpu_mode != GPU_FORCE) {
-    eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				   atom->type, domain->sublo, domain->subhi,
-				   atom->tag, atom->nspecial, atom->special,
-				   eflag, vflag, eflag_atom, vflag_atom,
-				   host_start, &ilist, &numneigh, cpu_time,
-				   success, domain->boxlo, 
-				   domain->prd, inum_dev);
-  } else { // gpu_mode == GPU_FORCE
-    eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success,
-		    atom->nlocal, domain->boxlo, domain->prd);
-  }
-  
   if (host_start<inum) {
     double cpu_time2 = MPI_Wtime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);

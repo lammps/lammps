@@ -304,11 +304,11 @@ void EAMT::compute(const int f_ago, const int inum_full,
     if (this->ucl_device->device_type()==UCL_CPU)
       dev_fp.view(host_fp);
     else 
-      dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
+      dev_fp.alloc(_max_fp_size,*(this->ucl_device));
     
     fp_tex.bind_float(dev_fp,1);
   }
-  *fp_ptr=host_fp.begin();  
+  *fp_ptr=host_fp.begin();
 
   // -----------------------------------------------------------------
 
@@ -380,7 +380,7 @@ int** EAMT::compute(const int ago, const int inum_full,
     if (this->ucl_device->device_type()==UCL_CPU)
       dev_fp.view(host_fp);
     else 
-      dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
+      dev_fp.alloc(_max_fp_size,*(this->ucl_device));
     
     fp_tex.bind_float(dev_fp,1);
   }      

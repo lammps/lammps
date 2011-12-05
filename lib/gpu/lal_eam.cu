@@ -236,7 +236,9 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
 
   acctyp rho = (acctyp)0;
   acctyp energy = (acctyp)0;
-   
+  
+  __syncthreads(); 
+
   if (ii<inum) {
     __global int *nbor, *list_end;
     int i, numj, n_stride;
@@ -409,6 +411,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
+
+  __syncthreads();
 
   if (ii<inum) {
     __global int *nbor, *list_end;

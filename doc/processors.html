@@ -13,15 +13,27 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>processors Px Py Pz 
+<PRE>processors Px Py Pz keyword args ... 
 </PRE>
 <UL><LI>Px,Py,Pz = # of processors in each dimension of a 3d grid 
+
+<LI>zero or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>part</I> 
+
+<PRE>  <I>part</I> args = Psend Precv cstyle
+    Psend = partition # (1 to Np) which will send its processor layout
+    Precv = partition # (1 to Np) which will recv the processor layout
+    cstyle = <I>multiple</I>
+      <I>multiple</I> = Psend layout will be multiple of Precv layout in each dimension 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>processors 2 4 4
 processors * * 5
-processors * 1 10 
+processors * * * part 1 2 multiple 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -51,6 +63,52 @@ section</A> for an explanation of the
 <P>Note that if you run on a large, prime number of processors P, then a
 grid such as 1 x P x 1 will be required, which may incur extra
 communication costs.
+</P>
+<HR>
+
+<P>The <I>part</I> keyword can be useful when running in multi-partition mode,
+e.g. with the <A HREF = "run_style.html<A HREF = "Section_start.html#start_6">-partition">>run_style verlet/split</A> command.  It
+specifies a dependency bewteen a sending partition <I>Psend</I> and a
+receiving partition <I>Precv</I> which is enforced when each is setting up
+their own mapping of the partitions processors to the simulation box.
+Each of <I>Psend</I> and <I>Precv</I> must be integers from 1 to Np, where Np is
+the number of partitions you have defined via the <A HREF = </A>
+command-line switch</A>.
+</P>
+<P>A "dependency" means that the sending partition will create its 3d
+logical grid as Px by Py by Pz and after it has done this, it will
+send the Px,Py,Pz values to the receiving partition.  The receiving
+partition will wait to receive these values before creating its own 3d
+logical grid and will use the sender's Px,Py,Pz values as a
+constraint.  The nature of the constraint is determined by the
+<I>cstyle</I> argument.
+</P>
+<P>For a <I>cstyle</I> of <I>multiple</I>, each dimension of the sender's processor
+grid is required to be an integer multiple of the corresponding
+dimension in the receiver's processor grid.  This is a requirement of
+the <A HREF = "run_style.html">run_style verlet/split</A> command.
+</P>
+<P>For example, assume the sending partition creates a 4x6x10 grid = 240
+processor grid.  If the receiving partition is running on 80
+processors, it could create a 4x2x10 grid, but it will not create a
+2x4x10 grid, since in the y-dimension, 6 is not an integer multiple of
+4.
+</P>
+<HR>
+
+<P>Note that you can use the <A HREF = "partition.html">partition</A> command to
+specify different processor grids for different partitions, e.g.
+</P>
+<PRE>partition yes 1 processors 4 4 4
+partition yes 2 processors 2 3 2 
+</PRE>
+<P>IMPORTANT NOTE: If you use the <A HREF = "partition.html">partition</A> command to
+invoke different "processsors" commands on different partitions, and
+you also use the <I>part</I> keyword, then you must insure that both the
+sending and receiving partitions invoke the "processors" command that
+connects the 2 partitions via the <I>part</I> keyword.  LAMMPS cannot
+easily check for this, but your simulation will likely hang in its
+setup phase if this error has been made.
 </P>
 <P><B>Restrictions:</B>
 </P>

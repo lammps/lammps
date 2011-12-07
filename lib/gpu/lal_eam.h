@@ -119,6 +119,9 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   int _max_fp_size;
   
+  /// True of energy kernels are compiled
+  bool _compiled_energy;
+  
   /// Per-atom arrays
   UCL_H_Vec<numtyp> host_fp;
   UCL_D_Vec<numtyp> dev_fp;

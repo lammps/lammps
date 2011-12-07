@@ -27,7 +27,8 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-EAMT::EAM() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+EAMT::EAM() : BaseAtomic<numtyp,acctyp>(), 
+  _compiled_energy(false), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -70,7 +71,8 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   k_energy_fast.set_function(*(this->pair_program),"kernel_energy_fast");
   fp_tex.get_texture(*(this->pair_program),"fp_tex");
   fp_tex.bind_float(dev_fp,1);
-
+  _compiled_energy = true;
+  
   // Initialize timers for selected GPU
   time_pair2.init(*(this->ucl_device));
   time_pair2.zero();
@@ -248,6 +250,12 @@ void EAMT::clear() {
   time_fp1.clear();
   time_fp2.clear();
   
+  if (_compiled_energy) {
+    k_energy_fast.clear();
+    k_energy.clear();
+    _compiled_energy=false;
+  }
+
   this->clear_atomic();
 }
 

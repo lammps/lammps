@@ -920,46 +920,40 @@ processors in all partitions must equal P.  Thus the command
 "-partition 8x2 4 5" has 10 partitions and runs on a total of 25
 processors.
 
-Note that with MPI installed on a machine (e.g. your desktop), you can
-run on more (virtual) processors than you have physical processors.
-This can be useful for running "multi-replica
-simulations"_Section_howto.html#howto_5, on one or a few processors.
+Running with multiple partitions can e useful for running
+"multi-replica simulations"_Section_howto.html#howto_5, where each
+replica runs on on one or a few processors.  Note that with MPI
+installed on a machine (e.g. your desktop), you can run on more
+(virtual) processors than you have physical processors.
 
-The input script specifies what simulation is run on which partition;
-see the "variable"_variable.html and "next"_next.html commands.  This
-"howto section"_Section_howto.html#howto_4 gives examples of how to
-use these commands in this way.  Simulations running on different
-partitions can also communicate with each other; see the
-"temper"_temper.html command.
+To run multiple independent simulatoins from one input script, using
+multiple partitions, see "this section"_Section_howto.html#howto_4 of
+the manual.  World- and universe-style "variables"_variable.html are
+useful in this context.
 
 -plog file :pre
  
-Specify the base name for the partition log files, 
-so partition N writes log information to file.N. If file is 
-none, then no partition log files are created. 
-This overrides the
-filename specified in the -log command-line option.
-This option is useful when working with large numbers of partitions,
-allowing the partition log files to be suppressed (-plog none) or
-placed in a sub-directory (-plog replica_files/log.lammps)
-If this option is not used
-the log file for partition N is log.lammps.N or whatever is specified by
-the -log command-line option. 
+Specify the base name for the partition log files, so partition N
+writes log information to file.N. If file is none, then no partition
+log files are created.  This overrides the filename specified in the
+-log command-line option.  This option is useful when working with
+large numbers of partitions, allowing the partition log files to be
+suppressed (-plog none) or placed in a sub-directory (-plog
+replica_files/log.lammps) If this option is not used the log file for
+partition N is log.lammps.N or whatever is specified by the -log
+command-line option.
 
 -pscreen file :pre 
 
-Specify the base name for the 
-partition screen file, so partition N writes 
-screen information to file.N. If file is 
-none, then no partition screen files are created. 
-This overrides the
-filename specified in the -screen command-line option.
-This option is useful when working with large numbers of partitions,
-allowing the partition screen files to be suppressed (-pscreen none) or
-placed in a sub-directory (-pscreen replica_files/screen)
-If this option is not used
-the screen file for partition N is screen.N or whatever is specified by
-the -screen command-line option. 
+Specify the base name for the partition screen file, so partition N
+writes screen information to file.N. If file is none, then no
+partition screen files are created.  This overrides the filename
+specified in the -screen command-line option.  This option is useful
+when working with large numbers of partitions, allowing the partition
+screen files to be suppressed (-pscreen none) or placed in a
+sub-directory (-pscreen replica_files/screen) If this option is not
+used the screen file for partition N is screen.N or whatever is
+specified by the -screen command-line option.
 
 -screen file :pre
 
@@ -973,7 +967,7 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed. Option -pscreen will override the name of the 
+output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 
 -suffix style :pre

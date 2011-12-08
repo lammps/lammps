@@ -928,46 +928,40 @@ processors in all partitions must equal P.  Thus the command
 "-partition 8x2 4 5" has 10 partitions and runs on a total of 25
 processors.
 </P>
-<P>Note that with MPI installed on a machine (e.g. your desktop), you can
-run on more (virtual) processors than you have physical processors.
-This can be useful for running <A HREF = "Section_howto.html#howto_5">multi-replica
-simulations</A>, on one or a few processors.
+<P>Running with multiple partitions can e useful for running
+<A HREF = "Section_howto.html#howto_5">multi-replica simulations</A>, where each
+replica runs on on one or a few processors.  Note that with MPI
+installed on a machine (e.g. your desktop), you can run on more
+(virtual) processors than you have physical processors.
 </P>
-<P>The input script specifies what simulation is run on which partition;
-see the <A HREF = "variable.html">variable</A> and <A HREF = "next.html">next</A> commands.  This
-<A HREF = "Section_howto.html#howto_4">howto section</A> gives examples of how to
-use these commands in this way.  Simulations running on different
-partitions can also communicate with each other; see the
-<A HREF = "temper.html">temper</A> command.
+<P>To run multiple independent simulatoins from one input script, using
+multiple partitions, see <A HREF = "Section_howto.html#howto_4">this section</A> of
+the manual.  World- and universe-style <A HREF = "variable.html">variables</A> are
+useful in this context.
 </P>
 <PRE>-plog file 
 </PRE>
-<P>Specify the base name for the partition log files, 
-so partition N writes log information to file.N. If file is 
-none, then no partition log files are created. 
-This overrides the
-filename specified in the -log command-line option.
-This option is useful when working with large numbers of partitions,
-allowing the partition log files to be suppressed (-plog none) or
-placed in a sub-directory (-plog replica_files/log.lammps)
-If this option is not used
-the log file for partition N is log.lammps.N or whatever is specified by
-the -log command-line option. 
+<P>Specify the base name for the partition log files, so partition N
+writes log information to file.N. If file is none, then no partition
+log files are created.  This overrides the filename specified in the
+-log command-line option.  This option is useful when working with
+large numbers of partitions, allowing the partition log files to be
+suppressed (-plog none) or placed in a sub-directory (-plog
+replica_files/log.lammps) If this option is not used the log file for
+partition N is log.lammps.N or whatever is specified by the -log
+command-line option.
 </P>
 <PRE>-pscreen file 
 </PRE>
-<P>Specify the base name for the 
-partition screen file, so partition N writes 
-screen information to file.N. If file is 
-none, then no partition screen files are created. 
-This overrides the
-filename specified in the -screen command-line option.
-This option is useful when working with large numbers of partitions,
-allowing the partition screen files to be suppressed (-pscreen none) or
-placed in a sub-directory (-pscreen replica_files/screen)
-If this option is not used
-the screen file for partition N is screen.N or whatever is specified by
-the -screen command-line option. 
+<P>Specify the base name for the partition screen file, so partition N
+writes screen information to file.N. If file is none, then no
+partition screen files are created.  This overrides the filename
+specified in the -screen command-line option.  This option is useful
+when working with large numbers of partitions, allowing the partition
+screen files to be suppressed (-pscreen none) or placed in a
+sub-directory (-pscreen replica_files/screen) If this option is not
+used the screen file for partition N is screen.N or whatever is
+specified by the -screen command-line option.
 </P>
 <PRE>-screen file 
 </PRE>
@@ -981,7 +975,7 @@ the partition ID.  If the switch is specified in multi-partition mode,
 the hi-level screen dump is named "file" and each partition also
 writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
-output is performed. Option -pscreen will override the name of the 
+output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 </P>
 <PRE>-suffix style 

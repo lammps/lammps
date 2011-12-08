@@ -603,7 +603,9 @@ void Domain::minimum_image(double *delta)
    for triclinic, also add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)
+void Domain::closest_image(const double * const xi, 
+			   const double * const xj,
+			   double * const xjimage)
 {
   double dx,dy,dz;
 

@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)			
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  no_virial_fdotr_compute=1;
+  no_virial_fdotr_compute = 1;
 
   ifix_peri = -1;
 
@@ -189,7 +189,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,
+			     fpair*vfrac[i],delx,dely,delz);
       }
     }
   }
@@ -303,7 +304,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
 		   omega_plus*(deviatoric_extension * deviatoric_extension) *
 		   vfrac[j] * vfrac_scale;
-      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
+      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
+			   0.5*fbond*vfrac[i],delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
@@ -316,7 +318,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
-         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - 
+			 (alpha[itype][jtype] * stretch));
 
       first = false;
     }

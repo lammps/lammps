@@ -115,7 +115,8 @@ void PPPM::init()
 
   if (domain->triclinic)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
-  if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPM with 2d simulation");
+  if (domain->dimension == 2) error->all(FLERR,
+					 "Cannot use PPPM with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
@@ -186,8 +187,8 @@ void PPPM::init()
 
   // if we have a /proxy pppm version check if the pair style is compatible
 
-  if ( (strcmp(force->kspace_style,"pppm/proxy") == 0) ||
-       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
+  if ((strcmp(force->kspace_style,"pppm/proxy") == 0) ||
+      (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
     if (force->pair == NULL)
       error->all(FLERR,"KSpace style is incompatible with Pair style");
     if (strstr(force->pair_style,"pppm/") == NULL )
@@ -1507,7 +1508,8 @@ void PPPM::particle_map()
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
 	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
+	nz+nlower < nzlo_out || nz+nupper > nzhi_out)
+      flag = 1;
   }
 
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
@@ -1527,7 +1529,8 @@ void PPPM::make_rho()
 
   // clear 3d density array
 
-  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,ngrid*sizeof(FFT_SCALAR));
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
+	 ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1784,6 +1787,7 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
    charge assignment into rho1d
    dx,dy,dz = distance of particle from "lower left" grid point 
 ------------------------------------------------------------------------- */
+
 void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
 			 const FFT_SCALAR &dz)
 {

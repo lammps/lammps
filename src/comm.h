@@ -29,18 +29,24 @@ class Comm : protected Pointers {
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
+  int recv_from_partition;          // recv proc layout from this partition
+  int send_to_partition;            // send my proc layout to this partition
+                                    // -1 if no recv or send
+  int other_partition_style;        // 0 = recv layout dims must be multiple of
+                                    //     my layout dims
   int nthreads;                     // OpenMP threads per MPI process
 
   Comm(class LAMMPS *);
   virtual ~Comm();
 
   virtual void init();
-  virtual void set_procs();                 // setup 3d grid of procs
-  virtual void setup();                     // setup 3d communication pattern
-  virtual void forward_comm(int dummy = 0); // forward communication of atom coords
-  virtual void reverse_comm();              // reverse communication of forces
-  virtual void exchange();                  // move atoms to new procs
-  virtual void borders();                   // setup list of atoms to communicate
+  void set_processors(int, char **);          // set procs from input script
+  virtual void set_proc_grid();               // setup 3d grid of procs
+  virtual void setup();                       // setup 3d comm pattern
+  virtual void forward_comm(int dummy = 0);   // forward comm of atom coords
+  virtual void reverse_comm();                // reverse comm of forces
+  virtual void exchange();                    // move atoms to new procs
+  virtual void borders();                     // setup list of atoms to comm
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
@@ -76,6 +82,8 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
+
+  int other_procgrid[3];            // proc layout
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap

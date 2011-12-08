@@ -1,0 +1,31 @@
+# /* ----------------------------------------------------------------------   
+#  Generic Makefile for CUDA using MPI STUBS library
+#     - Change CUDA_ARCH for your GPU
+# ------------------------------------------------------------------------- */
+
+CUDA_HOME = $(HOME)/cuda
+NVCC = nvcc
+
+# Tesla CUDA
+CUDA_ARCH = -arch=sm_20
+# newer CUDA
+#CUDA_ARCH = -arch=sm_13
+# older CUDA
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -L../../src/STUBS -lmpi
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
+
+CUDR_CPP = g++ -DMPI_GERYON -DUCL_NO_EXIT -I../../src/STUBS
+CUDR_OPTS = -O2 
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+include Nvidia.makefile
+

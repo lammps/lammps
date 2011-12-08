@@ -17,6 +17,7 @@
 #include "stdio.h"
 #include "finish.h"
 #include "timer.h"
+#include "universe.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -55,14 +56,19 @@ void Finish::end(int flag)
   // flag = 1 = dynamics or minimization
   // flag = 2 = PRD
   // flag = 3 = TAD
-  
+  // turn off neighflag for Kspace partition of verlet/split integrator
+
   loopflag = 1;
   minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
 
   if (flag == 1) {
     if (update->whichflag == 2) minflag = 1;
-    timeflag = histoflag = neighflag = 1;
-    if (strstr(force->kspace_style,"pppm")) fftflag = 1;
+    timeflag = histoflag = 1;
+    neighflag = 1;
+    if (update->whichflag == 1 && 
+	strcmp(update->integrate_style,"verlet/split") == 0 && 
+	universe->iworld == 1) neighflag = 0;
+    if (force->kspace && force->kspace_match("pppm",0)) fftflag = 1;
   }
   if (flag == 2) prdflag = histoflag = neighflag = 1;
   if (flag == 3) tadflag = histoflag = neighflag = 1;
@@ -408,6 +414,7 @@ void Finish::end(int flag)
   
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs
+  // time_kspace may be 0.0 if another partition is doing Kspace
 
   if (fftflag) {
     if (me == 0) {
@@ -439,7 +446,8 @@ void Finish::end(int flag)
 
     double fraction,flop3,flop1;
     if (nsteps) {
-      fraction = time3d/time_kspace*100.0;
+      if (time_kspace) fraction = time3d/time_kspace*100.0;
+      else fraction = 0.0;
       flop3 = nflops/1.0e9/(time3d/4.0/nsteps);
       flop1 = nflops/1.0e9/(time1d/4.0/nsteps);
     } else fraction = flop3 = flop1 = 0.0;

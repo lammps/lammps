@@ -58,26 +58,31 @@ void ThrData::init_force(int nall, double **f, double **torque,
   vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
   _f = f + _tid*nall;
-  memset(&(_f[0][0]),0,nall*3*sizeof(double));
+  if (nall > 0)
+    memset(&(_f[0][0]),0,nall*3*sizeof(double));
 
   if (torque) {
     _torque = torque + _tid*nall;
-    memset(&(_torque[0][0]),0,nall*3*sizeof(double));
+    if (nall > 0)
+      memset(&(_torque[0][0]),0,nall*3*sizeof(double));
   } else _torque = NULL;
 
   if (erforce) {
     _erforce = erforce + _tid*nall;
-    memset(&(_erforce[0]),0,nall*sizeof(double));
+    if (nall > 0)
+      memset(&(_erforce[0]),0,nall*sizeof(double));
   } else _erforce = NULL;
 
   if (de) {
     _de = de + _tid*nall;
-    memset(&(_de[0]),0,nall*sizeof(double));
+    if (nall > 0)
+      memset(&(_de[0]),0,nall*sizeof(double));
   } else _de = NULL;
 
   if (drho) {
     _drho = drho + _tid*nall;
-    memset(&(_drho[0]),0,nall*sizeof(double));
+    if (nall > 0)
+      memset(&(_drho[0]),0,nall*sizeof(double));
   } else _drho = NULL;
 }
 
@@ -88,7 +93,8 @@ void ThrData::init_force(int nall, double **f, double **torque,
 void ThrData::init_eam(int nall, double *rho)
 {
   _rho = rho + _tid*nall;
-  memset(_rho, 0, nall*sizeof(double));
+  if (nall > 0)
+    memset(_rho, 0, nall*sizeof(double));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,8 +105,10 @@ void ThrData::init_adp(int nall, double *rho, double **mu, double **lambda)
 
   _mu = mu + _tid*nall;
   _lambda = lambda + _tid*nall;
-  memset(&(_mu[0][0]), 0, nall*3*sizeof(double));
-  memset(&(_lambda[0][0]), 0, nall*6*sizeof(double));
+  if (nall > 0) {
+    memset(&(_mu[0][0]), 0, nall*3*sizeof(double));
+    memset(&(_lambda[0][0]), 0, nall*6*sizeof(double));
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,8 +119,10 @@ void ThrData::init_cdeam(int nall, double *rho, double *rhoB, double *D_values)
 
   _rhoB = rhoB + _tid*nall;
   _D_values = D_values + _tid*nall;
-  memset(_rhoB, 0, nall*sizeof(double));
-  memset(_D_values, 0, nall*sizeof(double));
+  if (nall > 0) {
+    memset(_rhoB, 0, nall*sizeof(double));
+    memset(_D_values, 0, nall*sizeof(double));
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,7 +132,8 @@ void ThrData::init_eim(int nall, double *rho, double *fp)
   init_eam(nall, rho);
 
   _fp = fp + _tid*nall;
-  memset(_fp,0,nall*sizeof(double));
+  if (nall > 0)
+    memset(_fp,0,nall*sizeof(double));
 }
 
 /* ----------------------------------------------------------------------

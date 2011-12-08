@@ -15,9 +15,10 @@
 </P>
 <PRE>run_style style args 
 </PRE>
-<UL><LI>style = <I>verlet</I> or <I>respa</I> 
+<UL><LI>style = <I>verlet</I> or <I>verlet/split</I> or <I>respa</I> 
 
 <PRE>  <I>verlet</I> args = none
+  <I>verlet/split</I> args = none
   <I>respa</I> args = N n1 n2 ... keyword values ...
     N = # of levels of rRESPA
     n1, n2, ... = loop factor between rRESPA levels (N-1 values)
@@ -64,6 +65,69 @@ simulations performed by LAMMPS.
 </P>
 <P>The <I>verlet</I> style is a velocity-Verlet integrator.
 </P>
+<HR>
+
+<P>The <I>verlet/style</I> style is also a velocity-Verlet integrator, but it
+splits the force calculation within each timestep over 2 partitions of
+processors.  See <A HREF = "Section_start.html#start_6">this section</A> for an
+explanation of the -partition command-line switch.
+</P>
+<P>Specifically, this style performs all computation except the
+<A HREF = "kspace_style.html">kspace_style</A> portion of the force field on the 1st
+partition.  This include the <A HREF = "pair_style.html">pair style</A>, <A HREF = "bond_style.html">bond
+style</A>, <A HREF = "neighbor.html">neighbor list building</A>,
+<A HREF = "fix.html">fixes</A> including time intergration, and output.  The
+<A HREF = "kspace_style.html">kspace_style</A> portion of the calculation is
+performed on the 2nd partition.
+</P>
+<P>This is most useful for the PPPM kspace_style when its performance on
+a large number of processors degrades due to the cost of communication
+in its 3d FFTs.  In this scenario, splitting your P total processors
+into 2 subsets of processors, P1 in the 1st partition and P2 in the
+2nd partition, can enable your simulation to run faster.  This is
+because the long-range forces in PPPM can be calculated at the same
+time as pair-wise and bonded forces are being calculated, and the FFTs
+can actually speed up when running on fewer processors.
+</P>
+<P>To use this style, you must define 2 partitions where P1 is a multiple
+of P2.  Typically having P1 be 3x larger than P2 is a good choice.
+The 3d processor layouts in each partition must overlay in the
+following sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by
+Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
+for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
+</P>
+<P>Typically the best way to do this is to let the 1st partition choose
+its onn optimal layout, then require the 2nd partition's layout to
+match the integer multiple constraint.  See the
+<A HREF = "processors.html">processors</A> command with its <I>part</I> keyword for a way
+to control this, e.g.
+</P>
+<PRE>procssors * * * part 1 2 multiple 
+</PRE>
+<P>You can also use the <A HREF = "partition.html">partition</A> command to explicitly
+specity the processor layout on each partition.  E.g. for 2 partitions
+of 60 and 15 processors each:
+</P>
+<PRE>partition yes 1 processors 3 4 5
+partition yes 2 processors 3 1 5 
+</PRE>
+<P>When you run in 2-partition mode with this <I>verlet/split</I> style, the
+thermodyanmic data for the entire simulation will be output to the log
+and screen file of the 1st partition, which are log.lammps.0 and
+screen.0 by default; see the "-plog and -pscreen command-line
+switches"Section_start.html#start_6 to change this.  The log and
+screen file for the 2nd partition will not contain thermodynamic
+output beyone the 1st timestep of the run.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for
+performance details of the speed-up offered by the <I>verlet/split</I>
+style.  One important performance consideration is the assignemnt of
+logical processors in the 2 partitions to the physical cores of a
+parallel machine.  <A HREF = "Section_accelerate.html">This section</A> discusses
+how to optimize this mapping.
+</P>
+<HR>
+
 <P>The <I>respa</I> style implements the rRESPA multi-timescale integrator
 <A HREF = "#Tuckerman">(Tuckerman)</A> with N hierarchical levels, where level 1 is
 the innermost loop (shortest timestep) and level N is the outermost

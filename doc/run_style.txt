@@ -58,7 +58,7 @@ run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4 :pre
 Choose the style of time integrator used for molecular dynamics
 simulations performed by LAMMPS.
 
-The {verlet} style is a velocity-Verlet integrator.
+The {verlet} style is a standard velocity-Verlet integrator.
 
 :line
 

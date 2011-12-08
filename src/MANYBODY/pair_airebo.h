@@ -163,6 +163,7 @@ class PairAIREBO : public Pair {
   };
 
   /* kronecker delta function returning a double */
+
   inline double kronecker(const int a, const int b) const {
     return (a == b) ? 1.0 : 0.0;
   };

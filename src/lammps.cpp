@@ -482,6 +482,7 @@ void LAMMPS::post_create()
 
 /* ----------------------------------------------------------------------
    initialize top-level classes
+   do not initialize Timer class, other classes like Run() do that explicitly
 ------------------------------------------------------------------------- */
 
 void LAMMPS::init()
@@ -500,7 +501,6 @@ void LAMMPS::init()
   neighbor->init();      // neighbor must come after force, modify
   comm->init();          // comm must come after force, modify, neighbor, atom
   output->init();        // output must come after domain, force, modify
-  timer->init();
 }
 
 /* ----------------------------------------------------------------------

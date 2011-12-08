@@ -215,11 +215,14 @@ void VerletSplit::run(int n)
 {
   int nflag,ntimestep,sortflag;
 
-  // reset LOOP timer due to imbalance in setup() on 2 partitions
-  // setup initial Rspace <-> Kspace comm params
+  // sync both partitions before start timer
 
   MPI_Barrier(universe->uworld);
-  timer->array[TIME_LOOP] = MPI_Wtime();
+  timer->init();
+  timer->barrier_start(TIME_LOOP);
+
+  // setup initial Rspace <-> Kspace comm params
+
   rk_setup();
 
   // flags for timestepping iterations
@@ -315,6 +318,13 @@ void VerletSplit::run(int n)
         force->kspace->compute(eflag,vflag);
         timer->stamp(TIME_KSPACE);
       }
+
+      // TIP4P PPPM puts forces on ghost atoms, so must reverse_comm()
+
+      if (tip4p_flag && force->newton) {
+	comm->reverse_comm();
+	timer->stamp(TIME_COMM);
+      }
     }
 
     // comm and sum Kspace forces back to Rspace procs
@@ -384,8 +394,10 @@ void VerletSplit::rk_setup()
 
   MPI_Gatherv(atom->q,n,MPI_DOUBLE,atom->q,qsize,qdisp,MPI_DOUBLE,0,block);
 
-  // for TIP4P also need to send type and tag
-  // KSpace proc needs to acquire ghost atoms and map all its atoms
+  // for TIP4P also need to send atom type and tag
+  // KSpace procs need to acquire ghost atoms and map all their atoms
+  // map_clear() call is in lieu of comm->exchange() which performs map_clear
+  // borders() call acquires ghost atoms and maps them
 
   if (tip4p_flag) {
     MPI_Gatherv(atom->type,n,MPI_INT,atom->type,qsize,qdisp,MPI_INT,0,block);
@@ -394,7 +406,7 @@ void VerletSplit::rk_setup()
       if (triclinic) domain->x2lamda(atom->nlocal);
       if (domain->box_change) comm->setup();
       timer->stamp();
-      atom->map_clear();          // in lieu of comm->exchange()
+      atom->map_clear();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(TIME_COMM);
@@ -441,6 +453,14 @@ void VerletSplit::r2k_comm()
       domain->set_local_box();
       force->kspace->setup();
     }
+  }
+
+  // for TIP4P, Kspace partition needs to update its ghost atoms
+
+  if (tip4p_flag && !master) {
+    timer->stamp();
+    comm->forward_comm();
+    timer->stamp(TIME_COMM);
   }
 }
 

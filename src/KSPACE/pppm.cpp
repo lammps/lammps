@@ -22,6 +22,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "pppm.h"
+#include "math_const.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -34,8 +35,6 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1050,7 +1049,8 @@ double PPPM::rms(double h, double prd, bigint natoms,
    compute difference in real-space and kspace RMS precision
 ------------------------------------------------------------------------- */
 
-double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, double **acons)
+double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, 
+		    double **acons)
 {
   double lprx,lpry,lprz,kspace_prec,real_prec;
   double xprd = domain->xprd;
@@ -1738,6 +1738,7 @@ void PPPM::fieldforce()
     }
 
     // convert E-field to force
+
     const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;

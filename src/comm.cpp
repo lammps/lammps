@@ -50,6 +50,7 @@ using namespace LAMMPS_NS;
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};
+enum{NONE,MULTIPLE};
 
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space 
@@ -70,6 +71,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostuser = 0.0;
   ghost_velocity = 0;
   recv_from_partition = send_to_partition = -1;
+  other_partition_style = NONE;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -159,11 +161,23 @@ void Comm::set_processors(int narg, char **arg)
       int irecv = atoi(arg[iarg+2]);
       if (isend < 1 || isend > universe->nworlds ||
 	  irecv < 1 || irecv > universe->nworlds || isend == irecv)
-	error->all(FLERR,"Invalid partition in processors part command");
-      if (isend-1 == universe->iworld) send_to_partition = irecv-1;
-      if (irecv-1 == universe->iworld) recv_from_partition = isend-1;
+	error->all(FLERR,"Invalid partitions in processors part command");
+      if (isend-1 == universe->iworld) {
+	if (send_to_partition >= 0)
+	  error->all(FLERR,
+		     "Sending partition in processors part command "
+		     "is already a sender");
+	send_to_partition = irecv-1;
+      }
+      if (irecv-1 == universe->iworld) {
+	if (recv_from_partition >= 0)
+	  error->all(FLERR,
+		     "Receiving partition in processors part command "
+		     "is already a receiver");
+	recv_from_partition = isend-1;
+      }
       if (strcmp(arg[iarg+3],"multiple") == 0) {
-	if (universe->iworld == irecv-1) other_partition_style = 0;
+	if (universe->iworld == irecv-1) other_partition_style = MULTIPLE;
       } else error->all(FLERR,"Illegal processors command");
       iarg += 4;
     } else error->all(FLERR,"Illegal processors command");
@@ -1229,8 +1243,9 @@ void Comm::procs2box()
   while (ipx <= nprocs) {
     valid = 1;
     if (user_procgrid[0] && ipx != user_procgrid[0]) valid = 0;
-    if (other_procgrid[0]) {
-      if (other_partition_style == 0 && other_procgrid[0] % ipx) valid = 0;
+    if (other_partition_style) {
+      if (other_partition_style == MULTIPLE && other_procgrid[0] % ipx) 
+	valid = 0;
     }
     if (nprocs % ipx) valid = 0;
     if (!valid) {
@@ -1242,8 +1257,9 @@ void Comm::procs2box()
     while (ipy <= nprocs/ipx) {
       valid = 1;
       if (user_procgrid[1] && ipy != user_procgrid[1]) valid = 0;
-      if (other_procgrid[1]) {
-	if (other_partition_style == 0 && other_procgrid[1] % ipy) valid = 0;
+      if (other_partition_style) {
+	if (other_partition_style == MULTIPLE && other_procgrid[1] % ipy) 
+	  valid = 0;
       }
       if ((nprocs/ipx) % ipy) valid = 0;
       if (!valid) {
@@ -1254,8 +1270,9 @@ void Comm::procs2box()
       ipz = nprocs/ipx/ipy;
       valid = 1;
       if (user_procgrid[2] && ipz != user_procgrid[2]) valid = 0;
-      if (other_procgrid[2]) {
-	if (other_partition_style == 0 && other_procgrid[2] % ipz) valid = 0;
+      if (other_partition_style) {
+	if (other_partition_style == MULTIPLE && other_procgrid[2] % ipz) 
+	  valid = 0;
       }
       if (domain->dimension == 2 && ipz != 1) valid = 0;
       if (!valid) {
@@ -1276,7 +1293,8 @@ void Comm::procs2box()
     ipx++;
   }
 
-  if (procgrid[0] == 0) error->one(FLERR,"Could not layout grid of processors");
+  if (procgrid[0] == 0) 
+    error->all(FLERR,"Could not layout grid of processors",1);
 }
 
 /* ----------------------------------------------------------------------

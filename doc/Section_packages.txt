@@ -231,7 +231,7 @@ implementation has been fully validated.
 The current version of this package should be considered beta
 quality. The CG potentials work correctly for "normal" situations, but
 have not been testing with all kinds of potential parameters and
-simuation systems.
+simulation systems.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

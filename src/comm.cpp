@@ -156,8 +156,10 @@ void Comm::set_proc_grid()
   // use NUMA routines if numa_nodes > 0
   // if NUMA routines fail, just continue
 
-  if (numa_nodes)
-    if (numa_set_proc_grid()) return;
+  if (numa_nodes) {
+    int flag = numa_set_proc_grid();
+    if (flag) return;
+  }
 
   // create layout of procs mapped to simulation box
   // can fail (on one partition) if constrained by other_partition_style
@@ -1544,10 +1546,10 @@ void Comm::set_processors(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"numa") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
-      numa_nodes = atoi(arg[iarg+1]);
+      if (iarg+1 > narg) error->all(FLERR,"Illegal processors command");
+      numa_nodes = 1;
       if (numa_nodes < 0) error->all(FLERR,"Illegal processors command");
-      iarg += 2;
+      iarg += 1;
 
     } else error->all(FLERR,"Illegal processors command");
   }
@@ -1585,13 +1587,13 @@ int Comm::numa_set_proc_grid()
   int procs_per_node = name_map.begin()->second;
   int procs_per_numa = procs_per_node / numa_nodes;
   
-  // use regular mapping if:
+  // use regular mapping if any condition met
   
-  if (procs_per_numa < 4 ||               // 3 or less procs per numa node
-      procs_per_node % numa_nodes != 0 || // Different # of procs per numa node
-      nprocs % procs_per_numa != 0 ||     // Different # of procs per numa node
-      nprocs <= procs_per_numa ||         // Only 1 numa node used
-      user_procgrid[0] > 1 ||             // User specified grid dimension
+  if (procs_per_numa < 4 ||               // less than 4 procs per numa node
+      procs_per_node % numa_nodes != 0 || // reserve usage for numa_node != 1
+      nprocs % procs_per_numa != 0 ||     // total procs not a multiple of node
+      nprocs <= procs_per_numa ||         // only 1 node used
+      user_procgrid[0] > 1 ||             // user specified grid dimension
       user_procgrid[1] > 1 ||             //    that is greater than 1
       user_procgrid[2] > 1) {             //    in any dimension
     if (me == 0) {

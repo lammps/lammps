@@ -40,7 +40,6 @@ class Comm : protected Pointers {
   virtual ~Comm();
 
   virtual void init();
-  void set_processors(int, char **);          // set procs from input script
   virtual void set_proc_grid();               // setup 3d grid of procs
   virtual void setup();                       // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0);   // forward comm of atom coords
@@ -57,7 +56,9 @@ class Comm : protected Pointers {
   virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
   virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
-  virtual void set(int, char **);           // set communication style
+  virtual void set(int, char **);         // set communication style
+  void set_processors(int, char **);      // set 3d processor grid attributes
+
   virtual bigint memory_usage();
 
  protected:
@@ -82,8 +83,10 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
+  int layoutflag;                   // user-selected layout for 3d proc grid
+  int numa_nodes;                   // layout NUMA-aware 3d proc grid
 
-  int other_procgrid[3];            // proc layout
+  int other_procgrid[3];            // proc layout of another partition
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
@@ -93,11 +96,9 @@ class Comm : protected Pointers {
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-
-  virtual void procs2box();                 // map procs to 3d box
-  virtual void cross(double, double, double,
-	     double, double, double,
-	     double &, double &, double &);    // cross product
+ 
+  int procs2box(int, int[3], int[3],        // map procs to 3d box
+		const int, const int, const int, int);
   virtual void grow_send(int,int);          // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer
   virtual void grow_list(int, int);         // reallocate one sendlist
@@ -106,6 +107,9 @@ class Comm : protected Pointers {
   virtual void allocate_multi(int);         // allocate multi arrays
   virtual void free_swap();                 // free swap arrays
   virtual void free_multi();                // free multi arrays
+
+  int numa_set_proc_grid();
+  void numa_shift(int, int, int &, int &);
 };
 
 }

@@ -67,7 +67,7 @@ simulations performed by LAMMPS.
 </P>
 <HR>
 
-<P>The <I>verlet/style</I> style is also a velocity-Verlet integrator, but it
+<P>The <I>verlet/split</I> style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
 processors.  See <A HREF = "Section_start.html#start_6">this section</A> for an
 explanation of the -partition command-line switch.
@@ -111,7 +111,7 @@ of 60 and 15 processors each:
 <PRE>partition yes 1 processors 3 4 5
 partition yes 2 processors 3 1 5 
 </PRE>
-<P>When you run in 2-partition mode with this <I>verlet/split</I> style, the
+<P>When you run in 2-partition mode with the <I>verlet/split</I> style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line

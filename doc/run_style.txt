@@ -62,7 +62,7 @@ The {verlet} style is a velocity-Verlet integrator.
 
 :line
 
-The {verlet/style} style is also a velocity-Verlet integrator, but it
+The {verlet/split} style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
 processors.  See "this section"_Section_start.html#start_6 for an
 explanation of the -partition command-line switch.
@@ -106,7 +106,7 @@ of 60 and 15 processors each:
 partition yes 1 processors 3 4 5
 partition yes 2 processors 3 1 5 :pre
 
-When you run in 2-partition mode with this {verlet/split} style, the
+When you run in 2-partition mode with the {verlet/split} style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line

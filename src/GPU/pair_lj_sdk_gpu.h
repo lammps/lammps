@@ -13,22 +13,24 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/gpu,PairCGCMMGPU)
+PairStyle(lj/sdk/gpu,PairLJSDKGPU)
+PairStyle(cg/cmm/gpu,PairLJSDKGPU)
 
 #else
 
-#ifndef LMP_PAIR_CG_CMM_GPU_H
-#define LMP_PAIR_CG_CMM_GPU_H
+#ifndef LMP_PAIR_LJ_SDK_GPU_H
+#define LMP_PAIR_LJ_SDK_GPU_H
 
-#include "pair_cg_cmm.h"
+#include "pair_lj_sdk.h"
 
 namespace LAMMPS_NS {
 
-class PairCGCMMGPU : public PairCGCMM {
+class PairLJSDKGPU : public PairLJSDK {
  public:
-  PairCGCMMGPU(LAMMPS *lmp);
-  ~PairCGCMMGPU();
-  void cpu_compute(int, int, int, int, int *, int *, int **);
+  PairLJSDKGPU(LAMMPS *lmp);
+  ~PairLJSDKGPU();
+  template <int, int>
+  void cpu_compute(int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();

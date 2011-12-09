@@ -285,13 +285,9 @@ void NEB::run()
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
   
-<<<<<<< HEAD
-  timer->barrier_start(Timer::LOOP);
-=======
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
 
->>>>>>> master
   while (update->minimize->niter < n2steps) {
     update->minimize->run(nevery);
     print_status();

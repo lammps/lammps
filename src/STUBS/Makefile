@@ -15,8 +15,8 @@ OBJ = 		$(SRC:.c=.o)
 
 # System-specific settings
 
-CC =		g++
-CCFLAGS =	-O
+CC =		cc
+CCFLAGS =	-O # -fPIC
 ARCHIVE =	ar
 ARCHFLAG =	rs
 
@@ -32,7 +32,7 @@ clean:
 
 # Compilation rules
 
-.cpp.o:
+.c.o:
 	$(CC) $(CCFLAGS) -c $<
 
 # Individual dependencies

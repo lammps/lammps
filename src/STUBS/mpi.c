@@ -20,20 +20,13 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-/* lo-level function prototypes */
-
-void mpi_copy_int(void *, void *, int);
-void mpi_copy_float(void *, void *, int);
-void mpi_copy_double(void *, void *, int);
-void mpi_copy_char(void *, void *, int);
-void mpi_copy_byte(void *, void *, int);
-
 /* lo-level data structure */
 
-struct {
+struct _mpi_double_int {
   double value;
   int proc;
-} double_int;
+};
+typedef struct _mpi_double_int double_int;
 
 /* ---------------------------------------------------------------------- */
 /* MPI Functions */

@@ -42,9 +42,10 @@ void Loadbalance::command(int narg, char **arg)
   if (narg < 1)
     error->all(FLERR,"Illegal loadbalance command, not enough arguments");
 
-  if (strcmp(arg[0],"off") == 0)
+  if (strcmp(arg[0],"off") == 0) {
+    if (domain->lbalance) delete domain->lbalance;
     domain->lbalance = NULL;
-  else {
+  } else {
     if (comm->nprocs == 1) {
       error->warning(FLERR,"Running in serial, loadbalance command has no effects");
       return;

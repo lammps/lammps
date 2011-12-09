@@ -10,6 +10,12 @@ Section"_Section_accelerate.html :c
 
 4. Packages :h3
 
+This section gives a quick overview of the add-on packages that extend
+LAMMPS functionality.
+
+4.1 "Standard packages"_#pkg_1
+4.2 "User packages"_#pkg_2 :all(b)
+
 LAMMPS includes many optional packages, which are groups of files that
 enable a specific set of features.  For example, force fields for
 molecular systems or granular systems are in packages.  You can see
@@ -24,9 +30,6 @@ between standard packages and user packages in LAMMPS.
 Below, the packages currently availabe in LAMMPS are listed.  For
 standard packages, just a one-line description is given.  For user
 packages, more details are provided.
-
-4.1 "Standard packages"_#pkg_1
-4.2 "User packages"_#pkg_2 :all(b)
 
 :line
 :line

@@ -11,6 +11,17 @@
 
 <H3>11. Python interface to LAMMPS 
 </H3>
+<P>This section describes how to build and use LAMMPS via a Python
+interface.
+</P>
+<UL><LI>11.1 <A HREF = "#py_1">Extending Python with a serial version of LAMMPS</A>
+<LI>11.2 <A HREF = "#py_2">Creating a shared MPI library</A>
+<LI>11.3 <A HREF = "#py_3">Extending Python with a parallel version of LAMMPS</A>
+<LI>11.4 <A HREF = "#py_4">Extending Python with MPI</A>
+<LI>11.5 <A HREF = "#py_5">Testing the Python-LAMMPS interface</A>
+<LI>11.6 <A HREF = "#py_6">Using LAMMPS from Python</A>
+<LI>11.7 <A HREF = "#py_7">Example Python scripts that use LAMMPS</A> 
+</UL>
 <P>The LAMMPS distribution includes some Python code in its python
 directory which wraps the library interface to LAMMPS.  This makes it
 is possible to run LAMMPS, invoke LAMMPS commands or give it an input
@@ -89,14 +100,6 @@ setup discussion.  The next to last sub-section describes the Python
 syntax used to invoke LAMMPS.  The last sub-section describes example
 Python scripts included in the python directory.
 </P>
-<UL><LI>11.1 <A HREF = "#py_1">Extending Python with a serial version of LAMMPS</A>
-<LI>11.2 <A HREF = "#py_2">Creating a shared MPI library</A>
-<LI>11.3 <A HREF = "#py_3">Extending Python with a parallel version of LAMMPS</A>
-<LI>11.4 <A HREF = "#py_4">Extending Python with MPI</A>
-<LI>11.5 <A HREF = "#py_5">Testing the Python-LAMMPS interface</A>
-<LI>11.6 <A HREF = "#py_6">Using LAMMPS from Python</A>
-<LI>11.7 <A HREF = "#py_7">Example Python scripts that use LAMMPS</A> 
-</UL>
 <P>Before proceeding, there are 2 items to note.
 </P>
 <P>(1) The provided Python wrapper for LAMMPS uses the amazing and

@@ -13,6 +13,24 @@ Section</A>
 
 <H3>10. Modifying & extending LAMMPS 
 </H3>
+<P>This section describes how to customize LAMMPS by modifying
+and extending its source code.
+</P>
+10.1 <A HREF = "#mod_1">Atom styles</A><BR>
+10.2 <A HREF = "#mod_2">Bond, angle, dihedral, improper potentials</A><BR>
+10.3 <A HREF = "#mod_3">Compute styles</A><BR>
+10.4 <A HREF = "#mod_4">Dump styles</A><BR>
+10.5 <A HREF = "#mod_5">Dump custom output options</A><BR>
+10.6 <A HREF = "#mod_6">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc<BR>
+10.7 <A HREF = "mod_7">Input script commands</A><BR>
+10.8 <A HREF = "#mod_8">Kspace computations</A><BR>
+10.9 <A HREF = "#mod_9">Minimization styles</A><BR>
+10.10 <A HREF = "#mod_10">Pairwise potentials</A><BR>
+10.11 <A HREF = "#mod_11">Region styles</A><BR>
+10.12 <A HREF = "#mod_12">Thermodynamic output options</A><BR>
+10.13 <A HREF = "#mod_13">Variable options</A><BR>
+10.14 <A HREF = "#mod_14">Submitting new features for inclusion in LAMMPS</A> <BR>
+
 <P>LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
 is files added in this fashion.
@@ -92,8 +110,6 @@ you can optionally define.
 thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
 below.
 </P>
-<HR>
-
 <P>Here are additional guidelines for modifying LAMMPS and adding new
 functionality:
 </P>
@@ -114,28 +130,8 @@ command.
 LAMMPS performance when it isn't used, send an email to the
 <A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  We might be
 interested in adding it to the LAMMPS distribution.  See further
-details on this at the bottom of this page.  
+details on this at the bottom of this page. 
 </UL>
-<HR>
-
-<P>Here are the subsequent topics discussed below, most of which are new
-features that can be added in the manner just described:
-</P>
-10.1 <A HREF = "#mod_1">Atom styles</A><BR>
-10.2 <A HREF = "#mod_2">Bond, angle, dihedral, improper potentials</A><BR>
-10.3 <A HREF = "#mod_3">Compute styles</A><BR>
-10.4 <A HREF = "#mod_4">Dump styles</A><BR>
-10.5 <A HREF = "#mod_5">Dump custom output options</A><BR>
-10.6 <A HREF = "#mod_6">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc<BR>
-10.7 <A HREF = "mod_7">Input script commands</A><BR>
-10.8 <A HREF = "#mod_8">Kspace computations</A><BR>
-10.9 <A HREF = "#mod_9">Minimization styles</A><BR>
-10.10 <A HREF = "#mod_10">Pairwise potentials</A><BR>
-10.11 <A HREF = "#mod_11">Region styles</A><BR>
-10.12 <A HREF = "#mod_12">Thermodynamic output options</A><BR>
-10.13 <A HREF = "#mod_13">Variable options</A><BR>
-10.14 <A HREF = "#mod_14">Submitting new features for inclusion in LAMMPS</A> <BR>
-
 <HR>
 
 <HR>

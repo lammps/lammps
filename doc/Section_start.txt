@@ -21,6 +21,7 @@ experienced users.
 2.8 "Tips for users of previous versions"_#start_8 :all(b)
 
 :line
+:line
 
 2.1 What's in the LAMMPS distribution :h4,link(start_1)
 

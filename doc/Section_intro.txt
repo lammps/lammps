@@ -8,10 +8,10 @@
 
 1. Introduction :h3
 
-These sections provide an overview of what LAMMPS can and can't do,
-describe what it means for LAMMPS to be an open-source code, and
-acknowledge the funding and people who have contributed to LAMMPS over
-the years.
+This section provides an overview of what LAMMPS can and can't do,
+describes what it means for LAMMPS to be an open-source code, and
+acknowledges the funding and people who have contributed to LAMMPS
+over the years.
 
 1.1 "What is LAMMPS"_#intro_1
 1.2 "LAMMPS features"_#intro_2
@@ -19,6 +19,7 @@ the years.
 1.4 "Open source distribution"_#intro_4
 1.5 "Acknowledgments and citations"_#intro_5 :all(b)
 
+:line
 :line
 
 1.1 What is LAMMPS :link(intro_1),h4

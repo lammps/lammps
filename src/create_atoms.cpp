@@ -63,7 +63,8 @@ void CreateAtoms::command(int narg, char **arg)
     style = REGION;
     if (narg < 3) error->all(FLERR,"Illegal create_atoms command");
     nregion = domain->find_region(arg[2]);
-    if (nregion == -1) error->all(FLERR,"Create_atoms region ID does not exist");
+    if (nregion == -1) error->all(FLERR,
+				  "Create_atoms region ID does not exist");
     iarg = 3;;
   } else if (strcmp(arg[1],"single") == 0) {
     style = SINGLE;
@@ -80,7 +81,8 @@ void CreateAtoms::command(int narg, char **arg)
     if (strcmp(arg[4],"NULL") == 0) nregion = -1;
     else {
       nregion = domain->find_region(arg[4]);
-      if (nregion == -1) error->all(FLERR,"Create_atoms region ID does not exist");
+      if (nregion == -1) error->all(FLERR,
+				    "Create_atoms region ID does not exist");
     }
     iarg = 5;
   } else error->all(FLERR,"Illegal create_atoms command");

@@ -535,6 +535,20 @@ KSpace *Force::new_kspace(int narg, char **arg, const char *suffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
+   return ptr to Kspace class if matches word
+   if exact, then style name must be exact match to word
+   if not exact, style name must contain word
+   return NULL if no match
+------------------------------------------------------------------------- */
+
+KSpace *Force::kspace_match(const char *word, int exact)
+{
+  if (exact && strcmp(kspace_style,word) == 0) return kspace;
+  else if (!exact && strstr(kspace_style,word)) return kspace;
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    set special bond values 
 ------------------------------------------------------------------------- */
 
@@ -627,7 +641,7 @@ void Force::set_special(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterik
-   nmax = upper bound
+   1 = lower bound, nmax = upper bound
    5 possibilities:
      (1) i = i to i, (2) * = 1 to nmax,
      (3) i* = i to nmax, (4) *j = 1 to j, (5) i*j = i to j
@@ -639,21 +653,22 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
   char *ptr = strchr(str,'*');
 
   if (ptr == NULL) {
-    nlo = MAX(atoi(str),1);
-    nhi = MIN(atoi(str),nmax);
+    nlo = nhi = atoi(str);
   } else if (strlen(str) == 1) {
     nlo = 1;
     nhi = nmax;
   } else if (ptr == str) {
     nlo = 1;
-    nhi = MIN(atoi(ptr+1),nmax);
+    nhi = atoi(ptr+1);
   } else if (strlen(ptr+1) == 0) {
-    nlo = MAX(atoi(str),1);
+    nlo = atoi(str);
     nhi = nmax;
   } else {
-    nlo = MAX(atoi(str),1);
-    nhi = MIN(atoi(ptr+1),nmax);
+    nlo = atoi(str);
+    nhi = atoi(ptr+1);
   }
+
+  if (nlo < 1 || nhi > nmax) error->all(FLERR,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------

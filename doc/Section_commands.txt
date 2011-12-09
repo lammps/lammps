@@ -361,6 +361,7 @@ in the command's documentation.
 "pair_modify"_pair_modify.html,
 "pair_style"_pair_style.html,
 "pair_write"_pair_write.html,
+"partition"_partition.html,
 "prd"_prd.html,
 "print"_print.html,
 "processors"_processors.html,

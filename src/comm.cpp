@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "comm.h"
+#include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -68,6 +69,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostmulti = NULL;
   cutghostuser = 0.0;
   ghost_velocity = 0;
+  recv_from_partition = send_to_partition = -1;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -127,12 +129,68 @@ Comm::~Comm()
 }
 
 /* ----------------------------------------------------------------------
+   set dimensions of processor grid
+   invoked from input script by processors command
+------------------------------------------------------------------------- */
+
+void Comm::set_processors(int narg, char **arg)
+{
+  if (narg < 3) error->all(FLERR,"Illegal processors command");
+
+  if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
+  else user_procgrid[0] = atoi(arg[0]);
+  if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
+  else user_procgrid[1] = atoi(arg[1]);
+  if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
+  else user_procgrid[2] = atoi(arg[2]);
+
+  if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0) 
+    error->all(FLERR,"Illegal processors command");
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"part") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal processors command");
+      if (universe->nworlds == 1)
+	error->all(FLERR,
+		   "Cannot use processors part command "
+		   "without using partitions");
+      int isend = atoi(arg[iarg+1]);
+      int irecv = atoi(arg[iarg+2]);
+      if (isend < 1 || isend > universe->nworlds ||
+	  irecv < 1 || irecv > universe->nworlds || isend == irecv)
+	error->all(FLERR,"Invalid partition in processors part command");
+      if (isend-1 == universe->iworld) send_to_partition = irecv-1;
+      if (irecv-1 == universe->iworld) recv_from_partition = isend-1;
+      if (strcmp(arg[iarg+3],"multiple") == 0) {
+	if (universe->iworld == irecv-1) other_partition_style = 0;
+      } else error->all(FLERR,"Illegal processors command");
+      iarg += 4;
+    } else error->all(FLERR,"Illegal processors command");
+  }
+}
+
+/* ----------------------------------------------------------------------
    setup 3d grid of procs based on box size
 ------------------------------------------------------------------------- */
 
-void Comm::set_procs()
+void Comm::set_proc_grid()
 {
+  // recv proc layout of another partition if my layout depends on it
+
+  if (recv_from_partition >= 0) {
+    MPI_Status status;
+    if (me == 0) MPI_Recv(other_procgrid,3,MPI_INT,
+			  universe->root_proc[recv_from_partition],0,
+			  universe->uworld,&status);
+    MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
+  }
+
+  // create layout of procs mapped to simulation box
+
   procs2box();
+
+  // error check
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all(FLERR,"Bad grid of processors");
@@ -178,6 +236,14 @@ void Comm::set_procs()
 			procgrid[0],procgrid[1],procgrid[2]);
     if (logfile) fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
 			 procgrid[0],procgrid[1],procgrid[2]);
+  }
+
+  // send my proc layout to another partition if requested
+
+  if (send_to_partition >= 0) {
+    if (me == 0) MPI_Send(procgrid,3,MPI_INT,
+			  universe->root_proc[send_to_partition],0,
+			  universe->uworld);
   }
 }
 
@@ -1149,8 +1215,12 @@ void Comm::procs2box()
   double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
 
   // loop thru all possible factorizations of nprocs
-  // only consider valid cases that match procgrid settings
+  // choose factorization with least surface area
   // surf = surface area of a proc sub-domain
+  // only consider factorizations that match procgrid & other_procgrid settings
+  // if set, only consider factorizations that match other_procgrid settings
+
+  procgrid[0] = procgrid[1] = procgrid[2] = 0;
 
   int ipx,ipy,ipz,valid;
   double surf;
@@ -1159,6 +1229,9 @@ void Comm::procs2box()
   while (ipx <= nprocs) {
     valid = 1;
     if (user_procgrid[0] && ipx != user_procgrid[0]) valid = 0;
+    if (other_procgrid[0]) {
+      if (other_partition_style == 0 && other_procgrid[0] % ipx) valid = 0;
+    }
     if (nprocs % ipx) valid = 0;
     if (!valid) {
       ipx++;
@@ -1169,6 +1242,9 @@ void Comm::procs2box()
     while (ipy <= nprocs/ipx) {
       valid = 1;
       if (user_procgrid[1] && ipy != user_procgrid[1]) valid = 0;
+      if (other_procgrid[1]) {
+	if (other_partition_style == 0 && other_procgrid[1] % ipy) valid = 0;
+      }
       if ((nprocs/ipx) % ipy) valid = 0;
       if (!valid) {
 	ipy++;
@@ -1178,6 +1254,9 @@ void Comm::procs2box()
       ipz = nprocs/ipx/ipy;
       valid = 1;
       if (user_procgrid[2] && ipz != user_procgrid[2]) valid = 0;
+      if (other_procgrid[2]) {
+	if (other_partition_style == 0 && other_procgrid[2] % ipz) valid = 0;
+      }
       if (domain->dimension == 2 && ipz != 1) valid = 0;
       if (!valid) {
 	ipy++;
@@ -1196,6 +1275,8 @@ void Comm::procs2box()
 
     ipx++;
   }
+
+  if (procgrid[0] == 0) error->one(FLERR,"Could not layout grid of processors");
 }
 
 /* ----------------------------------------------------------------------

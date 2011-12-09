@@ -418,6 +418,7 @@ int Input::execute_command()
   else if (!strcmp(command,"label")) label();
   else if (!strcmp(command,"log")) log();
   else if (!strcmp(command,"next")) next_command();
+  else if (!strcmp(command,"partition")) partition();
   else if (!strcmp(command,"print")) print();
   else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
@@ -580,7 +581,7 @@ void Input::ifthenelse()
       ncommands++;
     }
     
-    for (int i = 0; i < ncommands; i++) input->one(commands[i]);
+    for (int i = 0; i < ncommands; i++) one(commands[i]);
     
     for (int i = 0; i < ncommands; i++) delete [] commands[i];
     delete [] commands;
@@ -636,7 +637,7 @@ void Input::ifthenelse()
     
     // execute the list of commands
     
-    for (int i = 0; i < ncommands; i++) input->one(commands[i]);
+    for (int i = 0; i < ncommands; i++) one(commands[i]);
     
     // clean up
 
@@ -738,6 +739,40 @@ void Input::log()
 void Input::next_command()
 {
   if (variable->next(narg,arg)) jump_skip = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::partition()
+{
+  if (narg < 3) error->all(FLERR,"Illegal partition command");
+
+  int yesflag;
+  if (strcmp(arg[0],"yes") == 0) yesflag = 1;
+  else if (strcmp(arg[0],"no") == 0) yesflag = 0;
+  else error->all(FLERR,"Illegal partition command");
+
+  int ilo,ihi;
+  force->bounds(arg[1],universe->nworlds,ilo,ihi);
+
+  // copy original line to copy, since will use strtok() on it
+  // ptr = start of 4th word
+
+  strcpy(copy,line);
+  copy[strlen(copy)-1] = '\0';
+  char *ptr = strtok(copy," \t\n\r\f");
+  ptr = strtok(NULL," \t\n\r\f");
+  ptr = strtok(NULL," \t\n\r\f");
+  ptr += strlen(ptr) + 1;
+  ptr += strspn(ptr," \t\n\r\f");
+
+  // execute the remaining command line on requested partitions
+
+  if (yesflag) {
+    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(ptr);
+  } else {
+    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1204,19 +1239,9 @@ void Input::pair_write()
 
 void Input::processors()
 {
-  if (narg != 3) error->all(FLERR,"Illegal processors command");
   if (domain->box_exist)
     error->all(FLERR,"Processors command after simulation box is defined");
-
-  if (strcmp(arg[0],"*") == 0) comm->user_procgrid[0] = 0;
-  else comm->user_procgrid[0] = atoi(arg[0]);
-  if (strcmp(arg[1],"*") == 0) comm->user_procgrid[1] = 0;
-  else comm->user_procgrid[1] = atoi(arg[1]);
-  if (strcmp(arg[2],"*") == 0) comm->user_procgrid[2] = 0;
-  else comm->user_procgrid[2] = atoi(arg[2]);
-
-  if (comm->user_procgrid[0] < 0 || comm->user_procgrid[1] < 0 ||
-      comm->user_procgrid[2] < 0) error->all(FLERR,"Illegal processors command");
+  comm->set_processors(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

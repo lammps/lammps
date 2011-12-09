@@ -183,6 +183,9 @@ This command cannot be used after the simulation box is defined by a
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 
+The {numa} keyword cannot be used with the {part} keyword, or
+with any {grid} setting other than {cart}.
+
 [Related commands:] none
 
 [Default:]

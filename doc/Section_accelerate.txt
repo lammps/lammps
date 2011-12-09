@@ -8,7 +8,17 @@ Section"_Section_howto.html :c
 
 :line
 
-5. Using accelerated CPU and GPU styles :h3
+5. Accelerating LAMMPS performance :h3
+
+This section describes various methods for improving LAMMPS
+performance for different classes of problems running
+on different kinds of machines.
+
+5.1 "OPT package"_#acc_1
+5.2 "USER-OMP package"_#acc_2
+5.3 "GPU package"_#acc_3
+5.4 "USER-CUDA package"_#acc_4
+5.5 "Comparison of GPU and USER-CUDA packages"_#acc_5 :all(b)
 
 Accelerated versions of various "pair_style"_pair_style.html,
 "fixes"_fix.html, "computes"_compute.html, and other commands have
@@ -70,12 +80,6 @@ speed-ups you can expect :ul
 
 The final section compares and contrasts the GPU and USER-CUDA
 packages, since they are both designed to use NVIDIA GPU hardware.
-
-5.1 "OPT package"_#acc_1
-5.2 "USER-OMP package"_#acc_2
-5.3 "GPU package"_#acc_3
-5.4 "USER-CUDA package"_#acc_4
-5.5 "Comparison of GPU and USER-CUDA packages"_#acc_5 :all(b)
 
 :line
 :line

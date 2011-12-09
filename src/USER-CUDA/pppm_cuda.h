@@ -46,6 +46,7 @@ class PPPMCuda : public PPPM {
   void timing(int, double &, double &);
 
   double poissontime;
+
  protected:
   class Cuda *cuda;
   class FFT3dCuda *fft1c,*fft2c;
@@ -105,7 +106,7 @@ class PPPMCuda : public PPPM {
   int global_flag;
   dev_array* adev_data_array;
   char precisionmodify;
-  
+  double qqrd2e;
 };
 
 }

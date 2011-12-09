@@ -10,6 +10,26 @@ Section"_Section_python.html :c
 
 10. Modifying & extending LAMMPS :h3
 
+This section describes how to customize LAMMPS by modifying
+and extending its source code.
+
+10.1 "Atom styles"_#mod_1
+10.2 "Bond, angle, dihedral, improper potentials"_#mod_2
+10.3 "Compute styles"_#mod_3
+10.4 "Dump styles"_#mod_4
+10.5 "Dump custom output options"_#mod_5
+10.6 "Fix styles"_#mod_6 which include integrators, \
+     temperature and pressure control, force constraints, \
+     boundary conditions, diagnostic output, etc
+10.7 "Input script commands"_mod_7
+10.8 "Kspace computations"_#mod_8
+10.9 "Minimization styles"_#mod_9
+10.10 "Pairwise potentials"_#mod_10
+10.11 "Region styles"_#mod_11
+10.12 "Thermodynamic output options"_#mod_12
+10.13 "Variable options"_#mod_13
+10.14 "Submitting new features for inclusion in LAMMPS"_#mod_14 :all(b)
+
 LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
 is files added in this fashion.
@@ -89,8 +109,6 @@ Additionally, new output options can be added directly to the
 thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
 below.
 
-:line
-
 Here are additional guidelines for modifying LAMMPS and adding new
 functionality:
 
@@ -111,29 +129,7 @@ If you add something you think is truly useful and doesn't impact
 LAMMPS performance when it isn't used, send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.  We might be
 interested in adding it to the LAMMPS distribution.  See further
-details on this at the bottom of this page.  :l,ule
-
-:line
-
-Here are the subsequent topics discussed below, most of which are new
-features that can be added in the manner just described:
-
-10.1 "Atom styles"_#mod_1
-10.2 "Bond, angle, dihedral, improper potentials"_#mod_2
-10.3 "Compute styles"_#mod_3
-10.4 "Dump styles"_#mod_4
-10.5 "Dump custom output options"_#mod_5
-10.6 "Fix styles"_#mod_6 which include integrators, \
-     temperature and pressure control, force constraints, \
-     boundary conditions, diagnostic output, etc
-10.7 "Input script commands"_mod_7
-10.8 "Kspace computations"_#mod_8
-10.9 "Minimization styles"_#mod_9
-10.10 "Pairwise potentials"_#mod_10
-10.11 "Region styles"_#mod_11
-10.12 "Thermodynamic output options"_#mod_12
-10.13 "Variable options"_#mod_13
-10.14 "Submitting new features for inclusion in LAMMPS"_#mod_14 :all(b)
+details on this at the bottom of this page. :l,ule
 
 :line
 :line

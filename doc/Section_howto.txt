@@ -8,8 +8,7 @@
 
 6. How-to discussions :h3
 
-The following sections describe how to use various options within
-LAMMPS.
+This section describes how to perform common tasks using LAMMPS.
 
 6.1 "Restarting a simulation"_#howto_1
 6.2 "2d simulations"_#howto_2
@@ -37,6 +36,7 @@ The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
 setup and run various kinds of simulations.
 
+:line
 :line
 
 6.1 Restarting a simulation :link(howto_1),h4

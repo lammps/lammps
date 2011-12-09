@@ -10,13 +10,14 @@ Section"_Manual.html :c
 
 13. Future and history :h3
 
-This section lists features we are planning to add to LAMMPS, features
-of previous versions of LAMMPS, and features of other parallel
-molecular dynamics codes I've distributed.
+This section lists features we plan to add to LAMMPS, features of
+previous versions of LAMMPS, and features of other parallel molecular
+dynamics codes our group has distributed.
 
 13.1 "Coming attractions"_#hist_1
 13.2 "Past versions"_#hist_2 :all(b)
 
+:line
 :line
 
 13.1 Coming attractions :h4,link(hist_1)

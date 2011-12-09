@@ -261,8 +261,11 @@ void PRD::command(int narg, char **arg)
   quench();
   ncoincident = 0;
   share_event(0,0);
+
+  timer->init();
   timer->barrier_start(Timer::LOOP);
   time_start = timer->get_wall(Timer::LOOP);
+
   log_event();
 
   // do full init/setup since are starting all replicas after event
@@ -342,7 +345,12 @@ void PRD::command(int narg, char **arg)
     lmp->init();
     update->integrate->setup();
 
+<<<<<<< HEAD
     timer->barrier_start(Timer::LOOP);
+=======
+    timer->barrier_start(TIME_LOOP);
+
+>>>>>>> master
     if (t_corr > 0) replicate(ireplica);
     if (temp_flag == 0) {
       if (ireplica == universe->iworld)
@@ -350,8 +358,14 @@ void PRD::command(int narg, char **arg)
       MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[ireplica],
         	      universe->uworld);
     }
+<<<<<<< HEAD
     timer->barrier_stop(Timer::LOOP);
     time_comm += timer->get_wall(Timer::LOOP);
+=======
+
+    timer->barrier_stop(TIME_LOOP);
+    time_comm += timer->array[TIME_LOOP];
+>>>>>>> master
     
     // write restart file of hot coords
 

@@ -545,7 +545,7 @@ void Min::force_clear()
 
   size_t nbytes = sizeof(double) * nall;
 
-  if (nbytes > 0) {
+  if (nbytes) {
     memset(&(atom->f[0][0]),0,3*nbytes);
     if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
     if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);

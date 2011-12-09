@@ -8,8 +8,8 @@
 
 3. Commands :h3
 
-This section describes how a LAMMPS input script is formatted and what
-commands are used to define a LAMMPS simulation.
+This section describes how a LAMMPS input script is formatted and the
+input script commands used to define a LAMMPS simulation.
 
 3.1 "LAMMPS input script"_#cmd_1
 3.2 "Parsing rules"_#cmd_2
@@ -17,6 +17,7 @@ commands are used to define a LAMMPS simulation.
 3.4 "Commands listed by category"_#cmd_4
 3.5 "Commands listed alphabetically"_#cmd_5 :all(b)
 
+:line
 :line
 
 3.1 LAMMPS input script :link(cmd_1),h4

@@ -51,7 +51,7 @@ int MPI_Initialized(int *flag)
 
 /* ---------------------------------------------------------------------- */
 
-/* Returns "localhost" as the name of the processor */
+/* return "localhost" as name of the processor */
 
 void MPI_Get_processor_name(char *name, int *resultlen)
 {

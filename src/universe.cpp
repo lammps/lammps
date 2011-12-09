@@ -29,7 +29,7 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
   version = (char *) LAMMPS_VERSION;
 
-  uworld = communicator;
+  uworld = original = communicator;
   MPI_Comm_rank(uworld,&me);
   MPI_Comm_size(uworld,&nprocs);
 
@@ -40,14 +40,37 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
   nworlds = 0;
   procs_per_world = NULL;
   root_proc = NULL;
+
+  memory->create(proc2original,nprocs,"universe:proc2original");
+  for (int i = 0; i < nprocs; i++) proc2original[i] = i;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Universe::~Universe()
 {
+  if (uworld != original) MPI_Comm_free(&uworld);
   memory->destroy(procs_per_world);
   memory->destroy(root_proc);
+  memory->destroy(proc2original);
+}
+
+/* ----------------------------------------------------------------------
+   placeholder routine, not yet operational
+   permute the mapping of universe procs in uworld to procs in original
+------------------------------------------------------------------------- */
+
+void Universe::reorder(int key)
+{
+  if (uworld != original) MPI_Comm_free(&uworld);
+
+  MPI_Comm_split(original,0,key,&uworld);
+  MPI_Comm_rank(uworld,&me);
+  MPI_Comm_size(uworld,&nprocs);
+
+  int ome;
+  MPI_Comm_rank(original,&ome);
+  MPI_Allgather(&ome,1,MPI_INT,proc2original,1,MPI_INT,uworld);
 }
 
 /* ----------------------------------------------------------------------

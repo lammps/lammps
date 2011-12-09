@@ -29,36 +29,29 @@ See the README file in the top-level LAMMPS directory.
 #include "neighbor.h"
 #include "string.h"
 
-#define BIG   1.0e20
-#define SMALL 1.0e-4
-#define DELTA 1
-#define FABS(a) ((a) > 0 ? (a) : (-a))
-
 namespace LAMMPS_NS {
 
 class Lbalance : protected Pointers {
 
-   public:
-    Lbalance(class LAMMPS *lmp, int narg, char **arg): Pointers(lmp)
-    {
-        int n = strlen(arg[0]) + 1;
-        style = new char[n];
-        strcpy(style,arg[0]);
-        iarg = 1;
-    }
+ public:
+  Lbalance(class LAMMPS *lmp, int narg, char **arg): Pointers(lmp) {
+    int n = strlen(arg[0]) + 1;
+    style = new char[n];
+    strcpy(style,arg[0]);
+    iarg = 1;
+  }
 
-    virtual ~Lbalance()
-    {
-        delete []style;
-    }
+  virtual ~Lbalance() {
+    delete[] style;
+  }
 
-    virtual void loadbalance_local_boxes()=0;
+  virtual void loadbalance_local_boxes()=0;
 
-    double cutneighmax() {return neighbor->cutneighmax;}
+  double cutneighmax() {return neighbor->cutneighmax;}
 
-   protected:
-    int iarg;
-    char *style;
+ protected:
+  int iarg;
+  char *style;
 };
 }
 

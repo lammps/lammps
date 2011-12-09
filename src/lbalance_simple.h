@@ -51,31 +51,31 @@ namespace LAMMPS_NS {
 
 class LbalanceSimple : public Lbalance {
 
-   public:
-    LbalanceSimple(class LAMMPS *lmp, int narg, char **arg);
-    ~LbalanceSimple();
+ public:
+  LbalanceSimple(class LAMMPS *lmp, int narg, char **arg);
+  ~LbalanceSimple();
 
-   protected:
-    virtual void loadbalance_local_boxes();
+ protected:
+  virtual void loadbalance_local_boxes();
 
-    void loadbalance_local_boxes_simple();
+  void loadbalance_local_boxes_simple();
 
-    void calc_max_shift(int ,int);
-    int count_particles(int,double);
-    double calc_border(int,int,int,double *,int *);
-    void apply_border(double *bal_sublo, double *bal_subhi,int idim,int idim_proc);
+  void calc_max_shift(int ,int);
+  int count_particles(int,double);
+  double calc_border(int,int,int,double *,int *);
+  void apply_border(double *, double *,int,int);
 
-    int ntry_simple;
-    int lodim[3],hidim[3]; //NP proc stencil
+  int ntry_simple;
+  int lodim[3],hidim[3]; //NP proc stencil
 
-    int *myloc;
-    int *procgrid;
-    double boxhi_stencil[3];
-    double *boxhi,*boxlo;
-    double *subhi,*sublo;
+  int *myloc;
+  int *procgrid;
+  double boxhi_stencil[3];
+  double *boxhi,*boxlo;
+  double *subhi,*sublo;
 
-    double minextent;
-    double max_shift[2]; //0 is for lowering the border, 1 for raising it
+  double minextent;
+  double max_shift[2]; //0 is for lowering the border, 1 for raising it
 };
 }
 

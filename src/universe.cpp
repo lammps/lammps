@@ -17,9 +17,12 @@
 #include "stdio.h"
 #include "universe.h"
 #include "version.h"
+#include "error.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
+
+#define MAXLINE 256
 
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
@@ -29,7 +32,7 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
   version = (char *) LAMMPS_VERSION;
 
-  uworld = original = communicator;
+  uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);
   MPI_Comm_size(uworld,&nprocs);
 
@@ -41,36 +44,83 @@ Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
   procs_per_world = NULL;
   root_proc = NULL;
 
-  memory->create(proc2original,nprocs,"universe:proc2original");
-  for (int i = 0; i < nprocs; i++) proc2original[i] = i;
+  memory->create(uni2orig,nprocs,"universe:uni2orig");
+  for (int i = 0; i < nprocs; i++) uni2orig[i] = i;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Universe::~Universe()
 {
-  if (uworld != original) MPI_Comm_free(&uworld);
+  if (uworld != uorig) MPI_Comm_free(&uworld);
   memory->destroy(procs_per_world);
   memory->destroy(root_proc);
-  memory->destroy(proc2original);
+  memory->destroy(uni2orig);
 }
 
 /* ----------------------------------------------------------------------
-   placeholder routine, not yet operational
-   permute the mapping of universe procs in uworld to procs in original
+   reorder universe processors based on custom file
+   file has nprocs lines with I J
+   I = universe proc ID in original communicator uorig
+   J = universe proc ID in reordered communicator uworld
+   create uni2orig as inverse mapping
+   re-create uworld communicator with new ordering via Comm_split()
 ------------------------------------------------------------------------- */
 
-void Universe::reorder(int key)
+void Universe::reorder(char *file)
 {
-  if (uworld != original) MPI_Comm_free(&uworld);
+  char line[MAXLINE];
 
-  MPI_Comm_split(original,0,key,&uworld);
+  if (uworld != uorig) MPI_Comm_free(&uworld);
+
+  if (me == 0) {
+    FILE *fp = fopen(file,"r");
+    if (fp == NULL) error->universe_one(FLERR,"Cannot open -reorder file");
+
+    // skip header = blank and comment lines
+
+    char *ptr;
+    if (!fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Unexpected end of -reorder file");
+    while (1) {
+      if (ptr = strchr(line,'#')) *ptr = '\0';
+      if (strspn(line," \t\n\r") != strlen(line)) break;
+      if (!fgets(line,MAXLINE,fp))
+	error->one(FLERR,"Unexpected end of -reorder file");
+    }
+
+    // read nprocs lines
+    // uni2orig = inverse mapping
+
+    int me_orig,me_new;
+    sscanf(line,"%d %d",&me_orig,&me_new);
+    if (me_orig < 0 || me_orig >= nprocs ||
+	me_new < 0 || me_new >= nprocs)
+      error->one(FLERR,"Invalid entry in reorder file");
+    uni2orig[me_new] = me_orig;
+
+    for (int i = 1; i < nprocs; i++) {
+      if (!fgets(line,MAXLINE,fp))
+	error->one(FLERR,"Unexpected end of reorder file");
+      sscanf(line,"%ld %ld",&me_orig,&me_new);
+      if (me_orig < 0 || me_orig >= nprocs ||
+	  me_new < 0 || me_new >= nprocs)
+	error->one(FLERR,"Invalid entry in reorder file");
+      uni2orig[me_new] = me_orig;
+    }
+    fclose(fp);
+  }
+
+  MPI_Bcast(uni2orig,nprocs,MPI_INT,0,uorig);
+
+  int ome,key;
+  MPI_Comm_rank(uorig,&ome);
+  for (int i = 0; i < nprocs; i++)
+    if (uni2orig[i] == ome) key = i;
+
+  MPI_Comm_split(uorig,0,key,&uworld);
   MPI_Comm_rank(uworld,&me);
   MPI_Comm_size(uworld,&nprocs);
-
-  int ome;
-  MPI_Comm_rank(original,&ome);
-  MPI_Allgather(&ome,1,MPI_INT,proc2original,1,MPI_INT,uworld);
 }
 
 /* ----------------------------------------------------------------------

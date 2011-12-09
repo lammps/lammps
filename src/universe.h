@@ -35,13 +35,13 @@ class Universe : protected Pointers {
   int *procs_per_world;   // # of procs in each world
   int *root_proc;         // root proc in each world
 
-  MPI_Comm original;      // original communicator passed to LAMMPS instance
-  int *proc2original;     // proc I in universe uworld is 
-                          // proc p2o[I] in original communicator
+  MPI_Comm uorig;         // original communicator passed to LAMMPS instance
+  int *uni2orig;          // proc I in universe uworld is 
+                          // proc uni2orig[I] in original communicator
 
   Universe(class LAMMPS *, MPI_Comm);
   ~Universe();
-  void reorder(int);
+  void reorder(char *);
   void add_world(char *);
   int consistent();
 };

@@ -1,0 +1,57 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+loadbalance command :h3
+
+[Syntax:]
+
+loadbalance style keywords :pre
+
+style = load balancing style 
+keywords = load balancing style specific flags :ul
+
+[Examples:]
+
+loadbalance nlocal/simple ntry 4
+loadbalance off :pre
+
+[Description:]
+
+Automatically adjust runtime parameters to try balancing
+the load between multiple MPI processors for improved
+overall performance. At the moment on a simple particle
+bases load balancing strategy is implemented.
+
+The {style} argument selects the algorithm and strategy
+that is used of automatic load balancing. The style {off}
+disables load balancing.
+
+The {nlocal/simple} style adjusts dimensions of individual
+sub-domains during domain decomposition to have an equal
+number of (local) atoms. This load balancing strategy 
+assumes that the computational effort on each processor
+will be approximately proportional to the number of atoms.
+The required {ntry} flag specifies how many iterations
+to redistribute the atoms are attempted. The higher this number,
+the faster the load balancer can react to changes in the 
+particle distribution, but also the more overhead through
+communication is caused.
+
+:line
+
+[Restrictions:]
+
+The {nlocal/simple} load balancing style cannot be used for
+systems with triclinic boxes or with calculations using the
+r-RESPA run style.
+
+[Related commands:]
+
+"processors"_processors.html, "run_style"_run_style.html
+
+[Default:] none

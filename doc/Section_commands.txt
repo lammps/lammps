@@ -347,6 +347,7 @@ in the command's documentation.
 "kspace_style"_kspace_style.html,
 "label"_label.html,
 "lattice"_lattice.html,
+"loadbalance"_loadbalance.html,
 "log"_log.html,
 "mass"_mass.html,
 "minimize"_minimize.html,

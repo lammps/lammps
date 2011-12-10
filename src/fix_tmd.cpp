@@ -46,7 +46,8 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 
   rho_stop = atof(arg[3]);
   nfileevery = atoi(arg[5]);
-  if (rho_stop < 0 || nfileevery < 0) error->all(FLERR,"Illegal fix tmd command");
+  if (rho_stop < 0 || nfileevery < 0) 
+    error->all(FLERR,"Illegal fix tmd command");
   if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");
 
   MPI_Comm_rank(world,&me);

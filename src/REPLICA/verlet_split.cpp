@@ -136,10 +136,18 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
       int m = 0;
       for (int i = 0; i < universe->nprocs/(ratio+1); i++) {
 	fprintf(universe->uscreen,"  block %d:",i);
-	int kspace_proc = bmapall[m++];
+	int kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->uscreen," %d",bmapall[m++]);
+	  fprintf(universe->uscreen," %d",bmapall[m+j]);
 	fprintf(universe->uscreen," %d\n",kspace_proc);
+	/*
+	kspace_proc = bmapall[m];
+	for (int j = 1; j <= ratio; j++)
+	  fprintf(universe->uscreen," %d",
+		  universe->proc2original[bmapall[m+j]]);
+	fprintf(universe->uscreen," %d\n",universe->proc2original[kspace_proc]);
+	*/
+	m += ratio + 1;
       }
     }
     if (universe->ulogfile) {

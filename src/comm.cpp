@@ -1201,8 +1201,9 @@ void Comm::reverse_comm_dump(Dump *dump)
    area = surface area of each of 3 faces of simulation box divided by sx,sy,sz
    for triclinic, area = cross product of 2 edge vectors stored in h matrix
    valid assignment will be factorization of numprocs = Px by Py by Pz
-   user_factors = if non-zero, factor is specified by user
+   user_factors = if non-zero, factors are specified by user
    sx,sy,sz = scale box xyz dimension vy dividing by sx,sy,sz
+   other = 1 to enforce compatability with other partition's layout
    return factors = # of procs assigned to each dimension
    return 1 if successully factor, 0 if not
 ------------------------------------------------------------------------- */
@@ -1553,6 +1554,16 @@ void Comm::set_processors(int narg, char **arg)
 
     } else error->all(FLERR,"Illegal processors command");
   }
+
+  // error check
+
+  if (numa_nodes) {
+    if (layoutflag != CART) 
+      error->all(FLERR,"Can only use processors numa "
+		 "with processors grid cart");
+    if (send_to_partition >= 0 || recv_from_partition >= 0) 
+      error->one(FLERR,"Cannot use processors numa with processors part");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1587,15 +1598,15 @@ int Comm::numa_set_proc_grid()
   int procs_per_node = name_map.begin()->second;
   int procs_per_numa = procs_per_node / numa_nodes;
   
-  // use regular mapping if any condition met
+  // use non-numa mapping if any condition met
   
   if (procs_per_numa < 4 ||               // less than 4 procs per numa node
-      procs_per_node % numa_nodes != 0 || // reserve usage for numa_node != 1
+      procs_per_node % numa_nodes != 0 || // no-op since numa_nodes = 1 for now
       nprocs % procs_per_numa != 0 ||     // total procs not a multiple of node
       nprocs <= procs_per_numa ||         // only 1 node used
-      user_procgrid[0] > 1 ||             // user specified grid dimension
-      user_procgrid[1] > 1 ||             //    that is greater than 1
-      user_procgrid[2] > 1) {             //    in any dimension
+      user_procgrid[0] > 1 ||             // user specified grid dimension < 1
+      user_procgrid[1] > 1 ||             //    in any dimension
+      user_procgrid[2] > 1) {
     if (me == 0) {
       if (screen) fprintf(screen,"  1 by 1 by 1 Node grid\n");
       if (logfile) fprintf(logfile,"  1 by 1 by 1 Node grid\n");
@@ -1617,17 +1628,13 @@ int Comm::numa_set_proc_grid()
   
   // get an initial factorization for each numa node,
   // if the user has not set the number of processors
-  // can fail (on one partition) if constrained by other_partition_style
 
   int numagrid[3];
-  int flag = procs2box(procs_per_numa,user_numagrid,numagrid,
-		       1,1,1,other_partition_style);
-  if (!flag) error->all(FLERR,"Could not layout grid of processors",1);
+  procs2box(procs_per_numa,user_numagrid,numagrid,1,1,1,0);
   if (numagrid[0] * numagrid[1] * numagrid[2] != procs_per_numa)
     error->all(FLERR,"Bad node grid of processors");
   
   // get a factorization for the grid of numa nodes
-  // should never fail
 
   int node_count = nprocs / procs_per_numa;
   procs2box(node_count,user_procgrid,procgrid,
@@ -1637,7 +1644,6 @@ int Comm::numa_set_proc_grid()
   
   // repeat the numa node factorization using the subdomain sizes
   // this will refine the factorization if the user specified the node layout
-  // should never fail
 
   procs2box(procs_per_numa,user_numagrid,numagrid,
 	    procgrid[0],procgrid[1],procgrid[2],0);
@@ -1675,7 +1681,7 @@ int Comm::numa_set_proc_grid()
   MPI_Comm_split(world,numa_rank,0,&numa_leaders);
   
   // use the MPI Cartesian routines to map the nodes to the grid
-  // could implement layoutflag as in non-NUMA case
+  // could implement layoutflag as in non-NUMA case?
 
   int reorder = 0;
   int periods[3];

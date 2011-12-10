@@ -147,6 +147,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       strcpy(suffix,arg[iarg+1]);
       suffix_enable = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"-reorder") == 0 || 
+	       strcmp(arg[iarg],"-r") == 0) {
+      if (iarg+2 > narg) 
+	error->universe_all(FLERR,"Invalid command-line argument");
+      if (universe->existflag)
+	error->universe_all(FLERR,"Cannot use -reorder after -partition");
+      universe->reorder(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"-help") == 0 || 
 	       strcmp(arg[iarg],"-h") == 0) {
       if (iarg+1 > narg) 
@@ -156,7 +164,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     } else error->universe_all(FLERR,"Invalid command-line argument");
   }
 
-  // if no partition command-line switch, universe is one world w/ all procs
+  // if no partition command-line switch, universe is one world with all procs
 
   if (universe->existflag == 0) universe->add_world(NULL);
 
@@ -211,8 +219,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     universe->ulogfile = NULL;
   }
 
-  // universe does not exist on its own, only a single world
-  // inherit settings from universe
+  // make universe and single world the same, since no partition switch
+  // world inherits settings from universe
   // set world screen, logfile, communicator, infile
   // open input script if from file
 
@@ -237,8 +245,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (logfile) fprintf(logfile,"LAMMPS (%s)\n",universe->version);
     }
 
-  // universe is one or more worlds
-  // split into separate communicators
+  // universe is one or more worlds, as setup by partition switch
+  // split universe communicator into separate world communicators
   // set world screen, logfile, communicator, infile
   // open input script
 

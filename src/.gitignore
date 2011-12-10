@@ -5,7 +5,6 @@ lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 lmp_*
 
-
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -337,6 +336,14 @@ pair_born_coul_long.cpp
 pair_born_coul_long.h
 pair_born_coul_long_omp.cpp
 pair_born_coul_long_omp.h
+pair_brownian.cpp
+pair_brownian.h
+pair_brownian_omp.cpp
+pair_brownian_omp.h
+pair_brownian_poly.cpp
+pair_brownian_poly.h
+pair_brownian_poly_omp.cpp
+pair_brownian_poly_omp.h
 pair_buck_coul_cut_omp.cpp
 pair_buck_coul_cut_omp.h
 pair_buck_omp.cpp
@@ -574,6 +581,14 @@ pair_lj96_cut_omp.cpp
 pair_lj96_cut_omp.h
 pair_lj96_cut_gpu.cpp
 pair_lj96_cut_gpu.h
+pair_lubricateU.cpp
+pair_lubricateU.h
+pair_lubricateU_poly.cpp
+pair_lubricateU_poly.h
+pair_lubricate_poly.cpp
+pair_lubricate_poly.h
+pair_lubricate_poly_omp.cpp
+pair_lubricate_poly_omp.h
 pair_lubricate.cpp
 pair_lubricate.h
 pair_lubricate_omp.cpp

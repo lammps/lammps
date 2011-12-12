@@ -745,5 +745,7 @@ thr_data.cpp
 thr_data.h
 thr_omp.cpp
 thr_omp.h
+verlet_split.cpp
+verlet_split.h
 xdr_compat.cpp
 xdr_compat.h

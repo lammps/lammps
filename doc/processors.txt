@@ -14,25 +14,29 @@ processors Px Py Pz keyword args ... :pre
 
 Px,Py,Pz = # of processors in each dimension of a 3d grid :ulb,l
 zero or more keyword/arg pairs may be appended :l
-keyword = {grid} or {numa} or {part} :l
+keyword = {grid} or {level2} or {level3} or {numa} or {part} or {file} :l
   {grid} arg = {cart} or {cart/reorder} or {xyz} or {xzy} or {yxz} or {yzx} or {zxy} or {zyx}
      cart = use MPI_Cart() methods to layout 3d grid of procs with reorder = 0
      cart/reorder = use MPI_Cart() methods to layout 3d grid of procs with reorder = 1
-     xyz,xzy,yxz,yzx,zxy,zyx = layout 3d grid of procs in IJK order, where I varies fastest, then J, and K slowest
+     xyz,xzy,yxz,yzx,zxy,zyx = layout 3d grid of procs in IJK order
   {numa} arg = none
   {part} args = Psend Precv cstyle
     Psend = partition # (1 to Np) which will send its processor layout
     Precv = partition # (1 to Np) which will recv the processor layout
     cstyle = {multiple}
-      {multiple} = Psend layout will be multiple of Precv layout in each dimension :pre
+      {multiple} = Psend layout will be multiple of Precv layout in each dimension
+  {file} arg = fname
+    fname = name of file to write processor mapping info to :pre
 :ule
 
 [Examples:]
 
+processors * * 5 
 processors 2 4 4
-processors * * 5
-processors * * * grid xyz
+processors 2 4 4 grid xyz
+processors * * 8 grid xyz
 processors * * * numa
+processors 4 8 16 custom myfile
 processors * * * part 1 2 multiple :pre
 
 [Description:]
@@ -42,57 +46,67 @@ simulation box.  This involves 2 steps.  First if there are P
 processors it means choosing a factorization P = Px by Py by Pz so
 that there are Px processors in the x dimension, and similarly for the
 y and z dimensions.  Second, the P processors (with MPI ranks 0 to
-P-1) are mapped to the logical grid so that each grid cell is a
-processor.  The arguments to this command control each of these 2
-steps.
+P-1) are mapped to the logical 3d grid.  The arguments to this command
+control each of these 2 steps.
 
 The Px, Py, Pz parameters affect the factorization.  Any of the 3
 parameters can be specified with an asterisk "*", which means LAMMPS
-will choose the number of processors in that dimension.  It will do
-this based on the size and shape of the global simulation box so as to
-minimize the surface-to-volume ratio of each processor's sub-domain.
+will choose the number of processors in that dimension of the grid.
+It will do this based on the size and shape of the global simulation
+box so as to minimize the surface-to-volume ratio of each processor's
+sub-domain.
 
 Since LAMMPS does not load-balance by changing the grid of 3d
-processors on-the-fly, this choosing explicit values for Px or Py or
-Pz can be used to override the LAMMPS default if it is known to be
-sub-optimal for a particular problem.  For example, a problem where
-the extent of atoms will change dramatically in a particular dimension
-over the course of the simulation.
+processors on-the-fly, choosing explicit values for Px or Py or Pz can
+be used to override the LAMMPS default if it is known to be
+sub-optimal for a particular problem.  E.g. a problem where the extent
+of atoms will change dramatically in a particular dimension over the
+course of the simulation.
 
 The product of Px, Py, Pz must equal P, the total # of processors
 LAMMPS is running on.  For a "2d simulation"_dimension.html, Pz must
-equal 1.  If multiple partitions are being used then P is the number
-of processors in this partition; see "this
-section"_Section_start.html#start_6 for an explanation of the
--partition command-line switch.
+equal 1.
 
 Note that if you run on a large, prime number of processors P, then a
 grid such as 1 x P x 1 will be required, which may incur extra
 communication costs due to the high surface area of each processor's
 sub-domain.
 
+Also note that if multiple partitions are being used then P is the
+number of processors in this partition; see "this
+section"_Section_start.html#start_6 for an explanation of the
+-partition command-line switch.  Also note that you can prefix the
+processors command with the "partition"_partition.html command to
+easily specify different Px,Py,Pz values for different partitions.
+
+You can use the "partition"_partition.html command to specify
+different processor grids for different partitions, e.g.
+
+partition yes 1 processors 4 4 4
+partition yes 2 processors 2 3 2 :pre
+
 :line
 
-The {grid} keyword affects how processor IDs are mapped to the 3d grid
-of processors.
+The {grid} keyword affects how the P processor IDs (from 0 to P-1) are
+mapped to the 3d grid of processors.
 
-The {cart} style uses the family of MPI Cartesian functions to do
-this, namely MPI_Cart_create(), MPI_Cart_get(), MPI_Cart_shift(), and
-MPI_Cart_rank().  It invokes the MPI_Cart_create() function with its
-reorder flag = 0, so that MPI is not free to reorder the processors.
+The {cart} style uses the family of MPI Cartesian functions to perform
+the mapping, namely MPI_Cart_create(), MPI_Cart_get(),
+MPI_Cart_shift(), and MPI_Cart_rank().  It invokes the
+MPI_Cart_create() function with its reorder flag = 0, so that MPI is
+not free to reorder the processors.
 
 The {cart/reorder} style does the same thing as the {cart} style
-except it sets the reorder flag to 1, so that MPI is free to reorder
+except it sets the reorder flag to 1, so that MPI can reorder
 processors if it desires.
 
 The {xyz}, {xzy}, {yxz}, {yzx}, {zxy}, and {zyx} styles are all
-similar.  If the style is IJK, then it explicitly maps the P
-processors to the grid so that the processor ID in the I direction
-varies fastest, the processor ID in the J direction varies next
-fastest, and the processor ID in the K direction varies slowest.  For
-example, if you select style {xyz} and you have a 2x2x2 grid of 8
-processors, the assignments of the 8 octants of the simulation domain
-will be:
+similar.  If the style is IJK, then it maps the P processors to the
+grid so that the processor ID in the I direction varies fastest, the
+processor ID in the J direction varies next fastest, and the processor
+ID in the K direction varies slowest.  For example, if you select
+style {xyz} and you have a 2x2x2 grid of 8 processors, the assignments
+of the 8 octants of the simulation domain will be:
 
 proc 0 = lo x, lo y, lo z octant
 proc 1 = hi x, lo y, lo z octant
@@ -107,21 +121,28 @@ Note that, in principle, an MPI implementation on a particular machine
 should be aware of both the machine's network topology and the
 specific subset of processors and nodes that were assigned to your
 simulation.  Thus its MPI_Cart calls can optimize the assignment of
-MPI processes to the 3d grid to minimize communication costs.  However
-in practice, few if any MPI implementations actually do this.  So it
-is likely that the {cart} and {cart/reorder} styles simply give the
-same result as one of the IJK styles.
+MPI processes to the 3d grid to minimize communication costs.  In
+practice, however, few if any MPI implementations actually do this.
+So it is likely that the {cart} and {cart/reorder} styles simply give
+the same result as one of the IJK styles.
 
 :line
 
 The {numa} keyword affects both the factorization of P into Px,Py,Pz
 and the mapping of processors to the 3d grid.
 
-It will perform a two-level factorization of the simulation box to
-minimize inter-node communication.  This can improve parallel
-efficiency by reducing network traffic.  When this keyword is set, the
-simulation box is first divided across nodes.  Then within each node,
-the subdomain is further divided between the cores of each node.
+It operates similar to the {level2} and {level3} keywords except that
+it tries to auto-detect the count and topology of the processors and
+cores within a node.  Currently, it does this in only 2 levels
+(assumes the proces/node = 1), but it may be extended in the future.
+
+It also uses a different algorithm (iterative) than the {level2}
+keyword for doing the two-level factorization of the simulation box
+into a 3d processor grid to minimize off-node communication.  Thus it
+may give a differnet or improved mapping of processors to the 3d grid.
+
+The numa setting will give an error if the number of MPI processes
+is not evenly divisible by the number of cores used per node.
 
 The numa setting will be ignored if (a) there are less than 4 cores
 per node, or (b) the number of MPI processes is not divisible by the
@@ -130,14 +151,16 @@ any of the Px or Py of Pz values is greater than 1.
 
 :line
 
-The {part} keyword can be useful when running in multi-partition mode,
-e.g. with the "run_style verlet/split"_run_style.html command.  It
-specifies a dependency bewteen a sending partition {Psend} and a
-receiving partition {Precv} which is enforced when each is setting up
-their own mapping of the partitions processors to the simulation box.
-Each of {Psend} and {Precv} must be integers from 1 to Np, where Np is
-the number of partitions you have defined via the "-partition
-command-line switch"__Section_start.html#start_6.
+The {part} keyword affects the factorization of P into Px,Py,Pz.
+
+It can be useful when running in multi-partition mode, e.g. with the
+"run_style verlet/split"_run_style.html command.  It specifies a
+dependency bewteen a sending partition {Psend} and a receiving
+partition {Precv} which is enforced when each is setting up their own
+mapping of their processors to the simulation box.  Each of {Psend}
+and {Precv} must be integers from 1 to Np, where Np is the number of
+partitions you have defined via the "-partition command-line
+switch"_Section_start.html#start_6.
 
 A "dependency" means that the sending partition will create its 3d
 logical grid as Px by Py by Pz and after it has done this, it will
@@ -158,14 +181,6 @@ processors, it could create a 4x2x10 grid, but it will not create a
 2x4x10 grid, since in the y-dimension, 6 is not an integer multiple of
 4.
 
-:line
-
-Note that you can use the "partition"_partition.html command to
-specify different processor grids for different partitions, e.g.
-
-partition yes 1 processors 4 4 4
-partition yes 2 processors 2 3 2 :pre
-
 IMPORTANT NOTE: If you use the "partition"_partition.html command to
 invoke different "processsors" commands on different partitions, and
 you also use the {part} keyword, then you must insure that both the
@@ -176,6 +191,39 @@ setup phase if this error has been made.
 
 :line
 
+The {out} keyword writes the mapping of the factorization of P
+processors and their mapping to the 3d grid to the specified file
+{fname}.  This is useful to check that you assigned physical
+processors in the manner you desired, which can be tricky to figure
+out, especially when running on multiple partitions or on a multicore
+machine or when the processor ranks were reordered by use of the
+"-reorder command-line switch"_Section_start.html#start_6 or due to
+use of MPI-specific launch options such as a config file.
+
+If you have multiple partitions you should insure that each one writes
+to a different file, e.g. using a "world-style variable"_variable.html
+for the filename.  The file will have a self-explanatory header,
+followed by one-line per processor in this format:
+
+I J K: world-ID universe-ID original-ID: name
+
+I,J,K are the indices of the processor in the 3d logical grid.  The
+IDs are the processor's rank in this simulation (the world), the
+universe (of multiple simulations), and the original MPI communicator
+used to instantiate LAMMPS, respectively.  The world and universe IDs
+will only be different if you are running on more than one partition;
+see the "-partition command-line switch"_Section_start.html#start_6.
+The universe and original IDs will only be different if you used the
+"-reorder command-line switch"_Section_start.html#start_6 to reorder
+the processors differently than their rank in the original
+communicator LAMMPS was instantiated with.  The {name} is what is
+returned by a call to MPI_Get_processor_name() and should represent an
+identifier relevant to the physical processors in your machine.  Note
+that depending on the MPI implementation, multiple cores can have the
+same {name}.
+
+:line
+
 [Restrictions:]
 
 This command cannot be used after the simulation box is defined by a
@@ -183,11 +231,17 @@ This command cannot be used after the simulation box is defined by a
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 
-The {numa} keyword cannot be used with the {part} keyword, or
-with any {grid} setting other than {cart}.
+You cannot use more than one of the {level2}, {level3}, or {numa}
+keywords.
 
-[Related commands:] none
+The {numa} keyword cannot be used with the {part} keyword, and it
+ignores the {grid} setting.
+
+[Related commands:]
+
+"partition"_partition.html, "-reorder command-line
+switch"_Section_start.html#start_6
 
 [Default:]
 
-The option defaults are Px Py Pz = * * *, grid = cart, numa = 0.
+The option defaults are Px Py Pz = * * * and grid = cart.

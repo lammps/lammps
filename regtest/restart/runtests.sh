@@ -18,7 +18,7 @@ for s in nosfx opt omp
 do \
   for t in 01 02
   do \
-    ${exe} -log log.restart-${s}-${t} -echo none -screen none -in in.restart \
-      -var tst ${t} -var sfx ${s} -var r2d "$2"
+    ${exe} -log log.restart2data-${s}-${t} -echo none -screen none \
+      -in in.restart2data -var tst ${t} -var sfx ${s} -var r2d "$2"
   done
 done

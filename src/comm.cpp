@@ -223,7 +223,7 @@ void Comm::set_proc_grid()
     pmap->numa_map(coregrid,myloc,procneigh,grid2proc);
 
   } else if (gridflag == CUSTOM) {
-    pmap->custom_map(myloc,procneigh,grid2proc);
+    pmap->custom_map(procgrid,myloc,procneigh,grid2proc);
   }
 
   // print 3d grid info to screen and logfile

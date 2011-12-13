@@ -31,7 +31,7 @@ class ProcMap : protected Pointers {
   void xyz_map(char *, int *, int *, int [3][2], int ***);
   void xyz_map(char *, int *, int *, int *, int [3][2], int ***);
   void numa_map(int *, int *, int [3][2], int ***);
-  void custom_map(int *, int [3][2], int ***);
+  void custom_map(int *, int *, int [3][2], int ***);
   void output(char *, int *, int ***);
 
  private:
@@ -41,6 +41,7 @@ class ProcMap : protected Pointers {
   int node_id;
   int procs_per_node;
   int procs_per_numa;
+  int **cmap;
 
   int procs2box(int, int *, int *, const int, const int, const int, int);
   void grid_shift(int, int, int &, int &);

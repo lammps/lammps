@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+#define MAXLINE 128
+
 enum{MULTIPLE};                   // same as in Comm
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +61,12 @@ int ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 			   int otherflag, int other_style_caller,
 			   int *other_procgrid_caller)
 {
+  if (nprocs % ncores) 
+    error->all(FLERR,"Processors twogrid requres proc count "
+	       "be a multiple of core count");
+
+
+
   error->all(FLERR,
 	     "The twolevel option is not yet supported, but will be soon");
   return 1;
@@ -163,14 +171,78 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 }
 
 /* ----------------------------------------------------------------------
-   create a 1-level 3d grid of procs via procs2box()
+   define a 3d grid from a custom file
 ------------------------------------------------------------------------- */
 
 void ProcMap::custom_grid(char *cfile, int nprocs,
 			  int *user_procgrid, int *procgrid)
 {
-  error->all(FLERR,
-	     "The grid custom option is not yet supported, but will be soon");
+  FILE *fp;
+  char line[MAXLINE];
+
+  int me;
+  MPI_Comm_rank(world,&me);
+
+  if (me == 0) {
+    FILE *fp = fopen(cfile,"r");
+    if (fp == NULL) error->one(FLERR,"Cannot open custom file");
+
+    // skip header = blank and comment lines
+    
+    char *ptr;
+    if (!fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Unexpected end of custom file");
+    while (1) {
+      if (ptr = strchr(line,'#')) *ptr = '\0';
+      if (strspn(line," \t\n\r") != strlen(line)) break;
+      if (!fgets(line,MAXLINE,fp))
+	error->one(FLERR,"Unexpected end of custom file");
+    }
+  }
+
+  int n = strlen(line) + 1;
+  MPI_Bcast(&n,1,MPI_INT,0,world);
+  MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+  sscanf(line,"%d %d %d",&procgrid[0],&procgrid[1],&procgrid[2]);
+
+  int flag = 0;
+  if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs) flag = 1;
+  if (user_procgrid[0] && procgrid[0] != user_procgrid[0]) flag = 1;
+  if (user_procgrid[1] && procgrid[1] != user_procgrid[1]) flag = 1;
+  if (user_procgrid[2] && procgrid[2] != user_procgrid[2]) flag = 1;
+  if (flag) error->all(FLERR,"Processors custom grid file is inconsistent");
+
+  // cmap = map of procs to grid
+  // store for use in custom_map()
+
+  memory->create(cmap,nprocs,4,"procmap:cmap");
+  for (int i = 0; i < nprocs; i++) cmap[i][0] = -1;
+
+  if (me == 0) {
+    for (int i = 0; i < nprocs; i++) {
+      if (!fgets(line,MAXLINE,fp))
+	error->one(FLERR,"Unexpected end of custom file");
+      sscanf(line,"%d %d %d %d",
+	     &cmap[i][0],&cmap[i][1],&cmap[i][2],&cmap[i][3]);
+    }
+    fclose(fp);
+  }
+
+  MPI_Bcast(&cmap[0][0],nprocs*4,MPI_INT,0,world);
+
+  // error check on cmap values
+
+  flag = 0;
+  for (int i = 0; i < nprocs; i++) {
+    if (cmap[i][0] == -1) flag = 1;
+    else {
+      if (cmap[i][1] <= 0 || cmap[i][1] > procgrid[0]) flag = 1;
+      if (cmap[i][2] <= 0 || cmap[i][2] > procgrid[1]) flag = 1;
+      if (cmap[i][3] <= 0 || cmap[i][3] > procgrid[2]) flag = 1;
+    }
+  }
+  if (flag) error->all(FLERR,"Processors custom grid file is invalid");
 }
 
 /* ----------------------------------------------------------------------
@@ -179,7 +251,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
    for triclinic, area = cross product of 2 edge vectors stored in h matrix
    valid assignment will be factorization of nprocs = Px by Py by Pz
    user_factors = if non-zero, factors are specified by user
-   sx,sy,sz = scale box xyz dimension vy dividing by sx,sy,sz
+   sx,sy,sz = scale box xyz dimension by dividing by sx,sy,sz
    other = 1 to enforce compatability with other partition's layout
    return factors = # of procs assigned to each dimension
    return 1 if factor successfully, 0 if not
@@ -492,8 +564,36 @@ void ProcMap::numa_map(int *numagrid,
    map processors to 3d grid in custom ordering
 ------------------------------------------------------------------------- */
 
-void ProcMap::custom_map(int *myloc, int procneigh[3][2], int ***grid2proc)
+void ProcMap::custom_map(int *procgrid,
+			 int *myloc, int procneigh[3][2], int ***grid2proc)
 {
+  int me,nprocs;
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+
+  for (int i = 0; i < nprocs; i++) {
+    grid2proc[cmap[i][1]-1][cmap[i][2]-1][cmap[i][3]-1] = cmap[i][0];
+    if (cmap[i][0] == me) {
+      myloc[0] = cmap[i][1] - 1;
+      myloc[1] = cmap[i][2] - 1;
+      myloc[2] = cmap[i][3] - 1;
+    }
+  }
+
+  int minus,plus;
+  grid_shift(myloc[0],procgrid[0],minus,plus);
+  procneigh[0][0] = grid2proc[minus][myloc[1]][myloc[2]];
+  procneigh[0][1] = grid2proc[plus][myloc[1]][myloc[2]];
+
+  grid_shift(myloc[1],procgrid[1],minus,plus);
+  procneigh[1][0] = grid2proc[myloc[0]][minus][myloc[2]];
+  procneigh[1][1] = grid2proc[myloc[0]][plus][myloc[2]];
+
+  grid_shift(myloc[2],procgrid[2],minus,plus);
+  procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][minus];
+  procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][plus];
+
+  memory->destroy(cmap);
 }
 
 /* ----------------------------------------------------------------------

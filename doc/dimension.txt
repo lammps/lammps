@@ -26,8 +26,8 @@ prior to setting up a simulation box via the
 "create_box"_create_box.html or "read_data"_read_data.html commands.
 Restart files also store this setting.
 
-See the discussion in "this section"_Section_howto.html for additional
-instructions on how to run 2d simulations.
+See the discussion in "Section_howto"_Section_howto.html for
+additional instructions on how to run 2d simulations.
 
 IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
 spheres or ellipsoids, as opposed to point particles.  In 2d, the

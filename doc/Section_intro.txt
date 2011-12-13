@@ -41,9 +41,9 @@ parallel machines and Beowulf-style clusters.
 :link(mpi,http://www-unix.mcs.anl.gov/mpi)
 
 LAMMPS can model systems with only a few particles up to millions or
-billions.  See "this section"_Section_perf.html for information on LAMMPS
-performance and scalability, or the Benchmarks section of the "LAMMPS
-WWW Site"_lws.
+billions.  See "Section_perf"_Section_perf.html for information on
+LAMMPS performance and scalability, or the Benchmarks section of the
+"LAMMPS WWW Site"_lws.
 
 LAMMPS is a freely-available open-source code, distributed under the
 terms of the "GNU Public License"_gnu, which means you can use or
@@ -54,13 +54,14 @@ discussion of the open-source philosophy.
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See "this section"_Section_modify.html for
-more details.
+conditions, or diagnostics.  See "Section_modify"_Section_modify.html
+for more details.
 
 The current version of LAMMPS is written in C++.  Earlier versions
-were written in F77 and F90.  See "this section"_Section_history.html
-for more information on different versions.  All versions can be
-downloaded from the "LAMMPS WWW Site"_lws.
+were written in F77 and F90.  See
+"Section_history"_Section_history.html for more information on
+different versions.  All versions can be downloaded from the "LAMMPS
+WWW Site"_lws.
 
 LAMMPS was originally developed under a US Department of Energy CRADA
 (Cooperative Research and Development Agreement) between two DOE labs
@@ -93,8 +94,8 @@ LAMMPS are listed in "this section"_#intro_5.
 This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn't have your
 favorite interatomic potential, boundary condition, or atom type, see
-"this section"_Section_modify.html, which describes how you can add it to
-LAMMPS.
+"Section_modify"_Section_modify.html, which describes how you can add
+it to LAMMPS.
 
 General features :h4
 
@@ -312,7 +313,7 @@ Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see "this section"_Section_modify.html for a discussion
+LAMMPS runs, see "Section_modify"_Section_modify.html for a discussion
 of how you can use the "dump"_dump.html and "compute"_compute.html and
 "fix"_fix.html commands to print out data of your choosing.  Keep in
 mind that complicated computations can slow down the molecular
@@ -334,7 +335,7 @@ following packages:
 "RasMol"_http://www.openrasmol.org :ul
 
 Other features that LAMMPS does not yet (and may never) support are
-discussed in "this section"_Section_history.html.
+discussed in "Section_history"_Section_history.html.
 
 Finally, these are freely-available molecular dynamics codes, most of
 them parallel, which may be well-suited to the problems you want to
@@ -422,7 +423,7 @@ directory. :l
 
 The tools sub-directory of the LAMMPS distribution has various
 stand-alone codes for pre- and post-processing of LAMMPS data.  More
-details are given in "this section"_Section_tools.html.  If you write
+details are given in "Section_tools"_Section_tools.html.  If you write
 a new tool that users will find useful, it can be added to the LAMMPS
 distribution. :l
 
@@ -513,8 +514,8 @@ Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for gran
 Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
 Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SPH package :ul
 
-As discussed in "this section"_Section_history.html, LAMMPS originated
-as a cooperative project between DOE labs and industrial
+As discussed in "Section_history"_Section_history.html, LAMMPS
+originated as a cooperative project between DOE labs and industrial
 partners. Folks involved in the design and testing of the original
 version of LAMMPS were the following:
 

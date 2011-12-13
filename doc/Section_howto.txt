@@ -33,7 +33,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.21 "Calculating viscosity"_#howto_21 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
-highlighted in "this section"_Section_example.html also show how to
+highlighted in "Section_example"_Section_example.html also show how to
 setup and run various kinds of simulations.
 
 :line
@@ -175,7 +175,7 @@ used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "this section"_Section_tools.html
+"bond_coeff"_bond_coeff.html.  See "Section_tools"_Section_tools.html
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.
 
@@ -628,8 +628,8 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "this section"_Section_modify.html of the documentation for how to
-add a new command to LAMMPS.
+See "Section_modify"_Section_modify.html of the documentation for how
+to add a new command to LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
 other code is the driver and calls LAMMPS as needed.  Or a wrapper
@@ -663,8 +663,8 @@ example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
 or Fortran you can make function calls to do the same things.  See
-"this section"_Section_python.html of the manual for a description of
-the Python wrapper provided with LAMMPS that operates through the
+"Section_python"_Section_python.html of the manual for a description
+of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface

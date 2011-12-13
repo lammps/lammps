@@ -538,7 +538,7 @@ known to your executable.
 
 There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
-given in "this section"_Section_packages.html of the manual.  The
+given in "Section_packages"_Section_packages.html of the manual.  The
 difference between standard and user packages is as follows:
 
 Standard packages are supported by the LAMMPS developers and are
@@ -632,7 +632,7 @@ libraries to be compiled first.  If you get a LAMMPS build error about
 a missing library, this is likely the reason.  The source code for
 these libraries is included in the LAMMPS distribution under the "lib"
 directory.  Look at the lib/README file for a list of these or see
-"this section"_Section_packages.html of the doc pages.
+"Section_packages"_Section_packages.html of the doc pages.
 
 Each lib directory has a README file (e.g. lib/reax/README) with
 instructions on how to build that library.  Typically this is done 
@@ -712,9 +712,9 @@ See the sample codes couple/simple/simple.cpp and simple.c as examples
 of C++ and C codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the couple directory which are
 discussed in "this section"_Section_howto.html#howto_10 of the manual.
-See "this section"_Section_python.html of the manual for a description
-of the Python wrapper provided with LAMMPS that operates through the
-LAMMPS library interface.
+See "Section_python"_Section_python.html of the manual for a
+description of the Python wrapper provided with LAMMPS that operates
+through the LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See "this section"_Section_howto.html#howto_19 of the
@@ -814,7 +814,7 @@ than your working directory, which is probably not what you want.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See "this section"_Section_errors.html for a
+message and continue.  See "Section_errors"_Section_errors.html for a
 discussion of the various kinds of errors LAMMPS can or can't detect,
 a list of all ERROR and WARNING messages, and what to do about them.
 
@@ -1200,7 +1200,7 @@ communication, roughly 75% in the example above.
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in "this section"_Section_history.html.  The F90 and F77 versions
+in "Section_history"_Section_history.html.  The F90 and F77 versions
 (2001 and 99) are also freely distributed as open-source codes; check
 the "LAMMPS WWW Site"_lws for distribution information if you prefer
 those versions.  The 99 and 2001 versions are no longer under active

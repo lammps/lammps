@@ -69,12 +69,10 @@ void Error::universe_one(const char *file, int line, const char *str)
    called by all procs in one world
    close all output, screen, and log files in world
    insure all procs in world call, else will hang
-   if abort = 0 (default):
-     if only one world in universe calls, universe will hang
-   if abort = 1: force abort of entire universe if any world in universe calls
+   force MPI_Abort if running in multi-partition mode
 ------------------------------------------------------------------------- */
 
-void Error::all(const char *file, int line, const char *str, int abort)
+void Error::all(const char *file, int line, const char *str)
 {
   MPI_Barrier(world);
 
@@ -90,7 +88,7 @@ void Error::all(const char *file, int line, const char *str, int abort)
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
-  if (abort) MPI_Abort(world,1);
+  if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
   MPI_Finalize();
   exit(1);
 }

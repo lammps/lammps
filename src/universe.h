@@ -41,7 +41,7 @@ class Universe : protected Pointers {
 
   Universe(class LAMMPS *, MPI_Comm);
   ~Universe();
-  void reorder(char *);
+  void reorder(char *, char *);
   void add_world(char *);
   int consistent();
 };

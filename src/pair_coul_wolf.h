@@ -11,27 +11,42 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_ERROR_H
-#define LMP_ERROR_H
+#ifdef PAIR_CLASS
 
-#include "pointers.h"
+PairStyle(coul/wolf,PairCoulWolf)
+
+#else
+
+#ifndef LMP_PAIR_COUL_WOLF_H
+#define LMP_PAIR_COUL_WOLF_H
+
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class Error : protected Pointers {
+class PairCoulWolf : public Pair {
  public:
-  Error(class LAMMPS *);
+  PairCoulWolf(class LAMMPS *);
+  ~PairCoulWolf();
+  void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  void init_style();
+  double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
 
-  void universe_all(const char *, int, const char *);
-  void universe_one(const char *, int, const char *);
+ private:
+  double cut_coul,cut_coulsq;
+  double alf,e_shift,f_shift; 
 
-  void all(const char *, int, const char *);
-  void one(const char *, int, const char *);
-  void warning(const char *, int, const char *, int = 1);
-  void message(const char *, int, char *, int = 1);
-  void done();
+  void allocate();
 };
 
 }
 
+#endif
 #endif

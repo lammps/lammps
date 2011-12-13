@@ -66,7 +66,7 @@ The speed-up due to GPU usage depends on a variety of factors, as
 discussed below.
 
 To see what styles are currently available in each of the accelerated
-packages, see "this section"_Section_commands.html#cmd_5 of the
+packages, see "Section_commands 5"_Section_commands.html#cmd_5 of the
 manual.  A list of accelerated styles is included in the pair, fix,
 compute, and kspace sections.
 

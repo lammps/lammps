@@ -47,8 +47,8 @@ LAMMPS performance and scalability, or the Benchmarks section of the
 
 LAMMPS is a freely-available open-source code, distributed under the
 terms of the "GNU Public License"_gnu, which means you can use or
-modify the code however you wish.  See "this section"_#intro_4 for a brief
-discussion of the open-source philosophy.
+modify the code however you wish.  See "this section"_#intro_4 for a
+brief discussion of the open-source philosophy.
 
 :link(gnu,http://www.gnu.org/copyleft/gpl.html)
 
@@ -410,8 +410,8 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "this section"_Section_errors.html#err_2 describes
-how to report it. :l
+If you find a bug, "Section_errors 2"_Section_errors.html#err_2
+describes how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and
 any cool pictures or movies if you like) to add to the Publications,

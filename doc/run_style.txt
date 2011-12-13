@@ -64,7 +64,7 @@ The {verlet} style is a standard velocity-Verlet integrator.
 
 The {verlet/split} style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See "this section"_Section_start.html#start_6 for an
+processors.  See "Section_start 6"_Section_start.html#start_6 for an
 explanation of the -partition command-line switch.
 
 Specifically, this style performs all computation except the

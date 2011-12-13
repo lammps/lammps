@@ -711,13 +711,13 @@ src/library.cpp and src/library.h.
 See the sample codes couple/simple/simple.cpp and simple.c as examples
 of C++ and C codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the couple directory which are
-discussed in "this section"_Section_howto.html#howto_10 of the manual.
-See "Section_python"_Section_python.html of the manual for a
+discussed in "Section_howto 10"_Section_howto.html#howto_10 of the
+manual.  See "Section_python"_Section_python.html of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "this section"_Section_howto.html#howto_19 of the
+to LAMMPS.  See "Section_howto 19"_Section_howto.html#howto_19 of the
 manual for a description of the interface and how to extend it for
 your needs.
 
@@ -929,9 +929,9 @@ installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
 To run multiple independent simulatoins from one input script, using
-multiple partitions, see "this section"_Section_howto.html#howto_4 of
-the manual.  World- and universe-style "variables"_variable.html are
-useful in this context.
+multiple partitions, see "Section_howto 4"_Section_howto.html#howto_4
+of the manual.  World- and universe-style "variables"_variable.html
+are useful in this context.
 
 -plog file :pre
  

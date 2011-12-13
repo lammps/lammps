@@ -43,8 +43,8 @@ too frequently or to have multiple compute/dump commands, each of a
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"this section"_Section_howto.html#howto_15 for an overview of LAMMPS
-output options.
+"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+LAMMPS output options.
 
 The per-atom vector values will be a number >= 0.0, as explained
 above.

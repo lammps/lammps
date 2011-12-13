@@ -31,8 +31,8 @@ packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See "this
 section"_Section_howto.html#howto_10 of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See "this section"_Section_start.html#start_4 about how
-to build LAMMPS as a library, and "this
+other codes.  See "Section_start 4"_Section_start.html#start_4 about
+how to build LAMMPS as a library, and "this
 section"_Section_howto.html#howto_19 for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
@@ -497,7 +497,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "this section"_Section_howto.html#howto_15 of the manual for a
+See "Section_howto 15"_Section_howto.html#howto_15 of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 "computes"_compute.html and "fixes"_fix.html for a description of what
@@ -577,7 +577,7 @@ Add a new interface function to src/library.cpp and
 src/library.h. :ulb,l
 
 Verify the new function is syntactically correct by building LAMMPS as
-a library - see "this section"_Section_start.html#start_4 of the
+a library - see "Section_start 4"_Section_start.html#start_4 of the
 manual. :l
 
 Add a wrapper method in the Python LAMMPS module to python/lammps.py

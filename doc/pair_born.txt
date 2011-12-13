@@ -18,7 +18,7 @@ pair_style born/coul/wolf command :h3
 
 pair_style style args :pre
 
-style = {born} or {born/coul/long}
+style = {born} or {born/coul/long} or {born/coul/wolf}
 args = list of arguments for a particular style :ul
   {born} args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)

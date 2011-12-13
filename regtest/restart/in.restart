@@ -1,0 +1,27 @@
+
+variable pstyle index lj_cut
+label pstyle_non
+
+variable newtn index on
+variable astyle index full
+
+include common-1.inc
+
+next pstyle
+jump SELF pstyle_non
+
+#############################################################
+
+variable pstyle index tersoff
+label pstyle_noff
+
+variable newtn index on
+variable astyle index full
+
+include common-1.inc
+
+next pstyle
+jump SELF pstyle_noff
+
+#############################################################
+

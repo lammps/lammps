@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "procmap.h"
+#include "universe.h"
 #include "domain.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -58,6 +59,8 @@ int ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 			   int otherflag, int other_style_caller,
 			   int *other_procgrid_caller)
 {
+  error->all(FLERR,
+	     "The twolevel option is not yet supported, but will be soon");
   return 1;
 }
 
@@ -97,7 +100,7 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procs_per_node = name_map.begin()->second;
   procs_per_numa = procs_per_node / numa_nodes;
   
-  // return error if any of these conditions met
+  // error return if any of these conditions met
   
   if (procs_per_numa < 4 ||            // less than 4 procs per numa node
       procs_per_node % numa_nodes ||   // no-op since numa_nodes = 1 for now
@@ -166,6 +169,8 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 void ProcMap::custom_grid(char *cfile, int nprocs,
 			  int *user_procgrid, int *procgrid)
 {
+  error->all(FLERR,
+	     "The grid custom option is not yet supported, but will be soon");
 }
 
 /* ----------------------------------------------------------------------
@@ -507,6 +512,70 @@ void ProcMap::grid_shift(int myloc, int nprocs, int &minus, int &plus)
    output mapping of processors to 3d grid to file
 ------------------------------------------------------------------------- */
 
-void ProcMap::output(int ***grid22proc, char *file)
+void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
 {
+  int me,nprocs;
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
+
+  FILE *fp;
+  if (me == 0) {
+    fp = fopen(file,"w");
+    if (fp == NULL) error->one(FLERR,"Cannot open processors custom file");
+    fprintf(fp,"LAMMPS mapping of processors to 3d grid\n");
+    fprintf(fp,"partition = %d\n",universe->iworld+1);
+    fprintf(fp,"Px Py Pz = %d %d %d\n",procgrid[0],procgrid[1],procgrid[2]);
+    fprintf(fp,"world-ID universe-ID original-ID: I J K: name\n\n");
+  }
+
+  // find me in the grid
+
+  int ime,jme,kme;
+  for (int i = 0; i < procgrid[0]; i++)
+    for (int j = 0; j < procgrid[1]; j++)
+      for (int k = 0; k < procgrid[2]; k++)
+	if (grid2proc[i][j][k] == me) {
+	  ime = i; jme = j; kme = k;
+	}
+
+  // polled comm of grid mapping info from each proc to proc 0
+
+  int tmp;
+  int vec[6];
+  char procname[MPI_MAX_PROCESSOR_NAME+1];
+  MPI_Status status;
+
+  vec[0] = me;
+  vec[1] = universe->me;
+  MPI_Comm_rank(universe->uorig,&vec[2]);
+  vec[3] = ime + 1;
+  vec[4] = jme + 1;
+  vec[5] = kme + 1;
+
+  int len;
+  MPI_Get_processor_name(procname,&len);
+  procname[len] = '\0';
+
+  if (me == 0) {
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+	MPI_Recv(vec,6,MPI_INT,iproc,0,world,&status);
+	MPI_Recv(procname,MPI_MAX_PROCESSOR_NAME+1,MPI_CHAR,
+		 iproc,0,world,&status);
+      }
+
+      fprintf(fp,"%d %d %d: %d %d %d: %s\n",
+	      vec[0],vec[1],vec[2],vec[3],vec[4],vec[5],procname);
+    }
+    
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Send(vec,6,MPI_INT,0,0,world);
+    MPI_Send(procname,strlen(procname)+1,MPI_CHAR,0,0,world);
+  }
+
+  // close output file
+
+  if (me == 0) fclose(fp);
 }

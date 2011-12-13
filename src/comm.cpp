@@ -247,7 +247,7 @@ void Comm::set_proc_grid()
 
   // print 3d grid details to outfile
 
-  if (outfile) pmap->output(grid2proc,outfile);
+  if (outfile) pmap->output(outfile,procgrid,grid2proc);
 
   // set lamda box params after procs are assigned
 

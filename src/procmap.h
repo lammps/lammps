@@ -32,7 +32,7 @@ class ProcMap : protected Pointers {
   void xyz_map(char *, int *, int *, int *, int [3][2], int ***);
   void numa_map(int *, int *, int [3][2], int ***);
   void custom_map(int *, int [3][2], int ***);
-  void output(int ***, char *);
+  void output(char *, int *, int ***);
 
  private:
   int other_style;

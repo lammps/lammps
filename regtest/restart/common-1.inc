@@ -13,6 +13,9 @@ include ${pstyle}.inc
 
 write_restart ${pstyle}.restart-${sfx}-${tst}
 
-shell ${r2d} ${pstyle}.restart-${sfx}-${tst} ${pstyle}.data-${sfx}-${tst}
-
+shell ${r2d} ${pstyle}.restart-${sfx}-${tst} ${pstyle}.data-${sfx}-${tst} &
+             ${pstyle}.coeff-${sfx}-${tst} > /dev/null &
+      ||  rm -f ${pstyle}.coeff-${sfx}-${tst} &&       &
+          ${r2d} ${pstyle}.restart-${sfx}-${tst}       &
+             ${pstyle}.data-${sfx}-${tst} > /dev/null
 

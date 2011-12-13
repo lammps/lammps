@@ -1,5 +1,5 @@
 
-variable pstyle index lj_cut
+variable pstyle index lj_cut lj_sdk
 label pstyle_non
 
 variable newtn index on

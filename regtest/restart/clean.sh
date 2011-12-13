@@ -1,6 +1,7 @@
 #!/bin/sh
 
-rm -f ref.*
 rm -f log.*
-rm -f *.restart-*-*
+rm -f *.coeff-*-*
 rm -f *.data-*-*
+rm -f *.ref-*-*
+rm -f *.restart-*-*

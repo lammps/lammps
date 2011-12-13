@@ -23,15 +23,19 @@
 </H3>
 <H3>pair_style coul/long/gpu command 
 </H3>
+<H3>pair_style coul/wolf command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/long cutoff
 pair_style coul/long/gpu cutoff 
+pair_sytle coul/wolf alpha cutoff 
 </PRE>
 <UL><LI>cutoff = global cutoff for Coulombic interactions
 <LI>kappa = Debye length (inverse distance units) 
+<LI>alpha = damping parameter (inverse distance units) 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -46,6 +50,9 @@ pair_coeff 2 2 3.5
 <PRE>pair_style coul/long 10.0
 pair_coeff * * 
 </PRE>
+<P>pair_style coul/wolf 0.2 9.0
+pair_coeff * *
+</P>
 <P><B>Description:</B>
 </P>
 <P>The <I>coul/cut</I> style computes the standard Coulombic interaction
@@ -65,6 +72,24 @@ Coulombic term, given by
 </CENTER>
 <P>where kappa is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
+</P>
+<P>Style <I>coul/wolf</I> computes Coulombic interactions via the Wolf
+summation method, described in <A HREF = "#Wolf">Wolf</A>, given by:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_coul_wolf.jpg">
+</CENTER>
+<P>where <I>alpha</I> is the damping parameter, and erc() and erfc() are
+error-fuction and complementary error-function terms.  This potential
+is essentially a short-range, spherically-truncated,
+charge-neutralized, shifted, pairwise <I>1/r</I> summation.  With a
+manipulation of adding and substracting a self term (for i = j) to the
+first and second term on the right-hand-side, respectively, and a
+small enough <I>alpha</I> damping parameter, the second term shrinks and
+the potential becomes a rapidly-converging real-space summation.  With
+a long enough cutoff and small enough alpha parameter, the energy and
+forces calcluated by the Wolf summation method approach those of the
+Ewald sum.  So it is a means of getting effective long-range
+interactions with a short-range potential.
 </P>
 <P>Style <I>coul/long</I> computes the same Coulombic interactions as style
 <I>coul/cut</I> except that an additional damping factor is applied so it
@@ -160,5 +185,12 @@ for more info.
 hybrid/overlay</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Wolf"></A>
+
+<P><B>(Wolf)</B> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).
 </P>
 </HTML>

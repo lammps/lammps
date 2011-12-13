@@ -181,11 +181,6 @@ void Comm::set_proc_grid()
 
   } else if (gridflag == NUMA) {
     flag = pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
-    if (!flag) {
-      coregrid[0] = coregrid[1] = coregrid[2] = 1;
-      flag = pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
-				 otherflag,other_style,other_procgrid);
-    }
     if (!flag) error->all(FLERR,"Could not create grid of processors");
 
   } else if (gridflag == CUSTOM) {

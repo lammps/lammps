@@ -28,8 +28,8 @@
         Nc = number of cores per node
         Cx,Cy,Cz = # of cores in each dimension of 3d sub-grid assigned to each node
       numa params = none
-      custom params = inname
-        inname = file containing grid layout
+      custom params = infile
+        infile = file containing grid layout
   <I>map</I> arg = <I>cart</I> or <I>cart/reorder</I> or <I>xyz</I> or <I>xzy</I> or <I>yxz</I> or <I>yzx</I> or <I>zxy</I> or <I>zyx</I>
      cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
      cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
@@ -40,8 +40,8 @@
     Precv = partition # (1 to Np) which will recv the processor layout
     cstyle = <I>multiple</I>
       <I>multiple</I> = Psend grid will be multiple of Precv grid in each dimension
-  <I>file</I> arg = outname
-    outname = name of file to write 3d grid of processors to 
+  <I>file</I> arg = outfile
+    outfile = name of file to write 3d grid of processors to 
 </PRE>
 
 </UL>
@@ -112,12 +112,12 @@ Px,Py,Pz settings, and which minimizes the surface-to-volume ratio of
 each processor's sub-domain, as described above.  The mapping of
 processors to the grid is determined by the <I>map</I> keyword setting.
 </P>
-<P>The <I>twolevel</I> style can be used on machines with multi-core nodes
-to minimize off-node communication.  It insures that contiguous
+<P>The <I>twolevel</I> style can be used on machines with multicore nodes to
+minimize off-node communication.  It insures that contiguous
 sub-sections of the 3d grid are assigned to all the cores of a node.
-For example if <I>Nc</I> is 4, then 2x2x1 or 2x1x2 or 1x2x2 sub-sections
-of the 3d grid will correspond to the cores of each node.  This
-affects both the factorization and mapping steps.
+For example if <I>Nc</I> is 4, then 2x2x1 or 2x1x2 or 1x2x2 sub-sections of
+the 3d grid will correspond to the cores of each node.  This affects
+both the factorization and mapping steps.
 </P>
 <P>The <I>Cx</I>, <I>Cy</I>, <I>Cz</I> settings are similar to the <I>Px</I>, <I>Py</I>, <I>Pz</I>
 settings, only their product should equal <I>Nc</I>.  Any of the 3
@@ -156,7 +156,7 @@ any of the Px or Py of Pz values is greater than 1.
 the MPI ranks of processors LAMMPS is running on are ordered by core
 and then by node.  See the same note for the <I>twolevel</I> keyword.
 </P>
-<P>The <I>custom</I> style uses the file <I>inname</I> to define both the 3d
+<P>The <I>custom</I> style uses the file <I>infile</I> to define both the 3d
 factorization and the mapping of processors to the grid.
 </P>
 <P>The file should have the following format.  Any number of initial
@@ -268,11 +268,11 @@ setup phase if this error has been made.
 </P>
 <HR>
 
-<P>The <I>out</I> keyword writes the mapping of the factorization of P
+<P>The <I>file</I> keyword writes the mapping of the factorization of P
 processors and their mapping to the 3d grid to the specified file
-<I>fname</I>.  This is useful to check that you assigned physical
+<I>outfile</I>.  This is useful to check that you assigned physical
 processors in the manner you desired, which can be tricky to figure
-out, especially when running on multiple partitions or on a multicore
+out, especially when running on multiple partitions or on, a multicore
 machine or when the processor ranks were reordered by use of the
 <A HREF = "Section_start.html#start_6">-reorder command-line switch</A> or due to
 use of MPI-specific launch options such as a config file.
@@ -282,10 +282,9 @@ to a different file, e.g. using a <A HREF = "variable.html">world-style variable
 for the filename.  The file has a self-explanatory header, followed by
 one-line per processor in this format:
 </P>
-<P>I J K: world-ID universe-ID original-ID: name
+<P>world-ID universe-ID original-ID: I J K: name
 </P>
-<P>I,J,K are the indices of the processor in the 3d logical grid.  The
-IDs are the processor's rank in this simulation (the world), the
+<P>The IDs are the processor's rank in this simulation (the world), the
 universe (of multiple simulations), and the original MPI communicator
 used to instantiate LAMMPS, respectively.  The world and universe IDs
 will only be different if you are running on more than one partition;
@@ -293,11 +292,16 @@ see the <A HREF = "Section_start.html#start_6">-partition command-line switch</A
 The universe and original IDs will only be different if you used the
 <A HREF = "Section_start.html#start_6">-reorder command-line switch</A> to reorder
 the processors differently than their rank in the original
-communicator LAMMPS was instantiated with.  The <I>name</I> is what is
-returned by a call to MPI_Get_processor_name() and should represent an
-identifier relevant to the physical processors in your machine.  Note
-that depending on the MPI implementation, multiple cores can have the
-same <I>name</I>.
+communicator LAMMPS was instantiated with.
+</P>
+<P>I,J,K are the indices of the processor in the 3d logical grid, each
+from 1 to Nd, where Nd is the number of processors in that dimension
+of the grid.
+</P>
+<P>The <I>name</I> is what is returned by a call to MPI_Get_processor_name()
+and should represent an identifier relevant to the physical processors
+in your machine.  Note that depending on the MPI implementation,
+multiple cores can have the same <I>name</I>.
 </P>
 <HR>
 

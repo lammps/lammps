@@ -12,7 +12,7 @@ jump SELF pstyle_non
 
 #############################################################
 
-variable pstyle index tersoff
+variable pstyle index tersoff tersoff_table
 label pstyle_noff
 
 variable newtn index on

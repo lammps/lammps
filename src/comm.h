@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int me,nprocs;                    // proc info
-  int procgrid[3];                  // assigned # of procs in each dim
+  int procgrid[3];                  // procs assigned in each dim of 3d grid
   int user_procgrid[3];             // user request for procs in each dim
   int myloc[3];                     // which proc I am in each dim
   int procneigh[3][2];              // my 6 neighboring procs
@@ -92,7 +92,9 @@ class Comm : protected Pointers {
   int otherflag;                    // 1 if this partition dependent on another
   int other_style;                  // style of dependency
   int other_procgrid[3];            // proc layout of another partition
-  int coregrid[3];                  // procs layout of cores within a node
+  int ncores;                       // # of cores per node
+  int coregrid[3];                  // 3d grid of cores within a node
+  int user_coregrid[3];             // user request for cores in each dim
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap

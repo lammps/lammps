@@ -23,10 +23,13 @@ class ProcMap : protected Pointers {
   ProcMap(class LAMMPS *);
   ~ProcMap() {}
   int onelevel_grid(int, int *, int *, int, int, int *);
+  int twolevel_grid(int, int *, int *, int, int *, int *, int, int, int *);
   int numa_grid(int, int *, int *, int *);
-  void custom_grid(int, int *, int *);
+  void custom_grid(char *, int, int *, int *);
   void cart_map(int, int *, int *, int [3][2], int ***);
+  void cart_map(int, int *, int *, int *, int [3][2], int ***);
   void xyz_map(char *, int *, int *, int [3][2], int ***);
+  void xyz_map(char *, int *, int *, int *, int [3][2], int ***);
   void numa_map(int *, int *, int [3][2], int ***);
   void custom_map(int *, int [3][2], int ***);
   void output(int ***, char *);

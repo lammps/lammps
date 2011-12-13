@@ -53,7 +53,7 @@ using namespace LAMMPS_NS;
 
 enum{SINGLE,MULTI};
 enum{MULTIPLE};                   // same as in ProcMap
-enum{ONELEVEL,NUMA,CUSTOM};
+enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
 
 /* ----------------------------------------------------------------------
@@ -173,6 +173,12 @@ void Comm::set_proc_grid()
 			       otherflag,other_style,other_procgrid);
     if (!flag) error->all(FLERR,"Could not create grid of processors");
 
+  } else if (gridflag == TWOLEVEL) {
+    flag = pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
+			       ncores,user_coregrid,coregrid,
+			       otherflag,other_style,other_procgrid);
+    if (!flag) error->all(FLERR,"Could not create grid of processors");
+
   } else if (gridflag == NUMA) {
     flag = pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
     if (!flag) {
@@ -183,7 +189,7 @@ void Comm::set_proc_grid()
     if (!flag) error->all(FLERR,"Could not create grid of processors");
 
   } else if (gridflag == CUSTOM) {
-    pmap->custom_grid(nprocs,user_procgrid,procgrid);
+    pmap->custom_grid(customfile,nprocs,user_procgrid,procgrid);
   }
 
   // error check on procgrid
@@ -210,6 +216,14 @@ void Comm::set_proc_grid()
     else if (mapflag == XYZ)
       pmap->xyz_map(xyz,procgrid,myloc,procneigh,grid2proc);
 
+  } else if (gridflag == TWOLEVEL) {
+    if (mapflag == CART)
+      pmap->cart_map(0,procgrid,coregrid,myloc,procneigh,grid2proc);
+    else if (mapflag == CARTREORDER)
+      pmap->cart_map(1,procgrid,coregrid,myloc,procneigh,grid2proc);
+    else if (mapflag == XYZ)
+      pmap->xyz_map(xyz,procgrid,coregrid,myloc,procneigh,grid2proc);
+
   } else if (gridflag == NUMA) {
     pmap->numa_map(coregrid,myloc,procneigh,grid2proc);
 
@@ -223,14 +237,14 @@ void Comm::set_proc_grid()
     if (screen) {
       fprintf(screen,"  %d by %d by %d MPI processor grid\n",
 	      procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA) 
+      if (gridflag == NUMA || gridflag == TWOLEVEL) 
 	fprintf(screen,"  %d by %d by %d core grid within node\n",
 		coregrid[0],coregrid[1],coregrid[2]);
     }
     if (logfile) {
       fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
 	      procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA) 
+      if (gridflag == NUMA || gridflag == TWOLEVEL) 
 	fprintf(logfile,"  %d by %d by %d core grid within node\n",
 		coregrid[0],coregrid[1],coregrid[2]);
     }
@@ -1357,30 +1371,42 @@ void Comm::set_processors(int narg, char **arg)
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"grid") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal processors command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
 
-      if (strcmp(arg[iarg+1],"level1") == 0) {
-	gridflag = LEVEL1;
-	iarg += 2;
+      if (strcmp(arg[iarg+1],"onelevel") == 0) {
+	gridflag = ONELEVEL;
 	
-      if (strcmp(arg[iarg+1],"level2") == 0) {
-	gridflag = LEVEL2;
-	iarg += 2;
+      } else if (strcmp(arg[iarg+1],"twolevel") == 0) {
+	if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
+	gridflag = TWOLEVEL;
+	
+	ncores = atoi(arg[2]);
+	if (strcmp(arg[3],"*") == 0) user_coregrid[0] = 0;
+	else user_coregrid[0] = atoi(arg[3]);
+	if (strcmp(arg[4],"*") == 0) user_coregrid[1] = 0;
+	else user_coregrid[1] = atoi(arg[4]);
+	if (strcmp(arg[5],"*") == 0) user_coregrid[2] = 0;
+	else user_coregrid[2] = atoi(arg[5]);
+	
+	if (ncores <= 0 || user_coregrid[0] < 0 || 
+	    user_coregrid[1] < 0 || user_coregrid[2] < 0) 
+	  error->all(FLERR,"Illegal processors command");
+	iarg += 4;
 	
       } else if (strcmp(arg[iarg+1],"numa") == 0) {
 	gridflag = NUMA;
-	iarg += 2;
 	
       } else if (strcmp(arg[iarg],"custom") == 0) {
-	if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
 	gridflag = CUSTOM;
 	delete [] customfile;
-	int n = strlen(arg[iarg+1]) + 1;
+	int n = strlen(arg[iarg+2]) + 1;
 	customfile = new char(n);
-	strcpy(customfile,arg[iarg+1]);
-	iarg += 2;
+	strcpy(customfile,arg[iarg+2]);
+	iarg += 1;
 
       } else error->all(FLERR,"Illegal processors command");
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"map") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
@@ -1433,7 +1459,7 @@ void Comm::set_processors(int narg, char **arg)
       } else error->all(FLERR,"Illegal processors command");
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"out") == 0) {
+    } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
       int n = strlen(arg[iarg+1]) + 1;
@@ -1444,10 +1470,13 @@ void Comm::set_processors(int narg, char **arg)
     } else error->all(FLERR,"Illegal processors command");
   }
 
-  // error check
+  // error checks
 
   if (gridflag == NUMA && mapflag != CART)
-    error->all(FLERR,"Processors grid numa and map choice are incompatible");
+    error->all(FLERR,"Processors grid numa and map style are incompatible");
+  if (otherflag && (gridflag == NUMA || gridflag == CUSTOM))
+    error->all(FLERR,
+	       "Processors part option and grid style are incompatible");
 }
 
 /* ----------------------------------------------------------------------

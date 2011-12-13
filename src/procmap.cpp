@@ -33,7 +33,7 @@ enum{MULTIPLE};                   // same as in Comm
 ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
-   create a 1-level 3d grid of procs via procs2box()
+   create a one-level 3d grid of procs via procs2box()
 ------------------------------------------------------------------------- */
 
 int ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
@@ -47,6 +47,18 @@ int ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   int flag = procs2box(nprocs,user_procgrid,procgrid,1,1,1,otherflag);
   return flag;
+}
+
+/* ----------------------------------------------------------------------
+   create a two-level 3d grid of procs and cores via procs2box()
+------------------------------------------------------------------------- */
+
+int ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
+			   int ncores, int *user_coregrid, int *coregrid,
+			   int otherflag, int other_style_caller,
+			   int *other_procgrid_caller)
+{
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -151,7 +163,8 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
    create a 1-level 3d grid of procs via procs2box()
 ------------------------------------------------------------------------- */
 
-void ProcMap::custom_grid(int nprocs, int *user_procgrid, int *procgrid)
+void ProcMap::custom_grid(char *cfile, int nprocs,
+			  int *user_procgrid, int *procgrid)
 {
 }
 
@@ -316,6 +329,17 @@ void ProcMap::cart_map(int reorder, int *procgrid,
 }
 
 /* ----------------------------------------------------------------------
+   map processors to 3d grid via MPI_Cart routines
+   respect sub-grid of cores within each node
+   MPI may do layout in machine-optimized fashion
+------------------------------------------------------------------------- */
+
+void ProcMap::cart_map(int reorder, int *procgrid, int *coregrid,
+		       int *myloc, int procneigh[3][2], int ***grid2proc)
+{
+}
+
+/* ----------------------------------------------------------------------
    map processors to 3d grid in XYZ order
 ------------------------------------------------------------------------- */
 
@@ -360,6 +384,16 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
   grid_shift(myloc[2],procgrid[2],minus,plus);
   procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][minus];
   procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][plus];
+}
+
+/* ----------------------------------------------------------------------
+   map processors to 3d grid in XYZ order
+   respect sub-grid of cores within each node
+------------------------------------------------------------------------- */
+
+void ProcMap::xyz_map(char *xyz, int *procgrid, int *coregrid,
+		      int *myloc, int procneigh[3][2], int ***grid2proc)
+{
 }
 
 /* ----------------------------------------------------------------------

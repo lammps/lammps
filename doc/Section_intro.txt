@@ -152,7 +152,7 @@ commands)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
-  long-range Coulombics and dispersion: Ewald, \
+  long-range Coulombics and dispersion: Ewald, Wolf, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
   force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
   handful of GPU-enabled pair styles :ul

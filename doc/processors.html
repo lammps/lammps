@@ -15,24 +15,32 @@
 </P>
 <PRE>processors Px Py Pz keyword args ... 
 </PRE>
-<UL><LI>Px,Py,Pz = # of processors in each dimension of a 3d grid 
+<UL><LI>Px,Py,Pz = # of processors in each dimension of 3d grid overlaying the simulation domain 
 
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>grid</I> or <I>level2</I> or <I>level3</I> or <I>numa</I> or <I>part</I> or <I>file</I> 
+<LI>keyword = <I>grid</I> or <I>map</I> or <I>part</I> or <I>file</I> 
 
-<PRE>  <I>grid</I> arg = <I>cart</I> or <I>cart/reorder</I> or <I>xyz</I> or <I>xzy</I> or <I>yxz</I> or <I>yzx</I> or <I>zxy</I> or <I>zyx</I>
-     cart = use MPI_Cart() methods to layout 3d grid of procs with reorder = 0
-     cart/reorder = use MPI_Cart() methods to layout 3d grid of procs with reorder = 1
-     xyz,xzy,yxz,yzx,zxy,zyx = layout 3d grid of procs in IJK order
+<PRE>  <I>grid</I> arg = gstyle params ...
+    gstyle = <I>onelevel</I> or <I>twolevel</I> or <I>numa</I> or <I>custom</I>
+      onelevel params = none
+      twolevel params = Cx Cy Cz
+        Cx,Cy,Cz = # of cores in each dimension of 3d sub-grid assigned to each node
+      numa params = none
+      custom params = fname
+        fname = file containing grid layout
+  <I>map</I> arg = <I>cart</I> or <I>cart/reorder</I> or <I>xyz</I> or <I>xzy</I> or <I>yxz</I> or <I>yzx</I> or <I>zxy</I> or <I>zyx</I>
+     cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
+     cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
+     xyz,xzy,yxz,yzx,zxy,zyx = map procesors to 3d grid in IJK ordering
   <I>numa</I> arg = none
   <I>part</I> args = Psend Precv cstyle
     Psend = partition # (1 to Np) which will send its processor layout
     Precv = partition # (1 to Np) which will recv the processor layout
     cstyle = <I>multiple</I>
-      <I>multiple</I> = Psend layout will be multiple of Precv layout in each dimension
-  <I>file</I> arg = fname
-    fname = name of file to write processor mapping info to 
+      <I>multiple</I> = Psend grid will be multiple of Precv grid in each dimension
+  <I>file</I> arg = outname
+    outname = name of file to write 3d grid of processors to 
 </PRE>
 
 </UL>
@@ -40,10 +48,9 @@
 </P>
 <PRE>processors * * 5 
 processors 2 4 4
-processors 2 4 4 grid xyz
-processors * * 8 grid xyz
-processors * * * numa
-processors 4 8 16 custom myfile
+processors * * 8 map xyz
+processors * * * grid numa
+processors 4 8 16 grid custom myfile
 processors * * * part 1 2 multiple 
 </PRE>
 <P><B>Description:</B>
@@ -238,11 +245,7 @@ same <I>name</I>.
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 </P>
-<P>You cannot use more than one of the <I>level2</I>, <I>level3</I>, or <I>numa</I>
-keywords.
-</P>
-<P>The <I>numa</I> keyword cannot be used with the <I>part</I> keyword, and it
-ignores the <I>grid</I> setting.
+<P>The <I>grid numa</I> keyword only currently works with the <I>map cart</I> option.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -251,6 +254,6 @@ switch</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are Px Py Pz = * * * and grid = cart.
+<P>The option defaults are Px Py Pz = * * *, grid = level1, and map = cart.
 </P>
 </HTML>

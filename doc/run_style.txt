@@ -118,8 +118,9 @@ See "this section"_Section_accelerate.html of the manual for
 performance details of the speed-up offered by the {verlet/split}
 style.  One important performance consideration is the assignemnt of
 logical processors in the 2 partitions to the physical cores of a
-parallel machine.  "This section"_Section_accelerate.html discusses
-how to optimize this mapping.
+parallel machine.  The "processors"_processors.html command has
+options to support this, and strategies are discussed in
+"Section_accelerate"_Section_accelerate.html of the manual.
 
 :line
 

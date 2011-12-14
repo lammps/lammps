@@ -115,7 +115,10 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                int root, MPI_Comm comm);
 int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-		    void *recvbuf, int *recvcounts, int *displs,
-		    MPI_Datatype recvtype, int root, MPI_Comm comm);
+		void *recvbuf, int *recvcounts, int *displs,
+		MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
+		 MPI_Datatype sendtype, void *recvbuf, int recvcount,
+		 MPI_Datatype recvtype, int root, MPI_Comm comm);
 
 #endif

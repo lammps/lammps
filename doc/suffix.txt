@@ -36,10 +36,18 @@ USER-CUDA package.
 
 These are the variants these packages provide:
 
-OPT = a handful of pair styles, cache-optimized for faster CPU performance
-USER-OMP = a collection of pair, dihedral and fix styles with support for OpenMP multi-threading
-GPU = a handful of pair styles and the PPPM kspace_style, optimized to run on one or more GPUs or multicore CPU/GPU nodes
-USER-CUDA = a collection of atom, pair, fix, compute, and intergrate styles, optimized to run on one or more NVIDIA GPUs :ul
+OPT = a handful of pair styles, cache-optimized for faster CPU
+performance :ulb,l
+
+USER-OMP = a collection of pair, bond, angle, dihedral, improper,
+kspace, compute, and fix styles with support for OpenMP
+multi-threading :l
+
+GPU = a handful of pair styles and the PPPM kspace_style, optimized to
+run on one or more GPUs or multicore CPU/GPU nodes :l
+
+USER-CUDA = a collection of atom, pair, fix, compute, and intergrate
+styles, optimized to run on one or more NVIDIA GPUs :l,ule
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
@@ -48,9 +56,12 @@ explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
 suffix command is used with the appropriate style, you do not need to
 modify your input script.  The specified suffix (opt,omp,gpu,cuda) is
 automatically appended whenever your input script command creates a
-new "atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
-"compute"_compute.html, or "run"_run_style.html style.  If the variant
-version does not exist, the standard version is created.
+new "atom"_atom_style.html, "pair"_pair_style.html,
+"bond"_bond_style.html, "angle"_angle_style.html,
+"dihedral"_dihedral_style.html, "improper"_improper_style.html,
+"kspace"_kspace_style.html, "fix"_fix.html, "compute"_compute.html, or
+"run"_run_style.html style.  If the variant version does not exist,
+the standard version is created.
 
 If the specified style is {off}, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

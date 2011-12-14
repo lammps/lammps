@@ -250,8 +250,11 @@ void TAD::command(int narg, char **arg)
 
   // This should work with if uncommented, but does not
   // if (universe->iworld == 0) {
+
   fix_event->store_state();
   quench();
+
+  timer->init();
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
   fix_event->store_event_tad(update->ntimestep);
@@ -731,7 +734,7 @@ void TAD::perform_neb(int ievent)
   memory->destroy(buf_init);
   memory->destroy(buf_final);
 
-  // Run NEB
+  // run NEB
 
   int beginstep_hold = update->beginstep;
   int endstep_hold = update->endstep;
@@ -763,7 +766,7 @@ void TAD::perform_neb(int ievent)
     universe->uscreen = uscreen_lammps;
   }
 
-  // Extract barrier energy from NEB
+  // extract barrier energy from NEB
 
   if (universe->iworld == 0)
     fix_event_list[ievent]->ebarrier = neb->ebf;
@@ -786,7 +789,7 @@ void TAD::perform_neb(int ievent)
 
   delete [] args;
 
-  // Clean up 
+  // clean up 
 
   modify->delete_fix("neb");
   delete neb;

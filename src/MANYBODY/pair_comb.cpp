@@ -1243,27 +1243,6 @@ double PairComb::comb_bij_d(double zeta, Param *param)
 
 /* ---------------------------------------------------------------------- */
 
-double PairComb::comb_gijk(double costheta, Param *param)
-{
-  double comb_c = param->c;
-  double comb_d = param->d;
-
-  return (1.0 + pow(comb_c/comb_d,2.0) -
-    pow(comb_c,2.0) / (pow(comb_d,2.0) + pow(param->h - costheta,2.0)));
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairComb::comb_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return numerator/denominator;
-}
-
-/*------------------------------------------------------------------------- */
-
 void PairComb::attractive(Param *param, double prefactor,
 			  double rsqij, double rsqik,
 			  double *delrij, double *delrik, 
@@ -1649,10 +1628,10 @@ void PairComb::field(Param *param, double rsq, double iq,double jq,
 
 double PairComb::yasu_char(double *qf_fix, int &igroup)
 {
-  int i,j,k,ii,jj,kk,jnum,itag,jtag;
-  int itype,jtype,ktype,iparam_i,iparam_ij,iparam_ijk;
+  int i,j,ii,jj,jnum,itag,jtag;
+  int itype,jtype,iparam_i,iparam_ij;
   double xtmp,ytmp,ztmp;
-  double rsq1,rsq2,delr1[3],delr2[3],zeta_ij;
+  double rsq1,delr1[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
   double iq,jq,fqi,fqj,fqij,fqjj;
   double potal,fac11,fac11e,sr1,sr2,sr3;
@@ -2147,15 +2126,13 @@ void PairComb::Short_neigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::add_pages()
+void PairComb::add_pages(int howmany)
 {
   int toppage = maxpage;
-  maxpage += PGDELTA;
+  maxpage += howmany*PGDELTA;
 
   pages = (int **)
     memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
   for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"pair:pages[i]");
 }
-
-/* ---------------------------------------------------------------------- */

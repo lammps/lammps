@@ -33,8 +33,8 @@ class lammps:
     except:
       try:
         self.lib = CDLL("_lammps_serial.so")
-      except:
-        raise StandardError,"Could not load LAMMPS dynamic library"
+      #except:
+      #  raise OSError,"Could not load LAMMPS dynamic library"
 
     # create an instance of LAMMPS
     # don't know how to pass an MPI communicator from PyPar

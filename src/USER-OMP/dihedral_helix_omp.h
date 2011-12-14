@@ -33,13 +33,13 @@ class DihedralHelixOMP : public DihedralHelix, public ThrOMP {
 
  public:
     DihedralHelixOMP(class LAMMPS *lmp) : 
-      DihedralHelix(lmp), ThrOMP(lmp,DIHEDRAL) {};
+      DihedralHelix(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
 
   virtual void compute(int, int);
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

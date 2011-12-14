@@ -261,8 +261,11 @@ void PRD::command(int narg, char **arg)
   quench();
   ncoincident = 0;
   share_event(0,0);
+
+  timer->init();
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
+
   log_event();
 
   // do full init/setup since are starting all replicas after event
@@ -343,6 +346,7 @@ void PRD::command(int narg, char **arg)
     update->integrate->setup();
 
     timer->barrier_start(TIME_LOOP);
+
     if (t_corr > 0) replicate(ireplica);
     if (temp_flag == 0) {
       if (ireplica == universe->iworld)
@@ -350,6 +354,7 @@ void PRD::command(int narg, char **arg)
       MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[ireplica],
         	      universe->uworld);
     }
+
     timer->barrier_stop(TIME_LOOP);
     time_comm += timer->array[TIME_LOOP];
     

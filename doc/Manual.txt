@@ -100,7 +100,7 @@ it gives quick access to documentation for all LAMMPS commands.
 "Packages"_Section_packages.html :l
   4.1 "Standard packages"_pkg_1 :ulb,b
   4.2 "User packages"_pkg_2 :ule,b
-"Using accelerated CPU and GPU styles"_Section_accelerate.html :l
+"Accelerating LAMMPS performance"_Section_accelerate.html :l
   5.1 "OPT package"_acc_1 :ulb,b
   5.2 "USER-OMP package"_acc_2 :b
   5.3 "GPU package"_acc_3 :b

@@ -271,18 +271,22 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,"Fix ave/spatial compute vector is accessed out-of-range");
+	error->all(FLERR,
+		   "Fix ave/spatial compute vector is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
 	error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all(FLERR,"Fix ave/spatial fix does not calculate per-atom values");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate per-atom values");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,"Fix ave/spatial fix does not calculate a per-atom vector");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,"Fix ave/spatial fix does not calculate a per-atom array");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
 	error->all(FLERR,"Fix ave/spatial fix vector is accessed out-of-range");
     } else if (which[i] == VARIABLE) {
@@ -327,7 +331,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   int triclinic = domain->triclinic;
   if (triclinic == 1 && scaleflag != REDUCED)
-    error->all(FLERR,"Fix ave/spatial for triclinic boxes requires units reduced");
+    error->all(FLERR,
+	       "Fix ave/spatial for triclinic boxes requires units reduced");
 
   if (scaleflag == LATTICE && domain->lattice == NULL)
     error->all(FLERR,"Use of fix ave/spatial with undefined lattice");
@@ -454,7 +459,8 @@ void FixAveSpatial::init()
       value2index[m] = ifix;
 
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all(FLERR,"Fix for fix ave/spatial not computed at compatible time");
+	error->all(FLERR,
+		   "Fix for fix ave/spatial not computed at compatible time");
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
@@ -1239,6 +1245,7 @@ double FixAveSpatial::compute_array(int i, int j)
   if (i >= nbins) return 0.0;
   if (j < ndim) return coord[i][j];
   j -= ndim+1;
+  if (!norm) return 0.0;
   if (j < 0) return count_total[i]/norm;
   return values_total[i][j]/norm;
 }

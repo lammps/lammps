@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairEAMOMP::PairEAMOMP(LAMMPS *lmp) :
-  PairEAM(lmp), ThrOMP(lmp, PAIR)
+  PairEAM(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -39,7 +39,6 @@ void PairEAMOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -58,42 +57,39 @@ void PairEAMOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, *rho_t;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    
     if (force->newton_pair)
-      rho_t = rho + tid*nall;
-    else rho_t = rho + tid*atom->nlocal;
+      thr->init_eam(nall, rho);
+    else
+      thr->init_eam(atom->nlocal, rho);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, rho_t, ifrom, ito, tid);
-	else eval<1,1,0>(f, rho_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, rho_t, ifrom, ito, tid);
-	else eval<1,0,0>(f, rho_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, rho_t, ifrom, ito, tid);
-      else eval<0,0,0>(f, rho_t, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairEAMOMP::eval(double **f, double *rho_t,
-		      int iifrom, int iito, int tid)
+void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,m,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -103,21 +99,21 @@ void PairEAMOMP::eval(double **f, double *rho_t,
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  double * const rho_t = thr->get_rho();
+  const int tid = thr->get_tid();
+  const int nthreads = comm->nthreads;
+
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
 
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  // zero out density 
-
-  if (NEWTON_PAIR) memset(rho_t, 0, nall*sizeof(double));
-  else memset(rho_t, 0, nlocal*sizeof(double));
 
   // rho = density at each atom
   // loop over neighbors of my atoms
@@ -164,7 +160,7 @@ void PairEAMOMP::eval(double **f, double *rho_t,
 
   if (NEWTON_PAIR) {
     // reduce per thread density
-    data_reduce_thr(&(rho[0]), nall, comm->nthreads, 1, tid);
+    data_reduce_thr(rho, nall, nthreads, 1, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -178,7 +174,7 @@ void PairEAMOMP::eval(double **f, double *rho_t,
     sync_threads();
   
   } else {
-    data_reduce_thr(&(rho[0]), nlocal, comm->nthreads, 1, tid);
+    data_reduce_thr(rho, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -198,8 +194,7 @@ void PairEAMOMP::eval(double **f, double *rho_t,
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (eflag_global) eng_vdwl_thr[tid] += phi;
-      if (eflag_atom) eatom_thr[tid][i] += phi;
+      e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, phi, 0.0, thr);
     }
   }
 
@@ -283,7 +278,7 @@ void PairEAMOMP::eval(double **f, double *rho_t,
 
 	if (EFLAG) evdwl = phi;
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,tid);
+				 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

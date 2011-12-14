@@ -3283,10 +3283,10 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
    add pages to REBO neighbor list
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::add_pages()
+void PairAIREBO::add_pages(int howmany)
 {
   int toppage = maxpage;
-  maxpage += PGDELTA;
+  maxpage += howmany*PGDELTA;
 
   pages = (int **) 
     memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");

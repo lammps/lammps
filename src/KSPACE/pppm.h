@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -51,7 +51,6 @@ class PPPM : public KSpace {
   int nfactors;
   int *factors;
   double qsum,qsqsum;
-  double qqrd2e;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;

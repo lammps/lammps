@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
 """
-setup.py file for LAMMPS with system MPI library
+setup.py file for LAMMPS with system MPICH library
 """
 
 from distutils.core import setup, Extension
@@ -21,7 +21,7 @@ lammps_library = Extension("_lammps",
                            # src files for LAMMPS
                            include_dirs = ["../src"],
                            # additional libs for MPICH on Linux
-                           libraries = ["mpich","rt"],
+                           libraries = ["mpich","mpl","pthread"],
                            # where to find the MPICH lib on Linux
                            library_dirs = ["/usr/local/lib"],
                            # additional libs for MPI on Mac
@@ -29,7 +29,7 @@ lammps_library = Extension("_lammps",
                            )
 
 setup(name = "lammps",
-      version = "26Oct10",
+      version = "28Nov11",
       author = "Steve Plimpton",
       author_email = "sjplimp@sandia.gov",
       url = "http://lammps.sandia.gov",

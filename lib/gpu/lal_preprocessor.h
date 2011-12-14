@@ -175,7 +175,11 @@ typedef struct _double4 double4;
 #endif
 
 // -------------------------------------------------------------------------
+<<<<<<< HEAD
 //                            FERMI OPENCL DEFINITIONS
+=======
+//                           NVIDIA FERMI OPENCL DEFINITIONS
+>>>>>>> ad9fa0e18743a47e42452e38329083e37cb90055
 // -------------------------------------------------------------------------
 
 #ifdef FERMI_OCL
@@ -203,6 +207,37 @@ typedef struct _double4 double4;
 #endif
 
 // -------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+//                            AMD CYPRESS OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef CYPRESS_OCL
+
+#define USE_OPENCL
+#define fast_mul(X,Y) (X)*(Y)
+#define ARCH 0
+#define DRIVER 0
+#define MEM_THREADS 32
+#define THREADS_PER_ATOM 4
+#define THREADS_PER_CHARGE 8
+#define BLOCK_PAIR 128
+#define MAX_SHARED_TYPES 8
+#define BLOCK_NBOR_BUILD 64
+#define BLOCK_BIO_PAIR 64
+
+#define WARP_SIZE 64
+#define PPPM_BLOCK_1D 64
+#define BLOCK_CELL_2D 8
+#define BLOCK_CELL_ID 128
+#define MAX_BIO_SHARED_TYPES 128
+
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
+
+// -------------------------------------------------------------------------
+>>>>>>> ad9fa0e18743a47e42452e38329083e37cb90055
 //                            GENERIC OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 

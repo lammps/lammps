@@ -33,13 +33,13 @@ class DihedralCosineShiftExpOMP : public DihedralCosineShiftExp, public ThrOMP {
 
  public:
     DihedralCosineShiftExpOMP(class LAMMPS *lmp) : 
-      DihedralCosineShiftExp(lmp), ThrOMP(lmp,DIHEDRAL) {};
+      DihedralCosineShiftExp(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
 
   virtual void compute(int, int);
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

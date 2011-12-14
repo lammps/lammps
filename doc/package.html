@@ -19,14 +19,31 @@
 
 <LI>args = arguments specific to the style 
 
-<PRE>  <I>gpu</I> args = mode first last split
+<PRE>  <I>gpu</I> args = mode first last split keyword value ...
     mode = force or force/neigh
     first = ID of first GPU to be used on each node
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
-  <I>cuda</I> args = to be determined
-  <I>omp</I> args = Nthreads
-    Nthreads = # of OpenMP threads to associate with each MPI process 
+    zero or more keyword/value pairs may be appended
+    keywords = <I>threads_per_atom</I>
+    <I>threads_per_atom</I> value = Nthreads
+      Nthreads = # of GPU threads used per atom
+  <I>cuda</I> args = keyword value ...
+    one or more keyword/value pairs may be appended
+    keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
+    <I>gpu/node</I> value = N
+      N = number of GPUs to be used per node
+    <I>gpu/node/special</I> values = N gpu1 .. gpuN
+      N = number of GPUs to be used per node
+      gpu1 .. gpuN = N IDs of the GPUs to use
+    <I>timing</I> values = none
+    <I>test</I> values = id
+      id = atom-ID of a test particle
+    <I>override/bpa</I> values = flag
+      flag = 0 for TpA algorithm, 1 for BpA algorithm 
+  <I>omp</I> args = Nthreads mode
+    Nthreads = # of OpenMP threads to associate with each MPI process
+    mode = force or force/neigh (optional) 
 </PRE>
 
 </UL>
@@ -36,25 +53,35 @@
 package gpu force 0 0 0.75
 package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
-package cuda blah
-package omp 4 
+package cuda gpu/node/special 2 0 2
+package cuda test 3948
+package omp * force/neigh
+package omp 4 force 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command invokes package-specific settings.  Currently the
 following packages use it: GPU, USER-CUDA, and USER-OMP.
 </P>
-<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
-details about using these various packages for accelerating
-a LAMMPS calculation.
+<P>To use the accelerated GPU and USER-OMP styles, the use of the package
+command is required.  However, as described in the "Defaults" section
+below, if you use the "-sf gpu" or "-sf omp" <A HREF = "Section_start.html#start_6">command-line
+options</A> to enable use of these styles,
+then default package settings are enabled.  In that case you only need
+to use the package command if you want to change the defaults.
+</P>
+<P>To use the accelerate USER-CUDA styles, the package command is not
+required as defaults are assigned internally.  You only need to use
+the package command if you want to change the defaults.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more details about using these various packages for accelerating
+LAMMPS calculations.
 </P>
 <HR>
 
 <P>The <I>gpu</I> style invokes options associated with the use of the GPU
-package.  It allows you to select and initialize GPUs to be used for
-acceleration via this package and configure how the GPU acceleration
-is performed.  These settings are required in order to use any style
-with GPU acceleration.
+package. 
 </P>
 <P>The <I>mode</I> setting specifies where neighbor list calculations will be
 performed.  If <I>mode</I> is force, neighbor list calculation is performed
@@ -98,27 +125,105 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 </P>
+<P>The <I>threads_per_atom</I> keyword allows control of the number of GPU
+threads used per-atom to perform the short range force calculation.
+By default, the value will be chosen based on the pair style, however,
+the value can be set with this keyword to fine-tune performance.  For
+large cutoffs or with a small number of particles per GPU, increasing
+the value can improve performance. The number of threads per atom must
+be a power of 2 and currently cannot be greater than 32.
+</P>
 <HR>
 
 <P>The <I>cuda</I> style invokes options associated with the use of the
-USER-CUDA package.  These still need to be documented.
+USER-CUDA package.  
+</P>
+<P>The <I>gpu/node</I> keyword specifies the number <I>N</I> of GPUs to be used on
+each node.  An MPI process with rank <I>K</I> will use the GPU (K mod N).
+This implies that processes should be assigned with successive ranks
+on each node, which is the default with most (or even all) MPI
+implementations. The default value for <I>N</I> is 2.
+</P>
+<P>The <I>gpu/node/special</I> keyword also specifies the number (N) of GPUs
+to be used on each node, but allows more control over their
+specification.  An MPI process with rank <I>K</I> will use the GPU <I>gpuI</I>
+with l = (K mod N) + 1. This implies that processes should be assigned
+with successive ranks on each node, which is the default with most (or
+even all) MPI implementations.  For example if you have three GPUs on
+a machine, one of which is used for the X-Server (the GPU with the ID
+1) while the others (with IDs 0 and 2) are used for computations you
+would specify:
+</P>
+<PRE>package cuda gpu/node/special 2 0 2 
+</PRE>
+<P>A main purpose of the <I>gpu/node/special</I> optoin is to allow two (or
+more) simulations to be run on one workstation.  In that case one
+would set the first simulation to use GPU 0 and the second to use GPU
+1. This is not necessary though, if the GPUs are in what is called
+<I>compute exclusive</I> mode.  Using that setting, every process will get
+its own GPU automatically.  This <I>compute exclusive</I> mode can be set
+as root using the <I>nvidia-smi</I> tool which is part of the CUDA
+installation.
+</P>
+<P>Note that if the <I>gpu/node/special</I> keyword is not used, the USER-CUDA
+package sorts existing GPUs on each node according to their number of
+multiprocessors.  This way, compute GPUs will be priorized over
+X-Server GPUs.
+</P>
+<P>Use of the <I>timing</I> keyword will output detailed timing information
+for various subroutines.
+</P>
+<P>The <I>test</I> keyword will output info for the the specified atom at
+several points during each time step.  This is mainly usefull for
+debugging purposes.  Note that the simulation will be severly slowed
+down if this option is used.
+</P>
+<P>The <I>override/bpa</I> keyword can be used to specify which mode is used
+for pair-force evaluation.  TpA = one thread per atom; BpA = one block
+per atom.  If this keyword is not used, a short test at the begin of
+each run will determine which method is more effective (the result of
+this test is part of the LAMMPS output).  Therefore it is usually not
+necessary to use this keyword.
 </P>
 <HR>
 
 <P>The <I>omp</I> style invokes options associated with the use of the
 USER-OMP package.
 </P>
-<P>The only setting to make is the number of OpenMP threads to be
-allocated for each MPI process.  For example, if your system has nodes
-with dual quad-core processors, it has a total of 8 cores per node.
-You could run MPI on 2 cores on each node (e.g. using options for the
-mpirun command), and set the <I>Nthreads</I> setting to 4.  This would
-effectively use all 8 cores on each node.  Since each MPI process
-would spawn 4 threads (one of which runs as part of the MPI process
-itself).
+<P>The first argument allows to explicitly set the number of OpenMP
+threads to be allocated for each MPI process.  For example, if your
+system has nodes with dual quad-core processors, it has a total of 8
+cores per node.  You could run MPI on 2 cores on each node (e.g. using
+options for the mpirun command), and set the <I>Nthreads</I> setting to 4.
+This would effectively use all 8 cores on each node.  Since each MPI
+process would spawn 4 threads (one of which runs as part of the MPI
+process itself).
 </P>
 <P>For performance reasons, you should not set <I>Nthreads</I> to more threads
-than there are physical cores, but LAMMPS does not check for this.
+than there are physical cores (per MPI task), but LAMMPS cannot check
+for this.
+</P>
+<P>An <I>Nthreads</I> value of '*' instructs LAMMPS to use whatever is the
+default for the given OpenMP environment. This is usually determined
+via the <I>OMP_NUM_THREADS</I> environment variable or the compiler
+runtime.  Please note that in most cases the default for OpenMP
+capable compilers is to use one thread for each available CPU core
+when <I>OMP_NUM_THREADS</I> is not set, which can lead to extremely bad
+performance.
+</P>
+<P>Which combination of threads and MPI tasks gives the best performance
+is difficult to predict and can depend on many components of your input.
+Not all features of LAMMPS support OpenMP and the parallel efficiency
+can be very different, too.
+</P>
+<P>The <I>mode</I> setting specifies where neighbor list calculations will be
+multi-threaded as well.  If <I>mode</I> is force, neighbor list calculation
+is performed in serial. If <I>mode</I> is force/neigh, a multi-threaded
+neighbor list build is used. Using the force/neigh setting is almost
+always faster and should produce idential neighbor lists at the
+expense of using some more memory (neighbor list pages are always
+allocated for all threads at the same time and each thread works on
+its own pages).
 </P>
 <HR>
 
@@ -139,8 +244,26 @@ LAMMPS</A> section for more info.
 with the USER-OMP package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
 </P>
-<P><B>Default:</B> none
+<P><A HREF = "suffix.html">suffix</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>If the "-sf gpu" <A HREF = "Section_start.html#start_6">command-line switch</A> is
+used then it is as if the command "package gpu force/neigh 0 0 1" were
+invoked, to specify default settings for the GPU package.  If the
+command-line switch is not used, then no defaults are set, and you
+must specify the appropriate package command in your input script.
+</P>
+<P>The default settings for the USER CUDA package are "package cuda gpu
+2".  This is the case whether the "-sf cuda" <A HREF = "Section_start.html#start_6">command-line
+switch</A> is used or not.
+</P>
+<P>If the "-sf omp" <A HREF = "Section_start.html#start_6">command-line switch</A> is
+used then it is as if the command "package omp *" were invoked, to
+specify default settings for the USER-OMP package.  If the
+command-line switch is not used, then no defaults are set, and you
+must specify the appropriate package command in your input script.
 </P>
 </HTML>

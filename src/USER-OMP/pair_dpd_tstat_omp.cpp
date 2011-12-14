@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
-  PairDPDTstat(lmp), ThrOMP(lmp, PAIR)
+  PairDPDTstat(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   random_thr = NULL;
@@ -54,7 +54,6 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -64,45 +63,45 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
   if (!random_thr)
     random_thr = new RanMars*[nthreads];
   
+  // to ensure full compatibility with the serial DPD style
+  // we use is random number generator instance for thread 0
   random_thr[0] = random;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
+    // generate a random number generator instance for
+    // all threads != 0. make sure we use unique seeds.
     if (random_thr && tid > 0)
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me 
 				    + comm->nprocs*tid);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairDPDTstatOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -112,14 +111,15 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  double **v = atom->v;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
-  double dtinvsqrt = 1.0/sqrt(update->dt);
+  const double * const * const x = atom->x;
+  const double * const * const v = atom->v;
+  double * const * const f = thr->get_f();
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double *special_lj = force->special_lj;
+  const double dtinvsqrt = 1.0/sqrt(update->dt);
   double fxtmp,fytmp,fztmp;
-  RanMars &rng = *random_thr[tid];
+  RanMars &rng = *random_thr[thr->get_tid()];
 
   // adjust sigma if target T is changing
 
@@ -192,7 +192,7 @@ void PairDPDTstatOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 0.0,0.0,fpair,delx,dely,delz,tid);
+				 0.0,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

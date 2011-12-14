@@ -40,8 +40,7 @@ class PairCDEAMOMP : public PairCDEAM, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CDEAMVERSION>
-  void eval(double **f, double *rho_t, double *rhoB_t, double *D_values_t, 
-	    int iifrom, int iito, int tid);
+  void eval(int iifrom, int iito, ThrData * const thr);
 };
 
   /// The one-site concentration formulation of CD-EAM.

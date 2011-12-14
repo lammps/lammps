@@ -55,18 +55,14 @@ if (test $1 = 1) then
     cp pair_coul_long_gpu.h ..
   fi
 
-  if (test -e ../pair_cg_cmm.cpp) then
-    cp pair_cg_cmm_gpu.cpp ..
-    cp pair_cg_cmm_gpu.h ..
+  if (test -e ../pair_lj_sdk.cpp) then
+    cp pair_lj_sdk_gpu.cpp ..
+    cp pair_lj_sdk_gpu.h ..
   fi
 
-  if (test -e ../pair_cg_cmm_coul_long.cpp) then
-    cp pair_cg_cmm_coul_long_gpu.cpp ..
-    cp pair_cg_cmm_coul_long_gpu.h ..
-    cp pair_cg_cmm_coul_msm.cpp ..
-    cp pair_cg_cmm_coul_msm.h ..
-    cp pair_cg_cmm_coul_msm_gpu.cpp ..
-    cp pair_cg_cmm_coul_msm_gpu.h ..
+  if (test -e ../pair_lj_sdk_coul_long.cpp) then
+    cp pair_lj_sdk_coul_long_gpu.cpp ..
+    cp pair_lj_sdk_coul_long_gpu.h ..
   fi
 
   if (test -e ../pppm.cpp) then
@@ -79,7 +75,6 @@ if (test $1 = 1) then
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_expand_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
-  cp pair_lj_cut_tgpu.cpp ..
 
   cp fix_gpu.cpp ..
 
@@ -88,17 +83,10 @@ if (test $1 = 1) then
   cp pair_lj96_cut_gpu.h ..
   cp pair_lj_expand_gpu.h ..
   cp pair_lj_cut_coul_cut_gpu.h ..
-  cp pair_lj_cut_tgpu.h ..
   
   cp fix_gpu.h ..
   cp gpu_extra.h ..
 
-  cp pair_omp_gpu.cpp ..
-  cp pair_lj_cut_tgpu.cpp ..
-
-  cp pair_omp_gpu.h ..
-  cp pair_lj_cut_tgpu.h ..
-  
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
@@ -122,16 +110,11 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_gpu.cpp
   rm -f ../pair_lj_class2_coul_long_gpu.cpp
   rm -f ../pair_lj_charmm_coul_long_gpu.cpp
-  rm -f ../pair_lj_cut_tgpu.cpp
   rm -f ../pair_coul_long_gpu.cpp
-  rm -f ../pair_cg_cmm_gpu.cpp
-  rm -f ../pair_cg_cmm_coul_long_gpu.cpp
-  rm -f ../pair_cg_cmm_coul_msm.cpp
-  rm -f ../pair_cg_cmm_coul_msm_gpu.cpp
+  rm -f ../pair_lj_sdk_gpu.cpp
+  rm -f ../pair_lj_sdk_coul_long_gpu.cpp
 
   rm -f ../fix_gpu.cpp
-  rm -f ../pair_omp_gpu.cpp
-  rm -f ../pair_lj_cut_tgpu.cpp
 
   rm -f ../pppm_gpu.h
   rm -f ../pair_eam_gpu.h
@@ -146,17 +129,12 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_gpu.h
   rm -f ../pair_lj_class2_coul_long_gpu.h
   rm -f ../pair_lj_charmm_coul_long_gpu.h
-  rm -f ../pair_lj_cut_tgpu.h
   rm -f ../pair_coul_long_gpu.h
-  rm -f ../pair_cg_cmm_gpu.h
-  rm -f ../pair_cg_cmm_coul_long_gpu.h
-  rm -f ../pair_cg_cmm_coul_msm.h
-  rm -f ../pair_cg_cmm_coul_msm_gpu.h
+  rm -f ../pair_lj_sdk_gpu.h
+  rm -f ../pair_lj_sdk_coul_long_gpu.h
 
   rm -f ../fix_gpu.h
   rm -f ../gpu_extra.h
-  rm -f ../pair_omp_gpu.h
-  rm -f ../pair_lj_cut_tgpu.h
   
 fi
 

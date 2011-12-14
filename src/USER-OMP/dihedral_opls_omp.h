@@ -33,13 +33,13 @@ class DihedralOPLSOMP : public DihedralOPLS, public ThrOMP {
 
  public:
     DihedralOPLSOMP(class LAMMPS *lmp) : 
-      DihedralOPLS(lmp), ThrOMP(lmp,DIHEDRAL) {};
+      DihedralOPLS(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
 
   virtual void compute(int, int);
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(double **f, int ifrom, int ito, int tid);
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

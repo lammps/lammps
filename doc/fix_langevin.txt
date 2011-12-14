@@ -15,6 +15,7 @@ fix ID group-ID langevin Tstart Tstop damp seed keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
+  Tstart can be a variable (see below) :pre
 damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
@@ -23,7 +24,7 @@ keyword = {angmom} or {omega} or {scale} or {tally} or {zero} :l
     {no} = do not thermostat rotational degrees of freedom via the angular momentum
     {yes} = do thermostat rotational degrees of freedom via the angular momentum
   {omega} value = {no} or {yes}
-    {no} = do not thermostat rotational degrees of freedom via then angular velocity
+    {no} = do not thermostat rotational degrees of freedom via the angular velocity
     {yes} = do thermostat rotational degrees of freedom via the angular velocity
   {scale} values = type ratio
     type = atom type (1-N)
@@ -101,6 +102,23 @@ thermostatting.
 
 The desired temperature at each timestep is a ramped value during the
 run from {Tstart} to {Tstop}.
+
+{Tstart} can be specified as an equal-style or atom-style
+"variable"_variable.html.  In this case, the {Tstop} setting is
+ignored.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+target temperature.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+
+Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+temperature with optional time-dependence as well.
 
 Like other fixes that perform thermostatting, this fix can be used
 with "compute commands"_compute.html that remove a "bias" from the

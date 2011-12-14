@@ -29,10 +29,9 @@
 #include "output.h"
 #include "thermo.h"
 #include "random_mars.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -87,9 +87,9 @@ define the lattice spacings.
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
@@ -98,8 +98,9 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The zhi boundary on which atoms are added with append_atoms must be shrink-wrapped.
-The zlo boundary may be any boundary type other than periodic.
+<P>The zhi boundary on which atoms are added with append_atoms must be
+shrink-wrapped.  The zlo boundary may be any boundary type other than
+periodic.
 </P>
 <P><B>Related commands:</B>
 </P>

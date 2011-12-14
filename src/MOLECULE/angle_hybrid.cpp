@@ -283,6 +283,16 @@ void AngleHybrid::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   run angle style specific initialization
+------------------------------------------------------------------------- */
+
+void AngleHybrid::init_style()
+{
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]) styles[m]->init_style();
+}
+
+/* ----------------------------------------------------------------------
    return an equilbrium angle length 
 ------------------------------------------------------------------------- */
 

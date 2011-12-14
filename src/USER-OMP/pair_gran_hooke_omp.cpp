@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeOMP::PairGranHookeOMP(LAMMPS *lmp) :
-  PairGranHooke(lmp), ThrOMP(lmp, PAIR)
+  PairGranHooke(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -36,7 +36,6 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -44,33 +43,28 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, **torque;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    torque = atom->torque + tid*nall;
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag)
-      if (force->newton_pair) eval<1,1>(f, torque, ifrom, ito, tid);
-      else eval<1,0>(f, torque, ifrom, ito, tid);
+      if (force->newton_pair) eval<1,1>(ifrom, ito, thr);
+      else eval<1,0>(ifrom, ito, thr);
     else 
-      if (force->newton_pair) eval<0,1>(f, torque, ifrom, ito, tid);
-      else eval<0,0>(f, torque, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,1>(ifrom, ito, thr);
+      else eval<0,0>(ifrom, ito, thr);
 
-    // reduce per thread forces and torque into global arrays.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
-    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
 }
 
 template <int EVFLAG, int NEWTON_PAIR>
-void PairGranHookeOMP::eval(double **f, double **torque, int iifrom, int iito, int tid)
+void PairGranHookeOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
@@ -82,15 +76,17 @@ void PairGranHookeOMP::eval(double **f, double **torque, int iifrom, int iito, i
   double fn,fs,ft,fs1,fs2,fs3;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double **x = atom->x;
-  double **v = atom->v;
-  double **omega = atom->omega;
-  double *radius = atom->radius;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const double * const * const x = atom->x;
+  const double * const * const v = atom->v;
+  const double * const * const omega = atom->omega;
+  const double * const radius = atom->radius;
+  const double * const rmass = atom->rmass;
+  const double * const mass = atom->mass;
+  double * const * const f = thr->get_f();
+  double * const * const torque = thr->get_torque();
+  const int * const type = atom->type;
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
   double fxtmp,fytmp,fztmp;
   double t1tmp,t2tmp,t3tmp;
 
@@ -216,7 +212,7 @@ void PairGranHookeOMP::eval(double **f, double **torque, int iifrom, int iito, i
 	}
 
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
-				     0.0,0.0,fx,fy,fz,delx,dely,delz,tid);
+				     0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
 
       }
     }

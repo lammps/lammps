@@ -28,6 +28,7 @@ class PPPMTIP4P : public PPPM {
  public:
   PPPMTIP4P(class LAMMPS *, int, char **);
   virtual ~PPPMTIP4P () {};
+  void init();
 
  protected:
   virtual void particle_map();

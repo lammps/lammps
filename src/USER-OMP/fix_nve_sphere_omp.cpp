@@ -34,26 +34,24 @@ enum{NONE,DIPOLE};
 
 void FixNVESphereOMP::initial_integrate(int vflag)
 {
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-  double **omega = atom->omega;
-  double **torque = atom->torque;
-  double *radius = atom->radius;
-  double *rmass = atom->rmass;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  double * const * const x = atom->x;
+  double * const * const v = atom->v;
+  const double * const * const f = atom->f;
+  double * const * const omega = atom->omega;
+  const double * const * const torque = atom->torque;
+  const double * const radius = atom->radius;
+  const double * const rmass = atom->rmass;
+  const int * const mask = atom->mask;
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
   
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-
   // set timestep here since dt may have changed or come via rRESPA
   const double dtfrotate = dtf / INERTIA;
 
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
+#pragma omp parallel for private(i) default(none)
 #endif
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -77,9 +75,9 @@ void FixNVESphereOMP::initial_integrate(int vflag)
   // renormalize mu to dipole length
 
   if (extra == DIPOLE) {
-    double **mu = atom->mu;
+    double * const * const mu = atom->mu;
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
+#pragma omp parallel for private(i) default(none)
 #endif
     for (i = 0; i < nlocal; i++) { 
       double g0,g1,g2,msq,scale;
@@ -103,18 +101,16 @@ void FixNVESphereOMP::initial_integrate(int vflag)
 
 void FixNVESphereOMP::final_integrate()
 {
-  double **v = atom->v;
-  double **f = atom->f;
-  double **omega = atom->omega;
-  double **torque = atom->torque;
-  double *rmass = atom->rmass;
-  double *radius = atom->radius;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  double * const * const v = atom->v;
+  const double * const * const f = atom->f;
+  double * const * const omega = atom->omega;
+  const double * const * const torque = atom->torque;
+  const double * const rmass = atom->rmass;
+  const double * const radius = atom->radius;
+  const int * const mask = atom->mask;
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
   
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-
   // set timestep here since dt may have changed or come via rRESPA
 
   const double dtfrotate = dtf / INERTIA;
@@ -123,7 +119,7 @@ void FixNVESphereOMP::final_integrate()
   // d_omega/dt = torque / inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for private(i) default(shared)
+#pragma omp parallel for private(i) default(none)
 #endif
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

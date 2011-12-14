@@ -13,12 +13,14 @@ Section</A>
 
 <H3>12. Errors 
 </H3>
-<P>This section describes the various kinds of errors you can encounter
-when using LAMMPS.
+<P>This section describes the errors you can encounter when using LAMMPS,
+either conceptually, or as printed out by the program.
 </P>
 12.1 <A HREF = "#err_1">Common problems</A><BR>
 12.2 <A HREF = "#err_2">Reporting bugs</A><BR>
 12.3 <A HREF = "#err_3">Error & warning messages</A> <BR>
+
+<HR>
 
 <HR>
 
@@ -180,6 +182,12 @@ the bond topologies you have defined.
 <DT><I>Accelerated style in input script but no fix gpu</I> 
 
 <DD>GPU acceleration requires fix gpu in the input script. 
+
+<DT><I>Accelerator sharing is not currently supported on system.</I> 
+
+<DD>You cannot use more MPI processes than accelerators on the
+system as currently configured. For NVIDIA GPUs, the compute
+mode must be changed using nvidia-smi to support sharing. 
 
 <DT><I>All angle coeffs are not set</I> 
 
@@ -1204,6 +1212,11 @@ in LAMMPS.
 <DT><I>Cannot use kspace solver on system with no charge</I> 
 
 <DD>No atoms in system have a non-zero charge. 
+
+<DT><I>Cannot use neigh_modify exclude with GPU neighbor builds</I> 
+
+<DD>This is a current limitation of the GPU implementation
+in LAMMPS. 
 
 <DT><I>Cannot use neighbor bins - box size << cutoff</I> 
 
@@ -5798,6 +5811,12 @@ length in that dimension.  E.g. the xy tilt must be between -half and
 <DT><I>Two groups cannot be the same in fix spring couple</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Unable to initialize accelerator for use</I> 
+
+<DD>One or more specified accelerator(s) cannot currently be used by LAMMPS.
+This can happen if the accelerator is already in use by another 
+process. 
 
 <DT><I>Unbalanced quotes in input line</I> 
 

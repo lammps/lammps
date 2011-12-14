@@ -38,6 +38,7 @@ class PairGranHookeHistory : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
   void reset_dt();
 
  protected:
@@ -54,6 +55,8 @@ class PairGranHookeHistory : public Pair {
 
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
+
+  int neighprev;
 
   void allocate();
 };

@@ -19,39 +19,28 @@
 #define LMP_THR_OMP_H
 
 #include "pointers.h"
+#include "fix_omp.h"
+#include "thr_data.h"
 
 namespace LAMMPS_NS {
 
 // forward declarations
 class Pair;
+class Bond;
+class Angle;
 class Dihedral;
+class Improper;
+class KSpace;
+class Fix;
 
 class ThrOMP {
- public:
-  struct global {
-    double eng_vdwl;
-    double eng_coul;
-    double eng_bond;
-    double virial[6];
-  };
 
  protected:
+  LAMMPS *lmp; // reference to base lammps object.
+  FixOMP *fix; // pointer to fix_omp;
+
   const int thr_style;
-  enum {PAIR=1, BOND, ANGLE, DIHEDRAL, IMPROPER, KSPACE, FIX, COMPUTE};
 
-  LAMMPS *lmp;           // reference to base lammps object.
-
-  double *eng_vdwl_thr;  // per thread accumulated vdw energy
-  double *eng_coul_thr;  // per thread accumulated coulomb energies
-  double *eng_bond_thr;  // per thread accumlated bonded energy
-
-  double **virial_thr;   // per thread virial
-  double **eatom_thr;    // per thread per atom energy
-  double ***vatom_thr;   // per thread per atom virial
-
-  int maxeatom_thr, maxvatom_thr;
-  int evflag_global, evflag_atom;
-  
  public:
   ThrOMP(LAMMPS *, int);
   virtual ~ThrOMP();
@@ -65,50 +54,105 @@ class ThrOMP {
       { ; }
     };
 
- protected:
-  // extra ev_tally work for threaded styles
-  void ev_setup_thr(Pair *);
-  void ev_setup_thr(Dihedral *);
-
-  void ev_reduce_thr(Pair *);
-  void ev_reduce_thr(Dihedral *);
-
- private:
-  // internal method to be used by multiple ev_setup_thr() methods
-  void ev_setup_acc_thr(int, int, int, int, int, int);
+  enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
+	THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
+	THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8,THR_FIX=1<<9};
 
  protected:
+  // extra ev_tally setup work for threaded styles
+  void ev_setup_thr(int, int, int, double *, double **, ThrData *);
+
+  // compute global per thread virial contribution from per-thread force
+  void virial_fdotr_compute_thr(double * const, const double * const * const, 
+				const double * const * const,
+				const int, const int, const int);
+
+  // reduce per thread data as needed
+  void reduce_thr(void * const style, const int eflag, const int vflag, ThrData * const thr, const int nproxy=0);
+
+ protected:
+
   // threading adapted versions of the ev_tally infrastructure
   // style specific versions (need access to style class flags)
-  void ev_tally_thr(Pair *, int, int, int, int, double, double,
-		    double, double, double, double, int);
-  void ev_tally_xyz_thr(Pair *, int, int, int, int, double, double,
-			double, double, double, double, double, double, int);
-  void ev_tally3_thr(Pair *, int, int, int, double, double,
-		     double *, double *, double *, double *, int);
-  void ev_tally4_thr(Pair *, int, int, int, int, double, 
-		     double *, double *, double *,
-		     double *, double *, double *, int);
-  void ev_tally_list_thr(Pair *, int, int *, double , double *, int);
 
-  void ev_tally_thr(Dihedral *, int, int, int, int, int, int, double,
-		    double *, double *, double *, double, double, double,
-		    double, double, double, double, double, double, int);
+  // Pair
+  void e_tally_thr(Pair * const, const int, const int, const int,
+		   const int, const double, const double, ThrData * const);
+  void v_tally_thr(Pair * const, const int, const int, const int,
+		   const int, const double * const, ThrData * const);
+
+  void ev_tally_thr(Pair * const, const int, const int, const int, const int,
+		    const double, const double, const double, const double,
+		    const double, const double, ThrData * const);
+  void ev_tally_xyz_thr(Pair * const, const int, const int, const int,
+			const int, const double, const double, const double,
+			const double, const double, const double,
+			const double, const double, ThrData * const);
+  void ev_tally3_thr(Pair * const, const int, const int, const int, const double,
+		     const double, const double * const, const double * const,
+		     const double * const, const double * const, ThrData * const);
+  void ev_tally4_thr(Pair * const, const int, const int, const int, const int,
+		     const double, const double * const, const double * const,
+		     const double * const, const double * const, const double * const,
+		     const double * const, ThrData * const);
+
+  // Bond
+  void ev_tally_thr(Bond * const, const int, const int, const int, const int,
+		    const double, const double, const double, const double,
+		    const double, ThrData * const);
+
+  // Angle
+  void ev_tally_thr(Angle * const, const int, const int, const int, const int, const int,
+		    const double, const double * const, const double * const,
+		    const double, const double, const double, const double, const double,
+		    const double, ThrData * const thr);
+  void ev_tally13_thr(Angle * const, const int, const int, const int, const int,
+		      const double, const double, const double, const double,
+		      const double, ThrData * const thr);
+
+  // Dihedral
+  void ev_tally_thr(Dihedral * const, const int, const int, const int, const int, const int,
+		    const int, const double, const double * const, const double * const,
+		    const double * const, const double, const double, const double,
+		    const double, const double, const double, const double, const double,
+		    const double, ThrData * const);
+
+  // Improper
+  void ev_tally_thr(Improper * const, const int, const int, const int, const int, const int,
+		    const int, const double, const double * const, const double * const,
+		    const double * const, const double, const double, const double,
+		    const double, const double, const double, const double, const double,
+		    const double, ThrData * const);
 
   // style independent versions
-  void v_tally2_thr(int, int, double, double *, int);
-  void v_tally3_thr(int, int, int, double *, double *, double *, double *, int);
-  void v_tally4_thr(int, int, int, int, double *, double *, double *,
-		    double *, double *, double *, int);
-
- protected:
-  // set loop range, thread id, and force array offset for threaded runs.
-  double **loop_setup_thr(double **, int &, int &, int &, int, int, int);
-
-  // reduce per thread data into the first part of the array
-  void data_reduce_thr(double *, int, int, int, int);
+  void v_tally2_thr(const int, const int, const double, const double * const, ThrData * const);
+  void v_tally3_thr(const int, const int, const int, const double * const, const double * const,
+		    const double * const, const double * const, ThrData * const);
+  void v_tally4_thr(const int, const int, const int, const int, const double * const,
+		    const double * const, const double * const, const double * const,
+		    const double * const, const double * const, ThrData * const);
+  void ev_tally_list_thr(Pair * const, const int, const int * const,
+			 const double , const double * const , ThrData * const);
 
 };
+
+// set loop range thread id, and force array offset for threaded runs.
+static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
+				  int inum, int nthreads, int nproxy=0)
+{
+#if defined(_OPENMP)
+  tid = omp_get_thread_num();
+
+  // each thread works on a fixed chunk of atoms.
+  const int idelta = 1 + inum/(nthreads-nproxy);
+  ifrom = (tid-nproxy)*idelta;
+  ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
+#else
+  tid = 0;
+  ifrom = 0;
+  ito = inum;
+#endif
+}
 
 }
 #endif

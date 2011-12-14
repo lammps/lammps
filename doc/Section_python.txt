@@ -8,6 +8,17 @@
 
 11. Python interface to LAMMPS :h3
 
+This section describes how to build and use LAMMPS via a Python
+interface.
+
+11.1 "Extending Python with a serial version of LAMMPS"_#py_1
+11.2 "Creating a shared MPI library"_#py_2
+11.3 "Extending Python with a parallel version of LAMMPS"_#py_3
+11.4 "Extending Python with MPI"_#py_4
+11.5 "Testing the Python-LAMMPS interface"_#py_5
+11.6 "Using LAMMPS from Python"_#py_6
+11.7 "Example Python scripts that use LAMMPS"_#py_7 :ul
+
 The LAMMPS distribution includes some Python code in its python
 directory which wraps the library interface to LAMMPS.  This makes it
 is possible to run LAMMPS, invoke LAMMPS commands or give it an input
@@ -20,8 +31,8 @@ packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See "this
 section"_Section_howto.html#howto_10 of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See "this section"_Section_start.html#start_4 about how
-to build LAMMPS as a library, and "this
+other codes.  See "Section_start 4"_Section_start.html#start_4 about
+how to build LAMMPS as a library, and "this
 section"_Section_howto.html#howto_19 for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
@@ -85,14 +96,6 @@ Several of the following sub-sections cover the rest of the Python
 setup discussion.  The next to last sub-section describes the Python
 syntax used to invoke LAMMPS.  The last sub-section describes example
 Python scripts included in the python directory.
-
-11.1 "Extending Python with a serial version of LAMMPS"_#py_1
-11.2 "Creating a shared MPI library"_#py_2
-11.3 "Extending Python with a parallel version of LAMMPS"_#py_3
-11.4 "Extending Python with MPI"_#py_4
-11.5 "Testing the Python-LAMMPS interface"_#py_5
-11.6 "Using LAMMPS from Python"_#py_6
-11.7 "Example Python scripts that use LAMMPS"_#py_7 :ul
 
 Before proceeding, there are 2 items to note.
 
@@ -172,7 +175,7 @@ by Argonne National Labs.  From within the mpich directory, type
 
 :link(mpich,http://www-unix.mcs.anl.gov/mpi)
 
-./configure --enable-sharedlib=gcc
+./configure --enable-shared
 make
 make install :pre
 
@@ -185,8 +188,8 @@ static and shared MPI library.  This will be fine for running LAMMPS
 from Python since it only uses the shared library.  But if you now try
 to build LAMMPS by itself as a stand-alone program (cd lammps/src;
 make foo) or build other codes that expect to link against libmpich.a,
-then those builds will typically fail if the linker uses libmpich.so
-instead.  This means you will need to remove the file
+then those builds may fail if the linker uses libmpich.so instead.  If
+this happens, it means you will need to remove the file
 /usr/local/lib/libmich.so before building LAMMPS again as a
 stand-alone code.
 
@@ -494,7 +497,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "this section"_Section_howto.html#howto_15 of the manual for a
+See "Section_howto 15"_Section_howto.html#howto_15 of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 "computes"_compute.html and "fixes"_fix.html for a description of what
@@ -574,7 +577,7 @@ Add a new interface function to src/library.cpp and
 src/library.h. :ulb,l
 
 Verify the new function is syntactically correct by building LAMMPS as
-a library - see "this section"_Section_start.html#start_4 of the
+a library - see "Section_start 4"_Section_start.html#start_4 of the
 manual. :l
 
 Add a wrapper method in the Python LAMMPS module to python/lammps.py

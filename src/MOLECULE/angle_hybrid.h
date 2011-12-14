@@ -27,11 +27,16 @@ namespace LAMMPS_NS {
 
 class AngleHybrid : public Angle {
  public:
+  int nstyles;                  // # of different angle styles
+  Angle **styles;               // class list for each Angle style
+  char **keywords;              // keyword for each Angle style
+
   AngleHybrid(class LAMMPS *);
   ~AngleHybrid();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  void init_style();
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -39,9 +44,6 @@ class AngleHybrid : public Angle {
   double memory_usage();
 
  private:
-  int nstyles;                  // # of different angle styles
-  Angle **styles;               // class list for each Angle style
-  char **keywords;              // keyword for each Angle style
   int *map;                     // which style each angle type points to
 
   int *nanglelist;              // # of angles in sub-style anglelists

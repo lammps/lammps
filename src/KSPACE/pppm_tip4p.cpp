@@ -19,6 +19,7 @@
 #include "pppm_tip4p.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,6 +39,18 @@ using namespace LAMMPS_NS;
 
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg) {}
+
+/* ---------------------------------------------------------------------- */
+
+void PPPMTIP4P::init()
+{
+  // TIP4P PPPM requires newton on, b/c it computes forces on ghost atoms
+
+  if (force->newton == 0)
+    error->all(FLERR,"Kspace style pppm/tip4p requires newton on");
+
+  PPPM::init();
+}
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
@@ -205,13 +218,14 @@ void PPPMTIP4P::fieldforce()
     }
 
     // convert E-field to force
-    const double qfactor = qqrd2e*scale*q[i];
+
+    const double qfactor = force->qqrd2e * scale * q[i];
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;
       f[i][2] += qfactor*ekz;
-    } else {
 
+    } else {
       fx = qfactor * ekx;
       fy = qfactor * eky;
       fz = qfactor * ekz;

@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "comm.h"
+#include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -34,6 +35,8 @@
 #include "compute.h"
 #include "output.h"
 #include "dump.h"
+#include "procmap.h"
+#include "math_extra.h"
 #include "error.h"
 #include "memory.h"
 
@@ -49,6 +52,9 @@ using namespace LAMMPS_NS;
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};
+enum{MULTIPLE};                   // same as in ProcMap
+enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
+enum{CART,CARTREORDER,XYZ};
 
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space 
@@ -60,6 +66,13 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+  gridflag = ONELEVEL;
+  mapflag = CART;
+  customfile = NULL;
+  recv_from_partition = send_to_partition = -1;
+  otherflag = 0;
+  outfile = NULL;
+
   grid2proc = NULL;
 
   bordergroup = 0;
@@ -104,18 +117,16 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
     maxsendlist[i] = BUFMIN;
     memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
-  numa_nodes = 0;
-  
-#ifdef NUMA_NODES
-  numa_nodes = NUMA_NODES;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 Comm::~Comm()
 {
-  if (grid2proc) memory->destroy(grid2proc);
+  delete [] customfile;
+  delete [] outfile;
+
+  memory->destroy(grid2proc);
 
   free_swap();
   if (style == MULTI) {
@@ -132,64 +143,126 @@ Comm::~Comm()
 }
 
 /* ----------------------------------------------------------------------
-   setup 3d grid of procs based on box size
+   create 3d grid of procs based on Nprocs and box size & shape
+   map processors to grid
 ------------------------------------------------------------------------- */
 
-void Comm::set_procs()
+void Comm::set_proc_grid()
 {
-#ifdef NUMA_NODES
-  if (numa_nodes) {
-    numa_set_procs();
-    return;
-  }
-#endif
+  // recv 3d proc grid of another partition if my 3d grid depends on it
 
-  procs2box();
+  if (recv_from_partition >= 0) {
+    MPI_Status status;
+    if (me == 0) MPI_Recv(other_procgrid,3,MPI_INT,
+			  universe->root_proc[recv_from_partition],0,
+			  universe->uworld,&status);
+    MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
+  }
+
+  // create ProcMap class
+
+  ProcMap *pmap = new ProcMap(lmp);
+
+  // create 3d grid of processors, produces procgrid
+  // can fail (on one partition) if constrained by other partition
+  // if numa_grid() fails, try onelevel_grid()
+
+  int flag;
+  if (gridflag == ONELEVEL) {
+    flag = pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
+			       otherflag,other_style,other_procgrid);
+    if (!flag) error->all(FLERR,"Could not create grid of processors");
+
+  } else if (gridflag == TWOLEVEL) {
+    flag = pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
+			       ncores,user_coregrid,coregrid,
+			       otherflag,other_style,other_procgrid);
+    if (!flag) error->all(FLERR,"Could not create grid of processors");
+
+  } else if (gridflag == NUMA) {
+    flag = pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
+    if (!flag) error->all(FLERR,"Could not create grid of processors");
+
+  } else if (gridflag == CUSTOM) {
+    pmap->custom_grid(customfile,nprocs,user_procgrid,procgrid);
+  }
+
+  // error check on procgrid
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all(FLERR,"Bad grid of processors");
   if (domain->dimension == 2 && procgrid[2] != 1)
     error->all(FLERR,"Processor count in z must be 1 for 2d simulation");
 
+  // grid2proc[i][j][k] = proc that owns i,j,k location in 3d grid
+
   if (grid2proc) memory->destroy(grid2proc);
   memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
 		 "comm:grid2proc");
 
-  // use MPI Cartesian routines to setup 3d grid of procs
-  // grid2proc[i][j][k] = proc that owns i,j,k location in grid
-  // let MPI compute it instead of LAMMPS in case it is machine optimized
+  // map processor IDs to 3d processor grid
+  // produces myloc, procneigh, grid2proc
 
-  int reorder = 0;
-  int periods[3];
-  periods[0] = periods[1] = periods[2] = 1;
-  MPI_Comm cartesian;
-      
-  MPI_Cart_create(world,3,procgrid,periods,reorder,&cartesian);
-  MPI_Cart_get(cartesian,3,procgrid,periods,myloc);
-  MPI_Cart_shift(cartesian,0,1,&procneigh[0][0],&procneigh[0][1]);
-  MPI_Cart_shift(cartesian,1,1,&procneigh[1][0],&procneigh[1][1]);
-  MPI_Cart_shift(cartesian,2,1,&procneigh[2][0],&procneigh[2][1]);
+  if (gridflag == ONELEVEL) {
+    if (mapflag == CART)
+      pmap->cart_map(0,procgrid,myloc,procneigh,grid2proc);
+    else if (mapflag == CARTREORDER)
+      pmap->cart_map(1,procgrid,myloc,procneigh,grid2proc);
+    else if (mapflag == XYZ)
+      pmap->xyz_map(xyz,procgrid,myloc,procneigh,grid2proc);
 
-  int coords[3];
-  int i,j,k;
-  for (i = 0; i < procgrid[0]; i++)
-    for (j = 0; j < procgrid[1]; j++)
-      for (k = 0; k < procgrid[2]; k++) {
-	coords[0] = i; coords[1] = j; coords[2] = k;
-	MPI_Cart_rank(cartesian,coords,&grid2proc[i][j][k]);
-      }
+  } else if (gridflag == TWOLEVEL) {
+    if (mapflag == CART)
+      pmap->cart_map(0,procgrid,coregrid,myloc,procneigh,grid2proc);
+    else if (mapflag == CARTREORDER)
+      pmap->cart_map(1,procgrid,coregrid,myloc,procneigh,grid2proc);
+    else if (mapflag == XYZ)
+      pmap->xyz_map(xyz,procgrid,coregrid,myloc,procneigh,grid2proc);
 
-  MPI_Comm_free(&cartesian);
+  } else if (gridflag == NUMA) {
+    pmap->numa_map(coregrid,myloc,procneigh,grid2proc);
+
+  } else if (gridflag == CUSTOM) {
+    pmap->custom_map(procgrid,myloc,procneigh,grid2proc);
+  }
+
+  // print 3d grid info to screen and logfile
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"  %d by %d by %d MPI processor grid\n",
+	      procgrid[0],procgrid[1],procgrid[2]);
+      if (gridflag == NUMA || gridflag == TWOLEVEL) 
+	fprintf(screen,"  %d by %d by %d core grid within node\n",
+		coregrid[0],coregrid[1],coregrid[2]);
+    }
+    if (logfile) {
+      fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
+	      procgrid[0],procgrid[1],procgrid[2]);
+      if (gridflag == NUMA || gridflag == TWOLEVEL) 
+	fprintf(logfile,"  %d by %d by %d core grid within node\n",
+		coregrid[0],coregrid[1],coregrid[2]);
+    }
+  }
+
+  // print 3d grid details to outfile
+
+  if (outfile) pmap->output(outfile,procgrid,grid2proc);
 
   // set lamda box params after procs are assigned
 
   if (domain->triclinic) domain->set_lamda_box();
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
-			procgrid[0],procgrid[1],procgrid[2]);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
-			 procgrid[0],procgrid[1],procgrid[2]);
+  // free ProcMap class
+
+  delete pmap;
+
+  // send my 3d proc grid to another partition if requested
+
+  if (send_to_partition >= 0) {
+    if (me == 0) MPI_Send(procgrid,3,MPI_INT,
+			  universe->root_proc[send_to_partition],0,
+			  universe->uworld);
   }
 }
 
@@ -1111,119 +1184,6 @@ void Comm::reverse_comm_dump(Dump *dump)
 }
 
 /* ----------------------------------------------------------------------
-   assign nprocs to 3d xprd,yprd,zprd box so as to minimize surface area 
-   area = surface area of each of 3 faces of simulation box
-   for triclinic, area = cross product of 2 edge vectors stored in h matrix
-------------------------------------------------------------------------- */
-
-void Comm::procs2box()
-{
-  procgrid[0] = user_procgrid[0];
-  procgrid[1] = user_procgrid[1];
-  procgrid[2] = user_procgrid[2];
-
-  // all 3 proc counts are specified
-
-  if (procgrid[0] && procgrid[1] && procgrid[2]) return;
-
-  // 2 out of 3 proc counts are specified
-
-  if (procgrid[0] > 0 && procgrid[1] > 0) {
-    procgrid[2] = nprocs/(procgrid[0]*procgrid[1]);
-    return;
-  } else if (procgrid[0] > 0 && procgrid[2] > 0) {
-    procgrid[1] = nprocs/(procgrid[0]*procgrid[2]);
-    return;
-  } else if (procgrid[1] > 0 && procgrid[2] > 0) {
-    procgrid[0] = nprocs/(procgrid[1]*procgrid[2]);
-    return;
-  } 
-
-  // determine cross-sectional areas for orthogonal and triclinic boxes
-  // area[0] = xy, area[1] = xz, area[2] = yz
-
-  double area[3];
-  if (domain->triclinic == 0) {
-    area[0] = domain->xprd * domain->yprd;
-    area[1] = domain->xprd * domain->zprd;
-    area[2] = domain->yprd * domain->zprd;
-  } else {
-    double *h = domain->h;
-    double x,y,z;
-    cross(h[0],0.0,0.0,h[5],h[1],0.0,x,y,z);
-    area[0] = sqrt(x*x + y*y + z*z);
-    cross(h[0],0.0,0.0,h[4],h[3],h[2],x,y,z);
-    area[1] = sqrt(x*x + y*y + z*z);
-    cross(h[5],h[1],0.0,h[4],h[3],h[2],x,y,z);
-    area[2] = sqrt(x*x + y*y + z*z);
-  }
-
-  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
-
-  // loop thru all possible factorizations of nprocs
-  // only consider valid cases that match procgrid settings
-  // surf = surface area of a proc sub-domain
-
-  int ipx,ipy,ipz,valid;
-  double surf;
-
-  ipx = 1;
-  while (ipx <= nprocs) {
-    valid = 1;
-    if (user_procgrid[0] && ipx != user_procgrid[0]) valid = 0;
-    if (nprocs % ipx) valid = 0;
-    if (!valid) {
-      ipx++;
-      continue;
-    }
-
-    ipy = 1;
-    while (ipy <= nprocs/ipx) {
-      valid = 1;
-      if (user_procgrid[1] && ipy != user_procgrid[1]) valid = 0;
-      if ((nprocs/ipx) % ipy) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      ipz = nprocs/ipx/ipy;
-      valid = 1;
-      if (user_procgrid[2] && ipz != user_procgrid[2]) valid = 0;
-      if (domain->dimension == 2 && ipz != 1) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
-      if (surf < bestsurf) {
-	bestsurf = surf;
-	procgrid[0] = ipx;
-	procgrid[1] = ipy;
-	procgrid[2] = ipz;
-      }
-      ipy++;
-    }
-
-    ipx++;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   vector cross product: c = a x b
-------------------------------------------------------------------------- */
-
-void Comm::cross(double ax, double ay, double az, 
-		 double bx, double by, double bz, 
-		 double &cx, double &cy, double &cz)
-{
-  cx = ay*bz - az*by;
-  cy = az*bx - ax*bz;
-  cz = ax*by - ay*bx;
-}
-
-/* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA 
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
@@ -1346,6 +1306,7 @@ void Comm::free_multi()
 
 /* ----------------------------------------------------------------------
    set communication style
+   invoked from input script by communicate command
 ------------------------------------------------------------------------- */
 
 void Comm::set(int narg, char **arg)
@@ -1384,6 +1345,136 @@ void Comm::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set dimensions for 3d grid of processors, and associated flags
+   invoked from input script by processors command
+------------------------------------------------------------------------- */
+
+void Comm::set_processors(int narg, char **arg)
+{
+  if (narg < 3) error->all(FLERR,"Illegal processors command");
+
+  if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
+  else user_procgrid[0] = atoi(arg[0]);
+  if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
+  else user_procgrid[1] = atoi(arg[1]);
+  if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
+  else user_procgrid[2] = atoi(arg[2]);
+
+  if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0) 
+    error->all(FLERR,"Illegal processors command");
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"grid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
+
+      if (strcmp(arg[iarg+1],"onelevel") == 0) {
+	gridflag = ONELEVEL;
+	
+      } else if (strcmp(arg[iarg+1],"twolevel") == 0) {
+	if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
+	gridflag = TWOLEVEL;
+	
+	ncores = atoi(arg[2]);
+	if (strcmp(arg[3],"*") == 0) user_coregrid[0] = 0;
+	else user_coregrid[0] = atoi(arg[3]);
+	if (strcmp(arg[4],"*") == 0) user_coregrid[1] = 0;
+	else user_coregrid[1] = atoi(arg[4]);
+	if (strcmp(arg[5],"*") == 0) user_coregrid[2] = 0;
+	else user_coregrid[2] = atoi(arg[5]);
+	
+	if (ncores <= 0 || user_coregrid[0] < 0 || 
+	    user_coregrid[1] < 0 || user_coregrid[2] < 0) 
+	  error->all(FLERR,"Illegal processors command");
+	iarg += 4;
+	
+      } else if (strcmp(arg[iarg+1],"numa") == 0) {
+	gridflag = NUMA;
+	
+      } else if (strcmp(arg[iarg],"custom") == 0) {
+	if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
+	gridflag = CUSTOM;
+	delete [] customfile;
+	int n = strlen(arg[iarg+2]) + 1;
+	customfile = new char(n);
+	strcpy(customfile,arg[iarg+2]);
+	iarg += 1;
+
+      } else error->all(FLERR,"Illegal processors command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"map") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
+      if (strcmp(arg[iarg+1],"cart") == 0) mapflag = CART;
+      else if (strcmp(arg[iarg+1],"cart/reorder") == 0) mapflag = CARTREORDER;
+      else if (strcmp(arg[iarg+1],"xyz") == 0 ||
+	       strcmp(arg[iarg+1],"xzy") == 0 ||
+	       strcmp(arg[iarg+1],"yxz") == 0 ||
+	       strcmp(arg[iarg+1],"yzx") == 0 ||
+	       strcmp(arg[iarg+1],"zxy") == 0 ||
+	       strcmp(arg[iarg+1],"zyx") == 0) {
+	mapflag = XYZ;
+	strcpy(xyz,arg[iarg+1]);
+      } else error->all(FLERR,"Illegal processors command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"part") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal processors command");
+      if (universe->nworlds == 1)
+	error->all(FLERR,
+		   "Cannot use processors part command "
+		   "without using partitions");
+      int isend = atoi(arg[iarg+1]);
+      int irecv = atoi(arg[iarg+2]);
+      if (isend < 1 || isend > universe->nworlds ||
+	  irecv < 1 || irecv > universe->nworlds || isend == irecv)
+	error->all(FLERR,"Invalid partitions in processors part command");
+      if (isend-1 == universe->iworld) {
+	if (send_to_partition >= 0)
+	  error->all(FLERR,
+		     "Sending partition in processors part command "
+		     "is already a sender");
+	send_to_partition = irecv-1;
+      }
+      if (irecv-1 == universe->iworld) {
+	if (recv_from_partition >= 0)
+	  error->all(FLERR,
+		     "Receiving partition in processors part command "
+		     "is already a receiver");
+	recv_from_partition = isend-1;
+      }
+
+      // only receiver has otherflag dependency
+
+      if (strcmp(arg[iarg+3],"multiple") == 0) {
+	if (universe->iworld == irecv-1) {
+	  otherflag = 1;
+	  other_style = MULTIPLE;
+	}
+      } else error->all(FLERR,"Illegal processors command");
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
+      delete [] outfile;
+      int n = strlen(arg[iarg+1]) + 1;
+      outfile = new char(n);
+      strcpy(outfile,arg[iarg+1]);
+      iarg += 2;
+
+    } else error->all(FLERR,"Illegal processors command");
+  }
+
+  // error checks
+
+  if (gridflag == NUMA && mapflag != CART)
+    error->all(FLERR,"Processors grid numa and map style are incompatible");
+  if (otherflag && (gridflag == NUMA || gridflag == CUSTOM))
+    error->all(FLERR,
+	       "Processors part option and grid style are incompatible");
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
@@ -1396,307 +1487,3 @@ bigint Comm::memory_usage()
   bytes += memory->usage(buf_recv,maxrecv);
   return bytes;
 }
-
-#ifdef NUMA_NODES
-
-#include <map>
-#include <string>
-
-/* ----------------------------------------------------------------------
-   Get the index to the neighboring processors in a dimension
-------------------------------------------------------------------------- */
-
-void Comm::numa_shift(int myloc, int num_procs, int &minus, int &plus) 
-{
-  minus = myloc - 1;
-  if (minus < 0)
-    minus = num_procs - 1;
-  plus = myloc + 1;
-  if (plus == num_procs)
-    plus = 0;
-}
-
-/* ----------------------------------------------------------------------
-   setup 3d grid of procs based on box size, group neighbors by numa node
-------------------------------------------------------------------------- */
-
-void Comm::numa_set_procs()
-{
-  // Get the names of all nodes
-  int name_length;
-  char node_name[MPI_MAX_PROCESSOR_NAME];
-  char node_names[MPI_MAX_PROCESSOR_NAME*nprocs];
-  MPI_Get_processor_name(node_name,&name_length);
-  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
-                MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
-  std::string node_string = std::string(node_name);
-  
-  // Get the number of procs per node                
-  std::map<std::string,int> name_map;
-  std::map<std::string,int>::iterator np;
-  for (int i = 0; i < nprocs; i++) {
-    std::string i_string = std::string(&node_names[i*MPI_MAX_PROCESSOR_NAME]);
-    np = name_map.find(i_string);
-    if (np == name_map.end())
-      name_map[i_string] = 1;
-    else
-      np->second++;
-  }
-  int procs_per_node = name_map.begin()->second;
-  int procs_per_numa = procs_per_node / numa_nodes;
-  
-  // Use regular mapping if:
-  
-  if (procs_per_numa < 4 ||               // 3 or less procs per numa node
-      procs_per_node % numa_nodes != 0 || // Different # of procs per numa node
-      nprocs % procs_per_numa != 0 ||     // Different # of procs per numa node
-      nprocs <= procs_per_numa ||         // Only 1 numa node used
-      user_procgrid[0] > 1 ||             // User specified grid dimension
-      user_procgrid[1] > 1 ||             //    that is greater than 1
-      user_procgrid[2] > 1) {             //    in any dimension
-    numa_nodes = 0;
-    if (me == 0) {
-      if (screen) fprintf(screen,"  1 by 1 by 1 Node grid\n");
-      if (logfile) fprintf(logfile,"  1 by 1 by 1 Node grid\n");
-    }
-    set_procs();
-    return;
-  }
-  
-  // User settings for the factorization per numa node - currently always zero
-  int user_numagrid[3];
-  user_numagrid[0] = user_numagrid[1] = user_numagrid[2] = 0;
-  
-  // If the 1 is specified by user for a proc grid dimension, also use
-  // 1 for the node grid dimension
-  if (user_procgrid[0] == 1) user_numagrid[0] = 1;
-  if (user_procgrid[1] == 1) user_numagrid[1] = 1;
-  if (user_procgrid[2] == 1) user_numagrid[2] = 1;
-  
-  // Get an initial factorization for each numa node if the user has not
-  // set the number of processors
-  int numagrid[3];
-  numa_factor_box(procs_per_numa,user_numagrid,numagrid,1,1,1);
-  if (numagrid[0] * numagrid[1] * numagrid[2] != procs_per_numa)
-    error->all(FLERR,"Bad Node grid of processors");
-  
-  // Get a factorization for the grid of numa nodes
-  int node_count = nprocs / procs_per_numa;
-  numa_factor_box(node_count,user_procgrid,procgrid,numagrid[0],numagrid[1],
-                  numagrid[2]);
-  if (procgrid[0] * procgrid[1] * procgrid[2] != node_count)
-    error->all(FLERR,"Bad grid of processors");
-  
-  // Repeat the numa node factorization using the subdomain sizes
-  // This will refine the factorization if the user specified the node layout
-  numa_factor_box(procs_per_numa,user_numagrid,numagrid,procgrid[0],
-		  procgrid[1],procgrid[2]);
-  if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
-    error->all(FLERR,"Bad Node grid of processors");
-  if (domain->dimension == 2 && (procgrid[2] != 1 || numagrid[2] != 1))
-    error->all(FLERR,"Processor count in z must be 1 for 2d simulation");
-  
-  // Assign a unique id to each node
-  int node_num = 0, node_id = 0;
-  for (np = name_map.begin(); np != name_map.end(); ++np) {
-    if (np->first == node_string)
-      node_id = node_num;
-    node_num++;
-  }
-  
-  // Set up a per node communicator and find rank within
-  MPI_Comm node_comm;
-  MPI_Comm_split(world, node_id, 0, &node_comm);  
-  int node_rank;
-  MPI_Comm_rank(node_comm, &node_rank);
-  
-  // Set up a per numa communicator and find rank within
-  MPI_Comm numa_comm;
-  int local_numa = node_rank / procs_per_numa;
-  MPI_Comm_split(node_comm, local_numa, 0, &numa_comm);     
-  int numa_rank;
-  MPI_Comm_rank(numa_comm, &numa_rank);
-  
-  // Set up a communicator with the rank 0 procs from each numa node
-  MPI_Comm numa_leaders;
-  MPI_Comm_split(world, numa_rank, 0, &numa_leaders);
-  
-  // Use the MPI Cartesian routines to map the nodes to the grid
-  int reorder = 0;
-  int periods[3];
-  periods[0] = periods[1] = periods[2] = 1;
-  MPI_Comm cartesian;
-  if (numa_rank == 0) {
-    MPI_Cart_create(numa_leaders,3,procgrid,periods,reorder,&cartesian);
-    MPI_Cart_get(cartesian,3,procgrid,periods,myloc);
-  }
-  
-  // Broadcast numa node location in grid to other procs in numa node
-  MPI_Bcast(myloc,3,MPI_INT,0,numa_comm);
-  
-  // Get storage for the process mapping
-  if (grid2proc) memory->destroy(grid2proc);
-  memory->create(grid2proc,procgrid[0]*numagrid[0],procgrid[1]*numagrid[1],
-                 procgrid[2]*numagrid[2],"comm:grid2proc");
-  
-  // Compute my location within the grid
-  int z_offset = numa_rank / (numagrid[0] * numagrid[1]);
-  int y_offset = (numa_rank % (numagrid[0] * numagrid[1]))/numagrid[0];
-  int x_offset = numa_rank % numagrid[0];
-  myloc[0] = myloc[0] * numagrid[0] + x_offset;
-  myloc[1] = myloc[1] * numagrid[1] + y_offset;
-  myloc[2] = myloc[2] * numagrid[2] + z_offset;
-  procgrid[0] *= numagrid[0];
-  procgrid[1] *= numagrid[1];
-  procgrid[2] *= numagrid[2];
-  
-  // Allgather of locations to fill grid2proc
-  int **gridi;
-  memory->create(gridi,nprocs,3,"comm:gridi");
-  MPI_Allgather(&myloc,3,MPI_INT,gridi[0],3,MPI_INT,world);
-  for (int i = 0; i < nprocs; i++)
-    grid2proc[gridi[i][0]][gridi[i][1]][gridi[i][2]] = i;
-  memory->destroy(gridi);
-  
-  // Get my neighbors
-  int minus, plus;
-  for (int i = 0; i < 3; i++) {
-    numa_shift(myloc[i],procgrid[i],minus,plus);
-    procneigh[i][0] = minus;
-    procneigh[i][1] = plus;
-  }
-  procneigh[0][0] = grid2proc[procneigh[0][0]][myloc[1]][myloc[2]];
-  procneigh[0][1] = grid2proc[procneigh[0][1]][myloc[1]][myloc[2]];
-  procneigh[1][0] = grid2proc[myloc[0]][procneigh[1][0]][myloc[2]];
-  procneigh[1][1] = grid2proc[myloc[0]][procneigh[1][1]][myloc[2]];
-  procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][procneigh[2][0]];
-  procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][procneigh[2][1]];
-  
-  if (numa_rank == 0)
-    MPI_Comm_free(&cartesian);
-  MPI_Comm_free(&numa_leaders);
-  MPI_Comm_free(&numa_comm);
-  MPI_Comm_free(&node_comm);
-  
-  // set lamda box params after procs are assigned
-  if (domain->triclinic) domain->set_lamda_box();
-  
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d by %d by %d Node grid\n",
-			numagrid[0],numagrid[1],numagrid[2]);
-    if (logfile) fprintf(logfile,"  %d by %d by %d Node grid\n",
-			 numagrid[0],numagrid[1],numagrid[2]);
-    if (screen) fprintf(screen,"  %d by %d by %d processor grid\n",
-			procgrid[0],procgrid[1],procgrid[2]);
-    if (logfile) fprintf(logfile,"  %d by %d by %d processor grid\n",
-			 procgrid[0],procgrid[1],procgrid[2]);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   factor num_procs to 3d box to minimize the surface area
-   user_factors = if non-zero, dimension specified by user
-   factors      = resulting # procs in each dimension
-   sx           = box x dimension is divided by sx
-   sy           = box y dimension is divided by sy
-   sz           = box z dimension is divided by sz
-   area = surface area of each of 3 faces of simulation box
-   for triclinic, area = cross product of 2 edge vectors stored in h matrix
-------------------------------------------------------------------------- */
-
-void Comm::numa_factor_box(int num_procs, int user_factors[3], int factors[3], 
-                           const int sx, const int sy, const int sz) {
-  factors[0] = user_factors[0];
-  factors[1] = user_factors[1];
-  factors[2] = user_factors[2];
-
-  // all 3 proc counts are specified
-
-  if (factors[0] && factors[1] && factors[2]) return;
-
-  // 2 out of 3 proc counts are specified
-
-  if (factors[0] > 0 && factors[1] > 0) {
-    factors[2] = nprocs/(factors[0]*factors[1]);
-    return;
-  } else if (factors[0] > 0 && factors[2] > 0) {
-    factors[1] = nprocs/(factors[0]*factors[2]);
-    return;
-  } else if (factors[1] > 0 && factors[2] > 0) {
-    factors[0] = nprocs/(factors[1]*factors[2]);
-    return;
-  } 
-
-  // determine cross-sectional areas for orthogonal and triclinic boxes
-  // area[0] = xy, area[1] = xz, area[2] = yz
-
-  double area[3];
-  if (domain->triclinic == 0) {
-    area[0] = domain->xprd * domain->yprd / (sx * sy);
-    area[1] = domain->xprd * domain->zprd / (sx * sz);
-    area[2] = domain->yprd * domain->zprd / (sy * sz);
-  } else {
-    double *h = domain->h;
-    double x,y,z;
-    cross(h[0],0.0,0.0,h[5],h[1],0.0,x,y,z);
-    area[0] = sqrt(x*x + y*y + z*z) / (sx * sy);
-    cross(h[0],0.0,0.0,h[4],h[3],h[2],x,y,z);
-    area[1] = sqrt(x*x + y*y + z*z) / (sx * sz);
-    cross(h[5],h[1],0.0,h[4],h[3],h[2],x,y,z);
-    area[2] = sqrt(x*x + y*y + z*z) / (sy * sz);
-  }
-
-  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
-
-  // loop thru all possible factorizations of num_procs
-  // only consider valid cases that match procgrid settings
-  // surf = surface area of a proc sub-domain
-
-  int ipx,ipy,ipz,valid;
-  double surf;
-
-  ipx = 1;
-  while (ipx <= num_procs) {
-    valid = 1;
-    if (user_factors[0] && ipx != user_factors[0]) valid = 0;
-    if (num_procs % ipx) valid = 0;
-    if (!valid) {
-      ipx++;
-      continue;
-    }
-
-    ipy = 1;
-    while (ipy <= num_procs/ipx) {
-      valid = 1;
-      if (user_factors[1] && ipy != user_factors[1]) valid = 0;
-      if ((num_procs/ipx) % ipy) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      ipz = num_procs/ipx/ipy;
-      valid = 1;
-      if (user_factors[2] && ipz != user_factors[2]) valid = 0;
-      if (domain->dimension == 2 && ipz != 1) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
-      if (surf < bestsurf) {
-	bestsurf = surf;
-	factors[0] = ipx;
-	factors[1] = ipy;
-	factors[2] = ipz;
-      }
-      ipy++;
-    }
-
-    ipx++;
-  }
-}
-
-#endif
-

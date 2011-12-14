@@ -21,18 +21,22 @@
 
 <LI>zero or more keywords may be appended 
 
-<LI>keyword = <I>dist</I> or <I>eng</I> or <I>force</I> 
+<LI>keyword = <I>dist</I> or <I>eng</I> or <I>force</I> or <I>fx</I> or <I>fy</I> or <I>fz</I> or <I>fN</I> 
 
-<PRE>  <I>dist</I> = tabulate pairwise distances
-  <I>eng</I> = tablutate pairwise energies
-  <I>force</I> = tablutate pairwise forces 
+<PRE>  <I>dist</I> = pairwise distance
+  <I>eng</I> = pairwise energy
+  <I>force</I> = pairwise force
+  <I>fx</I>,<I>fy</I>,<I>fz</I> = components of pairwise force
+  <I>pN</I> = pair style specific quantities for allowed N values 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all pair/local eng
-compute 1 all pair/local dist eng force 
+compute 1 all pair/local dist eng force
+compute 1 all pair/local dist eng fx fy fz
+compute 1 all pair/local dist fx fy fz p1 p2 p3 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -48,9 +52,27 @@ force cutoff distance for that interaction, as defined by the
 <A HREF = "pair_style.html">pair_style</A> and <A HREF = "pair_coeff.html">pair_coeff</A>
 commands.
 </P>
+<P>The output <I>dist</I> is the distance bewteen the pair of atoms.
+</P>
+<P>The output <I>eng</I> is the interaction energy for the pair of atoms.
+</P>
+<P>The output <I>force</I> is the force acting between the pair of atoms,
+which is positive for a repulsive force and negative for an attractive
+force.  The outputs <I>fx</I>, <I>fy</I>, and <I>fz</I> are the xyz components of
+<I>force</I> on atom I.
+</P>
+<P>A pair style may define additional pairwise quantities which can be
+accessed as <I>p1</I> to <I>pN</I>, where N is defined by the pair style.  Most
+pair styles do not define any additional quantities, so N = 0.  An
+example of ones that do are the <A HREF = "pair_gran.html">granular pair styles</A>
+which calculate the tangential force between two particles and return
+its components and magnitude acting on atom I for N = 1,2,3,4.  See
+individual pair styles for detils.
+</P>
 <P>The output <I>dist</I> will be in distance <A HREF = "units.html">units</A>.  The output
-<I>eng</I> will be in energy <A HREF = "units.html">units</A>.  The output <I>force</I> will
-be in force <A HREF = "units.html">units</A>.
+<I>eng</I> will be in energy <A HREF = "units.html">units</A>.  The outputs <I>force</I>,
+<I>fx</I>, <I>fy</I>, and <I>fz</I> will be in force <A HREF = "units.html">units</A>.  The output
+<I>pN</I> will be in whatever units the pair style defines.
 </P>
 <P>Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array

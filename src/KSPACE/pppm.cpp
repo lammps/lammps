@@ -22,6 +22,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "pppm.h"
+#include "math_const.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -34,8 +35,6 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
-
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -115,7 +114,8 @@ void PPPM::init()
 
   if (domain->triclinic)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
-  if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPM with 2d simulation");
+  if (domain->dimension == 2) error->all(FLERR,
+					 "Cannot use PPPM with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
@@ -139,7 +139,6 @@ void PPPM::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  qqrd2e = force->qqrd2e;
   scale = 1.0;
 
   if (force->pair == NULL)
@@ -187,8 +186,8 @@ void PPPM::init()
 
   // if we have a /proxy pppm version check if the pair style is compatible
 
-  if ( (strcmp(force->kspace_style,"pppm/proxy") == 0) ||
-       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
+  if ((strcmp(force->kspace_style,"pppm/proxy") == 0) ||
+      (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
     if (force->pair == NULL)
       error->all(FLERR,"KSpace style is incompatible with Pair style");
     if (strstr(force->pair_style,"pppm/") == NULL )
@@ -714,6 +713,8 @@ void PPPM::compute(int eflag, int vflag)
 
   // sum energy across procs and add in volume-dependent term
 
+  const double qscale = force->qqrd2e * scale;
+
   if (eflag) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -722,7 +723,7 @@ void PPPM::compute(int eflag, int vflag)
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
+    energy *= qscale;
   }
 
   // sum virial across procs
@@ -730,7 +731,7 @@ void PPPM::compute(int eflag, int vflag)
   if (vflag) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qqrd2e*scale*volume*virial_all[i];
+    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
   // 2d slab correction
@@ -1048,7 +1049,8 @@ double PPPM::rms(double h, double prd, bigint natoms,
    compute difference in real-space and kspace RMS precision
 ------------------------------------------------------------------------- */
 
-double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, double **acons)
+double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, 
+		    double **acons)
 {
   double lprx,lpry,lprz,kspace_prec,real_prec;
   double xprd = domain->xprd;
@@ -1506,7 +1508,8 @@ void PPPM::particle_map()
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
 	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
+	nz+nlower < nzlo_out || nz+nupper > nzhi_out)
+      flag = 1;
   }
 
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
@@ -1526,7 +1529,8 @@ void PPPM::make_rho()
 
   // clear 3d density array
 
-  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,ngrid*sizeof(FFT_SCALAR));
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
+	 ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1734,7 +1738,8 @@ void PPPM::fieldforce()
     }
 
     // convert E-field to force
-    const double qfactor = qqrd2e*scale*q[i];
+
+    const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     f[i][2] += qfactor*ekz;
@@ -1783,6 +1788,7 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
    charge assignment into rho1d
    dx,dy,dz = distance of particle from "lower left" grid point 
 ------------------------------------------------------------------------- */
+
 void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
 			 const FFT_SCALAR &dz)
 {
@@ -1887,16 +1893,17 @@ void PPPM::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  if (eflag) energy += qscale * e_slabcorr;
 
   // add on force corrections
 
   double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

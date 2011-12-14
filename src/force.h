@@ -88,6 +88,7 @@ class Force : protected Pointers {
 
   void create_kspace(int, char **, const char *suffix = NULL);
   class KSpace *new_kspace(int, char **, const char *, int &);
+  class KSpace *kspace_match(const char *, int);
 
   void set_special(int, char **);
   void bounds(char *, int, int &, int &);

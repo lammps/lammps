@@ -68,7 +68,8 @@ void Temper::command(int narg, char **arg)
     error->all(FLERR,"Must have more than one processor partition to temper");
   if (domain->box_exist == 0) 
     error->all(FLERR,"Temper command before simulation box is defined");
-  if (narg != 6 && narg != 7) error->universe_all(FLERR,"Illegal temper command");
+  if (narg != 6 && narg != 7) 
+    error->universe_all(FLERR,"Illegal temper command");
 
   int nsteps = atoi(arg[0]);
   nevery = atoi(arg[1]);
@@ -87,7 +88,8 @@ void Temper::command(int narg, char **arg)
 
   // swap frequency must evenly divide total # of timesteps
 
-  if (nevery == 0) error->universe_all(FLERR,"Invalid frequency in temper command");
+  if (nevery == 0) 
+    error->universe_all(FLERR,"Invalid frequency in temper command");
   nswaps = nsteps/nevery;
   if (nswaps*nevery != nsteps) 
     error->universe_all(FLERR,"Non integer # of swaps in temper command");
@@ -203,6 +205,7 @@ void Temper::command(int narg, char **arg)
     print_status();
   }
 
+  timer->init();
   timer->barrier_start(TIME_LOOP);
 
   for (int iswap = 0; iswap < nswaps; iswap++) {

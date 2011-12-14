@@ -27,6 +27,10 @@ namespace LAMMPS_NS {
 
 class DihedralHybrid : public Dihedral {
  public:
+  int nstyles;                  // # of different dihedral styles
+  Dihedral **styles;            // class list for each Dihedral style
+  char **keywords;              // keyword for each dihedral style
+
   DihedralHybrid(class LAMMPS *);
   ~DihedralHybrid();
   void compute(int, int);
@@ -38,9 +42,6 @@ class DihedralHybrid : public Dihedral {
   double memory_usage();
 
  private:
-  int nstyles;                  // # of different dihedral styles
-  Dihedral **styles;            // class list for each Dihedral style
-  char **keywords;              // keyword for each dihedral style
   int *map;                     // which style each dihedral type points to
 
   int *ndihedrallist;           // # of dihedrals in sub-style dihedrallists

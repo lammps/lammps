@@ -18,8 +18,8 @@
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>dt/reset = style name of this fix command
 <LI>N = recompute dt every N timesteps
-<LI>Tmin = minimum dt allowed (can be NULL) (time units)
-<LI>Tmax = maximum dt allowed (can be NULL) (time units)
+<LI>Tmin = minimum dt allowed which can be NULL (time units)
+<LI>Tmax = maximum dt allowed which can be NULL (time units)
 <LI>Xmax = maximum distance for an atom to move in one timestep (distance units)
 <LI>zero or more keyword/value pairs may be appended
 <LI>keyword = <I>units</I> 
@@ -69,12 +69,14 @@ outer loop (largest) timestep, which is the same timestep that the
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix computes a global scalar and a global vector of length 1,
+<P>This fix computes a global scalar and a global vector of length 2,
 which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The scalar is the current
-timestep size.  The cumulative simulation time (in time units) is
-stored as the first element of the vector.  The scalar and vector
-values calculated by this fix are "intensive".
+timestep size.  The first element of the vector stores the cumulative
+simulation time (in time units).  The second element of the vector
+stores the last timestep on which the timestep was reset to a new
+value.  The scalar and vector values calculated by this fix are
+"intensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
@@ -82,10 +84,9 @@ minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>The cumulative time is zeroed when the fix is created and
-continuously accrues thereafter.  Using the
-<A HREF = "reset_timestep.html">reset_timestep</A> command while this fix is defined
-will mess up the time accumulation.
+<P>The cumulative time is zeroed when the fix is created and continuously
+accrues thereafter.  Using the <A HREF = "reset_timestep.html">reset_timestep</A>
+command while this fix is defined will mess up the time accumulation.
 </P>
 <P><B>Related commands:</B>
 </P>

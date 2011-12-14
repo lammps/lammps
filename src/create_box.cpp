@@ -110,6 +110,6 @@ void CreateBox::command(int narg, char **arg)
   domain->print_box("Created ");
   domain->set_initial_box();
   domain->set_global_box();
-  comm->set_procs();
+  comm->set_proc_grid();
   domain->set_local_box();
 }

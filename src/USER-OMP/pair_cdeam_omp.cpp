@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
-  PairCDEAM(lmp,_cdeamVersion), PairEAM(lmp), ThrOMP(lmp, PAIR)
+  PairEAM(lmp), PairCDEAM(lmp,_cdeamVersion), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -55,7 +55,6 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -78,22 +77,19 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, *rho_t, *rhoB_t, *D_values_t;
-
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    if (force->newton_pair) {
-      rho_t = rho + tid*nall;
-      rhoB_t = rhoB + tid*nall;
-      D_values_t = D_values + tid*nall;
-    } else {
-      rho_t = rho + tid*atom->nlocal;
-      rhoB_t = rhoB + tid*atom->nlocal;
-      D_values_t = D_values + tid*atom->nlocal;
-    }
+ 
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    
+    if (force->newton_pair)
+      thr->init_cdeam(nall, rho, rhoB, D_values);
+    else
+      thr->init_cdeam(atom->nlocal, rho, rhoB, D_values);
 
     switch (cdeamVersion) {
 
@@ -101,15 +97,15 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
   
       if (evflag) {
 	if (eflag) {
-	  if (force->newton_pair) eval<1,1,1,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	  else eval<1,1,0,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	  if (force->newton_pair) eval<1,1,1,1>(ifrom, ito, thr);
+	  else eval<1,1,0,1>(ifrom, ito, thr);
 	} else {
-	  if (force->newton_pair) eval<1,0,1,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	  else eval<1,0,0,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	  if (force->newton_pair) eval<1,0,1,1>(ifrom, ito, thr);
+	  else eval<1,0,0,1>(ifrom, ito, thr);
 	}
       } else {
-	if (force->newton_pair) eval<0,0,1,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	else eval<0,0,0,1>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<0,0,1,1>(ifrom, ito, thr);
+	else eval<0,0,0,1>(ifrom, ito, thr);
       }
       break;
 
@@ -117,15 +113,15 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 
       if (evflag) {
 	if (eflag) {
-	  if (force->newton_pair) eval<1,1,1,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	  else eval<1,1,0,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	  if (force->newton_pair) eval<1,1,1,2>(ifrom, ito, thr);
+	  else eval<1,1,0,2>(ifrom, ito, thr);
 	} else {
-	  if (force->newton_pair) eval<1,0,1,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	  else eval<1,0,0,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	  if (force->newton_pair) eval<1,0,1,2>(ifrom, ito, thr);
+	  else eval<1,0,0,2>(ifrom, ito, thr);
 	}
       } else {
-	if (force->newton_pair) eval<0,0,1,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
-	else eval<0,0,0,2>(f, rho_t, rhoB_t, D_values_t, ifrom, ito, tid);
+	if (force->newton_pair) eval<0,0,1,2>(ifrom, ito, thr);
+	else eval<0,0,0,2>(ifrom, ito, thr);
       }
       break;
 
@@ -136,18 +132,12 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
     error->all(FLERR,"unsupported eam/cd pair style variant");
     }
     
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CDEAMVERSION>
-void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t, 
-		      double *D_values_t, int iifrom, int iito, int tid)
+void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -156,28 +146,23 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
 
   evdwl = 0.0;
 
-  double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  double * const rho_t = thr->get_rho();
+  double * const rhoB_t = thr->get_rhoB();
+  double * const D_values_t = thr->get_D_values();
+  const int tid = thr->get_tid();
+  const int nthreads = comm->nthreads;
+
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
 
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  // zero out density 
-
-  if (NEWTON_PAIR) {
-    memset(rho_t, 0, nall*sizeof(double));
-    memset(rhoB_t, 0, nall*sizeof(double));
-    memset(D_values_t, 0, nall*sizeof(double));
-  } else {
-    memset(rho_t, 0, nlocal*sizeof(double));
-    memset(rhoB_t, 0, nlocal*sizeof(double));
-    memset(D_values_t, 0, nlocal*sizeof(double));
-  }
 
   // Stage I
 
@@ -240,10 +225,10 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
 
   if (NEWTON_PAIR) {
     // reduce per thread density
-    data_reduce_thr(&(rho[0]), nall, comm->nthreads, 1, tid);
-    data_reduce_thr(&(rhoB[0]), nall, comm->nthreads, 1, tid);
+    data_reduce_thr(rho, nall, nthreads, 1, tid);
+    data_reduce_thr(rhoB, nall, nthreads, 1, tid);
     if (CDEAMVERSION==1)
-      data_reduce_thr(&(D_values[0]), nall, comm->nthreads, 1, tid);
+      data_reduce_thr(D_values, nall, nthreads, 1, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -259,10 +244,10 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
   
   } else {
     // reduce per thread density
-    data_reduce_thr(&(rho[0]), nlocal, comm->nthreads, 1, tid);
-    data_reduce_thr(&(rhoB[0]), nlocal, comm->nthreads, 1, tid);
+    data_reduce_thr(rho, nlocal, nthreads, 1, tid);
+    data_reduce_thr(rhoB, nlocal, nthreads, 1, tid);
     if (CDEAMVERSION==1)
-      data_reduce_thr(&(D_values[0]), nlocal, comm->nthreads, 1, tid);
+      data_reduce_thr(D_values, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -277,8 +262,7 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
     fp[i] = FPrimeOfRho(index, type[i]);
     if(EFLAG) {
       phi = FofRho(index, type[i]);
-      if (eflag_global) eng_vdwl_thr[tid] += phi;
-      if (eflag_atom) eatom_thr[tid][i] += phi;
+      e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, phi, 0.0, thr);
     }
   }
 
@@ -360,7 +344,7 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
     }
 
     if (NEWTON_PAIR) {
-      data_reduce_thr(&(D_values[0]), nall, comm->nthreads, 1, tid);
+      data_reduce_thr(D_values, nall, nthreads, 1, tid);
 
       // wait until reduction is complete
       sync_threads();
@@ -375,7 +359,7 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
       sync_threads();
   
   } else {
-      data_reduce_thr(&(D_values[0]), nlocal, comm->nthreads, 1, tid);
+      data_reduce_thr(D_values, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -525,7 +509,7 @@ void PairCDEAMOMP::eval(double **f, double *rho_t, double *rhoB_t,
 
 	if(EFLAG) evdwl = phi;
 	if(EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
-				fpair,delx,dely,delz,tid);
+				fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

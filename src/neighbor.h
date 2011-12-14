@@ -75,7 +75,7 @@ class Neighbor : protected Pointers {
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
-  int exclude_setting();            // Returns 0 if no exclusion list
+  int exclude_setting();
   
  protected:
   int me,nprocs;
@@ -165,7 +165,9 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int exclusion(int, int, int, int, int *, int *) const;  // test for pair exclusion
+  int exclusion(int, int, int, 
+		int, int *, int *) const;  // test for pair exclusion
+
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
@@ -209,6 +211,10 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton(class NeighList *);
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
+
+  // OpenMP multi-threaded neighbor list build versions
+
+#include "accelerator_omp.h"
 
   // pairwise stencil creation functions
 

@@ -1,0 +1,78 @@
+LAMMPS (29 Nov 2011)
+  1 = max bonds/atom
+  1 = max angles/atom
+  1 = max dihedrals/atom
+  orthogonal box = (-35 -35 -35) to (35 35 35)
+  2 by 2 by 2 MPI processor grid
+  4200 atoms
+  3600 bonds
+  3300 angles
+  3000 dihedrals
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+300 atoms in group cions
+3900 atoms in group sds
+PPPM initialization ...
+  G vector = 0.109922
+  grid = 12 12 12
+  stencil order = 3
+  RMS precision = 0.000349313
+  using single precision FFTs
+  brick FFT buffer size/proc = 729 288 486
+  PPPM/cg optimization cutoff: 1e-05
+  Total charged atoms: 14.3%
+  Min/max charged atoms/proc: 11.3% 16.9%
+Memory usage per processor = 7.70368 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =         9.9401 KinEng   =         1.4996 Temp     =         1.0000 
+PotEng   =         8.4405 E_bond   =         0.0036 E_angle  =         0.1237 
+E_dihed  =         0.3185 E_impro  =         0.0000 E_vdwl   =         8.0100 
+E_coul   =        -0.0116 E_long   =        -0.0036 Press    =         0.4086 
+---------------- Step      500 ----- CPU =      0.4192 (sec) ----------------
+TotEng   =         2.7881 KinEng   =         1.5273 Temp     =         1.0184 
+PotEng   =         1.2608 E_bond   =         0.4529 E_angle  =         0.3844 
+E_dihed  =         0.4277 E_impro  =         0.0000 E_vdwl   =        -0.0022 
+E_coul   =         0.0016 E_long   =        -0.0035 Press    =        -0.0027 
+---------------- Step     1000 ----- CPU =      0.8205 (sec) ----------------
+TotEng   =         2.7685 KinEng   =         1.4797 Temp     =         0.9867 
+PotEng   =         1.2888 E_bond   =         0.4669 E_angle  =         0.3879 
+E_dihed  =         0.4388 E_impro  =         0.0000 E_vdwl   =        -0.0020 
+E_coul   =         0.0011 E_long   =        -0.0038 Press    =        -0.0003 
+---------------- Step     1500 ----- CPU =      1.2196 (sec) ----------------
+TotEng   =         2.8092 KinEng   =         1.5019 Temp     =         1.0015 
+PotEng   =         1.3073 E_bond   =         0.4716 E_angle  =         0.3748 
+E_dihed  =         0.4673 E_impro  =         0.0000 E_vdwl   =        -0.0034 
+E_coul   =         0.0010 E_long   =        -0.0039 Press    =        -0.0056 
+---------------- Step     2000 ----- CPU =      1.6195 (sec) ----------------
+TotEng   =         2.8481 KinEng   =         1.5096 Temp     =         1.0066 
+PotEng   =         1.3386 E_bond   =         0.4741 E_angle  =         0.3764 
+E_dihed  =         0.4952 E_impro  =         0.0000 E_vdwl   =        -0.0037 
+E_coul   =         0.0005 E_long   =        -0.0040 Press    =         0.0018 
+Loop time of 1.61955 on 8 procs for 2000 steps with 4200 atoms
+
+ Pair time (%) = 0.224105 (13.8375)
+ Bond time (%) = 0.474754 (29.314)
+Kspace time (%) = 0.386537 (23.867)
+Neigh time (%) = 0.042553 (2.62747)
+ Comm time (%) = 0.380482 (23.4931)
+Output time (%) = 0.00026536 (0.0163848)
+Modify time (%) = 0.0842355 (5.20117)
+Other time (%) = 0.0266142 (1.64331)
+
+FFT time (% of Kspce) = 0.115633 (29.9151)
+FFT Gflps 3d (1d only) = 4.45608 14.0703
+
+Nlocal:    525 ave 625 max 427 min
+Histogram: 1 1 0 2 0 1 0 2 0 1
+Nghost:    4466 ave 4640 max 4345 min
+Histogram: 2 1 0 0 1 2 1 0 0 1
+Neighs:    3141.38 ave 3956 max 2489 min
+Histogram: 1 2 1 1 0 0 0 1 0 2
+
+Total # of neighbors = 25131
+Ave neighs/atom = 5.98357
+Ave special neighs/atom = 4.71429
+Neighbor list builds = 14
+Dangerous builds = 2

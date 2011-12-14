@@ -42,7 +42,6 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
 
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -50,37 +49,34 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
   const int inum = neighbor->ndihedrallist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_bond) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
+void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   
   int i1,i2,i3,i4,n,type;
@@ -94,9 +90,10 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
 
   edihedral = 0.0;
 
-  double **x = atom->x;
-  int **dihedrallist = neighbor->dihedrallist;
-  int nlocal = atom->nlocal;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const int * const * const dihedrallist = neighbor->dihedrallist;
+  const int nlocal = atom->nlocal;
 
   for (n = nfrom; n < nto; n++) {
     i1 = dihedrallist[n][0];
@@ -132,18 +129,18 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
     domain->minimum_image(vb3x,vb3y,vb3z);
     
     // c0 calculation
-        
+
     sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
     sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
     sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
-        
+
     rb1 = sqrt(sb1);
     rb3 = sqrt(sb3);
-        
+
     c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
 
     // 1st and 2nd angle
-        
+
     b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
     b1mag = sqrt(b1mag2);
     b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
@@ -181,15 +178,16 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
     cz = vb1x*vb2y - vb1y*vb2x;
     cmag = sqrt(cx*cx + cy*cy + cz*cz);
     dx = (cx*vb3x + cy*vb3y + cz*vb3z)/cmag/b3mag;
-    
+
     // error check
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
       int me = comm->me;
+
       if (screen) {
 	char str[128];
 	sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
-		me,tid,update->ntimestep,
+		me,thr->get_tid(),update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
@@ -202,7 +200,7 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
 		me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
-    
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
@@ -217,7 +215,6 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
 
     if (EFLAG) edihedral = aphi[type]*(1.0 - c) + bphi[type]*(1.0 + cos(3.0*phi)) +
 		 cphi[type]*(1.0 + cos(phi + MY_PI4));
-;
 
     a = pd;
     c = c * a;
@@ -277,6 +274,6 @@ void DihedralHelixOMP::eval(double **f, int nfrom, int nto, int tid)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,tid);
+		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
   }
 }

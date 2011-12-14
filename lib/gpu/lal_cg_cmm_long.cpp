@@ -3,7 +3,7 @@
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Class for acceleration of the cg/cmm/coul/long pair style
+  Class for acceleration of the lj/sdk/coul/long pair style
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

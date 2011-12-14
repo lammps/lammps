@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
+  friend class AngleSDK;
+  friend class AngleSDKOMP;
   friend class BondQuartic;
   friend class BondQuarticOMP;
   friend class DihedralCharmm;
@@ -53,6 +55,9 @@ class Pair : protected Pointers {
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities
 
+  int single_extra;              // number of extra single values calculated
+  double *svector;               // vector of extra single quantities
+  
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs

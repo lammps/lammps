@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
-  PairGranHookeHistory(lmp), ThrOMP(lmp, PAIR)
+  PairGranHookeHistory(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
   // trigger use of OpenMP version of FixShearHistory
@@ -42,7 +42,6 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int shearupdate = (update->ntimestep > laststep) ? 1 : 0;
@@ -52,38 +51,33 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f, **torque;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
-    torque = atom->torque + tid*nall;
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag)
-      if (shearupdate) eval<1,1>(f, torque, ifrom, ito, tid);
-      else eval<1,0>(f, torque, ifrom, ito, tid);
+      if (shearupdate) eval<1,1>(ifrom, ito, thr);
+      else eval<1,0>(ifrom, ito, thr);
     else 
-      if (shearupdate) eval<0,1>(f, torque, ifrom, ito, tid);
-      else eval<0,0>(f, torque, ifrom, ito, tid);
+      if (shearupdate) eval<0,1>(ifrom, ito, thr);
+      else eval<0,0>(ifrom, ito, thr);
 
-    // reduce per thread forces and torque into global arrays.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
-    data_reduce_thr(&(atom->torque[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-
   laststep = update->ntimestep;
 }
 
 template <int EVFLAG, int SHEARUPDATE>
-void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int iito, int tid)
+void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
+  double myshear[3];
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
@@ -95,15 +89,17 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  double **x = atom->x;
-  double **v = atom->v;
-  double **omega = atom->omega;
-  double *radius = atom->radius;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const double * const * const x = atom->x;
+  const double * const * const v = atom->v;
+  const double * const * const omega = atom->omega;
+  const double * const radius = atom->radius;
+  const double * const rmass = atom->rmass;
+  const double * const mass = atom->mass;
+  double * const * const f = thr->get_f();
+  double * const * const torque = thr->get_torque();
+  const int * const type = atom->type;
+  const int * const mask = atom->mask;
+  const int nlocal = atom->nlocal;
   double fxtmp,fytmp,fztmp;
   double t1tmp,t2tmp,t3tmp;
 
@@ -144,10 +140,9 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	// unset non-touching neighbors
 
         touch[jj] = 0;
-	shear = &allshear[3*jj];
-        shear[0] = 0.0;
-        shear[1] = 0.0;
-        shear[2] = 0.0;
+        myshear[0] = 0.0;
+        myshear[1] = 0.0;
+        myshear[2] = 0.0;
 
       } else {
 	r = sqrt(rsq);
@@ -186,7 +181,6 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	  if (mask[i] & freeze_group_bit) meff = rmass[j];
 	  if (mask[j] & freeze_group_bit) meff = rmass[i];
 	} else {
-	  itype = type[i];
 	  jtype = type[j];
 	  meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
 	  if (mask[i] & freeze_group_bit) meff = mass[jtype];
@@ -207,31 +201,31 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	// shear history effects
 
 	touch[jj] = 1;
-	shear = &allshear[3*jj];
+	memcpy(myshear,allshear + 3*jj, 3*sizeof(double));
 
 	if (SHEARUPDATE) {
-	  shear[0] += vtr1*dt;
-	  shear[1] += vtr2*dt;
-	  shear[2] += vtr3*dt;
+	  myshear[0] += vtr1*dt;
+	  myshear[1] += vtr2*dt;
+	  myshear[2] += vtr3*dt;
 	}
-        shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-		      shear[2]*shear[2]);
+        shrmag = sqrt(myshear[0]*myshear[0] + myshear[1]*myshear[1] +
+		      myshear[2]*myshear[2]);
 
 	// rotate shear displacements
 
-	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
+	rsht = myshear[0]*delx + myshear[1]*dely + myshear[2]*delz;
 	rsht *= rsqinv;
 	if (SHEARUPDATE) {
-	  shear[0] -= rsht*delx;
-	  shear[1] -= rsht*dely;
-	  shear[2] -= rsht*delz;
+	  myshear[0] -= rsht*delx;
+	  myshear[1] -= rsht*dely;
+	  myshear[2] -= rsht*delz;
 	}
 
 	// tangential forces = shear + tangential velocity damping
 
-	fs1 = - (kt*shear[0] + meff*gammat*vtr1);
-	fs2 = - (kt*shear[1] + meff*gammat*vtr2);
-	fs3 = - (kt*shear[2] + meff*gammat*vtr3);
+	fs1 = - (kt*myshear[0] + meff*gammat*vtr1);
+	fs2 = - (kt*myshear[1] + meff*gammat*vtr2);
+	fs3 = - (kt*myshear[2] + meff*gammat*vtr3);
 
 	// rescale frictional displacements and forces if needed
 
@@ -242,9 +236,9 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	  if (shrmag != 0.0) {
 	    const double fnfs = fn/fs;
 	    const double mgkt = meff*gammat/kt;
-	    shear[0] = fnfs * (shear[0] + mgkt*vtr1) - mgkt*vtr1;
-	    shear[1] = fnfs * (shear[1] + mgkt*vtr2) - mgkt*vtr2;
-	    shear[2] = fnfs * (shear[2] + mgkt*vtr3) - mgkt*vtr3;
+	    myshear[0] = fnfs * (myshear[0] + mgkt*vtr1) - mgkt*vtr1;
+	    myshear[1] = fnfs * (myshear[1] + mgkt*vtr2) - mgkt*vtr2;
+	    myshear[2] = fnfs * (myshear[2] + mgkt*vtr3) - mgkt*vtr3;
 	    fs1 *= fnfs;
 	    fs2 *= fnfs;
 	    fs3 *= fnfs;
@@ -277,9 +271,10 @@ void PairGranHookeHistoryOMP::eval(double **f, double **torque, int iifrom, int 
 	}
 
 	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,/* newton_pair */ 0,
-				     0.0,0.0,fx,fy,fz,delx,dely,delz,tid);
+				     0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
 
       }
+      memcpy(allshear + 3*jj, myshear, 3*sizeof(double));
     }
     f[i][0] += fxtmp;
     f[i][1] += fytmp;

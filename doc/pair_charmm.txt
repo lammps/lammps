@@ -17,6 +17,7 @@ pair_style lj/charmm/coul/long/cuda command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 pair_style lj/charmm/coul/long/omp command :h3
+pair_style lj/charmm/coul/pppm/omp command :h3
 
 [Syntax:]
 
@@ -77,13 +78,19 @@ which is a simple model for an implicit solvent with additional
 screening.  It is designed for use in a simulation of an unsolvated
 biomolecule (no explicit water molecules).
 
-Style {lj/charmm/coul/long} computes the same formulas as style
-{lj/charmm/coul/charmm} except that an additional damping factor is
-applied to the Coulombic term, as in the discussion for pair style
-{lj/cut/coul/long}.  Only one Coulombic cutoff is specified for
-{lj/charmm/coul/long}; if only 2 arguments are used in the pair_style
-command, then the outer LJ cutoff is used as the single Coulombic
-cutoff.
+Styles {lj/charmm/coul/long} and {lj/charmm/coul/pppm/omp} compute
+the same formulas as style {lj/charmm/coul/charmm} except that an
+additional damping factor is applied to the Coulombic term, as in
+the discussion for pair style {lj/cut/coul/long}.  Only one Coulombic
+cutoff is specified for {lj/charmm/coul/long}; if only 2 arguments
+are used in the pair_style command, then the outer LJ cutoff is
+used as the single Coulombic cutoff. Style {lj/charmm/coul/pppm/omp}
+is a variant for use with K-space style "{pppm/proxy}"_kspace_style.html
+and OpenMP multi-threading and will perform the corresponding
+reciprocal space calculation concurrently with the pair calculation
+in a separate thread. For certain parallel setups, this may have
+a performance benefit over performing k-space style and pair style
+separately and one after the other.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -109,12 +116,12 @@ the pair_style command.
 
 :line
 
-Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 
-the same as the corresponding style without the suffix.  They have 
-been optimized to run faster, depending on your available hardware, 
-as discussed in "this section"_Section_accelerate.html of the manual.
-The accelerated styles take the same arguments and should produce the
-same results, except for round-off and precision issues.
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in "Section_accelerate"_Section_accelerate.html of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
 packages, respectively.  They are only enabled if LAMMPS was built with
@@ -126,8 +133,8 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "this section"_Section_accelerate.html of the manual for more
-instructions on how to use the accelerated styles effectively.
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
 
 :line
 

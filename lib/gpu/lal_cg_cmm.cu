@@ -3,7 +3,7 @@
 //                             -------------------
 //                           W. Michael Brown (ORNL)
 //
-//  Device code for acceleration of the cg/cmm/cut pair style
+//  Device code for acceleration of the lj/sdk pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

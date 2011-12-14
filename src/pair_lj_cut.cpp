@@ -431,7 +431,7 @@ void PairLJCut::settings(int narg, char **arg)
   cut_global = force->numeric(arg[0]);
 
   // reset cutoffs that have been explicitly set
-
+  
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
@@ -446,7 +446,8 @@ void PairLJCut::settings(int narg, char **arg)
 
 void PairLJCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

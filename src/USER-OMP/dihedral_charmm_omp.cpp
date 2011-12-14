@@ -40,7 +40,6 @@ void DihedralCharmmOMP::compute(int eflag, int vflag)
 
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = 0;
 
   // insure pair->ev_tally() will use 1-4 virial contribution
@@ -53,43 +52,34 @@ void DihedralCharmmOMP::compute(int eflag, int vflag)
   const int inum = neighbor->ndihedrallist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_bond) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-
-  // reduce contributions to non-bonded energy terms
-  for (int n = 0; n < nthreads; ++n) {
-    force->pair->eng_vdwl += eng_vdwl_thr[n];
-    force->pair->eng_coul += eng_coul_thr[n];
-  }
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-void DihedralCharmmOMP::eval(double **f, int nfrom, int nto, int tid)
+void DihedralCharmmOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   
   int i1,i2,i3,i4,i,m,n,type;
@@ -105,12 +95,13 @@ void DihedralCharmmOMP::eval(double **f, int nfrom, int nto, int tid)
 
   edihedral = 0.0;
 
-  double **x = atom->x;
-  double *q = atom->q;
-  int *atomtype = atom->type;
-  int **dihedrallist = neighbor->dihedrallist;
-  int nlocal = atom->nlocal;
-  double qqrd2e = force->qqrd2e;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const double * const q = atom->q;
+  const int * const atomtype = atom->type;
+  const int * const * const dihedrallist = neighbor->dihedrallist;
+  const double qqrd2e = force->qqrd2e;
+  const int nlocal = atom->nlocal;
 
   for (n = nfrom; n < nto; n++) {
     i1 = dihedrallist[n][0];
@@ -176,7 +167,7 @@ void DihedralCharmmOMP::eval(double **f, int nfrom, int nto, int tid)
       if (screen) {
 	char str[128];
 	sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
-		me,tid,update->ntimestep,
+		me,thr->get_tid(),update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
 	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
@@ -282,7 +273,7 @@ void DihedralCharmmOMP::eval(double **f, int nfrom, int nto, int tid)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,tid);
+		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
     // 1-4 LJ and Coulomb interactions
     // tally energy/virial in pair, using newton_bond as newton flag
 
@@ -321,7 +312,7 @@ void DihedralCharmmOMP::eval(double **f, int nfrom, int nto, int tid)
       }
 
       if (EVFLAG) ev_tally_thr(force->pair,i1,i4,nlocal,NEWTON_BOND,
-			       evdwl,ecoul,fpair,delx,dely,delz,tid);
+			       evdwl,ecoul,fpair,delx,dely,delz,thr);
     }
   }
 }

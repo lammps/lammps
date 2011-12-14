@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulCharmmOMP::PairLJCharmmCoulCharmmOMP(LAMMPS *lmp) :
-  PairLJCharmmCoulCharmm(lmp), ThrOMP(lmp, PAIR)
+  PairLJCharmmCoulCharmm(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
@@ -36,7 +36,6 @@ void PairLJCharmmCoulCharmmOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
-    ev_setup_thr(this);
   } else evflag = vflag_fdotr = 0;
 
   const int nall = atom->nlocal + atom->nghost;
@@ -44,64 +43,60 @@ void PairLJCharmmCoulCharmmOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel default(none) shared(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
-    double **f;
 
-    f = loop_setup_thr(atom->f, ifrom, ito, tid, inum, nall, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(f, ifrom, ito, tid);
-	else eval<1,1,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+	else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(f, ifrom, ito, tid);
-	else eval<1,0,0>(f, ifrom, ito, tid);
+	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+	else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(f, ifrom, ito, tid);
-      else eval<0,0,0>(f, ifrom, ito, tid);
+      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+      else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    // reduce per thread forces into global force array.
-    data_reduce_thr(&(atom->f[0][0]), nall, nthreads, 3, tid);
+    reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-
-  // reduce per thread energy and virial, if requested.
-  if (evflag) ev_reduce_thr(this);
-  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCharmmCoulCharmmOMP::eval(double **f, int iifrom, int iito, int tid)
+void PairLJCharmmCoulCharmmOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
   double philj,switch1,switch2;
-  double invdenom_coul,invdenom_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
 
-  double **x = atom->x;
-  double *q = atom->q;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
+  const double * const * const x = atom->x;
+  double * const * const f = thr->get_f();
+  const double * const q = atom->q;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * const special_coul = force->special_coul;
+  const double * const special_lj = force->special_lj;
+  const double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  invdenom_coul = (denom_coul != 0.0) ? 1.0/denom_coul : 0.0;
-  invdenom_lj   = (denom_lj   != 0.0) ? 1.0/denom_lj   : 0.0;
+  const double invdenom_coul = (denom_coul != 0.0) ? 1.0/denom_coul : 0.0;
+  const double invdenom_lj   = (denom_lj   != 0.0) ? 1.0/denom_lj   : 0.0;
 
   // loop over neighbors of my atoms
 
@@ -193,7 +188,7 @@ void PairLJCharmmCoulCharmmOMP::eval(double **f, int iifrom, int iito, int tid)
 	}
 	
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,ecoul,fpair,delx,dely,delz,tid);
+				 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

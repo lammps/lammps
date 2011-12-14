@@ -176,12 +176,12 @@ potential.
 </P>
 <HR>
 
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally 
-the same as the corresponding style without the suffix.  They have 
-been optimized to run faster, depending on your available hardware, 
-as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
-The accelerated styles take the same arguments and should produce the
-same results, except for round-off and precision issues.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 </P>
 <P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
 packages, respectively.  They are only enabled if LAMMPS was built with
@@ -193,8 +193,8 @@ by including their suffix, or you can use the <A HREF = "Section_start.html#star
 switch</A> when you invoke LAMMPS, or you can
 use the <A HREF = "suffix.html">suffix</A> command in your input script.
 </P>
-<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
-instructions on how to use the accelerated styles effectively.
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -210,6 +210,17 @@ specified in an input script that reads a restart file.
 <P>These pair styles can only be used via the <I>pair</I> keyword of the
 <A HREF = "run_style.html">run_style respa</A> command.  They do not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P>The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.  However, the single() function also
+calculates 4 extra pairwise quantities.  The first 3 are the
+components of the tangential force between particles I and J, acting
+on particle I.  <I>P4</I> is the magnitude of this tangential force.  These
+extra quantites can be accessed by the <A HREF = "compute_pair_local.html">compute
+pair/local</A> command, as <I>p1</I>, <I>p2</I>, <I>p3</I>,
+<I>p4</I>.
 </P>
 <HR>
 

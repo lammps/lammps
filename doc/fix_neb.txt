@@ -26,8 +26,8 @@ Add inter-replica forces to atoms in the group for a multi-replica
 simulation run via the "neb"_neb.html command to perform a nudged
 elastic band (NEB) calculation for transition state finding.  Hi-level
 explanations of NEB are given with the "neb"_neb.html command and in
-"this section"_Section_howto.html#howto_5 of the manual.  The fix neb
-command must be used with the "neb" command to define how
+"Section_howto 5"_Section_howto.html#howto_5 of the manual.  The fix
+neb command must be used with the "neb" command to define how
 inter-replica forces are computed.
 
 Only the N atoms in the fix group experience inter-replica forces.

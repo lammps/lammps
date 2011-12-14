@@ -60,9 +60,6 @@ JPG_INC =
 JPG_PATH = 	
 JPG_LIB =	
 
-gpu_SYSLIB =       -lcudart -lcuda
-gpu_SYSPATH =      -L/usr/local/cuda/lib
-
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section

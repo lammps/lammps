@@ -101,7 +101,7 @@ class PairAIREBO : public Pair {
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  void add_pages();
+  void add_pages(int howmany=1);
   void read_file(char *);
 
   double Sp5th(double, double *, double *);
@@ -163,6 +163,7 @@ class PairAIREBO : public Pair {
   };
 
   /* kronecker delta function returning a double */
+
   inline double kronecker(const int a, const int b) const {
     return (a == b) ? 1.0 : 0.0;
   };

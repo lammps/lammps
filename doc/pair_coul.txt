@@ -13,16 +13,19 @@ pair_style coul/debye/omp command :h3
 pair_style coul/long command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
+pair_style coul/wolf command :h3
 
 [Syntax:]
 
 pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/long cutoff
-pair_style coul/long/gpu cutoff :pre
+pair_style coul/long/gpu cutoff 
+pair_sytle coul/wolf alpha cutoff :pre
 
 cutoff = global cutoff for Coulombic interactions
-kappa = Debye length (inverse distance units) :ul
+kappa = Debye length (inverse distance units) 
+alpha = damping parameter (inverse distance units) :ul
 
 [Examples:]
 
@@ -36,6 +39,9 @@ pair_coeff 2 2 3.5 :pre
 
 pair_style coul/long 10.0
 pair_coeff * * :pre
+
+pair_style coul/wolf 0.2 9.0
+pair_coeff * *
 
 [Description:]
 
@@ -56,6 +62,24 @@ Coulombic term, given by
 
 where kappa is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
+
+Style {coul/wolf} computes Coulombic interactions via the Wolf
+summation method, described in "Wolf"_#Wolf, given by:
+
+:c,image(Eqs/pair_coul_wolf.jpg)
+
+where {alpha} is the damping parameter, and erc() and erfc() are
+error-fuction and complementary error-function terms.  This potential
+is essentially a short-range, spherically-truncated,
+charge-neutralized, shifted, pairwise {1/r} summation.  With a
+manipulation of adding and substracting a self term (for i = j) to the
+first and second term on the right-hand-side, respectively, and a
+small enough {alpha} damping parameter, the second term shrinks and
+the potential becomes a rapidly-converging real-space summation.  With
+a long enough cutoff and small enough alpha parameter, the energy and
+forces calcluated by the Wolf summation method approach those of the
+Ewald sum.  So it is a means of getting effective long-range
+interactions with a short-range potential.
 
 Style {coul/long} computes the same Coulombic interactions as style
 {coul/cut} except that an additional damping factor is applied so it
@@ -89,12 +113,12 @@ Coulombic cutoff specified in the pair_style command.
 
 :line
 
-Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 
-the same as the corresponding style without the suffix.  They have 
-been optimized to run faster, depending on your available hardware, 
-as discussed in "this section"_Section_accelerate.html of the manual.
-The accelerated styles take the same arguments and should produce the
-same results, except for round-off and precision issues.
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in "Section_accelerate"_Section_accelerate.html of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
 These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
 packages, respectively.  They are only enabled if LAMMPS was built with
@@ -106,8 +130,8 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "this section"_Section_accelerate.html of the manual for more
-instructions on how to use the accelerated styles effectively.
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -151,3 +175,9 @@ for more info.
 hybrid/overlay"_pair_hybrid.html
 
 [Default:] none
+
+:line
+
+:link(Wolf)
+[(Wolf)] D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).

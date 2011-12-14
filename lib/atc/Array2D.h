@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <cstdio>
 
 template<typename T>
 class Array2D {

@@ -43,8 +43,8 @@ local atom displacements and may generate "false postives."
 
 This compute calculates a global scalar (the flag).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See "this section"_Section_howto.html#howto_15 for an overview
-of LAMMPS output options.
+input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
+overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
 scalar value will be a 0 or 1 as explained above.

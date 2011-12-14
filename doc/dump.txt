@@ -272,9 +272,9 @@ coordinate format that many codes can read.
 
 Note that DCD, XTC, and XYZ formatted files can be read directly by
 "VMD"_http://www.ks.uiuc.edu/Research/vmd (a popular molecular viewing
-program).  See "this section"_Section_tools.html#vmd of the manual and
-the tools/lmp2vmd/README.txt file for more information about support
-in VMD for reading and visualizing LAMMPS dump files.
+program).  See "Section tools"_Section_tools.html#vmd of the manual
+and the tools/lmp2vmd/README.txt file for more information about
+support in VMD for reading and visualizing LAMMPS dump files.
 
 :line
 
@@ -487,7 +487,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
 
-See "this section"_Section_modify.html of the manual for information
+See "Section_modify"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 

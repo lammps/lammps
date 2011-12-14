@@ -34,8 +34,8 @@ packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See <A HREF = "Section_howto.html#howto_10">this
 section</A> of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See <A HREF = "Section_start.html#start_4">this section</A> about how
-to build LAMMPS as a library, and <A HREF = "Section_howto.html#howto_19">this
+other codes.  See <A HREF = "Section_start.html#start_4">Section_start 4</A> about
+how to build LAMMPS as a library, and <A HREF = "Section_howto.html#howto_19">this
 section</A> for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
@@ -502,7 +502,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See <A HREF = "Section_howto.html#howto_15">this section</A> of the manual for a
+See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A> of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 <A HREF = "compute.html">computes</A> and <A HREF = "fix.html">fixes</A> for a description of what
@@ -582,7 +582,7 @@ following steps:
 src/library.h. 
 
 <LI>Verify the new function is syntactically correct by building LAMMPS as
-a library - see <A HREF = "Section_start.html#start_4">this section</A> of the
+a library - see <A HREF = "Section_start.html#start_4">Section_start 4</A> of the
 manual. 
 
 <LI>Add a wrapper method in the Python LAMMPS module to python/lammps.py

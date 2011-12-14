@@ -59,59 +59,81 @@ Universe::~Universe()
 }
 
 /* ----------------------------------------------------------------------
-   reorder universe processors based on custom file
+   reorder universe processors
+   create uni2orig as inverse mapping
+   re-create uworld communicator with new ordering via Comm_split()
+   style = "nth", arg = N
+   move every Nth proc to end of rankings
+   style = "custom", arg = filename
    file has nprocs lines with I J
    I = universe proc ID in original communicator uorig
    J = universe proc ID in reordered communicator uworld
-   create uni2orig as inverse mapping
-   re-create uworld communicator with new ordering via Comm_split()
 ------------------------------------------------------------------------- */
 
-void Universe::reorder(char *file)
+void Universe::reorder(char *style, char *arg)
 {
   char line[MAXLINE];
 
   if (uworld != uorig) MPI_Comm_free(&uworld);
 
-  if (me == 0) {
-    FILE *fp = fopen(file,"r");
-    if (fp == NULL) error->universe_one(FLERR,"Cannot open -reorder file");
-
-    // skip header = blank and comment lines
-
-    char *ptr;
-    if (!fgets(line,MAXLINE,fp))
-      error->one(FLERR,"Unexpected end of -reorder file");
-    while (1) {
-      if (ptr = strchr(line,'#')) *ptr = '\0';
-      if (strspn(line," \t\n\r") != strlen(line)) break;
-      if (!fgets(line,MAXLINE,fp))
-	error->one(FLERR,"Unexpected end of -reorder file");
+  if (strcmp(style,"nth") == 0) {
+    int n = atoi(arg);
+    if (n <= 0) 
+      error->universe_all(FLERR,"Invalid -reorder N value");
+    if (nprocs % n) 
+      error->universe_all(FLERR,"Nprocs not a multiple of N for -reorder");
+    for (int i = 0; i < nprocs; i++) {
+      if (i < (n-1)*nprocs/n) uni2orig[i] = i/(n-1) * n + (i % (n-1));
+      else uni2orig[i] = (i - (n-1)*nprocs/n) * n + n-1;
     }
 
-    // read nprocs lines
-    // uni2orig = inverse mapping
+  } else if (strcmp(style,"custom") == 0) {
 
-    int me_orig,me_new;
-    sscanf(line,"%d %d",&me_orig,&me_new);
-    if (me_orig < 0 || me_orig >= nprocs ||
-	me_new < 0 || me_new >= nprocs)
-      error->one(FLERR,"Invalid entry in reorder file");
-    uni2orig[me_new] = me_orig;
+    if (me == 0) {
+      FILE *fp = fopen(arg,"r");
+      if (fp == NULL) error->universe_one(FLERR,"Cannot open -reorder file");
 
-    for (int i = 1; i < nprocs; i++) {
+      // skip header = blank and comment lines
+
+      char *ptr;
       if (!fgets(line,MAXLINE,fp))
-	error->one(FLERR,"Unexpected end of reorder file");
-      sscanf(line,"%ld %ld",&me_orig,&me_new);
+	error->one(FLERR,"Unexpected end of -reorder file");
+      while (1) {
+	if (ptr = strchr(line,'#')) *ptr = '\0';
+	if (strspn(line," \t\n\r") != strlen(line)) break;
+	if (!fgets(line,MAXLINE,fp))
+	  error->one(FLERR,"Unexpected end of -reorder file");
+      }
+
+      // read nprocs lines
+      // uni2orig = inverse mapping
+
+      int me_orig,me_new;
+      sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
 	  me_new < 0 || me_new >= nprocs)
 	error->one(FLERR,"Invalid entry in reorder file");
       uni2orig[me_new] = me_orig;
-    }
-    fclose(fp);
-  }
 
-  MPI_Bcast(uni2orig,nprocs,MPI_INT,0,uorig);
+      for (int i = 1; i < nprocs; i++) {
+	if (!fgets(line,MAXLINE,fp))
+	  error->one(FLERR,"Unexpected end of reorder file");
+	sscanf(line,"%d %d",&me_orig,&me_new);
+	if (me_orig < 0 || me_orig >= nprocs ||
+	    me_new < 0 || me_new >= nprocs)
+	  error->one(FLERR,"Invalid entry in reorder file");
+	uni2orig[me_new] = me_orig;
+      }
+      fclose(fp);
+    }
+
+    // bcast uni2org from proc 0 to all other universe procs
+    
+    MPI_Bcast(uni2orig,nprocs,MPI_INT,0,uorig);
+
+  } else error->universe_all(FLERR,"Invalid command-line argument");
+
+  // create new uworld communicator
 
   int ome,key;
   MPI_Comm_rank(uorig,&ome);

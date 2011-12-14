@@ -103,12 +103,13 @@ you cannot accurately infer a viscosity and should try increasing
 the Nevery parameter.
 </P>
 <P>An alternative method for calculating a viscosity is to run a NEMD
-simulation, as described in <A HREF = "Section_howto.html#howto_13">this section</A>
-of the manual.  NEMD simulations deform the simmulation box via the
-<A HREF = "fix_deform.html">fix deform</A> command.  Thus they cannot be run on a
-charged system using a <A HREF = "kspace_style.html">PPPM solver</A> since PPPM does
-not currently support non-orthogonal boxes.  Using fix viscosity keeps
-the box orthogonal; thus it does not suffer from this limitation.
+simulation, as described in <A HREF = "Section_howto.html#howto_13">Section_howto
+13</A> of the manual.  NEMD simulations
+deform the simmulation box via the <A HREF = "fix_deform.html">fix deform</A>
+command.  Thus they cannot be run on a charged system using a <A HREF = "kspace_style.html">PPPM
+solver</A> since PPPM does not currently support
+non-orthogonal boxes.  Using fix viscosity keeps the box orthogonal;
+thus it does not suffer from this limitation.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

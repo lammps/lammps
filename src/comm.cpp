@@ -164,24 +164,18 @@ void Comm::set_proc_grid()
   ProcMap *pmap = new ProcMap(lmp);
 
   // create 3d grid of processors, produces procgrid
-  // can fail (on one partition) if constrained by other partition
-  // if numa_grid() fails, try onelevel_grid()
 
-  int flag;
   if (gridflag == ONELEVEL) {
-    flag = pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
-			       otherflag,other_style,other_procgrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
+			otherflag,other_style,other_procgrid);
 
   } else if (gridflag == TWOLEVEL) {
-    flag = pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
-			       ncores,user_coregrid,coregrid,
-			       otherflag,other_style,other_procgrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
+			ncores,user_coregrid,coregrid,
+			otherflag,other_style,other_procgrid);
 
   } else if (gridflag == NUMA) {
-    flag = pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
 
   } else if (gridflag == CUSTOM) {
     pmap->custom_grid(customfile,nprocs,user_procgrid,procgrid);

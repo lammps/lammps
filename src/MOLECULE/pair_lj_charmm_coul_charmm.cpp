@@ -282,7 +282,8 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 void PairLJCharmmCoulCharmm::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style lj/charmm/coul/charmm requires atom attribute q");
+    error->all(FLERR,
+	       "Pair style lj/charmm/coul/charmm requires atom attribute q");
 
   neighbor->request(this);
 

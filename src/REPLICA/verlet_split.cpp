@@ -132,33 +132,39 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
 
   if (universe->me == 0) {
     if (universe->uscreen) {
-      fprintf(universe->uscreen,"Rspace/Kspace procs in each block:\n");
+      fprintf(universe->uscreen,
+	      "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
       int m = 0;
       for (int i = 0; i < universe->nprocs/(ratio+1); i++) {
 	fprintf(universe->uscreen,"  block %d:",i);
 	int kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
 	  fprintf(universe->uscreen," %d",bmapall[m+j]);
-	fprintf(universe->uscreen," %d\n",kspace_proc);
-	/*
+	fprintf(universe->uscreen," %d (",kspace_proc);
 	kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
 	  fprintf(universe->uscreen," %d",
-		  universe->proc2original[bmapall[m+j]]);
-	fprintf(universe->uscreen," %d\n",universe->proc2original[kspace_proc]);
-	*/
+		  universe->uni2orig[bmapall[m+j]]);
+	fprintf(universe->uscreen," %d)",universe->uni2orig[kspace_proc]);
 	m += ratio + 1;
       }
     }
     if (universe->ulogfile) {
-      fprintf(universe->ulogfile,"Rspace/Kspace procs in each block:\n");
+      fprintf(universe->ulogfile,
+	      "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
       int m = 0;
       for (int i = 0; i < universe->nprocs/(ratio+1); i++) {
 	fprintf(universe->ulogfile,"  block %d:",i);
-	int kspace_proc = bmapall[m++];
+	int kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->ulogfile," %d",bmapall[m++]);
-	fprintf(universe->ulogfile," %d\n",kspace_proc);
+	  fprintf(universe->ulogfile," %d",bmapall[m+j]);
+	fprintf(universe->ulogfile," %d (",kspace_proc);
+	kspace_proc = bmapall[m];
+	for (int j = 1; j <= ratio; j++)
+	  fprintf(universe->ulogfile," %d",
+		  universe->uni2orig[bmapall[m+j]]);
+	fprintf(universe->ulogfile," %d)",universe->uni2orig[kspace_proc]);
+	m += ratio + 1;
       }
     }
   }

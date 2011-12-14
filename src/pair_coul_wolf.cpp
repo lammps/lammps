@@ -56,7 +56,7 @@ void PairCoulWolf::compute(int eflag, int vflag)
   double prefactor;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
+  double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
   ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);

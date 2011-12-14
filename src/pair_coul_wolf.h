@@ -40,8 +40,7 @@ class PairCoulWolf : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_coul,cut_coulsq;
-  double alf,e_shift,f_shift; 
+  double cut_coul,cut_coulsq,alf; 
 
   void allocate();
 };

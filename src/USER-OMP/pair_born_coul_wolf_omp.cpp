@@ -82,7 +82,7 @@ void PairBornCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
   double prefactor;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
+  double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
   evdwl = ecoul = 0.0;
 
@@ -123,7 +123,7 @@ void PairBornCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     qisq = qtmp*qtmp;
     e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-    if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,tid);
+    if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,thr);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

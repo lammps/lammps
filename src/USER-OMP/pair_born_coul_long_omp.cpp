@@ -83,7 +83,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdw,ecoul,fpair;
   double rsq,r2inv,r6inv,r,rexp,forcecoul,forceborn,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -171,8 +171,8 @@ void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
 	      + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
 	    evdwl *= factor_lj;
-	  }
-	} else evdwl = 0.0;
+	  } else evdwl = 0.0;
+	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);

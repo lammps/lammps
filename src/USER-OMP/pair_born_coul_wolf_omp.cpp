@@ -13,26 +13,28 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_buck_coul_cut_omp.h"
+#include "pair_born_coul_wolf_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckCoulCutOMP::PairBuckCoulCutOMP(LAMMPS *lmp) :
-  PairBuckCoulCut(lmp), ThrOMP(lmp, THR_PAIR)
+PairBornCoulWolfOMP::PairBornCoulWolfOMP(LAMMPS *lmp) :
+  PairBornCoulWolf(lmp), ThrOMP(lmp, THR_PAIR)
 {
   respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckCoulCutOMP::compute(int eflag, int vflag)
+void PairBornCoulWolfOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -64,6 +66,7 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
       else eval<0,0,0>(ifrom, ito, thr);
     }
+
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -71,24 +74,34 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairBornCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double rsq,r2inv,r6inv,r,rexp,forcecoul,forcebuck,factor_coul,factor_lj;
+  double rsq,r2inv,r6inv,forcecoul,forceborn,factor_coul,factor_lj;
+  double prefactor;
+  double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
 
   evdwl = ecoul = 0.0;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
-  int *type = atom->type;
+  const int * const type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
   double fxtmp,fytmp,fztmp;
+
+  // self and shifted coulombic energy
+
+  e_self = v_sh = 0.0; 
+  e_shift = erfc(alf*cut_coul)/cut_coul;
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
+    cut_coul; 
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -108,6 +121,10 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
 
+    qisq = qtmp*qtmp;
+    e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
+    if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,tid);
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
@@ -124,17 +141,24 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 	r2inv = 1.0/rsq;
 	r = sqrt(rsq);
 
-	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]/r;
-	else forcecoul = 0.0;
+	if (rsq < cut_coulsq) {
+          prefactor = qqrd2e*qtmp*q[j]/r;
+          erfcc = erfc(alf*r); 
+          erfcd = exp(-alf*alf*r*r);
+          v_sh = (erfcc - e_shift*r) * prefactor; 
+          dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
+          forcecoul = dvdrr*rsq*prefactor;
+	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	} else forcecoul = 0.0;
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-	  rexp = exp(-r*rhoinv[itype][jtype]);
-	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-	} else forcebuck = 0.0;
-	
-	fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
+	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+	    + born3[itype][jtype]*r2inv*r6inv;
+	} else forceborn = 0.0;
+
+	fpair = (forcecoul + factor_lj*forceborn)*r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -146,17 +170,18 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 	}
 
 	if (EFLAG) {
-	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
-	  else ecoul = 0.0;
+	  if (rsq < cut_coulsq) {
+	    ecoul = v_sh;
+	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+	  } else ecoul = 0.0;
 	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-	      offset[itype][jtype];
+	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
+	      d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
 	    evdwl *= factor_lj;
 	  } else evdwl = 0.0;
 	}
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
@@ -168,10 +193,10 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBuckCoulCutOMP::memory_usage()
+double PairBornCoulWolfOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairBuckCoulCut::memory_usage();
+  bytes += PairBornCoulWolf::memory_usage();
 
   return bytes;
 }

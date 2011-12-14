@@ -190,8 +190,7 @@ within the LAMMPS code.  The options that are currently recogized are:
 -DLAMMPS_LONGLONG_TO_LONG
 -DPACK_ARRAY
 -DPACK_POINTER
--DPACK_MEMCPY
--DNODE_PARTITION :ul
+-DPACK_MEMCPY :ul
 
 The read_data and dump commands will read/write gzipped files if you
 compile with -DLAMMPS_GZIP.  It requires that your Unix support the
@@ -233,17 +232,6 @@ options can make for faster parallel FFTs (in the PPPM solver) on some
 platforms.  The -DPACK_ARRAY setting is the default.  See the
 "kspace_style"_kspace_style.html command for info about PPPM.  See
 Step 6 below for info about building LAMMPS with an FFT library.
-
-The -DNODE_PARTITION option will perform a two-level factorization
-of the simulation box to minimize the inter-node communication. This
-can improve parallel efficiency by reducing network traffic.
-When this is set, the simulation box is divided amoung the nodes.
-Within each node, the subdomain is further divided between the
-cores on each node. The setting will have no impact on a simulation
-if 1) there are less than 4 cores per node, 2) the number of MPI 
-processes is not divisible by the number of cores used per node, or 
-3) the "processors"_processors.html command is used to specify a
-grid dimension with a value greater than 1.
 
 [Step 5]
 

@@ -336,6 +336,8 @@ pair_born_coul_long.cpp
 pair_born_coul_long.h
 pair_born_coul_long_omp.cpp
 pair_born_coul_long_omp.h
+pair_born_coul_wolf_omp.cpp
+pair_born_coul_wolf_omp.h
 pair_brownian.cpp
 pair_brownian.h
 pair_brownian_omp.cpp
@@ -400,6 +402,8 @@ pair_coul_long_gpu.cpp
 pair_coul_long_gpu.h
 pair_coul_long_omp.cpp
 pair_coul_long_omp.h
+pair_coul_wolf_omp.cpp
+pair_coul_wolf_omp.h
 pair_dipole_cut.cpp
 pair_dipole_cut.h
 pair_dipole_cut_omp.cpp

@@ -374,9 +374,24 @@ void ProcMap::cart_map(int reorder, int *procgrid,
    MPI may do layout in machine-optimized fashion
 ------------------------------------------------------------------------- */
 
-void ProcMap::cart_map(int reorder, int *procgrid, int *coregrid,
+void ProcMap::cart_map(int reorder, int *procgrid, int ncores, int *coregrid,
 		       int *myloc, int procneigh[3][2], int ***grid2proc)
 {
+  // setup NUMA params that numa_grid() sets up
+
+  int me;
+  MPI_Comm_rank(world,&me);
+
+  procs_per_node = ncores;
+  procs_per_numa = ncores;
+  node_id = me/ncores;
+  nodegrid[0] = procgrid[0] / coregrid[0];
+  nodegrid[1] = procgrid[1] / coregrid[1];
+  nodegrid[2] = procgrid[2] / coregrid[2];
+
+  // now can use numa_map() to perform mapping
+
+  numa_map(reorder,coregrid,myloc,procneigh,grid2proc);
 }
 
 /* ----------------------------------------------------------------------
@@ -393,7 +408,6 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
   for (i = 0; i < procgrid[0]; i++)
     for (j = 0; j < procgrid[1]; j++)
       for (k = 0; k < procgrid[2]; k++) {
-	grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
 	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z')
 	  grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
 	else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
@@ -411,6 +425,8 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
 	  myloc[0] = i; myloc[1] = j, myloc[2] = k;
 	}
       }
+
+  // proc IDs of neighbors
 
   int minus,plus;
   grid_shift(myloc[0],procgrid[0],minus,plus);
@@ -431,34 +447,58 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
    respect sub-grid of cores within each node
 ------------------------------------------------------------------------- */
 
-void ProcMap::xyz_map(char *xyz, int *procgrid, int *coregrid,
+void ProcMap::xyz_map(char *xyz, int *procgrid, int ncores, int *coregrid,
 		      int *myloc, int procneigh[3][2], int ***grid2proc)
 {
   int me;
   MPI_Comm_rank(world,&me);
 
-  int i,j,k;
+  nodegrid[0] = procgrid[0] / coregrid[0];
+  nodegrid[1] = procgrid[1] / coregrid[1];
+  nodegrid[2] = procgrid[2] / coregrid[2];
+
+  int i,j,k,inode,jnode,knode,icore,jcore,kcore;
   for (i = 0; i < procgrid[0]; i++)
     for (j = 0; j < procgrid[1]; j++)
       for (k = 0; k < procgrid[2]; k++) {
-	grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
+	inode = i/coregrid[0];
+	jnode = j/coregrid[1];
+	knode = k/coregrid[2];
+	icore = i - inode*icore;
+	jcore = j - jnode*jcore;
+	kcore = k - knode*kcore;
+
 	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z')
-	  grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
+	  grid2proc[i][j][k] = ncores * 
+	    (knode*nodegrid[1]*nodegrid[0] + jnode*nodegrid[0] + inode) +
+	    (kcore*coregrid[1]*coregrid[0] + jcore*coregrid[0] + icore);
 	else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
-	  grid2proc[i][j][k] = j*procgrid[2]*procgrid[0] + k*procgrid[0] + i;
+	  grid2proc[i][j][k] = ncores * 
+	    (jnode*nodegrid[2]*nodegrid[0] + knode*nodegrid[0] + inode) + 
+	    (jcore*coregrid[2]*coregrid[0] + kcore*coregrid[0] + icore);
 	else if (xyz[0] == 'y' && xyz[1] == 'x' && xyz[2] == 'z')
-	  grid2proc[i][j][k] = k*procgrid[0]*procgrid[1] + i*procgrid[1] + j;
+	  grid2proc[i][j][k] = ncores *
+	    (knode*nodegrid[0]*nodegrid[1] + inode*nodegrid[1] + jnode) +
+	    (kcore*coregrid[0]*coregrid[1] + icore*coregrid[1] + jcore);
 	else if (xyz[0] == 'y' && xyz[1] == 'z' && xyz[2] == 'x')
-	  grid2proc[i][j][k] = i*procgrid[2]*procgrid[1] + k*procgrid[1] + j;
+	  grid2proc[i][j][k] = ncores *
+	    (inode*nodegrid[2]*nodegrid[1] + knode*nodegrid[1] + jnode) +
+	    (icore*coregrid[2]*coregrid[1] + kcore*coregrid[1] + jcore);
 	else if (xyz[0] == 'z' && xyz[1] == 'x' && xyz[2] == 'y')
-	  grid2proc[i][j][k] = j*procgrid[0]*procgrid[2] + i*procgrid[2] + k;
+	  grid2proc[i][j][k] = ncores *
+	    (jnode*nodegrid[0]*nodegrid[2] + inode*nodegrid[2] + knode) +
+	    (jcore*coregrid[0]*coregrid[2] + icore*coregrid[2] + kcore);
 	else if (xyz[0] == 'z' && xyz[1] == 'y' && xyz[2] == 'x')
-	  grid2proc[i][j][k] = i*procgrid[1]*procgrid[2] + j*procgrid[2] + k;
+	  grid2proc[i][j][k] = ncores *
+	    (inode*nodegrid[1]*nodegrid[2] + jnode*nodegrid[2] + knode) +
+	    (icore*coregrid[1]*coregrid[2] + jcore*coregrid[2] + kcore);
 
 	if (grid2proc[i][j][k] == me) {
 	  myloc[0] = i; myloc[1] = j, myloc[2] = k;
 	}
       }
+
+  // proc IDs of neighbors
 
   int minus,plus;
   grid_shift(myloc[0],procgrid[0],minus,plus);
@@ -478,7 +518,7 @@ void ProcMap::xyz_map(char *xyz, int *procgrid, int *coregrid,
    map processors to 3d grid in 2-level NUMA ordering
 ------------------------------------------------------------------------- */
 
-void ProcMap::numa_map(int *numagrid,
+void ProcMap::numa_map(int reorder, int *numagrid,
 		       int *myloc, int procneigh[3][2], int ***grid2proc)
 {
   // setup a per node communicator and find rank within
@@ -502,9 +542,7 @@ void ProcMap::numa_map(int *numagrid,
   MPI_Comm_split(world,numa_rank,0,&numa_leaders);
   
   // use the MPI Cartesian routines to map the nodes to the grid
-  // could implement xyz mapflag as in non-NUMA case?
 
-  int reorder = 0;
   int periods[3];
   periods[0] = periods[1] = periods[2] = 1;
   MPI_Comm cartesian;
@@ -580,6 +618,8 @@ void ProcMap::custom_map(int *procgrid,
       myloc[2] = cmap[i][3] - 1;
     }
   }
+
+  // proc IDs of neighbors
 
   int minus,plus;
   grid_shift(myloc[0],procgrid[0],minus,plus);
@@ -698,39 +738,83 @@ int ProcMap::factor(int n, int **factors)
 }
 
 /* ----------------------------------------------------------------------
+   create N1*N2 new factors (procs) from factors1 (nodes) and factors2 (cores)
+   store index of corresponding core factors in factors[][3]
 ------------------------------------------------------------------------- */
 
 int ProcMap::combine_factors(int n1, int **factors1, int n2, int **factors2,
 			     int **factors)
 {
   int m = 0;
-
+  for (int i = 0; i < n1; i++)
+    for (int j = 0; j < n2; j++) {
+      factors[m][0] = factors1[i][0]*factors2[j][0];
+      factors[m][1] = factors1[i][1]*factors2[j][1];
+      factors[m][2] = factors1[i][2]*factors2[j][2];
+      factors[m][3] = j;
+      m++;
+    }
   return n1*n2;
 }
 
 /* ----------------------------------------------------------------------
+   remove any factors where Pz != 1 for 2d
 ------------------------------------------------------------------------- */
 
 int ProcMap::cull_2d(int n, int **factors, int m)
 {
-  return 0;
+  int i = 0;
+  while (i < n) {
+    if (factors[i][2] != 1) {
+      for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+      n--;
+    } else i++;
+  }
+  return n;
 }
 
 /* ----------------------------------------------------------------------
+   remove any factors that do not match non-zero user_factors Px,Py,Pz
 ------------------------------------------------------------------------- */
 
 int ProcMap::cull_user(int n, int **factors, int m, int *user_factors)
 {
-  return 0;
+  int i = 0;
+  while (i < n) {
+    int flag = 0;
+    if (user_factors[0] && factors[i][0] != user_factors[0]) flag = 1;
+    if (user_factors[1] && factors[i][1] != user_factors[1]) flag = 1;
+    if (user_factors[2] && factors[i][2] != user_factors[2]) flag = 1;
+    if (flag) {
+      for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+      n--;
+    } else i++;
+  }
+  return n;
 }
 
 /* ----------------------------------------------------------------------
+   remove any factors that do not match settings from other partition
+   MULTIPLE = other Px,Py,Pz must be multiple of my Px,Py,Pz
 ------------------------------------------------------------------------- */
 
 int ProcMap::cull_other(int n, int **factors, int m, 
 			int other_style, int *other_grid)
 {
-  return 0;
+  int i = 0;
+  while (i < n) {
+    if (other_style == MULTIPLE) {
+      int flag = 0;
+      if (other_grid[0] % factors[i][0]) flag = 1;
+      if (other_grid[1] % factors[i][1]) flag = 1;
+      if (other_grid[2] % factors[i][2]) flag = 1;
+      if (flag) {
+	for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+	n--;
+      } else i++;
+    }
+  }
+  return n;
 }
 
 /* ----------------------------------------------------------------------

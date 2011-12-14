@@ -27,18 +27,18 @@ class ProcMap : protected Pointers {
   void numa_grid(int, int *, int *, int *);
   void custom_grid(char *, int, int *, int *);
   void cart_map(int, int *, int *, int [3][2], int ***);
-  void cart_map(int, int *, int *, int *, int [3][2], int ***);
+  void cart_map(int, int *, int, int *, int *, int [3][2], int ***);
   void xyz_map(char *, int *, int *, int [3][2], int ***);
-  void xyz_map(char *, int *, int *, int *, int [3][2], int ***);
-  void numa_map(int *, int *, int [3][2], int ***);
+  void xyz_map(char *, int *, int, int *, int *, int [3][2], int ***);
+  void numa_map(int, int *, int *, int [3][2], int ***);
   void custom_map(int *, int *, int [3][2], int ***);
   void output(char *, int *, int ***);
 
  private:
-  int nodegrid[3];                // NUMA params
-  int node_id;
-  int procs_per_node;
+  int procs_per_node;             // NUMA params
   int procs_per_numa;
+  int node_id;                    // which node I am in
+  int nodegrid[3];                // 3d grid of nodes
 
   int **cmap;                     // info in custom grid file
 

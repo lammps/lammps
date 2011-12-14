@@ -207,14 +207,14 @@ void Comm::set_proc_grid()
 
   } else if (gridflag == TWOLEVEL) {
     if (mapflag == CART)
-      pmap->cart_map(0,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->cart_map(0,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == CARTREORDER)
-      pmap->cart_map(1,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->cart_map(1,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == XYZ)
-      pmap->xyz_map(xyz,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->xyz_map(xyz,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
 
   } else if (gridflag == NUMA) {
-    pmap->numa_map(coregrid,myloc,procneigh,grid2proc);
+    pmap->numa_map(0,coregrid,myloc,procneigh,grid2proc);
 
   } else if (gridflag == CUSTOM) {
     pmap->custom_map(procgrid,myloc,procneigh,grid2proc);

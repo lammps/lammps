@@ -309,7 +309,7 @@ The {grid numa} keyword only currently works with the {map cart}
 option.
 
 The {part} keyword (for the receiving partition) only works with the
-{grid onelevel} or {twolevel} options.
+{grid onelevel} or {grid twolevel} options.
 
 [Related commands:]
 

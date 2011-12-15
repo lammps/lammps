@@ -130,24 +130,24 @@ provide options for this ordering, e.g. via environment variable
 settings.
 
 The {numa} style operates similar to the {twolevel} keyword except
-that it auto-detects the core count within the nodes.  Currently, it
-does this in only 2 levels, but it may be extended in the future to
-account for socket topology and other non-uniform memory access (NUMA)
-costs.  It also uses a different algorithm (iterative) than the
+that it auto-detects which cores are running on which nodes.
+Currently, it does this in only 2 levels, but it may be extended in
+the future to account for socket topology and other non-uniform memory
+access (NUMA) costs.  It also uses a different algorithm than the
 {twolevel} keyword for doing the two-level factorization of the
 simulation box into a 3d processor grid to minimize off-node
-communication, and it does its own mapping of nodes and cores to the
-logical 3d grid.  Thus it may produce a different or improved layout
-of the processors.
+communication, and it does its own MPI-based mapping of nodes and
+cores to the logical 3d grid.  Thus it may produce a different layout
+of the processors than the {twolevel} options.
 
-The {numa} style will give an error if (a) there are less than 4 cores
-per node, or (b) the number of MPI processes is not divisible by the
-number of cores used per node, or (c) only 1 node is allocated, or (d)
-any of the Px or Py of Pz values is greater than 1.
+The {numa} style will give an error if the number of MPI processes is
+not divisible by the number of cores used per node, or any of the Px
+or Py of Pz values is greater than 1.
 
-IMPORTANT NOTE: For the {numa} style to work correctly, it assumes
-the MPI ranks of processors LAMMPS is running on are ordered by core
-and then by node.  See the same note for the {twolevel} keyword.
+IMPORTANT NOTE: Unlike the {twolevel} style, the {numa} style does not
+require any particular ordering of MPI ranks i norder to work
+correctly.  This is because it auto-detects which processes are
+running on which nodes.
 
 The {custom} style uses the file {infile} to define both the 3d
 factorization and the mapping of processors to the grid.

@@ -159,11 +159,12 @@ void Comm::set_proc_grid()
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
   }
 
-  // create ProcMap class
+  // create ProcMap class to create 3d grid and map procs to it
 
   ProcMap *pmap = new ProcMap(lmp);
 
-  // create 3d grid of processors, produces procgrid
+  // create 3d grid of processors
+  // produces procgrid and coregrid (if relevant)
 
   if (gridflag == ONELEVEL) {
     pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
@@ -182,6 +183,7 @@ void Comm::set_proc_grid()
   }
 
   // error check on procgrid
+  // should not be necessary due to ProcMap
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all(FLERR,"Bad grid of processors");

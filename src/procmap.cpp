@@ -174,17 +174,13 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procs_per_node = name_map.begin()->second;
   procs_per_numa = procs_per_node / numa_nodes;
   
-  // error return if any of these conditions met
+  // error if any of these conditions met
   
-  if (procs_per_numa < 4 ||            // less than 4 procs per numa node
-      procs_per_node % numa_nodes ||   // no-op since numa_nodes = 1 for now
-      nprocs % procs_per_numa ||       // total procs not a multiple of node
-      nprocs == procs_per_numa ||      // only 1 node used
+  if (nprocs % procs_per_numa ||       // total procs not a multiple of node
       user_procgrid[0] > 1 ||          // user specified grid > 1 in any dim
       user_procgrid[1] > 1 ||
       user_procgrid[2] > 1)
     error->all(FLERR,"Could not create numa 3d grid of processors");
-  
   
   // user settings for the factorization per numa node
   // currently not user settable

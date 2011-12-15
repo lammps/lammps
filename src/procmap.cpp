@@ -36,50 +36,116 @@ enum{MULTIPLE};                   // same as in Comm
 ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
-   create a one-level 3d grid of procs via procs2box()
+   create a one-level 3d grid of procs
 ------------------------------------------------------------------------- */
 
-int ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
-			   int otherflag, int other_style_caller,
-			   int *other_procgrid_caller)
+void ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
+			    int otherflag, int other_style,
+			    int *other_procgrid)
 {
-  other_style = other_style_caller;
-  other_procgrid[0] = other_procgrid_caller[0];
-  other_procgrid[1] = other_procgrid_caller[1];
-  other_procgrid[2] = other_procgrid_caller[2];
+  int **factors;
 
-  int flag = procs2box(nprocs,user_procgrid,procgrid,1,1,1,otherflag);
-  return flag;
+  // factors = list of all possible 3 factors of processor count
+
+  int npossible = factor(nprocs,NULL);
+  memory->create(factors,npossible,3,"procmap:factors");
+  npossible = factor(nprocs,factors);
+
+  // constrain by 2d, user request, other partition
+
+  if (domain->dimension == 2) npossible = cull_2d(npossible,factors,3);
+  npossible = cull_user(npossible,factors,3,user_procgrid);
+  if (otherflag) npossible = cull_other(npossible,factors,3,
+					other_style,other_procgrid);
+
+  // user/other constraints make failure possible
+
+  if (npossible == 0)
+    error->all(FLERR,"Could not create 3d grid of processors");
+
+  // select best set of 3 factors based on surface area of proc sub-domains
+
+  best_factors(npossible,factors,procgrid,1,1,1);
+
+  // clean-up
+
+  memory->destroy(factors);
 }
 
 /* ----------------------------------------------------------------------
-   create a two-level 3d grid of procs and cores via procs2box()
+   create a two-level 3d grid of procs
 ------------------------------------------------------------------------- */
 
-int ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
-			   int ncores, int *user_coregrid, int *coregrid,
-			   int otherflag, int other_style_caller,
-			   int *other_procgrid_caller)
+void ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
+			    int ncores, int *user_coregrid, int *coregrid,
+			    int otherflag, int other_style, 
+			    int *other_procgrid)
 {
+  int **nfactors,**cfactors,**factors;
+
   if (nprocs % ncores) 
-    error->all(FLERR,"Processors twogrid requres proc count "
+    error->all(FLERR,"Processors twogrid requires proc count "
 	       "be a multiple of core count");
 
+  // nfactors = list of all possible 3 factors of node count
+  // constrain by 2d
 
+  int nnpossible = factor(nprocs/ncores,NULL);
+  memory->create(nfactors,nnpossible,3,"procmap:nfactors");
+  nnpossible = factor(nprocs/ncores,nfactors);
 
-  error->all(FLERR,
-	     "The twolevel option is not yet supported, but will be soon");
-  return 1;
+  if (domain->dimension == 2) nnpossible = cull_2d(nnpossible,nfactors,3);
+
+  // cfactors = list of all possible 3 factors of core count
+  // constrain by 2d
+
+  int ncpossible = factor(ncores,NULL);
+  memory->create(cfactors,ncpossible,3,"procmap:cfactors");
+  ncpossible = factor(ncores,cfactors);
+
+  if (domain->dimension == 2) ncpossible = cull_2d(ncpossible,cfactors,3);
+  ncpossible = cull_user(ncpossible,cfactors,3,user_coregrid);
+
+  // factors = all combinations of nfactors and cfactors
+  // factors stores additional index pointing to corresponding cfactors
+  // constrain by user request, other partition
+
+  int npossible = nnpossible * ncpossible;
+  memory->create(factors,npossible,4,"procmap:factors");
+  npossible = combine_factors(nnpossible,nfactors,ncpossible,cfactors,factors);
+
+  npossible = cull_user(npossible,factors,4,user_procgrid);
+  if (otherflag) npossible = cull_other(npossible,factors,4,
+					other_style,other_procgrid);
+
+  // user/other constraints make failure possible
+
+  if (npossible == 0)
+    error->all(FLERR,"Could not create twolevel 3d grid of processors");
+
+  // select best set of 3 factors based on surface area of proc sub-domains
+  // index points to corresponding core factorization
+
+  int index = best_factors(npossible,factors,procgrid,1,1,1);
+
+  coregrid[0] = cfactors[factors[index][3]][0];
+  coregrid[1] = cfactors[factors[index][3]][1];
+  coregrid[2] = cfactors[factors[index][3]][2];
+
+  // clean-up
+
+  memory->destroy(nfactors);
+  memory->destroy(cfactors);
+  memory->destroy(factors);
 }
 
 /* ----------------------------------------------------------------------
    create a 3d grid of procs that does a 2-level hierarchy within a node
    auto-detects NUMA sockets within a multi-core node
-   return 1 if successful, 0 if not
 ------------------------------------------------------------------------- */
 
-int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
-		       int *numagrid)
+void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
+			int *numagrid)
 {
   // hardwire this for now
 
@@ -108,25 +174,21 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procs_per_node = name_map.begin()->second;
   procs_per_numa = procs_per_node / numa_nodes;
   
-  // error return if any of these conditions met
+  // error if any of these conditions met
   
-  if (procs_per_numa < 4 ||            // less than 4 procs per numa node
-      procs_per_node % numa_nodes ||   // no-op since numa_nodes = 1 for now
-      nprocs % procs_per_numa ||       // total procs not a multiple of node
-      nprocs == procs_per_numa ||      // only 1 node used
+  if (nprocs % procs_per_numa ||       // total procs not a multiple of node
       user_procgrid[0] > 1 ||          // user specified grid > 1 in any dim
       user_procgrid[1] > 1 ||
       user_procgrid[2] > 1)
-    return 0;
+    error->all(FLERR,"Could not create numa 3d grid of processors");
   
   // user settings for the factorization per numa node
   // currently not user settable
+  // if user specifies 1 for a proc grid dimension,
+  // also use 1 for the numa grid dimension
 
   int user_numagrid[3];
   user_numagrid[0] = user_numagrid[1] = user_numagrid[2] = 0;
-  
-  // if user specifies 1 for a proc grid dimension,
-  // also use 1 for the numa grid dimension
 
   if (user_procgrid[0] == 1) user_numagrid[0] = 1;
   if (user_procgrid[1] == 1) user_numagrid[1] = 1;
@@ -134,23 +196,52 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   
   // initial factorization within NUMA node
 
-  procs2box(procs_per_numa,user_numagrid,numagrid,1,1,1,0);
-  if (numagrid[0]*numagrid[1]*numagrid[2] != procs_per_numa)
-    error->all(FLERR,"Bad grid of processors");
-  
+  int **numafactors;
+  int numapossible = factor(procs_per_numa,NULL);
+  memory->create(numafactors,numapossible,3,"procmap:numafactors");
+  numapossible = factor(procs_per_numa,numafactors);
+
+  if (domain->dimension == 2) 
+    numapossible = cull_2d(numapossible,numafactors,3);
+  numapossible = cull_user(numapossible,numafactors,3,user_numagrid);
+
+  if (numapossible == 0)
+    error->all(FLERR,"Could not create numa grid of processors");
+
+  best_factors(numapossible,numafactors,numagrid,1,1,1);
+
+  // user_nodegrid = implied user contraints on nodes
+
+  int user_nodegrid[3];
+  user_nodegrid[0] = user_procgrid[0] / numagrid[0];
+  user_nodegrid[1] = user_procgrid[1] / numagrid[1];
+  user_nodegrid[2] = user_procgrid[2] / numagrid[2];
+
   // factorization for the grid of NUMA nodes
 
   int node_count = nprocs / procs_per_numa;
-  procs2box(node_count,user_procgrid,nodegrid,
-	    numagrid[0],numagrid[1],numagrid[2],0);
-  if (procgrid[0]*procgrid[1]*procgrid[2] != node_count)
-    error->all(FLERR,"Bad grid of processors");
+
+  int **nodefactors;
+  int nodepossible = factor(node_count,NULL);
+  memory->create(nodefactors,nodepossible,3,"procmap:nodefactors");
+  nodepossible = factor(node_count,nodefactors);
+
+  if (domain->dimension == 2) 
+    nodepossible = cull_2d(nodepossible,nodefactors,3);
+  nodepossible = cull_user(nodepossible,nodefactors,3,user_nodegrid);
+
+  if (nodepossible == 0)
+    error->all(FLERR,"Could not create numa grid of processors");
+
+  best_factors(nodepossible,nodefactors,nodegrid,
+	       numagrid[0],numagrid[1],numagrid[2]);
   
   // repeat NUMA node factorization using subdomain sizes
   // refines the factorization if the user specified the node layout
+  // NOTE: this will not re-enforce user-procgrid constraint will it?
 
-  procs2box(procs_per_numa,user_numagrid,numagrid,
-	    procgrid[0],procgrid[1],procgrid[2],0);
+  best_factors(numapossible,numafactors,numagrid,
+	       nodegrid[0],nodegrid[1],nodegrid[2]);
 
   // assign a unique id to each node
 
@@ -166,8 +257,6 @@ int ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procgrid[0] = nodegrid[0] * numagrid[0];
   procgrid[1] = nodegrid[1] * numagrid[1];
   procgrid[2] = nodegrid[2] * numagrid[2];
-
-  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -246,136 +335,6 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
 }
 
 /* ----------------------------------------------------------------------
-   assign nprocs to 3d box so as to minimize surface area
-   area = surface area of each of 3 faces of simulation box divided by sx,sy,sz
-   for triclinic, area = cross product of 2 edge vectors stored in h matrix
-   valid assignment will be factorization of nprocs = Px by Py by Pz
-   user_factors = if non-zero, factors are specified by user
-   sx,sy,sz = scale box xyz dimension by dividing by sx,sy,sz
-   other = 1 to enforce compatability with other partition's layout
-   return factors = # of procs assigned to each dimension
-   return 1 if factor successfully, 0 if not
-------------------------------------------------------------------------- */
-
-int ProcMap::procs2box(int nprocs, int *user_factors, int *factors, 
-		       const int sx, const int sy, const int sz, int other)
-{
-  factors[0] = user_factors[0];
-  factors[1] = user_factors[1];
-  factors[2] = user_factors[2];
-
-  // all 3 proc counts are specified
-
-  if (factors[0] && factors[1] && factors[2]) return 1;
-
-  // 2 out of 3 proc counts are specified
-
-  if (factors[0] > 0 && factors[1] > 0) {
-    factors[2] = nprocs/(factors[0]*factors[1]);
-    return 1;
-  } else if (factors[0] > 0 && factors[2] > 0) {
-    factors[1] = nprocs/(factors[0]*factors[2]);
-    return 1;
-  } else if (factors[1] > 0 && factors[2] > 0) {
-    factors[0] = nprocs/(factors[1]*factors[2]);
-    return 1;
-  } 
-
-  // determine cross-sectional areas for orthogonal and triclinic boxes
-  // area[0] = xy, area[1] = xz, area[2] = yz
-
-  double area[3];
-  if (domain->triclinic == 0) {
-    area[0] = domain->xprd * domain->yprd / (sx * sy);
-    area[1] = domain->xprd * domain->zprd / (sx * sz);
-    area[2] = domain->yprd * domain->zprd / (sy * sz);
-  } else {
-    double *h = domain->h;
-    double a[3],b[3],c[3];
-    a[0] = h[0]; a[1] = 0.0; a[2] = 0.0;
-    b[0] = h[5]; b[1] = h[1]; b[2] = 0.0;
-    MathExtra::cross3(a,b,c);
-    area[0] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sx * sy);
-    a[0] = h[0]; a[1] = 0.0; a[2] = 0.0;
-    b[0] = h[4]; b[1] = h[3]; b[2] = h[2];
-    MathExtra::cross3(a,b,c);
-    area[1] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sx * sz);
-    a[0] = h[5]; a[1] = h[1]; a[2] = 0.0;
-    b[0] = h[4]; b[1] = h[3]; b[2] = h[2];
-    MathExtra::cross3(a,b,c);
-    area[2] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sy * sz);
-  }
-
-  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
-
-  // loop thru all possible factorizations of nprocs
-  // only consider valid cases that match procgrid settings
-  // surf = surface area of a proc sub-domain
-  // only consider cases that match user_factors & other_procgrid settings
-  // success = 1 if valid factoriztion is found
-  // may not be if other constraint is enforced
-
-  int ipx,ipy,ipz,valid;
-  double surf;
-  
-  int success = 0;
-  ipx = 1;
-  while (ipx <= nprocs) {
-    valid = 1;
-    if (user_factors[0] && ipx != user_factors[0]) valid = 0;
-    if (other) {
-      if (other_style == MULTIPLE && other_procgrid[0] % ipx) valid = 0;
-    }
-    if (nprocs % ipx) valid = 0;
-
-    if (!valid) {
-      ipx++;
-      continue;
-    }
-
-    ipy = 1;
-    while (ipy <= nprocs/ipx) {
-      valid = 1;
-      if (user_factors[1] && ipy != user_factors[1]) valid = 0;
-      if (other) {
-	if (other_style == MULTIPLE && other_procgrid[1] % ipy) valid = 0;
-      }
-      if ((nprocs/ipx) % ipy) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      ipz = nprocs/ipx/ipy;
-      valid = 1;
-      if (user_factors[2] && ipz != user_factors[2]) valid = 0;
-      if (other) {
-	if (other_style == MULTIPLE && other_procgrid[2] % ipz) valid = 0;
-      }
-      if (domain->dimension == 2 && ipz != 1) valid = 0;
-      if (!valid) {
-	ipy++;
-	continue;
-      }
-      
-      surf = area[0]/ipx/ipy + area[1]/ipx/ipz + area[2]/ipy/ipz;
-      if (surf < bestsurf) {
-	success = 1;
-	bestsurf = surf;
-	factors[0] = ipx;
-	factors[1] = ipy;
-	factors[2] = ipz;
-      }
-      ipy++;
-    }
-
-    ipx++;
-  }
-
-  return success;
-}
-
-/* ----------------------------------------------------------------------
    map processors to 3d grid via MPI_Cart routines
    MPI may do layout in machine-optimized fashion
 ------------------------------------------------------------------------- */
@@ -411,9 +370,24 @@ void ProcMap::cart_map(int reorder, int *procgrid,
    MPI may do layout in machine-optimized fashion
 ------------------------------------------------------------------------- */
 
-void ProcMap::cart_map(int reorder, int *procgrid, int *coregrid,
+void ProcMap::cart_map(int reorder, int *procgrid, int ncores, int *coregrid,
 		       int *myloc, int procneigh[3][2], int ***grid2proc)
 {
+  // setup NUMA params that numa_grid() sets up
+
+  int me;
+  MPI_Comm_rank(world,&me);
+
+  procs_per_node = ncores;
+  procs_per_numa = ncores;
+  node_id = me/ncores;
+  nodegrid[0] = procgrid[0] / coregrid[0];
+  nodegrid[1] = procgrid[1] / coregrid[1];
+  nodegrid[2] = procgrid[2] / coregrid[2];
+
+  // now can use numa_map() to perform mapping
+
+  numa_map(reorder,coregrid,myloc,procneigh,grid2proc);
 }
 
 /* ----------------------------------------------------------------------
@@ -430,7 +404,6 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
   for (i = 0; i < procgrid[0]; i++)
     for (j = 0; j < procgrid[1]; j++)
       for (k = 0; k < procgrid[2]; k++) {
-	grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
 	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z')
 	  grid2proc[i][j][k] = k*procgrid[1]*procgrid[0] + j*procgrid[0] + i;
 	else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
@@ -448,6 +421,8 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
 	  myloc[0] = i; myloc[1] = j, myloc[2] = k;
 	}
       }
+
+  // proc IDs of neighbors
 
   int minus,plus;
   grid_shift(myloc[0],procgrid[0],minus,plus);
@@ -468,16 +443,78 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
    respect sub-grid of cores within each node
 ------------------------------------------------------------------------- */
 
-void ProcMap::xyz_map(char *xyz, int *procgrid, int *coregrid,
+void ProcMap::xyz_map(char *xyz, int *procgrid, int ncores, int *coregrid,
 		      int *myloc, int procneigh[3][2], int ***grid2proc)
 {
+  int me;
+  MPI_Comm_rank(world,&me);
+
+  nodegrid[0] = procgrid[0] / coregrid[0];
+  nodegrid[1] = procgrid[1] / coregrid[1];
+  nodegrid[2] = procgrid[2] / coregrid[2];
+
+  int i,j,k,inode,jnode,knode,icore,jcore,kcore;
+  for (i = 0; i < procgrid[0]; i++)
+    for (j = 0; j < procgrid[1]; j++)
+      for (k = 0; k < procgrid[2]; k++) {
+	inode = i/coregrid[0];
+	jnode = j/coregrid[1];
+	knode = k/coregrid[2];
+	icore = i - inode*icore;
+	jcore = j - jnode*jcore;
+	kcore = k - knode*kcore;
+
+	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z')
+	  grid2proc[i][j][k] = ncores * 
+	    (knode*nodegrid[1]*nodegrid[0] + jnode*nodegrid[0] + inode) +
+	    (kcore*coregrid[1]*coregrid[0] + jcore*coregrid[0] + icore);
+	else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
+	  grid2proc[i][j][k] = ncores * 
+	    (jnode*nodegrid[2]*nodegrid[0] + knode*nodegrid[0] + inode) + 
+	    (jcore*coregrid[2]*coregrid[0] + kcore*coregrid[0] + icore);
+	else if (xyz[0] == 'y' && xyz[1] == 'x' && xyz[2] == 'z')
+	  grid2proc[i][j][k] = ncores *
+	    (knode*nodegrid[0]*nodegrid[1] + inode*nodegrid[1] + jnode) +
+	    (kcore*coregrid[0]*coregrid[1] + icore*coregrid[1] + jcore);
+	else if (xyz[0] == 'y' && xyz[1] == 'z' && xyz[2] == 'x')
+	  grid2proc[i][j][k] = ncores *
+	    (inode*nodegrid[2]*nodegrid[1] + knode*nodegrid[1] + jnode) +
+	    (icore*coregrid[2]*coregrid[1] + kcore*coregrid[1] + jcore);
+	else if (xyz[0] == 'z' && xyz[1] == 'x' && xyz[2] == 'y')
+	  grid2proc[i][j][k] = ncores *
+	    (jnode*nodegrid[0]*nodegrid[2] + inode*nodegrid[2] + knode) +
+	    (jcore*coregrid[0]*coregrid[2] + icore*coregrid[2] + kcore);
+	else if (xyz[0] == 'z' && xyz[1] == 'y' && xyz[2] == 'x')
+	  grid2proc[i][j][k] = ncores *
+	    (inode*nodegrid[1]*nodegrid[2] + jnode*nodegrid[2] + knode) +
+	    (icore*coregrid[1]*coregrid[2] + jcore*coregrid[2] + kcore);
+
+	if (grid2proc[i][j][k] == me) {
+	  myloc[0] = i; myloc[1] = j, myloc[2] = k;
+	}
+      }
+
+  // proc IDs of neighbors
+
+  int minus,plus;
+  grid_shift(myloc[0],procgrid[0],minus,plus);
+  procneigh[0][0] = grid2proc[minus][myloc[1]][myloc[2]];
+  procneigh[0][1] = grid2proc[plus][myloc[1]][myloc[2]];
+
+  grid_shift(myloc[1],procgrid[1],minus,plus);
+  procneigh[1][0] = grid2proc[myloc[0]][minus][myloc[2]];
+  procneigh[1][1] = grid2proc[myloc[0]][plus][myloc[2]];
+
+  grid_shift(myloc[2],procgrid[2],minus,plus);
+  procneigh[2][0] = grid2proc[myloc[0]][myloc[1]][minus];
+  procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][plus];
 }
 
 /* ----------------------------------------------------------------------
    map processors to 3d grid in 2-level NUMA ordering
 ------------------------------------------------------------------------- */
 
-void ProcMap::numa_map(int *numagrid,
+void ProcMap::numa_map(int reorder, int *numagrid,
 		       int *myloc, int procneigh[3][2], int ***grid2proc)
 {
   // setup a per node communicator and find rank within
@@ -501,9 +538,7 @@ void ProcMap::numa_map(int *numagrid,
   MPI_Comm_split(world,numa_rank,0,&numa_leaders);
   
   // use the MPI Cartesian routines to map the nodes to the grid
-  // could implement xyz mapflag as in non-NUMA case?
 
-  int reorder = 0;
   int periods[3];
   periods[0] = periods[1] = periods[2] = 1;
   MPI_Comm cartesian;
@@ -580,6 +615,8 @@ void ProcMap::custom_map(int *procgrid,
     }
   }
 
+  // proc IDs of neighbors
+
   int minus,plus;
   grid_shift(myloc[0],procgrid[0],minus,plus);
   procneigh[0][0] = grid2proc[minus][myloc[1]][myloc[2]];
@@ -594,18 +631,6 @@ void ProcMap::custom_map(int *procgrid,
   procneigh[2][1] = grid2proc[myloc[0]][myloc[1]][plus];
 
   memory->destroy(cmap);
-}
-
-/* ----------------------------------------------------------------------
-   minus,plus = indices of neighboring processors in a dimension
-------------------------------------------------------------------------- */
-
-void ProcMap::grid_shift(int myloc, int nprocs, int &minus, int &plus) 
-{
-  minus = myloc - 1;
-  if (minus < 0) minus = nprocs - 1;
-  plus = myloc + 1;
-  if (plus == nprocs) plus = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -679,3 +704,180 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
 
   if (me == 0) fclose(fp);
 }
+
+/* ----------------------------------------------------------------------
+   generate all possible 3-integer factorizations of N
+   store them in factors if non-NULL
+   return # of factorizations
+------------------------------------------------------------------------- */
+
+int ProcMap::factor(int n, int **factors)
+{
+  int i,j,nyz;
+
+  int m = 0;
+  for (i = 1; i <= n; i++) {
+    if (n % i) continue;
+    nyz = n/i;
+    for (j = 1; j <= nyz; j++) {
+      if (nyz % j) continue;
+      if (factors) {
+	factors[m][0] = i;
+	factors[m][1] = j;
+	factors[m][2] = nyz/j;
+      }
+      m++;
+    }
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   create N1*N2 new factors (procs) from factors1 (nodes) and factors2 (cores)
+   store index of corresponding core factors in factors[][3]
+------------------------------------------------------------------------- */
+
+int ProcMap::combine_factors(int n1, int **factors1, int n2, int **factors2,
+			     int **factors)
+{
+  int m = 0;
+  for (int i = 0; i < n1; i++)
+    for (int j = 0; j < n2; j++) {
+      factors[m][0] = factors1[i][0]*factors2[j][0];
+      factors[m][1] = factors1[i][1]*factors2[j][1];
+      factors[m][2] = factors1[i][2]*factors2[j][2];
+      factors[m][3] = j;
+      m++;
+    }
+  return n1*n2;
+}
+
+/* ----------------------------------------------------------------------
+   remove any factors where Pz != 1 for 2d
+------------------------------------------------------------------------- */
+
+int ProcMap::cull_2d(int n, int **factors, int m)
+{
+  int i = 0;
+  while (i < n) {
+    if (factors[i][2] != 1) {
+      for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+      n--;
+    } else i++;
+  }
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   remove any factors that do not match non-zero user_factors Px,Py,Pz
+------------------------------------------------------------------------- */
+
+int ProcMap::cull_user(int n, int **factors, int m, int *user_factors)
+{
+  int i = 0;
+  while (i < n) {
+    int flag = 0;
+    if (user_factors[0] && factors[i][0] != user_factors[0]) flag = 1;
+    if (user_factors[1] && factors[i][1] != user_factors[1]) flag = 1;
+    if (user_factors[2] && factors[i][2] != user_factors[2]) flag = 1;
+    if (flag) {
+      for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+      n--;
+    } else i++;
+  }
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   remove any factors that do not match settings from other partition
+   MULTIPLE = other Px,Py,Pz must be multiple of my Px,Py,Pz
+------------------------------------------------------------------------- */
+
+int ProcMap::cull_other(int n, int **factors, int m, 
+			int other_style, int *other_grid)
+{
+  int i = 0;
+  while (i < n) {
+    if (other_style == MULTIPLE) {
+      int flag = 0;
+      if (other_grid[0] % factors[i][0]) flag = 1;
+      if (other_grid[1] % factors[i][1]) flag = 1;
+      if (other_grid[2] % factors[i][2]) flag = 1;
+      if (flag) {
+	for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
+	n--;
+      } else i++;
+    }
+  }
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   choose best factors from list of Npossible factors
+   best = minimal surface area of sub-domain
+   return best = 3 factors
+   return index of best factors in factors
+------------------------------------------------------------------------- */
+
+int ProcMap::best_factors(int npossible, int **factors, int *best,
+			  const int sx, const int sy, const int sz)
+{
+  // determine cross-sectional areas for orthogonal and triclinic boxes
+  // for triclinic, area = cross product of 2 edge vectors stored in h matrix
+  // area[3] = surface area 3 box faces divided by sx,sy,sz
+  // area[0] = xy, area[1] = xz, area[2] = yz
+  
+  double area[3];
+  if (domain->triclinic == 0) {
+    area[0] = domain->xprd * domain->yprd / (sx*sy);
+    area[1] = domain->xprd * domain->zprd / (sx*sz);
+    area[2] = domain->yprd * domain->zprd / (sy*sz);
+  } else {
+    double *h = domain->h;
+    double a[3],b[3],c[3];
+    a[0] = h[0]; a[1] = 0.0; a[2] = 0.0;
+    b[0] = h[5]; b[1] = h[1]; b[2] = 0.0;
+    MathExtra::cross3(a,b,c);
+    area[0] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sx*sy);
+    a[0] = h[0]; a[1] = 0.0; a[2] = 0.0;
+    b[0] = h[4]; b[1] = h[3]; b[2] = h[2];
+    MathExtra::cross3(a,b,c);
+    area[1] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sx*sz);
+    a[0] = h[5]; a[1] = h[1]; a[2] = 0.0;
+    b[0] = h[4]; b[1] = h[3]; b[2] = h[2];
+    MathExtra::cross3(a,b,c);
+    area[2] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sy*sz);
+  }
+
+  int index;
+  double surf;
+  double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
+
+  for (int m = 0; m < npossible; m++) {
+    surf = area[0]/factors[m][0]/factors[m][1] + 
+      area[1]/factors[m][0]/factors[m][2] + 
+      area[2]/factors[m][1]/factors[m][2];
+    if (surf < bestsurf) {
+      best[0] = factors[m][0];
+      best[1] = factors[m][1];
+      best[2] = factors[m][2];
+      index = m;
+    }
+  }
+
+  return index;
+}
+
+/* ----------------------------------------------------------------------
+   minus,plus = indices of neighboring processors in a dimension
+------------------------------------------------------------------------- */
+
+void ProcMap::grid_shift(int myloc, int nprocs, int &minus, int &plus) 
+{
+  minus = myloc - 1;
+  if (minus < 0) minus = nprocs - 1;
+  plus = myloc + 1;
+  if (plus == nprocs) plus = 0;
+}
+

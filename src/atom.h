@@ -26,6 +26,7 @@ class Atom : protected Pointers {
   // atom counts
 
   bigint natoms;                // total # of atoms in system, could be 0
+                                // natoms may not be current if atoms lost
   int nlocal,nghost;            // # of owned and ghost atoms on this proc
   int nmax;                     // max # of owned+ghost in arrays on this proc
   int tag_enable;               // 0/1 if atom ID tags are defined

@@ -44,3 +44,15 @@ class DihedralHelix : public Dihedral {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+W: Dihedral problem: %d %ld %d %d %d %d
+
+UNDOCUMENTED
+
+E: Incorrect args for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+*/

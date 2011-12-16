@@ -479,3 +479,20 @@ class Memory : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Failed to allocate %ld bytes for array %s
+
+UNDOCUMENTED
+
+E: Failed to reallocate %ld bytes for array %s
+
+UNDOCUMENTED
+
+E: Cannot create/grow a vector/array of pointers for %s
+
+LAMMPS code is making an illegal call to the templated memory
+allocaters, to create a vector or array of pointers.
+
+*/

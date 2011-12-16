@@ -45,3 +45,18 @@ class PairLJCutCoulCutGPU : public PairLJCutCoulCut {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Pair style lj/cut/coul/cut/gpu requires atom attribute q
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with lj/cut/coul/cut/gpu pair style
+
+UNDOCUMENTED
+
+*/

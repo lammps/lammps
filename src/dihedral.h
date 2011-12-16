@@ -55,3 +55,17 @@ class Dihedral : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Dihedral coeffs are not set
+
+No dihedral coefficients have been assigned in the data file or via
+the dihedral_coeff command.
+
+E: All dihedral coeffs are not set
+
+All dihedral coefficients must be set in the data file or by the
+dihedral_coeff command before running a simulation.
+
+*/

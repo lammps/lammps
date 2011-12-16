@@ -94,3 +94,44 @@ class AtomVecLine : public AtomVec {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Atom_style line can only be used in 2d simulations
+
+UNDOCUMENTED
+
+E: Per-processor system is too big
+
+The number of owned atoms plus ghost atoms on a single
+processor must fit in 32-bit integer.
+
+E: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
+
+E: Invalid atom type in Atoms section of data file
+
+Atom types must range from 1 to specified # of types.
+
+E: Invalid density in Atoms section of data file
+
+Density value cannot be <= 0.0.
+
+E: Assigning line parameters to non-line atom
+
+UNDOCUMENTED
+
+E: Inconsistent line segment in data file
+
+UNDOCUMENTED
+
+E: BAD VECLINE PTRS: %s: %d %d: %d\n
+
+UNDOCUMENTED
+
+E: BAD VECLINE COUNT: %s: %d %d: %d %d\n
+
+UNDOCUMENTED
+
+*/

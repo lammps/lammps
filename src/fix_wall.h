@@ -53,3 +53,42 @@ class FixWall : public Fix {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Wall defined twice in fix wall command
+
+Self-explanatory.
+
+E: Fix wall cutoff <= 0.0
+
+Self-explanatory.
+
+E: Cannot use fix wall in periodic dimension
+
+Self-explanatory.
+
+E: Cannot use fix wall zlo/zhi for a 2d simulation
+
+Self-explanatory.
+
+E: Use of fix wall with undefined lattice
+
+Must use lattice command with fix wall command if units option is set
+to lattice.
+
+E: Variable name for fix wall does not exist
+
+Self-explanatory.
+
+E: Variable for fix wall is invalid style
+
+Only equal-style variables can be used.
+
+*/

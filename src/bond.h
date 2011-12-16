@@ -54,3 +54,17 @@ class Bond : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Bond coeffs are not set
+
+No bond coefficients have been assigned in the data file or via the
+bond_coeff command.
+
+E: All bond coeffs are not set
+
+All bond coefficients must be set in the data file or by the
+bond_coeff command before running a simulation.
+
+*/

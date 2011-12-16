@@ -103,3 +103,53 @@ class PairMEAM : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: MEAM library error %d
+
+A call to the MEAM Fortran library returned an error.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style MEAM requires newton pair on
+
+See the newton command.  This is a restriction to use the MEAM
+potential.
+
+E: Cannot open MEAM potential file %s
+
+The specified MEAM potential file cannot be opened.  Check that the
+path and name are correct.
+
+E: Incorrect format in MEAM potential file
+
+Incorrect number of words per line in the potential file.
+
+E: Unrecognized lattice type in MEAM file 1
+
+The lattice type in an entry of the MEAM library file is not
+valid.
+
+E: Did not find all elements in MEAM library file
+
+The requested elements were not found in the MEAM file.
+
+E: Keyword %s in MEAM parameter file not recognized
+
+Self-explanatory.
+
+E: Unrecognized lattice type in MEAM file 2
+
+The lattice type in an entry of the MEAM parameter file is not
+valid.
+
+*/

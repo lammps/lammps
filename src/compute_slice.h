@@ -45,3 +45,65 @@ class ComputeSlice : public Compute {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute ID for compute slice does not exist
+
+UNDOCUMENTED
+
+E: Compute slice compute does not calculate a global array
+
+UNDOCUMENTED
+
+E: Compute slice compute vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Compute slice compute does not calculate a global vector
+
+UNDOCUMENTED
+
+E: Compute slice compute array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Compute slice compute does not calculate global vector or array
+
+UNDOCUMENTED
+
+E: Fix ID for compute slice does not exist
+
+UNDOCUMENTED
+
+E: Compute slice fix does not calculate a global array
+
+UNDOCUMENTED
+
+E: Compute slice fix vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Compute slice fix does not calculate a global vector
+
+UNDOCUMENTED
+
+E: Compute slice fix array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Compute slice fix does not calculate global vector or array
+
+UNDOCUMENTED
+
+E: Fix used in compute slice not computed at compatible time
+
+UNDOCUMENTED
+
+*/

@@ -95,3 +95,44 @@ class AtomVecTri : public AtomVec {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Atom_style tri can only be used in 3d simulations
+
+UNDOCUMENTED
+
+E: Per-processor system is too big
+
+The number of owned atoms plus ghost atoms on a single
+processor must fit in 32-bit integer.
+
+E: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
+
+E: Invalid atom type in Atoms section of data file
+
+Atom types must range from 1 to specified # of types.
+
+E: Invalid density in Atoms section of data file
+
+Density value cannot be <= 0.0.
+
+E: Assigning tri parameters to non-tri atom
+
+UNDOCUMENTED
+
+E: Invalid shape in Triangles section of data file
+
+UNDOCUMENTED
+
+E: Inconsistent triangle in data file
+
+UNDOCUMENTED
+
+E: Insufficient Jacobi rotations for triangle
+
+UNDOCUMENTED
+
+*/

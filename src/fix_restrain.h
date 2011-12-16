@@ -51,3 +51,25 @@ class FixRestrain : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix restrain requires an atom map, see atom_modify
+
+UNDOCUMENTED
+
+E: Restrain atoms %d %d %d %d missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+W: Restrain problem: %d %ld %d %d %d %d
+
+UNDOCUMENTED
+
+*/

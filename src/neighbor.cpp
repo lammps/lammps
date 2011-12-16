@@ -1639,11 +1639,9 @@ void Neighbor::modify_params(int narg, char **arg)
 
       } else if (strcmp(arg[iarg+1],"molecule") == 0) {
 	if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
-	if (atom->molecule_flag == 0) {
-	  char *str = (char *)
-	    "Neigh_modify exclude molecule requires atom attribute molecule";
-	  error->all(FLERR,str);
-	}
+	if (atom->molecule_flag == 0)
+	  error->all(FLERR,"Neigh_modify exclude molecule "
+		     "requires atom attribute molecule");
 	if (nex_mol == maxex_mol) {
 	  maxex_mol += EXDELTA;
 	  memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");

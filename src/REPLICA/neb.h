@@ -62,3 +62,64 @@ class NEB : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: NEB command before simulation box is defined
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use NEB with a single replica
+
+Self-explanatory.
+
+E: Can only use NEB with 1-processor replicas
+
+This is current restriction for NEB as implemented in LAMMPS.
+
+E: Cannot use NEB with atom_modify sort enabled
+
+This is current restriction for NEB implemented in LAMMPS.
+
+E: Cannot use NEB unless atom map exists
+
+Use the atom_modify command to create an atom map.
+
+E: NEB requires use of fix neb
+
+Self-explanatory.
+
+E: NEB requires damped dynamics minimizer
+
+Use a different minimization style.
+
+E: Too many timesteps for NEB
+
+You must use a number of timesteps that fit in a 32-bit integer 
+for NEB.
+
+E: Too many timesteps
+
+UNDOCUMENTED
+
+E: Incorrect format in NEB coordinate file
+
+Self-explanatory.
+
+E: Cannot open gzipped file
+
+LAMMPS is attempting to open a gzipped version of the specified file
+but was unsuccessful.  Check that the path and name are correct.
+
+E: Cannot open file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+*/

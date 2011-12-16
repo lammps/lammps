@@ -59,3 +59,98 @@ class LAMMPS {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid command-line argument
+
+One or more command-line arguments is invalid.  Check the syntax of
+the command you are using to launch LAMMPS.
+
+E: Cannot use -reorder after -partition
+
+UNDOCUMENTED
+
+E: Processor partitions are inconsistent
+
+The total number of processors in all partitions must match the number
+of processors LAMMPS is running on.
+
+E: Must use -in switch with multiple partitions
+
+A multi-partition simulation cannot read the input script from stdin.
+The -in command-line option must be used to specify a file.
+
+E: Can only use -pscreen with multiple partitions
+
+UNDOCUMENTED
+
+E: Can only use -plog with multiple partitions
+
+UNDOCUMENTED
+
+E: Cannot open universe screen file
+
+For a multi-partition run, the master screen file cannot be opened.
+Check that the directory you are running in allows for files to be
+created.
+
+E: Cannot open log.lammps
+
+The default LAMMPS log file cannot be opened.  Check that the
+directory you are running in allows for files to be created.
+
+E: Cannot open universe log file
+
+For a multi-partition run, the master log file cannot be opened.
+Check that the directory you are running in allows for files to be
+created.
+
+E: Cannot open input script %s
+
+Self-explanatory.
+
+E: Cannot open screen file
+
+The screen file specified as a command-line argument cannot be
+opened.  Check that the directory you are running in allows for files
+to be created.
+
+E: Cannot open logfile
+
+The LAMMPS log file named in a command-line argument cannot be opened.
+Check that the path and name are correct.
+
+E: Smallint setting in lmptype.h is invalid
+
+It has to be the size of an integer.
+
+E: Tagint setting in lmptype.h is invalid
+
+Tagint must be as large or larger than smallint.
+
+E: Bigint setting in lmptype.h is invalid
+
+Size of bigint is less than size of tagint.
+
+E: MPI_LMP_TAGINT and tagint in lmptype.h are not compatible
+
+The size of the MPI datatype does not match the size of a tagint.
+
+E: MPI_LMP_BIGINT and bigint in lmptype.h are not compatible
+
+The size of the MPI datatype does not match the size of a bigint.
+
+E: Small, tag, big integers are not sized correctly
+
+UNDOCUMENTED
+
+E: 64-bit atom IDs are not yet supported
+
+UNDOCUMENTED
+
+E: Cannot use -cuda on without USER-CUDA installed
+
+UNDOCUMENTED
+
+*/

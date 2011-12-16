@@ -60,3 +60,18 @@ class FixShearHistory : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Pair style granular with history requires atoms have IDs
+
+Atoms in the simulation do not have IDs, so history effects
+cannot be tracked by the granular pair potential.
+
+E: Too many touching neighbors - boost MAXTOUCH
+
+A granular simulation has too many neighbors touching one atom.  The
+MAXTOUCH parameter in fix_shear_history.cpp must be set larger and
+LAMMPS must be re-built.
+
+*/

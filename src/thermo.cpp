@@ -134,7 +134,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // format strings
 
-  char *bigint_format = BIGINT_FORMAT;
+  char *bigint_format = (char *) BIGINT_FORMAT;
   char *fformat_multi = (char *) "---------------- Step %%8%s ----- "
     "CPU = %%11.4f (sec) ----------------";
 

@@ -493,7 +493,7 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCharmmCoulCharmm::extract(char *str, int &dim)
+void *PairLJCharmmCoulCharmm::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;

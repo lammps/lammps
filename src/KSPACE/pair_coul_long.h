@@ -38,7 +38,7 @@ class PairCoulLong : public Pair {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *, int &);
+  void *extract(const char *, int &);
 
  protected:
   double cut_coul,cut_coulsq;

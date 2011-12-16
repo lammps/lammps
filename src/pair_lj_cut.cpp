@@ -696,7 +696,7 @@ double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCut::extract(char *str, int &dim)
+void *PairLJCut::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;

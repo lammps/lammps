@@ -1833,9 +1833,9 @@ double *DumpImage::value2color(double value)
    search user-defined color names first, then the list of NCOLORS names
 ------------------------------------------------------------------------- */
 
-double *DumpImage::color2rgb(char *color)
+double *DumpImage::color2rgb(const char *color)
 {
-  static char *name[NCOLORS] = { 
+  static const char *name[NCOLORS] = { 
     "aliceblue",
     "antiquewhite",
     "aqua",
@@ -2136,8 +2136,7 @@ double *DumpImage::color2rgb(char *color)
 
 double *DumpImage::element2color(char *element)
 {
-
-  static char *name[NELEMENTS] = { 
+  static const char *name[NELEMENTS] = { 
     "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
     "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
@@ -2276,7 +2275,7 @@ double *DumpImage::element2color(char *element)
 
 double DumpImage::element2diam(char *element)
 {
-  static char *name[NELEMENTS] = { 
+  static const char *name[NELEMENTS] = { 
     "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
     "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
     "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",

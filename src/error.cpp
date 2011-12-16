@@ -129,7 +129,7 @@ void Error::warning(const char *file, int line, const char *str, int logflag)
    write message to screen and logfile (if logflag is set)
 ------------------------------------------------------------------------- */
 
-void Error::message(const char *file, int line, char *str, int logflag)
+void Error::message(const char *file, int line, const char *str, int logflag)
 {
   if (screen) fprintf(screen,"%s (%s:%d)\n",str,file,line);
   if (logflag && logfile) fprintf(logfile,"%s (%s:%d)\n",str,file,line);

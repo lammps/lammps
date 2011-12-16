@@ -44,7 +44,8 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
+      error->all(FLERR,
+		 "Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
@@ -135,9 +136,10 @@ void Compute::reset_extra_dof()
 
 /* ---------------------------------------------------------------------- */
 
-void Compute::reset_extra_compute_fix(char *)
+void Compute::reset_extra_compute_fix(const char *)
 {
-  error->all(FLERR,"Compute does not allow an extra compute or fix to be reset");
+  error->all(FLERR,
+	     "Compute does not allow an extra compute or fix to be reset");
 }
 
 /* ----------------------------------------------------------------------

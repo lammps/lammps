@@ -51,11 +51,11 @@ class ReadData : protected Pointers {
   void header(int);
   void parse_keyword(int, int);
   void skip_lines(int);
-  void parse_coeffs(char *, char *, int);
+  void parse_coeffs(char *, const char *, int);
 
   void atoms();
   void velocities();
-  void bonus(bigint, class AtomVec *, char *);
+  void bonus(bigint, class AtomVec *, const char *);
 
   void bonds();
   void angles();

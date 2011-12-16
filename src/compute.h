@@ -103,7 +103,7 @@ class Compute : protected Pointers {
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_all() {}
 
-  virtual void reset_extra_compute_fix(char *);
+  virtual void reset_extra_compute_fix(const char *);
 
   void addstep(bigint);
   int matchstep(bigint);

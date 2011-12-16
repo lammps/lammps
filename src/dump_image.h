@@ -152,7 +152,7 @@ class DumpImage : public DumpCustom {
   void write_PPM();
 
   double *value2color(double);
-  double *color2rgb(char *);
+  double *color2rgb(const char *);
   double *element2color(char *);
   double element2diam(char *);
 

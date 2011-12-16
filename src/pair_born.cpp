@@ -399,7 +399,7 @@ double PairBorn::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairBorn::extract(char *str, int &dim)
+void *PairBorn::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"a") == 0) return (void *) a;

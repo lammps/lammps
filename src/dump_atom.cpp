@@ -74,13 +74,13 @@ void DumpAtom::init_style()
   // setup column string
 
   if (scale_flag == 0 && image_flag == 0)
-    columns = "id type x y z";
+    columns = (char *) "id type x y z";
   else if (scale_flag == 0 && image_flag == 1)
-    columns = "id type x y z ix iy iz";
+    columns = (char *) "id type x y z ix iy iz";
   else if (scale_flag == 1 && image_flag == 0)
-    columns = "id type xs ys zs";
+    columns = (char *) "id type xs ys zs";
   else if (scale_flag == 1 && image_flag == 1)
-    columns = "id type xs ys zs ix iy iz";
+    columns = (char *) "id type xs ys zs ix iy iz";
 
   // setup function ptrs
 

@@ -1181,7 +1181,7 @@ double PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCharmmCoulLong::extract(char *str, int &dim)
+void *PairLJCharmmCoulLong::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"lj14_1") == 0) return (void *) lj14_1;

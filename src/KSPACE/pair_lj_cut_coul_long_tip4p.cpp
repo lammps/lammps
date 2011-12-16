@@ -503,7 +503,7 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCutCoulLongTIP4P::extract(char *str, int &dim)
+void *PairLJCutCoulLongTIP4P::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"qdist") == 0) return (void *) &qdist;

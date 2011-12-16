@@ -114,7 +114,7 @@ void Velocity::command(int narg, char **arg)
    initialization of defaults before calling velocity methods externaly
 ------------------------------------------------------------------------- */
 
-void Velocity::init_external(char *extgroup)
+void Velocity::init_external(const char *extgroup)
 {
   igroup = group->find(extgroup);
   if (igroup == -1) error->all(FLERR,"Could not find velocity group ID");

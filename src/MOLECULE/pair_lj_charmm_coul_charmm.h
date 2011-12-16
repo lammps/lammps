@@ -38,7 +38,7 @@ class PairLJCharmmCoulCharmm : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(char *, int &);
+  virtual void *extract(const char *, int &);
 
  protected:
   int implicit;

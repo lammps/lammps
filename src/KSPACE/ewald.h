@@ -58,3 +58,51 @@ class Ewald : public KSpace {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use Ewald with triclinic box
+
+This feature is not yet supported.
+
+E: Cannot use Ewald with 2d simulation
+
+The kspace style ewald cannot be used in 2d simulations.  You can use
+2d Ewald in a 3d simulation; see the kspace_modify command.
+
+E: Kspace style requires atom attribute q
+
+The atom style defined does not have these attributes.
+
+E: Cannot use nonperiodic boundaries with Ewald
+
+For kspace style ewald, all 3 dimensions must have periodic boundaries
+unless you use the kspace_modify command to define a 2d slab with a
+non-periodic z dimension.
+
+E: Incorrect boundaries with slab Ewald
+
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with Ewald.
+
+E: KSpace style is incompatible with Pair style
+
+Setting a kspace style requires that a pair style with a long-range
+Coulombic component be selected.
+
+E: Cannot use kspace solver on system with no charge
+
+No atoms in system have a non-zero charge.
+
+W: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0, which
+is not valid for Ewald or PPPM.
+
+*/

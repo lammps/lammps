@@ -54,3 +54,47 @@ class ProcMap : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Could not create 3d grid of processors
+
+UNDOCUMENTED
+
+E: Processors twogrid requires proc count be a multiple of core count
+
+UNDOCUMENTED
+
+E: Could not create twolevel 3d grid of processors
+
+UNDOCUMENTED
+
+E: Could not create numa 3d grid of processors
+
+UNDOCUMENTED
+
+E: Could not create numa grid of processors
+
+UNDOCUMENTED
+
+E: Cannot open custom file
+
+UNDOCUMENTED
+
+E: Unexpected end of custom file
+
+UNDOCUMENTED
+
+E: Processors custom grid file is inconsistent
+
+UNDOCUMENTED
+
+E: Processors custom grid file is invalid
+
+UNDOCUMENTED
+
+E: Cannot open processors custom file
+
+UNDOCUMENTED
+
+*/

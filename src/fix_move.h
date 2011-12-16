@@ -74,3 +74,62 @@ class FixMove : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix move cannot set linear z motion for 2d problem
+
+Self-explanatory.
+
+E: Fix move cannot set wiggle z motion for 2d problem
+
+Self-explanatory.
+
+E: Fix move cannot rotate aroung non z-axis for 2d problem
+
+Self-explanatory.
+
+E: Fix move cannot define z or vz variable for 2d problem
+
+Self-explanatory.
+
+W: Fix move does not update angular momentum
+
+Atoms store this quantity, but fix move does not (yet) update it.
+
+W: Fix move does not update quaternions
+
+Atoms store this quantity, but fix move does not (yet) update it.
+
+E: Use of fix move with undefined lattice
+
+Must use lattice command with fix move command if units option is
+set to lattice.
+
+E: Fix move cannot have 0 length rotation vector
+
+Self-explanatory.
+
+E: Variable name for fix move does not exist
+
+Self-explanatory.
+
+E: Variable for fix move is invalid style
+
+Only equal-style variables can be used.
+
+E: Cannot add atoms to fix move variable
+
+Atoms can not be added afterwards to this fix option.
+
+E: Resetting timestep is not allowed with fix move
+
+This is because fix move is moving atoms based on elapsed time.
+
+*/

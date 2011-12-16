@@ -229,3 +229,139 @@ class Atom : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid atom style
+
+The choice of atom style is unknown.
+
+E: Could not find atom_modify first group ID
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Atom_modify map command after simulation box is defined
+
+The atom_modify map command cannot be used after a read_data,
+read_restart, or create_box command.
+
+E: Atom_modify sort and first options cannot be used together
+
+Self-explanatory.
+
+E: Cannot create an atom map unless atoms have IDs
+
+The simulation requires a mapping from global atom IDs to local atoms,
+but the atoms that have been defined have no IDs.
+
+E: Incorrect atom format in data file
+
+Number of values per atom line in the data file is not consistent with
+the atom style.
+
+E: Incorrect velocity format in data file
+
+Each atom style defines a format for the Velocity section
+of the data file.  The read-in lines do not match.
+
+E: Invalid atom ID in Velocities section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Incorrect bonus data format in data file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in Bonus section of data file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in Bonds section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Invalid bond type in Bonds section of data file
+
+Bond type must be positive integer and within range of specified bond
+types.
+
+E: Invalid atom ID in Angles section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Invalid angle type in Angles section of data file
+
+Angle type must be positive integer and within range of specified angle
+types.
+
+E: Invalid atom ID in Dihedrals section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Invalid dihedral type in Dihedrals section of data file
+
+Dihedral type must be positive integer and within range of specified
+dihedral types.
+
+E: Invalid atom ID in Impropers section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Invalid improper type in Impropers section of data file
+
+Improper type must be positive integer and within range of specified
+improper types.
+
+E: Cannot set mass for this atom style
+
+This atom style does not support mass settings for each atom type.
+Instead they are defined on a per-atom basis in the data file.
+
+E: Invalid mass line in data file
+
+Self-explanatory.
+
+E: Invalid type for mass set
+
+Mass command must set a type from 1-N where N is the number of atom
+types.
+
+E: Invalid mass value
+
+Self-explanatory.
+
+E: All masses are not set
+
+For atom styles that define masses for each atom type, all masses must
+be set in the data file or by the mass command before running a
+simulation.  They must also be set before using the velocity
+command.
+
+E: Atom sort did not operate correctly
+
+This is an internal LAMMPS error.  Please report it to the
+developers.
+
+E: Atom sorting has bin size = 0.0
+
+The neighbor cutoff is being used as the bin size, but it is zero.
+Thus you must explicitly list a bin size in the atom_modify sort
+command or turn off sorting.
+
+E: Too many atom sorting bins
+
+This is likely due to an immense simulation box that has blown up
+to a large size.
+
+*/

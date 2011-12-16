@@ -34,3 +34,35 @@ class ChangeBox : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Change_box command before simulation box is defined
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Change_box operation is invalid
+
+Cannot change orthogonal box to orthogonal or a triclinic box to
+triclinic.
+
+E: Cannot change box to orthogonal when tilt is non-zero
+
+Self-explanatory
+
+E: Cannot change box with dumps defined
+
+Self-explanatory.
+
+E: Cannot change box with certain fixes defined
+
+The change_box command cannot be used when fix ave/spatial or
+fix/deform are defined .
+
+*/

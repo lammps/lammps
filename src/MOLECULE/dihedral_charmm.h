@@ -48,3 +48,28 @@ class DihedralCharmm : public Dihedral {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+W: Dihedral problem: %d %ld %d %d %d %d
+
+UNDOCUMENTED
+
+E: Incorrect args for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Incorrect multiplicity arg for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Incorrect weight arg for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Dihedral charmm is incompatible with Pair style
+
+Dihedral style charmm must be used with a pair style charmm
+in order for the 1-4 epsilon/sigma parameters to be defined.
+
+*/

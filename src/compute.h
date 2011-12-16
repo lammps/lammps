@@ -132,3 +132,38 @@ class Compute : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute ID must be alphanumeric or underscore characters
+
+Self-explanatory.
+
+E: Could not find compute group ID
+
+Self-explanatory.
+
+E: Compute does not allow an extra compute or fix to be reset
+
+This is an internal LAMMPS error.  Please report it to the
+developers.
+
+W: Atom with molecule ID = 0 included in compute molecule group
+
+The group used in a compute command that operates on moleclues
+includes atoms with no molecule ID.  This is probably not what you
+want.
+
+W: One or more compute molecules has atoms not in group
+
+The group used in a compute command that operates on moleclues does
+not include all the atoms in some molecules.  This is probably not
+what you want.
+
+*/

@@ -54,3 +54,49 @@ class FixAppendAtoms : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Only zhi currently implemented for append_atoms
+
+UNDOCUMENTED
+
+E: Append boundary must be shrink/minimum
+
+UNDOCUMENTED
+
+E: Only zhi currently implemented for append_atom
+
+UNDOCUMENTED
+
+E: Bad fix ID in fix append_atoms command
+
+UNDOCUMENTED
+
+E: Cannot use append_atoms in periodic dimension
+
+UNDOCUMENTED
+
+E: Cannot append atoms to a triclinic box
+
+UNDOCUMENTED
+
+E: Use of fix append_atoms with undefined lattice
+
+UNDOCUMENTED
+
+E: Fix ID for fix ave/spatial does not exist
+
+Self-explanatory.
+
+E: must define lattice to append_atoms
+
+UNDOCUMENTED
+
+*/

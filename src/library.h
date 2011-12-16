@@ -44,3 +44,6 @@ void lammps_put_coords(void *, double *);
 #ifdef __cplusplus
 }
 #endif
+/* ERROR/WARNING messages:
+
+*/

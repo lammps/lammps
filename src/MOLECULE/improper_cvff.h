@@ -45,3 +45,15 @@ class ImproperCvff : public Improper {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+W: Improper problem: %d %ld %d %d %d %d
+
+UNDOCUMENTED
+
+E: Incorrect args for improper coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+*/

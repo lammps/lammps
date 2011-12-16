@@ -43,3 +43,29 @@ class PairLubricateUPoly : public PairLubricateU {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Pair lubricateU/poly requires newton pair off
+
+UNDOCUMENTED
+
+E: Pair lubricateU/poly requires ghost atoms store velocity
+
+UNDOCUMENTED
+
+E: Pair lubricate/poly requires atom style sphere
+
+UNDOCUMENTED
+
+E: Pair lubricate/poly requires extended particles
+
+UNDOCUMENTED
+
+*/

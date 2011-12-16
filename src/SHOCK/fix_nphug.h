@@ -59,3 +59,29 @@ class FixNPHug : public FixNH {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid argument for fix nphug
+
+UNDOCUMENTED
+
+E: Temperature control must be used with fix nphug
+
+UNDOCUMENTED
+
+E: Pressure control must be used with fix nphug
+
+UNDOCUMENTED
+
+E: Potential energy ID for fix nvt/nph/npt does not exist
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+*/

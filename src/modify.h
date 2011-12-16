@@ -138,3 +138,69 @@ class Modify : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+W: One or more atoms are time integrated more than once
+
+This is probably an error since you typically do not want to
+advance the positions or velocities of an atom more than once
+per timestep.
+
+E: Fix command before simulation box is defined
+
+The fix command cannot be used before a read_data, read_restart, or
+create_box command.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Could not find fix group ID
+
+A group ID used in the fix command does not exist.
+
+E: Replacing a fix, but new style != old style
+
+A fix ID can be used a 2nd time, but only if the style matches the
+previous fix.  In this case it is assumed you with to reset a fix's
+parameters.  This error may mean you are mistakenly re-using a fix ID
+when you do not intend to.
+
+W: Replacing a fix, but new group != old group
+
+The ID and style of a fix match for a fix you are changing with a fix
+command, but the new group you are specifying does not match the old
+group.
+
+E: Invalid fix style
+
+The choice of fix style is unknown.
+
+E: Could not find fix_modify ID
+
+A fix ID used in the fix_modify command does not exist.
+
+E: Could not find fix ID to delete
+
+Self-explanatory.
+
+E: Reuse of compute ID
+
+A compute ID cannot be used twice.
+
+E: Invalid compute style
+
+Self-explanatory.
+
+E: Could not find compute_modify ID
+
+Self-explanatory.
+
+E: Could not find compute ID to delete
+
+Self-explanatory.
+
+*/

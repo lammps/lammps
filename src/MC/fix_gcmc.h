@@ -76,3 +76,37 @@ class FixGCMC : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid atom type in fix GCMC command
+
+UNDOCUMENTED
+
+E: Cannot do GCMC on atoms in atom_modify first group
+
+UNDOCUMENTED
+
+W: Fix GCMC may delete atom with non-zero molecule ID
+
+UNDOCUMENTED
+
+E: Fix GCMC molecule command requires atom attribute molecule
+
+UNDOCUMENTED
+
+E: Fix GCMC molecule feature does not yet work
+
+UNDOCUMENTED
+
+E: Fix GCMC incompatible with given pair_style
+
+UNDOCUMENTED
+
+*/

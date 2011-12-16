@@ -69,3 +69,55 @@ class Group : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Group command before simulation box is defined
+
+The group command cannot be used before a read_data, read_restart, or
+create_box command.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Could not find group delete group ID
+
+Self-explanatory.
+
+E: Cannot delete group all
+
+Self-explanatory.
+
+E: Cannot delete group currently used by a fix
+
+Self-explanatory.
+
+E: Cannot delete group currently used by a compute
+
+Self-explanatory.
+
+E: Cannot delete group currently used by a dump
+
+Self-explanatory.
+
+E: Cannot delete group currently used by atom_modify first
+
+Self-explanatory.
+
+E: Too many groups
+
+The maximum number of atom groups (including the "all" group) is 
+given by MAX_GROUP in group.cpp and is 32.
+
+E: Group region ID does not exist
+
+A region ID used in the group command does not exist.
+
+E: Group ID does not exist
+
+A group ID used in the group command does not exist.
+
+*/

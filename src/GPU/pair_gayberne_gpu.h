@@ -46,3 +46,27 @@ class PairGayBerneGPU : public PairGayBerne {
 }
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Pair gayberne requires atom style ellipsoid
+
+UNDOCUMENTED
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with gayberne/gpu pair style
+
+UNDOCUMENTED
+
+E: Pair gayberne/gpu requires atom style ellipsoid
+
+UNDOCUMENTED
+
+E: Pair gayberne/gpu requires atoms with same type have same shape
+
+UNDOCUMENTED
+
+*/

@@ -66,7 +66,7 @@ void PairTersoffZBL::read_file(char *file)
   int params_per_line = 21;
   char **words = new char*[params_per_line+1];
 
-  delete [] params;
+  memory->sfree(params);
   params = NULL;
   nparams = 0;
 

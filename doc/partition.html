@@ -13,10 +13,10 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>partition style Np command ... 
+<PRE>partition style N command ... 
 </PRE>
 <UL><LI>style = <I>yes</I> or <I>no</I>
-<LI>Np = partition number (see asterisk form below)
+<LI>N = partition number (see asterisk form below)
 <LI>command = any LAMMPS command 
 </UL>
 <P><B>Examples:</B>
@@ -43,25 +43,25 @@ such a variable is used in a <A HREF = "jump.html">jump</A> command.
 <P>The "partition" command is another mechanism for having as input
 script operate differently on different partitions.  It is basically a
 prefix on any LAMMPS command.  The commmand will only be invoked on
-the partition(s) specified by the <I>style</I> and <I>Np</I> arguments.
+the partition(s) specified by the <I>style</I> and <I>N</I> arguments.
 </P>
-<P>If the <I>style</I> is <I>yes</I>, the command will be invoked on any
-partition which matches the Np argument.  If the <I>style</I> is <I>no</I>
-the command will be invoked on all the partitions which do not
-match the Np argument.
+<P>If the <I>style</I> is <I>yes</I>, the command will be invoked on any partition
+which matches the <I>N</I> argument.  If the <I>style</I> is <I>no</I> the command
+will be invoked on all the partitions which do not match the Np
+argument.
 </P>
-<P>Partitions are numbered from 1 to N, where N is the number of
+<P>Partitions are numbered from 1 to Np, where Np is the number of
 partitions specified by the <A HREF = "Section_start.html#start_6">-partition command-line
 switch</A>.
 </P>
-<P>Np can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 1st example above.  Or a wild-card asterisk can be
-used to span a range of partition numbers.  This takes the form "*" or
-"*n" or "n*" or "m*n".  An asterisk with no numeric values means all
-partitions from 1 to N.  A leading asterisk means all partitions from
-1 to n (inclusive).  A trailing asterisk means all partitions from n
-to N (inclusive).  A middle asterisk means all partitions from m to n
-(inclusive).
+<P><I>N</I> can be specified in one of two ways.  An explicit numeric value
+can be used, as in the 1st example above.  Or a wild-card asterisk can
+be used to span a range of partition numbers.  This takes the form "*"
+or "*n" or "n*" or "m*n".  An asterisk with no numeric values means
+all partitions from 1 to Np.  A leading asterisk means all partitions
+from 1 to n (inclusive).  A trailing asterisk means all partitions
+from n to Np (inclusive).  A middle asterisk means all partitions from
+m to n (inclusive).
 </P>
 <P>This command can be useful for the "run_style verlet/split" command
 which imposed requirements on how the <A HREF = "processors.html">processors</A>

@@ -60,3 +60,50 @@ class FixTMD : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use fix TMD unless atom map exists
+
+Using this fix requires the ability to lookup an atom index, which is
+provided by an atom map.  An atom map does not exist (by default) for
+non-molecular problems.  Using the atom_modify map command will force
+an atom map to be created.
+
+E: Cannot open fix tmd file %s
+
+The output file for the fix tmd command cannot be opened.  Check that
+the path and name are correct.
+
+E: Fix tmd must come after integration fixes
+
+Any fix tmd command must appear in the input script after all time
+integration fixes (nve, nvt, npt).  See the fix tmd documentation for
+details.
+
+E: Incorrect format in TMD target file
+
+Format of file read by fix tmd command is incorrect.
+
+E: TMD target file did not list all group atoms
+
+The target file for the fix tmd command did not list all atoms in the
+fix group.
+
+E: Cannot open gzipped file
+
+LAMMPS is attempting to open a gzipped version of the specified file
+but was unsuccessful.  Check that the path and name are correct.
+
+E: Cannot open file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+*/

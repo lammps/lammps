@@ -45,3 +45,23 @@ class DumpCFG : public DumpCustom {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Dump cfg arguments must start with 'id type xs ys zs' or 'id type xsu ysu zsu'
+
+UNDOCUMENTED
+
+E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
+
+UNDOCUMENTED
+
+E: Invalid keyword in dump cfg command
+
+Self-explanatory.
+
+E: Dump cfg requires one snapshot per file
+
+Use the wildcard "*" character in the filename.
+
+*/

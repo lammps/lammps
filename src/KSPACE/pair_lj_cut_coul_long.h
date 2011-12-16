@@ -68,3 +68,31 @@ class PairLJCutCoulLong : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style lj/cut/coul/long requires atom attribute q
+
+The atom style defined does not have this attribute.
+
+E: Pair style is incompatible with KSpace style
+
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
+
+E: Pair cutoff < Respa interior cutoff
+
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
+
+*/

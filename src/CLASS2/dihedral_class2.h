@@ -54,3 +54,19 @@ class DihedralClass2 : public Dihedral {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+W: Dihedral problem: %d %ld %d %d %d %d
+
+UNDOCUMENTED
+
+E: Invalid coeffs for this dihedral style
+
+Cannot set class 2 coeffs in data file for this dihedral style.
+
+E: Incorrect args for dihedral coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+*/

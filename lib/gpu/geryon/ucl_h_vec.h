@@ -72,7 +72,7 @@ class UCL_H_Vec : public UCL_BaseMat {
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
       _row_bytes=0;
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       _row_bytes=0;
       return err;
@@ -103,7 +103,7 @@ class UCL_H_Vec : public UCL_BaseMat {
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on host.\n";
       _row_bytes=0;
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif 
       _row_bytes=0;
       return err;

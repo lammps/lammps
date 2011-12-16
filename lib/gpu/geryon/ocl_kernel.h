@@ -66,7 +66,7 @@ class UCL_Program {
       #ifndef UCL_NO_EXIT 
       std::cerr << "UCL Error: Could not open kernel file: " 
                 << filename << std::endl;
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       return UCL_FILE_NOT_FOUND;
     }
@@ -244,7 +244,7 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not find function: " << function
               << " in program.\n";
-    exit(1);
+    UCL_GERYON_EXIT;
     #endif
     return UCL_FUNCTION_NOT_FOUND;
   }

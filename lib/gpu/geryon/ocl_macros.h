@@ -12,6 +12,10 @@
 #define OCL_GERYON_EXIT assert(0==1)
 #endif
 
+#ifndef UCL_GERYON_EXIT
+#define UCL_GERYON_EXIT OCL_GERYON_EXIT
+#endif
+
 #ifdef UCL_DEBUG
 #define UCL_SYNC_DEBUG
 #define UCL_DESTRUCT_CHECK

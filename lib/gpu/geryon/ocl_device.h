@@ -118,7 +118,7 @@ class UCL_Device {
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name() 
                 << std::endl;
-      exit(1);
+      UCL_GERYON_EXIT;
     }
   }
 
@@ -293,7 +293,7 @@ inline int UCL_Device::create_context() {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << _device
               << " for use.\n";
-    exit(1);
+    UCL_GERYON_EXIT;
     #endif
     return UCL_ERROR;
   }

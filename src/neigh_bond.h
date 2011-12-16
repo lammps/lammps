@@ -15,18 +15,30 @@
 
 E: Bond atoms %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
+One or both of 2 atoms needed to compute a particular bond are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the bond has blown apart and an atom is
+too far away. :dd
 
 E: Angle atoms %d %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
+One or more of 3 atoms needed to compute a particular angle are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the angle has blown apart and an atom is
+too far away. :dd
 
 E: Dihedral atoms %d %d %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
+One or more of 4 atoms needed to compute a particular dihedral are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the dihedral has blown apart and an atom is
+too far away. :dd
 
 E: Improper atoms %d %d %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
+One or more of 4 atoms needed to compute a particular improper are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the improper has blown apart and an atom is
+too far away. :dd
 
 */

@@ -484,11 +484,13 @@ class Memory : protected Pointers {
 
 E: Failed to allocate %ld bytes for array %s
 
-UNDOCUMENTED
+Your LAMMPS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. :dd
 
 E: Failed to reallocate %ld bytes for array %s
 
-UNDOCUMENTED
+Your LAMMPS simulation has run out of memory.  You need to run a
+smaller simulation or on more processors. :dd
 
 E: Cannot create/grow a vector/array of pointers for %s
 

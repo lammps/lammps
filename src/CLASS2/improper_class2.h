@@ -54,7 +54,8 @@ class ImproperClass2 : public Improper {
 
 W: Improper problem: %d %ld %d %d %d %d
 
-UNDOCUMENTED
+Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry. :dd
 
 E: Incorrect args for improper coefficients
 

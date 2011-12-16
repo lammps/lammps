@@ -52,3 +52,54 @@ class DisplaceBox : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Displace_box command before simulation box is defined
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot displace_box after reading restart file with per-atom info
+
+This is because the restart file info cannot be migrated with the
+atoms.  You can get around this by performing a 0-timestep run which
+will assign the restart file info to actual atoms.
+
+E: Could not find displace_box group ID
+
+Group ID used in the displace_box command does not exist.
+
+E: Displace_box tilt factors require triclinic box
+
+Cannot use tilt factors unless the simulation box is
+non-orthogonal.
+
+E: Cannot displace_box on a non-periodic boundary
+
+Self-explanatory.
+
+E: Use of displace_box with undefined lattice
+
+Must use lattice command with displace_box command if units option is
+set to lattice.
+
+E: Fix deform volume setting is invalid
+
+Cannot use volume style unless other dimensions are being controlled.
+
+E: Induced tilt by displace_box is too large
+
+The final tilt value must be between -1/2 and 1/2 of the perpendicular
+box length.
+
+E: Lost atoms via displace_box: original %ld current %ld
+
+UNDOCUMENTED
+
+*/

@@ -71,3 +71,99 @@ class FixAveTime : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute ID for fix ave/time does not exist
+
+Self-explanatory.
+
+E: Fix ID for fix ave/time does not exist
+
+Self-explanatory.
+
+E: Invalid fix ave/time off column
+
+Self-explantory.
+
+E: Fix ave/time compute does not calculate a scalar
+
+Only computes that calculate a scalar or vector quantity (not a
+per-atom quantity) can be used with fix ave/time.
+
+E: Fix ave/time compute does not calculate a vector
+
+Only computes that calculate a scalar or vector quantity (not a
+per-atom quantity) can be used with fix ave/time.
+
+E: Fix ave/time compute vector is accessed out-of-range
+
+The index for the vector is out of bounds.
+
+E: Fix ave/time compute does not calculate an array
+
+Self-explanatory.
+
+E: Fix ave/time compute array is accessed out-of-range
+
+Self-explanatory.
+
+E: Fix ave/time fix does not calculate a scalar
+
+A fix used by fix ave/time must generate global values.
+
+E: Fix ave/time fix does not calculate a vector
+
+A fix used by fix ave/time must generate global values.
+
+E: Fix ave/time fix vector is accessed out-of-range
+
+The index for the vector is out of bounds.
+
+E: Fix for fix ave/time not computed at compatible time
+
+Fixes generate their values on specific timesteps.  Fix ave/time
+is requesting a value on a non-allowed timestep.
+
+E: Fix ave/time fix does not calculate an array
+
+Self-explanatory.
+
+E: Fix ave/time fix array is accessed out-of-range
+
+Self-explanatory.
+
+E: Variable name for fix ave/time does not exist
+
+Self-explanatory.
+
+E: Fix ave/time variable is not equal-style variable
+
+A variable used by fix ave/time must generate a global value.
+
+E: Fix ave/time cannot use variable with vector mode
+
+Variables produce scalar values.
+
+E: Fix ave/time columns are inconsistent lengths
+
+Self-explanatory.
+
+E: Fix ave/time cannot set output array intensive/extensive from these inputs
+
+One of more of the vector inputs has individual elements which are
+flagged as intensive or extensive.  Such an input cannot be flagged as
+all intensive/extensive when turned into an array by fix ave/time.
+
+E: Cannot open fix ave/time file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+*/

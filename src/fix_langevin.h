@@ -71,3 +71,67 @@ class FixLangevin : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix langevin period must be > 0.0
+
+The time window for temperature relaxation must be > 0
+
+E: Fix langevin angmom requires atom style ellipsoid
+
+UNDOCUMENTED
+
+E: Fix langevin omega require atom style sphere
+
+UNDOCUMENTED
+
+E: Fix langevin angmom require atom style ellipsoid
+
+UNDOCUMENTED
+
+E: Variable name for fix langevin does not exist
+
+UNDOCUMENTED
+
+E: Variable for fix langevin is invalid style
+
+UNDOCUMENTED
+
+E: Fix langevin omega requires extended particles
+
+UNDOCUMENTED
+
+E: Fix langevin angmom requires extended particles
+
+UNDOCUMENTED
+
+E: Fix langevin variable returned negative temperature
+
+UNDOCUMENTED
+
+E: Cannot zero Langevin force of 0 atoms
+
+UNDOCUMENTED
+
+E: Could not find fix_modify temperature ID
+
+The compute ID for computing temperature does not exist.
+
+E: Fix_modify temperature ID does not compute temperature
+
+The compute ID assigned to the fix must compute temperature.
+
+W: Group for fix_modify temp != fix group
+
+The fix_modify command is specifying a temperature computation that
+computes a temperature on a different group of atoms than the fix
+itself operates on.  This is probably not what you want to do.
+
+*/

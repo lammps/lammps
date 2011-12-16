@@ -39,3 +39,20 @@ class FixWallColloid : public FixWall {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Fix wall/colloid requires atom style sphere
+
+UNDOCUMENTED
+
+E: Fix wall/colloid requires extended particles
+
+Self-explanatory.
+
+E: Particle on or inside fix wall surface
+
+Particles must be "exterior" to the wall in order for energy/force to
+be calculated.
+
+*/

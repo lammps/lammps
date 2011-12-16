@@ -66,3 +66,63 @@ class FixAveCorrelate : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot open fix ave/correlate file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+E: Compute ID for fix ave/correlate does not exist
+
+Self-explanatory.
+
+E: Fix ave/correlate compute does not calculate a scalar
+
+UNDOCUMENTED
+
+E: Fix ave/correlate compute does not calculate a vector
+
+UNDOCUMENTED
+
+E: Fix ave/correlate compute vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix ID for fix ave/correlate does not exist
+
+Self-explanatory.
+
+E: Fix ave/correlate fix does not calculate a scalar
+
+UNDOCUMENTED
+
+E: Fix ave/correlate fix does not calculate a vector
+
+UNDOCUMENTED
+
+E: Fix ave/correlate fix vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix for fix ave/correlate not computed at compatible time
+
+Fixes generate their values on specific timesteps.  Fix ave/correlate
+is requesting a value on a non-allowed timestep.
+
+E: Variable name for fix ave/correlate does not exist
+
+Self-explanatory.
+
+E: Fix ave/correlate variable is not equal-style variable
+
+UNDOCUMENTED
+
+*/

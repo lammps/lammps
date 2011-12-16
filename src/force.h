@@ -100,3 +100,49 @@ class Force : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid pair style
+
+The choice of pair style is unknown.
+
+E: Invalid bond style
+
+The choice of bond style is unknown.
+
+E: Invalid angle style
+
+The choice of angle style is unknown.
+
+E: Invalid dihedral style
+
+The choice of dihedral style is unknown.
+
+E: Invalid improper style
+
+The choice of improper style is unknown.
+
+E: Invalid kspace style
+
+The choice of kspace style is unknown.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Numeric index is out of bounds
+
+UNDOCUMENTED
+
+E: Expected floating point parameter in input script or data file
+
+The quantity being read is an integer on non-numeric value.
+
+E: Expected integer parameter in input script or data file
+
+The quantity being read is a floating point or non-numeric value.
+
+*/

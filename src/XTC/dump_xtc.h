@@ -61,3 +61,48 @@ class DumpXTC : public Dump {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid dump xtc filename
+
+Filenames used with the dump xtc style cannot be binary or compressed
+or cause multiple files to be written.
+
+E: Too many atoms for dump xtc
+
+The system size must fit in a 32-bit integer to use this dump
+style.
+
+E: Dump xtc requires sorting by atom ID
+
+Use the dump_modify sort command to enable this.
+
+E: Cannot set dump_modify flush for dump xtc
+
+Self-explanatory.
+
+E: Cannot use variable every setting for dump xtc
+
+The format of this file requires snapshots at regular intervals.
+
+E: Cannot change dump_modify every for dump xtc
+
+The frequency of writing dump xtc snapshots cannot be changed.
+
+E: Cannot open dump file
+
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
+
+E: Too big a timestep for dump xtc
+
+The timestep must fit in a 32-bit integer to use this dump style.
+
+*/

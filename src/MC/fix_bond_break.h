@@ -58,3 +58,30 @@ class FixBondBreak : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid bond type in fix bond/break command
+
+Self-explanatory.
+
+E: Cannot use fix bond/break with non-molecular systems
+
+Self-explanatory.
+
+E: Fix bond/break requires special_bonds = 0,1,1
+
+This is a restriction of the current fix bond/break implementation.
+
+W: Broken bonds will not alter angles, dihedrals, or impropers
+
+See the doc page for fix bond/break for more info on this
+restriction.
+
+*/

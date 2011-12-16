@@ -40,3 +40,6 @@ class FixRigidNVE : public FixRigid {
 
 #endif
 #endif
+/* ERROR/WARNING messages:
+
+*/

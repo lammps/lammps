@@ -175,3 +175,121 @@ class DumpImage : public DumpCustom {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid dump image filename
+
+UNDOCUMENTED
+
+E: Cannot dump JPG file
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Dump image bond not allowed with no bond types
+
+UNDOCUMENTED
+
+E: Invalid dump image theta value
+
+UNDOCUMENTED
+
+E: Dump image persp option is not yet supported
+
+UNDOCUMENTED
+
+E: Dump image requires one snapshot per file
+
+UNDOCUMENTED
+
+E: Dump image cannot perform sorting
+
+UNDOCUMENTED
+
+E: Variable name for dump image theta does not exist
+
+UNDOCUMENTED
+
+E: Variable for dump image theta is invalid style
+
+UNDOCUMENTED
+
+E: Variable name for dump image phi does not exist
+
+UNDOCUMENTED
+
+E: Variable for dump image phi is invalid style
+
+UNDOCUMENTED
+
+E: Variable name for dump image center does not exist
+
+UNDOCUMENTED
+
+E: Variable for dump image center is invalid style
+
+UNDOCUMENTED
+
+E: Variable name for dump image zoom does not exist
+
+UNDOCUMENTED
+
+E: Variable for dump image zoom is invalid style
+
+UNDOCUMENTED
+
+E: Variable name for dump image persp does not exist
+
+UNDOCUMENTED
+
+E: Variable for dump image persp is invalid style
+
+UNDOCUMENTED
+
+E: Invalid dump image element name
+
+UNDOCUMENTED
+
+E: Invalid dump image zoom value
+
+UNDOCUMENTED
+
+E: Invalid dump image persp value
+
+UNDOCUMENTED
+
+E: Invalid dump image up vector
+
+UNDOCUMENTED
+
+E: Invalid dump image color range
+
+UNDOCUMENTED
+
+E: Invalid color in dump_modify command
+
+UNDOCUMENTED
+
+E: Illega dump_modify command
+
+UNDOCUMENTED
+
+E: Invalid color map in dump_modify command
+
+UNDOCUMENTED
+
+E: Dump modify bcolor not allowed with no bond types
+
+UNDOCUMENTED
+
+E: Dump modify bdiam not allowed with no bond types
+
+UNDOCUMENTED
+
+*/

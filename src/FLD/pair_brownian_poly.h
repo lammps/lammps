@@ -37,3 +37,19 @@ class PairBrownianPoly : public PairBrownian {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Pair brownian/poly requires newton pair off
+
+UNDOCUMENTED
+
+E: Pair brownian/poly requires atom style sphere
+
+UNDOCUMENTED
+
+E: Pair brownian/poly requires extended particles
+
+UNDOCUMENTED
+
+*/

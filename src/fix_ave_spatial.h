@@ -80,3 +80,97 @@ class FixAveSpatial : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use fix ave/spatial z for 2 dimensional model
+
+Self-explanatory.
+
+E: Same dimension twice in fix ave/spatial
+
+Self-explanatory.
+
+E: Region ID for fix ave/spatial does not exist
+
+Self-explanatory.
+
+E: Cannot open fix ave/spatial file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+E: Compute ID for fix ave/spatial does not exist
+
+Self-explanatory.
+
+E: Fix ave/spatial compute does not calculate per-atom values
+
+A compute used by fix ave/spatial must generate per-atom values.
+
+E: Fix ave/spatial compute does not calculate a per-atom vector
+
+A compute used by fix ave/spatial must generate per-atom values.
+
+E: Fix ave/spatial compute does not calculate a per-atom array
+
+Self-explanatory.
+
+E: Fix ave/spatial compute vector is accessed out-of-range
+
+The index for the vector is out of bounds.
+
+E: Fix ID for fix ave/spatial does not exist
+
+Self-explanatory.
+
+E: Fix ave/spatial fix does not calculate per-atom values
+
+A fix used by fix ave/spatial must generate per-atom values.
+
+E: Fix ave/spatial fix does not calculate a per-atom vector
+
+A fix used by fix ave/spatial must generate per-atom values.
+
+E: Fix ave/spatial fix does not calculate a per-atom array
+
+Self-explanatory.
+
+E: Fix ave/spatial fix vector is accessed out-of-range
+
+The index for the vector is out of bounds.
+
+E: Variable name for fix ave/spatial does not exist
+
+Self-explanatory.
+
+E: Fix ave/spatial variable is not atom-style variable
+
+A variable used by fix ave/spatial must generate per-atom values.
+
+E: Fix ave/spatial for triclinic boxes requires units reduced
+
+Self-explanatory.
+
+E: Use of fix ave/spatial with undefined lattice
+
+A lattice must be defined to use fix ave/spatial with units = lattice.
+
+E: Fix ave/spatial settings invalid with changing box
+
+If the ave setting is "running" or "window" and the box size/shape
+changes during the simulation, then the units setting must be
+"reduced", else the number of bins may change.
+
+E: Fix for fix ave/spatial not computed at compatible time
+
+Fixes generate their values on specific timesteps.  Fix ave/spatial is
+requesting a value on a non-allowed timestep.
+
+*/

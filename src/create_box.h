@@ -34,3 +34,32 @@ class CreateBox : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot create_box after simulation box is defined
+
+The create_box command cannot be used after a read_data, read_restart,
+or create_box command.
+
+E: Cannot run 2d simulation with nonperiodic Z dimension
+
+Use the boundary command to make the z dimension periodic in order to
+run a 2d simulation.
+
+E: Create_box region ID does not exist
+
+A region ID used in the create_box command does not exist.
+
+E: Create_box region does not support a bounding box
+
+Not all regions represent bounded volumes.  You cannot use
+such a region with the create_box command.
+
+*/

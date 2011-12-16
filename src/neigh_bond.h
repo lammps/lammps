@@ -11,38 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+/* ERROR/WARNING messages:
 
-PairStyle(lj/sdk/gpu,PairLJSDKGPU)
-PairStyle(cg/cmm/gpu,PairLJSDKGPU)
+E: Bond atoms %d %d missing on proc %d at step %ld
 
-#else
+UNDOCUMENTED
 
-#ifndef LMP_PAIR_LJ_SDK_GPU_H
-#define LMP_PAIR_LJ_SDK_GPU_H
+E: Angle atoms %d %d %d missing on proc %d at step %ld
 
-#include "pair_lj_sdk.h"
+UNDOCUMENTED
 
-namespace LAMMPS_NS {
+E: Dihedral atoms %d %d %d %d missing on proc %d at step %ld
 
-class PairLJSDKGPU : public PairLJSDK {
- public:
-  PairLJSDKGPU(LAMMPS *lmp);
-  ~PairLJSDKGPU();
-  template <int, int>
-  void cpu_compute(int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+UNDOCUMENTED
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+E: Improper atoms %d %d %d %d missing on proc %d at step %ld
 
- private:
-  int gpu_mode;
-  double cpu_time;
-  int *gpulist;
-};
+UNDOCUMENTED
 
-}
-#endif
-#endif
+*/

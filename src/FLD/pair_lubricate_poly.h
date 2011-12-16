@@ -36,3 +36,27 @@ class PairLubricatePoly : public PairLubricate {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Pair lubricate/poly requires newton pair off
+
+UNDOCUMENTED
+
+E: Pair lubricate/poly requires ghost atoms store velocity
+
+UNDOCUMENTED
+
+E: Pair lubricate/poly requires atom style sphere
+
+UNDOCUMENTED
+
+E: Pair lubricate/poly requires extended particles
+
+UNDOCUMENTED
+
+E: Using pair lubricate/poly with inconsistent fix deform remap option
+
+UNDOCUMENTED
+
+*/

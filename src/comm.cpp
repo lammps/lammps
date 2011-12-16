@@ -159,35 +159,31 @@ void Comm::set_proc_grid()
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
   }
 
-  // create ProcMap class
+  // create ProcMap class to create 3d grid and map procs to it
 
   ProcMap *pmap = new ProcMap(lmp);
 
-  // create 3d grid of processors, produces procgrid
-  // can fail (on one partition) if constrained by other partition
-  // if numa_grid() fails, try onelevel_grid()
+  // create 3d grid of processors
+  // produces procgrid and coregrid (if relevant)
 
-  int flag;
   if (gridflag == ONELEVEL) {
-    flag = pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
-			       otherflag,other_style,other_procgrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
+			otherflag,other_style,other_procgrid);
 
   } else if (gridflag == TWOLEVEL) {
-    flag = pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
-			       ncores,user_coregrid,coregrid,
-			       otherflag,other_style,other_procgrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
+			ncores,user_coregrid,coregrid,
+			otherflag,other_style,other_procgrid);
 
   } else if (gridflag == NUMA) {
-    flag = pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
-    if (!flag) error->all(FLERR,"Could not create grid of processors");
+    pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
 
   } else if (gridflag == CUSTOM) {
     pmap->custom_grid(customfile,nprocs,user_procgrid,procgrid);
   }
 
   // error check on procgrid
+  // should not be necessary due to ProcMap
 
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs)
     error->all(FLERR,"Bad grid of processors");
@@ -213,14 +209,16 @@ void Comm::set_proc_grid()
 
   } else if (gridflag == TWOLEVEL) {
     if (mapflag == CART)
-      pmap->cart_map(0,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->cart_map(0,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == CARTREORDER)
-      pmap->cart_map(1,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->cart_map(1,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == XYZ)
-      pmap->xyz_map(xyz,procgrid,coregrid,myloc,procneigh,grid2proc);
+      pmap->xyz_map(xyz,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
+    
+    // printf("AAA %d: %d %d: %d %d: %d %d\n",);
 
   } else if (gridflag == NUMA) {
-    pmap->numa_map(coregrid,myloc,procneigh,grid2proc);
+    pmap->numa_map(0,coregrid,myloc,procneigh,grid2proc);
 
   } else if (gridflag == CUSTOM) {
     pmap->custom_map(procgrid,myloc,procneigh,grid2proc);
@@ -1375,13 +1373,13 @@ void Comm::set_processors(int narg, char **arg)
 	if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
 	gridflag = TWOLEVEL;
 	
-	ncores = atoi(arg[2]);
-	if (strcmp(arg[3],"*") == 0) user_coregrid[0] = 0;
-	else user_coregrid[0] = atoi(arg[3]);
-	if (strcmp(arg[4],"*") == 0) user_coregrid[1] = 0;
-	else user_coregrid[1] = atoi(arg[4]);
-	if (strcmp(arg[5],"*") == 0) user_coregrid[2] = 0;
-	else user_coregrid[2] = atoi(arg[5]);
+	ncores = atoi(arg[iarg+2]);
+	if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
+	else user_coregrid[0] = atoi(arg[iarg+3]);
+	if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
+	else user_coregrid[1] = atoi(arg[iarg+4]);
+	if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
+	else user_coregrid[2] = atoi(arg[iarg+5]);
 	
 	if (ncores <= 0 || user_coregrid[0] < 0 || 
 	    user_coregrid[1] < 0 || user_coregrid[2] < 0) 
@@ -1396,7 +1394,7 @@ void Comm::set_processors(int narg, char **arg)
 	gridflag = CUSTOM;
 	delete [] customfile;
 	int n = strlen(arg[iarg+2]) + 1;
-	customfile = new char(n);
+	customfile = new char[n];
 	strcpy(customfile,arg[iarg+2]);
 	iarg += 1;
 
@@ -1458,7 +1456,7 @@ void Comm::set_processors(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
       int n = strlen(arg[iarg+1]) + 1;
-      outfile = new char(n);
+      outfile = new char[n];
       strcpy(outfile,arg[iarg+1]);
       iarg += 2;
 

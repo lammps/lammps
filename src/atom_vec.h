@@ -95,3 +95,6 @@ class AtomVec : protected Pointers {
 }
 
 #endif
+/* ERROR/WARNING messages:
+
+*/

@@ -104,6 +104,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_gpu.cpp
   rm -f ../pair_lj_class2_coul_long_gpu.cpp
   rm -f ../pair_lj_charmm_coul_long_gpu.cpp
+  rm -f ../pair_lj_sdk_gpu.cpp
+  rm -f ../pair_lj_sdk_coul_long_gpu.cpp
   rm -f ../pair_coul_long_gpu.cpp
 
   rm -f ../fix_gpu.cpp
@@ -120,6 +122,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_class2_gpu.h
   rm -f ../pair_lj_class2_coul_long_gpu.h
   rm -f ../pair_lj_charmm_coul_long_gpu.h
+  rm -f ../pair_lj_sdk_gpu.h
+  rm -f ../pair_lj_sdk_coul_long_gpu.h
   rm -f ../pair_coul_long_gpu.h
 
   rm -f ../fix_gpu.h

@@ -16,6 +16,7 @@
 #ifndef LAL_EAM_H
 #define LAL_EAM_H
 
+#include "lal_precision.h"
 #include "lal_base_atomic.h"
 
 namespace LAMMPS_AL {
@@ -99,9 +100,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   // --------------------------- TYPE DATA --------------------------
     
-  UCL_D_Vec<numtyp2> type2rhor_z2r;
-  
-  UCL_D_Vec<numtyp> type2frho;
+  UCL_D_Vec<int2> type2rhor_z2r;
+  UCL_D_Vec<int> type2frho;
   
   UCL_D_Vec<numtyp4> z2r_spline1, z2r_spline2;
   UCL_D_Vec<numtyp4> frho_spline1, frho_spline2;

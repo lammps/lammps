@@ -24,6 +24,10 @@
 using namespace LAMMPS_AL;
 #define EAMT EAM<numtyp, acctyp>
 
+
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
+
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
@@ -60,7 +64,11 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   if (this->ucl_device->device_type()==UCL_CPU)
     cpuview=true;
   
-  _max_fp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+  int ef_nall=nall;
+  if (ef_nall==0)
+    ef_nall=2000;
+
+  _max_fp_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
   host_fp.alloc(_max_fp_size,*(this->ucl_device));
   if (cpuview)
     dev_fp.view(host_fp);
@@ -103,54 +111,63 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   _nfrho=nfrho;
   _nr=nr;
   
-  UCL_H_Vec<numtyp> dview_type(lj_types*lj_types*2,*(this->ucl_device),
+  UCL_H_Vec<int2> dview_type(lj_types*lj_types,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
   
-  for (int i=0; i<lj_types*lj_types*2; i++)
-    dview_type[i]=(numtyp)0.0; 
+  for (int i=0; i<lj_types*lj_types; i++) {
+    dview_type[i].x=0; dview_type[i].y=0;
+  }
                                 
   // pack type2rhor and type2z2r
   type2rhor_z2r.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   
-  this->atom->type_pack2(ntypes,lj_types,type2rhor_z2r,dview_type,
-                        host_type2rhor,
-                        host_type2z2r);
+  for (int i=0; i<ntypes; i++) {
+    for (int j=0; j<ntypes; j++) {
+      dview_type[i*lj_types+j].x=host_type2rhor[i][j];
+      dview_type[i*lj_types+j].y=host_type2z2r[i][j];
+    }
+  }
+  
+  ucl_copy(type2rhor_z2r,dview_type,false);
   
   // pack type2frho
-  UCL_H_Vec<numtyp> dview_type2frho(ntypes,*(this->ucl_device),
+  UCL_H_Vec<int> dview_type2frho(lj_types,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
 
-  type2frho.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  type2frho.alloc(lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<ntypes; i++)
-    dview_type2frho[i]=(numtyp)host_type2frho[i];
+    dview_type2frho[i]=host_type2frho[i];
   ucl_copy(type2frho,dview_type2frho,false);
-                        
+
+  
+
   // pack frho_spline
-  UCL_H_Vec<numtyp4> dview_frho_spline(nfrho*(nr+1),*(this->ucl_device),
+  UCL_H_Vec<numtyp4> dview_frho_spline(nfrho*(nrho+1),*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
                                
   for (int ix=0; ix<nfrho; ix++)
-    for (int iy=0; iy<nr+1; iy++) {
-    dview_frho_spline[ix*(nr+1)+iy].x=host_frho_spline[ix][iy][0];
-    dview_frho_spline[ix*(nr+1)+iy].y=host_frho_spline[ix][iy][1];
-    dview_frho_spline[ix*(nr+1)+iy].z=host_frho_spline[ix][iy][2];
-    dview_frho_spline[ix*(nr+1)+iy].w=0;
+    for (int iy=0; iy<nrho+1; iy++) {
+    dview_frho_spline[ix*(nrho+1)+iy].x=host_frho_spline[ix][iy][0];
+    dview_frho_spline[ix*(nrho+1)+iy].y=host_frho_spline[ix][iy][1];
+    dview_frho_spline[ix*(nrho+1)+iy].z=host_frho_spline[ix][iy][2];
+    dview_frho_spline[ix*(nrho+1)+iy].w=0;
   }
 
-  frho_spline1.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  frho_spline1.alloc(nfrho*(nrho+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(frho_spline1,dview_frho_spline,false);
   frho_spline1_tex.get_texture(*(this->pair_program),"frho_sp1_tex");
   frho_spline1_tex.bind_float(frho_spline1,4);
+ 
 
   for (int ix=0; ix<nfrho; ix++)
-    for (int iy=0; iy<nr+1; iy++) {
-    dview_frho_spline[ix*(nr+1)+iy].x=host_frho_spline[ix][iy][3];
-    dview_frho_spline[ix*(nr+1)+iy].y=host_frho_spline[ix][iy][4];
-    dview_frho_spline[ix*(nr+1)+iy].z=host_frho_spline[ix][iy][5];
-    dview_frho_spline[ix*(nr+1)+iy].w=host_frho_spline[ix][iy][6];
+    for (int iy=0; iy<nrho+1; iy++) {
+    dview_frho_spline[ix*(nrho+1)+iy].x=host_frho_spline[ix][iy][3];
+    dview_frho_spline[ix*(nrho+1)+iy].y=host_frho_spline[ix][iy][4];
+    dview_frho_spline[ix*(nrho+1)+iy].z=host_frho_spline[ix][iy][5];
+    dview_frho_spline[ix*(nrho+1)+iy].w=host_frho_spline[ix][iy][6];
   }
 
-  frho_spline2.alloc(nfrho*(nr+1),*(this->ucl_device),UCL_READ_ONLY);
+  frho_spline2.alloc(nfrho*(nrho+1),*(this->ucl_device),UCL_READ_ONLY);
   ucl_copy(frho_spline2,dview_frho_spline,false);
   frho_spline2_tex.get_texture(*(this->pair_program),"frho_sp2_tex");
   frho_spline2_tex.bind_float(frho_spline2,4);
@@ -330,11 +347,12 @@ void EAMT::compute(const int f_ago, const int inum_full,
   this->atom->add_x_data(host_x,host_type);
 
   loop(eflag,vflag);
-  
+
   // copy fp from device to host for comm
   time_fp1.start();
   ucl_copy(host_fp,dev_fp,false);
   time_fp1.stop();
+
 }
 
 // ---------------------------------------------------------------------------
@@ -425,6 +443,9 @@ int** EAMT::compute(const int ago, const int inum_full,
 template <class numtyp, class acctyp>
 void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
                     const bool eatom, const bool vatom) {
+  if (this->ans->inum()==0) 
+    return;
+  
   this->hd_balancer.start_timer();
   time_fp2.start();
   this->add_fp_data();
@@ -464,7 +485,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
-  
+/*  
   if (shared_types) {
     this->k_energy_fast.set_size(GX,BX);
     this->k_energy_fast.run(&this->atom->dev_x.begin(), 
@@ -482,6 +503,8 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &this->_threads_per_atom);
   }
   else {
+*/
+
     this->k_energy.set_size(GX,BX);
     this->k_energy.run(&this->atom->dev_x.begin(), 
                  &type2rhor_z2r.begin(), &type2frho.begin(),
@@ -496,7 +519,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &_rdr, &_rdrho,
                  &_nrho, &_nr,
                  &this->_threads_per_atom);
-  }
+//  }
 
   this->time_pair.stop();
 }
@@ -526,7 +549,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair2.start();
   
-  if (shared_types) {
+/*  if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
@@ -539,6 +562,8 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
                    &nbor_pitch, &_cutforcesq, &_rdr, &_nr,
                    &this->_threads_per_atom);
   } else {
+*/  
+
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
@@ -550,7 +575,8 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
                    &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_nr,
                    &this->_threads_per_atom);
-  }
+
+//  }
 
   this->time_pair2.stop();
 }

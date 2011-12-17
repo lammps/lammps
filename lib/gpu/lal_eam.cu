@@ -73,7 +73,7 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                     eflag,vflag,engv)                                      \
+                     eflag,vflag,engv,rdrho,nrho)                           \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=rho;                                                       \
@@ -89,7 +89,7 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
     m = MAX(1,MIN(m,nrho-1));                                               \
     p -= m;                                                                 \
     p = MIN(p,(numtyp)1.0);                                                 \
-    int index = type2frho[itype]*(nr+1)+m;                                  \
+    int index = type2frho[itype]*(nrho+1)+m;                                \
     numtyp4 coeff = fetch_frho_sp1(index, frho_spline1);                    \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
     fp_[ii]=fp;                                                             \
@@ -148,18 +148,17 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
   }
 
 __kernel void kernel_energy(__global numtyp4 *x_, 
-                    __global numtyp2 *type2rhor_z2r, __global numtyp *type2frho,
-                    __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
-                    __global numtyp4 *frho_spline2,
-                    __global int *dev_nbor, __global int *dev_packed,
-                    __global numtyp *fp_, 
-                    __global acctyp *engv, const int eflag, 
-                    const int inum, 
-                    const int nbor_pitch,
-                    const int ntypes, const numtyp cutforcesq, 
-                    const numtyp rdr, const numtyp rdrho,
-                    const int nrho, const int nr,
-                    const int t_per_atom) {
+           __global int2 *type2rhor_z2r, __global int *type2frho,
+           __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
+           __global numtyp4 *frho_spline2,
+           __global int *dev_nbor, __global int *dev_packed,
+           __global numtyp *fp_, 
+           __global acctyp *engv, const int eflag, 
+           const int inum, const int nbor_pitch,
+           const int ntypes, const numtyp cutforcesq, 
+           const numtyp rdr, const numtyp rdrho,
+           const int nrho, const int nr,
+           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -203,28 +202,27 @@ __kernel void kernel_energy(__global numtyp4 *x_,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv);
+        eflag,vflag,engv,rdrho,nrho);
   } // if ii
 }
 
 __kernel void kernel_energy_fast(__global numtyp4 *x_, 
-                    __global numtyp2 *type2rhor_z2r_in, __global numtyp *type2frho_in,
-                    __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
-                    __global numtyp4 *frho_spline2,
-                    __global int *dev_nbor, __global int *dev_packed,
-                    __global numtyp *fp_, 
-                    __global acctyp *engv, const int eflag, 
-                    const int inum, 
-                    const int nbor_pitch,
-                    const int ntypes, const numtyp cutforcesq, 
-                    const numtyp rdr, const numtyp rdrho,
-                    const int nrho, const int nr,
-                    const int t_per_atom) {
+           __global int2 *type2rhor_z2r_in, __global int *type2frho_in,
+           __global numtyp4 *rhor_spline2, __global numtyp4 *frho_spline1,
+           __global numtyp4 *frho_spline2,
+           __global int *dev_nbor, __global int *dev_packed,
+           __global numtyp *fp_, 
+           __global acctyp *engv, const int eflag, 
+           const int inum, const int nbor_pitch,
+           const int ntypes, const numtyp cutforcesq, 
+           const numtyp rdr, const numtyp rdrho,
+           const int nrho, const int nr,
+           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
-  __local numtyp2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp type2frho[MAX_SHARED_TYPES];
+  __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local int type2frho[MAX_SHARED_TYPES];
 
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
@@ -276,12 +274,12 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv);
+        eflag,vflag,engv,rdrho,nrho);
   } // if ii
 }
 
 __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
-                          __global numtyp2 *type2rhor_z2r,
+                          __global int2 *type2rhor_z2r,
                           __global numtyp4 *rhor_spline1, 
                           __global numtyp4 *z2r_spline1,
                           __global numtyp4 *z2r_spline2,
@@ -354,11 +352,11 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
         numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
         coeff = fetch_z2r_sp2(index, z2r_spline2);
         numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
- 
+        
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
-        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
+        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip; 
         numtyp force = -psip*recip;
         
         f.x+=delx*force;
@@ -385,7 +383,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
 }
 
 __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
-                          __global numtyp2 *type2rhor_z2r_in,
+                          __global int2 *type2rhor_z2r_in,
                           __global numtyp4 *rhor_spline1, 
                           __global numtyp4 *z2r_spline1,
                           __global numtyp4 *z2r_spline2,
@@ -399,7 +397,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
-  __local numtyp2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
 
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
@@ -466,7 +464,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
         numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
         coeff = fetch_z2r_sp2(index, z2r_spline2);
         numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
-
+      
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;

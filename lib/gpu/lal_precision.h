@@ -21,7 +21,7 @@ struct _lgpu_int2 {
 };
 
 #ifndef int2
-#define int2 _lgpu_int2;
+#define int2 _lgpu_int2
 #endif
 
 struct _lgpu_float2 {

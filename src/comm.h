@@ -118,3 +118,58 @@ class Comm : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Bad grid of processors
+
+The 3d grid of processors defined by the processors command does not
+match the number of processors LAMMPS is being run on.
+
+E: Processor count in z must be 1 for 2d simulation
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid group in communicate command
+
+Self-explanatory.
+
+E: Communicate group != atom_modify first group
+
+Self-explanatory.
+
+E: Invalid cutoff in communicate command
+
+Specified cutoff must be >= 0.0.
+
+E: Cannot use processors part command without using partitions
+
+UNDOCUMENTED
+
+E: Invalid partitions in processors part command
+
+UNDOCUMENTED
+
+E: Sending partition in processors part command is already a sender
+
+UNDOCUMENTED
+
+E: Receiving partition in processors part command is already a receiver
+
+UNDOCUMENTED
+
+E: Processors grid numa and map style are incompatible
+
+UNDOCUMENTED
+
+E: Processors part option and grid style are incompatible
+
+UNDOCUMENTED
+
+*/

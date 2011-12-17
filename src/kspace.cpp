@@ -73,7 +73,7 @@ void KSpace::modify_params(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void *KSpace::extract(char *str)
+void *KSpace::extract(const char *str)
 {
   if (strcmp(str,"scale") == 0) return (void *) &scale;
   return NULL;

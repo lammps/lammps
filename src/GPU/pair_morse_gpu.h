@@ -45,3 +45,14 @@ class PairMorseGPU : public PairMorse {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with morse/gpu pair style
+
+UNDOCUMENTED
+
+*/

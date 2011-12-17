@@ -140,12 +140,15 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
 	int kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
 	  fprintf(universe->uscreen," %d",bmapall[m+j]);
-	fprintf(universe->uscreen," %d (",kspace_proc);
+	fprintf(universe->uscreen," %d",kspace_proc);
 	kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->uscreen," %d",
+	for (int j = 1; j <= ratio; j++) {
+	  if (j == 1) fprintf(universe->uscreen," (");
+	  else fprintf(universe->uscreen," ");
+	  fprintf(universe->uscreen,"%d",
 		  universe->uni2orig[bmapall[m+j]]);
-	fprintf(universe->uscreen," %d)",universe->uni2orig[kspace_proc]);
+	}
+	fprintf(universe->uscreen," %d)\n",universe->uni2orig[kspace_proc]);
 	m += ratio + 1;
       }
     }
@@ -158,12 +161,16 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
 	int kspace_proc = bmapall[m];
 	for (int j = 1; j <= ratio; j++)
 	  fprintf(universe->ulogfile," %d",bmapall[m+j]);
-	fprintf(universe->ulogfile," %d (",kspace_proc);
+
+	fprintf(universe->ulogfile," %d",kspace_proc);
 	kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->ulogfile," %d",
+	for (int j = 1; j <= ratio; j++) {
+	  if (j == 1) fprintf(universe->ulogfile," (");
+	  else fprintf(universe->ulogfile," ");
+	  fprintf(universe->ulogfile,"%d",
 		  universe->uni2orig[bmapall[m+j]]);
-	fprintf(universe->ulogfile," %d)",universe->uni2orig[kspace_proc]);
+	}
+	fprintf(universe->ulogfile," %d)\n",universe->uni2orig[kspace_proc]);
 	m += ratio + 1;
       }
     }

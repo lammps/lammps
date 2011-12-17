@@ -243,6 +243,9 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   best_factors(numapossible,numafactors,numagrid,
 	       nodegrid[0],nodegrid[1],nodegrid[2]);
 
+  memory->destroy(numafactors);
+  memory->destroy(nodefactors);
+
   // assign a unique id to each node
 
   node_id = 0;
@@ -392,6 +395,7 @@ void ProcMap::cart_map(int reorder, int *procgrid, int ncores, int *coregrid,
 
 /* ----------------------------------------------------------------------
    map processors to 3d grid in XYZ order
+   called by onelevel
 ------------------------------------------------------------------------- */
 
 void ProcMap::xyz_map(char *xyz, int *procgrid,
@@ -441,6 +445,7 @@ void ProcMap::xyz_map(char *xyz, int *procgrid,
 /* ----------------------------------------------------------------------
    map processors to 3d grid in XYZ order
    respect sub-grid of cores within each node
+   called by twolevel
 ------------------------------------------------------------------------- */
 
 void ProcMap::xyz_map(char *xyz, int *procgrid, int ncores, int *coregrid,
@@ -460,15 +465,15 @@ void ProcMap::xyz_map(char *xyz, int *procgrid, int ncores, int *coregrid,
 	inode = i/coregrid[0];
 	jnode = j/coregrid[1];
 	knode = k/coregrid[2];
-	icore = i - inode*icore;
-	jcore = j - jnode*jcore;
-	kcore = k - knode*kcore;
+	icore = i % coregrid[0];
+	jcore = j % coregrid[1];
+	kcore = k % coregrid[2];
 
-	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z')
+	if (xyz[0] == 'x' && xyz[1] == 'y' && xyz[2] == 'z') {
 	  grid2proc[i][j][k] = ncores * 
 	    (knode*nodegrid[1]*nodegrid[0] + jnode*nodegrid[0] + inode) +
 	    (kcore*coregrid[1]*coregrid[0] + jcore*coregrid[0] + icore);
-	else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
+	} else if (xyz[0] == 'x' && xyz[1] == 'z' && xyz[2] == 'y')
 	  grid2proc[i][j][k] = ncores * 
 	    (jnode*nodegrid[2]*nodegrid[0] + knode*nodegrid[0] + inode) + 
 	    (jcore*coregrid[2]*coregrid[0] + kcore*coregrid[0] + icore);
@@ -560,14 +565,14 @@ void ProcMap::numa_map(int reorder, int *numagrid,
   myloc[1] = myloc[1] * numagrid[1] + y_offset;
   myloc[2] = myloc[2] * numagrid[2] + z_offset;
   
-  // allgather of locations to fill grid2proc
+  // allgather of myloc into gridi to fill grid2proc
 
   int nprocs;
   MPI_Comm_size(world,&nprocs);
 
   int **gridi;
   memory->create(gridi,nprocs,3,"comm:gridi");
-  MPI_Allgather(&myloc,3,MPI_INT,gridi[0],3,MPI_INT,world);
+  MPI_Allgather(myloc,3,MPI_INT,gridi[0],3,MPI_INT,world);
   for (int i = 0; i < nprocs; i++)
     grid2proc[gridi[i][0]][gridi[i][1]][gridi[i][2]] = i;
   memory->destroy(gridi);
@@ -859,6 +864,7 @@ int ProcMap::best_factors(int npossible, int **factors, int *best,
       area[1]/factors[m][0]/factors[m][2] + 
       area[2]/factors[m][1]/factors[m][2];
     if (surf < bestsurf) {
+      bestsurf = surf;
       best[0] = factors[m][0];
       best[1] = factors[m][1];
       best[2] = factors[m][2];

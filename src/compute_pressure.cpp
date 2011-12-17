@@ -277,7 +277,7 @@ void ComputePressure::virial_compute(int n, int ndiag)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressure::reset_extra_compute_fix(char *id_new)
+void ComputePressure::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_temp;
   int n = strlen(id_new) + 1;

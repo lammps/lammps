@@ -369,7 +369,7 @@ double PairBuck::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairBuck::extract(char *str, int &dim)
+void *PairBuck::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"a") == 0) return (void *) a;

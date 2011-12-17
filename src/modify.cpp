@@ -839,7 +839,7 @@ void Modify::modify_compute(int narg, char **arg)
    delete a Compute from list of Computes
 ------------------------------------------------------------------------- */
 
-void Modify::delete_compute(char *id)
+void Modify::delete_compute(const char *id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
@@ -856,7 +856,7 @@ void Modify::delete_compute(char *id)
    return index of compute or -1 if not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_compute(char *id)
+int Modify::find_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)

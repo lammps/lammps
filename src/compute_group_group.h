@@ -47,3 +47,26 @@ class ComputeGroupGroup : public Compute {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute group/group group ID does not exist
+
+Self-explanatory.
+
+E: No pair style defined for compute group/group
+
+Cannot calculate group interactions without a pair style defined.
+
+E: Pair style does not support compute group/group
+
+The pair_style does not have a single() function, so it cannot be
+invokded by the compute group/group command.
+
+*/

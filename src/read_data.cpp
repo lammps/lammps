@@ -325,7 +325,7 @@ void ReadData::header(int flag)
 
   // customize for new sections
 
-  char *section_keywords[NSECTIONS] = 
+  const char *section_keywords[NSECTIONS] = 
     {"Atoms","Velocities","Ellipsoids","Lines","Triangles",
      "Bonds","Angles","Dihedrals","Impropers",
      "Masses","Pair Coeffs","Bond Coeffs","Angle Coeffs",
@@ -604,7 +604,7 @@ void ReadData::velocities()
    to find atoms, must build atom map if not a molecular system 
 ------------------------------------------------------------------------- */
 
-void ReadData::bonus(bigint nbonus, AtomVec *ptr, char *type)
+void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 {
   int i,m,nchunk;
 
@@ -1426,7 +1426,7 @@ void ReadData::skip_lines(int n)
    if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
 ------------------------------------------------------------------------- */
 
-void ReadData::parse_coeffs(char *line, char *addstr, int dupflag)
+void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag)
 {
   char *ptr;
   if (ptr = strchr(line,'#')) *ptr = '\0';
@@ -1439,9 +1439,9 @@ void ReadData::parse_coeffs(char *line, char *addstr, int dupflag)
       arg = (char **) 
 	memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
     }
-    if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = addstr;
+    if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = (char *) addstr;
     arg[narg++] = word;
-    if (addstr && narg == 2 && islower(word[0])) arg[narg++] = addstr;
+    if (addstr && narg == 2 && islower(word[0])) arg[narg++] = (char *) addstr;
     if (dupflag && narg == 1) arg[narg++] = word;
     word = strtok(NULL," \t\n\r\f");
   }

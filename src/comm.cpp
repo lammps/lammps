@@ -214,6 +214,8 @@ void Comm::set_proc_grid()
       pmap->cart_map(1,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == XYZ)
       pmap->xyz_map(xyz,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
+    
+    // printf("AAA %d: %d %d: %d %d: %d %d\n",);
 
   } else if (gridflag == NUMA) {
     pmap->numa_map(0,coregrid,myloc,procneigh,grid2proc);
@@ -1371,13 +1373,13 @@ void Comm::set_processors(int narg, char **arg)
 	if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
 	gridflag = TWOLEVEL;
 	
-	ncores = atoi(arg[2]);
-	if (strcmp(arg[3],"*") == 0) user_coregrid[0] = 0;
-	else user_coregrid[0] = atoi(arg[3]);
-	if (strcmp(arg[4],"*") == 0) user_coregrid[1] = 0;
-	else user_coregrid[1] = atoi(arg[4]);
-	if (strcmp(arg[5],"*") == 0) user_coregrid[2] = 0;
-	else user_coregrid[2] = atoi(arg[5]);
+	ncores = atoi(arg[iarg+2]);
+	if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
+	else user_coregrid[0] = atoi(arg[iarg+3]);
+	if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
+	else user_coregrid[1] = atoi(arg[iarg+4]);
+	if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
+	else user_coregrid[2] = atoi(arg[iarg+5]);
 	
 	if (ncores <= 0 || user_coregrid[0] < 0 || 
 	    user_coregrid[1] < 0 || user_coregrid[2] < 0) 
@@ -1392,7 +1394,7 @@ void Comm::set_processors(int narg, char **arg)
 	gridflag = CUSTOM;
 	delete [] customfile;
 	int n = strlen(arg[iarg+2]) + 1;
-	customfile = new char(n);
+	customfile = new char[n];
 	strcpy(customfile,arg[iarg+2]);
 	iarg += 1;
 
@@ -1454,7 +1456,7 @@ void Comm::set_processors(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
       int n = strlen(arg[iarg+1]) + 1;
-      outfile = new char(n);
+      outfile = new char[n];
       strcpy(outfile,arg[iarg+1]);
       iarg += 2;
 

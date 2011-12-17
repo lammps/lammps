@@ -327,7 +327,7 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairGauss::extract(char *str, int &dim)
+void *PairGauss::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"a") == 0) return (void *) a;

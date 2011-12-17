@@ -52,3 +52,23 @@ class VerletSplit : public Verlet {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Verlet/split requires 2 partitions
+
+UNDOCUMENTED
+
+E: Verlet/split requires Rspace partition size be multiple of Kspace partition size
+
+UNDOCUMENTED
+
+E: Verlet/split requires Rspace partition layout be multiple of Kspace partition layout in each dim
+
+UNDOCUMENTED
+
+W: No Kspace calculation with verlet/split
+
+UNDOCUMENTED
+
+*/

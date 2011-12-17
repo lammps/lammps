@@ -676,7 +676,7 @@ double PairHybrid::memory_usage()
    for cut_coul, insure all non-NULL results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
-void *PairHybrid::extract(char *str, int &dim)
+void *PairHybrid::extract(const char *str, int &dim)
 {
   void *cutptr = NULL;
   void *ptr;

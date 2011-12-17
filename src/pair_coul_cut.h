@@ -38,7 +38,7 @@ class PairCoulCut : public Pair {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *, int &);
+  void *extract(const char *, int &);
 
  protected:
   double cut_global;
@@ -51,3 +51,21 @@ class PairCoulCut : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style coul/cut requires atom attribute q
+
+The atom style defined does not have these attributes.
+
+*/

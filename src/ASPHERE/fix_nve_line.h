@@ -42,3 +42,25 @@ class FixNVELine : public FixNVE {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix nve/line requires atom style line
+
+UNDOCUMENTED
+
+E: Fix nve/line can only be used for 2d simulations
+
+UNDOCUMENTED
+
+E: Fix nve/line requires line particles
+
+UNDOCUMENTED
+
+*/

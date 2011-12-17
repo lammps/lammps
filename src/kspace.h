@@ -29,7 +29,7 @@ class KSpace : protected Pointers {
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace() {}
   void modify_params(int, char **);
-  void *extract(char *);
+  void *extract(const char *);
 
   virtual void init() = 0;
   virtual void setup() = 0;
@@ -48,3 +48,22 @@ class KSpace : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Bad kspace_modify slab parameter
+
+Kspace_modify value for the slab/volume keyword must be >= 2.0.
+
+W: Kspace_modify slab param < 2.0 may cause unphysical behavior
+
+The kspace_modify slab parameter should be larger to insure periodic
+grids padded with empty space do not overlap.
+
+*/

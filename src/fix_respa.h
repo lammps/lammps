@@ -49,3 +49,6 @@ class FixRespa : public Fix {
 
 #endif
 #endif
+/* ERROR/WARNING messages:
+
+*/

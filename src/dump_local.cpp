@@ -88,7 +88,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // setup default label string
 
-  char *str = "ENTRIES";
+  char *str = (char *) "ENTRIES";
   n = strlen(str) + 1;
   label = new char[n];
   strcpy(label,str);

@@ -70,3 +70,38 @@ class Region : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Variable name for region does not exist
+
+Self-explanatory.
+
+E: Variable for region is invalid style
+
+Only equal-style variables can be used.
+
+E: Variable for region is not equal style
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Region union or intersect cannot be dynamic
+
+The sub-regions can be dynamic, but not the combined region.
+
+E: Use of region with undefined lattice
+
+If scale = lattice (the default) for the region command, then a
+lattice must first be defined via the lattice command.
+
+E: Region cannot have 0 length rotation vector
+
+Self-explanatory.
+
+*/

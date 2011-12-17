@@ -460,7 +460,7 @@ double PairLJClass2CoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJClass2CoulLong::extract(char *str, int &dim)
+void *PairLJClass2CoulLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;

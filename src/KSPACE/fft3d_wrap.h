@@ -34,3 +34,11 @@ class FFT3d : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Could not create 3d FFT plan
+
+The FFT setup in pppm failed.
+
+*/

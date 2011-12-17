@@ -768,12 +768,12 @@ void PRD::options(int narg, char **arg)
   maxeval = 50;
   temp_flag = 0;
 
-  char *str = "geom";
+  char *str = (char *) "geom";
   int n = strlen(str) + 1;
   loop_setting = new char[n];
   strcpy(loop_setting,str);
 
-  str = "gaussian";
+  str = (char *) "gaussian";
   n = strlen(str) + 1;
   dist_setting = new char[n];
   strcpy(dist_setting,str);

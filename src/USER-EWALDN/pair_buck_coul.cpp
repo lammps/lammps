@@ -168,7 +168,7 @@ void PairBuckCoul::allocate()
    extract protected data from object
 ------------------------------------------------------------------------- */
 
-void *PairBuckCoul::extract(char *id, int &dim)
+void *PairBuckCoul::extract(const char *id, int &dim)
 {
   char *ids[] = {
     "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", NULL};

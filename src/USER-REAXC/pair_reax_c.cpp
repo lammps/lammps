@@ -745,7 +745,7 @@ void PairReaxC::read_reax_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void *PairReaxC::extract(char *str, int &dim)
+void *PairReaxC::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"chi") == 0 && chi) {

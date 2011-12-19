@@ -285,7 +285,7 @@ double EAMT::host_memory_usage() const {
 // Copy nbor list from host if necessary and then compute atom energies/forces
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void EAMT::compute(const int f_ago, const int inum_full,
+void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
                    const int nall, double **host_x, int *host_type,
                    int *ilist, int *numj, int **firstneigh,
                    const bool eflag, const bool vflag,
@@ -305,19 +305,6 @@ void EAMT::compute(const int f_ago, const int inum_full,
     this->atom->add_transfer_time(time_fp2.time());
   }
   
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    this->resize_atom(0,nall,success);
-    this->zero_timers();
-    return;
-  }
-  
-  int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
-  this->ans->inum(inum);
-  host_start=inum;
-
   // ------------------- Resize FP Array for EAM --------------------
   
   if (nall>_max_fp_size) {
@@ -335,6 +322,21 @@ void EAMT::compute(const int f_ago, const int inum_full,
   }
   *fp_ptr=host_fp.begin();
 
+  // ----------------------------------------------------------------
+
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    this->resize_atom(0,nall,success);
+    this->zero_timers();
+    return;
+  }
+  
+  int ago=this->hd_balancer.ago_first(f_ago);
+  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
+  this->ans->inum(inum);
+  host_start=inum;
+
   // -----------------------------------------------------------------
 
   if (ago==0) {
@@ -349,8 +351,9 @@ void EAMT::compute(const int f_ago, const int inum_full,
   loop(eflag,vflag);
 
   // copy fp from device to host for comm
+  _nlocal=nlocal;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,false);
+  ucl_copy(host_fp,dev_fp,nlocal,false);
   time_fp1.stop();
 
 }
@@ -380,21 +383,7 @@ int** EAMT::compute(const int ago, const int inum_full,
     // Add transfer time from host -> device before part 2
     this->atom->add_transfer_time(time_fp2.time());
   }
-  
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    this->resize_atom(0,nall,success);
-    this->zero_timers();
-    return NULL;
-  }
-  
-  // load balance, returning the atom count on the device (inum)
-  this->hd_balancer.balance(cpu_time);
-  inum=this->hd_balancer.get_gpu_count(ago,inum_full);
-  this->ans->inum(inum);
-  host_start=inum;
- 
+
   // ------------------- Resize FP Array for EAM --------------------
   
   if (nall>_max_fp_size) {
@@ -413,7 +402,21 @@ int** EAMT::compute(const int ago, const int inum_full,
   *fp_ptr=host_fp.begin();  
 
   // -----------------------------------------------------------------
-
+  
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    this->resize_atom(0,nall,success);
+    this->zero_timers();
+    return NULL;
+  }
+  
+  // load balance, returning the atom count on the device (inum)
+  this->hd_balancer.balance(cpu_time);
+  inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  this->ans->inum(inum);
+  host_start=inum;
+ 
   // Build neighbor list on GPU if necessary 
   if (ago==0) {
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
@@ -430,8 +433,9 @@ int** EAMT::compute(const int ago, const int inum_full,
   loop(eflag,vflag);
   
   // copy fp from device to host for comm
+  _nlocal=inum_full;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,false);
+  ucl_copy(host_fp,dev_fp,inum_full,false);
   time_fp1.stop();
   
   return this->nbor->host_jlist.begin()-host_start;

@@ -50,7 +50,14 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
   // Copy charges to device asynchronously
   inline void add_fp_data() {
-    ucl_copy(dev_fp,host_fp,this->atom->nall(),true);
+    int nghost=this->atom->nall()-_nlocal;
+    if (nghost>0) {
+      UCL_H_Vec<numtyp> host_view;
+      UCL_D_Vec<numtyp> dev_view;
+      host_view.view_offset(_nlocal,host_fp);
+      dev_view.view_offset(_nlocal,dev_fp);
+      ucl_copy(dev_view,host_view,nghost,true);
+    }
   }
   
   /// Clear all host and device data
@@ -64,7 +71,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   double host_memory_usage() const;
   
   /// Pair loop with host neighboring
-  void compute(const int f_ago, const int inum_full, const int nall,
+  void compute(const int f_ago, const int inum_full, const int, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
@@ -128,6 +135,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   
 protected:
   bool _allocated;
+  int _nlocal;
   void loop(const bool _eflag, const bool _vflag);
   void loop2(const bool _eflag, const bool _vflag);
 };

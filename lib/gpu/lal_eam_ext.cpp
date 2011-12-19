@@ -123,12 +123,13 @@ int ** eam_gpu_compute_n(const int ago, const int inum_full,
                         inum, fp_ptr);
 }  
 
-void eam_gpu_compute(const int ago, const int inum_full, const int nall,
-                      double **host_x, int *host_type, int *ilist, int *numj,
-                      int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, void **fp_ptr) {
-  EAMMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
+void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, 
+                     const int nall, double **host_x, int *host_type, 
+                     int *ilist, int *numj, int **firstneigh, const bool eflag,
+                     const bool vflag, const bool eatom, const bool vatom,
+                     int &host_start, const double cpu_time, bool &success,
+                     void **fp_ptr) {
+  EAMMF.compute(ago,inum_full,nlocal,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
                 fp_ptr);
 }

@@ -55,7 +55,7 @@ int** eam_gpu_compute_n(const int ago, const int inum_full,
                  const bool eatom, const bool vatom, int &host_start,
                  int **ilist, int **jnum,  const double cpu_time,
                  bool &success, int &inum, void **fp_ptr);
-void eam_gpu_compute(const int ago, const int inum_full, 
+void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, 
                  const int nall,double **host_x, int *host_type, 
                  int *ilist, int *numj, int **firstneigh, 
                  const bool eflag, const bool vflag,
@@ -125,7 +125,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    eam_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+    eam_gpu_compute(neighbor->ago, inum, nlocal, nall, atom->x, atom->type,
 		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
 		    vflag_atom, host_start, cpu_time, success, &fp_pinned);
   }

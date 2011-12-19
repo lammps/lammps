@@ -93,11 +93,10 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
     numtyp4 coeff = fetch_frho_sp1(index, frho_spline1);                    \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
     fp_[i]=fp;                                                             \
-    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
       coeff = fetch_frho_sp2(index, frho_spline2);                          \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
-      *engv=(acctyp)2.0*energy;                                             \
+      engv[ii]=(acctyp)2.0*energy;                                          \
     }                                                                       \
   }
 
@@ -133,14 +132,13 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
     }                                                                       \
   }                                                                         \
   if (offset==0) {                                                          \
-    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv+=energy;                                                        \
+      engv[ii]+=energy;                                                     \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        engv[ii]=virial[i];                                                 \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \

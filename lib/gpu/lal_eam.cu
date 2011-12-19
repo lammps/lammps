@@ -73,7 +73,7 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                     eflag,vflag,engv,rdrho,nrho)                           \
+                     eflag,vflag,engv,rdrho,nrho,i)                           \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=rho;                                                       \
@@ -92,7 +92,7 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
     int index = type2frho[itype]*(nrho+1)+m;                                \
     numtyp4 coeff = fetch_frho_sp1(index, frho_spline1);                    \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
-    fp_[ii]=fp;                                                             \
+    fp_[i]=fp;                                                             \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
       coeff = fetch_frho_sp2(index, frho_spline2);                          \
@@ -202,7 +202,7 @@ __kernel void kernel_energy(__global numtyp4 *x_,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv,rdrho,nrho);
+        eflag,vflag,engv,rdrho,nrho,i);
   } // if ii
 }
 
@@ -274,7 +274,7 @@ __kernel void kernel_energy_fast(__global numtyp4 *x_,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv,rdrho,nrho);
+        eflag,vflag,engv,rdrho,nrho,i);
   } // if ii
 }
 

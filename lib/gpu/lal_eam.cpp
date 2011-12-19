@@ -485,7 +485,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
-/*  
+  
   if (shared_types) {
     this->k_energy_fast.set_size(GX,BX);
     this->k_energy_fast.run(&this->atom->dev_x.begin(), 
@@ -501,10 +501,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &_rdr, &_rdrho,
                  &_nrho, &_nr,
                  &this->_threads_per_atom);
-  }
-  else {
-*/
-
+  } else {
     this->k_energy.set_size(GX,BX);
     this->k_energy.run(&this->atom->dev_x.begin(), 
                  &type2rhor_z2r.begin(), &type2frho.begin(),
@@ -519,7 +516,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                  &_rdr, &_rdrho,
                  &_nrho, &_nr,
                  &this->_threads_per_atom);
-//  }
+  }
 
   this->time_pair.stop();
 }
@@ -549,7 +546,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair2.start();
   
-/*  if (shared_types) {
+  if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
@@ -562,8 +559,6 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
                    &nbor_pitch, &_cutforcesq, &_rdr, &_nr,
                    &this->_threads_per_atom);
   } else {
-*/  
-
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
                    &type2rhor_z2r.begin(),
@@ -575,8 +570,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
                    &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
                    &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_nr,
                    &this->_threads_per_atom);
-
-//  }
+  }
 
   this->time_pair2.stop();
 }

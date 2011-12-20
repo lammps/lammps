@@ -33,9 +33,12 @@ namespace LAMMPS_NS {
   virtual void compute(int, int);
   virtual void compute_proxy(int eflag, int vflag);
 
-  // nothing to do in setup
-  virtual void setup() {};
+  // setup is delayed until the compute_proxy is called
+  virtual void setup() { need_setup=1; };
   virtual void setup_proxy();
+
+ protected:
+  int need_setup;
 };
 
 }

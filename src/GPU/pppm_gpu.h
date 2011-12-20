@@ -35,6 +35,7 @@ class PPPMGPU : public PPPM {
  protected:
 
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
+  bool kspace_split;
 
   virtual void allocate();
   virtual void deallocate();

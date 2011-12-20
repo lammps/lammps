@@ -53,9 +53,10 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nzhi_out, grdtyp **rho_coeff,
                               grdtyp **vd_brick, const double slab_volfactor, 
                               const int nx_pppm, const int ny_pppm,
-                              const int nz_pppm, int &flag) {
+                              const int nz_pppm, const bool split, int &flag) {
   _max_bytes=10;
   screen=_screen;
+  _kspace_split=split;
   bool success=true;
 
   flag=device->init(*ans,nlocal,nall);
@@ -220,6 +221,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
                                  double *host_q, double *boxlo, 
                                  const double delxinv, const double delyinv,
                                  const double delzinv) {
+printf("PERFORMING PRECOMPUTE.");
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -308,7 +310,9 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
     atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
+printf("SPREAD W/O PRECOMPUTE.");
   }
+else printf("SPREAD W/ PRECOMPUTE.");
 
   device->stop_host_timer();
   
@@ -359,9 +363,9 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false);
-  device->add_ans_object(ans);
+  if (_kspace_split==false)
+    device->add_ans_object(ans);
 }
-
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 double PPPMT::host_memory_usage() const {

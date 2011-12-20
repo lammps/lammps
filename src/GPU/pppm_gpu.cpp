@@ -36,6 +36,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,13 +63,15 @@ using namespace MathConst;
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _d
 #endif
 FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
-		        const int order, const int nxlo_out, 
-			const int nylo_out, const int nzlo_out,
-			const int nxhi_out, const int nyhi_out,
-			const int nzhi_out, FFT_SCALAR **rho_coeff,
-			FFT_SCALAR **_vd_brick, const double slab_volfactor,
-			const int nx_pppm, const int ny_pppm,
-			const int nz_pppm, int &success);
+			       const int order, const int nxlo_out, 
+			       const int nylo_out, const int nzlo_out,
+			       const int nxhi_out, const int nyhi_out,
+			       const int nzhi_out, FFT_SCALAR **rho_coeff,
+			       FFT_SCALAR **_vd_brick, 
+			       const double slab_volfactor,
+			       const int nx_pppm, const int ny_pppm,
+			       const int nz_pppm, const bool split, 
+			       int &success);
 void PPPM_GPU_API(clear)(const double poisson_time);
 int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
@@ -76,6 +79,7 @@ int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       const double delyinv, const double delzinv);
 void PPPM_GPU_API(interp)(const FFT_SCALAR qqrd2e_scale);
 double PPPM_GPU_API(bytes)();
+void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,6 +88,7 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
   density_brick_gpu = vd_brick = NULL;
+  kspace_split = false;
 }
 
 /* ----------------------------------------------------------------------
@@ -108,12 +113,16 @@ void PPPMGPU::init()
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
   PPPM_GPU_API(clear)(poisson_time);
 
+  if (strcmp(update->integrate_style,"verlet/split") == 0)
+    kspace_split=true;
+
   int success;
   FFT_SCALAR *data, *h_brick;
   h_brick = PPPM_GPU_API(init)(atom->nlocal, atom->nlocal+atom->nghost, screen,
-			    order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-			    nyhi_out, nzhi_out, rho_coeff, &data, 
-			    slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
+			       order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
+			       nyhi_out, nzhi_out, rho_coeff, &data, 
+			       slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
+			       kspace_split,success);
 
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -210,6 +219,9 @@ void PPPMGPU::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
   
   if (triclinic) domain->lamda2x(atom->nlocal);
+
+  if (kspace_split)
+    PPPM_GPU_API(forces)(atom->f);
 }
 
 /* ----------------------------------------------------------------------

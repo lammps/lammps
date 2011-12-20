@@ -517,6 +517,8 @@ pair_lj_class2_coul_long_gpu.cpp
 pair_lj_class2_coul_long_gpu.h
 pair_lj_class2_coul_long_omp.cpp
 pair_lj_class2_coul_long_omp.h
+pair_lj_class2_coul_pppm_omp.cpp
+pair_lj_class2_coul_pppm_omp.h
 pair_lj_coul.cpp
 pair_lj_coul.h
 pair_lj_coul_omp.cpp

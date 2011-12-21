@@ -108,6 +108,8 @@ PPPMGPU::~PPPMGPU()
 
 void PPPMGPU::init()
 {
+  PPPM::init();
+  
   if (strcmp(update->integrate_style,"verlet/split") == 0)
     kspace_split=true;
 
@@ -116,8 +118,6 @@ void PPPMGPU::init()
     return;
   }
 
-  PPPM::init();
-  
   // GPU precision specific init.
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");

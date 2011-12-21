@@ -145,7 +145,7 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                           split,success);                        
   if (split==false)
-    PPPMF.device->set_double_precompute(&PPPMD);                         
+    PPPMD.device->set_double_precompute(&PPPMD);                         
   return b;
 }
 
@@ -171,7 +171,7 @@ double pppm_gpu_bytes_d() {
 
 void pppm_gpu_forces_d(double **f) {
   double etmp;
-  PPPMF.atom->data_unavail();
-  PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
+  PPPMD.atom->data_unavail();
+  PPPMD.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
 }
 

@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "universe.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -89,6 +90,7 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 
   density_brick_gpu = vd_brick = NULL;
   kspace_split = false;
+  im_real_space = false;
 }
 
 /* ----------------------------------------------------------------------
@@ -106,15 +108,20 @@ PPPMGPU::~PPPMGPU()
 
 void PPPMGPU::init()
 {
+  if (strcmp(update->integrate_style,"verlet/split") == 0)
+    kspace_split=true;
+
+  if (kspace_split && universe->iworld == 0) {
+    im_real_space = true;
+    return;
+  }
+
   PPPM::init();
   
   // GPU precision specific init.
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
   PPPM_GPU_API(clear)(poisson_time);
-
-  if (strcmp(update->integrate_style,"verlet/split") == 0)
-    kspace_split=true;
 
   int success;
   FFT_SCALAR *data, *h_brick;
@@ -142,6 +149,9 @@ void PPPMGPU::init()
 
 void PPPMGPU::compute(int eflag, int vflag)
 {
+  if (im_real_space)
+    return;
+
   bool success = true;
   int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal + 
 			     atom->nghost, atom->x, atom->type, success,
@@ -853,3 +863,24 @@ double PPPMGPU::memory_usage()
   bytes += 2 * nbuf * sizeof(double);
   return bytes + PPPM_GPU_API(bytes)();
 }
+
+/* ----------------------------------------------------------------------
+   perform and time the 4 FFTs required for N timesteps
+------------------------------------------------------------------------- */
+
+void PPPMGPU::timing(int n, double &time3d, double &time1d) {
+  if (im_real_space)
+    return;
+  PPPM::timing(n,time3d,time1d);
+}
+
+/* ----------------------------------------------------------------------
+   adjust PPPM coeffs, called initially and whenever volume has changed 
+------------------------------------------------------------------------- */
+
+void PPPMGPU::setup()
+{
+  if (im_real_space)
+    return;
+  PPPM::setup();
+} 

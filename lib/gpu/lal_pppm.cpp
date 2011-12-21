@@ -221,7 +221,6 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
                                  double *host_q, double *boxlo, 
                                  const double delxinv, const double delyinv,
                                  const double delzinv) {
-printf("PERFORMING PRECOMPUTE.");
   acc_timers();
   if (nlocal==0) {
     zero_timers();
@@ -310,9 +309,7 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
     atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
-printf("SPREAD W/O PRECOMPUTE.");
   }
-else printf("SPREAD W/ PRECOMPUTE.");
 
   device->stop_host_timer();
   

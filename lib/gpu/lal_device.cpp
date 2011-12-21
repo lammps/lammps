@@ -56,7 +56,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   if (_device_init)
     return 0;
   _device_init=true;
-  _comm_world=world;
+  _comm_world=replica; //world;
   _comm_replica=replica;
   _first_device=first_gpu;
   _last_device=last_gpu;

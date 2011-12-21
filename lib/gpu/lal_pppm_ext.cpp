@@ -130,7 +130,6 @@ void pppm_gpu_forces_f(double **f) {
   double etmp;
   PPPMF.atom->data_unavail();
   PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
-std::cout << "SYNC.\n";
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
@@ -174,6 +173,5 @@ void pppm_gpu_forces_d(double **f) {
   double etmp;
   PPPMF.atom->data_unavail();
   PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
-std::cout << "SYNC.\n";
 }
 

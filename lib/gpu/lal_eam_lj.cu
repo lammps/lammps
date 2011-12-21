@@ -341,59 +341,63 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp *fp_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype = itype*ntypes+jtype;
-      if (rsq<lj1[mtype].z) {
-        numtyp phi,force_eam,force_lj;
-        numtyp force, r2inv, r6inv;
-        if (rsq<cutforcesq && itype==2 && jtype==2) {
-          numtyp r = ucl_sqrt(rsq);
-          numtyp p = r*rdr + (numtyp)1.0;
-          int m=p;
-          m = MIN(m,nr-1);
-          p -= m;
-          p = MIN(p,(numtyp)1.0);
+      if (rsq<cutforcesq && itype==2 && jtype==2) {
+        numtyp r = ucl_sqrt(rsq);
+        numtyp p = r*rdr + (numtyp)1.0;
+        int m=p;
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,(numtyp)1.0);
         
-          int index = type2rhor_z2r[mtype].x*(nr+1)+m;
-          numtyp4 coeff = fetch_rhor_sp1(index, rhor_spline1); 
-          numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
-
-          int mtypep = jtype*ntypes+itype;
-          index = type2rhor_z2r[mtypep].x*(nr+1)+m;
-          coeff = fetch_rhor_sp1(index, rhor_spline1); 
-          numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
-              
-          index = type2rhor_z2r[mtype].y*(nr+1)+m;
-          coeff = fetch_z2r_sp1(index, z2r_spline1);
-          numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
-          coeff = fetch_z2r_sp2(index, z2r_spline2);
-          numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
+        int index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        numtyp4 coeff = fetch_rhor_sp1(index, rhor_spline1); 
+        numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
         
-          numtyp recip = ucl_recip(r);
-          phi = z2*recip;
-          numtyp phip = z2p*recip - phi*recip;
-          numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip; 
-          force_eam = -psip*recip;
-        } else {
-          force_eam = (numtyp)0.0;
-          phi = (numtyp)0.0;
-        }
+        int mtypep = jtype*ntypes+itype;
+        index = type2rhor_z2r[mtypep].x*(nr+1)+m;
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
+        numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
         
-        if (rsq<lj1[mtype].z && itype==1 || jtype ==1) {
-          r2inv=ucl_recip(rsq);
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-        } else force_lj = (numtyp)0.0;
+        index = type2rhor_z2r[mtype].y*(nr+1)+m;
+        coeff = fetch_z2r_sp1(index, z2r_spline1);
+        numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
+        coeff = fetch_z2r_sp2(index, z2r_spline2);
+        numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
+      
+        numtyp recip = ucl_recip(r);
+        numtyp phi = z2*recip;
+        numtyp phip = z2p*recip - phi*recip;
+        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
+        numtyp force = -psip*recip;
         
-        force = force_eam + force_lj;
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           energy += phi;
-          if (rsq<lj1[mtype].z && itype==1 || jtype ==1) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-            energy+=factor_lj*(e-lj3[mtype].z);
-          } 
+        }
+        if (vflag>0) {
+          virial[0] += delx*delx*force;
+          virial[1] += dely*dely*force;
+          virial[2] += delz*delz*force;
+          virial[3] += delx*dely*force;
+          virial[4] += delx*delz*force;
+          virial[5] += dely*delz*force;
+        }
+      } else if (rsq<lj1[mtype].z && (itype!=2 || jtype !=2)) {
+        numtyp r2inv, r6inv;
+        r2inv=ucl_recip(rsq);
+        r6inv = r2inv*r2inv*r2inv;
+        numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+        
+        f.x+=delx*force;
+        f.y+=dely*force;
+        f.z+=delz*force;
+
+        if (eflag>0) {
+          numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -483,61 +487,63 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
       
       int mtype = itype+jw;
-      if (rsq<lj1[mtype].z) {
-        numtyp phi=(acctyp)0.0;
-        numtyp force_eam=(numtyp)0.0;
-        numtyp force_lj=(numtyp)0.0;
-        numtyp force, r2inv, r6inv;
-        if (rsq<cutforcesq && iw==2 && jw==2) {
-          numtyp r = ucl_sqrt(rsq);
-          numtyp p = r*rdr + (numtyp)1.0;
-          int m=p;
-          m = MIN(m,nr-1);
-          p -= m;
-          p = MIN(p,(numtyp)1.0);
+      if (rsq<cutforcesq && iw==2 && jw==2) {
+        numtyp r = ucl_sqrt(rsq);
+        numtyp p = r*rdr + (numtyp)1.0;
+        int m=p;
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,(numtyp)1.0);
         
-          int index = type2rhor_z2r[mtype].x*(nr+1)+m;
-          numtyp4 coeff = fetch_rhor_sp1(index, rhor_spline1); 
-          numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
+        int index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        numtyp4 coeff = fetch_rhor_sp1(index, rhor_spline1); 
+        numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
         
-          int mtypep = jtype+iw;
-          index = type2rhor_z2r[mtypep].x*(nr+1)+m;
-          coeff = fetch_rhor_sp1(index, rhor_spline1); 
-          numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
+        int mtypep = jtype+iw;
+        index = type2rhor_z2r[mtypep].x*(nr+1)+m;
+        coeff = fetch_rhor_sp1(index, rhor_spline1); 
+        numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
         
-          index = type2rhor_z2r[mtype].y*(nr+1)+m;
-          coeff = fetch_z2r_sp1(index, z2r_spline1);
-          numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
-          coeff = fetch_z2r_sp2(index, z2r_spline2);
-          numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
+        index = type2rhor_z2r[mtype].y*(nr+1)+m;
+        coeff = fetch_z2r_sp1(index, z2r_spline1);
+        numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
+        coeff = fetch_z2r_sp2(index, z2r_spline2);
+        numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       
-          numtyp recip = ucl_recip(r);
-          phi = z2*recip;
-          numtyp phip = z2p*recip - phi*recip;
-          numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
-          force_eam = -psip*recip;
-        } else {
-          force_eam = (numtyp)0.0;
-          phi = (numtyp)0.0;
-        }
+        numtyp recip = ucl_recip(r);
+        numtyp phi = z2*recip;
+        numtyp phip = z2p*recip - phi*recip;
+        numtyp psip = ifp*rhojp + fetch_q(j,fp_)*rhoip + phip;
+        numtyp force = -psip*recip;
         
-        if (rsq<lj1[mtype].z && (iw!=2 || jw !=2)) {
-          r2inv=ucl_recip(rsq);
-          r6inv = r2inv*r2inv*r2inv;
-          force_lj = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-        } else force_lj=(numtyp)0.0;
-      
-        force = force_eam + force_lj;
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           energy += phi;
-          if (rsq<lj1[mtype].z && (iw!=2 || jw !=2)) {
-            numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-            energy+=factor_lj*(e-lj3[mtype].z);
-          } 
+        }
+        if (vflag>0) {
+          virial[0] += delx*delx*force;
+          virial[1] += dely*dely*force;
+          virial[2] += delz*delz*force;
+          virial[3] += delx*dely*force;
+          virial[4] += delx*delz*force;
+          virial[5] += dely*delz*force;
+        }
+      } else if (rsq<lj1[mtype].z && (iw!=2 || jw !=2)) {
+        numtyp r2inv, r6inv;
+        r2inv=ucl_recip(rsq);
+        r6inv = r2inv*r2inv*r2inv;
+        numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+        
+        f.x+=delx*force;
+        f.y+=dely*force;
+        f.z+=delz*force;
+
+        if (eflag>0) {
+          numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

@@ -34,102 +34,33 @@ class DumpImage : public DumpCustom {
 
  private:
   int filetype;
-  int acolor,adiam;
-  double adiamvalue;
-  int atomflag,bondflag;
-  int bcolor,bdiam;
-  double bdiamvalue;
-  int width,height;
-  double theta,phi;
-  char *thetastr,*phistr;
-  int thetavar,phivar;
-  int cflag;
-  double cx,cy,cz;
-  char *cxstr,*cystr,*czstr;
-  int cxvar,cyvar,czvar;
-  double up[3];
-  char *upxstr,*upystr,*upzstr;
-  int upxvar,upyvar,upzvar;
-  double zoom,persp;
-  char *zoomstr,*perspstr;
-  int zoomvar,perspvar;
-  int boxflag,axesflag;
-  double boxdiam,axeslen,axesdiam;
-  double shiny;
-  int ssao,seed;
-  double ssaoint;
+  int acolor,adiam;                // what determines color/diam of atoms
+  double adiamvalue;               // atom diameter value
+  int atomflag,bondflag;           // 0/1 for draw atoms,bonds
+  int bcolor,bdiam;                // what determines color/diam of bonds
+  double bdiamvalue;               // bond diameter value
+  char *thetastr,*phistr;          // variables for view theta,phi
+  int thetavar,phivar;             // index to theta,phi vars
+  int cflag;                       // static/dynamic box center
+  double cx,cy,cz;                 // fractional box center
+  char *cxstr,*cystr,*czstr;       // variables for box center
+  int cxvar,cyvar,czvar;           // index to box center vars
+  char *upxstr,*upystr,*upzstr;    // view up vector variables
+  int upxvar,upyvar,upzvar;        // index to up vector vars
+  char *zoomstr,*perspstr;         // view zoom and perspective variables
+  int zoomvar,perspvar;            // index to zoom,persp vars
+  int boxflag,axesflag;            // 0/1 for draw box and axes
+  double boxdiam,axeslen,axesdiam; // params for drawing box and axes
 
-  int npixels,viewflag;
-  double *depthBuffer,*surfaceBuffer;
-  double *depthcopy,*surfacecopy;
-  char *imageBuffer,*rgbcopy,*writeBuffer;
+  int viewflag;                    // overall view is static or dynamic
 
-  double **bufcopy;
+  double *diamtype,*diamelement,*bdiamtype;         // per-type diameters
+  double **colortype,**colorelement,**bcolortype;   // per-type colors
+
+  class Image *image;              // class that renders each image
+
+  double **bufcopy;                // buffer for communicating bond/atom info
   int maxbufcopy;
-
-  // constant view params
-
-  double FOV;
-  double ambientColor[3];
-
-  double keyLightTheta;
-  double keyLightPhi;
-  double keyLightColor[3];
-
-  double fillLightTheta;
-  double fillLightPhi;
-  double fillLightColor[3];
-
-  double backLightTheta;
-  double backLightPhi;
-  double backLightColor[3];
-
-  double specularHardness;
-  double specularIntensity;
-
-  double SSAORadius;
-  int SSAOSamples;
-  double SSAOJitter;
-
-  // dynamic view params
-
-  double xctr,yctr,zctr,zdist;
-  double tanPerPixel;
-  double camDir[3],camUp[3],camRight[4],camPos[3];
-  double keyLightDir[3],fillLightDir[3],backLightDir[3];
-  double keyHalfDir[3];
-
-  // dump_modify values
-
-  int ncolors;
-  char **username;
-  double **userrgb;
-
-  double *diamtype,*diamelement,*bdiamtype;
-  double **colortype,**colorelement,**bcolortype;
-
-  double *boxcolor;
-  int background[3];
-
-  // color map
-
-  int mstyle,mrange;               // 2-letter style/range of color map
-  int mlo,mhi;                     // bounds = NUMERIC or MINVALUE or MAXVALUE
-  double mlovalue,mhivalue;        // user bounds if NUMERIC
-  double locurrent,hicurrent;      // current bounds for this snapshot
-  double mbinsize,mbinsizeinv;     // bin size for sequential color map
-
-  struct MapEntry {
-    int single,lo,hi;              // NUMERIC or MINVALUE or MAXVALUE
-    double svalue,lvalue,hvalue;   // actual value
-    double *color;                 // RGB values
-  };
-
-  MapEntry *mentry;
-  int nentry;
-  double interpolate[3];
-
-  class RanMars *random;
 
   void init_style();
   int modify_param(int, char **);
@@ -141,34 +72,6 @@ class DumpImage : public DumpCustom {
   void color_minmax();
 
   void create_image();
-
-  // rasterizing methods
-
-  void draw_sphere(double *, double *, double);
-  void draw_cylinder(double *, double *, double *, double, int);
-  void draw_pixel(int, int, double, double *, double*);
-  void compute_SSAO();
-  void write_JPG();
-  void write_PPM();
-
-  double *value2color(double);
-  double *color2rgb(const char *);
-  double *element2color(char *);
-  double element2diam(char *);
-
-  // inlined functions
-
-  inline double saturate(double v) {
-    if (v < 0.0) return 0.0;
-    else if (v > 1.0) return 1.0;
-    else return v;
-  }
-
-  inline double distance(double* a, double* b) {
-    return sqrt((a[0] - b[0]) * (a[0] - b[0]) + 
-		(a[1] - b[1]) * (a[1] - b[1]) + 
-		(a[2] - b[2]) * (a[2] - b[2]));
-  }
 };
 
 }

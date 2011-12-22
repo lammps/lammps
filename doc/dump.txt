@@ -375,6 +375,13 @@ the fix is printed.  If {f_ID\[N\]} is used, then N must be in the
 range from 1-M, which will print the Nth column of the M-length local
 array calculated by the fix.
 
+Here is an example of how to dump bond info for a system,
+including the distance and energy of each bond:
+
+compute 1 all property/local batom1 batom2 btype 
+compute 2 all bond/local dist eng
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] :pre
+
 :line
 
 This section explains the atom attributes that can be specified as

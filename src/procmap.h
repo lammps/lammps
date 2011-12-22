@@ -22,8 +22,9 @@ class ProcMap : protected Pointers {
  public:
   ProcMap(class LAMMPS *);
   ~ProcMap() {}
-  void onelevel_grid(int, int *, int *, int, int, int *);
-  void twolevel_grid(int, int *, int *, int, int *, int *, int, int, int *);
+  void onelevel_grid(int, int *, int *, int, int, int *, int *);
+  void twolevel_grid(int, int *, int *, int, int *, int *, int, int, 
+		     int *, int *);
   void numa_grid(int, int *, int *, int *);
   void custom_grid(char *, int, int *, int *);
   void cart_map(int, int *, int *, int [3][2], int ***);
@@ -46,7 +47,7 @@ class ProcMap : protected Pointers {
   int combine_factors(int, int **, int, int **, int **);
   int cull_2d(int, int **, int);
   int cull_user(int, int **, int, int *);
-  int cull_other(int, int **, int, int, int *);
+  int cull_other(int, int **, int, int, int *, int *);
   int best_factors(int, int **, int *, int, int, int);
   void grid_shift(int, int, int &, int &);
 };

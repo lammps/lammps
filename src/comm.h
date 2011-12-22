@@ -92,6 +92,7 @@ class Comm : protected Pointers {
   int otherflag;                    // 1 if this partition dependent on another
   int other_style;                  // style of dependency
   int other_procgrid[3];            // proc layout of another partition
+  int other_coregrid[3];            // core layout of another partition
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim

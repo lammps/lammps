@@ -69,7 +69,8 @@ void ComputeEventDisplace::init()
 
   if (id_event != NULL) {
     int ifix = modify->find_fix(id_event);
-    if (ifix < 0) error->all(FLERR,"Could not find compute event/displace fix ID");
+    if (ifix < 0) error->all(FLERR,
+			     "Could not find compute event/displace fix ID");
     fix_event = (FixEvent*) modify->fix[ifix];
     
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
@@ -145,7 +146,7 @@ double ComputeEventDisplace::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeEventDisplace::reset_extra_compute_fix(char *id_new)
+void ComputeEventDisplace::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_event;
   id_event = NULL;

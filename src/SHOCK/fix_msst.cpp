@@ -175,8 +175,8 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   char **newarg = new char*[3];
   newarg[0] = id_temp;
-  newarg[1] = "all";
-  newarg[2] = "temp";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
@@ -192,8 +192,8 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   newarg = new char*[4];
   newarg[0] = id_press;
-  newarg[1] = "all";
-  newarg[2] = "pressure";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pressure";
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;

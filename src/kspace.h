@@ -29,7 +29,7 @@ class KSpace : protected Pointers {
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace() {}
   void modify_params(int, char **);
-  void *extract(char *);
+  void *extract(const char *);
 
   virtual void init() = 0;
   virtual void setup() = 0;

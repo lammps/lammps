@@ -95,7 +95,11 @@ E: Fix ID for fix ave/spatial does not exist
 
 Self-explanatory.
 
-E: must define lattice to append_atoms
+E: Must define lattice to append_atoms
+
+UNDOCUMENTED
+
+U: must define lattice to append_atoms
 
 UNDOCUMENTED
 

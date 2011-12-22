@@ -1122,7 +1122,7 @@ double PairLJCutCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJCutCoulLong::extract(char *str, int &dim)
+void *PairLJCutCoulLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;

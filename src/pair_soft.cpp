@@ -299,7 +299,7 @@ double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairSoft::extract(char *str, int &dim)
+void *PairSoft::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"a") == 0) return (void *) prefactor;

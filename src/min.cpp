@@ -750,15 +750,15 @@ double Min::fnorm_inf()
 
 char *Min::stopstrings(int n)
 {
-  char *strings[] = {"max iterations",
-		     "max force evaluations",
-		     "energy tolerance",
-		     "force tolerance",
-		     "search direction is not downhill",
-		     "linesearch alpha is zero",
-		     "forces are zero",
-		     "quadratic factors are zero",
-		     "trust region too small",
-		     "HFTN minimizer error"};
-  return strings[n];
+  const char *strings[] = {"max iterations",
+			   "max force evaluations",
+			   "energy tolerance",
+			   "force tolerance",
+			   "search direction is not downhill",
+			   "linesearch alpha is zero",
+			   "forces are zero",
+			   "quadratic factors are zero",
+			   "trust region too small",
+			   "HFTN minimizer error"};
+  return (char *) strings[n];
 }

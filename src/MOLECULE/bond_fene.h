@@ -53,7 +53,8 @@ class BondFENE : public Bond {
 
 W: FENE bond too long: %ld %d %d %g
 
-UNDOCUMENTED
+A FENE bond has stretched dangerously far.  It's interaction strength
+will be truncated to attempt to prevent the bond from blowing up. :dd
 
 E: Bad FENE bond
 
@@ -70,6 +71,7 @@ Most FENE models need this setting for the special_bonds command.
 
 W: FENE bond too long: %ld %g
 
-UNDOCUMENTED
+A FENE bond has stretched dangerously far.  It's interaction strength
+will be truncated to attempt to prevent the bond from blowing up. :dd
 
 */

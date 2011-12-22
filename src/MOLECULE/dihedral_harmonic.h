@@ -50,7 +50,8 @@ class DihedralHarmonic : public Dihedral {
 
 W: Dihedral problem: %d %ld %d %d %d %d
 
-UNDOCUMENTED
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry. :dd
 
 E: Incorrect args for dihedral coefficients
 

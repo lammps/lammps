@@ -28,7 +28,7 @@ class Velocity : protected Pointers {
  public:
   Velocity(class LAMMPS *);
   void command(int, char **);
-  void init_external(char *);
+  void init_external(const char *);
   void options(int, char **);
   void create(double, int);
 

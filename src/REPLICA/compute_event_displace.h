@@ -30,7 +30,7 @@ class ComputeEventDisplace : public Compute {
   ~ComputeEventDisplace();
   void init();
   double compute_scalar();
-  void reset_extra_compute_fix(char *);
+  void reset_extra_compute_fix(const char *);
 
  private:
   int triclinic;

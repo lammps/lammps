@@ -869,8 +869,11 @@ double PPPMGPU::memory_usage()
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::timing(int n, double &time3d, double &time1d) {
-  if (im_real_space)
+  if (im_real_space) {
+    time3d = 0.0;
+    time1d = 0.0;
     return;
+  }
   PPPM::timing(n,time3d,time1d);
 }
 

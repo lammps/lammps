@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (char *) LAMMPS_VERSION;
+  version = (char *) LAMMPS_VERSION "-ICMS";
 
   uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);

@@ -20,7 +20,6 @@ DumpStyle(image,DumpImage)
 #ifndef LMP_DUMP_IMAGE_H
 #define LMP_DUMP_IMAGE_H
 
-#include "math.h"
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
@@ -69,7 +68,6 @@ class DumpImage : public DumpCustom {
   void box_center();
   void view_params();
   void box_bounds();
-  void color_minmax();
 
   void create_image();
 };

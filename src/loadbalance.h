@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
 LIGGGHTS - LAMMPS Improved for General Granular and Granular Heat
 Transfer Simulations
 

@@ -224,12 +224,12 @@ void PPPMOMP::setup()
 #pragma omp parallel default(none)
 #endif
   {
-    int tid,nn,nnfrom,nnto,nx,ny,nz,kper,lper,mper,k,l,m;
+    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
     double snx,sny,snz,sqk;
     double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
     double sum1,dot1,dot2;
     double numerator,denominator;
-    const double gew2 = g_ewald*g_ewald;
+    const double gew2 = -4.0*g_ewald*g_ewald;
     
     const int nnx = nxhi_fft-nxlo_fft+1;
     const int nny = nyhi_fft-nylo_fft+1;
@@ -238,13 +238,13 @@ void PPPMOMP::setup()
     
     for (m = nzlo_fft; m <= nzhi_fft; m++) {
       
-      mper = m - nz_pppm*(2*m/nz_pppm);
-      snz = sin(0.5*unitkz*mper*zprd_slab/nz_pppm);
+      const double fkzm = fkz[m];
+      snz = sin(0.5*fkzm*zprd_slab/nz_pppm);
       snz *= snz;
 
       for (l = nylo_fft; l <= nyhi_fft; l++) {
-	lper = l - ny_pppm*(2*l/ny_pppm);
-	sny = sin(0.5*unitky*lper*yprd/ny_pppm);
+	const double fkyl = fky[l];
+	sny = sin(0.5*fkyl*yprd/ny_pppm);
 	sny *= sny;
 
 	for (k = nxlo_fft; k <= nxhi_fft; k++) {
@@ -253,42 +253,41 @@ void PPPMOMP::setup()
 	  nn = k-nxlo_fft + nnx*(l-nylo_fft + nny*(m-nzlo_fft));
 	  if ((nn < nnfrom) || (nn >=nnto)) continue;
 
-	  kper = k - nx_pppm*(2*k/nx_pppm);
-	  snx = sin(0.5*unitkx*kper*xprd/nx_pppm);
+	  const double fkxk = fkx[k];
+	  snx = sin(0.5*fkxk*xprd/nx_pppm);
 	  snx *= snx;
       
-	  sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) + 
-	    pow(unitkz*mper,2.0);
+	  sqk = fkxk*fkxk + fkyl*fkyl + fkzm*fkzm;
 
 	  if (sqk != 0.0) {
-	    numerator = form*12.5663706/sqk;
+	    numerator = form*MY_4PI/sqk;
 	    denominator = gf_denom(snx,sny,snz);  
 	    sum1 = 0.0;
 	    for (nx = -nbx; nx <= nbx; nx++) {
-	      qx = unitkx*(kper+nx_pppm*nx);
-	      sx = exp(-.25*pow(qx/g_ewald,2.0));
+	      qx = fkxk + unitkx*nx_pppm*nx;
+	      sx = exp(qx*qx/gew2);
 	      wx = 1.0;
 	      argx = 0.5*qx*xprd/nx_pppm;
 	      if (argx != 0.0) wx = pow(sin(argx)/argx,order);
 	      wx *=wx;
 
 	      for (ny = -nby; ny <= nby; ny++) {
-		qy = unitky*(lper+ny_pppm*ny);
-		sy = exp(-.25*pow(qy/g_ewald,2.0));
+		qy = fkyl + unitky*ny_pppm*ny;
+		sy = exp(qy*qy/gew2);
 		wy = 1.0;
 		argy = 0.5*qy*yprd/ny_pppm;
 		if (argy != 0.0) wy = pow(sin(argy)/argy,order);
 		wy *= wy;
 
 		for (nz = -nbz; nz <= nbz; nz++) {
-		  qz = unitkz*(mper+nz_pppm*nz);
-		  sz = exp(-.25*(qz*qz/gew2));
+		  qz = fkzm + unitkz*nz_pppm*nz;
+		  sz = exp(qz*qz/gew2);
 		  wz = 1.0;
 		  argz = 0.5*qz*zprd_slab/nz_pppm;
 		  if (argz != 0.0) wz = pow(sin(argz)/argz,order);
 		  wz *= wz;
 
-		  dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
+		  dot1 = fkxk*qx + fkyl*qy + fkzm*qz;
 		  dot2 = qx*qx+qy*qy+qz*qz;
 		  sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
 		}

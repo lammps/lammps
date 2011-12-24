@@ -631,27 +631,22 @@ void PPPM::setup()
 	    wx = 1.0;
 	    argx = 0.5*qx*xprd/nx_pppm;
 	    if (argx != 0.0) wx = pow(sin(argx)/argx,order);
-	    wx *=wx;
-
 	    for (ny = -nby; ny <= nby; ny++) {
 	      qy = unitky*(lper+ny_pppm*ny);
 	      sy = exp(-.25*pow(qy/g_ewald,2.0));
 	      wy = 1.0;
 	      argy = 0.5*qy*yprd/ny_pppm;
 	      if (argy != 0.0) wy = pow(sin(argy)/argy,order);
-	      wy *= wy;
-
 	      for (nz = -nbz; nz <= nbz; nz++) {
 		qz = unitkz*(mper+nz_pppm*nz);
 		sz = exp(-.25*pow(qz/g_ewald,2.0));
 		wz = 1.0;
 		argz = 0.5*qz*zprd_slab/nz_pppm;
 		if (argz != 0.0) wz = pow(sin(argz)/argz,order);
-		wz *= wz;
 
 		dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
 		dot2 = qx*qx+qy*qy+qz*qz;
-		sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+		sum1 += (dot1/dot2) * sx*sy*sz * pow(wx*wy*wz,2.0);
 	      }
 	    }
 	  }

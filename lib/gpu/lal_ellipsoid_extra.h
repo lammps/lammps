@@ -194,7 +194,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 ucl_inline numtyp gpu_dot3(const numtyp *v1, const numtyp *v2)
 {
   return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
-}
+};
 
 /* ----------------------------------------------------------------------
    cross product of 2 vectors
@@ -205,7 +205,7 @@ ucl_inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
   ans[0] = v1[1]*v2[2]-v1[2]*v2[1];
   ans[1] = v1[2]*v2[0]-v1[0]*v2[2];
   ans[2] = v1[0]*v2[1]-v1[1]*v2[0];
-}
+};
 
 /* ----------------------------------------------------------------------
    determinant of a matrix
@@ -217,7 +217,7 @@ ucl_inline numtyp gpu_det3(const numtyp m[9])
     m[3]*m[1]*m[8] + m[3]*m[2]*m[7] + 
     m[6]*m[1]*m[5] - m[6]*m[2]*m[4];
   return ans;
-}
+};
 
 /* ----------------------------------------------------------------------
    diagonal matrix times a full matrix
@@ -235,7 +235,7 @@ ucl_inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9],
   ans[6] = shape.z*m[6];
   ans[7] = shape.z*m[7];
   ans[8] = shape.z*m[8];
-}
+};
 
 /* ----------------------------------------------------------------------
    add two matrices
@@ -252,7 +252,7 @@ ucl_inline void gpu_plus3(const numtyp m[9], const numtyp m2[9], numtyp ans[9])
   ans[6] = m[6]+m2[6];
   ans[7] = m[7]+m2[7];
   ans[8] = m[8]+m2[8];
-}
+};
 
 /* ----------------------------------------------------------------------
    multiply the transpose of mat1 times mat2
@@ -270,7 +270,7 @@ ucl_inline void gpu_transpose_times3(const numtyp m[9], const numtyp m2[9],
   ans[6] = m[2]*m2[0]+m[5]*m2[3]+m[8]*m2[6];
   ans[7] = m[2]*m2[1]+m[5]*m2[4]+m[8]*m2[7];
   ans[8] = m[2]*m2[2]+m[5]*m2[5]+m[8]*m2[8];
-}
+};
 
 /* ----------------------------------------------------------------------
    row vector times matrix
@@ -281,7 +281,7 @@ ucl_inline void gpu_row_times3(const numtyp *v, const numtyp m[9], numtyp *ans)
   ans[0] = m[0]*v[0]+v[1]*m[3]+v[2]*m[6];
   ans[1] = v[0]*m[1]+m[4]*v[1]+v[2]*m[7];
   ans[2] = v[0]*m[2]+v[1]*m[5]+m[8]*v[2];
-}
+};
 
 /* ----------------------------------------------------------------------
    solve Ax = b or M ans = v
@@ -401,7 +401,7 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
   t += aug[1]*ans[1];
   t += aug[2]*ans[2];
   ans[0] = (aug[3]-t) / aug[0];
-}
+};
 
 /* ----------------------------------------------------------------------
    compute rotation matrix from quaternion conjugate
@@ -435,7 +435,7 @@ ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
   mat[2] = twoik-twojw;
   mat[5] = twojk+twoiw;
   mat[8] = w2-i2-j2+k2;
-}
+};
 
 /* ----------------------------------------------------------------------
    transposed matrix times diagonal matrix
@@ -453,7 +453,7 @@ ucl_inline void gpu_transpose_times_diag3(const numtyp m[9],
   ans[6] = m[2]*d.x;
   ans[7] = m[5]*d.y;
   ans[8] = m[8]*d.z;
-}
+};
 
 /* ----------------------------------------------------------------------
    multiply mat1 times mat2
@@ -471,7 +471,7 @@ ucl_inline void gpu_times3(const numtyp m[9], const numtyp m2[9],
   ans[6] = m[6]*m2[0] + m[7]*m2[3] + m[8]*m2[6];
   ans[7] = m[6]*m2[1] + m[7]*m2[4] + m[8]*m2[7];
   ans[8] = m[6]*m2[2] + m[7]*m2[5] + m[8]*m2[8];
-}
+};
 
 /* ----------------------------------------------------------------------
    Apply principal rotation generator about x to rotation matrix m
@@ -488,7 +488,7 @@ ucl_inline void gpu_rotation_generator_x(const numtyp m[9], numtyp ans[9])
   ans[6] = 0;
   ans[7] = -m[8];
   ans[8] = m[7];
-}
+};
 
 /* ----------------------------------------------------------------------
    Apply principal rotation generator about y to rotation matrix m
@@ -505,7 +505,7 @@ ucl_inline void gpu_rotation_generator_y(const numtyp m[9], numtyp ans[9])
   ans[6] = m[8];
   ans[7] = 0;
   ans[8] = -m[6];
-}
+};
 
 /* ----------------------------------------------------------------------
    Apply principal rotation generator about z to rotation matrix m
@@ -522,7 +522,7 @@ ucl_inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
   ans[6] = -m[7];
   ans[7] = m[6];
   ans[8] = 0;
-}
+};
 
 /* ----------------------------------------------------------------------
    matrix times vector
@@ -534,6 +534,6 @@ ucl_inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
   ans[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2];
   ans[1] = m[3]*v[0] + m[4]*v[1] + m[5]*v[2];
   ans[2] = m[6]*v[0] + m[7]*v[1] + m[8]*v[2];
-}
+};
 
 #endif

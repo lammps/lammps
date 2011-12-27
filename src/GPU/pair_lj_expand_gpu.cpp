@@ -67,6 +67,7 @@ PairLJExpandGPU::PairLJExpandGPU(LAMMPS *lmp) : PairLJExpand(lmp), gpu_mode(GPU_
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

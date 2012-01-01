@@ -13,24 +13,24 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm/omp,PPPMOMP)
+KSpaceStyle(pppm/cg/omp,PPPMCGOMP)
 
 #else
 
-#ifndef LMP_PPPM_OMP_H
-#define LMP_PPPM_OMP_H
+#ifndef LMP_PPPM_CG_OMP_H
+#define LMP_PPPM_CG_OMP_H
 
-#include "pppm.h"
+#include "pppm_cg.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-  class PPPMOMP : public PPPM, public ThrOMP {
+  class PPPMCGOMP : public PPPMCG, public ThrOMP {
  public:
-  PPPMOMP(class LAMMPS *, int, char **);
-  virtual ~PPPMOMP () {};
-  virtual void setup();
+  PPPMCGOMP(class LAMMPS *, int, char **);
   virtual void compute(int, int);
+  virtual void setup();
+  virtual ~PPPMCGOMP () {};
 
  protected:
   virtual void allocate();

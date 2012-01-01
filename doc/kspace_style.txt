@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/proxy} :ulb,l
+style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/cg/omp} or {pppm/proxy} :ulb,l
   {none} value = none
   {ewald} value = precision
     precision = desired accuracy
@@ -31,6 +31,9 @@ style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or
     precision = desired accuracy
   {pppm/omp} value = precision
     precision = desired accuracy
+  {pppm/cg/omp} value = precision (smallq)
+    precision = desired accuracy
+    smallq = cutoff for charges to be considered (optional) (charge units)
   {pppm/proxy} value = precision
     precision = desired accuracy :pre
 :ule

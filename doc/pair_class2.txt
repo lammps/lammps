@@ -17,6 +17,7 @@ pair_style lj/class2/coul/long command :h3
 pair_style lj/class2/coul/long/cuda command :h3
 pair_style lj/class2/coul/long/gpu command :h3
 pair_style lj/class2/coul/long/omp command :h3
+pair_style lj/class2/coul/pppm/omp command :h3
 
 [Syntax:]
 

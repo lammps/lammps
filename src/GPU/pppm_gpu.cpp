@@ -84,6 +84,7 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
   density_brick_gpu = vd_brick = NULL;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

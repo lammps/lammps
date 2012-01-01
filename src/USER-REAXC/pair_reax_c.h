@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -44,7 +44,7 @@ class PairReaxC : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  void *extract(char *, int &);
+  void *extract(const char *, int &);
 
  private:
   reax_system *system;

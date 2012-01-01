@@ -453,7 +453,7 @@ double PairLJSDK::single(int, int, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSDK::extract(char *str, int &dim)
+void *PairLJSDK::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;

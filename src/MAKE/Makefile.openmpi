@@ -7,11 +7,13 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized -ggdb -gdwarf-2
+CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
+			-march=native -ffast-math -mpc64 -finline-functions \
+			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-M
 LINK =		mpic++
-LINKFLAGS =	-O -ggdb -gdwarf-2
-LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
+LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
+LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size
@@ -24,7 +26,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16 -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -33,7 +35,7 @@ LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       
+MPI_INC =       -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
 MPI_LIB =	
 
@@ -44,9 +46,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_FFTW -DFFT_SINGLE -DFFTW_SIZE
 FFT_PATH = 
-FFT_LIB =	-lfftw
+FFT_LIB =	-lsfftw
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)
@@ -55,9 +57,9 @@ FFT_LIB =	-lfftw
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC =       
+JPG_INC =      
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

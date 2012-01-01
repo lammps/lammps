@@ -111,6 +111,7 @@ void PairDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    qtmp = q[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];

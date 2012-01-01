@@ -27,6 +27,7 @@ int main(int argc, char **argv)
   MPI_Init(&argc,&argv);
 
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+
   lammps->input->file();
   delete lammps;
 

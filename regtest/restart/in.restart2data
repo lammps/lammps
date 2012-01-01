@@ -1,0 +1,27 @@
+
+variable pstyle index coul_cut coul_diel coul_long gauss gauss_cut lj_cut lj_sdk
+label pstyle_non
+
+variable newtn index on
+variable astyle index full
+
+include common-1.inc
+
+next pstyle
+jump SELF pstyle_non
+
+#############################################################
+
+variable pstyle index tersoff tersoff_table
+label pstyle_noff
+
+variable newtn index on
+variable astyle index full
+
+include common-1.inc
+
+next pstyle
+jump SELF pstyle_noff
+
+#############################################################
+

@@ -18,12 +18,16 @@
 #include "pppm_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
 #include "memory.h"
+#include "math_const.h"
 
 #include <string.h>
+#include <math.h>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -32,6 +36,8 @@ using namespace LAMMPS_NS;
 #define ZEROF 0.0
 #define ONEF  1.0
 #endif
+
+#define EPS_HOC 1.0e-7
 
 /* ---------------------------------------------------------------------- */
 
@@ -121,6 +127,185 @@ void PPPMOMP::deallocate()
     memory->destroy2d_offset(rho1d_thr,-order/2);
   }
 }
+
+/* ----------------------------------------------------------------------
+   adjust PPPM coeffs, called initially and whenever volume has changed 
+------------------------------------------------------------------------- */
+
+void PPPMOMP::setup()
+{
+  int i,j,k,n;
+  double *prd;
+
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+    
+  delxinv = nx_pppm/xprd;
+  delyinv = ny_pppm/yprd;
+  delzinv = nz_pppm/zprd_slab;
+
+  delvolinv = delxinv*delyinv*delzinv;
+
+  const double unitkx = (2.0*MY_PI/xprd);
+  const double unitky = (2.0*MY_PI/yprd);
+  const double unitkz = (2.0*MY_PI/zprd_slab);
+
+  // fkx,fky,fkz for my FFT grid pts
+
+  double per;
+
+  for (i = nxlo_fft; i <= nxhi_fft; i++) {
+    per = i - nx_pppm*(2*i/nx_pppm);
+    fkx[i] = unitkx*per;
+  }
+
+  for (i = nylo_fft; i <= nyhi_fft; i++) {
+    per = i - ny_pppm*(2*i/ny_pppm);
+    fky[i] = unitky*per;
+  }
+
+  for (i = nzlo_fft; i <= nzhi_fft; i++) {
+    per = i - nz_pppm*(2*i/nz_pppm);
+    fkz[i] = unitkz*per;
+  }
+
+  // virial coefficients
+
+  double sqk,vterm;
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++) {
+    for (j = nylo_fft; j <= nyhi_fft; j++) {
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+	sqk = fkx[i]*fkx[i] + fky[j]*fky[j] + fkz[k]*fkz[k];
+	if (sqk == 0.0) {
+	  vg[n][0] = 0.0;
+	  vg[n][1] = 0.0;
+	  vg[n][2] = 0.0;
+	  vg[n][3] = 0.0;
+	  vg[n][4] = 0.0;
+	  vg[n][5] = 0.0;
+	} else {
+	  vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+	  vg[n][0] = 1.0 + vterm*fkx[i]*fkx[i];
+	  vg[n][1] = 1.0 + vterm*fky[j]*fky[j];
+	  vg[n][2] = 1.0 + vterm*fkz[k]*fkz[k];
+	  vg[n][3] = vterm*fkx[i]*fky[j];
+	  vg[n][4] = vterm*fkx[i]*fkz[k];
+	  vg[n][5] = vterm*fky[j]*fkz[k];
+	}
+	n++;
+      }
+    }
+  }
+
+  // modified (Hockney-Eastwood) Coulomb Green's function
+
+  const int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+  const int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+  const int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+
+  const double form = 1.0;
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
+    double snx,sny,snz,sqk;
+    double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+    double sum1,dot1,dot2;
+    double numerator,denominator;
+    const double gew2 = -4.0*g_ewald*g_ewald;
+    
+    const int nnx = nxhi_fft-nxlo_fft+1;
+    const int nny = nyhi_fft-nylo_fft+1;
+    
+    loop_setup_thr(nnfrom, nnto, tid, nfft, comm->nthreads);
+    
+    for (m = nzlo_fft; m <= nzhi_fft; m++) {
+      
+      const double fkzm = fkz[m];
+      snz = sin(0.5*fkzm*zprd_slab/nz_pppm);
+      snz *= snz;
+
+      for (l = nylo_fft; l <= nyhi_fft; l++) {
+	const double fkyl = fky[l];
+	sny = sin(0.5*fkyl*yprd/ny_pppm);
+	sny *= sny;
+
+	for (k = nxlo_fft; k <= nxhi_fft; k++) {
+
+	  /* only compute the part designated to this thread */
+	  nn = k-nxlo_fft + nnx*(l-nylo_fft + nny*(m-nzlo_fft));
+	  if ((nn < nnfrom) || (nn >=nnto)) continue;
+
+	  const double fkxk = fkx[k];
+	  snx = sin(0.5*fkxk*xprd/nx_pppm);
+	  snx *= snx;
+      
+	  sqk = fkxk*fkxk + fkyl*fkyl + fkzm*fkzm;
+
+	  if (sqk != 0.0) {
+	    numerator = form*MY_4PI/sqk;
+	    denominator = gf_denom(snx,sny,snz);  
+	    sum1 = 0.0;
+	    for (nx = -nbx; nx <= nbx; nx++) {
+	      qx = fkxk + unitkx*nx_pppm*nx;
+	      sx = exp(qx*qx/gew2);
+	      wx = 1.0;
+	      argx = 0.5*qx*xprd/nx_pppm;
+	      if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+	      wx *=wx;
+
+	      for (ny = -nby; ny <= nby; ny++) {
+		qy = fkyl + unitky*ny_pppm*ny;
+		sy = exp(qy*qy/gew2);
+		wy = 1.0;
+		argy = 0.5*qy*yprd/ny_pppm;
+		if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+		wy *= wy;
+
+		for (nz = -nbz; nz <= nbz; nz++) {
+		  qz = fkzm + unitkz*nz_pppm*nz;
+		  sz = exp(qz*qz/gew2);
+		  wz = 1.0;
+		  argz = 0.5*qz*zprd_slab/nz_pppm;
+		  if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+		  wz *= wz;
+
+		  dot1 = fkxk*qx + fkyl*qy + fkzm*qz;
+		  dot2 = qx*qx+qy*qy+qz*qz;
+		  sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+		}
+	      }
+	    }
+	    greensfn[nn] = numerator*sum1/denominator;
+	  } else greensfn[nn] = 0.0;
+	}
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   run the regular toplevel compute method from plain PPPPM 
+   which will have individual methods replaced by our threaded
+   versions and then call the obligatory force reduction.
+------------------------------------------------------------------------- */
 
 void PPPMOMP::compute(int eflag, int vflag)
 {

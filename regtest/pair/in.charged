@@ -1,0 +1,26 @@
+
+variable pstyle index lj_cut_coul_cut-01 lj_cut_coul_cut-02 lj_cut_coul_cut-03 &
+  lj_cut_coul_cut-04 lj_cut_coul_cut-05 lj_cut_coul_cut-06
+label pstyle
+
+#############################################################
+
+variable astyle index charge full
+label astyle
+
+variable sbonds index "lj/coul 1.0 1.0 1.0" "lj/coul 0.5 0.5 0.5" &
+          "lj/coul 0.0 0.0 0.0" "lj 0.0 0.0 0.0" "lj 0.5 0.5 0.5" &
+          "coul 0.0 0.0 0.0" "coul 0.5 0.5 0.5"
+label sbonds
+
+include common-1.inc
+
+next sbonds
+jump SELF sbonds
+
+next astyle
+jump SELF astyle
+
+next pstyle
+jump SELF pstyle
+

@@ -164,7 +164,7 @@ void PairLJCoul::allocate()
    extract protected data from object
 ------------------------------------------------------------------------- */
 
-void *PairLJCoul::extract(char *id, int &dim)
+void *PairLJCoul::extract(const char *id, int &dim)
 {
   char *ids[] = {
     "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",

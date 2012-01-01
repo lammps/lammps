@@ -255,8 +255,8 @@ void TAD::command(int narg, char **arg)
   quench();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start(Timer::LOOP);
+  time_start = timer->get_wall(Timer::LOOP);
   fix_event->store_event_tad(update->ntimestep);
   log_event(0);
   fix_event->restore_state();
@@ -276,8 +276,8 @@ void TAD::command(int narg, char **arg)
   nbuild = ndanger = 0;
   time_neb = time_dynamics = time_quench = time_comm = time_output = 0.0;
 
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start(Timer::LOOP);
+  time_start = timer->get_wall(Timer::LOOP);
   
   int confident_flag, event_flag;
 
@@ -348,10 +348,10 @@ void TAD::command(int narg, char **arg)
     // write restart file of hot coords
 
       if (restart_flag) {
-	timer->barrier_start(TIME_LOOP);
+	timer->barrier_start(Timer::LOOP);
 	output->write_restart(update->ntimestep);
-	timer->barrier_stop(TIME_LOOP);
-	time_output += timer->array[TIME_LOOP];
+	timer->barrier_stop(Timer::LOOP);
+	time_output += timer->get_wall(Timer::LOOP);
       }
     }
 
@@ -382,14 +382,14 @@ void TAD::command(int narg, char **arg)
 
   // set total timers and counters so Finish() will process them
 
-  timer->array[TIME_LOOP] = time_start;
-  timer->barrier_stop(TIME_LOOP);
+  timer->set_wall(Timer::LOOP, time_start);
+  timer->barrier_stop(Timer::LOOP);
 
-  timer->array[TIME_PAIR] = time_neb;
-  timer->array[TIME_BOND] = time_dynamics;
-  timer->array[TIME_KSPACE] = time_quench;
-  timer->array[TIME_COMM] = time_comm;
-  timer->array[TIME_OUTPUT] = time_output;
+  timer->set_wall(Timer::PAIR, time_neb);
+  timer->set_wall(Timer::BOND, time_dynamics);
+  timer->set_wall(Timer::KSPACE, time_quench);
+  timer->set_wall(Timer::COMM, time_comm);
+  timer->set_wall(Timer::OUTPUT, time_output);
 
   neighbor->ncalls = nbuild;
   neighbor->ndanger = ndanger;
@@ -399,12 +399,12 @@ void TAD::command(int narg, char **arg)
       fprintf(universe->uscreen,
 	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
 	      " atoms\n",
-	      timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+	      timer->get_wall(Timer::LOOP),nprocs_universe,nsteps,atom->natoms);
     if (universe->ulogfile) 
       fprintf(universe->ulogfile,
 	      "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT 
 	      " atoms\n",
-              timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::LOOP),nprocs_universe,nsteps,atom->natoms);
   }
 
   if (me_universe == 0) fclose(ulogfile_neb);
@@ -445,10 +445,10 @@ void TAD::dynamics()
   //modify->addstep_compute_all(update->ntimestep);
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   update->integrate->run(t_event);
-  timer->barrier_stop(TIME_LOOP);
-  time_dynamics += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_dynamics += timer->get_wall(Timer::LOOP);
 
   nbuild += neighbor->ncalls - ncalls;
   ndanger += neighbor->ndanger;
@@ -487,10 +487,10 @@ void TAD::quench()
 
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
   update->minimize->run(maxiter);
-  timer->barrier_stop(TIME_LOOP);
-  time_quench += timer->array[TIME_LOOP];
+  timer->barrier_stop(Timer::LOOP);
+  time_quench += timer->get_wall(Timer::LOOP);
 
   if (neighbor->ncalls == ncalls) quench_reneighbor = 0;
   else quench_reneighbor = 1;
@@ -529,14 +529,14 @@ int TAD::check_event()
 
 void TAD::log_event(int ievent)
 {
-  timer->array[TIME_LOOP] = time_start;
+  timer->set_wall(Timer::LOOP, time_start);
   if (universe->me == 0) {
     double tfrac = 0.0;
     if (universe->uscreen)
       fprintf(universe->uscreen,
 	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->event_number,ievent,
 	      "E ",
 	      fix_event->ebarrier,tfrac,
@@ -545,7 +545,7 @@ void TAD::log_event(int ievent)
       fprintf(universe->ulogfile,
 	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->event_number,ievent,
 	      "E ",
 	      fix_event->ebarrier,tfrac,
@@ -557,12 +557,12 @@ void TAD::log_event(int ievent)
   // addstep_compute_all insures eng/virial are calculated if needed
   
   if (output->ndump && universe->iworld == 0) {
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start(Timer::LOOP);
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
     output->write_dump(update->ntimestep);
-    timer->barrier_stop(TIME_LOOP);
-    time_output += timer->array[TIME_LOOP];
+    timer->barrier_stop(Timer::LOOP);
+    time_output += timer->get_wall(Timer::LOOP);
   }
 
 }
@@ -750,10 +750,10 @@ void TAD::perform_neb(int ievent)
   // because timer->array is reset
   // inside neb->run()
 
-//    timer->barrier_start(TIME_LOOP);
+//    timer->barrier_start(Timer::LOOP);
 //    neb->run();
-//    timer->barrier_stop(TIME_LOOP);
-//    time_neb += timer->array[TIME_LOOP];
+//    timer->barrier_stop(Timer::LOOP);
+//    time_neb += timer->get_wall(Timer::LOOP);
 
   MPI_Barrier(world);
   double time_tmp = MPI_Wtime();
@@ -946,7 +946,7 @@ void TAD::compute_tlo(int ievent)
 
   // first-replica output about each event
   
-  timer->array[TIME_LOOP] = time_start;
+  timer->set_wall(Timer::LOOP, time_start);
   if (universe->me == 0) {
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;
@@ -955,7 +955,7 @@ void TAD::compute_tlo(int ievent)
       fprintf(universe->uscreen,
 	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event_list[ievent]->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->event_number,
 	      ievent,statstr,ebarrier,tfrac,
 	      fix_event->tlo,deltlo);
@@ -964,7 +964,7 @@ void TAD::compute_tlo(int ievent)
       fprintf(universe->ulogfile,
 	      BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
 	      fix_event_list[ievent]->event_timestep,
-	      timer->elapsed(TIME_LOOP),
+	      timer->elapsed(Timer::LOOP),
 	      fix_event->event_number,
 	      ievent,statstr,ebarrier,tfrac,
 	      fix_event->tlo,deltlo);

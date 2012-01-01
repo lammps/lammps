@@ -26,7 +26,6 @@ struct _mpi_double_int {
   double value;
   int proc;
 };
-
 typedef struct _mpi_double_int double_int;
 
 /* ---------------------------------------------------------------------- */

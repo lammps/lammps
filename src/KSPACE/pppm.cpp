@@ -1069,31 +1069,6 @@ double PPPM::diffpr(double h_x, double h_y, double h_z, double q2,
 }
 
 /* ----------------------------------------------------------------------
-   denominator for Hockney-Eastwood Green's function
-     of x,y,z = sin(kx*deltax/2), etc
-
-            inf                 n-1
-   S(n,k) = Sum  W(k+pi*j)**2 = Sum b(l)*(z*z)**l
-           j=-inf               l=0
-
-          = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
-   gf_b = denominator expansion coeffs 
-------------------------------------------------------------------------- */
-
-double PPPM::gf_denom(double x, double y, double z)
-{
-  double sx,sy,sz;
-  sz = sy = sx = 0.0;
-  for (int l = order-1; l >= 0; l--) {
-    sx = gf_b[l] + sx*x;
-    sy = gf_b[l] + sy*y;
-    sz = gf_b[l] + sz*z;
-  }
-  double s = sx*sy*sz;
-  return s*s;
-}
-
-/* ----------------------------------------------------------------------
    pre-compute Green's function denominator expansion coeffs, Gamma(2n) 
 ------------------------------------------------------------------------- */
 
@@ -1524,7 +1499,7 @@ void PPPM::particle_map()
 
 void PPPM::make_rho()
 {
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  int l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array

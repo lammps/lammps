@@ -21,16 +21,16 @@ for file in *.cpp *.h; do
   if (test $file = pair_coul_long_gpu.h -a ! -e ../pair_coul_long.cpp) then
     continue
   fi
-  if (test $file = pair_cg_cmm_gpu.cpp -a ! -e ../pair_cg_cmm.cpp) then
+  if (test $file = pair_lj_sdk_gpu.cpp -a ! -e ../pair_lj_sdk.cpp) then
     continue
   fi
-  if (test $file = pair_cg_cmm_gpu.h -a ! -e ../pair_cg_cmm.cpp) then
+  if (test $file = pair_lj_sdk_gpu.h -a ! -e ../pair_lj_sdk.cpp) then
     continue
   fi
-  if (test $file = pair_cg_cmm_coul_long_gpu.cpp -a ! -e ../pair_cg_cmm_coul_long.cpp) then
+  if (test $file = pair_lj_sdk_coul_long_gpu.cpp -a ! -e ../pair_lj_sdk_coul_long.cpp) then
     continue
   fi
-  if (test $file = pair_cg_cmm_coul_long_gpu.h -a ! -e ../pair_cg_cmm_coul_long.cpp) then
+  if (test $file = pair_lj_sdk_coul_long_gpu.h -a ! -e ../pair_lj_sdk_coul_long.cpp) then
     continue
   fi
 

@@ -33,7 +33,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if ((narg < 4) || (narg > 5))
-    error->all("Illegal fix spring/self command");
+    error->all(FLERR,"Illegal fix spring/self command");
 
   restart_peratom = 1;
   scalar_flag = 1;
@@ -59,7 +59,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
       xflag = zflag = 0;
     } else if (strcmp(arg[4],"z") == 0) {
       xflag = yflag = 0;
-    } else error->all("Illegal fix spring/self command");
+    } else error->all(FLERR,"Illegal fix spring/self command");
   }
 
   // perform initial allocation of atom-based array

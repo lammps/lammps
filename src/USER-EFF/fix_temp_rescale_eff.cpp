@@ -39,10 +39,10 @@ enum{NOBIAS,BIAS};
 FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 8) error->all("Illegal fix temp/rescale/eff command");
+  if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix temp/rescale/eff command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
   scalar_flag = 1;
   global_freq = nevery;
@@ -98,7 +98,7 @@ void FixTempRescaleEff::init()
 {
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all("Temperature ID for fix temp/rescale/eff does not exist");
+    error->all(FLERR,"Temperature ID for fix temp/rescale/eff does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;
@@ -111,7 +111,7 @@ void FixTempRescaleEff::end_of_step()
 {
   double t_current = temperature->compute_scalar();
   if (t_current == 0.0)
-    error->all("Computed temperature for fix temp/rescale/eff cannot be 0.0");
+    error->all(FLERR,"Computed temperature for fix temp/rescale/eff cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -167,7 +167,7 @@ void FixTempRescaleEff::end_of_step()
 int FixTempRescaleEff::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp/eff") == 0) {
-    if (narg < 2) error->all("Illegal fix_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -178,13 +178,13 @@ int FixTempRescaleEff::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all("Could not find fix_modify temperature ID");
+    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all("Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning("Group for fix_modify temp != fix group");
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
   }
   return 0;

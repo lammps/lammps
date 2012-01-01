@@ -22,6 +22,7 @@
 			   support for groups
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -53,9 +54,9 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal dump xtc command");
+  if (narg != 5) error->all(FLERR,"Illegal dump xtc command");
   if (binary || compressed || multifile || multiproc)
-    error->all("Invalid dump xtc filename");
+    error->all(FLERR,"Invalid dump xtc filename");
 
   size_one = 3;
   sort_flag = 1;
@@ -69,10 +70,10 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   bigint n = group->count(igroup);
   if (n > MAXSMALLINT/3/sizeof(float)) 
-    error->all("Too many atoms for dump xtc");
+    error->all(FLERR,"Too many atoms for dump xtc");
   natoms = static_cast<int> (n);
 
-  coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+  memory->create(coords,3*natoms,"dump:coords");
 
   // sfactor = conversion of coords to XTC units
   // GROMACS standard is nanometers, not Angstroms
@@ -89,7 +90,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpXTC::~DumpXTC()
 {
-  memory->sfree(coords);
+  memory->destroy(coords);
 
   if (me == 0) {
     xdrclose(&xd);
@@ -102,11 +103,11 @@ DumpXTC::~DumpXTC()
 void DumpXTC::init_style()
 {
   if (sort_flag == 0 || sortcol != 0)
-    error->all("Dump xtc requires sorting by atom ID");
+    error->all(FLERR,"Dump xtc requires sorting by atom ID");
 
   // check that flush_flag is not set since dump::write() will use it
 
-  if (flush_flag) error->all("Cannot set dump_modify flush for dump xtc");
+  if (flush_flag) error->all(FLERR,"Cannot set dump_modify flush for dump xtc");
 
   // check that dump frequency has not changed and is not a variable
 
@@ -114,11 +115,11 @@ void DumpXTC::init_style()
   for (idump = 0; idump < output->ndump; idump++)
     if (strcmp(id,output->dump[idump]->id) == 0) break;
   if (output->every_dump[idump] == 0)
-    error->all("Cannot use variable every setting for dump xtc");
+    error->all(FLERR,"Cannot use variable every setting for dump xtc");
 
   if (nevery_save == 0) nevery_save = output->every_dump[idump];
   else if (nevery_save != output->every_dump[idump])
-    error->all("Cannot change dump_modify every for dump xtc");
+    error->all(FLERR,"Cannot change dump_modify every for dump xtc");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,25 +131,25 @@ void DumpXTC::openfile()
 
   fp = NULL;
   if (me == 0)
-    if (xdropen(&xd,filename,"w") == 0) error->one("Cannot open dump file");
+    if (xdropen(&xd,filename,"w") == 0) error->one(FLERR,"Cannot open dump file");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpXTC::write_header(bigint nbig)
 {
-  if (nbig > MAXSMALLINT) error->all("Too many atoms for dump xtc");
+  if (nbig > MAXSMALLINT) error->all(FLERR,"Too many atoms for dump xtc");
   int n = nbig;
   if (update->ntimestep > MAXSMALLINT)
-    error->all("Too big a timestep for dump xtc");
+    error->all(FLERR,"Too big a timestep for dump xtc");
   int ntimestep = update->ntimestep;
 
   // all procs realloc coords if total count grew
 
   if (n != natoms) {
     natoms = n;
-    memory->sfree(coords);
-    coords = (float *) memory->smalloc(3*natoms*sizeof(float),"dump:coords");
+    memory->destroy(coords);
+    memory->create(coords,3*natoms,"dump:coords");
   }
 
   // only proc 0 writes header
@@ -256,8 +257,6 @@ void DumpXTC::pack(int *ids)
 
 void DumpXTC::write_data(int n, double *mybuf)
 {
-  int j;
-
   // copy buf atom coords into global array
 
   int m = 0;
@@ -282,19 +281,19 @@ void DumpXTC::write_data(int n, double *mybuf)
 int DumpXTC::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"unwrap") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
     else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all("Illegal dump_modify command");
+    else error->all(FLERR,"Illegal dump_modify command");
     return 2;
   } else if (strcmp(arg[0],"precision") == 0) {
-    if (narg < 2) error->all("Illegal dump_modify command");
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     precision = atof(arg[1]);
     if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) && 
 	(fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) && 
 	(fabs(precision-100000.0) > EPS) && 
 	(fabs(precision-1000000.0) > EPS)) 
-      error->all("Illegal dump_modify command");
+      error->all(FLERR,"Illegal dump_modify command");
     return 2;
   }
   return 0;
@@ -304,10 +303,10 @@ int DumpXTC::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-double DumpXTC::memory_usage()
+bigint DumpXTC::memory_usage()
 {
-  double bytes = Dump::memory_usage();
-  bytes += 3*natoms * sizeof(float);
+  bigint bytes = Dump::memory_usage();
+  bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
 

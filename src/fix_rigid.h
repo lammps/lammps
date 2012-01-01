@@ -32,9 +32,11 @@ class FixRigid : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual void initial_integrate(int);
+  void post_force(int);
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
+  virtual double compute_scalar();
 
   double memory_usage();
   void grow_arrays(int);
@@ -50,9 +52,11 @@ class FixRigid : public Fix {
   double compute_array(int, int);
 
  protected:
+  int me,nprocs;
   double dtv,dtf,dtq;
   double *step_respa;
   int triclinic;
+  double MINUSPI,TWOPI;
 
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
@@ -70,6 +74,7 @@ class FixRigid : public Fix {
   int *imagebody;           // image flags of xcm of each rigid body
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
+  double **langextra;       // Langevin thermostat forces and torques
 
   int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords
@@ -78,12 +83,15 @@ class FixRigid : public Fix {
   int **remapflag;          // PBC remap flags for each rigid body
 
   int extended;             // 1 if any particles have extended attributes
+  int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
-  int qorientflag;          // 1 if particles store quat orientation
 
   int *eflags;              // flags for extended particles
-  double **qorient;         // rotation state of ext particle wrt rigid body
+  double **orient;          // orientation vector of particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
+
+  double tfactor;           // scale factor on temperature of rigid bodies
+  int langflag;             // 0/1 = no/yes Langevin thermostat
 
   int tempflag;             // NVT settings
   double t_start,t_stop;
@@ -95,32 +103,15 @@ class FixRigid : public Fix {
   double p_period,p_freq;
   int p_chain;
 
-                            // bitmasks for eflags
-  int INERTIA_SPHERE_RADIUS,INERTIA_SPHERE_SHAPE,INERTIA_ELLIPSOID;
-  int ORIENT_DIPOLE,ORIENT_QUAT;
+  class RanMars *random;
+  class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
+
+  int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
-  int jacobi(double **, double *, double **);
-  void rotate(double **, int, int, int, int, double, double);
-  void q_from_exyz(double *, double *, double *, double *);
-  void exyz_from_q(double *, double *, double *, double *);
-
-  void vecquat(double *, double *, double *);
-  void quatvec(double *, double *, double *);
-  void quatquat(double *, double *, double *);
-  void invquatvec(double *, double *, double *); 
-  void qconjugate(double *, double *);
-  void qnormalize(double *);
-  void matvec_rows(double *, double *, double *, double *, double *);
-  void matvec_cols(double *, double *, double *, double *, double *);
-
-  void richardson(double *, double *, double *, double *,
-		  double *, double *, double *);
   void no_squish_rotate(int, double *, double *, double *, double);
-  void omega_from_angmom(double *, double *, double *,
-			 double *, double *, double *);
-  void angmom_from_omega(double *, double *, double *,
-			 double *, double *, double *);
   void set_xv();
   void set_v();
 };

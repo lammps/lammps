@@ -31,6 +31,8 @@ c     15 = ialloy
 c     16 = mixture_ref_t
 c     17 = erose_form
 c     18 = zbl_meam
+c     19 = emb_lin_neg
+c     20 = bkgd_dyn
 
       subroutine meam_setup_param(which, value, nindex, 
      $     index, errorflag)
@@ -141,6 +143,14 @@ c     18 = zbl_meam
         i1 = min(index(1),index(2))
         i2 = max(index(1),index(2))
         zbl_meam(i1,i2) = value
+
+c     19 = emb_lin_neg
+      else if (which.eq.19) then
+        emb_lin_neg = value
+
+c     20 = bkgd_dyn
+      else if (which.eq.20) then
+        bkgd_dyn = value
 
       else
         errorflag = 1

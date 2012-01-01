@@ -91,6 +91,17 @@ below the z = 0 center plane of the pore (umbrella sampling).  The
 last example holds the ion a distance 5 away from the pore axis
 (assuming the center-of-mass of the pore in x,y is the pore axis).
 </P>
+<P>IMPORTANT NOTE: The center of mass of a group of atoms is calculated
+in "unwrapped" coordinates using atom image flags, which means that
+the group can straddle a periodic boundary.  See the <A HREF = "dump.html">dump</A>
+doc page for a discussion of unwrapped coordinates.  It also means
+that a spring connecting two groups or a group and the tether point
+can cross a periodic boundary and its length be calculated correctly.
+One exception is for rigid bodies, which should not be used with the
+fix spring command, if the rigid body will cross a periodic boundary.
+This is because image flags for rigid bodies are used in a different
+way, as explained on the <A HREF = "doc/fix_rigid.html">fix rigid</A> doc page.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
@@ -101,11 +112,11 @@ fix to add the energy stored in the spring to the system's potential
 energy as part of <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
 <P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#4_15">output commands</A>.  The scalar is the spring
-energy = 0.5 * K * r^2.
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+spring energy = 0.5 * K * r^2.
 </P>
 <P>This fix also computes global 4-vector which can be accessed by
-various <A HREF = "Section_howto.html#4_15">output commands</A>.  The first 3
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The first 3
 quantities in the vector are xyz components of the total force added
 to the group of atoms by the spring.  In the case of the <I>couple</I>
 style, it is the force on the fix group (group-ID) or the negative of

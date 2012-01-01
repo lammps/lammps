@@ -17,11 +17,10 @@ PairStyle(gayberne/gpu,PairGayBerneGPU)
 
 #else
 
-#ifndef LMP_PAIR_GPU_H
-#define LMP_PAIR_GPU_H
+#ifndef LMP_PAIR_GAYBERNE_GPU_H
+#define LMP_PAIR_GAYBERNE_GPU_H
 
 #include "pair_gayberne.h"
-#define MAX_GPU_THREADS 1
 
 namespace LAMMPS_NS {
 
@@ -29,19 +28,19 @@ class PairGayBerneGPU : public PairGayBerne {
  public:
   PairGayBerneGPU(LAMMPS *lmp);
   ~PairGayBerneGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();
 
-  enum { GPU_PAIR, GPU_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
-  int *olist;
   int gpu_mode;
   double cpu_time;
   int *gpulist;
+  int quat_nmax;
+  double **quat;
 };
 
 }

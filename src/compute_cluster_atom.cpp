@@ -29,15 +29,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute cluster/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
   double cutoff = atof(arg[3]);
   cutsq = cutoff*cutoff;
@@ -54,7 +51,7 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeClusterAtom::~ComputeClusterAtom()
 {
-  memory->sfree(clusterID);
+  memory->destroy(clusterID);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,11 +59,11 @@ ComputeClusterAtom::~ComputeClusterAtom()
 void ComputeClusterAtom::init()
 {
   if (atom->tag_enable == 0)
-    error->all("Cannot use compute cluster/atom unless atoms have IDs");
+    error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
   if (force->pair == NULL) 
-    error->all("Compute cluster/atom requires a pair style be defined");
+    error->all(FLERR,"Compute cluster/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce) 
-    error->all("Compute cluster/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute cluster/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID
@@ -82,7 +79,7 @@ void ComputeClusterAtom::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"cluster/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute cluster/atom");
+    error->warning(FLERR,"More than one compute cluster/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,11 +101,10 @@ void ComputeClusterAtom::compute_peratom()
 
   // grow clusterID array if necessary
 
-  if (atom->nlocal > nmax) {
-    memory->sfree(clusterID);
+  if (atom->nlocal+atom->nghost > nmax) {
+    memory->destroy(clusterID);
     nmax = atom->nmax;
-    clusterID = (double *) 
-      memory->smalloc(nmax*sizeof(double),"cluster/atom:clusterID");
+    memory->create(clusterID,nmax,"cluster/atom:clusterID");
     vector_atom = clusterID;
   }
 
@@ -140,7 +136,6 @@ void ComputeClusterAtom::compute_peratom()
   // then check if any proc made changes
 
   double **x = atom->x;
-  int nall = atom->nlocal + atom->nghost;
 
   int change,done,anychange;
 
@@ -163,7 +158,7 @@ void ComputeClusterAtom::compute_peratom()
 	n = 0;
 	for (jj = 0; jj < jnum; jj++) {
 	  j = jlist[jj];
-	  if (j >= nall) j %= nall;
+	  j &= NEIGHMASK;
 	  if (!(mask[j] & groupbit)) continue;
 	  if (clusterID[i] == clusterID[j]) continue;
 	  

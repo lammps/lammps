@@ -14,7 +14,6 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 
@@ -34,6 +33,8 @@ class Modify : protected Pointers {
   int nfix_restart_global;   // stored fix global info from restart file
   int nfix_restart_peratom;  // stored fix peratom info from restart file
 
+  int allow_early_fix;       // 1 if allow fix creation at start of script
+
   class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 
@@ -41,21 +42,22 @@ class Modify : protected Pointers {
   class Compute **compute;
 
   Modify(class LAMMPS *);
-  ~Modify();
-  void init();
-  void setup(int);
-  void setup_pre_force(int);
-  void initial_integrate(int);
-  void post_integrate();
+  virtual ~Modify();
+  virtual void init();
+  virtual void setup(int);
+  virtual void setup_pre_exchange();
+  virtual void setup_pre_force(int);
+  virtual void initial_integrate(int);
+  virtual void post_integrate();
   void pre_decide();
-  void pre_exchange();
-  void pre_neighbor();
-  void pre_force(int);
-  void post_force(int);
-  void final_integrate();
-  void end_of_step();
-  double thermo_energy();
-  void post_run();
+  virtual void pre_exchange();
+  virtual void pre_neighbor();
+  virtual void pre_force(int);
+  virtual void post_force(int);
+  virtual void final_integrate();
+  virtual void end_of_step();
+  virtual double thermo_energy();
+  virtual void post_run();
 
   void setup_pre_force_respa(int, int);
   void initial_integrate_respa(int, int, int);
@@ -79,12 +81,12 @@ class Modify : protected Pointers {
   double max_alpha(double *);
   int min_dof();
 
-  void add_fix(int, char **);
+  void add_fix(int, char **, char *suffix = NULL);
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
 
-  void add_compute(int, char **);
+  void add_compute(int, char **, char *suffix = NULL);
   void modify_compute(int, char **);
   void delete_compute(char *);
   int find_compute(char *);
@@ -96,9 +98,9 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate();
 
-  double memory_usage();
+  bigint memory_usage();
 
- private:
+ protected:
 
   // lists of fixes to apply at different stages of timestep
 

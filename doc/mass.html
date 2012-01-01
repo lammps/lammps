@@ -51,13 +51,13 @@ line that corresponds to the 1st example above would be listed as
 </PRE>
 <P>Note that the mass command can only be used if the <A HREF = "atom_style.html">atom
 style</A> requires per-type atom mass to be set.
-Currently, all but the <I>granular</I> and <I>peri</I> styles do.  They require
-mass to be set for individual particles, not types.  Per-atom masses
-are defined in the data file read by the <A HREF = "read_data.html">read_data</A>
-command, or set to default values by the
+Currently, all but the <I>sphere</I> and <I>ellipsoid</I> and <I>peri</I> styles do.
+They require mass to be set for individual particles, not types.
+Per-atom masses are defined in the data file read by the
+<A HREF = "read_data.html">read_data</A> command, or set to default values by the
 <A HREF = "create_atoms.html">create_atoms</A> command.  Per-atom masses can also be
-set to new values by the <A HREF = "set.html">set diameter</A> or <A HREF = "set.html">set
-density</A> command.
+set to new values by the <A HREF = "set.html">set mass</A> or <A HREF = "set.html">set density</A>
+commands.
 </P>
 <P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> defines the masses of
 atom types in the EAM potential file, in which case the mass command

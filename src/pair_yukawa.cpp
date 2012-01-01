@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp) {}
@@ -35,12 +32,13 @@ PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp) {}
 PairYukawa::~PairYukawa()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(rad);
+    memory->destroy(cut);
+    memory->destroy(a);
+    memory->destroy(offset);
   }
 }
 
@@ -49,11 +47,11 @@ PairYukawa::~PairYukawa()
 void PairYukawa::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor_coul;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  ecoul = 0.0;
+  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -61,8 +59,7 @@ void PairYukawa::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -83,12 +80,8 @@ void PairYukawa::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	j %= nall;
-      }
+      factor = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -103,7 +96,7 @@ void PairYukawa::compute(int eflag, int vflag)
 	screening = exp(-kappa*r);
 	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
-	fpair = factor_coul*forceyukawa * r2inv;
+	fpair = factor*forceyukawa * r2inv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -115,17 +108,17 @@ void PairYukawa::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  ecoul = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-	  ecoul *= factor_coul;
+	  evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
+	  evdwl *= factor;
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -137,16 +130,17 @@ void PairYukawa::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(rad,n+1,"pair:rad");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -155,7 +149,7 @@ void PairYukawa::allocate()
 
 void PairYukawa::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   kappa = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);
@@ -176,7 +170,7 @@ void PairYukawa::settings(int narg, char **arg)
 
 void PairYukawa::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -198,7 +192,7 @@ void PairYukawa::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -312,8 +306,8 @@ double PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
   screening = exp(-kappa*r);
   forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-  fforce = factor_coul*forceyukawa * r2inv;
+  fforce = factor_lj*forceyukawa * r2inv;
 
   phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-  return factor_coul*phi;
+  return factor_lj*phi;
 }

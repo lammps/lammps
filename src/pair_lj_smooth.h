@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLJSmooth : public Pair {
  public:
   PairLJSmooth(class LAMMPS *);
-  ~PairLJSmooth();
-  void compute(int, int);
+  virtual ~PairLJSmooth();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -38,7 +38,7 @@ class PairLJSmooth : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_inner_global,cut_global;
   double **cut,**cut_inner,**cut_inner_sq;
   double **epsilon,**sigma;

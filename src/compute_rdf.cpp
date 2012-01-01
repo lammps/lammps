@@ -28,23 +28,25 @@
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "group.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4 || (narg-4) % 2) error->all("Illegal compute rdf command");
+  if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
 
   array_flag = 1;
   extarray = 0;
 
   nbin = atoi(arg[3]);
-  if (nbin < 1) error->all("Illegal compute rdf command");
+  if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
   if (narg == 4) npairs = 1;
   else npairs = (narg-4)/2;
 
@@ -52,9 +54,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 1 + 2*npairs;
 
   int ntypes = atom->ntypes;
-  rdfpair = memory->create_3d_int_array(npairs,ntypes+1,ntypes+1,
-					"rdf:rdfpair");
-  nrdfpair = memory->create_2d_int_array(ntypes+1,ntypes+1,"rdf:nrdfpair");
+  memory->create(rdfpair,npairs,ntypes+1,ntypes+1,"rdf:rdfpair");
+  memory->create(nrdfpair,ntypes+1,ntypes+1,"rdf:nrdfpair");
   ilo = new int[npairs];
   ihi = new int[npairs];
   jlo = new int[npairs];
@@ -72,7 +73,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       force->bounds(arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
       force->bounds(arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
       if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
-	error->all("Illegal compute rdf command");
+	error->all(FLERR,"Illegal compute rdf command");
       npairs++;
       iarg += 2;
     }
@@ -88,9 +89,9 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       for (j = jlo[m]; j <= jhi[m]; j++)
 	rdfpair[nrdfpair[i][j]++][i][j] = m;
 
-  hist = memory->create_2d_double_array(npairs,nbin,"rdf:hist");
-  histall = memory->create_2d_double_array(npairs,nbin,"rdf:histall");
-  array = memory->create_2d_double_array(nbin,1+2*npairs,"rdf:array");
+  memory->create(hist,npairs,nbin,"rdf:hist");
+  memory->create(histall,npairs,nbin,"rdf:histall");
+  memory->create(array,nbin,1+2*npairs,"rdf:array");
   typecount = new int[ntypes+1];
   icount = new int[npairs];
   jcount = new int[npairs];
@@ -100,15 +101,15 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeRDF::~ComputeRDF()
 {
-  memory->destroy_3d_int_array(rdfpair);
-  memory->destroy_2d_int_array(nrdfpair);
+  memory->destroy(rdfpair);
+  memory->destroy(nrdfpair);
   delete [] ilo;
   delete [] ihi;
   delete [] jlo;
   delete [] jhi;
-  memory->destroy_2d_double_array(hist);
-  memory->destroy_2d_double_array(histall);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(hist);
+  memory->destroy(histall);
+  memory->destroy(array);
   delete [] typecount;
   delete [] icount;
   delete [] jcount;
@@ -121,7 +122,7 @@ void ComputeRDF::init()
   int i,m;
 
   if (force->pair) delr = force->pair->cutforce / nbin;
-  else error->all("Compute rdf requires a pair style be defined");
+  else error->all(FLERR,"Compute rdf requires a pair style be defined");
   delrinv = 1.0/delr;
 
   // set 1st column of output array to bin coords
@@ -179,6 +180,7 @@ void ComputeRDF::compute_array()
   int i,j,m,ii,jj,inum,jnum,itype,jtype,ipair,jpair,ibin,ihisto;
   double xtmp,ytmp,ztmp,delx,dely,delz,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double factor_lj,factor_coul;
 
   invoked_array = update->ntimestep;
 
@@ -200,8 +202,6 @@ void ComputeRDF::compute_array()
   // tally the RDF
   // both atom i and j must be in fix group
   // itype,jtype must have been specified by user
-  // weighting factor must be != 0.0 for this pair
-  //   could be 0 and still be in neigh list for long-range Coulombics
   // consider I,J as one interaction even if neighbor pair is stored on 2 procs
   // tally I,J pair each time I is central atom, and each time J is central
 
@@ -209,7 +209,6 @@ void ComputeRDF::compute_array()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
 
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -227,12 +226,15 @@ void ComputeRDF::compute_array()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-      if (j >= nall) {
-	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0)
-	  continue;
-	j %= nall;
-      }
+      // if both weighting factors are 0, skip this pair
+      // could be 0 and still be in neigh list for long-range Coulombics
+      // want consistency with non-charged pairs which wouldn't be in list
+
+      if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
       if (!(mask[j] & groupbit)) continue;
       jtype = type[j];
@@ -267,10 +269,9 @@ void ComputeRDF::compute_array()
   //   assuming J atoms are at uniform density
 
   double constant,nideal,gr,ncoord,rlower,rupper;
-  double PI = 4.0*atan(1.0);
 
   if (domain->dimension == 3) {
-    constant = 4.0*PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
+    constant = 4.0*MY_PI / (3.0*domain->xprd*domain->yprd*domain->zprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
@@ -289,7 +290,7 @@ void ComputeRDF::compute_array()
     }
 
   } else {
-    constant = PI / (domain->xprd*domain->yprd);
+    constant = MY_PI / (domain->xprd*domain->yprd);
 
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;

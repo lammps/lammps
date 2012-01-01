@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,19 +60,24 @@ class UCL_D_Vec : public UCL_BaseMat {
                    const enum UCL_MEMOPT kind=UCL_READ_WRITE) {
                         
     clear();
-    _kind=kind;
-    _cols=cols;
+
     _row_bytes=cols*sizeof(numtyp);
     int err=_device_alloc(*this,cq,_row_bytes,kind);
-    #ifndef _UCL_DEVICE_PTR_MAT
-    _end=_array+cols;
-    #endif
-    #ifndef UCL_NO_EXIT
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
+      _row_bytes=0;
       exit(1);
+      #endif
+      _row_bytes=0;
+      return err;
     }
+
+    _kind=kind;
+    _cols=cols;
+    #ifndef _UCL_DEVICE_PTR_MAT
+    _end=_array+cols;
     #endif
     #ifdef _OCL_MAT
     _offset=0;
@@ -90,19 +95,23 @@ class UCL_D_Vec : public UCL_BaseMat {
   inline int alloc(const size_t cols, UCL_Device &device,
                    const enum UCL_MEMOPT kind=UCL_READ_WRITE) {
     clear();
-    _kind=kind;
-    _cols=cols;
     _row_bytes=cols*sizeof(numtyp);
     int err=_device_alloc(*this,device,_row_bytes,kind);
-    #ifndef _UCL_DEVICE_PTR_MAT
-    _end=_array+cols;
-    #endif
-    #ifndef UCL_NO_EXIT
     if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
+      _row_bytes=0;
       exit(1);
+      #endif
+      _row_bytes=0;
+      return err;
     }
+
+    _kind=kind;
+    _cols=cols;
+    #ifndef _UCL_DEVICE_PTR_MAT
+    _end=_array+cols;
     #endif
     #ifdef _OCL_MAT
     _offset=0;

@@ -15,3 +15,8 @@ bondConnectCheck.f90: reads the output of fix reax/bonds.
    Compile it using FORTRAN compiler
    To test, run it with bonds.reax
    Contact: Paul Liangliang Huang <lhuang4@ncsu.edu>
+
+reaxc_bond.pl: reads the bonding information in the
+                .trj file produced by pair_style reax/c and
+                outputs molecule counts for each frame.  
+

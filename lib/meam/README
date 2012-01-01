@@ -1,10 +1,38 @@
+This directory has source files to build a library that LAMMPS
+links against when using the MEAM package.
+
+When you are done building this library, two files should
+exist in this directory:
+
+libmeam.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
+
+The latter file will have settings like this (can be omitted if blank):
+
+meam_SYSINC =
+meam_SYSLIB = -lgfortran
+meam_SYSPATH =
+
+SYSINC is for settings needed to compile LAMMPS source files
+SYSLIB is for additional system libraries needed by this package
+SYSPATH is the path(s) to where those libraries are
+
+You must insure these settings are correct for your system, else
+the LAMMPS build will likely fail.
+
+Note that the source files for this library are Fortran.  LAMMPS is
+built with a C++ compiler/linker.  Thus you need to insure the
+settings above enable usage of a Fortran library by a C++ program.
+
+-------------------------------------------------------------------------
+
 MEAM (modified embedded atom method) library
 
 Greg Wagner, Sandia National Labs
 gjwagne at sandia.gov
 Jan 2007
 
---------------
+-------------------------------------------------------------------------
 
 This library is in implementation of the MEAM potential, specifically
 designed to work with LAMMPS.

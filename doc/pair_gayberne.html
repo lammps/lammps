@@ -13,14 +13,13 @@
 </H3>
 <H3>pair_style gayberne/gpu command 
 </H3>
+<H3>pair_style gayberne/omp command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style gayberne gamma upsilon mu cutoff 
 </PRE>
-<PRE>pair_style gayberne/gpu gamma upsilon mu cutoff 
-</PRE>
-<UL><LI>style = <I>gayberne</I> or <I>gayberne/gpu</I>
-<LI>gamma = shift for potential minimum (typically 1)
+<UL><LI>gamma = shift for potential minimum (typically 1)
 <LI>upsilon = exponent for eta orientation-dependent energy function
 <LI>mu = exponent for chi orientation-dependent energy function
 <LI>cutoff = global cutoff for interactions (distance units) 
@@ -28,7 +27,6 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style gayberne 1.0 1.0 1.0 10.0
-pair_style gayberne/gpu 1.0 1.0 1.0 10.0
 pair_coeff * * 1.0 1.7 1.7 3.4 3.4 1.0 1.0 1.0 
 </PRE>
 <P><B>Description:</B>
@@ -47,9 +45,6 @@ particles (h12) and the user-specified shift parameter gamma.  When
 both particles are spherical, the formula reduces to the usual
 Lennard-Jones interaction (see details below for when Gay-Berne treats
 a particle as "spherical").
-</P>
-<P>Style <I>gayberne/gpu</I> is a GPU-enabled version of style <I>gayberne</I>.
-See more details below.
 </P>
 <P>For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -71,9 +66,7 @@ document</A>.
 <I>asphere</I> extension (e.g. <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>) in
 order to integrate particle rotation.  Additionally, <A HREF = "atom_style.html">atom_style
 ellipsoid</A> should be used since it defines the
-rotational state of the ellipsoidal particles.  The size and shape of
-the ellipsoidal particles are defined by the <A HREF = "shape.html">shape</A>
-command.
+rotational state and the size and shape of each ellipsoidal particle.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -94,10 +87,11 @@ commands, or by mixing as described below:
 <P>The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
 </P>
-<P>It is typical for the Gay-Berne potential to define <I>sigma</I> as the
-minimum of the 3 "shape" diameters for a I,I interaction, though this
-is not required.  Note that this is a different meaning for <I>sigma</I>
-than the <A HREF = "pair_resquared.html">pair_style resquared</A> potential uses.
+<P>It is typical with the Gay-Berne potential to define <I>sigma</I> as the
+minimum of the 3 shape diameters of the particles involved in an I,I
+interaction, though this is not required.  Note that this is a
+different meaning for <I>sigma</I> than the <A HREF = "pair_resquared.html">pair_style
+resquared</A> potential uses.
 </P>
 <P>The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
@@ -121,37 +115,44 @@ interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
 </P>
-<P>IMPORTANT NOTE: If the epsilon a,b,c for an atom type are all 1.0, and
-if the shape of the particle is spherical (see the <A HREF = "shape.html">shape</A>
-command), meaning the 3 diameters are all the same, then the particle
-is treated as "spherical" by the Gay-Berne potential.  This is
-significant because if two "spherical" particles interact, then the
-simple Lennard-Jones formula is used to compute their interaction
-energy/force using epsilon and sigma, which is much cheaper to compute
-than the full Gay-Berne formula.  Thus you should insure epsilon a,b,c
-are set to 1.0 for spherical particle types and use epsilon and sigma
-to specify its interaction with other spherical particles.
+<P>IMPORTANT NOTE: If the epsilon a = b = c for an atom type, and if the
+shape of the particle itself is spherical, meaning its 3 shape
+parameters are all the same, then the particle is treated as an LJ
+sphere by the Gay-Berne potential.  This is significant because if two
+LJ spheres interact, then the simple Lennard-Jones formula is used to
+compute their interaction energy/force using the specified epsilon and
+sigma as the standard LJ parameters.  This is much cheaper to compute
+than the full Gay-Berne formula.  To treat the particle as a LJ sphere
+with sigma = D, you should normally set epsilon a = b = c = 1.0, set
+the pair_coeff sigma = D, and also set the 3 shape parameters for the
+particle to D.  The one exception is that if the 3 shape parameters
+are set to 0.0, which is a valid way in LAMMPS to specify a point
+particle, then the Gay-Berne potential will treat that as shape
+parameters of 1.0 (i.e. a LJ particle with sigma = 1), since it
+requires finite-size particles.  In this case you should still set the
+pair_coeff sigma to 1.0 as well.
 </P>
 <HR>
 
-<P>The <I>gayberne/gpu</I> style is identical to the <I>gayberne</I> style, except
-that each processor off-loads its pairwise calculations to a GPU chip.
-Depending on the hardware available on your system this can provide a
-significant speed-up, especially for the relatively expensive
-computations inherent in Gay-Berne interactions.  See the <A HREF = "Section_start.html#2_8">Running on
-GPUs</A> section of the manual for more details
-about hardware and software requirements for using GPUs.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
 </P>
-<P>Additional requirements in your input script to run with style
-<I>gayberne/gpu</I> are as follows:
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
-<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls the
-essential GPU selection and initialization steps.
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -186,19 +187,23 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>gayberne</I> style is part of the "asphere" package.  The
-<I>gayberne/gpu</I> style is part of the "gpu" package.  They are only
-enabled if LAMMPS was built with the those packages.  See the <A HREF = "Section_start.html#2_3">Making
+<P>The <I>gayberne</I> style is part of the ASPHERE package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This pair style requires that atoms store torque and a quaternion to
+<P>These pair style require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
 <A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
 <A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
 diameter.
 </P>
+<P>This pair style requires that atoms be ellipsoids as defined by the
+<A HREF = "atom_style.html">atom_style ellipsoid</A> command.
+</P>
 <P>Particles acted on by the potential can be extended aspherical or
-spherical particles, or point particles.
+spherical particles, or point particles.  Spherical particles have all
+3 of their shape parameters equal to each other.  Point particles have
+all 3 of their shape parameters equal to 0.0.
 </P>
 <P>The Gay-Berne potential does not become isotropic as r increases
 <A HREF = "#Everaers">(Everaers)</A>.  The distance-of-closest-approach

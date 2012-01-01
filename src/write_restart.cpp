@@ -38,9 +38,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 // same as read_restart.cpp and tools/restart2data.cpp
 
 enum{VERSION,SMALLINT,TAGINT,BIGINT,
@@ -56,7 +53,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
        SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
        SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
        XY,XZ,YZ};
-enum{MASS,SHAPE,DIPOLE};
+enum{MASS};
 enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
@@ -76,8 +73,8 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
 void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all("Write_restart command before simulation box is defined");
-  if (narg != 1) error->all("Illegal write_restart command");
+    error->all(FLERR,"Write_restart command before simulation box is defined");
+  if (narg != 1) error->all(FLERR,"Illegal write_restart command");
 
   // if filename contains a "*", replace with current timestep
 
@@ -135,7 +132,7 @@ void WriteRestart::write(char *file)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR) 
-    error->all("Atom count is inconsistent, cannot write restart file");
+    error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
   // check if filename contains "%"
 
@@ -158,7 +155,7 @@ void WriteRestart::write(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open restart file %s",hfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
     if (multiproc) delete [] hfile;
   }
@@ -183,12 +180,8 @@ void WriteRestart::write(char *file)
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
   double *buf;
-  if (me == 0) 
-    buf = (double *) 
-      memory->smalloc(max_size*sizeof(double),"write_restart:buf");
-  else
-    buf = (double *) 
-      memory->smalloc(send_size*sizeof(double),"write_restart:buf");
+  if (me == 0) memory->create(buf,max_size,"write_restart:buf");
+  else memory->create(buf,send_size,"write_restart:buf");
 
   // pack my atom data into buf
 
@@ -288,7 +281,7 @@ void WriteRestart::write(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open restart file %s",perproc);
-      error->one(str);
+      error->one(FLERR,str);
     }
     delete [] perproc;
     fwrite(&send_size,sizeof(int),1,fp);
@@ -296,7 +289,7 @@ void WriteRestart::write(char *file)
     fclose(fp);
   }
     
-  memory->sfree(buf);
+  memory->destroy(buf);
 }
 
 /* ----------------------------------------------------------------------
@@ -397,16 +390,6 @@ void WriteRestart::type_arrays()
     int flag = MASS;
     fwrite(&flag,sizeof(int),1,fp);
     fwrite(&atom->mass[1],sizeof(double),atom->ntypes,fp);
-  }
-  if (atom->shape) {
-    int flag = SHAPE;
-    fwrite(&flag,sizeof(int),1,fp);
-    fwrite(&atom->shape[1][0],sizeof(double),atom->ntypes*3,fp);
-  }
-  if (atom->dipole) {
-    int flag = DIPOLE;
-    fwrite(&flag,sizeof(int),1,fp);
-    fwrite(&atom->dipole[1],sizeof(double),atom->ntypes,fp);
   }
 
   // -1 flag signals end of type arrays

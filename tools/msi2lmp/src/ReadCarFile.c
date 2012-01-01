@@ -12,6 +12,13 @@ void ReadCarFile(void)
    int skip;			/* lines to skip at beginning of file */
    double  lowest, highest;	/* temp coordinate finding variables */
    double total_q;
+   double sq_c;
+	double cos_alpha;  // Added by SLTM Sept 13, 2010
+	double cos_gamma;
+	double sin_gamma;
+	double cos_beta;
+	double sin_beta;
+    double A, B, C;
 
 /* Open .car file for reading */
 
@@ -39,10 +46,12 @@ void ReadCarFile(void)
      fgets(line,MAX_LINE_LENGTH,CarF); /* Date stamp */
       fscanf(CarF,"%*s %lf %lf %lf %lf %lf %lf %*s",
 	     &pbc[0],&pbc[1],&pbc[2],&pbc[3],&pbc[4],&pbc[5]);
-      if(pbc[3] != 90.0 || pbc[4] != 90.0 || pbc[5] != 90.0) {
-         fprintf(stderr,"The system is not rectangular- LAMMPS can't handle it!!");
-         exit(2);
+      
+	  // Added triclinic flag for non-orthogonal boxes Oct 5, 2010 SLTM 
+	  if(pbc[3] != 90.0 || pbc[4] != 90.0 || pbc[5] != 90.0) {
+         TriclinicFlag = 1;
       }
+      else TriclinicFlag = 0;
    }
    else {
       periodic = 0;
@@ -142,23 +151,59 @@ void ReadCarFile(void)
 /* Search coordinates to find lowest and highest for x, y, and z */
 
    if (periodic == 0) {
-     for ( k = 0; k < 3; k++) {
-       lowest  = atoms[0].x[k];
-       highest = atoms[0].x[k];
+    // Added if/else statment STLM Oct 5 2010
+    if (TriclinicFlag == 0)
+    {
+       for ( k = 0; k < 3; k++) {
+           lowest  = atoms[0].x[k];
+           highest = atoms[0].x[k];
 
-       for ( m = 1; m < total_no_atoms; m++) {
-         if (atoms[m].x[k] < lowest)  lowest = atoms[m].x[k];
-         if (atoms[m].x[k] > highest) highest = atoms[m].x[k];
+           for ( m = 1; m < total_no_atoms; m++) {
+               if (atoms[m].x[k] < lowest)  lowest = atoms[m].x[k];
+               if (atoms[m].x[k] > highest) highest = atoms[m].x[k];
+           }
+           pbc[k] = lowest;
+           pbc[k+3] = highest;
        }
-       pbc[k] = lowest;
-       pbc[k+3] = highest;
-     }
+    }
+    else {
+        printf("Code only works for periodic systems with triclinic boxes");
+        exit(2);
+    }
+
    }
    else {
-     for (k=0; k < 3; k++) {
-       pbc[k+3] = pbc[k];
-       pbc[k] = 0.0;
-     }
+       // Modified lines 176 - 201 Oct 5th 2010
+       if (TriclinicFlag == 0) {
+           for (k=0; k < 3; k++) {
+                 pbc[k+3] = pbc[k];
+                 pbc[k] = 0.0;
+           }
+       }
+       else {
+           sq_c = pbc[2]*pbc[2];
+           cos_alpha = cos(pbc[3]*3.14159265358979323846/180.0);
+           cos_gamma = cos(pbc[5]*3.14159265358979323846/180.0);
+           sin_gamma = sin(pbc[5]*3.14159265358979323846/180.0);
+           cos_beta =  cos(pbc[4]*3.14159265358979323846/180.0);
+           sin_beta =  sin(pbc[4]*3.14159265358979323846/180.0);
+           printf("pbc[3] %lf pbc[4] %lf pbc[5] %lf\n", pbc[3] ,pbc[4] ,pbc[5]);
+           printf("cos_alpha %lf cos_beta %lf cos_gamma %lf\n", cos_alpha ,cos_beta ,cos_gamma);
+           A = pbc[0];
+           B = pbc[1];
+           C = pbc[2];
+           
+           
+           pbc[0] = A;
+           pbc[1] = B*sin_gamma;
+           pbc[2] = sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma);
+           pbc[3] = B * cos_gamma; // This is xy SLTM
+           pbc[4] = C * cos_beta; // This is xz SLTM
+           pbc[5] = C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma; // This is yz SLTM
+       }
+
+        
+      
    }
 
 /* Close .car file */

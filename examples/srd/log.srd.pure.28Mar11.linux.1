@@ -1,0 +1,138 @@
+LAMMPS (27 Mar 2011)
+# 2d SRD only test
+
+units		lj
+atom_style	atomic
+atom_modify	first empty
+dimension	2
+
+# create box with big lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.790569) to (15.8114 15.8114 0.790569)
+  1 by 1 by 1 processor grid
+
+# add SRD particles as hi density lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		plane block 0 10 0 10 -0.001 0.001
+lattice		sq 85.0
+Lattice spacing in x,y,z = 0.108465 0.108465 0.108465
+create_atoms	1 region plane
+Created 21316 atoms
+
+group		empty type 2
+0 atoms in group empty
+
+mass		1 0.01
+velocity	all create 1.0 593849 loop geom
+
+# settings - need dummy empty group to enable no communication
+
+neighbor	0.3 bin
+neigh_modify	delay 1 every 1 check no
+
+communicate	single group empty
+
+# timestep is big and SRD frequency is 1
+
+timestep	0.02
+
+fix	        1 all srd 1 NULL 1.0 0.25 49894 collision slip
+fix		2 all enforce2d
+
+# diagnostics
+
+thermo_style	custom step temp f_1[7] etotal press f_1[3] f_1[4] f_1[6]
+thermo		100
+dump		1 all atom 250 dump.srd.pure
+
+run		5000
+SRD info:
+  SRD/big particles = 21316 0
+  big particle diameter max/min = 0 1e+20
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 63 63 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.250974 0.250974 1.58114
+  SRD per actual grid cell = 5.37062
+  SRD viscosity = 0.439647
+  big/SRD mass density ratio = 0
+  # of rescaled SRD velocities = 0
+  ave/max all velocity = 13.2735 24.2873
+Memory usage per processor = 4.08603 Mbytes
+Step Temp 1[7] TotEng Press 1[3] 1[4] 1[6] 
+       0            1            0   0.99995309        85.26            0            0            0 
+     100            1         3969   0.99995309        85.26            0            0            0 
+     200            1         3969   0.99995309        85.26            0            0            0 
+     300            1         3969   0.99995309        85.26            0            0            0 
+     400            1         3969   0.99995309        85.26            0            0            0 
+     500            1         3969   0.99995309        85.26            0            0            0 
+     600            1         3969   0.99995309        85.26            0            0            0 
+     700            1         3969   0.99995309        85.26            0            0            0 
+     800            1         3969   0.99995309        85.26            0            0            0 
+     900            1         3969   0.99995309        85.26            0            0            0 
+    1000            1         3969   0.99995309        85.26            0            0            0 
+    1100            1         3969   0.99995309        85.26            0            0            0 
+    1200            1         3969   0.99995309        85.26            0            0            0 
+    1300            1         3969   0.99995309        85.26            0            0            0 
+    1400            1         3969   0.99995309        85.26            0            0            0 
+    1500            1         3969   0.99995309        85.26            0            0            0 
+    1600            1         3969   0.99995309        85.26            0            0            0 
+    1700            1         3969   0.99995309        85.26            0            0            0 
+    1800            1         3969   0.99995309        85.26            0            0            0 
+    1900            1         3969   0.99995309        85.26            0            0            0 
+    2000            1         3969   0.99995309        85.26            0            0            0 
+    2100            1         3969   0.99995309        85.26            0            0            0 
+    2200            1         3969   0.99995309        85.26            0            0            0 
+    2300            1         3969   0.99995309        85.26            0            0            0 
+    2400            1         3969   0.99995309        85.26            0            0            0 
+    2500            1         3969   0.99995309        85.26            0            0            0 
+    2600            1         3969   0.99995309        85.26            0            0            0 
+    2700            1         3969   0.99995309        85.26            0            0            0 
+    2800            1         3969   0.99995309        85.26            0            0            0 
+    2900            1         3969   0.99995309        85.26            0            0            0 
+    3000            1         3969   0.99995309        85.26            0            0            0 
+    3100            1         3969   0.99995309        85.26            0            0            0 
+    3200            1         3969   0.99995309        85.26            0            0            0 
+    3300            1         3969   0.99995309        85.26            0            0            0 
+    3400            1         3969   0.99995309        85.26            0            0            0 
+    3500            1         3969   0.99995309        85.26            0            0            0 
+    3600            1         3969   0.99995309        85.26            0            0            0 
+    3700            1         3969   0.99995309        85.26            0            0            0 
+    3800            1         3969   0.99995309        85.26            0            0            0 
+    3900            1         3969   0.99995309        85.26            0            0            0 
+    4000            1         3969   0.99995309        85.26            0            0            0 
+    4100            1         3969   0.99995309        85.26            0            0            0 
+    4200            1         3969   0.99995309        85.26            0            0            0 
+    4300            1         3969   0.99995309        85.26            0            0            0 
+    4400            1         3969   0.99995309        85.26            0            0            0 
+    4500            1         3969   0.99995309        85.26            0            0            0 
+    4600            1         3969   0.99995309        85.26            0            0            0 
+    4700            1         3969   0.99995309        85.26            0            0            0 
+    4800            1         3969   0.99995309        85.26            0            0            0 
+    4900            1         3969   0.99995309        85.26            0            0            0 
+    5000            1         3969   0.99995309        85.26            0            0            0 
+Loop time of 10.5758 on 1 procs for 5000 steps with 21316 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 5.91816 (55.9592)
+Comm  time (%) = 0.92819 (8.77652)
+Outpt time (%) = 0.661721 (6.25691)
+Other time (%) = 3.06777 (29.0073)
+
+Nlocal:    21316 ave 21316 max 21316 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 5000
+Dangerous builds = 0

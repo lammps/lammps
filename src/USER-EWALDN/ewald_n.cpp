@@ -44,7 +44,7 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};         // same as in pair.cpp
 
 EwaldN::EwaldN(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg!=1) error->all(KSPACE_ILLEGAL);
+  if (narg!=1) error->all(FLERR,KSPACE_ILLEGAL);
   precision = fabs(atof(arg[0]));
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;
@@ -78,16 +78,15 @@ void EwaldN::init()
   }
 
   if (domain->dimension == 2)				// check for errors
-    error->all("Cannot use EwaldN with 2d simulation");
+    error->all(FLERR,"Cannot use EwaldN with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with EwaldN");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldN");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab EwaldN");
+      error->all(FLERR,"Incorrect boundaries with slab EwaldN");
   }
 
-  qqrd2e = force->qqrd2e;				// check pair_style
   scale = 1.0;
   //mumurd2e = force->mumurd2e;
   //dielectric = force->dielectric;
@@ -98,7 +97,7 @@ void EwaldN::init()
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
   double *cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : NULL;
   if (!(ptr||cutoff)) 
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
   int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : GEOMETRIC;
   memset(function, 0, EWALD_NFUNCS*sizeof(int));
@@ -115,10 +114,10 @@ void EwaldN::init()
 	  if (ewald_mix==GEOMETRIC) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC) { k = 2; break; }
 	  sprintf(str, "%s pair_style %s", KSPACE_MIX, force->pair_style);
-	  error->all(str);
+	  error->all(FLERR,str);
 	default:
 	  sprintf(str, "%s pair_style %s", KSPACE_ORDER, force->pair_style);
-	  error->all(str);
+	  error->all(FLERR,str);
       }
       nfunctions += function[k] = 1;
       nsums += n[k];
@@ -309,7 +308,7 @@ void EwaldN::init_coeffs()				// local pair coeffs
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
     double **sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
-      error->all("epsilon or sigma reference not set by pair style in ewald/n");
+      error->all(FLERR,"epsilon or sigma reference not set by pair style in ewald/n");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};
@@ -353,10 +352,10 @@ void EwaldN::init_coeff_sums()				// sums based on atoms
     }
   }
   if (function[3]) {					// dipole
-    int *type = atom->type, *ntype = type+atom->nlocal;
-    double *dipole = atom->dipole;
-    for (int *i=type; i<ntype; ++i)
-      sum_local[9].x2 += dipole[i[0]]*dipole[i[0]];
+    double **mu = atom->mu;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++)
+      sum_local[9].x2 += mu[i][3]*mu[i][3];
   }
   MPI_Allreduce(sum_local, sum, 2*EWALD_MAX_NSUMS, MPI_DOUBLE, MPI_SUM, world);
 }
@@ -368,9 +367,11 @@ void EwaldN::init_self()
 
   memset(energy_self, 0, EWALD_NFUNCS*sizeof(double));	// self energy
   memset(virial_self, 0, EWALD_NFUNCS*sizeof(double));
+  const double qscale = force->qqrd2e * scale;
+
   if (function[0]) {					// 1/r
-    virial_self[0] = -0.5*M_PI*qqrd2e*scale/(g2*volume)*sum[0].x*sum[0].x;
-    energy_self[0] = sum[0].x2*qqrd2e*scale*g1/sqrt(M_PI)-virial_self[0];
+    virial_self[0] = -0.5*M_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
+    energy_self[0] = sum[0].x2*qscale*g1/sqrt(M_PI)-virial_self[0];
   }
   if (function[1]) {					// geometric 1/r^6
     virial_self[1] = M_PI*sqrt(M_PI)*g3/(6.0*volume)*sum[1].x*sum[1].x;
@@ -413,7 +414,7 @@ void EwaldN::compute_ek()
   complex *cek, zxyz, zxy, cx;
   vector mui;
   double *x = atom->x[0], *xn = x+3*atom->nlocal, *q = atom->q, qi, bi, ci[7];
-  double *dipole = atom->dipole, *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : NULL;
   int i, kx, ky, n = nkvec*nsums, *type = atom->type, tri = domain->triclinic;
   int func[EWALD_NFUNCS];
 
@@ -444,7 +445,8 @@ void EwaldN::compute_ek()
     if (func[2]) memcpy(ci, B+7*type[0], 7*sizeof(double));
     if (func[3]) { 
       memcpy(mui, mu, sizeof(vector)); mu += 3;
-      vec_scalar_mult(mui, dipole[*type]);
+      vec_scalar_mult(mui, mu[3]);
+      mu += 4;
       h = hvec;
     }
     for (k=kvec; k<nk; ++k) {				// compute rho(k)
@@ -482,9 +484,10 @@ void EwaldN::compute_force()
   vector sum[EWALD_MAX_NSUMS], mui;
   complex *cek, zc, zx, zxy;
   double *f = atom->f[0], *fn = f+3*atom->nlocal, *q = atom->q, *t = NULL;
-  double *dipole = atom->dipole, *mu = atom->mu ? atom->mu[0] : NULL;
+  double *mu = atom->mu ? atom->mu[0] : NULL;
+  const double qscale = force->qqrd2e * scale;
   double *ke, c[EWALD_NFUNCS] = {
-    8.0*M_PI*qqrd2e*scale/volume, 2.0*M_PI*sqrt(M_PI)/(12.0*volume),
+    8.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(12.0*volume),
     2.0*M_PI*sqrt(M_PI)/(192.0*volume), 8.0*M_PI*mumurd2e/volume};
   double kt = 4.0*pow(g_ewald, 3.0)/3.0/sqrt(M_PI)/c[3];
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
@@ -500,8 +503,9 @@ void EwaldN::compute_force()
     cek = cek_global;
     memset(sum, 0, EWALD_MAX_NSUMS*sizeof(vector));
     if (func[3]) { 
-      register double di = dipole[*type]*c[3];
+      register double di = mu[3] * c[3];
       mui[0] = di*(mu++)[0]; mui[1] = di*(mu++)[1]; mui[2] = di*(mu++)[2];
+      mu++;
     }
     for (nh = (h = hvec)+nkvec; h<nh; ++h, ++k) {
       if (ky!=k->y) {					// based on order in
@@ -556,20 +560,19 @@ void EwaldN::compute_force()
   }
 }
 
-
 void EwaldN::compute_surface()
 {
   if (!function[3]) return;
 
   vector sum_local = VECTOR_NULL, sum_total;
-  double *mu = atom->mu ? atom->mu[0] : NULL, *dipole = atom->dipole;
-  int *type = atom->type, *ntype = type+atom->nlocal;
+  double **mu = atom->mu;
+  int nlocal = atom->nlocal;
 
-  for (int *i=type; i<ntype; ++i) {
-    register double di = dipole[i[0]];
-    sum_local[0] += di*(mu++)[0];
-    sum_local[1] += di*(mu++)[1];
-    sum_local[2] += di*(mu++)[2];
+  for (int i=0; i < nlocal; i++) {
+    register double di = mu[i][3];
+    sum_local[0] += di*mu[i][0];
+    sum_local[1] += di*mu[i][1];
+    sum_local[2] += di*mu[i][2];
   }
   MPI_Allreduce(sum_local, sum_total, 3, MPI_DOUBLE, MPI_SUM, world);
 
@@ -579,7 +582,6 @@ void EwaldN::compute_surface()
   energy_self[3] -= virial_self[3];
 }
 
-
 void EwaldN::compute_energy(int eflag)
 {
   energy = 0.0;
@@ -587,8 +589,9 @@ void EwaldN::compute_energy(int eflag)
   
   complex *cek = cek_global;
   double *ke = kenergy;
+  const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*M_PI*qqrd2e*scale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
+    4.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
     2.0*M_PI*sqrt(M_PI)/(192.0*volume), 4.0*M_PI*mumurd2e/volume};
   double sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
@@ -625,8 +628,9 @@ void EwaldN::compute_virial(int vflag)
 
   complex *cek = cek_global;
   double *kv = kvirial;
+  const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*M_PI*qqrd2e*scale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
+    4.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
     2.0*M_PI*sqrt(M_PI)/(192.0*volume), 4.0*M_PI*mumurd2e/volume};
   shape sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
@@ -685,14 +689,16 @@ void EwaldN::compute_slabcorr(int eflag)
   
   while ((x+=3)<xn) dipole += *x * *(q++);
   MPI_Allreduce(&dipole, &dipole_all, 1, MPI_DOUBLE, MPI_SUM, world);
+
+  const double qscale = force->qqrd2e * scale;
   
-  double ffact = -4.0*M_PI*qqrd2e*scale*dipole_all/volume;
+  double ffact = -4.0*M_PI*qscale*dipole_all/volume;
   double *f = atom->f[0]-1, *fn = f+3*atom->nlocal-3;
   
   q = atom->q;
   while ((f+=3)<fn) *f += ffact* *(q++);
 
   if (eflag) 						// energy correction
-    energy += qqrd2e*scale*(2.0*M_PI*dipole_all*dipole_all/volume);
+    energy += qscale*(2.0*M_PI*dipole_all*dipole_all/volume);
 }
 

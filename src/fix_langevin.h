@@ -41,13 +41,19 @@ class FixLangevin : public Fix {
   double memory_usage();
 
  protected:
-  int which,tally;
+  int which,tally,zeroflag,oflag,aflag;
   double t_start,t_stop,t_period;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;
+  double tsqrt;
+  int tstyle,tvar;
+  char *tstr;
 
-  int nmax;
+  class AtomVecEllipsoid *avec;
+
+  int maxatom1,maxatom2;
   double **flangevin;
+  double *tforce;
 
   char *id_temp;
   class Compute *temperature;
@@ -57,6 +63,8 @@ class FixLangevin : public Fix {
 
   virtual void post_force_no_tally();
   virtual void post_force_tally();
+  void omega_thermostat();
+  void angmom_thermostat();
 };
 
 }

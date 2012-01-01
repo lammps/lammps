@@ -19,6 +19,7 @@
 namespace LAMMPS_NS {
 
 class KSpace : protected Pointers {
+  friend class ThrOMP;
  public:
   double energy;
   double virial[6];

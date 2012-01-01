@@ -30,15 +30,14 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
 PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
+  restartinfo = 0;
+
   nmax = 0;
   rho = NULL;
   fp = NULL;
@@ -69,24 +68,24 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairEAM::~PairEAM()
 {
-  memory->sfree(rho);
-  memory->sfree(fp);
+  memory->destroy(rho);
+  memory->destroy(fp);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] type2frho;
-    memory->destroy_2d_int_array(type2rhor);
-    memory->destroy_2d_int_array(type2z2r);
+    memory->destroy(type2rhor);
+    memory->destroy(type2z2r);
   }
 
   if (funcfl) {
     for (int i = 0; i < nfuncfl; i++) {
       delete [] funcfl[i].file;
-      memory->sfree(funcfl[i].frho);
-      memory->sfree(funcfl[i].rhor);
-      memory->sfree(funcfl[i].zr);
+      memory->destroy(funcfl[i].frho);
+      memory->destroy(funcfl[i].rhor);
+      memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
   }
@@ -95,9 +94,9 @@ PairEAM::~PairEAM()
     for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
     delete [] setfl->mass;
-    memory->destroy_2d_double_array(setfl->frho);
-    memory->destroy_2d_double_array(setfl->rhor);
-    memory->destroy_3d_double_array(setfl->z2r);
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
+    memory->destroy(setfl->z2r);
     delete setfl;
   }
 
@@ -105,19 +104,19 @@ PairEAM::~PairEAM()
     for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
     delete [] fs->mass;
-    memory->destroy_2d_double_array(fs->frho);
-    memory->destroy_3d_double_array(fs->rhor);
-    memory->destroy_3d_double_array(fs->z2r);
+    memory->destroy(fs->frho);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
     delete fs;
   }
 
-  memory->destroy_2d_double_array(frho);
-  memory->destroy_2d_double_array(rhor);
-  memory->destroy_2d_double_array(z2r);
+  memory->destroy(frho);
+  memory->destroy(rhor);
+  memory->destroy(z2r);
 
-  memory->destroy_3d_double_array(frho_spline);
-  memory->destroy_3d_double_array(rhor_spline);
-  memory->destroy_3d_double_array(z2r_spline);
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,11 +137,11 @@ void PairEAM::compute(int eflag, int vflag)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
   }
 
   double **x = atom->x;
@@ -177,7 +176,7 @@ void PairEAM::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j < nall) ? j : j % nall;
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -243,7 +242,7 @@ void PairEAM::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j < nall) ? j : j % nall;
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -293,14 +292,13 @@ void PairEAM::compute(int eflag, int vflag)
 	}
 
 	if (eflag) evdwl = phi;
-
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
 			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -312,19 +310,19 @@ void PairEAM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
   type2frho = new int[n+1];
-  type2rhor = memory->create_2d_int_array(n+1,n+1,"pair:type2rhor");
-  type2z2r = memory->create_2d_int_array(n+1,n+1,"pair:type2z2r");
+  memory->create(type2rhor,n+1,n+1,"pair:type2rhor");
+  memory->create(type2z2r,n+1,n+1,"pair:type2z2r");
 }
 
 /* ----------------------------------------------------------------------
@@ -333,7 +331,7 @@ void PairEAM::allocate()
 
 void PairEAM::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all("Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -345,7 +343,7 @@ void PairEAM::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3) error->all("Incorrect args for pair coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // parse pair of atom types
 
@@ -385,7 +383,7 @@ void PairEAM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -399,7 +397,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -441,7 +439,7 @@ void PairEAM::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -462,12 +460,9 @@ void PairEAM::read_file(char *filename)
   MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
-  file->frho = (double *) memory->smalloc((file->nrho+1)*sizeof(double),
-					  "pair:frho");
-  file->rhor = (double *) memory->smalloc((file->nr+1)*sizeof(double),
-					  "pair:rhor");
-  file->zr = (double *) memory->smalloc((file->nr+1)*sizeof(double),
-					"pair:zr");
+  memory->create(file->frho,(file->nrho+1),"pair:frho");
+  memory->create(file->rhor,(file->nr+1),"pair:rhor");
+  memory->create(file->zr,(file->nr+1),"pair:zr");
 
   if (me == 0) grab(fptr,file->nrho,&file->frho[1]);
   MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);
@@ -525,8 +520,8 @@ void PairEAM::file2array()
   // nfrho = # of funcfl files + 1 for zero array
   
   nfrho = nfuncfl + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // interpolate each file's frho to a single grid and cutoff
 
@@ -574,8 +569,8 @@ void PairEAM::file2array()
   // nrhor = # of funcfl files
 
   nrhor = nfuncfl;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // interpolate each file's rhor to a single grid and cutoff
 
@@ -616,8 +611,8 @@ void PairEAM::file2array()
   // nz2r = N*(N+1)/2 where N = # of funcfl files
 
   nz2r = nfuncfl*(nfuncfl+1)/2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // create a z2r array for each file against other files, only for I >= J
   // interpolate zri and zrj to a single grid and cutoff
@@ -701,13 +696,13 @@ void PairEAM::array2spline()
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
-  memory->destroy_3d_double_array(frho_spline);
-  memory->destroy_3d_double_array(rhor_spline);
-  memory->destroy_3d_double_array(z2r_spline);
+  memory->destroy(frho_spline);
+  memory->destroy(rhor_spline);
+  memory->destroy(z2r_spline);
 
-  frho_spline = memory->create_3d_double_array(nfrho,nrho+1,7,"pair:frho");
-  rhor_spline = memory->create_3d_double_array(nrhor,nr+1,7,"pair:rhor");
-  z2r_spline = memory->create_3d_double_array(nz2r,nr+1,7,"pair:z2r");
+  memory->create(frho_spline,nfrho,nrho+1,7,"pair:frho");
+  memory->create(rhor_spline,nrhor,nr+1,7,"pair:rhor");
+  memory->create(z2r_spline,nz2r,nr+1,7,"pair:z2r");
 
   for (int i = 0; i < nfrho; i++)
     interpolate(nrho,drho,frho[i],frho_spline[i]);

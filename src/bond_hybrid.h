@@ -29,6 +29,10 @@ class BondHybrid : public Bond {
   friend class Force;
 
  public:
+  int nstyles;                  // # of different bond styles
+  Bond **styles;                // class list for each Bond style
+  char **keywords;              // keyword for each Bond style
+
   BondHybrid(class LAMMPS *);
   ~BondHybrid();
   void compute(int, int);
@@ -42,9 +46,6 @@ class BondHybrid : public Bond {
   double memory_usage();
 
  private:
-  int nstyles;                  // # of different bond styles
-  Bond **styles;                // class list for each Bond style
-  char **keywords;              // keyword for each Bond style
   int *map;                     // which style each bond type points to
 
   int *nbondlist;               // # of bonds in sub-style bondlists

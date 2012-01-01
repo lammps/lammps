@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -57,10 +54,10 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 PairCoulLong::~PairCoulLong()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(scale);
+    memory->destroy(scale);
   }
   if (ftable) free_tables();
 }
@@ -86,7 +83,6 @@ void PairCoulLong::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
@@ -110,12 +106,8 @@ void PairCoulLong::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	j %= nall;
-      }
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -176,7 +168,7 @@ void PairCoulLong::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -188,14 +180,14 @@ void PairCoulLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  scale = memory->create_2d_double_array(n+1,n+1,"pair:scale");
+  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -204,7 +196,7 @@ void PairCoulLong::allocate()
 
 void PairCoulLong::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_coul = force->numeric(arg[0]);
 }
@@ -215,7 +207,7 @@ void PairCoulLong::settings(int narg, char **arg)
 
 void PairCoulLong::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all("Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -231,7 +223,7 @@ void PairCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -240,28 +232,26 @@ void PairCoulLong::coeff(int narg, char **arg)
 
 void PairCoulLong::init_style()
 {
-  int i,j;
-
   if (!atom->q_flag)
-    error->all("Pair style lj/cut/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 
   // set & error check interior rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (cut_coul < cut_respa[3])
-      error->all("Pair cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL) 
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -303,22 +293,22 @@ void PairCoulLong::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;
@@ -502,18 +492,18 @@ void PairCoulLong::read_restart_settings(FILE *fp)
 
 void PairCoulLong::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

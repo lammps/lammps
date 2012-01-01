@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix external command");
+  if (narg != 3) error->all(FLERR,"Illegal fix external command");
 
   callback = NULL;
 
@@ -38,7 +38,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
 
 FixExternal::~FixExternal()
 {
-  memory->destroy_2d_double_array(fexternal);
+  memory->destroy(fexternal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +55,7 @@ int FixExternal::setmask()
 
 void FixExternal::init()
 {
-  if (callback == NULL) error->all("Fix external callback function not set");
+  if (callback == NULL) error->all(FLERR,"Fix external callback function not set");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,9 +77,9 @@ void FixExternal::min_setup(int vflag)
 void FixExternal::post_force(int vflag)
 {
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_double_array(fexternal);
+    memory->destroy(fexternal);
     nmax = atom->nmax;
-    fexternal = memory->create_2d_double_array(nmax,3,"external:fexternal");
+    memory->create(fexternal,nmax,3,"external:fexternal");
   }
 
   // invoke the callback in driver program

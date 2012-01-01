@@ -26,12 +26,12 @@ namespace LAMMPS_NS {
 
 class FixPour : public Fix {
   friend class PairGranHertzHistory;
-  friend class PairGranHooke;
-  friend class PairGranHookeHistory;
-  // support for OpenMP variants
   friend class PairGranHertzHistoryOMP;
+  friend class PairGranHooke;
   friend class PairGranHookeOMP;
+  friend class PairGranHookeHistory;
   friend class PairGranHookeHistoryOMP;
+  friend class PairGranHookeCuda;
 
  public:
   FixPour(class LAMMPS *, int, char **);
@@ -56,7 +56,6 @@ class FixPour : public Fix {
 
   int me,nprocs;
   int *recvcounts,*displs;
-  double PI;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
   class FixShearHistory *fix_history;

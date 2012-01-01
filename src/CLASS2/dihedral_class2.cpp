@@ -26,76 +26,72 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.0000001
 
 /* ---------------------------------------------------------------------- */
 
-DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 DihedralClass2::~DihedralClass2()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(setflag_d);
-    memory->sfree(setflag_mbt);
-    memory->sfree(setflag_ebt);
-    memory->sfree(setflag_at);
-    memory->sfree(setflag_aat);
-    memory->sfree(setflag_bb13t);
+    memory->destroy(setflag);
+    memory->destroy(setflag_d);
+    memory->destroy(setflag_mbt);
+    memory->destroy(setflag_ebt);
+    memory->destroy(setflag_at);
+    memory->destroy(setflag_aat);
+    memory->destroy(setflag_bb13t);
 
-    memory->sfree(k1);
-    memory->sfree(k2);
-    memory->sfree(k3);
-    memory->sfree(phi1);
-    memory->sfree(phi2);
-    memory->sfree(phi3);
+    memory->destroy(k1);
+    memory->destroy(k2);
+    memory->destroy(k3);
+    memory->destroy(phi1);
+    memory->destroy(phi2);
+    memory->destroy(phi3);
 
-    memory->sfree(mbt_f1);
-    memory->sfree(mbt_f2);
-    memory->sfree(mbt_f3);
-    memory->sfree(mbt_r0);
+    memory->destroy(mbt_f1);
+    memory->destroy(mbt_f2);
+    memory->destroy(mbt_f3);
+    memory->destroy(mbt_r0);
 
-    memory->sfree(ebt_f1_1);
-    memory->sfree(ebt_f2_1);
-    memory->sfree(ebt_f3_1);
-    memory->sfree(ebt_r0_1);
+    memory->destroy(ebt_f1_1);
+    memory->destroy(ebt_f2_1);
+    memory->destroy(ebt_f3_1);
+    memory->destroy(ebt_r0_1);
 
-    memory->sfree(ebt_f1_2);
-    memory->sfree(ebt_f2_2);
-    memory->sfree(ebt_f3_2);
-    memory->sfree(ebt_r0_2);
+    memory->destroy(ebt_f1_2);
+    memory->destroy(ebt_f2_2);
+    memory->destroy(ebt_f3_2);
+    memory->destroy(ebt_r0_2);
 
-    memory->sfree(at_f1_1);
-    memory->sfree(at_f2_1);
-    memory->sfree(at_f3_1);
-    memory->sfree(at_theta0_1);
+    memory->destroy(at_f1_1);
+    memory->destroy(at_f2_1);
+    memory->destroy(at_f3_1);
+    memory->destroy(at_theta0_1);
 
-    memory->sfree(at_f1_2);
-    memory->sfree(at_f2_2);
-    memory->sfree(at_f3_2);
-    memory->sfree(at_theta0_2);
+    memory->destroy(at_f1_2);
+    memory->destroy(at_f2_2);
+    memory->destroy(at_f3_2);
+    memory->destroy(at_theta0_2);
 
-    memory->sfree(aat_k);
-    memory->sfree(aat_theta0_1);
-    memory->sfree(aat_theta0_2);
+    memory->destroy(aat_k);
+    memory->destroy(aat_theta0_1);
+    memory->destroy(aat_theta0_2);
 
-    memory->sfree(bb13t_k);
-    memory->sfree(bb13t_r10);
-    memory->sfree(bb13t_r30);
+    memory->destroy(bb13t_k);
+    memory->destroy(bb13t_r10);
+    memory->destroy(bb13t_r30);
   }
 }
 
@@ -214,7 +210,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -565,80 +561,53 @@ void DihedralClass2::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k1");
-  k2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k2");
-  k3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k3");
-  phi1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:phi1");
-  phi2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:phi2");
-  phi3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:phi3");
+  memory->create(k1,n+1,"dihedral:k1");
+  memory->create(k2,n+1,"dihedral:k2");
+  memory->create(k3,n+1,"dihedral:k3");
+  memory->create(phi1,n+1,"dihedral:phi1");
+  memory->create(phi2,n+1,"dihedral:phi2");
+  memory->create(phi3,n+1,"dihedral:phi3");
 
-  mbt_f1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:mbt_f1");
-  mbt_f2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:mbt_f2");
-  mbt_f3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:mbt_f3");
-  mbt_r0 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:mbt_r0");
+  memory->create(mbt_f1,n+1,"dihedral:mbt_f1");
+  memory->create(mbt_f2,n+1,"dihedral:mbt_f2");
+  memory->create(mbt_f3,n+1,"dihedral:mbt_f3");
+  memory->create(mbt_r0,n+1,"dihedral:mbt_r0");
 
-  ebt_f1_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f1_1");
-  ebt_f2_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f2_1");
-  ebt_f3_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f3_1");
-  ebt_r0_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_r0_1");
+  memory->create(ebt_f1_1,n+1,"dihedral:ebt_f1_1");
+  memory->create(ebt_f2_1,n+1,"dihedral:ebt_f2_1");
+  memory->create(ebt_f3_1,n+1,"dihedral:ebt_f3_1");
+  memory->create(ebt_r0_1,n+1,"dihedral:ebt_r0_1");
 
-  ebt_f1_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f1_2");
-  ebt_f2_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f2_2");
-  ebt_f3_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_f3_2");
-  ebt_r0_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:ebt_r0_2");
+  memory->create(ebt_f1_2,n+1,"dihedral:ebt_f1_2");
+  memory->create(ebt_f2_2,n+1,"dihedral:ebt_f2_2");
+  memory->create(ebt_f3_2,n+1,"dihedral:ebt_f3_2");
+  memory->create(ebt_r0_2,n+1,"dihedral:ebt_r0_2");
 
-  at_f1_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f1_1");
-  at_f2_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f2_1");
-  at_f3_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f3_1");
-  at_theta0_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_theta0_1");
+  memory->create(at_f1_1,n+1,"dihedral:at_f1_1");
+  memory->create(at_f2_1,n+1,"dihedral:at_f2_1");
+  memory->create(at_f3_1,n+1,"dihedral:at_f3_1");
+  memory->create(at_theta0_1,n+1,"dihedral:at_theta0_1");
 
-  at_f1_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f1_2");
-  at_f2_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f2_2");
-  at_f3_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_f3_2");
-  at_theta0_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:at_theta0_2");
+  memory->create(at_f1_2,n+1,"dihedral:at_f1_2");
+  memory->create(at_f2_2,n+1,"dihedral:at_f2_2");
+  memory->create(at_f3_2,n+1,"dihedral:at_f3_2");
+  memory->create(at_theta0_2,n+1,"dihedral:at_theta0_2");
 
-  aat_k = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:aat_k");
-  aat_theta0_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:aat_theta0_1");
-  aat_theta0_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:aat_theta0_2");
+  memory->create(aat_k,n+1,"dihedral:aat_k");
+  memory->create(aat_theta0_1,n+1,"dihedral:aat_theta0_1");
+  memory->create(aat_theta0_2,n+1,"dihedral:aat_theta0_2");
 
-  bb13t_k = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:bb13t_k");
-  bb13t_r10 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:bb13t_r10");
-  bb13t_r30 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:bb13t_r30");
+  memory->create(bb13t_k,n+1,"dihedral:bb13t_k");
+  memory->create(bb13t_r10,n+1,"dihedral:bb13t_r10");
+  memory->create(bb13t_r30,n+1,"dihedral:bb13t_r30");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
-  setflag_d = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_d");
-  setflag_mbt = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_mbt");
-  setflag_ebt = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_ebt");
-  setflag_at = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_at");
-  setflag_aat = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_aat");
-  setflag_bb13t = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"dihedral:setflag_bb13t");
+  memory->create(setflag,n+1,"dihedral:setflag");
+  memory->create(setflag_d,n+1,"dihedral:setflag_d");
+  memory->create(setflag_mbt,n+1,"dihedral:setflag_mbt");
+  memory->create(setflag_ebt,n+1,"dihedral:setflag_ebt");
+  memory->create(setflag_at,n+1,"dihedral:setflag_at");
+  memory->create(setflag_aat,n+1,"dihedral:setflag_aat");
+  memory->create(setflag_bb13t,n+1,"dihedral:setflag_bb13t");
   for (int i = 1; i <= n; i++)
     setflag[i] = setflag_d[i] = setflag_mbt[i] = setflag_ebt[i] = 
       setflag_at[i] = setflag_aat[i] = setflag_bb13t[i] = 0;
@@ -656,7 +625,7 @@ void DihedralClass2::allocate()
 
 void DihedralClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Invalid coeffs for this dihedral style");
+  if (narg < 2) error->all(FLERR,"Invalid coeffs for this dihedral style");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -665,7 +634,7 @@ void DihedralClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"mbt") == 0) {
-    if (narg != 6) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_one = force->numeric(arg[2]);
     double f2_one = force->numeric(arg[3]);
@@ -682,7 +651,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ebt") == 0) {
-    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(arg[2]);
     double f2_1_one = force->numeric(arg[3]);
@@ -707,7 +676,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"at") == 0) {
-    if (narg != 10) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(arg[2]);
     double f2_1_one = force->numeric(arg[3]);
@@ -727,14 +696,14 @@ void DihedralClass2::coeff(int narg, char **arg)
       at_f1_2[i] = f1_2_one;
       at_f2_2[i] = f2_2_one;
       at_f3_2[i] = f3_2_one;
-      at_theta0_1[i] = theta0_1_one/180.0 * PI;
-      at_theta0_2[i] = theta0_2_one/180.0 * PI;
+      at_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      at_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
       setflag_at[i] = 1;
       count++;
     }
 
   } else if (strcmp(arg[1],"aat") == 0) {
-    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k_one = force->numeric(arg[2]);
     double theta0_1_one = force->numeric(arg[3]);
@@ -744,14 +713,14 @@ void DihedralClass2::coeff(int narg, char **arg)
     
     for (int i = ilo; i <= ihi; i++) {
       aat_k[i] = k_one;
-      aat_theta0_1[i] = theta0_1_one/180.0 * PI;
-      aat_theta0_2[i] = theta0_2_one/180.0 * PI;
+      aat_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      aat_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
       setflag_aat[i] = 1;
       count++;
     }
 
   } else if (strcmp(arg[1],"bb13") == 0) {
-    if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k_one = force->numeric(arg[2]);
     double r10_one = force->numeric(arg[3]);
@@ -766,7 +735,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 7) error->all("Incorrect args for dihedral coefficients");
+    if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double k1_one = force->numeric(arg[1]);
     double phi1_one = force->numeric(arg[2]);
@@ -779,17 +748,17 @@ void DihedralClass2::coeff(int narg, char **arg)
 
     for (int i = ilo; i <= ihi; i++) {
       k1[i] = k1_one;
-      phi1[i] = phi1_one/180.0 * PI;
+      phi1[i] = phi1_one/180.0 * MY_PI;
       k2[i] = k2_one;
-      phi2[i] = phi2_one/180.0 * PI;
+      phi2[i] = phi2_one/180.0 * MY_PI;
       k3[i] = k3_one;
-      phi3[i] = phi3_one/180.0 * PI;
+      phi3[i] = phi3_one/180.0 * MY_PI;
       setflag_d[i] = 1;
       count++;
     }
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_d[i] == 1 && setflag_mbt[i] == 1 && setflag_ebt[i] == 1 &&

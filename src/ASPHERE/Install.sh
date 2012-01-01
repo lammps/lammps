@@ -1,62 +1,67 @@
 # Install/unInstall package files in LAMMPS
-# for unInstall, also unInstall/Install GPU package if installed
-#   so it will remove GPU files that depend on ASPHERE files,
-#   then replace others
 
 if (test $1 = 1) then
 
-  cp atom_vec_ellipsoid.cpp ..
   cp compute_erotate_asphere.cpp ..
   cp compute_temp_asphere.cpp ..
   cp fix_nh_asphere.cpp ..
   cp fix_nph_asphere.cpp ..
   cp fix_npt_asphere.cpp ..
   cp fix_nve_asphere.cpp ..
+  cp fix_nve_asphere_noforce.cpp ..
+  cp fix_nve_line.cpp ..
+  cp fix_nve_tri.cpp ..
   cp fix_nvt_asphere.cpp ..
   cp pair_gayberne.cpp ..
+  cp pair_line_lj.cpp ..
   cp pair_resquared.cpp ..
+  cp pair_tri_lj.cpp ..
 
-  cp atom_vec_ellipsoid.h ..
   cp compute_erotate_asphere.h ..
   cp compute_temp_asphere.h ..
   cp fix_nh_asphere.h ..
   cp fix_nph_asphere.h ..
   cp fix_npt_asphere.h ..
   cp fix_nve_asphere.h ..
+  cp fix_nve_asphere_noforce.h ..
+  cp fix_nve_line.h ..
+  cp fix_nve_tri.h ..
   cp fix_nvt_asphere.h ..
   cp pair_gayberne.h ..
+  cp pair_line_lj.h ..
   cp pair_resquared.h ..
-
-  if (test -e ../pair_lj_cut_gpu.h) then
-    cd ../GPU; /bin/sh Install.sh 1
-  fi
+  cp pair_tri_lj.h ..
 
 elif (test $1 = 0) then
 
-  rm ../atom_vec_ellipsoid.cpp
-  rm ../compute_erotate_asphere.cpp
-  rm ../compute_temp_asphere.cpp
-  rm ../fix_nh_asphere.cpp
-  rm ../fix_nph_asphere.cpp
-  rm ../fix_npt_asphere.cpp
-  rm ../fix_nve_asphere.cpp
-  rm ../fix_nvt_asphere.cpp
-  rm ../pair_gayberne.cpp
-  rm ../pair_resquared.cpp
+  rm -f ../compute_erotate_asphere.cpp
+  rm -f ../compute_temp_asphere.cpp
+  rm -f ../fix_nh_asphere.cpp
+  rm -f ../fix_nph_asphere.cpp
+  rm -f ../fix_npt_asphere.cpp
+  rm -f ../fix_nve_asphere.cpp
+  rm -f ../fix_nve_asphere_noforce.cpp
+  rm -f ../fix_nve_line.cpp
+  rm -f ../fix_nve_tri.cpp
+  rm -f ../fix_nvt_asphere.cpp
+  rm -f ../pair_gayberne.cpp
+  rm -f ../pair_line_lj.cpp
+  rm -f ../pair_resquared.cpp
+  rm -f ../pair_tri_lj.cpp
 
-  rm ../atom_vec_ellipsoid.h
-  rm ../compute_erotate_asphere.h
-  rm ../compute_temp_asphere.h
-  rm ../fix_nh_asphere.h
-  rm ../fix_nph_asphere.h
-  rm ../fix_npt_asphere.h
-  rm ../fix_nve_asphere.h
-  rm ../fix_nvt_asphere.h
-  rm ../pair_gayberne.h
-  rm ../pair_resquared.h
-
-  if (test -e ../pair_gayberne_gpu.h) then
-    cd ../GPU; /bin/sh Install.sh 0; /bin/sh Install.sh 1
-  fi
+  rm -f ../compute_erotate_asphere.h
+  rm -f ../compute_temp_asphere.h
+  rm -f ../fix_nh_asphere.h
+  rm -f ../fix_nph_asphere.h
+  rm -f ../fix_npt_asphere.h
+  rm -f ../fix_nve_asphere.h
+  rm -f ../fix_nve_asphere_noforce.h
+  rm -f ../fix_nve_line.h
+  rm -f ../fix_nve_tri.h
+  rm -f ../fix_nvt_asphere.h
+  rm -f ../pair_gayberne.h
+  rm -f ../pair_line_lj.h
+  rm -f ../pair_resquared.h
+  rm -f ../pair_tri_lj.h
 
 fi

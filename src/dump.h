@@ -14,7 +14,6 @@
 #ifndef LMP_DUMP_H
 #define LMP_DUMP_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 
@@ -29,6 +28,9 @@ class Dump : protected Pointers {
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int clearstep;             // 1 if dump invokes computes, 0 if not
 
+  int comm_forward;          // size of forward communication (0 if none)
+  int comm_reverse;          // size of reverse communication (0 if none)
+
   // static variable across all Dump objects
 
   static Dump *dumpptr;         // holds a ptr to Dump currently being used
@@ -37,8 +39,14 @@ class Dump : protected Pointers {
   virtual ~Dump();
   void init();
   virtual void write();
+
+  virtual int pack_comm(int, int *, double *, int, int *) {return 0;}
+  virtual void unpack_comm(int, int, double *) {}
+  virtual int pack_reverse_comm(int, int, double *) {return 0;}
+  virtual void unpack_reverse_comm(int, int *, double *) {}
+
   void modify_params(int, char **);
-  virtual double memory_usage();
+  virtual bigint memory_usage();
 
  protected:
   int me,nprocs;             // proc info
@@ -59,6 +67,7 @@ class Dump : protected Pointers {
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
 
+  char boundstr[9];          // encoding of boundary flags
   char *format_default;      // default format string
   char *format_user;         // format string set by user
   char *format;              // format string for the file write
@@ -86,7 +95,6 @@ class Dump : protected Pointers {
   int *ids;                  // list of atom IDs, if sorting on IDs
   double *bufsort;
   int *idsort,*index,*proclist;
-
 
   class Irregular *irregular;
 

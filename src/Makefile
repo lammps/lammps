@@ -1,6 +1,6 @@
 # LAMMPS multiple-machine Makefile
 
-SHELL = /bin/sh
+SHELL = /bin/bash
 #.IGNORE:
 
 # Definitions
@@ -13,12 +13,12 @@ OBJ = 	$(SRC:.cpp=.o)
 
 # Package variables
 
-PACKAGE = asphere class2 colloid dipole dsmc gpu granular \
-	  kspace manybody meam molecule opt peri poems reax replica \
+PACKAGE = asphere class2 colloid dipole fld gpu granular \
+	  kspace manybody mc meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
-PACKUSER = user-ackland user-atc user-cd-eam user-cg-cmm user-eff \
-	   user-ewaldn user-gauss user-imd user-openmp user-reaxc user-smd
+PACKUSER = user-misc user-atc user-awpmd user-cg-cmm \
+	   user-cuda user-eff user-ewaldn user-omp user-reaxc user-sph
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -51,6 +51,7 @@ help:
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
+	@echo 'make package-diff        diff src files against package files'
 	@echo ''
 	@echo 'make machine             build LAMMPS where machine is one of:'
 	@echo ''
@@ -66,10 +67,14 @@ help:
 	@$(SHELL) Make.sh style
 	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
-	@if [ ! -e Makefile.package ]; then make package-regenerate; fi
-	@cp Makefile.package Obj_$@
+	@if [ ! -e Makefile.package ]; \
+	  then cp Makefile.package.empty Makefile.package; fi
+	@if [ ! -e Makefile.package.settings ]; \
+	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
+	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" ../$(EXE)
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
 # Remove machine-specific object files
@@ -94,6 +99,11 @@ tar:
           --exclude=*/.svn
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
+
+# Make MPI STUBS lib
+
+stubs:
+	@cd STUBS; make clean; make
 
 # Update Makefile.lib and Makefile.list
 
@@ -125,6 +135,7 @@ package:
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
+	@echo 'make package-diff        diff src files against package file'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
@@ -145,25 +156,29 @@ no-user:
 	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
 
 yes-%:
+	@if [ ! -e Makefile.package ]; \
+	  then cp Makefile.package.empty Makefile.package; fi
+	@if [ ! -e Makefile.package.settings ]; \
+	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
 	  echo "Package $(@:yes-%=%) does not exist"; \
 	else \
 	  echo "Installing package $(@:yes-%=%)"; \
-	  cd $(YESDIR); $(SHELL) Install.sh 1; \
+	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; $(SHELL) Depend.sh 1; \
 	fi;
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
 	  echo "Package $(@:no-%=%) does not exist"; \
 	else \
-	  echo "Uninstalling package $(@:no-%=%), ignore errors"; \
-	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \
+	  echo "Uninstalling package $(@:no-%=%)"; \
+	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; $(SHELL) Depend.sh 0; \
         fi;
 
-# status = list differences between src and package files
+# status = list src files that differ from package files
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
-# regenerate = regenerate Makefile.package from Makefile.package.empty
+# diff = show differences between src and package files
 
 package-status:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
@@ -180,7 +195,7 @@ package-overwrite:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
 
-package-regenerate:
-	@cp Makefile.package.empty Makefile.package
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p regenerate; done
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p regenerate; done
+package-diff:
+	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
+	@echo ''
+	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done

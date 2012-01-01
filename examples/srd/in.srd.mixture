@@ -1,7 +1,7 @@
 # 2d SRD test: big + small particles
 
 units		lj
-atom_style	colloid
+atom_style	sphere
 atom_modify	first big
 dimension	2
 
@@ -11,11 +11,8 @@ lattice		sq 0.4
 region		box block 0 10 0 10 -0.5 0.5
 create_box	2 box
 create_atoms	1 region box
-mass		1 1.0
-mass		2 0.01
-
-shape		1 1.0 1.0 1.0
-shape		2 0.0 0.0 0.0
+set		type 1 mass 1.0
+set		type 1 diameter 1.0
 
 group		big type 1
 velocity	big create 1.44 87287 loop geom
@@ -44,6 +41,8 @@ lattice		sq 0.4
 region		plane block 0 10 0 10 -0.001 0.001
 lattice		sq 85.0
 create_atoms	2 region plane
+set		type 2 mass 0.01
+set		type 2 diameter 0.0
 
 group		small type 2
 

@@ -20,9 +20,11 @@
 #include "update.h"
 #include "domain.h"
 #include "respa.h"
+#include "math_const.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
 
@@ -31,39 +33,41 @@ enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix gravity command");
+  if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
   time_depend = 1;
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
 
   magnitude = atof(arg[3]);
 
   if (strcmp(arg[4],"chute") == 0) {
-    if (narg != 6) error->all("Illegal fix gravity command");
+    if (narg != 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
     phi = 0.0;
     theta = 180.0 - atof(arg[5]);
   } else if (strcmp(arg[4],"spherical") == 0) {
-    if (narg != 7) error->all("Illegal fix gravity command");
+    if (narg != 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
     phi = atof(arg[5]);
     theta = atof(arg[6]);
   } else if (strcmp(arg[4],"gradient") == 0) {
-    if (narg != 9) error->all("Illegal fix gravity command");
+    if (narg != 9) error->all(FLERR,"Illegal fix gravity command");
     style = GRADIENT;
     phi = atof(arg[5]);
     theta = atof(arg[6]);
     phigrad = atof(arg[7]);
     thetagrad = atof(arg[8]);
   } else if (strcmp(arg[4],"vector") == 0) {
-    if (narg != 8) error->all("Illegal fix gravity command");
+    if (narg != 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
     xdir = atof(arg[5]);
     ydir = atof(arg[6]);
     zdir = atof(arg[7]);
-  } else error->all("Illegal fix gravity command");
+  } else error->all(FLERR,"Illegal fix gravity command");
 
-  double PI = 4.0*atan(1.0);
-  degree2rad = PI/180.0;
+  degree2rad = MY_PI/180.0;
 
   if (style == CHUTE || style == SPHERICAL || style == GRADIENT) {
     if (domain->dimension == 3) {
@@ -90,6 +94,9 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   }
 
   time_origin = update->ntimestep;
+
+  eflag = 0;
+  egrav = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,6 +105,7 @@ int FixGravity::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -106,7 +114,7 @@ int FixGravity::setmask()
 
 void FixGravity::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   dt = update->dt;
@@ -120,7 +128,7 @@ void FixGravity::init()
 
 void FixGravity::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -155,6 +163,7 @@ void FixGravity::post_force(int vflag)
     zacc = magnitude*zgrav;
   }
 
+  double **x = atom->x;
   double **f = atom->f;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -163,6 +172,9 @@ void FixGravity::post_force(int vflag)
   int nlocal = atom->nlocal;
   double massone;
 
+  eflag = 0;
+  egrav = 0.0;
+
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -170,6 +182,7 @@ void FixGravity::post_force(int vflag)
 	f[i][0] += massone*xacc;
 	f[i][1] += massone*yacc;
 	f[i][2] += massone*zacc;
+	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -178,6 +191,7 @@ void FixGravity::post_force(int vflag)
 	f[i][0] += massone*xacc;
 	f[i][1] += massone*yacc;
 	f[i][2] += massone*zacc;
+	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   }
 }
@@ -187,4 +201,19 @@ void FixGravity::post_force(int vflag)
 void FixGravity::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   potential energy in gravity field
+------------------------------------------------------------------------- */
+
+double FixGravity::compute_scalar()
+{
+  // only sum across procs one time
+
+  if (eflag == 0) {
+    MPI_Allreduce(&egrav,&egrav_all,1,MPI_DOUBLE,MPI_SUM,world);
+    eflag = 1;
+  }
+  return egrav_all;
 }

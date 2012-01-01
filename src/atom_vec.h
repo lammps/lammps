@@ -24,7 +24,6 @@ class AtomVec : protected Pointers {
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
-  int shape_type;                      // 1 if per-type shape array
   int dipole_type;                     // 1 if per-type dipole moments
 
   int comm_x_only;                     // 1 if only exchange x in forward comm
@@ -36,7 +35,11 @@ class AtomVec : protected Pointers {
   int size_velocity;                   // # of velocity based quantities
   int size_data_atom;                  // number of values in Atom line
   int size_data_vel;                   // number of values in Velocity line
+  int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
+
+  int cudable;                         // 1 if atom style is CUDA-enabled
+  int *maxsend;                        // CUDA-specific variable
 
   AtomVec(class LAMMPS *, int, char **);
   virtual ~AtomVec() {}
@@ -44,26 +47,27 @@ class AtomVec : protected Pointers {
 
   virtual void grow(int) = 0;
   virtual void grow_reset() = 0;
-  virtual void copy(int, int) = 0;
+  virtual void copy(int, int, int) = 0;
+  virtual void clear_bonus() {}
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_comm_one(int, double *) {return 0;}
+  virtual int pack_comm_hybrid(int, int *, double *) {return 0;}
   virtual void unpack_comm(int, int, double *) = 0;
   virtual void unpack_comm_vel(int, int, double *) = 0;
-  virtual int unpack_comm_one(int, double *) {return 0;}
+  virtual int unpack_comm_hybrid(int, int, double *) {return 0;}
 
   virtual int pack_reverse(int, int, double *) = 0;
-  virtual int pack_reverse_one(int, double *) {return 0;}
+  virtual int pack_reverse_hybrid(int, int, double *) {return 0;}
   virtual void unpack_reverse(int, int *, double *) = 0;
-  virtual int unpack_reverse_one(int, double *) {return 0;}
+  virtual int unpack_reverse_hybrid(int, int *, double *) {return 0;}
 
   virtual int pack_border(int, int *, double *, int, int *) = 0;
   virtual int pack_border_vel(int, int *, double *, int, int *) = 0;
-  virtual int pack_border_one(int, double *) {return 0;}
+  virtual int pack_border_hybrid(int, int *, double *) {return 0;}
   virtual void unpack_border(int, int, double *) = 0;
   virtual void unpack_border_vel(int, int, double *) = 0;
-  virtual int unpack_border_one(int, double *) {return 0;}
+  virtual int unpack_border_hybrid(int, int, double *) {return 0;}
 
   virtual int pack_exchange(int, double *) = 0;
   virtual int unpack_exchange(double *) = 0;
@@ -74,11 +78,12 @@ class AtomVec : protected Pointers {
 
   virtual void create_atom(int, double *) = 0;
   virtual void data_atom(double *, int, char **) = 0;
+  virtual void data_atom_bonus(int, char **) {}
   virtual int data_atom_hybrid(int, char **) {return 0;}
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}
 
-  virtual double memory_usage() = 0;
+  virtual bigint memory_usage() = 0;
 
  protected:
   int nmax;                             // local copy of atom->nmax

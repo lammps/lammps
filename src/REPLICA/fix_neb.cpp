@@ -27,18 +27,15 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal fix neb command");
+  if (narg != 4) error->all(FLERR,"Illegal fix neb command");
 
   kspring = atof(arg[3]);
-  if (kspring <= 0.0) error->all("Illegal fix neb command");
+  if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // nreplica = number of partitions
   // ireplica = which world I am in universe
@@ -78,9 +75,9 @@ FixNEB::~FixNEB()
   modify->delete_compute(id_pe);
   delete [] id_pe;
 
-  memory->destroy_2d_double_array(xprev);
-  memory->destroy_2d_double_array(xnext);
-  memory->destroy_2d_double_array(tangent);
+  memory->destroy(xprev);
+  memory->destroy(xnext);
+  memory->destroy(tangent);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,7 +95,7 @@ void FixNEB::init()
 {
   int icompute = modify->find_compute(id_pe);
   if (icompute < 0)
-    error->all("Potential energy ID for fix neb does not exist");
+    error->all(FLERR,"Potential energy ID for fix neb does not exist");
   pe = modify->compute[icompute];
 
   // turn off climbing mode, NEB command turns it on after init()
@@ -107,13 +104,13 @@ void FixNEB::init()
 
   // setup xprev and xnext arrays
 
-  memory->destroy_2d_double_array(xprev);
-  memory->destroy_2d_double_array(xnext);
-  memory->destroy_2d_double_array(tangent);
+  memory->destroy(xprev);
+  memory->destroy(xnext);
+  memory->destroy(tangent);
   nebatoms = atom->nlocal;
-  xprev = memory->create_2d_double_array(nebatoms,3,"neb:xprev");
-  xnext = memory->create_2d_double_array(nebatoms,3,"neb:xnext");
-  tangent = memory->create_2d_double_array(nebatoms,3,"neb:tangent");
+  memory->create(xprev,nebatoms,3,"neb:xprev");
+  memory->create(xnext,nebatoms,3,"neb:xnext");
+  memory->create(tangent,nebatoms,3,"neb:tangent");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,22 +128,23 @@ void FixNEB::min_setup(int vflag)
 
 void FixNEB::min_post_force(int vflag)
 {
-  MPI_Status status;
   double vprev,vnext,vmax,vmin;
   double delx,dely,delz;
   double delta1[3],delta2[3];
+  MPI_Status status;
+  MPI_Request request;
 
   // veng = PE of this replica
   // vprev,vnext = PEs of adjacent replicas
 
   veng = pe->compute_scalar();
 
+  if (ireplica < nreplica-1) MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
+  if (ireplica > 0) MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
+  
+  if (ireplica > 0) MPI_Send(&veng,1,MPI_DOUBLE,procprev,0,uworld);
   if (ireplica < nreplica-1)
-    MPI_Sendrecv(&veng,1,MPI_DOUBLE,procnext,0,
-		 &vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
-  if (ireplica > 0)
-    MPI_Sendrecv(&veng,1,MPI_DOUBLE,procprev,0,
-		 &vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
+    MPI_Recv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
 
   // xprev,xnext = atom coords of adjacent replicas
   // assume order of atoms in all replicas is the same
@@ -155,14 +153,19 @@ void FixNEB::min_post_force(int vflag)
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  if (nlocal != nebatoms) error->one("Atom count changed in fix neb");
+  if (nlocal != nebatoms) error->one(FLERR,"Atom count changed in fix neb");
+
+  if (ireplica > 0)
+    MPI_Irecv(xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&request);
+  if (ireplica < nreplica-1)
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld);
+  if (ireplica > 0) MPI_Wait(&request,&status);
 
   if (ireplica < nreplica-1)
-    MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procnext,0,
-		 xprev[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld,&status);
+    MPI_Irecv(xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&request);
   if (ireplica > 0)
-    MPI_Sendrecv(x[0],3*nlocal,MPI_DOUBLE,procprev,0,
-		 xnext[0],3*nlocal,MPI_DOUBLE,procnext,0,uworld,&status);
+    MPI_Send(x[0],3*nlocal,MPI_DOUBLE,procprev,0,uworld);
+  if (ireplica < nreplica-1) MPI_Wait(&request,&status);
 
   // trigger potential energy computation on next timestep
 

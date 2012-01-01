@@ -42,12 +42,12 @@ BondQuartic::BondQuartic(LAMMPS *lmp) : Bond(lmp)
 BondQuartic::~BondQuartic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(b1);
-    memory->sfree(b2);
-    memory->sfree(rc);
-    memory->sfree(u0);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(b1);
+    memory->destroy(b2);
+    memory->destroy(rc);
+    memory->destroy(u0);
   }
 }
 
@@ -184,13 +184,13 @@ void BondQuartic::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"bond:k");
-  b1 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:b1");
-  b2 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:b2");
-  rc = (double *) memory->smalloc((n+1)*sizeof(double),"bond:rc");
-  u0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:u0");
+  memory->create(k,n+1,"bond:k");
+  memory->create(b1,n+1,"bond:b1");
+  memory->create(b2,n+1,"bond:b2");
+  memory->create(rc,n+1,"bond:rc");
+  memory->create(u0,n+1,"bond:u0");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -200,7 +200,7 @@ void BondQuartic::allocate()
 
 void BondQuartic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for bond coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -223,7 +223,7 @@ void BondQuartic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -233,19 +233,19 @@ void BondQuartic::coeff(int narg, char **arg)
 void BondQuartic::init_style()
 {
   if (force->pair == NULL || force->pair->single_enable == 0)
-    error->all("Pair style does not support bond_style quartic");
+    error->all(FLERR,"Pair style does not support bond_style quartic");
   if (force->angle)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
   if (force->dihedral)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
   if (force->improper)
-    error->all("Bond style quartic cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
 
   // special bonds must be 1 1 1
 
   if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 ||
       force->special_lj[3] != 1.0)
-    error->all("Bond style quartic requires special_bonds = 1,1,1");
+    error->all(FLERR,"Bond style quartic requires special_bonds = 1,1,1");
 }
 
 /* ----------------------------------------------------------------------

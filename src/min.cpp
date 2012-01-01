@@ -47,9 +47,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) : Pointers(lmp)
@@ -69,6 +66,8 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   extra_peratom = extra_nlen = NULL;
   extra_max = NULL;
   requestor = NULL;
+
+  external_force_clear = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,9 +83,9 @@ Min::~Min()
 
   memory->sfree(xextra_atom);
   memory->sfree(fextra_atom);
-  memory->sfree(extra_peratom);
-  memory->sfree(extra_nlen);
-  memory->sfree(extra_max);
+  memory->destroy(extra_peratom);
+  memory->destroy(extra_nlen);
+  memory->destroy(extra_max);
   memory->sfree(requestor);
 }
 
@@ -116,9 +115,9 @@ void Min::init()
   nextra_atom = 0;
   memory->sfree(xextra_atom);
   memory->sfree(fextra_atom);
-  memory->sfree(extra_peratom);
-  memory->sfree(extra_nlen);
-  memory->sfree(extra_max);
+  memory->destroy(extra_peratom);
+  memory->destroy(extra_nlen);
+  memory->destroy(extra_max);
   memory->sfree(requestor);
   xextra_atom = fextra_atom = NULL;
   extra_peratom = extra_nlen = NULL;
@@ -136,13 +135,22 @@ void Min::init()
 
   ev_setup();
 
+  // detect if fix omp is present for clearing force arrays
+
+  int ifix = modify->find_fix("package_omp");
+  if (ifix >= 0) external_force_clear = 1;
+
   // set flags for what arrays to clear in force_clear()
-  // need to clear torques,erforce if arrays exists
+  // need to clear additionals arrays if they exist
 
   torqueflag = 0;
   if (atom->torque_flag) torqueflag = 1;
   erforceflag = 0;
   if (atom->erforce_flag) erforceflag = 1;
+  e_flag = 0;
+  if (atom->e_flag) e_flag = 1;
+  rho_flag = 0;
+  if (atom->rho_flag) rho_flag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -156,7 +164,8 @@ void Min::init()
   
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (comm->me == 0) 
-      error->warning("Resetting reneighboring criteria during minimization");
+      error->warning(FLERR,
+		     "Resetting reneighboring criteria during minimization");
   }
 
   neighbor->every = 1;
@@ -187,7 +196,7 @@ void Min::setup()
   // compute for potential energy
 
   int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all("Minimization could not find thermo_pe compute");
+  if (id < 0) error->all(FLERR,"Minimization could not find thermo_pe compute");
   pe_compute = modify->compute[id];
 
   // style-specific setup does two tasks
@@ -226,9 +235,11 @@ void Min::setup()
   // remove these restriction eventually
 
   if (nextra_global && searchflag == 0)
-    error->all("Cannot use a damped dynamics min style with fix box/relax");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with fix box/relax");
   if (nextra_atom && searchflag == 0)
-    error->all("Cannot use a damped dynamics min style with per-atom DOF");
+    error->all(FLERR,
+	       "Cannot use a damped dynamics min style with per-atom DOF");
 
   // atoms may have migrated in comm->exchange()
 
@@ -354,7 +365,6 @@ void Min::run(int n)
 {
   // minimizer iterations
 
-  int iter_start = niter;
   stop_condition = iterate(n);
   stopstr = stopstrings(stop_condition);
 
@@ -508,7 +518,11 @@ double Min::energy_force(int resetflag)
 
 void Min::force_clear()
 {
+  if (external_force_clear) return;
+
   int i;
+
+  if (external_force_clear) return;
 
   // clear global force array
   // nall includes ghosts only if either newton flag is set
@@ -517,26 +531,14 @@ void Min::force_clear()
   if (force->newton) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
 
-  double **f = atom->f;
-  for (i = 0; i < nall; i++) {
-    f[i][0] = 0.0;
-    f[i][1] = 0.0;
-    f[i][2] = 0.0;
-  }
+  size_t nbytes = sizeof(double) * nall;
 
-  if (torqueflag) {
-    double **torque = atom->torque;
-    for (i = 0; i < nall; i++) {
-      torque[i][0] = 0.0;
-      torque[i][1] = 0.0;
-      torque[i][2] = 0.0;
-    }
-  }
-
-  if (erforceflag) {
-    double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++)
-      erforce[i] = 0.0;
+  if (nbytes) {
+    memset(&(atom->f[0][0]),0,3*nbytes);
+    if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
+    if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
+    if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
+    if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
   }
 }
 
@@ -554,12 +556,9 @@ int Min::request(Pair *pair, int peratom, double maxvalue)
 					     "min:xextra_atom");
   fextra_atom = (double **) memory->srealloc(fextra_atom,n*sizeof(double *),
 					     "min:fextra_atom");
-  extra_peratom = (int *) memory->srealloc(extra_peratom,n*sizeof(int),
-					   "min:extra_peratom");
-  extra_nlen = (int *) memory->srealloc(extra_nlen,n*sizeof(int),
-					"min:extra_nlen");
-  extra_max = (double *) memory->srealloc(extra_max,n*sizeof(double),
-					  "min:extra_max");
+  memory->grow(extra_peratom,n,"min:extra_peratom");
+  memory->grow(extra_nlen,n,"min:extra_nlen");
+  memory->grow(extra_max,n,"min:extra_max");
   requestor = (Pair **) memory->srealloc(requestor,n*sizeof(Pair *),
 					 "min:requestor");
 
@@ -574,21 +573,21 @@ int Min::request(Pair *pair, int peratom, double maxvalue)
 
 void Min::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal min_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal min_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dmax") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       dmax = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
-      if (iarg+2 > narg) error->all("Illegal min_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
       else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
-      else error->all("Illegal min_modify command");
+      else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
-    } else error->all("Illegal min_modify command");
+    } else error->all(FLERR,"Illegal min_modify command");
   }
 }
 

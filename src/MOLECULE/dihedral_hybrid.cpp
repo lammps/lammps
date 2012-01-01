@@ -45,12 +45,12 @@ DihedralHybrid::~DihedralHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] ndihedrallist;
     delete [] maxdihedral;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(dihedrallist[i]);
+      memory->destroy(dihedrallist[i]);
     delete [] dihedrallist;
   }
 }
@@ -79,11 +79,10 @@ void DihedralHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (ndihedrallist[m] > maxdihedral[m]) {
-	memory->destroy_2d_int_array(dihedrallist[m]);
+	memory->destroy(dihedrallist[m]);
 	maxdihedral[m] = ndihedrallist[m] + EXTRA;
-	dihedrallist[m] = (int **)
-	  memory->create_2d_int_array(maxdihedral[m],5,
-				      "dihedral_hybrid:dihedrallist");
+	memory->create(dihedrallist[m],maxdihedral[m],5,
+		       "dihedral_hybrid:dihedrallist");
       }
       ndihedrallist[m] = 0;
     }
@@ -145,8 +144,8 @@ void DihedralHybrid::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(map,n+1,"dihedral:map");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   ndihedrallist = new int[nstyles];
@@ -166,15 +165,19 @@ void DihedralHybrid::settings(int narg, char **arg)
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
 
+  int dummy;
+
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
-	error->all("Dihedral style hybrid cannot use same dihedral style twice");
+	error->all(FLERR,"Dihedral style hybrid cannot use "
+		   "same dihedral style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
-      error->all("Dihedral style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,
+		 "Dihedral style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
-      error->all("Dihedral style hybrid cannot have none as an argument");
-    styles[m] = force->new_dihedral(arg[m]);
+      error->all(FLERR,"Dihedral style hybrid cannot have none as an argument");
+    styles[m] = force->new_dihedral(arg[m],lmp->suffix,dummy);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
   }
@@ -192,16 +195,18 @@ void DihedralHybrid::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
 
   // 2nd arg = dihedral sub-style name
-  // allow for "none" as valid sub-style name
+  // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
 
   int none = 0;
+  int skip = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all("Dihedral coeff for hybrid has invalid style");
+    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
+    else error->all(FLERR,"Dihedral coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -214,10 +219,12 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
-  // if sub-style is none: set hybrid setflag, wipe out map
+  // if sub-style is skip: auxiliary class2 setting in data file so ignore
+  // if sub-style is none and not skip: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (none) {
+    if (skip) continue;
+    else if (none) {
       setflag[i] = 1;
       map[i] = -1;
     } else {
@@ -265,14 +272,14 @@ void DihedralHybrid::read_restart(FILE *fp)
 
   allocate();
 
-  int n;
+  int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_dihedral(keywords[m]);
+    styles[m] = force->new_dihedral(keywords[m],lmp->suffix,dummy);
   }
 }
 

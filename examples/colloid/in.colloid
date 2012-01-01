@@ -1,7 +1,7 @@
 # Big colloid particles and small LJ particles
 
 units		lj
-atom_style	atomic
+atom_style	sphere
 dimension	2
 
 lattice		sq 0.01
@@ -11,8 +11,8 @@ create_atoms	1 box
 
 set		group all type/fraction 2 0.96 23984
 
-mass		1 9
-mass		2 1
+set		type 1 mass 9
+set		type 2 mass 1
 
 velocity	all create 1.44 87287 loop geom
 

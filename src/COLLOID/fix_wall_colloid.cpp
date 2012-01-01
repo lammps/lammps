@@ -35,35 +35,23 @@ FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) :
 
 void FixWallColloid::init()
 {
-  if (!atom->avec->shape_type)
-    error->all("Fix wall/colloid requires atom attribute shape");
-  if (atom->radius_flag)
-    error->all("Fix wall/colloid cannot be used with atom attribute diameter");
-
-  // insure all particle shapes are spherical
-  // can be polydisperse
-
-  for (int i = 1; i <= atom->ntypes; i++)
-    if ((atom->shape[i][0] != atom->shape[i][1]) || 
-	(atom->shape[i][0] != atom->shape[i][2]) ||
-	(atom->shape[i][1] != atom->shape[i][2]))
-      error->all("Fix wall/colloid requires spherical particles");
+  if (!atom->sphere_flag) 
+    error->all(FLERR,"Fix wall/colloid requires atom style sphere");
 
   // insure all particles in group are extended particles
 
-  double **shape = atom->shape;
-  int *type = atom->type;
+  double *radius = atom->radius;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (atom->shape[type[i]][0] == 0.0) flag = 1;
+      if (radius[i] == 0.0) flag = 1;
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Fix wall/colloid requires extended particles");
+  if (flagall) error->all(FLERR,"Fix wall/colloid requires extended particles");
 
   FixWall::init();
 }
@@ -88,16 +76,15 @@ void FixWallColloid::precompute(int m)
 void FixWallColloid::wall_particle(int m, int which, double coord)
 {
   double delta,delta2,rinv,r2inv,r4inv,r8inv,fwall;
-  double r2,rinv2,r2inv2,r4inv2,r6inv2;
+  double r2,rinv2,r2inv2,r4inv2;
   double r3,rinv3,r2inv3,r4inv3,r6inv3;
   double rad,rad2,rad4,rad8,diam,new_coeff2;
   double eoffset;
 
   double **x = atom->x;
   double **f = atom->f;
-  double **shape = atom->shape;
+  double *radius = atom->radius;
   int *mask = atom->mask;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   int dim = which  / 2;
@@ -111,7 +98,7 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       if (side < 0) delta = x[i][dim] - coord;
       else delta = coord - x[i][dim];
       if (delta >= cutoff[m]) continue;
-      rad = shape[type[i]][0];
+      rad = radius[i];
       if (rad >= delta) {
 	onflag = 1;
 	continue;
@@ -137,7 +124,6 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       rinv2 = 1.0/r2;
       r2inv2 = rinv2*rinv2;
       r4inv2 = r2inv2*r2inv2;
-      r6inv2 = r4inv2*r2inv2;
       r3 = delta + rad;
       rinv3 = 1.0/r3;
       r2inv3 = rinv3*rinv3;
@@ -154,7 +140,6 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       rinv2 = 1.0/r2;
       r2inv2 = rinv2*rinv2;
       r4inv2 = r2inv2*r2inv2;
-      r6inv2 = r4inv2*r2inv2;
       r3 = cutoff[m] + rad;
       rinv3 = 1.0/r3;
       r2inv3 = rinv3*rinv3;
@@ -169,5 +154,5 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       ewall[m+1] += fwall;
     }
 
-  if (onflag) error->one("Particle on or inside fix wall surface");
+  if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");
 }

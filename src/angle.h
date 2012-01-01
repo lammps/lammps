@@ -20,6 +20,7 @@
 namespace LAMMPS_NS {
 
 class Angle : protected Pointers {
+  friend class ThrOMP;
  public:
   int allocated;
   int *setflag;
@@ -33,6 +34,7 @@ class Angle : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **) {}
   virtual void coeff(int, char **) = 0;
+  virtual void init_style() {};
   virtual double equilibrium_angle(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
@@ -40,8 +42,6 @@ class Angle : protected Pointers {
   virtual double memory_usage();
 
  protected:
-  double PI,THIRD;
-
   int evflag;
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;

@@ -26,24 +26,22 @@
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.00001
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
 Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg != 1) error->all("Illegal kspace_style ewald command");
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   precision = atof(arg[0]);
-  PI = 4.0*atan(1.0);
 
   kmax = 0;
   kxvecs = kyvecs = kzvecs = NULL;
@@ -65,9 +63,9 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 Ewald::~Ewald()
 {
   deallocate();
-  memory->destroy_2d_double_array(ek);
-  memory->destroy_3d_double_array(cs,-kmax_created);
-  memory->destroy_3d_double_array(sn,-kmax_created);
+  memory->destroy(ek);
+  memory->destroy3d_offset(cs,-kmax_created);
+  memory->destroy3d_offset(sn,-kmax_created);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,31 +79,30 @@ void Ewald::init()
 
   // error check
 
-  if (domain->triclinic) error->all("Cannot use Ewald with triclinic box");
+  if (domain->triclinic) error->all(FLERR,"Cannot use Ewald with triclinic box");
   if (domain->dimension == 2) 
-    error->all("Cannot use Ewald with 2d simulation");
+    error->all(FLERR,"Cannot use Ewald with 2d simulation");
 
-  if (!atom->q_flag) error->all("Kspace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all("Cannot use nonperiodic boundaries with Ewald");
+    error->all(FLERR,"Cannot use nonperiodic boundaries with Ewald");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
 	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
-      error->all("Incorrect boundaries with slab Ewald");
+      error->all(FLERR,"Incorrect boundaries with slab Ewald");
   }
 
   // extract short-range Coulombic cutoff from pair style
 
-  qqrd2e = force->qqrd2e;
   scale = 1.0;
 
   if (force->pair == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
-    error->all("KSpace style is incompatible with Pair style");
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
   qsum = qsqsum = 0.0;
@@ -121,11 +118,11 @@ void Ewald::init()
   qsqsum = tmp;
 
   if (qsqsum == 0.0)
-    error->all("Cannot use kspace solver on system with no charge");
+    error->all(FLERR,"Cannot use kspace solver on system with no charge");
   if (fabs(qsum) > SMALL && comm->me == 0) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(str);
+    error->warning(FLERR,str);
   }
 
   // setup K-space resolution
@@ -168,17 +165,17 @@ void Ewald::setup()
   double zprd_slab = zprd*slab_volfactor;
   volume = xprd * yprd * zprd_slab;
 
-  unitk[0] = 2.0*PI/xprd;
-  unitk[1] = 2.0*PI/yprd;
-  unitk[2] = 2.0*PI/zprd_slab;
+  unitk[0] = 2.0*MY_PI/xprd;
+  unitk[1] = 2.0*MY_PI/yprd;
+  unitk[2] = 2.0*MY_PI/zprd_slab;
 
   // determine kmax
   // function of current box size, precision, G_ewald (short-range cutoff)
 
-  int nkxmx = static_cast<int> ((g_ewald*xprd/PI) * sqrt(-log(precision)));
-  int nkymx = static_cast<int> ((g_ewald*yprd/PI) * sqrt(-log(precision)));
+  int nkxmx = static_cast<int> ((g_ewald*xprd/MY_PI) * sqrt(-log(precision)));
+  int nkymx = static_cast<int> ((g_ewald*yprd/MY_PI) * sqrt(-log(precision)));
   int nkzmx = 
-    static_cast<int> ((g_ewald*zprd_slab/PI) * sqrt(-log(precision)));
+    static_cast<int> ((g_ewald*zprd_slab/MY_PI) * sqrt(-log(precision)));
 
   int kmax_old = kmax;
   kmax = MAX(nkxmx,nkymx);
@@ -191,13 +188,13 @@ void Ewald::setup()
     deallocate();
     allocate();
 
-    memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy(ek);
+    memory->destroy3d_offset(cs,-kmax_created);
+    memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
-    ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    memory->create(ek,nmax,3,"ewald:ek");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
   }
 
@@ -220,13 +217,13 @@ void Ewald::compute(int eflag, int vflag)
   // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy_2d_double_array(ek);
-    memory->destroy_3d_double_array(cs,-kmax_created);
-    memory->destroy_3d_double_array(sn,-kmax_created);
+    memory->destroy(ek);
+    memory->destroy3d_offset(cs,-kmax_created);
+    memory->destroy3d_offset(sn,-kmax_created);
     nmax = atom->nmax;
-    ek = memory->create_2d_double_array(nmax,3,"ewald:ek");
-    cs = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:cs");
-    sn = memory->create_3d_double_array(-kmax,kmax,3,nmax,"ewald:sn");
+    memory->create(ek,nmax,3,"ewald:ek");
+    memory->create3d_offset(cs,-kmax,kmax,3,nmax,"ewald:cs");
+    memory->create3d_offset(sn,-kmax,kmax,3,nmax,"ewald:sn");
     kmax_created = kmax;
   }
 
@@ -272,10 +269,12 @@ void Ewald::compute(int eflag, int vflag)
 
   // convert E-field to force
 
+  const double qscale = force->qqrd2e * scale;
+
   for (i = 0; i < nlocal; i++) {
-    f[i][0] += qqrd2e*scale * q[i]*ek[i][0];
-    f[i][1] += qqrd2e*scale * q[i]*ek[i][1];
-    f[i][2] += qqrd2e*scale * q[i]*ek[i][2];
+    f[i][0] += qscale * q[i]*ek[i][0];
+    f[i][1] += qscale * q[i]*ek[i][1];
+    f[i][2] += qscale * q[i]*ek[i][2];
   }
  
   // energy if requested
@@ -284,10 +283,9 @@ void Ewald::compute(int eflag, int vflag)
     for (k = 0; k < kcount; k++)
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
 			 sfacim_all[k]*sfacim_all[k]);
-    PI = 4.0*atan(1.0);
-    energy -= g_ewald*qsqsum/1.772453851 + 
-      0.5*PI*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qqrd2e*scale;
+    energy -= g_ewald*qsqsum/MY_PIS +
+      MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
+    energy *= qscale;
   }
 
   // virial if requested
@@ -298,7 +296,7 @@ void Ewald::compute(int eflag, int vflag)
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
       for (n = 0; n < 6; n++) virial[n] += uk*vg[k][n];
     }
-    for (n = 0; n < 6; n++) virial[n] *= qqrd2e*scale;
+    for (n = 0; n < 6; n++) virial[n] *= qscale;
   }
 
   if (slabflag) slabcorr(eflag);
@@ -498,7 +496,7 @@ void Ewald::coeffs()
   double unitky = unitk[1];
   double unitkz = unitk[2];
   double g_ewald_sq_inv = 1.0 / (g_ewald*g_ewald);
-  double preu = 4.0*PI/volume;
+  double preu = 4.0*MY_PI/volume;
 
   kcount = 0;
 
@@ -766,8 +764,8 @@ void Ewald::allocate()
   kzvecs = new int[kmax3d];
 
   ug = new double[kmax3d];
-  eg = memory->create_2d_double_array(kmax3d,3,"ewald:eg");
-  vg = memory->create_2d_double_array(kmax3d,6,"ewald:vg");
+  memory->create(eg,kmax3d,3,"ewald:eg");
+  memory->create(vg,kmax3d,6,"ewald:vg");
 
   sfacrl = new double[kmax3d];
   sfacim = new double[kmax3d];
@@ -786,8 +784,8 @@ void Ewald::deallocate()
   delete [] kzvecs;
   
   delete [] ug;
-  memory->destroy_2d_double_array(eg);
-  memory->destroy_2d_double_array(vg);
+  memory->destroy(eg);
+  memory->destroy(vg);
 
   delete [] sfacrl;
   delete [] sfacim;
@@ -820,16 +818,17 @@ void Ewald::slabcorr(int eflag)
 
   // compute corrections
   
-  double e_slabcorr = 2.0*PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  if (eflag) energy += qscale * e_slabcorr;
 
   // add on force corrections
 
-  double ffact = -4.0*PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume; 
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qqrd2e*scale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
 
 /* ----------------------------------------------------------------------

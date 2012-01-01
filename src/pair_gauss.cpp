@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
@@ -50,13 +47,13 @@ PairGauss::~PairGauss()
   delete [] pvector;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(b);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(a);
+    memory->destroy(b);
+    memory->destroy(offset);
   }
 }
 
@@ -66,7 +63,7 @@ void PairGauss::compute(int eflag, int vflag)
 {   
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double r,rsq,r2inv,r6inv,forcelj,rexp;
+  double r,rsq,r2inv,forcelj;
   int *ilist,*jlist,*numneigh,**firstneigh;
   
   evdwl = 0.0;
@@ -78,7 +75,6 @@ void PairGauss::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   
   inum = list->inum;
@@ -99,6 +95,7 @@ void PairGauss::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) { 
       j = jlist[jj];
+      j &= NEIGHMASK;
 	
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -138,7 +135,7 @@ void PairGauss::compute(int eflag, int vflag)
   }
 
   if (eflag_global) pvector[0] = occ;
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -150,17 +147,17 @@ void PairGauss::allocate()
   allocated = 1;
   int n = atom->ntypes;
   
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = 1; j <= n; j++)
       setflag[i][j] = 0;
   
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
   
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut_gauss");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  b = memory->create_2d_double_array(n+1,n+1,"pair:b");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");  
+  memory->create(cut,n+1,n+1,"pair:cut_gauss");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(b,n+1,n+1,"pair:b");
+  memory->create(offset,n+1,n+1,"pair:offset");  
 }
 
 /* ----------------------------------------------------------------------
@@ -169,7 +166,7 @@ void PairGauss::allocate()
 
 void PairGauss::settings(int narg, char **arg)
 { 
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
   
   cut_global = atof(arg[0]);
 
@@ -189,7 +186,7 @@ void PairGauss::settings(int narg, char **arg)
 
 void PairGauss::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -213,7 +210,7 @@ void PairGauss::coeff(int narg, char **arg)
     }
   }
  
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -222,7 +219,7 @@ void PairGauss::coeff(int narg, char **arg)
 
 double PairGauss::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   
   if (offset_flag) offset[i][j] = a[i][j]*exp(-b[i][j]*cut[i][j]*cut[i][j]);
   else offset[i][j] = 0.0;
@@ -316,7 +313,7 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
 			 double factor_coul, double factor_lj,
 			 double &fforce)
 {
-  double r2inv,r6inv,forcelj,philj,r;
+  double r2inv,forcelj,philj,r;
 
   r = sqrt(rsq);
   

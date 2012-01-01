@@ -21,8 +21,7 @@ input = one or more atom attributes :l
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
-                        angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk, tqx, tqy, tqz
+                        angmomx, angmomy, angmomz, tqx, tqy, tqz
 			c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
@@ -40,7 +39,6 @@ input = one or more atom attributes :l
       radius = radius of extended spherical particle
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
       tqx,tqy,tqz = torque on extended particles
       c_ID = per-atom vector calculated by a compute with ID
       c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
@@ -65,11 +63,11 @@ Define a fix that stores attributes for each atom in the group at the
 time the fix is defined.  If {N} is 0, then the values are never
 updated, so this is a way of archiving an atom attribute at a given
 time for future use in a calculation or output.  See the discussion of
-"output commands"_Section_howto.html#4_15 that take fixes as inputs.
-And see for example, the "compute reduce"_compute_reduce.html, "fix
-ave/atom"_fix_ave_atom.html, "fix ave/histo"_fix_ave_histo.html, "fix
-ave/spatial"_fix_ave_spatial.html, and "atom-style
-variable"_variable.html commands.
+"output commands"_Section_howto.html#howto_15 that take fixes as
+inputs.  And see for example, the "compute
+reduce"_compute_reduce.html, "fix ave/atom"_fix_ave_atom.html, "fix
+ave/histo"_fix_ave_histo.html, "fix ave/spatial"_fix_ave_spatial.html,
+and "atom-style variable"_variable.html commands.
 
 If {N} is not zero, then the attributes will be updated every {N}
 steps.
@@ -109,8 +107,9 @@ fix.
 If a single input is specified, this fix produces a per-atom vector.
 If multiple inputs are specified, a per-atom array is produced where
 the number of columns for each atom is the number of inputs.  These
-can be accessed by various "output commands"_Section_howto.html#4_15.
-The per-atom values be accessed on any timestep.
+can be accessed by various "output
+commands"_Section_howto.html#howto_15.  The per-atom values be
+accessed on any timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

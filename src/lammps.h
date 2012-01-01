@@ -14,7 +14,6 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
-#include "mpi.h"
 #include "stdio.h"
 
 namespace LAMMPS_NS {
@@ -43,11 +42,18 @@ class LAMMPS {
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
 
+  char *suffix;                  // suffix to add to input script style names
+  int suffix_enable;             // 1 if suffix enabled, 0 if disabled
+  class Cuda *cuda;              // CUDA accelerator class
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
+  void post_create();
   void init();
   void destroy();
+
+  void print_styles();
 };
 
 }

@@ -34,7 +34,7 @@ enum{LJ93,LJ126,COLLOID,HARMONIC};
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix wall/region command");
+  if (narg != 8) error->all(FLERR,"Illegal fix wall/region command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -47,7 +47,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
-    error->all("Region ID for fix wall/region does not exist");
+    error->all(FLERR,"Region ID for fix wall/region does not exist");
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[3]);
@@ -56,13 +56,13 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
   else if (strcmp(arg[4],"colloid") == 0) style = COLLOID;
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
-  else error->all("Illegal fix wall/region command");
+  else error->all(FLERR,"Illegal fix wall/region command");
 
   epsilon = atof(arg[5]);
   sigma = atof(arg[6]);
   cutoff = atof(arg[7]);
 
-  if (cutoff <= 0.0) error->all("Fix wall/region cutoff <= 0.0");
+  if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
@@ -95,40 +95,28 @@ void FixWallRegion::init()
 
   iregion = domain->find_region(idregion);
   if (iregion == -1)
-    error->all("Region ID for fix wall/region does not exist");
+    error->all(FLERR,"Region ID for fix wall/region does not exist");
 
   // error checks for style COLLOID
-  // insure all particle shapes are spherical
-  // can be polydisperse
   // insure all particles in group are extended particles
 
   if (style == COLLOID) {
-    if (!atom->avec->shape_type)
-      error->all("Fix wall/region colloid requires atom attribute shape");
-    if (atom->radius_flag)
-      error->all("Fix wall/region colloid cannot be used with "
-		 "atom attribute diameter");
+    if (!atom->sphere_flag) 
+      error->all(FLERR,"Fix wall/region colloid requires atom style sphere");
 
-    for (int i = 1; i <= atom->ntypes; i++)
-      if ((atom->shape[i][0] != atom->shape[i][1]) || 
-	  (atom->shape[i][0] != atom->shape[i][2]) ||
-	  (atom->shape[i][1] != atom->shape[i][2]))
-	error->all("Fix wall/region colloid requires spherical particles");
-
-    double **shape = atom->shape;
-    int *type = atom->type;
+    double *radius = atom->radius;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (atom->shape[type[i]][0] == 0.0) flag = 1;
+	if (radius[i] == 0.0) flag = 1;
     
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall) 
-      error->all("Fix wall/region colloid requires extended particles");
+      error->all(FLERR,"Fix wall/region colloid requires extended particles");
   }
 
   // setup coefficients for each style
@@ -161,7 +149,7 @@ void FixWallRegion::init()
     offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
   }
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -169,7 +157,7 @@ void FixWallRegion::init()
 
 void FixWallRegion::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -197,8 +185,7 @@ void FixWallRegion::post_force(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double **shape = atom->shape;
-  int *type = atom->type;
+  double *radius = atom->radius;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -207,7 +194,7 @@ void FixWallRegion::post_force(int vflag)
 
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
-  // in COLLOID case, r <= shape radius is an error
+  // in COLLOID case, r <= radius is an error
   
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -215,7 +202,7 @@ void FixWallRegion::post_force(int vflag)
 	onflag = 1;
 	continue;
       }
-      if (style == COLLOID) tooclose = shape[type[i]][0];
+      if (style == COLLOID) tooclose = radius[i];
       else tooclose = 0.0;
 
       n = region->surface(x[i][0],x[i][1],x[i][2],cutoff);
@@ -228,8 +215,7 @@ void FixWallRegion::post_force(int vflag)
 
 	if (style == LJ93) lj93(region->contact[m].r);
 	else if (style == LJ126) lj126(region->contact[m].r);
-	else if (style == COLLOID) 
-	  colloid(region->contact[m].r,shape[type[i]][0]);
+	else if (style == COLLOID) colloid(region->contact[m].r,radius[i]);
 	else harmonic(region->contact[m].r);
 
 	ewall[0] += eng;
@@ -245,7 +231,7 @@ void FixWallRegion::post_force(int vflag)
       }
     }
 
-  if (onflag) error->one("Particle on or inside surface of region "
+  if (onflag) error->one(FLERR,"Particle on or inside surface of region "
 			 "used in fix wall/region");
 }
 
@@ -348,12 +334,10 @@ void FixWallRegion::colloid(double r, double rad)
   double rinv2 = 1.0/r2;
   double r2inv2 = rinv2*rinv2;
   double r4inv2 = r2inv2*r2inv2;
-  double r6inv2 = r4inv2*r2inv2;
   double r3 = r + 0.5*diam;
   double rinv3 = 1.0/r3;
   double r2inv3 = rinv3*rinv3;
   double r4inv3 = r2inv3*r2inv3;
-  double r6inv3 = r4inv3*r2inv3;
   eng = coeff3*((-3.5*diam+r)*r4inv2*r2inv2*rinv2
 		+ (3.5*diam+r)*r4inv3*r2inv3*rinv3) -
     coeff4*((-diam*r+r2*r3*(log(-r2)-log(r3)))*
@@ -367,6 +351,7 @@ void FixWallRegion::colloid(double r, double rad)
 
 void FixWallRegion::harmonic(double r)
 {
-  fwall = 2.0*epsilon*r;
-  eng = epsilon*r*r - offset;
+  double dr = cutoff - r;
+  fwall = 2.0*epsilon*dr;
+  eng = epsilon*dr*dr;
 }

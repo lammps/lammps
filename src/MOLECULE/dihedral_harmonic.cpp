@@ -43,12 +43,12 @@ DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralHarmonic::~DihedralHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(sign);
-    memory->sfree(multiplicity);
-    memory->sfree(cos_shift);
-    memory->sfree(sin_shift);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(sign);
+    memory->destroy(multiplicity);
+    memory->destroy(cos_shift);
+    memory->destroy(sin_shift);
   }
 }
 
@@ -141,7 +141,7 @@ void DihedralHarmonic::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -256,16 +256,13 @@ void DihedralHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k");
-  sign = (int *) memory->smalloc((n+1)*sizeof(double),"dihedral:sign");
-  multiplicity = (int *) 
-    memory->smalloc((n+1)*sizeof(double),"dihedral:multiplicity");
-  cos_shift = (double *)
-    memory->smalloc((n+1)*sizeof(double),"dihedral:cos_shift");
-  sin_shift = (double *)
-    memory->smalloc((n+1)*sizeof(double),"dihedral:sin_shift");
+  memory->create(k,n+1,"dihedral:k");
+  memory->create(sign,n+1,"dihedral:sign");
+  memory->create(multiplicity,n+1,"dihedral:multiplicity");
+  memory->create(cos_shift,n+1,"dihedral:cos_shift");
+  memory->create(sin_shift,n+1,"dihedral:sin_shift");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -275,7 +272,7 @@ void DihedralHarmonic::allocate()
 
 void DihedralHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for dihedral coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -290,9 +287,9 @@ void DihedralHarmonic::coeff(int narg, char **arg)
   //   backwards compatibility and is probably not needed
   
   if (sign_one != -1 && sign_one != 1)
-    error->all("Incorrect sign arg for dihedral coefficients");
+    error->all(FLERR,"Incorrect sign arg for dihedral coefficients");
   if (multiplicity_one < 0)
-    error->all("Incorrect multiplicity arg for dihedral coefficients");
+    error->all(FLERR,"Incorrect multiplicity arg for dihedral coefficients");
                        
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -310,7 +307,7 @@ void DihedralHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------

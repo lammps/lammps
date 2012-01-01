@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "stdio.h"
 #include "string.h"
 #include "modify.h"
@@ -52,9 +53,6 @@ using namespace LAMMPS_NS;
 #define MIN_ENERGY             131072
 #define POST_RUN               262144
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
@@ -94,6 +92,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   id_restart_peratom = style_restart_peratom = NULL;
   index_restart_peratom = NULL;
 
+  allow_early_fix = 0;
+
   ncompute = maxcompute = 0;
   compute = NULL;
 }
@@ -107,7 +107,7 @@ Modify::~Modify()
 
   while (nfix) delete_fix(fix[0]->id);
   memory->sfree(fix);
-  memory->sfree(fmask);
+  memory->destroy(fmask);
 
   // delete all computes
 
@@ -184,7 +184,6 @@ void Modify::init()
   // this is b/c some computes call fix->dof()
   // FixRigid::dof() depends on its own init having been called
 
-  comm->maxforward_fix = comm->maxreverse_fix = 0;
   for (i = 0; i < nfix; i++) fix[i]->init();
 
   // set global flag if any fix has its restart_pbc flag set
@@ -239,7 +238,7 @@ void Modify::init()
   int checkall;
   MPI_Allreduce(&check,&checkall,1,MPI_INT,MPI_SUM,world);
   if (comm->me == 0 && checkall)
-    error->warning("One or more atoms are time integrated more than once");
+    error->warning(FLERR,"One or more atoms are time integrated more than once");
 }
 
 /* ----------------------------------------------------------------------
@@ -255,7 +254,17 @@ void Modify::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   setup pre_force call, only for relevant fixes
+   setup pre_exchange call, only for fixes that define pre_exchange
+------------------------------------------------------------------------- */
+
+void Modify::setup_pre_exchange()
+{
+  for (int i = 0; i < n_pre_exchange; i++)
+    fix[list_pre_exchange[i]]->setup_pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   setup pre_force call, only for fixes that define pre_force
 ------------------------------------------------------------------------- */
 
 void Modify::setup_pre_force(int vflag)
@@ -264,7 +273,7 @@ void Modify::setup_pre_force(int vflag)
     for (int i = 0; i < n_pre_force; i++)
       fix[list_pre_force[i]]->setup_pre_force(vflag);
   else if (update->whichflag == 2)
-    for (int i = 0; i < n_pre_force; i++)
+    for (int i = 0; i < n_min_pre_force; i++)
       fix[list_min_pre_force[i]]->min_setup_pre_force(vflag);
 }
 
@@ -581,16 +590,16 @@ int Modify::min_reset_ref()
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(int narg, char **arg)
+void Modify::add_fix(int narg, char **arg, char *suffix)
 {
-  if (domain->box_exist == 0) 
-    error->all("Fix command before simulation box is defined");
-  if (narg < 3) error->all("Illegal fix command");
+  if (domain->box_exist == 0 && allow_early_fix == 0) 
+    error->all(FLERR,"Fix command before simulation box is defined");
+  if (narg < 3) error->all(FLERR,"Illegal fix command");
 
   // check group ID
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find fix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
 
   // if fix ID exists:
   //   set newflag = 0 so create new fix in same location in fix list
@@ -612,9 +621,9 @@ void Modify::add_fix(int narg, char **arg)
   if (ifix < nfix) {
     newflag = 0;
     if (strcmp(arg[2],fix[ifix]->style) != 0)
-      error->all("Replacing a fix, but new style != old style");
+      error->all(FLERR,"Replacing a fix, but new style != old style");
     if (fix[ifix]->igroup != igroup && comm->me == 0)
-      error->warning("Replacing a fix, but new group != old group");
+      error->warning(FLERR,"Replacing a fix, but new group != old group");
     delete fix[ifix];
     fix[ifix] = NULL;
   } else {
@@ -622,22 +631,43 @@ void Modify::add_fix(int narg, char **arg)
     if (nfix == maxfix) {
       maxfix += DELTA;
       fix = (Fix **) memory->srealloc(fix,maxfix*sizeof(Fix *),"modify:fix");
-      fmask = (int *) 
-	memory->srealloc(fmask,maxfix*sizeof(int),"modify:fmask");
+      memory->grow(fmask,maxfix,"modify:fmask");
     }
   }
 
-  // create the Fix
+  // create the Fix, first with suffix appended
 
-  if (0) return;         // dummy line to enable else-if macro expansion
+  int success = 0;
+
+  if (suffix && lmp->suffix_enable) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[2],suffix);
+    success = 1;
+
+    if (0) return;
 
 #define FIX_CLASS
 #define FixStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
 #include "style_fix.h"
+#undef FixStyle
 #undef FIX_CLASS
 
-  else error->all("Invalid fix style");
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return;
+
+#define FIX_CLASS
+#define FixStyle(key,Class) \
+    else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
+#include "style_fix.h"
+#undef FixStyle
+#undef FIX_CLASS
+
+    else error->all(FLERR,"Invalid fix style");
+  }
 
   // set fix mask values and increment nfix (if new)
 
@@ -682,14 +712,14 @@ void Modify::add_fix(int narg, char **arg)
 
 void Modify::modify_fix(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal fix_modify command");
+  if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
 
   // lookup Fix ID
 
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(arg[0],fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all("Could not find fix_modify ID");
+  if (ifix == nfix) error->all(FLERR,"Could not find fix_modify ID");
   
   fix[ifix]->modify_params(narg-1,&arg[1]);
 }
@@ -702,7 +732,7 @@ void Modify::modify_fix(int narg, char **arg)
 void Modify::delete_fix(const char *id)
 {
   int ifix = find_fix(id);
-  if (ifix < 0) error->all("Could not find fix ID to delete");
+  if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
   delete fix[ifix];
   atom->update_callback(ifix);
 
@@ -731,15 +761,15 @@ int Modify::find_fix(const char *id)
    add a new compute
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(int narg, char **arg)
+void Modify::add_compute(int narg, char **arg, char *suffix)
 {
-  if (narg < 3) error->all("Illegal compute command");
+  if (narg < 3) error->all(FLERR,"Illegal compute command");
 
   // error check
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all("Reuse of compute ID");
+      error->all(FLERR,"Reuse of compute ID");
 
   // extend Compute list if necessary
 
@@ -749,18 +779,41 @@ void Modify::add_compute(int narg, char **arg)
       memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
   }
 
-  // create the Compute
+  // create the Compute, first with suffix appended
 
-  if (0) return;         // dummy line to enable else-if macro expansion
+  int success = 0;
+
+  if (suffix && lmp->suffix_enable) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",arg[2],suffix);
+    success = 1;
+
+    if (0) return;
 
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) \
-    compute[ncompute] = new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) \
+      compute[ncompute] = new Class(lmp,narg,arg);
 #include "style_compute.h"
+#undef ComputeStyle
 #undef COMPUTE_CLASS
 
-  else error->all("Invalid compute style");
+    else success = 0;
+  }
+
+  if (!success) {
+    if (0) return;
+
+#define COMPUTE_CLASS
+#define ComputeStyle(key,Class) \
+    else if (strcmp(arg[2],#key) == 0) \
+      compute[ncompute] = new Class(lmp,narg,arg);
+#include "style_compute.h"
+#undef ComputeStyle
+#undef COMPUTE_CLASS
+
+    else error->all(FLERR,"Invalid compute style");
+  }
 
   ncompute++;
 }
@@ -771,14 +824,14 @@ void Modify::add_compute(int narg, char **arg)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal compute_modify command");
+  if (narg < 2) error->all(FLERR,"Illegal compute_modify command");
 
   // lookup Compute ID
 
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all("Could not find compute_modify ID");
+  if (icompute == ncompute) error->all(FLERR,"Could not find compute_modify ID");
   
   compute[icompute]->modify_params(narg-1,&arg[1]);
 }
@@ -790,7 +843,7 @@ void Modify::modify_compute(int narg, char **arg)
 void Modify::delete_compute(char *id)
 {
   int icompute = find_compute(id);
-  if (icompute < 0) error->all("Could not find compute ID to delete");
+  if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
   delete compute[icompute];
 
   // move other Computes down in list one slot
@@ -1103,10 +1156,12 @@ void Modify::list_init_compute()
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 
-double Modify::memory_usage()
+bigint Modify::memory_usage()
 {
-  double bytes = 0.0;
-  for (int i = 0; i < nfix; i++) bytes += fix[i]->memory_usage();
-  for (int i = 0; i < ncompute; i++) bytes += compute[i]->memory_usage();
+  bigint bytes = 0;
+  for (int i = 0; i < nfix; i++) 
+    bytes += static_cast<bigint> (fix[i]->memory_usage());
+  for (int i = 0; i < ncompute; i++) 
+    bytes += static_cast<bigint> (compute[i]->memory_usage());
   return bytes;
 }

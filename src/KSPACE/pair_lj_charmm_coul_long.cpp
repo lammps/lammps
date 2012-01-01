@@ -37,9 +37,6 @@ using namespace LAMMPS_NS;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.cpp
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592
@@ -63,21 +60,21 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 PairLJCharmmCoulLong::~PairLJCharmmCoulLong()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(eps14);
-    memory->destroy_2d_double_array(sigma14);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(lj14_1);
-    memory->destroy_2d_double_array(lj14_2);
-    memory->destroy_2d_double_array(lj14_3);
-    memory->destroy_2d_double_array(lj14_4);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(eps14);
+    memory->destroy(sigma14);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(lj14_1);
+    memory->destroy(lj14_2);
+    memory->destroy(lj14_3);
+    memory->destroy(lj14_4);
   }
   if (ftable) free_tables();
 }
@@ -104,7 +101,6 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -129,13 +125,9 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -224,7 +216,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,7 +234,6 @@ void PairLJCharmmCoulLong::compute_inner()
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -274,13 +265,9 @@ void PairLJCharmmCoulLong::compute_inner()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -332,7 +319,6 @@ void PairLJCharmmCoulLong::compute_middle()
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -370,14 +356,10 @@ void PairLJCharmmCoulLong::compute_middle()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
-      
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -446,7 +428,6 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -478,13 +459,9 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
       
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -647,25 +624,25 @@ void PairLJCharmmCoulLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  eps14 = memory->create_2d_double_array(n+1,n+1,"pair:eps14");
-  sigma14 = memory->create_2d_double_array(n+1,n+1,"pair:sigma14");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  lj14_1 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_1");
-  lj14_2 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_2");
-  lj14_3 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_3");
-  lj14_4 = memory->create_2d_double_array(n+1,n+1,"pair:lj14_4");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(eps14,n+1,n+1,"pair:eps14");
+  memory->create(sigma14,n+1,n+1,"pair:sigma14");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(lj14_1,n+1,n+1,"pair:lj14_1");
+  memory->create(lj14_2,n+1,n+1,"pair:lj14_2");
+  memory->create(lj14_3,n+1,n+1,"pair:lj14_3");
+  memory->create(lj14_4,n+1,n+1,"pair:lj14_4");
 }
 
 /* ----------------------------------------------------------------------
@@ -676,7 +653,7 @@ void PairLJCharmmCoulLong::allocate()
 
 void PairLJCharmmCoulLong::settings(int narg, char **arg)
 {
-  if (narg != 2 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 2 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
   cut_lj = force->numeric(arg[1]);
@@ -690,7 +667,7 @@ void PairLJCharmmCoulLong::settings(int narg, char **arg)
 
 void PairLJCharmmCoulLong::coeff(int narg, char **arg)
 {
-  if (narg != 4 && narg != 6) error->all("Illegal pair_coeff command");
+  if (narg != 4 && narg != 6) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -718,7 +695,7 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -728,13 +705,13 @@ void PairLJCharmmCoulLong::coeff(int narg, char **arg)
 void PairLJCharmmCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/charmm/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmm/coul/long requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 
   int irequest;
 
-  if (update->whichflag == 1 && strcmp(update->integrate_style,"respa") == 0) {
+  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -769,7 +746,7 @@ void PairLJCharmmCoulLong::init_style()
   // require cut_lj_inner < cut_lj
 
   if (cut_lj_inner >= cut_lj) 
-    error->all("Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;
@@ -781,19 +758,19 @@ void PairLJCharmmCoulLong::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (MIN(cut_lj,cut_coul) < cut_respa[3])
-      error->all("Pair cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair cutoff < Respa interior cutoff");
     if (cut_lj_inner < cut_respa[1])
-      error->all("Pair inner cutoff < Respa interior cutoff");
+      error->all(FLERR,"Pair inner cutoff < Respa interior cutoff");
   } else cut_respa = NULL;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
   
   // setup force tables
@@ -875,22 +852,22 @@ void PairLJCharmmCoulLong::init_tables()
 
   if (ftable) free_tables();
   
-  rtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:rtable");
-  ftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ftable");
-  ctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ctable");
-  etable = (double *) memory->smalloc(ntable*sizeof(double),"pair:etable");
-  drtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:drtable");
-  dftable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dftable");
-  dctable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dctable");
-  detable = (double *) memory->smalloc(ntable*sizeof(double),"pair:detable");
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
 
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    vtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:vtable");
-    ptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:ptable");
-    dvtable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dvtable");
-    dptable = (double *) memory->smalloc(ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;
@@ -1112,18 +1089,18 @@ void PairLJCharmmCoulLong::read_restart_settings(FILE *fp)
 
 void PairLJCharmmCoulLong::free_tables()
 {
-  memory->sfree(rtable);
-  memory->sfree(drtable);
-  memory->sfree(ftable);
-  memory->sfree(dftable);
-  memory->sfree(ctable);
-  memory->sfree(dctable);
-  memory->sfree(etable);
-  memory->sfree(detable);
-  memory->sfree(vtable);
-  memory->sfree(dvtable);
-  memory->sfree(ptable);
-  memory->sfree(dptable);
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define TOLERANCE 0.05
 #define SMALL     0.001
 
@@ -45,12 +42,12 @@ DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralMultiHarmonic::~DihedralMultiHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(a1);
-    memory->sfree(a2);
-    memory->sfree(a3);
-    memory->sfree(a4);
-    memory->sfree(a5);
+    memory->destroy(setflag);
+    memory->destroy(a1);
+    memory->destroy(a2);
+    memory->destroy(a3);
+    memory->destroy(a4);
+    memory->destroy(a5);
   }
 }
 
@@ -166,7 +163,7 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -259,13 +256,13 @@ void DihedralMultiHarmonic::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  a1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:a1");
-  a2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:a2");
-  a3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:a3");
-  a4 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:a4");
-  a5 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:a5");
+  memory->create(a1,n+1,"dihedral:a1");
+  memory->create(a2,n+1,"dihedral:a2");
+  memory->create(a3,n+1,"dihedral:a3");
+  memory->create(a4,n+1,"dihedral:a4");
+  memory->create(a5,n+1,"dihedral:a5");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -275,7 +272,7 @@ void DihedralMultiHarmonic::allocate()
 
 void DihedralMultiHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for dihedral coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -298,7 +295,7 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------

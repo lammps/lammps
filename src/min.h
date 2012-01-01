@@ -14,7 +14,6 @@
 #ifndef LMP_MIN_H
 #define LMP_MIN_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -37,7 +36,7 @@ class Min : protected Pointers {
   void run(int);
   void cleanup();
   int request(class Pair *, int, double);
-  double memory_usage() {return 0.0;}
+  virtual bigint memory_usage() {return 0;}
   void modify_params(int, char **);
   double fnorm_sqr();
   double fnorm_inf();
@@ -50,6 +49,7 @@ class Min : protected Pointers {
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly
+  int external_force_clear;   // clear forces locally or externally
 
   double dmax;                // max dist to move any atom in one step
   int linestyle;              // 0 = backtrack, 1 = quadratic
@@ -61,9 +61,10 @@ class Min : protected Pointers {
   class Compute **vlist_global;
   class Compute **vlist_atom;
 
+  int triclinic;              // 0 if domain is orthog, 1 if triclinic
   int pairflag;
   int torqueflag,erforceflag;
-  int triclinic;              // 0 if domain is orthog, 1 if triclinic
+  int e_flag,rho_flag;
 
   int narray;                       // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;  // fix that stores auxiliary data

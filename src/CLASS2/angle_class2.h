@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class AngleClass2 : public Angle {
  public:
   AngleClass2(class LAMMPS *);
-  ~AngleClass2();
-  void compute(int, int);
+  virtual ~AngleClass2();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, int, int, int);
 
- private:
+ protected:
   double *theta0,*k2,*k3,*k4;
   double *bb_k,*bb_r1,*bb_r2;
   double *ba_k1,*ba_k2,*ba_r1,*ba_r2;

@@ -21,7 +21,7 @@
 #include "math_extra.h"
 #include "fix_nh_asphere.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -33,23 +33,9 @@ using namespace LAMMPS_NS;
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  inertia = 
-    memory->create_2d_double_array(atom->ntypes+1,3,"fix_nvt_asphere:inertia");
-
-  if (!atom->quat_flag || !atom->angmom_flag || !atom->torque_flag ||
-      !atom->avec->shape_type)
-    error->all("Fix nvt/nph/npt asphere requires atom attributes "
-	       "quat, angmom, torque, shape");
-  if (atom->radius_flag || atom->rmass_flag)
-    error->all("Fix nvt/nph/npt asphere cannot be used with atom attributes "
-	       "diameter or rmass");
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixNHAsphere::~FixNHAsphere()
-{
-  memory->destroy_2d_double_array(inertia);
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) 
+    error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,114 +45,16 @@ void FixNHAsphere::init()
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 
-  double **shape = atom->shape;
-  int *type = atom->type;
+  int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (shape[type[i]][0] == 0.0)
-	error->one("Fix nvt/nph/npt asphere requires extended particles");
+      if (ellipsoid[i] < 0)
+	error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
 
   FixNH::init();
-  calculate_inertia();
-}
-
-/* ----------------------------------------------------------------------
-   Richardson iteration to update quaternion accurately
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::richardson(double *q, double *m, double *moments)
-{
-  // compute omega at 1/2 step from m at 1/2 step and q at 0
-
-  double w[3];
-  omega_from_mq(q,m,moments,w);
-
-  // full update from dq/dt = 1/2 w q
-
-  double wq[4];
-  MathExtra::multiply_vec_quat(w,q,wq);
-
-  double qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
-  MathExtra::normalize4(qfull);
-
-  // 1st half of update from dq/dt = 1/2 w q
-
-  double qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
-  MathExtra::normalize4(qhalf);
-
-  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
-  // recompute wq
-
-  omega_from_mq(qhalf,m,moments,w);
-  MathExtra::multiply_vec_quat(w,qhalf,wq);
-
-  // 2nd half of update from dq/dt = 1/2 w q
-
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
-  MathExtra::normalize4(qhalf);
-
-  // corrected Richardson update
-
-  q[0] = 2.0*qhalf[0] - qfull[0];
-  q[1] = 2.0*qhalf[1] - qfull[1];
-  q[2] = 2.0*qhalf[2] - qfull[2];
-  q[3] = 2.0*qhalf[3] - qfull[3];
-  MathExtra::normalize4(q);
-}
-
-/* ----------------------------------------------------------------------
-   compute omega from angular momentum
-   w = omega = angular velocity in space frame
-   wbody = angular velocity in body frame
-   project space-frame angular momentum onto body axes
-     and divide by principal moments
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::omega_from_mq(double *q, double *m, double *inertia,
-				  double *w)
-{
-  double rot[3][3];
-  MathExtra::quat_to_mat(q,rot);
-  
-  double wbody[3];
-  MathExtra::transpose_times_column3(rot,m,wbody);
-  wbody[0] /= inertia[0];
-  wbody[1] /= inertia[1];
-  wbody[2] /= inertia[2];
-  MathExtra::times_column3(rot,wbody,w);
-}
-
-/* ----------------------------------------------------------------------
-   principal moments of inertia for ellipsoids
-------------------------------------------------------------------------- */
-
-void FixNHAsphere::calculate_inertia()
-{
-  double *mass = atom->mass;
-  double **shape = atom->shape;
-  
-  for (int i = 1; i <= atom->ntypes; i++) {
-    inertia[i][0] = 0.2*mass[i] *
-      (shape[i][1]*shape[i][1]+shape[i][2]*shape[i][2]);
-    inertia[i][1] = 0.2*mass[i] *
-      (shape[i][0]*shape[i][0]+shape[i][2]*shape[i][2]);
-    inertia[i][2] = 0.2*mass[i] * 
-      (shape[i][0]*shape[i][0]+shape[i][1]*shape[i][1]);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -202,13 +90,16 @@ void FixNHAsphere::nve_v()
 
 void FixNHAsphere::nve_x()
 {
+  double omega[3];
+
   // standard nve_x position update
 
   FixNH::nve_x();
 
-  double **quat = atom->quat;
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **angmom = atom->angmom;
-  int *type = atom->type;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
@@ -219,11 +110,30 @@ void FixNHAsphere::nve_x()
 
   // update quaternion a full step via Richardson iteration
   // returns new normalized quaternion
+  // principal moments of inertia
 
-  for (int i = 0; i < nlocal; i++) {    
-    if (mask[i] & groupbit)
-      richardson(quat[i],angmom[i],inertia[type[i]]);
-  }
+  double *shape,*quat;
+  double inertia[3];
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+
+      // principal moments of inertia
+
+      shape = bonus[ellipsoid[i]].shape;
+      quat = bonus[ellipsoid[i]].quat;
+
+      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+      
+      // compute omega at 1/2 step from angmom at 1/2 step and current q
+      // update quaternion a full step via Richardson iteration
+      // returns new normalized quaternion
+
+      MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
+      MathExtra::richardson(quat,angmom[i],omega,inertia,dtq);
+    }
 }
 
 /* ----------------------------------------------------------------------

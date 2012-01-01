@@ -1,0 +1,8 @@
+AWPMD library license, Version 1
+
+Copyright (c) 1992-2011 Ilya Valuev
+
+Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed. 
+
+AWPMD library is free software, you can redistribute and modify it under the
+terms of WXWINDOWS LIBRARY LICENSE, Version 3 (www.wxwidgets.org) 

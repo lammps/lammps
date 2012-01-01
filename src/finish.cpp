@@ -17,6 +17,7 @@
 #include "stdio.h"
 #include "finish.h"
 #include "timer.h"
+#include "universe.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -31,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
@@ -47,7 +45,6 @@ void Finish::end(int flag)
   int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
   double time_loop,time_other;
-  bigint natoms;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);
@@ -59,14 +56,19 @@ void Finish::end(int flag)
   // flag = 1 = dynamics or minimization
   // flag = 2 = PRD
   // flag = 3 = TAD
-  
+  // turn off neighflag for Kspace partition of verlet/split integrator
+
   loopflag = 1;
   minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
 
   if (flag == 1) {
     if (update->whichflag == 2) minflag = 1;
-    timeflag = histoflag = neighflag = 1;
-    if (strstr(force->kspace_style,"pppm")) fftflag = 1;
+    timeflag = histoflag = 1;
+    neighflag = 1;
+    if (update->whichflag == 1 && 
+	strcmp(update->integrate_style,"verlet/split") == 0 && 
+	universe->iworld == 1) neighflag = 0;
+    if (force->kspace && force->kspace_match("pppm",0)) fftflag = 1;
   }
   if (flag == 2) prdflag = histoflag = neighflag = 1;
   if (flag == 3) tadflag = histoflag = neighflag = 1;
@@ -84,38 +86,33 @@ void Finish::end(int flag)
     time_loop = tmp/nprocs;
 
     // overall loop time
-    // use actual natoms, in case atoms were lost
 
-    bigint nblocal = atom->nlocal;
-    MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-    
+#if defined(_OPENMP)    
     if (me == 0) {
-      char str[128];
-#if defined(_OPENMP)
-      sprintf(str,"Loop time of %%g on %%d procs (%%d MPI x %%d OpenMP) for %%d steps with %s atoms\n",
-	      BIGINT_FORMAT);
-      if (screen) 
-	fprintf(screen,str,time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
-      if (logfile)
-	fprintf(logfile,str,time_loop,nprocs*comm->nthreads,nprocs,comm->nthreads,update->nsteps,natoms);
+      int ntasks = nprocs * comm->nthreads;
+      if (screen) fprintf(screen,
+			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+			  "for %d steps with " BIGINT_FORMAT " atoms\n",
+			  time_loop,ntasks,nprocs,comm->nthreads,
+			  update->nsteps,atom->natoms);
+      if (logfile) fprintf(logfile,
+			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+			  "for %d steps with " BIGINT_FORMAT " atoms\n",
+			  time_loop,ntasks,nprocs,comm->nthreads,
+			  update->nsteps,atom->natoms);
+    }
 #else
-      sprintf(str,"Loop time of %%g on %%d procs for %%d steps with %s atoms\n",
-	      BIGINT_FORMAT);
-      if (screen) fprintf(screen,str,time_loop,nprocs,update->nsteps,natoms);
-      if (logfile) fprintf(logfile,str,time_loop,nprocs,update->nsteps,natoms);
+    if (me == 0) {
+      if (screen) fprintf(screen,
+			  "Loop time of %g on %d procs for %d steps with " 
+			  BIGINT_FORMAT " atoms\n",
+			  time_loop,nprocs,update->nsteps,atom->natoms);
+      if (logfile) fprintf(logfile,
+			   "Loop time of %g on %d procs for %d steps with " 
+			   BIGINT_FORMAT " atoms\n",
+			   time_loop,nprocs,update->nsteps,atom->natoms);
+    }
 #endif
-      // extra performance data for simulations with non-reduced time units
-      if ( (update->nsteps > 0) &&
-	((strcmp(update->unit_style,"metal") == 0) ||
-	(strcmp(update->unit_style,"real") == 0)) ) {
-	float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
-
-	// conversion factor to femtoseconds
-	if (strcmp(update->unit_style,"metal") == 0) one_fs = 0.001;
-	t_step = (float)time_loop / ((float) update->nsteps);
-	tps = 1.0/t_step;
-	hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 60.0 / 60.0;
-	ns_day = 24.0 * 60.0 * 60.0 / t_step * update->dt / one_fs / 1000000.0;
 
 	if (screen) 
 	  fprintf(screen, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
@@ -425,6 +422,7 @@ void Finish::end(int flag)
   
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs
+  // time_kspace may be 0.0 if another partition is doing Kspace
 
   if (fftflag) {
     if (me == 0) {
@@ -456,7 +454,8 @@ void Finish::end(int flag)
 
     double fraction,flop3,flop1;
     if (nsteps) {
-      fraction = time3d/time_kspace*100.0;
+      if (time_kspace) fraction = time3d/time_kspace*100.0;
+      else fraction = 0.0;
       flop3 = nflops/1.0e9/(time3d/4.0/nsteps);
       flop1 = nflops/1.0e9/(time1d/4.0/nsteps);
     } else fraction = flop3 = flop1 = 0.0;
@@ -611,9 +610,11 @@ void Finish::end(int flag)
 	  fprintf(screen,
 		  "Total # of neighbors = %d\n",static_cast<int> (nall));
 	else fprintf(screen,"Total # of neighbors = %g\n",nall);
-	if (natoms > 0) fprintf(screen,"Ave neighs/atom = %g\n",nall/natoms);
-	if (atom->molecular && natoms > 0) 
-	  fprintf(screen,"Ave special neighs/atom = %g\n",nspec_all/natoms);
+	if (atom->natoms > 0) 
+	  fprintf(screen,"Ave neighs/atom = %g\n",nall/atom->natoms);
+	if (atom->molecular && atom->natoms > 0) 
+	  fprintf(screen,"Ave special neighs/atom = %g\n",
+		  nspec_all/atom->natoms);
 	fprintf(screen,"Neighbor list builds = %d\n",neighbor->ncalls);
 	fprintf(screen,"Dangerous builds = %d\n",neighbor->ndanger);
       }
@@ -622,9 +623,11 @@ void Finish::end(int flag)
 	  fprintf(logfile,
 		  "Total # of neighbors = %d\n",static_cast<int> (nall));
 	else fprintf(logfile,"Total # of neighbors = %g\n",nall);
-	if (natoms > 0) fprintf(logfile,"Ave neighs/atom = %g\n",nall/natoms);
-	if (atom->molecular && natoms > 0) 
-	  fprintf(logfile,"Ave special neighs/atom = %g\n",nspec_all/natoms);
+	if (atom->natoms > 0) 
+	  fprintf(logfile,"Ave neighs/atom = %g\n",nall/atom->natoms);
+	if (atom->molecular && atom->natoms > 0) 
+	  fprintf(logfile,"Ave special neighs/atom = %g\n",
+		  nspec_all/atom->natoms);
 	fprintf(logfile,"Neighbor list builds = %d\n",neighbor->ncalls);
 	fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
       }
@@ -672,10 +675,10 @@ void Finish::stats(int n, double *data,
     histo[m]++;
   }
 
-  histotmp = (int *) memory->smalloc(nhisto*sizeof(int),"finish:histotmp");
+  memory->create(histotmp,nhisto,"finish:histotmp");
   MPI_Allreduce(histo,histotmp,nhisto,MPI_INT,MPI_SUM,world);
   for (i = 0; i < nhisto; i++) histo[i] = histotmp[i];
-  memory->sfree(histotmp);
+  memory->destroy(histotmp);
 
   *pave = ave;
   *pmax = max;

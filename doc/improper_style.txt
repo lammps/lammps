@@ -69,7 +69,7 @@ specified by the associated "improper_coeff"_improper_coeff.html command:
 There are also additional improper styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the improper section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
 
 :line
 
@@ -78,11 +78,11 @@ page"_Section_commands.html#3_5.
 Improper styles can only be set for atom_style choices that allow
 impropers to be defined.
 
-Most improper styles are part of the "molecular" package.  They are
-only enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.  The
-doc pages for individual improper potentials tell if it is part of a
-package.
+Most improper styles are part of the MOLECULAR package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+The doc pages for individual improper potentials tell if it is part of
+a package.
 
 [Related commands:]
 

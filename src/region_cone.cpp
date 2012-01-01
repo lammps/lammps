@@ -34,7 +34,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   options(narg-9,&arg[9]);
 
   if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z")) 
-    error->all("Illegal region cylinder command");
+    error->all(FLERR,"Illegal region cylinder command");
   axis = arg[2][0];
 
   if (axis == 'x') {
@@ -56,7 +56,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[7],"INF") == 0) lo = -BIG;
       else if (domain->triclinic == 0) lo = domain->boxlo[0];
@@ -80,7 +80,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[8],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0) 
-      error->all("Cannot use region INF or EDGE when box does not exist");
+      error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[8],"INF") == 0) hi = BIG;
       else if (domain->triclinic == 0) hi = domain->boxhi[0];
@@ -104,11 +104,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (radiuslo < 0.0) error->all("Illegal radius in region cone command");
-  if (radiushi < 0.0) error->all("Illegal radius in region cone command");
+  if (radiuslo < 0.0) error->all(FLERR,"Illegal radius in region cone command");
+  if (radiushi < 0.0) error->all(FLERR,"Illegal radius in region cone command");
   if (radiuslo == 0.0 && radiushi == 0.0)
-    error->all("Illegal radius in region cone command");
-  if (hi == lo) error->all("Illegal cone length in region cone command");
+    error->all(FLERR,"Illegal radius in region cone command");
+  if (hi == lo) error->all(FLERR,"Illegal cone length in region cone command");
 
   // extent of cone
 

@@ -7,36 +7,40 @@
 :line
 
 pair_style eam command :h3
+pair_style eam/cuda command :h3
+pair_style eam/omp command :h3
 pair_style eam/opt command :h3
 pair_style eam/alloy command :h3
+pair_style eam/alloy/cuda command :h3
+pair_style eam/alloy/omp command :h3
 pair_style eam/alloy/opt command :h3
 pair_style eam/cd command :h3
+pair_style eam/cd/omp command :h3
 pair_style eam/fs command :h3
+pair_style eam/fs/cuda command :h3
+pair_style eam/fs/omp command :h3
 pair_style eam/fs/opt command :h3
 
 [Syntax:]
 
 pair_style style :pre
 
-style = {eam} or {eam/alloy} or {eam/cd} or {eam/fs} or {eam/opt} or {eam/alloy/opt} or {eam/fs/opt} :ul
+style = {eam} or {eam/alloy} or {eam/cd} or {eam/fs} :ul
 
 [Examples:]
 
 pair_style eam
-pair_style eam/opt
 pair_coeff * * cuu3
 pair_coeff 1*3 1*3 niu3.eam :pre
 
 pair_style eam/alloy
-pair_style eam/alloy/opt
-pair_coeff * * ../potentials/nialhjea.eam.alloy Ni Al Ni Ni :pre
+pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni :pre
 
 pair_style eam/cd
 pair_coeff * * ../potentials/FeCr.cdeam Fe Cr :pre
 
 pair_style eam/fs
-pair_style eam/fs/opt
-pair_coeff * * nialhjea.eam.fs Ni Al Ni Ni :pre
+pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni :pre
 
 [Description:]
 
@@ -52,11 +56,6 @@ and beta are the element types of atoms I and J.  The multi-body
 nature of the EAM potential is a result of the embedding energy term.
 Both summations in the formula are over all neighbors J of atom I
 within the cutoff distance.
-
-Style {eam/opt} is an optimized version of style {eam} that should
-give identical answers.  Depending on system size and the processor
-you are running on, it may be 5-25% faster (for the pairwise portion
-of the run time).
 
 The cutoff distance and the tabulated values of the functionals F,
 rho, and phi are listed in one or more files which are specified by
@@ -176,11 +175,6 @@ above, {setfl} files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than {funcfl} files for
 modeling alloys.
 
-Style {eam/alloy/opt} is an optimized version of style {eam/alloy}
-that should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
-
 For style {eam/alloy}, potential values are read from a file that is
 in the DYNAMO multi-element {setfl} format, except that element names
 (Ni, Cu, etc) are added to one of the lines in the file.  If the
@@ -197,13 +191,13 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of {setfl} elements to atom types :ul
 
-As an example, the potentials/nialhjea {setfl} file has tabulated EAM
-values for 3 elements and their alloy interactions: Ni, Al, and H.  If
-your LAMMPS simulation has 4 atoms types and you want the 1st 3 to be
-Ni, and the 4th to be Al, you would use the following pair_coeff
-command:
+As an example, the potentials/NiAlH_jea.eam.alloy file is a {setfl}
+file which has tabulated EAM values for 3 elements and their alloy
+interactions: Ni, Al, and H.  If your LAMMPS simulation has 4 atoms
+types and you want the 1st 3 to be Ni, and the 4th to be Al, you would
+use the following pair_coeff command:
 
-pair_coeff * * nialhjea.eam.alloy Ni Ni Ni Al :pre
+pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
@@ -301,11 +295,6 @@ so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
-Style {eam/fs/opt} is an optimized version of style {eam/fs} that
-should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
-
 The associated "pair_coeff"_pair_coeff.html command for style {eam/fs}
 reads a DYNAMO {setfl} file that has been extended to include
 additional rho_alpha_beta arrays of tabulated values.  A discussion of
@@ -320,7 +309,7 @@ FS potential files.
 For style {eam/fs}, the form of the pair_coeff command is exactly the
 same as for style {eam/alloy}, e.g.
 
-pair_coeff * * nialhjea.eam.fs Ni Ni Ni Al :pre
+pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al :pre
 
 where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  The N values determine the mapping
@@ -368,6 +357,29 @@ are listed.
 
 :line
 
+
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
+
+:line
+
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, where types I and J correspond to
@@ -391,19 +403,15 @@ The eam pair styles can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-All of these styles except those ending in {opt} and the {eam/cd}
-style are part of the "manybody" package.  They are only enabled if
-LAMMPS was built with that package (which it is by default).
+All of these styles except the {eam/cd} style are part of the MANYBODY
+package.  They are only enabled if LAMMPS was built with that package
+(which it is by default).  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
-The styles ending in {opt} are part of the "opt" package and also
-require the "manybody" package.  They are only enabled if LAMMPS was
-built with those packages.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
-
-The {eam/cd} style is part of the "user-cd-eam" package and also
-requires the "manybody" package.  It is only enabled if LAMMPS was
-built with those packages.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+The {eam/cd} style is part of the USER-MISC package and also requires
+the MANYBODY package.  It is only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
 
 [Related commands:]
 

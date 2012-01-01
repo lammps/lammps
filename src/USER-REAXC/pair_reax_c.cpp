@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "pair_reax_c.h"
@@ -48,22 +54,26 @@ using namespace LAMMPS_NS;
 
 PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 {
-  system = (reax_system *) 
-    memory->smalloc( sizeof(reax_system), "reax:system" );
-  control = (control_params *) 
-    memory->smalloc( sizeof(control_params), "reax:control" );
-  data = (simulation_data *) 
-    memory->smalloc( sizeof(simulation_data), "reax:data" );
-  workspace = (storage *) 
-    memory->smalloc( sizeof(storage), "reax:storage" );
-  lists = (reax_list *) 
-    memory->smalloc( LIST_N * sizeof(reax_list), "reax:lists" );
-  out_control = (output_controls *) 
-    memory->smalloc( sizeof(output_controls), "reax:out_control" );
-  mpi_data = (mpi_datatypes *) 
-    memory->smalloc( sizeof(mpi_datatypes), "reax:mpi");
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
 
-  MPI_Comm_rank(world, &system->my_rank);
+  system = (reax_system *)
+    memory->smalloc(sizeof(reax_system),"reax:system");
+  control = (control_params *) 
+    memory->smalloc(sizeof(control_params),"reax:control");
+  data = (simulation_data *)
+    memory->smalloc(sizeof(simulation_data),"reax:data");
+  workspace = (storage *)
+    memory->smalloc(sizeof(storage),"reax:storage");
+  lists = (reax_list *) 
+    memory->smalloc(LIST_N * sizeof(reax_list),"reax:lists");
+  out_control = (output_controls *)
+    memory->smalloc(sizeof(output_controls),"reax:out_control");
+  mpi_data = (mpi_datatypes *)
+    memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
+
+  MPI_Comm_rank(world,&system->my_rank);
 
   system->my_coords[0] = 0;
   system->my_coords[1] = 0;
@@ -80,6 +90,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_bond = 0;
   system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = NULL;
+  system->pair_ptr = this;
 
   fix_reax = NULL;
 
@@ -111,19 +122,19 @@ PairReaxC::~PairReaxC()
   DeAllocate_System( system );
   //fprintf( stderr, "4\n" );
   
-  memory->sfree( system );
-  memory->sfree( control );
-  memory->sfree( data );
-  memory->sfree( workspace );
-  memory->sfree( lists );
-  memory->sfree( out_control );
-  memory->sfree( mpi_data );
+  memory->destroy( system );
+  memory->destroy( control );
+  memory->destroy( data );
+  memory->destroy( workspace );
+  memory->destroy( lists );
+  memory->destroy( out_control );
+  memory->destroy( mpi_data );
   //fprintf( stderr, "5\n" );
 
   // deallocate interface storage
   if( allocated ) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
 
     delete [] chi;
@@ -143,8 +154,8 @@ void PairReaxC::allocate( )
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
   map = new int[n+1];
 
   chi = new double[n+1];
@@ -156,7 +167,7 @@ void PairReaxC::allocate( )
 
 void PairReaxC::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all("Illegal pair_style command");
+  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   // read name of control file or use default controls
 
@@ -190,12 +201,12 @@ void PairReaxC::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"checkqeq") == 0) {
-      if (iarg+2 > narg) error->all("Illegal pair_style reax/c command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
-      else error->all("Illegal pair_style reax/c command");
+      else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-    } else error->all("Illegal pair_style reax/c command");
+    } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
 
   // LAMMPS is responsible for generating nbrs
@@ -210,12 +221,12 @@ void PairReaxC::coeff( int nargs, char **args )
   if (!allocated) allocate();
 
   if (nargs != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(args[0],"*") != 0 || strcmp(args[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read ffield file
 
@@ -238,7 +249,7 @@ void PairReaxC::coeff( int nargs, char **args )
     // error check
 
     if (itmp < 0 || itmp >= nreax_types)
-      error->all("Non-existent ReaxFF type");
+      error->all(FLERR,"Non-existent ReaxFF type");
 
   }
 
@@ -251,21 +262,21 @@ void PairReaxC::coeff( int nargs, char **args )
       count++;
     }
     
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairReaxC::init_style( )
 {
-  if (!atom->q_flag) error->all("Pair reax/c requires atom attribute q");
-  firstwarn = 1;
+  if (!atom->q_flag) error->all(FLERR,"Pair reax/c requires atom attribute q");
+  // firstwarn = 1;
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
     if (strcmp(modify->fix[iqeq]->style,"qeq/reax") == 0) break;
   if (iqeq == modify->nfix && qeqflag == 1) 
-    error->all("Pair reax/c requires use of fix qeq/reax");
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -278,9 +289,9 @@ void PairReaxC::init_style( )
   system->big_box.box_norms[2] = 0;
 
   if (atom->tag_enable == 0)
-    error->all("Pair style reax/c requires atom IDs");
+    error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style reax/c requires newton pair on");
+    error->all(FLERR,"Pair style reax/c requires newton pair on");
 
   // need a half neighbor list w/ Newton off
   // built whenever re-neighboring occurs
@@ -337,7 +348,7 @@ void PairReaxC::setup( )
     int num_nbrs = estimate_reax_lists();
     if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, 
 		  lists+FAR_NBRS, world))
-      error->all("Pair reax/c problem in far neighbor list");
+      error->all(FLERR,"Pair reax/c problem in far neighbor list");
   
     write_reax_lists();
     Initialize( system, control, data, workspace, &lists, out_control, 
@@ -389,13 +400,6 @@ void PairReaxC::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
 
-  if ((eflag_atom || vflag_atom) && firstwarn) {
-    firstwarn = 0;
-    if (comm->me == 0) 
-      error->warning("Pair reax/c cannot yet compute "
-		     "per-atom energy or stress");
-  }
-
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
@@ -407,6 +411,10 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0; 
   system->big_box.box_norms[1] = 0; 
   system->big_box.box_norms[2] = 0;
+
+  system->evflag = evflag;
+  system->vflag_atom = vflag_atom;
+
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures
@@ -449,8 +457,8 @@ void PairReaxC::compute(int eflag, int vflag)
     ecoul += data->my_en.e_ele;
     ecoul += data->my_en.e_pol;
 
-    eng_vdwl += evdwl;
-    eng_coul += ecoul;
+    // eng_vdwl += evdwl;
+    // eng_coul += ecoul;
 
     // Store the different parts of the energy
     // in a list for output by compute pair command
@@ -471,7 +479,7 @@ void PairReaxC::compute(int eflag, int vflag)
     pvector[13] = data->my_en.e_pol;
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 
 // #if defined(LOG_PERFORMANCE)
 //   if( comm->me == 0 && fix_qeq != NULL ) {
@@ -480,9 +488,12 @@ void PairReaxC::compute(int eflag, int vflag)
 //   }
 // #endif
 
+// Set internal timestep counter to that of LAMMPS
+
+  data->step = update->ntimestep;
+
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
-  ++data->step;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -561,6 +572,7 @@ int PairReaxC::estimate_reax_lists()
 
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
       dist[j] = sqrt(d_sqr);
       
@@ -571,6 +583,7 @@ int PairReaxC::estimate_reax_lists()
     // compute the nbrs among ghost atoms
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       
       if( j >= nlocal && !marked[j] && 
 	  dist[j] <= (control->vlist_cut - control->bond_cut) ){
@@ -579,6 +592,7 @@ int PairReaxC::estimate_reax_lists()
 
 	for( itr_g = 0; itr_g < numneigh[i]; ++itr_g ){
 	  g = jlist[itr_g];
+	  g &= NEIGHMASK;
 	  
 	  if( g >= nlocal && !marked[g] ){
 	    get_distance( x[g], x[j], &g_d_sqr, &g_dvec );
@@ -618,16 +632,17 @@ int PairReaxC::estimate_reax_lists()
 
 int PairReaxC::write_reax_lists()
 {
-  int itr_i, itr_j, itr_g, i, j, g;
+  int itr_i, itr_j, itr_g, i, j, g, flag;
   int nlocal, nghost, num_nbrs;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int *ilist, *jlist, *numneigh, **firstneigh, *marked, *tag;
   double d_sqr, g_d, g_d_sqr;
   rvec dvec, g_dvec;
-  double *dist, **x;
+  double *dist, **x, SMALL = 0.0001;
   reax_list *far_nbrs;
   far_neighbor_data *far_list;
 
   x = atom->x;
+  tag = atom->tag;
   nlocal = atom->nlocal;
   nghost = atom->nghost;
   ilist = list->ilist;
@@ -649,6 +664,7 @@ int PairReaxC::write_reax_lists()
 
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
       dist[j] = sqrt( d_sqr );
 
@@ -662,6 +678,7 @@ int PairReaxC::write_reax_lists()
     // compute the nbrs among ghost atoms
     for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
       j = jlist[itr_j];
+      j &= NEIGHMASK;
 
       if( j >= nlocal && !marked[j] && 
 	  dist[j] <= (control->vlist_cut - control->bond_cut) ){
@@ -670,6 +687,7 @@ int PairReaxC::write_reax_lists()
 
 	for( itr_g = 0; itr_g < numneigh[i]; ++itr_g ){
 	  g = jlist[itr_g];
+	  g &= NEIGHMASK;
 	  
 	  if( g >= nlocal && !marked[g] ){
 	    get_distance( x[g], x[j], &g_d_sqr, &g_dvec );

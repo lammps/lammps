@@ -22,13 +22,12 @@
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -47,18 +46,18 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp) {}
 PairBuckCoulLong::~PairBuckCoulLong()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(rho);
-    memory->destroy_2d_double_array(c);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(buck1);
-    memory->destroy_2d_double_array(buck2);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(c);
+    memory->destroy(rhoinv);
+    memory->destroy(buck1);
+    memory->destroy(buck2);
+    memory->destroy(offset);
   }
 }
 
@@ -82,7 +81,6 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -107,13 +105,9 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -123,9 +117,9 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+	r = sqrt(rsq);
 
 	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);
 	  t = 1.0 / (1.0 + EWALD_P*grij);
@@ -137,7 +131,6 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp(-r*rhoinv[itype][jtype]);
 	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
 	} else forcebuck = 0.0;
@@ -171,7 +164,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -183,22 +176,22 @@ void PairBuckCoulLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
-  c = memory->create_2d_double_array(n+1,n+1,"pair:c");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  buck1 = memory->create_2d_double_array(n+1,n+1,"pair:buck1");
-  buck2 = memory->create_2d_double_array(n+1,n+1,"pair:buck2");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(rho,n+1,n+1,"pair:rho");
+  memory->create(c,n+1,n+1,"pair:c");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(buck1,n+1,n+1,"pair:buck1");
+  memory->create(buck2,n+1,n+1,"pair:buck2");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -207,7 +200,7 @@ void PairBuckCoulLong::allocate()
 
 void PairBuckCoulLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -229,7 +222,7 @@ void PairBuckCoulLong::settings(int narg, char **arg)
 
 void PairBuckCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -238,7 +231,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
 
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[4]);
 
   double cut_lj_one = cut_lj_global;
@@ -256,7 +249,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -265,7 +258,7 @@ void PairBuckCoulLong::coeff(int narg, char **arg)
 
 double PairBuckCoulLong::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
@@ -302,17 +295,16 @@ double PairBuckCoulLong::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-    double PI = 4.0*atan(1.0);
     double rho1 = rho[i][j];
     double rho2 = rho1*rho1;
     double rho3 = rho2*rho1;
     double rc = cut_lj[i][j];
     double rc2 = rc*rc;
     double rc3 = rc2*rc;
-    etail_ij = 2.0*PI*all[0]*all[1]*
+    etail_ij = 2.0*MY_PI*all[0]*all[1]*
       (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
        c[i][j]/(3.0*rc3));
-    ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1]*
+    ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1]*
       (-a[i][j]*exp(-rc/rho1)*
        (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
   }
@@ -327,17 +319,17 @@ double PairBuckCoulLong::init_one(int i, int j)
 void PairBuckCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style buck/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style buck/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

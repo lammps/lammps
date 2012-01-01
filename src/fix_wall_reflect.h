@@ -27,18 +27,19 @@ namespace LAMMPS_NS {
 class FixWallReflect : public Fix {
  public:
   FixWallReflect(class LAMMPS *, int, char **);
-  ~FixWallReflect();
+  virtual ~FixWallReflect();
   int setmask();
   void init();
   void post_integrate();
 
- private:
+ protected:
   int nwall;
   int wallwhich[6],wallstyle[6];
   double coord0[6];
   char *varstr[6];
   int varindex[6];
   int varflag;
+  double xscale,yscale,zscale;
 };
 
 }

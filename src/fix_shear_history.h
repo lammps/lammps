@@ -36,7 +36,8 @@ class FixShearHistory : public Fix {
   ~FixShearHistory();
   int setmask();
   void init();
-  void pre_exchange();
+  void setup_pre_exchange();
+  virtual void pre_exchange();
 
   double memory_usage();
   void grow_arrays(int);
@@ -49,7 +50,7 @@ class FixShearHistory : public Fix {
   int size_restart(int);
   int maxsize_restart();
 
- private:
+ protected:
   int *npartner;                // # of touching partners of each atom
   int **partner;                // tags for the partners
   double ***shearpartner;       // 3 shear values with the partner

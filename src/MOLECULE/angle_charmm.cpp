@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -39,11 +41,11 @@ AngleCharmm::AngleCharmm(LAMMPS *lmp) : Angle(lmp) {}
 AngleCharmm::~AngleCharmm()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(theta0);
-    memory->sfree(k_ub);
-    memory->sfree(r_ub);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(theta0);
+    memory->destroy(k_ub);
+    memory->destroy(r_ub);
   }
 }
 
@@ -179,11 +181,11 @@ void AngleCharmm::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
-  k_ub = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k_ub");
-  r_ub = (double *) memory->smalloc((n+1)*sizeof(double),"angle:r_ub");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(k,n+1,"angle:k");
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(k_ub,n+1,"angle:k_ub");
+  memory->create(r_ub,n+1,"angle:r_ub");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -193,7 +195,7 @@ void AngleCharmm::allocate()
 
 void AngleCharmm::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all("Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -209,14 +211,14 @@ void AngleCharmm::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one/180.0 * PI;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     k_ub[i] = k_ub_one;
     r_ub[i] = r_ub_one;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

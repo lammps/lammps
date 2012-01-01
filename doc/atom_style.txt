@@ -12,9 +12,9 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {colloid} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {granular} or {molecular} or \
-	{peri} or {hybrid} :ul
+style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
+        {electron} or {ellipsoid} or {full} or {line} or {meso} or \
+	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
   args = none for any style except {hybrid}
   {hybrid} args = list of one or more sub-styles :pre
 
@@ -54,35 +54,61 @@ quantities.
 {atomic} | only the default values | coarse-grain liquids, solids, metals |
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
-{colloid} | angular velocity | extended spherical particles |
-{dipole} | charge and dipole moment | atomic system with dipoles |
+{dipole} | charge and dipole moment | system with dipolar particles |
 {electron} | charge and spin and eradius | electronic force field |
-{ellipsoid} | quaternion for particle orientation, angular momentum | extended aspherical particles |
+{ellipsoid} | shape, quaternion for particle orientation, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
-{granular} | diameter, density, angular velocity | granular models |
+{line} | end points, angular velocity | rigid bodies |
+{meso} | rho, e, cv | SPH particles |
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
-{peri} | density, volume | mesocopic Peridynamic models :tb(c=3,s=|)
-
-All of the styles define point particles, except the {colloid},
-{dipole}, {electron}, {ellipsoid}, {granular}, and {peri} styles,
-which define finite-size particles.  For {colloid}, {dipole}, and
-{ellipsoid} systems, the "shape"_shape.html command is used to specify
-the size and shape of particles on a per-type basis, which is
-spherical for {colloid} and {dipole} particles and spherical or
-aspherical for {ellipsoid} particles.  For {granular} systems, the
-particles are spherical and each has a per-particle specified
-diameter.  For {peri} systems, the particles are spherical and each
-has a per-particle specified volume.  For {electron} systems, the
-particles representing electrons are three dimensional Gaussians with
-a specified position and bandwidth or uncertainty in position, which
-is represented by the eradius = electron size.
+{peri} | mass, volume | mesocopic Peridynamic models |
+{sphere} | diameter, mass, angular velocity | granular models |
+{tri} | corner points, angular momentum | rigid bodies |
+{wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
 All of the styles assign mass to particles on a per-type basis, using
-the "mass"_mass.html command, except the {granular} and {peri} styles
-which assign mass on a per-particle basis.  For {granular} systems,
-the specified diameter and density are used to calculate each
-particle's mass.  For {peri} systems, the speficied volume and density
-are used to calculate each particle's mass.
+the "mass"_mass.html command, except for the finite-size particle
+styles discussed below.  They assign mass on a per-atom basis.
+
+All of the styles define point particles, except the {sphere},
+{ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, and {tri}
+styles, which define finite-size particles.
+
+For the {sphere} style, the particles are spheres and each stores a
+per-particle diameter and mass.  If the diameter > 0.0, the particle
+is a finite-size sphere.  If the diameter = 0.0, it is a point
+particle.
+
+For the {ellipsoid} style, the particles are ellipsoids and each
+stores a flag which indicates whether it is a finite-size ellipsoid or
+a point particle.  If it is an ellipsoid, it also stores a shape
+vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
+with its orientation.
+
+For the {electron} style, the particles representing electrons are 3d
+Gaussians with a specified position and bandwidth or uncertainty in
+position, which is represented by the eradius = electron size.
+
+For the {peri} style, the particles are spherical and each stores a
+per-particle mass and volume.
+
+The {meso} style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (e), and heat capacity
+(cv).
+
+The {wavepacket} style is similar to {electron}, but the electrons may
+consist of several Gaussian wave packets, summed up with coefficients
+cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
+particle in LAMMPS, wave packets belonging to the same electron must
+have identical {etag} values.
+
+For the {line} style, the particles are idealized line segments and
+each stores a per-particle mass and length and orientation (i.e. the
+end points of the line segment).
+
+For the {tri} style, the particles are planar triangles and each
+stores a per-particle mass and size and orientation (i.e. the corner
+points of the triangle).
 
 :line
 
@@ -95,10 +121,10 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want colloidal particles with charge, you would need
-to use "atom_style hybrid colloid charge".  When a hybrid style is
-used, atoms store and communicate the union of all quantities implied
-by the individual styles.
+example, if you want dipolar particles which will be torqued and
+rotate, you would need to use "atom_style hybrid sphere dipole".  When
+a hybrid style is used, atoms store and communicate the union of all
+quantities implied by the individual styles.
 
 LAMMPS can be extended with new atom styles; see "this
 section"_Section_modify.html.
@@ -109,14 +135,16 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
-"molecular" package.  The {granular} style is part of the "granular"
-package.  The {colloid} style is part of the "colloid" package.  The
-{dipole} style is part of the "dipole" package.  The {ellipsoid} style
-is part of the "asphere" package.  The {peri} style is part of the
-"peri" package for Peridynamics.  The {electron} style is part of the
-"user-eff" package for "electronic force fields"_pair_eff.html.  They
-are only enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.
+MOLECULAR package.  The {dipole} style is part of the "dipole"
+package.  The {peri} style is part of the PERI package for
+Peridynamics.  The {electron} style is part of the USER-EFF package
+for "electronic force fields"_pair_eff.html.  The {meso} style is part
+of the USER-SPH package for smoothed particle hydrodyanmics (SPH).
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.  The {wavepacket} style is part of the USER-AWPMD package for
+the "antisymmetrized wave packet MD method"_pair_awpmd.html.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

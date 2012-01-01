@@ -25,6 +25,7 @@
 #define OCL_TIMER_H
 
 #include "ocl_macros.h"
+#include "ocl_device.h"
 
 namespace ucl_opencl {
 
@@ -67,9 +68,20 @@ class UCL_Timer {
   /// Stop timing on default command queue
   inline void stop() { clEnqueueMarker(_cq,&stop_event); }
   
+  /// Block until the start event has been reached on device
+  inline void sync_start() 
+    { CL_SAFE_CALL(clWaitForEvents(1,&start_event)); }
+
+  /// Block until the stop event has been reached on device
+  inline void sync_stop() 
+    { CL_SAFE_CALL(clWaitForEvents(1,&stop_event)); }
+
   /// Set the time elapsed to zero (not the total_time)
   inline void zero() 
     { clEnqueueMarker(_cq,&start_event); clEnqueueMarker(_cq,&stop_event); } 
+  
+  /// Set the total time to zero
+  inline void zero_total() { _total_time=0.0; }
   
   /// Add time from previous start and stop to total
   /** Forces synchronization **/

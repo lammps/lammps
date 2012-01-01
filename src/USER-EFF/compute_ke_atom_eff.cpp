@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute ke/atom/eff command");
+  if (narg != 3) error->all(FLERR,"Illegal compute ke/atom/eff command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -43,15 +43,15 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (!atom->ervel_flag) 
-    error->all("Compute ke/atom/eff requires atom attribute ervel");
+  if (!atom->electron_flag) 
+    error->all(FLERR,"Compute ke/atom/eff requires atom style electron");
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeKEAtomEff::~ComputeKEAtomEff()
 {
-  memory->sfree(ke);
+  memory->destroy(ke);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,7 +62,7 @@ void ComputeKEAtomEff::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"ke/atom/eff") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute ke/atom/eff");
+    error->warning(FLERR,"More than one compute ke/atom/eff");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,10 +74,9 @@ void ComputeKEAtomEff::compute_peratom()
   // grow ke array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(ke);
+    memory->destroy(ke);
     nmax = atom->nmax;
-    ke = (double *)
-      memory->smalloc(nmax*sizeof(double),"compute/ke/atom/eff:ke");
+    memory->create(ke,nmax,"compute/ke/atom/eff:ke");
     vector_atom = ke;
   }
   

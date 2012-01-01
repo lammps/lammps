@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
@@ -34,9 +31,9 @@ using namespace LAMMPS_NS;
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   AtomVec(lmp, narg, arg)
 {
-  int i,k;
+  int i,k,dummy;
 
-  if (narg < 1) error->all("Illegal atom_style command");
+  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
 
   // create sub-styles
 
@@ -47,10 +44,10 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < narg; i++) {
     for (k = 0; k < i; k++)
       if (strcmp(arg[i],keywords[k]) == 0) 
-	error->all("Atom style hybrid cannot use same atom style twice");
+	error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Atom style hybrid cannot have hybrid as an argument");
-    styles[i] = atom->new_avec(arg[i],0,NULL);
+      error->all(FLERR,"Atom style hybrid cannot have hybrid as an argument");
+    styles[i] = atom->new_avec(arg[i],0,NULL,NULL,dummy);
     keywords[i] = new char[strlen(arg[i])+1];
     strcpy(keywords[i],arg[i]);
   }
@@ -75,7 +72,6 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
     dihedrals_allow = MAX(dihedrals_allow,styles[k]->dihedrals_allow);
     impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
     mass_type = MAX(mass_type,styles[k]->mass_type);
-    shape_type = MAX(shape_type,styles[k]->shape_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
@@ -122,7 +118,7 @@ void AtomVecHybrid::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
   // sub-styles perform all reallocation
   // turn off nextra_grow so hybrid can do that once below
@@ -158,19 +154,26 @@ void AtomVecHybrid::grow_reset()
 }
 
 /* ----------------------------------------------------------------------
-   copy array values for all sub-styles
+   copy atom I info to atom J for all sub-styles
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::copy(int i, int j)
+void AtomVecHybrid::copy(int i, int j, int delflag)
 {
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
-  for (int k = 0; k < nstyles; k++) styles[k]->copy(i,j);
+  for (int k = 0; k < nstyles; k++) styles[k]->copy(i,j,delflag);
   atom->nextra_grow = tmp;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::clear_bonus()
+{
+  for (int k = 0; k < nstyles; k++) styles[k]->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,8 +191,6 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -206,10 +207,14 @@ int AtomVecHybrid::pack_comm(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   }
+
+  // pack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->pack_comm_hybrid(n,list,&buf[m]);
+
   return m;
 }
 
@@ -243,8 +248,6 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = angmom[j][1];
 	buf[m++] = angmom[j][2];
       }
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_comm_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -275,8 +278,6 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
 	  buf[m++] = angmom[j][1];
 	  buf[m++] = angmom[j][2];
 	}
-	for (k = 0; k < nstyles; k++)
-	  m += styles[k]->pack_comm_one(j,&buf[m]);
       }
     } else {
       dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
@@ -306,11 +307,15 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
 	  buf[m++] = angmom[j][1];
 	  buf[m++] = angmom[j][2];
 	}
-	for (k = 0; k < nstyles; k++)
-	  m += styles[k]->pack_comm_one(j,&buf[m]);
       }
     }
   }
+
+  // pack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->pack_comm_hybrid(n,list,&buf[m]);
+
   return m;
 }
 
@@ -318,28 +323,31 @@ int AtomVecHybrid::pack_comm_vel(int n, int *list, double *buf,
 
 void AtomVecHybrid::unpack_comm(int n, int first, double *buf)
 {
-  int i,k,last;
+  int i,k,m,last;
 
-  int m = 0;
+  m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->unpack_comm_one(i,&buf[m]);
   }
+
+  // unpack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->unpack_comm_hybrid(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomVecHybrid::unpack_comm_vel(int n, int first, double *buf)
 {
-  int i,k,last;
+  int i,k,m,last;
   int omega_flag = atom->omega_flag;
   int angmom_flag = atom->angmom_flag;
 
-  int m = 0;
+  m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     x[i][0] = buf[m++];
@@ -358,26 +366,33 @@ void AtomVecHybrid::unpack_comm_vel(int n, int first, double *buf)
       angmom[i][1] = buf[m++];
       angmom[i][2] = buf[m++];
     }
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->unpack_comm_one(i,&buf[m]);
   }
+
+  // unpack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->unpack_comm_hybrid(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 int AtomVecHybrid::pack_reverse(int n, int first, double *buf)
 {
-  int i,k,last;
+  int i,k,m,last;
 
-  int m = 0;
+  m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     buf[m++] = f[i][0];
     buf[m++] = f[i][1];
     buf[m++] = f[i][2];
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->pack_reverse_one(i,&buf[m]);
   }
+
+  // pack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->pack_reverse_hybrid(n,first,&buf[m]);
+
   return m;
 }
 
@@ -393,9 +408,12 @@ void AtomVecHybrid::unpack_reverse(int n, int *list, double *buf)
     f[j][0] += buf[m++];
     f[j][1] += buf[m++];
     f[j][2] += buf[m++];
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->unpack_reverse_one(j,&buf[m]);
   }
+
+  // unpack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->unpack_reverse_hybrid(n,list,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -416,8 +434,6 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_border_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -437,10 +453,14 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = tag[j];
       buf[m++] = type[j];
       buf[m++] = mask[j];
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_border_one(j,&buf[m]);
     }
   }
+
+  // pack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->pack_border_hybrid(n,list,&buf[m]);
+
   return m;
 }
 
@@ -477,8 +497,6 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
 	buf[m++] = angmom[j][1];
 	buf[m++] = angmom[j][2];
       }
-      for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_border_one(j,&buf[m]);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -512,8 +530,6 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
 	  buf[m++] = angmom[j][1];
 	  buf[m++] = angmom[j][2];
 	}
-	for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_border_one(j,&buf[m]);
       }
     } else {
       dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
@@ -546,11 +562,15 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
 	  buf[m++] = angmom[j][1];
 	  buf[m++] = angmom[j][2];
 	}
-	for (k = 0; k < nstyles; k++)
-	m += styles[k]->pack_border_one(j,&buf[m]);
       }
     }
   }
+
+  // pack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->pack_border_hybrid(n,list,&buf[m]);
+
   return m;
 }
 
@@ -570,9 +590,12 @@ void AtomVecHybrid::unpack_border(int n, int first, double *buf)
     tag[i] = static_cast<int> (buf[m++]);
     type[i] = static_cast<int> (buf[m++]);
     mask[i] = static_cast<int> (buf[m++]);
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->unpack_border_one(i,&buf[m]);
   }
+
+  // unpack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->unpack_border_hybrid(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -606,9 +629,12 @@ void AtomVecHybrid::unpack_border_vel(int n, int first, double *buf)
       angmom[i][1] = buf[m++];
       angmom[i][2] = buf[m++];
     }
-    for (k = 0; k < nstyles; k++)
-      m += styles[k]->unpack_border_one(i,&buf[m]);
   }
+
+  // unpack sub-style contributions as contiguous chunks
+
+  for (k = 0; k < nstyles; k++)
+    m += styles[k]->unpack_border_hybrid(n,first,&buf[m]);
 }
 
 /* ----------------------------------------------------------------------
@@ -618,12 +644,12 @@ void AtomVecHybrid::unpack_border_vel(int n, int first, double *buf)
 
 int AtomVecHybrid::pack_exchange(int i, double *buf)
 {
-  int k;
+  int k,m;
 
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
 
-  int m = 0;
+  m = 0;
   for (k = 0; k < nstyles; k++) 
     m += styles[k]->pack_exchange(i,&buf[m]);
 
@@ -645,14 +671,16 @@ int AtomVecHybrid::pack_exchange(int i, double *buf)
 
 int AtomVecHybrid::unpack_exchange(double *buf)
 {
+  int k,m;
+
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
   int tmp = atom->nextra_grow;
   atom->nextra_grow = 0;
 
-  int m = 0;
-  for (int k = 0; k < nstyles; k++) {
+  m = 0;
+  for (k = 0; k < nstyles; k++) {
     m += styles[k]->unpack_exchange(&buf[m]);
     atom->nlocal--;
   }
@@ -730,9 +758,7 @@ int AtomVecHybrid::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store)
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
   int tmp = atom->nextra_store;
@@ -785,11 +811,11 @@ void AtomVecHybrid::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -842,9 +868,9 @@ void AtomVecHybrid::data_vel(int m, char **values)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-double AtomVecHybrid::memory_usage()
+bigint AtomVecHybrid::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

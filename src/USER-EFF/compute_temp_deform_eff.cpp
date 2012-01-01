@@ -41,10 +41,10 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal compute temp/deform/eff command");
+  if (narg != 3) error->all(FLERR,"Illegal compute temp/deform/eff command");
 
-  if (!atom->spin_flag || !atom->ervel_flag) 
-    error->all("Compute temp/deform/eff requires atom attributes spin, ervel");
+  if (!atom->electron_flag) 
+    error->all(FLERR,"Compute temp/deform/eff requires atom style electron");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -62,7 +62,7 @@ ComputeTempDeformEff::ComputeTempDeformEff(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempDeformEff::~ComputeTempDeformEff()
 {
-  memory->destroy_2d_double_array(vbiasall);
+  memory->destroy(vbiasall);
   delete [] vector;
 }
 
@@ -83,12 +83,12 @@ void ComputeTempDeformEff::init()
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
           comm->me == 0)
-        error->warning("Using compute temp/deform/eff with inconsistent "
+        error->warning(FLERR,"Using compute temp/deform/eff with inconsistent "
                        "fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning("Using compute temp/deform/eff with no fix deform defined");
+    error->warning(FLERR,"Using compute temp/deform/eff with no fix deform defined");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -253,10 +253,9 @@ void ComputeTempDeformEff::remove_bias_all()
   int nlocal = atom->nlocal;
 
   if (nlocal > maxbias) {
-    memory->destroy_2d_double_array(vbiasall);
+    memory->destroy(vbiasall);
     maxbias = atom->nmax;
-    vbiasall = memory->create_2d_double_array(maxbias,3,
-                                              "temp/deform/eff:vbiasall");
+    memory->create(vbiasall,maxbias,3,"temp/deform/eff:vbiasall");
   }
 
   double lamda[3];

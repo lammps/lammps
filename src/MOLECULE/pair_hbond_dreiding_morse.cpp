@@ -26,14 +26,13 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
+#include "domain.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define SMALL 0.001
 #define CHUNK 8
@@ -49,14 +48,14 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 {
   int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype;
   double delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
-  double factor_hb,force_angle,force_kernel,evdwl;
+  double factor_hb,force_angle,force_kernel,evdwl,ehbond;
   double c,s,a,b,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
-  double r,dr,dexp,emorse;
+  double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*klist,*numneigh,**firstneigh;
   Param *pm;
 
-  evdwl = 0.0;
+  evdwl = ehbond = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
   
@@ -65,8 +64,6 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   int **special = atom->special;
   int *type = atom->type;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   
   inum = list->inum;
@@ -91,11 +88,9 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      if (j < nall) factor_hb = 1.0;
-      else {
-        factor_hb = special_lj[j/nall];
-        j %= nall;
-      }
+      factor_hb = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
+
       jtype = type[j];
       if (!acceptor[jtype]) continue;
 
@@ -112,7 +107,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	if (m < 0) continue;
 	pm = &params[m];
 
-	if (rsq < pm->cutsq) {
+	if (rsq < pm->cut_outersq) {
 	  delr1[0] = x[i][0] - x[k][0];
 	  delr1[1] = x[i][1] - x[k][1];
 	  delr1[2] = x[i][2] - x[k][2];
@@ -135,7 +130,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	  if (c < -1.0) c = -1.0;
 	  ac = acos(c);
 
-	  if (ac > pm->cut_angle && ac < (2.0*PI - pm->cut_angle)) {
+	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
 	    s = sqrt(1.0 - c*c);
 	    if (s < SMALL) s = SMALL;
 
@@ -145,12 +140,23 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	    dr = r - pm->r0;
 	    dexp = exp(-pm->alpha * dr);
 	    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,pm->ap);
-	    emorse = pm->d0 * (dexp*dexp - 2.0*dexp) - pm->offset;
-	    force_angle = pm->ap * emorse * pow(c,pm->ap-1)*s;
-	    
+	    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1)*s;
+
+	    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
+	    if (rsq > pm->cut_innersq) {
+	      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
+			(pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
+			pm->denom_vdw;
+	      switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
+			(rsq-pm->cut_innersq) / pm->denom_vdw;
+	      force_kernel = force_kernel*switch1 + eng_morse*switch2;
+	      eng_morse *= switch1;
+	    }
+   
 	    if (eflag) {
-	      evdwl = emorse * pow(c,params[m].ap);
+	      evdwl = eng_morse * pow(c,params[m].ap);
 	      evdwl *= factor_hb;
+	      ehbond += evdwl;
 	    }
 
 	    a = factor_hb*force_angle/s;
@@ -196,6 +202,11 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
       }
     }
   }
+
+  if (eflag_global) {
+    pvector[0] = hbcount;
+    pvector[1] = ehbond;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -204,8 +215,8 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 
 void PairHbondDreidingMorse::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 10)
-    error->all("Incorrect args for pair coefficients");
+  if (narg < 8 || narg > 11)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
@@ -216,18 +227,24 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
-  else error->all("Incorrect args for pair coefficients");
+  else error->all(FLERR,"Incorrect args for pair coefficients");
 
   double d0_one = force->numeric(arg[4]);
   double alpha_one = force->numeric(arg[5]);
   double r0_one = force->numeric(arg[6]);
 
   int ap_one = ap_global;
-  if (narg == 8) ap_one = force->inumeric(arg[7]);
-  double cut_one = cut_global;
-  if (narg == 9) cut_one = force->numeric(arg[8]);
+  if (narg > 7) ap_one = force->inumeric(arg[7]);
+  double cut_inner_one = cut_inner_global;
+  double cut_outer_one = cut_outer_global;
+  if (narg > 9) {
+    cut_inner_one = force->numeric(arg[8]);
+    cut_outer_one = force->numeric(arg[9]);
+  }
+  if (cut_inner_one>cut_outer_one)
+    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = force->numeric(arg[9]) * PI/180.0;
+  if (narg > 10) cut_angle_one = force->numeric(arg[10]) * MY_PI/180.0;
 
   // grow params array if necessary
 
@@ -241,9 +258,15 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   params[nparams].alpha = alpha_one;
   params[nparams].r0 = r0_one;
   params[nparams].ap = ap_one;
-  params[nparams].cut = cut_one;
-  params[nparams].cutsq = cut_one*cut_one;
+  params[nparams].cut_inner = cut_inner_one;
+  params[nparams].cut_outer = cut_outer_one;
+  params[nparams].cut_innersq = cut_inner_one*cut_inner_one;
+  params[nparams].cut_outersq = cut_outer_one*cut_outer_one;
   params[nparams].cut_angle = cut_angle_one;
+  params[nparams].denom_vdw = 
+    (params[nparams].cut_outersq-params[nparams].cut_innersq) *
+    (params[nparams].cut_outersq-params[nparams].cut_innersq) *
+    (params[nparams].cut_outersq-params[nparams].cut_innersq);
   
   // flag type2param with either i,j = D,A or j,i = D,A
 
@@ -257,7 +280,7 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
       }
   nparams++;
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -272,14 +295,14 @@ void PairHbondDreidingMorse::init_style()
   //   and computing forces on A,H which may be on different procs
 
   if (atom->molecular == 0)
-    error->all("Pair style hbond/dreiding requires molecular system");
+    error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
-    error->all("Pair style hbond/dreiding requires atom IDs");
+    error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
   if (atom->map_style == 0) 
-    error->all("Pair style hbond/dreiding requires an atom map, "
+    error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
 	       "see atom_modify");
   if (force->newton_pair == 0)
-    error->all("Pair style hbond/dreiding requires newton pair on");
+    error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
 
   // set donor[M]/acceptor[M] if any atom of type M is a donor/acceptor
 
@@ -295,7 +318,7 @@ void PairHbondDreidingMorse::init_style()
 	  acceptor[j] = 1;
 	}
 
-  if (!anyflag) error->all("No pair hbond/dreiding coefficients set");
+  if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
 
   // set additional param values
   // offset is for Morse only, angle term is not included
@@ -303,11 +326,13 @@ void PairHbondDreidingMorse::init_style()
   for (int m = 0; m < nparams; m++) {
     params[m].morse1 = 2.0*params[m].d0*params[m].alpha;
 
+    /*
     if (offset_flag) {
       double alpha_dr = -params[m].alpha * (params[m].cut - params[m].r0);
       params[m].offset = params[m].d0 * 
 	((exp(2.0*alpha_dr)) - (2.0*exp(alpha_dr)));
     } else params[m].offset = 0.0;
+    */
   }
 
   // full neighbor list request
@@ -316,3 +341,98 @@ void PairHbondDreidingMorse::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1; 
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
+                                     double rsq,
+                                     double factor_coul, double factor_lj,
+                                     double &fforce)
+{
+  int k,kk,ktype,knum,m;
+  double eng,eng_morse,force_kernel,force_angle;
+  double rsq1,rsq2,r1,r2,c,s,ac,r,dr,dexp,factor_hb;
+  double switch1,switch2;
+  double delr1[3],delr2[3];
+  int *klist;
+  Param *pm;
+
+  double **x = atom->x;
+  int **special = atom->special;
+  int *type = atom->type;
+  int **nspecial = atom->nspecial;
+  double *special_lj = force->special_lj;
+
+  eng = 0.0;
+  fforce = 0;
+
+  //sanity check
+
+  if (!donor[itype]) return 0.0;
+  if (!acceptor[jtype]) return 0.0;
+
+  klist = special[i];
+  knum = nspecial[i][0];
+
+  factor_hb = special_lj[sbmask(j)];
+
+  for (kk = 0; kk < knum; kk++) {
+    k = atom->map(klist[kk]);
+    if (k < 0) continue;
+    ktype = type[k];
+    m = type2param[itype][jtype][ktype];
+    if (m < 0) continue;
+    pm = &params[m];
+
+    delr1[0] = x[i][0] - x[k][0];
+    delr1[1] = x[i][1] - x[k][1];
+    delr1[2] = x[i][2] - x[k][2];
+    domain->minimum_image(delr1);
+    rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+    r1 = sqrt(rsq1);
+
+    delr2[0] = x[j][0] - x[k][0];
+    delr2[1] = x[j][1] - x[k][1];
+    delr2[2] = x[j][2] - x[k][2];
+    domain->minimum_image(delr2);
+    rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+    r2 = sqrt(rsq2);
+
+    // angle (cos and sin)
+
+    c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
+    c /= r1*r2;
+    if (c > 1.0) c = 1.0;
+    if (c < -1.0) c = -1.0;
+    ac = acos(c);
+
+    if (ac < pm->cut_angle || ac > (2.0*MY_PI - pm->cut_angle)) return 0.0;
+    s = sqrt(1.0 - c*c);
+    if (s < SMALL) s = SMALL;
+
+    // Morse-specific kernel
+
+    r = sqrt(rsq);
+    dr = r - pm->r0;
+    dexp = exp(-pm->alpha * dr);
+    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,pm->ap);
+    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1)*s;
+
+    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
+    if (rsq > pm->cut_innersq) {
+      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
+		(pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
+		pm->denom_vdw;
+      switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
+		(rsq-pm->cut_innersq) / pm->denom_vdw;
+      force_kernel = force_kernel*switch1 + eng_morse*switch2;
+      eng_morse *= switch1;
+    }
+   
+    eng += eng_morse * pow(c,params[m].ap)* factor_hb;
+    fforce += force_kernel*pow(c,pm->ap) + eng_morse*force_angle;
+  }
+
+  return eng;
+}
+

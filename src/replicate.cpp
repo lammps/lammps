@@ -30,9 +30,6 @@ using namespace LAMMPS_NS;
 #define LB_FACTOR 1.1
 #define EPSILON   1.0e-6
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 Replicate::Replicate(LAMMPS *lmp) : Pointers(lmp) {}
@@ -44,8 +41,8 @@ void Replicate::command(int narg, char **arg)
   int i,j,m,n;
 
   if (domain->box_exist == 0)
-    error->all("Replicate command before simulation box is defined");
-  if (narg != 3) error->all("Illegal replicate command");
+    error->all(FLERR,"Replicate command before simulation box is defined");
+  if (narg != 3) error->all(FLERR,"Illegal replicate command");
 
   int me = comm->me;
   int nprocs = comm->nprocs;
@@ -61,16 +58,16 @@ void Replicate::command(int narg, char **arg)
 
   // error and warning checks
 
-  if (nx <= 0 || ny <= 0 || nz <= 0) error->all("Illegal replicate command");
+  if (nx <= 0 || ny <= 0 || nz <= 0) error->all(FLERR,"Illegal replicate command");
   if (domain->dimension == 2 && nz != 1)
-    error->all("Cannot replicate 2d simulation in z dimension");
+    error->all(FLERR,"Cannot replicate 2d simulation in z dimension");
   if ((nx > 1 && domain->xperiodic == 0) || 
       (ny > 1 && domain->yperiodic == 0) ||
       (nz > 1 && domain->zperiodic == 0)) 
-    error->warning("Replicating in a non-periodic dimension");
+    error->warning(FLERR,"Replicating in a non-periodic dimension");
 
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
-    error->all("Cannot replicate with fixes that store atom quantities");
+    error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
 
   // maxtag = largest atom tag across all existing atoms
 
@@ -104,8 +101,8 @@ void Replicate::command(int narg, char **arg)
   int send_size = atom->avec->size_restart();
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
-  double *buf = 
-    (double *) memory->smalloc(max_size*sizeof(double),"replicate:buf");
+  double *buf;
+  memory->create(buf,max_size,"replicate:buf");
 
   // old = original atom class
   // atom = new replicated atom class
@@ -130,7 +127,7 @@ void Replicate::command(int narg, char **arg)
   // new system cannot exceed MAXBIGINT
 
   if (atom->molecular && (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT))
-    error->all("Replicated molecular system atom IDs are too big");
+    error->all(FLERR,"Replicated molecular system atom IDs are too big");
   if (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT)
     atom->tag_enable = 0;
   if (atom->tag_enable == 0)
@@ -142,7 +139,7 @@ void Replicate::command(int narg, char **arg)
       nrep*old->nangles < 0 || nrep*old->nangles > MAXBIGINT || 
       nrep*old->ndihedrals < 0 || nrep*old->ndihedrals > MAXBIGINT || 
       nrep*old->nimpropers < 0 || nrep*old->nimpropers > MAXBIGINT)
-    error->all("Replicated system is too big");
+    error->all(FLERR,"Replicated system is too big");
 
   // assign atom and topology counts in new class from old one
 
@@ -196,7 +193,7 @@ void Replicate::command(int narg, char **arg)
   domain->print_box("  ");
   domain->set_initial_box();
   domain->set_global_box();
-  comm->set_procs();
+  comm->set_proc_grid();
   domain->set_local_box();
 
   // copy type arrays to new atom class
@@ -205,25 +202,6 @@ void Replicate::command(int narg, char **arg)
     for (int itype = 1; itype <= atom->ntypes; itype++) {
       atom->mass_setflag[itype] = old->mass_setflag[itype];
       if (atom->mass_setflag[itype]) atom->mass[itype] = old->mass[itype];
-    }
-  }
-
-  if (atom->shape) {
-    for (int itype = 1; itype <= atom->ntypes; itype++) {
-      atom->shape_setflag[itype] = old->shape_setflag[itype];
-      if (atom->shape_setflag[itype]) {
-	atom->shape[itype][0] = old->shape[itype][0];
-	atom->shape[itype][1] = old->shape[itype][1];
-	atom->shape[itype][2] = old->shape[itype][2];
-      }
-    }
-  }
-
-  if (atom->dipole) {
-    for (int itype = 1; itype <= atom->ntypes; itype++) {
-      atom->dipole_setflag[itype] = old->dipole_setflag[itype];
-      if (atom->dipole_setflag[itype]) 
-	atom->dipole[itype] = old->dipole[itype];
     }
   }
 
@@ -360,7 +338,7 @@ void Replicate::command(int narg, char **arg)
 
   // free communication buffer and old atom class
 
-  memory->sfree(buf);
+  memory->destroy(buf);
   delete old;
 
   // check that all atoms were assigned to procs
@@ -375,7 +353,7 @@ void Replicate::command(int narg, char **arg)
   }
 
   if (natoms != atom->natoms)
-    error->all("Replicate did not assign all atoms correctly");
+    error->all(FLERR,"Replicate did not assign all atoms correctly");
   
   if (me == 0) {
     if (atom->nbonds) {

@@ -43,9 +43,23 @@ fix comm all imd 8888 trate 5 unwrap on fscale 10.0
 <P><B>Description:</B>
 </P>
 <P>This fix implements the "Interactive MD" (IMD) protocol which allows
-to connect an IMD client, for example the <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD visualization
-program</A>, to a running LAMMPS simulation and monitor the progress
-of the simulation and interactively apply forces to selected atoms.
+realtime visualization and manipulation of MD simulations through the
+IMD protocol, as initially implemented in VMD and NAMD.  Specifically
+it allows LAMMPS to connect an IMD client, for example the <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD
+visualization program</A>, so that it can monitor the progress of the
+simulation and interactively apply forces to selected atoms.
+</P>
+<P>If LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
+then fix imd will use POSIX threads to spawn a IMD communication
+thread on MPI rank 0 in order to offload data reading and writing
+from the main execution thread and potentially lower the inferred
+latencies for slow communication links. This feature has only been
+tested under linux.
+</P>
+<P>There are example scripts for using this package with LAMMPS in
+examples/USER/imd. Additional examples and a driver for use with the
+Novint Falcon game controller as haptic device can be found at:
+http://sites.google.com/site/akohlmey/software/vrpn-icms.
 </P>
 <P>The source code for this fix includes code developed by the
 Theoretical and Computational Biophysics Group in the Beckman
@@ -109,10 +123,12 @@ forces to whole residues or fragments. Your mouse can now be used to
 apply forces to your simulation. Click on an atom, residue, or
 fragment and drag to apply a force. Click quickly without moving the
 mouse to turn the force off. You can also use a variety of 3D position
-trackers to apply forces to your simulation. Trackers with
-force-feedback such as the Sensable PHANTOM allow you to feel the
-forces you are applying to your molecules, as if they were real
-objects. See the <A HREF = "http://www.ks.uiuc.edu/Research/vmd/imd/">VMD IMD Homepage</A> for more details.
+trackers to apply forces to your simulation. Game controllers or haptic
+devices with force-feedback such as the Novint Falcon or Sensable 
+PHANTOM allow you to feel the resistance due to inertia or interactions
+with neighbors that the atoms experience you are trying to move, as if 
+they were real objects. See the <A HREF = "http://www.ks.uiuc.edu/Research/vmd/imd/">VMD IMD Homepage</A> and the 
+<A HREF = "http://sites.google.com/site/akohlmey/software/vrpn-icms">VRPN-ICMS Homepage</A> for more details.
 </P>
 <P>If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if
@@ -122,20 +138,22 @@ screen output is active.
 
 
 
+
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the "user-imd" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
 <P>When used in combination with VMD, a topology or coordinate file has

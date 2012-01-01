@@ -42,32 +42,38 @@ special_bonds lj/coul 0 1 1 extra 2 :pre
 [Description:]
 
 Set weighting coefficients for pairwise energy and force contributions
-from atom pairs that are permanently bonded to each other.  These
-weighting factors are used by all "pair styles"_pair_style.html in
-LAMMPS that compute simple pairwise interactions.  The Coulomb factors
-are applied to any Coulomb (charge interaction) term that the
-potential calculates.  The LJ factors are applied to the remaining
-terms that the potential calculates, whether they represent LJ
-interactions or not.  The weighting factors are a scaling pre-factor
-on the energy and force between the pair of atoms.  Permanent bonds
-between atoms are specified by defining the bond topology in the data
-file read by the "read_data"_read_data.html command and by using the
-"bond_style"_bond_style.html command to define the bond potential.
+between pairs of atoms that are also permanently bonded to each other,
+either directly or via one or two intermediate bonds.  These weighting
+factors are used by nearly all "pair styles"_pair_style.html in LAMMPS
+that compute simple pairwise interactions.  Permanent bonds between
+atoms are specified by defining the bond topology in the data file
+read by the "read_data"_read_data.html command.  Typically a
+"bond_style"_bond_style.html command is also used to define a bond
+potential.  The rationale for using these weighting factors is that
+the interaction between a pair of bonded atoms is all (or mostly)
+specified by the bond, angle, dihedral potentials, and thus the
+non-bonded Lennard-Jones or Coulombic interaction between the pair of
+atoms should be excluded (or reduced by a weighting factor).
 
 IMPORTANT NOTE: These weighting factors are NOT used by "pair
 styles"_pair_style.html that compute many-body interactions, since the
 "bonds" that result from such interactions are not permanent, but are
 created and broken dynamically as atom conformations change.  Examples
-of pair styles and potentials in this category are EAM, MEAM,
-Stillinger-Weber, Tersoff, COMB, AIREBO, and ReaxFF.  In fact, when
-using these pair styles, it makes no sense to define permanent bonds
-and to specify special_bonds weighting factors (unless they are
-applied to a different part of the system via the "pair_style
-hybrid"_pair_hybrid.html command).  Though LAMMPS does not check for
-this, using special_bonds with these potentials will result in errors
-and possibly crash the code, because the definition of weighting
-factors changes the format of the neighor list used by the pair
-styles.
+of pair styles in this category are EAM, MEAM, Stillinger-Weber,
+Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it generally makes no
+sense to define permanent bonds between atoms that interact via these
+potentials, though such bonds may exist elsewhere in your system,
+e.g. when using the "pair_style hybrid"_pair_hybrid.html command.
+Thus LAMMPS ignores special_bonds settings when manybody potentials
+are calculated.
+
+The Coulomb factors are applied to any Coulomb (charge interaction)
+term that the potential calculates.  The LJ factors are applied to the
+remaining terms that the potential calculates, whether they represent
+LJ interactions or not.  The weighting factors are a scaling
+pre-factor on the energy and force between the pair of atoms.  A value
+of 1.0 means include the full interaction; a value of 0.0 means
+exclude it completely.
 
 The 1st of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to

@@ -13,9 +13,9 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
-                         Axel Kohlmeyer (Temple U) added FFTW3, 
-			 KISSFFT, Dfti/MKL support
-			 Phil Blood (PSC) single precision FFT.
+                         Axel Kohlmeyer (Temple U) added support for
+			 FFTW3, KISSFFT, Dfti/MKL, and ACML.
+			 Phil Blood (PSC) added single precision FFT.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -26,12 +26,12 @@
 #include "remap.h"
 
 #ifdef FFT_KISSFFT
-/* kissfft implementation */
+/* include kissfft implementation */
 #include "kissfft.h"
 #endif
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ----------------------------------------------------------------------
    Data layout for 3d FFTs:
@@ -1081,7 +1081,7 @@ void bifactor(int n, int *factor1, int *factor2)
 {
   int n1,n2,facmax;
 
-  facmax = static_cast<int> (sqrt(n));
+  facmax = static_cast<int> (sqrt((double) n));
 
   for (n1 = facmax; n1 > 0; n1--) {
     n2 = n/n1;

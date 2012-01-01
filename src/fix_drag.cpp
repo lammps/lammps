@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix drag command");
+  if (narg != 8) error->all(FLERR,"Illegal fix drag command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -65,7 +65,7 @@ int FixDrag::setmask()
 
 void FixDrag::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -73,7 +73,7 @@ void FixDrag::init()
 
 void FixDrag::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

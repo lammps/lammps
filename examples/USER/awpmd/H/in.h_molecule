@@ -1,0 +1,40 @@
+variable	sname index h_molecule
+log		${sname}.spe.log
+
+units 		real
+newton		on
+boundary        p p p
+processors      1 * *
+
+
+atom_style	wavepacket
+
+read_data  	data.${sname}
+
+#neighbor        2.0 nsq
+
+pair_style      awpmd/cut -1. hartree ermscale 0.99 free flex_press
+pair_coeff 	    * *
+
+
+
+timestep        0.001
+
+fix             1 all nve/awpmd
+
+communicate	    single vel yes
+
+compute         energies all pair awpmd/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+compute         peratom all stress/atom
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+thermo          1
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+
+run 		0

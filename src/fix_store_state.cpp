@@ -37,13 +37,13 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE};
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix store/state command");
+  if (narg < 5) error->all(FLERR,"Illegal fix store/state command");
 
   restart_peratom = 1;
   peratom_freq = 1;
 
   nevery = atoi(arg[3]);
-  if (nevery < 0) error->all("Illegal fix store/state command");
+  if (nevery < 0) error->all(FLERR,"Illegal fix store/state command");
 
   // parse values until one isn't recognized
   // customize a new keyword by adding to if statement
@@ -65,7 +65,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[nvalues++] = &FixStoreState::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[nvalues++] = &FixStoreState::pack_type;
@@ -124,77 +124,60 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_muz;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_radius;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_angmomz;
-
-    } else if (strcmp(arg[iarg],"quatw") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatw;
-    } else if (strcmp(arg[iarg],"quati") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quati;
-    } else if (strcmp(arg[iarg],"quatj") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatj;
-    } else if (strcmp(arg[iarg],"quatk") == 0) {
-      if (!atom->quat_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
-      pack_choice[nvalues++] = &FixStoreState::pack_quatk;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-	error->all("Fix store/state for atom property that isn't allocated");
+	error->all(FLERR,"Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_tqz;
 
     } else if (strncmp(arg[iarg],"c_",2) == 0 || 
@@ -212,7 +195,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal fix store/state command");
+	  error->all(FLERR,"Illegal fix store/state command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -234,12 +217,12 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix store/state command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix store/state command");
       if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all("Illegal fix store/state command");
+      else error->all(FLERR,"Illegal fix store/state command");
       iarg += 2;
-    } else error->all("Illegal fix store/state command");
+    } else error->all(FLERR,"Illegal fix store/state command");
   }
 
   // error check
@@ -248,42 +231,42 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix store/state does not exist");
+	error->all(FLERR,"Compute ID for fix store/state does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Fix store/state compute "
+	error->all(FLERR,"Fix store/state compute "
 		   "does not calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all("Fix store/state compute does not "
+	error->all(FLERR,"Fix store/state compute does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all("Fix store/state compute does not "
+	error->all(FLERR,"Fix store/state compute does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Fix store/state compute array is accessed out-of-range");
+	error->all(FLERR,"Fix store/state compute array is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix store/state does not exist");
+	error->all(FLERR,"Fix ID for fix store/state does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all("Fix store/state fix does not calculate per-atom values");
+	error->all(FLERR,"Fix store/state fix does not calculate per-atom values");
       if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all("Fix store/state fix does not calculate a per-atom vector");
+	error->all(FLERR,"Fix store/state fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all("Fix store/state fix does not calculate a per-atom array");
+	error->all(FLERR,"Fix store/state fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Fix store/state fix array is accessed out-of-range");
+	error->all(FLERR,"Fix store/state fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all("Fix for fix store/state not computed at compatible time");
+	error->all(FLERR,"Fix for fix store/state not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for fix store/state does not exist");
+	error->all(FLERR,"Variable name for fix store/state does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Fix store/state variable is not atom-style variable");
+	error->all(FLERR,"Fix store/state variable is not atom-style variable");
     }
   }
 
@@ -333,7 +316,7 @@ FixStoreState::~FixStoreState()
   delete [] value2index;
   delete [] pack_choice;
 
-  memory->destroy_2d_double_array(values);
+  memory->destroy(values);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -355,19 +338,19 @@ void FixStoreState::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for fix store/state does not exist");
+	error->all(FLERR,"Compute ID for fix store/state does not exist");
       value2index[m] = icompute;
       
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for fix store/state does not exist");
+	error->all(FLERR,"Fix ID for fix store/state does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0) 
-	error->all("Variable name for fix store/state does not exist");
+	error->all(FLERR,"Variable name for fix store/state does not exist");
       value2index[m] = ivariable;
     }
   }
@@ -457,7 +440,7 @@ void FixStoreState::end_of_step()
       // evaluate atom-style variable
       
       } else if (which[m] == VARIABLE)
-	input->variable->compute_atom(n,igroup,&values[0][m],nvalues,1);
+	input->variable->compute_atom(n,igroup,&values[0][m],nvalues,0);
     }
   }
 
@@ -485,12 +468,7 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
-  // allocate storage for at least one element to avoid NULL
-  // pointer dereferences on MPI ranks without local atoms.
-  if (nmax==0) nmax=1;
-
-  values = memory->grow_2d_double_array(values,nmax,nvalues,
-					"fix_store:values");
+  memory->grow(values,nmax,nvalues,"store/state:values");
   if (nvalues == 1) {
     if (nmax) vector_atom = &values[0][0];
     else vector_atom = NULL;
@@ -1229,66 +1207,6 @@ void FixStoreState::pack_angmomz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) vbuf[n] = angmom[i][2];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatw(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][0];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quati(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][1];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatj(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][2];
-    else vbuf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixStoreState::pack_quatk(int n)
-{
-  double **quat = atom->quat;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = quat[i][3];
     else vbuf[n] = 0.0;
     n += nvalues;
   }

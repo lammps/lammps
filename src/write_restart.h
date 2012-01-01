@@ -20,7 +20,6 @@ CommandStyle(write_restart,WriteRestart)
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 

@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal compute stress/atom command");
+  if (narg < 3) error->all(FLERR,"Illegal compute stress/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 6;
@@ -66,7 +66,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
 	pairflag = 1;
 	bondflag = angleflag = dihedralflag = improperflag = 1;
 	fixflag = 1;
-      } else error->all("Illegal compute stress/atom command");
+      } else error->all(FLERR,"Illegal compute stress/atom command");
       iarg++;
     }
   }
@@ -79,7 +79,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeStressAtom::~ComputeStressAtom()
 {
-  memory->destroy_2d_double_array(stress);
+  memory->destroy(stress);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,16 +91,15 @@ void ComputeStressAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
-    error->all("Per-atom virial was not tallied on needed timestep");
+    error->all(FLERR,"Per-atom virial was not tallied on needed timestep");
 
   // grow local stress array if necessary
   // needs to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->destroy_2d_double_array(stress);
+    memory->destroy(stress);
     nmax = atom->nmax;
-    stress =
-      memory->create_2d_double_array(nmax,6,"stress/atom:stress");
+    memory->create(stress,nmax,6,"stress/atom:stress");
     array_atom = stress;
   }
 

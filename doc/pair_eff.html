@@ -28,10 +28,10 @@ pair_coeff 2 2 20.0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Contains a LAMMPS implementation of the electron Force Field (eFF)
-potential currently under development at Caltech, as described in
-<A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.  The eFF was first introduced
-by <A HREF = "#Su">(Su)</A> in 2007.
+<P>This pair style contains a LAMMPS implementation of the electron Force
+Field (eFF) potential currently under development at Caltech, as
+described in <A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.  The eFF was
+first introduced by <A HREF = "#Su">(Su)</A> in 2007.
 </P>
 <P>eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -117,7 +117,7 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
-<P>These potentials are designed to be used with <A HREF = "atom_electron.html">atom_style
+<P>This potential is designed to be used with <A HREF = "atom_style.html">atom_style
 electron</A> definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.
 </P>
@@ -252,9 +252,9 @@ to be specified in an input script that reads a restart file.
 <P><B>Restrictions:</B>
 </P>
 <P>These pair styles will only be enabled if LAMMPS is built with the
-"user-eff" package.  It will only be enabled if LAMMPS was built with
-that package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section
-for more info.
+USER-EFF package.  It will only be enabled if LAMMPS was built with
+that package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
 </P>
 <P>These pair styles require that particles store electron attributes
 such as radius, radial velocity, and radital force, as defined by the

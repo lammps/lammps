@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute coord/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute coord/atom command");
 
   double cutoff = atof(arg[3]);
   cutsq = cutoff*cutoff;
@@ -50,7 +50,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
-  memory->sfree(coordination);
+  memory->destroy(coordination);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,9 +58,9 @@ ComputeCoordAtom::~ComputeCoordAtom()
 void ComputeCoordAtom::init()
 {
   if (force->pair == NULL) 
-    error->all("Compute coord/atom requires a pair style be defined");
+    error->all(FLERR,"Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce) 
-    error->all("Compute coord/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute coord/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -75,7 +75,7 @@ void ComputeCoordAtom::init()
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"coord/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute coord/atom");
+    error->warning(FLERR,"More than one compute coord/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,10 +98,9 @@ void ComputeCoordAtom::compute_peratom()
   // grow coordination array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(coordination);
+    memory->destroy(coordination);
     nmax = atom->nmax;
-    coordination = (double *) 
-      memory->smalloc(nmax*sizeof(double),"coord/atom:coordination");
+    memory->create(coordination,nmax,"coord/atom:coordination");
     vector_atom = coordination;
   }
 
@@ -119,7 +118,6 @@ void ComputeCoordAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nall = atom->nlocal + atom->nghost;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -133,7 +131,7 @@ void ComputeCoordAtom::compute_peratom()
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	if (j >= nall) j %= nall;
+	j &= NEIGHMASK;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];

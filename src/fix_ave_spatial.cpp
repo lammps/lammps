@@ -43,15 +43,12 @@ enum{ONE,RUNNING,WINDOW};
 #define INVOKED_PERATOM 8
 #define BIG 1000000000
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix ave/spatial command");
+  if (narg < 6) error->all(FLERR,"Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);
 
@@ -73,7 +70,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     else break;
 
     if (dim[ndim] == 2 && domain->dimension == 2)
-      error->all("Cannot use fix ave/spatial z for 2 dimensional model");
+      error->all(FLERR,"Cannot use fix ave/spatial z for 2 dimensional model");
 
     if (strcmp(arg[iarg+1],"lower") == 0) originflag[ndim] = LOWER;
     if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
@@ -86,11 +83,11 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     iarg += 3;
   }
 
-  if (!ndim) error->all("Illegal fix ave/spatial command");
+  if (!ndim) error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim == 2 && dim[0] == dim[1])
-    error->all("Same dimension twice in fix ave/spatial");
+    error->all(FLERR,"Same dimension twice in fix ave/spatial");
   if (ndim == 3 && (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2])) 
-    error->all("Same dimension twice in fix ave/spatial");
+    error->all(FLERR,"Same dimension twice in fix ave/spatial");
 
   // parse values until one isn't recognized
 
@@ -144,7 +141,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Illegal fix ave/spatial command");
+	  error->all(FLERR,"Illegal fix ave/spatial command");
 	argindex[nvalues] = atoi(ptr+1);
 	*ptr = '\0';
       } else argindex[nvalues] = 0;
@@ -168,131 +165,136 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   idregion = NULL;
   fp = NULL;
   ave = ONE;
+  nwindow = 0;
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
       else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
-      else error->all("Illegal fix ave/spatial command");
+      else error->all(FLERR,"Illegal fix ave/spatial command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
       else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
-      else error->all("Illegal fix ave/spatial command");
+      else error->all(FLERR,"Illegal fix ave/spatial command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1) 
-	error->all("Region ID for fix ave/spatial does not exist");
+	error->all(FLERR,"Region ID for fix ave/spatial does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       if (me == 0) {
 	fp = fopen(arg[iarg+1],"w");
 	if (fp == NULL) {
 	  char str[128];
 	  sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all("Illegal fix ave/spatial command");
+      else error->all(FLERR,"Illegal fix ave/spatial command");
       if (ave == WINDOW) {
-	if (iarg+3 > narg) error->all("Illegal fix ave/spatial command");
+	if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
 	nwindow = atoi(arg[iarg+2]);
-	if (nwindow <= 0) error->all("Illegal fix ave/spatial command");
+	if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/spatial command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;
       int n = strlen(arg[iarg+1]) + 1;
       title1 = new char[n];
       strcpy(title1,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title2;
       int n = strlen(arg[iarg+1]) + 1;
       title2 = new char[n];
       strcpy(title2,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title3;
       int n = strlen(arg[iarg+1]) + 1;
       title3 = new char[n];
       strcpy(title3,arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal fix ave/spatial command");
+    } else error->all(FLERR,"Illegal fix ave/spatial command");
   }
 
   // setup and error check
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all("Illegal fix ave/spatial command");
+    error->all(FLERR,"Illegal fix ave/spatial command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
-    error->all("Illegal fix ave/spatial command");
-  if (delta[0] <= 0.0) error->all("Illegal fix ave/spatial command");
+    error->all(FLERR,"Illegal fix ave/spatial command");
+  if (delta[0] <= 0.0) error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim >= 2 && delta[1] <= 0.0) 
-    error->all("Illegal fix ave/spatial command");
+    error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim == 3 && delta[2] <= 0.0) 
-    error->all("Illegal fix ave/spatial command");
+    error->all(FLERR,"Illegal fix ave/spatial command");
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/spatial does not exist");
+	error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all("Fix ave/spatial compute does not "
+	error->all(FLERR,"Fix ave/spatial compute does not "
 		   "calculate per-atom values");
       if (argindex[i] == 0 && 
 	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all("Fix ave/spatial compute does not "
+	error->all(FLERR,"Fix ave/spatial compute does not "
 		   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all("Fix ave/spatial compute does not "
+	error->all(FLERR,"Fix ave/spatial compute does not "
 		   "calculate a per-atom array");
       if (argindex[i] && 
 	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all("Fix ave/spatial compute vector is accessed out-of-range");
+	error->all(FLERR,
+		   "Fix ave/spatial compute vector is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all("Fix ID for fix ave/spatial does not exist");
+	error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all("Fix ave/spatial fix does not calculate per-atom values");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate per-atom values");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all("Fix ave/spatial fix does not calculate a per-atom vector");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all("Fix ave/spatial fix does not calculate a per-atom array");
+	error->all(FLERR,
+		   "Fix ave/spatial fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all("Fix ave/spatial fix vector is accessed out-of-range");
+	error->all(FLERR,"Fix ave/spatial fix vector is accessed out-of-range");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all("Variable name for fix ave/spatial does not exist");
+	error->all(FLERR,"Variable name for fix ave/spatial does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all("Fix ave/spatial variable is not atom-style variable");
+	error->all(FLERR,"Fix ave/spatial variable is not atom-style variable");
     }
   }
 
@@ -309,7 +311,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       if (ndim == 1) fprintf(fp,"# Bin Coord Ncount");
       else if (ndim == 2) fprintf(fp,"# Bin Coord1 Coord2 Ncount");
       else if (ndim == 3) fprintf(fp,"# Bin Coord1 Coord2 Coord3 Ncount");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[9+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+3*ndim+i]);
       fprintf(fp,"\n");
     }
   }
@@ -321,18 +323,19 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces a global array
 
   array_flag = 1;
-  size_local_rows = BIG;
-  size_local_cols = 1 + ndim + nvalues;
+  size_array_rows = BIG;
+  size_array_cols = 1 + ndim + nvalues;
   extarray = 0;
 
   // setup scaling
 
   int triclinic = domain->triclinic;
   if (triclinic == 1 && scaleflag != REDUCED)
-    error->all("Fix ave/spatial for triclinic boxes requires units reduced");
+    error->all(FLERR,
+	       "Fix ave/spatial for triclinic boxes requires units reduced");
 
   if (scaleflag == LATTICE && domain->lattice == NULL)
-    error->all("Use of fix ave/spatial with undefined lattice");
+    error->all(FLERR,"Use of fix ave/spatial with undefined lattice");
 
   if (scaleflag == LATTICE) {
     xscale = domain->lattice->xlattice;
@@ -394,20 +397,20 @@ FixAveSpatial::~FixAveSpatial()
 
   if (fp && me == 0) fclose(fp);
 
-  memory->sfree(varatom);
-  memory->sfree(bin);
+  memory->destroy(varatom);
+  memory->destroy(bin);
 
-  memory->sfree(count_one);
-  memory->sfree(count_many);
-  memory->sfree(count_sum);
-  memory->sfree(count_total);
-  memory->destroy_2d_double_array(coord);
-  memory->destroy_2d_double_array(count_list);
-  memory->destroy_2d_double_array(values_one);
-  memory->destroy_2d_double_array(values_many);
-  memory->destroy_2d_double_array(values_sum);
-  memory->destroy_2d_double_array(values_total);
-  memory->destroy_3d_double_array(values_list);
+  memory->destroy(count_one);
+  memory->destroy(count_many);
+  memory->destroy(count_sum);
+  memory->destroy(count_total);
+  memory->destroy(coord);
+  memory->destroy(count_list);
+  memory->destroy(values_one);
+  memory->destroy(values_many);
+  memory->destroy(values_sum);
+  memory->destroy(values_total);
+  memory->destroy(values_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -428,7 +431,7 @@ void FixAveSpatial::init()
   if (regionflag) {
     iregion = domain->find_region(idregion);
     if (iregion == -1)
-      error->all("Region ID for fix ave/spatial does not exist");
+      error->all(FLERR,"Region ID for fix ave/spatial does not exist");
     region = domain->regions[iregion];
   }
 
@@ -436,7 +439,7 @@ void FixAveSpatial::init()
 
   if (ave == RUNNING || ave == WINDOW) {
     if (scaleflag != REDUCED && domain->box_change)
-      error->all("Fix ave/spatial settings invalid with changing box");
+      error->all(FLERR,"Fix ave/spatial settings invalid with changing box");
   }
 
   // set indices and check validity of all computes,fixes,variables
@@ -446,22 +449,23 @@ void FixAveSpatial::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all("Compute ID for fix ave/spatial does not exist");
+	error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
       value2index[m] = icompute;
       
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0) 
-	error->all("Fix ID for fix ave/spatial does not exist");
+	error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
       value2index[m] = ifix;
 
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all("Fix for fix ave/spatial not computed at compatible time");
+	error->all(FLERR,
+		   "Fix for fix ave/spatial not computed at compatible time");
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0) 
-	error->all("Variable name for fix ave/spatial does not exist");
+	error->all(FLERR,"Variable name for fix ave/spatial does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -524,9 +528,8 @@ void FixAveSpatial::end_of_step()
 
   if (nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->sfree(bin);
-    bin = (int *) 
-      memory->smalloc(maxatom*sizeof(int),"ave/spatial:bin");
+    memory->destroy(bin);
+    memory->create(bin,maxatom,"ave/spatial:bin");
   }
 
   if (ndim == 1) atom2bin1d();
@@ -651,9 +654,8 @@ void FixAveSpatial::end_of_step()
     } else if (which[m] == VARIABLE) {
       if (nlocal > maxvar) {
 	maxvar = atom->nmax;
-	memory->sfree(varatom);
-	varatom = (double *) 
-	  memory->smalloc(maxvar*sizeof(double),"ave/spatial:varatom");
+	memory->destroy(varatom);
+	memory->create(varatom,maxvar,"ave/spatial:varatom");
       }
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
@@ -882,39 +884,23 @@ void FixAveSpatial::setup_bins()
 
   if (nbins > maxbin) {
     maxbin = nbins;
-    count_one = (double *) 
-      memory->srealloc(count_one,nbins*sizeof(double),
-		       "ave/spatial:count_one");
-    count_many = (double *) 
-      memory->srealloc(count_many,nbins*sizeof(double),
-		       "ave/spatial:count_many");
-    count_sum = (double *) 
-      memory->srealloc(count_sum,nbins*sizeof(double),
-		       "ave/spatial:count_sum");
-    count_total = (double *) 
-      memory->srealloc(count_total,nbins*sizeof(double),
-		       "ave/spatial:count_total");
+    memory->grow(count_one,nbins,"ave/spatial:count_one");
+    memory->grow(count_many,nbins,"ave/spatial:count_many");
+    memory->grow(count_sum,nbins,"ave/spatial:count_sum");
+    memory->grow(count_total,nbins,"ave/spatial:count_total");
     
-    coord = 
-      memory->grow_2d_double_array(coord,nbins,ndim,"ave/spatial:coord");
-    values_one = memory->grow_2d_double_array(values_one,nbins,nvalues,
-					      "ave/spatial:values_one");
-    values_many = memory->grow_2d_double_array(values_many,nbins,nvalues,
-					       "ave/spatial:values_many");
-    values_sum = memory->grow_2d_double_array(values_sum,nbins,nvalues,
-					      "ave/spatial:values_sum");
-    values_total = memory->grow_2d_double_array(values_total,nbins,nvalues,
-						"ave/spatial:values_total");
+    memory->grow(coord,nbins,ndim,"ave/spatial:coord");
+    memory->grow(values_one,nbins,nvalues,"ave/spatial:values_one");
+    memory->grow(values_many,nbins,nvalues,"ave/spatial:values_many");
+    memory->grow(values_sum,nbins,nvalues,"ave/spatial:values_sum");
+    memory->grow(values_total,nbins,nvalues,"ave/spatial:values_total");
     
     // only allocate count and values list for ave = WINDOW
     
     if (ave == WINDOW) {
-      count_list =
-	memory->create_2d_double_array(nwindow,nbins,
-				       "ave/spatial:count_list");
-      values_list =
-	memory->create_3d_double_array(nwindow,nbins,nvalues,
-				       "ave/spatial:values_list");
+      memory->create(count_list,nwindow,nbins,"ave/spatial:count_list");
+      memory->create(values_list,nwindow,nbins,nvalues,
+		     "ave/spatial:values_list");
     }
 
     // reinitialize regrown count/values total since they accumulate
@@ -1259,6 +1245,7 @@ double FixAveSpatial::compute_array(int i, int j)
   if (i >= nbins) return 0.0;
   if (j < ndim) return coord[i][j];
   j -= ndim+1;
+  if (!norm) return 0.0;
   if (j < 0) return count_total[i]/norm;
   return values_total[i][j]/norm;
 }

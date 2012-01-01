@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -19,6 +20,7 @@
 #include "atom.h"
 #include "style_atom.h"
 #include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
@@ -29,6 +31,7 @@
 #include "update.h"
 #include "domain.h"
 #include "group.h"
+#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
 
@@ -37,9 +40,7 @@ using namespace LAMMPS_NS;
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+#define CUDA_CHUNK 3000
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +56,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   firstgroupname = NULL;
   sortfreq = 1000;
+  nextsort = 0;
   userbinsize = 0.0;
   maxbin = maxnext = 0;
   binhead = NULL;
@@ -69,13 +71,19 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molecule = NULL;
   q = NULL;
   mu = NULL;
-  quat = omega = angmom = torque = NULL;
-  radius = density = rmass = NULL;
+  omega = angmom = torque = NULL;
+  radius = rmass = NULL;
   vfrac = s0 = NULL;
   x0 = NULL;
-
+  ellipsoid = line = tri = NULL;
   spin = NULL;
   eradius = ervel = erforce = NULL;
+  cs = csforce = vforce = ervelforce = NULL;
+  etag = NULL;
+  rho = drho = NULL;
+  e = de = NULL;
+  cv = NULL;
+  vest = NULL;
 
   maxspecial = 1;
   nspecial = NULL;
@@ -95,23 +103,23 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
-  // initialize atom array existence flags
+  // initialize atom style and array existence flags
   // customize by adding new flag
 
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  quat_flag = omega_flag = angmom_flag = torque_flag = 0;
-  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
+  peri_flag = electron_flag = 0;
+  wavepacket_flag = sph_flag = 0;
+
+  molecule_flag = q_flag = mu_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
+  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  cs_flag = csforce_flag = vforce_flag = ervelforce_flag= etag_flag = 0;
+  rho_flag = e_flag = cv_flag = vest_flag = 0;
 
   // ntype-length arrays
 
   mass = NULL;
   mass_setflag = NULL;
-  shape = NULL;
-  shape_setflag = NULL;
-  dipole = NULL;
-  dipole_setflag = NULL;
 
   // callback lists & extra restart info
 
@@ -152,83 +160,78 @@ Atom::~Atom()
   delete avec;
 
   delete [] firstgroupname;
-  memory->sfree(binhead);
-  memory->sfree(next);
-  memory->sfree(permute);
+  memory->destroy(binhead);
+  memory->destroy(next);
+  memory->destroy(permute);
 
   // delete atom arrays
   // customize by adding new array
 
-  memory->sfree(tag);
-  memory->sfree(type);
-  memory->sfree(mask);
-  memory->sfree(image);
-  memory->destroy_2d_double_array(x);
-  memory->destroy_2d_double_array(v);
-  memory->destroy_2d_double_array(f);
+  memory->destroy(tag);
+  memory->destroy(type);
+  memory->destroy(mask);
+  memory->destroy(image);
+  memory->destroy(x);
+  memory->destroy(v);
+  memory->destroy(f);
 
-  memory->sfree(q);
-  memory->destroy_2d_double_array(mu);
-  memory->destroy_2d_double_array(quat);
-  memory->destroy_2d_double_array(omega);
-  memory->destroy_2d_double_array(angmom);
-  memory->destroy_2d_double_array(torque);
+  memory->destroy(q);
+  memory->destroy(mu);
+  memory->destroy(omega);
+  memory->destroy(angmom);
+  memory->destroy(torque);
+  memory->destroy(radius);
+  memory->destroy(rmass);
+  memory->destroy(vfrac);
+  memory->destroy(s0);
+  memory->destroy(x0);
+  memory->destroy(ellipsoid);
+  memory->destroy(line);
+  memory->destroy(tri);
+  memory->destroy(spin);
+  memory->destroy(eradius);
+  memory->destroy(ervel);
+  memory->destroy(erforce);
 
-  memory->sfree(radius);
-  memory->sfree(density);
-  memory->sfree(rmass);
-  memory->sfree(vfrac);
-  memory->sfree(s0);
-  memory->destroy_2d_double_array(x0);
+  memory->destroy(molecule);
 
-  memory->sfree(spin);
-  memory->sfree(eradius);
-  memory->sfree(ervel);
-  memory->sfree(erforce);
+  memory->destroy(nspecial);
+  memory->destroy(special);
 
-  memory->sfree(molecule);
+  memory->destroy(num_bond);
+  memory->destroy(bond_type);
+  memory->destroy(bond_atom);
 
-  memory->destroy_2d_int_array(nspecial);
-  memory->destroy_2d_int_array(special);
+  memory->destroy(num_angle);
+  memory->destroy(angle_type);
+  memory->destroy(angle_atom1);
+  memory->destroy(angle_atom2);
+  memory->destroy(angle_atom3);
 
-  memory->sfree(num_bond);
-  memory->destroy_2d_int_array(bond_type);
-  memory->destroy_2d_int_array(bond_atom);
+  memory->destroy(num_dihedral);
+  memory->destroy(dihedral_type);
+  memory->destroy(dihedral_atom1);
+  memory->destroy(dihedral_atom2);
+  memory->destroy(dihedral_atom3);
+  memory->destroy(dihedral_atom4);
 
-  memory->sfree(num_angle);
-  memory->destroy_2d_int_array(angle_type);
-  memory->destroy_2d_int_array(angle_atom1);
-  memory->destroy_2d_int_array(angle_atom2);
-  memory->destroy_2d_int_array(angle_atom3);
-
-  memory->sfree(num_dihedral);
-  memory->destroy_2d_int_array(dihedral_type);
-  memory->destroy_2d_int_array(dihedral_atom1);
-  memory->destroy_2d_int_array(dihedral_atom2);
-  memory->destroy_2d_int_array(dihedral_atom3);
-  memory->destroy_2d_int_array(dihedral_atom4);
-
-  memory->sfree(num_improper);
-  memory->destroy_2d_int_array(improper_type);
-  memory->destroy_2d_int_array(improper_atom1);
-  memory->destroy_2d_int_array(improper_atom2);
-  memory->destroy_2d_int_array(improper_atom3);
-  memory->destroy_2d_int_array(improper_atom4);
+  memory->destroy(num_improper);
+  memory->destroy(improper_type);
+  memory->destroy(improper_atom1);
+  memory->destroy(improper_atom2);
+  memory->destroy(improper_atom3);
+  memory->destroy(improper_atom4);
 
   // delete per-type arrays
 
   delete [] mass;
   delete [] mass_setflag;
-  memory->destroy_2d_double_array(shape);
-  delete [] shape_setflag;
-  delete [] dipole;
-  delete [] dipole_setflag;
 
   // delete extra arrays
 
-  memory->sfree(extra_grow);
-  memory->sfree(extra_restart);
-  memory->destroy_2d_double_array(extra);
+  memory->destroy(extra_grow);
+  memory->destroy(extra_restart);
+  memory->destroy(extra);
 
   // delete mapping data structures
 
@@ -250,24 +253,36 @@ void Atom::settings(Atom *old)
    called from input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg)
+void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
 
-  // unset atom array existence flags that may have been set by old avec
+  // unset atom style and array existence flags
+  // may have been set by old avec
   // customize by adding new flag
 
-  molecule_flag = 0;
-  q_flag = mu_flag = 0;
-  quat_flag = omega_flag = angmom_flag = torque_flag = 0;
-  radius_flag = density_flag = rmass_flag = vfrac_flag = 0;
-  spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
+  peri_flag = electron_flag = 0;
+    
+  molecule_flag = q_flag = mu_flag = 0;
+  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
+  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
-  avec = new_avec(style,narg,arg);
-  int n = strlen(style) + 1;
-  atom_style = new char[n];
-  strcpy(atom_style,style);
+  int sflag;
+  avec = new_avec(style,narg,arg,suffix,sflag);
+
+  if (sflag) {
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+    int n = strlen(estyle) + 1;
+    atom_style = new char[n];
+    strcpy(atom_style,estyle);
+  } else {
+    int n = strlen(style) + 1;
+    atom_style = new char[n];
+    strcpy(atom_style,style);
+  }
 
   // if molecular system, default is to have array map
 
@@ -276,11 +291,30 @@ void Atom::create_avec(const char *style, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   generate an AtomVec class
+   generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int narg, char **arg)
+AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
+			char *suffix, int &sflag)
 {
+  if (suffix && lmp->suffix_enable) {
+    sflag = 1;
+    char estyle[256];
+    sprintf(estyle,"%s/%s",style,suffix);
+
+    if (0) return NULL;
+
+#define ATOM_CLASS
+#define AtomStyle(key,Class) \
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg,arg);
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+
+  }
+
+  sflag = 0;
+
   if (0) return NULL;
 
 #define ATOM_CLASS
@@ -289,7 +323,8 @@ AtomVec *Atom::new_avec(const char *style, int narg, char **arg)
 #include "style_atom.h"
 #undef ATOM_CLASS
 
-  else error->all("Invalid atom style");
+  else error->all(FLERR,"Invalid atom style");
+
   return NULL;
 }
 
@@ -300,7 +335,7 @@ void Atom::init()
   // delete extra array since it doesn't persist past first run
 
   if (nextra_store) {
-    memory->destroy_2d_double_array(extra);
+    memory->destroy(extra);
     extra = NULL;
     nextra_store = 0;
   }
@@ -308,15 +343,13 @@ void Atom::init()
   // check arrays that are atom type in length
 
   check_mass();
-  check_shape();
-  check_dipole();
 
   // setup of firstgroup
 
   if (firstgroupname) {
     firstgroup = group->find(firstgroupname);
     if (firstgroup < 0)
-      error->all("Could not find atom_modify first group ID");
+      error->all(FLERR,"Could not find atom_modify first group ID");
   } else firstgroup = -1;
 
   // init AtomVec
@@ -335,19 +368,20 @@ void Atom::setup()
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if style matches atom style or hybrid sub-style
-   else return 0
+   return ptr to AtomVec class if matches style or to matching hybrid sub-class
+   return NULL if no match
 ------------------------------------------------------------------------- */
 
-int Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const char *style)
 {
-  if (strcmp(atom_style,style) == 0) return 1;
+  if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
     AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) avec;
     for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0) return 1;
+      if (strcmp(avec_hybrid->keywords[i],style) == 0)
+	return avec_hybrid->styles[i];
   }
-  return 0;
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -358,20 +392,20 @@ int Atom::style_match(const char *style)
 
 void Atom::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal atom_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal atom_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"map") == 0) {
-      if (iarg+2 > narg) error->all("Illegal atom_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (strcmp(arg[iarg+1],"array") == 0) map_style = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_style = 2;
-      else error->all("Illegal atom_modify command");
+      else error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist) 
-	error->all("Atom_modify map command after simulation box is defined");
+	error->all(FLERR,"Atom_modify map command after simulation box is defined");
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
-      if (iarg+2 > narg) error->all("Illegal atom_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (strcmp(arg[iarg+1],"all") == 0) {
 	delete [] firstgroupname;
 	firstgroupname = NULL;
@@ -383,16 +417,16 @@ void Atom::modify_params(int narg, char **arg)
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+3 > narg) error->all("Illegal atom_modify command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
       sortfreq = atoi(arg[iarg+1]);
       userbinsize = atof(arg[iarg+2]);
       if (sortfreq < 0 || userbinsize < 0.0)
-	error->all("Illegal atom_modify command");
+	error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname) 
-	error->all("Atom_modify sort and first options "
+	error->all(FLERR,"Atom_modify sort and first options "
 		   "cannot be used together");
       iarg += 3;
-    } else error->all("Illegal atom_modify command");
+    } else error->all(FLERR,"Illegal atom_modify command");
   }
 }
 
@@ -413,15 +447,14 @@ void Atom::map_init()
   map_delete();
 
   if (tag_enable == 0)
-    error->all("Cannot create an atom map unless atoms have IDs");
+    error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
 
   int max = 0;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&map_tag_max,1,MPI_INT,MPI_MAX,world);
 
   if (map_style == 1) {
-    map_array = (int *) 
-      memory->smalloc((map_tag_max+1)*sizeof(int),"atom:map_array");
+    memory->create(map_array,map_tag_max+1,"atom:map_array");
     for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
 
   } else {
@@ -605,7 +638,7 @@ void Atom::map_one(int global, int local)
 void Atom::map_delete()
 {
   if (map_style == 1) {
-    if (map_tag_max) memory->sfree(map_array);
+    if (map_tag_max) memory->destroy(map_array);
   } else {
     if (map_nhash) {
       delete [] map_bucket;
@@ -672,7 +705,7 @@ void Atom::tag_extend()
 
 int Atom::tag_consecutive()
 {
-  int idmin = static_cast<int> (natoms);
+  int idmin = MAXTAGINT;
   int idmax = 0;
   
   for (int i = 0; i < nlocal; i++) {
@@ -696,20 +729,21 @@ int Atom::tag_consecutive()
 int Atom::count_words(const char *line)
 {
   int n = strlen(line) + 1;
-  char *copy = (char *) memory->smalloc(n*sizeof(char),"copy");
+  char *copy;
+  memory->create(copy,n,"atom:copy");
   strcpy(copy,line);
 
   char *ptr;
   if (ptr = strchr(copy,'#')) *ptr = '\0';
 
   if (strtok(copy," \t\n\r\f") == NULL) {
-    memory->sfree(copy);
+    memory->destroy(copy);
     return 0;
   }
   n = 1;
   while (strtok(NULL," \t\n\r\f")) n++;
 
-  memory->sfree(copy);
+  memory->destroy(copy);
   return n;
 }
 
@@ -731,7 +765,7 @@ void Atom::data_atoms(int n, char *buf)
   *next = '\n';
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
-    error->all("Incorrect atom format in data file");
+    error->all(FLERR,"Incorrect atom format in data file");
 
   char **values = new char*[nwords];
 
@@ -781,8 +815,11 @@ void Atom::data_atoms(int n, char *buf)
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    for (m = 1; m < nwords; m++)
+    if (values[0] == NULL) error->all(FLERR,"Incorrect atom format in data file");
+    for (m = 1; m < nwords; m++) {
       values[m] = strtok(NULL," \t\n\r\f");
+      if (values[m] == NULL) error->all(FLERR,"Incorrect atom format in data file");
+    }
 
     if (imageflag)
       imagedata = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
@@ -827,7 +864,7 @@ void Atom::data_vels(int n, char *buf)
   *next = '\n';
 
   if (nwords != avec->size_data_vel)
-    error->all("Incorrect velocity format in data file");
+    error->all(FLERR,"Incorrect velocity format in data file");
 
   char **values = new char*[nwords];
 
@@ -844,8 +881,55 @@ void Atom::data_vels(int n, char *buf)
 
     tagdata = atoi(values[0]);
     if (tagdata <= 0 || tagdata > map_tag_max)
-      error->one("Invalid atom ID in Velocities section of data file");
+      error->one(FLERR,"Invalid atom ID in Velocities section of data file");
     if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
+
+    buf = next + 1;
+  }
+
+  delete [] values;
+}
+
+/* ----------------------------------------------------------------------
+   unpack n lines from atom-style specific section of data file
+   check that atom IDs are > 0 and <= map_tag_max
+   call style-specific routine to parse line
+------------------------------------------------------------------------- */
+
+void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
+{
+  int j,m,tagdata;
+  char *next;
+
+  next = strchr(buf,'\n');
+  *next = '\0';
+  int nwords = count_words(buf);
+  *next = '\n';
+
+  if (nwords != avec_bonus->size_data_bonus)
+    error->all(FLERR,"Incorrect bonus data format in data file");
+
+  char **values = new char*[nwords];
+
+  // loop over lines of bonus atom data
+  // tokenize the line into values
+  // if I own atom tag, unpack its values
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+
+    values[0] = strtok(buf," \t\n\r\f");
+    for (j = 1; j < nwords; j++)
+      values[j] = strtok(NULL," \t\n\r\f");
+
+    tagdata = atoi(values[0]);
+    if (tagdata <= 0 || tagdata > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Bonus section of data file");
+
+    // ok to call child's data_atom_bonus() method thru parent avec_bonus,
+    // since data_bonus() was called with child ptr, and method is virtual
+
+    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,&values[1]);
 
     buf = next + 1;
   }
@@ -869,9 +953,9 @@ void Atom::data_bonds(int n, char *buf)
     sscanf(buf,"%d %d %d %d",&tmp,&itype,&atom1,&atom2);
     if (atom1 <= 0 || atom1 > map_tag_max || 
 	atom2 <= 0 || atom2 > map_tag_max)
-      error->one("Invalid atom ID in Bonds section of data file");
+      error->one(FLERR,"Invalid atom ID in Bonds section of data file");
     if (itype <= 0 || itype > nbondtypes)
-      error->one("Invalid bond type in Bonds section of data file");
+      error->one(FLERR,"Invalid bond type in Bonds section of data file");
     if ((m = map(atom1)) >= 0) {
       bond_type[m][num_bond[m]] = itype;
       bond_atom[m][num_bond[m]] = atom2;
@@ -905,9 +989,9 @@ void Atom::data_angles(int n, char *buf)
     if (atom1 <= 0 || atom1 > map_tag_max || 
 	atom2 <= 0 || atom2 > map_tag_max || 
 	atom3 <= 0 || atom3 > map_tag_max)
-      error->one("Invalid atom ID in Angles section of data file");
+      error->one(FLERR,"Invalid atom ID in Angles section of data file");
     if (itype <= 0 || itype > nangletypes)
-      error->one("Invalid angle type in Angles section of data file");
+      error->one(FLERR,"Invalid angle type in Angles section of data file");
     if ((m = map(atom2)) >= 0) {
       angle_type[m][num_angle[m]] = itype;
       angle_atom1[m][num_angle[m]] = atom1;
@@ -953,9 +1037,9 @@ void Atom::data_dihedrals(int n, char *buf)
 	atom2 <= 0 || atom2 > map_tag_max || 
 	atom3 <= 0 || atom3 > map_tag_max || 
 	atom4 <= 0 || atom4 > map_tag_max)
-      error->one("Invalid atom ID in Dihedrals section of data file");
+      error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
     if (itype <= 0 || itype > ndihedraltypes)
-      error->one("Invalid dihedral type in Dihedrals section of data file");
+      error->one(FLERR,"Invalid dihedral type in Dihedrals section of data file");
     if ((m = map(atom2)) >= 0) {
       dihedral_type[m][num_dihedral[m]] = itype;
       dihedral_atom1[m][num_dihedral[m]] = atom1;
@@ -1012,9 +1096,9 @@ void Atom::data_impropers(int n, char *buf)
 	atom2 <= 0 || atom2 > map_tag_max || 
 	atom3 <= 0 || atom3 > map_tag_max || 
 	atom4 <= 0 || atom4 > map_tag_max)
-      error->one("Invalid atom ID in Impropers section of data file");
+      error->one(FLERR,"Invalid atom ID in Impropers section of data file");
     if (itype <= 0 || itype > nimpropertypes)
-      error->one("Invalid improper type in Impropers section of data file");
+      error->one(FLERR,"Invalid improper type in Impropers section of data file");
     if ((m = map(atom2)) >= 0) {
       improper_type[m][num_improper[m]] = itype;
       improper_atom1[m][num_improper[m]] = atom1;
@@ -1065,16 +1149,6 @@ void Atom::allocate_type_arrays()
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
-  if (avec->shape_type) {
-    shape = memory->create_2d_double_array(ntypes+1,3,"atom:shape");
-    shape_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) shape_setflag[itype] = 0;
-  }    
-  if (avec->dipole_type) {
-    dipole = new double[ntypes+1];
-    dipole_setflag = new int[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) dipole_setflag[itype] = 0;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1084,19 +1158,19 @@ void Atom::allocate_type_arrays()
 
 void Atom::set_mass(const char *str)
 {
-  if (mass == NULL) error->all("Cannot set mass for this atom style");
+  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
 
   int itype;
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
-  if (n != 2) error->all("Invalid mass line in data file");
+  if (n != 2) error->all(FLERR,"Invalid mass line in data file");
 
-  if (itype < 1 || itype > ntypes) error->all("Invalid type for mass set");
+  if (itype < 1 || itype > ntypes) error->all(FLERR,"Invalid type for mass set");
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
 
-  if (mass[itype] <= 0.0) error->all("Invalid mass value");
+  if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1106,13 +1180,13 @@ void Atom::set_mass(const char *str)
 
 void Atom::set_mass(int itype, double value)
 {
-  if (mass == NULL) error->all("Cannot set mass for this atom style");
-  if (itype < 1 || itype > ntypes) error->all("Invalid type for mass set");
+  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
+  if (itype < 1 || itype > ntypes) error->all(FLERR,"Invalid type for mass set");
 
   mass[itype] = value;
   mass_setflag[itype] = 1;
 
-  if (mass[itype] <= 0.0) error->all("Invalid mass value");
+  if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1122,17 +1196,17 @@ void Atom::set_mass(int itype, double value)
 
 void Atom::set_mass(int narg, char **arg)
 {
-  if (mass == NULL) error->all("Cannot set mass for this atom style");
+  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
 
   int lo,hi;
   force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) error->all("Invalid type for mass set");
+  if (lo < 1 || hi > ntypes) error->all(FLERR,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = atof(arg[1]);
     mass_setflag[itype] = 1;
 
-    if (mass[itype] <= 0.0) error->all("Invalid mass value");
+    if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
   }
 }
 
@@ -1156,165 +1230,74 @@ void Atom::check_mass()
 {
   if (mass == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) error->all("All masses are not set");
+    if (mass_setflag[itype] == 0) error->all(FLERR,"All masses are not set");
 }
 
 /* ----------------------------------------------------------------------
-   set particle shape and flag it as set
-   called from reading of data file
+   check that radii of all particles of itype are the same
+   return 1 if true, else return 0
+   also return the radius value for that type
 ------------------------------------------------------------------------- */
 
-void Atom::set_shape(const char *str)
+int Atom::radius_consistency(int itype, double &rad)
 {
-  if (shape == NULL) error->all("Cannot set shape for this atom style");
-
-  int itype;
-  double a,b,c;
-  int n = sscanf(str,"%d %lg %lg %lg",&itype,&a,&b,&c);
-  if (n != 4) error->all("Invalid shape line in data file");
-
-  if (itype < 1 || itype > ntypes) error->all("Invalid type for shape set");
-
-  // store shape as radius, though specified as diameter
-
-  shape[itype][0] = 0.5*a;
-  shape[itype][1] = 0.5*b;
-  shape[itype][2] = 0.5*c;
-  shape_setflag[itype] = 1;
-
-  if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || 
-      shape[itype][2] < 0.0)
-    error->all("Invalid shape value");
-  if (shape[itype][0] > 0.0 || shape[itype][1] > 0.0 || 
-      shape[itype][2] > 0.0) {
-    if (shape[itype][0] == 0.0 || shape[itype][1] == 0.0 || 
-	shape[itype][2] == 0.0)
-      error->all("Invalid shape value");
+  double value = -1.0;
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] != itype) continue;
+    if (value < 0.0) value = radius[i];
+    else if (value != radius[i]) flag = 1;
   }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) return 0;
+
+  MPI_Allreduce(&value,&rad,1,MPI_DOUBLE,MPI_MAX,world);
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
-   set one or more particle shapes and flag them as set
-   called from reading of input script
+   check that shape of all particles of itype are the same
+   return 1 if true, else return 0
+   also return the 3 shape params for itype
 ------------------------------------------------------------------------- */
 
-void Atom::set_shape(int narg, char **arg)
+int Atom::shape_consistency(int itype,
+			    double &shapex, double &shapey, double &shapez)
 {
-  if (shape == NULL) error->all("Cannot set shape for this atom style");
+  double zero[3] = {0.0, 0.0, 0.0};
+  double one[3] = {-1.0, -1.0, -1.0};
+  double *shape;
 
-  int lo,hi;
-  force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) 
-	error->all("Invalid type for shape set");
+  AtomVecEllipsoid *avec_ellipsoid =
+    (AtomVecEllipsoid *) style_match("ellipsoid");
+  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
 
-  // store shape as radius, though specified as diameter
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] != itype) continue;
+    if (ellipsoid[i] < 0) shape = zero;
+    else shape = bonus[ellipsoid[i]].shape;
 
-  for (int itype = lo; itype <= hi; itype++) {
-    shape[itype][0] = 0.5*atof(arg[1]);
-    shape[itype][1] = 0.5*atof(arg[2]);
-    shape[itype][2] = 0.5*atof(arg[3]);
-    shape_setflag[itype] = 1;
-
-    if (shape[itype][0] < 0.0 || shape[itype][1] < 0.0 || 
-	shape[itype][2] < 0.0)
-      error->all("Invalid shape value");
-    if (shape[itype][0] > 0.0 || shape[itype][1] > 0.0 || 
-	shape[itype][2] > 0.0) {
-      if (shape[itype][0] == 0.0 || shape[itype][1] == 0.0 || 
-	  shape[itype][2] == 0.0)
-	error->all("Invalid shape value");
-    }
+    if (one[0] < 0.0) {
+      one[0] = shape[0];
+      one[1] = shape[1];
+      one[2] = shape[2];
+    } else if (one[0] != shape[0] || one[1] != shape[1] || one[2] != shape[2])
+      flag = 1;
   }
-}
 
-/* ----------------------------------------------------------------------
-   set all particle shapes as read in from restart file
-------------------------------------------------------------------------- */
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) return 0;
 
-void Atom::set_shape(double **values)
-{
-  for (int itype = 1; itype <= ntypes; itype++) {
-    shape[itype][0] = values[itype][0];
-    shape[itype][1] = values[itype][1];
-    shape[itype][2] = values[itype][2];
-    shape_setflag[itype] = 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that all particle shapes have been set
-------------------------------------------------------------------------- */
-
-void Atom::check_shape()
-{
-  if (shape == NULL) return;
-  for (int itype = 1; itype <= ntypes; itype++)
-    if (shape_setflag[itype] == 0) error->all("All shapes are not set");
-}
-
-/* ----------------------------------------------------------------------
-   set a dipole moment and flag it as set
-   called from reading of data file
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(const char *str)
-{
-  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
-
-  int itype;
-  double dipole_one;
-  int n = sscanf(str,"%d %lg",&itype,&dipole_one);
-  if (n != 2) error->all("Invalid dipole line in data file");
-
-  dipole[itype] = dipole_one;
-  dipole_setflag[itype] = 1;
-
-  if (dipole[itype] < 0.0) error->all("Invalid dipole value");
-}
-
-/* ----------------------------------------------------------------------
-   set one or more dipole moments and flag them as set
-   called from reading of input script
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(int narg, char **arg)
-{
-  if (dipole == NULL) error->all("Cannot set dipole for this atom style");
-
-  int lo,hi;
-  force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) error->all("Invalid type for dipole set");
-
-  for (int itype = lo; itype <= hi; itype++) {
-    dipole[itype] = atof(arg[1]);
-    dipole_setflag[itype] = 1;
-
-    if (dipole[itype] < 0.0) error->all("Invalid dipole value");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set all dipole moments as read in from restart file
-------------------------------------------------------------------------- */
-
-void Atom::set_dipole(double *values)
-{
-  for (int itype = 1; itype <= ntypes; itype++) {
-    dipole[itype] = values[itype];
-    dipole_setflag[itype] = 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that all dipole moments have been set
-------------------------------------------------------------------------- */
-
-void Atom::check_dipole()
-{
-  if (dipole == NULL) return;
-  for (int itype = 1; itype <= ntypes; itype++)
-    if (dipole_setflag[itype] == 0)
-      error->all("All dipole moments are not set");
+  double oneall[3];
+  MPI_Allreduce(one,oneall,3,MPI_DOUBLE,MPI_MAX,world);
+  shapex = oneall[0];
+  shapey = oneall[1];
+  shapez = oneall[2];
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1339,9 +1322,9 @@ void Atom::first_reorder()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & bitmask && i > nfirst) {
-      avec->copy(i,nlocal);
-      avec->copy(nfirst,i);
-      avec->copy(nlocal,nfirst);
+      avec->copy(i,nlocal,0);
+      avec->copy(nfirst,i,0);
+      avec->copy(nlocal,nfirst,0);
       while (nfirst < nlocal && mask[nfirst] & bitmask) nfirst++;
     }
   }
@@ -1357,6 +1340,14 @@ void Atom::sort()
 {
   int i,m,n,ix,iy,iz,ibin,empty;
 
+  // set next timestep for sorting to take place
+
+  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
+
+  // download data from GPU if necessary
+
+  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
+
   // re-setup sort bins if needed
 
   if (domain->box_change) setup_sort_bins();
@@ -1365,11 +1356,11 @@ void Atom::sort()
   // reallocate per-atom vectors if needed
 
   if (nlocal > maxnext) {
-    memory->sfree(next);
-    memory->sfree(permute);
+    memory->destroy(next);
+    memory->destroy(permute);
     maxnext = atom->nmax;
-    next = (int *) memory->smalloc(maxnext*sizeof(int),"atom:next");
-    permute = (int *) memory->smalloc(maxnext*sizeof(int),"atom:permute");
+    memory->create(next,maxnext,"atom:next");
+    memory->create(permute,maxnext,"atom:permute");
   }
 
   // insure there is one extra atom location at end of arrays for swaps
@@ -1422,15 +1413,19 @@ void Atom::sort()
 
   for (i = 0; i < nlocal; i++) {
     if (current[i] == permute[i]) continue;
-    avec->copy(i,nlocal);
+    avec->copy(i,nlocal,0);
     empty = i;
     while (permute[empty] != i) {
-      avec->copy(permute[empty],empty);
+      avec->copy(permute[empty],empty,0);
       empty = current[empty] = permute[empty];
     }      
-    avec->copy(nlocal,empty);
+    avec->copy(nlocal,empty,0);
     current[empty] = permute[empty];
   }
+
+  // upload data back to GPU if necessary
+
+  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->uploadAll();
 
   // sanity check that current = permute
 
@@ -1439,11 +1434,7 @@ void Atom::sort()
   //  if (current[i] != permute[i]) flag = 1;
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  //if (flagall) error->all("Atom sort did not operate correctly");
-
-  // set next timestep for sorting to take place
-
-  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
+  //if (flagall) error->all(FLERR,"Atom sort did not operate correctly");
 }
 
 /* ----------------------------------------------------------------------
@@ -1452,13 +1443,28 @@ void Atom::sort()
 
 void Atom::setup_sort_bins()
 {
-  // binsize = user setting or 1/2 of neighbor cutoff
-  // neighbor cutoff can be 0.0
+  // binsize:
+  // user setting if explicitly set
+  // 1/2 of neighbor cutoff for non-CUDA
+  // CUDA_CHUNK atoms/proc for CUDA
+  // check if neighbor cutoff = 0.0
 
   double binsize;
   if (userbinsize > 0.0) binsize = userbinsize;
-  else binsize = 0.5 * neighbor->cutneighmax;
-  if (binsize == 0.0) error->all("Atom sorting has bin size = 0.0");
+  else if (!lmp->cuda) binsize = 0.5 * neighbor->cutneighmax;
+  else {
+    if (domain->dimension == 3) {
+      double vol = (domain->boxhi[0]-domain->boxlo[0]) * 
+	(domain->boxhi[1]-domain->boxlo[1]) * 
+	(domain->boxhi[2]-domain->boxlo[2]);
+      binsize = pow(1.0*CUDA_CHUNK/natoms*vol,1.0/3.0);
+    } else {
+      double area = (domain->boxhi[0]-domain->boxlo[0]) * 
+	(domain->boxhi[1]-domain->boxlo[1]);
+      binsize = pow(1.0*CUDA_CHUNK/natoms*area,1.0/2.0);
+    }
+  }
+  if (binsize == 0.0) error->all(FLERR,"Atom sorting has bin size = 0.0");
 
   double bininv = 1.0/binsize;
 
@@ -1490,16 +1496,16 @@ void Atom::setup_sort_bins()
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX) 
-    error->one("Too many atom sorting bins");
+    error->one(FLERR,"Too many atom sorting bins");
 
   nbins = nbinx*nbiny*nbinz;
 
   // reallocate per-bin memory if needed
 
   if (nbins > maxbin) {
-    memory->sfree(binhead);
+    memory->destroy(binhead);
     maxbin = nbins;
-    binhead = (int *) memory->smalloc(maxbin*sizeof(int),"atom:binhead");
+    memory->create(binhead,maxbin,"atom:binhead");
   }
 }
 
@@ -1528,18 +1534,14 @@ void Atom::add_callback(int flag)
   if (flag == 0) {
     if (nextra_grow == nextra_grow_max) {
       nextra_grow_max += DELTA;
-      extra_grow = (int *) 
-	memory->srealloc(extra_grow,nextra_grow_max*sizeof(int),
-			 "atom:extra_grow");
+      memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
     }
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
   } else if (flag == 1) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
-      extra_restart = (int *) 
-	memory->srealloc(extra_restart,nextra_restart_max*sizeof(int),
-			 "atom:extra_restart");
+      memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
@@ -1616,21 +1618,25 @@ void *Atom::extract(char *name)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-double Atom::memory_usage()
+bigint Atom::memory_usage()
 {
   memlength = DELTA_MEMSTR;
-  memstr = (char *) memory->smalloc(memlength*sizeof(char),"atom:memstr");
+  memory->create(memstr,memlength,"atom:memstr");
   memstr[0] = '\0';
+  bigint bytes = avec->memory_usage();
+  memory->destroy(memstr);
 
-  double bytes = avec->memory_usage();
   if (map_style == 1)
-    bytes += map_tag_max * sizeof(int);
+    bytes += memory->usage(map_array,map_tag_max+1);
   else if (map_style == 2) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);
   }
+  if (maxnext) {
+    bytes += memory->usage(next,maxnext);
+    bytes += memory->usage(permute,maxnext);
+  }
 
-  memory->sfree(memstr);
   return bytes;
 }
 
@@ -1654,8 +1660,7 @@ int Atom::memcheck(const char *str)
 
   if (strlen(memstr) + n >= memlength) {
     memlength += DELTA_MEMSTR;
-    memstr = (char *) memory->srealloc(memstr,memlength*sizeof(char),
-				       "atom:memstr");
+    memory->grow(memstr,memlength,"atom:memstr");
   }
 
   strcat(memstr,padded);

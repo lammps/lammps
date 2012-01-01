@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all("Illegal fix spring/rg command");
+  if (narg != 5) error->all(FLERR,"Illegal fix spring/rg command");
 
   k = atof(arg[3]);
   rg0_flag = 0;
@@ -68,7 +68,7 @@ void FixSpringRG::init()
     rg0_flag = 0;
   }
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -76,7 +76,7 @@ void FixSpringRG::init()
 
 void FixSpringRG::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

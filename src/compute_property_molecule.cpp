@@ -26,10 +26,10 @@ ComputePropertyMolecule::
 ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute property/molecule command");
+  if (narg < 4) error->all(FLERR,"Illegal compute property/molecule command");
 
   if (atom->molecular == 0)
-    error->all("Compute property/molecule requires molecular atom style");
+    error->all(FLERR,"Compute property/molecule requires molecular atom style");
 
   nvalues = narg - 3;
 
@@ -43,7 +43,7 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyMolecule::pack_mol;
     else if (strcmp(arg[iarg],"count") == 0)
       pack_choice[i] = &ComputePropertyMolecule::pack_count;
-    else error->all("Invalid keyword in compute property/molecule command");
+    else error->all(FLERR,"Invalid keyword in compute property/molecule command");
   }
 
   // setup molecule-based data
@@ -54,14 +54,12 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
   array = NULL;
 
   if (nvalues == 1) {
-    vector = (double *) memory->smalloc(nmolecules*sizeof(double),
-					"property/molecule:vector");
+    memory->create(vector,nmolecules,"property/molecule:vector");
     vector_flag = 1;
     size_vector = nmolecules;
     extvector = 0;
   } else {
-    array = memory->create_2d_double_array(nmolecules,nvalues,
-					   "property/molecule:array");
+    memory->create(array,nmolecules,nvalues,"property/molecule:array");
     array_flag = 1;
     size_array_rows = nmolecules;
     size_array_cols = nvalues;
@@ -85,8 +83,8 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyMolecule::~ComputePropertyMolecule()
 {
   delete [] pack_choice;
-  memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(vector);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,7 +93,7 @@ void ComputePropertyMolecule::init()
 {
   int ntmp = molecules_in_group(idlo,idhi);
   if (ntmp != nmolecules)
-    error->all("Molecule count changed in compute property/molecule");
+    error->all(FLERR,"Molecule count changed in compute property/molecule");
 }
 
 /* ---------------------------------------------------------------------- */

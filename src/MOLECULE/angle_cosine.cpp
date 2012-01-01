@@ -19,10 +19,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -35,8 +37,8 @@ AngleCosine::AngleCosine(LAMMPS *lmp) : Angle(lmp) {}
 AngleCosine::~AngleCosine()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
+    memory->destroy(setflag);
+    memory->destroy(k);
   }
 }
 
@@ -141,8 +143,8 @@ void AngleCosine::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(k,n+1,"angle:k");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -152,7 +154,7 @@ void AngleCosine::allocate()
 
 void AngleCosine::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all("Incorrect args for angle coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -167,14 +169,14 @@ void AngleCosine::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double AngleCosine::equilibrium_angle(int i)
 {
-  return PI;
+  return MY_PI;
 }
 
 /* ----------------------------------------------------------------------

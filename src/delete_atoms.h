@@ -38,6 +38,10 @@ class DeleteAtoms : protected Pointers {
   void delete_overlap(int, char **);
   void delete_porosity(int, char **);
   void options(int, char **);
+
+  inline int sbmask(int j) {
+    return j >> SBBITS & 3;
+  }
 };
 
 }

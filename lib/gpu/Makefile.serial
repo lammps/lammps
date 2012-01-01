@@ -1,37 +1,28 @@
 # /* ----------------------------------------------------------------------   
-#    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator       
-#    http://lammps.sandia.gov, Sandia National Laboratories                   
-#    Steve Plimpton, sjplimp@sandia.gov                                       
-#                                                                             
-#    Copyright (2003) Sandia Corporation.  Under the terms of Contract        
-#    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains   
-#    certain rights in this software.  This software is distributed under      
-#    the GNU General Public License.                                          
-#                                                                             
-#    See the README file in the top-level LAMMPS directory.                   
-# ------------------------------------------------------------------------- */
-#                                                                             
-# /* ----------------------------------------------------------------------   
-#    Contributing authors: Mike Brown (ORNL), brownw@ornl.gov               
-#                          Peng Wang (Nvidia), penwang@nvidia.com             
-#                          Paul Crozier (SNL), pscrozi@sandia.gov             
+#  Generic Makefile for CUDA using MPI STUBS library
+#     - Change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
 CUDA_HOME = $(HOME)/cuda
-NVCC  = $(CUDA_HOME)/bin/nvcc #-ccbin /opt/gcc-34/bin
+NVCC = nvcc
 
-CUDA_ARCH = -arch=compute_20 -code=sm_20
+# Tesla CUDA
+CUDA_ARCH = -arch=sm_20
+# newer CUDA
+#CUDA_ARCH = -arch=sm_13
+# older CUDA
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
 
 CUDA_PRECISION = -D_SINGLE_DOUBLE
-CUDA_INCLUDE = -I$(CUDA_HOME)/include 
-CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64 -lcudart -L../../src/STUBS -lmpi
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math --ftz=true
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -L../../src/STUBS -lmpi
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
 
-CUDR_CPP = g++ -DMPI_GERYON -I$(CUDA_HOME)/include -I../../src/STUBS
-CUDR_OPTS = -O3 -Wall -fexpensive-optimizations -funsafe-math-optimizations -fno-rtti -fno-exceptions -mpc64 -march=native -ffast-math -funroll-loops -DMPI_GERYON
+CUDR_CPP = g++ -DMPI_GERYON -DUCL_NO_EXIT -I../../src/STUBS
+CUDR_OPTS = -O2 
 
 BIN_DIR = ./
-OBJ_DIR = ./obj
+OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 BSH = /bin/sh

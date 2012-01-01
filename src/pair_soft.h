@@ -29,8 +29,9 @@ class PairSoft : public Pair {
 
  public:
   PairSoft(class LAMMPS *);
-  ~PairSoft();
-  void compute(int, int);
+  virtual ~PairSoft();
+
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -41,8 +42,7 @@ class PairSoft : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(char *, int &);
 
- private:
-  double PI;
+ protected:
   double cut_global;
   double **prefactor;
   double **cut;

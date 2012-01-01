@@ -14,6 +14,7 @@
 #include "string.h"
 #include "bond.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -40,8 +41,8 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 
 Bond::~Bond()
 {
-  memory->sfree(eatom);
-  memory->destroy_2d_double_array(vatom);
+  memory->destroy(eatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -50,9 +51,9 @@ Bond::~Bond()
 
 void Bond::init()
 {
-  if (!allocated) error->all("Bond coeffs are not set");
+  if (!allocated) error->all(FLERR,"Bond coeffs are not set");
   for (int i = 1; i <= atom->nbondtypes; i++)
-    if (setflag[i] == 0) error->all("All bond coeffs are not set");
+    if (setflag[i] == 0) error->all(FLERR,"All bond coeffs are not set");
   init_style();
 }
 
@@ -79,13 +80,13 @@ void Bond::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
-    memory->sfree(eatom);
-    eatom = (double *) memory->smalloc(maxeatom*sizeof(double),"bond:eatom");
+    memory->destroy(eatom);
+    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom,6,"bond:vatom");
+    memory->destroy(vatom);
+    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators
@@ -198,7 +199,7 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond,
 
 double Bond::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

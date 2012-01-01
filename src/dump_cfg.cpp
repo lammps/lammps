@@ -30,6 +30,8 @@
 #include "memory.h"
 #include "error.h"
 
+#define UNWRAPEXPAND 10.0
+
 using namespace LAMMPS_NS;
 
 enum{INT,DOUBLE};  // same as in dump_custom.cpp
@@ -41,13 +43,20 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 10 ||
       strcmp(arg[5],"id") != 0 || strcmp(arg[6],"type") != 0 ||
-      strcmp(arg[7],"xs") != 0 || strcmp(arg[8],"ys") != 0 ||
-      strcmp(arg[9],"zs") != 0)
-    error->all("Dump cfg arguments must start with 'id type xs ys zs'");
+      (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) || 
+      (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
+      (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0))
+    error->all(FLERR,"Dump cfg arguments must start with "
+	       "'id type xs ys zs' or 'id type xsu ysu zsu'");
 
-  ntypes = atom->ntypes;
-  typenames = NULL;
-
+  if (strcmp(arg[7],"xs") == 0)
+    if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+    else unwrapflag = 0;
+  else if (strcmp(arg[8],"ys") == 0 || strcmp(arg[9],"zs") == 0)
+    error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+  else unwrapflag = 1;
+    
   // arrays for data rearrangement
 
   rbuf = NULL;
@@ -71,7 +80,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
       char *ptr = strchr(suffix,'[');
       if (ptr) {
 	if (suffix[strlen(suffix)-1] != ']')
-	  error->all("Invalid keyword in dump cfg command");
+	  error->all(FLERR,"Invalid keyword in dump cfg command");
 	*ptr = '\0';
 	*(ptr+2) = '\0';
 	auxname[i] = new char[strlen(suffix) + 3];
@@ -96,12 +105,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
 DumpCFG::~DumpCFG()
 {
-  if (typenames) {
-    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-    delete [] typenames;
-  }
-
-  if (rbuf) memory->destroy_2d_double_array(rbuf);
+  if (rbuf) memory->destroy(rbuf);
 
   if (auxname) {
     for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
@@ -113,73 +117,9 @@ DumpCFG::~DumpCFG()
 
 void DumpCFG::init_style()
 {
-  if (multifile == 0) error->all("Dump cfg requires one snapshot per file");
+  if (multifile == 0) error->all(FLERR,"Dump cfg requires one snapshot per file");
 
-  if (typenames == NULL) {
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[3];
-      strcpy(typenames[itype],"C");
-    }
-    if (comm->me == 0)
-      error->warning("All element names have been set to 'C' for dump cfg");
-  }
-
-  // setup format strings
-
-  delete [] format;
-  char *str;
-  if (format_user) str = format_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
-
-  // tokenize the format string and add space at end of each format element
-
-  char *ptr;
-  for (int i = 0; i < size_one; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(NULL," \0");
-    delete [] vformat[i];
-    vformat[i] = new char[strlen(ptr) + 2];
-    strcpy(vformat[i],ptr);
-    vformat[i] = strcat(vformat[i]," ");
-  }
-
-  // find current ptr for each compute,fix,variable
-  // check that fix frequency is acceptable
-
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all("Could not find dump cfg compute ID");
-    compute[i] = modify->compute[icompute];
-  }
-
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all("Could not find dump cfg fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all("Dump cfg and fix not computed at compatible times");
-  }
-
-  int ivariable;
-  for (int i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all("Could not find dump cfg variable name");
-    variable[i] = ivariable;
-  }
-
-  // set index and check validity of region
-
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for dump cfg does not exist");
-  }
+  DumpCustom::init_style();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,11 +127,12 @@ void DumpCFG::init_style()
 void DumpCFG::write_header(bigint n)
 {
   // special handling for atom style peri
-  // use average volume of particles to scale particles to mimic C atoms
-  // scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
- 
+  //   use average volume of particles to scale particles to mimic C atoms
+  //   scale box dimension to sc lattice for C with sigma = 1.44 Angstroms  
+  // special handling for unwrapped coordinates
+
   double scale;
-  if (atom->style_match("peri")) {
+  if (atom->peri_flag) {
     int nlocal = atom->nlocal;
     double vone = 0.0;
     for (int i = 0; i < nlocal; i++) vone += atom->vfrac[i];
@@ -199,9 +140,9 @@ void DumpCFG::write_header(bigint n)
     MPI_Allreduce(&vone,&vave,1,MPI_DOUBLE,MPI_SUM,world); 
     if (atom->natoms) vave /= atom->natoms; 
     if (vave > 0.0) scale = 1.44 / pow(vave,1.0/3.0); 
-    else scale = 1.0;
-  } else scale = 1.0;
- 
+  } else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  else scale = 1.0;
+    
   if (me == 0 || multiproc) {
     char str[64];
     sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
@@ -224,14 +165,14 @@ void DumpCFG::write_header(bigint n)
 
   // calculate total # of data lines to be written on a writing proc
 
-  if (multiproc) nchosen = nmine;
-  else MPI_Reduce(&nmine,&nchosen,1,MPI_INT,MPI_SUM,0,world);
+  if (multiproc) nchosen = nme;
+  else MPI_Reduce(&nme,&nchosen,1,MPI_INT,MPI_SUM,0,world);
 
   // allocate memory needed for data rearrangement on writing proc(s)
 
   if (multiproc || me == 0) {
-    if (rbuf) memory->destroy_2d_double_array(rbuf);
-    rbuf = memory->create_2d_double_array(nchosen,size_one,"dump:rbuf");
+    if (rbuf) memory->destroy(rbuf);
+    memory->create(rbuf,nchosen,size_one,"dump:rbuf");
   }
 }
 
@@ -243,12 +184,9 @@ void DumpCFG::write_header(bigint n)
 void DumpCFG::write_data(int n, double *mybuf)
 {
   int i,j,m,itype;
-  int tag_i,index;
 
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
 
   // transfer data from buf to rbuf
   // if write by proc 0, transfer chunk by chunk
@@ -259,8 +197,10 @@ void DumpCFG::write_data(int n, double *mybuf)
     nlines++;
   }
 
-  //  write data lines in rbuf to file after transfer is done
+  // write data lines in rbuf to file after transfer is done
   
+  double unwrap_coord;
+
   if (nlines == nchosen) {
     for (itype = 1; itype <= ntypes; itype++) {
       for (i = 0; i < nchosen; i++)
@@ -271,10 +211,29 @@ void DumpCFG::write_data(int n, double *mybuf)
 	fprintf(fp,"%s\n",typenames[itype]);
 	for (; i < nchosen; i++) {
 	  if (rbuf[i][1] == itype) {
-	    for (j = 2; j < size_one; j++) {
-	      if (vtype[j] == INT)
-		fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
-	      else fprintf(fp,vformat[j],rbuf[i][j]);
+	    if (unwrapflag == 0)
+	      for (j = 2; j < size_one; j++) {
+		if (vtype[j] == INT)
+		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
+		else fprintf(fp,vformat[j],rbuf[i][j]);
+	      }
+	    else {
+
+	      // Unwrapped scaled coordinates are shifted to
+	      // center of expanded box, to prevent
+	      // rewrapping by AtomEye. Dividing by 
+	      // expansion factor restores correct
+	      // interatomic distances.
+
+	      for (j = 2; j < 5; j++) {
+		unwrap_coord = (rbuf[i][j] - 0.5)/UNWRAPEXPAND + 0.5;
+		fprintf(fp,vformat[j],unwrap_coord);
+	      }
+	      for (j = 5; j < size_one; j++) {
+		if (vtype[j] == INT)
+		  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
+		else fprintf(fp,vformat[j],rbuf[i][j]);
+	      }
 	    }
 	    fprintf(fp,"\n");
 	  }
@@ -283,30 +242,4 @@ void DumpCFG::write_data(int n, double *mybuf)
     }
     nlines = 0;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int DumpCFG::modify_param2(int narg, char **arg)
-{
-  if (strcmp(arg[0],"element") == 0) {
-    if (narg != ntypes+1)
-      error->all("Dump modify element names do not match atom types");
-
-    if (typenames) {
-      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-      delete [] typenames;
-      typenames = NULL;
-    }
-
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[3];
-      if (strlen(arg[itype]) >= 3)
-	error->all("Illegal chemical element names");
-      strcpy(typenames[itype],arg[itype]);
-    }
-    return ntypes+1;
-
-  } else return 0;
 }

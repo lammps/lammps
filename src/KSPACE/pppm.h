@@ -21,14 +21,14 @@ KSpaceStyle(pppm,PPPM)
 #define LMP_PPPM_H
 
 #include "lmptype.h"
-#include <mpi.h>
+#include "mpi.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
-#define  MPI_FFT_SCALAR MPI_FLOAT
+#define MPI_FFT_SCALAR MPI_FLOAT
 #else
 typedef double FFT_SCALAR;
-#define  MPI_FFT_SCALAR MPI_DOUBLE
+#define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
 
 #include "kspace.h"
@@ -38,21 +38,19 @@ namespace LAMMPS_NS {
 class PPPM : public KSpace {
  public:
   PPPM(class LAMMPS *, int, char **);
-  ~PPPM();
-  void init();
-  void setup();
-  void compute(int, int);
-  void timing(int, double &, double &);
-  double memory_usage();
+  virtual ~PPPM();
+  virtual void init();
+  virtual void setup();
+  virtual void compute(int, int);
+  virtual void timing(int, double &, double &);
+  virtual double memory_usage();
 
  protected:
   int me,nprocs;
-  double PI;
   double precision;
   int nfactors;
   int *factors;
   double qsum,qsqsum;
-  double qqrd2e;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;
@@ -91,8 +89,8 @@ class PPPM : public KSpace {
   double alpha;                // geometric factor
 
   void set_grid();
-  void allocate();
-  void deallocate();
+  virtual void allocate();
+  virtual void deallocate();
   int factorable(int);
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
@@ -100,12 +98,13 @@ class PPPM : public KSpace {
   double gf_denom(double, double, double);
   virtual void particle_map();
   virtual void make_rho();
-  void brick2fft();
-  void fillbrick();
-  void poisson(int, int);
+  virtual void brick2fft();
+  virtual void fillbrick();
+  virtual void poisson(int, int);
   virtual void fieldforce();
   void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
+		     const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr(int);
 };

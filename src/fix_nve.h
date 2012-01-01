@@ -27,13 +27,14 @@ namespace LAMMPS_NS {
 class FixNVE : public Fix {
  public:
   FixNVE(class LAMMPS *, int, char **);
+  virtual ~FixNVE() {}
   int setmask();
   virtual void init();
   virtual void initial_integrate(int);
   virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  void reset_dt();
+  virtual void initial_integrate_respa(int, int, int);
+  virtual void final_integrate_respa(int, int);
+  virtual void reset_dt();
 
  protected:
   double dtv,dtf;

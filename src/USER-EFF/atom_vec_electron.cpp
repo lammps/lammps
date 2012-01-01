@@ -19,6 +19,7 @@
 #include "stdlib.h"
 #include "atom_vec_electron.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "force.h"
@@ -48,6 +49,7 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp, int narg, char **arg) :
   size_data_vel = 5;
   xcol_data = 6;
   
+  atom->electron_flag = 1;
   atom->q_flag = atom->spin_flag = atom->eradius_flag = 
     atom->ervel_flag = atom->erforce_flag = 1;
 }
@@ -64,30 +66,20 @@ void AtomVecElectron::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax,3,"atom:f");
-  
-  q = atom->q = (double *)
-    memory->srealloc(atom->q,nmax*sizeof(double),"atom:q");
-  spin = atom->spin = (int *)
-    memory->srealloc(atom->spin,nmax*sizeof(int),"atom:spin");
-  eradius = atom->eradius = (double *)
-    memory->srealloc(atom->eradius,nmax*sizeof(double),"atom:eradius");
-  ervel = atom->ervel = (double *)
-    memory->srealloc(atom->ervel,nmax*sizeof(double),"atom:ervel");
-  erforce = atom->erforce = (double *)
-    memory->srealloc(atom->erforce,nmax*sizeof(double),"atom:erforce");
-  
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
+
+  q = memory->grow(atom->q,nmax,"atom:q");
+  spin = memory->grow(atom->spin,nmax,"atom:spin");
+  eradius = memory->grow(atom->eradius,nmax,"atom:eradius");
+  ervel = memory->grow(atom->ervel,nmax,"atom:ervel");
+  erforce = memory->grow(atom->erforce,nmax*comm->nthreads,"atom:erforce");
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -106,9 +98,11 @@ void AtomVecElectron::grow_reset()
   eradius = atom->eradius; ervel = atom->ervel; erforce = atom->erforce;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecElectron::copy(int i, int j)
+void AtomVecElectron::copy(int i, int j, int delflag)
 {
   tag[j] = tag[i];
   type[j] = type[i];
@@ -237,6 +231,20 @@ int AtomVecElectron::pack_comm_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
+int AtomVecElectron::pack_comm_hybrid(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = eradius[j];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomVecElectron::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
@@ -272,18 +280,15 @@ void AtomVecElectron::unpack_comm_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_comm_one(int i, double *buf)
+int AtomVecElectron::unpack_comm_hybrid(int n, int first, double *buf)
 {
-  buf[0] = eradius[i];
-  return 1;
-}
+  int i,m,last;
 
-/* ---------------------------------------------------------------------- */
-
-int AtomVecElectron::unpack_comm_one(int i, double *buf)
-{
-  eradius[i] = buf[0];
-  return 1;
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    eradius[i] = buf[m++];
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -305,10 +310,15 @@ int AtomVecElectron::pack_reverse(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_reverse_one(int i, double *buf)
+int AtomVecElectron::pack_reverse_hybrid(int n, int first, double *buf)
 {
-  buf[0] = erforce[i];
-  return 1;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    buf[m++] = erforce[i];
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,10 +339,16 @@ void AtomVecElectron::unpack_reverse(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::unpack_reverse_one(int i, double *buf)
+int AtomVecElectron::unpack_reverse_hybrid(int n, int *list, double *buf)
 {
-  erforce[i] += buf[0];
-  return 1;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    erforce[j] += buf[m++];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -466,12 +482,18 @@ int AtomVecElectron::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::pack_border_one(int i, double *buf)
+int AtomVecElectron::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = q[i];
-  buf[1] = spin[i];
-  buf[2] = eradius[i];
-  return 3;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = q[j];
+    buf[m++] = spin[j];
+    buf[m++] = eradius[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -523,12 +545,18 @@ void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecElectron::unpack_border_one(int i, double *buf)
+int AtomVecElectron::unpack_border_hybrid(int n, int first, double *buf)
 {
-  q[i] = buf[0];
-  spin[i] = static_cast<int> (buf[1]);
-  eradius[i] = buf[2];
-  return 3;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    q[i] = buf[m++];
+    spin[i] = static_cast<int> (buf[m++]);
+    eradius[i] = buf[m++];
+  }
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -657,9 +685,7 @@ int AtomVecElectron::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store)
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
   
   int m = 1;
@@ -731,11 +757,11 @@ void AtomVecElectron::data_atom(double *coord, int imagetmp, char **values)
   
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
   
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
   
   q[nlocal] = atof(values[2]);
   spin[nlocal] = atoi(values[3]);
@@ -767,7 +793,7 @@ int AtomVecElectron::data_atom_hybrid(int nlocal, char **values)
   spin[nlocal] = atoi(values[1]);
   eradius[nlocal] = atof(values[2]);
   if (eradius[nlocal] < 0.0)
-    error->one("Invalid eradius in Atoms section of data file");
+    error->one(FLERR,"Invalid eradius in Atoms section of data file");
   
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
@@ -803,23 +829,23 @@ int AtomVecElectron::data_vel_hybrid(int m, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecElectron::memory_usage()
+bigint AtomVecElectron::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
   
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
   
-  if (atom->memcheck("q")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("spin")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("eradius")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("ervel")) bytes += nmax * sizeof(double);
-  if (atom->memcheck("erforce")) bytes += nmax * sizeof(double);
+  if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
+  if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
+  if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
+  if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
+  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax*comm->nthreads);
   
   return bytes;
 }

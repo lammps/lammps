@@ -26,13 +26,12 @@
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -51,21 +50,21 @@ PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp) {}
 PairBornCoulLong::~PairBornCoulLong()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(rho);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(c);
-    memory->destroy_2d_double_array(d);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(born1);
-    memory->destroy_2d_double_array(born2);
-    memory->destroy_2d_double_array(born3);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(sigma);
+    memory->destroy(c);
+    memory->destroy(d);
+    memory->destroy(rhoinv);
+    memory->destroy(born1);
+    memory->destroy(born2);
+    memory->destroy(born3);
+    memory->destroy(offset);
   }
 }
 
@@ -89,7 +88,6 @@ void PairBornCoulLong::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -114,13 +112,9 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -130,9 +124,9 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
+	r = sqrt(rsq);
 
 	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);
 	  t = 1.0 / (1.0 + EWALD_P*grij);
@@ -144,7 +138,6 @@ void PairBornCoulLong::compute(int eflag, int vflag)
 
 	if (rsq < cut_ljsq[itype][jtype]) {
 	  r6inv = r2inv*r2inv*r2inv;
-          r = sqrt(rsq);
 	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
 	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
 	    + born3[itype][jtype]*r2inv*r6inv;
@@ -179,7 +172,7 @@ void PairBornCoulLong::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -191,25 +184,25 @@ void PairBornCoulLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  c = memory->create_2d_double_array(n+1,n+1,"pair:c");
-  d = memory->create_2d_double_array(n+1,n+1,"pair:d");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  born1 = memory->create_2d_double_array(n+1,n+1,"pair:born1");
-  born2 = memory->create_2d_double_array(n+1,n+1,"pair:born2");
-  born3 = memory->create_2d_double_array(n+1,n+1,"pair:born3");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(rho,n+1,n+1,"pair:rho");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(c,n+1,n+1,"pair:c");
+  memory->create(d,n+1,n+1,"pair:d");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(born1,n+1,n+1,"pair:born1");
+  memory->create(born2,n+1,n+1,"pair:born2");
+  memory->create(born3,n+1,n+1,"pair:born3");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -218,7 +211,7 @@ void PairBornCoulLong::allocate()
 
 void PairBornCoulLong::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 2) error->all("Illegal pair_style command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
@@ -240,7 +233,7 @@ void PairBornCoulLong::settings(int narg, char **arg)
 
 void PairBornCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all("Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -250,7 +243,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[5]);
   double d_one = force->numeric(arg[6]);
 
@@ -271,7 +264,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -280,7 +273,7 @@ void PairBornCoulLong::coeff(int narg, char **arg)
 
 double PairBornCoulLong::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
@@ -322,7 +315,6 @@ double PairBornCoulLong::init_one(int i, int j)
      } 
      MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-     double PI = 4.0*atan(1.0);
      double rho1 = rho[i][j];
      double rho2 = rho1*rho1;
      double rho3 = rho2*rho1;
@@ -330,11 +322,11 @@ double PairBornCoulLong::init_one(int i, int j)
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
-     etail_ij = 2.0*PI*all[0]*all[1] * 
+     etail_ij = 2.0*MY_PI*all[0]*all[1] * 
        (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1* 
 	(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
 	c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
-     ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1] * 
+     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1] * 
        (-a[i][j]*exp((sigma[i][j]-rc)/rho1) * 
 	(rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 
 	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 
@@ -350,17 +342,17 @@ double PairBornCoulLong::init_one(int i, int j)
 void PairBornCoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style born/coul/long requires atom attribute q");
+    error->all(FLERR,"Pair style born/coul/long requires atom attribute q");
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all("Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

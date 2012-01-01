@@ -38,17 +38,19 @@ class DumpCustom : public Dump {
   int *thresh_op;            // threshhold operation for each nthresh
   double *thresh_value;      // threshhold value for each nthresh
 
-  int nmine;                 // # of lines I am dumping
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
 
   char *columns;             // column labels
 
+  int nchoose;               // # of selected atoms
   int maxlocal;              // size of atom selection and variable arrays
-  int *choose;               // 1 if output this atom, 0 if no
+  int *choose;               // local indices of selected atoms
   double *dchoose;           // value for each atom to threshhold against
+  int *clist;                // compressed list of indices of selected atoms
 
   int nfield;                // # of keywords listed by user
+  int ioptional;             // index of start of optional args
 
   int *field2index;          // which compute,fix,variable calcs this field
   int *argindex;             // index into compute,fix scalar_atom,vector_atom
@@ -67,6 +69,9 @@ class DumpCustom : public Dump {
   int *variable;             // list of indices for the Variables
   double **vbuf;             // local storage for variable evaluation
 
+  int ntypes;                // # of atom types
+  char **typenames;	     // array of element names for each type
+
   // private methods
 
   virtual void init_style();
@@ -74,14 +79,13 @@ class DumpCustom : public Dump {
   int count();
   void pack(int *);
   virtual void write_data(int, double *);
-  double memory_usage();
+  bigint memory_usage();
 
-  void parse_fields(int, char **);
+  int parse_fields(int, char **);
   int add_compute(char *);
   int add_fix(char *);
   int add_variable(char *);
-  int modify_param(int, char **);
-  virtual int modify_param2(int, char **) {return 0;}
+  virtual int modify_param(int, char **);
 
   typedef void (DumpCustom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions
@@ -120,6 +124,12 @@ class DumpCustom : public Dump {
   void pack_xu_triclinic(int);
   void pack_yu_triclinic(int);
   void pack_zu_triclinic(int);
+  void pack_xsu(int);
+  void pack_ysu(int);
+  void pack_zsu(int);
+  void pack_xsu_triclinic(int);
+  void pack_ysu_triclinic(int);
+  void pack_zsu_triclinic(int);
   void pack_ix(int);
   void pack_iy(int);
   void pack_iz(int);
@@ -134,17 +144,16 @@ class DumpCustom : public Dump {
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
+  void pack_mu(int);
   void pack_radius(int);
+  void pack_diameter(int);
+
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
-  void pack_quatw(int);
-  void pack_quati(int);
-  void pack_quatj(int);
-  void pack_quatk(int);
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);

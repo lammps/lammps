@@ -21,9 +21,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairHybridOverlay::PairHybridOverlay(LAMMPS *lmp) : PairHybrid(lmp) {}
@@ -34,7 +31,7 @@ PairHybridOverlay::PairHybridOverlay(LAMMPS *lmp) : PairHybrid(lmp) {}
 
 void PairHybridOverlay::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -51,7 +48,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all("Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -88,7 +85,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

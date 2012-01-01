@@ -26,38 +26,37 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 ImproperClass2::~ImproperClass2()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(setflag_i);
-    memory->sfree(setflag_aa);
+    memory->destroy(setflag);
+    memory->destroy(setflag_i);
+    memory->destroy(setflag_aa);
 
-    memory->sfree(k0);
-    memory->sfree(chi0);
+    memory->destroy(k0);
+    memory->destroy(chi0);
 
-    memory->sfree(aa_k1);
-    memory->sfree(aa_k2);
-    memory->sfree(aa_k3);
-    memory->sfree(aa_theta0_1);
-    memory->sfree(aa_theta0_2);
-    memory->sfree(aa_theta0_3);
+    memory->destroy(aa_k1);
+    memory->destroy(aa_k2);
+    memory->destroy(aa_k3);
+    memory->destroy(aa_theta0_1);
+    memory->destroy(aa_theta0_2);
+    memory->destroy(aa_theta0_3);
   }
 }
 
@@ -162,7 +161,7 @@ void ImproperClass2::compute(int eflag, int vflag)
 		  "Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		  me,update->ntimestep,
 		  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	  error->warning(str,0);
+	  error->warning(FLERR,str,0);
 	  fprintf(screen,"  1st atom: %d %g %g %g\n",
 		  me,x[i1][0],x[i1][1],x[i1][2]);
 	  fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -501,24 +500,19 @@ void ImproperClass2::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  k0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:k0");
-  chi0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:chi0");
+  memory->create(k0,n+1,"improper:k0");
+  memory->create(chi0,n+1,"improper:chi0");
 
-  aa_k1 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k1");
-  aa_k2 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k2");
-  aa_k3 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:aa_k3");
-  aa_theta0_1 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_1");
-  aa_theta0_2 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_2");
-  aa_theta0_3 = (double *) 
-    memory->smalloc((n+1)*sizeof(double),"improper:aa_theta0_3");
+  memory->create(aa_k1,n+1,"improper:aa_k1");
+  memory->create(aa_k2,n+1,"improper:aa_k2");
+  memory->create(aa_k3,n+1,"improper:aa_k3");
+  memory->create(aa_theta0_1,n+1,"improper:aa_theta0_1");
+  memory->create(aa_theta0_2,n+1,"improper:aa_theta0_2");
+  memory->create(aa_theta0_3,n+1,"improper:aa_theta0_3");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
-  setflag_i = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"improper:setflag_i");
-  setflag_aa = (int *) 
-    memory->smalloc((n+1)*sizeof(int),"improper:setflag_aa");
+  memory->create(setflag,n+1,"improper:setflag");
+  memory->create(setflag_i,n+1,"improper:setflag_i");
+  memory->create(setflag_aa,n+1,"improper:setflag_aa");
   for (int i = 1; i <= n; i++)
     setflag[i] = setflag_i[i] = setflag_aa[i] = 0;
 }
@@ -531,7 +525,7 @@ void ImproperClass2::allocate()
 
 void ImproperClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Incorrect args for improper coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -540,7 +534,7 @@ void ImproperClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"aa") == 0) {
-    if (narg != 8) error->all("Incorrect args for improper coefficients");
+    if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients");
 
     double k1_one = force->numeric(arg[2]);
     double k2_one = force->numeric(arg[3]);
@@ -555,15 +549,15 @@ void ImproperClass2::coeff(int narg, char **arg)
       aa_k1[i] = k1_one;
       aa_k2[i] = k2_one;
       aa_k3[i] = k3_one;
-      aa_theta0_1[i] = theta0_1_one/180.0 * PI;
-      aa_theta0_2[i] = theta0_2_one/180.0 * PI;
-      aa_theta0_3[i] = theta0_3_one/180.0 * PI;
+      aa_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
+      aa_theta0_2[i] = theta0_2_one/180.0 * MY_PI;
+      aa_theta0_3[i] = theta0_3_one/180.0 * MY_PI;
       setflag_aa[i] = 1;
       count++;
     }
 
   } else {
-    if (narg != 3) error->all("Incorrect args for improper coefficients");
+    if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
 
     double k0_one = force->numeric(arg[1]);
     double chi0_one = force->numeric(arg[2]);
@@ -572,13 +566,13 @@ void ImproperClass2::coeff(int narg, char **arg)
 
     for (int i = ilo; i <= ihi; i++) {
       k0[i] = k0_one;
-      chi0[i] = chi0_one/180.0 * PI;
+      chi0[i] = chi0_one/180.0 * MY_PI;
       setflag_i[i] = 1;
       count++;
     }
   }
 
-  if (count == 0) error->all("Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_i[i] == 1 && setflag_aa[i] == 1) setflag[i] = 1;
@@ -707,8 +701,8 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     thetaCBD = acos(costhCBD);
 
     dthABC = thetaABC - aa_theta0_1[type];
-    dthCBD = thetaCBD - aa_theta0_2[type];
-    dthABD = thetaABD - aa_theta0_3[type];
+    dthABD = thetaABD - aa_theta0_2[type];
+    dthCBD = thetaCBD - aa_theta0_3[type];
 
     // energy
 

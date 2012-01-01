@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
@@ -55,13 +52,13 @@ PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
 PairEffCut::~PairEffCut()
 {
   delete [] pvector;
-  memory->sfree(min_eradius);
-  memory->sfree(min_erforce);
+  memory->destroy(min_eradius);
+  memory->destroy(min_erforce);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cut);
   }
 }
 
@@ -169,6 +166,7 @@ void PairEffCut::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -549,7 +547,7 @@ void PairEffCut::compute(int eflag, int vflag)
 
   }
   if (vflag_fdotr) {
-    virial_compute();
+    virial_fdotr_compute();
     if (flexible_pressure_flag) virial_eff_compute();
   }
 }	
@@ -677,13 +675,13 @@ void PairEffCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
   
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
   
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ---------------------------------------------------------------------
@@ -693,7 +691,7 @@ void PairEffCut::allocate()
 void PairEffCut::settings(int narg, char **arg)
 {
   if (narg != 1 && narg != 3 && narg != 4 && narg != 7) 
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   // Defaults ECP parameters for Si
   PAULI_CORE_A = 0.320852;
@@ -713,7 +711,7 @@ void PairEffCut::settings(int narg, char **arg)
     limit_size_flag = 0;
     flexible_pressure_flag = 0;
     if (strcmp(arg[1],"ecp") != 0)
-      error->all("Illegal pair_style command");
+      error->all(FLERR,"Illegal pair_style command");
     else {
       PAULI_CORE_A = force->numeric(arg[2]);
       PAULI_CORE_B = force->numeric(arg[3]);
@@ -724,7 +722,7 @@ void PairEffCut::settings(int narg, char **arg)
     limit_size_flag = force->inumeric(arg[1]);
     flexible_pressure_flag = force->inumeric(arg[2]);
     if (strcmp(arg[3],"ecp") != 0)
-      error->all("Illegal pair_style command");
+      error->all(FLERR,"Illegal pair_style command");
     else {
       PAULI_CORE_A = force->numeric(arg[4]);
       PAULI_CORE_B = force->numeric(arg[5]);
@@ -739,7 +737,7 @@ void PairEffCut::settings(int narg, char **arg)
   } else if (force->qqr2e==1.0) {	// electron units
     h2e = 1.0;
     hhmss2e = 1.0;
-  } else error->all("Check your units");
+  } else error->all(FLERR,"Check your units");
 
   // reset cutoffs that have been explicitly set
   
@@ -757,7 +755,7 @@ void PairEffCut::settings(int narg, char **arg)
 
 void PairEffCut::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
   
   int ilo,ihi,jlo,jhi;
@@ -776,7 +774,7 @@ void PairEffCut::coeff(int narg, char **arg)
     }
   }
   
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -789,7 +787,7 @@ void PairEffCut::init_style()
 
   if (!atom->q_flag || !atom->spin_flag || 
       !atom->eradius_flag || !atom->erforce_flag)
-    error->all("Pair eff/cut requires atom attributes "
+    error->all(FLERR,"Pair eff/cut requires atom attributes "
 	       "q, spin, eradius, erforce");
 
   // add hook to minimizer for eradius and erforce
@@ -801,7 +799,7 @@ void PairEffCut::init_style()
 
   if (update->whichflag == 1) { 
     if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all("You must lower the default real units timestep for pEFF ");
+      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
   }
 
   // need a half neigh list and optionally a granular history neigh list
@@ -898,13 +896,11 @@ void PairEffCut::min_xf_pointers(int ignore, double **xextra, double **fextra)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
-    memory->sfree(min_eradius);
-    memory->sfree(min_erforce);
+    memory->destroy(min_eradius);
+    memory->destroy(min_erforce);
     nmax = atom->nmax;
-    min_eradius = (double *) memory->smalloc(nmax*sizeof(double),
-					     "pair:min_eradius");
-    min_erforce = (double *) memory->smalloc(nmax*sizeof(double),
-					     "pair:min_erforce");
+    memory->create(min_eradius,nmax,"pair:min_eradius");
+    memory->create(min_erforce,nmax,"pair:min_erforce");
   }
 
   *xextra = min_eradius;

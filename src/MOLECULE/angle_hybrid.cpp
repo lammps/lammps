@@ -46,12 +46,12 @@ AngleHybrid::~AngleHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
 }
@@ -80,10 +80,9 @@ void AngleHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nanglelist[m] > maxangle[m]) {
-	memory->destroy_2d_int_array(anglelist[m]);
+	memory->destroy(anglelist[m]);
 	maxangle[m] = nanglelist[m] + EXTRA;
-	anglelist[m] = (int **)
-	  memory->create_2d_int_array(maxangle[m],4,"angle_hybrid:anglelist");
+	memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
       }
       nanglelist[m] = 0;
     }
@@ -144,8 +143,8 @@ void AngleHybrid::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"angle:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(map,n+1,"angle:map");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nanglelist = new int[nstyles];
@@ -163,7 +162,7 @@ void AngleHybrid::settings(int narg, char **arg)
 {
   int i,m,istyle;
 
-  if (narg < 1) error->all("Illegal angle_style command");
+  if (narg < 1) error->all(FLERR,"Illegal angle_style command");
 
   // delete old lists, since cannot just change settings
 
@@ -175,12 +174,12 @@ void AngleHybrid::settings(int narg, char **arg)
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(anglelist[i]);
+      memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
   allocated = 0;
@@ -208,17 +207,19 @@ void AngleHybrid::settings(int narg, char **arg)
   // one exception is 1st arg of style "table", which is non-numeric
   // need a better way to skip these exceptions
 
+  int dummy;
   nstyles = 0;
   i = 0;
+
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all("Angle style hybrid cannot use same pair style twice");
+	error->all(FLERR,"Angle style hybrid cannot use same pair style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Angle style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Angle style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
-      error->all("Angle style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_angle(arg[i]);
+      error->all(FLERR,"Angle style hybrid cannot have none as an argument");
+    styles[nstyles] = force->new_angle(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;
@@ -242,16 +243,18 @@ void AngleHybrid::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
   // 2nd arg = angle sub-style name
-  // allow for "none" as valid sub-style name
+  // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
 
   int none = 0;
+  int skip = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all("Angle coeff for hybrid has invalid style");
+    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
+    else error->all(FLERR,"Angle coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -264,10 +267,12 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!none) styles[m]->coeff(narg-1,&arg[1]);
 
   // set setflag and which type maps to which sub-style
+  // if sub-style is skip: auxiliary class2 setting in data file so ignore
   // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (none) {
+    if (skip) continue;
+    else if (none) {
       setflag[i] = 1;
       map[i] = -1;
     } else {
@@ -278,12 +283,23 @@ void AngleHybrid::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   run angle style specific initialization
+------------------------------------------------------------------------- */
+
+void AngleHybrid::init_style()
+{
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]) styles[m]->init_style();
+}
+
+/* ----------------------------------------------------------------------
    return an equilbrium angle length 
 ------------------------------------------------------------------------- */
 
 double AngleHybrid::equilibrium_angle(int i)
 {
-  if (map[i] < 0) error->one("Invoked angle equil angle on angle style none");
+  if (map[i] < 0)
+    error->one(FLERR,"Invoked angle equil angle on angle style none");
   return styles[map[i]]->equilibrium_angle(i);
 }
 
@@ -317,14 +333,14 @@ void AngleHybrid::read_restart(FILE *fp)
 
   allocate();
   
-  int n;
+  int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_angle(keywords[m]);
+    styles[m] = force->new_angle(keywords[m],lmp->suffix,dummy);
   }
 }
 
@@ -332,7 +348,7 @@ void AngleHybrid::read_restart(FILE *fp)
 
 double AngleHybrid::single(int type, int i1, int i2, int i3)
 {
-  if (map[type] < 0) error->one("Invoked angle single on angle style none");
+  if (map[type] < 0) error->one(FLERR,"Invoked angle single on angle style none");
   return styles[map[type]]->single(type,i1,i2,i3);
 }
 

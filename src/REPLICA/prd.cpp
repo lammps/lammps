@@ -63,15 +63,15 @@ void PRD::command(int narg, char **arg)
   // error checks
 
   if (domain->box_exist == 0) 
-    error->all("PRD command before simulation box is defined");
+    error->all(FLERR,"PRD command before simulation box is defined");
   if (universe->nworlds != universe->nprocs && 
       atom->map_style == 0) 
-    error->all("Cannot use PRD with multi-processor replicas "
+    error->all(FLERR,"Cannot use PRD with multi-processor replicas "
 	       "unless atom map exists");
   if (universe->nworlds == 1 && comm->me == 0) 
-    error->warning("Running PRD with only one replica");
+    error->warning(FLERR,"Running PRD with only one replica");
 
-  if (narg < 7) error->universe_all("Illegal prd command");
+  if (narg < 7) error->universe_all(FLERR,"Illegal prd command");
 
   nsteps = atoi(arg[0]);
   t_event = atoi(arg[1]);
@@ -87,11 +87,11 @@ void PRD::command(int narg, char **arg)
 
   // total # of timesteps must be multiple of t_event
 
-  if (t_event <= 0) error->universe_all("Invalid t_event in prd command");
+  if (t_event <= 0) error->universe_all(FLERR,"Invalid t_event in prd command");
   if (nsteps % t_event) 
-    error->universe_all("PRD nsteps must be multiple of t_event");
+    error->universe_all(FLERR,"PRD nsteps must be multiple of t_event");
   if (t_corr % t_event)
-    error->universe_all("PRD t_corr must be multiple of t_event");
+    error->universe_all(FLERR,"PRD t_corr must be multiple of t_event");
 
   // local storage
 
@@ -125,9 +125,9 @@ void PRD::command(int narg, char **arg)
 
   if (nreplica != nprocs_universe) {
     displacements = new int[nprocs];
-    tagall = (int *) memory->smalloc(natoms*sizeof(int),"prd:tagall");
-    xall = memory->create_2d_double_array(natoms,3,"prd:xall");
-    imageall = (int *) memory->smalloc(natoms*sizeof(int),"prd:imageall");
+    memory->create(tagall,natoms,"prd:tagall");
+    memory->create(xall,natoms,3,"prd:xall");
+    memory->create(imageall,natoms,"prd:imageall");
   }
 
   // random_select = same RNG for each replica for multiple event selection
@@ -184,7 +184,7 @@ void PRD::command(int narg, char **arg)
   // necessary so it will know atom coords at last event
 
   int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all("Could not find compute ID for PRD");
+  if (icompute < 0) error->all(FLERR,"Could not find compute ID for PRD");
   compute_event = modify->compute[icompute];
   compute_event->reset_extra_compute_fix("prd_event");
 
@@ -196,7 +196,7 @@ void PRD::command(int narg, char **arg)
 
   if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
     if (me == 0) 
-      error->warning("Resetting reneighboring criteria during PRD");
+      error->warning(FLERR,"Resetting reneighboring criteria during PRD");
   }
 
   neighbor->every = 1;
@@ -211,7 +211,7 @@ void PRD::command(int narg, char **arg)
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all(FLERR,"Too many timesteps");
 
   lmp->init();
 
@@ -227,14 +227,14 @@ void PRD::command(int narg, char **arg)
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
-      error->all("Cannot use PRD with a time-dependent fix defined");
+      error->all(FLERR,"Cannot use PRD with a time-dependent fix defined");
 
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())
-      error->all("Cannot use PRD with a time-dependent region defined");
+      error->all(FLERR,"Cannot use PRD with a time-dependent region defined");
 
   if (atom->sortfreq > 0)
-    error->all("Cannot use PRD with atom_modify sort enabled");
+    error->all(FLERR,"Cannot use PRD with atom_modify sort enabled");
 
   // perform PRD simulation
 
@@ -261,8 +261,11 @@ void PRD::command(int narg, char **arg)
   quench();
   ncoincident = 0;
   share_event(0,0);
+
+  timer->init();
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
+
   log_event();
 
   // do full init/setup since are starting all replicas after event
@@ -343,6 +346,7 @@ void PRD::command(int narg, char **arg)
     update->integrate->setup();
 
     timer->barrier_start(TIME_LOOP);
+
     if (t_corr > 0) replicate(ireplica);
     if (temp_flag == 0) {
       if (ireplica == universe->iworld)
@@ -350,6 +354,7 @@ void PRD::command(int narg, char **arg)
       MPI_Bcast(&temp_dephase,1,MPI_DOUBLE,universe->root_proc[ireplica],
         	      universe->uworld);
     }
+
     timer->barrier_stop(TIME_LOOP);
     time_comm += timer->array[TIME_LOOP];
     
@@ -406,9 +411,9 @@ void PRD::command(int narg, char **arg)
   // clean up
 
   delete [] displacements;
-  memory->sfree(tagall);
-  memory->destroy_2d_double_array(xall);
-  memory->sfree(imageall);
+  memory->destroy(tagall);
+  memory->destroy(xall);
+  memory->destroy(imageall);
   
   MPI_Comm_free(&comm_replica);
   delete random_select;
@@ -499,7 +504,7 @@ void PRD::quench()
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many iterations");
+    error->all(FLERR,"Too many iterations");
 
   // full init works
 
@@ -753,7 +758,7 @@ void PRD::replicate(int ireplica)
 
 void PRD::options(int narg, char **arg)
 {
-  if (narg < 0) error->all("Illegal prd command");
+  if (narg < 0) error->all(FLERR,"Illegal prd command");
 
   // set defaults
   
@@ -776,42 +781,42 @@ void PRD::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
-      if (iarg+5 > narg) error->all("Illegal prd command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
       etol = atof(arg[iarg+1]);
       ftol = atof(arg[iarg+2]);
       maxiter = atoi(arg[iarg+3]);
       maxeval = atoi(arg[iarg+4]);
-      if (maxiter < 0) error->all("Illegal prd command");
+      if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+2 > narg) error->all("Illegal prd command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
       temp_dephase = atof(arg[iarg+1]);
-      if (temp_dephase <= 0.0) error->all("Illegal prd command");
+      if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+3 > narg) error->all("Illegal prd command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal prd command");
       delete [] loop_setting;
       delete [] dist_setting;
 
       if (strcmp(arg[iarg+1],"all") == 0) loop_setting = NULL;
       else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = NULL;
       else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = NULL;
-      else error->all("Illegal prd command");
+      else error->all(FLERR,"Illegal prd command");
       int n = strlen(arg[iarg+1]) + 1;
       loop_setting = new char[n];
       strcpy(loop_setting,arg[iarg+1]);
 
       if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = NULL;
       else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = NULL;
-      else error->all("Illegal prd command");
+      else error->all(FLERR,"Illegal prd command");
       n = strlen(arg[iarg+2]) + 1;
       dist_setting = new char[n];
       strcpy(dist_setting,arg[iarg+2]);
 
       iarg += 3;
-    } else error->all("Illegal prd command");
+    } else error->all(FLERR,"Illegal prd command");
   }
 }

@@ -20,7 +20,6 @@ FixStyle(ave/spatial,FixAveSpatial)
 #ifndef LMP_FIX_AVE_SPATIAL_H
 #define LMP_FIX_AVE_SPATIAL_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "fix.h"
 

@@ -36,15 +36,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)			
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  no_virial_compute=1;
+  no_virial_fdotr_compute = 1;
 
   ifix_peri = -1;
 
@@ -70,15 +67,15 @@ PairPeriLPS::~PairPeriLPS()
   if (ifix_peri >= 0) modify->delete_fix("PERI_NEIGH");
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(bulkmodulus);		
-    memory->destroy_2d_double_array(shearmodulus); 		
-    memory->destroy_2d_double_array(s00); 		
-    memory->destroy_2d_double_array(alpha); 		
-    memory->destroy_2d_double_array(cut);
-    memory->sfree(theta);					
-    memory->sfree(s0_new);					
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(bulkmodulus);		
+    memory->destroy(shearmodulus); 		
+    memory->destroy(s00); 		
+    memory->destroy(alpha); 		
+    memory->destroy(cut);
+    memory->destroy(theta);					
+    memory->destroy(s0_new);					
   }
 }
 
@@ -119,7 +116,6 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
   // short-range forces
 
-  int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
 
@@ -127,8 +123,6 @@ void PairPeriLPS::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  double dt = update->dt;                   
 
   // loop over neighbors of my atoms
   // need minimg() for x0 difference since not ghosted
@@ -147,7 +141,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j %= nall;
+      j &= NEIGHMASK;
  
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -180,7 +174,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
 	  (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
-        rk = (kshort * vfrac[j]) * (dr / sqrt(cutsq[itype][jtype]));
+        rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
@@ -195,7 +189,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
+	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,
+			     fpair*vfrac[i],delx,dely,delz);
       }
     }
   }
@@ -203,11 +198,11 @@ void PairPeriLPS::compute(int eflag, int vflag)
   // grow bond forces array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(s0_new);				
-    memory->sfree(theta);				
+    memory->destroy(s0_new);				
+    memory->destroy(theta);				
     nmax = atom->nmax;
-    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
-    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");
+    memory->create(s0_new,nmax,"pair:s0_new");
+    memory->create(theta,nmax,"pair:theta");
   }
 
   // Compute the dilatation on each particle				
@@ -220,9 +215,9 @@ void PairPeriLPS::compute(int eflag, int vflag)
     comm->forward_comm_fix(modify->fix[ifix_peri]);
 
   // Volume-dependent part of the energy
-  for (i = 0; i < nlocal; i++) {   
-    itype = type[i];
-    if (eflag) {
+  if (eflag) {
+    for (i = 0; i < nlocal; i++) {   
+      itype = type[i];
       if (eflag_global)
 	eng_vdwl += 0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]);
       if (eflag_atom)
@@ -272,7 +267,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
       delz0 = ztmp0 - x0[j][2];						
       if (periodic) domain->minimum_image(delx0,dely0,delz0);   
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -309,7 +304,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (eflag) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
 		   omega_plus*(deviatoric_extension * deviatoric_extension) *
 		   vfrac[j] * vfrac_scale;
-      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
+      if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
+			   0.5*fbond*vfrac[i],delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
@@ -322,8 +318,8 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
-         s0_new[i] = MAX(s0_new[i],
-                         s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - 
+			 (alpha[itype][jtype] * stretch));
 
       first = false;
     }
@@ -343,18 +339,17 @@ void PairPeriLPS::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  bulkmodulus = memory->create_2d_double_array(n+1,n+1,"pair:bulkmodulus");
-  shearmodulus = memory->create_2d_double_array(n+1,n+1,"pair:shearmodulus");
-  s00 = memory->create_2d_double_array(n+1,n+1,"pair:s00");		
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");		
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(bulkmodulus,n+1,n+1,"pair:bulkmodulus");
+  memory->create(shearmodulus,n+1,n+1,"pair:shearmodulus");
+  memory->create(s00,n+1,n+1,"pair:s00");		
+  memory->create(alpha,n+1,n+1,"pair:alpha");		
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------
@@ -363,7 +358,7 @@ void PairPeriLPS::allocate()
 
 void PairPeriLPS::settings(int narg, char **arg)		
 {
-  if (narg) error->all("Illegal pair_style command");
+  if (narg) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -372,18 +367,18 @@ void PairPeriLPS::settings(int narg, char **arg)
 
 void PairPeriLPS::coeff(int narg, char **arg)			
 {
-  if (narg != 7) error->all("Incorrect args for pair coefficients"); 	
+  if (narg != 7) error->all(FLERR,"Incorrect args for pair coefficients"); 	
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double bulkmodulus_one = atof(arg[2]);	
-  double shearmodulus_one = atof(arg[3]);		
-  double cut_one = atof(arg[4]);			
-  double s00_one = atof(arg[5]);			
-  double alpha_one = atof(arg[6]);			
+  double bulkmodulus_one = atof(arg[2]);
+  double shearmodulus_one = atof(arg[3]);
+  double cut_one = atof(arg[4]);
+  double s00_one = atof(arg[5]);
+  double alpha_one = atof(arg[6]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -398,7 +393,7 @@ void PairPeriLPS::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -407,17 +402,13 @@ void PairPeriLPS::coeff(int narg, char **arg)
 
 double PairPeriLPS::init_one(int i, int j)			
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  cutsq[i][j] = cut[i][j] * cut[i][j];
-  cutsq[j][i] = cutsq[i][j];
-
-  // set other j,i parameters
-
-  bulkmodulus[j][i] = bulkmodulus[i][j];		
-  shearmodulus[j][i] = shearmodulus[i][j];		
-  s00[j][i] = s00[i][j];		
-  alpha[j][i] = alpha[i][j];		
+  bulkmodulus[j][i] = bulkmodulus[i][j];
+  shearmodulus[j][i] = shearmodulus[i][j];
+  s00[j][i] = s00[i][j];
+  alpha[j][i] = alpha[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
@@ -430,18 +421,16 @@ void PairPeriLPS::init_style()
 {
   // error checks
 
+  if (!atom->peri_flag)  error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0) 
-    error->all("Pair peri requires an atom map, see atom_modify");
-
-  if (atom->style_match("peri") == 0)
-    error->all("Pair style peri_lps requires atom style peri");		
+    error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice == NULL)
-    error->all("Pair peri requires a lattice be defined");
+    error->all(FLERR,"Pair peri requires a lattice be defined");
   if (domain->lattice->xlattice != domain->lattice->ylattice || 
       domain->lattice->xlattice != domain->lattice->zlattice || 
       domain->lattice->ylattice != domain->lattice->zlattice)
-    error->all("Pair peri lattice is not identical in x, y, and z");
+    error->all(FLERR,"Pair peri lattice is not identical in x, y, and z");
 
   // if first init, create Fix needed for storing fixed neighbors
 
@@ -459,9 +448,9 @@ void PairPeriLPS::init_style()
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all("Fix peri neigh does not exist");
+  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -560,9 +549,9 @@ double PairPeriLPS::single(int i, int j, int itype, int jtype,
   }
  
    if (atom->nmax > nmax) {
-    memory->sfree(theta);
+    memory->destroy(theta);
     nmax = atom->nmax;
-    theta = (double *) memory->smalloc(nmax*sizeof(double),"pair:theta");
+    memory->create(theta,nmax,"pair:theta");
   }
 
   // Compute the dilatation on each particle			
@@ -631,7 +620,7 @@ double PairPeriLPS::influence_function(double xi_x, double xi_y, double xi_z)
   double omega;
 
   if (fabs(r) < 2.2204e-016)
-    error->one("Divide by 0 in influence function of pair peri/lps");
+    error->one(FLERR,"Divide by 0 in influence function of pair peri/lps");
   omega = 1.0/r;
   return omega;
 }
@@ -703,7 +692,7 @@ void PairPeriLPS::compute_dilatation()
       if (fabs(dr) < 2.2204e-016) dr = 0.0;
 
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
 
       // scale vfrac[j] if particle j near the horizon
 

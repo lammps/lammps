@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -39,9 +41,9 @@ AngleCosineSquared::AngleCosineSquared(LAMMPS *lmp) : Angle(lmp) {}
 AngleCosineSquared::~AngleCosineSquared()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(theta0);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(theta0);
   }
 }
 
@@ -151,10 +153,10 @@ void AngleCosineSquared::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
+  memory->create(k,n+1,"angle:k");
+  memory->create(theta0,n+1,"angle:theta0");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -164,7 +166,7 @@ void AngleCosineSquared::allocate()
 
 void AngleCosineSquared::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all("Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -178,12 +180,12 @@ void AngleCosineSquared::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one/180.0 * PI;
+    theta0[i] = theta0_one/180.0 * MY_PI;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -24,10 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -40,24 +42,24 @@ AngleClass2::AngleClass2(LAMMPS *lmp) : Angle(lmp) {}
 AngleClass2::~AngleClass2()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(setflag_a);
-    memory->sfree(setflag_bb);
-    memory->sfree(setflag_ba);
+    memory->destroy(setflag);
+    memory->destroy(setflag_a);
+    memory->destroy(setflag_bb);
+    memory->destroy(setflag_ba);
 
-    memory->sfree(theta0);
-    memory->sfree(k2);
-    memory->sfree(k3);
-    memory->sfree(k4);
+    memory->destroy(theta0);
+    memory->destroy(k2);
+    memory->destroy(k3);
+    memory->destroy(k4);
 
-    memory->sfree(bb_k);
-    memory->sfree(bb_r1);
-    memory->sfree(bb_r2);
+    memory->destroy(bb_k);
+    memory->destroy(bb_r1);
+    memory->destroy(bb_r2);
 
-    memory->sfree(ba_k1);
-    memory->sfree(ba_k2);
-    memory->sfree(ba_r1);
-    memory->sfree(ba_r2);
+    memory->destroy(ba_k1);
+    memory->destroy(ba_k2);
+    memory->destroy(ba_r1);
+    memory->destroy(ba_r2);
   }
 }
 
@@ -236,24 +238,24 @@ void AngleClass2::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
-  k2 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k2");
-  k3 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k3");
-  k4 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k4");
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(k2,n+1,"angle:k2");
+  memory->create(k3,n+1,"angle:k3");
+  memory->create(k4,n+1,"angle:k4");
 
-  bb_k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:bb_k");
-  bb_r1 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:bb_r1");
-  bb_r2 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:bb_r2");
+  memory->create(bb_k,n+1,"angle:bb_k");
+  memory->create(bb_r1,n+1,"angle:bb_r1");
+  memory->create(bb_r2,n+1,"angle:bb_r2");
 
-  ba_k1 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:ba_k1");
-  ba_k2 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:ba_k2");
-  ba_r1 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:ba_r1");
-  ba_r2 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:ba_r2");
+  memory->create(ba_k1,n+1,"angle:ba_k1");
+  memory->create(ba_k2,n+1,"angle:ba_k2");
+  memory->create(ba_r1,n+1,"angle:ba_r1");
+  memory->create(ba_r2,n+1,"angle:ba_r2");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
-  setflag_a = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag_a");
-  setflag_bb = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag_bb");
-  setflag_ba = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag_ba");
+  memory->create(setflag,n+1,"angle:setflag");
+  memory->create(setflag_a,n+1,"angle:setflag_a");
+  memory->create(setflag_bb,n+1,"angle:setflag_bb");
+  memory->create(setflag_ba,n+1,"angle:setflag_ba");
   for (int i = 1; i <= n; i++)
     setflag[i] = setflag_a[i] = setflag_bb[i] = setflag_ba[i] = 0;
 }
@@ -267,7 +269,7 @@ void AngleClass2::allocate()
 
 void AngleClass2::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all("Incorrect args for angle coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -276,7 +278,7 @@ void AngleClass2::coeff(int narg, char **arg)
   int count = 0;
 
   if (strcmp(arg[1],"bb") == 0) {
-    if (narg != 5) error->all("Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double bb_k_one = force->numeric(arg[2]);
     double bb_r1_one = force->numeric(arg[3]);
@@ -291,7 +293,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ba") == 0) {
-    if (narg != 6) error->all("Incorrect args for angle coefficients");
+    if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double ba_k1_one = force->numeric(arg[2]);
     double ba_k2_one = force->numeric(arg[3]);
@@ -308,7 +310,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
 
   } else {
-    if (narg != 5) error->all("Incorrect args for angle coefficients");
+    if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
 
     double theta0_one = force->numeric(arg[1]);
     double k2_one = force->numeric(arg[2]);
@@ -318,7 +320,7 @@ void AngleClass2::coeff(int narg, char **arg)
     // convert theta0 from degrees to radians
 
     for (int i = ilo; i <= ihi; i++) {
-      theta0[i] = theta0_one/180.0 * PI;
+      theta0[i] = theta0_one/180.0 * MY_PI;
       k2[i] = k2_one;
       k3[i] = k3_one;
       k4[i] = k4_one;
@@ -327,7 +329,7 @@ void AngleClass2::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_a[i] == 1 && setflag_bb[i] == 1 && setflag_ba[i] == 1)

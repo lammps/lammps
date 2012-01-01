@@ -38,10 +38,7 @@
   <I>cubic</I> values = style tolerance
     style = <I>error</I> or <I>warn</I>
     tolerance = fractional difference allowed (0 <= tol <= 1)
-  <I>shift</I> values = style seed
-    style = <I>no</I> or <I>yes</I> or <I>possible</I>
-    seed = random # seed (positive integer)
-  <I>stream</I> value = <I>yes</I> or <I>no</I> = whether or not streaming velocity is added for shear deformation 
+  <I>tstat</I> value = <I>yes</I> or <I>no</I> = thermostat SRD particles or not 
 </PRE>
 
 </UL>
@@ -58,13 +55,14 @@ particles that serve as a background solvent when interacting with big
 in <A HREF = "#Hecht">(Hecht)</A>.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
-can be spheroids, ellipsoids, or rigid bodies containing multiples
-spherioids and ellipsoids.  The collision and rotation properties of
-the model imbue the SRD particles with fluid-like properties,
-including an effective viscosity.  Thus simulations with large solute
-particles can be run more quickly, to measure solute propoerties like
-diffusivity and viscosity in a background fluid.  The usual LAMMPS
-fixes for such simulations, such as <A HREF = "fix_deform.html">fix deform</A>, <A HREF = "fix_viscosity.html">fix
+can be spheroids, ellipsoids, or line segments, or triangles, or rigid
+bodies containing multiple spherioids or ellipsoids or line segments
+or triangles.  The collision and rotation properties of the model
+imbue the SRD particles with fluid-like properties, including an
+effective viscosity.  Thus simulations with large solute particles can
+be run more quickly, to measure solute propoerties like diffusivity
+and viscosity in a background fluid.  The usual LAMMPS fixes for such
+simulations, such as <A HREF = "fix_deform.html">fix deform</A>, <A HREF = "fix_viscosity.html">fix
 viscosity</A>, and <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>,
 can be used in conjunction with the SRD model.
 </P>
@@ -109,12 +107,13 @@ velocities.  Normally hgrid is set to be 1/4 of the big particle
 diameter or smaller, to adequately resolve fluid properties around the
 big particles.
 </P>
-<P>Lamda cannot be smaller than 0.6 * hgrid, else an error is generated.
-The velocities of SRD particles are bounded by Vmax, which is set so
-that an SRD particle will not advect further than Dmax = 4*lamda in
-dt_SRD.  This means that roughly speaking, Dmax should not be larger
-than a big particle diameter, else SRDs may pass thru big particles
-without colliding.  A warning is generated if this is the case.
+<P>Lamda cannot be smaller than 0.6 * hgrid, else an error is generated
+(unless the <I>shift</I> keyword is used, see below).  The velocities of
+SRD particles are bounded by Vmax, which is set so that an SRD
+particle will not advect further than Dmax = 4*lamda in dt_SRD.  This
+means that roughly speaking, Dmax should not be larger than a big
+particle diameter, else SRDs may pass thru big particles without
+colliding.  A warning is generated if this is the case.
 </P>
 <P>Collisions between SRD particles and big particles or walls are
 modeled as a lightweight SRD point particle hitting a heavy big
@@ -271,15 +270,19 @@ must still be specified.
 <P>Note that shifting of SRD coordinates requires extra communication,
 hence it should not normally be enabled unless required.
 </P>
-<P>The <I>stream</I> keyword should be used when SRD particles are used with
-the <A HREF = "fix_deform.html">fix deform</A> command to perform a simulation
-undergoing shear, e.g. to measure a viscosity.  If the <I>stream</I> style
-is set to <I>yes</I>, then the mean velocity of each bin of SRD particles
-is set to the streaming velocity of the deforming box, each time SRD
-velocities are reset, every N timesteps.  If the <I>stream</I> style is set
-to <I>no</I>, then the mean velocity is unchanged, which may mean that it
-takes a long time for the SRD fluid to come to equilibrium with a
-velocity profile that matches the simulation box deformation.
+<P>The <I>tstat</I> keyword will thermostat the SRD particles to the specified
+<I>Tsrd</I>.  This is done every N timesteps, during the velocity rotation
+operation, by rescaling the thermal velocity of particles in each SRD
+bin to the desired temperature.  If there is a streaming velocity
+associated with the system, e.g. due to use of the <A HREF = "fix_deform.html">fix
+deform</A> command to perform a simulation undergoing
+shear, then that is also accounted for.  The mean velocity of each bin
+of SRD particles is set to the position-dependent streaming velocity,
+based on the coordinates of the center of the SRD bin.  Note that for
+streaming simulations, if no thermostatting is performed (the
+default), then it may take a long time for the SRD fluid to come to
+equilibrium with a velocity profile that matches the simulation box
+deformation.
 </P>
 <HR>
 
@@ -315,10 +318,10 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix tabulates several SRD statistics which are stored in a vector
-of length 12, which can be accessed by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  The vector values calculated by
-this fix are "intensive", meaning they do not scale with the size of
-the simulation.  Technically, the first 8 do scale with the size of
+of length 12, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The vector values calculated
+by this fix are "intensive", meaning they do not scale with the size
+of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
 scaled when printed as part of thermodyanmic output.
 </P>
@@ -343,11 +346,11 @@ beginning of the run.
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
 </P>
-<P>This command can only be used if LAMMPS was built with the "srd"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+<P>This command can only be used if LAMMPS was built with the SRD
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -357,7 +360,7 @@ more info on packages.
 </P>
 <P>The option defaults are lamda inferred from Tsrd, collision = noslip,
 overlap = no, inside = error, exact = yes, radius = 1.0, bounce = 0,
-search = hgrid, cubic = error 0.01, shift = no, stream = yes.
+search = hgrid, cubic = error 0.01, shift = no, tstat = no.
 </P>
 <HR>
 
@@ -370,6 +373,8 @@ search = hgrid, cubic = error 0.01, shift = no, stream = yes.
 <P><B>(Petersen)</B> Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 </P>
-<P>:link(Lechman) <B>(Lechman)</B> Lechman, et al, in preparation (2010).
+<A NAME = "Lechman"></A>
+
+<P><B>(Lechman)</B> Lechman, et al, in preparation (2010).
 </P>
 </HTML>

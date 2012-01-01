@@ -28,13 +28,12 @@ class PairLJCharmmCoulLongGPU : public PairLJCharmmCoulLong {
  public:
   PairLJCharmmCoulLongGPU(LAMMPS *lmp);
   ~PairLJCharmmCoulLongGPU();
-  void cpu_compute(int, int, int);
-  void cpu_compute(int *, int, int, int);
+  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();
 
- enum { GPU_PAIR, GPU_NEIGH };
+ enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;

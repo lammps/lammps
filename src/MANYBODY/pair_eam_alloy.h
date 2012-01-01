@@ -24,7 +24,7 @@ PairStyle(eam/alloy,PairEAMAlloy)
 
 namespace LAMMPS_NS {
 
-// use virtual public since this class is parent in multiple inheritance
+// need virtual public b/c of how eam/alloy/opt inherits from it
 
 class PairEAMAlloy : virtual public PairEAM {
  public:

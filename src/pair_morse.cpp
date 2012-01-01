@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp) {}
@@ -36,15 +33,15 @@ PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp) {}
 PairMorse::~PairMorse()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(d0);
-    memory->destroy_2d_double_array(alpha);
-    memory->destroy_2d_double_array(r0);
-    memory->destroy_2d_double_array(morse1);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(d0);
+    memory->destroy(alpha);
+    memory->destroy(r0);
+    memory->destroy(morse1);
+    memory->destroy(offset);
   }
 }
 
@@ -65,7 +62,6 @@ void PairMorse::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -87,12 +83,8 @@ void PairMorse::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -127,7 +119,7 @@ void PairMorse::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -139,19 +131,19 @@ void PairMorse::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  d0 = memory->create_2d_double_array(n+1,n+1,"pair:d0");
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");
-  r0 = memory->create_2d_double_array(n+1,n+1,"pair:r0");
-  morse1 = memory->create_2d_double_array(n+1,n+1,"pair:morse1");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(d0,n+1,n+1,"pair:d0");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
+  memory->create(r0,n+1,n+1,"pair:r0");
+  memory->create(morse1,n+1,n+1,"pair:morse1");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -160,7 +152,7 @@ void PairMorse::allocate()
 
 void PairMorse::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -180,7 +172,7 @@ void PairMorse::settings(int narg, char **arg)
 
 void PairMorse::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -206,7 +198,7 @@ void PairMorse::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -216,7 +208,7 @@ void PairMorse::coeff(int narg, char **arg)
 
 double PairMorse::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
      

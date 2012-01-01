@@ -25,7 +25,7 @@ typedef double FFT_SCALAR;
 #endif
 
 
-// set default fftw library. switch to fftw3 when convenient.
+// set default fftw library. switch to FFT_FFTW3 when convenient.
 #ifdef FFT_FFTW
 #define FFT_FFTW2
 #endif
@@ -235,7 +235,7 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 #endif
 
 #else
-#error "FFT_PRECISION needs to be either 1 or 2"
+#error "FFT_PRECISION needs to be either 1 (=single) or 2 (=double)"
 #endif
 
 // ------------------------------------------------------------------------- 

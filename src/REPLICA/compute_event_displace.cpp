@@ -37,14 +37,14 @@ using namespace LAMMPS_NS;
 ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute event/displace command");
+  if (narg != 4) error->all(FLERR,"Illegal compute event/displace command");
 
   scalar_flag = 1;
   extscalar = 0;
 
   double displace_dist = atof(arg[3]);
   if (displace_dist <= 0.0) 
-    error->all("Distance must be > 0 for compute event/displace");
+    error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
   // fix event ID will be set later by PRD
@@ -69,12 +69,12 @@ void ComputeEventDisplace::init()
 
   if (id_event != NULL) {
     int ifix = modify->find_fix(id_event);
-    if (ifix < 0) error->all("Could not find compute event/displace fix ID");
+    if (ifix < 0) error->all(FLERR,"Could not find compute event/displace fix ID");
     fix_event = (FixEvent*) modify->fix[ifix];
     
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
 	strcmp(fix_event->style,"EVENT/TAD") != 0)
-      error->all("Compute event/displace has invalid fix event assigned");
+      error->all(FLERR,"Compute event/displace has invalid fix event assigned");
   }
 
   triclinic = domain->triclinic;

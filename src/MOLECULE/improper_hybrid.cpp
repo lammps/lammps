@@ -45,12 +45,12 @@ ImproperHybrid::~ImproperHybrid()
   }
 
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(map);
+    memory->destroy(setflag);
+    memory->destroy(map);
     delete [] nimproperlist;
     delete [] maximproper;
     for (int i = 0; i < nstyles; i++)
-      memory->destroy_2d_int_array(improperlist[i]);
+      memory->destroy(improperlist[i]);
     delete [] improperlist;
   }
 }
@@ -79,11 +79,10 @@ void ImproperHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
-	memory->destroy_2d_int_array(improperlist[m]);
+	memory->destroy(improperlist[m]);
 	maximproper[m] = nimproperlist[m] + EXTRA;
-	improperlist[m] = (int **)
-	  memory->create_2d_int_array(maximproper[m],5,
-				      "improper_hybrid:improperlist");
+	memory->create(improperlist[m],maximproper[m],5,
+		       "improper_hybrid:improperlist");
       }
       nimproperlist[m] = 0;
     }
@@ -145,8 +144,8 @@ void ImproperHybrid::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  map = (int *) memory->smalloc((n+1)*sizeof(int),"improper:map");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(map,n+1,"improper:map");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nimproperlist = new int[nstyles];
@@ -166,15 +165,19 @@ void ImproperHybrid::settings(int narg, char **arg)
   styles = new Improper*[nstyles];
   keywords = new char*[nstyles];
 
+  int dummy;
+
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
       if (strcmp(arg[m],arg[i]) == 0) 
-	error->all("Improper style hybrid cannot use same improper style twice");
+	error->all(FLERR,
+		   "Improper style hybrid cannot use same improper style twice");
     if (strcmp(arg[m],"hybrid") == 0) 
-      error->all("Improper style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,
+		 "Improper style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[m],"none") == 0) 
-      error->all("Improper style hybrid cannot have none as an argument");
-    styles[m] = force->new_improper(arg[m]);
+      error->all(FLERR,"Improper style hybrid cannot have none as an argument");
+    styles[m] = force->new_improper(arg[m],lmp->suffix,dummy);
     keywords[m] = new char[strlen(arg[m])+1];
     strcpy(keywords[m],arg[m]);
   }
@@ -201,7 +204,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all("Improper coeff for hybrid has invalid style");
+    else error->all(FLERR,"Improper coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -257,14 +260,14 @@ void ImproperHybrid::read_restart(FILE *fp)
 
   allocate();
   
-  int n;
+  int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_improper(keywords[m]);
+    styles[m] = force->new_improper(keywords[m],lmp->suffix,dummy);
   }
 }
 

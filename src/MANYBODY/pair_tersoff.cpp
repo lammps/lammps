@@ -29,7 +29,10 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -39,11 +42,8 @@ using namespace LAMMPS_NS;
 PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
-
-  PI = 4.0*atan(1.0);
-  PI2 = 2.0*atan(1.0);
-  PI4 = atan(1.0);
 
   nelements = 0;
   elements = NULL;
@@ -61,12 +61,12 @@ PairTersoff::~PairTersoff()
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  memory->sfree(params);
-  memory->destroy_3d_int_array(elem2param);
+  memory->destroy(params);
+  memory->destroy(elem2param);
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
   }
 }
@@ -117,7 +117,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j < nall) ? j : j % nall;
+      j &= NEIGHMASK;
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -158,7 +158,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j = (j < nall) ? j : j % nall;
+      j &= NEIGHMASK;
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -175,7 +175,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
-	k = (k < nall) ? k : k % nall;
+	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -207,7 +207,7 @@ void PairTersoff::compute(int eflag, int vflag)
       for (kk = 0; kk < jnum; kk++) {
 	if (jj == kk) continue;
 	k = jlist[kk];
-	k = (k < nall) ? k : k % nall;
+	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -235,7 +235,7 @@ void PairTersoff::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -245,8 +245,8 @@ void PairTersoff::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
 }
@@ -257,7 +257,7 @@ void PairTersoff::allocate()
 
 void PairTersoff::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -271,12 +271,12 @@ void PairTersoff::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -329,7 +329,7 @@ void PairTersoff::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -339,9 +339,9 @@ void PairTersoff::coeff(int narg, char **arg)
 void PairTersoff::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all("Pair style Tersoff requires atom IDs");
+    error->all(FLERR,"Pair style Tersoff requires atom IDs");
   if (force->newton_pair == 0)
-    error->all("Pair style Tersoff requires newton pair on");
+    error->all(FLERR,"Pair style Tersoff requires newton pair on");
 
   // need a full neighbor list
 
@@ -356,7 +356,7 @@ void PairTersoff::init_style()
 
 double PairTersoff::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   return cutmax;
 }
@@ -380,7 +380,7 @@ void PairTersoff::read_file(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Tersoff potential file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -430,7 +430,7 @@ void PairTersoff::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in Tersoff potential file");
+      error->all(FLERR,"Incorrect format in Tersoff potential file");
 
     // words = ptrs to all words in line
 
@@ -482,18 +482,16 @@ void PairTersoff::read_file(char *file)
 
     params[nparams].powermint = int(params[nparams].powerm);
 
-    if (
-	params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
-	params[nparams].d < 0.0 || params[nparams].powern < 0.0 || 
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
-	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 ||
+    if (params[nparams].c < 0.0 || params[nparams].d < 0.0 || 
+	params[nparams].powern < 0.0 || params[nparams].beta < 0.0 || 
+	params[nparams].lam2 < 0.0 || params[nparams].bigb < 0.0 || 
+	params[nparams].bigr < 0.0 ||params[nparams].bigd < 0.0 ||
 	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+	params[nparams].lam1 < 0.0 || params[nparams].biga < 0.0 ||
 	params[nparams].powerm - params[nparams].powermint != 0.0 ||
         (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
 	params[nparams].gamma < 0.0)
-      error->all("Illegal Tersoff parameter");
+      error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;
   }
@@ -511,9 +509,8 @@ void PairTersoff::setup()
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  if (elem2param) memory->destroy_3d_int_array(elem2param);
-  elem2param = memory->create_3d_int_array(nelements,nelements,nelements,
-					   "pair:elem2param");
+  memory->destroy(elem2param);
+  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -522,11 +519,11 @@ void PairTersoff::setup()
 	for (m = 0; m < nparams; m++) {
 	  if (i == params[m].ielement && j == params[m].jelement && 
 	      k == params[m].kelement) {
-	    if (n >= 0) error->all("Potential file has duplicate entry");
+	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
 	  }
 	}
-	if (n < 0) error->all("Potential file is missing an entry");
+	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
 	elem2param[i][j][k] = n;
       }
 
@@ -638,7 +635,7 @@ double PairTersoff::ters_fc(double r, Param *param)
   
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - sin(PI2*(r - ters_R)/ters_D));
+  return 0.5*(1.0 - sin(MY_PI2*(r - ters_R)/ters_D));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -650,7 +647,7 @@ double PairTersoff::ters_fc_d(double r, Param *param)
   
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
-  return -(PI4/ters_D) * cos(PI2*(r - ters_R)/ters_D);
+  return -(MY_PI4/ters_D) * cos(MY_PI2*(r - ters_R)/ters_D);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -700,27 +697,6 @@ double PairTersoff::ters_bij_d(double zeta, Param *param)
 			  
   double tmp_n = pow(tmp,param->powern);
   return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / zeta;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoff::ters_gijk(double costheta, Param *param)
-{
-  double ters_c = param->c;
-  double ters_d = param->d;
-
-  return param->gamma*(1.0 + pow(ters_c/ters_d,2.0) -
-    pow(ters_c,2.0) / (pow(ters_d,2.0) + pow(param->h - costheta,2.0)));
-};
-
-/* ---------------------------------------------------------------------- */
-
-double PairTersoff::ters_gijk_d(double costheta, Param *param)
-{
-  double numerator = -2.0 * pow(param->c,2) * (param->h - costheta);
-  double denominator = pow(pow(param->d,2.0) + 
-			   pow(param->h - costheta,2.0),2.0);
-  return param->gamma*numerator/denominator;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -798,4 +774,4 @@ void PairTersoff::costheta_d(double *rij_hat, double rij,
   vec3_scale(1.0/rik,drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale(-1.0,dri,dri);
-};
+}

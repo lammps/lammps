@@ -32,14 +32,11 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal fix qeq/comb command");
+  if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -49,7 +46,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   precision = force->numeric(arg[4]);
 
   if (nevery <= 0 || precision <= 0.0)
-    error->all("Illegal fix qeq/comb command");
+    error->all(FLERR,"Illegal fix qeq/comb command");
 
   MPI_Comm_rank(world,&me);
 
@@ -60,23 +57,23 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix qeq/comb command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/comb command");
       if (me == 0) {
 	fp = fopen(arg[iarg+1],"w");
 	if (fp == NULL) {
 	  char str[128];
 	  sprintf(str,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
       }
       iarg += 2;
-    } else error->all("Illegal fix qeq/comb command");
+    } else error->all(FLERR,"Illegal fix qeq/comb command");
   }
   
   nmax = atom->nmax;
-  qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-  q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-  q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+  memory->create(qf,nmax,"qeq:qf");
+  memory->create(q1,nmax,"qeq:q1");
+  memory->create(q2,nmax,"qeq:q2");
   vector_atom = qf;
 
   // zero the vector since dump may access it on timestep 0
@@ -91,9 +88,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixQEQComb::~FixQEQComb()
 {
   if (me == 0 && fp) fclose(fp);
-  memory->sfree(qf);
-  memory->sfree(q1);
-  memory->sfree(q2);
+  memory->destroy(qf);
+  memory->destroy(q1);
+  memory->destroy(q2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,16 +108,16 @@ int FixQEQComb::setmask()
 void FixQEQComb::init()
 {
   if (!atom->q_flag)
-    error->all("Fix qeq/comb requires atom attribute q");
+    error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
   comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) error->all("Must use pair_style comb with fix qeq/comb");
+  if (comb == NULL) error->all(FLERR,"Must use pair_style comb with fix qeq/comb");
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   ngroup = group->count(igroup);
-  if (ngroup == 0) error->all("Fix qeq/comb group has no atoms");
+  if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +125,7 @@ void FixQEQComb::init()
 void FixQEQComb::setup(int vflag)
 {
   firstflag = 1;
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -154,13 +151,13 @@ void FixQEQComb::post_force(int vflag)
   // q2 = tmp storage of charge force for next iteration
 
   if (atom->nmax > nmax) {
-    memory->sfree(qf);
-    memory->sfree(q1);
-    memory->sfree(q2);
+    memory->destroy(qf);
+    memory->destroy(q1);
+    memory->destroy(q2);
     nmax = atom->nmax;
-    qf = (double *) memory->smalloc(nmax*sizeof(double),"qeq:qf");
-    q1 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q1");
-    q2 = (double *) memory->smalloc(nmax*sizeof(double),"qeq:q2");
+    memory->create(qf,nmax,"qeq:qf");
+    memory->create(q1,nmax,"qeq:q1");
+    memory->create(q2,nmax,"qeq:q2");
     vector_atom = qf;
   }
   

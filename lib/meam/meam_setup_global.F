@@ -101,6 +101,8 @@ c Set some defaults
       augt1 = 1
       ialloy = 0
       mix_ref_t = 0
+      emb_lin_neg = 0
+      bkgd_dyn = 0
       erose_form = 0
 
       return

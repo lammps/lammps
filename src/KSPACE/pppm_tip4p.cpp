@@ -19,6 +19,7 @@
 #include "pppm_tip4p.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -38,6 +39,18 @@ using namespace LAMMPS_NS;
 
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg) {}
+
+/* ---------------------------------------------------------------------- */
+
+void PPPMTIP4P::init()
+{
+  // TIP4P PPPM requires newton on, b/c it computes forces on ghost atoms
+
+  if (force->newton == 0)
+    error->all(FLERR,"Kspace style pppm/tip4p requires newton on");
+
+  PPPM::init();
+}
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
@@ -82,7 +95,7 @@ void PPPMTIP4P::particle_map()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Out of range atoms - cannot compute PPPM");
+  if (flag_all) error->all(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------
@@ -157,6 +170,7 @@ void PPPMTIP4P::fieldforce()
   int iH1,iH2;
   double xM[3];
   double fx,fy,fz;
+  double ddotf, rOMx, rOMy, rOMz, f1x, f1y, f1z;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -167,8 +181,7 @@ void PPPMTIP4P::fieldforce()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
-  double qfactor;
-  
+
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -205,29 +218,40 @@ void PPPMTIP4P::fieldforce()
     }
 
     // convert E-field to force
-    qfactor = qqrd2e*q[i];
+
+    const double qfactor = force->qqrd2e * scale * q[i];
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;
       f[i][2] += qfactor*ekz;
-    } else {
 
+    } else {
       fx = qfactor * ekx;
       fy = qfactor * eky;
       fz = qfactor * ekz;
       find_M(i,iH1,iH2,xM);
 
-      f[i][0] += fx*(1.0-2.0*alpha);
-      f[i][1] += fy*(1.0-2.0*alpha);
-      f[i][2] += fz*(1.0-2.0*alpha);
+      rOMx = xM[0] - x[i][0];
+      rOMy = xM[1] - x[i][1];
+      rOMz = xM[2] - x[i][2];
+  
+      ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
 
-      f[iH1][0] += alpha*(fx); 
-      f[iH1][1] += alpha*(fy); 
-      f[iH1][2] += alpha*(fz); 
+      f1x = ddotf * rOMx;
+      f1y = ddotf * rOMy;
+      f1z = ddotf * rOMz;
 
-      f[iH2][0] += alpha*(fx); 
-      f[iH2][1] += alpha*(fy); 
-      f[iH2][2] += alpha*(fz); 
+      f[i][0] += fx - alpha * (fx - f1x);
+      f[i][1] += fy - alpha * (fy - f1y);
+      f[i][2] += fz - alpha * (fz - f1z);
+
+      f[iH1][0] += 0.5*alpha*(fx - f1x);
+      f[iH1][1] += 0.5*alpha*(fy - f1y);
+      f[iH1][2] += 0.5*alpha*(fz - f1z);
+
+      f[iH2][0] += 0.5*alpha*(fx - f1x);
+      f[iH2][1] += 0.5*alpha*(fy - f1y);
+      f[iH2][2] += 0.5*alpha*(fz - f1z);
     }
   }
 }
@@ -243,9 +267,9 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
-  if (iH1 == -1 || iH2 == -1) error->one("TIP4P hydrogen is missing");
+  if (iH1 == -1 || iH2 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-    error->one("TIP4P hydrogen has incorrect atom type");
+    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
   double **x = atom->x; 
 
@@ -259,7 +283,7 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   double delz2 = x[iH2][2] - x[i][2];
   domain->minimum_image(delx2,dely2,delz2);
 
-  xM[0] = x[i][0] + alpha * (delx1 + delx2);
-  xM[1] = x[i][1] + alpha * (dely1 + dely2);
-  xM[2] = x[i][2] + alpha * (delz1 + delz2);
+  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
+  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
+  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
 }

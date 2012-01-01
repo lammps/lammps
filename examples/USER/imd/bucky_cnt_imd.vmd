@@ -34,6 +34,8 @@ draw triangle {-36.0  31.0  -7.0} { 46.0  31.0  -7.0} { 46.0  31.0   7.0}
 
 imd connect localhost 6789
 after idle {
+ global env
+ set env(VMDFULLSCREEN) 1
  display resize 1200 900
  rotate x by -5
  rotate y by -5

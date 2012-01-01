@@ -13,16 +13,29 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID temp/asphere bias-ID 
+<PRE>compute ID group-ID temp/asphere keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>temp/asphere = style name of this compute command
-<LI>bias-ID = ID of a temperature compute that removes a velocity bias (optional) 
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>temp/asphere = style name of this compute command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>bias</I> or <I>dof</I> 
+
+<PRE>  <I>bias</I> value = bias-ID<I>uniform</I> or <I>gaussian</I>
+    bias-ID = ID of a temperature compute that removes a velocity bias
+  <I>dof</I> value = <I>all</I> or <I>rotate</I>
+    all = compute temperature of translational and rotational degrees of freedom
+    rotate = compute temperature of just rotational degrees of freedom 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all temp/asphere
-compute myTemp mobile temp/asphere tempCOM 
+compute myTemp mobile temp/asphere bias tempCOM
+compute myTemp mobile temp/asphere dof rotate 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -47,13 +60,12 @@ this is not the case.  Then there are less dof and you should use the
 <A HREF = "compute_modify.html">compute_modify extra</A> command to adjust the dof
 accordingly.
 </P>
-<P>For example, an aspherical particle with all three of its
-<A HREF = "shape.html">shape</A> parameters the same is a sphere.  If it does not
-rotate, then it should have 3 dof instead of 6 in 3d (or 2 instead of
-3 in 2d).  A uniaxial aspherical particle has two of its three shape
-parameters the same.  If it does not rotate around the axis
-perpendicular to its circular cross section, then it should have 5 dof
-instead of 6 in 3d.
+<P>For example, an aspherical particle with all three of its shape
+parameters the same is a sphere.  If it does not rotate, then it
+should have 3 dof instead of 6 in 3d (or 2 instead of 3 in 2d).  A
+uniaxial aspherical particle has two of its three shape parameters the
+same.  If it does not rotate around the axis perpendicular to its
+circular cross section, then it should have 5 dof instead of 6 in 3d.
 </P>
 <P>The translational kinetic energy is computed the same as is described
 by the <A HREF = "compute_temp.html">compute temp</A> command.  The rotational
@@ -76,15 +88,6 @@ vector are ordered xx, yy, zz, xy, xz, yz.
 constant for the duration of the run; use the <I>dynamic</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
 </P>
-<P>If a <I>bias-ID</I> is specified it must be the ID of a temperature compute
-that removes a "bias" velocity from each atom.  This allows compute
-temp/sphere to compute its thermal temperature after the translational
-kinetic energy components have been altered in a prescribed way,
-e.g. to remove a velocity profile.  Thermostats that use this compute
-will work with this bias term.  See the doc pages for individual
-computes that calculate a temperature and the doc pages for fixes that
-perform thermostatting for more details.
-</P>
 <P>This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as <A HREF = "fix_shake.html">fix
 shake</A> and <A HREF = "fix_rigid.html">fix rigid</A>.  This means the
@@ -93,16 +96,36 @@ computed correctly.  If needed, the subtracted degrees-of-freedom can
 be altered using the <I>extra</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting.
 </P>
+<HR>
+
+<P>The keyword/value option pairs are used in the following ways.
+</P>
+<P>For the <I>bias</I> keyword, <I>bias-ID</I> refers to the ID of a temperature
+compute that removes a "bias" velocity from each atom.  This allows
+compute temp/sphere to compute its thermal temperature after the
+translational kinetic energy components have been altered in a
+prescribed way, e.g. to remove a velocity profile.  Thermostats that
+use this compute will work with this bias term.  See the doc pages for
+individual computes that calculate a temperature and the doc pages for
+fixes that perform thermostatting for more details.
+</P>
+<P>For the <I>dof</I> keyword, a setting of <I>all</I> calculates a temperature
+that includes both translational and rotational degrees of freedom.  A
+setting of <I>rotate</I> calculates a temperature that includes only
+rotational degrees of freedom.
+</P>
+<HR>
+
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>
@@ -114,10 +137,17 @@ vector values will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that particles be represented as extended
-ellipsoids and not point particles.  This means they will have an
-angular momentum and a shape which is determined by the
-<A HREF = "shape.html">shape</A> command.
+<P>This compute is part of the ASPHERE package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This compute requires that atoms store angular momementum and a
+quaternion as defined by the <A HREF = "atom_style.html">atom_style ellipsoid</A>
+command.
+</P>
+<P>All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
 </P>
 <P><B>Related commands:</B>
 </P>

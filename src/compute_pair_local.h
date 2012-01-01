@@ -37,6 +37,10 @@ class ComputePairLocal : public Compute {
   int nvalues,dflag,eflag,fflag;
   int ncount;
 
+  int *pstyle;              // style of each requested output 
+  int *pindex;              // for pI, index of the output (0 to M-1)
+  int singleflag;
+
   int nmax;
   double *vector;
   double **array;

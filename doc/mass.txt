@@ -48,13 +48,13 @@ line that corresponds to the 1st example above would be listed as
 
 Note that the mass command can only be used if the "atom
 style"_atom_style.html requires per-type atom mass to be set.
-Currently, all but the {granular} and {peri} styles do.  They require
-mass to be set for individual particles, not types.  Per-atom masses
-are defined in the data file read by the "read_data"_read_data.html
-command, or set to default values by the
+Currently, all but the {sphere} and {ellipsoid} and {peri} styles do.
+They require mass to be set for individual particles, not types.
+Per-atom masses are defined in the data file read by the
+"read_data"_read_data.html command, or set to default values by the
 "create_atoms"_create_atoms.html command.  Per-atom masses can also be
-set to new values by the "set diameter"_set.html or "set
-density"_set.html command.
+set to new values by the "set mass"_set.html or "set density"_set.html
+commands.
 
 Also note that "pair_style eam"_pair_eam.html defines the masses of
 atom types in the EAM potential file, in which case the mass command

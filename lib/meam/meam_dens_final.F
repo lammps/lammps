@@ -127,7 +127,11 @@ c     Complete the calculation of density
             endif
             rho_bkgd = rho0_meam(elti)*Z*Gbar
           else
-            rho_bkgd = rho_ref_meam(elti)
+            if (bkgd_dyn.eq.1) then
+              rho_bkgd = rho0_meam(elti)*Z
+            else
+              rho_bkgd = rho_ref_meam(elti)
+            endif
           endif
           rhob = rho(i)/rho_bkgd
           denom = 1.d0/rho_bkgd
@@ -154,17 +158,33 @@ c     included for backward compatibility
           B = A_meam(elti)*Ec_meam(elti,elti)
           
           if( rhob .ne. 0.d0 ) then
-            fp(i) = B*(log(rhob)+1.d0)
+            if (emb_lin_neg.eq.1 .and. rhob.le.0) then
+              fp(i) = -B
+            else
+              fp(i) = B*(log(rhob)+1.d0)
+            endif
             if (eflag_either.ne.0) then
               if (eflag_global.ne.0) then
-                eng_vdwl = eng_vdwl + B*rhob*log(rhob)
+                if (emb_lin_neg.eq.1 .and. rhob.le.0) then
+                  eng_vdwl = eng_vdwl - B*rhob
+                else
+                  eng_vdwl = eng_vdwl + B*rhob*log(rhob)
+                endif
               endif
               if (eflag_atom.ne.0) then
-                eatom(i) = eatom(i) + B*rhob*log(rhob)
+                if (emb_lin_neg.eq.1 .and. rhob.le.0) then
+                  eatom(i) = eatom(i) - B*rhob
+                else
+                  eatom(i) = eatom(i) + B*rhob*log(rhob)
+                endif
               endif
             endif
           else
-            fp(i) = B
+            if (emb_lin_neg.eq.1) then
+              fp(i) = -B
+            else
+              fp(i) = B
+            endif
           endif
         endif
       enddo
@@ -181,6 +201,7 @@ c   1 => G = exp(Gamma/2)
 c   2 => not implemented 
 c   3 => G = 2/(1+exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
+c  -5 => G = +-sqrt(abs(1+Gamma))
       implicit none
       real*8 Gamma,G
       real*8 gsmooth_factor, gsmooth_switchpoint
@@ -201,6 +222,12 @@ c         G = 0.01*(-0.99/Gamma)**99
         G = exp(Gamma/2.d0)
       else if (ibar.eq.3) then
         G = 2.d0/(1.d0+exp(-Gamma))
+      else if (ibar.eq.-5) then
+        if ((1.d0+Gamma).ge.0) then
+           G = sqrt(1.d0+Gamma)
+        else
+           G = -sqrt(-1.d0-Gamma)
+        endif
       else
          errorflag = 1
       endif
@@ -216,6 +243,7 @@ c   1 => G = exp(Gamma/2)
 c   2 => not implemented 
 c   3 => G = 2/(1+exp(-Gamma))
 c   4 => G = sqrt(1+Gamma)
+c  -5 => G = +-sqrt(abs(1+Gamma))
       real*8 Gamma,G,dG
       real*8 gsmooth_factor, gsmooth_switchpoint
       integer ibar
@@ -239,6 +267,14 @@ c         G = 0.01*(-0.99/Gamma)**99
       else if (ibar.eq.3) then
         G = 2.d0/(1.d0+exp(-Gamma))
         dG = G*(2.d0-G)/2
+      else if (ibar.eq.-5) then
+        if ((1.d0+Gamma).ge.0) then
+           G = sqrt(1.d0+Gamma)
+           dG = 1.d0/(2.d0*G)
+        else
+           G = -sqrt(-1.d0-Gamma)
+           dG = -1.d0/(2.d0*G)
+        endif
       endif
       return
       end

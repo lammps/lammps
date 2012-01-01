@@ -20,7 +20,6 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "pointers.h"
 

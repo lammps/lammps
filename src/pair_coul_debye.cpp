@@ -26,9 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp) {}
@@ -51,7 +48,6 @@ void PairCoulDebye::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
@@ -75,12 +71,8 @@ void PairCoulDebye::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	j %= nall;
-      }
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -113,7 +105,7 @@ void PairCoulDebye::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -122,7 +114,7 @@ void PairCoulDebye::compute(int eflag, int vflag)
 
 void PairCoulDebye::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal pair_style command");
+  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
   kappa = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);

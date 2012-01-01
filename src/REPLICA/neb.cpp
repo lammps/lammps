@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
-   internal NEB constructor 
+   internal NEB constructor, called from TAD
 ------------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
@@ -90,7 +90,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
 NEB::~NEB()
 {
   MPI_Comm_free(&roots);
-  memory->destroy_2d_double_array(all);
+  memory->destroy(all);
   delete [] rdist;
 }
 
@@ -101,9 +101,9 @@ NEB::~NEB()
 void NEB::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
-    error->all("NEB command before simulation box is defined");
+    error->all(FLERR,"NEB command before simulation box is defined");
 
-  if (narg != 6) error->universe_all("Illegal NEB command");
+  if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
   
   etol = atof(arg[0]);
   ftol = atof(arg[1]);
@@ -114,11 +114,11 @@ void NEB::command(int narg, char **arg)
 
   // error checks
 
-  if (etol < 0.0) error->all("Illegal NEB command");
-  if (ftol < 0.0) error->all("Illegal NEB command");
-  if (nevery == 0) error->universe_all("Illegal NEB command");
+  if (etol < 0.0) error->all(FLERR,"Illegal NEB command");
+  if (ftol < 0.0) error->all(FLERR,"Illegal NEB command");
+  if (nevery == 0) error->universe_all(FLERR,"Illegal NEB command");
   if (n1steps % nevery || n2steps % nevery)
-    error->universe_all("Illegal NEB command");
+    error->universe_all(FLERR,"Illegal NEB command");
 
   // replica info
 
@@ -128,6 +128,16 @@ void NEB::command(int narg, char **arg)
   uworld = universe->uworld;
   MPI_Comm_rank(world,&me);
 
+  // error checks
+
+  if (nreplica == 1) error->all(FLERR,"Cannot use NEB with a single replica");
+  if (nreplica != universe->nprocs)
+    error->all(FLERR,"Can only use NEB with 1-processor replicas");
+  if (atom->sortfreq > 0)
+    error->all(FLERR,"Cannot use NEB with atom_modify sort enabled");
+  if (atom->map_style == 0) 
+    error->all(FLERR,"Cannot use NEB unless atom map exists");
+
   // read in file of final state atom coords and reset my coords
 
   readfile(infile);
@@ -135,7 +145,6 @@ void NEB::command(int narg, char **arg)
   // run the NEB calculation
 
   run();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -151,24 +160,14 @@ void NEB::run()
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
 
-  // error checks
-
-  if (nreplica == 1) error->all("Cannot use NEB with a single replica");
-  if (nreplica != universe->nprocs)
-    error->all("Can only use NEB with 1-processor replicas");
-  if (atom->sortfreq > 0)
-    error->all("Cannot use NEB with atom_modify sort enabled");
-  if (atom->map_style == 0) 
-    error->all("Cannot use NEB unless atom map exists");
-
-  int ineb,idamp;
+  int ineb;
   for (ineb = 0; ineb < modify->nfix; ineb++)
     if (strcmp(modify->fix[ineb]->style,"neb") == 0) break;
-  if (ineb == modify->nfix) error->all("NEB requires use of fix neb");
+  if (ineb == modify->nfix) error->all(FLERR,"NEB requires use of fix neb");
 
   fneb = (FixNEB *) modify->fix[ineb];
   nall = 4;
-  all = memory->create_2d_double_array(nreplica,nall,"neb:all");
+  memory->create(all,nreplica,nall,"neb:all");
   rdist = new double[nreplica];
 
   // initialize LAMMPS
@@ -181,7 +180,7 @@ void NEB::run()
   lmp->init();
 
   if (update->minimize->searchflag)
-    error->all("NEB requires damped dynamics minimizer");
+    error->all(FLERR,"NEB requires damped dynamics minimizer");
 
   // setup regular NEB minimization
 
@@ -193,7 +192,7 @@ void NEB::run()
   update->nsteps = n1steps;
   update->max_eval = n1steps;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all(FLERR,"Too many timesteps for NEB");
 
   update->minimize->setup();
   
@@ -216,8 +215,7 @@ void NEB::run()
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
 
-  int flag,flagall;
-
+  timer->init();
   timer->barrier_start(TIME_LOOP);
   
   while (update->minimize->niter < n1steps) {
@@ -262,7 +260,7 @@ void NEB::run()
   update->nsteps = n2steps;
   update->max_eval = n2steps;
   if (update->laststep < 0 || update->laststep > MAXBIGINT)
-    error->all("Too many timesteps");
+    error->all(FLERR,"Too many timesteps");
 
   update->minimize->init();
   fneb->rclimber = top;
@@ -287,7 +285,9 @@ void NEB::run()
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
   
+  timer->init();
   timer->barrier_start(TIME_LOOP);
+
   while (update->minimize->niter < n2steps) {
     update->minimize->run(nevery);
     print_status();
@@ -322,7 +322,6 @@ void NEB::readfile(char *file)
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
-  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   char *buffer = new char[CHUNK*MAXLINE];
@@ -358,7 +357,7 @@ void NEB::readfile(char *file)
 
       if (firstline) {
 	if (atom->count_words(bufptr) == 4) firstline = 0;
-	else error->all("Incorrect format in NEB coordinate file");
+	else error->all(FLERR,"Incorrect format in NEB coordinate file");
       }
 
       sscanf(bufptr,"%d %lg %lg %lg",&tag,&xx,&yy,&zz);
@@ -414,14 +413,14 @@ void NEB::open(char *file)
     sprintf(gunzip,"gunzip -c %s",file);
     fp = popen(gunzip,"r");
 #else
-    error->one("Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file");
 #endif
   }
 
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 }
 

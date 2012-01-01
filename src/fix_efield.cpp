@@ -38,7 +38,7 @@ enum{CONSTANT,EQUAL,ATOM};
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix efield command");
+  if (narg != 6) error->all(FLERR,"Illegal fix efield command");
 
   qe2f = force->qe2f;
   xstr = ystr = zstr = NULL;
@@ -81,7 +81,7 @@ FixEfield::~FixEfield()
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
-  memory->destroy_2d_double_array(efield);
+  memory->destroy(efield);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,30 +98,30 @@ int FixEfield::setmask()
 
 void FixEfield::init()
 {
-  if (!atom->q_flag) error->all("Fix efield requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Fix efield requires atom attribute q");
 
   // check variables
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all("Variable name for fix efield does not exist");
+    if (xvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all("Variable for fix efield is invalid style");
+    else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all("Variable name for fix efield does not exist");
+    if (yvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all("Variable for fix efield is invalid style");
+    else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all("Variable name for fix efield does not exist");
+    if (zvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all("Variable for fix efield is invalid style");
+    else error->all(FLERR,"Variable for fix efield is invalid style");
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
@@ -130,7 +130,7 @@ void FixEfield::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -138,7 +138,7 @@ void FixEfield::init()
 
 void FixEfield::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -162,8 +162,8 @@ void FixEfield::post_force(int vflag)
 
   if (varflag == ATOM && nlocal > maxatom) {
     maxatom = atom->nmax;
-    memory->destroy_2d_double_array(efield);
-    efield = memory->create_2d_double_array(maxatom,3,"efield:efield");
+    memory->destroy(efield);
+    memory->create(efield,maxatom,3,"efield:efield");
   }
 
   if (varflag == CONSTANT) {

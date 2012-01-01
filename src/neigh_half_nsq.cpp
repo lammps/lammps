@@ -87,10 +87,10 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
       }
     }
 
@@ -99,7 +99,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -191,10 +191,10 @@ void Neighbor::half_nsq_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) which = find_special(special[i],nspecial[i],tag[j]);
-	else which = 0;
-	if (which == 0) neighptr[n++] = j;
-	else if (which > 0) neighptr[n++] = which*nall + j;
+	if (molecular) {
+	  which = find_special(special[i],nspecial[i],tag[j]);
+	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+	} else neighptr[n++] = j;
       }
     }
 
@@ -203,7 +203,7 @@ void Neighbor::half_nsq_newton(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;

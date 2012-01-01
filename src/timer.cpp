@@ -21,14 +21,14 @@ using namespace LAMMPS_NS;
 
 Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
 {
-  array = (double *) memory->smalloc(TIME_N*sizeof(double),"array");
+  memory->create(array,TIME_N,"array");
 }
 
 /* ---------------------------------------------------------------------- */
 
 Timer::~Timer()
 {
-  memory->sfree(array);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */

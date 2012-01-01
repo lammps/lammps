@@ -5,14 +5,22 @@ boundary       f f f
 atom_style      molecular
 newton          on off
 
+<<<<<<< HEAD
 #
 #processors     3 2 1
 processors * * *
+=======
+processors * * 1
+>>>>>>> master
 
 # read topology 
 read_data       data.bucky-plus-cnt
 
+<<<<<<< HEAD
 pair_style  lj/cut/opt  10.0
+=======
+pair_style  lj/cut  10.0
+>>>>>>> master
 bond_style  harmonic
 angle_style charmm
 dihedral_style charmm
@@ -22,11 +30,19 @@ special_bonds lj/coul 0.0 0.0 0.0
 pair_coeff  1  1    0.07    3.55
 pair_coeff  1  2    0.07    3.55
 pair_coeff  2  2    0.07    3.55
+<<<<<<< HEAD
 bond_coeff     1  305.0     1.375
 angle_coeff    1   40.000 120.00   35.00   2.41620
 dihedral_coeff 1    3.100   2     180   0.0
 
 neighbor        5.0 bin
+=======
+bond_coeff     1  305.0     1.4
+angle_coeff    1   40.000 120.00   35.00   2.41620
+dihedral_coeff 1    3.100   2     180   0.0
+
+neighbor        4.0 bin
+>>>>>>> master
 neigh_modify    delay 0 every 1 check yes
 
 timestep        2.0
@@ -49,6 +65,10 @@ fix     thermostat  mobile langevin 300.0 300.0 2000.0 234624
 
 # IMD setup.
 fix  comm       all imd 6789 unwrap on trate 10
+<<<<<<< HEAD
+=======
+#fix  comm       all imd 6789 unwrap on trate 10 nowait on
+>>>>>>> master
 
 # temperature is based on mobile atoms only
 compute mobtemp mobile temp

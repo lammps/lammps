@@ -26,9 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {}
@@ -38,11 +35,11 @@ PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {}
 PairCoulCut::~PairCoulCut()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(scale);
+    memory->destroy(cut);
+    memory->destroy(scale);
   }
 }
 
@@ -64,7 +61,6 @@ void PairCoulCut::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
@@ -88,12 +84,8 @@ void PairCoulCut::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	j %= nall;
-      }
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -125,7 +117,7 @@ void PairCoulCut::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -137,15 +129,15 @@ void PairCoulCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  scale = memory->create_2d_double_array(n+1,n+1,"pair:scale");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -154,7 +146,7 @@ void PairCoulCut::allocate()
 
 void PairCoulCut::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -174,7 +166,7 @@ void PairCoulCut::settings(int narg, char **arg)
 
 void PairCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 2 || narg > 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -194,7 +186,7 @@ void PairCoulCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -205,9 +197,9 @@ void PairCoulCut::coeff(int narg, char **arg)
 void PairCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style coul/cut requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

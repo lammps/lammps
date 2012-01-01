@@ -37,18 +37,23 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   gran = granhistory = 0;
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
-
-  // default is use newton_pair setting in force
-
-  newton = 0;
+  ghost = 0;
 
   // default is every reneighboring
+  // default is use newton_pair setting in force
+  // default is encode special bond flags
+  // default is no auxiliary floating point values
+  // default is no neighbors of ghosts
+  // default is no CUDA neighbor list build
+  // default is no multi-threaded neighbor list build
 
   occasional = 0;
-
-  // default is no auxiliary floating point values
-
+  newton = 0;
+  special = 1;
   dnum = 0;
+  ghost = 0;
+  cudable = 0;
+  omp = 0;
 
   // default is no copy or skip
 
@@ -64,7 +69,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 NeighRequest::~NeighRequest()
 {
   delete [] iskip;
-  memory->destroy_2d_int_array(ijskip);
+  memory->destroy(ijskip);
 }
 
 /* ----------------------------------------------------------------------
@@ -95,7 +100,11 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
+  if (special != other->special) same = 0;
   if (dnum != other->dnum) same = 0;
+  if (ghost != other->ghost) same = 0;
+  if (cudable != other->cudable) same = 0;
+  if (omp != other->omp) same = 0;
 
   if (copy != other->copy) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -122,6 +131,9 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (respaouter != other->respaouter) same = 0;
   if (half_from_full != other->half_from_full) same = 0;
   if (newton != other->newton) same = 0;
+  if (ghost != other->ghost) same = 0;
+  if (cudable != other->cudable) same = 0;
+  if (omp != other->omp) same = 0;
 
   return same;
 }
@@ -169,4 +181,7 @@ void NeighRequest::copy_request(NeighRequest *other)
 
   newton = other->newton;
   dnum = other->dnum;
+  ghost = other->ghost;
+  cudable = other->cudable;
+  omp = other->omp;
 }

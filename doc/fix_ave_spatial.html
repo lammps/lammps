@@ -78,7 +78,7 @@ fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass ave running
 <P>Use one or more per-atom vectors as inputs every few timesteps, bin
 their values spatially into 1d, 2d, or 3d bins based on current atom
 coordinates, and average the bin values over longer timescales.  The
-resulting bin averages can be used by other <A HREF = "Section_howto.html#4_15">output
+resulting bin averages can be used by other <A HREF = "Section_howto.html#howto_15">output
 commands</A> such as <A HREF = "thermo_style.html">thermo_style
 custom</A>, and can also be written to a file.
 </P>
@@ -163,11 +163,11 @@ counted in the first/last bin in that dimension.
 <P>For orthogonal simulation boxes, the bins are also layers, pencils, or
 boxes aligned with the xyz coordinate axes.  For triclinic
 (non-orthogonal) simulation boxes, the bins are so that they are
-parallel to the tilted faces of the simulation box.  See <A HREF = "Section_howto.html#4_12">this
-section</A> of the manual for a discussion of the
-geometry of triclinic boxes in LAMMPS.  As described there, a tilted
-simulation box has edge vectors a,b,c.  In that nomenclature, bins in
-the x dimension have faces with normals in the "b" cross "c"
+parallel to the tilted faces of the simulation box.  See <A HREF = "Section_howto.html#howto_12">this
+section</A> of the manual for a discussion of
+the geometry of triclinic boxes in LAMMPS.  As described there, a
+tilted simulation box has edge vectors a,b,c.  In that nomenclature,
+bins in the x dimension have faces with normals in the "b" cross "c"
 direction.  Bins in y have faces normal to the "a" cross "c"
 direction.  And bins in z have faces normal to the "a" cross "b"
 direction.  Note that in order to define the size and position of
@@ -321,7 +321,7 @@ files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
 <P>This fix computes a global array of values which can be accessed by
-various <A HREF = "Section_howto.html#4_15">output commands</A>.  The values can
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The values can
 only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
 is when averaging is performed.  The global array has # of rows =
 Nbins and # of columns = Ndim+1+Nvalues, where Ndim = 1,2,3 for

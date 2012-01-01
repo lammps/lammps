@@ -1,0 +1,23 @@
+This package contains a LAMMPS implementation of the Antisymmetrized
+Wave Packet Molecular Dynamics (AWPMD) method.
+
+See the doc page for the pair_style awpmd/cut command to get started.
+
+There are example scripts for using this package in
+examples/USER/awpmd.
+
+This package uses an external library in lib/awpmd which must be
+compiled before making LAMMPS.  See the lib/awpmd/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The person who created this package is Ilya Valuev at the JIHT in
+Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
+have questions.
+ 
+----------------------
+
+ACKNOWLEDGMENTS:
+
+Thanks to Steve Plimpton and Aidan Thompson for their help in
+adaptation of the AWPMD code to LAMMPS.

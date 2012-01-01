@@ -44,9 +44,6 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-7
 #define MAXJACOBI 50
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ----------------------------------------------------------------------
    define rigid bodies and joints, initiate POEMS
 ------------------------------------------------------------------------- */
@@ -91,19 +88,19 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // set natom2body, atom2body for all atoms and nbody = # of rigid bodies
   // atoms must also be in fix group to be in a body
 
-  if (narg < 4) error->all("Illegal fix poems command");
+  if (narg < 4) error->all(FLERR,"Illegal fix poems command");
 
   // group = arg has list of groups
 
   if (strcmp(arg[3],"group") == 0) {
     nbody = narg-4;
-    if (nbody <= 0) error->all("Illegal fix poems command");
+    if (nbody <= 0) error->all(FLERR,"Illegal fix poems command");
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
       igroups[ibody] = group->find(arg[ibody+4]);
       if (igroups[ibody] == -1) 
-	error->all("Could not find fix poems group ID");
+	error->all(FLERR,"Could not find fix poems group ID");
     }
 
     int *mask = atom->mask;
@@ -138,9 +135,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // use nall as incremented ptr to set atom2body[] values for each atom
 
   } else if (strcmp(arg[3],"molecule") == 0) {
-    if (narg != 4) error->all("Illegal fix poems command");
+    if (narg != 4) error->all(FLERR,"Illegal fix poems command");
     if (atom->molecular == 0)
-      error->all("Must use a molecular atom style with fix poems molecule");
+      error->all(FLERR,"Must use a molecular atom style with fix poems molecule");
 
     int *mask = atom->mask;
     int *molecule = atom->molecule;
@@ -179,37 +176,37 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     delete [] ncount;
     delete [] nall;
 
-  } else error->all("Illegal fix poems command");
+  } else error->all(FLERR,"Illegal fix poems command");
 
   // error if no bodies
   // error if any atom in too many bodies
 
-  if (nbody == 0) error->all("No rigid bodies defined");
+  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > MAXBODY) flag = 1;
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("Atom in too many rigid bodies - boost MAXBODY");
+  if (flagall) error->all(FLERR,"Atom in too many rigid bodies - boost MAXBODY");
 
   // create all nbody-length arrays
 
   nrigid = new int[nbody];
   masstotal = new double[nbody];
-  xcm = memory->create_2d_double_array(nbody,3,"poems:xcm");
-  vcm = memory->create_2d_double_array(nbody,3,"poems:vcm");
-  fcm = memory->create_2d_double_array(nbody,3,"poems:fcm");
-  inertia = memory->create_2d_double_array(nbody,3,"poems:inertia");
-  ex_space = memory->create_2d_double_array(nbody,3,"poems:ex_space");
-  ey_space = memory->create_2d_double_array(nbody,3,"poems:ey_space");
-  ez_space = memory->create_2d_double_array(nbody,3,"poems:ez_space");
-  angmom = memory->create_2d_double_array(nbody,3,"poems:angmom");
-  omega = memory->create_2d_double_array(nbody,3,"poems:omega");
-  torque = memory->create_2d_double_array(nbody,3,"poems:torque");
+  memory->create(xcm,nbody,3,"poems:xcm");
+  memory->create(vcm,nbody,3,"poems:vcm");
+  memory->create(fcm,nbody,3,"poems:fcm");
+  memory->create(inertia,nbody,3,"poems:inertia");
+  memory->create(ex_space,nbody,3,"poems:ex_space");
+  memory->create(ey_space,nbody,3,"poems:ey_space");
+  memory->create(ez_space,nbody,3,"poems:ez_space");
+  memory->create(angmom,nbody,3,"poems:angmom");
+  memory->create(omega,nbody,3,"poems:omega");
+  memory->create(torque,nbody,3,"poems:torque");
 
-  sum = memory->create_2d_double_array(nbody,6,"poems:sum");
-  all = memory->create_2d_double_array(nbody,6,"poems:all");
+  memory->create(sum,nbody,6,"poems:sum");
+  memory->create(all,nbody,6,"poems:all");
   
   // nrigid[n] = # of atoms in Nth rigid body
   // double count joint atoms as being in multiple bodies
@@ -226,7 +223,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   delete [] ncount;
 
   for (ibody = 0; ibody < nbody; ibody++)
-    if (nrigid[ibody] <= 1) error->all("One or zero atoms in rigid body"); 
+    if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body"); 
 
   // build list of joint connections and check for cycles and trees
 
@@ -272,32 +269,32 @@ FixPOEMS::~FixPOEMS()
 
   // delete locally stored arrays
 
-  memory->sfree(natom2body);
-  memory->destroy_2d_int_array(atom2body);
-  memory->destroy_2d_double_array(displace);
+  memory->destroy(natom2body);
+  memory->destroy(atom2body);
+  memory->destroy(displace);
 
   // delete nbody-length arrays
 
   delete [] nrigid;
   delete [] masstotal;
-  memory->destroy_2d_double_array(xcm);
-  memory->destroy_2d_double_array(vcm);
-  memory->destroy_2d_double_array(fcm);
-  memory->destroy_2d_double_array(inertia);
-  memory->destroy_2d_double_array(ex_space);
-  memory->destroy_2d_double_array(ey_space);
-  memory->destroy_2d_double_array(ez_space);
-  memory->destroy_2d_double_array(angmom);
-  memory->destroy_2d_double_array(omega);
-  memory->destroy_2d_double_array(torque);
+  memory->destroy(xcm);
+  memory->destroy(vcm);
+  memory->destroy(fcm);
+  memory->destroy(inertia);
+  memory->destroy(ex_space);
+  memory->destroy(ey_space);
+  memory->destroy(ez_space);
+  memory->destroy(angmom);
+  memory->destroy(omega);
+  memory->destroy(torque);
 
-  memory->destroy_2d_double_array(sum);
-  memory->destroy_2d_double_array(all);
+  memory->destroy(sum);
+  memory->destroy(all);
 
   // delete joint arrays
 
-  memory->destroy_2d_int_array(jointbody);
-  memory->destroy_2d_double_array(xjoint);
+  memory->destroy(jointbody);
+  memory->destroy(xjoint);
   delete [] freelist;
 
   // delete POEMS object
@@ -324,14 +321,14 @@ int FixPOEMS::setmask()
 
 void FixPOEMS::init()
 {
-  int i,j,ibody;
+  int i,ibody;
 
   // warn if more than one POEMS fix
 
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"poems") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning("More than one fix poems");
+  if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix poems");
 
   // error if npt,nph fix comes before rigid fix
 
@@ -342,7 +339,7 @@ void FixPOEMS::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"poems") == 0)
-	error->all("POEMS fix must come before NPT/NPH fix");
+	error->all(FLERR,"POEMS fix must come before NPT/NPH fix");
   }
 
   // timestep info
@@ -353,7 +350,7 @@ void FixPOEMS::init()
 
   // rRESPA info
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
+  if (strstr(update->integrate_style,"respa")) {
     step_respa = ((Respa *) update->integrate)->step;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
@@ -440,8 +437,9 @@ void FixPOEMS::init()
   // inertia = 3 eigenvalues = principal moments of inertia
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
 
-  double **tensor = memory->create_2d_double_array(3,3,"fix_rigid:tensor");
-  double **evectors = memory->create_2d_double_array(3,3,"fix_rigid:evectors");
+  double **tensor,**evectors;
+  memory->create(tensor,3,3,"fix_rigid:tensor");
+  memory->create(evectors,3,3,"fix_rigid:evectors");
 
   int ierror;
   double ez0,ez1,ez2;
@@ -455,7 +453,7 @@ void FixPOEMS::init()
     tensor[0][2] = tensor[2][0] = all[ibody][5];
   
     ierror = jacobi(tensor,inertia[ibody],evectors);
-    if (ierror) error->all("Insufficient Jacobi rotations for POEMS body");
+    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for POEMS body");
 
     ex_space[ibody][0] = evectors[0][0];
     ex_space[ibody][1] = evectors[1][0];
@@ -479,7 +477,7 @@ void FixPOEMS::init()
     if (inertia[ibody][0] < EPSILON*max ||
 	inertia[ibody][1] < EPSILON*max ||
 	inertia[ibody][2] < EPSILON*max)
-      error->all("Rigid body has degenerate moment of inertia");
+      error->all(FLERR,"Rigid body has degenerate moment of inertia");
 
     // enforce 3 evectors as a right-handed coordinate system
     // flip 3rd evector if needed
@@ -501,8 +499,8 @@ void FixPOEMS::init()
 
   // free temporary memory
   
-  memory->destroy_2d_double_array(tensor);
-  memory->destroy_2d_double_array(evectors);
+  memory->destroy(tensor);
+  memory->destroy(evectors);
 
   // displace = initial atom coords in basis of principal axes
   // only set joint atoms relative to 1st body
@@ -575,11 +573,11 @@ void FixPOEMS::init()
     if (fabs(all[ibody][0]-inertia[ibody][0]) > TOLERANCE || 
 	fabs(all[ibody][1]-inertia[ibody][1]) > TOLERANCE ||
 	fabs(all[ibody][2]-inertia[ibody][2]) > TOLERANCE)
-      error->all("Bad principal moments");
+      error->all(FLERR,"Bad principal moments");
     if (fabs(all[ibody][3]) > TOLERANCE || 
 	fabs(all[ibody][4]) > TOLERANCE ||
 	fabs(all[ibody][5]) > TOLERANCE)
-      error->all("Bad principal moments");
+      error->all(FLERR,"Bad principal moments");
   }
 }
 
@@ -590,7 +588,7 @@ void FixPOEMS::init()
 
 void FixPOEMS::setup(int vflag)
 {
-  int i,j,n,ibody;
+  int i,n,ibody;
 
   // vcm = velocity of center-of-mass of each rigid body
   // angmom = angular momentum of each rigid body
@@ -707,7 +705,7 @@ void FixPOEMS::initial_integrate(int vflag)
 
 void FixPOEMS::post_force(int vflag)
 {
-  int i,j,ibody;
+  int i,ibody;
   int xbox,ybox,zbox;
   double dx,dy,dz;
 
@@ -822,8 +820,6 @@ void FixPOEMS::pre_neighbor() {}
 
 int FixPOEMS::dof(int igroup)
 {
-  int i,j;
-
   int groupbit = group->bitmask[igroup];
 
   // ncount = # of atoms in each rigid body that are also in group
@@ -835,7 +831,7 @@ int FixPOEMS::dof(int igroup)
   int *ncount = new int[nbody];
   for (int ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (natom2body[i]) ncount[atom2body[i][0]]++;
 
@@ -851,7 +847,7 @@ int FixPOEMS::dof(int igroup)
   // subtract 3 additional dof for each joint if atom is also in igroup
 
   int m = 0;
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3*(natom2body[i]-1);
   int mall;
   MPI_Allreduce(&m,&mall,1,MPI_INT,MPI_SUM,world);
@@ -889,7 +885,7 @@ void FixPOEMS::readfile(char *file)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open fix poems file %s",file);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -920,7 +916,7 @@ void FixPOEMS::readfile(char *file)
     nbody++;
   }
 
-  memory->sfree(line);
+  memory->destroy(line);
   fclose(fp);
 }
 
@@ -935,8 +931,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
   while (1) {
     if (n+1 >= maxline) {
       maxline += DELTA;
-      line = (char *) 
-	memory->srealloc(line,maxline*sizeof(char),"fix_poems:line");
+      memory->grow(line,maxline,"fix_poems:line");
     }
     if (fgets(&line[n],maxline-n,fp) == NULL) {
       n = 0;
@@ -974,7 +969,7 @@ void FixPOEMS::jointbuild()
   }
 
   int **mylist = NULL;
-  if (mjoint) mylist = memory->create_2d_int_array(mjoint,3,"poems:mylist");
+  if (mjoint) memory->create(mylist,mjoint,3,"poems:mylist");
 
   mjoint = 0;
   for (i = 0; i < nlocal; i++) {
@@ -991,7 +986,7 @@ void FixPOEMS::jointbuild()
 
   MPI_Allreduce(&mjoint,&njoint,1,MPI_INT,MPI_SUM,world);
   int **jlist = NULL;
-  if (njoint) jlist = memory->create_2d_int_array(njoint,3,"poems:jlist");
+  if (njoint) memory->create(jlist,njoint,3,"poems:jlist");
 
   int nprocs;
   MPI_Comm_size(world,&nprocs);
@@ -1022,7 +1017,7 @@ void FixPOEMS::jointbuild()
   // warning if no joints
 
   if (njoint == 0 && me == 0)
-    error->warning("No joints between rigid bodies, use fix rigid instead");
+    error->warning(FLERR,"No joints between rigid bodies, use fix rigid instead");
 
   // sort joint list in ascending order by body indices
   // check for loops in joint connections between rigid bodies
@@ -1031,7 +1026,7 @@ void FixPOEMS::jointbuild()
   sortlist(njoint,jlist);
 
   if (loopcheck(nbody,njoint,jlist))
-    error->all("Cyclic loop in joint connections");
+    error->all(FLERR,"Cyclic loop in joint connections");
 
   int *bodyflag = new int[nbody];
   for (i = 0; i < nbody; i++) bodyflag[i] = 0;
@@ -1040,7 +1035,7 @@ void FixPOEMS::jointbuild()
     bodyflag[jlist[i][1]]++;
   }
   for (i = 0; i < nbody; i++)
-    if (bodyflag[i] > 2) error->all("Tree structure in joint connections");
+    if (bodyflag[i] > 2) error->all(FLERR,"Tree structure in joint connections");
   delete [] bodyflag;
 
   // allocate and setup joint arrays
@@ -1052,9 +1047,9 @@ void FixPOEMS::jointbuild()
   xjoint = NULL;
   double **myjoint = NULL;
   if (njoint) {
-    jointbody = memory->create_2d_int_array(njoint,2,"poems:jointbody");
-    xjoint = memory->create_2d_double_array(njoint,3,"poems:xjoint");
-    myjoint = memory->create_2d_double_array(njoint,3,"poems:myjoint");
+    memory->create(jointbody,njoint,2,"poems:jointbody");
+    memory->create(xjoint,njoint,3,"poems:xjoint");
+    memory->create(myjoint,njoint,3,"poems:myjoint");
   }
 
   double **x = atom->x;
@@ -1095,9 +1090,9 @@ void FixPOEMS::jointbuild()
 
   // free memory local to this routine
 
-  memory->destroy_2d_int_array(mylist);
-  memory->destroy_2d_int_array(jlist);
-  memory->destroy_2d_double_array(myjoint);
+  memory->destroy(mylist);
+  memory->destroy(jlist);
+  memory->destroy(myjoint);
 }
 
 /* ----------------------------------------------------------------------
@@ -1161,7 +1156,8 @@ int FixPOEMS::loopcheck(int nvert, int nedge, int **elist)
   int emax = 0;
   for (i = 0; i < nvert; i++) emax = MAX(emax,ecount[i]);
   
-  int **elistfull = memory->create_2d_int_array(nvert,emax,"poems:elistfull");
+  int **elistfull;
+  memory->create(elistfull,nvert,emax,"poems:elistfull");
   for (i = 0; i < nvert; i++) ecount[i] = 0;
   for (i = 0; i < nedge; i++) {
     elistfull[elist[i][0]][ecount[elist[i][0]]++] = elist[i][1];
@@ -1214,7 +1210,7 @@ int FixPOEMS::loopcheck(int nvert, int nedge, int **elist)
   // free memory local to this routine
 
   delete [] ecount;
-  memory->destroy_2d_int_array(elistfull);
+  memory->destroy(elistfull);
   delete [] parent;
   delete [] mark;
   delete [] stack;
@@ -1522,12 +1518,9 @@ void FixPOEMS::set_v()
 
 void FixPOEMS::grow_arrays(int nmax)
 {
-  natom2body = (int *)
-    memory->srealloc(natom2body,nmax*sizeof(int),"fix_poems:natom2body");
-  atom2body =
-    memory->grow_2d_int_array(atom2body,nmax,MAXBODY,"fix_poems:atom2body");
-  displace =
-    memory->grow_2d_double_array(displace,nmax,3,"fix_poems:displace");
+  memory->grow(natom2body,nmax,"fix_poems:natom2body");
+  memory->grow(atom2body,nmax,MAXBODY,"fix_poems:atom2body");
+  memory->grow(displace,nmax,3,"fix_poems:displace");
 }
 
 /* ----------------------------------------------------------------------

@@ -20,7 +20,6 @@ FixStyle(ave/time,FixAveTime)
 #ifndef LMP_FIX_AVE_TIME_H
 #define LMP_FIX_AVE_TIME_H
 
-#include "lmptype.h"
 #include "stdio.h"
 #include "fix.h"
 

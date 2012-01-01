@@ -33,26 +33,23 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all("Illegal fix dt/reset command");
+  if (narg < 7) error->all(FLERR,"Illegal fix dt/reset command");
 
   time_depend = 1;
   scalar_flag = 1;
   vector_flag = 1;
-  size_vector = 1;
+  size_vector = 2;
   global_freq = 1;
   extscalar = 0;
   extvector = 0;
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix dt/reset command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");
 
   minbound = maxbound = 1;
   tmin = tmax = 0.0;
@@ -62,34 +59,34 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   else tmax = atof(arg[5]);
   xmax = atof(arg[6]);
 
-  if (minbound && tmin < 0.0) error->all("Illegal fix dt/reset command");
-  if (maxbound && tmax < 0.0) error->all("Illegal fix dt/reset command");
+  if (minbound && tmin < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
+  if (maxbound && tmax < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
   if (minbound && maxbound && tmin >= tmax)
-    error->all("Illegal fix dt/reset command");
-  if (xmax <= 0.0) error->all("Illegal fix dt/reset command");
+    error->all(FLERR,"Illegal fix dt/reset command");
+  if (xmax <= 0.0) error->all(FLERR,"Illegal fix dt/reset command");
 
   int scaleflag = 1;
 
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix dt/reset command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix dt/reset command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix dt/reset command");
+      else error->all(FLERR,"Illegal fix dt/reset command");
       iarg += 2;
-    } else error->all("Illegal fix dt/reset command");
+    } else error->all(FLERR,"Illegal fix dt/reset command");
   }
 
   // setup scaling, based on xlattice parameter
 
   if (scaleflag && domain->lattice == NULL)
-    error->all("Use of fix dt/reset with undefined lattice");
+    error->all(FLERR,"Use of fix dt/reset with undefined lattice");
   if (scaleflag) xmax *= domain->lattice->xlattice;
 
   // initializations
 
-  t_elapsed = 0.0;
+  t_elapsed = t_laststep = 0.0;
   laststep = update->ntimestep;
 }
 
@@ -98,6 +95,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 int FixDtReset::setmask()
 {
   int mask = 0;
+  mask |= INITIAL_INTEGRATE;
   mask |= END_OF_STEP;
   return mask;
 }
@@ -109,16 +107,18 @@ void FixDtReset::init()
   // set rRESPA flag
 
   respaflag = 0;
-  if (strcmp(update->integrate_style,"respa") == 0) respaflag = 1;
+  if (strstr(update->integrate_style,"respa")) respaflag = 1;
 
   // check for DCD or XTC dumps
 
   for (int i = 0; i < output->ndump; i++)
     if ((strcmp(output->dump[i]->style,"dcd") == 0 ||
 	strcmp(output->dump[i]->style,"xtc") == 0) && comm->me == 0)
-      error->warning("Dump dcd/xtc timestamp may be wrong with fix dt/reset");
+      error->warning(FLERR,
+		     "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
 
   ftm2v = force->ftm2v;
+  dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,15 +130,20 @@ void FixDtReset::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixDtReset::initial_integrate(int vflag)
+{
+  // calculate elapsed time based on previous reset timestep
+
+  t_elapsed = t_laststep + (update->ntimestep-laststep)*dt;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixDtReset::end_of_step()
 {
-  double dt,dtv,dtf,dtsq;
+  double dtv,dtf,dtsq;
   double vsq,fsq,massinv;
   double delx,dely,delz,delr;
-
-  // accumulate total time based on previous timestep
-
-  t_elapsed += (update->ntimestep - laststep) * update->dt;
 
   // compute vmax and amax of any atom in group
 
@@ -176,11 +181,14 @@ void FixDtReset::end_of_step()
   if (minbound) dt = MAX(dt,tmin);
   if (maxbound) dt = MIN(dt,tmax);
   
-  // reset update->dt and other classes that depend on it
+  // if timestep didn't change, just return
+  // else reset update->dt and other classes that depend on it
   // rRESPA, pair style, fixes
 
-  laststep = update->ntimestep;
   if (dt == update->dt) return;
+
+  t_elapsed = t_laststep += (update->ntimestep-laststep)*update->dt;
+  laststep = update->ntimestep;
 
   update->dt = dt;
   if (respaflag) update->integrate->reset_dt();
@@ -199,5 +207,6 @@ double FixDtReset::compute_scalar()
 
 double FixDtReset::compute_vector(int n)
 {
-  return t_elapsed;
+  if (n == 0) return t_elapsed;
+  return (double) laststep;
 }

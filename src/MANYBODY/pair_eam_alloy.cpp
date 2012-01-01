@@ -47,12 +47,12 @@ void PairEAMAlloy::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read EAM setfl file
 
@@ -60,9 +60,9 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
     delete [] setfl->mass;
-    memory->destroy_2d_double_array(setfl->frho);
-    memory->destroy_2d_double_array(setfl->rhor);
-    memory->destroy_3d_double_array(setfl->z2r);
+    memory->destroy(setfl->frho);
+    memory->destroy(setfl->rhor);
+    memory->destroy(setfl->z2r);
     delete setfl;
   }
   setfl = new Setfl();
@@ -79,7 +79,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     for (j = 0; j < setfl->nelements; j++)
       if (strcmp(arg[i],setfl->elements[j]) == 0) break;
     if (j < setfl->nelements) map[i-2] = j;
-    else error->all("No matching element in EAM potential file");
+    else error->all(FLERR,"No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -103,7 +103,7 @@ void PairEAMAlloy::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -125,7 +125,7 @@ void PairEAMAlloy::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -146,11 +146,11 @@ void PairEAMAlloy::read_file(char *filename)
   sscanf(line,"%d",&file->nelements);
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
-    error->all("Incorrect element names in EAM potential file");
+    error->all(FLERR,"Incorrect element names in EAM potential file");
   
   char **words = new char*[file->nelements+1];
   nwords = 0;
-  char *first = strtok(line," \t\n\r\f");
+  strtok(line," \t\n\r\f");
   while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
 
   file->elements = new char*[file->nelements];
@@ -174,12 +174,11 @@ void PairEAMAlloy::read_file(char *filename)
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
   file->mass = new double[file->nelements];
-  file->frho = memory->create_2d_double_array(file->nelements,file->nrho+1,
-					      "pair:frho");
-  file->rhor = memory->create_2d_double_array(file->nelements,file->nr+1,
-					      "pair:rhor");
-  file->z2r = memory->create_3d_double_array(file->nelements,file->nelements,
-					     file->nr+1,"pair:z2r");
+  memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
+  memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
+  memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
+		 "pair:z2r");
+
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
@@ -229,8 +228,8 @@ void PairEAMAlloy::file2array()
   // nfrho = # of setfl elements + 1 for zero array
   
   nfrho = setfl->nelements + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // copy each element's frho to global frho
 
@@ -258,8 +257,8 @@ void PairEAMAlloy::file2array()
   // nrhor = # of setfl elements
 
   nrhor = setfl->nelements;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // copy each element's rhor to global rhor
 
@@ -282,8 +281,8 @@ void PairEAMAlloy::file2array()
   // nz2r = N*(N+1)/2 where N = # of setfl elements
 
   nz2r = setfl->nelements * (setfl->nelements+1) / 2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 

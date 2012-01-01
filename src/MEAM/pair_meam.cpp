@@ -32,23 +32,21 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
-int nkeywords = 19;
+int nkeywords = 21;
 char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
 		    "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
 		    "augt1","gsmooth_factor","re","ialloy","mixture_ref_t",
-                    "erose_form","zbl"};
+                    "erose_form","zbl","emb_lin_neg","bkgd_dyn"};
 
 /* ---------------------------------------------------------------------- */
 
 PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  restartinfo = 0;
   one_coeff = 1;
 
   nmax = 0;
@@ -78,36 +76,36 @@ PairMEAM::~PairMEAM()
 {
   meam_cleanup_();
 
-  memory->sfree(rho);
-  memory->sfree(rho0);
-  memory->sfree(rho1);
-  memory->sfree(rho2);
-  memory->sfree(rho3);
-  memory->sfree(frhop);
-  memory->sfree(gamma);
-  memory->sfree(dgamma1);
-  memory->sfree(dgamma2);
-  memory->sfree(dgamma3);
-  memory->sfree(arho2b);
+  memory->destroy(rho);
+  memory->destroy(rho0);
+  memory->destroy(rho1);
+  memory->destroy(rho2);
+  memory->destroy(rho3);
+  memory->destroy(frhop);
+  memory->destroy(gamma);
+  memory->destroy(dgamma1);
+  memory->destroy(dgamma2);
+  memory->destroy(dgamma3);
+  memory->destroy(arho2b);
 
-  memory->destroy_2d_double_array(arho1);
-  memory->destroy_2d_double_array(arho2);
-  memory->destroy_2d_double_array(arho3);
-  memory->destroy_2d_double_array(arho3b);
-  memory->destroy_2d_double_array(t_ave);
-  memory->destroy_2d_double_array(tsq_ave);
+  memory->destroy(arho1);
+  memory->destroy(arho2);
+  memory->destroy(arho3);
+  memory->destroy(arho3b);
+  memory->destroy(t_ave);
+  memory->destroy(tsq_ave);
 
-  memory->sfree(scrfcn);
-  memory->sfree(dscrfcn);
-  memory->sfree(fcpair);
+  memory->destroy(scrfcn);
+  memory->destroy(dscrfcn);
+  memory->destroy(fcpair);
   
   for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
   delete [] mass;
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
     delete [] map;
     delete [] fmap;
   }
@@ -117,9 +115,9 @@ PairMEAM::~PairMEAM()
 
 void PairMEAM::compute(int eflag, int vflag)
 {
-  int i,j,ii,n,inum_half,itype,jtype,errorflag;
+  int i,j,ii,n,inum_half,errorflag;
   double evdwl;
-  int *ilist_half,*jlist_half,*numneigh_half,**firstneigh_half;
+  int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
   evdwl = 0.0;
@@ -127,48 +125,46 @@ void PairMEAM::compute(int eflag, int vflag)
   else evflag = vflag_fdotr = eflag_global = vflag_global =
 	 eflag_atom = vflag_atom = 0;
 
-  int newton_pair = force->newton_pair;
-
   // grow local arrays if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(rho0);
-    memory->sfree(rho1);
-    memory->sfree(rho2);
-    memory->sfree(rho3);
-    memory->sfree(frhop);
-    memory->sfree(gamma);
-    memory->sfree(dgamma1);
-    memory->sfree(dgamma2);
-    memory->sfree(dgamma3);
-    memory->sfree(arho2b);
-    memory->destroy_2d_double_array(arho1);
-    memory->destroy_2d_double_array(arho2);
-    memory->destroy_2d_double_array(arho3);
-    memory->destroy_2d_double_array(arho3b);
-    memory->destroy_2d_double_array(t_ave);
-    memory->destroy_2d_double_array(tsq_ave);
+    memory->destroy(rho);
+    memory->destroy(rho0);
+    memory->destroy(rho1);
+    memory->destroy(rho2);
+    memory->destroy(rho3);
+    memory->destroy(frhop);
+    memory->destroy(gamma);
+    memory->destroy(dgamma1);
+    memory->destroy(dgamma2);
+    memory->destroy(dgamma3);
+    memory->destroy(arho2b);
+    memory->destroy(arho1);
+    memory->destroy(arho2);
+    memory->destroy(arho3);
+    memory->destroy(arho3b);
+    memory->destroy(t_ave);
+    memory->destroy(tsq_ave);
 
     nmax = atom->nmax;
 
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    rho0 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho0");
-    rho1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho1");
-    rho2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho2");
-    rho3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho3");
-    frhop = (double *) memory->smalloc(nmax*sizeof(double),"pair:frhop");
-    gamma = (double *) memory->smalloc(nmax*sizeof(double),"pair:gamma");
-    dgamma1 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma1");
-    dgamma2 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma2");
-    dgamma3 = (double *) memory->smalloc(nmax*sizeof(double),"pair:dgamma3");
-    arho2b = (double *) memory->smalloc(nmax*sizeof(double),"pair:arho2b");
-    arho1 = memory->create_2d_double_array(nmax,3,"pair:arho1");
-    arho2 = memory->create_2d_double_array(nmax,6,"pair:arho2");
-    arho3 = memory->create_2d_double_array(nmax,10,"pair:arho3");
-    arho3b = memory->create_2d_double_array(nmax,3,"pair:arho3b");
-    t_ave = memory->create_2d_double_array(nmax,3,"pair:t_ave");
-    tsq_ave = memory->create_2d_double_array(nmax,3,"pair:tsq_ave");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(rho0,nmax,"pair:rho0");
+    memory->create(rho1,nmax,"pair:rho1");
+    memory->create(rho2,nmax,"pair:rho2");
+    memory->create(rho3,nmax,"pair:rho3");
+    memory->create(frhop,nmax,"pair:frhop");
+    memory->create(gamma,nmax,"pair:gamma");
+    memory->create(dgamma1,nmax,"pair:dgamma1");
+    memory->create(dgamma2,nmax,"pair:dgamma2");
+    memory->create(dgamma3,nmax,"pair:dgamma3");
+    memory->create(arho2b,nmax,"pair:arho2b");
+    memory->create(arho1,nmax,3,"pair:arho1");
+    memory->create(arho2,nmax,6,"pair:arho2");
+    memory->create(arho3,nmax,10,"pair:arho3");
+    memory->create(arho3b,nmax,3,"pair:arho3b");
+    memory->create(t_ave,nmax,3,"pair:t_ave");
+    memory->create(tsq_ave,nmax,3,"pair:tsq_ave");
   }
 
   // neighbor list info
@@ -180,6 +176,14 @@ void PairMEAM::compute(int eflag, int vflag)
   numneigh_full = listfull->numneigh;
   firstneigh_full = listfull->firstneigh;
 
+  // strip neighbor lists of any special bond flags before using with MEAM
+  // necessary before doing neigh_f2c and neigh_c2f conversions each step
+
+  if (neighbor->ago == 0) {
+    neigh_strip(inum_half,ilist_half,numneigh_half,firstneigh_half);
+    neigh_strip(inum_half,ilist_half,numneigh_full,firstneigh_full);
+  }
+
   // check size of scrfcn based on half neighbor list
 
   int nlocal = atom->nlocal;
@@ -189,16 +193,13 @@ void PairMEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum_half; ii++) n += numneigh_half[ilist_half[ii]];
 
   if (n > maxneigh) {
-    memory->sfree(scrfcn);
-    memory->sfree(dscrfcn);
-    memory->sfree(fcpair);
+    memory->destroy(scrfcn);
+    memory->destroy(dscrfcn);
+    memory->destroy(fcpair);
     maxneigh = n;
-    scrfcn =
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:scrfcn");
-    dscrfcn = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:dscrfcn");
-    fcpair = 
-      (double *) memory->smalloc(maxneigh*sizeof(double),"pair:fcpair");
+    memory->create(scrfcn,maxneigh,"pair:scrfcn");
+    memory->create(dscrfcn,maxneigh,"pair:dscrfcn");
+    memory->create(fcpair,maxneigh,"pair:fcpair");
   }
 
   // zero out local arrays
@@ -244,7 +245,7 @@ void PairMEAM::compute(int eflag, int vflag)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->one(str);
+      error->one(FLERR,str);
     }
     offset += numneigh_half[i];
   }
@@ -259,7 +260,7 @@ void PairMEAM::compute(int eflag, int vflag)
   if (errorflag) {
     char str[128];
     sprintf(str,"MEAM library error %d",errorflag);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   comm->forward_comm_pair(this);
@@ -287,7 +288,7 @@ void PairMEAM::compute(int eflag, int vflag)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->one(str);
+      error->one(FLERR,str);
     }
     offset += numneigh_half[i];
   }
@@ -297,7 +298,7 @@ void PairMEAM::compute(int eflag, int vflag)
   neigh_f2c(inum_half,ilist_half,numneigh_half,firstneigh_half);
   neigh_f2c(inum_half,ilist_half,numneigh_full,firstneigh_full);
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,8 +308,8 @@ void PairMEAM::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
   map = new int[n+1];
   fmap = new int[n];
@@ -320,7 +321,7 @@ void PairMEAM::allocate()
 
 void PairMEAM::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all("Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -333,12 +334,12 @@ void PairMEAM::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 6) error->all("Incorrect args for pair coefficients");
+  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read MEAM element names between 2 filenames
   // nelements = # of MEAM elements
@@ -350,7 +351,7 @@ void PairMEAM::coeff(int narg, char **arg)
     delete [] mass;
   }
   nelements = narg - 4 - atom->ntypes;
-  if (nelements < 1) error->all("Incorrect args for pair coefficients");
+  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   elements = new char*[nelements];
   mass = new double[nelements];
   
@@ -376,7 +377,7 @@ void PairMEAM::coeff(int narg, char **arg)
       if (strcmp(arg[i],elements[j]) == 0) break;
     if (j < nelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all("Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -398,7 +399,7 @@ void PairMEAM::coeff(int narg, char **arg)
 	count++;
       }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -408,7 +409,7 @@ void PairMEAM::coeff(int narg, char **arg)
 void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
-    error->all("Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style MEAM requires newton pair on");
 
   // need full and half neighbor list
 
@@ -461,7 +462,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",globalfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -541,7 +542,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     }
 
     if (nwords != params_per_line)
-      error->all("Incorrect format in MEAM potential file");
+      error->all(FLERR,"Incorrect format in MEAM potential file");
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -568,7 +569,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     else if (strcmp(words[1],"hcp") == 0) lat[i] = HCP;
     else if (strcmp(words[1],"dim") == 0) lat[i] = DIM;
     else if (strcmp(words[1],"dia") == 0) lat[i] = DIAMOND;
-    else error->all("Unrecognized lattice type in MEAM file 1");
+    else error->all(FLERR,"Unrecognized lattice type in MEAM file 1");
 
     // store parameters
 
@@ -596,7 +597,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
   // error if didn't find all elements in file
 
   if (nset != nelements)
-    error->all("Did not find all elements in MEAM library file");
+    error->all(FLERR,"Did not find all elements in MEAM library file");
 
   // pass element parameters to MEAM package
 
@@ -642,7 +643,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",userfile);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -692,7 +693,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       char str[128];
       sprintf(str,"Keyword %s in MEAM parameter file not recognized",
 	      params[0]);
-      error->all(str);
+      error->all(FLERR,str);
     }
     nindex = nparams - 2;
     for (i = 0; i < nindex; i++) index[i] = atoi(params[i+1]);
@@ -709,7 +710,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       else if (strcmp(params[nparams-1],"c11") == 0) value = C11;
       else if (strcmp(params[nparams-1],"l12") == 0) value = L12;
       else if (strcmp(params[nparams-1],"b2")  == 0) value = B2;
-      else error->all("Unrecognized lattice type in MEAM file 2");
+      else error->all(FLERR,"Unrecognized lattice type in MEAM file 2");
     }
     else value = atof(params[nparams-1]);
 
@@ -720,7 +721,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
     if (errorflag) {
       char str[128];
       sprintf(str,"MEAM library error %d",errorflag);
-      error->all(str);
+      error->all(FLERR,str);
     }
   }
 
@@ -814,7 +815,7 @@ void PairMEAM::unpack_comm(int n, int first, double *buf)
 
 int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,m,last,size;
+  int i,k,m,last;
 
   m = 0;
   last = first + n;
@@ -888,6 +889,27 @@ double PairMEAM::memory_usage()
   bytes += (3 + 6 + 10 + 3 + 3 + 3) * nmax * sizeof(double);
   bytes += 3 * maxneigh * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   strip special bond flags from neighbor list entries
+   are not used with MEAM
+   need to do here so Fortran lib doesn't see them
+   done once per reneighbor so that neigh_f2c and neigh_c2f don't see them
+------------------------------------------------------------------------- */
+
+void PairMEAM::neigh_strip(int inum, int *ilist, 
+			   int *numneigh, int **firstneigh)
+{
+  int i,j,ii,jnum;
+  int *jlist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    for (j = 0; j < jnum; j++) jlist[j] &= NEIGHMASK;
+  }
 }
 
 /* ----------------------------------------------------------------------

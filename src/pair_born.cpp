@@ -24,13 +24,12 @@
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,20 +40,20 @@ PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp) {}
 PairBorn::~PairBorn()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a);
-    memory->destroy_2d_double_array(rho);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(c);
-    memory->destroy_2d_double_array(d);
-    memory->destroy_2d_double_array(rhoinv);
-    memory->destroy_2d_double_array(born1);
-    memory->destroy_2d_double_array(born2);
-    memory->destroy_2d_double_array(born3);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut);
+    memory->destroy(a);
+    memory->destroy(rho);
+    memory->destroy(sigma);
+    memory->destroy(c);
+    memory->destroy(d);
+    memory->destroy(rhoinv);
+    memory->destroy(born1);
+    memory->destroy(born2);
+    memory->destroy(born3);
+    memory->destroy(offset);
   }
 }
 
@@ -76,7 +75,6 @@ void PairBorn::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -98,12 +96,8 @@ void PairBorn::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -141,7 +135,7 @@ void PairBorn::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -153,24 +147,24 @@ void PairBorn::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  a = memory->create_2d_double_array(n+1,n+1,"pair:a");
-  rho = memory->create_2d_double_array(n+1,n+1,"pair:rho");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  c = memory->create_2d_double_array(n+1,n+1,"pair:c");
-  d = memory->create_2d_double_array(n+1,n+1,"pair:d");
-  rhoinv = memory->create_2d_double_array(n+1,n+1,"pair:rhoinv");
-  born1 = memory->create_2d_double_array(n+1,n+1,"pair:born1");
-  born2 = memory->create_2d_double_array(n+1,n+1,"pair:born2");
-  born3 = memory->create_2d_double_array(n+1,n+1,"pair:born3");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(a,n+1,n+1,"pair:a");
+  memory->create(rho,n+1,n+1,"pair:rho");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(c,n+1,n+1,"pair:c");
+  memory->create(d,n+1,n+1,"pair:d");
+  memory->create(rhoinv,n+1,n+1,"pair:rhoinv");
+  memory->create(born1,n+1,n+1,"pair:born1");
+  memory->create(born2,n+1,n+1,"pair:born2");
+  memory->create(born3,n+1,n+1,"pair:born3");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -179,7 +173,7 @@ void PairBorn::allocate()
 
 void PairBorn::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = atof(arg[0]);
 
@@ -199,7 +193,7 @@ void PairBorn::settings(int narg, char **arg)
 
 void PairBorn::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) error->all("Incorrect args for pair coefficients");
+  if (narg < 7 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -209,7 +203,7 @@ void PairBorn::coeff(int narg, char **arg)
   double a_one = force->numeric(arg[2]);
   double rho_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
-  if (rho_one <= 0) error->all("Incorrect args for pair coefficients");
+  if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
   double c_one = force->numeric(arg[5]);
   double d_one = force->numeric(arg[6]);
 
@@ -230,7 +224,7 @@ void PairBorn::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -239,7 +233,7 @@ void PairBorn::coeff(int narg, char **arg)
 
 double PairBorn::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   rhoinv[i][j] = 1.0/rho[i][j];
   born1[i][j] = a[i][j]/rho[i][j];
@@ -277,7 +271,6 @@ double PairBorn::init_one(int i, int j)
      } 
      MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
-     double PI = 4.0*atan(1.0);
      double rho1 = rho[i][j];
      double rho2 = rho1*rho1;
      double rho3 = rho2*rho1;
@@ -285,11 +278,11 @@ double PairBorn::init_one(int i, int j)
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
-     etail_ij = 2.0*PI*all[0]*all[1] * 
+     etail_ij = 2.0*MY_PI*all[0]*all[1] * 
        (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1* 
 	(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
 	c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
-     ptail_ij = (-1/3.0)*2.0*PI*all[0]*all[1] * 
+     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1] * 
        (-a[i][j]*exp((sigma[i][j]-rc)/rho1) * 
 	(rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 
 	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 

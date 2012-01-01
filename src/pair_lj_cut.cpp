@@ -29,13 +29,12 @@
 #include "update.h"
 #include "integrate.h"
 #include "respa.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,17 +48,17 @@ PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 PairLJCut::~PairLJCut()
 {
   if (allocated) {
-    memory->destroy_2d_array(setflag);
-    memory->destroy_2d_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_array(cut);
-    memory->destroy_2d_array(epsilon);
-    memory->destroy_2d_array(sigma);
-    memory->destroy_2d_array(lj1);
-    memory->destroy_2d_array(lj2);
-    memory->destroy_2d_array(lj3);
-    memory->destroy_2d_array(lj4);
-    memory->destroy_2d_array(offset);
+    memory->destroy(cut);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
 }
 
@@ -80,7 +79,6 @@ void PairLJCut::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -102,12 +100,8 @@ void PairLJCut::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -142,7 +136,7 @@ void PairLJCut::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,7 +152,6 @@ void PairLJCut::compute_inner()
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   
@@ -187,12 +180,8 @@ void PairLJCut::compute_inner()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -236,7 +225,6 @@ void PairLJCut::compute_middle()
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -270,12 +258,8 @@ void PairLJCut::compute_middle()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -327,7 +311,6 @@ void PairLJCut::compute_outer(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -356,12 +339,8 @@ void PairLJCut::compute_outer(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -424,21 +403,21 @@ void PairLJCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  memory->create_2d_array(&setflag,n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create_2d_array(&cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  memory->create_2d_array(&cut,n+1,n+1,"pair:cut");
-  memory->create_2d_array(&epsilon,n+1,n+1,"pair:epsilon");
-  memory->create_2d_array(&sigma,n+1,n+1,"pair:sigma");
-  memory->create_2d_array(&lj1,n+1,n+1,"pair:lj1");
-  memory->create_2d_array(&lj2,n+1,n+1,"pair:lj2");
-  memory->create_2d_array(&lj3,n+1,n+1,"pair:lj3");
-  memory->create_2d_array(&lj4,n+1,n+1,"pair:lj4");
-  memory->create_2d_array(&offset,n+1,n+1,"pair:offset");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -447,7 +426,7 @@ void PairLJCut::allocate()
 
 void PairLJCut::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -467,7 +446,7 @@ void PairLJCut::settings(int narg, char **arg)
 
 void PairLJCut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -491,7 +470,7 @@ void PairLJCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -504,7 +483,7 @@ void PairLJCut::init_style()
 
   int irequest;
 
-  if (update->whichflag == 1 && strcmp(update->integrate_style,"respa") == 0) {
+  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -538,7 +517,7 @@ void PairLJCut::init_style()
 
   // set rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = NULL;
@@ -589,7 +568,7 @@ double PairLJCut::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && cut[i][j] < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
@@ -606,15 +585,14 @@ double PairLJCut::init_one(int i, int j)
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
         
-    double PI = 4.0*atan(1.0);
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
   } 
 

@@ -1,11 +1,16 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, haktulga@cs.purdue.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
   Sagar Pandit, pandit@usf.edu
   Ananth Y Grama, ayg@cs.purdue.edu
+
+  Please cite the related publication:
+  H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
+  Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -48,7 +53,7 @@ void Add_dDelta( reax_system*, reax_list**, int, real, rvec* );
 void Add_dDelta_to_Forces( reax_system *, reax_list**, int, real );
 #endif
 
-void Add_dBond_to_Forces( int, int, storage*, reax_list** );
+void Add_dBond_to_Forces( reax_system*, int, int, storage*, reax_list** );
 void Add_dBond_to_Forces_NPT( int, int, simulation_data*, 
 			      storage*, reax_list** );
 int BOp(storage*, reax_list*, real, int, int, far_neighbor_data*,

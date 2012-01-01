@@ -36,14 +36,13 @@ class ComputeTempAsphere : public Compute {
   void restore_bias(int, double *);
 
  private:
-  int fix_dof;
+  int fix_dof,mode;
   double tfactor;
-  double **inertia;
   char *id_bias;
-  Compute *tbias;     // ptr to additional bias compute
+  class Compute *tbias;              // ptr to additional bias compute
+  class AtomVecEllipsoid *avec;
 
   void dof_compute();
-  void calculate_inertia();
 };
 
 }

@@ -41,7 +41,7 @@ keyword = {scale} or {reset} :l
 
 fix 1 all adapt 1 pair soft a 1 1 v_prefactor
 fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
-fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut pre 3 3 v_scale2 scale yes reset yes
+fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
 fix 1 all adapt 10 atom diameter v_size :pre
 
 [Description:]
@@ -106,7 +106,7 @@ styles and their energy formulas for the meaning of these parameters:
 "lj/cut/opt"_pair_lj.html: epsilon: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
 "gauss"_pair_gauss.html: a: type pairs:
-"soft"_pair_soft.html: a: type pairs :tb(c=3)
+"soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
 IMPORTANT NOTE: It is easy to add new potentials and their parameters
 to this list.  All it typically takes is adding an extract() method to
@@ -219,8 +219,8 @@ No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various "output
-commands"_Section_howto.html#4_15.  No parameter of this fix can be
-used with the {start/stop} keywords of the "run"_run.html command.
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none

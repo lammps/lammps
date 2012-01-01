@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Randy Schunk (SNL)
+   Contributing authors: Randy Schunk (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -38,21 +38,20 @@ PairYukawaColloid::PairYukawaColloid(LAMMPS *lmp) : PairYukawa(lmp) {}
 void PairYukawaColloid::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair,radi,radj;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor_coul;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
+  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  ecoul = 0.0;
+  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-  double **shape = atom->shape;
+  double *radius = atom->radius;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -68,25 +67,21 @@ void PairYukawaColloid::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    radi = shape[itype][0];
+    radi = radius[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	j %= nall;
-      }
+      factor = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      radj = shape[jtype][0];
+      radj = radius[j];
     
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
@@ -95,7 +90,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 	screening = exp(-kappa*(r-(radi+radj)));
 	forceyukawa = a[itype][jtype] * screening;
 
-	fpair = factor_coul*forceyukawa * rinv;
+	fpair = factor*forceyukawa * rinv;
 
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
@@ -107,17 +102,17 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 	}
 
 	if (eflag) {
-	  ecoul = a[itype][jtype]/kappa * screening - offset[itype][jtype];
-	  ecoul *= factor_coul;
+	  evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
+	  evdwl *= factor;
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+			     evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -126,22 +121,17 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 
 void PairYukawaColloid::init_style()
 {
-  if (!atom->avec->shape_type)
-    error->all("Pair yukawa/colloid requires atom attribute shape");
-  if (atom->radius_flag)
-    error->all("Pair yukawa/colloid cannot be used with "
-	       "atom attribute diameter");
+  if (!atom->sphere_flag)
+    error->all(FLERR,"Pair yukawa/colloid requires atom style sphere");
   
-  // insure all particle shapes are spherical
-  // can be point particles or polydisperse
+  neighbor->request(this);
+
+  // require that atom radii are identical within each type
 
   for (int i = 1; i <= atom->ntypes; i++)
-    if ((atom->shape[i][0] != atom->shape[i][1]) || 
-	(atom->shape[i][0] != atom->shape[i][2]) ||
-	(atom->shape[i][1] != atom->shape[i][2]))
-      error->all("Pair yukawa/colloid requires spherical particles");
-
-  int irequest = neighbor->request(this);
+    if (!atom->radius_consistency(i,rad[i]))
+      error->all(FLERR,"Pair yukawa/colloid requires atoms with same type "
+		 "have same radius");
 }
 
 /* ----------------------------------------------------------------------
@@ -156,9 +146,7 @@ double PairYukawaColloid::init_one(int i, int j)
   }
 
   if (offset_flag) {
-    double radi = atom->shape[i][0];
-    double radj = atom->shape[j][0];
-    double screening = exp(-kappa * (cut[i][j] - (radi+radj)));
+    double screening = exp(-kappa * (cut[i][j] - (rad[i]+rad[j])));
     offset[i][j] = a[i][j]/kappa * screening;
   } else offset[i][j] = 0.0;
 
@@ -175,19 +163,15 @@ double PairYukawaColloid::single(int i, int j, int itype, int jtype,
 				 double factor_coul, double factor_lj,
 				 double &fforce)
 {
-  double r2inv,r,rinv,screening,forceyukawa,phi,radi,radj;
-
-  int *type = atom->type;
-  radi = atom->shape[itype][0];
-  radj = atom->shape[jtype][0];
-
+  double r2inv,r,rinv,screening,forceyukawa,phi;
+  
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
   rinv = 1.0/r;
-  screening = exp(-kappa*(r-(radi+radj)));
+  screening = exp(-kappa*(r-(rad[itype]+rad[jtype])));
   forceyukawa = a[itype][jtype] * screening;
-  fforce = factor_coul*forceyukawa * rinv;
+  fforce = factor_lj*forceyukawa * rinv;
 
   phi = a[itype][jtype]/kappa * screening  - offset[itype][jtype]; 
-  return factor_coul*phi;
+  return factor_lj*phi;
 }

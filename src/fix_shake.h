@@ -20,7 +20,6 @@ FixStyle(shake,FixShake)
 #ifndef LMP_FIX_SHAKE_H
 #define LMP_FIX_SHAKE_H
 
-#include "lmptype.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -50,7 +49,6 @@ class FixShake : public Fix {
 
  private:
   int me,nprocs;
-  double PI;
   double tolerance;                      // SHAKE tolerance
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often

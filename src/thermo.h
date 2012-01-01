@@ -14,7 +14,6 @@
 #ifndef LMP_THERMO_H
 #define LMP_THERMO_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -27,6 +26,7 @@ class Thermo : protected Pointers {
   char *style;
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int modified;          // 1 if thermo_modify has been used, else 0
+  int cudable;           // 1 if all computes used are cudable
 
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
@@ -38,12 +38,12 @@ class Thermo : protected Pointers {
   int evaluate_keyword(char *, double *);
 
  private:
-  int me;
-
   char *line;
-  int nfield,nfield_initial;
   char **keyword;
   int *vtype;
+
+  int nfield,nfield_initial;
+  int me;
 
   char **format,**format_user;
   char *format_float_one_def,*format_float_multi_def;
@@ -74,6 +74,7 @@ class Thermo : protected Pointers {
   int *field2index;      // which compute,fix,variable calcs this field
   int *argindex1;        // indices into compute,fix scalar,vector
   int *argindex2;
+
                          // data for keyword-specific Compute objects
                          // index = where they are in computes list
                          // id = ID of Compute objects
@@ -172,6 +173,13 @@ class Thermo : protected Pointers {
 
   void compute_fmax();
   void compute_fnorm();
+
+  void compute_cella();
+  void compute_cellb();
+  void compute_cellc();
+  void compute_cellalpha();
+  void compute_cellbeta();
+  void compute_cellgamma();
 };
 
 }

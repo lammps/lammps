@@ -26,36 +26,42 @@ class Comm : protected Pointers {
   int myloc[3];                     // which proc I am in each dim
   int procneigh[3][2];              // my 6 neighboring procs
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
-  int maxforward_fix;               // comm sizes called from Fix,Pair
-  int maxreverse_fix;
-  int maxforward_pair;
-  int maxreverse_pair;
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
+  int recv_from_partition;          // recv proc layout from this partition
+  int send_to_partition;            // send my proc layout to this partition
+                                    // -1 if no recv or send
+  int other_partition_style;        // 0 = recv layout dims must be multiple of
+                                    //     my layout dims
+  int nthreads;                     // OpenMP threads per MPI process
 
   Comm(class LAMMPS *);
-  ~Comm();
+  virtual ~Comm();
 
-  void init();
-  void set_procs();                 // setup 3d grid of procs
-  void setup();                     // setup 3d communication pattern
-  void forward_comm();              // forward communication of atom coords
-  void reverse_comm();              // reverse communication of forces
-  void exchange();                  // move atoms to new procs
-  void borders();                   // setup list of atoms to communicate
+  virtual void init();
+  virtual void set_proc_grid();               // setup 3d grid of procs
+  virtual void setup();                       // setup 3d comm pattern
+  virtual void forward_comm(int dummy = 0);   // forward comm of atom coords
+  virtual void reverse_comm();                // reverse comm of forces
+  virtual void exchange();                    // move atoms to new procs
+  virtual void borders();                     // setup list of atoms to comm
 
-  void forward_comm_pair(class Pair *);        // forward comm from a Pair
-  void reverse_comm_pair(class Pair *);        // reverse comm from a Pair
-  void forward_comm_fix(class Fix *);          // forward comm from a Fix
-  void reverse_comm_fix(class Fix *);          // reverse comm from a Fix
-  void forward_comm_compute(class Compute *);  // forward comm from a Compute
-  void reverse_comm_compute(class Compute *);  // reverse comm from a Compute
+  virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
+  virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
+  virtual void forward_comm_fix(class Fix *);      // forward comm from a Fix
+  virtual void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
+  virtual void forward_comm_compute(class Compute *);  // forward from a Compute
+  virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
+  virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
+  virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
-  void set(int, char **);           // set communication style
-  double memory_usage();
+  virtual void set(int, char **);         // set communication style
+  void set_processors(int, char **);      // set 3d processor grid attributes
 
- private:
+  virtual bigint memory_usage();
+
+ protected:
   int style;                        // single vs multi-type comm
   int nswap;                        // # of swaps to perform
   int need[3];                      // procs I need atoms from in each dim
@@ -77,6 +83,10 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
+  int layoutflag;                   // user-selected layout for 3d proc grid
+  int numa_nodes;                   // layout NUMA-aware 3d proc grid
+
+  int other_procgrid[3];            // proc layout of another partition
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
@@ -86,19 +96,20 @@ class Comm : protected Pointers {
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
+ 
+  int procs2box(int, int[3], int[3],        // map procs to 3d box
+		const int, const int, const int, int);
+  virtual void grow_send(int,int);          // reallocate send buffer
+  virtual void grow_recv(int);              // free/allocate recv buffer
+  virtual void grow_list(int, int);         // reallocate one sendlist
+  virtual void grow_swap(int);              // grow swap and multi arrays
+  virtual void allocate_swap(int);          // allocate swap arrays
+  virtual void allocate_multi(int);         // allocate multi arrays
+  virtual void free_swap();                 // free swap arrays
+  virtual void free_multi();                // free multi arrays
 
-  void procs2box();                 // map procs to 3d box
-  void cross(double, double, double,
-	     double, double, double,
-	     double &, double &, double &);    // cross product
-  void grow_send(int,int);          // reallocate send buffer
-  void grow_recv(int);              // free/allocate recv buffer
-  void grow_list(int, int);         // reallocate one sendlist
-  void grow_swap(int);              // grow swap and multi arrays
-  void allocate_swap(int);          // allocate swap arrays
-  void allocate_multi(int);         // allocate multi arrays
-  void free_swap();                 // free swap arrays
-  void free_multi();                // free multi arrays
+  int numa_set_proc_grid();
+  void numa_shift(int, int, int &, int &);
 };
 
 }

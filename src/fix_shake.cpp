@@ -30,15 +30,15 @@
 #include "comm.h"
 #include "group.h"
 #include "fix_respa.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,15 +48,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  PI = 4.0*atan(1.0);
-
   virial_flag = 1;
   create_attribute = 1;
 
   // error check
 
   if (atom->molecular == 0)
-    error->all("Cannot use fix shake with non-molecular system");
+    error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -74,7 +72,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse SHAKE args
 
-  if (narg < 8) error->all("Illegal fix shake command");
+  if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
   tolerance = atof(arg[3]);
   max_iter = atoi(arg[4]);
@@ -109,28 +107,28 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (mode == 'b') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nbondtypes) 
-	error->all("Invalid bond type index for fix shake");
+	error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->nangletypes) 
-	error->all("Invalid angle type index for fix shake");
+	error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
       int i = atoi(arg[next]);
       if (i < 1 || i > atom->ntypes) 
-	error->all("Invalid atom type index for fix shake");
+	error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = atof(arg[next]);
-      if (massone == 0.0) error->all("Invalid atom mass for fix shake");
-      if (nmass == atom->ntypes) error->all("Too many masses for fix shake");
+      if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
+      if (nmass == atom->ntypes) error->all(FLERR,"Too many masses for fix shake");
       mass_list[nmass++] = massone;
 
-    } else error->all("Illegal fix shake command");
+    } else error->all(FLERR,"Illegal fix shake command");
     next++;
   }
 
@@ -218,10 +216,10 @@ FixShake::~FixShake()
 
   // delete locally stored arrays
 
-  memory->sfree(shake_flag);
-  memory->destroy_2d_int_array(shake_atom);
-  memory->destroy_2d_int_array(shake_type);
-  memory->destroy_2d_double_array(xshake);
+  memory->destroy(shake_flag);
+  memory->destroy(shake_atom);
+  memory->destroy(shake_type);
+  memory->destroy(xshake);
 
   delete [] bond_flag;
   delete [] angle_flag;
@@ -251,7 +249,7 @@ FixShake::~FixShake()
     delete [] a_min_all;
   }
 
-  memory->sfree(list);
+  memory->destroy(list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,13 +278,13 @@ void FixShake::init()
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  if (count > 1) error->all("More than one fix shake");
+  if (count > 1) error->all(FLERR,"More than one fix shake");
 
   // cannot use with minimization since SHAKE turns off bonds
   // that should contribute to potential energy
 
   if (update->whichflag == 2)
-    error->all("Fix shake cannot be used with minimization");
+    error->all(FLERR,"Fix shake cannot be used with minimization");
 
   // error if npt,nph fix comes before shake fix
 
@@ -297,14 +295,14 @@ void FixShake::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"shake") == 0)
-	error->all("Shake fix must come before NPT/NPH fix");
+	error->all(FLERR,"Shake fix must come before NPT/NPH fix");
   }
 
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strcmp(update->integrate_style,"respa") == 0) {
+  if (strstr(update->integrate_style,"respa")) {
     for (i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -315,7 +313,7 @@ void FixShake::init()
   // set equilibrium bond distances
 
   if (force->bond == NULL)
-    error->all("Bond potential must be defined for SHAKE");
+    error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++) 
     bond_distance[i] = force->bond->equilibrium_distance(i);
 
@@ -326,7 +324,7 @@ void FixShake::init()
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
     if (force->angle == NULL)
-      error->all("Angle potential must be defined for SHAKE");
+      error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
     // extract bond types for the 2 bonds in the cluster
@@ -353,7 +351,7 @@ void FixShake::init()
     // error check for any bond types that are not the same
     
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
-    if (flag_all) error->all("Shake angles have different bond types");
+    if (flag_all) error->all(FLERR,"Shake angles have different bond types");
     
     // insure all procs have bond types
     
@@ -399,7 +397,7 @@ void FixShake::setup(int vflag)
 
   // half timestep constraint on pre-step, full timestep thereafter
 
-  if (strcmp(update->integrate_style,"verlet") == 0) {
+  if (strstr(update->integrate_style,"verlet")) {
     dtv = update->dt;
     dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
     post_force(vflag);
@@ -440,8 +438,8 @@ void FixShake::pre_neighbor()
 
   if (nlocal > maxlist) {
     maxlist = nlocal;
-    memory->sfree(list);
-    list = (int *) memory->smalloc(maxlist*sizeof(int),"shake:list");
+    memory->destroy(list);
+    memory->create(list,maxlist,"shake:list");
   }
 
   // build list of SHAKE clusters I compute
@@ -458,7 +456,7 @@ void FixShake::pre_neighbor()
 	  sprintf(str,
 		  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
@@ -472,7 +470,7 @@ void FixShake::pre_neighbor()
 		  BIGINT_FORMAT,
 		  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
@@ -488,7 +486,7 @@ void FixShake::pre_neighbor()
 		  shake_atom[i][0],shake_atom[i][1],
 		  shake_atom[i][2],shake_atom[i][3],
 		  me,update->ntimestep);
-	  error->one(str);
+	  error->one(FLERR,str);
 	}
 	if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) 
 	  list[nlist++] = i;
@@ -655,24 +653,19 @@ void FixShake::find_clusters()
   int max = 0;
   for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
 
-  int *npartner = (int *) 
-    memory->smalloc(nlocal*sizeof(double),"shake:npartner");
-  int *nshake = (int *)
-    memory->smalloc(nlocal*sizeof(double),"shake:nshake");
-  int **partner_tag = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_tag");
-  int **partner_mask = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_mask");
-  int **partner_type = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_type");
-  int **partner_massflag = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_massflag");
-  int **partner_bondtype = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_bondtype");
-  int **partner_shake = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_shake");
-  int **partner_nshake = 
-    memory->create_2d_int_array(nlocal,max,"shake:partner_nshake");
+  int *npartner,*nshake;
+  memory->create(npartner,nlocal,"shake:npartner");
+  memory->create(nshake,nlocal,"shake:nshake");
+
+  int **partner_tag,**partner_mask,**partner_type,**partner_massflag;
+  int ** partner_bondtype,**partner_shake,**partner_nshake;
+  memory->create(partner_tag,nlocal,max,"shake:partner_tag");
+  memory->create(partner_mask,nlocal,max,"shake:partner_mask");
+  memory->create(partner_type,nlocal,max,"shake:partner_type");
+  memory->create(partner_massflag,nlocal,max,"shake:partner_massflag");
+  memory->create(partner_bondtype,nlocal,max,"shake:partner_bondtype");
+  memory->create(partner_shake,nlocal,max,"shake:partner_shake");
+  memory->create(partner_nshake,nlocal,max,"shake:partner_nshake");
 
   // -----------------------------------------------------
   // set npartner and partner_tag from special arrays
@@ -818,7 +811,7 @@ void FixShake::find_clusters()
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Did not find fix shake partner info");
+  if (flag_all) error->all(FLERR,"Did not find fix shake partner info");
 
   // -----------------------------------------------------
   // identify SHAKEable bonds
@@ -952,7 +945,7 @@ void FixShake::find_clusters()
   flag = 0;
   for (i = 0; i < nlocal; i++) if (nshake[i] > 3) flag = 1;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake cluster of more than 4 atoms");
+  if (flag_all) error->all(FLERR,"Shake cluster of more than 4 atoms");
 
   flag = 0;
   for (i = 0; i < nlocal; i++) {
@@ -961,7 +954,7 @@ void FixShake::find_clusters()
       if (partner_shake[i][j] && partner_nshake[i][j] > 1) flag = 1;
   }
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Shake clusters are connected");
+  if (flag_all) error->all(FLERR,"Shake clusters are connected");
 
   // -----------------------------------------------------
   // set SHAKE arrays that are stored with atoms & add angle constraints
@@ -1119,15 +1112,15 @@ void FixShake::find_clusters()
   // free local memory
   // -----------------------------------------------------
 
-  memory->sfree(npartner);
-  memory->sfree(nshake);
-  memory->destroy_2d_int_array(partner_tag);
-  memory->destroy_2d_int_array(partner_mask);
-  memory->destroy_2d_int_array(partner_type);
-  memory->destroy_2d_int_array(partner_massflag);
-  memory->destroy_2d_int_array(partner_bondtype);
-  memory->destroy_2d_int_array(partner_shake);
-  memory->destroy_2d_int_array(partner_nshake);
+  memory->destroy(npartner);
+  memory->destroy(nshake);
+  memory->destroy(partner_tag);
+  memory->destroy(partner_mask);
+  memory->destroy(partner_type);
+  memory->destroy(partner_massflag);
+  memory->destroy(partner_bondtype);
+  memory->destroy(partner_shake);
+  memory->destroy(partner_nshake);
 
   // -----------------------------------------------------
   // set bond_type and angle_type negative for SHAKE clusters
@@ -1354,7 +1347,7 @@ void FixShake::shake2(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning("Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0",0);
     determ = 0.0;
   }
 
@@ -1474,7 +1467,7 @@ void FixShake::shake3(int m)
   // inverse of matrix
 
   double determ = a11*a22 - a12*a21;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = a22*determinv;
@@ -1668,7 +1661,7 @@ void FixShake::shake4(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);
@@ -1908,7 +1901,7 @@ void FixShake::shake3angle(int m)
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
-  if (determ == 0.0) error->one("Shake determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
   
   double a11inv = determinv * (a22*a33 - a23*a32);
@@ -2121,7 +2114,7 @@ void FixShake::stats()
       r3 = sqrt(delx*delx + dely*dely + delz*delz);
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
-      angle *= 180.0/PI;
+      angle *= 180.0/MY_PI;
       m = shake_type[i][2];
       a_count[m]++;
       a_ave[m] += angle;
@@ -2242,14 +2235,11 @@ double FixShake::memory_usage()
 
 void FixShake::grow_arrays(int nmax)
 {
-  shake_flag = (int *)
-    memory->srealloc(shake_flag,nmax*sizeof(int),"shake:shake_flag");
-  shake_atom =
-    memory->grow_2d_int_array(shake_atom,nmax,4,"shake:shake_atom");
-  shake_type =
-    memory->grow_2d_int_array(shake_type,nmax,3,"shake:shake_type");
-  memory->destroy_2d_double_array(xshake);
-  xshake = memory->create_2d_double_array(nmax,3,"shake:xshake");
+  memory->grow(shake_flag,nmax,"shake:shake_flag");
+  memory->grow(shake_atom,nmax,4,"shake:shake_atom");
+  memory->grow(shake_type,nmax,3,"shake:shake_type");
+  memory->destroy(xshake);
+  memory->create(xshake,nmax,3,"shake:xshake");
 }
 
 /* ----------------------------------------------------------------------
@@ -2425,7 +2415,7 @@ void FixShake::unpack_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strcmp(update->integrate_style,"verlet") == 0) {
+  if (strstr(update->integrate_style,"verlet")) {
     dtv = update->dt;
     dtfsq = update->dt * update->dt * force->ftm2v;
   } else {

@@ -1,3 +1,27 @@
+This directory has source files to build a library that LAMMPS
+links against when using the POEMS package.
+
+When you are done building this library, two files should
+exist in this directory:
+
+libpoems.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
+
+The latter file will have settings like this (can be omitted if blank):
+
+poems_SYSINC =
+poems_SYSLIB =
+poems_SYSPATH =
+
+SYSINC is for settings needed to compile LAMMPS source files
+SYSLIB is for additional system libraries needed by this package
+SYSPATH is the path(s) to where those libraries are
+
+You must insure these settings are correct for your system, else
+the LAMMPS build will likely fail.
+
+-------------------------------------------------------------------------
+
 POEMS (Parallelizable Open source Efficient Multibody Software) library
 
 Rudranarayan Mukherjee, RPI

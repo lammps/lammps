@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "atom_vec_bond.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -23,9 +24,6 @@
 #include "comm.h" // for nthreads
 
 using namespace LAMMPS_NS;
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
 #define DELTA 10000
 
@@ -62,38 +60,27 @@ void AtomVecBond::grow(int n)
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
-    error->one("Per-processor system is too big");
+    error->one(FLERR,"Per-processor system is too big");
 
-  tag = atom->tag = (int *) 
-    memory->srealloc(atom->tag,nmax*sizeof(int),"atom:tag");
-  type = atom->type = (int *)
-    memory->srealloc(atom->type,nmax*sizeof(int),"atom:type");
-  mask = atom->mask = (int *) 
-    memory->srealloc(atom->mask,nmax*sizeof(int),"atom:mask");
-  image = atom->image = (int *) 
-    memory->srealloc(atom->image,nmax*sizeof(int),"atom:image");
-  x = atom->x = memory->grow_2d_double_array(atom->x,nmax,3,"atom:x");
-  v = atom->v = memory->grow_2d_double_array(atom->v,nmax,3,"atom:v");
-  f = atom->f = memory->grow_2d_double_array(atom->f,nmax*comm->nthreads,3,"atom:f");
+  tag = memory->grow(atom->tag,nmax,"atom:tag");
+  type = memory->grow(atom->type,nmax,"atom:type");
+  mask = memory->grow(atom->mask,nmax,"atom:mask");
+  image = memory->grow(atom->image,nmax,"atom:image");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
+  v = memory->grow(atom->v,nmax,3,"atom:v");
+  f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
-  molecule = atom->molecule = (int *) 
-    memory->srealloc(atom->molecule,nmax*sizeof(int),"atom:molecule");
+  molecule = memory->grow(atom->molecule,nmax,"atom:molecule");
 
-  nspecial = atom->nspecial =
-    memory->grow_2d_int_array(atom->nspecial,nmax,3,"atom:nspecial");
-  special = atom->special =
-    memory->grow_2d_int_array(atom->special,nmax,atom->maxspecial,
-			      "atom:special");
+  nspecial = memory->grow(atom->nspecial,nmax,3,"atom:nspecial");
+  special = memory->grow(atom->special,nmax,atom->maxspecial,"atom:special");
 
-  num_bond = atom->num_bond = (int *) 
-    memory->srealloc(atom->num_bond,nmax*sizeof(int),"atom:num_bond");
-  bond_type = atom->bond_type = 
-    memory->grow_2d_int_array(atom->bond_type,nmax,atom->bond_per_atom,
-			      "atom:bond_type");
-  bond_atom = atom->bond_atom = 
-    memory->grow_2d_int_array(atom->bond_atom,nmax,atom->bond_per_atom,
-			      "atom:bond_atom");
-
+  num_bond = memory->grow(atom->num_bond,nmax,"atom:num_bond");
+  bond_type = memory->grow(atom->bond_type,nmax,atom->bond_per_atom,
+			   "atom:bond_type");
+  bond_atom = memory->grow(atom->bond_atom,nmax,atom->bond_per_atom,
+			   "atom:bond_atom");
+  
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -114,9 +101,11 @@ void AtomVecBond::grow_reset()
   bond_atom = atom->bond_atom;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy atom I info to atom J
+------------------------------------------------------------------------- */
 
-void AtomVecBond::copy(int i, int j)
+void AtomVecBond::copy(int i, int j, int delflag)
 {
   int k;
 
@@ -433,10 +422,16 @@ int AtomVecBond::pack_border_vel(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecBond::pack_border_one(int i, double *buf)
+int AtomVecBond::pack_border_hybrid(int n, int *list, double *buf)
 {
-  buf[0] = molecule[i];
-  return 1;
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = molecule[j];
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -484,10 +479,15 @@ void AtomVecBond::unpack_border_vel(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecBond::unpack_border_one(int i, double *buf)
+int AtomVecBond::unpack_border_hybrid(int n, int first, double *buf)
 {
-  molecule[i] = static_cast<int> (buf[0]);
-  return 1;
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    molecule[i] = static_cast<int> (buf[m++]);
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -648,9 +648,7 @@ int AtomVecBond::unpack_restart(double *buf)
   if (nlocal == nmax) {
     grow(0);
     if (atom->nextra_store)
-      atom->extra = memory->grow_2d_double_array(atom->extra,nmax,
-						 atom->nextra_store,
-						 "atom:extra");
+      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
   int m = 1;
@@ -723,13 +721,13 @@ void AtomVecBond::data_atom(double *coord, int imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one("Invalid atom ID in Atoms section of data file");
+    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
 
   molecule[nlocal] = atoi(values[1]);
 
   type[nlocal] = atoi(values[2]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one("Invalid atom type in Atoms section of data file");
+    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   x[nlocal][0] = coord[0];
   x[nlocal][1] = coord[1];
@@ -764,27 +762,28 @@ int AtomVecBond::data_atom_hybrid(int nlocal, char **values)
    return # of bytes of allocated memory 
 ------------------------------------------------------------------------- */
 
-double AtomVecBond::memory_usage()
+bigint AtomVecBond::memory_usage()
 {
-  double bytes = 0.0;
+  bigint bytes = 0;
 
-  if (atom->memcheck("tag")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("type")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("mask")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("image")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("x")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("v")) bytes += nmax*3 * sizeof(double);
-  if (atom->memcheck("f")) bytes += nmax*3 * sizeof(double);
+  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
+  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
+  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
+  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
+  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
+  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
+  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
-  if (atom->memcheck("molecule")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("nspecial")) bytes += nmax*3 * sizeof(int);
-  if (atom->memcheck("special")) bytes += nmax*atom->maxspecial * sizeof(int);
+  if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
+  if (atom->memcheck("nspecial")) bytes += memory->usage(nspecial,nmax,3);
+  if (atom->memcheck("special")) 
+    bytes += memory->usage(special,nmax,atom->maxspecial);
 
-  if (atom->memcheck("num_bond")) bytes += nmax * sizeof(int);
-  if (atom->memcheck("bond_type"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
-  if (atom->memcheck("bond_atom"))
-    bytes += nmax*atom->bond_per_atom * sizeof(int);
+  if (atom->memcheck("num_bond")) bytes += memory->usage(num_bond,nmax);
+  if (atom->memcheck("bond_type")) 
+    bytes += memory->usage(bond_type,nmax,atom->bond_per_atom);
+  if (atom->memcheck("bond_atom")) 
+    bytes += memory->usage(bond_atom,nmax,atom->bond_per_atom);
 
   return bytes;
 }

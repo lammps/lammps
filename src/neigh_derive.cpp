@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::half_from_full_no_newton(NeighList *list)
 {
-  int i,j,ii,jj,n,jnum;
+  int i,j,ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
 
   int *ilist = list->ilist;
@@ -63,8 +63,9 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     jnum = numneigh_full[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      if (j > i) neighptr[n++] = j;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
+      if (j > i) neighptr[n++] = joriginal;
     }
 
     ilist[inum++] = i;
@@ -72,7 +73,7 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -93,7 +94,6 @@ void Neighbor::half_from_full_newton(NeighList *list)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -132,11 +132,11 @@ void Neighbor::half_from_full_newton(NeighList *list)
     jnum = numneigh_full[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (j < nlocal) {
 	if (i > j) continue;
       } else {
-	if (j >= nall) j %= nall;
 	if (x[j][2] < ztmp) continue;
 	if (x[j][2] == ztmp) {
 	  if (x[j][1] < ytmp) continue;
@@ -151,7 +151,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -161,6 +161,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
    this is for half and full lists
+   if ghostflag, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
 void Neighbor::skip_from(NeighList *list)
@@ -169,7 +170,7 @@ void Neighbor::skip_from(NeighList *list)
   int *neighptr,*jlist;
 
   int *type = atom->type;
-  int nall = atom->nlocal + atom->nghost;
+  int nlocal = atom->nlocal;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -178,7 +179,8 @@ void Neighbor::skip_from(NeighList *list)
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
-  int inum_skip = list->listskip->inum;
+  int num_skip = list->listskip->inum;
+  if (list->ghostflag) num_skip += list->listskip->gnum;
 
   int *iskip = list->iskip;
   int **ijskip = list->ijskip;
@@ -191,7 +193,7 @@ void Neighbor::skip_from(NeighList *list)
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
 
-  for (ii = 0; ii < inum_skip; ii++) {
+  for (ii = 0; ii < num_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
@@ -211,8 +213,8 @@ void Neighbor::skip_from(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n++] = joriginal;
     }
@@ -222,10 +224,18 @@ void Neighbor::skip_from(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
+  if (list->ghostflag) {
+    int num = 0;
+    for (i = 0; i < inum; i++)
+      if (ilist[i] < nlocal) num++;
+      else break;
+    list->inum = num;
+    list->gnum = inum - num;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -241,7 +251,6 @@ void Neighbor::skip_from_granular(NeighList *list)
   double *shearptr,*shearptr_skip;
 
   int *type = atom->type;
-  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -300,8 +309,8 @@ void Neighbor::skip_from_granular(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n] = joriginal;
       touchptr[n++] = touchptr_skip[jj];
@@ -317,7 +326,7 @@ void Neighbor::skip_from_granular(NeighList *list)
     firstshear[i] = shearptr;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
   }
 
   list->inum = inum;
@@ -335,7 +344,6 @@ void Neighbor::skip_from_respa(NeighList *list)
   int *neighptr,*jlist,*neighptr_inner,*neighptr_middle;
 
   int *type = atom->type;
-  int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -420,8 +428,8 @@ void Neighbor::skip_from_respa(NeighList *list)
     jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n++] = joriginal;
     }
@@ -432,8 +440,8 @@ void Neighbor::skip_from_respa(NeighList *list)
     jnum = numneigh_inner_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
-      j = joriginal = jlist[jj];
-      if (j >= nall) j %= nall;
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr_inner[n_inner++] = joriginal;
     }
@@ -445,8 +453,8 @@ void Neighbor::skip_from_respa(NeighList *list)
       jnum = numneigh_middle_skip[i];
 
       for (jj = 0; jj < jnum; jj++) {
-	j = joriginal = jlist[jj];
-	if (j >= nall) j %= nall;
+	joriginal = jlist[jj];
+	j = joriginal & NEIGHMASK;
 	if (ijskip[itype][type[j]]) continue;
 	neighptr_middle[n_middle++] = joriginal;
       }
@@ -457,20 +465,20 @@ void Neighbor::skip_from_respa(NeighList *list)
     numneigh[i] = n;
     npnt += n;
     if (n > oneatom || npnt >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
     if (npnt_inner >= pgsize)
-      error->one("Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
 
     if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (npnt_middle >= pgsize)
-	error->one("Neighbor list overflow, boost neigh_modify one or page");
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
     }
   }
 
@@ -486,6 +494,7 @@ void Neighbor::copy_from(NeighList *list)
   NeighList *listcopy = list->listcopy;
 
   list->inum = listcopy->inum;
+  list->gnum = listcopy->gnum;
   list->ilist = listcopy->ilist;
   list->numneigh = listcopy->numneigh;
   list->firstneigh = listcopy->firstneigh;

@@ -31,7 +31,7 @@ class NeighRequest : protected Pointers {
   int compute;
   int command;
 
-  // kind of list requested, one flag is 1, others are 0
+  // kind of list requested
   // set by requesting class
 
   int half;              // 1 if half neigh list
@@ -58,10 +58,27 @@ class NeighRequest : protected Pointers {
 
   int newton;
 
+  // 0 if user of list wants no encoding of special bond flags and all neighs
+  // 1 if user of list wants special bond flags encoded
+
+  int special;
+
   // number of auxiliary floating point values to store, 0 if none
   // set by requesting class
 
   int dnum;
+
+  // 1 if also need neighbors of ghosts
+
+  int ghost;
+
+  // 1 if neighbor list build will be done on GPU
+
+  int cudable;
+
+  // 1 if using multi-threaded neighbor list build
+
+  int omp;
 
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value

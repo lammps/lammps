@@ -14,7 +14,6 @@
 #ifndef LMP_COMPUTE_H
 #define LMP_COMPUTE_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -78,6 +77,8 @@ class Compute : protected Pointers {
   int comm_forward;   // size of forward communication (0 if none)
   int comm_reverse;   // size of reverse communication (0 if none)
 
+  int cudable;        // 1 if compute is CUDA-enabled
+
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);
@@ -122,6 +123,10 @@ class Compute : protected Pointers {
   int *molmap;                 // convert molecule ID to local index
 
   int molecules_in_group(int &, int &);
+
+  inline int sbmask(int j) {
+    return j >> SBBITS & 3;
+  }
 };
 
 }

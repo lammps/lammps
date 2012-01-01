@@ -37,15 +37,12 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  no_virial_compute=1;
+  no_virial_fdotr_compute=1;
 
   ifix_peri = -1;
 
@@ -65,13 +62,13 @@ PairPeriPMB::~PairPeriPMB()
   if (ifix_peri >= 0) modify->delete_fix("PERI_NEIGH");
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_double_array(kspring);
-    memory->destroy_2d_double_array(s00);
-    memory->destroy_2d_double_array(alpha);
-    memory->destroy_2d_double_array(cut);
-    memory->sfree(s0_new);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(kspring);
+    memory->destroy(s00);
+    memory->destroy(alpha);
+    memory->destroy(cut);
+    memory->destroy(s0_new);
   }
 }
 
@@ -111,7 +108,6 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   // short-range forces
 
-  int nall = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
   int periodic = (domain->xperiodic || domain->yperiodic || domain->zperiodic);
 
@@ -137,7 +133,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j %= nall;
+      j &= NEIGHMASK;
  
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -165,7 +161,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
         dr = r - d_ij;
 
         rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
-	  (dr / sqrt(cutsq[itype][jtype]));
+	  (dr / cut[itype][jtype]);
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
 
@@ -186,10 +182,10 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   // grow bond forces array if necessary
 
-  if (nlocal > nmax) {
-    memory->sfree(s0_new);
+  if (atom->nmax > nmax) {
+    memory->destroy(s0_new);
     nmax = atom->nmax;
-    s0_new = (double *) memory->smalloc(nmax*sizeof(double),"pair:s0_new");
+    memory->create(s0_new,nmax,"pair:s0_new");
   }
 
   // loop over my particles and their partners
@@ -227,7 +223,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      delta = sqrt(cutsq[itype][jtype]);
+      delta = cut[itype][jtype];
       r = sqrt(rsq);
       dr = r - r0[i][jj];
 
@@ -284,16 +280,16 @@ void PairPeriPMB::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
-  kspring = memory->create_2d_double_array(n+1,n+1,"pair:kspring");
-  s00 = memory->create_2d_double_array(n+1,n+1,"pair:s00");
-  alpha = memory->create_2d_double_array(n+1,n+1,"pair:alpha");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(kspring,n+1,n+1,"pair:kspring");
+  memory->create(s00,n+1,n+1,"pair:s00");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------
@@ -302,7 +298,7 @@ void PairPeriPMB::allocate()
 
 void PairPeriPMB::settings(int narg, char **arg)
 {
-  if (narg) error->all("Illegal pair_style command");
+  if (narg) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -311,7 +307,7 @@ void PairPeriPMB::settings(int narg, char **arg)
 
 void PairPeriPMB::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all("Incorrect args for pair coefficients");
+  if (narg != 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -335,7 +331,7 @@ void PairPeriPMB::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -344,16 +340,12 @@ void PairPeriPMB::coeff(int narg, char **arg)
 
 double PairPeriPMB::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
-
-  cutsq[i][j] = cut[i][j] * cut[i][j];
-  cutsq[j][i] = cutsq[i][j];
-
-  // set other j,i parameters
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   kspring[j][i] = kspring[i][j];
   alpha[j][i] = alpha[i][j];
   s00[j][i] = s00[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
@@ -366,18 +358,16 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
+  if (!atom->peri_flag) error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0) 
-    error->all("Pair peri requires an atom map, see atom_modify");
-
-  if (atom->style_match("peri") == 0)
-    error->all("Pair style peri_pmb requires atom style peri");
+    error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice == NULL)
-    error->all("Pair peri requires a lattice be defined");
+    error->all(FLERR,"Pair peri requires a lattice be defined");
   if (domain->lattice->xlattice != domain->lattice->ylattice || 
       domain->lattice->xlattice != domain->lattice->zlattice || 
       domain->lattice->ylattice != domain->lattice->zlattice)
-    error->all("Pair peri lattice is not identical in x, y, and z");
+    error->all(FLERR,"Pair peri lattice is not identical in x, y, and z");
 
   // if first init, create Fix needed for storing fixed neighbors
 
@@ -395,9 +385,9 @@ void PairPeriPMB::init_style()
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
-  if (ifix_peri == -1) error->all("Fix peri neigh does not exist");
+  if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

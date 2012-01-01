@@ -25,10 +25,12 @@
 #include "domain.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -42,10 +44,10 @@ ImproperUmbrella::ImproperUmbrella(LAMMPS *lmp) : Improper(lmp) {}
 ImproperUmbrella::~ImproperUmbrella()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(kw);
-    memory->sfree(w0);
-    memory->sfree(C);
+    memory->destroy(setflag);
+    memory->destroy(kw);
+    memory->destroy(w0);
+    memory->destroy(C);
   }
 }
 
@@ -133,7 +135,7 @@ void ImproperUmbrella::compute(int eflag, int vflag)
 		"Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -241,11 +243,11 @@ void ImproperUmbrella::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  kw = (double *) memory->smalloc((n+1)*sizeof(double),"improper:kw");
-  w0 = (double *) memory->smalloc((n+1)*sizeof(double),"improper:w0");
-  C = (double *) memory->smalloc((n+1)*sizeof(double),"improper:C");
+  memory->create(kw,n+1,"improper:kw");
+  memory->create(w0,n+1,"improper:w0");
+  memory->create(C,n+1,"improper:C");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -255,7 +257,7 @@ void ImproperUmbrella::allocate()
 
 void ImproperUmbrella::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all("Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -269,14 +271,14 @@ void ImproperUmbrella::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     kw[i] = k_one;
-    w0[i] = w_one/180.0 * PI;
+    w0[i] = w_one/180.0 * MY_PI;
     if (w_one == 0) C[i] = 1.0;
     else C[i] = kw[i]/(pow(sin(w0[i]),2));
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
 }
 
 /* ----------------------------------------------------------------------

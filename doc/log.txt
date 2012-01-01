@@ -30,7 +30,8 @@ the same log file.
 
 The file "log.lammps" is the default log file for a LAMMPS run.  The
 name of the initial log file can also be set by the command-line
-switch -log.  See "this section"_Section_start.html#2_6 for details.
+switch -log.  See "this section"_Section_start.html#start_6 for
+details.
 
 [Restrictions:] none
 

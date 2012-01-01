@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "fix_reax_c.h"
@@ -61,8 +67,8 @@ FixReaxC::~FixReaxC()
 
   // delete locally stored arrays
 
-  memory->sfree(num_bonds);
-  memory->sfree(num_hbonds);
+  memory->destroy(num_bonds);
+  memory->destroy(num_hbonds);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,10 +96,8 @@ double FixReaxC::memory_usage()
 
 void FixReaxC::grow_arrays(int nmax)
 {
-  num_bonds = (int *) memory->srealloc(num_bonds,nmax*sizeof(int),
-				       "reaxc:num_bonds");
-  num_hbonds = (int *) memory->srealloc(num_hbonds,nmax*sizeof(int),
-					"reaxc:num_hbonds");
+  memory->grow(num_bonds,nmax,"reaxc:num_bonds");
+  memory->grow(num_hbonds,nmax,"reaxc:num_hbonds");
 }
 
 /* ----------------------------------------------------------------------
@@ -152,5 +156,5 @@ void FixReaxC::unpack_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++)
-    num_bonds[i] = buf[m++];
+    num_bonds[i] = static_cast<int> (buf[m++]);
 }

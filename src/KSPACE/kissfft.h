@@ -7,11 +7,11 @@
 ------------------------------------------------------------------------- */
 
 /* 
-   we use a stripped down kiss fft as default fft 
-   this code is adapted from kiss_fft_v1_2_8 
+   we use a stripped down KISS FFT as default FFT for LAMMPS
+   this code is adapted from kiss_fft_v1_2_9
    homepage: http://kissfft.sf.net/ 
    
-   changes 2008-2010 by Axel Kohlmeyer <akohlmey@gmail.com>
+   changes 2008-2011 by Axel Kohlmeyer <akohlmey@gmail.com>
 */
 #ifndef LMP_FFT_KISSFFT
 #define LMP_FFT_KISSFFT
@@ -29,7 +29,7 @@
 #endif
 
 /*
-  Copyright (c) 2003-2008, Mark Borgerding
+  Copyright (c) 2003-2010, Mark Borgerding
 
   All rights reserved.
 
@@ -63,6 +63,7 @@
 */
 
 #define KISS_FFT_MALLOC malloc
+#define KISS_FFT_FREE free
 #define MAXFACTORS 32
 /* e.g. an fft of length 128 has 4 factors 
  as far as kissfft is concerned: 4*4*4*2  */
@@ -72,6 +73,19 @@ struct kiss_fft_state {
     int factors[2*MAXFACTORS];
     FFT_DATA twiddles[1];
 };
+
+#ifdef KISS_FFT_USE_ALLOCA
+// define this to allow use of alloca instead of malloc for temporary buffers
+// Temporary buffers are used in two case: 
+// 1. FFT sizes that have "bad" factors. i.e. not 2,3 and 5
+// 2. "in-place" FFTs.  Notice the quotes, since kissfft does not really do an in-place transform.
+#include <alloca.h>
+#define  KISS_FFT_TMP_ALLOC(nbytes) alloca(nbytes)
+#define  KISS_FFT_TMP_FREE(ptr) 
+#else
+#define  KISS_FFT_TMP_ALLOC(nbytes) KISS_FFT_MALLOC(nbytes)
+#define  KISS_FFT_TMP_FREE(ptr) KISS_FFT_FREE(ptr)
+#endif
 
 static kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
 static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
@@ -135,21 +149,6 @@ static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
 		(x)->re = KISS_FFT_COS(phase);\
 		(x)->im = KISS_FFT_SIN(phase);\
 	}while(0)
-
-static FFT_DATA *scratchbuf=NULL;
-static size_t nscratchbuf=0;
-static FFT_DATA *tmpbuf=NULL;
-static size_t ntmpbuf=0;
-
-#define CHECKBUF(buf,nbuf,n) \
-    do { \
-        if ( nbuf < (size_t)(n) ) {\
-            free(buf); \
-            buf = (FFT_DATA*)KISS_FFT_MALLOC(sizeof(FFT_DATA)*(n)); \
-            nbuf = (size_t)(n); \
-        } \
-   }while(0)
-
 
 static void kf_bfly2(FFT_DATA *Fout, const size_t fstride,
                      const kiss_fft_cfg st, int m)
@@ -320,29 +319,29 @@ static void kf_bfly_generic(FFT_DATA * Fout, const size_t fstride,
     FFT_DATA t;
     int Norig = st->nfft;
 
-    CHECKBUF(scratchbuf,nscratchbuf,p);
-
+    FFT_DATA * scratch = (FFT_DATA*)KISS_FFT_TMP_ALLOC(sizeof(FFT_DATA)*p);
     for ( u=0; u<m; ++u ) {
         k=u;
         for ( q1=0 ; q1<p ; ++q1 ) {
-            scratchbuf[q1] = Fout[ k  ];
-            C_FIXDIV(scratchbuf[q1],p);
+            scratch[q1] = Fout[ k  ];
+            C_FIXDIV(scratch[q1],p);
             k += m;
         }
 
         k=u;
         for ( q1=0 ; q1<p ; ++q1 ) {
             int twidx=0;
-            Fout[ k ] = scratchbuf[0];
+            Fout[ k ] = scratch[0];
             for (q=1;q<p;++q ) {
                 twidx += fstride * k;
                 if (twidx>=Norig) twidx-=Norig;
-                C_MUL(t,scratchbuf[q] , twiddles[twidx] );
+                C_MUL(t,scratch[q] , twiddles[twidx] );
                 C_ADDTO( Fout[ k ] ,t);
             }
             k += m;
         }
     }
+    KISS_FFT_TMP_FREE(scratch);
 }
 
 static void kf_work(FFT_DATA * Fout, const FFT_DATA *f,
@@ -450,9 +449,12 @@ static kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t 
 static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout, int in_stride)
 {
     if (fin == fout) {
-        CHECKBUF(tmpbuf,ntmpbuf,st->nfft);
+        // NOTE: this is not really an in-place FFT algorithm.
+        // It just performs an out-of-place FFT into a temp buffer
+        FFT_DATA * tmpbuf = (FFT_DATA*)KISS_FFT_TMP_ALLOC( sizeof(FFT_DATA)*st->nfft);
         kf_work(tmpbuf,fin,1,in_stride, st->factors,st);
         memcpy(fout,tmpbuf,sizeof(FFT_DATA)*st->nfft);
+	KISS_FFT_TMP_FREE(tmpbuf);
     }else{
         kf_work( fout, fin, 1,in_stride, st->factors,st );
     }
@@ -461,20 +463,6 @@ static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout
 static void kiss_fft(kiss_fft_cfg cfg, const FFT_DATA *fin, FFT_DATA *fout)
 {
     kiss_fft_stride(cfg,fin,fout,1);
-}
-
-
-/* not really necessary to call, but if someone is doing in-place ffts,
-   they may want to free the buffers from CHECKBUF
- */ 
-static void kiss_fft_cleanup(void)
-{
-    free(scratchbuf);
-    scratchbuf = NULL;
-    nscratchbuf=0;
-    free(tmpbuf);
-    tmpbuf=NULL;
-    ntmpbuf=0;
 }
 
 #endif

@@ -1,5 +1,5 @@
 <HTML>
-<CENTER><A HREF = "Section_start.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_howto.html">Next Section</A> 
+<CENTER><A HREF = "Section_start.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_packages.html">Next Section</A> 
 </CENTER>
 
 
@@ -11,18 +11,20 @@
 
 <H3>3. Commands 
 </H3>
-<P>This section describes how a LAMMPS input script is formatted and what
-commands are used to define a LAMMPS simulation.
+<P>This section describes how a LAMMPS input script is formatted and the
+input script commands used to define a LAMMPS simulation.
 </P>
-3.1 <A HREF = "#3_1">LAMMPS input script</A><BR>
-3.2 <A HREF = "#3_2">Parsing rules</A><BR>
-3.3 <A HREF = "#3_3">Input script structure</A><BR>
-3.4 <A HREF = "#3_4">Commands listed by category</A><BR>
-3.5 <A HREF = "#3_5">Commands listed alphabetically</A> <BR>
+3.1 <A HREF = "#cmd_1">LAMMPS input script</A><BR>
+3.2 <A HREF = "#cmd_2">Parsing rules</A><BR>
+3.3 <A HREF = "#cmd_3">Input script structure</A><BR>
+3.4 <A HREF = "#cmd_4">Commands listed by category</A><BR>
+3.5 <A HREF = "#cmd_5">Commands listed alphabetically</A> <BR>
 
 <HR>
 
-<A NAME = "3_1"></A><H4>3.1 LAMMPS input script 
+<HR>
+
+<A NAME = "cmd_1"></A><H4>3.1 LAMMPS input script 
 </H4>
 <P>LAMMPS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, LAMMPS exits.  Each
@@ -76,7 +78,7 @@ command lists restrictions on how the command can be used.
 </P>
 <HR>
 
-<A NAME = "3_2"></A><H4>3.2 Parsing rules 
+<A NAME = "cmd_2"></A><H4>3.2 Parsing rules 
 </H4>
 <P>Each non-blank line in the input script is treated as a command.
 LAMMPS commands are case sensitive.  Command names are lower-case, as
@@ -135,7 +137,7 @@ allowed, but that should be sufficient for most use cases.
 </P>
 <HR>
 
-<H4><A NAME = "3_3"></A>3.3 Input script structure 
+<H4><A NAME = "cmd_3"></A>3.3 Input script structure 
 </H4>
 <P>This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
@@ -225,11 +227,11 @@ the <A HREF = "minimize.html">minimize</A> command.  A parallel tempering
 </P>
 <HR>
 
-<A NAME = "3_4"></A><H4>3.4 Commands listed by category 
+<A NAME = "cmd_4"></A><H4>3.4 Commands listed by category 
 </H4>
 <P>This section lists all LAMMPS commands, grouped by category.  The
-<A HREF = "#3_5">next section</A> lists the same commands alphabetically.  Note that
-some style options for some commands are part of specific LAMMPS
+<A HREF = "#cmd_5">next section</A> lists the same commands alphabetically.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
@@ -264,12 +266,11 @@ in the command's documentation.
 </P>
 <P>Settings:
 </P>
-<P><A HREF = "communicate.html">communicate</A>, <A HREF = "dipole.html">dipole</A>,
-<A HREF = "group.html">group</A>, <A HREF = "mass.html">mass</A>, <A HREF = "min_modify.html">min_modify</A>,
-<A HREF = "min_style.html">min_style</A>, <A HREF = "neigh_modify.html">neigh_modify</A>,
-<A HREF = "neighbor.html">neighbor</A>, <A HREF = "reset_timestep.html">reset_timestep</A>,
-<A HREF = "run_style.html">run_style</A>, <A HREF = "set.html">set</A>, <A HREF = "shape.html">shape</A>,
-<A HREF = "timestep.html">timestep</A>, <A HREF = "velocity.html">velocity</A>
+<P><A HREF = "communicate.html">communicate</A>, <A HREF = "group.html">group</A>, <A HREF = "mass.html">mass</A>,
+<A HREF = "min_modify.html">min_modify</A>, <A HREF = "min_style.html">min_style</A>,
+<A HREF = "neigh_modify.html">neigh_modify</A>, <A HREF = "neighbor.html">neighbor</A>,
+<A HREF = "reset_timestep.html">reset_timestep</A>, <A HREF = "run_style.html">run_style</A>,
+<A HREF = "set.html">set</A>, <A HREF = "timestep.html">timestep</A>, <A HREF = "velocity.html">velocity</A>
 </P>
 <P>Fixes:
 </P>
@@ -282,10 +283,11 @@ in the command's documentation.
 </P>
 <P>Output:
 </P>
-<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>,
-<A HREF = "restart.html">restart</A>, <A HREF = "thermo.html">thermo</A>,
-<A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "thermo_style.html">thermo_style</A>,
-<A HREF = "undump.html">undump</A>, <A HREF = "write_restart.html">write_restart</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>,
+<A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "restart.html">restart</A>,
+<A HREF = "thermo.html">thermo</A>, <A HREF = "thermo_modify.html">thermo_modify</A>,
+<A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "undump.html">undump</A>,
+<A HREF = "write_restart.html">write_restart</A>
 </P>
 <P>Actions:
 </P>
@@ -303,12 +305,12 @@ in the command's documentation.
 </P>
 <HR>
 
-<H4><A NAME = "3_5"></A><A NAME = "comm"></A>3.5 Individual commands 
+<H4><A NAME = "cmd_5"></A><A NAME = "comm"></A>3.5 Individual commands 
 </H4>
 <P>This section lists all LAMMPS commands alphabetically, with a separate
-listing below of styles within certain commands.  The <A HREF = "#3_4">previous
-section</A> lists the same commands, grouped by category.  Note that
-some style options for some commands are part of specific LAMMPS
+listing below of styles within certain commands.  The <A HREF = "#cmd_4">previous
+section</A> lists the same commands, grouped by category.  Note
+that some style options for some commands are part of specific LAMMPS
 packages, which means they cannot be used unless the package was
 included when LAMMPS was built.  Not all packages are included in a
 default LAMMPS build.  These dependencies are listed as Restrictions
@@ -318,17 +320,17 @@ in the command's documentation.
 <TR ALIGN="center"><TD ><A HREF = "angle_coeff.html">angle_coeff</A></TD><TD ><A HREF = "angle_style.html">angle_style</A></TD><TD ><A HREF = "atom_modify.html">atom_modify</A></TD><TD ><A HREF = "atom_style.html">atom_style</A></TD><TD ><A HREF = "bond_coeff.html">bond_coeff</A></TD><TD ><A HREF = "bond_style.html">bond_style</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "boundary.html">boundary</A></TD><TD ><A HREF = "change_box.html">change_box</A></TD><TD ><A HREF = "clear.html">clear</A></TD><TD ><A HREF = "communicate.html">communicate</A></TD><TD ><A HREF = "compute.html">compute</A></TD><TD ><A HREF = "compute_modify.html">compute_modify</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "create_atoms.html">create_atoms</A></TD><TD ><A HREF = "create_box.html">create_box</A></TD><TD ><A HREF = "delete_atoms.html">delete_atoms</A></TD><TD ><A HREF = "delete_bonds.html">delete_bonds</A></TD><TD ><A HREF = "dielectric.html">dielectric</A></TD><TD ><A HREF = "dihedral_coeff.html">dihedral_coeff</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "dihedral_style.html">dihedral_style</A></TD><TD ><A HREF = "dimension.html">dimension</A></TD><TD ><A HREF = "dipole.html">dipole</A></TD><TD ><A HREF = "displace_atoms.html">displace_atoms</A></TD><TD ><A HREF = "displace_box.html">displace_box</A></TD><TD ><A HREF = "dump.html">dump</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "dihedral_style.html">dihedral_style</A></TD><TD ><A HREF = "dimension.html">dimension</A></TD><TD ><A HREF = "displace_atoms.html">displace_atoms</A></TD><TD ><A HREF = "displace_box.html">displace_box</A></TD><TD ><A HREF = "dump.html">dump</A></TD><TD ><A HREF = "dump_image.html">dump image</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "dump_modify.html">dump_modify</A></TD><TD ><A HREF = "echo.html">echo</A></TD><TD ><A HREF = "fix.html">fix</A></TD><TD ><A HREF = "fix_modify.html">fix_modify</A></TD><TD ><A HREF = "group.html">group</A></TD><TD ><A HREF = "if.html">if</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "improper_coeff.html">improper_coeff</A></TD><TD ><A HREF = "improper_style.html">improper_style</A></TD><TD ><A HREF = "include.html">include</A></TD><TD ><A HREF = "jump.html">jump</A></TD><TD ><A HREF = "kspace_modify.html">kspace_modify</A></TD><TD ><A HREF = "kspace_style.html">kspace_style</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "label.html">label</A></TD><TD ><A HREF = "lattice.html">lattice</A></TD><TD ><A HREF = "log.html">log</A></TD><TD ><A HREF = "mass.html">mass</A></TD><TD ><A HREF = "minimize.html">minimize</A></TD><TD ><A HREF = "min_modify.html">min_modify</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "min_style.html">min_style</A></TD><TD ><A HREF = "neb.html">neb</A></TD><TD ><A HREF = "neigh_modify.html">neigh_modify</A></TD><TD ><A HREF = "neighbor.html">neighbor</A></TD><TD ><A HREF = "newton.html">newton</A></TD><TD ><A HREF = "next.html">next</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "nthreads.html">nthreads</A></TD><TD ><A HREF = "pair_coeff.html">pair_coeff</A></TD><TD ><A HREF = "pair_modify.html">pair_modify</A></TD><TD ><A HREF = "pair_style.html">pair_style</A></TD><TD ><A HREF = "pair_write.html">pair_write</A></TD><TD ><A HREF = "prd.html">prd</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "print.html">print</A></TD><TD ><A HREF = "processors.html">processors</A></TD><TD ><A HREF = "read_data.html">read_data</A></TD><TD ><A HREF = "read_restart.html">read_restart</A></TD><TD ><A HREF = "region.html">region</A></TD><TD ><A HREF = "replicate.html">replicate</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "reset_timestep.html">reset_timestep</A></TD><TD ><A HREF = "restart.html">restart</A></TD><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "run_style.html">run_style</A></TD><TD ><A HREF = "set.html">set</A></TD><TD ><A HREF = "shape.html">shape</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "special_bonds.html">special_bonds</A></TD><TD ><A HREF = "tad.html">tad</A></TD><TD ><A HREF = "temper.html">temper</A></TD><TD ><A HREF = "thermo.html">thermo</A></TD><TD ><A HREF = "thermo_modify.html">thermo_modify</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "thermo_style.html">thermo_style</A></TD><TD ><A HREF = "timestep.html">timestep</A></TD><TD ><A HREF = "uncompute.html">uncompute</A></TD><TD ><A HREF = "undump.html">undump</A></TD><TD ><A HREF = "unfix.html">unfix</A></TD><TD ><A HREF = "units.html">units</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "velocity.html">velocity</A></TD><TD ><A HREF = "write_restart.html">write_restart</A> 
+<TR ALIGN="center"><TD ><A HREF = "package.html">package</A></TD><TD ><A HREF = "pair_coeff.html">pair_coeff</A></TD><TD ><A HREF = "pair_modify.html">pair_modify</A></TD><TD ><A HREF = "pair_style.html">pair_style</A></TD><TD ><A HREF = "pair_write.html">pair_write</A></TD><TD ><A HREF = "partition.html">partition</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "prd.html">prd</A></TD><TD ><A HREF = "print.html">print</A></TD><TD ><A HREF = "processors.html">processors</A></TD><TD ><A HREF = "read_data.html">read_data</A></TD><TD ><A HREF = "read_restart.html">read_restart</A></TD><TD ><A HREF = "region.html">region</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "replicate.html">replicate</A></TD><TD ><A HREF = "reset_timestep.html">reset_timestep</A></TD><TD ><A HREF = "restart.html">restart</A></TD><TD ><A HREF = "run.html">run</A></TD><TD ><A HREF = "run_style.html">run_style</A></TD><TD ><A HREF = "set.html">set</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "shell.html">shell</A></TD><TD ><A HREF = "special_bonds.html">special_bonds</A></TD><TD ><A HREF = "suffix.html">suffix</A></TD><TD ><A HREF = "tad.html">tad</A></TD><TD ><A HREF = "temper.html">temper</A></TD><TD ><A HREF = "thermo.html">thermo</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "thermo_modify.html">thermo_modify</A></TD><TD ><A HREF = "thermo_style.html">thermo_style</A></TD><TD ><A HREF = "timestep.html">timestep</A></TD><TD ><A HREF = "uncompute.html">uncompute</A></TD><TD ><A HREF = "undump.html">undump</A></TD><TD ><A HREF = "unfix.html">unfix</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "units.html">units</A></TD><TD ><A HREF = "variable.html">variable</A></TD><TD ><A HREF = "velocity.html">velocity</A></TD><TD ><A HREF = "write_restart.html">write_restart</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -341,22 +343,35 @@ of each style or click on the style itself for a full description:
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "fix_adapt.html">adapt</A></TD><TD ><A HREF = "fix_addforce.html">addforce</A></TD><TD ><A HREF = "fix_aveforce.html">aveforce</A></TD><TD ><A HREF = "fix_ave_atom.html">ave/atom</A></TD><TD ><A HREF = "fix_ave_correlate.html">ave/correlate</A></TD><TD ><A HREF = "fix_ave_histo.html">ave/histo</A></TD><TD ><A HREF = "fix_ave_spatial.html">ave/spatial</A></TD><TD ><A HREF = "fix_ave_time.html">ave/time</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "fix_bond_break.html">bond/break</A></TD><TD ><A HREF = "fix_bond_create.html">bond/create</A></TD><TD ><A HREF = "fix_bond_swap.html">bond/swap</A></TD><TD ><A HREF = "fix_box_relax.html">box/relax</A></TD><TD ><A HREF = "fix_deform.html">deform</A></TD><TD ><A HREF = "fix_deposit.html">deposit</A></TD><TD ><A HREF = "fix_drag.html">drag</A></TD><TD ><A HREF = "fix_dt_reset.html">dt/reset</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_efield.html">efield</A></TD><TD ><A HREF = "fix_enforce2d.html">enforce2d</A></TD><TD ><A HREF = "fix_evaporate.html">evaporate</A></TD><TD ><A HREF = "fix_external.html">external</A></TD><TD ><A HREF = "fix_freeze.html">freeze</A></TD><TD ><A HREF = "fix_gravity.html">gravity</A></TD><TD ><A HREF = "fix_heat.html">heat</A></TD><TD ><A HREF = "fix_indent.html">indent</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_langevin.html">langevin</A></TD><TD ><A HREF = "fix_lineforce.html">lineforce</A></TD><TD ><A HREF = "fix_momentum.html">momentum</A></TD><TD ><A HREF = "fix_move.html">move</A></TD><TD ><A HREF = "fix_msst.html">msst</A></TD><TD ><A HREF = "fix_neb.html">neb</A></TD><TD ><A HREF = "fix_nh.html">nph</A></TD><TD ><A HREF = "fix_nph_asphere.html">nph/asphere</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_nph_sphere.html">nph/sphere</A></TD><TD ><A HREF = "fix_nh.html">npt</A></TD><TD ><A HREF = "fix_npt_asphere.html">npt/asphere</A></TD><TD ><A HREF = "fix_npt_sphere.html">npt/sphere</A></TD><TD ><A HREF = "fix_nve.html">nve</A></TD><TD ><A HREF = "fix_nve_asphere.html">nve/asphere</A></TD><TD ><A HREF = "fix_nve_limit.html">nve/limit</A></TD><TD ><A HREF = "fix_nve_noforce.html">nve/noforce</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_nve_sphere.html">nve/sphere</A></TD><TD ><A HREF = "fix_nh.html">nvt</A></TD><TD ><A HREF = "fix_nvt_asphere.html">nvt/asphere</A></TD><TD ><A HREF = "fix_nvt_sllod.html">nvt/sllod</A></TD><TD ><A HREF = "fix_nvt_sphere.html">nvt/sphere</A></TD><TD ><A HREF = "fix_orient_fcc.html">orient/fcc</A></TD><TD ><A HREF = "fix_planeforce.html">planeforce</A></TD><TD ><A HREF = "fix_poems.html">poems</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_pour.html">pour</A></TD><TD ><A HREF = "fix_press_berendsen.html">press/berendsen</A></TD><TD ><A HREF = "fix_print.html">print</A></TD><TD ><A HREF = "fix_qeq_comb.html">qeq/comb</A></TD><TD ><A HREF = "fix_reax_bonds.html">reax/bonds</A></TD><TD ><A HREF = "fix_recenter.html">recenter</A></TD><TD ><A HREF = "fix_rigid.html">rigid</A></TD><TD ><A HREF = "fix_rigid.html">rigid/nve</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_rigid.html">rigid/nvt</A></TD><TD ><A HREF = "fix_setforce.html">setforce</A></TD><TD ><A HREF = "fix_shake.html">shake</A></TD><TD ><A HREF = "fix_spring.html">spring</A></TD><TD ><A HREF = "fix_spring_rg.html">spring/rg</A></TD><TD ><A HREF = "fix_spring_self.html">spring/self</A></TD><TD ><A HREF = "fix_srd.html">srd</A></TD><TD ><A HREF = "fix_store_force.html">store/force</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_store_state.html">store/state</A></TD><TD ><A HREF = "fix_temp_berendsen.html">temp/berendsen</A></TD><TD ><A HREF = "fix_temp_rescale.html">temp/rescale</A></TD><TD ><A HREF = "fix_thermal_conductivity.html">thermal/conductivity</A></TD><TD ><A HREF = "fix_tmd.html">tmd</A></TD><TD ><A HREF = "fix_ttm.html">ttm</A></TD><TD ><A HREF = "fix_viscosity.html">viscosity</A></TD><TD ><A HREF = "fix_viscous.html">viscous</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_wall.html">wall/colloid</A></TD><TD ><A HREF = "fix_wall_gran.html">wall/gran</A></TD><TD ><A HREF = "fix_wall.html">wall/harmonic</A></TD><TD ><A HREF = "fix_wall.html">wall/lj126</A></TD><TD ><A HREF = "fix_wall.html">wall/lj93</A></TD><TD ><A HREF = "fix_wall_reflect.html">wall/reflect</A></TD><TD ><A HREF = "fix_wall_region.html">wall/region</A></TD><TD ><A HREF = "fix_wall_srd.html">wall/srd</A> 
+<TR ALIGN="center"><TD ><A HREF = "fix_efield.html">efield</A></TD><TD ><A HREF = "fix_enforce2d.html">enforce2d</A></TD><TD ><A HREF = "fix_evaporate.html">evaporate</A></TD><TD ><A HREF = "fix_external.html">external</A></TD><TD ><A HREF = "fix_freeze.html">freeze</A></TD><TD ><A HREF = "fix_gcmc.html">gcmc</A></TD><TD ><A HREF = "fix_gravity.html">gravity</A></TD><TD ><A HREF = "fix_heat.html">heat</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_indent.html">indent</A></TD><TD ><A HREF = "fix_langevin.html">langevin</A></TD><TD ><A HREF = "fix_lineforce.html">lineforce</A></TD><TD ><A HREF = "fix_momentum.html">momentum</A></TD><TD ><A HREF = "fix_move.html">move</A></TD><TD ><A HREF = "fix_msst.html">msst</A></TD><TD ><A HREF = "fix_neb.html">neb</A></TD><TD ><A HREF = "fix_nh.html">nph</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nphug.html">nphug</A></TD><TD ><A HREF = "fix_nph_asphere.html">nph/asphere</A></TD><TD ><A HREF = "fix_nph_sphere.html">nph/sphere</A></TD><TD ><A HREF = "fix_nh.html">npt</A></TD><TD ><A HREF = "fix_npt_asphere.html">npt/asphere</A></TD><TD ><A HREF = "fix_npt_sphere.html">npt/sphere</A></TD><TD ><A HREF = "fix_nve.html">nve</A></TD><TD ><A HREF = "fix_nve_asphere.html">nve/asphere</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nve_asphere_noforce.html">nve/asphere/noforce</A></TD><TD ><A HREF = "fix_nve_limit.html">nve/limit</A></TD><TD ><A HREF = "fix_nve_line.html">nve/line</A></TD><TD ><A HREF = "fix_nve_noforce.html">nve/noforce</A></TD><TD ><A HREF = "fix_nve_sphere.html">nve/sphere</A></TD><TD ><A HREF = "fix_nve_tri.html">nve/tri</A></TD><TD ><A HREF = "fix_nh.html">nvt</A></TD><TD ><A HREF = "fix_nvt_asphere.html">nvt/asphere</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nvt_sllod.html">nvt/sllod</A></TD><TD ><A HREF = "fix_nvt_sphere.html">nvt/sphere</A></TD><TD ><A HREF = "fix_orient_fcc.html">orient/fcc</A></TD><TD ><A HREF = "fix_planeforce.html">planeforce</A></TD><TD ><A HREF = "fix_poems.html">poems</A></TD><TD ><A HREF = "fix_pour.html">pour</A></TD><TD ><A HREF = "fix_press_berendsen.html">press/berendsen</A></TD><TD ><A HREF = "fix_print.html">print</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_qeq_comb.html">qeq/comb</A></TD><TD ><A HREF = "fix_reax_bonds.html">reax/bonds</A></TD><TD ><A HREF = "fix_recenter.html">recenter</A></TD><TD ><A HREF = "fix_restrain.html">restrain</A></TD><TD ><A HREF = "fix_rigid.html">rigid</A></TD><TD ><A HREF = "fix_rigid.html">rigid/nve</A></TD><TD ><A HREF = "fix_rigid.html">rigid/nvt</A></TD><TD ><A HREF = "fix_setforce.html">setforce</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_shake.html">shake</A></TD><TD ><A HREF = "fix_spring.html">spring</A></TD><TD ><A HREF = "fix_spring_rg.html">spring/rg</A></TD><TD ><A HREF = "fix_spring_self.html">spring/self</A></TD><TD ><A HREF = "fix_srd.html">srd</A></TD><TD ><A HREF = "fix_store_force.html">store/force</A></TD><TD ><A HREF = "fix_store_state.html">store/state</A></TD><TD ><A HREF = "fix_temp_berendsen.html">temp/berendsen</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_temp_rescale.html">temp/rescale</A></TD><TD ><A HREF = "fix_thermal_conductivity.html">thermal/conductivity</A></TD><TD ><A HREF = "fix_tmd.html">tmd</A></TD><TD ><A HREF = "fix_ttm.html">ttm</A></TD><TD ><A HREF = "fix_viscosity.html">viscosity</A></TD><TD ><A HREF = "fix_viscous.html">viscous</A></TD><TD ><A HREF = "fix_wall.html">wall/colloid</A></TD><TD ><A HREF = "fix_wall_gran.html">wall/gran</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_wall.html">wall/harmonic</A></TD><TD ><A HREF = "fix_wall.html">wall/lj126</A></TD><TD ><A HREF = "fix_wall.html">wall/lj93</A></TD><TD ><A HREF = "fix_wall_reflect.html">wall/reflect</A></TD><TD ><A HREF = "fix_wall_region.html">wall/region</A></TD><TD ><A HREF = "fix_wall_srd.html">wall/srd</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are fix styles contributed by users, which can be used if
-<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "fix_atc.html">atc</A></TD><TD ><A HREF = "fix_imd.html">imd</A></TD><TD ><A HREF = "fix_langevin_eff.html">langevin/eff</A></TD><TD ><A HREF = "fix_nh_eff.html">nph/eff</A></TD><TD ><A HREF = "fix_nh_eff.html">npt/eff</A></TD><TD ><A HREF = "fix_nve_eff.html">nve/eff</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "fix_nh_eff.html">nvt/eff</A></TD><TD ><A HREF = "fix_nvt_sllod_eff.html">nvt/sllod/eff</A></TD><TD ><A HREF = "fix_qeq_reax.html">qeq/reax</A></TD><TD ><A HREF = "fix_smd.html">smd</A></TD><TD ><A HREF = "fix_temp_rescale_eff.html">temp/rescale/eff</A> 
+<TR ALIGN="center"><TD ><A HREF = "fix_addtorque.html">addtorque</A></TD><TD ><A HREF = "fix_atc.html">atc</A></TD><TD ><A HREF = "fix_imd.html">imd</A></TD><TD ><A HREF = "fix_langevin_eff.html">langevin/eff</A></TD><TD ><A HREF = "fix_meso.html">meso</A></TD><TD ><A HREF = "fix_meso_stationary.html">meso/stationary</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nh_eff.html">nph/eff</A></TD><TD ><A HREF = "fix_nh_eff.html">npt/eff</A></TD><TD ><A HREF = "fix_nve_eff.html">nve/eff</A></TD><TD ><A HREF = "fix_nh_eff.html">nvt/eff</A></TD><TD ><A HREF = "fix_nvt_sllod_eff.html">nvt/sllod/eff</A></TD><TD ><A HREF = "fix_qeq_reax.html">qeq/reax</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_smd.html">smd</A></TD><TD ><A HREF = "fix_temp_rescale_eff.html">temp/rescale/eff</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated fix styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "fix_freeze.html">freeze/cuda</A></TD><TD ><A HREF = "fix_addforce.html">addforce/cuda</A></TD><TD ><A HREF = "fix_aveforce.html">aveforce/cuda</A></TD><TD ><A HREF = "fix_enforce2d.html">enforce2d/cuda</A></TD><TD ><A HREF = "fix_gravity.html">gravity/cuda</A></TD><TD ><A HREF = "fix_gravity.html">gravity/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_nh.html">npt/cuda</A></TD><TD ><A HREF = "fix_nh.html">nve/cuda</A></TD><TD ><A HREF = "fix_nve_sphere.html">nve/sphere/omp</A></TD><TD ><A HREF = "fix_nh.html">nvt/cuda</A></TD><TD ><A HREF = "fix_qeq_comb.html">qeq/comb/omp</A></TD><TD ><A HREF = "fix_setforce.html">setforce/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "fix_shake.html">shake/cuda</A></TD><TD ><A HREF = "fix_temp_berendsen.html">temp/berendsen/cuda</A></TD><TD ><A HREF = "fix_temp_rescale.html">temp/rescale/cuda</A></TD><TD ><A HREF = "fix_temp_rescale.html">temp/rescale/limit/cuda</A></TD><TD ><A HREF = "fix_viscous.html">viscous/cuda</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -372,16 +387,26 @@ each style or click on the style itself for a full description:
 <TR ALIGN="center"><TD ><A HREF = "compute_erotate_asphere.html">erotate/asphere</A></TD><TD ><A HREF = "compute_erotate_sphere.html">erotate/sphere</A></TD><TD ><A HREF = "compute_event_displace.html">event/displace</A></TD><TD ><A HREF = "compute_group_group.html">group/group</A></TD><TD ><A HREF = "compute_gyration.html">gyration</A></TD><TD ><A HREF = "compute_gyration_molecule.html">gyration/molecule</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "compute_heat_flux.html">heat/flux</A></TD><TD ><A HREF = "compute_improper_local.html">improper/local</A></TD><TD ><A HREF = "compute_ke.html">ke</A></TD><TD ><A HREF = "compute_ke_atom.html">ke/atom</A></TD><TD ><A HREF = "compute_msd.html">msd</A></TD><TD ><A HREF = "compute_msd_molecule.html">msd/molecule</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "compute_pair.html">pair</A></TD><TD ><A HREF = "compute_pair_local.html">pair/local</A></TD><TD ><A HREF = "compute_pe.html">pe</A></TD><TD ><A HREF = "compute_pe_atom.html">pe/atom</A></TD><TD ><A HREF = "compute_pressure.html">pressure</A></TD><TD ><A HREF = "compute_property_atom.html">property/atom</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "compute_property_local.html">property/local</A></TD><TD ><A HREF = "compute_property_molecule.html">property/molecule</A></TD><TD ><A HREF = "compute_rdf.html">rdf</A></TD><TD ><A HREF = "compute_reduce.html">reduce</A></TD><TD ><A HREF = "compute_reduce.html">reduce/region</A></TD><TD ><A HREF = "compute_stress_atom.html">stress/atom</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "compute_temp.html">temp</A></TD><TD ><A HREF = "compute_temp_asphere.html">temp/asphere</A></TD><TD ><A HREF = "compute_temp_com.html">temp/com</A></TD><TD ><A HREF = "compute_temp_deform.html">temp/deform</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD><TD ><A HREF = "compute_temp_profile.html">temp/profile</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A></TD><TD ><A HREF = "compute_temp_sphere.html">temp/sphere</A></TD><TD ><A HREF = "compute_ti.html">ti</A> 
+<TR ALIGN="center"><TD ><A HREF = "compute_property_local.html">property/local</A></TD><TD ><A HREF = "compute_property_molecule.html">property/molecule</A></TD><TD ><A HREF = "compute_rdf.html">rdf</A></TD><TD ><A HREF = "compute_reduce.html">reduce</A></TD><TD ><A HREF = "compute_reduce.html">reduce/region</A></TD><TD ><A HREF = "compute_slice.html">slice</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "compute_stress_atom.html">stress/atom</A></TD><TD ><A HREF = "compute_temp.html">temp</A></TD><TD ><A HREF = "compute_temp_asphere.html">temp/asphere</A></TD><TD ><A HREF = "compute_temp_com.html">temp/com</A></TD><TD ><A HREF = "compute_temp_deform.html">temp/deform</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "compute_temp_profile.html">temp/profile</A></TD><TD ><A HREF = "compute_temp_ramp.html">temp/ramp</A></TD><TD ><A HREF = "compute_temp_region.html">temp/region</A></TD><TD ><A HREF = "compute_temp_sphere.html">temp/sphere</A></TD><TD ><A HREF = "compute_ti.html">ti</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are compute styles contributed by users, which can be used if
-<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "compute_ackland_atom.html">ackland/atom</A></TD><TD ><A HREF = "compute_ke_eff.html">ke/eff</A></TD><TD ><A HREF = "compute_ke_atom_eff.html">ke/atom/eff</A></TD><TD ><A HREF = "compute_temp_eff.html">temp/eff</A></TD><TD ><A HREF = "compute_temp_deform_eff.html">temp/deform/eff</A></TD><TD ><A HREF = "compute_temp_region_eff.html">temp/region/eff</A> 
+<TR ALIGN="center"><TD ><A HREF = "compute_ackland_atom.html">ackland/atom</A></TD><TD ><A HREF = "compute_ke_eff.html">ke/eff</A></TD><TD ><A HREF = "compute_ke_atom_eff.html">ke/atom/eff</A></TD><TD ><A HREF = "compute_meso_e_atom.html">meso_e/atom</A></TD><TD ><A HREF = "compute_meso_rho_atom.html">meso_rho/atom</A></TD><TD ><A HREF = "compute_meso_t_atom.html">meso_t/atom</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "compute_temp_eff.html">temp/eff</A></TD><TD ><A HREF = "compute_temp_deform_eff.html">temp/deform/eff</A></TD><TD ><A HREF = "compute_temp_region_eff.html">temp/region/eff</A></TD><TD ><A HREF = "compute_temp_rotate.html">temp/rotate</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated compute styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "compute_pe.html">pe/cuda</A></TD><TD ><A HREF = "compute_pressure.html">pressure/cuda</A></TD><TD ><A HREF = "compute_temp.html">temp/cuda</A></TD><TD ><A HREF = "compute_temp_partial.html">temp/partial/cuda</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -392,33 +417,72 @@ each style or click on the style itself for a full description:
 potentials.  Click on the style itself for a full description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "pair_none.html">none</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid/overlay</A></TD><TD ><A HREF = "pair_airebo.html">airebo</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_born.html">born</A></TD><TD ><A HREF = "pair_born.html">born/coul/long</A></TD><TD ><A HREF = "pair_buck.html">buck</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_buck.html">buck/coul/long</A></TD><TD ><A HREF = "pair_colloid.html">colloid</A></TD><TD ><A HREF = "pair_comb.html">comb</A></TD><TD ><A HREF = "pair_coul.html">coul/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/debye</A></TD><TD ><A HREF = "pair_coul.html">coul/long</A></TD><TD ><A HREF = "pair_dipole.html">dipole/cut</A></TD><TD ><A HREF = "pair_dpd.html">dpd</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_dpd.html">dpd/tstat</A></TD><TD ><A HREF = "pair_dsmc.html">dsmc</A></TD><TD ><A HREF = "pair_eam.html">eam</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/alloy</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/fs</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eim.html">eim</A></TD><TD ><A HREF = "pair_gauss.html">gauss</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hertz/history</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/lj</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/morse</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/gpu</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD><TD ><A HREF = "pair_class2.html">lj/class2</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD><TD ><A HREF = "pair_lj96_cut.html">lj96/cut</A></TD><TD ><A HREF = "pair_lj96_cut.html">lj96/cut/gpu</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD ><A HREF = "pair_meam.html">meam</A></TD><TD ><A HREF = "pair_morse.html">morse</A></TD><TD ><A HREF = "pair_morse.html">morse/opt</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_peri.html">peri/lps</A></TD><TD ><A HREF = "pair_peri.html">peri/pmb</A></TD><TD ><A HREF = "pair_reax.html">reax</A></TD><TD ><A HREF = "pair_resquared.html">resquared</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_none.html">none</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid</A></TD><TD ><A HREF = "pair_hybrid.html">hybrid/overlay</A></TD><TD ><A HREF = "pair_adp.html">adp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_airebo.html">airebo</A></TD><TD ><A HREF = "pair_born.html">born</A></TD><TD ><A HREF = "pair_born.html">born/coul/long</A></TD><TD ><A HREF = "pair_brownian.html">brownian</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_brownian.html">brownian/poly</A></TD><TD ><A HREF = "pair_buck.html">buck</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/long</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_colloid.html">colloid</A></TD><TD ><A HREF = "pair_comb.html">comb</A></TD><TD ><A HREF = "pair_coul.html">coul/cut</A></TD><TD ><A HREF = "pair_coul.html">coul/debye</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/long</A></TD><TD ><A HREF = "pair_dipole.html">dipole/cut</A></TD><TD ><A HREF = "pair_dpd.html">dpd</A></TD><TD ><A HREF = "pair_dpd.html">dpd/tstat</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_dsmc.html">dsmc</A></TD><TD ><A HREF = "pair_eam.html">eam</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy</A></TD><TD ><A HREF = "pair_eam.html">eam/fs</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eim.html">eim</A></TD><TD ><A HREF = "pair_gauss.html">gauss</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne</A></TD><TD ><A HREF = "pair_gran.html">gran/hertz/history</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hooke</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/lj</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/morse</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_line_lj.html">line/lj</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj96.html">lj96/cut</A></TD><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD ><A HREF = "pair_lubricate.html">lubricate/poly</A></TD><TD ><A HREF = "pair_lubricateU.html">lubricateU</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lubricateU.html">lubricateU/poly</A></TD><TD ><A HREF = "pair_meam.html">meam</A></TD><TD ><A HREF = "pair_morse.html">morse</A></TD><TD ><A HREF = "pair_peri.html">peri/lps</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_peri.html">peri/pmb</A></TD><TD ><A HREF = "pair_reax.html">reax</A></TD><TD ><A HREF = "pair_airebo.html">rebo</A></TD><TD ><A HREF = "pair_resquared.html">resquared</A></TD></TR>
 <TR ALIGN="center"><TD ><A HREF = "pair_soft.html">soft</A></TD><TD ><A HREF = "pair_sw.html">sw</A></TD><TD ><A HREF = "pair_table.html">table</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa</A></TD><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid</A> 
+<TR ALIGN="center"><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl</A></TD><TD ><A HREF = "pair_tri_lj.html">tri/lj</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa</A></TD><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are pair styles contributed by users, which can be used if
-<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "pair_buck_coul.html">buck/coul</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/gpu</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/cut</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/long</A></TD><TD ><A HREF = "pair_coul_diel.html">coul/diel</A></TD><TD ><A HREF = "pair_cmm.html">cg/cmm/coul/long/gpu</A></TD><TD ><A HREF = "pair_eam.html">eam/cd</A></TD></TR>
-<TR ALIGN="center"><TD ><A HREF = "pair_eff.html">eff/cut</A></TD><TD ><A HREF = "pair_gauss.html">gauss/cut</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul</A></TD><TD ><A HREF = "pair_reax_c.html">reax/c</A> 
+<TR ALIGN="center"><TD ><A HREF = "pair_awpmd.html">awpmd/cut</A></TD><TD ><A HREF = "pair_buck_coul.html">buck/coul</A></TD><TD ><A HREF = "pair_coul_diel.html">coul/diel</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf</A></TD><TD ><A HREF = "pair_eam.html">eam/cd</A></TD><TD ><A HREF = "pair_edip.html">edip</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eff.html">eff/cut</A></TD><TD ><A HREF = "pair_gauss.html">gauss/cut</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_reax_c.html">reax/c</A></TD><TD ><A HREF = "pair_heatconduction.html">sph/heatconduction</A></TD><TD ><A HREF = "pair_idealgas.html">sph/idealgas</A></TD><TD ><A HREF = "pair_lj.html">sph/lj</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_rhosum.html">sph/rhosum</A></TD><TD ><A HREF = "pair_taitwater.html">sph/taitwater</A></TD><TD ><A HREF = "pair_taitwater_morris.html">sph/taitwater/morris</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/table</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated pair styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "pair_adp.html">adp/omp</A></TD><TD ><A HREF = "pair_airebo.html">airebo/omp</A></TD><TD ><A HREF = "pair_born.html">born/coul/long/cuda</A></TD><TD ><A HREF = "pair_born.html">born/coul/long/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_born.html">born/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut/cuda</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/cut/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/coul/long/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_buck.html">buck/coul/long/omp</A></TD><TD ><A HREF = "pair_buck_coul.html">buck/coul/omp</A></TD><TD ><A HREF = "pair_buck.html">buck/cuda</A></TD><TD ><A HREF = "pair_buck.html">buck/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sdk.html">lj/sdk/gpu</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/omp</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long/gpu</A></TD><TD ><A HREF = "pair_sdk.html">lj/sdk/coul/long/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_colloid.html">colloid/omp</A></TD><TD ><A HREF = "pair_comb.html">comb/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/cut/omp</A></TD><TD ><A HREF = "pair_coul.html">coul/debye/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_coul.html">coul/long/gpu</A></TD><TD ><A HREF = "pair_coul.html">coul/long/omp</A></TD><TD ><A HREF = "pair_dipole.html">dipole/cut/omp</A></TD><TD ><A HREF = "pair_dipole.html">dipole/sf/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_dpd.html">dpd/omp</A></TD><TD ><A HREF = "pair_dpd.html">dpd/tstat/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/alloy/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/alloy/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/cd/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/cuda</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_eam.html">eam/fs/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/fs/opt</A></TD><TD ><A HREF = "pair_eam.html">eam/omp</A></TD><TD ><A HREF = "pair_eam.html">eam/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_edip.html">edip/omp</A></TD><TD ><A HREF = "pair_eim.html">eim/omp</A></TD><TD ><A HREF = "pair_gauss.html">gauss/omp</A></TD><TD ><A HREF = "pair_gayberne.html">gayberne/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gayberne.html">gayberne/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hertz/history/omp</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/cuda</A></TD><TD ><A HREF = "pair_gran.html">gran/hooke/history/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gran.html">gran/hooke/omp</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/lj/omp</A></TD><TD ><A HREF = "pair_hbond_dreiding.html">hbond/dreiding/morse/omp</A></TD><TD ><A HREF = "pair_line_lj.html">line/lj/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/charmm/implicit/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/cuda</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/gpu</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/omp</A></TD><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/long/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_charmm.html">lj/charmm/coul/pppm/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/cuda</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/cut/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/gpu</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/coul/long/omp</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/cuda</A></TD><TD ><A HREF = "pair_class2.html">lj/class2/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_class2.html">lj/class2/omp</A></TD><TD ><A HREF = "pair_lj_coul.html">lj/coul/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/debye/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/coul/long/tip4p/opt</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/pppm/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/coul/pppm/tip4p/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj.html">lj/cut/experimental/cuda</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/gpu</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/omp</A></TD><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_expand.html">lj/expand/cuda</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/gpu</A></TD><TD ><A HREF = "pair_lj_expand.html">lj/expand/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_gromacs.html">lj/gromacs/coul/gromacs/omp</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/cuda</A></TD><TD ><A HREF = "pair_gromacs.html">lj/gromacs/omp</A></TD><TD ><A HREF = "pair_lj_sf.html">lj/sf/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/cuda</A></TD><TD ><A HREF = "pair_lj_smooth.html">lj/smooth/omp</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/cuda</A></TD><TD ><A HREF = "pair_lj96.html">lj96/cut/gpu</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_lj96.html">lj96/cut/omp</A></TD><TD ><A HREF = "pair_morse.html">morse/cuda</A></TD><TD ><A HREF = "pair_morse.html">morse/gpu</A></TD><TD ><A HREF = "pair_morse.html">morse/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_morse.html">morse/opt</A></TD><TD ><A HREF = "pair_peri.html">peri/lps/omp</A></TD><TD ><A HREF = "pair_peri.html">peri/pmb/omp</A></TD><TD ><A HREF = "pair_airebo.html">rebo/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_resquared.html">resquared/gpu</A></TD><TD ><A HREF = "pair_resquared.html">resquared/omp</A></TD><TD ><A HREF = "pair_soft.html">soft/omp</A></TD><TD ><A HREF = "pair_sw.html">sw/cuda</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_sw.html">sw/omp</A></TD><TD ><A HREF = "pair_table.html">table/omp</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/cuda</A></TD><TD ><A HREF = "pair_tersoff.html">tersoff/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_tersoff.html">tersoff/table/omp</A></TD><TD ><A HREF = "pair_tersoff_zbl.html">tersoff/zbl/omp</A></TD><TD ><A HREF = "pair_tri_lj.html">tri/lj/omp</A></TD><TD ><A HREF = "pair_yukawa.html">yukawa/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "pair_yukawa_colloid.html">yukawa/colloid/omp</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -432,6 +496,24 @@ potentials.  Click on the style itself for a full description:
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_none.html">none</A></TD><TD WIDTH="100"><A HREF = "bond_hybrid.html">hybrid</A></TD><TD WIDTH="100"><A HREF = "bond_class2.html">class2</A></TD><TD WIDTH="100"><A HREF = "bond_fene.html">fene</A></TD></TR>
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_fene_expand.html">fene/expand</A></TD><TD WIDTH="100"><A HREF = "bond_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "bond_morse.html">morse</A></TD><TD WIDTH="100"><A HREF = "bond_nonlinear.html">nonlinear</A></TD></TR>
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_quartic.html">quartic</A></TD><TD WIDTH="100"><A HREF = "bond_table.html">table</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are bond styles contributed by users, which can be used if
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "bond_harmonic_shift.html">harmonic/shift</A></TD><TD ><A HREF = "bond_harmonic_shift_cut.html">harmonic/shift/cut</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated bond styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "bond_fene.html">fene/omp</A></TD><TD WIDTH="100"><A HREF = "bond_fene_expand.html">fene/expand/omp</A></TD><TD WIDTH="100"><A HREF = "bond_harmonic.html">harmonic/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_harmonic_shift.html">harmonic/shift/omp</A></TD><TD WIDTH="100"><A HREF = "bond_harmonic_shift_cut.html">harmonic/shift/cut/omp</A></TD><TD WIDTH="100"><A HREF = "bond_morse.html">morse/omp</A></TD><TD WIDTH="100"><A HREF = "bond_nonlinear.html">nonlinear/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "bond_quartic.html">quartic/omp</A></TD><TD WIDTH="100"><A HREF = "bond_table.html">table/omp</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -448,10 +530,21 @@ angle potentials.  Click on the style itself for a full description:
 </TD></TR></TABLE></DIV>
 
 <P>These are angle styles contributed by users, which can be used if
-<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD ><A HREF = "angle_cmm.html">cg/cmm</A> 
+<TR ALIGN="center"><TD ><A HREF = "angle_sdk.html">sdk</A></TD><TD ><A HREF = "angle_cosine_shift.html">cosine/shift</A></TD><TD ><A HREF = "angle_cosine_shift_exp.html">cosine/shift/exp</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated angle styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_charmm.html">charmm/omp</A></TD><TD WIDTH="100"><A HREF = "angle_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine.html">cosine/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_delta.html">cosine/delta/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_cosine_periodic.html">cosine/periodic/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_shift.html">cosine/shift/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_shift_exp.html">cosine/shift/exp/omp</A></TD><TD WIDTH="100"><A HREF = "angle_cosine_squared.html">cosine/squared/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "angle_harmonic.html">harmonic/omp</A></TD><TD WIDTH="100"><A HREF = "angle_table.html">table/omp</A> 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -467,6 +560,23 @@ description:
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "dihedral_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "dihedral_helix.html">helix</A></TD><TD WIDTH="100"><A HREF = "dihedral_multi_harmonic.html">multi/harmonic</A></TD><TD WIDTH="100"><A HREF = "dihedral_opls.html">opls</A> 
 </TD></TR></TABLE></DIV>
 
+<P>These are dihedral styles contributed by users, which can be used if
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "dihedral_cosine_shift_exp.html">cosine/shift/exp</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated dihedral styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "dihedral_charmm.html">charmm/omp</A></TD><TD WIDTH="100"><A HREF = "dihedral_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "dihedral_cosine_shift_exp.html">cosine/shift/exp/omp</A></TD><TD WIDTH="100"><A HREF = "dihedral_harmonic.html">harmonic/omp</A></TD></TR>
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "dihedral_helix.html">helix/omp</A></TD><TD WIDTH="100"><A HREF = "dihedral_multi_harmonic.html">multi/harmonic/omp</A></TD><TD WIDTH="100"><A HREF = "dihedral_opls.html">opls/omp</A> 
+</TD></TR></TABLE></DIV>
+
 <HR>
 
 <H4>Improper_style potentials 
@@ -480,6 +590,14 @@ description:
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_harmonic.html">harmonic</A></TD><TD WIDTH="100"><A HREF = "improper_umbrella.html">umbrella</A> 
 </TD></TR></TABLE></DIV>
 
+<P>These are accelerated improper styles, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "improper_class2.html">class2/omp</A></TD><TD WIDTH="100"><A HREF = "improper_cvff.html">cvff/omp</A></TD><TD WIDTH="100"><A HREF = "improper_harmonic.html">harmonic/omp</A></TD><TD WIDTH="100"><A HREF = "improper_umbrella.html">umbrella/omp</A> 
+</TD></TR></TABLE></DIV>
+
 <HR>
 
 <H4>Kspace solvers 
@@ -488,14 +606,24 @@ description:
 Kspace solvers.  Click on the style itself for a full description:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD WIDTH="100"><A HREF = "kspace_style.html">ewald</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm/tip4p</A> 
+<TR ALIGN="center"><TD WIDTH="100"><A HREF = "kspace_style.html">ewald</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm/cg</A></TD><TD WIDTH="100"><A HREF = "kspace_style.html">pppm/tip4p</A> 
 </TD></TR></TABLE></DIV>
 
 <P>These are Kspace solvers contributed by users, which can be used if
-<A HREF = "Section_start.html#2_3">LAMMPS is built with the appropriate package</A>.
+<A HREF = "Section_start.html#start_3">LAMMPS is built with the appropriate
+package</A>.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD WIDTH="100"><A HREF = "kspace_style.html">ewald/n</A> 
+</TD></TR></TABLE></DIV>
+
+<P>These are accelerated Kspace solvers, which can be used if LAMMPS is
+built with the <A HREF = "Section_accelerate.html">appropriate accelerated
+package</A>.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "kspace_style.html">ewald/omp</A></TD><TD ><A HREF = "kspace_style.html">pppm/cuda</A></TD><TD ><A HREF = "kspace_style.html">pppm/gpu</A></TD><TD ><A HREF = "kspace_style.html">pppm/omp</A></TD></TR>
+<TR ALIGN="center"><TD ><A HREF = "kspace_style.html">pppm/proxy</A> 
 </TD></TR></TABLE></DIV>
 
 </HTML>

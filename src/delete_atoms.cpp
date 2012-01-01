@@ -31,9 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
@@ -43,10 +40,10 @@ DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 void DeleteAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0) 
-    error->all("Delete_atoms command before simulation box is defined");
-  if (narg < 1) error->all("Illegal delete_atoms command");
+    error->all(FLERR,"Delete_atoms command before simulation box is defined");
+  if (narg < 1) error->all(FLERR,"Illegal delete_atoms command");
   if (atom->tag_enable == 0)
-    error->all("Cannot use delete_atoms unless atoms have IDs");
+    error->all(FLERR,"Cannot use delete_atoms unless atoms have IDs");
 
   // store state before delete
 
@@ -58,7 +55,7 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg);
   else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
-  else error->all("Illegal delete_atoms command");
+  else error->all(FLERR,"Illegal delete_atoms command");
 
   // delete local atoms flagged in dlist
   // reset nlocal
@@ -69,14 +66,14 @@ void DeleteAtoms::command(int narg, char **arg)
   int i = 0;
   while (i < nlocal) {
     if (dlist[i]) {
-      avec->copy(nlocal-1,i);
+      avec->copy(nlocal-1,i,1);
       dlist[i] = dlist[nlocal-1];
       nlocal--;
     } else i++;
   }
 
   atom->nlocal = nlocal;
-  memory->sfree(dlist);
+  memory->destroy(dlist);
 
   // if non-molecular system and compress flag set,
   // reset atom tags to be contiguous
@@ -121,16 +118,16 @@ void DeleteAtoms::command(int narg, char **arg)
 
 void DeleteAtoms::delete_group(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal delete_atoms command");
+  if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find delete_atoms group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
   options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   int *mask = atom->mask;
@@ -146,16 +143,16 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
 void DeleteAtoms::delete_region(int narg, char **arg)
 {
-  if (narg < 2) error->all("Illegal delete_atoms command");
+  if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
   
   int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all("Could not find delete_atoms region ID");
+  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
   options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   double **x = atom->x;
@@ -173,7 +170,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
 void DeleteAtoms::delete_overlap(int narg, char **arg)
 {
-  if (narg < 4) error->all("Illegal delete_atoms command");
+  if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
     
   // read args
 
@@ -183,7 +180,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int igroup1 = group->find(arg[2]);
   int igroup2 = group->find(arg[3]);
   if (igroup1 < 0 || igroup2 < 0)
-    error->all("Could not find delete_atoms group ID");
+    error->all(FLERR,"Could not find delete_atoms group ID");
   options(narg-4,&arg[4]);
 
   int group1bit = group->bitmask[igroup1];
@@ -210,9 +207,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // if no pair style, neighbor list will be empty
 
   if (force->pair == NULL)
-    error->all("Delete_atoms requires a pair style be defined");
+    error->all(FLERR,"Delete_atoms requires a pair style be defined");
   if (cut > neighbor->cutneighmax) 
-    error->all("Delete_atoms cutoff > neighbor cutoff");
+    error->all(FLERR,"Delete_atoms cutoff > neighbor cutoff");
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -234,7 +231,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // must be after exchange potentially changes nlocal
   
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   // double loop over owned atoms and their full neighbor list
@@ -244,13 +241,13 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int *tag = atom->tag;
   int *mask = atom->mask;
   double **x = atom->x;
-  int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
 
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double factor_lj,factor_coul;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -267,15 +264,15 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-      // if weighting factors are 0, skip this pair
+      // if both weighting factors are 0, skip this pair
       // could be 0 and still be in neigh list for long-range Coulombics
       // want consistency with non-charged pairs which wouldn't be in list
 
-      if (j >= nall) {
-	if (special_coul[j/nall] == 0.0 && special_lj[j/nall] == 0.0) continue;
-	j %= nall;
-      }
+      if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
       // only consider deletion if I,J distance < cutoff
 
@@ -319,10 +316,10 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
 {
-  if (narg < 4) error->all("Illegal delete_atoms command");
+  if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
 
   int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all("Could not find delete_atoms region ID");
+  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
 
   double porosity_fraction = atof(arg[2]);
   int seed = atoi(arg[3]);
@@ -333,7 +330,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   // allocate and initialize deletion list
  
   int nlocal = atom->nlocal;
-  dlist = (int *) memory->smalloc(nlocal*sizeof(int),"delete_atoms:dlist");
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
   double **x = atom->x;
@@ -354,11 +351,11 @@ void DeleteAtoms::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
-      if (iarg+2 > narg) error->all("Illegal delete_bonds command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_bonds command");
       if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
-      else error->all("Illegal delete_bonds command");
+      else error->all(FLERR,"Illegal delete_bonds command");
       iarg += 2;
-    } else error->all("Illegal delete_bonds command");
+    } else error->all(FLERR,"Illegal delete_bonds command");
   }
 }

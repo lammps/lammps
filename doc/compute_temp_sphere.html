@@ -13,16 +13,29 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID temp/sphere bias-ID 
+<PRE>compute ID group-ID temp/sphere keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>temp/sphere = style name of this compute command
-<LI>bias-ID = ID of a temperature compute that removes a velocity bias (optional) 
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>temp/sphere = style name of this compute command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>bias</I> or <I>dof</I> 
+
+<PRE>  <I>bias</I> value = bias-ID<I>uniform</I> or <I>gaussian</I>
+    bias-ID = ID of a temperature compute that removes a velocity bias
+  <I>dof</I> value = <I>all</I> or <I>rotate</I>
+    all = compute temperature of translational and rotational degrees of freedom
+    rotate = compute temperature of just rotational degrees of freedom 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all temp/sphere
-compute myTemp mobile temp/sphere tempCOM 
+compute myTemp mobile temp/sphere bias tempCOM
+compute myTemp mobile temp/sphere dof rotate 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -33,10 +46,10 @@ usual <A HREF = "compute_temp.html">compute temp</A> command, which assumes poin
 particles with only translational kinetic energy.
 </P>
 <P>Both point and finite-size particles can be included in the group.
-Point particles do not rotate, so they have only translational degrees
-of freedom.  For 3d spherical particles, each has 6 degrees of freedom
-(3 translational, 3 rotational).  For 2d spherical particles, each has
-3 degrees of freedom (2 translational, 1 rotational).
+Point particles do not rotate, so they have only 3 translational
+degrees of freedom.  For 3d spherical particles, each has 6 degrees of
+freedom (3 translational, 3 rotational).  For 2d spherical particles,
+each has 3 degrees of freedom (2 translational, 1 rotational).
 </P>
 <P>IMPORTANT NOTE: This choice for degrees of freedom (dof) assumes that
 all finite-size spherical particles in your model will freely rotate,
@@ -66,15 +79,6 @@ the vector are ordered xx, yy, zz, xy, xz, yz.
 constant for the duration of the run; use the <I>dynamic</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
 </P>
-<P>If a <I>bias-ID</I> is specified it must be the ID of a temperature compute
-that removes a "bias" velocity from each atom.  This allows compute
-temp/sphere to compute its thermal temperature after the translational
-kinetic energy components have been altered in a prescribed way,
-e.g. to remove a velocity profile.  Thermostats that use this compute
-will work with this bias term.  See the doc pages for individual
-computes that calculate a temperature and the doc pages for fixes that
-perform thermostatting for more details.
-</P>
 <P>This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as <A HREF = "fix_shake.html">fix
 shake</A> and <A HREF = "fix_rigid.html">fix rigid</A>.  This means the
@@ -83,16 +87,36 @@ computed correctly.  If needed, the subtracted degrees-of-freedom can
 be altered using the <I>extra</I> option of the
 <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting.
 </P>
+<HR>
+
+<P>The keyword/value option pairs are used in the following ways.
+</P>
+<P>For the <I>bias</I> keyword, <I>bias-ID</I> refers to the ID of a temperature
+compute that removes a "bias" velocity from each atom.  This allows
+compute temp/sphere to compute its thermal temperature after the
+translational kinetic energy components have been altered in a
+prescribed way, e.g. to remove a velocity profile.  Thermostats that
+use this compute will work with this bias term.  See the doc pages for
+individual computes that calculate a temperature and the doc pages for
+fixes that perform thermostatting for more details.
+</P>
+<P>For the <I>dof</I> keyword, a setting of <I>all</I> calculates a temperature
+that includes both translational and rotational degrees of freedom.  A
+setting of <I>rotate</I> calculates a temperature that includes only
+rotational degrees of freedom.
+</P>
+<HR>
+
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <A HREF = "Section_howto.html#4_15">this
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>
@@ -104,17 +128,20 @@ vector values will be in energy <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This compute requires that particles be represented as extended
-spheres and not point particles.  This means they will have an angular
-velocity and a diameter which is determined either by the
-<A HREF = "shape.html">shape</A> command or by each particle being assigned an
-individual radius, e.g. for <A HREF = "atom_style.html">atom_style granular</A>.
+<P>This fix requires that atoms store torque and angular velocity (omega)
+and a radius as defined by the <A HREF = "atom_style.html">atom_style sphere</A>
+command.  
+</P>
+<P>All particles in the group must be finite-size spheres, or point
+particles with radius = 0.0.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp.html">compute
 temp/asphere</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are no bias and dof = all.
 </P>
 </HTML>

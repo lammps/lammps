@@ -26,12 +26,14 @@ namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
   friend class PairPeriPMB;
+  friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
+  friend class PairPeriLPSOMP;
   friend class ComputeDamageAtom;
 
  public:
   FixPeriNeigh(class LAMMPS *,int, char **);
-  ~FixPeriNeigh();
+  virtual ~FixPeriNeigh();
   int setmask();
   void init();
   void init_list(int, class NeighList *);
@@ -53,7 +55,7 @@ class FixPeriNeigh : public Fix {
   void unpack_comm(int, int, double *);
 
 
- private:
+ protected:
   int first;                 // flag for first time initialization
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom

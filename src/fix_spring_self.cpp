@@ -41,7 +41,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   k = atof(arg[3]);
-  if (k <= 0.0) error->all("Illegal fix spring/self command");
+  if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;
   if (narg == 5) {
@@ -107,7 +107,7 @@ FixSpringSelf::~FixSpringSelf()
 
   // delete locally stored array
 
-  memory->destroy_2d_double_array(xoriginal);
+  memory->destroy(xoriginal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,7 +126,7 @@ int FixSpringSelf::setmask()
 
 void FixSpringSelf::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -134,7 +134,7 @@ void FixSpringSelf::init()
 
 void FixSpringSelf::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -228,8 +228,7 @@ double FixSpringSelf::memory_usage()
 
 void FixSpringSelf::grow_arrays(int nmax)
 {
-  xoriginal =
-    memory->grow_2d_double_array(xoriginal,nmax,3,"fix_spring/self:xoriginal");
+  memory->grow(xoriginal,nmax,3,"fix_spring/self:xoriginal");
 }
 
 /* ----------------------------------------------------------------------

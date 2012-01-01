@@ -20,10 +20,12 @@
 #include "domain.h"
 #include "force.h"
 #include "improper.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 10000
 
@@ -34,10 +36,10 @@ using namespace LAMMPS_NS;
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal compute improper/local command");
+  if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
   if (atom->avec->impropers_allow == 0)
-    error->all("Compute improper/local used when impropers are not allowed");
+    error->all(FLERR,"Compute improper/local used when impropers are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -51,7 +53,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
     if (strcmp(arg[iarg],"chi") == 0) cflag = nvalues++;
-    else error->all("Invalid keyword in compute improper/local command");
+    else error->all(FLERR,"Invalid keyword in compute improper/local command");
   }
 
   nmax = 0;
@@ -63,8 +65,8 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeImproperLocal::~ComputeImproperLocal()
 {
-  memory->sfree(vector);
-  memory->destroy_2d_double_array(array);
+  memory->destroy(vector);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,7 +74,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 void ComputeImproperLocal::init()
 {
   if (force->improper == NULL) 
-    error->all("No improper style is defined for compute improper/local");
+    error->all(FLERR,"No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
 
@@ -128,8 +130,6 @@ int ComputeImproperLocal::compute_impropers(int flag)
       if (cflag >= 0) cbuf = &array[0][cflag];
     }
   }
-
-  double PI = 4.0*atan(1.0);
 
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
@@ -188,7 +188,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
 	  if (c > 1.0) c = 1.0;
 	  if (c < -1.0) c = -1.0;
-	  cbuf[n] = 180.0*acos(c)/PI;
+	  cbuf[n] = 180.0*acos(c)/MY_PI;
 	}
 	n += nvalues;
       }
@@ -209,14 +209,12 @@ void ComputeImproperLocal::reallocate(int n)
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->sfree(vector);
-    vector = (double *) memory->smalloc(nmax*sizeof(double),
-					"bond/local:vector");
+    memory->destroy(vector);
+    memory->create(vector,nmax,"bond/local:vector");
     vector_local = vector;
   } else {
-    memory->destroy_2d_double_array(array);
-    array = memory->create_2d_double_array(nmax,nvalues,
-					   "bond/local:array");
+    memory->destroy(array);
+    memory->create(array,nmax,nvalues,"bond/local:array");
     array_local = array;
   }
 }

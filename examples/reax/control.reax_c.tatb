@@ -11,11 +11,12 @@ thb_cutoff              0.001 ! cutoff value for three body interactions
 q_err                   1e-6  ! average per atom error norm allowed in GMRES convergence
 
 geo_format              0    ! 0: xyz, 1: pdb, 2: bgf
-write_freq              0    ! write trajectory after so many steps
+write_freq              25   ! write trajectory after so many steps
 traj_compress           0    ! 0: no compression  1: uses zlib to compress trajectory output
 traj_title              TATB ! (no white spaces)
 atom_info               0    ! 0: no atom info, 1: print basic atom info in the trajectory file
 atom_forces             0    ! 0: basic atom format, 1: print force on each atom in the trajectory file
 atom_velocities         0    ! 0: basic atom format, 1: print the velocity of each atom in the trajectory file
-bond_info               0    ! 0: do not print bonds, 1: print bonds in the trajectory file
+bond_info               1    ! 0: do not print bonds, 1: print bonds in the trajectory file
 angle_info              0    ! 0: do not print angles, 1: print angles in the trajectory file 
+

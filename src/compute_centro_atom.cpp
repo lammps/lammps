@@ -37,14 +37,14 @@ using namespace LAMMPS_NS;
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all("Illegal compute centro/atom command");
+  if (narg != 4) error->all(FLERR,"Illegal compute centro/atom command");
   
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
   else nnn = atoi(arg[3]);
 
   if (nnn <= 0 || nnn % 2)
-    error->all("Illegal neighbor value for compute centro/atom command");
+    error->all(FLERR,"Illegal neighbor value for compute centro/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -60,9 +60,9 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCentroAtom::~ComputeCentroAtom()
 {
-  memory->sfree(centro);
-  memory->sfree(distsq);
-  memory->sfree(nearest);
+  memory->destroy(centro);
+  memory->destroy(distsq);
+  memory->destroy(nearest);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,13 +70,13 @@ ComputeCentroAtom::~ComputeCentroAtom()
 void ComputeCentroAtom::init()
 {
   if (force->pair == NULL) 
-    error->all("Compute centro/atom requires a pair style be defined");
+    error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"centro/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning("More than one compute centro/atom");
+    error->warning(FLERR,"More than one compute centro/atom");
 
   // need an occasional full neighbor list
 
@@ -108,10 +108,9 @@ void ComputeCentroAtom::compute_peratom()
   // grow centro array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->sfree(centro);
+    memory->destroy(centro);
     nmax = atom->nmax;
-    centro = (double *) 
-      memory->smalloc(nmax*sizeof(double),"centro/atom:centro");
+    memory->create(centro,nmax,"centro/atom:centro");
     vector_atom = centro;
   }
 
@@ -135,7 +134,6 @@ void ComputeCentroAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nall = atom->nlocal + atom->nghost;
   double cutsq = force->pair->cutforce * force->pair->cutforce;
 
   for (ii = 0; ii < inum; ii++) {
@@ -150,13 +148,11 @@ void ComputeCentroAtom::compute_peratom()
       // insure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-	memory->sfree(distsq);
-	memory->sfree(nearest);
+	memory->destroy(distsq);
+	memory->destroy(nearest);
 	maxneigh = jnum;
-	distsq = (double *) memory->smalloc(maxneigh*sizeof(double),
-					    "centro/atom:distsq");
-	nearest = (int *) memory->smalloc(maxneigh*sizeof(int),
-					  "centro/atom:nearest");
+	memory->create(distsq,maxneigh,"centro/atom:distsq");
+	memory->create(nearest,maxneigh,"centro/atom:nearest");
       }
 
       // loop over list of all neighbors within force cutoff
@@ -166,7 +162,7 @@ void ComputeCentroAtom::compute_peratom()
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
-	if (j >= nall) j %= nall;
+	j &= NEIGHMASK;
 
 	delx = xtmp - x[j][0];
 	dely = ytmp - x[j][1];

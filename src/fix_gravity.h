@@ -33,10 +33,11 @@ class FixGravity : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
+  virtual void post_force(int);
+  virtual void post_force_respa(int, int, int);
+  double compute_scalar();
 
- private:
+ protected:
   int style;
   double magnitude,dt;
   double phi,theta,phigrad,thetagrad;
@@ -45,6 +46,8 @@ class FixGravity : public Fix {
   double degree2rad;
   int nlevels_respa;
   int time_origin;
+  int eflag;
+  double egrav,egrav_all;
 };
 
 }

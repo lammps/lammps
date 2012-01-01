@@ -22,7 +22,7 @@
 #include "pair_resquared.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -31,12 +31,7 @@
 #include "memory.h"
 #include "error.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
-
-enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -44,7 +39,11 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
 					    b_alpha(45.0/56.0),
                                             cr60(pow(60.0,1.0/3.0))
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) error->all(FLERR,"Pair resquared requires atom style ellipsoid");
+
   single_enable = 0;
+
   cr60 = pow(60.0,1.0/3.0);
   b_alpha = 45.0/56.0;
   solv_f_a = 3.0/(16.0*atan(1.0)*-36.0);
@@ -58,20 +57,21 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
 PairRESquared::~PairRESquared()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_int_array(form);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(shape2);
-    memory->destroy_2d_double_array(well);
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(form);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(shape1);
+    memory->destroy(shape2);
+    memory->destroy(well);
+    memory->destroy(cut);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
     delete [] lshape;
     delete [] setwell;
   }
@@ -96,7 +96,6 @@ void PairRESquared::compute(int eflag, int vflag)
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -120,12 +119,8 @@ void PairRESquared::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-        factor_lj = special_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       // r12 = center to center vector
 
@@ -138,6 +133,8 @@ void PairRESquared::compute(int eflag, int vflag)
       // compute if less than cutoff
 
       if (rsq < cutsq[itype][jtype]) {
+	fforce[0] = fforce[1] = fforce[2] = 0.0;
+
         switch (form[itype][jtype]) {
 
          case SPHERE_SPHERE:
@@ -207,7 +204,7 @@ void PairRESquared::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -219,24 +216,25 @@ void PairRESquared::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  form = memory->create_2d_int_array(n+1,n+1,"pair:form");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  shape2 = memory->create_2d_double_array(n+1,3,"pair:shape2");
-  well = memory->create_2d_double_array(n+1,3,"pair:well");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(form,n+1,n+1,"pair:form");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(shape1,n+1,3,"pair:shape1");
+  memory->create(shape2,n+1,3,"pair:shape2");
+  memory->create(well,n+1,3,"pair:well");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 
   lshape = new double[n+1];
   setwell = new int[n+1];
@@ -249,7 +247,7 @@ void PairRESquared::allocate()
 
 void PairRESquared::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
   
@@ -270,7 +268,7 @@ void PairRESquared::settings(int narg, char **arg)
 void PairRESquared::coeff(int narg, char **arg)
 {
   if (narg < 10 || narg > 11)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -314,9 +312,8 @@ void PairRESquared::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
-
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -324,22 +321,19 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair resquared requires atom attributes quat, torque, shape");
-  if (atom->radius_flag)
-    error->all("Pair resquared cannot be used with atom attribute diameter");
-
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // per-type shape precalculations
+  // require that atom shapes are identical within each type
 
   for (int i = 1; i <= atom->ntypes; i++) {
+    if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
+      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
     if (setwell[i]) {
-      double *one = atom->shape[i];
-      shape2[i][0] = one[0]*one[0];
-      shape2[i][1] = one[1]*one[1];
-      shape2[i][2] = one[2]*one[2];
-      lshape[i] = one[0]*one[1]*one[2];
+      shape2[i][0] = shape1[i][0]*shape1[i][0];
+      shape2[i][1] = shape1[i][1]*shape1[i][1];
+      shape2[i][2] = shape1[i][2]*shape1[i][2];
+      lshape[i] = shape1[i][0]*shape1[i][1]*shape1[i][2];
     }
   }
 }
@@ -350,16 +344,14 @@ void PairRESquared::init_style()
 
 double PairRESquared::init_one(int i, int j)
 {
-  double **shape = atom->shape;
-  
   if (setwell[i] == 0 || setwell[j] == 0)
-    error->all("Pair resquared epsilon a,b,c coeffs are not all set");
+    error->all(FLERR,"Pair resquared epsilon a,b,c coeffs are not all set");
 
   int ishape = 0;
-  if (shape[i][0] != 0.0 && shape[i][1] != 0.0 && shape[i][2] != 0.0) 
+  if (shape1[i][0] != 0.0 && shape1[i][1] != 0.0 && shape1[i][2] != 0.0) 
     ishape = 1;
   int jshape = 0;
-  if (shape[j][0] != 0.0 && shape[j][1] != 0.0 && shape[j][2] != 0.0) 
+  if (shape1[j][0] != 0.0 && shape1[j][1] != 0.0 && shape1[j][2] != 0.0) 
     jshape = 1;
   
   if (ishape == 0 && jshape == 0) {
@@ -386,7 +378,7 @@ double PairRESquared::init_one(int i, int j)
         sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
         cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
       } else
-        error->all("Pair resquared epsilon and sigma coeffs are not all set");
+        error->all(FLERR,"Pair resquared epsilon and sigma coeffs are not all set");
     }
     epsilon[i][j] = epsilon[j][i];
     sigma[i][j] = sigma[j][i];
@@ -502,12 +494,14 @@ void PairRESquared::read_restart_settings(FILE *fp)
    Precompute per-particle temporaries for RE-squared calculation
 ------------------------------------------------------------------------- */
 
-void PairRESquared::precompute_i(const int i,RE2Vars &ws) {
+void PairRESquared::precompute_i(const int i,RE2Vars &ws)
+{
   double aTs[3][3];       // A1'*S1^2
-
-  MathExtra::quat_to_mat_trans(atom->quat[i],ws.A);
-  MathExtra::transpose_times_diag3(ws.A,well[atom->type[i]],ws.aTe);
-  MathExtra::transpose_times_diag3(ws.A,shape2[atom->type[i]],aTs);
+  int *ellipsoid = atom->ellipsoid;
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  MathExtra::quat_to_mat_trans(bonus[ellipsoid[i]].quat,ws.A);
+  MathExtra::transpose_diag3(ws.A,well[atom->type[i]],ws.aTe);
+  MathExtra::transpose_diag3(ws.A,shape2[atom->type[i]],aTs);
   MathExtra::diag_times3(shape2[atom->type[i]],ws.A,ws.sa);
   MathExtra::times3(aTs,ws.A,ws.gamma);
   MathExtra::rotation_generator_x(ws.A,ws.lA[0]);
@@ -551,7 +545,6 @@ double PairRESquared::resquared_analytic(const int i, const int j,
                                          double *rtor)
 {
   int *type = atom->type;
-  double **shape = atom->shape;
     
   // pair computations for energy, force, torque
 
@@ -615,10 +608,12 @@ double PairRESquared::resquared_analytic(const int i, const int j,
 
   double temp[3][3];
   MathExtra::plus3(wi.gamma,wj.gamma,temp);
-  MathExtra::mldivide3(temp,rhat,s,error);
+  int ierror = MathExtra::mldivide3(temp,rhat,s);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
+
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
-  MathExtra::times_column3(wi.A,rhat,z1);
-  MathExtra::times_column3(wj.A,rhat,z2);
+  MathExtra::matvec(wi.A,rhat,z1);
+  MathExtra::matvec(wj.A,rhat,z2);
   v1[0] = z1[0]/shape2[type[i]][0];
   v1[1] = z1[1]/shape2[type[i]][1];
   v1[2] = z1[2]/shape2[type[i]][2];
@@ -645,7 +640,9 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   double temp2[3][3];
   MathExtra::times3(wj.aTe,wj.A,temp2);
   MathExtra::plus3(temp,temp2,temp);
-  MathExtra::mldivide3(temp,rhat,w,error);
+  ierror = MathExtra::mldivide3(temp,rhat,w);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
+
   h12 = rnorm-sigma12;
   eta = lambda/nu;
   chi = 2.0*MathExtra::dot3(rhat,w);
@@ -654,16 +651,16 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   tprod = eta*chi*sigh;
 
   double stemp = h12/2.0;
-  Ua = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*(shape[type[j]][0]+stemp)*
-       (shape[type[j]][1]+stemp)*(shape[type[j]][2]+stemp);
+  Ua = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
   Ua = (1.0+3.0*tprod)*sprod/Ua;
   Ua = epsilon[type[i]][type[j]]*Ua/-36.0;
 
   stemp = h12/cr60;
-  Ur = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*(shape[type[j]][0]+stemp)*
-       (shape[type[j]][1]+stemp)*(shape[type[j]][2]+stemp);
+  Ur = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*(shape1[type[j]][0]+stemp)*
+       (shape1[type[j]][1]+stemp)*(shape1[type[j]][2]+stemp);
   Ur = (1.0+b_alpha*tprod)*sprod/Ur;
   Ur = epsilon[type[i]][type[j]]*Ur*pow(sigh,6.0)/2025.0;
 
@@ -709,22 +706,22 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   spr[1] = 0.5*sigma12p3*s[1];
   spr[2] = 0.5*sigma12p3*s[2];
 
-  stemp = 1.0/(shape[type[i]][0]*2.0+h12)+
-          1.0/(shape[type[i]][1]*2.0+h12)+
-          1.0/(shape[type[i]][2]*2.0+h12)+
-          1.0/(shape[type[j]][0]*2.0+h12)+
-          1.0/(shape[type[j]][1]*2.0+h12)+
-          1.0/(shape[type[j]][2]*2.0+h12);
+  stemp = 1.0/(shape1[type[i]][0]*2.0+h12)+
+          1.0/(shape1[type[i]][1]*2.0+h12)+
+          1.0/(shape1[type[i]][2]*2.0+h12)+
+          1.0/(shape1[type[j]][0]*2.0+h12)+
+          1.0/(shape1[type[j]][1]*2.0+h12)+
+          1.0/(shape1[type[j]][2]*2.0+h12);
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
   
-  stemp = 1.0/(shape[type[i]][0]*cr60+h12)+
-          1.0/(shape[type[i]][1]*cr60+h12)+
-          1.0/(shape[type[i]][2]*cr60+h12)+
-          1.0/(shape[type[j]][0]*cr60+h12)+
-          1.0/(shape[type[j]][1]*cr60+h12)+
-          1.0/(shape[type[j]][2]*cr60+h12);
+  stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
+          1.0/(shape1[type[i]][1]*cr60+h12)+
+          1.0/(shape1[type[i]][2]*cr60+h12)+
+          1.0/(shape1[type[j]][0]*cr60+h12)+
+          1.0/(shape1[type[j]][1]*cr60+h12)+
+          1.0/(shape1[type[j]][2]*cr60+h12);
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
@@ -737,8 +734,8 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     u[0] /= rnorm;
     u[1] /= rnorm;
     u[2] /= rnorm;
-    MathExtra::times_column3(wi.A,u,u1);
-    MathExtra::times_column3(wj.A,u,u2);
+    MathExtra::matvec(wi.A,u,u1);
+    MathExtra::matvec(wj.A,u,u2);
     dsigma1=MathExtra::dot3(u1,vsigma1);
     dsigma2=MathExtra::dot3(u2,vsigma2);
     dH12[0][0] = dsigma1*gsigma1[0][0]+dsigma2*gsigma2[0][0];
@@ -763,10 +760,10 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     
   // torque on i
 
-  MathExtra::row_times3(fourw,wi.aTe,fwae);
+  MathExtra::vecmat(fourw,wi.aTe,fwae);
 
   for (int i=0; i<3; i++) {
-    MathExtra::times_column3(wi.lA[i],rhat,p);
+    MathExtra::matvec(wi.lA[i],rhat,p);
     dsigma1 = MathExtra::dot3(p,vsigma1);
     dH12[0][0] = wi.lAsa[i][0][0]/sigma1+dsigma1*gsigma1[0][0];
     dH12[0][1] = wi.lAsa[i][0][1]/sigma1+dsigma1*gsigma1[0][1];
@@ -781,9 +778,9 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     deta = tsig1sig2*dsigma1-tdH*ddH;
     deta -= teta1*dsigma1;
     double tempv[3];
-    MathExtra::times_column3(wi.lA[i],w,tempv);
+    MathExtra::matvec(wi.lA[i],w,tempv);
     dchi = -MathExtra::dot3(fwae,tempv);
-    MathExtra::times_column3(wi.lAtwo[i],spr,tempv);
+    MathExtra::matvec(wi.lAtwo[i],spr,tempv);
     dh12 = -MathExtra::dot3(s,tempv);
 
     dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
@@ -796,10 +793,10 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   if (!(force->newton_pair || j < atom->nlocal))
     return Ua+Ur;
 
-  MathExtra::row_times3(fourw,wj.aTe,fwae);
+  MathExtra::vecmat(fourw,wj.aTe,fwae);
 
   for (int i=0; i<3; i++) {
-    MathExtra::times_column3(wj.lA[i],rhat,p);
+    MathExtra::matvec(wj.lA[i],rhat,p);
     dsigma2 = MathExtra::dot3(p,vsigma2);
     dH12[0][0] = wj.lAsa[i][0][0]/sigma2+dsigma2*gsigma2[0][0];
     dH12[0][1] = wj.lAsa[i][0][1]/sigma2+dsigma2*gsigma2[0][1];
@@ -814,9 +811,9 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     deta = tsig1sig2*dsigma2-tdH*ddH;
     deta -= teta2*dsigma2;
     double tempv[3];
-    MathExtra::times_column3(wj.lA[i],w,tempv);
+    MathExtra::matvec(wj.lA[i],w,tempv);
     dchi = -MathExtra::dot3(fwae,tempv);
-    MathExtra::times_column3(wj.lAtwo[i],spr,tempv);
+    MathExtra::matvec(wj.lAtwo[i],spr,tempv);
     dh12 = -MathExtra::dot3(s,tempv);
 
     dUa = pbsu*(eta*dchi + deta*chi)-dh12*dspu;
@@ -837,7 +834,6 @@ double PairRESquared::resquared_lj(const int i, const int j,
                                    double *ttor, bool calc_torque)
 {
   int *type = atom->type;
-  double **shape = atom->shape;
     
   // pair computations for energy, force, torque
 
@@ -880,13 +876,13 @@ double PairRESquared::resquared_lj(const int i, const int j,
   double lAtwo[3][3][3];  // A1'*S1^2*wi.lA
   double scorrect[3];
   double half_sigma=sigma[type[i]][type[j]] / 2.0;
-  scorrect[0] = shape[type[i]][0]+half_sigma;
-  scorrect[1] = shape[type[i]][1]+half_sigma;
-  scorrect[2] = shape[type[i]][2]+half_sigma;
+  scorrect[0] = shape1[type[i]][0]+half_sigma;
+  scorrect[1] = shape1[type[i]][1]+half_sigma;
+  scorrect[2] = shape1[type[i]][2]+half_sigma;
   scorrect[0] = scorrect[0] * scorrect[0] / 2.0;
   scorrect[1] = scorrect[1] * scorrect[1] / 2.0;
   scorrect[2] = scorrect[2] * scorrect[2] / 2.0;
-  MathExtra::transpose_times_diag3(wi.A,scorrect,aTs);
+  MathExtra::transpose_diag3(wi.A,scorrect,aTs);
   MathExtra::times3(aTs,wi.A,gamma);
   for (int ii=0; ii<3; ii++)
     MathExtra::times3(aTs,wi.lA[ii],lAtwo[ii]);
@@ -898,14 +894,18 @@ double PairRESquared::resquared_lj(const int i, const int j,
 
   // energy
 
-  MathExtra::mldivide3(gamma,rhat,s,error);
+  int ierror = MathExtra::mldivide3(gamma,rhat,s);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
+
   sigma12 = 1.0/sqrt(0.5*MathExtra::dot3(s,rhat));
   double temp[3][3];
   MathExtra::times3(wi.aTe,wi.A,temp);
   temp[0][0] += 1.0;
   temp[1][1] += 1.0;
   temp[2][2] += 1.0;
-  MathExtra::mldivide3(temp,rhat,w,error);
+  ierror = MathExtra::mldivide3(temp,rhat,w);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
+
   h12 = rnorm-sigma12;
   chi = 2.0*MathExtra::dot3(rhat,w);
   sigh = sigma[type[i]][type[j]]/h12;
@@ -914,14 +914,14 @@ double PairRESquared::resquared_lj(const int i, const int j,
   h12p3 = pow(h12,3.0);
   double sigmap3 = pow(sigma[type[i]][type[j]],3.0);
   double stemp = h12/2.0;
-  Ua = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*h12p3/8.0;
+  Ua = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*h12p3/8.0;
   Ua = (1.0+3.0*tprod)*lshape[type[i]]/Ua;
   Ua = epsilon[type[i]][type[j]]*Ua*sigmap3*solv_f_a;
 
   stemp = h12/cr60;
-  Ur = (shape[type[i]][0]+stemp)*(shape[type[i]][1]+stemp)*
-       (shape[type[i]][2]+stemp)*h12p3/60.0;
+  Ur = (shape1[type[i]][0]+stemp)*(shape1[type[i]][1]+stemp)*
+       (shape1[type[i]][2]+stemp)*h12p3/60.0;
   Ur = (1.0+b_alpha*tprod)*lshape[type[i]]/Ur;
   Ur = epsilon[type[i]][type[j]]*Ur*sigmap3*pow(sigh,6.0)*solv_f_r;
 
@@ -936,17 +936,17 @@ double PairRESquared::resquared_lj(const int i, const int j,
   spr[1] = 0.5*sigma12p3*s[1];
   spr[2] = 0.5*sigma12p3*s[2];
 
-  stemp = 1.0/(shape[type[i]][0]*2.0+h12)+
-          1.0/(shape[type[i]][1]*2.0+h12)+
-          1.0/(shape[type[i]][2]*2.0+h12)+
+  stemp = 1.0/(shape1[type[i]][0]*2.0+h12)+
+          1.0/(shape1[type[i]][1]*2.0+h12)+
+          1.0/(shape1[type[i]][2]*2.0+h12)+
           3.0/h12;
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
   
-  stemp = 1.0/(shape[type[i]][0]*cr60+h12)+
-          1.0/(shape[type[i]][1]*cr60+h12)+
-          1.0/(shape[type[i]][2]*cr60+h12)+
+  stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
+          1.0/(shape1[type[i]][1]*cr60+h12)+
+          1.0/(shape1[type[i]][2]*cr60+h12)+
           3.0/h12;
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;
@@ -970,14 +970,14 @@ double PairRESquared::resquared_lj(const int i, const int j,
   // torque on i
 
   if (calc_torque) {
-    MathExtra::row_times3(fourw,wi.aTe,fwae);
+    MathExtra::vecmat(fourw,wi.aTe,fwae);
 
     for (int i=0; i<3; i++) {
-      MathExtra::times_column3(wi.lA[i],rhat,p);
+      MathExtra::matvec(wi.lA[i],rhat,p);
       double tempv[3];
-      MathExtra::times_column3(wi.lA[i],w,tempv);
+      MathExtra::matvec(wi.lA[i],w,tempv);
       dchi = -MathExtra::dot3(fwae,tempv);
-      MathExtra::times_column3(lAtwo[i],spr,tempv);
+      MathExtra::matvec(lAtwo[i],spr,tempv);
       dh12 = -MathExtra::dot3(s,tempv);
 
       dUa = pbsu*dchi-dh12*dspu;

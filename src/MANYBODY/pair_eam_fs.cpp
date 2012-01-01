@@ -47,12 +47,12 @@ void PairEAMFS::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read EAM Finnis-Sinclair file
 
@@ -60,9 +60,9 @@ void PairEAMFS::coeff(int narg, char **arg)
     for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
     delete [] fs->mass;
-    memory->destroy_2d_double_array(fs->frho);
-    memory->destroy_3d_double_array(fs->rhor);
-    memory->destroy_3d_double_array(fs->z2r);
+    memory->destroy(fs->frho);
+    memory->destroy(fs->rhor);
+    memory->destroy(fs->z2r);
     delete fs;
   }
   fs = new Fs();
@@ -79,7 +79,7 @@ void PairEAMFS::coeff(int narg, char **arg)
     for (j = 0; j < fs->nelements; j++)
       if (strcmp(arg[i],fs->elements[j]) == 0) break;
     if (j < fs->nelements) map[i-2] = j;
-    else error->all("No matching element in EAM potential file");
+    else error->all(FLERR,"No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -103,7 +103,7 @@ void PairEAMFS::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -125,7 +125,7 @@ void PairEAMFS::read_file(char *filename)
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);
-      error->one(str);
+      error->one(FLERR,str);
     }
   }
 
@@ -146,11 +146,11 @@ void PairEAMFS::read_file(char *filename)
   sscanf(line,"%d",&file->nelements);
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
-    error->all("Incorrect element names in EAM potential file");
+    error->all(FLERR,"Incorrect element names in EAM potential file");
   
   char **words = new char*[file->nelements+1];
   nwords = 0;
-  char *first = strtok(line," \t\n\r\f");
+  strtok(line," \t\n\r\f");
   while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
 
   file->elements = new char*[file->nelements];
@@ -174,12 +174,13 @@ void PairEAMFS::read_file(char *filename)
   MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
 
   file->mass = new double[file->nelements];
-  file->frho = memory->create_2d_double_array(file->nelements,file->nrho+1,
+  memory->create(file->frho,file->nelements,file->nrho+1,
 					      "pair:frho");
-  file->rhor = memory->create_3d_double_array(file->nelements,file->nelements,
-					      file->nr+1,"pair:rhor");
-  file->z2r = memory->create_3d_double_array(file->nelements,file->nelements,
-					     file->nr+1,"pair:z2r");
+  memory->create(file->rhor,file->nelements,file->nelements,
+		 file->nr+1,"pair:rhor");
+  memory->create(file->z2r,file->nelements,file->nelements,
+		 file->nr+1,"pair:z2r");
+
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
     if (me == 0) {
@@ -232,8 +233,8 @@ void PairEAMFS::file2array()
   // nfrho = # of fs elements + 1 for zero array
   
   nfrho = fs->nelements + 1;
-  memory->destroy_2d_double_array(frho);
-  frho = (double **) memory->create_2d_double_array(nfrho,nrho+1,"pair:frho");
+  memory->destroy(frho);
+  memory->create(frho,nfrho,nrho+1,"pair:frho");
 
   // copy each element's frho to global frho
 
@@ -261,8 +262,8 @@ void PairEAMFS::file2array()
   // nrhor = square of # of fs elements
 
   nrhor = fs->nelements * fs->nelements;
-  memory->destroy_2d_double_array(rhor);
-  rhor = (double **) memory->create_2d_double_array(nrhor,nr+1,"pair:rhor");
+  memory->destroy(rhor);
+  memory->create(rhor,nrhor,nr+1,"pair:rhor");
 
   // copy each element pair rhor to global rhor
 
@@ -289,8 +290,8 @@ void PairEAMFS::file2array()
   // nz2r = N*(N+1)/2 where N = # of fs elements
 
   nz2r = fs->nelements * (fs->nelements+1) / 2;
-  memory->destroy_2d_double_array(z2r);
-  z2r = (double **) memory->create_2d_double_array(nz2r,nr+1,"pair:z2r");
+  memory->destroy(z2r);
+  memory->create(z2r,nz2r,nr+1,"pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 

@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "remap.h"
@@ -20,8 +19,8 @@
 
 #include "pack.h"
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
 
 /* ----------------------------------------------------------------------
    Data layout for 3d remaps:

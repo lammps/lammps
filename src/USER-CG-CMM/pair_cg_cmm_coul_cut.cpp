@@ -16,17 +16,12 @@
    Contributing author: Axel Kohlmeyer <akohlmey@gmail.com>
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "pair_cg_cmm_coul_cut.h"
 #include "memory.h"
 #include "atom.h"
 
-#include "string.h"
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
- 
-/* ---------------------------------------------------------------------- */
 
 PairCGCMMCoulCut::PairCGCMMCoulCut(LAMMPS *lmp) : PairCMMCommon(lmp)
 {
@@ -39,10 +34,10 @@ PairCGCMMCoulCut::PairCGCMMCoulCut(LAMMPS *lmp) : PairCMMCommon(lmp)
 PairCGCMMCoulCut::~PairCGCMMCoulCut()
 {
   if (allocated_coul) {
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(cut_coul);
-    memory->destroy_2d_double_array(cut_coulsq);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
     allocated_coul=0;
   }
 }
@@ -56,10 +51,10 @@ void PairCGCMMCoulCut::allocate()
 
   int n = atom->ntypes;
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"paircg:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_ljsq");
-  cut_coul = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coul");
-  cut_coulsq = memory->create_2d_double_array(n+1,n+1,"paircg:cut_coulsq");
+  memory->create(cut_lj,n+1,n+1,"paircg:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"paircg:cut_ljsq");
+  memory->create(cut_coul,n+1,n+1,"paircg:cut_coul");
+  memory->create(cut_coulsq,n+1,n+1,"paircg:cut_coulsq");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,13 +62,13 @@ void PairCGCMMCoulCut::allocate()
 void PairCGCMMCoulCut::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style cg/cut/coul/cut requires atom attribute q");
+    error->all(FLERR,"Pair style cg/cut/coul/cut requires atom attribute q");
 
   PairCMMCommon::init_style();
 
   // set rRESPA cutoffs
 
-  if (strcmp(update->integrate_style,"respa") == 0 &&
+  if (strstr(update->integrate_style,"respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = NULL;
@@ -88,7 +83,7 @@ double PairCGCMMCoulCut::init_one(int i, int j)
   // check interior rRESPA cutoff
 
   if (cut_respa && MIN(cut_lj[i][j],cut_coul[i][j]) < cut_respa[3])
-    error->all("Pair cutoff < Respa interior cutoff");
+    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   return mycut;
 }

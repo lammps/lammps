@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(gpu,FixGPU)
+FixStyle(GPU,FixGPU)
 
 #else
 
@@ -37,6 +37,8 @@ class FixGPU : public Fix {
   double memory_usage();
 
  private:
+  int _gpu_mode;
+  double _particle_split;
 };
 
 }

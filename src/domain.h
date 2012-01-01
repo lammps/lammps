@@ -85,21 +85,23 @@ class Domain : protected Pointers {
   class Region **regions;                  // list of defined Regions
 
   Domain(class LAMMPS *);
-  ~Domain();
-  void init();
+  virtual ~Domain();
+  virtual void init();
   void set_initial_box();
-  void set_global_box();
-  void set_lamda_box();
-  void set_local_box();
-  void reset_box();
-  void pbc();
+  virtual void set_global_box();
+  virtual void set_lamda_box();
+  virtual void set_local_box();
+  virtual void reset_box();
+  virtual void pbc();
   void remap(double *, int &);
   void remap(double *);
   void remap_near(double *, double *);
   void unmap(double *, int);
   void unmap(double *, int, double *);
+  int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
+  void closest_image(const double * const, const double * const, double * const);
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);
@@ -107,8 +109,8 @@ class Domain : protected Pointers {
   void set_boundary(int, char **);
   void print_box(const char *);
 
-  void lamda2x(int);
-  void x2lamda(int);
+  virtual void lamda2x(int);
+  virtual void x2lamda(int);
   void lamda2x(double *, double *);
   void x2lamda(double *, double *);
   void bbox(double *, double *, double *, double *);

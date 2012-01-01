@@ -11,7 +11,11 @@
 
 <H3>fix nvt command 
 </H3>
+<H3>fix nvt/cuda command 
+</H3>
 <H3>fix npt command 
+</H3>
+<H3>fix npt/cuda command 
 </H3>
 <H3>fix nph command 
 </H3>
@@ -24,7 +28,7 @@
 <LI>style_name = <I>nvt</I> or <I>npt</I> or <I>nph</I> 
 
 <PRE>one or more keyword value pairs may be appended
-keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I>
+keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I> or <I>scaleyz</I> or <I>scalexz</I> or <I>scalexy</I>
   <I>temp</I> values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -42,7 +46,10 @@ keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or
   <I>ploop</I> value = number of sub-cycles to perform on barostat thermostat
   <I>nreset</I> value = reset reference cell every this many timesteps
   <I>drag</I> value = drag factor added to barostat/thermostat (0.0 = no drag)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
+  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>scaleyz</I> value = <I>yes</I> or <I>no</I> = scale yz with lz
+  <I>scalexz</I> value = <I>yes</I> or <I>no</I> = scale xz with lz
+  <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly 
 </PRE>
 
 </UL>
@@ -268,21 +275,41 @@ specified values of the external stress tensor.  A value of <I>nstep</I>
 means that every <I>nstep</I> timesteps, the reference dimensions are set
 to those of the current simulation domain.
 </P>
+<P>The <I>scaleyz</I>, <I>scalexz</I>, and <I>scalexy</I> keywords control whether or 
+not the corresponding tilt factors are scaled with the
+associated box dimensions
+when barostatting triclinic periodic cells.
+The default values <I>yes</I> will turn on scaling, which corresponds to
+adjusting the linear dimensions of the cell while preserving its shape.
+Choosing <I>no</I> ensures that the tilt factors are not scaled with the
+box dimensions. See below for restrictions and default values in different
+situations. In older versions of LAMMPS, scaling of tilt factors was not
+performed. The old behavior can be recovered by setting all three 
+scale keywords to <I>no</I>.
+</P>
 <HR>
 
 <P>IMPORTANT NOTE: Using a barostat coupled to tilt dimensions <I>xy</I>,
 <I>xz</I>, <I>yz</I> can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-imposes reasonable limits on how large the tilt values can be, and
-exits with an error if these are exceeded.  This error typically
+allows the tilt factors to grow a little beyond the normal limit
+of half the box length (0.6 times the box length), and then performs
+flipping or re-shaping to an equivalent periodic cell. The re-shaping
+operation is described in more detail in the doc page for 
+<A HREF = "fix_deform.html">fix deform</A>. Both the barostat dynamics and
+the atom trajectories are unaffected by this operation. However,
+if a tilt factor is incremented by a large amount (1.5 times the 
+box length) on a single timestep, LAMMPS can not accomodate 
+this event and will terminate the simulation
+with an error. This error typically
 indicates that there is something badly wrong with how the simulation
-was constructed.  The three most common sources of this error are
-using keyword <I>tri</I> on a liquid system, specifying an external shear
-stress tensor that exceeds the yield stress of the solid, and
-specifying values of <I>Pstart</I> that are too far from the current stress
-value. In other words, triclinic barostatting should be used with
-care.  This also is true for other barostat styles, although they tend
-to be more forgiving of insults.
+was constructed, such as specifying values of <I>Pstart</I> that are 
+too far from the current stress value, or specifying a timestep that
+is too large. Triclinic barostatting should be used with
+care. This also is true for other barostat styles, although they tend
+to be more forgiving of insults. In particular, it is important to
+recognize that equilibrium liquids can not support a shear stress and 
+that equilibrium solids can not support shear stresses that exceed the yield stress.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_temp_berendsen.html">fix
 temp/berendsen</A> command which performs
@@ -295,8 +322,8 @@ have their temperature controlled by another fix - e.g. by <A HREF = "fix_nh.htm
 langevin</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>
 commands.
 </P>
-<P>See <A HREF = "Section_howto.html#4_16">this howto section</A> of the manual for a
-discussion of different ways to compute temperature and perform
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
 thermostatting and barostatting.
 </P>
 <HR>
@@ -344,6 +371,29 @@ temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.
 </P>
+<HR>
+
+<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<A HREF = "Section_accelerate.html">this section</A> of the manual.  The accelerated
+styles take the same arguments and should produce the same results,
+except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>These fixes writes the state of all the thermostat and barostat
@@ -378,7 +428,7 @@ and barostatting to the system's potential energy as part of
 <A HREF = "thermo_style.html">thermodynamic output</A>.
 </P>
 <P>These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various <A HREF = "Section_howto.html#4_15">output
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The scalar value calculated by
 these fixes is "extensive"; the vector values are "intensive".
 </P>
@@ -400,19 +450,19 @@ simulation, otherwise its value is 3.
 follows.  The notation means there are tchain values for eta, followed
 by tchain for eta_dot, followed by ndof for omega, etc:
 </P>
-<UL><LI>eta[tchain] = particle thermostat displacements
-<LI>eta_dot[tchain] = particle thermostat velocities
-<LI>omega[ndof] = barostat displacements
-<LI>omega_dot[ndof] = barostat velocities
-<LI>etap[pchain] = barostat thermostat displacements
-<LI>etap_dot[pchain] = barostat thermostat velocities
-<LI>PE_eta[tchain] = potential energy of each particle thermostat displacement
-<LI>KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity
-<LI>PE_omega[ndof] = potential energy of each barostat displacement
-<LI>KE_omega_dot[ndof] = kinetic energy of each barostat velocity
-<LI>PE_etap[pchain] = potential energy of each barostat thermostat displacement
-<LI>KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity
-<LI>PE_strain[1] = scalar strain energy 
+<UL><LI>eta[tchain] = particle thermostat displacements (unitless)
+<LI>eta_dot[tchain] = particle thermostat velocities (1/time units)
+<LI>omega[ndof] = barostat displacements (unitless)
+<LI>omega_dot[ndof] = barostat velocities (1/time units)
+<LI>etap[pchain] = barostat thermostat displacements (unitless)
+<LI>etap_dot[pchain] = barostat thermostat velocities (1/time units)
+<LI>PE_eta[tchain] = potential energy of each particle thermostat displacement (energy units)
+<LI>KE_eta_dot[tchain] = kinetic energy of each particle thermostat velocity (energy units)
+<LI>PE_omega[ndof] = potential energy of each barostat displacement (energy units)
+<LI>KE_omega_dot[ndof] = kinetic energy of each barostat velocity (energy units)
+<LI>PE_etap[pchain] = potential energy of each barostat thermostat displacement (energy units)
+<LI>KE_etap_dot[pchain] = kinetic energy of each barostat thermostat velocity (energy units)
+<LI>PE_strain[1] = scalar strain energy (energy units) 
 </UL>
 <P>These fixes can ramp their external temperature and pressure over
 multiple runs, using the <I>start</I> and <I>stop</I> keywords of the
@@ -456,6 +506,12 @@ the meaning of the xy,xz,yz tilt factors.
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 </P>
+<P>The <I>scaleyz yes</I> and <I>scalexz yes</I> keyword/value pairs can not be used
+for 2D simulations. <I>scaleyz yes</I>, <I>scalexz yes</I>, and <I>scalexy yes</I> options
+can only be used if the 2nd dimension in the keyword is periodic,
+and if the tilt factor is not coupled to the barostat via keywords
+<I>tri</I>, <I>yz</I>, <I>xz</I>, and <I>xy</I>.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "run_style.html">run_style</A>
@@ -463,7 +519,9 @@ is not allowed in the Nose/Hoover formulation.
 <P><B>Default:</B>
 </P>
 <P>The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
-ploop = 1, nreset = 0, drag = 0.0, dilate = all, and couple = none.
+ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+not coupled to barostat, otherwise no.
 </P>
 <HR>
 

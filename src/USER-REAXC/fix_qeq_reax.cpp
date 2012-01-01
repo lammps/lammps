@@ -13,6 +13,12 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
+   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+
+   Please cite the related publication:
+   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
+   "Parallel Reactive Molecular Dynamics: Numerical Methods and
+   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -44,15 +50,12 @@ using namespace LAMMPS_NS;
 #define MIN_CAP 50
 #define MIN_NBRS 100
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg)
 {
-  if (narg != 8) error->all("Illegal fix qeq/reax command"); 
+  if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command"); 
   
   nevery = atoi(arg[3]);
   swa = atof(arg[4]);
@@ -110,18 +113,18 @@ FixQEqReax::~FixQEqReax()
  
   atom->delete_callback(id,0);
 
-  memory->destroy_2d_double_array(s_hist);
-  memory->destroy_2d_double_array(t_hist);
+  memory->destroy(s_hist);
+  memory->destroy(t_hist);
 
   deallocate_storage();
   deallocate_matrix();
 
-  memory->destroy_2d_double_array(shld);
+  memory->destroy(shld);
 
   if (!reaxflag) {
-    memory->sfree(chi);
-    memory->sfree(eta);
-    memory->sfree(gamma);
+    memory->destroy(chi);
+    memory->destroy(eta);
+    memory->destroy(gamma);
   }
 }
 
@@ -142,13 +145,13 @@ void FixQEqReax::pertype_parameters(char *arg)
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
     Pair *pair = force->pair_match("reax/c",1);
-    if (pair == NULL) error->all("No pair reax/c for fix qeq/reax");
+    if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax");
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if (chi == NULL || eta == NULL || gamma == NULL)
-      error->all("Fix qeq/reax could not extract params from pair reax/c");
+      error->all(FLERR,"Fix qeq/reax could not extract params from pair reax/c");
     return;
   }
 
@@ -159,24 +162,23 @@ void FixQEqReax::pertype_parameters(char *arg)
   reaxflag = 0;
   ntypes = atom->ntypes;
 
-  chi = (double*) memory->smalloc(sizeof(double)*(ntypes+1),"qeq/reax:chi");
-  eta = (double*) memory->smalloc(sizeof(double)*(ntypes+1),"qeq/reax:eta");
-  gamma = (double*) memory->smalloc(sizeof(double)*(ntypes+1),
-				    "qeq/reax:gamma");
+  memory->create(chi,ntypes+1,"qeq/reax:chi");
+  memory->create(eta,ntypes+1,"qeq/reax:eta");
+  memory->create(gamma,ntypes+1,"qeq/reax:gamma");
 
   if (comm->me == 0) {
     if ((pf = fopen(arg,"r")) == NULL)
-      error->one("Fix qeq/reax parameter file could not be found");
+      error->one(FLERR,"Fix qeq/reax parameter file could not be found");
     
     for (i = 1; i <= ntypes && !feof(pf); i++) {
       fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
       if (itype < 1 || itype > ntypes)
-	error->one("Fix qeq/reax invalid atom type in param file");
+	error->one(FLERR,"Fix qeq/reax invalid atom type in param file");
       chi[itype] = v1;
       eta[itype] = v2;
       gamma[itype] = v3;
     }
-    if (i <= ntypes) error->one("Invalid param file for fix qeq/reax");
+    if (i <= ntypes) error->one(FLERR,"Invalid param file for fix qeq/reax");
     fclose(pf);
   }
 
@@ -191,39 +193,38 @@ void FixQEqReax::allocate_storage()
 {
   nmax = atom->nmax;
 
-  s = (double*) memory->smalloc( nmax * sizeof(double), "qeq:s" );
-  t = (double*) memory->smalloc( nmax * sizeof(double), "qeq:t" );
+  memory->create(s,nmax,"qeq:s");
+  memory->create(t,nmax,"qeq:t");
 
-  Hdia_inv = (double*) memory->smalloc(nmax * sizeof(double), "qeq:Hdia_inv");
-  b_s = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_s" );
-  b_t = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_t" );
-  b_prc = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_prc" );
-  b_prm = (double*) memory->smalloc( nmax * sizeof(double), "qeq:b_prm" );
+  memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
+  memory->create(b_s,nmax,"qeq:b_s");
+  memory->create(b_t,nmax,"qeq:b_t");
+  memory->create(b_prc,nmax,"qeq:b_prc");
+  memory->create(b_prm,nmax,"qeq:b_prm");
 
-  // CG
-  p = (double*) memory->smalloc( nmax * sizeof(double), "qeq:p" );
-  q = (double*) memory->smalloc( nmax * sizeof(double), "qeq:q" );
-  r = (double*) memory->smalloc( nmax * sizeof(double), "qeq:r" );
-  d = (double*) memory->smalloc( nmax * sizeof(double), "qeq:d" );
+  memory->create(p,nmax,"qeq:p");
+  memory->create(q,nmax,"qeq:q");
+  memory->create(r,nmax,"qeq:r");
+  memory->create(d,nmax,"qeq:d");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::deallocate_storage()
 {
-  memory->sfree(s);
-  memory->sfree(t);
+  memory->destroy(s);
+  memory->destroy(t);
 
-  memory->sfree( Hdia_inv );
-  memory->sfree( b_s );
-  memory->sfree( b_t );
-  memory->sfree( b_prc );
-  memory->sfree( b_prm );
+  memory->destroy( Hdia_inv );
+  memory->destroy( b_s );
+  memory->destroy( b_t );
+  memory->destroy( b_prc );
+  memory->destroy( b_prm );
 
-  memory->sfree( p );
-  memory->sfree( q );
-  memory->sfree( r );
-  memory->sfree( d );
+  memory->destroy( p );
+  memory->destroy( q );
+  memory->destroy( r );
+  memory->destroy( d );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,20 +256,20 @@ void FixQEqReax::allocate_matrix()
   
   H.n = n_cap;
   H.m = m_cap;
-  H.firstnbr = (int*) memory->smalloc( n_cap * sizeof(int), "qeq:H.firstnbr" );
-  H.numnbrs = (int*) memory->smalloc( n_cap * sizeof(int), "qeq:H.numnbrs" );
-  H.jlist = (int*)  memory->smalloc( m_cap * sizeof(int), "qeq:H.jlist" );
-  H.val = (double*) memory->smalloc( m_cap * sizeof(double), "qeq:H.val" );
+  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
+  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
+  memory->create(H.jlist,m_cap,"qeq:H.jlist");
+  memory->create(H.val,m_cap,"qeq:H.val");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReax::deallocate_matrix()
 {
-  memory->sfree( H.firstnbr );
-  memory->sfree( H.numnbrs );
-  memory->sfree( H.jlist );
-  memory->sfree( H.val ); 
+  memory->destroy( H.firstnbr );
+  memory->destroy( H.numnbrs );
+  memory->destroy( H.jlist );
+  memory->destroy( H.val ); 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,7 +284,7 @@ void FixQEqReax::reallocate_matrix()
 
 void FixQEqReax::init()
 {
-  if (!atom->q_flag) error->all("Fix qeq/reax requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 	
   // need a half neighbor list w/ Newton off
   // built whenever re-neighboring occurs
@@ -296,7 +297,7 @@ void FixQEqReax::init()
   init_shielding();
   init_taper();
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -315,7 +316,7 @@ void FixQEqReax::init_shielding()
   int ntypes;
 
   ntypes = atom->ntypes;
-  shld = memory->create_2d_double_array(ntypes+1, ntypes+1, "qeq:shileding");
+  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
   
   for( i = 1; i <= ntypes; ++i )
     for( j = 1; j <= ntypes; ++j )
@@ -329,11 +330,11 @@ void FixQEqReax::init_taper()
   double d7, swa2, swa3, swb2, swb3;
 
   if (fabs(swa) > 0.01 && comm->me == 0)
-    error->warning("Fix qeq/reax has non-zero lower Taper radius cutoff");
+    error->warning(FLERR,"Fix qeq/reax has non-zero lower Taper radius cutoff");
   if (swb < 0)
-    error->all( "Fix qeq/reax has negative upper Taper radius cutoff");
+    error->all(FLERR, "Fix qeq/reax has negative upper Taper radius cutoff");
   else if (swb < 5 && comm->me == 0)
-    error->warning("Fix qeq/reax has very low Taper radius cutoff");
+    error->warning(FLERR,"Fix qeq/reax has very low Taper radius cutoff");
 
   d7 = pow( swb - swa, 7 );
   swa2 = SQR( swa );
@@ -473,19 +474,20 @@ void FixQEqReax::init_matvec()
 void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, temp, newnbr;
-  int *type;
-  double **x;
+  int i, j, ii, jj, temp, newnbr, flag;
+  int *type, *tag;
+  double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 
   type = atom->type;
+  tag = atom->tag;
   x = atom->x;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+  
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
@@ -494,16 +496,30 @@ void FixQEqReax::compute_H()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     H.firstnbr[i] = m_fill;
-
+    
     for( jj = 0; jj < jnum; jj++ ) {
       j = jlist[jj];
-
-      dx = x[i][0] - x[j][0];
-      dy = x[i][1] - x[j][1];
-      dz = x[i][2] - x[j][2];
+      
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
       r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
       
-      if( r_sqr <= SQR(swb) && (j < n || atom->tag[i] <= atom->tag[j]) ) {
+      flag = 0;
+      if (r_sqr <= SQR(swb)) {
+        if (j < n) flag = 1;
+        else if (tag[i] < tag[j]) flag = 1;
+	else if (tag[i] == tag[j]) {
+          if (dz > SMALL) flag = 1;
+          else if (fabs(dz) < SMALL) {
+            if (dy > SMALL) flag = 1;
+            else if (fabs(dy) < SMALL && dx > SMALL)
+              flag = 1;
+          }
+        }
+      }
+      
+      if( flag ) {
 	H.jlist[m_fill] = j;
 	H.val[m_fill] = calculate_H( sqrt(r_sqr), shld[type[i]][type[j]] );
 	m_fill++;
@@ -517,8 +533,8 @@ void FixQEqReax::compute_H()
     char str[128];
     sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
 	     m_fill, H.m );
-    error->warning(str);
-    error->all("Fix qeq/reax has insufficient QEq matrix size");
+    error->warning(FLERR,str);
+    error->all(FLERR,"Fix qeq/reax has insufficient QEq matrix size");
   }
 }
 
@@ -587,7 +603,7 @@ int FixQEqReax::CG( double *b, double *x )
   }
 
   if (i >= 100 && comm->me == 0)
-    error->warning("Fix qeq/reax CG convergence failed");
+    error->warning(FLERR,"Fix qeq/reax CG convergence failed");
 
   return i;
 }
@@ -714,8 +730,8 @@ double FixQEqReax::memory_usage()
 
 void FixQEqReax::grow_arrays(int nmax)
 {
-  s_hist = memory->grow_2d_double_array(s_hist,nmax,nprev,"qeq:s_hist");
-  t_hist = memory->grow_2d_double_array(t_hist,nmax,nprev,"qeq:t_hist");
+  memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
+  memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
 }
 
 /* ----------------------------------------------------------------------

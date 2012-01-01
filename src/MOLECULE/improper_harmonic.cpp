@@ -22,10 +22,12 @@
 #include "domain.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -39,9 +41,9 @@ ImproperHarmonic::ImproperHarmonic(LAMMPS *lmp) : Improper(lmp) {}
 ImproperHarmonic::~ImproperHarmonic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(chi);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(chi);
   }
 }
 
@@ -127,7 +129,7 @@ void ImproperHarmonic::compute(int eflag, int vflag)
 		"Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -221,10 +223,10 @@ void ImproperHarmonic::allocate()
   allocated = 1;
   int n = atom->nimpropertypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"improper:k");
-  chi = (double *) memory->smalloc((n+1)*sizeof(double),"improper:chi");
+  memory->create(k,n+1,"improper:k");
+  memory->create(chi,n+1,"improper:chi");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"improper:setflag");
+  memory->create(setflag,n+1,"improper:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -234,7 +236,7 @@ void ImproperHarmonic::allocate()
 
 void ImproperHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all("Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -248,12 +250,12 @@ void ImproperHarmonic::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    chi[i] = chi_one/180.0 * PI;
+    chi[i] = chi_one/180.0 * MY_PI;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
 }
 
 /* ----------------------------------------------------------------------

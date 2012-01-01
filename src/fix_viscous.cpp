@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix viscous command");
+  if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 
   double gamma_one = atof(arg[3]);
   gamma = new double[atom->ntypes+1];
@@ -38,14 +38,14 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all("Illegal fix viscous command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix viscous command");
       int itype = atoi(arg[iarg+1]);
       double scale = atof(arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
-	error->all("Illegal fix viscous command");
+	error->all(FLERR,"Illegal fix viscous command");
       gamma[itype] = gamma_one * scale;
       iarg += 3;
-    } else error->all("Illegal fix viscous command");
+    } else error->all(FLERR,"Illegal fix viscous command");
   }
 }
 
@@ -71,7 +71,7 @@ int FixViscous::setmask()
 
 void FixViscous::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -79,7 +79,7 @@ void FixViscous::init()
 
 void FixViscous::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

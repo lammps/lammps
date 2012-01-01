@@ -14,7 +14,6 @@
 #ifndef LMP_ATOM_H
 #define LMP_ATOM_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -49,12 +48,18 @@ class Atom : protected Pointers {
 
   int *molecule;
   double *q,**mu;
-  double **quat,**omega,**angmom,**torque;
-  double *radius,*density,*rmass,*vfrac,*s0;
+  double **omega,**angmom,**torque;
+  double *radius,*rmass,*vfrac,*s0;
   double **x0;
-
+  int *ellipsoid,*line,*tri;
   int *spin;
-  double *eradius,*ervel,*erforce;
+  double *eradius,*ervel,*erforce,*ervelforce;
+  double *cs,*csforce,*vforce;
+  int *etag;
+  double *rho, *drho;
+  double *e, *de;
+  double **vest;
+  double *cv;
 
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   int **special;                // IDs of 1-2,1-3,1-4 neighs of each atom
@@ -76,15 +81,17 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
-  // per-atom array existence flags
-  // these can be checked before array is allocated
+  // atom style and per-atom array existence flags
   // customize by adding new flag
 
-  int molecule_flag;
-  int q_flag,mu_flag;
-  int quat_flag,omega_flag,angmom_flag,torque_flag;
-  int radius_flag,density_flag,rmass_flag,vfrac_flag;
-  int spin_flag,eradius_flag,ervel_flag,erforce_flag;
+  int sphere_flag,ellipsoid_flag,line_flag,tri_flag,peri_flag,electron_flag;
+  int wavepacket_flag,sph_flag;
+
+  int molecule_flag,q_flag,mu_flag;
+  int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
+  int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
+  int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
+  int rho_flag,e_flag,cv_flag,vest_flag;
 
   // extra peratom info in restart file destined for fix & diag 
 
@@ -92,8 +99,8 @@ class Atom : protected Pointers {
 
   // per-type arrays
 
-  double *mass,**shape,*dipole;
-  int *mass_setflag,*shape_setflag,*dipole_setflag;
+  double *mass;
+  int *mass_setflag;
 
   // callback ptrs for atom arrays managed by fix classes
 
@@ -116,12 +123,12 @@ class Atom : protected Pointers {
   ~Atom();
 
   void settings(class Atom *);
-  void create_avec(const char *, int, char **);
-  class AtomVec *new_avec(const char *, int, char **);
+  void create_avec(const char *, int, char **, char *suffix = NULL);
+  class AtomVec *new_avec(const char *, int, char **, char *, int &);
   void init();
   void setup();
 
-  int style_match(const char *);
+  class AtomVec *style_match(const char *);
   void modify_params(int, char **);
   void tag_extend();
   int tag_consecutive();
@@ -131,6 +138,8 @@ class Atom : protected Pointers {
 
   void data_atoms(int, char *);
   void data_vels(int, char *);
+  void data_bonus(int, char *, class AtomVec *);
+
   void data_bonds(int, char *);
   void data_angles(int, char *);
   void data_dihedrals(int, char *);
@@ -142,14 +151,9 @@ class Atom : protected Pointers {
   void set_mass(int, char **);
   void set_mass(double *);
   void check_mass();
-  void set_shape(const char *);
-  void set_shape(int, char **);
-  void set_shape(double **);
-  void check_shape();
-  void set_dipole(const char *);
-  void set_dipole(int, char **);
-  void set_dipole(double *);
-  void check_dipole();
+
+  int radius_consistency(int, double &);
+  int shape_consistency(int, double &, double &, double &);
 
   void first_reorder();
   void sort();
@@ -160,7 +164,10 @@ class Atom : protected Pointers {
 
   void *extract(char *);
 
-  double memory_usage();
+  inline int* get_map_array() {return map_array;};
+  inline int get_map_size() {return map_tag_max+1;};
+
+  bigint memory_usage();
   int memcheck(const char *);
 
   // functions for global to local ID mapping

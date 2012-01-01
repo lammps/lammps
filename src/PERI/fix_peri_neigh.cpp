@@ -34,9 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) : 
@@ -82,11 +79,11 @@ FixPeriNeigh::~FixPeriNeigh()
 
   // delete locally stored arrays
 
-  memory->sfree(npartner);
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
-  memory->sfree(vinter);
-  memory->sfree(wvolume);
+  memory->destroy(npartner);
+  memory->destroy(partner);
+  memory->destroy(r0);
+  memory->destroy(vinter);
+  memory->destroy(wvolume);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -177,6 +174,7 @@ void FixPeriNeigh::setup(int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -195,9 +193,9 @@ void FixPeriNeigh::setup(int vflag)
 
   // realloc arrays with correct value for maxpartner
 
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_2d_double_array(r0);
-  memory->sfree(npartner);
+  memory->destroy(partner);
+  memory->destroy(r0);
+  memory->destroy(npartner);
 
   npartner = NULL;
   partner = NULL;
@@ -224,6 +222,7 @@ void FixPeriNeigh::setup(int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -240,18 +239,20 @@ void FixPeriNeigh::setup(int vflag)
     }
   }
 
-  // Sanity check: Does any atom appear twice in any neigborlist?
-  // Should only be possible if using pbc and domain not at least of width 2 \delta 
+  // sanity check: does any atom appear twice in any neigborlist?
+  // should only be possible if using pbc and domain < 2*delta 
+
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
     for (i = 0; i < nlocal; i++) {
       jnum = npartner[i];
       for (jj = 0; jj < jnum; jj++) {
         for (int kk = jj+1; kk < jnum; kk++) {
-          if (partner[i][jj] == partner[i][kk]) error->one("Duplicate particle in bond family. Check that box is greater than size 2*delta in periodic dimensions.");
+          if (partner[i][jj] == partner[i][kk])
+	    error->one(FLERR,"Duplicate particle in PeriDynamic bond - "
+		       "simulation box is too small");
         }
       }
     }
-
   }
 
   // compute wvolume for each atom
@@ -354,15 +355,11 @@ double FixPeriNeigh::memory_usage()
 
 void FixPeriNeigh::grow_arrays(int nmax)
 {
-  npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
-				      "peri_neigh:npartner");
-  partner = memory->grow_2d_int_array(partner,nmax,maxpartner,
-				      "peri_neigh:partner");
-  r0 = memory->grow_2d_double_array(r0,nmax,maxpartner,"peri_neigh:r0");
-  vinter = (double *) memory->srealloc(vinter,nmax*sizeof(double),
-				       "peri_neigh:vinter");
-  wvolume = (double *) memory->srealloc(wvolume,nmax*sizeof(double),
-                                       "peri_neigh:wvolume");
+  memory->grow(npartner,nmax,"peri_neigh:npartner");
+  memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
+  memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
+  memory->grow(vinter,nmax,"peri_neigh:vinter");
+  memory->grow(wvolume,nmax,"peri_neigh:wvolume");
 }
 
 /* ----------------------------------------------------------------------

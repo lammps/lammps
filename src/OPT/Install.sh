@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# do not copy eam and charmm files if non-OPT versions do not exist
+# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 
@@ -15,6 +15,10 @@ if (test $1 = 1) then
   if (test -e ../pair_lj_charmm_coul_long.cpp) then
     cp pair_lj_charmm_coul_long_opt.cpp ..
     cp pair_lj_charmm_coul_long_opt.h ..
+    cp pair_lj_cut_coul_long_opt.cpp ..
+    cp pair_lj_cut_coul_long_opt.h ..
+    cp pair_lj_cut_coul_long_tip4p_opt.cpp ..
+    cp pair_lj_cut_coul_long_tip4p_opt.h ..
   fi
 
   cp pair_lj_cut_opt.cpp ..
@@ -25,18 +29,22 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../pair_eam_opt.cpp
-  rm ../pair_eam_alloy_opt.cpp
-  rm ../pair_eam_fs_opt.cpp
-  rm ../pair_lj_charmm_coul_long_opt.cpp
-  rm ../pair_lj_cut_opt.cpp
-  rm ../pair_morse_opt.cpp
+  rm -f ../pair_eam_opt.cpp
+  rm -f ../pair_eam_alloy_opt.cpp
+  rm -f ../pair_eam_fs_opt.cpp
+  rm -f ../pair_lj_charmm_coul_long_opt.cpp
+  rm -f ../pair_lj_cut_coul_long_opt.cpp
+  rm -f ../pair_lj_cut_coul_long_tip4p_opt.cpp
+  rm -f ../pair_lj_cut_opt.cpp
+  rm -f ../pair_morse_opt.cpp
 
-  rm ../pair_eam_opt.h
-  rm ../pair_eam_alloy_opt.h
-  rm ../pair_eam_fs_opt.h
-  rm ../pair_lj_charmm_coul_long_opt.h
-  rm ../pair_lj_cut_opt.h
-  rm ../pair_morse_opt.h
+  rm -f ../pair_eam_opt.h
+  rm -f ../pair_eam_alloy_opt.h
+  rm -f ../pair_eam_fs_opt.h
+  rm -f ../pair_lj_charmm_coul_long_opt.h
+  rm -f ../pair_lj_cut_coul_long_opt.h
+  rm -f ../pair_lj_cut_coul_long_tip4p_opt.h
+  rm -f ../pair_lj_cut_opt.h
+  rm -f ../pair_morse_opt.h
 
 fi

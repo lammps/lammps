@@ -33,10 +33,8 @@ using namespace LAMMPS_NS;
 FixNVEEff::FixNVEEff(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (!atom->spin_flag || !atom->eradius_flag || 
-      !atom->ervel_flag || !atom->erforce_flag) 
-    error->all("Fix nve/eff requires atom attributes "
-               "spin, eradius, ervel, erforce");
+  if (!atom->electron_flag) 
+    error->all(FLERR,"Fix nve/eff requires atom style electron");
 
   time_integrate = 1;
 }
@@ -60,7 +58,7 @@ void FixNVEEff::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 

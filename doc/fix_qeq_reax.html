@@ -33,7 +33,12 @@ fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
 and Goddard, 1991)</A> and formulated in <A HREF = "#Nakano_1997">(Nakano,
 1997)</A>.  It is typically used in conjunction with the
 ReaxFF force field model as implemented in the <A HREF = "pair_reax_c.html">pair_style
-reax/c</A> command.
+reax/c</A> command, but it can be used with any
+potential in LAMMPS, so long as it defines and uses charges on each
+atom.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command should be used to
+perform charge equliibration with the <A HREF = "pair_comb.html">COMB potential</A>.
+For more technical details about the charge equilibration performed by
+fix qeq/reax, see the "(Aktulga)" paper.
 </P>
 <P>The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
@@ -42,8 +47,9 @@ If the <I>params</I> setting above is the word "reax/c", then these are
 extracted from the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for <I>params</I>, then the parameters are taken from the specified file
-and the file must contain one line for each atom type.  Each line
-should be formatted as follows:
+and the file must contain one line for each atom type.  The latter
+form must be used when performing QeQ with a non-ReaxFF potential.
+Each line should be formatted as follows:
 </P>
 <PRE>itype chi eta gamma 
 </PRE>
@@ -59,17 +65,21 @@ of this fix are hard-coded to be A, eV, and electronic charge.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#4_15">output
-commands</A>.  No parameter of this fix can be
-used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 </P>
 <P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the "user-reaxc" package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>This fix is part of the USER-REAXC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
+</P>
+<P>This fix does not correctly handle interactions
+involving multiple periodic images of the same atom. Hence, it should not
+be used for periodic cell dimensions less than 10 angstroms. 
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -87,5 +97,8 @@ LAMMPS</A> section for more info.
 <A NAME = "Nakano_1997"></A>
 
 <P><B>(Nakano)</B> Nakano, Computer Physics Communications, 104, 59-69 (1997).
+</P>
+<P>:link(Aktulga) <B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel
+Computing, to appear (2011).
 </P>
 </HTML>

@@ -1,0 +1,19 @@
+This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.
+ 
+See this section of the manual to get started:
+
+doc/Section_accelerate.html, sub-section 5.4
+
+There are example scripts for using this package in
+examples/USER/cuda.
+
+This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+
+The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.

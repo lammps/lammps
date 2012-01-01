@@ -52,7 +52,7 @@ since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
 geometrically equivalent.
 
-See "this section"_Section_howto.html#4_12 of the doc pages for a
+See "this section"_Section_howto.html#howto_12 of the doc pages for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.

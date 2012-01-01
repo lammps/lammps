@@ -1,4 +1,4 @@
-"Previous Section"_Section_commands.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_example.html :c
+"Previous Section"_Section_accelerate.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_example.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -6,40 +6,40 @@
 
 :line 
 
-4. How-to discussions :h3
+6. How-to discussions :h3
 
-The following sections describe how to use various options within
-LAMMPS.
+This section describes how to perform common tasks using LAMMPS.
 
-4.1 "Restarting a simulation"_#4_1
-4.2 "2d simulations"_#4_2
-4.3 "CHARMM, AMBER, and DREIDING force fields"_#4_3
-4.4 "Running multiple simulations from one input script"_#4_4
-4.5 "Multi-replica simulations"_#4_5
-4.6 "Granular models"_#4_6
-4.7 "TIP3P water model"_#4_7
-4.8 "TIP4P water model"_#4_8
-4.9 "SPC water model"_#4_9
-4.10 "Coupling LAMMPS to other codes"_#4_10
-4.11 "Visualizing LAMMPS snapshots"_#4_11
-4.12 "Triclinic (non-orthogonal) simulation boxes"_#4_12
-4.13 "NEMD simulations"_#4_13
-4.14 "Extended spherical and aspherical particles"_#4_14
-4.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#4_15
-4.16 "Thermostatting, barostatting and computing temperature"_#4_16
-4.17 "Walls"_#4_17
-4.18 "Elastic constants"_#4_18
-4.19 "Library interface to LAMMPS"_#4_19
-4.20 "Calculating thermal conductivity"_#4_20
-4.21 "Calculating viscosity"_#4_21 :all(b)
+6.1 "Restarting a simulation"_#howto_1
+6.2 "2d simulations"_#howto_2
+6.3 "CHARMM, AMBER, and DREIDING force fields"_#howto_3
+6.4 "Running multiple simulations from one input script"_#howto_4
+6.5 "Multi-replica simulations"_#howto_5
+6.6 "Granular models"_#howto_6
+6.7 "TIP3P water model"_#howto_7
+6.8 "TIP4P water model"_#howto_8
+6.9 "SPC water model"_#howto_9
+6.10 "Coupling LAMMPS to other codes"_#howto_10
+6.11 "Visualizing LAMMPS snapshots"_#howto_11
+6.12 "Triclinic (non-orthogonal) simulation boxes"_#howto_12
+6.13 "NEMD simulations"_#howto_13
+6.14 "Extended spherical and aspherical particles"_#howto_14
+6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#howto_15
+6.16 "Thermostatting, barostatting and computing temperature"_#howto_16
+6.17 "Walls"_#howto_17
+6.18 "Elastic constants"_#howto_18
+6.19 "Library interface to LAMMPS"_#howto_19
+6.20 "Calculating thermal conductivity"_#howto_20
+6.21 "Calculating viscosity"_#howto_21 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "this section"_Section_example.html also show how to
 setup and run various kinds of simulations.
 
 :line
+:line
 
-4.1 Restarting a simulation :link(4_1),h4
+6.1 Restarting a simulation :link(howto_1),h4
 
 There are 3 ways to continue a long LAMMPS simulation.  Multiple
 "run"_run.html commands can be used in the same input script.  Each
@@ -131,7 +131,7 @@ but not in data files.
 
 :line
 
-4.2 2d simulations :link(4_2),h4
+6.2 2d simulations :link(howto_2),h4
 
 Use the "dimension"_dimension.html command to specify a 2d simulation.
 
@@ -166,7 +166,7 @@ the same as in 3d.
 
 :line
 
-4.3 CHARMM, AMBER, and DREIDING force fields :link(4_3),h4
+6.3 CHARMM, AMBER, and DREIDING force fields :link(howto_3),h4
 
 A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
@@ -242,7 +242,7 @@ documentation for the formula it computes.
 
 :line
 
-4.4 Running multiple simulations from one input script :link(4_4),h4
+6.4 Running multiple simulations from one input script :link(howto_4),h4
 
 This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.
@@ -315,7 +315,7 @@ All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
 the "-partition" command-line switch as described in "this
-section"_Section_start.html#2_6 of the manual.
+section"_Section_start.html#start_6 of the manual.
 
 In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the "index" and "loop" variables were
@@ -330,7 +330,7 @@ the 4th simulation, and so forth, until all 8 were completed.
 
 :line
 
-4.5 Multi-replica simulations :link(4_5),h4
+6.5 Multi-replica simulations :link(howto_5),h4
 
 Several commands in LAMMPS run mutli-replica simulations, meaning
 that multiple instances (replicas) of your simulation are run
@@ -351,13 +351,13 @@ runs different replicas at a series of temperature to facilitate
 rare-event sampling.
 
 These command can only be used if LAMMPS was built with the "replica"
-package.  See the "Making LAMMPS"_Section_start.html#2_3 section for
-more info on packages.
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
 
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
 run-time by using the "-partition command-line
-switch"_Section_start.html#2_6 to launch LAMMPS on multiple
+switch"_Section_start.html#start_6 to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:
 
@@ -365,8 +365,8 @@ mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
 mpirun -np 8 lmp_linux -partition 8x1 -in in.neb :pre
 
 would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the "-in command-line switch"_Section_start.html#2_6 to specify the
-input script which is required when running in multi-replica mode.
+of the "-in command-line switch"_Section_start.html#start_6 to specify
+the input script which is required when running in multi-replica mode.
 
 Also note that with MPI installed on a machine (e.g. your desktop),
 you can run on more (virtual) processors than you have physical
@@ -377,7 +377,7 @@ physical processors.
 
 :line
 
-4.6 Granular models :link(4_6),h4
+6.6 Granular models :link(howto_6),h4
 
 Granular system are composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
@@ -386,7 +386,7 @@ velocity and torque can be imparted to them to cause them to rotate.
 To run a simulation of a granular model, you will want to use
 the following commands:
 
-"atom_style"_atom_style.html granular
+"atom_style sphere"_atom_style.html
 "fix nve/sphere"_fix_nve_sphere.html
 "fix gravity"_fix_gravity.html :ul
 
@@ -395,7 +395,7 @@ This compute
 "compute erotate/sphere"_compute_erotate_sphere.html :ul
 
 calculates rotational kinetic energy which can be "output with
-thermodynamic info"_Section_howto.html#4_15.
+thermodynamic info"_Section_howto.html#howto_15.
 
 Use one of these 3 pair potentials, which compute forces and torques
 between interacting pairs of particles:
@@ -422,7 +422,7 @@ computations between frozen atoms by using this command:
 
 :line
 
-4.7 TIP3P water model :link(4_7),h4
+6.7 TIP3P water model :link(howto_7),h4
 
 The TIP3P water model as implemented in CHARMM
 "(MacKerell)"_#MacKerell specifies a 3-site rigid water molecule with
@@ -482,7 +482,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
 
-4.8 TIP4P water model :link(4_8),h4
+6.8 TIP4P water model :link(howto_8),h4
 
 The four-point TIP4P rigid water model extends the traditional
 three-point TIP3P model by adding an additional site, usually
@@ -541,7 +541,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line
 
-4.9 SPC water model :link(4_9),h4
+6.9 SPC water model :link(howto_9),h4
 
 The SPC water model specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
@@ -586,7 +586,7 @@ models"_http://en.wikipedia.org/wiki/Water_model.
 
 :line 
 
-4.10 Coupling LAMMPS to other codes :link(4_10),h4
+6.10 Coupling LAMMPS to other codes :link(howto_10),h4
 
 LAMMPS is designed to allow it to be coupled to other codes.  For
 example, a quantum mechanics code might compute forces on a subset of
@@ -655,10 +655,10 @@ strain induced across grain boundaries :l,ule
 :link(quest,http://dft.sandia.gov/Quest)
 :link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
 
-"This section"_Section_start.html#2_4 of the documentation describes
-how to build LAMMPS as a library.  Once this is done, you can
-interface with LAMMPS either via C++, C, Fortran, or Python (or any
-other language that supports a vanilla C-like interface).  For
+"This section"_Section_start.html#start_4 of the documentation
+describes how to build LAMMPS as a library.  Once this is done, you
+can interface with LAMMPS either via C++, C, Fortran, or Python (or
+any other language that supports a vanilla C-like interface).  For
 example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
@@ -668,7 +668,7 @@ the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "this section"_Section_howto.html#4_19 of the manual
+to LAMMPS.  See "this section"_Section_howto.html#howto_19 of the manual
 for a description of the interface and how to extend it for your
 needs.
 
@@ -685,7 +685,7 @@ instances of LAMMPS to perform different calculations.
 
 :line 
 
-4.11 Visualizing LAMMPS snapshots :link(4_11),h4
+6.11 Visualizing LAMMPS snapshots :link(howto_11),h4
 
 LAMMPS itself does not do visualization, but snapshots from LAMMPS
 simulations can be visualized (and analyzed) in a variety of ways.
@@ -741,14 +741,14 @@ See the "dump"_dump.html command for more information on XTC files.
 
 :line
 
-4.12 Triclinic (non-orthogonal) simulation boxes :link(4_12),h4
+6.12 Triclinic (non-orthogonal) simulation boxes :link(howto_12),h4
 
 By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The "boundary"_boundary.html command sets the boundary
 conditions of the box (periodic, non-periodic, etc).  The orthogonal
 box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
-starting from the origin given by A = (xhi-xlo,0,0); B =
-(0,yhi-ylo,0); C = (0,0,zhi-zlo).  The 6 parameters
+starting from the origin given by [a] = (xhi-xlo,0,0); [b] =
+(0,yhi-ylo,0); [c] = (0,0,zhi-zlo).  The 6 parameters
 (xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simluation box
 is created, e.g. by the "create_box"_create_box.html or
 "read_data"_read_data.html or "read_restart"_read_restart.html
@@ -760,14 +760,14 @@ custom"_thermo_style.html command.
 LAMMPS also allows simulations to be perfored in non-orthogonal
 simulation boxes shaped as a parallelepiped with triclinic symmetry.
 The parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by
-3 edge vectors starting from the origin given by A = (xhi-xlo,0,0); B
-= (xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
+3 edge vectors starting from the origin given by [a] = (xhi-xlo,0,0); [b]
+= (xy,yhi-ylo,0); [c] = (xz,yz,zhi-zlo).  {Xy,xz,yz} can be 0.0 or
 positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
 orthogonal box to transform it into the parallelepiped.  Note that in
-LAMMPS the triclinic simulation box edge vectors A,B,C cannot be
-arbitrary vectors.  As indicated, A must be aligned with the x axis, B
-must be in the xy plane, and C is arbitrary.  However, this is not a
+LAMMPS the triclinic simulation box edge vectors [a], [b], and [c] cannot be
+arbitrary vectors.  As indicated, [a] must be aligned with the x axis, [b]
+must be in the xy plane, and [c] is arbitrary.  However, this is not a
 restriction since it is possible to rotate any set of 3 crystal basis
 vectors so that they meet this restriction.
 
@@ -809,13 +809,24 @@ equivalent.
 
 Triclinic crystal structures are often defined using three lattice
 constants {a}, {b}, and {c}, and three angles {alpha}, {beta} and
-{gamma}.  Note that in this nomenclature, the a,b,c lattice constants
-are the scalar lengths of the 3 A,B,C edge vectors defined above.  The
+{gamma}. Note that in this nomenclature, the a, b, and c lattice constants
+are the scalar lengths of the edge vectors [a], [b], and [c] defined 
+above.  The
 relationship between these 6 quantities (a,b,c,alpha,beta,gamma) and
 the LAMMPS box sizes (lx,ly,lz) = (xhi-xlo,yhi-ylo,zhi-zlo) and tilt
 factors (xy,xz,yz) is as follows:
 
 :c,image(Eqs/box.jpg) 
+
+The inverse relationship can be written as follows:
+
+:c,image(Eqs/box_inverse.jpg) 
+
+The values of {a}, {b}, {c} , {alpha}, {beta} , and {gamma} can be printed 
+out or accessed by computes using the 
+"thermo_style custom"_thermo_style.html keywords 
+{cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta}, {cellgamma},
+respectively. 
 
 As discussed on the "dump"_dump.html command doc page, when the BOX
 BOUNDS for a snapshot is written to a dump file for a triclinic box,
@@ -863,7 +874,7 @@ on non-equilibrium MD (NEMD) simulations.
 
 :line
 
-4.13 NEMD simulations :link(4_13),h4
+6.13 NEMD simulations :link(howto_13),h4
 
 Non-equilibrium molecular dynamics or NEMD simulations are typically
 used to measure a fluid's rheological properties such as viscosity.
@@ -901,13 +912,13 @@ An alternative method for calculating viscosities is provided via the
 
 :line
 
-4.14 Extended spherical and aspherical particles :link(4_14),h4
+6.14 Extended spherical and aspherical particles :link(howto_14),h4
 
 Typical MD models treat atoms or particles as point masses.
 Sometimes, however, it is desirable to have a model with finite-size
-particles such as spherioids or aspherical ellipsoids.  The difference
-is that such particles have a moment of inertia, rotational energy,
-and angular momentum.  Rotation is induced by torque from interactions
+particles such as spheres or aspherical ellipsoids.  The difference is
+that such particles have a moment of inertia, rotational energy, and
+angular momentum.  Rotation is induced by torque from interactions
 with other particles.
 
 LAMMPS has several options for running simulations with these kinds of
@@ -921,53 +932,61 @@ rigid bodies composed of extended particles :ul
 
 Atom styles :h5
 
-There are 3 "atom styles"_atom_style.html that allow for definition of
-finite-size particles: granular, dipole, ellipsoid.
+There are 2 "atom styles"_atom_style.html that allow for definition of
+finite-size particles: sphere and ellipsoid.  The peri atom style also
+treats particles as having a volume, but that is internal to the
+"pair_style peri"_pair_peri.html potentials.  The dipole atom style is
+most often used in conjunction with finite-size particles.
 
-Granular particles are spheriods and each particle can have a unique
-diameter and mass (or density).  These particles store an angular
-velocity (omega) and can be acted upon by torque.
+The sphere style defines particles that are spheriods and each
+particle can have a unique diameter and mass (or density).  These
+particles store an angular velocity (omega) and can be acted upon by
+torque.  The "set" command can be used to modify the diameter and mass
+of individual particles, after then are created.
 
-Dipolar particles are typically spheriods with a point dipole and each
-particle type has a diamater and mass, set by the "shape"_shape.html
-and "mass"_mass.html commands.  These particles store an angular
-velocity (omega) and can be acted upon by torque.  They also store an
-orientation for the point dipole (mu) which has a length set by the
-"dipole"_dipole.html command.  The "set"_set.html command can be used
-to initialize the orientation of dipole moments.
+The ellipsoid style defines particles that are ellipsoids and thus can
+be aspherical.  Each particle has a shape, specified by 3 diameters,
+and mass (or density).  These particles store an angular momentum and
+their orientation (quaternion), and can be acted upon by torque.  They
+do not store an angular velocity (omega), which can be in a different
+direction than angular momentum, rather they compute it as needed.
+The "set" command can be used to modify the diameter, orientation, and
+mass of individual particles, after then are created.  It also has a
+brief explanation of what quaternions are.
 
-Ellipsoid particles are aspherical.  Each particle type has an
-ellipsoidal shape and mass, defined by the "shape"_shape.html and
-"mass"_mass.html commands.  These particles store an angular momentum
-and their orientation (quaternion), and can be acted upon by torque.
-They do not store an angular velocity (omega), which can be in a
-different direction than angular momentum, rather they compute it as
-needed.  Ellipsoidal particles can also store a dipole moment if an
-"atom_style hybrid ellipsoid dipole"_atom_style.html is used.  The
-"set"_set.html command can be used to initialize the orientation of
-ellipsoidal particles and has a brief explanation of quaternions.
+The dipole style does not define extended particles, but is often
+used in conjunction with spherical particles, via a command like
+
+atom_style hybrid sphere dipole :pre
+
+This is because when dipoles interact with each other, they induce
+torques, and a particle must be extended (i.e. have a moment of
+inertia) in order to respond and rotate.  See the "atom_style
+dipole"_atom_style.html command for details.  The "set" command can be
+used to modify the orientation and length of the dipole moment of
+individual particles, after then are created.
 
 Note that if one of these atom styles is used (or multiple styles via
 the "atom_style hybrid"_atom_style.html command), not all particles in
 the system are required to be finite-size or aspherical.  For example,
 if the 3 shape parameters are set to the same value, the particle will
-be a spheroid rather than an ellipsoid.  If the 3 shape parameters are
+be a sphere rather than an ellipsoid.  If the 3 shape parameters are
 all set to 0.0 or if the diameter is set to 0.0, it will be a point
-particle.  If the dipole moment is set to zero, the particle will not
-have a point dipole associated with it.  The pair styles used to
-compute pairwise interactions will typically compute the correct
-interaction in these simplified (cheaper) cases.  "Pair_style
-hybrid"_pair_hybrid.html can be used to insure the correct
+particle.  If the length of the dipole moment is set to zero, the
+particle will not have a point dipole associated with it.  The pair
+styles used to compute pairwise interactions will typically compute
+the correct interaction in these simplified (cheaper) cases.
+"Pair_style hybrid"_pair_hybrid.html can be used to insure the correct
 interactions are computed for the appropriate style of interactions.
-Likewise, using groups to partition particles (ellipsoid versus
-spheroid versus point particles) will allow you to use the appropriate
+Likewise, using groups to partition particles (ellipsoids versus
+spheres versus point particles) will allow you to use the appropriate
 time integrators and temperature computations for each class of
 particles.  See the doc pages for various commands for details.
 
 Also note that for "2d simulations"_dimension.html, finite-size
-spheroids and ellipsoids are still treated as 3d particles, rather
-than as disks or ellipses.  This means they have the same moment of
-inertia for a 3d extended object.  When their temperature is
+spheres and ellipsoids are still treated as 3d particles, rather than
+as circular disks or ellipses.  This means they have the same moment
+of inertia for a 3d extended object.  When their temperature is
 coomputed, the correct degrees of freedom are used for rotation in a
 2d versus 3d system.
 
@@ -986,15 +1005,14 @@ that generate torque:
 "pair_style resquared"_pair_resquared.html
 "pair_style lubricate"_pair_lubricate.html :ul
 
-The "granular pair styles"_pair_gran.html are used with "atom_style
-granular"_atom_style.html.  The "dipole pair style"_pair_dipole.html
-is used with "atom_style dipole"_atom_style.html.  The
-"GayBerne"_pair_gayberne.html and "REsquared"_pair_resquared.html
-potentials require particles have a "shape"_shape.html and are
-designed for "ellipsoidal particles"_atom_style.html.  The
-"lubrication potential"_pair_lubricate.html requires that particles
-have a "shape"_shape.html.  It can currently only be used with
-extended spherical particles.
+The "granular pair styles"_pair_gran.html are used with spherical
+particles.  The "dipole pair style"_pair_dipole.html is used with
+"atom_style dipole"_atom_style.html, which could be applied to
+spherical or ellipsoidal particles.  The "GayBerne"_pair_gayberne.html
+and "REsquared"_pair_resquared.html potentials require ellipsoidal
+particles, though they will also work if the 3 shape parameters are
+the same (a sphere).  The "lubrication potential"_pair_lubricate.html
+works with spherical particles.
 
 Time integration :h5
 
@@ -1006,8 +1024,8 @@ and angular velocity or angular momentum of the particles:
 "fix nvt/sphere"_fix_nvt_sphere.html
 "fix npt/sphere"_fix_npt_sphere.html :ul
 
-Likewise, there are 3 fixes that perform time integration on extended
-aspherical particles:
+Likewise, there are 3 fixes that perform time integration on
+ellipsoids as extended aspherical particles:
 
 "fix nve/asphere"_fix_nve_asphere.html
 "fix nvt/asphere"_fix_nvt_asphere.html
@@ -1027,7 +1045,7 @@ extended particles.
 Computes, thermodynamics, and dump output :h5
 
 There are 4 computes that calculate the temperature or rotational energy
-of extended spherical or aspherical particles:
+of extended spherical or aspherical particles (ellipsoids):
 
 "compute temp/sphere"_compute_temp_sphere.html
 "compute temp/asphere"_compute_temp_asphere.html
@@ -1055,11 +1073,8 @@ particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 
-(NOTE: the feature described in the following paragraph has not yet
-been released.  It will be soon.)
-
 If any of the constituent particles of a rigid body are extended
-particles (spheroids or ellipsoids), then their contribution to the
+particles (spheres or ellipsoids), then their contribution to the
 inertia tensor of the body is different than if they were point
 particles.  This means the rotational dynamics of the rigid body will
 be different.  Thus a model of a dimer is different if the dimer
@@ -1077,7 +1092,7 @@ particles are point masses.
 
 :line
 
-4.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) :link(4_15),h4
+6.15 Output from LAMMPS (thermo, dumps, computes, fixes, variables) :link(howto_15),h4
 
 There are four basic kinds of LAMMPS output:
 
@@ -1256,6 +1271,11 @@ or local vector quantities as inputs and "reduce" them (sum, min, max,
 ave) to scalar quantities.  These are produced as output values which
 can be used as input to other output commands.
 
+The "compute slice"_compute_slice.html command take one or more global
+vector or array quantities as inputs and extracts a subset of their
+values to create a new vector or array.  These are produced as output
+values which can be used as input to other output commands.
+
 The "compute property/atom"_compute_property_atom.html command takes a
 list of one or more pre-defined atom attributes (id, x, fx, etc) and
 stores the values in a per-atom vector or array.  These are produced
@@ -1348,6 +1368,7 @@ Command: Input: Output:
 "fixes"_fix.html: N/A: global/per-atom/local scalar/vector/array:
 "variables"_variable.html: global scalars, per-atom vectors: global scalar, per-atom vector:
 "compute reduce"_compute_reduce.html: per-atom/local vectors: global scalar/vector:
+"compute slice"_compute_slice.html: global vectors/arrays: global vector/array:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
 "compute property/local"_compute_property_local.html: local vectors: local vector/array:
 "compute atom/molecule"_compute_atom_molecule.html: per-atom vectors: global vector/array:
@@ -1361,7 +1382,7 @@ Command: Input: Output:
 
 :line
 
-4.16 Thermostatting, barostatting, and computing temperature :link(4_16),h4
+6.16 Thermostatting, barostatting, and computing temperature :link(howto_16),h4
 
 Thermostatting means controlling the temperature of particles in an MD
 simulation.  Barostatting means controlling the pressure.  Since the
@@ -1423,7 +1444,7 @@ thermostatting can be invoked via the {dpd/tstat} pair style:
 particles.  "Fix nvt/sllod"_fix_nvt_sllod.html also does this, except
 that it subtracts out a velocity bias due to a deforming box and
 integrates the SLLOD equations of motion.  See the "NEMD
-simulations"_#4_13 section of this page for further details.  "Fix
+simulations"_#howto_13 section of this page for further details.  "Fix
 nvt/sphere"_fix_nvt_sphere.html and "fix
 nvt/asphere"_fix_nvt_asphere.html thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
@@ -1512,7 +1533,7 @@ thermodynamic output.
 
 :line
 
-4.17 Walls :link(4_17),h4
+6.17 Walls :link(howto_17),h4
 
 Walls in an MD simulation are typically used to bound particle motion,
 i.e. to serve as a boundary condition.
@@ -1586,7 +1607,7 @@ frictional walls, as well as triangulated surfaces.
 
 :line
 
-4.18 Elastic constants :link(4_18),h4
+6.18 Elastic constants :link(howto_18),h4
 
 Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
@@ -1622,12 +1643,12 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 :line
 
-4.19 Library interface to LAMMPS :link(4_19),h4
+6.19 Library interface to LAMMPS :link(howto_19),h4
 
-As described in "this section"_Section_start.html#2_4, LAMMPS can be
-built as a library, so that it can be called by another code, used in
-a "coupled manner"_Section_howto.html#4_10 with other codes, or driven
-through a "Python interface"_Section_python.html.
+As described in "this section"_Section_start.html#start_4, LAMMPS can
+be built as a library, so that it can be called by another code, used
+in a "coupled manner"_Section_howto.html#howto_10 with other codes, or
+driven through a "Python interface"_Section_python.html.
 
 All of these methodologies use a C-style interface to LAMMPS that is
 provided in the files src/library.cpp and src/library.h.  The
@@ -1646,11 +1667,12 @@ void lammps_file(void *, char *);
 char *lammps_command(void *, char *); :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were "command-line arguments"_#2_6 when
-LAMMPS is run in stand-alone mode from the command line, and a MPI
-communicator for LAMMPS to run under.  It returns a ptr to the LAMMPS
-object that is created, and which is used in subsequent library calls.
-The lammps_open() function can be called multiple times, to create
+list of strings as if they were "command-line
+arguments"_Section_start.html#start_6 when LAMMPS is run in
+stand-alone mode from the command line, and a MPI communicator for
+LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
+created, and which is used in subsequent library calls.  The
+lammps_open() function can be called multiple times, to create
 multiple instances of LAMMPS.
 
 LAMMPS will run on the set of processors in the communicator.  This
@@ -1702,11 +1724,11 @@ grab data from LAMMPS, change it, and put it back into LAMMPS.
 
 :line
 
-4.20 Calculating thermal conductivity :link(4_20),h4
+6.20 Calculating thermal conductivity :link(howto_20),h4
 
 The thermal conductivity kappa of a material can be measured in at
 least 3 ways using various options in LAMMPS.  (See "this
-section"_Section_howto.html#4_21 of the manual for an analogous
+section"_Section_howto.html#howto_21 of the manual for an analogous
 discussion for viscosity).  The thermal conducitivity tensor kappa is
 a measure of the propensity of a material to transmit heat energy in a
 diffusive manner as given by Fourier's law
@@ -1722,7 +1744,7 @@ scalar.
 The first method is to setup two thermostatted regions at opposite
 ends of a simulation box, or one in the middle and one at the end of a
 periodic box.  By holding the two regions at different temperatures
-with a "thermostatting fix"_Section_howto.html#4_13, the energy added
+with a "thermostatting fix"_Section_howto.html#howto_13, the energy added
 to the hot region should equal the energy subtracted from the cold
 region and be proportional to the heat flux moving between the
 regions.  See the paper by "Ikeshoji and Hafskjold"_#Ikeshoji for
@@ -1767,11 +1789,11 @@ formalism.
 
 :line
 
-4.21 Calculating viscosity :link(4_21),h4
+6.21 Calculating viscosity :link(howto_21),h4
 
 The shear viscosity eta of a fluid can be measured in at least 3 ways
 using various options in LAMMPS.  (See "this
-section"_Section_howto.html#4_20 of the manual for an analogous
+section"_Section_howto.html#howto_20 of the manual for an analogous
 discussion for thermal conductivity).  Eta is a measure of the
 propensity of a fluid to transmit momentum in a direction
 perpendicular to the direction of velocity or momentum flow.
@@ -1797,7 +1819,7 @@ dVx/dy.  In this case, the Pxy off-diagonal component of the pressure
 or stress tensor, as calculated by the "compute
 pressure"_compute_pressure.html command, can also be monitored, which
 is the J term in the equation above.  See "this
-section"_Section_howto.html#4_13 of the manual for details on NEMD
+section"_Section_howto.html#howto_13 of the manual for details on NEMD
 simulations.
 
 The second method is to perform a reverse non-equilibrium MD

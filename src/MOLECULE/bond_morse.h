@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class BondMorse : public Bond {
  public:
   BondMorse(class LAMMPS *);
-  ~BondMorse();
-  void compute(int, int);
+  virtual ~BondMorse();
+  virtual void compute(int, int);
   void coeff(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int, double, int, int);
 
- private:
+ protected:
   double *d0,*alpha,*r0;
 
   void allocate();

@@ -27,14 +27,14 @@ using namespace LAMMPS_NS;
 FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 3) error->all("Illegal fix store/coord command");
+  if (narg < 3) error->all(FLERR,"Illegal fix store/coord command");
 
   peratom_flag = 1;
   size_peratom_cols = 3;
   peratom_freq = 1;
 
   nmax = atom->nmax;
-  foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+  memory->create(foriginal,nmax,3,"store/force:foriginal");
   array_atom = foriginal;
 
   // zero the array since dump may access it on timestep 0
@@ -49,7 +49,7 @@ FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixStoreForce::~FixStoreForce()
 {
-  memory->destroy_2d_double_array(foriginal);
+  memory->destroy(foriginal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,7 +67,7 @@ int FixStoreForce::setmask()
 
 void FixStoreForce::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -75,7 +75,7 @@ void FixStoreForce::init()
 
 void FixStoreForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -97,8 +97,8 @@ void FixStoreForce::post_force(int vflag)
 {
   if (atom->nlocal > nmax) {
     nmax = atom->nmax;
-    memory->destroy_2d_double_array(foriginal);
-    foriginal = memory->create_2d_double_array(nmax,3,"store/force:foriginal");
+    memory->destroy(foriginal);
+    memory->create(foriginal,nmax,3,"store/force:foriginal");
     array_atom = foriginal;
   }
 

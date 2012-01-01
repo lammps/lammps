@@ -26,10 +26,12 @@ class NeighList : protected Pointers {
   int buildflag;                   // 1 if pair_build invoked every reneigh
   int growflag;                    // 1 if stores atom-based arrays & pages
   int stencilflag;                 // 1 if stores stencil arrays
+  int ghostflag;                   // 1 if it stores neighbors of ghosts
 
   // data structs to store neighbor pairs I,J and associated values
 
   int inum;                        // # of I atoms neighbors are stored for
+  int gnum;                        // # of ghost atoms neighbors are stored for
   int *ilist;                      // local indices of I atoms
   int *numneigh;                   // # of J neighbors for each I atom
   int **firstneigh;                // ptr to 1st J int value of each I atom
@@ -45,7 +47,7 @@ class NeighList : protected Pointers {
   // iskip,ijskip are just ptrs to corresponding request
 
   int *iskip;         // iskip[i] = 1 if atoms of type I are not in list
-  int **ijskip;       // ijskip[i][j] =1 if pairs of type I,J are not in list
+  int **ijskip;       // ijskip[i][j] = 1 if pairs of type I,J are not in list
 
   // settings and pointers for related neighbor lists and fixes
 
@@ -64,23 +66,27 @@ class NeighList : protected Pointers {
   int maxstencil;                  // max size of stencil
   int nstencil;                    // # of bins in stencil
   int *stencil;                    // list of bin offsets
+  int **stencilxyz;                // bin offsets in xyz dims
 
   int maxstencil_multi;            // max sizes of stencils
   int *nstencil_multi;             // # bins in each type-based multi stencil
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
 
+  class CudaNeighList *cuda_list;  // CUDA neighbor list
+
   NeighList(class LAMMPS *, int);
   ~NeighList();
   void grow(int);                       // grow maxlocal
   void stencil_allocate(int, int);      // allocate stencil arrays
-  int **add_pages();                    // add pages to neigh list
+  int **add_pages(int howmany=1);       // add pages to neigh list
   void copy_skip_info(int *, int **);   // copy skip info from a neigh request
   void print_attributes();              // debug routine
-  double memory_usage();
+  int get_maxlocal() {return maxatoms;}
+  bigint memory_usage();
 
  private:
-  int maxlocal;                    // size of allocated atom arrays
+  int maxatoms;                    // size of allocated atom arrays
 };
 
 }

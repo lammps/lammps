@@ -28,9 +28,6 @@
 #include "update.h"
 #include "timer.h"
 
-#define MIN(A,B) (((A) < (B)) ? (A) : (B))
-#define MAX(A,B) (((A) > (B)) ? (A) : (B))
-
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
@@ -280,7 +277,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   //---- LINE SEARCH METHODS DO THIS BY RESTRICTING THE LARGEST CHANGE
   //---- OF ANY ATOM'S COMPONENT TO dmax.  AN EXACT CHECK IS MADE LATER,
   //---- BUT THIS GUIDES DETERMINATION OF A MAX TRUST RADIUS.
-  double  dMaxTrustRadius = dmax * sqrt (_nNumUnknowns);
+  double  dMaxTrustRadius = dmax * sqrt((double) _nNumUnknowns);
   
   dTrustRadius = MIN (dTrustRadius, dMaxTrustRadius);
   double  dLastNewtonStep2 = dMaxTrustRadius;
@@ -1151,7 +1148,7 @@ bool MinHFTN::step_exceeds_TR_(const double    dTrustRadius,
 
 bool MinHFTN::step_exceeds_DMAX_(void) const
 {
-  double  dAlpha = dmax * sqrt (_nNumUnknowns);
+  double  dAlpha = dmax * sqrt((double) _nNumUnknowns);
   
   double  dPInfLocal = 0.0;
   for (int  i = 0; i < nvec; i++)

@@ -27,13 +27,13 @@ using namespace LAMMPS_NS;
 FixPlaneForce::FixPlaneForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all("Illegal fix planeforce command");
+  if (narg != 6) error->all(FLERR,"Illegal fix planeforce command");
   xdir = atof(arg[3]);
   ydir = atof(arg[4]);
   zdir = atof(arg[5]);
 
   double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
-  if (len == 0.0) error->all("Illegal fix planeforce command");
+  if (len == 0.0) error->all(FLERR,"Illegal fix planeforce command");
 
   xdir /= len;
   ydir /= len;
@@ -55,7 +55,7 @@ int FixPlaneForce::setmask()
 
 void FixPlaneForce::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;

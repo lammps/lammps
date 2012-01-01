@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLJClass2 : public Pair {
  public:
   PairLJClass2(class LAMMPS *);
-  ~PairLJClass2();
-  void compute(int, int);
+  virtual ~PairLJClass2();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -38,7 +38,7 @@ class PairLJClass2 : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_global;
   double **cut;
   double **epsilon,**sigma;

@@ -11,41 +11,58 @@
 
 <H3>pair_style lj/cut command 
 </H3>
+<H3>pair_style lj/cut/cuda command 
+</H3>
+<H3>pair_style lj/cut/experimental/cuda command 
+</H3>
 <H3>pair_style lj/cut/gpu command 
 </H3>
 <H3>pair_style lj/cut/omp command 
 </H3>
 <H3>pair_style lj/cut/opt command 
 </H3>
+<H3>pair_style lj/cut/omp command 
+</H3>
 <H3>pair_style lj/cut/coul/cut command 
+</H3>
+<H3>pair_style lj/cut/coul/cut/cuda command 
 </H3>
 <H3>pair_style lj/cut/coul/cut/gpu command 
 </H3>
+<H3>pair_style lj/cut/coul/cut/omp command 
+</H3>
 <H3>pair_style lj/cut/coul/debye command 
+</H3>
+<H3>pair_style lj/cut/coul/debye/cuda command 
+</H3>
+<H3>pair_style lj/cut/coul/debye/omp command 
 </H3>
 <H3>pair_style lj/cut/coul/long command 
 </H3>
+<H3>pair_style lj/cut/coul/long/cuda command 
+</H3>
 <H3>pair_style lj/cut/coul/long/gpu command 
 </H3>
+<H3>pair_style lj/cut/coul/long/opt command 
+</H3>
+<H3>pair_style lj/cut/coul/long/omp command 
+</H3>
 <H3>pair_style lj/cut/coul/long/tip4p command 
+</H3>
+<H3>pair_style lj/cut/coul/long/tip4p/omp command 
+</H3>
+<H3>pair_style lj/cut/coul/long/tip4p/opt command 
 </H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/gpu</I> or <I>lj/cut/opt</I> or <I>lj/cut/coul/cut</I>         or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
-  <I>lj/cut/gpu</I> args = cutoff
-    cutoff = global cutoff for Lennard Jones interactions (distance units)
-  <I>lj/cut/opt</I> args = cutoff
-    cutoff = global cutoff for Lennard Jones interactions (distance units)
   <I>lj/cut/coul/cut</I> args = cutoff (cutoff2)
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/cut/coul/cut/gpu</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/debye</I> args = kappa cutoff (cutoff2)
@@ -53,9 +70,6 @@
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/long</I> args = cutoff (cutoff2)
-    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/cut/coul/long/gpu</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>lj/cut/coul/long/tip4p</I> args = otype htype btype atype qdist cutoff (cutoff2)
@@ -68,13 +82,10 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style lj/cut 2.5
-pair_style lj/cut/gpu 2.5
-pair_style lj/cut/opt 2.5
 pair_coeff * * 1 1
 pair_coeff 1 1 1 1.1 2.8 
 </PRE>
 <PRE>pair_style lj/cut/coul/cut 10.0
-pair_style lj/cut/coul/cut/gpu 10.0
 pair_style lj/cut/coul/cut 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0
@@ -87,7 +98,6 @@ pair_coeff 1 1 1.0 1.5 2.5
 pair_coeff 1 1 1.0 1.5 2.5 5.0 
 </PRE>
 <PRE>pair_style lj/cut/coul/long 10.0
-pair_style lj/cut/coul/long/gpu 10.0
 pair_style lj/cut/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
@@ -106,14 +116,6 @@ given by
 </CENTER>
 <P>Rc is the cutoff.
 </P>
-<P>Style <I>lj/cut/gpu</I> is a GPU-enabled version of style <I>lj/cut</I>.
-See more details below.
-</P>
-<P>Style <I>lj/cut/opt</I> is an optimized version of style <I>lj/cut</I> that
-should give identical answers.  Depending on system size and the
-processor you are running on, it may be 5-25% faster (for the pairwise
-portion of the run time).
-</P>
 <P>Style <I>lj/cut/coul/cut</I> adds a Coulombic pairwise interaction given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
@@ -124,9 +126,6 @@ by the <A HREF = "dielectric.html">dielectric</A> command.  If one cutoff is
 specified in the pair_style command, it is used for both the LJ and
 Coulombic terms.  If two cutoffs are specified, they are used as
 cutoffs for the LJ and Coulombic terms respectively.
-</P>
-<P>Style <I>lj/cut/coul/cut/gpu</I> is a GPU-enabled version of style <I>lj/cut/coul/cut</I>.
-See more details below.
 </P>
 <P>Style <I>lj/cut/coul/debye</I> adds an additional exp() damping factor
 to the Coulombic term, given by
@@ -144,9 +143,6 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
-<P>Style <I>lj/cut/coul/long/gpu</I> is a GPU-enabled version of style <I>lj/cut/coul/long</I>.
-See more details below.
-</P>
 <P>Style <I>lj/cut/coul/long/tip4p</I> implements the TIP4P water model of
 <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
@@ -160,8 +156,8 @@ first.  This is to enable LAMMPS to "find" the 2 H atoms associated
 with each O atom.  For example, if the atom ID of an O atom in a TIP4P
 water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 </P>
-<P>See the <A HREF = "Section_howto.html#4_8">howto section</A> for more information on
-how to use the TIP4P pair style.
+<P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
+information on how to use the TIP4P pair style.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -191,26 +187,37 @@ can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 </P>
+<P>Styles <I>lj/cut/coul/pppm/omp</I> and <I>lj/cut/coul/pppm/tip4p/omp</I>
+are variants of  <I>lj/cut/coul/long/omp</I> and <I>lj/cut/coul/long/tip4p/omp</I>
+for use with k-space styles <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and
+<A HREF = "kspace_style.html"><I>pppm/tip4p/proxy</I></A>, respectively and OpenMP
+multi-threading and will perform the corresponding reciprocal
+space calculation concurrently with the pair calculation
+in a separate thread. For certain parallel setups, this may have
+a performance benefit over performing k-space style and pair style
+separately and one after the other.
+</P>
 <HR>
 
-<P>The <I>lj/cut/gpu</I>, <I>lj/cut/coul/cut/gpu</I>, and <I>lj/cut/coul/long/gpu</I> styles 
-are identical to the <I>lj/cut</I>, <I>lj/cut/coul/cut</I>, and <I>lj/cut/coul/long</I>
-styles, except that each processor off-loads its pairwise calculations to a 
-GPU chip. Depending on the hardware available on your system this can provide a
-speed-up.  See the <A HREF = "Section_start.html#2_8">Running on GPUs</A> section of
-the manual for more details about hardware and software requirements
-for using GPUs.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 </P>
-<P>More details about these settings and various possible hardware
-configuration are in <A HREF = "Section_start.html#2_8">this section</A> of the
-manual.
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
 </P>
-<P>Additional requirements in your input script to run with GPU-enabled styles
-are as follows:
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
 </P>
-<P>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I> and
-<A HREF = "fix_gpu.html">fix gpu</A> must be used. The fix controls
-the essential GPU selection and initialization steps.
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -251,17 +258,10 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> styles are part of
-the "kspace" package.  The <I>lj/cut/gpu</I>, <I>lj/cut/coul/cut/gpu</I>, and
-<I>lj/cut/coul/long/gpu</I> styles are part of the "gpu"
-package.  The <I>lj/cut/opt</I> style is part of the "opt" package.  They
-are only enabled if LAMMPS was built with those packages.  See the
-<A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for more info.  Note
-that the "kspace" package is installed by default.
-</P>
-<P>On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the <I>lj/cut/coul/long</I> style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+the KSPACE package.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.  Note that the KSPACE package is installed by
+default.
 </P>
 <P><B>Related commands:</B>
 </P>

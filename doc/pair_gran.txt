@@ -7,8 +7,12 @@
 :line
 
 pair_style gran/hooke command :h3
+pair_style gran/cuda command :h3
+pair_style gran/omp command :h3
 pair_style gran/hooke/history command :h3
+pair_style gran/hooke/history/omp command :h3
 pair_style gran/hertz/history command :h3
+pair_style gran/hertz/history/omp command :h3
 
 [Syntax:]
 
@@ -158,6 +162,28 @@ potential.
 
 :line
 
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
+
+:line
+
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 The "pair_modify"_pair_modify.html mix, shift, table, and tail options
@@ -171,18 +197,29 @@ These pair styles can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  They do not support the
 {inner}, {middle}, {outer} keywords.
 
+The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.  However, the single() function also
+calculates 4 extra pairwise quantities.  The first 3 are the
+components of the tangential force between particles I and J, acting
+on particle I.  {P4} is the magnitude of this tangential force.  These
+extra quantites can be accessed by the "compute
+pair/local"_compute_pair_local.html command, as {p1}, {p2}, {p3},
+{p4}.
+
 :line
 
 [Restrictions:] none
 
-All the granular pair styles are part of the "granular" package.  It
-is only enabled if LAMMPS was built with that package.  See the
-"Making LAMMPS"_Section_start.html#2_3 section for more info.
+All the granular pair styles are part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 These pair styles require that atoms store torque and angular velocity
 (omega) as defined by the "atom_style"_atom_style.html.  They also
-require a per-particle radius is stored.  The {granular} atom style
-does all of this.
+require a per-particle radius is stored.  The {sphere} atom style does
+all of this.
 
 This pair style requires you to use the "communicate vel
 yes"_communicate.html option so that velocites are stored by ghost

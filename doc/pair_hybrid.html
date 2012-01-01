@@ -11,7 +11,11 @@
 
 <H3>pair_style hybrid command 
 </H3>
+<H3>pair_style hybrid/omp command 
+</H3>
 <H3>pair_style hybrid/overlay command 
+</H3>
+<H3>pair_style hybrid/overlay/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
@@ -61,24 +65,35 @@ sub-style's name is followed by its usual arguments, as illustrated in
 the example above.  See the doc pages of individual pair styles for a
 listing and explanation of the appropriate arguments.
 </P>
-<P>The pair_coeff commands are also specified exactly as they would be
-for a simulation using only one pair style, with one additional
-argument.  Following the I,J type specification, the first argument
-sets the pair sub-style.  The remaining arguments are the coefficients
-appropriate to that style.  For example, consider a simulation with 3
-atom types: types 1 and 2 are Ni atoms, type 3 are LJ atoms with
-charges.  The following commands would set up a hybrid simulation:
+<P>In the pair_coeff commands, the name of a pair style must be added
+after the I,J type specification, with the remaining coefficients
+being those appropriate to that style.  For example, consider a
+simulation with 3 atom types: types 1 and 2 are Ni atoms, type 3 are
+LJ atoms with charges.  The following commands would set up a hybrid
+simulation:
 </P>
 <PRE>pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
 pair_coeff * * eam/alloy nialhjea Ni Ni NULL
 pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
 pair_coeff 1*2 3 lj/cut 0.8 1.3 
 </PRE>
-<P>Note that the pair_coeff command for <I>eam/alloy</I> includes a mapping
-specification of elements to all atom types, even those not assigned
-to the <I>eam/alloy</I> potential.  The NULL keyword is used by many such
-potentials (eam/alloy, Tersoff, AIREBO, etc), to denote an atom type
-that will be assigned to a different sub-style.
+<P>If pair coefficients are specified in the data file read via the
+<A HREF = "read_data.html">read_data</A> command, then the same rule applies.
+E.g. "eam/alloy" or "lj/cut" must be added after the atom type, for
+each line in the "Pair Coeffs" section, e.g.
+</P>
+<PRE>Pair Coeffs 
+</PRE>
+<PRE>1 lj/cut/coul/cut 1.0 1.0
+... 
+</PRE>
+<P>Note that the pair_coeff command for some potentials such as
+<A HREF = "pair_eam.html">pair_style eam/alloy</A> includes a mapping specification
+of elements to all atom types, which in the hybrid case, can include
+atom types not assigned to the <I>eam/alloy</I> potential.  The NULL
+keyword is used by many such potentials (eam/alloy, Tersoff, AIREBO,
+etc), to denote an atom type that will be assigned to a different
+sub-style.
 </P>
 <P>For the <I>hybrid</I> style, each atom type pair I,J is assigned to exactly
 one sub-style.  Just as with a simulation using a single pair style,
@@ -122,9 +137,13 @@ sub-style and use the <A HREF = "neigh_modify.html">neigh_modify exclude type</A
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for <I>hybrid</I> and <I>hybrid/overlay</I> simulations, you
-can use this form of the pair_coeff command:
+can use this form of the pair_coeff command in your input script:
 </P>
 <PRE>pair_coeff	2 3 none 
+</PRE>
+<P>or this form in the "Pair Coeffs" section of the data file:
+</P>
+<PRE>3 none 
 </PRE>
 <P>If an assignment to <I>none</I> is made in a simulation with the
 <I>hybrid/overlay</I> pair style, it wipes out all previous assignments of
@@ -194,6 +213,32 @@ neigh_modify exclude type 1 2
 <P>Either way, only neighbor lists with 1-1 or 2-2 interactions would be
 passed to the Tersoff potential, which means it would compute no
 3-body interactions containing both type 1 and 2 atoms.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware,
+as discussed in <A HREF = "Section_accelerate.html">this section</A> of the manual.
+</P>
+<P>Since the <I>hybrid</I> and <I>hybrid/overlay</I> styles delegate computation
+to the individual sub-styles, the suffix versions of the <I>hybrid</I>
+and <I>hybrid/overlay</I> styles are used to propagate the corresponding
+suffix to all sub-styles, if those versions exist. Otherwise the
+non-accelerated version will be used.
+</P>
+<P>The individual accelerated sub-styles are part of the USER-CUDA, GPU,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the
+<A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_6">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">this section</A> of the manual for more
+instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 

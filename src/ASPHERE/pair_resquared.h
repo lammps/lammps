@@ -27,22 +27,25 @@ namespace LAMMPS_NS {
 class PairRESquared : public Pair {
  public:
   PairRESquared(LAMMPS *lmp);
-  ~PairRESquared();
-  void compute(int, int);
+  virtual ~PairRESquared();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- private:
+ protected:
+  enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
+
   double cut_global;
   double **cut;
 
-  double **shape2;           // radii in x, y and z SQUARED
+  double **shape1;           // per-type radii in x, y and z
+  double **shape2;           // per-type radii in x, y and z SQUARED
   double *lshape;            // product of the radii
   double **well;             // well depth scaling along each axis
   double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs
@@ -51,6 +54,7 @@ class PairRESquared : public Pair {
   double **lj1,**lj2,**lj3,**lj4;
   double **offset;
   int *setwell;
+  class AtomVecEllipsoid *avec;
 
   // per-particle temporaries for RE-squared calculation
 

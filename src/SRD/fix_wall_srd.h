@@ -20,7 +20,6 @@ FixStyle(wall/srd,FixWallSRD)
 #ifndef LMP_FIX_WALL_SRD_H
 #define LMP_FIX_WALL_SRD_H
 
-#include "lmptype.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {

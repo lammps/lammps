@@ -11,35 +11,37 @@
 
 <H3>pair_style lubricate command 
 </H3>
+<H3>pair_style lubricate/poly command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lubricate mu squeeze shear pump twist cutinner cutoff T_target seed 
+<PRE>pair_style style mu flaglog flagfld cutinner cutoff 
 </PRE>
-<UL><LI>mu = dynamic viscosity (dynamic viscosity units)
-<LI>squeeze = 0/1 for squeeze force off/on
-<LI>shear = 0/1 for shear force off/on
-<LI>pump = 0/1 for pump force off/on
-<LI>twist = 0/1 for twist force off/on
-<LI>cutinner = (distance units)
-<LI>cutoff = outer cutoff for interactions (distance units)
-<LI>T_target = desired temperature (temperature units)
-<LI>seed = random number seed (positive integer) 
+<UL><LI>style = <I>lubricate</I> or <I>lubricate/poly</I>
+<LI>mu = dynamic viscosity (dynamic viscosity units)
+<LI>flaglog = 0/1 log terms in the lubrication approximation off/on
+<LI>flagfld = 0/1 to include/exclude Fast Lubrication Dynamics effects
+<LI>cutinner = inner cutoff distance (distance units)
+<LI>cutoff = outer cutoff for interactions (distance units) 
 </UL>
-<P><B>Examples:</B>
+<P><B>Examples:</B> (all assume radius = 1)
 </P>
-<PRE>pair_style lubricate 1.5 1 1 1 0 2.3 2.4 1.3 5878598
-pair_coeff 1 1 1.8 2.0
+<PRE>pair_style lubricate 1.5 1 1 2.01 2.5
+pair_coeff 1 1 2.05 2.8
 pair_coeff * * 
 </PRE>
-<PRE>pair_style lubricate 1.0 1 1 1 0 2.3 2.4 1.3 5878598
+<PRE>pair_style lubricate 1.5 1 1 2.01 2.5
 pair_coeff * *
 variable mu equal ramp(1,2)
 fix 1 all adapt 1 pair lubricate mu * * v_mu 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>lubricate</I> computes pairwise interactions between mono-disperse
-spherical particles via this formula from <A HREF = "#Ball">(Ball and Melrose)</A>
+<P>Styles <I>lubricate</I> and <I>lubricate/poly</I> compute hydrodynamic
+interactions between mono-disperse spherical particles in a pairwise
+fashion.  The interactions have 2 components.  The first is
+Ball-Melrose lubrication terms via the formulas in <A HREF = "#Ball">(Ball and
+Melrose)</A>
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lubricate.jpg">
 </CENTER>
@@ -48,39 +50,62 @@ their relative velocities in the presence of a background solvent with
 viscosity mu.  Note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.
 </P>
+<P>The Asq (squeeze) term is the strongest and is always included.  It
+scales as 1/gap where gap is the separation between the surfaces of
+the 2 particles.  The Ash (shear) and Apu (pump) terms are only
+include if <I>flaglog</I> is set to 1.  Thy are the next strongest
+interactions, and the only other singular interaction, and scale as
+log(gap).  The Atw (twist) term is currently not included.  It is
+typically a very small contribution to the lubrication forces.
+</P>
+<P><I>Cutinner</I> sets the minimum center-to-center separation that will be
+used in calculations irrespective of the actual separation.  <I>Cutoff</I>
+is the maximum center-to-center separation at which an interaction is
+computed.  Using a <I>cutoff</I> less than 3 radii is recommended if
+<I>flaglog</I> is set to 1.
+</P>
+<P>The other component is due to the Fast Lubrication Dynamics (FLD)
+approximation, described in <A HREF = "#Kumar">(Kumar)</A>, which can be
+represented by the following equation
+</P>
+<CENTER><IMG SRC = "Eqs/fld.jpg">
+</CENTER>
+<P>where U represents the velocities and angular velocities of the
+particles, U^<I>infty</I> represents the velocity and the angular velocity
+of the undisturbed fluid, and E^<I>infty</I> represents the rate of strain
+tensor of the undisturbed fluid with viscosity mu.  Again, note that
+this is dynamic viscosity which has units of mass/distance/time, not
+kinematic viscosity.
+</P>
+<P>IMPORTANT NOTE: When using the FLD terms, these pair styles are
+designed to be used with explicit time integration and a
+correspondingly small timestep.  Thus either <A HREF = "fix_nve_sphere.html">fix
+nve/sphere</A> or <A HREF = "fix_nve_asphere.html">fix
+nve/asphere</A> should be used for time integration.
+To perform implicit FLD, see the <A HREF = "pair_lubricateU.html">pair_style
+lubricateU</A> command.
+</P>
+<P>Style <I>lubricate</I> requires monodisperse spherical particles; style
+<I>lubricate/poly</I> allows for polydisperse spherical particles.
+</P>
 <P>The viscosity mu can be varied in a time-dependent manner over the
 course of a simluation, in which case in which case the pair_style
 setting for mu will be overridden.  See the <A HREF = "fix_adapt.html">fix adapt</A>
 command for details.
 </P>
-<P>Rc is the outer cutoff specified in the pair_style command, the
-translational velocities of the 2 particles are v1 and v2, the angular
-velocities are w1 and w2, and n is the unit vector in the direction
-from particle 1 to 2.  The 4 terms represent four modes of pairwise
-interaction: squeezing, shearing, pumping, and twisting.  The 4 flags
-in the pair_style command turn on or off each of these modes by
-including or excluding each term.  The 4 coefficients on each term are
-functions of the separation distance of the particles and the
-viscosity.  Details are given in <A HREF = "#Ball">(Ball and Melrose)</A>, including
-the forces and torques that result from taking derivatives of this
-equation with respect to velocity (see Appendix A).
+<P>If the suspension is sheared via the <A HREF = "fix_deform.html">fix deform</A>
+command then the pair style uses the shear rate to adjust the
+hydrodynamic interactions accordingly.
 </P>
-<P>Unlike most pair potentials, the two specified cutoffs (cutinner and
-cutoff) refer to the surface-to-surface separation between two
-particles, not center-to-center distance.  Currently, this pair style
-can only be used for mono-disperse extended spheres (same radii), so
-that separation is r_ij - 2*radius, where r_ij is the center-to-center
-distance between the particles.  Within the inner cutoff <I>cutinner</I>,
-the forces and torques are evaluated at a separation of cutinner.  The
-outer <I>cutoff</I> is the separation distance beyond which the pair-wise
-forces are zero.
+<P>Since lubrication forces are dissipative, it is usually desirable to
+thermostat the system at a constant temperature.  If Brownian motion
+(at a constant temperature) is desired, it can be set using the
+<A HREF = "pair_brownian.html">pair_style brownian</A> command.  These pair styles
+and the <I>brownian</I> style should use consistent parameters for <I>mu</I>,
+<I>flaglog</I>, <I>flagfld</I>, <I>cutinner</I>, and <I>cutoff</I>.
 </P>
-<P>A Langevin thermostatting term is also added to the pairwise force,
-similar to that provided by the <A HREF = "fix_langevin.html">fix langevin</A> or
-<A HREF = "pair_dpd.html">pair_style dpd</A> commands.  The target temperature for
-the thermostat is the specified <I>T_target</I>.  The <I>seed</I> is used for
-the random numbers generated for the thermostat.
-</P>
+<HR>
+
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
@@ -124,28 +149,19 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the "colloid" package.  It is only enabled if
+<P>These styles are part of the FLD package.  They are only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This pair style requires that atoms store torque and a quaternion to
-represent their orientation, as defined by the
-<A HREF = "atom_style.html">atom_style</A>.  It also require they store a per-type
-<A HREF = "shape.html">shape</A>.  The particles cannot store a per-particle
-diameter or per-particle mass.
+<P>Only spherical monodisperse particles are allowed for pair_style
+lubricate.
 </P>
-<P>All the shape settings must be for finite-size spheres.  They cannot
-be point particles, nor can they be aspherical.  Additionally all the
-shape types must specify particles of the same size, i.e. a
-monodisperse system.
-</P>
-<P>This pair style requires you to use the <A HREF = "communicate.html">communicate vel
-yes</A> option so that velocites are stored by ghost
-atoms.
+<P>Only spherical particles are allowed for pair_style lubricate/poly.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricateU.html">pair_style
+lubricateU</A>
 </P>
 <P><B>Default:</B> none
 </P>
@@ -154,5 +170,9 @@ atoms.
 <A NAME = "Ball"></A>
 
 <P><B>(Ball)</B> Ball and Melrose, Physica A, 247, 444-472 (1997).
+</P>
+<A NAME = "Kumar"></A>
+
+<P><B>(Kumar)</B> Kumar and Higdon, Phys Rev E, 82, 051401 (2010).
 </P>
 </HTML>

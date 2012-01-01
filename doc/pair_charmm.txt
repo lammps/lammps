@@ -7,16 +7,23 @@
 :line
 
 pair_style lj/charmm/coul/charmm command :h3
+pair_style lj/charmm/coul/charmm/cuda command :h3
+pair_style lj/charmm/coul/charmm/omp command :h3
 pair_style lj/charmm/coul/charmm/implicit command :h3
+pair_style lj/charmm/coul/charmm/implicit/cuda command :h3
+pair_style lj/charmm/coul/charmm/implicit/omp command :h3
 pair_style lj/charmm/coul/long command :h3
+pair_style lj/charmm/coul/long/cuda command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/opt command :h3
+pair_style lj/charmm/coul/long/omp command :h3
+pair_style lj/charmm/coul/pppm/omp command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long} or {lj/charmm/coul/long/gpu} or {lj/charmm/coul/long/opt}
+style = {lj/charmm/coul/charmm} or {lj/charmm/coul/charmm/implicit} or {lj/charmm/coul/long}
 args = list of arguments for a particular style :ul
   {lj/charmm/coul/charmm} args = inner outer (inner2) (outer2)
     inner, outer = global switching cutoffs for Lennard Jones (and Coulombic if only 2 args)
@@ -25,9 +32,6 @@ args = list of arguments for a particular style :ul
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     inner2, outer2 = global switching cutoffs for Coulombic (optional)
   {lj/charmm/coul/long} args = inner outer (cutoff)
-    inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
-    cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args)
-  {lj/charmm/coul/long/gpu} args = inner outer (cutoff)
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args) :pre
 
@@ -44,7 +48,6 @@ pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 :pre
 
 pair_style lj/charmm/coul/long 8.0 10.0
-pair_style lj/charmm/coul/long/opt 8.0 10.0
 pair_style lj/charmm/coul/long 8.0 10.0 9.0
 pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 :pre
@@ -75,21 +78,19 @@ which is a simple model for an implicit solvent with additional
 screening.  It is designed for use in a simulation of an unsolvated
 biomolecule (no explicit water molecules).
 
-Style {lj/charmm/coul/long} computes the same formulas as style
-{lj/charmm/coul/charmm} except that an additional damping factor is
-applied to the Coulombic term, as in the discussion for pair style
-{lj/cut/coul/long}.  Only one Coulombic cutoff is specified for
-{lj/charmm/coul/long}; if only 2 arguments are used in the pair_style
-command, then the outer LJ cutoff is used as the single Coulombic
-cutoff.
-
-Style {lj/charmm/coul/long/gpu} is a GPU-enabled version of style {lj/charmm/coul/long}.
-See more details below.
-
-Style {lj/charmm/coul/long/opt} is an optimized version of style
-{lj/charmm/coul/long} that should give identical answers.  Depending
-on system size and the processor you are running on, it may be 5-25%
-faster (for the pairwise portion of the run time).
+Styles {lj/charmm/coul/long} and {lj/charmm/coul/pppm/omp} compute
+the same formulas as style {lj/charmm/coul/charmm} except that an
+additional damping factor is applied to the Coulombic term, as in
+the discussion for pair style {lj/cut/coul/long}.  Only one Coulombic
+cutoff is specified for {lj/charmm/coul/long}; if only 2 arguments
+are used in the pair_style command, then the outer LJ cutoff is
+used as the single Coulombic cutoff. Style {lj/charmm/coul/pppm/omp}
+is a variant for use with K-space style "{pppm/proxy}"_kspace_style.html
+and OpenMP multi-threading and will perform the corresponding
+reciprocal space calculation concurrently with the pair calculation
+in a separate thread. For certain parallel setups, this may have
+a performance benefit over performing k-space style and pair style
+separately and one after the other.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -115,23 +116,25 @@ the pair_style command.
 
 :line
 
-The {lj/charmm/coul/long/gpu} style is identical to the {lj/charmm/coul/long}
-style, except that each processor off-loads its pairwise calculations to 
-a GPU chip. Depending on the hardware available on your system this can 
-provide a significant speed-up.  See the "Running on
-GPUs"_Section_start.html#2_8 section of the manual for more details
-about hardware and software requirements for using GPUs.
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally 
+the same as the corresponding style without the suffix.  They have 
+been optimized to run faster, depending on your available hardware, 
+as discussed in "this section"_Section_accelerate.html of the manual.
+The accelerated styles take the same arguments and should produce the
+same results, except for round-off and precision issues.
 
-More details about these settings and various possible hardware
-configuration are in "this section"_Section_start.html#2_8 of the
-manual.
+These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
 
-Additional requirements in your input script to run with style
-{lj/charmm/coul/long/gpu} are as follows:
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
 
-The "newton pair"_newton.html setting must be {off} and
-"fix gpu"_fix_gpu.html must be used. The fix controls the
-essential GPU selection and initialization steps.
+See "this section"_Section_accelerate.html of the manual for more
+instructions on how to use the accelerated styles effectively.
 
 :line
 
@@ -147,10 +150,9 @@ None of the lj/charmm pair styles support the
 "pair_modify"_pair_modify.html shift option, since the Lennard-Jones
 portion of the pair interaction is smoothed to 0.0 at the cutoff.
 
-The {lj/charmm/coul/long} and {lj/charmm/coul/long/opt} pair styles
-support the "pair_modify"_pair_modify.html table option since they can
-tabulate the short-range portion of the long-range Coulombic
-interaction.
+The {lj/charmm/coul/long} style supports the
+"pair_modify"_pair_modify.html table option since it can tabulate the
+short-range portion of the long-range Coulombic interaction.
 
 None of the lj/charmm pair styles support the
 "pair_modify"_pair_modify.html tail option for adding long-range tail
@@ -173,19 +175,11 @@ support the {pair} keyword of run_style respa.  See the
 [Restrictions:]
 
 The {lj/charmm/coul/charmm} and {lj/charmm/coul/charmm/implicit}
-styles are part of the "molecule" package.  The {lj/charmm/coul/long}
-style is part of the "kspace" package.  The {lj/charmm/coul/long/gpu}
-style is part of the "gpu" package and also requires the "kspace"
-package. The {lj/charmm/coul/long/opt}
-style is part of the "opt" package and also requires the "kspace"
-package.  They are only enabled if LAMMPS was built with those
-package(s) (molecule and kspace are by default).  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
-
-On some 64-bit machines, compiling with -O3 appears to break the
-Coulombic tabling option used by the {lj/charmm/coul/long} style.  See
-the "Additional build tips" section of the Making LAMMPS documentation
-pages for workarounds on this issue.
+styles are part of the MOLECULE package.  The {lj/charmm/coul/long}
+style is part of the KSPACE package.  They are only enabled if LAMMPS
+was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.  Note that
+the MOLECULE and KSPACE packages are installed by default.
 
 [Related commands:]
 

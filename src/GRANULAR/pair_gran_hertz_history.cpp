@@ -21,14 +21,12 @@
 #include "string.h"
 #include "pair_gran_hertz_history.h"
 #include "atom.h"
+#include "update.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,6 +52,9 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
+
+  int shearupdate = 0;
+  if (update->ntimestep > laststep) shearupdate = 1;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -89,6 +90,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -168,9 +170,11 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 	touch[jj] = 1;
 	shear = &allshear[3*jj];
-        shear[0] += vtr1*dt;
-        shear[1] += vtr2*dt;
-        shear[2] += vtr3*dt;
+	if (shearupdate) {
+	  shear[0] += vtr1*dt;
+	  shear[1] += vtr2*dt;
+	  shear[2] += vtr3*dt;
+	}
         shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + 
 		      shear[2]*shear[2]);
 
@@ -178,9 +182,11 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 	rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
 	rsht *= rsqinv;
-        shear[0] -= rsht*delx;
-        shear[1] -= rsht*dely;
-        shear[2] -= rsht*delz;
+	if (shearupdate) {
+	  shear[0] -= rsht*delx;
+	  shear[1] -= rsht*dely;
+	  shear[2] -= rsht*delz;
+	}
 
 	// tangential forces = shear + tangential velocity damping
 
@@ -237,6 +243,8 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
       }
     }
   }
+
+  laststep = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -245,7 +253,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 void PairGranHertzHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all("Illegal pair_style command");
+  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   kn = force->numeric(arg[0]);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
@@ -261,10 +269,156 @@ void PairGranHertzHistory::settings(int narg, char **arg)
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   // convert Kn and Kt from pressure units to force/distance^2
 
   kn /= force->nktv2p;
   kt /= force->nktv2p;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
+				    double rsq,
+				    double factor_coul, double factor_lj,
+				    double &fforce)
+{
+  double radi,radj,radsum;
+  double r,rinv,rsqinv,delx,dely,delz;
+  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
+  double meff,damp,ccel,polyhertz;
+  double vtr1,vtr2,vtr3,vrel,shrmag,rsht;
+  double fs1,fs2,fs3,fs,fn;
+
+  double *radius = atom->radius;
+  radi = radius[i];
+  radj = radius[j];
+  radsum = radi + radj;
+
+  if (rsq >= radsum*radsum) {
+    fforce = 0.0;
+    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    return 0.0;
+  }
+
+  r = sqrt(rsq);
+  rinv = 1.0/r;
+  rsqinv = 1.0/rsq;
+
+  // relative translational velocity
+
+  double **v = atom->v;
+  vr1 = v[i][0] - v[j][0];
+  vr2 = v[i][1] - v[j][1];
+  vr3 = v[i][2] - v[j][2];
+
+  // normal component
+  
+  double **x = atom->x;
+  delx = x[i][0] - x[j][0];
+  dely = x[i][1] - x[j][1];
+  delz = x[i][2] - x[j][2];
+
+  vnnr = vr1*delx + vr2*dely + vr3*delz;
+  vn1 = delx*vnnr * rsqinv;
+  vn2 = dely*vnnr * rsqinv;
+  vn3 = delz*vnnr * rsqinv;
+  
+  // tangential component
+
+  vt1 = vr1 - vn1;
+  vt2 = vr2 - vn2;
+  vt3 = vr3 - vn3;
+
+  // relative rotational velocity
+
+  double **omega = atom->omega;
+  wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
+  wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
+  wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
+  
+  // normal force = Hertzian contact + normal velocity damping
+
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *mask = atom->mask;
+
+  if (rmass) {
+    meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+    if (mask[i] & freeze_group_bit) meff = rmass[j];
+    if (mask[j] & freeze_group_bit) meff = rmass[i];
+  } else {
+    meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
+    if (mask[i] & freeze_group_bit) meff = mass[jtype];
+    if (mask[j] & freeze_group_bit) meff = mass[itype];
+  }
+  
+  damp = meff*gamman*vnnr*rsqinv;
+  ccel = kn*(radsum-r)*rinv - damp;
+  polyhertz = sqrt((radsum-r)*radi*radj / radsum);
+  ccel *= polyhertz;
+
+  // relative velocities
+
+  vtr1 = vt1 - (delz*wr2-dely*wr3);
+  vtr2 = vt2 - (delx*wr3-delz*wr1);
+  vtr3 = vt3 - (dely*wr1-delx*wr2);
+  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+  vrel = sqrt(vrel);
+  
+  // shear history effects
+  // neighprev = index of found neigh on previous call
+  // search entire jnum list of neighbors of I for neighbor J
+  // start from neighprev, since will typically be next neighbor
+  // reset neighprev to 0 as necessary
+
+  int *jlist = list->firstneigh[i];
+  int jnum = list->numneigh[i];
+  int *touch = list->listgranhistory->firstneigh[i];
+  double *allshear = list->listgranhistory->firstdouble[i];
+
+  for (int jj = 0; jj < jnum; jj++) {
+    neighprev++;
+    if (neighprev >= jnum) neighprev = 0;
+    if (touch[neighprev] == j) break;
+  }
+
+  double *shear = &allshear[3*neighprev];
+  shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + 
+		shear[2]*shear[2]);
+  
+  // rotate shear displacements
+  
+  rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
+  rsht *= rsqinv;
+  
+  // tangential forces = shear + tangential velocity damping
+  
+  fs1 = -polyhertz * (kt*shear[0] + meff*gammat*vtr1);
+  fs2 = -polyhertz * (kt*shear[1] + meff*gammat*vtr2);
+  fs3 = -polyhertz * (kt*shear[2] + meff*gammat*vtr3);
+  
+  // rescale frictional displacements and forces if needed
+  
+  fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+  fn = xmu * fabs(ccel*r);
+  
+  if (fs > fn) {
+    if (shrmag != 0.0) {
+      fs1 *= fn/fs;
+      fs2 *= fn/fs;
+      fs3 *= fn/fs;
+      fs *= fn/fs;
+    } else fs1 = fs2 = fs3 = fs = 0.0;
+  }
+  
+  // set all forces and return no energy
+  
+  fforce = ccel;
+  svector[0] = fs1;
+  svector[1] = fs2;
+  svector[2] = fs3;
+  svector[3] = fs;
+  return 0.0;
 }

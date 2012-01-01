@@ -33,7 +33,7 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See this "howto section"_Section_howto.html#4_15 for a summary of
+See this "howto section"_Section_howto.html#howto_15 for a summary of
 various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and
@@ -197,6 +197,7 @@ available in LAMMPS:
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
+"slice"_compute_slice.html - extract values from global vector or array
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
@@ -212,7 +213,12 @@ available in LAMMPS:
 There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
 the individual styles are given in the compute section of "this
-page"_Section_commands.html#3_5.
+page"_Section_commands.html#cmd_5.
+
+There are also additional accelerated compute styles included in the
+LAMMPS distribution for faster performance on CPUs and GPUs.  The list
+of these with links to the individual styles are given in the pair
+section of "this page"_Section_commands.html#cmd_5.
 
 [Restrictions:] none
 

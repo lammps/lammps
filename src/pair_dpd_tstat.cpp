@@ -23,9 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
@@ -56,7 +53,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
     temperature = t_start + delta * (t_stop-t_start);
     double boltz = force->boltz;
     for (i = 1; i <= atom->ntypes; i++)
-      for (j = i+1; j <= atom->ntypes; j++)
+      for (j = i; j <= atom->ntypes; j++)
 	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
   }
 
@@ -65,7 +62,6 @@ void PairDPDTstat::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double dtinvsqrt = 1.0/sqrt(update->dt);
@@ -91,12 +87,8 @@ void PairDPDTstat::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_dpd = 1.0;
-      else {
-	factor_dpd = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_dpd = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -137,7 +129,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -146,7 +138,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
 
 void PairDPDTstat::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
   t_start = force->numeric(arg[0]);
   t_stop = force->numeric(arg[1]);
@@ -157,7 +149,7 @@ void PairDPDTstat::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -177,7 +169,7 @@ void PairDPDTstat::settings(int narg, char **arg)
 
 void PairDPDTstat::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -201,7 +193,7 @@ void PairDPDTstat::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

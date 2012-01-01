@@ -1,0 +1,53 @@
+This directory has source files to build a library that LAMMPS
+links against when using the AWPMD package.
+
+When you are done building this library, two files should
+exist in this directory:
+
+libawpmd.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
+
+The latter file will have settings like this (can be omitted if blank):
+
+user-awpmd_SYSINC =
+user-awpmd_SYSLIB = -lblas -llapack
+user-awpmd_SYSPATH =
+
+SYSINC is for settings needed to compile LAMMPS source files
+SYSLIB is for additional system libraries needed by this package
+SYSPATH is the path(s) to where those libraries are
+
+You must insure these settings are correct for your system, else
+the LAMMPS build will likely fail.
+
+-------------------------------------------------------------------------
+
+AWPMD (Antisymmetrized Wave Packet Molecular Dynamics) library
+
+Ilya Valuev, Igor Morozov, JIHT RAS
+valuev at physik.hu-berlin.de
+June 2011
+
+--------------
+
+This is version 0.9 of the AWPMD library taken from JIHT GridMD project.
+It contains interface to calculate electronic and electron-ion Hamiltonian, 
+norm matrix and forces for AWPMD method.
+
+
+This library must be built with a C++ compiler, before LAMMPS is
+built, so LAMMPS can link against it.
+
+Build the library using one of the provided Makefiles or creating your
+own, specific to your compiler and system.  For example:
+
+make -f Makefile.openmpi++
+
+If the build is successful, you should end up with a libawpmd.a file.
+
+--------------
+
+AWPMD is an open source program distributed under the terms
+of wxWidgets Library License (see license directory for details).
+
+

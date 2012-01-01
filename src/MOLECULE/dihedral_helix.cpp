@@ -27,13 +27,12 @@
 #include "comm.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -48,10 +47,10 @@ DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralHelix::~DihedralHelix()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(aphi);
-    memory->sfree(bphi);
-    memory->sfree(cphi);
+    memory->destroy(setflag);
+    memory->destroy(aphi);
+    memory->destroy(bphi);
+    memory->destroy(cphi);
   }
 }
 
@@ -173,7 +172,7 @@ void DihedralHelix::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -195,9 +194,9 @@ void DihedralHelix::compute(int eflag, int vflag)
     siinv = 1.0/si;
 
     p = aphi[type]*(1.0 - c) + bphi[type]*(1.0 + cos(3.0*phi)) +
-      cphi[type]*(1.0 + cos(phi + 0.25*PI));
+      cphi[type]*(1.0 + cos(phi + MY_PI4));
     pd = -aphi[type] + 3.0*bphi[type]*sin(3.0*phi)*siinv +
-      cphi[type]*sin(phi + 0.25*PI)*siinv;
+      cphi[type]*sin(phi + MY_PI4)*siinv;
 
     if (eflag) edihedral = p;
 
@@ -270,11 +269,11 @@ void DihedralHelix::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  aphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:aphi");
-  bphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:bphi");
-  cphi = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:cphi");
+  memory->create(aphi,n+1,"dihedral:aphi");
+  memory->create(bphi,n+1,"dihedral:bphi");
+  memory->create(cphi,n+1,"dihedral:cphi");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -284,7 +283,7 @@ void DihedralHelix::allocate()
 
 void DihedralHelix::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for dihedral coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -303,7 +302,7 @@ void DihedralHelix::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------

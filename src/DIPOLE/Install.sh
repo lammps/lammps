@@ -10,10 +10,10 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
-  rm ../atom_vec_dipole.cpp
-  rm ../pair_dipole_cut.cpp
+  rm -f ../atom_vec_dipole.cpp
+  rm -f ../pair_dipole_cut.cpp
 
-  rm ../atom_vec_dipole.h
-  rm ../pair_dipole_cut.h
+  rm -f ../atom_vec_dipole.h
+  rm -f ../pair_dipole_cut.h
 
 fi

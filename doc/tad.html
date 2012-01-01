@@ -13,7 +13,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>tad N t_event T_lo T_hi delta tmax compute-ID seed keyword value ... 
+<PRE>tad N t_event T_lo T_hi delta tmax compute-ID keyword value ... 
 </PRE>
 <UL><LI>N = # of timesteps to run (not including dephasing/quenching) 
 
@@ -52,8 +52,8 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>tad 2000 50 1800 2300 0.01 0.01 event 54985
-tad 2000 50 1800 2300 0.01 0.01 event 54985 &
+<PRE>tad 2000 50 1800 2300 0.01 0.01 event
+tad 2000 50 1800 2300 0.01 0.01 event &
     min 1e-05 1e-05 100 100 &
     neb 0.0 0.01 200 200 20 &
     min_style cg &
@@ -102,9 +102,8 @@ restricts you to having exactly one processor per replica. For more
 information, see the documentation for the <A HREF = "neb.html">neb</A> command.  In
 the current LAMMPS implementation of TAD, all the non-NEB TAD
 operations are performed on the first partition, while the other
-partitions remain idle. See <A HREF = "Section_howto.html#4_5">this
-section</A> of the manual for further discussion
-of multi-replica simulations.
+partitions remain idle. See <A HREF = "Section_howto.html#howto_5">this section</A>
+of the manual for further discussion of multi-replica simulations.
 </P>
 <P>A TAD run has several stages, which are repeated each time an event is
 performed.  The logic for a TAD run is as follows:
@@ -180,35 +179,36 @@ files, and restart files.
 </P>
 <P>Event statistics are printed to the screen and master log.lammps file
 each time an event is executed. The quantities are the timestep, CPU
-time, global event number <I>N</I>, local event number <I>M</I>,
-event status, energy barrier, time margin, <I>t_lo</I> and <I>delt_lo</I>.  
-The timestep is the usual LAMMPS
-timestep, which corresponds to the high-temperature time at which the
-event was detected, in units of timestep.  The CPU time is the total
-processor time since the start of the TAD run.  
-The global event number <I>N</I> is a counter 
-that increments with each executed event. The local event number <I>M</I>
-is a counter that resets to zero upon entering each new basin.
-The event status is <I>E</I> when an event is executed, and 
-is <I>D</I> for an event that is detected, while <I>DF</I> is for a detected
-event that is also the earliest (first) event at the low temperature.
+time, global event number <I>N</I>, local event number <I>M</I>, event status,
+energy barrier, time margin, <I>t_lo</I> and <I>delt_lo</I>.  The timestep is
+the usual LAMMPS timestep, which corresponds to the high-temperature
+time at which the event was detected, in units of timestep.  The CPU
+time is the total processor time since the start of the TAD run.  The
+global event number <I>N</I> is a counter that increments with each
+executed event. The local event number <I>M</I> is a counter that resets to
+zero upon entering each new basin.  The event status is <I>E</I> when an
+event is executed, and is <I>D</I> for an event that is detected, while
+<I>DF</I> is for a detected event that is also the earliest (first) event
+at the low temperature.
 </P>
-<P>The time margin is the ratio of the high temperature time in the current
-basin to the stopping time. This last number can be used to judge
-whether the stopping time is too short or too long (see above). 
+<P>The time margin is the ratio of the high temperature time in the
+current basin to the stopping time. This last number can be used to
+judge whether the stopping time is too short or too long (see above).
 </P>
-<P><I>t_lo</I> is the low-temperature event time when the current basin was entered, 
-in units of timestep.  del<I>t_lo</I> is the time of each detected 
-event, measured relative to <I>t_lo</I>.  <I>delt_lo</I>
-is equal to the high-temperature time since entering the current
-basin, scaled by an
+<P><I>t_lo</I> is the low-temperature event time when the current basin was
+entered, in units of timestep.  del<I>t_lo</I> is the time of each detected
+event, measured relative to <I>t_lo</I>.  <I>delt_lo</I> is equal to the
+high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
-energy barrier for that event.  
+energy barrier for that event.
 </P>
-<P>On lines for executed events, with status <I>E</I>, the global event number is
-incremented by one, and the timestep, local event number, 
-energy barrier, <I>t_lo</I>, and <I>delt_lo</I>  match the last event with status <I>DF</I> in the 
-immediately preceding block of detected events.
+<P>On lines for executed events, with status <I>E</I>, the global event number 
+is incremented by one, 
+the local event number and time margin are reset to zero, 
+while the global event number, energy barrier, and 
+<I>delt_lo</I> match the last event with status <I>DF</I> 
+in the immediately preceding block of detected events.  
+The low-temperature event time <I>t_lo</I> is incremented by <I>delt_lo</I>.
 </P>
 <P>The NEB statistics are written to the file specified by the <I>neb_log</I>
 keyword. If the keyword value is "none", then no NEB statistics are
@@ -272,9 +272,9 @@ are always monotonically increasing.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This command can only be used if LAMMPS was built with the "replica"
-package.  See the <A HREF = "Section_start.html#2_3">Making LAMMPS</A> section for
-more info on packages.
+<P>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
 </P>
 <P><I>N</I> setting must be integer multiple of <I>t_event</I>.
 </P>

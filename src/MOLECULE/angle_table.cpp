@@ -24,13 +24,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 enum{LINEAR,SPLINE};
 
@@ -54,9 +53,9 @@ AngleTable::~AngleTable()
   memory->sfree(tables);
   
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(theta0);
-    memory->sfree(tabindex);
+    memory->destroy(setflag);
+    memory->destroy(theta0);
+    memory->destroy(tabindex);
   }
 }
 
@@ -170,10 +169,10 @@ void AngleTable::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  theta0 = (double *) memory->smalloc((n+1)*sizeof(double),"angle:theta0");
-  tabindex = (int *) memory->smalloc((n+1)*sizeof(int),"angle:tabindex");
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(tabindex,n+1,"angle:tabindex");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -183,14 +182,14 @@ void AngleTable::allocate()
 
 void AngleTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all("Illegal angle_style command");
+  if (narg != 2) error->all(FLERR,"Illegal angle_style command");
 
   if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
-  else error->all("Unknown table style in angle style table");
+  else error->all(FLERR,"Unknown table style in angle style table");
 
   tablength = force->inumeric(arg[1]);
-  if (tablength < 2) error->all("Illegal number of angle table entries");
+  if (tablength < 2) error->all(FLERR,"Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
 
@@ -198,8 +197,8 @@ void AngleTable::settings(int narg, char **arg)
   memory->sfree(tables);
 
   if (allocated) {
-     memory->sfree(setflag);
-     memory->sfree(tabindex);
+     memory->destroy(setflag);
+     memory->destroy(tabindex);
   }
   allocated = 0;
 
@@ -213,7 +212,7 @@ void AngleTable::settings(int narg, char **arg)
 
 void AngleTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal angle_coeff command");
+  if (narg != 3) error->all(FLERR,"Illegal angle_coeff command");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -230,19 +229,19 @@ void AngleTable::coeff(int narg, char **arg)
 
   // error check on table parameters
 
-  if (tb->ninput <= 1) error->one("Invalid angle table length");
+  if (tb->ninput <= 1) error->one(FLERR,"Invalid angle table length");
 
   double alo,ahi;
   alo = tb->afile[0];
   ahi = tb->afile[tb->ninput-1];
   if (fabs(alo-0.0) > TINY || fabs(ahi-180.0) > TINY)
-    error->all("Angle table must range from 0 to 180 degrees");
+    error->all(FLERR,"Angle table must range from 0 to 180 degrees");
     
   // convert theta from degrees to radians
 
   for (int i = 0; i < tb->ninput; i++){
-    tb->afile[i] *= PI/180.0;
-    tb->ffile[i] *= 180.0/PI; 
+    tb->afile[i] *= MY_PI/180.0;
+    tb->ffile[i] *= 180.0/MY_PI; 
   }
 
   // spline read-in and compute a,e,f vectors within table
@@ -261,7 +260,7 @@ void AngleTable::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) error->all("Illegal angle_coeff command");
+  if (count == 0) error->all(FLERR,"Illegal angle_coeff command");
 }
 
 /* ----------------------------------------------------------------------
@@ -343,19 +342,19 @@ void AngleTable::null_table(Table *tb)
 
 void AngleTable::free_table(Table *tb)
 {
-  memory->sfree(tb->afile);
-  memory->sfree(tb->efile);
-  memory->sfree(tb->ffile);
-  memory->sfree(tb->e2file);
-  memory->sfree(tb->f2file);
+  memory->destroy(tb->afile);
+  memory->destroy(tb->efile);
+  memory->destroy(tb->ffile);
+  memory->destroy(tb->e2file);
+  memory->destroy(tb->f2file);
   
-  memory->sfree(tb->ang);
-  memory->sfree(tb->e);
-  memory->sfree(tb->de);
-  memory->sfree(tb->f);
-  memory->sfree(tb->df);
-  memory->sfree(tb->e2);
-  memory->sfree(tb->f2);
+  memory->destroy(tb->ang);
+  memory->destroy(tb->e);
+  memory->destroy(tb->de);
+  memory->destroy(tb->f);
+  memory->destroy(tb->df);
+  memory->destroy(tb->e2);
+  memory->destroy(tb->f2);
 }
 
 /* ----------------------------------------------------------------------
@@ -372,14 +371,14 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 
   // loop until section found with matching keyword
 
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL)
-      error->one("Did not find keyword in table file");
+      error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     if (strstr(line,keyword) == line) break;               // matching keyword
@@ -394,12 +393,9 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
   fgets(line,MAXLINE,fp);
   param_extract(tb,line);
-  tb->afile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:afile");
-  tb->efile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:efile");
-  tb->ffile = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:ffile");
+  memory->create(tb->afile,tb->ninput,"angle:afile");
+  memory->create(tb->efile,tb->ninput,"angle:efile");
+  memory->create(tb->ffile,tb->ninput,"angle:ffile");
 
   // read a,e,f table values from file
 
@@ -421,10 +417,8 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
 void AngleTable::spline_table(Table *tb)
 {
-  tb->e2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:e2file");
-  tb->f2file = (double *) 
-    memory->smalloc(tb->ninput*sizeof(double),"angle:f2file");
+  memory->create(tb->e2file,tb->ninput,"angle:e2file");
+  memory->create(tb->f2file,tb->ninput,"angle:f2file");
 
   double ep0 = - tb->ffile[0];
   double epn = - tb->ffile[tb->ninput-1];
@@ -450,7 +444,7 @@ void AngleTable::compute_table(Table *tb)
   // delta = table spacing in angle for N-1 bins
 
   int tlm1 = tablength-1;
-  tb->delta = PI/ tlm1;
+  tb->delta = MY_PI / tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
   
@@ -459,13 +453,13 @@ void AngleTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // ang,e,f are N in length so de,df arrays can compute difference
 
-  tb->ang = (double *) memory->smalloc(tablength*sizeof(double),"angle:ang");
-  tb->e = (double *) memory->smalloc(tablength*sizeof(double),"angle:e");
-  tb->de = (double *) memory->smalloc(tlm1*sizeof(double),"angle:de");
-  tb->f = (double *) memory->smalloc(tablength*sizeof(double),"angle:f");
-  tb->df = (double *) memory->smalloc(tlm1*sizeof(double),"angle:df");
-  tb->e2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:e2");
-  tb->f2 = (double *) memory->smalloc(tablength*sizeof(double),"angle:f2");
+  memory->create(tb->ang,tablength,"angle:ang");
+  memory->create(tb->e,tablength,"angle:e");
+  memory->create(tb->de,tlm1,"angle:de");
+  memory->create(tb->f,tablength,"angle:f");
+  memory->create(tb->df,tlm1,"angle:df");
+  memory->create(tb->e2,tablength,"angle:e2");
+  memory->create(tb->f2,tablength,"angle:f2");
 
   double a;
   for (int i = 0; i < tablength; i++) {
@@ -509,18 +503,18 @@ void AngleTable::param_extract(Table *tb, char *line)
       tb->fplo = atof(word);
       word = strtok(NULL," \t\n\r\f");
       tb->fphi = atof(word);
-      tb->fplo *= (180.0/PI)*(180.0/PI);
-      tb->fphi *= (180.0/PI)*(180.0/PI);
+      tb->fplo *= (180.0/MY_PI)*(180.0/MY_PI);
+      tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
     } else if (strcmp(word,"EQ") == 0) {
       word = strtok(NULL," \t\n\r\f");
       tb->theta0 = atof(word);
     } else {
-      error->one("Invalid keyword in angle table parameters");
+      error->one(FLERR,"Invalid keyword in angle table parameters");
     }
     word = strtok(NULL," \t\n\r\f");
   }
 
-  if (tb->ninput == 0) error->one("Angle table parameters did not set N");
+  if (tb->ninput == 0) error->one(FLERR,"Angle table parameters did not set N");
 }
 
 /* ----------------------------------------------------------------------
@@ -536,12 +530,9 @@ void AngleTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world,&me);
   if (me > 0) {
-    tb->afile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:afile");
-    tb->efile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:efile");
-    tb->ffile = (double *) 
-      memory->smalloc(tb->ninput*sizeof(double),"angle:ffile");
+    memory->create(tb->afile,tb->ninput,"angle:afile");
+    memory->create(tb->efile,tb->ninput,"angle:efile");
+    memory->create(tb->ffile,tb->ninput,"angle:ffile");
   }
 
   MPI_Bcast(tb->afile,tb->ninput,MPI_DOUBLE,0,world);

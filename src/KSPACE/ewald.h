@@ -27,17 +27,15 @@ namespace LAMMPS_NS {
 class Ewald : public KSpace {
  public:
   Ewald(class LAMMPS *, int, char **);
-  ~Ewald();
+  virtual ~Ewald();
   void init();
   void setup();
-  void compute(int, int);
+  virtual void compute(int, int);
   double memory_usage();
 
- private:
-  double PI;
+ protected:
   double precision;
   int kcount,kmax,kmax3d,kmax_created;
-  double qqrd2e;
   double gsqmx,qsum,qsqsum,volume;
   int nmax;
 
@@ -49,9 +47,9 @@ class Ewald : public KSpace {
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
 
-  void eik_dot_r();
+  virtual void eik_dot_r();
   void coeffs();
-  void allocate();
+  virtual void allocate();
   void deallocate();
   void slabcorr(int);
 };

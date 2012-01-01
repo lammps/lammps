@@ -24,9 +24,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairDipoleCut::PairDipoleCut(LAMMPS *lmp) : Pair(lmp)
@@ -39,20 +36,20 @@ PairDipoleCut::PairDipoleCut(LAMMPS *lmp) : Pair(lmp)
 PairDipoleCut::~PairDipoleCut()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut_lj);
-    memory->destroy_2d_double_array(cut_ljsq);
-    memory->destroy_2d_double_array(cut_coul);
-    memory->destroy_2d_double_array(cut_coulsq);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(cut_coul);
+    memory->destroy(cut_coulsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
   }
 }
 
@@ -79,9 +76,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
   double **mu = atom->mu;
   double **torque = atom->torque;
   int *type = atom->type;
-  double *dipole = atom->dipole;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -106,13 +101,9 @@ void PairDipoleCut::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j = j % nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -142,7 +133,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    forcecoulz += pre1*delz;
 	  }
 
-	  if (dipole[itype] > 0.0 && dipole[jtype] > 0.0) { 
+	  if (mu[i][3] > 0.0 && mu[j][3] > 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
 	    r7inv = r5inv*r2inv;
@@ -172,7 +163,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    tjzcoul += -crossz + pre3 * (mu[j][0]*dely - mu[j][1]*delx);
 	  }
 
-	  if (dipole[itype] > 0.0 && q[j] != 0.0) { 
+	  if (mu[i][3] > 0.0 && q[j] != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
@@ -187,7 +178,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	    tizcoul += pre2 * (mu[i][0]*dely - mu[i][1]*delx);
 	  }
 
-	  if (dipole[jtype] > 0.0 && qtmp != 0.0) { 
+	  if (mu[j][3] > 0.0 && qtmp != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
@@ -239,11 +230,11 @@ void PairDipoleCut::compute(int eflag, int vflag)
 	if (eflag) {
 	  if (rsq < cut_coulsq[itype][jtype]) {
 	    ecoul = qtmp*q[j]*rinv;
-	    if (dipole[itype] > 0.0 && dipole[jtype] > 0.0)
+	    if (mu[i][3] > 0.0 && mu[j][3] > 0.0)
 	      ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-	    if (dipole[itype] > 0.0 && q[j] != 0.0) 
+	    if (mu[i][3] > 0.0 && q[j] != 0.0) 
 	      ecoul += -q[j]*r3inv*pidotr;
-	    if (dipole[jtype] > 0.0 && qtmp != 0.0)
+	    if (mu[j][3] > 0.0 && qtmp != 0.0)
 	      ecoul += qtmp*r3inv*pjdotr;
 	    ecoul *= factor_coul*qqrd2e;
 	  } else ecoul = 0.0;
@@ -261,7 +252,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -273,24 +264,24 @@ void PairDipoleCut::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut_lj = memory->create_2d_double_array(n+1,n+1,"pair:cut_lj");
-  cut_ljsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_ljsq");
-  cut_coul = memory->create_2d_double_array(n+1,n+1,"pair:cut_coul");
-  cut_coulsq = memory->create_2d_double_array(n+1,n+1,"pair:cut_coulsq");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(cut_coul,n+1,n+1,"pair:cut_coul");
+  memory->create(cut_coulsq,n+1,n+1,"pair:cut_coulsq");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -300,7 +291,7 @@ void PairDipoleCut::allocate()
 void PairDipoleCut::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
-    error->all("Incorrect args in pair_style command");
+    error->all(FLERR,"Incorrect args in pair_style command");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -326,7 +317,7 @@ void PairDipoleCut::settings(int narg, char **arg)
 void PairDipoleCut::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6) 
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -353,7 +344,7 @@ void PairDipoleCut::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -362,12 +353,10 @@ void PairDipoleCut::coeff(int narg, char **arg)
 
 void PairDipoleCut::init_style()
 {
-  if (!atom->q_flag || !atom->mu_flag || 
-      !atom->torque_flag || atom->dipole == NULL)
-    error->all("Pair dipole/cut requires atom attributes "
-	       "q, mu, torque, dipole");
+  if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
+    error->all(FLERR,"Pair dipole/cut requires atom attributes q, mu, torque");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

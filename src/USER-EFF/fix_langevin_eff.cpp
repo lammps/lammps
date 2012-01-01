@@ -49,7 +49,7 @@ FixLangevinEff::FixLangevinEff(LAMMPS *lmp, int narg, char **arg) :
 
 FixLangevinEff::~FixLangevinEff()
 {
-  memory->sfree(erforcelangevin);
+  memory->destroy(erforcelangevin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,9 @@ void FixLangevinEff::post_force_no_tally()
 	f[i][0] += gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
 	f[i][1] += gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
 	f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-        if (abs(spin[i])==1) erforce[i] += 0.75*gamma1*ervel[i] + 0.866025404*gamma2*(random->uniform()-0.5);
+        if (abs(spin[i])==1) 
+	  erforce[i] += 0.75*gamma1*ervel[i] + 
+	    0.866025404*gamma2*(random->uniform()-0.5);
       }
     }
   } else if (which == BIAS) {
@@ -105,7 +107,8 @@ void FixLangevinEff::post_force_no_tally()
 	if (v[i][2] != 0.0)
 	  f[i][2] += gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
         if (abs(spin[i])==1 && ervel[i] != 0.0)
-          erforce[i] += 0.75*gamma1*ervel[i] + 0.866025404*gamma2*(random->uniform()-0.5);
+          erforce[i] += 0.75*gamma1*ervel[i] + 
+	    0.866025404*gamma2*(random->uniform()-0.5);
 	temperature->restore_bias(i,v[i]);
       }
     }
@@ -121,12 +124,11 @@ void FixLangevinEff::post_force_tally()
   // reallocate flangevin if necessary
 
   if (atom->nmax > nmax) {
-    memory->destroy_2d_double_array(flangevin);
-    memory->sfree(erforcelangevin);
+    memory->destroy(flangevin);
+    memory->destroy(erforcelangevin);
     nmax = atom->nmax;
-    flangevin = memory->create_2d_double_array(nmax,3,"langevin:flangevin");
-    erforcelangevin = (double *) 
-      memory->smalloc(nmax*sizeof(double),"langevin/eff:erforcelangevin");
+    memory->create(flangevin,nmax,3,"langevin:flangevin");
+    memory->create(erforcelangevin,nmax,"langevin/eff:erforcelangevin");
   }
 
   double **v = atom->v;
@@ -159,7 +161,8 @@ void FixLangevinEff::post_force_tally()
 	flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
 	flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
 	flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-        erforcelangevin[i] = 0.75*gamma1*ervel[i]+0.866025404*gamma2*(random->uniform()-0.5);
+        erforcelangevin[i] = 0.75*gamma1*ervel[i] + 
+	  0.866025404*gamma2*(random->uniform()-0.5);
 	f[i][0] += flangevin[i][0];
 	f[i][1] += flangevin[i][1];
 	f[i][2] += flangevin[i][2];
@@ -176,14 +179,16 @@ void FixLangevinEff::post_force_tally()
 	flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
 	flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
 	flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-        erforcelangevin[i] = 0.75*gamma1*ervel[i]+0.866025404*gamma2*(random->uniform()-0.5);
+        erforcelangevin[i] = 0.75*gamma1*ervel[i] + 
+	  0.866025404*gamma2*(random->uniform()-0.5);
 	if (v[i][0] != 0.0) f[i][0] += flangevin[i][0];
 	else flangevin[i][0] = 0.0;
 	if (v[i][1] != 0.0) f[i][1] += flangevin[i][1];
 	else flangevin[i][1] = 0.0;
 	if (v[i][2] != 0.0) f[i][2] += flangevin[i][2];
 	else flangevin[i][2] = 0.0;
-        if (abs(spin[i])==1 && ervel[i] != 0.0) erforce[i] += erforcelangevin[i];
+        if (abs(spin[i])==1 && ervel[i] != 0.0)
+	  erforce[i] += erforcelangevin[i];
 	temperature->restore_bias(i,v[i]);
       }
     }

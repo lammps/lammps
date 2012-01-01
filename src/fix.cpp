@@ -34,10 +34,10 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(id[i]) && id[i] != '_')
-      error->all("Fix ID must be alphanumeric or underscore characters");
+      error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
-  if (igroup == -1) error->all("Could not find fix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
   groupbit = group->bitmask[igroup];
 
   n = strlen(arg[2]) + 1;
@@ -58,6 +58,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   time_depend = 0;
   create_attribute = 0;
   restart_pbc = 0;
+  cudable_comm = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
@@ -96,7 +97,7 @@ Fix::~Fix()
 {
   delete [] id;
   delete [] style;
-  memory->destroy_2d_double_array(vatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -106,19 +107,19 @@ Fix::~Fix()
 
 void Fix::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all("Illegal fix_modify command");
+  if (narg == 0) error->all(FLERR,"Illegal fix_modify command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"energy") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix_modify command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) thermo_energy = 1;
-      else error->all("Illegal fix_modify command");
+      else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all("Illegal fix_modify command");
+      if (n == 0) error->all(FLERR,"Illegal fix_modify command");
       iarg += n;
     }
   }
@@ -142,8 +143,8 @@ void Fix::v_setup(int vflag)
   
   if (vflag_atom && atom->nlocal > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy_2d_double_array(vatom);
-    vatom = memory->create_2d_double_array(maxvatom,6,"bond:vatom");
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"bond:vatom");
   }
 
   // zero accumulators

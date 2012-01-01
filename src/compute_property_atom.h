@@ -38,6 +38,9 @@ class ComputePropertyAtom : public Compute {
   double *vector;
   double **array;
   double *buf;
+  class AtomVecEllipsoid *avec_ellipsoid;
+  class AtomVecLine *avec_line;
+  class AtomVecTri *avec_tri;
 
   typedef void (ComputePropertyAtom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
@@ -76,13 +79,19 @@ class ComputePropertyAtom : public Compute {
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
+  void pack_mu(int);
   void pack_radius(int);
+  void pack_diameter(int);
+
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
+  void pack_shapex(int);
+  void pack_shapey(int);
+  void pack_shapez(int);
   void pack_quatw(int);
   void pack_quati(int);
   void pack_quatj(int);
@@ -94,6 +103,21 @@ class ComputePropertyAtom : public Compute {
   void pack_eradius(int);
   void pack_ervel(int);
   void pack_erforce(int);
+  void pack_end1x(int);
+  void pack_end1y(int);
+  void pack_end1z(int);
+  void pack_end2x(int);
+  void pack_end2y(int);
+  void pack_end2z(int);
+  void pack_corner1x(int);
+  void pack_corner1y(int);
+  void pack_corner1z(int);
+  void pack_corner2x(int);
+  void pack_corner2y(int);
+  void pack_corner2z(int);
+  void pack_corner3x(int);
+  void pack_corner3y(int);
+  void pack_corner3z(int);
 };
 
 }

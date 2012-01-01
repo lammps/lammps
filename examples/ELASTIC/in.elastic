@@ -1,5 +1,7 @@
 # Compute elastic constant tensor for a crystal
 #
+# Written by Aidan Thompson (Sandia, athomps@sandia.gov)
+#
 #  This script uses the following three include files.
 #
 #   init.mod      (must be modified for different crystal structures)
@@ -40,6 +42,12 @@
 #  that minimization is not required, you can set maxiter = 0.0 in 
 #  init.mod. 
 #
+#  There are two alternate versions of displace.mod provided.
+#  They are displace_restart.mod to displace.mod. 
+#  The former resets the box using a restart file while 
+#  the latter reverses the deformation. Copy whichever
+#  one you like best to displace.mod.
+#
 
 include init.mod
 include potential.mod
@@ -78,6 +86,7 @@ variable d5 equal -(v_pxz1-${pxz0})/(v_delta/v_len0)*${cfac}
 variable d6 equal -(v_pxy1-${pxy0})/(v_delta/v_len0)*${cfac}
 
 # Write restart
+unfix 3
 write_restart restart.equil
 
 # uxx Perturbation

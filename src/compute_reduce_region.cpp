@@ -156,7 +156,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[n]->peratom_freq)
-      error->all("Fix used in compute reduce not computed at compatible time");
+      error->all(FLERR,"Fix used in compute reduce not computed at compatible time");
     Fix *fix = modify->fix[n];
 
     if (flavor[m] == PERATOM) {
@@ -170,7 +170,6 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 	} else one = fix_vector[flag];
       } else {
 	double **fix_array = fix->array_atom;
-	int n = nlocal;
 	int jm1 = j - 1;
 	if (flag < 0) {
 	  for (i = 0; i < nlocal; i++)
@@ -203,9 +202,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   } else if (which[m] == VARIABLE) {
     if (nlocal > maxatom) {
       maxatom = atom->nmax;
-      memory->sfree(varatom);
-      varatom =	(double *) 
-	memory->smalloc(maxatom*sizeof(double),"reduce/region:varatom");
+      memory->destroy(varatom);
+      memory->create(varatom,maxatom,"reduce/region:varatom");
     }
 
     input->variable->compute_atom(n,igroup,varatom,1,0);
@@ -224,10 +222,6 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 bigint ComputeReduceRegion::count(int m)
 {
   int n = value2index[m];
-  int j = argindex[m];
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   if (which[m] == X || which[m] == V || which[m] == F)
     return group->count(igroup,iregion);

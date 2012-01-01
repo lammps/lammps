@@ -19,17 +19,14 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   Region(lmp, narg, arg)
 {
-  if (narg < 5) error->all("Illegal region command");
+  if (narg < 5) error->all(FLERR,"Illegal region command");
   int n = atoi(arg[2]);
-  if (n < 2) error->all("Illegal region command");
+  if (n < 2) error->all(FLERR,"Illegal region command");
   options(narg-(n+3),&arg[n+3]);
 
   // build list of regions to intersect
@@ -40,7 +37,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
     iregion = domain->find_region(arg[iarg+3]);
-    if (iregion == -1) error->all("Region intersect region ID does not exist");
+    if (iregion == -1) error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
 

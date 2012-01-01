@@ -26,6 +26,7 @@ class FixWall : public Fix {
   virtual void init();
   void setup(int);
   void min_setup(int);
+  void pre_force(int);
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
@@ -43,8 +44,10 @@ class FixWall : public Fix {
   int varindex[6];
   int eflag,varflag;
   double ewall[7],ewall_all[7];
+  double xscale,yscale,zscale;
   int nlevels_respa;
   double dt;
+  int fldflag;
 };
 
 }

@@ -27,9 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
@@ -48,11 +45,14 @@ PairHybrid::~PairHybrid()
     delete [] keywords;
   }
 
+  delete [] svector;
+
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_int_array(nmap);
-    memory->destroy_3d_int_array(map);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
+    memory->destroy(nmap);
+    memory->destroy(map);
   }
 }
 
@@ -63,19 +63,21 @@ PairHybrid::~PairHybrid()
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
   for global vflag = 2:
-    call sub-style with adjusted vflag to prevent it calling virial_compute()
-    hybrid calls virial_compute() on final accumulated f
+    call sub-style with adjusted vflag to prevent it calling
+      virial_fdotr_compute()
+    hybrid calls virial_fdotr_compute() on final accumulated f
 ------------------------------------------------------------------------- */
 
 void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
-  // if no_virial_compute is set and global component of incoming vflag = 2
+  // if no_virial_fdotr_compute is set and global component of
+  //   incoming vflag = 2, then
   // reset vflag as if global component were 1
   // necessary since one or more sub-styles cannot compute virial as F dot r
   
-  if (no_virial_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+  if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 
@@ -83,7 +85,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   // check if global component of incoming vflag = 2
   // if so, reset vflag passed to substyle as if it were 0
-  // necessary so substyle will not invoke virial_compute()
+  // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;
   if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
@@ -115,7 +117,7 @@ void PairHybrid::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,15 +153,16 @@ void PairHybrid::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
 
-  nmap = memory->create_2d_int_array(n+1,n+1,"pair:nmap");
-  map = memory->create_3d_int_array(n+1,n+1,nstyles,"pair:map");
+  memory->create(nmap,n+1,n+1,"pair:nmap");
+  memory->create(map,n+1,n+1,nstyles,"pair:map");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       nmap[i][j] = 0;
@@ -173,7 +176,7 @@ void PairHybrid::settings(int narg, char **arg)
 {
   int i,m,istyle;
 
-  if (narg < 1) error->all("Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   // delete old lists, since cannot just change settings
 
@@ -185,19 +188,20 @@ void PairHybrid::settings(int narg, char **arg)
   }
 
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
-    memory->destroy_2d_int_array(nmap);
-    memory->destroy_3d_int_array(map);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cutghost);
+    memory->destroy(nmap);
+    memory->destroy(map);
   }
   allocated = 0;
 
   // count sub-styles by skipping numeric args
-  // exception is 1st arg of style "table", which is non-numeric word
-  // exception is 1st two args of style "lj/coul", which are non-numeric
-  // exception is 1st two args of style "buck/coul", which are non-numeric
-  // exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of table style, which is non-numeric word
+  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
+  // execption is 1st 6 args of gran styles, which can have NULLs
   // need a better way to skip these exceptions
 
   nstyles = 0;
@@ -206,8 +210,9 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
-    if (strstr(arg[i],"gpu")) i++;
     if (strcmp(arg[i],"reax/c") == 0) i++;
+    if (strstr(arg[i],"gran/hooke")) i += 6;
+    if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -220,32 +225,35 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style and call its settings() with subset of args
   // define subset of args for a sub-style by skipping numeric args
-  // exception is 1st arg of style "table", which is non-numeric
-  // exception is 1st two args of style "lj/coul", which are non-numeric
-  // exception is 1st two args of style "buck/coul", which are non-numeric
-  // exception is 1st arg of any "gpu" style, which is non-numeric
+  // exception is 1st arg of table style, which is non-numeric word
+  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
+  // execption is 1st 6 args of gran styles, which can have NULLs
   // need a better way to skip these exceptions
 
+  int dummy;
   nstyles = 0;
   i = 0;
+
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all("Pair style hybrid cannot use same pair style twice");
+	error->all(FLERR,"Pair style hybrid cannot use same pair style twice");
     if (strcmp(arg[i],"hybrid") == 0) 
-      error->all("Pair style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0) 
-      error->all("Pair style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_pair(arg[i]);
+      error->all(FLERR,"Pair style hybrid cannot have none as an argument");
+    styles[nstyles] = force->new_pair(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;
     if (strcmp(arg[i],"table") == 0) i++;
     if (strcmp(arg[i],"lj/coul") == 0) i += 2;
     if (strcmp(arg[i],"buck/coul") == 0) i += 2;
-    if (strstr(arg[i],"gpu")) i++;
     if (strcmp(arg[i],"reax/c") == 0) i++;
+    if (strstr(arg[i],"gran/hooke")) i += 6;
+    if (strstr(arg[i],"gran/hertz")) i += 6;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
@@ -259,16 +267,32 @@ void PairHybrid::settings(int narg, char **arg)
     if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
   }
 
-  // single_enable = 0 if any sub-style = 0
+  // single_enable = 1 if any sub-style is set
   // respa_enable = 1 if any sub-style is set
-  // no_virial_compute = 1 if any sub-style is set
+  // no_virial_fdotr_compute = 1 if any sub-style is set
+  // ghostneigh = 1 if any sub-style is set
 
+  single_enable = 0;
   for (m = 0; m < nstyles; m++)
-    if (styles[m]->single_enable == 0) single_enable = 0;
+    if (styles[m]->single_enable) single_enable = 1;
   for (m = 0; m < nstyles; m++)
     if (styles[m]->respa_enable) respa_enable = 1;
   for (m = 0; m < nstyles; m++)
-    if (styles[m]->no_virial_compute) no_virial_compute = 1;
+    if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->ghostneigh) ghostneigh = 1;
+
+  // single_extra = min of all sub-style single_extra
+  // allocate svector
+
+  single_extra = styles[0]->single_extra;
+  for (m = 1; m < nstyles; m++)
+    single_extra = MIN(single_extra,styles[m]->single_extra);
+
+  if (single_extra) {
+    delete [] svector;
+    svector = new double[single_extra];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -277,7 +301,7 @@ void PairHybrid::settings(int narg, char **arg)
 
 void PairHybrid::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all("Incorrect args for pair coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -294,7 +318,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all("Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -340,7 +364,7 @@ void PairHybrid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -361,7 +385,7 @@ void PairHybrid::init_style()
       for (jtype = itype; jtype <= ntypes; jtype++)
 	for (m = 0; m < nmap[itype][jtype]; m++)
 	  if (map[itype][jtype][m] == istyle) used = 1;
-    if (used == 0) error->all("Pair hybrid sub-style is not used");
+    if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
   }
 
   // each sub-style makes its neighbor list request(s)
@@ -389,8 +413,8 @@ void PairHybrid::init_style()
     // set iskip = 1 only if all ijskip for itype are 1
 
     int *iskip = new int[ntypes+1];
-    int **ijskip = memory->create_2d_int_array(ntypes+1,ntypes+1,
-					       "pair_hybrid:ijskip");
+    int **ijskip;
+    memory->create(ijskip,ntypes+1,ntypes+1,"pair_hybrid:ijskip");
 
     for (itype = 1; itype <= ntypes; itype++)
       for (jtype = 1; jtype <= ntypes; jtype++)
@@ -428,7 +452,7 @@ void PairHybrid::init_style()
       neighbor->requests[i]->ijskip = ijskip;
     } else {
       delete [] iskip;
-      memory->destroy_2d_int_array(ijskip);
+      memory->destroy(ijskip);
     }
   }
 
@@ -449,18 +473,20 @@ double PairHybrid::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
     if (nmap[i][i] != 1 || nmap[j][j] != 1 || map[i][i][0] != map[j][j][0])
-      error->one("All pair coeffs are not set");
+      error->one(FLERR,"All pair coeffs are not set");
     nmap[i][j] = 1;
     map[i][j][0] = map[i][i][0];
   }
 
   // call init/mixing for all sub-styles of I,J
-  // set cutsq in sub-style just as pair::init_one() does
+  // set cutsq in sub-style just as Pair::init() does via call to init_one()
+  // set cutghost for I,J and J,I just as sub-style does
   // sum tail corrections for I,J
   // return max cutoff of all sub-styles assigned to I,J
   // if no sub-styles assigned to I,J (pair_coeff none), cutmax = 0.0 returned
 
   double cutmax = 0.0;
+  cutghost[i][j] = cutghost[j][i] = 0.0;
   if (tail_flag) etail_ij = ptail_ij = 0.0;
 
   nmap[j][i] = nmap[i][j];
@@ -470,6 +496,9 @@ double PairHybrid::init_one(int i, int j)
     double cut = styles[map[i][j][k]]->init_one(i,j);
     styles[map[i][j][k]]->cutsq[i][j] = 
       styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    if (styles[map[i][j][k]]->ghostneigh)
+      cutghost[i][j] = cutghost[j][i] = 
+	MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
@@ -491,7 +520,7 @@ void PairHybrid::modify_requests()
 
   // loop over pair requests only
   // if list is skip list and not copy, look for non-skip list of same kind
-  // if one exists, point at that one
+  // if one exists, point at that one via otherlist
   // else make new non-skip request of same kind and point at that one
   //   don't bother to set ID for new request, since pair hybrid ignores list
   // only exception is half_from_full:
@@ -567,14 +596,14 @@ void PairHybrid::read_restart(FILE *fp)
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
-  int n;
+  int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_pair(keywords[m]);
+    styles[m] = force->new_pair(keywords[m],lmp->suffix,dummy);
     styles[m]->read_restart_settings(fp);
   }
 }
@@ -590,7 +619,7 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 			  double &fforce)
 {
   if (nmap[itype][jtype] == 0)
-    error->one("Invoked pair single on pair style none");
+    error->one(FLERR,"Invoked pair single on pair style none");
 
   double fone;
   fforce = 0.0;
@@ -599,10 +628,17 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
       if (styles[map[itype][jtype][m]]->single_enable == 0)
-	error->all("Pair hybrid sub-style does not support single call");
+	error->one(FLERR,"Pair hybrid sub-style does not support single call");
+
       esum += styles[map[itype][jtype][m]]->
 	single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fone);
       fforce += fone;
+
+      // copy substyle extra values into hybrid's svector
+
+      if (single_extra && styles[map[itype][jtype][m]]->single_extra)
+	for (m = 0; m < single_extra; m++)
+	  svector[m] = styles[map[itype][jtype][m]]->svector[m];
     }
   }
 
@@ -652,7 +688,8 @@ void *PairHybrid::extract(char *str, int &dim)
       double *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && newvalue != cutvalue)
-	error->all("Coulomb cutoffs of pair hybrid sub-styles do not match");
+	error->all(FLERR,
+		   "Coulomb cutoffs of pair hybrid sub-styles do not match");
       cutptr = ptr;
       cutvalue = newvalue;
     } else if (ptr) return ptr;

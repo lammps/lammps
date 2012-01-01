@@ -39,11 +39,14 @@ class PairGayBerne : public Pair {
   void read_restart_settings(FILE *);
 
  protected:
+  enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
+
   double cut_global;
   double **cut;
 
   double gamma,upsilon,mu;   // Gay-Berne parameters
-  double **shape;            // radii in x, y and z SQUARED
+  double **shape1;           // per-type radii in x, y and z
+  double **shape2;           // per-type radii in x, y and z SQUARED
   double *lshape;            // precalculation based on the shape
   double **well;             // well depth scaling along each axis ^ -1.0/mu
   double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs
@@ -52,6 +55,7 @@ class PairGayBerne : public Pair {
   double **lj1,**lj2,**lj3,**lj4;
   double **offset;
   int *setwell;
+  class AtomVecEllipsoid *avec;
 
   void allocate();
   double gayberne_analytic(const int i, const int j, double a1[3][3],

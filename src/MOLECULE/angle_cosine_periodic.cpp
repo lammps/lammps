@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -39,10 +41,10 @@ AngleCosinePeriodic::AngleCosinePeriodic(LAMMPS *lmp) : Angle(lmp) {}
 AngleCosinePeriodic::~AngleCosinePeriodic()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k);
-    memory->sfree(b);
-    memory->sfree(multiplicity);
+    memory->destroy(setflag);
+    memory->destroy(k);
+    memory->destroy(b);
+    memory->destroy(multiplicity);
   }
 }
 
@@ -136,8 +138,8 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
       un_2 = un_1;
       un_1 = un;
     }
-    tn = b_factor*pow((-1),m)*tn;
-    un = b_factor*pow((-1),m)*m*un;
+    tn = b_factor*pow(-1.0,m)*tn;
+    un = b_factor*pow(-1.0,m)*m*un;
 
     if (eflag) eangle = 2*k[type]*(1.0 - tn);
 
@@ -185,12 +187,11 @@ void AngleCosinePeriodic::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  k = (double *) memory->smalloc((n+1)*sizeof(double),"angle:k");
-  multiplicity = (int *) memory->smalloc((n+1)*sizeof(int),
-					 "angle:multiplicity");
-  b = (int *) memory->smalloc((n+1)*sizeof(int),"angle:b");
+  memory->create(k,n+1,"angle:k");
+  memory->create(multiplicity,n+1,"angle:multiplicity");
+  memory->create(b,n+1,"angle:b");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"angle:setflag");
+  memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -200,7 +201,7 @@ void AngleCosinePeriodic::allocate()
 
 void AngleCosinePeriodic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for angle coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -209,7 +210,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   double c_one = atof(arg[1]);
   int b_one = atoi(arg[2]);
   int n_one = atoi(arg[3]);
-  if (n_one <= 0) error->all("Incorrect args for angle coefficients");
+  if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -220,14 +221,14 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return PI;
+  return MY_PI;
 }
 
 /* ----------------------------------------------------------------------
@@ -285,5 +286,5 @@ double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   c = cos(acos(c)*multiplicity[type]);
-  return k[type]*(1.0-b[type]*pow(-1,multiplicity[type])*c);
+  return k[type]*(1.0-b[type]*pow(-1.0,multiplicity[type])*c);
 }

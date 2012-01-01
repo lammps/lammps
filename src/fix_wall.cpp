@@ -45,13 +45,14 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   nwall = 0;
   int scaleflag = 1;
+  fldflag = 0;
 
   int iarg = 3;
   while (iarg < narg) {
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
 	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
 	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+5 > narg) error->all("Illegal fix wall command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall command");
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -63,7 +64,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; m < nwall; m++)
 	if (newwall == wallwhich[m])
-	  error->all("Wall defined twice in fix wall command");
+	  error->all(FLERR,"Wall defined twice in fix wall command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
@@ -89,47 +90,52 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix wall command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all("Illegal fix wall command");
+      else error->all(FLERR,"Illegal fix wall command");
       iarg += 2;
-    } else error->all("Illegal fix wall command");
+    } else if (strcmp(arg[iarg],"fld") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
+      if (strcmp(arg[iarg+1],"no") == 0) fldflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) fldflag = 1;
+      else error->all(FLERR,"Illegal fix wall command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix wall command");
   }
 
   size_vector = nwall;
 
   // error check
 
-  if (nwall == 0) error->all("Illegal fix wall command");
+  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
   for (int m = 0; m < nwall; m++)
     if (cutoff[m] <= 0.0)
-      error->all("Fix wall cutoff <= 0.0");
+      error->all(FLERR,"Fix wall cutoff <= 0.0");
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all("Cannot use fix wall in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all("Cannot use fix wall zlo/zhi for a 2d simulation");
+      error->all(FLERR,"Cannot use fix wall zlo/zhi for a 2d simulation");
   
-  // scale coord for CONSTANT walls
+  // scale factors for CONSTANT and VARIABLE walls
 
   int flag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == CONSTANT) flag = 1;
+    if (wallstyle[m] != EDGE) flag = 1;
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
-      error->all("Use of fix wall with undefined lattice");
+      error->all(FLERR,"Use of fix wall with undefined lattice");
 
-    double xscale,yscale,zscale;
     if (scaleflag) {
       xscale = domain->lattice->xlattice;
       yscale = domain->lattice->ylattice;
@@ -137,12 +143,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     }
     else xscale = yscale = zscale = 1.0;
 
-    double scale;
     for (int m = 0; m < nwall; m++) {
-      if (wallwhich[m] < YLO) scale = xscale;
-      else if (wallwhich[m] < ZLO) scale = yscale;
-      else scale = zscale;
-      if (wallstyle[m] == CONSTANT) coord0[m] *= scale;
+      if (wallstyle[m] != CONSTANT) continue;
+      if (wallwhich[m] < YLO) coord0[m] *= xscale;
+      else if (wallwhich[m] < ZLO) coord0[m] *= yscale;
+      else coord0[m] *= zscale;
     }
   }
 
@@ -169,7 +174,12 @@ FixWall::~FixWall()
 int FixWall::setmask()
 {
   int mask = 0;
-  mask |= POST_FORCE;
+
+  // FLD implicit needs to invoke wall forces before pair style
+
+  if (fldflag) mask != PRE_FORCE;
+  else mask |= POST_FORCE;
+
   mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
@@ -186,16 +196,16 @@ void FixWall::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all("Variable name for fix wall does not exist");
+      error->all(FLERR,"Variable name for fix wall does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all("Variable for fix wall is invalid style");
+      error->all(FLERR,"Variable for fix wall is invalid style");
   }
 
   // setup coefficients
 
   for (int m = 0; m < nwall; m++) precompute(m);
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -203,8 +213,8 @@ void FixWall::init()
 
 void FixWall::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(vflag);
+  if (strstr(update->integrate_style,"verlet"))
+    if (!fldflag) post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
@@ -215,6 +225,15 @@ void FixWall::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 
 void FixWall::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   only called if fldflag set, in place of post_force
+------------------------------------------------------------------------- */
+
+void FixWall::pre_force(int vflag)
 {
   post_force(vflag);
 }
@@ -233,9 +252,12 @@ void FixWall::post_force(int vflag)
 
   double coord;
   for (int m = 0; m < nwall; m++) {
-    if (wallstyle[m] == VARIABLE)
+    if (wallstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(varindex[m]);
-    else coord = coord0[m];
+      if (wallwhich[m] < YLO) coord *= xscale;
+      else if (wallwhich[m] < ZLO) coord *= yscale;
+      else coord *= zscale;
+    } else coord = coord0[m];
 
     wall_particle(m,wallwhich[m],coord);
   }

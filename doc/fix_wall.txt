@@ -28,10 +28,13 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
     sigma = size factor for wall-particle interaction (distance units)
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {units} :l
+keyword = {units} or {fld} :l
   {units} value = {lattice} or {box}
     {lattice} = the wall position is defined in lattice units
-    {box} = the wall position is defined in simulation box units :pre
+    {box} = the wall position is defined in simulation box units
+  {fld} value = {yes} or {no}
+    {yes} = invoke the wall constraint to be compatible with implicit FLD
+    {yes} = invoke the wall constraint in the normal way :pre
 :ule
 
 [Examples:]
@@ -138,15 +141,23 @@ enough {epsilon} that particles always reamin on the correct side of
 the wall (r > 0).
 
 The {units} keyword determines the meaning of the distance units used
-to define a wall position, but only when a numeric constant is used.
-It is not relevant when EDGE or a variable is used to specify a face
-position.
+to define a wall position, but only when a numeric constant or
+variable is used.  It is not relevant when EDGE is used to specify a
+face position.  In the variable case, the variable is assumed to
+produce a value compatible with the {units} setting you specify.
 
 A {box} value selects standard distance units as defined by the
 "units"_units.html command, e.g. Angstroms for units = real or metal.
 A {lattice} value means the distance units are in lattice spacings.
 The "lattice"_lattice.html command must have been previously used to
 define the lattice spacings.
+
+The {fld} keyword can be used with a {yes} setting to invoke the wall
+constraint before pairwise interactions are computed.  This allows an
+implicit FLD model using "pair_style lubricateU"_pair_lubricateU.html
+to include the wall force in its calculations.  If the setting is
+{no}, wall forces are imposed after pairwise interactions, in the
+usual manner.
 
 :line
 
@@ -198,14 +209,14 @@ output"_thermo_style.html.
 
 This fix computes a global scalar energy and a global vector of
 forces, which can be accessed by various "output
-commands"_Section_howto.html#4_15.  Note that the scalar energy is the
-sum of interactions with all defined walls.  If you want the energy on
-a per-wall basis, you need to use multiple fix wall commands.  The
-length of the vector is equal to the number of walls defined by the
-fix.  Each vector value is the normal force on a specific wall.  Note
-that an outward force on a wall will be a negative value for {lo}
-walls and a positive value for {hi} walls.  The scalar and vector
-values calculated by this fix are "extensive".
+commands"_Section_howto.html#howto_15.  Note that the scalar energy is
+the sum of interactions with all defined walls.  If you want the
+energy on a per-wall basis, you need to use multiple fix wall
+commands.  The length of the vector is equal to the number of walls
+defined by the fix.  Each vector value is the normal force on a
+specific wall.  Note that an outward force on a wall will be a
+negative value for {lo} walls and a positive value for {hi} walls.
+The scalar and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

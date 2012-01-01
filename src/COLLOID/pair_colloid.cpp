@@ -23,16 +23,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
-enum{SMALL_SMALL,SMALL_LARGE,LARGE_LARGE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,25 +39,25 @@ PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp) {}
 PairColloid::~PairColloid()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_int_array(form);
-    memory->destroy_2d_double_array(a12);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(d1);
-    memory->destroy_2d_double_array(d2);
-    memory->destroy_2d_double_array(a1);
-    memory->destroy_2d_double_array(a2);
-    memory->destroy_2d_double_array(diameter);
-    memory->destroy_2d_double_array(cut);		
-    memory->destroy_2d_double_array(offset);
-    memory->destroy_2d_double_array(sigma3);
-    memory->destroy_2d_double_array(sigma6);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
+    memory->destroy(form);
+    memory->destroy(a12);
+    memory->destroy(sigma);
+    memory->destroy(d1);
+    memory->destroy(d2);
+    memory->destroy(a1);
+    memory->destroy(a2);
+    memory->destroy(diameter);
+    memory->destroy(cut);		
+    memory->destroy(offset);
+    memory->destroy(sigma3);
+    memory->destroy(sigma6);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
   }
 }
 
@@ -84,7 +80,6 @@ void PairColloid::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -106,12 +101,8 @@ void PairColloid::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
      
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -148,7 +139,7 @@ void PairColloid::compute(int eflag, int vflag)
 	  evdwl = 2.0/9.0*fR * 
 	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
 	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-	if (rsq <= K[1]) error->one("Overlapping small/large in pair colloid");
+	if (rsq <= K[1]) error->one(FLERR,"Overlapping small/large in pair colloid");
 	break;
 
       case LARGE_LARGE:
@@ -186,7 +177,7 @@ void PairColloid::compute(int eflag, int vflag)
 	if (eflag)
 	  evdwl += a12[itype][jtype]/6.0 * 
 	    (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-	if (r <= K[1]) error->one("Overlapping large/large in pair colloid");
+	if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
 	break;
       }
       
@@ -206,7 +197,7 @@ void PairColloid::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -218,29 +209,29 @@ void PairColloid::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  form = memory->create_2d_int_array(n+1,n+1,"pair:form");
-  a12 = memory->create_2d_double_array(n+1,n+1,"pair:a12");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  d1 = memory->create_2d_double_array(n+1,n+1,"pair:d1");
-  d2 = memory->create_2d_double_array(n+1,n+1,"pair:d2");
-  a1 = memory->create_2d_double_array(n+1,n+1,"pair:a1");
-  a2 = memory->create_2d_double_array(n+1,n+1,"pair:a2");
-  diameter = memory->create_2d_double_array(n+1,n+1,"pair:diameter");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
-  sigma3 = memory->create_2d_double_array(n+1,n+1,"pair:sigma3");
-  sigma6 = memory->create_2d_double_array(n+1,n+1,"pair:sigma6");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
+  memory->create(form,n+1,n+1,"pair:form");
+  memory->create(a12,n+1,n+1,"pair:a12");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(d1,n+1,n+1,"pair:d1");
+  memory->create(d2,n+1,n+1,"pair:d2");
+  memory->create(a1,n+1,n+1,"pair:a1");
+  memory->create(a2,n+1,n+1,"pair:a2");
+  memory->create(diameter,n+1,n+1,"pair:diameter");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(offset,n+1,n+1,"pair:offset");
+  memory->create(sigma3,n+1,n+1,"pair:sigma3");
+  memory->create(sigma6,n+1,n+1,"pair:sigma6");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
 }
 
 /* ----------------------------------------------------------------------
@@ -249,7 +240,7 @@ void PairColloid::allocate()
 
 void PairColloid::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -269,7 +260,7 @@ void PairColloid::settings(int narg, char **arg)
 
 void PairColloid::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all("Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -285,7 +276,7 @@ void PairColloid::coeff(int narg, char **arg)
   if (narg == 7) cut_one = force->numeric(arg[6]);
 
   if (d1_one < 0.0 || d2_one < 0.0) 
-    error->all("Invalid d1 or d2 value for pair colloid coeff");
+    error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -293,7 +284,7 @@ void PairColloid::coeff(int narg, char **arg)
       a12[i][j] = a12_one;
       sigma[i][j] = sigma_one;
       if (i == j && d1_one != d2_one)
-	error->all("Invalid d1 or d2 value for pair colloid coeff");
+	error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
       d1[i][j] = d1_one;
       d2[i][j] = d2_one;
       diameter[i][j] = 0.5*(d1_one+d2_one);
@@ -303,7 +294,7 @@ void PairColloid::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -348,7 +339,6 @@ double PairColloid::init_one(int i, int j)
   sigma6[j][i] = sigma6[i][j];
   diameter[j][i] = diameter[i][j];
   cut[j][i] = cut[i][j];
-  cutsq[j][i] = cutsq[i][j] = cut[i][j] * cut[i][j];
 
   double epsilon = a12[i][j]/144.0;
   lj1[j][i] = lj1[i][j] = 48.0 * epsilon * sigma6[i][j] * sigma6[i][j];
@@ -359,7 +349,8 @@ double PairColloid::init_one(int i, int j)
   offset[j][i] = offset[i][j] = 0.0;
   if (offset_flag) {
     double tmp;
-    offset[j][i] = offset[i][j] = single(0,0,i,j,cutsq[i][j],0.0,1.0,tmp);
+    offset[j][i] = offset[i][j] = 
+      single(0,0,i,j,cut[i][j]*cut[i][j],0.0,1.0,tmp);
   }
 
   return cut[i][j];

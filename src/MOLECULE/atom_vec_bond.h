@@ -29,7 +29,7 @@ class AtomVecBond : public AtomVec {
   AtomVecBond(class LAMMPS *, int, char **);
   void grow(int);
   void grow_reset();
-  void copy(int, int);
+  void copy(int, int, int);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
@@ -38,10 +38,10 @@ class AtomVecBond : public AtomVec {
   void unpack_reverse(int, int *, double *);
   int pack_border(int, int *, double *, int, int *);
   int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_one(int, double *);
+  int pack_border_hybrid(int, int *, double *);
   void unpack_border(int, int, double *);
   void unpack_border_vel(int, int, double *);
-  int unpack_border_one(int, double *);
+  int unpack_border_hybrid(int, int, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(double *);
   int size_restart();
@@ -50,7 +50,7 @@ class AtomVecBond : public AtomVec {
   void create_atom(int, double *);
   void data_atom(double *, int, char **);
   int data_atom_hybrid(int, char **);
-  double memory_usage();
+  bigint memory_usage();
 
  private:
   int *tag,*type,*mask,*image;

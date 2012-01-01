@@ -14,7 +14,6 @@
 #ifndef LMP_FIX_H
 #define LMP_FIX_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -42,6 +41,7 @@ class Fix : protected Pointers {
                                  //      setting when a new atom is created
   int restart_pbc;               // 1 if fix moves atoms (except integrate)
                                  //      so write_restart must remap to PBC
+  int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
@@ -93,6 +93,7 @@ class Fix : protected Pointers {
   virtual void init() {}
   virtual void init_list(int, class NeighList *) {}
   virtual void setup(int) {}
+  virtual void setup_pre_exchange() {}
   virtual void setup_pre_force(int) {}
   virtual void min_setup(int) {}
   virtual void initial_integrate(int) {}

@@ -9,39 +9,46 @@
  
 num_args=$#
 
-# we write to a scratch file, since
-# we know the real file name only at
-# the very end.
-output=geryon.tmp.$$
-: > $output
+# Check command-line arguments
+if [ $num_args -gt 9 ]; then
+  echo "$0 can only take 9 arguments; not $num_args"
+  exit 1
+fi
+
+if [ $num_args -lt 3 ]; then
+  echo "Not enough arguments."
+  echo "$0 name_for_string input_file1 input_file2 ... output"
+  exit 1
+fi
+
+# Name is first arg, output file is last argument
+string_name=$1
+eval output=\${$num_args}
+shift
 
 # remove temporary file in case we're interrupted. 
 cleanup () {
-  rm -f geryon.tmp.$$
+  rm -f $output
 }
 trap cleanup INT QUIT TERM
 
 # loop over arguments and convert to 
-# string constants. 
-i=1
+# string constant. 
+i=2
+echo "const char * $string_name = " > $output
 while [ $i -lt $num_args ]
 do \
   src=$1
   krn=${src##*/}
   krn=${krn%.*}
-  echo "Converting kernel $krn from $src to a c-style string"
-  echo "const char * $krn = " >> $output
+  echo "Converting $src to a c-style string"
   sed -e 's/\\/\\\\/g'   \
       -e 's/"/\\"/g'     \
       -e 's/ *\/\/.*$//' \
       -e '/\.file/D'     \
       -e '/^[ 	]*$/D'   \
       -e 's/^\(.*\)$/"\1\\n"/' $src >> $output
-  echo ';' >> $output
   shift
   i=`expr $i + 1`
 done
-
-# $1 holds now the real output file name
-mv $output $1
-
+echo ';' >> $output

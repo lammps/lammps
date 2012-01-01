@@ -22,7 +22,7 @@
 #include "pair_gayberne.h"
 #include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
+#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -31,17 +31,15 @@
 #include "memory.h"
 #include "error.h"
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 using namespace LAMMPS_NS;
-
-enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 /* ---------------------------------------------------------------------- */
 
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
+
   single_enable = 0;
 }
 
@@ -52,20 +50,21 @@ PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 PairGayBerne::~PairGayBerne()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_int_array(form);
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(shape);
-    memory->destroy_2d_double_array(well);
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(offset);
+    memory->destroy(form);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(shape1);
+    memory->destroy(shape2);
+    memory->destroy(well);
+    memory->destroy(cut);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
     delete [] lshape;
     delete [] setwell;
   }
@@ -80,18 +79,19 @@ void PairGayBerne::compute(int eflag, int vflag)
   double fforce[3],ttor[3],rtor[3],r12[3];
   double a1[3][3],b1[3][3],g1[3][3],a2[3][3],b2[3][3],g2[3][3],temp[3][3];
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double *iquat,*jquat;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **f = atom->f;
-  double **quat = atom->quat;
   double **tor = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -107,10 +107,11 @@ void PairGayBerne::compute(int eflag, int vflag)
     itype = type[i];
 
     if (form[itype][itype] == ELLIPSE_ELLIPSE) {
-      MathExtra::quat_to_mat_trans(quat[i],a1);
+      iquat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat_trans(iquat,a1);
       MathExtra::diag_times3(well[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,b1);
-      MathExtra::diag_times3(shape[itype],a1,temp);
+      MathExtra::diag_times3(shape2[itype],a1,temp);
       MathExtra::transpose_times3(a1,temp,g1);
     }
 
@@ -119,12 +120,8 @@ void PairGayBerne::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-        factor_lj = special_lj[j/nall];
-        j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       // r12 = center to center vector
 
@@ -155,10 +152,11 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  break;
 
         case SPHERE_ELLIPSE:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
 	  ttor[0] = ttor[1] = ttor[2] = 0.0;
@@ -170,10 +168,11 @@ void PairGayBerne::compute(int eflag, int vflag)
 	  break;
 
 	default:
-	  MathExtra::quat_to_mat_trans(quat[j],a2);
+	  jquat = bonus[ellipsoid[j]].quat;
+	  MathExtra::quat_to_mat_trans(jquat,a2);
 	  MathExtra::diag_times3(well[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape[jtype],a2,temp);
+	  MathExtra::diag_times3(shape2[jtype],a2,temp);
 	  MathExtra::transpose_times3(a2,temp,g2);
 	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
 				      fforce,ttor,rtor);
@@ -215,7 +214,7 @@ void PairGayBerne::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -227,24 +226,25 @@ void PairGayBerne::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  form = memory->create_2d_int_array(n+1,n+1,"pair:form");
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  shape = memory->create_2d_double_array(n+1,3,"pair:shape");
-  well = memory->create_2d_double_array(n+1,3,"pair:well");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  offset = memory->create_2d_double_array(n+1,n+1,"pair:offset");
+  memory->create(form,n+1,n+1,"pair:form");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(shape1,n+1,3,"pair:shape1");
+  memory->create(shape2,n+1,3,"pair:shape2");
+  memory->create(well,n+1,3,"pair:well");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 
   lshape = new double[n+1];
   setwell = new int[n+1];
@@ -257,7 +257,7 @@ void PairGayBerne::allocate()
 
 void PairGayBerne::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all("Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
   gamma = force->numeric(arg[0]);
   upsilon = force->numeric(arg[1])/2.0;
@@ -281,7 +281,7 @@ void PairGayBerne::settings(int narg, char **arg)
 void PairGayBerne::coeff(int narg, char **arg)
 {
   if (narg < 10 || narg > 11)
-    error->all("Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -325,7 +325,7 @@ void PairGayBerne::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -335,23 +335,22 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  if (!atom->quat_flag || !atom->torque_flag || !atom->avec->shape_type)
-    error->all("Pair gayberne requires atom attributes quat, torque, shape");
-  if (atom->radius_flag)
-    error->all("Pair gayberne cannot be used with atom attribute diameter");
-
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // per-type shape precalculations
+  // require that atom shapes are identical within each type
+  // if shape = 0 for point particle, set shape = 1 as required by Gay-Berne
 
   for (int i = 1; i <= atom->ntypes; i++) {
-    if (setwell[i]) {
-      double *one = atom->shape[i];
-      shape[i][0] = one[0]*one[0];
-      shape[i][1] = one[1]*one[1];
-      shape[i][2] = one[2]*one[2];
-      lshape[i] = (one[0]*one[1]+one[2]*one[2])*sqrt(one[0]*one[1]);
-    }
+    if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
+      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
+    if (shape1[i][0] == 0.0)
+      shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
+    shape2[i][0] = shape1[i][0]*shape1[i][0];
+    shape2[i][1] = shape1[i][1]*shape1[i][1];
+    shape2[i][2] = shape1[i][2]*shape1[i][2];
+    lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) * 
+      sqrt(shape1[i][0]*shape1[i][1]);
   }
 }
 
@@ -362,7 +361,7 @@ void PairGayBerne::init_style()
 double PairGayBerne::init_one(int i, int j)
 {
   if (setwell[i] == 0 || setwell[j] == 0)
-    error->all("Pair gayberne epsilon a,b,c coeffs are not all set");
+    error->all(FLERR,"Pair gayberne epsilon a,b,c coeffs are not all set");
 
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -382,14 +381,14 @@ double PairGayBerne::init_one(int i, int j)
   } else offset[i][j] = 0.0;
 
   int ishape = 0;
-  if (atom->shape[i][0] != atom->shape[i][1] || 
-      atom->shape[i][0] != atom->shape[i][2] || 
-      atom->shape[i][1] != atom->shape[i][2]) ishape = 1;
+  if (shape1[i][0] != shape1[i][1] || 
+      shape1[i][0] != shape1[i][2] || 
+      shape1[i][1] != shape1[i][2]) ishape = 1;
   if (setwell[i] == 1) ishape = 1;
   int jshape = 0;
-  if (atom->shape[j][0] != atom->shape[j][1] || 
-      atom->shape[j][0] != atom->shape[j][2] || 
-      atom->shape[j][1] != atom->shape[j][2]) jshape = 1;
+  if (shape1[j][0] != shape1[j][1] || 
+      shape1[j][0] != shape1[j][2] || 
+      shape1[j][1] != shape1[j][2]) jshape = 1;
   if (setwell[j] == 1) jshape = 1;
   
   if (ishape == 0 && jshape == 0)
@@ -540,7 +539,8 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double g12[3][3];
   MathExtra::plus3(g1,g2,g12);
   double kappa[3];
-  MathExtra::mldivide3(g12,r12,kappa,error);
+  int ierror = MathExtra::mldivide3(g12,r12,kappa);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -570,7 +570,8 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double b12[3][3];
   double iota[3];
   MathExtra::plus3(b1,b2,b12);
-  MathExtra::mldivide3(b12,r12,iota,error);
+  ierror = MathExtra::mldivide3(b12,r12,iota);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -614,18 +615,18 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
   double dUr2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(kappa,g2,tempv2);
+    MathExtra::vecmat(kappa,g2,tempv2);
     MathExtra::cross3(tempv,tempv2,dUr2);
   }
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;
@@ -634,7 +635,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double dchi2[3];
 
   if (newton_pair || j < nlocal) {
-    MathExtra::row_times3(iota,b2,tempv);
+    MathExtra::vecmat(iota,b2,tempv);
     MathExtra::cross3(tempv,iota,dchi2);
     dchi2[0] *= temp1;
     dchi2[1] *= temp1;
@@ -645,7 +646,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
 
   double deta[3];
   deta[0] = deta[1] = deta[2] = 0.0;
-  compute_eta_torque(g12,a1,shape[type[i]],temp);
+  compute_eta_torque(g12,a1,shape2[type[i]],temp);
   temp1 = -eta*upsilon;
   for (int m = 0; m < 3; m++) {
     for (int y = 0; y < 3; y++) tempv[y] = temp1*temp[m][y];
@@ -660,7 +661,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   double deta2[3];
   if (newton_pair || j < nlocal) {
     deta2[0] = deta2[1] = deta2[2] = 0.0;
-    compute_eta_torque(g12,a2,shape[type[j]],temp);
+    compute_eta_torque(g12,a2,shape2[type[j]],temp);
     for (int m = 0; m < 3; m++) {
       for (int y = 0; y < 3; y++) tempv[y] = temp1*temp[m][y];
       MathExtra::cross3(a2[m],tempv,tempv2);
@@ -712,14 +713,15 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   // compute distance of closest approach
 
   double g12[3][3];
-  g12[0][0] = g1[0][0]+shape[type[j]][0];  
-  g12[1][1] = g1[1][1]+shape[type[j]][0];  
-  g12[2][2] = g1[2][2]+shape[type[j]][0];  
+  g12[0][0] = g1[0][0]+shape2[type[j]][0];  
+  g12[1][1] = g1[1][1]+shape2[type[j]][0];  
+  g12[2][2] = g1[2][2]+shape2[type[j]][0];  
   g12[0][1] = g1[0][1]; g12[1][0] = g1[1][0];
   g12[0][2] = g1[0][2]; g12[2][0] = g1[2][0];
   g12[1][2] = g1[1][2]; g12[2][1] = g1[2][1];
   double kappa[3];
-  MathExtra::mldivide3(g12,r12,kappa,error);
+  int ierror = MathExtra::mldivide3(g12,r12,kappa);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -754,7 +756,8 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   b12[0][1] = b1[0][1]; b12[1][0] = b1[1][0];
   b12[0][2] = b1[0][2]; b12[2][0] = b1[2][0];
   b12[1][2] = b1[1][2]; b12[2][1] = b1[2][1];
-  MathExtra::mldivide3(b12,r12,iota,error);
+  ierror = MathExtra::mldivide3(b12,r12,iota);
+  if (ierror) error->all(FLERR,"Bad matrix inversion in mldivide3");
 
   // tempv = G12^-1*r12hat
 
@@ -798,12 +801,12 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   tempv[0] = -uslj_rsq*kappa[0];
   tempv[1] = -uslj_rsq*kappa[1];
   tempv[2] = -uslj_rsq*kappa[2];
-  MathExtra::row_times3(kappa,g1,tempv2);
+  MathExtra::vecmat(kappa,g1,tempv2);
   MathExtra::cross3(tempv,tempv2,dUr);
 
   // compute d_chi
 
-  MathExtra::row_times3(iota,b1,tempv);
+  MathExtra::vecmat(iota,b1,tempv);
   MathExtra::cross3(tempv,iota,dchi);
   temp1 = -4.0/rsq;
   dchi[0] *= temp1;
@@ -814,7 +817,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
 
   double deta[3];
   deta[0] = deta[1] = deta[2] = 0.0;
-  compute_eta_torque(g12,a1,shape[type[i]],temp);
+  compute_eta_torque(g12,a1,shape2[type[i]],temp);
   temp1 = -eta*upsilon;
   for (int m = 0; m < 3; m++) {
     for (int y = 0; y < 3; y++) tempv[y] = temp1*temp[m][y];

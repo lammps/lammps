@@ -27,15 +27,18 @@ Error::Error(LAMMPS *lmp) : Pointers(lmp) {}
 /* ----------------------------------------------------------------------
    called by all procs in universe
    close all output, screen, and log files in world and universe
+   no abort, so insure all procs in universe call, else will hang
 ------------------------------------------------------------------------- */
 
-void Error::universe_all(const char *str)
+void Error::universe_all(const char *file, int line, const char *str)
 {
   MPI_Barrier(universe->uworld);
 
   if (universe->me == 0) {
-    if (universe->uscreen) fprintf(universe->uscreen,"ERROR: %s\n",str);
-    if (universe->ulogfile) fprintf(universe->ulogfile,"ERROR: %s\n",str);
+    if (universe->uscreen) fprintf(universe->uscreen,
+				   "ERROR: %s (%s:%d)\n",str,file,line);
+    if (universe->ulogfile) fprintf(universe->ulogfile,
+				    "ERROR: %s (%s:%d)\n",str,file,line);
   }
 
   if (output) delete output;
@@ -51,21 +54,27 @@ void Error::universe_all(const char *str)
 
 /* ----------------------------------------------------------------------
    called by one proc in universe
+   forces abort of entire universe if any proc in universe calls
 ------------------------------------------------------------------------- */
 
-void Error::universe_one(const char *str)
+void Error::universe_one(const char *file, int line, const char *str)
 {
   if (universe->uscreen)
-    fprintf(universe->uscreen,"ERROR on proc %d: %s\n",universe->me,str);
+    fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
+	    universe->me,str,file,line);
   MPI_Abort(universe->uworld,1);
 }
 
 /* ----------------------------------------------------------------------
    called by all procs in one world
    close all output, screen, and log files in world
+   insure all procs in world call, else will hang
+   if abort = 0 (default):
+     if only one world in universe calls, universe will hang
+   if abort = 1: force abort of entire universe if any world in universe calls
 ------------------------------------------------------------------------- */
 
-void Error::all(const char *str)
+void Error::all(const char *file, int line, const char *str, int abort)
 {
   MPI_Barrier(world);
 
@@ -73,14 +82,15 @@ void Error::all(const char *str)
   MPI_Comm_rank(world,&me);
 
   if (me == 0) {
-    if (screen) fprintf(screen,"ERROR: %s\n",str);
-    if (logfile) fprintf(logfile,"ERROR: %s\n",str);
+    if (screen) fprintf(screen,"ERROR: %s (%s:%d)\n",str,file,line);
+    if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n",str,file,line);
   }
 
   if (output) delete output;
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
+  if (abort) MPI_Abort(world,1);
   MPI_Finalize();
   exit(1);
 }
@@ -89,15 +99,18 @@ void Error::all(const char *str)
    called by one proc in world
    write to world screen only if non-NULL on this proc
    always write to universe screen 
+   forces abort of entire world (and universe) if any proc in world calls
 ------------------------------------------------------------------------- */
 
-void Error::one(const char *str)
+void Error::one(const char *file, int line, const char *str)
 {
   int me;
   MPI_Comm_rank(world,&me);
-  if (screen) fprintf(screen,"ERROR on proc %d: %s\n",me,str);
+  if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",
+		      me,str,file,line);
   if (universe->nworlds > 1)
-    fprintf(universe->uscreen,"ERROR on proc %d: %s\n",universe->me,str);
+    fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
+	    universe->me,str,file,line);
   MPI_Abort(world,1);
 }
 
@@ -106,10 +119,11 @@ void Error::one(const char *str)
    only write to screen if non-NULL on this proc since could be file 
 ------------------------------------------------------------------------- */
 
-void Error::warning(const char *str, int logflag)
+void Error::warning(const char *file, int line, const char *str, int logflag)
 {
-  if (screen) fprintf(screen,"WARNING: %s\n",str);
-  if (logflag && logfile) fprintf(logfile,"WARNING: %s\n",str);
+  if (screen) fprintf(screen,"WARNING: %s (%s:%d)\n",str,file,line);
+  if (logflag && logfile) fprintf(logfile,"WARNING: %s (%s:%d)\n",
+				  str,file,line);
 }
 
 /* ----------------------------------------------------------------------
@@ -117,8 +131,26 @@ void Error::warning(const char *str, int logflag)
    write message to screen and logfile (if logflag is set)
 ------------------------------------------------------------------------- */
 
-void Error::message(char *str, int logflag)
+void Error::message(const char *file, int line, char *str, int logflag)
 {
-  if (screen) fprintf(screen,"%s\n",str);
-  if (logflag && logfile) fprintf(logfile,"%s\n",str);
+  if (screen) fprintf(screen,"%s (%s:%d)\n",str,file,line);
+  if (logflag && logfile) fprintf(logfile,"%s (%s:%d)\n",str,file,line);
+}
+
+/* ----------------------------------------------------------------------
+   called by all procs in one world
+   close all output, screen, and log files in world
+   no abort, so insure all procs in world call, else will hang
+------------------------------------------------------------------------- */
+
+void Error::done()
+{
+  MPI_Barrier(world);
+
+  if (output) delete output;
+  if (screen && screen != stdout) fclose(screen);
+  if (logfile) fclose(logfile);
+
+  MPI_Finalize();
+  exit(1);
 }

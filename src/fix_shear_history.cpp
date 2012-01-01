@@ -33,8 +33,12 @@ using namespace LAMMPS_NS;
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  // set time_depend so that history will be preserved correctly
+  // across multiple runs via laststep setting in granular pair styles
+
   restart_peratom = 1;
   create_attribute = 1;
+  time_depend = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -63,9 +67,9 @@ FixShearHistory::~FixShearHistory()
 
   // delete locally stored arrays
 
-  memory->sfree(npartner);
-  memory->destroy_2d_int_array(partner);
-  memory->destroy_3d_double_array(shearpartner);
+  memory->destroy(npartner);
+  memory->destroy(partner);
+  memory->destroy(shearpartner);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,7 +86,14 @@ int FixShearHistory::setmask()
 void FixShearHistory::init()
 {
   if (atom->tag_enable == 0) 
-    error->all("Pair style granular with history requires atoms have IDs");
+    error->all(FLERR,"Pair style granular with history requires atoms have IDs");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShearHistory::setup_pre_exchange()
+{
+  pre_exchange();
 }
 
 /* ----------------------------------------------------------------------
@@ -125,6 +136,7 @@ void FixShearHistory::pre_exchange()
       if (touch[jj]) {
 	shear = &allshear[3*jj];
 	j = jlist[jj];
+	j &= NEIGHMASK;
 	if (npartner[i] < MAXTOUCH) {
 	  m = npartner[i];
 	  partner[i][m] = tag[j];
@@ -154,7 +166,7 @@ void FixShearHistory::pre_exchange()
     if (npartner[i] >= MAXTOUCH) flag = 1;
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all("Too many touching neighbors - boost MAXTOUCH");
+  if (flag_all) error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
 }
 
 /* ----------------------------------------------------------------------
@@ -176,13 +188,9 @@ double FixShearHistory::memory_usage()
 
 void FixShearHistory::grow_arrays(int nmax)
 {
-  npartner = (int *) memory->srealloc(npartner,nmax*sizeof(int),
-				      "shear_history:npartner");
-  partner = memory->grow_2d_int_array(partner,nmax,MAXTOUCH,
-				      "shear_history:partner");
-  shearpartner = 
-    memory->grow_3d_double_array(shearpartner,nmax,MAXTOUCH,3,
-				 "shear_history:shearpartner");
+  memory->grow(npartner,nmax,"shear_history:npartner");
+  memory->grow(partner,nmax,MAXTOUCH,"shear_history:partner");
+  memory->grow(shearpartner,nmax,MAXTOUCH,3,"shear_history:shearpartner");
 }
 
 /* ----------------------------------------------------------------------

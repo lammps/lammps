@@ -42,12 +42,13 @@ using namespace LAMMPS_NS;
 FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 6) error->all("Illegal fix tmd command");
+  if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
   rho_stop = atof(arg[3]);
   nfileevery = atoi(arg[5]);
-  if (rho_stop < 0 || nfileevery < 0) error->all("Illegal fix tmd command");
-  if (nfileevery && narg != 7) error->all("Illegal fix tmd command");
+  if (rho_stop < 0 || nfileevery < 0) 
+    error->all(FLERR,"Illegal fix tmd command");
+  if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");
 
   MPI_Comm_rank(world,&me);
 
@@ -62,7 +63,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   // make sure an atom map exists before reading in target coordinates
 
   if (atom->map_style == 0) 
-    error->all("Cannot use fix TMD unless atom map exists");
+    error->all(FLERR,"Cannot use fix TMD unless atom map exists");
 
   // read from arg[4] and store coordinates of final target in xf
 
@@ -71,13 +72,13 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   // open arg[6] statistics file and write header
 
   if (nfileevery) {
-    if (narg != 7) error->all("Illegal fix tmd command");
+    if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
       if (fp == NULL) {
 	char str[128];
 	sprintf(str,"Cannot open fix tmd file %s",arg[6]);
-	error->one(str);
+	error->one(FLERR,str);
       }
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
 	      "gamma_forward lambda work_lambda work_analytical");
@@ -141,8 +142,8 @@ FixTMD::~FixTMD()
 
   // delete locally stored arrays
 
-  memory->destroy_2d_double_array(xf);
-  memory->destroy_2d_double_array(xold);
+  memory->destroy(xf);
+  memory->destroy(xold);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,13 +170,13 @@ void FixTMD::init()
     if (flag && strcmp(modify->fix[i]->style,"npt") == 0) flag = 2;
     if (flag && strcmp(modify->fix[i]->style,"nph") == 0) flag = 2;
   }
-  if (flag == 2) error->all("Fix tmd must come after integration fixes");
+  if (flag == 2) error->all(FLERR,"Fix tmd must come after integration fixes");
 
   // timesteps
 
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 
@@ -350,8 +351,8 @@ double FixTMD::memory_usage()
 
 void FixTMD::grow_arrays(int nmax)
 {
-  xf = memory->grow_2d_double_array(xf,nmax,3,"fix_tmd:xf");
-  xold = memory->grow_2d_double_array(xold,nmax,3,"fix_tmd:xold");
+  memory->grow(xf,nmax,3,"fix_tmd:xf");
+  memory->grow(xold,nmax,3,"fix_tmd:xold");
 }
 
 /* ----------------------------------------------------------------------
@@ -465,15 +466,15 @@ void FixTMD::readfile(char *file)
 	  continue;
 	} else if (atom->count_words(bufptr) == 4) {
 	  if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0) 
-	    error->all("Incorrect format in TMD target file");
+	    error->all(FLERR,"Incorrect format in TMD target file");
 	  imageflag = 0;
 	  firstline = 0;
 	} else if (atom->count_words(bufptr) == 7) {
 	  if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0) 
-	    error->all("Incorrect format in TMD target file");
+	    error->all(FLERR,"Incorrect format in TMD target file");
 	  imageflag = 1;
 	  firstline = 0;
-	} else error->all("Incorrect format in TMD target file");
+	} else error->all(FLERR,"Incorrect format in TMD target file");
       }
 
       if (imageflag)
@@ -521,7 +522,7 @@ void FixTMD::readfile(char *file)
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all("TMD target file did not list all group atoms");
+  if (flagall) error->all(FLERR,"TMD target file did not list all group atoms");
 }
 
 /* ----------------------------------------------------------------------
@@ -541,14 +542,14 @@ void FixTMD::open(char *file)
     sprintf(gunzip,"gunzip -c %s",file);
     fp = popen(gunzip,"r");
 #else
-    error->one("Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file");
 #endif
   }
 
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);
-    error->one(str);
+    error->one(FLERR,str);
   }
 }
 

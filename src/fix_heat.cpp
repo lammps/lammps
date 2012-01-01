@@ -33,14 +33,14 @@ using namespace LAMMPS_NS;
 
 FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all("Illegal fix heat command");
+  if (narg < 4) error->all(FLERR,"Illegal fix heat command");
 
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 0;
 
   nevery = atoi(arg[3]);
-  if (nevery <= 0) error->all("Illegal fix heat command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
   heat_input = atof(arg[4]);
 
@@ -52,14 +52,14 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all("Illegal fix heat command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix heat command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all("Region ID for fix heat does not exist");
+      if (iregion == -1) error->all(FLERR,"Region ID for fix heat does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
-    } else error->all("Illegal fix heat command");
+    } else error->all(FLERR,"Illegal fix heat command");
   }
 
   scale = 1.0;
@@ -89,12 +89,12 @@ void FixHeat::init()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all("Region ID for fix heat does not exist");
+    if (iregion == -1) error->all(FLERR,"Region ID for fix heat does not exist");
   }
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0) error->all("Fix heat group has no atoms");
+  if (group->count(igroup) == 0) error->all(FLERR,"Fix heat group has no atoms");
   masstotal = group->mass(igroup);
 }
 
@@ -113,7 +113,7 @@ void FixHeat::end_of_step()
     group->vcm(igroup,masstotal,vcm);
   } else {
     masstotal = group->mass(igroup,iregion);
-    if (masstotal == 0.0) error->all("Fix heat group has no atoms");
+    if (masstotal == 0.0) error->all(FLERR,"Fix heat group has no atoms");
     heat = heat_input*nevery*update->dt*force->ftm2v;
     ke = group->ke(igroup,iregion)*force->ftm2v;
     group->vcm(igroup,masstotal,vcm,iregion);
@@ -121,7 +121,7 @@ void FixHeat::end_of_step()
 
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
   double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-  if (escale < 0.0) error->all("Fix heat kinetic energy went negative");
+  if (escale < 0.0) error->all(FLERR,"Fix heat kinetic energy went negative");
   scale = sqrt(escale);
 
   vsub[0] = (scale-1.0) * vcm[0];

@@ -33,10 +33,10 @@ BondNonlinear::BondNonlinear(LAMMPS *lmp) : Bond(lmp) {}
 BondNonlinear::~BondNonlinear()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(epsilon);
-    memory->sfree(r0);
-    memory->sfree(lamda);
+    memory->destroy(setflag);
+    memory->destroy(epsilon);
+    memory->destroy(r0);
+    memory->destroy(lamda);
   }
 }
 
@@ -107,10 +107,10 @@ void BondNonlinear::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  epsilon = (double *) memory->smalloc((n+1)*sizeof(double),"bond:epsilon");
-  r0 = (double *) memory->smalloc((n+1)*sizeof(double),"bond:r0");
-  lamda = (double *) memory->smalloc((n+1)*sizeof(double),"bond:lamda");
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"bond:setflag");
+  memory->create(epsilon,n+1,"bond:epsilon");
+  memory->create(r0,n+1,"bond:r0");
+  memory->create(lamda,n+1,"bond:lamda");
+  memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -120,7 +120,7 @@ void BondNonlinear::allocate()
 
 void BondNonlinear::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -139,7 +139,7 @@ void BondNonlinear::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
 }
 
 /* ---------------------------------------------------------------------- */

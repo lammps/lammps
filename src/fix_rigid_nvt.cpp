@@ -22,6 +22,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_rigid_nvt.h"
+#include "math_extra.h"
 #include "atom.h"
 #include "domain.h"
 #include "update.h"
@@ -50,20 +51,20 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
   // convert input period to frequency
 
   if (tempflag == 0)
-    error->all("Did not set temp for fix rigid/nvt");
+    error->all(FLERR,"Did not set temp for fix rigid/nvt");
   if (t_start < 0.0 || t_stop <= 0.0)
-    error->all("Target temperature for fix rigid/nvt cannot be 0.0");
-  if (t_period <= 0.0) error->all("Fix rigid/nvt period must be > 0.0");
+    error->all(FLERR,"Target temperature for fix rigid/nvt cannot be 0.0");
+  if (t_period <= 0.0) error->all(FLERR,"Fix rigid/nvt period must be > 0.0");
   t_freq = 1.0 / t_period;
 
-  if (t_chain < 1) error->all("Illegal fix_modify command");
-  if (t_iter < 1) error->all("Illegal fix_modify command");
+  if (t_chain < 1) error->all(FLERR,"Illegal fix_modify command");
+  if (t_iter < 1) error->all(FLERR,"Illegal fix_modify command");
   if (t_order != 3 && t_order != 5) 
-    error->all("Fix_modify order must be 3 or 5"); 
+    error->all(FLERR,"Fix_modify order must be 3 or 5"); 
   
   allocate_chain();
   allocate_order();
-  conjqm = memory->create_2d_double_array(nbody,4,"nve_rigid:conjqm");
+  memory->create(conjqm,nbody,4,"nve_rigid:conjqm");
   
   // one-time initialize of thermostat variables
   
@@ -83,7 +84,7 @@ FixRigidNVT::~FixRigidNVT()
 {
   deallocate_chain();
   deallocate_order();
-  memory->destroy_2d_double_array(conjqm);
+  memory->destroy(conjqm);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,9 +164,9 @@ void FixRigidNVT::setup(int vflag)
   
   double mbody[3];
   for (int ibody = 0; ibody < nbody; ibody++) {
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		angmom[ibody],mbody);
-    quatvec(quat[ibody],mbody,conjqm[ibody]);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				angmom[ibody],mbody);
+    MathExtra::quatvec(quat[ibody],mbody,conjqm[ibody]);
     conjqm[ibody][0] *= 2.0;
     conjqm[ibody][1] *= 2.0;
     conjqm[ibody][2] *= 2.0;
@@ -224,9 +225,9 @@ void FixRigidNVT::initial_integrate(int vflag)
     
     // step 1.3 - apply torque (body coords) to quaternion momentum
 
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		torque[ibody],tbody);
-    quatvec(quat[ibody],tbody,fquat);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				torque[ibody],tbody);
+    MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     conjqm[ibody][0] += dtf2 * fquat[0];
     conjqm[ibody][1] += dtf2 * fquat[1];
@@ -249,18 +250,18 @@ void FixRigidNVT::initial_integrate(int vflag)
     // transform p back to angmom
     // update angular velocity
     
-    exyz_from_q(quat[ibody],ex_space[ibody],ey_space[ibody],
-      ez_space[ibody]);
-    invquatvec(quat[ibody],conjqm[ibody],mbody);
-    matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		mbody,angmom[ibody]);
+    MathExtra::q_to_exyz(quat[ibody],ex_space[ibody],ey_space[ibody],
+			 ez_space[ibody]);
+    MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+		      mbody,angmom[ibody]);
     
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;
     
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-      ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
     
     akin_r += angmom[ibody][0]*omega[ibody][0] + 
       angmom[ibody][1]*omega[ibody][1] + angmom[ibody][2]*omega[ibody][2];
@@ -286,7 +287,7 @@ void FixRigidNVT::initial_integrate(int vflag)
 void FixRigidNVT::final_integrate()
 {
   int i,ibody;
-  double tmp,scale_t,scale_r,akin_t,akin_r;
+  double tmp,scale_t,scale_r;
   double dtfm,xy,xz,yz;
   
   // compute velocity scales for translation and rotation
@@ -397,12 +398,12 @@ void FixRigidNVT::final_integrate()
     
     // convert torque to the body frame 
     
-    matvec_rows(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		torque[ibody],tbody);
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+				torque[ibody],tbody);
     
     // compute "force" for quaternion
     
-    quatvec(quat[ibody],tbody,fquat);
+    MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     // update the conjugate quaternion momentum (conjqm)
     
@@ -411,20 +412,21 @@ void FixRigidNVT::final_integrate()
     conjqm[ibody][2] = scale_r * conjqm[ibody][2] + dtf2 * fquat[2];
     conjqm[ibody][3] = scale_r * conjqm[ibody][3] + dtf2 * fquat[3];
     
-    // compute angular momentum in the body frame then convert to the space-fixed frame
+    // compute angular momentum in the body frame
+    // then convert to the space-fixed frame
     
-    invquatvec(quat[ibody],conjqm[ibody],mbody);
-    matvec_cols(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		mbody,angmom[ibody]);
-      
+    MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+		      mbody,angmom[ibody]);
+    
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;  
     
     // compute new angular velocity
     
-    omega_from_angmom(angmom[ibody],ex_space[ibody],ey_space[ibody],
-		  ez_space[ibody],inertia[ibody],omega[ibody]);
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+			       ez_space[ibody],inertia[ibody],omega[ibody]);
   }
   
   // set velocity/rotation of atoms in rigid bodies
@@ -645,7 +647,7 @@ void FixRigidNVT::restart(char *buf)
   
   int t_chain_prev = static_cast<int> (list[n++]);
   if (t_chain_prev != t_chain)
-    error->all("Cannot restart fix rigid/nvt with different # of chains");
+    error->all(FLERR,"Cannot restart fix rigid/nvt with different # of chains");
 
   for (int i = 0; i < t_chain; i++) {
     eta_t[i] = list[n++];

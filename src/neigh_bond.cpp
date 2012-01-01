@@ -46,13 +46,12 @@ void Neighbor::bond_all()
 	sprintf(str,
 		"Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		tag[i],bond_atom[i][m],me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
 	  maxbond += BONDDELTA;
-	  bondlist = memory->grow_2d_int_array(bondlist,maxbond,3,
-					       "neighbor:bondlist");
+	  memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
 	}
 	bondlist[nbondlist][0] = i;
 	bondlist[nbondlist][1] = atom1;
@@ -86,13 +85,12 @@ void Neighbor::bond_partial()
 	sprintf(str,
 		"Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
 		tag[i],bond_atom[i][m],me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || i < atom1) {
 	if (nbondlist == maxbond) {
 	  maxbond += BONDDELTA;
-	  bondlist = memory->grow_2d_int_array(bondlist,maxbond,3,
-					       "neighbor:bondlist");
+	  memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
 	}
 	bondlist[nbondlist][0] = i;
 	bondlist[nbondlist][1] = atom1;
@@ -130,13 +128,12 @@ void Neighbor::angle_all()
 		BIGINT_FORMAT,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
 	  maxangle += BONDDELTA;
-	  anglelist = memory->grow_2d_int_array(anglelist,maxangle,4,
-						  "neighbor:anglelist");
+	  memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
 	}
 	anglelist[nanglelist][0] = atom1;
 	anglelist[nanglelist][1] = atom2;
@@ -176,13 +173,12 @@ void Neighbor::angle_partial()
 		BIGINT_FORMAT,
 		angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
 	if (nanglelist == maxangle) {
 	  maxangle += BONDDELTA;
-	  anglelist = memory->grow_2d_int_array(anglelist,maxangle,4,
-						  "neighbor:anglelist");
+	  memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
 	}
 	anglelist[nanglelist][0] = atom1;
 	anglelist[nanglelist][1] = atom2;
@@ -224,15 +220,13 @@ void Neighbor::dihedral_all()
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (ndihedrallist == maxdihedral) {
 	  maxdihedral += BONDDELTA;
-	  dihedrallist = 
-	    memory->grow_2d_int_array(dihedrallist,maxdihedral,5,
-				      "neighbor:dihedrallist");
+	  memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
 	}
 	dihedrallist[ndihedrallist][0] = atom1;
 	dihedrallist[ndihedrallist][1] = atom2;
@@ -276,15 +270,13 @@ void Neighbor::dihedral_partial()
 		dihedral_atom1[i][m],dihedral_atom2[i][m],
 		dihedral_atom3[i][m],dihedral_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (ndihedrallist == maxdihedral) {
 	  maxdihedral += BONDDELTA;
-	  dihedrallist = 
-	    memory->grow_2d_int_array(dihedrallist,maxdihedral,5,
-				      "neighbor:dihedrallist");
+	  memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
 	}
 	dihedrallist[ndihedrallist][0] = atom1;
 	dihedrallist[ndihedrallist][1] = atom2;
@@ -327,15 +319,13 @@ void Neighbor::improper_all()
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (nimproperlist == maximproper) {
 	  maximproper += BONDDELTA;
-	  improperlist = 
-	    memory->grow_2d_int_array(improperlist,maximproper,5,
-				      "neighbor:improperlist");
+	  memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
 	}
 	improperlist[nimproperlist][0] = atom1;
 	improperlist[nimproperlist][1] = atom2;
@@ -379,15 +369,13 @@ void Neighbor::improper_partial()
 		improper_atom1[i][m],improper_atom2[i][m],
 		improper_atom3[i][m],improper_atom4[i][m],
 		me,update->ntimestep);
-	error->one(str);
+	error->one(FLERR,str);
       }
       if (newton_bond || 
 	  (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
 	if (nimproperlist == maximproper) {
 	  maximproper += BONDDELTA;
-	  improperlist = 
-	    memory->grow_2d_int_array(improperlist,maximproper,5,
-				      "neighbor:improperlist");
+	  memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
 	}
 	improperlist[nimproperlist][0] = atom1;
 	improperlist[nimproperlist][1] = atom2;

@@ -32,9 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 #define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
@@ -49,13 +46,13 @@ PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
 PairDPD::~PairDPD()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(cut);
-    memory->destroy_2d_double_array(a0);
-    memory->destroy_2d_double_array(gamma);
-    memory->destroy_2d_double_array(sigma);
+    memory->destroy(cut);
+    memory->destroy(a0);
+    memory->destroy(gamma);
+    memory->destroy(sigma);
   }
 
   if (random) delete random;
@@ -80,7 +77,6 @@ void PairDPD::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double dtinvsqrt = 1.0/sqrt(update->dt);
@@ -106,12 +102,8 @@ void PairDPD::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_dpd = 1.0;
-      else {
-	factor_dpd = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_dpd = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -162,7 +154,7 @@ void PairDPD::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -174,17 +166,17 @@ void PairDPD::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
-  a0 = memory->create_2d_double_array(n+1,n+1,"pair:a0");
-  gamma = memory->create_2d_double_array(n+1,n+1,"pair:gamma");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
+  memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(a0,n+1,n+1,"pair:a0");
+  memory->create(gamma,n+1,n+1,"pair:gamma");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
 }
 
 /* ----------------------------------------------------------------------
@@ -193,7 +185,7 @@ void PairDPD::allocate()
 
 void PairDPD::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all("Illegal pair_style command");
+  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   temperature = force->numeric(arg[0]);
   cut_global = force->numeric(arg[1]);
@@ -201,7 +193,7 @@ void PairDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all("Illegal pair_style command");
+  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -221,7 +213,7 @@ void PairDPD::settings(int narg, char **arg)
 
 void PairDPD::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all("Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -245,7 +237,7 @@ void PairDPD::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -255,15 +247,15 @@ void PairDPD::coeff(int narg, char **arg)
 void PairDPD::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all("Pair dpd requires ghost atoms store velocity");
+    error->all(FLERR,"Pair dpd requires ghost atoms store velocity");
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(
+  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
       "Pair dpd needs newton pair on for momentum conservation");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -272,7 +264,7 @@ void PairDPD::init_style()
 
 double PairDPD::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all("All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
      
@@ -385,7 +377,7 @@ double PairDPD::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
   wd = 1.0 - r/cut[itype][jtype];
   fforce = a0[itype][jtype]*wd * factor_dpd*rinv;
-  
-  phi = -a0[itype][jtype] * r * (1.0 - 0.5*r/cut[itype][jtype]);
+
+  phi = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd*wd;
   return factor_dpd*phi;
 }

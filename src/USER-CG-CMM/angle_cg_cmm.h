@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 
-AngleStyle(cg/cmm,AngleCGCMM)
+AngleStyle(cg/cmm/old,AngleCGCMM)
 
 #else
 

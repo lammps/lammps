@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ---------------------------------------------------------------------- */
 
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp) {}
@@ -42,20 +39,20 @@ PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp) {}
 PairLJGromacsCoulGromacs::~PairLJGromacsCoulGromacs()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(epsilon);
-    memory->destroy_2d_double_array(sigma);
-    memory->destroy_2d_double_array(lj1);
-    memory->destroy_2d_double_array(lj2);
-    memory->destroy_2d_double_array(lj3);
-    memory->destroy_2d_double_array(lj4);
-    memory->destroy_2d_double_array(ljsw1);
-    memory->destroy_2d_double_array(ljsw2);
-    memory->destroy_2d_double_array(ljsw3);
-    memory->destroy_2d_double_array(ljsw4);
-    memory->destroy_2d_double_array(ljsw5);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(ljsw1);
+    memory->destroy(ljsw2);
+    memory->destroy(ljsw3);
+    memory->destroy(ljsw4);
+    memory->destroy(ljsw5);
   }
 }
 
@@ -78,7 +75,6 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -103,13 +99,9 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -167,10 +159,10 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
 	  } else ecoul = 0.0;
 	  if (rsq < cut_ljsq) {
 	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+	    evdwl += ljsw5[itype][jtype];
             if (rsq > cut_lj_innersq) {
               eswitch = tlj*tlj*tlj * 
-	      (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	      ljsw5[itype][jtype];
+		(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
               evdwl += eswitch;
             }
 	    evdwl *= factor_lj;
@@ -183,7 +175,7 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -195,24 +187,24 @@ void PairLJGromacsCoulGromacs::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  epsilon = memory->create_2d_double_array(n+1,n+1,"pair:epsilon");
-  sigma = memory->create_2d_double_array(n+1,n+1,"pair:sigma");
-  lj1 = memory->create_2d_double_array(n+1,n+1,"pair:lj1");
-  lj2 = memory->create_2d_double_array(n+1,n+1,"pair:lj2");
-  lj3 = memory->create_2d_double_array(n+1,n+1,"pair:lj3");
-  lj4 = memory->create_2d_double_array(n+1,n+1,"pair:lj4");
-  ljsw1 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw1");
-  ljsw2 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw2");
-  ljsw3 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw3");
-  ljsw4 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw4");
-  ljsw5 = memory->create_2d_double_array(n+1,n+1,"pair:ljsw5");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(ljsw1,n+1,n+1,"pair:ljsw1");
+  memory->create(ljsw2,n+1,n+1,"pair:ljsw2");
+  memory->create(ljsw3,n+1,n+1,"pair:ljsw3");
+  memory->create(ljsw4,n+1,n+1,"pair:ljsw4");
+  memory->create(ljsw5,n+1,n+1,"pair:ljsw5");
 }
 
 /* ----------------------------------------------------------------------
@@ -222,7 +214,7 @@ void PairLJGromacsCoulGromacs::allocate()
 void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
 {
   if (narg != 2 && narg != 4) 
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
   cut_lj = force->numeric(arg[1]);
@@ -235,9 +227,9 @@ void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
   }
 
   if (cut_lj_inner <= 0.0 || cut_coul_inner < 0.0)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
   if (cut_lj_inner > cut_lj || cut_coul_inner > cut_coul)
-    error->all("Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -246,7 +238,7 @@ void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
 
 void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all("Incorrect args for pair coefficients");
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -266,7 +258,7 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -276,9 +268,9 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
 void PairLJGromacsCoulGromacs::init_style()
 {
   if (!atom->q_flag)
-    error->all("Pair style lj/gromacs/coul/gromacs requires atom attribute q");
+    error->all(FLERR,"Pair style lj/gromacs/coul/gromacs requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;
@@ -479,10 +471,10 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq) {
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+    philj += ljsw5[itype][jtype];
     if (rsq > cut_lj_innersq) {
       phiswitch = tlj*tlj*tlj * 
-	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj) +
-	ljsw5[itype][jtype];
+	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
       philj += phiswitch;
     }
     eng += factor_lj*philj;

@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 #define TOLERANCE 0.05
 #define SMALL     0.001
 #define SMALLER   0.00001
@@ -46,11 +43,11 @@ DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp) {}
 DihedralOPLS::~DihedralOPLS()
 {
   if (allocated) {
-    memory->sfree(setflag);
-    memory->sfree(k1);
-    memory->sfree(k2);
-    memory->sfree(k3);
-    memory->sfree(k4);
+    memory->destroy(setflag);
+    memory->destroy(k1);
+    memory->destroy(k2);
+    memory->destroy(k3);
+    memory->destroy(k4);
   }
 }
 
@@ -172,7 +169,7 @@ void DihedralOPLS::compute(int eflag, int vflag)
 	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
 		me,update->ntimestep,
 		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(str,0);
+	error->warning(FLERR,str,0);
 	fprintf(screen,"  1st atom: %d %g %g %g\n",
 		me,x[i1][0],x[i1][1],x[i1][2]);
 	fprintf(screen,"  2nd atom: %d %g %g %g\n",
@@ -273,12 +270,12 @@ void DihedralOPLS::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  k1 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k1");
-  k2 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k2");
-  k3 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k3");
-  k4 = (double *) memory->smalloc((n+1)*sizeof(double),"dihedral:k4");
+  memory->create(k1,n+1,"dihedral:k1");
+  memory->create(k2,n+1,"dihedral:k2");
+  memory->create(k3,n+1,"dihedral:k3");
+  memory->create(k4,n+1,"dihedral:k4");
 
-  setflag = (int *) memory->smalloc((n+1)*sizeof(int),"dihedral:setflag");
+  memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -288,7 +285,7 @@ void DihedralOPLS::allocate()
 
 void DihedralOPLS::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all("Incorrect args for dihedral coefficients");
+  if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -311,7 +308,7 @@ void DihedralOPLS::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all("Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------

@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 FixNVENoforce::FixNVENoforce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all("Illegal fix nve/noforce command");
+  if (narg != 3) error->all(FLERR,"Illegal fix nve/noforce command");
 
   time_integrate = 1;
 }
@@ -47,7 +47,7 @@ void FixNVENoforce::init()
 {
   dtv = update->dt;
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 

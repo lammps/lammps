@@ -21,31 +21,27 @@
 #include "force.h"
 #include "update.h"
 #include "neigh_list.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp)
-{
-  PI = 4.0*atan(1.0);
-}
+PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 PairSoft::~PairSoft()
 {
   if (allocated) {
-    memory->destroy_2d_int_array(setflag);
-    memory->destroy_2d_double_array(cutsq);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
 
-    memory->destroy_2d_double_array(prefactor);
-    memory->destroy_2d_double_array(cut);
+    memory->destroy(prefactor);
+    memory->destroy(cut);
   }
 }
 
@@ -66,7 +62,6 @@ void PairSoft::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
@@ -88,12 +83,8 @@ void PairSoft::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_lj = 1.0;
-      else {
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -103,9 +94,9 @@ void PairSoft::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 	r = sqrt(rsq);
-	arg = PI*r/cut[itype][jtype];
+	arg = MY_PI*r/cut[itype][jtype];
 	if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] * 
-		       sin(arg) * PI/cut[itype][jtype]/r;
+		       sin(arg) * MY_PI/cut[itype][jtype]/r;
 	else fpair = 0.0;
 
 	f[i][0] += delx*fpair;
@@ -126,7 +117,7 @@ void PairSoft::compute(int eflag, int vflag)
     }
   }
 
-  if (vflag_fdotr) virial_compute();
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -138,15 +129,15 @@ void PairSoft::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  setflag = memory->create_2d_int_array(n+1,n+1,"pair:setflag");
+  memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  cutsq = memory->create_2d_double_array(n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  prefactor = memory->create_2d_double_array(n+1,n+1,"pair:prefactor");
-  cut = memory->create_2d_double_array(n+1,n+1,"pair:cut");
+  memory->create(prefactor,n+1,n+1,"pair:prefactor");
+  memory->create(cut,n+1,n+1,"pair:cut");
 }
 
 /* ----------------------------------------------------------------------
@@ -155,7 +146,7 @@ void PairSoft::allocate()
 
 void PairSoft::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all("Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
 
@@ -175,7 +166,7 @@ void PairSoft::settings(int narg, char **arg)
 
 void PairSoft::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all("Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -197,7 +188,7 @@ void PairSoft::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all("Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -298,9 +289,9 @@ double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
   double r,arg,philj;
 
   r = sqrt(rsq);
-  arg = PI*r/cut[itype][jtype];
+  arg = MY_PI*r/cut[itype][jtype];
   fforce = factor_lj * prefactor[itype][jtype] * 
-    sin(arg) * PI/cut[itype][jtype]/r;
+    sin(arg) * MY_PI/cut[itype][jtype]/r;
   
   philj = prefactor[itype][jtype] * (1.0+cos(arg));
   return factor_lj*philj;

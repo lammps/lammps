@@ -512,7 +512,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -535,11 +534,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-<<<<<<< HEAD
-      j = (j < nall) ? j : j % nall;
-=======
       j &= NEIGHMASK;
->>>>>>> master
       jtag = tag[j];
 
       if (itag > jtag) {

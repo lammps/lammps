@@ -30,15 +30,12 @@ using namespace LAMMPS_NS;
 
 #define SMALL 1.0e-10
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 FixSpringPull::FixSpringPull(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 11) error->all("Illegal fix spring/pull command");
+  if (narg != 11) error->all(FLERR,"Illegal fix spring/pull command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -59,7 +56,7 @@ FixSpringPull::FixSpringPull(LAMMPS *lmp, int narg, char **arg) :
   yv = atof(arg[8]);
   zv = atof(arg[9]);
   r0 = atof(arg[10]);
-  if (r0 < 0) error->all("R0 < 0 for fix spring/pull command");
+  if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring/pull command");
 
   ftotal[0] = ftotal[1] = ftotal[2] = ftotal[3] = 0.0;
   ftotal[4] = ftotal[5] = ftotal[6] = ftotal[7] = 0.0;

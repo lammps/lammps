@@ -137,6 +137,11 @@ package:
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff        diff src files against package file'
 
+# backward compatibility
+yes-user-openmp no-user-openmp:
+	@echo 'The user-openmp package has been superseded by the user-omp package'
+	exit 1
+
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
 

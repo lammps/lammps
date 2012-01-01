@@ -1832,7 +1832,6 @@ void PPPM::compute_rho_coeff()
       a[0][k] = s;
     }
   }
-#endif
 
   m = (1-order)/2;
   for (k = -(order-1); k < order; k += 2) {

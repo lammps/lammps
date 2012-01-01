@@ -48,10 +48,6 @@ elif (test $1 = 0) then
   rm -f ../pair_cg_cmm_coul_cut.cpp
   rm -f ../pair_cg_cmm_coul_cut.h
 
-  rm -f ../ewald_cg.h
-  rm -f ../ewald_cg.cpp
-  rm -f ../pppm_cg.h
-  rm -f ../pppm_cg.cpp
   rm -f ../pair_cg_cmm_coul_long.cpp
   rm -f ../pair_cg_cmm_coul_long.h
 

@@ -132,6 +132,7 @@ class PPPM : public KSpace {
     return s*s;
   };
 };
+
 }
 
 #endif

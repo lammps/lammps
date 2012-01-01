@@ -1,0 +1,62 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>loadbalance command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>loadbalance style keywords 
+</PRE>
+<UL><LI>style = load balancing style 
+<LI>keywords = load balancing style specific flags 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>loadbalance nlocal/simple ntry 4
+loadbalance off 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Automatically adjust runtime parameters to try balancing
+the load between multiple MPI processors for improved
+overall performance. At the moment on a simple particle
+bases load balancing strategy is implemented.
+</P>
+<P>The <I>style</I> argument selects the algorithm and strategy
+that is used of automatic load balancing. The style <I>off</I>
+disables load balancing.
+</P>
+<P>The <I>nlocal/simple</I> style adjusts dimensions of individual
+sub-domains during domain decomposition to have an equal
+number of (local) atoms. This load balancing strategy 
+assumes that the computational effort on each processor
+will be approximately proportional to the number of atoms.
+The required <I>ntry</I> flag specifies how many iterations
+to redistribute the atoms are attempted. The higher this number,
+the faster the load balancer can react to changes in the 
+particle distribution, but also the more overhead through
+communication is caused.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>nlocal/simple</I> load balancing style cannot be used for
+systems with triclinic boxes or with calculations using the
+r-RESPA run style.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "processors.html">processors</A>, <A HREF = "run_style.html">run_style</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -17,14 +17,14 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>spring/self = style name of this fix command
-<LI>K = spring constant (force/distance units) 
+<LI>K = spring constant (force/distance units)
 <LI>dir = xyz, xy, xz, yz, x, y, or z (optional, default: xyz) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<P>fix tether boundary-atoms spring/self 10.0 
-fix zrest  move spring/self 10.0 z
-</P>
+<PRE>fix tether boundary-atoms spring/self 10.0
+fix zrest  move spring/self 10.0 z 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>Apply a spring force independently to each atom in the group to tether

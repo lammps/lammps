@@ -65,17 +65,6 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  // query OpenMP for number of threads
-  // we need to be in a parallel area for that.
-  nthreads = 1;
-#if defined (_OPENMP)
-#pragma omp parallel default(shared)
-  {
-#pragma omp master
-    { nthreads = omp_get_num_threads(); }
-  }
-#endif
-
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   gridflag = ONELEVEL;
   mapflag = CART;

@@ -157,7 +157,6 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
       kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
 #endif
 
-
   // 1st mid-remap to prepare for 2nd FFTs
   // copy = loc for remap result 
 
@@ -398,11 +397,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 
   // allocate memory for plan data struct 
 
-#ifdef FFT_FFTW3
-  plan = (struct fft_plan_3d *) FFTW_API(malloc)(sizeof(struct fft_plan_3d));
-#else
   plan = (struct fft_plan_3d *) malloc(sizeof(struct fft_plan_3d));
-#endif
   if (plan == NULL) return NULL;
 
   // remap from initial distribution to layout needed for 1st set of 1d FFTs
@@ -590,21 +585,13 @@ struct fft_plan_3d *fft_3d_create_plan(
   *nbuf = copy_size + scratch_size;
 
   if (copy_size) {
-#ifdef FFT_FFTW3
-    plan->copy = (FFT_DATA *) FFTW_API(malloc)(copy_size*sizeof(FFT_DATA));
-#else
     plan->copy = (FFT_DATA *) malloc(copy_size*sizeof(FFT_DATA));
-#endif
     if (plan->copy == NULL) return NULL;
   }
   else plan->copy = NULL;
 
   if (scratch_size) {
-#ifdef FFT_FFTW3
-    plan->scratch = (FFT_DATA *) FFTW_API(malloc)(scratch_size*sizeof(FFT_DATA));
-#else
     plan->scratch = (FFT_DATA *) malloc(scratch_size*sizeof(FFT_DATA));
-#endif
     if (plan->scratch == NULL) return NULL;
   }
   else plan->scratch = NULL;
@@ -949,13 +936,8 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   if (plan->mid2_plan) remap_3d_destroy_plan(plan->mid2_plan);
   if (plan->post_plan) remap_3d_destroy_plan(plan->post_plan);
 
-#if defined(FFT_FFTW3)
-  if (plan->copy) FFTW_API(free)(plan->copy);
-  if (plan->scratch) FFTW_API(free)(plan->scratch);
-#else
   if (plan->copy) free(plan->copy);
   if (plan->scratch) free(plan->scratch);
-#endif
 
 #if defined(FFT_SGI)
   free(plan->coeff1);
@@ -1020,11 +1002,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   free(plan->cfg_fast_backward);
 #endif
 
-#if defined(FFT_FFTW3)
-  FFTW_API(free)(plan);
-#else
   free(plan);
-#endif
 }
 
 /* ----------------------------------------------------------------------

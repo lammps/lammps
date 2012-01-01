@@ -28,8 +28,6 @@ class FixShearHistory : public Fix {
   friend class Neighbor;
   friend class PairGranHookeHistory;
   friend class FixPour;
-  // for OpenMP support
-  friend class PairGranHookeHistoryOMP;
 
  public:
   FixShearHistory(class LAMMPS *, int, char **);

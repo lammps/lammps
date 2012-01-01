@@ -56,7 +56,8 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 
   nelements = 0;
   elements = NULL;
-  nparams = maxparam = 0;
+  nparams = 0;
+  maxparam = 0;
   params = NULL;
   elem2param = NULL;
 
@@ -158,7 +159,6 @@ void PairComb::compute(int eflag, int vflag)
   int *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -577,7 +577,8 @@ void PairComb::read_file(char *file)
 
   memory->sfree(params);
   params = NULL;
-  nparams = maxparam = 0;
+  nparams = 0;
+  maxparam = 0;
 
   // open file on proc 0
 

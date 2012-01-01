@@ -17,7 +17,6 @@ if (test $1 = 1) then
   cp improper_class2.h ..
 
   cp pair_lj_class2.h ..
-  cp pair_lj_class2.h ..
   cp pair_lj_class2_coul_cut.h ..
   cp pair_lj_class2_coul_long.h ..
 

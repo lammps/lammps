@@ -26,7 +26,6 @@ namespace LAMMPS_NS {
 
 class RegCylinder : public Region {
   friend class FixPour;
-  friend class FixPourOMP;
 
  public:
   RegCylinder(class LAMMPS *, int, char **);

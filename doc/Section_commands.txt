@@ -62,10 +62,9 @@ This means command A must precede command B in the input script if it
 is to have the desired effect.  For example, the
 "read_data"_read_data.html command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
-values are not desired, the "processors"_processors.html, 
-"nthreads"_nthreads.html, and "boundary"_boundary.html commands need
-to be used before read_data to tell LAMMPS how to map processors to 
-the simulation box.
+values are not desired, the "processors"_processors.html and
+"boundary"_boundary.html commands need to be used before read_data to
+tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
 WARNING message is printed.  "This section"_Section_errors.html gives
@@ -160,9 +159,8 @@ read-in from a file.
 
 The relevant commands are "units"_units.html,
 "dimension"_dimension.html, "newton"_newton.html,
-"nthreads"_nthreads.html, "processors"_processors.html,
-"boundary"_boundary.html, "atom_style"_atom_style.html,
-"atom_modify"_atom_modify.html.
+"processors"_processors.html, "boundary"_boundary.html,
+"atom_style"_atom_style.html, "atom_modify"_atom_modify.html.
 
 If force-field parameters appear in the files that will be read, these
 commands tell LAMMPS what kinds of force fields are being used:
@@ -237,8 +235,7 @@ Initialization:
 
 "atom_modify"_atom_modify.html, "atom_style"_atom_style.html,
 "boundary"_boundary.html, "dimension"_dimension.html,
-"newton"_newton.html, "nthreads"_nthreads.html, 
-"processors"_processors.html, "units"_units.html
+"newton"_newton.html, "processors"_processors.html, "units"_units.html
 
 Atom definition:
 
@@ -695,14 +692,14 @@ package"_Section_start.html#start_3.
 "awpmd/cut"_pair_awpmd.html,
 "buck/coul"_pair_buck_coul.html,
 "coul/diel"_pair_coul_diel.html,
-"lj/sdk"_pair_sdk.html,
-"lj/sdk/coul/long"_pair_sdk.html,
 "dipole/sf"_pair_dipole.html,
 "eam/cd"_pair_eam.html,
 "edip"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "gauss/cut"_pair_gauss.html,
 "lj/coul"_pair_lj_coul.html,
+"lj/sdk"_pair_sdk.html,
+"lj/sdk/coul/long"_pair_sdk.html,
 "lj/sf"_pair_lj_sf.html,
 "reax/c"_pair_reax_c.html,
 "sph/heatconduction"_pair_heatconduction.html,
@@ -721,6 +718,7 @@ package"_Section_accelerate.html.
 "airebo/omp"_pair_airebo.html,
 "born/coul/long/cuda"_pair_born.html,
 "born/coul/long/omp"_pair_born.html,
+"born/coul/wolf/omp"_pair_born.html,
 "born/omp"_pair_born.html,
 "brownian/omp"_pair_brownian.html,
 "brownian/poly/omp"_pair_brownian.html,
@@ -731,16 +729,13 @@ package"_Section_accelerate.html.
 "buck/coul/omp"_pair_buck_coul.html,
 "buck/cuda"_pair_buck.html,
 "buck/omp"_pair_buck.html,
-"lj/sdk/gpu"_pair_sdk.html,
-"lj/sdk/omp"_pair_sdk.html,
-"lj/sdk/coul/long/gpu"_pair_sdk.html,
-"lj/sdk/coul/long/omp"_pair_sdk.html,
 "colloid/omp"_pair_colloid.html,
 "comb/omp"_pair_comb.html,
 "coul/cut/omp"_pair_coul.html,
 "coul/debye/omp"_pair_coul.html,
 "coul/long/gpu"_pair_coul.html,
 "coul/long/omp"_pair_coul.html,
+"coul/wolf"_pair_coul.html,
 "dipole/cut/omp"_pair_dipole.html,
 "dipole/sf/omp"_pair_dipole.html,
 "dpd/omp"_pair_dpd.html,
@@ -780,6 +775,7 @@ package"_Section_accelerate.html.
 "lj/class2/coul/cut/omp"_pair_class2.html,
 "lj/class2/coul/long/cuda"_pair_class2.html,
 "lj/class2/coul/long/gpu"_pair_class2.html,
+"lj/class2/coul/pppm/omp"_pair_class2.html,
 "lj/class2/coul/long/omp"_pair_class2.html,
 "lj/class2/cuda"_pair_class2.html,
 "lj/class2/gpu"_pair_class2.html,
@@ -810,6 +806,10 @@ package"_Section_accelerate.html.
 "lj/gromacs/coul/gromacs/omp"_pair_gromacs.html,
 "lj/gromacs/cuda"_pair_gromacs.html,
 "lj/gromacs/omp"_pair_gromacs.html,
+"lj/sdk/gpu"_pair_sdk.html,
+"lj/sdk/omp"_pair_sdk.html,
+"lj/sdk/coul/long/gpu"_pair_sdk.html,
+"lj/sdk/coul/long/omp"_pair_sdk.html,
 "lj/sf/omp"_pair_lj_sf.html,
 "lj/smooth/cuda"_pair_lj_smooth.html,
 "lj/smooth/omp"_pair_lj_smooth.html,
@@ -1005,4 +1005,5 @@ package"_Section_accelerate.html.
 "pppm/cuda"_kspace_style.html,
 "pppm/gpu"_kspace_style.html,
 "pppm/omp"_kspace_style.html,
+"pppm/cg/omp"_kspace_style.html,
 "pppm/proxy"_kspace_style.html :tb(c=4,ea=c)

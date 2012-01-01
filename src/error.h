@@ -25,13 +25,16 @@ class Error : protected Pointers {
   void universe_all(const char *, int, const char *);
   void universe_one(const char *, int, const char *);
 
-  void all(const char *, int, const char *, int = 0);
+  void all(const char *, int, const char *);
   void one(const char *, int, const char *);
   void warning(const char *, int, const char *, int = 1);
-  void message(const char *, int, char *, int = 1);
+  void message(const char *, int, const char *, int = 1);
   void done();
 };
 
 }
 
 #endif
+/* ERROR/WARNING messages:
+
+*/

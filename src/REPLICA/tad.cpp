@@ -932,16 +932,16 @@ void TAD::compute_tlo(int ievent)
 
   // update first event
 
-  char* statstr = "D ";
+  char* statstr = (char *) "D ";
 
   if (ievent == 0) {
     deltfirst = deltlo;
     event_first = ievent;
-    statstr = "DF";
+    statstr = (char *) "DF";
   } else if (deltlo < deltfirst) {
     deltfirst = deltlo;
     event_first = ievent;
-    statstr = "DF";
+    statstr = (char *) "DF";
   }
 
   // first-replica output about each event

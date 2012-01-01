@@ -68,3 +68,55 @@ class FixDeform : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix deform tilt factors require triclinic box
+
+Cannot deform the tilt factors of a simulation box unless it
+is a triclinic (non-orthogonal) box.
+
+E: Cannot use fix deform on a non-periodic boundary
+
+When specifying a change is a box dimension, the dimension must be
+periodic.
+
+E: Cannot use fix deform on a 2nd non-periodic boundary
+
+When specifying a tilt factor change, the 2nd of the two dimensions
+must be periodic.  E.g. if the xy tilt is specified, then the y
+dimension must be periodic.
+
+E: Use of fix deform with undefined lattice
+
+A lattice must be defined to use fix deform with units = lattice.
+
+E: Fix deform volume setting is invalid
+
+Cannot use volume style unless other dimensions are being controlled.
+
+E: More than one fix deform
+
+Only one fix deform can be defined at a time.
+
+E: Final box dimension due to fix deform is < 0.0
+
+Self-explanatory.
+
+E: Cannot use fix deform trate on a box with zero tilt
+
+The trate style alters the current strain.
+
+E: Fix deform is changing yz by too much with changing xy
+
+When both yz and xy are changing, it induces changes in xz if the
+box must flip from one tilt extreme to another.  Thus it is not
+allowed for yz to grow so much that a flip is induced.
+
+*/

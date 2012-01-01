@@ -39,11 +39,11 @@ follows the discussion in these 3 papers: "(Henkelman1)"_#Henkelman1,
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "this section"_Section_start.html#start_6 of the manual.
-Note that if you have MPI installed, you can run a multi-replica
-simulation with more replicas (partitions) than you have physical
-processors, e.g you can run a 10-replica simulation on one or two
-processors.  You will simply not get the performance speed-up you
+switch; see "Section_start 6"_Section_start.html#start_6 of the
+manual.  Note that if you have MPI installed, you can run a
+multi-replica simulation with more replicas (partitions) than you have
+physical processors, e.g you can run a 10-replica simulation on one or
+two processors.  You will simply not get the performance speed-up you
 would see with one or more physical processors per replica.  See "this
 section"_Section_howto.html#howto_5 of the manual for further
 discussion.

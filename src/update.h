@@ -61,3 +61,55 @@ class Update : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: USER-CUDA mode requires CUDA variant of run style
+
+UNDOCUMENTED
+
+E: USER-CUDA mode requires CUDA variant of min style
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Illegal integrate style
+
+UNDOCUMENTED
+
+E: Cannot reset timestep with dump file already written to
+
+Changing the timestep will confuse when a dump file is written.  Use
+the undump command, then restart the dump file.
+
+E: Cannot reset timestep with restart file already written
+
+Changing the timestep will confuse when a restart file is written.
+Use the "restart 0" command to turn off restarts, then start them
+again.
+
+E: Cannot reset timestep with a time-dependent fix defined
+
+You cannot reset the timestep when a fix that keeps track of elapsed
+time is in place.
+
+E: Cannot reset timestep with a dynamic region defined
+
+Dynamic regions (see the region command) have a time dependence.
+Thus you cannot change the timestep when one or more of these
+are defined.
+
+E: Timestep must be >= 0
+
+Specified timestep size is invalid.
+
+E: Too big a timestep
+
+UNDOCUMENTED
+
+*/

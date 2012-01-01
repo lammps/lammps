@@ -20,8 +20,8 @@ namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
  public:
-  int me,nprocs,nthreads;           // proc info
-  int procgrid[3];                  // assigned # of procs in each dim
+  int me,nprocs;                    // proc info
+  int procgrid[3];                  // procs assigned in each dim of 3d grid
   int user_procgrid[3];             // user request for procs in each dim
   int myloc[3];                     // which proc I am in each dim
   int procneigh[3][2];              // my 6 neighboring procs
@@ -83,10 +83,18 @@ class Comm : protected Pointers {
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
   int map_style;                    // non-0 if global->local mapping is done
   int bordergroup;                  // only communicate this group in borders
-  int layoutflag;                   // user-selected layout for 3d proc grid
-  int numa_nodes;                   // layout NUMA-aware 3d proc grid
+  int gridflag;                     // option for creating 3d grid
+  int mapflag;                      // option for mapping procs to 3d grid
+  char xyz[4];                      // xyz mapping of procs to 3d grid
+  char *customfile;                 // file with custom proc map
+  char *outfile;                    // proc grid/map output file
 
+  int otherflag;                    // 1 if this partition dependent on another
+  int other_style;                  // style of dependency
   int other_procgrid[3];            // proc layout of another partition
+  int ncores;                       // # of cores per node
+  int coregrid[3];                  // 3d grid of cores within a node
+  int user_coregrid[3];             // user request for cores in each dim
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
@@ -97,8 +105,6 @@ class Comm : protected Pointers {
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
  
-  int procs2box(int, int[3], int[3],        // map procs to 3d box
-		const int, const int, const int, int);
   virtual void grow_send(int,int);          // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer
   virtual void grow_list(int, int);         // reallocate one sendlist
@@ -107,11 +113,63 @@ class Comm : protected Pointers {
   virtual void allocate_multi(int);         // allocate multi arrays
   virtual void free_swap();                 // free swap arrays
   virtual void free_multi();                // free multi arrays
-
-  int numa_set_proc_grid();
-  void numa_shift(int, int, int &, int &);
 };
 
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Bad grid of processors
+
+The 3d grid of processors defined by the processors command does not
+match the number of processors LAMMPS is being run on.
+
+E: Processor count in z must be 1 for 2d simulation
+
+Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid group in communicate command
+
+Self-explanatory.
+
+E: Communicate group != atom_modify first group
+
+Self-explanatory.
+
+E: Invalid cutoff in communicate command
+
+Specified cutoff must be >= 0.0.
+
+E: Cannot use processors part command without using partitions
+
+UNDOCUMENTED
+
+E: Invalid partitions in processors part command
+
+UNDOCUMENTED
+
+E: Sending partition in processors part command is already a sender
+
+UNDOCUMENTED
+
+E: Receiving partition in processors part command is already a receiver
+
+UNDOCUMENTED
+
+E: Processors grid numa and map style are incompatible
+
+UNDOCUMENTED
+
+E: Processors part option and grid style are incompatible
+
+UNDOCUMENTED
+
+*/

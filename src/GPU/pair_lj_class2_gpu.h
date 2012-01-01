@@ -45,3 +45,14 @@ class PairLJClass2GPU : public PairLJClass2 {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with lj/class2/gpu pair style
+
+UNDOCUMENTED
+
+*/

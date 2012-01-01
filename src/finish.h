@@ -30,3 +30,6 @@ class Finish : protected Pointers {
 }
 
 #endif
+/* ERROR/WARNING messages:
+
+*/

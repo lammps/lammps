@@ -41,7 +41,7 @@ class Universe : protected Pointers {
 
   Universe(class LAMMPS *, MPI_Comm);
   ~Universe();
-  void reorder(char *);
+  void reorder(char *, char *);
   void add_world(char *);
   int consistent();
 };
@@ -49,3 +49,36 @@ class Universe : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid -reorder N value
+
+UNDOCUMENTED
+
+E: Nprocs not a multiple of N for -reorder
+
+UNDOCUMENTED
+
+E: Cannot open -reorder file
+
+UNDOCUMENTED
+
+E: Unexpected end of -reorder file
+
+UNDOCUMENTED
+
+E: Invalid entry in reorder file
+
+UNDOCUMENTED
+
+E: Unexpected end of reorder file
+
+UNDOCUMENTED
+
+E: Invalid command-line argument
+
+One or more command-line arguments is invalid.  Check the syntax of
+the command you are using to launch LAMMPS.
+
+*/

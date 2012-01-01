@@ -556,7 +556,7 @@ double PairCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairCoulLong::extract(char *str, int &dim)
+void *PairCoulLong::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut_coul") == 0) {
     dim = 0;

@@ -92,3 +92,29 @@ class PairADP : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: No matching element in ADP potential file
+
+UNDOCUMENTED
+
+E: Cannot open ADP potential file %s
+
+UNDOCUMENTED
+
+E: Incorrect element names in ADP potential file
+
+UNDOCUMENTED
+
+*/

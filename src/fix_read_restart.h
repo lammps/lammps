@@ -47,3 +47,6 @@ class FixReadRestart : public Fix {
 
 #endif
 #endif
+/* ERROR/WARNING messages:
+
+*/

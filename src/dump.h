@@ -115,3 +115,40 @@ class Dump : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Cannot dump sort on atom IDs with no atom IDs defined
+
+Self-explanatory.
+
+E: Dump sort column is invalid
+
+Self-explanatory.
+
+E: Too many atoms to dump sort
+
+Cannot sort when running with more than 2^31 atoms.
+
+E: Too much per-proc info for dump
+
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
+
+E: Cannot open gzipped file
+
+LAMMPS is attempting to open a gzipped version of the specified file
+but was unsuccessful.  Check that the path and name are correct.
+
+E: Cannot open dump file
+
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+*/

@@ -11,38 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+/* ERROR/WARNING messages:
 
-PairStyle(lj/sdk/gpu,PairLJSDKGPU)
-PairStyle(cg/cmm/gpu,PairLJSDKGPU)
+E: Neighbor list overflow, boost neigh_modify one or page
 
-#else
+There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the neighbor page size and the max number of
+neighbors allowed for one atom.
 
-#ifndef LMP_PAIR_LJ_SDK_GPU_H
-#define LMP_PAIR_LJ_SDK_GPU_H
-
-#include "pair_lj_sdk.h"
-
-namespace LAMMPS_NS {
-
-class PairLJSDKGPU : public PairLJSDK {
- public:
-  PairLJSDKGPU(LAMMPS *lmp);
-  ~PairLJSDKGPU();
-  template <int, int>
-  void cpu_compute(int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
-
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
-
- private:
-  int gpu_mode;
-  double cpu_time;
-  int *gpulist;
-};
-
-}
-#endif
-#endif
+*/

@@ -94,3 +94,49 @@ class PairREAX : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Reax_defs.h setting for NATDEF is too small
+
+Edit the setting in the ReaxFF library and re-compile the
+library and re-build LAMMPS.
+
+E: Reax_defs.h setting for NNEIGHMAXDEF is too small
+
+Edit the setting in the ReaxFF library and re-compile the
+library and re-build LAMMPS.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Cannot currently use pair reax with pair hybrid
+
+This is not yet supported.
+
+E: Pair style reax requires atom IDs
+
+This is a requirement to use the ReaxFF potential.
+
+E: Pair style reax requires newton pair on
+
+This is a requirement to use the ReaxFF potential.
+
+W: Not using real units with pair reax
+
+This is most likely an error, unless you have created your own ReaxFF
+parameter file in a different set of units.
+
+E: Invalid REAX atom type
+
+There is a mis-match between LAMMPS atom types and the elements
+listed in the ReaxFF force field file.
+
+*/

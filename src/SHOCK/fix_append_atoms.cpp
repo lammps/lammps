@@ -394,7 +394,7 @@ void FixAppendAtoms::pre_exchange()
 	nbasis = domain->lattice->nbasis;
 	basistype = new int[nbasis];
 	for (int i = 0; i < nbasis; i++) basistype[i] = 1;
-      } else error->all(FLERR,"must define lattice to append_atoms");
+      } else error->all(FLERR,"Must define lattice to append_atoms");
 
       double bboxlo[3],bboxhi[3];
 

@@ -299,3 +299,86 @@ class Neighbor : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Neighbor delay must be 0 or multiple of every setting
+
+The delay and every parameters set via the neigh_modify command are
+inconsistent.  If the delay setting is non-zero, then it must be a
+multiple of the every setting.
+
+E: Neighbor page size must be >= 10x the one atom setting
+
+This is required to prevent wasting too much memory.
+
+E: Invalid atom type in neighbor exclusion list
+
+Atom types must range from 1 to Ntypes inclusive.
+
+E: Neighbor include group not allowed with ghost neighbors
+
+This is a current restriction within LAMMPS.
+
+E: Neighbor multi not yet enabled for ghost neighbors
+
+This is a current restriction within LAMMPS.
+
+E: Neighbor multi not yet enabled for granular
+
+Self-explanatory.
+
+E: Neighbor multi not yet enabled for rRESPA
+
+Self-explanatory.
+
+E: Neighbors of ghost atoms only allowed for full neighbor lists
+
+This is a current restriction within LAMMPS.
+
+E: Too many local+ghost atoms for neighbor list
+
+UNDOCUMENTED
+
+W: Building an occasional neighobr list when atoms may have moved too far
+
+This can cause LAMMPS to crash when the neighbor list is built.
+The solution is to check for building the regular neighbor lists
+more frequently.
+
+E: Domain too large for neighbor bins
+
+The domain has become extremely large so that neighbor bins cannot be
+used.  Most likely, one or more atoms have been blown out of the
+simulation box to a great distance.
+
+E: Cannot use neighbor bins - box size << cutoff
+
+Too many neighbor bins will be created.  This typically happens when
+the simulation box is very small in some dimension, compared to the
+neighbor cutoff.  Use the "nsq" style instead of "bin" style.
+
+E: Too many neighbor bins
+
+This is likely due to an immense simulation box that has blown up
+to a large size.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid group ID in neigh_modify command
+
+A group ID used in the neigh_modify command does not exist.
+
+E: Neigh_modify include group != atom_modify first group
+
+Self-explanatory.
+
+E: Neigh_modify exclude molecule requires atom attribute molecule
+
+Self-explanatory.
+
+*/

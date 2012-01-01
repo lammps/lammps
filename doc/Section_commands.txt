@@ -138,8 +138,8 @@ allowed, but that should be sufficient for most use cases.
 This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
 sample input scripts; the corresponding problems are discussed in
-"this section"_Section_example.html, and animated on the "LAMMPS WWW
-Site"_lws.
+"Section_example"_Section_example.html, and animated on the "LAMMPS
+WWW Site"_lws.
 
 A LAMMPS input script typically has 4 parts:
 
@@ -623,6 +623,7 @@ potentials.  Click on the style itself for a full description:
 "airebo"_pair_airebo.html,
 "born"_pair_born.html,
 "born/coul/long"_pair_born.html,
+"born/coul/wolf"_pair_born.html,
 "brownian"_pair_brownian.html,
 "brownian/poly"_pair_brownian.html,
 "buck"_pair_buck.html,
@@ -633,6 +634,7 @@ potentials.  Click on the style itself for a full description:
 "coul/cut"_pair_coul.html,
 "coul/debye"_pair_coul.html,
 "coul/long"_pair_coul.html,
+"coul/wolf"_pair_coul.html,
 "dipole/cut"_pair_dipole.html,
 "dpd"_pair_dpd.html,
 "dpd/tstat"_pair_dpd.html,

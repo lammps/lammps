@@ -22,7 +22,7 @@ molecular systems or granular systems are in packages.  You can see
 the list of all packages by typing "make package" from within the src
 directory of the LAMMPS distribution.
 
-See "this section"_Section_start.html#start_3 of the manual for
+See "Section_start 3"_Section_start.html#start_3 of the manual for
 details on how to include/exclude specific packages as part of the
 LAMMPS build process, and for more details about the differences
 between standard packages and user packages in LAMMPS.

@@ -149,12 +149,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       iarg += 2;
     } else if (strcmp(arg[iarg],"-reorder") == 0 || 
 	       strcmp(arg[iarg],"-r") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+3 > narg) 
 	error->universe_all(FLERR,"Invalid command-line argument");
       if (universe->existflag)
 	error->universe_all(FLERR,"Cannot use -reorder after -partition");
-      universe->reorder(arg[iarg+1]);
-      iarg += 2;
+      universe->reorder(arg[iarg+1],arg[iarg+2]);
+      iarg += 3;
     } else if (strcmp(arg[iarg],"-help") == 0 || 
 	       strcmp(arg[iarg],"-h") == 0) {
       if (iarg+1 > narg) 

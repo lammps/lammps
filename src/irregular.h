@@ -89,3 +89,6 @@ class Irregular : protected Pointers {
 }
 
 #endif
+/* ERROR/WARNING messages:
+
+*/

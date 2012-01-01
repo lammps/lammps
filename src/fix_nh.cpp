@@ -1596,7 +1596,9 @@ void FixNH::nhc_temp_integrate()
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
   }
 
-  eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
+  if (eta_mass[0] > 0.0)
+    eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
+  else eta_dotdot[0] = 0.0;
 
   double ncfac = 1.0/nc_tchain;
   for (int iloop = 0; iloop < nc_tchain; iloop++) {
@@ -1623,8 +1625,11 @@ void FixNH::nhc_temp_integrate()
 
     t_current *= factor_eta*factor_eta;
     kecurrent = tdof * boltz * t_current;
-    eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
-    
+
+    if (eta_mass[0] > 0.0)
+      eta_dotdot[0] = (kecurrent - ke_target)/eta_mass[0];
+    else eta_dotdot[0] = 0.0;
+
     for (ich = 0; ich < mtchain; ich++)
       eta[ich] += ncfac*dthalf*eta_dot[ich];
     

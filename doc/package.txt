@@ -68,9 +68,9 @@ To use the accelerate USER-CUDA styles, the package command is not
 required as defaults are assigned internally.  You only need to use
 the package command if you want to change the defaults.
 
-See "this section"_Section_accelerate.html of the manual for more
-details about using these various packages for accelerating LAMMPS
-calculations.
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more details about using these various packages for accelerating
+LAMMPS calculations.
 
 :line
 

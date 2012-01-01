@@ -45,3 +45,23 @@ class PairCoulLongGPU : public PairCoulLong {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Pair style coul/long/gpu requires atom attribute q
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with coul/long/gpu pair style
+
+UNDOCUMENTED
+
+E: Pair style is incompatible with KSpace style
+
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
+
+*/

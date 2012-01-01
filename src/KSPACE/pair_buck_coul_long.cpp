@@ -459,7 +459,7 @@ double PairBuckCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairBuckCoulLong::extract(char *str, int &dim)
+void *PairBuckCoulLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;

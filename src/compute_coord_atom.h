@@ -44,3 +44,26 @@ class ComputeCoordAtom : public Compute {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute coord/atom requires a pair style be defined
+
+Self-explantory.
+
+E: Compute coord/atom cutoff is longer than pairwise cutoff
+
+Cannot compute coordination at distances longer than the pair cutoff,
+since those atoms are not in the neighbor list.
+
+W: More than one compute coord/atom
+
+It is not efficient to use compute coord/atom more than once.
+
+*/

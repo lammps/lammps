@@ -61,8 +61,8 @@ This compute calculates a global array where the number of rows =
 Nmolecules and the number of columns = 3 for the x,y,z center-of-mass
 coordinates of each molecule.  These values can be accessed by any
 command that uses global array values from a compute as input.  See
-"this section"_Section_howto.html#howto_15 for an overview of LAMMPS
-output options.
+"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+LAMMPS output options.
 
 The array values are "intensive".  The array values will be in
 distance "units"_units.html.

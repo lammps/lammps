@@ -72,3 +72,62 @@ class FixBondCreate : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Invalid atom type in fix bond/create command
+
+Self-explanatory.
+
+E: Invalid bond type in fix bond/create command
+
+Self-explanatory.
+
+E: Cannot use fix bond/create with non-molecular systems
+
+Self-explanatory.
+
+E: Inconsistent iparam/jparam values in fix bond/create command
+
+If itype and jtype are the same, then their maxbond and newtype 
+settings must also be the same.
+
+E: Fix bond/create cutoff is longer than pairwise cutoff
+
+This is not allowed because bond creation is done using the
+pairwise neighbor list.
+
+E: Fix bond/create requires special_bonds lj = 0,1,1
+
+Self-explanatory.
+
+E: Fix bond/create requires special_bonds coul = 0,1,1
+
+Self-explanatory.
+
+W: Created bonds will not create angles, dihedrals, or impropers
+
+See the doc page for fix bond/create for more info on this
+restriction.
+
+E: Could not count initial bonds in fix bond/create
+
+Could not find one of the atoms in a bond on this processor.
+
+E: New bond exceeded bonds per atom in fix bond/create
+
+See the read_data command for info on setting the "extra bond per
+atom" header value to allow for additional bonds to be formed.
+
+E: New bond exceeded special list size in fix bond/create
+
+See the special_bonds extra command for info on how to leave space in
+the special bonds list to allow for additional bonds to be formed.
+
+*/

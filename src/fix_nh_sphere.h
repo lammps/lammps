@@ -32,3 +32,15 @@ class FixNHSphere : public FixNH {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Fix nvt/nph/npt sphere requires atom style sphere
+
+UNDOCUMENTED
+
+E: Fix nvt/sphere requires extended particles
+
+This fix can only be used for particles of a finite size.
+
+*/

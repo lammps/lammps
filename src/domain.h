@@ -120,3 +120,54 @@ class Domain : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Box bounds are invalid
+
+The box boundaries specified in the read_data file are invalid.  The
+lo value must be less than the hi value for all 3 dimensions.
+
+E: Cannot skew triclinic box in z for 2d simulation
+
+Self-explanatory.
+
+E: Triclinic box must be periodic in skewed dimensions
+
+This is a requirement for using a non-orthogonal box.  E.g. to set a
+non-zero xy tilt, both x and y must be periodic dimensions.
+
+E: Triclinic box skew is too large
+
+The displacement in a skewed direction must be less than half the box
+length in that dimension.  E.g. the xy tilt must be between -half and
++half of the x box length.
+
+E: Illegal simulation box
+
+The lower bound of the simulation box is greater than the upper bound.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Reuse of region ID
+
+A region ID cannot be used twice.
+
+E: Invalid region style
+
+The choice of region style is unknown.
+
+E: Delete region ID does not exist
+
+Self-explanatory.
+
+E: Both sides of boundary must be periodic
+
+Cannot specify a boundary as periodic only on the lo or hi side.  Must
+be periodic on both sides.
+
+*/

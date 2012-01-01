@@ -38,3 +38,37 @@ class DisplaceAtoms : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Displace_atoms command before simulation box is defined
+
+The displace_atoms command cannot be used before a read_data,
+read_restart, or create_box command.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot displace_atoms after reading restart file with per-atom info
+
+This is because the restart file info cannot be migrated with the
+atoms.  You can get around this by performing a 0-timestep run which
+will assign the restart file info to actual atoms.
+
+E: Could not find displace_atoms group ID
+
+Group ID used in the displace_atoms command does not exist.
+
+E: Use of displace_atoms with undefined lattice
+
+Must use lattice command with displace_atoms command if units option
+is set to lattice.
+
+E: Lost atoms via displace_atoms: original %ld current %ld
+
+UNDOCUMENTED
+
+*/

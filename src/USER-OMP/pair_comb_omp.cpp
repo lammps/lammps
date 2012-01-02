@@ -602,46 +602,48 @@ void PairCombOMP::Short_neigh_thr()
     int npage = tid;
     npntj = 0;
 
-    for (ii = iifrom; ii < iito; ii++) {
-      i = ilist[ii];
-      itype = type[i];
+    if (iifrom < inum) {
+      for (ii = iifrom; ii < iito; ii++) {
+	i = ilist[ii];
+	itype = type[i];
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-      if(pgsize - npntj < oneatom) {
-	npntj = 0;
-	npage++;
-	if (npage == maxpage) add_pages(nthreads);
-      }
+	if(pgsize - npntj < oneatom) {
+	  npntj = 0;
+	  npage++;
+	  if (npage == maxpage) add_pages(nthreads);
+	}
  
-      neighptrj = &pages[npage][npntj];
-      nj = 0;
+	neighptrj = &pages[npage][npntj];
+	nj = 0;
 
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+	xtmp = x[i][0];
+	ytmp = x[i][1];
+	ztmp = x[i][2];
 
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+	jlist = firstneigh[i];
+	jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
-	jtype = type[j];
-	iparam_ij = elem2param[itype][jtype][jtype];
+	for (jj = 0; jj < jnum; jj++) {
+	  j = jlist[jj];
+	  j &= NEIGHMASK;
+	  jtype = type[j];
+	  iparam_ij = elem2param[itype][jtype][jtype];
 
-	delrj[0] = xtmp - x[j][0];
-	delrj[1] = ytmp - x[j][1];
-	delrj[2] = ztmp - x[j][2];
-	rsq = vec3_dot(delrj,delrj);
+	  delrj[0] = xtmp - x[j][0];
+	  delrj[1] = ytmp - x[j][1];
+	  delrj[2] = ztmp - x[j][2];
+	  rsq = vec3_dot(delrj,delrj);
       
-	if (rsq > cutmin) continue;
-	neighptrj[nj++] = j;
+	  if (rsq > cutmin) continue;
+	  neighptrj[nj++] = j;
+	}
+	sht_first[i] = neighptrj;
+	sht_num[i] = nj;
+	npntj += nj;
       }
-      sht_first[i] = neighptrj;
-      sht_num[i] = nj;
-      npntj += nj;
     }
   }
 }

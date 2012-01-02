@@ -221,8 +221,10 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
   iito = nlocal;
 #endif
 
-  // Compute the dilatation on each particle
-  compute_dilatation_thr(iifrom, iito);
+  if (iifrom < nlocal) {
+    // Compute the dilatation on each particle
+    compute_dilatation_thr(iifrom, iito);
+  }
 
   // wait until all threads are done before communication
   sync_threads();

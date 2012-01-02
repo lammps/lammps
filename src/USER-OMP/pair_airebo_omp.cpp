@@ -2707,52 +2707,54 @@ void PairAIREBOOMP::REBO_neigh_thr()
     int npage = tid;
     int npnt = 0;
 
-    for (ii = iifrom; ii < iito; ii++) {
-      i = ilist[ii];
+    if (iifrom < allnum) {
+      for (ii = iifrom; ii < iito; ii++) {
+	i = ilist[ii];
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-      if (pgsize - npnt < oneatom) {
-	npnt = 0;
-	npage += nthreads;
-	if (npage >= maxpage) add_pages(nthreads);
-      }
-      neighptr = &(pages[npage][npnt]);
-      n = 0;
-
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      itype = map[type[i]];
-      nC[i] = nH[i] = 0.0;
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
-	jtype = map[type[j]];
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-
-	if (rsq < rcmaxsq[itype][jtype]) {
-	  neighptr[n++] = j;
-	  if (jtype == 0)
-	    nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-	  else
-	    nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	if (pgsize - npnt < oneatom) {
+	  npnt = 0;
+	  npage += nthreads;
+	  if (npage >= maxpage) add_pages(nthreads);
 	}
+	neighptr = &(pages[npage][npnt]);
+	n = 0;
+
+	xtmp = x[i][0];
+	ytmp = x[i][1];
+	ztmp = x[i][2];
+	itype = map[type[i]];
+	nC[i] = nH[i] = 0.0;
+	jlist = firstneigh[i];
+	jnum = numneigh[i];
+
+	for (jj = 0; jj < jnum; jj++) {
+	  j = jlist[jj];
+	  j &= NEIGHMASK;
+	  jtype = map[type[j]];
+	  delx = xtmp - x[j][0];
+	  dely = ytmp - x[j][1];
+	  delz = ztmp - x[j][2];
+	  rsq = delx*delx + dely*dely + delz*delz;
+
+	  if (rsq < rcmaxsq[itype][jtype]) {
+	    neighptr[n++] = j;
+	    if (jtype == 0)
+	      nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	    else
+	      nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	  }
+	}
+
+	REBO_firstneigh[i] = neighptr;
+	REBO_numneigh[i] = n;
+	npnt += n;
+
+	if (npnt >= pgsize)
+	  error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
       }
-
-      REBO_firstneigh[i] = neighptr;
-      REBO_numneigh[i] = n;
-      npnt += n;
-
-      if (npnt >= pgsize)
-	error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
     }
   }
 }

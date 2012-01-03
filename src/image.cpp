@@ -480,6 +480,109 @@ void Image::draw_sphere(double *x, double *surfaceColor, double diameter)
 }
 
 /* ----------------------------------------------------------------------
+   draw axis oriented cube at x with surfaceColor and diameter in size
+   render pixel by pixel onto image plane with depth buffering
+------------------------------------------------------------------------- */
+
+void Image::draw_cube(double *x, double *surfaceColor, double diameter)
+{
+  double xlocal[3],surface[3],normal[3];
+  double t,tdir[3];
+  double depth;
+
+  xlocal[0] = x[0] - xctr;
+  xlocal[1] = x[1] - yctr;
+  xlocal[2] = x[2] - zctr;
+
+  double xmap = MathExtra::dot3(camRight,xlocal);
+  double ymap = MathExtra::dot3(camUp,xlocal);
+  double dist = MathExtra::dot3(camPos,camDir) - MathExtra::dot3(xlocal,camDir);
+
+  double radius = 0.5*diameter;
+  double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : 
+    -tanPerPixel / zoom;
+
+  double halfWidth = diameter;
+  double pixelHalfWidthFull = halfWidth / pixelWidth;
+  int pixelHalfWidth = static_cast<int> (pixelHalfWidthFull + 0.5);
+
+  double xf = xmap / pixelWidth;
+  double yf = ymap / pixelWidth;
+  int xc = static_cast<int> (xf);
+  int yc = static_cast<int> (yf);
+  double width_error = xf - xc;
+  double height_error = yf - yc;
+
+  // shift 0,0 to screen center (vs lower left)
+
+  xc += width / 2;
+  yc += height / 2;
+
+  for (int iy = yc - pixelHalfWidth; iy <= yc + pixelHalfWidth; iy ++) {
+    for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
+      if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
+      
+      double sy = ((iy - yc) - height_error) * pixelWidth;
+      double sx = ((ix - xc) - width_error) * pixelWidth;
+      surface[0] = camRight[0] * sx + camUp[0] * sy;
+      surface[1] = camRight[1] * sx + camUp[1] * sy;
+      surface[2] = camRight[2] * sx + camUp[2] * sy;
+
+      // iterate through each of the 6 axis-oriented planes of the box
+      // only render up to 3 which are facing the camera
+      // these checks short circuit a dot product, testing for > 0
+
+      for (int dim = 0; dim < 3; dim ++) {
+        if (camDir[dim] > 0) {          // positive faces camera
+          t = (radius - surface[dim]) / camDir[dim];
+          normal[0] = camRight[dim];
+          normal[1] = camUp[dim];
+          normal[2] = camDir[dim];
+        } else if (camDir[dim] < 0) {   // negative faces camera
+          t = -(radius + surface[dim]) / camDir[dim];
+          normal[0] = -camRight[dim];
+          normal[1] = -camUp[dim];
+          normal[2] = -camDir[dim];
+        }
+        if (camDir[dim] != 0) {
+          tdir[0] = camDir[0] * t;
+          tdir[1] = camDir[1] * t;
+          tdir[2] = camDir[2] * t;
+
+          bool xin = ((surface[0]+tdir[0]) >= -radius) && 
+	    ((surface[0]+tdir[0]) <= radius);
+          bool yin = ((surface[1]+tdir[1]) >= -radius) && 
+	    ((surface[1]+tdir[1]) <= radius);
+          bool zin = ((surface[2]+tdir[2]) >= -radius) && 
+	    ((surface[2]+tdir[2]) <= radius);
+
+          switch (dim) {
+	  case 0:
+	    if (yin & zin) {
+	      depth = dist - t;
+	      draw_pixel (ix, iy, depth, normal, surfaceColor);
+	    }
+	    break;
+	  case 1:
+	    if (xin & zin) {
+	      depth = dist - t;
+	      draw_pixel (ix, iy, depth, normal, surfaceColor);
+	    }
+	    break;
+	  case 2:
+	    if (xin & yin) {
+	      depth = dist - t;
+	      draw_pixel (ix, iy, depth, normal, surfaceColor);
+	    }
+	    break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    draw cylinder from x to y with surfaceColor and diameter
    render pixel by pixel onto image plane with depth buffering
    if sflag = 0, draw no end spheres
@@ -1150,7 +1253,7 @@ double *Image::value2color(double value)
    search user-defined color names first, then the list of NCOLORS names
 ------------------------------------------------------------------------- */
 
-double *Image::color2rgb(const char *color)
+double *Image::color2rgb(const char *color, int index)
 {
   static const char *name[NCOLORS] = { 
     "aliceblue",
@@ -1438,11 +1541,22 @@ double *Image::color2rgb(const char *color)
     {154/255.0, 205/255.0, 50/255.0}
   };
 
+  if (index) return rgb[index-1];
+
   for (int i = 0; i < ncolors; i++)
     if (strcmp(color,username[i]) == 0) return userrgb[i];
   for (int i = 0; i < NCOLORS; i++)
     if (strcmp(color,name[i]) == 0) return rgb[i];
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   return number of default colors
+------------------------------------------------------------------------- */
+
+int Image::default_colors()
+{
+  return NCOLORS;
 }
 
 /* ----------------------------------------------------------------------

@@ -46,6 +46,7 @@ class Image : protected Pointers {
 
   void color_minmax(int, double *, int);
   void draw_sphere(double *, double *, double);
+  void draw_cube(double *, double *, double);
   void draw_cylinder(double *, double *, double *, double, int);
   void draw_triangle(double *, double *, double *, double *);
   void draw_box(double (*)[3], double);
@@ -56,7 +57,8 @@ class Image : protected Pointers {
   double *element2color(char *);
   double element2diam(char *);
   double *value2color(double);
-  double *color2rgb(const char *);
+  double *color2rgb(const char *, int index=0);
+  int default_colors();
 
  private:
   int me,nprocs;

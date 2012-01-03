@@ -34,7 +34,7 @@ if (test $1 = 1) then
   cp pair_dipole_sf.h ..
   cp pair_edip.h ..
   cp pair_gauss_cut.h ..
-  cp pair_lj_sf.h..
+  cp pair_lj_sf.h ..
 
 elif (test $1 = 0) then
 

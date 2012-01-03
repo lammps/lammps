@@ -414,7 +414,7 @@ void Image::draw_axes(double (*axes)[3], double diameter)
 {
   draw_cylinder(axes[0],axes[1],color2rgb("red"),diameter,3);
   draw_cylinder(axes[0],axes[2],color2rgb("green"),diameter,3);
-  draw_cylinder(axes[0],axes[4],color2rgb("blue"),diameter,3);
+  draw_cylinder(axes[0],axes[3],color2rgb("blue"),diameter,3);
 }
 
 /* ----------------------------------------------------------------------

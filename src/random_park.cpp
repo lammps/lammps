@@ -25,16 +25,6 @@ using namespace LAMMPS_NS;
 #define IQ 127773
 #define IR 2836
 
-#define IA1 1366
-#define IC1 150889
-#define IM1 714025
-#define IA2 8121
-#define IC2 28411
-#define IM2 134456
-#define IA3 7141
-#define IC3 54773
-#define IM3 259200
-
 /* ---------------------------------------------------------------------- */
 
 RanPark::RanPark(LAMMPS *lmp, int seed_init) : Pointers(lmp)

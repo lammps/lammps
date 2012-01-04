@@ -1,4 +1,4 @@
-# mac_mpi = Apple laptop, gcc 4.6, gfortran, Open MPI 1.4.3, FFTW 2.1.5
+# mac_mpi = Apple laptop, gcc 4.6, gfortran, Open MPI 1.4.3, FFTW 2.1.5, QUIP
 
 SHELL = /bin/sh
 
@@ -25,7 +25,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DQUIP_GFORTRAN
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

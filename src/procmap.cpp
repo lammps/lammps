@@ -41,7 +41,7 @@ ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
 
 void ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 			    int otherflag, int other_style,
-			    int *other_procgrid)
+			    int *other_procgrid, int *other_coregrid)
 {
   int **factors;
 
@@ -56,7 +56,8 @@ void ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
   if (domain->dimension == 2) npossible = cull_2d(npossible,factors,3);
   npossible = cull_user(npossible,factors,3,user_procgrid);
   if (otherflag) npossible = cull_other(npossible,factors,3,
-					other_style,other_procgrid);
+					other_style,other_procgrid,
+					other_coregrid);
 
   // user/other constraints make failure possible
 
@@ -79,7 +80,7 @@ void ProcMap::onelevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 void ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 			    int ncores, int *user_coregrid, int *coregrid,
 			    int otherflag, int other_style, 
-			    int *other_procgrid)
+			    int *other_procgrid, int *other_coregrid)
 {
   int **nfactors,**cfactors,**factors;
 
@@ -116,7 +117,8 @@ void ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   npossible = cull_user(npossible,factors,4,user_procgrid);
   if (otherflag) npossible = cull_other(npossible,factors,4,
-					other_style,other_procgrid);
+					other_style,other_procgrid,
+					other_coregrid);
 
   // user/other constraints make failure possible
 
@@ -796,19 +798,21 @@ int ProcMap::cull_user(int n, int **factors, int m, int *user_factors)
 
 /* ----------------------------------------------------------------------
    remove any factors that do not match settings from other partition
-   MULTIPLE = other Px,Py,Pz must be multiple of my Px,Py,Pz
+   MULTIPLE = other Nx,Ny,Nz must be multiple of my Px,Py,Pz
+              where Nx,Ny,Nz = node grid = procgrid/coregrid
 ------------------------------------------------------------------------- */
 
 int ProcMap::cull_other(int n, int **factors, int m, 
-			int other_style, int *other_grid)
+			int other_style, int *other_procgrid,
+			int *other_coregrid)
 {
   int i = 0;
   while (i < n) {
     if (other_style == MULTIPLE) {
       int flag = 0;
-      if (other_grid[0] % factors[i][0]) flag = 1;
-      if (other_grid[1] % factors[i][1]) flag = 1;
-      if (other_grid[2] % factors[i][2]) flag = 1;
+      if ((other_procgrid[0]/other_coregrid[0]) % factors[i][0]) flag = 1;
+      if ((other_procgrid[1]/other_coregrid[1]) % factors[i][1]) flag = 1;
+      if ((other_procgrid[2]/other_coregrid[2]) % factors[i][2]) flag = 1;
       if (flag) {
 	for (int j = 0; j < m; j++) factors[i][j] = factors[n-1][j];
 	n--;

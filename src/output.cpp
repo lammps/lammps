@@ -38,9 +38,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA 1
 
-#define MYMIN(a,b) ((a) < (b) ? (a) : (b))
-#define MYMAX(a,b) ((a) > (b) ? (a) : (b))
-
 /* ----------------------------------------------------------------------
    initialize all output 
 ------------------------------------------------------------------------- */
@@ -187,7 +184,7 @@ void Output::setup(int flag)
 	if (writeflag) modify->addstep_compute(next_dump[idump]);
 	else modify->addstep_compute_all(next_dump[idump]);
       }
-      if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
+      if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }
   } else next_dump_any = update->laststep + 1;
@@ -218,7 +215,7 @@ void Output::setup(int flag)
 
   if (thermo_every) {
     next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
-    next_thermo = MYMIN(next_thermo,update->laststep);
+    next_thermo = MIN(next_thermo,update->laststep);
   } else if (var_thermo) {
     next_thermo = static_cast<int> 
       (input->variable->compute_equal(ivar_thermo));
@@ -230,8 +227,8 @@ void Output::setup(int flag)
 
   // next = next timestep any output will be done
 
-  next = MYMIN(next_dump_any,next_restart);
-  next = MYMIN(next,next_thermo);
+  next = MIN(next_dump_any,next_restart);
+  next = MIN(next,next_thermo);
 }
 
 /* ----------------------------------------------------------------------
@@ -265,7 +262,7 @@ void Output::write(bigint ntimestep)
 	}
         if (dump[idump]->clearstep) modify->addstep_compute(next_dump[idump]);
       }
-      if (idump) next_dump_any = MYMIN(next_dump_any,next_dump[idump]);
+      if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }
   }
@@ -311,14 +308,14 @@ void Output::write(bigint ntimestep)
       if (next_thermo <= ntimestep)
 	error->all(FLERR,"Thermo every variable returned a bad timestep");
     } else next_thermo = update->laststep;
-    next_thermo = MYMIN(next_thermo,update->laststep);
+    next_thermo = MIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);
   }
 
   // next = next timestep any output will be done
 
-  next = MYMIN(next_dump_any,next_restart);
-  next = MYMIN(next,next_thermo);
+  next = MIN(next_dump_any,next_restart);
+  next = MIN(next,next_thermo);
 }
 
 /* ----------------------------------------------------------------------
@@ -369,7 +366,8 @@ void Output::add_dump(int narg, char **arg)
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID");
+    if (strcmp(arg[0],dump[idump]->id) == 0) 
+      error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
   if (atoi(arg[3]) <= 0) error->all(FLERR,"Invalid dump frequency");

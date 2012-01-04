@@ -266,7 +266,8 @@ void DumpCustom::init_style()
   int ivariable;
   for (int i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all(FLERR,"Could not find dump custom variable name");
+    if (ivariable < 0) 
+      error->all(FLERR,"Could not find dump custom variable name");
     variable[i] = ivariable;
   }
 
@@ -274,7 +275,8 @@ void DumpCustom::init_style()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR,"Region ID for dump custom does not exist");
+    if (iregion == -1) 
+      error->all(FLERR,"Region ID for dump custom does not exist");
   }
 
   // open single file, one time only
@@ -448,7 +450,8 @@ int DumpCustom::count()
 	nstride = 1;
       } else if (thresh_array[ithresh] == MOL) {
 	if (!atom->molecule_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	int *molecule = atom->molecule;
 	for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
 	ptr = dchoose;
@@ -704,108 +707,128 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == Q) {
 	if (!atom->q_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = atom->q;
 	nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
 	if (!atom->mu_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][0];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
 	if (!atom->mu_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][1];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
 	if (!atom->mu_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][2];
 	nstride = 4;
       } else if (thresh_array[ithresh] == MU) {
 	if (!atom->mu_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->mu[0][3];
 	nstride = 4;
 
       } else if (thresh_array[ithresh] == RADIUS) {
 	if (!atom->radius_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = atom->radius;
 	nstride = 1;
       } else if (thresh_array[ithresh] == DIAMETER) {
 	if (!atom->radius_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	double *radius = atom->radius;
 	for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
 	ptr = dchoose;
 	nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
 	if (!atom->omega_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAY) {
 	if (!atom->omega_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == OMEGAZ) {
 	if (!atom->omega_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->omega[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMX) {
 	if (!atom->angmom_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMY) {
 	if (!atom->angmom_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == ANGMOMZ) {
 	if (!atom->angmom_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->angmom[0][2];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQX) {
 	if (!atom->torque_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][0];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQY) {
 	if (!atom->torque_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][1];
 	nstride = 3;
       } else if (thresh_array[ithresh] == TQZ) {
 	if (!atom->torque_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
 	ptr = &atom->torque[0][2];
 	nstride = 3;
 
       } else if (thresh_array[ithresh] == SPIN) {
 	if (!atom->spin_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
         int *spin = atom->spin;
         for (i = 0; i < nlocal; i++) dchoose[i] = spin[i];
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERADIUS) {
 	if (!atom->eradius_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
         ptr = atom->eradius;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERVEL) {
 	if (!atom->ervel_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
         ptr = atom->ervel;
         nstride = 1;
       } else if (thresh_array[ithresh] == ERFORCE) {
 	if (!atom->erforce_flag)
-	  error->all(FLERR,"Threshhold for an atom property that isn't allocated");
+	  error->all(FLERR,
+		     "Threshhold for an atom property that isn't allocated");
         ptr = atom->erforce;
         nstride = 1;				
 
@@ -1641,8 +1664,6 @@ void DumpCustom::pack_variable(int n)
    the atom property is packed into buf starting at n with stride size_one
    customize a new attribute by adding a method
 ------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------- */
 
 void DumpCustom::pack_id(int n)
 {

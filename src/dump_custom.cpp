@@ -120,8 +120,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   format_default[0] = '\0';
 
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == INT) format_default = strcat(format_default,"%d ");
-    else if (vtype[i] == DOUBLE) format_default = strcat(format_default,"%g ");
+    if (vtype[i] == INT) strcat(format_default,"%d ");
+    else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
     else if (vtype[i] == STRING) strcat(format_default,"%s ");
     vformat[i] = NULL;
   }
@@ -1306,14 +1306,16 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"none") == 0) iregion = -1;
     else {
       iregion = domain->find_region(arg[1]);
-      if (iregion == -1) error->all(FLERR,"Dump_modify region ID does not exist");
+      if (iregion == -1) 
+	error->all(FLERR,"Dump_modify region ID does not exist");
       int n = strlen(arg[1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[1]);
     }
     return 2;
-    
-  } else if (strcmp(arg[0],"element") == 0) {
+  }
+
+  if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
       error->all(FLERR,"Dump modify element names do not match atom types");
 
@@ -1330,8 +1332,9 @@ int DumpCustom::modify_param(int narg, char **arg)
       strcpy(typenames[itype],arg[itype]);
     }
     return ntypes+1;
+  }
 
-  } else if (strcmp(arg[0],"thresh") == 0) {
+  if (strcmp(arg[0],"thresh") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
@@ -1345,7 +1348,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       nthresh = 0;
       return 2;
     }
-    
+
     if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
     
     // grow threshhold arrays
@@ -1462,13 +1465,16 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (n < 0) error->all(FLERR,"Could not find dump modify compute ID");
 
       if (modify->compute[n]->peratom_flag == 0)
-	error->all(FLERR,"Dump modify compute ID does not compute per-atom info");
+	error->all(FLERR,
+		   "Dump modify compute ID does not compute per-atom info");
       if (argindex[nfield+nthresh] == 0 && 
 	  modify->compute[n]->size_peratom_cols > 0)
-	error->all(FLERR,"Dump modify compute ID does not compute per-atom vector");
+	error->all(FLERR,
+		   "Dump modify compute ID does not compute per-atom vector");
       if (argindex[nfield+nthresh] > 0 && 
 	  modify->compute[n]->size_peratom_cols == 0)
-	error->all(FLERR,"Dump modify compute ID does not compute per-atom array");
+	error->all(FLERR,
+		   "Dump modify compute ID does not compute per-atom array");
       if (argindex[nfield+nthresh] > 0 && 
 	  argindex[nfield+nthresh] > modify->compute[n]->size_peratom_cols)
 	error->all(FLERR,"Dump modify compute ID vector is not large enough");

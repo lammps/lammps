@@ -66,6 +66,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
+  coregrid[0] = coregrid[1] = coregrid[2] = 1;
   gridflag = ONELEVEL;
   mapflag = CART;
   customfile = NULL;
@@ -153,10 +154,16 @@ void Comm::set_proc_grid()
 
   if (recv_from_partition >= 0) {
     MPI_Status status;
-    if (me == 0) MPI_Recv(other_procgrid,3,MPI_INT,
-			  universe->root_proc[recv_from_partition],0,
-			  universe->uworld,&status);
+    if (me == 0) {
+      MPI_Recv(other_procgrid,3,MPI_INT,
+	       universe->root_proc[recv_from_partition],0,
+	       universe->uworld,&status);
+      MPI_Recv(other_coregrid,3,MPI_INT,
+	       universe->root_proc[recv_from_partition],0,
+	       universe->uworld,&status);
+    }
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
+    MPI_Bcast(other_coregrid,3,MPI_INT,0,world);
   }
 
   // create ProcMap class to create 3d grid and map procs to it
@@ -168,12 +175,12 @@ void Comm::set_proc_grid()
 
   if (gridflag == ONELEVEL) {
     pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
-			otherflag,other_style,other_procgrid);
+			otherflag,other_style,other_procgrid,other_coregrid);
 
   } else if (gridflag == TWOLEVEL) {
     pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
 			ncores,user_coregrid,coregrid,
-			otherflag,other_style,other_procgrid);
+			otherflag,other_style,other_procgrid,other_coregrid);
 
   } else if (gridflag == NUMA) {
     pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
@@ -215,8 +222,6 @@ void Comm::set_proc_grid()
     else if (mapflag == XYZ)
       pmap->xyz_map(xyz,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     
-    // printf("AAA %d: %d %d: %d %d: %d %d\n",);
-
   } else if (gridflag == NUMA) {
     pmap->numa_map(0,coregrid,myloc,procneigh,grid2proc);
 
@@ -258,9 +263,14 @@ void Comm::set_proc_grid()
   // send my 3d proc grid to another partition if requested
 
   if (send_to_partition >= 0) {
-    if (me == 0) MPI_Send(procgrid,3,MPI_INT,
-			  universe->root_proc[send_to_partition],0,
-			  universe->uworld);
+    if (me == 0) {
+      MPI_Send(procgrid,3,MPI_INT,
+	       universe->root_proc[send_to_partition],0,
+	       universe->uworld);
+      MPI_Send(coregrid,3,MPI_INT,
+	       universe->root_proc[send_to_partition],0,
+	       universe->uworld);
+    }
   }
 }
 

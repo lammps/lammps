@@ -1,4 +1,4 @@
-# mac_mpi = Apple PowerBook G4 laptop, ccache mpic++, gfortran, fink LAM/MPI, fink FFTW 2.1.5
+# mac_mpi = Apple laptop, gcc 4.6, gfortran, Open MPI 1.4.3, FFTW 2.1.5
 
 SHELL = /bin/sh
 
@@ -7,10 +7,10 @@ SHELL = /bin/sh
 # generally no need to edit this section
 # unless additional compiler/linker flags or libraries needed for your machine
 
-CC =		ccache ${MPI_GCC4_PATH}/mpic++
-CCFLAGS =	-O -MMD -MG
+CC =		${MPI_GCC46_PATH}/mpic++
+CCFLAGS =	-O
 DEPFLAGS =	-M
-LINK =		ccache ${MPI_GCC4_PATH}/mpic++
+LINK =		${MPI_GCC46_PATH}/mpic++
 LINKFLAGS =	-O
 LIB =           
 ARCHIVE =	ar
@@ -45,7 +45,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFTW =	/sw
+FFTW =	/usr/local
 
 FFT_INC =       -DFFT_FFTW -I${FFTW}/include
 FFT_PATH =	-L${FFTW}/lib
@@ -58,9 +58,9 @@ FFT_LIB =	-lfftw
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_INC =       -I/opt/local/include
+JPG_PATH = 	-L/opt/local/lib
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

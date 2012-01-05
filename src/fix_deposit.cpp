@@ -162,7 +162,8 @@ void FixDeposit::init()
   // set index and check validity of region
 
   iregion = domain->find_region(idregion);
-  if (iregion == -1) error->all(FLERR,"Region ID for fix deposit does not exist");
+  if (iregion == -1) 
+    error->all(FLERR,"Region ID for fix deposit does not exist");
 }
 
 /* ----------------------------------------------------------------------

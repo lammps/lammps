@@ -104,6 +104,10 @@ class DumpCustom : public Dump {
   typedef void (DumpCustom::*FnPtrPack)(int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
 
+  void pack_compute(int);
+  void pack_fix(int);
+  void pack_variable(int);
+
   void pack_id(int);
   void pack_molecule(int);
   void pack_type(int);
@@ -161,10 +165,6 @@ class DumpCustom : public Dump {
   void pack_eradius(int);
   void pack_ervel(int);
   void pack_erforce(int);
-
-  void pack_compute(int);
-  void pack_fix(int);
-  void pack_variable(int);
 };
 
 }

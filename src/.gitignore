@@ -203,6 +203,8 @@ fix_event_tad.cpp
 fix_event_tad.h
 fix_freeze.cpp
 fix_freeze.h
+fix_gcmc.cpp
+fix_gcmc.h
 fix_gpu.cpp
 fix_gpu.h
 fix_gravity_omp.cpp
@@ -668,6 +670,8 @@ pppm.cpp
 pppm.h
 pppm_cg.cpp
 pppm_cg.h
+pppm_cg_omp.cpp
+pppm_cg_omp.h
 pppm_gpu.cpp
 pppm_gpu.h
 pppm_omp.cpp

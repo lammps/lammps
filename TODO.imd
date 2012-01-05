@@ -12,9 +12,3 @@ try making up for it as good as we can.
 
 - fix maxforce to cap forces. also convert NaN or Inf to 0.0
 - fix maxvel to cap velocities and set to 0.0 in a similar way.
-
-- fix imd should be able to output "filtered" coordinates
- strategy: -buffer coordinates either locally or globally
-           -apply SG-window smoothing with suitable polynomial
-           -IMD communication done in thread on master
-                    

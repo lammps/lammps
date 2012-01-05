@@ -1,4 +1,7 @@
 # stick a buckyball into a nanotube
+
+package omp * force/neigh
+
 units           metal
 dimension       3
 boundary        f f f
@@ -40,7 +43,7 @@ fix     thermostat  mobile langevin 300.0 300.0 1.0 234624
 
 # temperature is based on mobile atoms only
 compute mobtemp mobile temp
-thermo_style    custom step pe ke evdwl emol c_mobtemp tpcpu spcpu
+thermo_style    custom step pe ke evdwl emol c_mobtemp
 thermo          100
 thermo_modify   norm yes
 thermo_modify   temp mobtemp

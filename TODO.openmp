@@ -1,11 +1,6 @@
-tasks that need to be done in the LAMMPS-openmp 
-threading project.
 
-Axel:
 - rewrite and port the remaining "complicated" pair style to threading
-pair_cg_cmm_coul_long.cpp
-- think about adding threading to pppm
 - fourier transforms (may need extra flag to restrict fft-threads)
-- update documentation
+- thread fixes like integrators and shake
 
 

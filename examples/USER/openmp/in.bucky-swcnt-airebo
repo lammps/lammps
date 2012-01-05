@@ -40,9 +40,9 @@ fix     thermostat  mobile langevin 300.0 300.0 1.0 234624
 
 # temperature is based on mobile atoms only
 compute mobtemp mobile temp
-thermo_style    custom step pe ke evdwl emol c_mobtemp tpcpu spcpu
-thermo          100
+thermo_style    custom step pe ke evdwl emol c_mobtemp
+thermo          10
 thermo_modify   norm yes
 thermo_modify   temp mobtemp
 
-run             1000
+run             100

@@ -39,6 +39,8 @@ keyword = {region} or {global} or {local} or {near} or {attempt} or {rate} or {v
     vylo,vyhi = range of y velocities for inserted particle (velocity units)
   {vz} values = vzlo vzhi
     vzlo,vzhi = range of z velocities for inserted particle (velocity units)
+  {target} values = tx ty tz
+    tx,ty,tz = location of sputtering target (distance units)
   {units} value = {lattice} or {box}
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units :pre
@@ -48,6 +50,7 @@ keyword = {region} or {global} or {local} or {near} or {attempt} or {rate} or {v
 
 fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
 fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8 :pre
+fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice :pre
 
 [Description:]
 
@@ -73,7 +76,10 @@ particle may be lost or the box size may grow infinitely large.  A
 "fix wall/reflect"_fix_wall_reflect.html command can be used to
 prevent this behavior.  Note that if a shrink-wrap boundary is used,
 it is OK to insert the new particle outside the box, however the box
-will immediately be expanded to include the new particle.
+will immediately be expanded to include the new particle. When
+simulating a sputtering experiment it is probably more realistic
+to ignore those atoms using the "thermo_modify"_thermo_modify.html
+command with the {lost ignore} option and a fixed "boundary"_boundary.html.
 
 This command must use the {region} keyword to define an insertion
 volume.  The specified region must have been previously defined with a
@@ -109,6 +115,11 @@ The vx, vy, and vz components of velocity for the inserted particle
 are set using the values specified for the {vx}, {vy}, and {vz}
 keywords.  Note that normally, new particles should be a assigned a
 negative vertical velocity so that they move towards the surface.
+
+In case the {target} option is used, the velocity vector of the 
+inserted particle will be changed in a way so that it would pass
+through the specified coordinate. This allows convenient simulation
+of a sputtering process.
 
 The {units} keyword determines the meaning of the distance units used
 for the other deposition parameters.  A {box} value selects standard

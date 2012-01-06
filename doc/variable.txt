@@ -639,10 +639,10 @@ reference should be replaced by the name of a variable defined
 elsewhere in the input script.  As discussed on this doc page,
 atom-style variables generate a per-atom vector of values; all other
 variable styles generate a global scalar value.  An equal-style
-variable can reference a global scalar value produced by another
-variable, but not a per-atom vector produced by an atom-style
-variable.  Atom-style variables can reference either global scalar or
-per-atom vector values produced by kind of variable.
+variable can only use scalar values, which means another equal-style
+variable or an element of an atom-style variable.  Atom-style
+variables can use the same scalar values.  They can also use other
+atom-style variables.
 
 Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables

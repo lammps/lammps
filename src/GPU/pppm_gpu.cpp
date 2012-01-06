@@ -36,6 +36,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "universe.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -54,21 +56,24 @@ using namespace MathConst;
 #define ONEF  1.0
 #endif
 
-
 // External functions from cuda library for atom decomposition
+
 #ifdef FFT_SINGLE
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _f
 #else
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _d
 #endif
+
 FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
-		        const int order, const int nxlo_out, 
-			const int nylo_out, const int nzlo_out,
-			const int nxhi_out, const int nyhi_out,
-			const int nzhi_out, FFT_SCALAR **rho_coeff,
-			FFT_SCALAR **_vd_brick, const double slab_volfactor,
-			const int nx_pppm, const int ny_pppm,
-			const int nz_pppm, int &success);
+			       const int order, const int nxlo_out, 
+			       const int nylo_out, const int nzlo_out,
+			       const int nxhi_out, const int nyhi_out,
+			       const int nzhi_out, FFT_SCALAR **rho_coeff,
+			       FFT_SCALAR **_vd_brick, 
+			       const double slab_volfactor,
+			       const int nx_pppm, const int ny_pppm,
+			       const int nz_pppm, const bool split, 
+			       int &success);
 void PPPM_GPU_API(clear)(const double poisson_time);
 int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
@@ -76,6 +81,7 @@ int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       const double delyinv, const double delzinv);
 void PPPM_GPU_API(interp)(const FFT_SCALAR qqrd2e_scale);
 double PPPM_GPU_API(bytes)();
+void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,6 +90,9 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
   density_brick_gpu = vd_brick = NULL;
+  kspace_split = false;
+  im_real_space = false;
+
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
@@ -104,6 +113,14 @@ void PPPMGPU::init()
 {
   PPPM::init();
   
+  if (strcmp(update->integrate_style,"verlet/split") == 0)
+    kspace_split=true;
+
+  if (kspace_split && universe->iworld == 0) {
+    im_real_space = true;
+    return;
+  }
+
   // GPU precision specific init.
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
@@ -112,9 +129,10 @@ void PPPMGPU::init()
   int success;
   FFT_SCALAR *data, *h_brick;
   h_brick = PPPM_GPU_API(init)(atom->nlocal, atom->nlocal+atom->nghost, screen,
-			    order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-			    nyhi_out, nzhi_out, rho_coeff, &data, 
-			    slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
+			       order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
+			       nyhi_out, nzhi_out, rho_coeff, &data, 
+			       slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
+			       kspace_split,success);
 
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -134,6 +152,9 @@ void PPPMGPU::init()
 
 void PPPMGPU::compute(int eflag, int vflag)
 {
+  if (im_real_space)
+    return;
+
   bool success = true;
   int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal + 
 			     atom->nghost, atom->x, atom->type, success,
@@ -211,6 +232,9 @@ void PPPMGPU::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
   
   if (triclinic) domain->lamda2x(atom->nlocal);
+
+  if (kspace_split)
+    PPPM_GPU_API(forces)(atom->f);
 }
 
 /* ----------------------------------------------------------------------
@@ -842,3 +866,27 @@ double PPPMGPU::memory_usage()
   bytes += 2 * nbuf * sizeof(double);
   return bytes + PPPM_GPU_API(bytes)();
 }
+
+/* ----------------------------------------------------------------------
+   perform and time the 4 FFTs required for N timesteps
+------------------------------------------------------------------------- */
+
+void PPPMGPU::timing(int n, double &time3d, double &time1d) {
+  if (im_real_space) {
+    time3d = 0.0;
+    time1d = 0.0;
+    return;
+  }
+  PPPM::timing(n,time3d,time1d);
+}
+
+/* ----------------------------------------------------------------------
+   adjust PPPM coeffs, called initially and whenever volume has changed 
+------------------------------------------------------------------------- */
+
+void PPPMGPU::setup()
+{
+  if (im_real_space)
+    return;
+  PPPM::setup();
+} 

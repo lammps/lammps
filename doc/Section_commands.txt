@@ -457,6 +457,7 @@ of each style or click on the style itself for a full description:
 "print"_fix_print.html,
 "qeq/comb"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
+"reax/c/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,
 "rigid"_fix_rigid.html,

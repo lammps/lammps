@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -18,6 +18,7 @@
 #ifndef LMP_GPU_EXTRA_H
 #define LMP_GPU_EXTRA_H
 
+#include "modify.h"
 #include "error.h"
 
 namespace GPU_EXTRA {
@@ -47,8 +48,13 @@ namespace GPU_EXTRA {
       else
 	error->all(FLERR,"Unknown error in GPU library");
     }
-  }
+  };
 
+  inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error) {
+    int ifix = modify->find_fix("package_gpu");
+    if (ifix < 0)
+      error->all(FLERR,"The 'package gpu' command is required for /gpu styles");
+  };
 }
 
 #endif

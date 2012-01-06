@@ -1081,7 +1081,6 @@ double Variable::evaluate(char *str, Tree **tree)
 	  newtree->left = newtree->middle = newtree->right = NULL;
 	  treestack[ntreestack++] = newtree;
 
-
 	} else error->all(FLERR,"Mismatched fix in variable formula");
 
       // ----------------

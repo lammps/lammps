@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/proxy</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/proxy</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = precision
@@ -35,6 +35,9 @@
     precision = desired accuracy
   <I>pppm/omp</I> value = precision
     precision = desired accuracy
+  <I>pppm/cg/omp</I> value = precision (smallq)
+    precision = desired accuracy
+    smallq = cutoff for charges to be considered (optional) (charge units)
   <I>pppm/proxy</I> value = precision
     precision = desired accuracy 
 </PRE>

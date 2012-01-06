@@ -50,6 +50,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   real Tap, dTap, dfn13, CEvd, CEclmb, de_core;
   real dr3gamij_1, dr3gamij_3;
   real e_ele, e_vdW, e_core, SMALL = 0.0001;
+  real e_lg, de_lg, r_ij5, r_ij6, re6;
   rvec temp, ext_press;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
@@ -65,6 +66,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   p_vdW1i = 1.0 / p_vdW1;
   e_core = 0;
   e_vdW = 0;
+  e_lg = de_lg = 0.0;
 
   for( i = 0; i < natoms; ++i ) {
     start_i = Start_Index(i, far_nbrs);
@@ -155,6 +157,19 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 
 	  de_core = -(twbp->acore/twbp->rcore) * e_core;
 	  CEvd += dTap * e_core + Tap * de_core / r_ij;
+
+          //  lg correction, only if lgvdw is yes
+	  if (control->lgflag) {
+            r_ij5 = pow( r_ij, 5.0 ); 
+            r_ij6 = pow( r_ij, 6.0 );
+            re6 = pow( twbp->lgre, 6.0 );
+            e_lg = -(twbp->lgcij/( r_ij6 + re6 )); 
+            data->my_en.e_vdW += Tap * e_lg;
+
+            de_lg = -6.0 * e_lg *  r_ij5 / ( r_ij6 + re6 ) ;
+            CEvd += dTap * e_lg + Tap * de_lg / r_ij;
+	  }
+
 	}
 
       /*Coulomb Calculations*/
@@ -169,8 +184,8 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 	( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 
       /* tally into per-atom energy */
-      if( system->evflag || system->vflag_atom) {
-        pe_vdw = Tap * (e_vdW + e_core);
+      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+        pe_vdw = Tap * (e_vdW + e_core + e_lg);
 	rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
 			      -1., system->my_atoms[j].x );
 	f_tmp = -(CEvd + CEclmb);
@@ -334,7 +349,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
 
       /* tally into per-atom energy */
-      if( system->evflag || system->vflag_atom) {
+      if( system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
 	rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
 			      -1., system->my_atoms[j].x );
 	f_tmp = -(CEvd + CEclmb);
@@ -399,14 +414,13 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
     data->my_en.e_pol += en_tmp;
 
     /* tally into per-atom energy */
-    if( system->evflag) 
+    if( system->pair_ptr->evflag) 
       system->pair_ptr->ev_tally(i,i,system->n,1,0.0,en_tmp,0.0,0.0,0.0,0.0);
   }
 }
 
-
 void LR_vdW_Coulomb( reax_system *system, storage *workspace, 
-		     int i, int j, real r_ij, LR_data *lr )
+	control_params *control, int i, int j, real r_ij, LR_data *lr )
 {
   real p_vdW1 = system->reax_param.gp.l[28];
   real p_vdW1i = 1.0 / p_vdW1;
@@ -415,11 +429,13 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
   real Tap, dTap, dfn13;
   real dr3gamij_1, dr3gamij_3;
   real e_core, de_core;
+  real e_lg, de_lg, r_ij5, r_ij6, re6;
   two_body_parameters *twbp;
 
   twbp = &(system->reax_param.tbp[i][j]);
   e_core = 0;
   de_core = 0;
+  e_lg = de_lg = 0.0;
 
   /* calculate taper and its derivative */
   Tap = workspace->Tap[7] * r_ij + workspace->Tap[6];
@@ -470,6 +486,19 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       
       de_core = -(twbp->acore/twbp->rcore) * e_core;
       lr->CEvd += dTap * e_core + Tap * de_core / r_ij;
+
+      //  lg correction, only if lgvdw is yes
+      if (control->lgflag) {
+        r_ij5 = pow( r_ij, 5.0 ); 
+        r_ij6 = pow( r_ij, 6.0 );
+        re6 = pow( twbp->lgre, 6.0 );
+        e_lg = -(twbp->lgcij/( r_ij6 + re6 )); 
+        lr->e_vdW += Tap * e_lg;
+
+        de_lg = -6.0 * e_lg *  r_ij5 / ( r_ij6 + re6 ) ;
+        lr->CEvd += dTap * e_lg + Tap * de_lg/r_ij;
+      }
+
     }
 
   

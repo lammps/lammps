@@ -47,6 +47,8 @@
 #include "reaxc_reset_tools.h"
 #include "reaxc_traj.h"
 #include "reaxc_vector.h"
+#include "fix_reaxc_bonds.h"
+#include "fix_reaxc_species.h"
 
 using namespace LAMMPS_NS;
 
@@ -167,7 +169,7 @@ void PairReaxC::allocate( )
 
 void PairReaxC::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   // read name of control file or use default controls
 
@@ -194,6 +196,7 @@ void PairReaxC::settings(int narg, char **arg)
   // default values
 
   qeqflag = 1;
+  control->lgflag = 0;
 
   // process optional keywords
 
@@ -204,6 +207,12 @@ void PairReaxC::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
+      else error->all(FLERR,"Illegal pair_style reax/c command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"lgvdw") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
@@ -400,6 +409,13 @@ void PairReaxC::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
 
+/*  if ((eflag_atom || vflag_atom) && firstwarn) {
+    firstwarn = 0;
+    if (comm->me == 0) 
+      error->warning(FLERR,"Pair reax/c cannot yet compute "
+		     "per-atom energy or stress");
+  } */
+
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
@@ -411,10 +427,6 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0; 
   system->big_box.box_norms[1] = 0; 
   system->big_box.box_norms[2] = 0;
-
-  system->evflag = evflag;
-  system->vflag_atom = vflag_atom;
-
   if( comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures
@@ -493,6 +505,12 @@ void PairReaxC::compute(int eflag, int vflag)
   data->step = update->ntimestep;
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
+
+  if(fixbond_flag) 
+	  fixbond( system, control, data, &lists, out_control, mpi_data );
+
+  if(fixspecies_flag) 
+	  fixspecies( system, control, data, &lists, out_control, mpi_data );
 
 }
 
@@ -745,7 +763,7 @@ void PairReaxC::read_reax_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void *PairReaxC::extract(const char *str, int &dim)
+void *PairReaxC::extract(char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"chi") == 0 && chi) {
@@ -768,3 +786,5 @@ void *PairReaxC::extract(const char *str, int &dim)
   }
   return NULL;
 }
+
+/* ---------------------------------------------------------------------- */

@@ -815,6 +815,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
 	  bonds->select.bond_list[pj].bo_data.BO >= control->bg_cut )
 	++my_bonds;
     }
+
   /* allreduce - total number of bonds */
   MPI_Allreduce( &my_bonds, &num_bonds, 1, MPI_INT, MPI_SUM, mpi_data->world );
 
@@ -828,10 +829,11 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     Reallocate_Output_Buffer( out_control, buffer_req, mpi_data->world );
   
   /* fill in the buffer */
-  my_bonds = 0;
   out_control->line[0] = 0;
   out_control->buffer[0] = 0;
-  for( i=0; i < system->n; ++i )
+
+  my_bonds = 0;
+  for( i=0; i < system->n; ++i ) {
     for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
       bo_ij = &( bonds->select.bond_list[pj] );
       j = bo_ij->nbr;
@@ -854,12 +856,13 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
 	  fprintf(stderr, "write_traj_bonds: FATAL! invalid bond_info option");
 	  MPI_Abort( mpi_data->world, UNKNOWN_OPTION );
 	}
-	    
 	strncpy( out_control->buffer + my_bonds*line_len, 
 		 out_control->line, line_len+1 );
 	++my_bonds;
       }
     }
+  }
+
 
 #if defined(PURE_REAX)
   if( out_control->traj_method == MPI_TRAJ ) {

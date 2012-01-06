@@ -146,8 +146,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 	    CEhb3 = -hbp->p_hb3 * 
 	      (-hbp->r0_hb / SQR(r_jk) + 1.0 / hbp->r0_hb) * e_hb;
 
-	    fprintf(stderr,"	H bond called \n");
-		    
 	    /*fprintf( stdout, 
 	      "%6d%6d%6d%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f\n",
 	      system->my_atoms[i].orig_id, system->my_atoms[j].orig_id, 
@@ -192,7 +190,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 	    }
 
 	    /* tally into per-atom virials */
-	    if (system->vflag_atom || system->evflag) {
+	    if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 	      rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
 				    -1., system->my_atoms[j].x );
 	      rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,

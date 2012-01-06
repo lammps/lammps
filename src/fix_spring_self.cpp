@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix spring/self command");
+  if ((narg < 4) || (narg > 5))
+    error->all(FLERR,"Illegal fix spring/self command");
 
   restart_peratom = 1;
   scalar_flag = 1;
@@ -41,6 +42,25 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
 
   k = atof(arg[3]);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
+
+  xflag = yflag = zflag = 1;
+  if (narg == 5) {
+    if (strcmp(arg[4],"xyz") == 0) {
+      ; /* default */
+    } else if (strcmp(arg[4],"xy") == 0) {
+      zflag = 0;
+    } else if (strcmp(arg[4],"xz") == 0) {
+      yflag = 0;
+    } else if (strcmp(arg[4],"yz") == 0) {
+      xflag = 0;
+    } else if (strcmp(arg[4],"x") == 0) {
+      yflag = zflag = 0;
+    } else if (strcmp(arg[4],"y") == 0) {
+      xflag = zflag = 0;
+    } else if (strcmp(arg[4],"z") == 0) {
+      xflag = yflag = 0;
+    } else error->all(FLERR,"Illegal fix spring/self command");
+  }
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -155,6 +175,9 @@ void FixSpringSelf::post_force(int vflag)
       dx = x[i][0] + xbox*xprd - xoriginal[i][0];
       dy = x[i][1] + ybox*yprd - xoriginal[i][1];
       dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+      if (!xflag) dx = 0.0;
+      if (!yflag) dy = 0.0;
+      if (!zflag) dz = 0.0;
       f[i][0] -= k*dx;
       f[i][1] -= k*dy;
       f[i][2] -= k*dz;

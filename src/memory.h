@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -14,6 +14,7 @@
 #ifndef LMP_MEMORY_H
 #define LMP_MEMORY_H
 
+#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {

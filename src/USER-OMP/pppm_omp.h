@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -29,13 +29,15 @@ namespace LAMMPS_NS {
  public:
   PPPMOMP(class LAMMPS *, int, char **);
   virtual ~PPPMOMP () {};
+  virtual void setup();
+  virtual void compute(int, int);
 
  protected:
   virtual void allocate();
   virtual void deallocate();
-  virtual void compute(int, int);
   virtual void fieldforce();
   virtual void make_rho();
+
   void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
 			 const FFT_SCALAR &, const FFT_SCALAR &);
 //  void compute_rho_coeff();

@@ -1,5 +1,7 @@
 # Solvated 5-mer peptide
 
+package omp * force
+
 units		real
 dimension	3
 atom_style	angle

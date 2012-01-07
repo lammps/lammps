@@ -3,15 +3,15 @@
 doc/Manual.html
 doc/Section_intro.html
 doc/Section_start.html
+doc/Section_commands.html
 doc/Section_packages.html
 doc/Section_accelerate.html
-doc/Section_commands.html
 doc/Section_howto.html
 doc/Section_example.html
 doc/Section_perf.html
 doc/Section_tools.html
-doc/Section_python.html
 doc/Section_modify.html
+doc/Section_python.html
 doc/Section_errors.html
 doc/Section_history.html
 doc/angle_charmm.html

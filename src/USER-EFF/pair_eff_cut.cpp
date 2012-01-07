@@ -402,6 +402,11 @@ void PairEffCut::compute(int eflag, int vflag)
             ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
             ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
                         &fpair,&e2rforce);
+            ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                        &fpair,&e2rforce);
+            PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                        &ecp_e2rforce,PAULI_CORE_A, PAULI_CORE_B,
+                        PAULI_CORE_C);
             PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
                         &ecp_e2rforce,PAULI_CORE_A, PAULI_CORE_B,
                         PAULI_CORE_C);
@@ -427,7 +432,7 @@ void PairEffCut::compute(int eflag, int vflag)
         else if ((abs(spin[i]) == 1 || spin[i] == 2) && spin[j] == 3) {
           e1rforce = ecp_e1rforce = 0.0;
 
-          if (abs(spin[j]) == 1) {
+          if (abs(spin[i]) == 1) {
             ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
                         &fpair,&e1rforce);
             PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
@@ -438,6 +443,11 @@ void PairEffCut::compute(int eflag, int vflag)
             ElecCoreNuc(qxq,rc,eradius[i],&ecoul,&fpair);
             ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
                         &fpair,&e1rforce);
+            ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                        &fpair,&e1rforce);
+            PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                        &ecp_e1rforce,PAULI_CORE_A, PAULI_CORE_B,
+                        PAULI_CORE_C);
             PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
                         &ecp_e1rforce,PAULI_CORE_A, PAULI_CORE_B,
                         PAULI_CORE_C);

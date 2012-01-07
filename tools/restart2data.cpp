@@ -475,7 +475,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "31 Dec 2011-ICMS";
+  const char *version = "5 Jan 2012-ICMS";
 
   data.triclinic = 0;
 
@@ -487,7 +487,8 @@ void header(FILE *fp, Data &data)
     if (flag == VERSION) {
       data.version = read_char(fp);
       if (strcmp(version,data.version) != 0) {
-	char *str = "Restart file version does not match restart2data version";
+	const char *str = 
+	  "Restart file version does not match restart2data version";
 	printf("WARNING %s\n",str);
 	printf("  restart2data version = %s\n",version);
       }

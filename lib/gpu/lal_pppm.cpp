@@ -53,9 +53,10 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nzhi_out, grdtyp **rho_coeff,
                               grdtyp **vd_brick, const double slab_volfactor, 
                               const int nx_pppm, const int ny_pppm,
-                              const int nz_pppm, int &flag) {
+                              const int nz_pppm, const bool split, int &flag) {
   _max_bytes=10;
   screen=_screen;
+  _kspace_split=split;
   bool success=true;
 
   flag=device->init(*ans,nlocal,nall);
@@ -359,9 +360,9 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false);
-  device->add_ans_object(ans);
+  if (_kspace_split==false)
+    device->add_ans_object(ans);
 }
-
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 double PPPMT::host_memory_usage() const {

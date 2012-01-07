@@ -28,9 +28,11 @@ using namespace LAMMPS_NS;
 
 void Neighbor::respa_nsq_no_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
+
+  int which = 0;
 
   // loop over each atom, storing neighbors
 
@@ -150,8 +152,8 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -327,8 +329,8 @@ void Neighbor::respa_nsq_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -497,8 +499,8 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -533,9 +535,11 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
+
+  int which = 0;
 
   // bin local & ghost atoms
 
@@ -702,8 +706,8 @@ void Neighbor::respa_bin_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -879,8 +883,8 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;

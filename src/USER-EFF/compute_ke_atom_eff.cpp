@@ -25,6 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -90,6 +91,7 @@ void ComputeKEAtomEff::compute_peratom()
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
   
   if (mass)
     for (int i = 0; i < nlocal; i++) {
@@ -97,7 +99,7 @@ void ComputeKEAtomEff::compute_peratom()
         ke[i] = 0.5 * mvv2e * mass[type[i]] * 
           (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
         if (fabs(spin[i])==1)
-          ke[i] += 0.5 * mvv2e * mass[type[i]] * ervel[i]*ervel[i] * 0.75;
+          ke[i] += 0.5 * mvv2e * mefactor * mass[type[i]] * ervel[i]*ervel[i];
       } else ke[i] = 0.0;
     }
 }

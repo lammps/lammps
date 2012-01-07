@@ -18,13 +18,16 @@ Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
 damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {scale} or {tally}
+keyword = {scale} or {tally} or {zero}
   {scale} values = type ratio
     type = atom type (1-N)
     ratio = factor by which to scale the damping coefficient
   {tally} values = {no} or {yes}
     {no} = do not tally the energy added/subtracted to atoms
     {yes} = do tally the energy added/subtracted to atoms :pre
+  {zero} value = {no} or {yes}
+    {no} = do not set total random force to zero
+    {yes} = set total random force to zero :pre
 :ule
 
 [Examples:]

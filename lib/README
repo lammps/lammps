@@ -13,10 +13,12 @@ atc           atomistic-to-continuum methods, USER-ATC package
                 from Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia)
 awpmd         antisymmetrized wave packet molecular dynamics, AWPMD package
                 from Ilya Valuev (JIHT RAS)
-cuda	      NVIDIA GPU routines, USER_CUDA package
+cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      graphical processor (GPU) routines, GPU package
 	        from Mike Brown (ORNL)
+linalg        set of BLAS and LAPACK routines needed by USER-ATC package
+	        from Axel Kohlmeyer (Temple U)
 poems	      POEMS rigid-body integration package, POEMS package
                 from Rudranarayan Mukherjee (RPI)
 meam	      modified embedded atom method (MEAM) potential, MEAM package

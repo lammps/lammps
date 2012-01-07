@@ -21,6 +21,7 @@
 #include "atom_vec.h"
 #include "group.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -48,6 +49,7 @@ void FixNHEff::nve_v()
   double *ervel = atom->ervel;
   double *mass = atom->mass;
   int *spin = atom->spin;
+  double mefactor = domain->dimension/4.0;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -60,7 +62,7 @@ void FixNHEff::nve_v()
     if (mask[i] & groupbit) {
       if (fabs(spin[i])==1) {
 	dtfm = dtf / mass[type[i]];
-	ervel[i] = dtfm * erforce[i] / 0.75;
+	ervel[i] = dtfm * erforce[i] / mefactor;
       }
     }
   }

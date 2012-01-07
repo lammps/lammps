@@ -25,6 +25,7 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
+#include "update.h"
 #if defined(PURE_REAX)
 #include "io_tools.h"
 #include "basic_comm.h"
@@ -1029,6 +1030,70 @@ void Print_Total_Force( reax_system *system, simulation_data *data,
 	     system->my_atoms[i].orig_id,
 	     workspace->f[i][0], workspace->f[i][1], workspace->f[i][2] );
 }
+
+void fixbond( reax_system *system, control_params *control, 
+		     simulation_data *data, reax_list **lists, 
+		     output_controls *out_control, mpi_datatypes *mpi_data )
+{
+  // count the number of bonds around each atom, for fix reax/c/bond
+  int i, j, pj, my_bonds_0, i_id, j_id;
+  int my_bonds_max = 0;
+  double BO_tmp;
+
+  control->bg_cut = 0.3;  // this values will not change with control file
+  reax_list *bonds = (*lists) + BONDS;
+
+  for( i=0; i < system->n; ++i ) {
+    my_bonds_0 = 0;
+    i_id = system->my_atoms[i].orig_id;  // orig_id is atom->tag
+    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+      j = bonds->select.bond_list[pj].nbr;
+      j_id = system->my_atoms[j].orig_id;
+      BO_tmp = bonds->select.bond_list[pj].bo_data.BO;
+      if( i_id != j_id && BO_tmp >= control->bg_cut ) {
+	++my_bonds_0;
+	system->my_atoms[i].nbr_id[my_bonds_0] = j_id;
+	system->my_atoms[i].nbr_bo[my_bonds_0] = BO_tmp;
+      }
+    }
+    my_bonds_max = MAX(my_bonds_0, my_bonds_max);
+    system->my_atoms[i].numbonds = my_bonds_0;
+    system->my_bonds = my_bonds_max;
+  }
+}
+
+
+void fixspecies( reax_system *system, control_params *control, 
+		     simulation_data *data, reax_list **lists, 
+		     output_controls *out_control, mpi_datatypes *mpi_data )
+{
+  // count the number of bonds around each atom, for fix reax/c/bond
+  int i, j, pj, my_bonds_0, i_id, j_id;
+  int my_bonds_max = 0;
+  double BO_tmp;
+
+  control->bg_cut = 0.3;  // this values will not change with control file
+  reax_list *bonds = (*lists) + BONDS;
+
+  for( i=0; i < system->n; ++i ) {
+    my_bonds_0 = 0;
+    i_id = system->my_atoms[i].orig_id;
+    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+      j = bonds->select.bond_list[pj].nbr;
+      j_id = system->my_atoms[j].orig_id;
+      BO_tmp = bonds->select.bond_list[pj].bo_data.BO;
+      if( i_id != j_id && BO_tmp >= control->bg_cut ) {
+	++my_bonds_0;
+	system->my_atoms[i].nbr_id[my_bonds_0] = j_id;
+	system->my_atoms[i].nbr_bo[my_bonds_0] = BO_tmp;
+      }
+    }
+    my_bonds_max = MAX(my_bonds_0, my_bonds_max);
+    system->my_atoms[i].numbonds = my_bonds_0;
+    system->my_bonds = my_bonds_max;
+  }
+}
+
 
 void Output_Results( reax_system *system, control_params *control, 
 		     simulation_data *data, reax_list **lists, 

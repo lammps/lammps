@@ -48,7 +48,8 @@ class PPPM {
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
                 grdtyp **rho_coeff, grdtyp **vd_brick, 
                 const double slab_volfactor, const int nx_pppm, 
-                const int ny_pppm, const int nz_pppm, int &success);
+                const int ny_pppm, const int nz_pppm, const bool split, 
+                int &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -174,7 +175,7 @@ class PPPM {
   UCL_Texture q_tex;
 
  protected:
-  bool _allocated, _compiled, _precompute_done;
+  bool _allocated, _compiled, _precompute_done, _kspace_split;
   int _block_size, _block_pencils, _pencil_size, _max_brick_atoms, _max_atoms;
   double  _max_bytes, _max_an_bytes;
   double _cpu_idle_time;

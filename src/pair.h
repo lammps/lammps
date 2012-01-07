@@ -52,6 +52,10 @@ class Pair : protected Pointers {
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;
 
+  int evflag;                    // energy,virial settings
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities
 
@@ -140,10 +144,6 @@ class Pair : protected Pointers {
   typedef union {int i; float f;} union_int_float_t;
 
   double THIRD;
-
-  int evflag;                          // energy,virial settings
-  int eflag_either,eflag_global,eflag_atom;
-  int vflag_either,vflag_global,vflag_atom;
 
   int vflag_fdotr;
   int maxeatom,maxvatom;

@@ -36,7 +36,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                        const int nzhi_out, grdtyp **rho_coeff,
                        grdtyp **vd_brick, const double slab_volfactor,
                        const int nx_pppm, const int ny_pppm, const int nz_pppm,
-                       int &success) {
+                       const bool split, int &success) {
   pppm.clear(0.0);
   int first_gpu=pppm.device->first_device();
   int last_gpu=pppm.device->last_device();
@@ -60,7 +60,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
   if (world_me==0)
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
                          nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
-                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
+                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,split,success);
 
   pppm.device->world_barrier();
   if (message)
@@ -79,7 +79,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
       host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,
                            nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                            vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
-                           success);
+                           split,success);
 
     pppm.device->gpu_barrier();
     if (message) 
@@ -97,11 +97,12 @@ float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
                         const int nzhi_out, float **rho_coeff,
                         float **vd_brick, const double slab_volfactor,
                         const int nx_pppm, const int ny_pppm, const int nz_pppm,
-                        int &success) {
+                        const bool split, int &success) {
   float *b=pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
                          nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
-                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,success);
-  PPPMF.device->set_single_precompute(&PPPMF);                         
+                         slab_volfactor,nx_pppm,ny_pppm,nz_pppm,split,success);
+  if (split==false)
+    PPPMF.device->set_single_precompute(&PPPMF);                         
   return b;
 }
 
@@ -118,11 +119,17 @@ int pppm_gpu_spread_f(const int ago, const int nlocal, const int nall,
 }
 
 void pppm_gpu_interp_f(const float qqrd2e_scale) {
-  return PPPMF.interp(qqrd2e_scale);
+  PPPMF.interp(qqrd2e_scale);
 }
 
 double pppm_gpu_bytes_f() {
   return PPPMF.host_memory_usage();
+}
+
+void pppm_gpu_forces_f(double **f) {
+  double etmp;
+  PPPMF.atom->data_unavail();
+  PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
@@ -132,12 +139,13 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                          const int nzhi_out, double **rho_coeff,
                          double **vd_brick, const double slab_volfactor,
                          const int nx_pppm, const int ny_pppm,
-                         const int nz_pppm, int &success) {
+                         const int nz_pppm, const bool split, int &success) {
   double *b=pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
                           nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
-                          success);                        
-  PPPMF.device->set_double_precompute(&PPPMD);                         
+                          split,success);                        
+  if (split==false)
+    PPPMD.device->set_double_precompute(&PPPMD);                         
   return b;
 }
 
@@ -154,10 +162,16 @@ int pppm_gpu_spread_d(const int ago, const int nlocal, const int nall,
 }
 
 void pppm_gpu_interp_d(const double qqrd2e_scale) {
-  return PPPMD.interp(qqrd2e_scale);
+  PPPMD.interp(qqrd2e_scale);
 }
 
 double pppm_gpu_bytes_d() {
   return PPPMD.host_memory_usage();
+}
+
+void pppm_gpu_forces_d(double **f) {
+  double etmp;
+  PPPMD.atom->data_unavail();
+  PPPMD.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
 }
 

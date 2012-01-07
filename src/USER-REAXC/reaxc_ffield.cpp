@@ -25,6 +25,7 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
+#include "error.h"
 #if defined(PURE_REAX)
 #include "ffield.h"
 #include "tool_box.h"
@@ -42,6 +43,8 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
   char   **tmp;
   char ****tor_flag;
   int      c, i, j, k, l, m, n, o, p, cnt;
+  int lgflag = control->lgflag;
+  int errorflag = 1;
   real     val;
   MPI_Comm comm;
 
@@ -161,9 +164,10 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
   reax->gp.vdw_type = 0;
   
   /* reading single atom parameters */
-  /* there are 4 lines of each single atom parameters in ff files. these
-     parameters later determine some of the pair and triplet parameters using 
-     combination rules. */
+  /* there are 4 or 5 lines of each single atom parameters in ff files, 
+     depending on using lgvdw or not. These parameters later determine 
+     some of the pair and triplet parameters using combination rules. */
+
   for( i = 0; i < reax->num_atom_types; i++ ) {
     /* line one */
     fgets( s, MAX_LINE, fp );
@@ -211,7 +215,13 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     /* line 4  */
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
-    
+
+    /* Sanity check */
+    if (c < 3) {
+      fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+      MPI_Abort( comm, FILE_NOT_FOUND );
+    }
+
     val = atof(tmp[0]); reax->sbp[i].p_ovun2    = val;
     val = atof(tmp[1]); reax->sbp[i].p_val3     = val;
     val = atof(tmp[2]); 
@@ -220,18 +230,35 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     val = atof(tmp[5]); reax->sbp[i].rcore2     = val;
     val = atof(tmp[6]); reax->sbp[i].ecore2     = val;
     val = atof(tmp[7]); reax->sbp[i].acore2     = val;
-   
+
+    /* line 5, only if lgvdw is yes */
+    if (lgflag) {
+      fgets( s, MAX_LINE, fp );
+      c = Tokenize( s, &tmp );
+
+      /* Sanity check */
+      if (c > 3) {
+        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
+        MPI_Abort( comm, FILE_NOT_FOUND );
+      }
+
+      val = atof(tmp[0]); reax->sbp[i].lgcij   	= val;
+      val = atof(tmp[1]); reax->sbp[i].lgre   	= val;
+    }
 
     if( reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01 ){ // Inner-wall
       if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
-	if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 )
-	  fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"	\
+	if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 ) {
+	  if (errorflag) 
+	    fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"	\
 		   "Force field parameters for element %s\n"		\
 		   "indicate inner wall+shielding, but earlier\n"	\
 		   "atoms indicate different vdWaals-method.\n"		\
 		   "This may cause division-by-zero errors.\n"		\
 		   "Keeping vdWaals-setting for earlier atoms.\n", 
 		   reax->sbp[i].name );
+	  errorflag = 0;
+	}
 	else{
 	  reax->gp.vdw_type = 3;
 #if defined(DEBUG)
@@ -439,6 +466,7 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
 	    reax->sbp[i].gamma,-1.5);
 
       // additions for additional vdWaals interaction types - inner core
+      
       reax->tbp[i][j].rcore = reax->tbp[j][i].rcore =
 	sqrt( reax->sbp[i].rcore2 * reax->sbp[j].rcore2 );
 
@@ -447,6 +475,15 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
 
       reax->tbp[i][j].acore = reax->tbp[j][i].acore =
 	sqrt( reax->sbp[i].acore2 * reax->sbp[j].acore2 );
+
+      // additions for additional vdWalls interaction types lg correction 
+
+      reax->tbp[i][j].lgcij = reax->tbp[j][i].lgcij =
+	sqrt( reax->sbp[i].lgcij * reax->sbp[j].lgcij );
+
+      reax->tbp[i][j].lgre = reax->tbp[j][i].lgre = 2.0 *	
+        sqrt( reax->sbp[i].lgre*reax->sbp[j].lgre );
+ 
     }
 
 
@@ -499,6 +536,12 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
       if (val > 0.0) {
 	reax->tbp[j][k].r_pp = val;
 	reax->tbp[k][j].r_pp = val;
+      }
+
+      val = atof(tmp[8]); 
+      if (val >= 0.0) {
+	reax->tbp[j][k].lgcij = val;
+	reax->tbp[k][j].lgcij = val;
       }
     }
   }

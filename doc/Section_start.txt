@@ -675,6 +675,15 @@ them.  An example is the BLAS and LAPACK libraries needed by the
 USER-ATC package.  Or the system libraries that support calling
 Fortran from C++, as the MEAM and REAX packages do.
 
+(3) One exception to these rules is the lib/linalg directory, which is
+simply BLAS and LAPACK files used by the USER-ATC package (and
+possibly other packages in the future).  If you do not have these
+libraries on your system, you can use one of the Makefiles in this
+directory (which you may need to modify) to build a dummy BLAS and
+LAPACK library.  It can then be included in the
+lib/atc/Makefile.lammps file as part of the SYSPATH and SYSLIB lines
+so that LAMMPS will build properly with the USER-ATC package.
+
 Note that if these settings are not correct for your box, the LAMMPS
 build will likely fail.
 

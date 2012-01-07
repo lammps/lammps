@@ -84,7 +84,7 @@ void ComputeTempEff::dof_compute()
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
-  // average over nuclear dof only
+  // Assume 3/2 k T per nucleus 
 
   dof -= domain->dimension * nelectrons;
 
@@ -105,6 +105,7 @@ double ComputeTempEff::compute_scalar()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   double t = 0.0;
    
@@ -113,7 +114,7 @@ double ComputeTempEff::compute_scalar()
       if (mask[i] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
           mass[type[i]];
-        if (fabs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   }
@@ -139,6 +140,7 @@ void ComputeTempEff::compute_vector()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
@@ -153,9 +155,9 @@ void ComputeTempEff::compute_vector()
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
       if (fabs(spin[i])==1) {
-        t[0] += 0.75*massone*ervel[i]*ervel[i];
-        t[1] += 0.75*massone*ervel[i]*ervel[i];
-        t[2] += 0.75*massone*ervel[i]*ervel[i];
+        t[0] += mefactor*massone*ervel[i]*ervel[i];
+        t[1] += mefactor*massone*ervel[i]*ervel[i];
+        t[2] += mefactor*massone*ervel[i]*ervel[i];
       }
     }
 

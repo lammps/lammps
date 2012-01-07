@@ -113,6 +113,7 @@ void ComputeTempDeformEff::dof_compute()
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
+  // Assume 3/2 k T per nucleus 
   dof -= domain->dimension * nelectrons;
   
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
@@ -135,6 +136,7 @@ double ComputeTempDeformEff::compute_scalar()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   // lamda = 0-1 triclinic lamda coords
   // vstream = streaming velocity = Hrate*lamda + Hratelo
@@ -159,7 +161,7 @@ double ComputeTempDeformEff::compute_scalar()
       if (mass) {
         t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
               vthermal[2]*vthermal[2])* mass[type[i]];
-        if (fabs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   
@@ -185,7 +187,8 @@ void ComputeTempDeformEff::compute_vector()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+  double mefactor = domain->dimension/4.0;
+
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
  
@@ -211,9 +214,9 @@ void ComputeTempDeformEff::compute_vector()
       t[4] += massone * vthermal[0]*vthermal[2];
       t[5] += massone * vthermal[1]*vthermal[2];
       if (fabs(spin[i])==1) {
-        t[0] += 0.75 * massone * ervel[i]*ervel[i];
-        t[1] += 0.75 * massone * ervel[i]*ervel[i];
-        t[2] += 0.75 * massone * ervel[i]*ervel[i];
+        t[0] += mefactor * massone * ervel[i]*ervel[i];
+        t[1] += mefactor * massone * ervel[i]*ervel[i];
+        t[2] += mefactor * massone * ervel[i]*ervel[i];
       }
     }
   

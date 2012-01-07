@@ -27,8 +27,13 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
+#endif
+
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 
 #include "limits.h"
 #include "stdint.h"

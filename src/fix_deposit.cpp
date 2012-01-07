@@ -61,6 +61,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   rateflag = 0;
   vxlo = vxhi = vylo = vyhi = vzlo = vzhi = 0.0;
   scaleflag = 1;
+  targetflag = 0;
 
   // read options from end of input line
 
@@ -125,6 +126,9 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   vyhi *= yscale;
   vzlo *= zscale;
   vzhi *= zscale;
+  tx *= xscale;
+  ty *= yscale;
+  tz *= zscale;
 
   // random number generator, same for all procs
 
@@ -284,6 +288,21 @@ void FixDeposit::pre_exchange()
     double vytmp = vylo + random->uniform() * (vyhi-vylo);
     double vztmp = vzlo + random->uniform() * (vzhi-vzlo);
 
+    // if we have a sputter target change velocity vector accordingly
+    if (targetflag) {
+      double vel = sqrt(vxtmp*vxtmp + vytmp*vytmp + vztmp*vztmp);
+      delx = tx - coord[0];
+      dely = ty - coord[1];
+      delz = tz - coord[2];
+      double rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq > 0.0) {
+	double rinv = sqrt(1.0/rsq);
+	vxtmp = delx*rinv*vel;
+	vytmp = dely*rinv*vel;
+	vztmp = delz*rinv*vel;
+      }
+    }
+
     // check if new atom is in my sub-box or above it if I'm highest proc
     // if so, add to my list via create_atom()
     // initialize info about the atoms
@@ -419,6 +438,13 @@ void FixDeposit::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal fix deposit command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"target") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
+      tx = atof(arg[iarg+1]);
+      ty = atof(arg[iarg+2]);
+      tz = atof(arg[iarg+3]);
+      targetflag = 1;
+      iarg += 4;
     } else error->all(FLERR,"Illegal fix deposit command");
   }
 }

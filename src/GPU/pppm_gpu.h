@@ -29,12 +29,15 @@ class PPPMGPU : public PPPM {
   PPPMGPU(class LAMMPS *, int, char **);
   virtual ~PPPMGPU();
   virtual void init();
+  virtual void setup();
   virtual void compute(int, int);
+  virtual void timing(int, double &, double &);
   virtual double memory_usage();
 
  protected:
 
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
+  bool kspace_split, im_real_space;
 
   virtual void allocate();
   virtual void deallocate();

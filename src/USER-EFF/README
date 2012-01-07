@@ -74,3 +74,18 @@ real units, upgraded post-processing and visualization tools, added
 support for "compute pair eff" to allow thermo prints with the
 different eFF energy components (eke, epauli, ecoul and errestrain),
 fixed radial scaling factors in the eff langevin thermostat.
+
+12/2011: Added support for "zero" option in fix langevin/eff (see doc), and
+adjusted fix_langevin_eff.cpp to correctly thermostat between nuclear and electronic dof 
+(required additional scaling of friction term in the Langevin equations of motion).
+Radial electron mass now scales as a function of system dimension.
+
+Bug fixes:
+(10-2011): Thanks to Christian Chenard-Lemire (U Montreal) for reporting a bug in the
+fixed pair_eff_cut.cpp fixedcore-pseudocore interactions (an incorrect index and a missing
+elec-core call to account for the 2 electrons from the fixed core.)     
+(12-2011): Corrected undefined natom variable in fix_langevin_eff (recent changes in 
+main fix_langevin class caused compilation error in user-eff).  
+Corrected thermostat in fix langevin/eff as described in version 12/2011.
+
+

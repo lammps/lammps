@@ -317,7 +317,7 @@ int RegCone::surface_interior(double *x, double cutoff)
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
 
-    // x is exterior to cone
+    // z is exterior to cone
     
     if (r > currentradius || x[2] < lo || x[2] > hi) return 0;
 

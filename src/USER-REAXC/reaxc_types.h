@@ -57,6 +57,7 @@
 #define REAX_MAX_4BODY_PARAM    5
 #define REAX_MAX_ATOM_TYPES     25
 #define REAX_MAX_MOLECULE_SIZE  20
+#define MAX_BOND    		20  // same as reaxc_defs.h
 
 /********************** TYPE DEFINITIONS ********************/
 typedef int  ivec[3];
@@ -246,6 +247,11 @@ typedef struct
   real rcore2;
   real ecore2;
   real acore2;
+
+  /* Line five in the ffield file, only for lgvdw yes */
+  real lgcij;
+  real lgre;
+
 } single_body_parameters;
 
 
@@ -270,6 +276,7 @@ typedef struct {
   real r_vdW;
   real gamma_w;
   real rcore, ecore, acore;
+  real lgcij, lgre;
 
   /* electrostatic parameters */
   real gamma; // note: this parameter is gamma^-3 and not gamma.
@@ -359,6 +366,11 @@ typedef struct
   int num_bonds;
   int num_hbonds;
   int renumber;
+
+  int numbonds;  		// true number of bonds around atoms
+  int nbr_id[MAX_BOND];  	// ids of neighbors around atoms
+  double nbr_bo[MAX_BOND];  	// BO values of bond between i and nbr
+  double sum_bo, no_lp;   	// sum of BO values and no. of lone pairs
 } reax_atom;
 
 
@@ -472,12 +484,11 @@ typedef struct
   simulation_box   big_box, my_box, my_ext_box;
   grid             my_grid;
   boundary_cutoff  bndry_cuts;
-
   reax_atom       *my_atoms;
 
-  int evflag;
-  int vflag_atom;
   class Pair *pair_ptr;
+  int my_bonds;
+
 } reax_system;
 
 
@@ -543,6 +554,9 @@ typedef struct
   int  diffusion_coef;
   int  freq_diffusion_coef;
   int  restrict_type;
+
+  int lgflag;
+
 } control_params;
 
 

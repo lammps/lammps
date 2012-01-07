@@ -596,7 +596,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     rvec_ScaledAdd( workspace->f[k], -coef.C3dbopi2, nbr_k->bo_data.dBOp );
 
     // tally into per-atom virial
-    if( system->vflag_atom ) {
+    if( system->pair_ptr->vflag_atom ) {
       f_scaler = -(coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
       rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
       system->pair_ptr->v_tally(k, fk_tmp);
@@ -642,7 +642,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     rvec_ScaledAdd( workspace->f[k], -coef.C4dbopi2, nbr_k->bo_data.dBOp );
 
     // tally into per-atom virial
-    if( system->vflag_atom ) {
+    if( system->pair_ptr->vflag_atom ) {
       f_scaler = -(coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
       rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
       system->pair_ptr->v_tally(k, fk_tmp);
@@ -673,7 +673,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   /*3rd, dBOpi2*/
   rvec_ScaledAdd( workspace->f[j], coef.C4dbopi2, workspace->dDeltap_self[j] );
 
-  if( system->vflag_atom) {
+  if( system->pair_ptr->vflag_atom) {
 
     // forces on i 
     f_scaler = coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2;

@@ -475,7 +475,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "12 Dec 2011";
+  const char *version = "5 Jan 2012";
 
   data.triclinic = 0;
 
@@ -487,7 +487,8 @@ void header(FILE *fp, Data &data)
     if (flag == VERSION) {
       data.version = read_char(fp);
       if (strcmp(version,data.version) != 0) {
-	char *str = "Restart file version does not match restart2data version";
+	const char *str = 
+	  "Restart file version does not match restart2data version";
 	printf("WARNING %s\n",str);
 	printf("  restart2data version = %s\n",version);
       }
@@ -3177,7 +3178,9 @@ void Data::write(FILE *fp, FILE *fp2)
 
     } else if ((strcmp(pair_style,"cg/cmm") == 0) ||
                (strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-               (strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+               (strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
+               (strcmp(pair_style,"lj/sdk") == 0) ||
+               (strcmp(pair_style,"lj/sdk/coul/long") == 0)) {
       printf("ERROR: Cannot write pair_style %s to data file\n",
 	     pair_style);
       exit(1);

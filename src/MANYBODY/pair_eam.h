@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PairEAM : public Pair {
  public:
 
-  // public variables so UESR-ATC package can access them
+  // public variables so USER-ATC package can access them
 
   double cutmax;
 

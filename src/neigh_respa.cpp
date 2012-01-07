@@ -150,8 +150,8 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -327,8 +327,8 @@ void Neighbor::respa_nsq_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -497,8 +497,8 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -702,8 +702,8 @@ void Neighbor::respa_bin_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
@@ -879,8 +879,8 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;

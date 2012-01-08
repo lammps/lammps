@@ -1506,6 +1506,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"comb") == 0) {
+
   } else if (strcmp(style,"coul/diel") == 0) {
     m = 1;
     double cut_coul = read_double(fp);
@@ -3046,6 +3048,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
 	(strcmp(pair_style,"brownian") != 0) &&
+	(strcmp(pair_style,"comb") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
 	(strcmp(pair_style,"coul/diel") != 0) &&

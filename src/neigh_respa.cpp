@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 void Neighbor::respa_nsq_no_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -79,6 +79,8 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = 0;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -128,7 +130,6 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	which=0;
 	if (molecular) {
 	  which = find_special(special[i],nspecial[i],tag[j]);
 	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -158,16 +159,16 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;
@@ -188,7 +189,7 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
 
 void Neighbor::respa_nsq_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,which,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -239,6 +240,8 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = 0;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -305,7 +308,6 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	which=0;
 	if (molecular) {
 	  which = find_special(special[i],nspecial[i],tag[j]);
 	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -336,16 +338,16 @@ void Neighbor::respa_nsq_newton(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;
@@ -366,7 +368,7 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 
 void Neighbor::respa_bin_no_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -419,6 +421,8 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = 0;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -474,7 +478,6 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  which = 0;
 	  if (molecular) {
 	    which = find_special(special[i],nspecial[i],tag[j]);
 	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -507,16 +510,16 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;
@@ -536,7 +539,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -589,6 +592,8 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = 0;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -647,7 +652,6 @@ void Neighbor::respa_bin_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	which = 0;
 	if (molecular) {
 	  which = find_special(special[i],nspecial[i],tag[j]);
 	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -681,7 +685,6 @@ void Neighbor::respa_bin_newton(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  which = 0;
 	  if (molecular) {
 	    which = find_special(special[i],nspecial[i],tag[j]);
 	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -714,16 +717,16 @@ void Neighbor::respa_bin_newton(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;
@@ -743,7 +746,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton_tri(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -796,6 +799,8 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = 0;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -859,7 +864,6 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 	rsq = delx*delx + dely*dely + delz*delz;
 
 	if (rsq <= cutneighsq[itype][jtype]) {
-	  which = 0;
 	  if (molecular) {
 	    which = find_special(special[i],nspecial[i],tag[j]);
 	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
@@ -892,16 +896,16 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;

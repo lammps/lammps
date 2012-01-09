@@ -47,7 +47,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
        $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
        $(OBJ_DIR)/lal_table.o $(OBJ_DIR)/lal_table_ext.o \
-       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o
+       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o \
+       $(OBJ_DIR)/lal_eam_lj.o $(OBJ_DIR)/lal_eam_lj_ext.o
 PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/atom.ptx $(OBJ_DIR)/atom_ptx.h \
        $(OBJ_DIR)/neighbor_cpu.ptx $(OBJ_DIR)/neighbor_cpu_ptx.h \
@@ -76,7 +77,8 @@ PTXS = $(OBJ_DIR)/device.ptx $(OBJ_DIR)/device_ptx.h \
        $(OBJ_DIR)/buck_coul.ptx $(OBJ_DIR)/buck_coul_ptx.h \
        $(OBJ_DIR)/buck_coul_long.ptx $(OBJ_DIR)/buck_coul_long_ptx.h \
        $(OBJ_DIR)/table.ptx $(OBJ_DIR)/table_ptx.h \
-       $(OBJ_DIR)/yukawa.ptx $(OBJ_DIR)/yukawa_ptx.h
+       $(OBJ_DIR)/yukawa.ptx $(OBJ_DIR)/yukawa_ptx.h \
+       $(OBJ_DIR)/eam_lj.ptx $(OBJ_DIR)/eam_lj_ptx.h
 
 all: $(GPU_LIB) $(EXECS)
 
@@ -421,6 +423,18 @@ $(OBJ_DIR)/lal_yukawa.o: $(ALL_H) lal_yukawa.h lal_yukawa.cpp $(OBJ_DIR)/yukawa_
 
 $(OBJ_DIR)/lal_yukawa_ext.o: $(ALL_H) lal_yukawa.h lal_yukawa_ext.cpp lal_base_atomic.h
 	$(CUDR) -o $@ -c lal_yukawa_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/eam_lj.ptx: lal_eam_lj.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --ptx -DNV_KERNEL -o $@ lal_eam_lj.cu
+  
+$(OBJ_DIR)/eam_lj_ptx.h: $(OBJ_DIR)/eam_lj.ptx $(OBJ_DIR)/eam_lj.ptx
+	$(BSH) ./geryon/file_to_cstr.sh eam_lj $(OBJ_DIR)/eam_lj.ptx $(OBJ_DIR)/eam_lj_ptx.h
+    
+$(OBJ_DIR)/lal_eam_lj.o: $(ALL_H) lal_eam_lj.h lal_eam_lj.cpp $(OBJ_DIR)/eam_lj_ptx.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_eam_lj.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_lj_ext.o: $(ALL_H) lal_eam_lj.h lal_eam_lj_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_eam_lj_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 

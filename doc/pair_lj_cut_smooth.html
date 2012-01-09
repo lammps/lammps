@@ -9,45 +9,33 @@
 
 <HR>
 
-<H3>pair_style lj/smooth command 
+<H3>pair_style lj/cut/smooth command 
 </H3>
-<H3>pair_style lj/smooth/cuda command 
+<H3>pair_style lj/cut/smooth/cuda command 
 </H3>
-<H3>pair_style lj/smooth/omp command 
+<H3>pair_style lj/cut/smooth/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lj/smooth Rin Rc 
+<PRE>pair_style lj/cut/smooth Rc 
 </PRE>
-<UL><LI>Rin = inner cutoff beyond which force smoothing will be applied (distance units)
-<LI>Rc = outer cutoff for lj/smooth interactions (distance units) 
+<UL><LI>Rc = cutoff for lj/cut/smooth interactions (distance units) 
 </UL>
-<P><B>Examples:</B>
+<P><B>Examples:</B> 
 </P>
-<PRE>pair_style lj/smooth 8.0 10.0
-pair_coeff * * 10.0 1.5
-pair_coeff 1 1 20.0 1.3 7.0 9.0 
+<PRE>pair_style lj/cut/smooth 5.456108274435118
+pair_coeff * * 0.7242785984051078 2.598146797350056
+pair_coeff 1 1 20.0 1.3 9.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>lj/smooth</I> computes a LJ interaction with a force smoothing
-applied between the inner and outer cutoff.
+<P>Style <I>lj/cut/smooth</I> computes a LJ interaction that combines the standard 
+12/6 Lennard-Jones function and subtracts a linear term that includes a 
+cutoff distance Rc.
 </P>
-<CENTER><IMG SRC = "Eqs/pair_lj_smooth.jpg">
+<CENTER><IMG SRC = "Eqs/pair_lj_cut_smooth.jpg">
 </CENTER>
-<P>The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
-cause the force to vary smoothly from the inner cutoff Rin to the
-outer cutoff Rc. 
-</P>
-<P>At the inner cutoff the force and its 1st derivative
-will match the unsmoothed LJ formula.  At the outer cutoff the force
-and its 1st derivative will be 0.0.  The inner cutoff cannot be 0.0.
-</P>
-<P>IMPORTANT NOTE: this force smoothing causes the energy to be
-discontinuous both in its values and 1st derivative.  This can lead to
-poor energy conservation and may require the use of a thermostat.
-Plot the energy and force resulting from this formula via the
-<A HREF = "pair_write.html">pair_write</A> command to see the effect.
+<P>At the cutoff Rc, the energy and force (its 1st derivative) will be 0.0.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
@@ -57,11 +45,9 @@ commands, or by mixing as described below:
 </P>
 <UL><LI>epsilon (energy units)
 <LI>sigma (distance units)
-<LI>innner (distance units)
-<LI>outer (distance units) 
+<LI>cutoff (distance units) 
 </UL>
-<P>The last 2 coefficients are optional inner and outer cutoffs.  If not
-specified, the global values for Rin and Rc are used.
+<P>If not specified, the global value for Rc is used.
 </P>
 <HR>
 
@@ -89,14 +75,11 @@ more instructions on how to use the accelerated styles effectively.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>For atom type pairs I,J and I != J, the epsilon, sigma, Rin
-coefficients and the cutoff distance for this pair style can be mixed.
-Rin is a cutoff value and is mixed like the cutoff.  The other
-coefficients are mixed according to the pair_modify mix option.  The
-default mix value is <I>geometric</I>.  See the "pair_modify" command for
-details.
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients and 
+cutoff distance can be mixed. The default mix value is geometric. 
+See the "pair_modify" command for details.
 </P>
-<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A> shift
 option for the energy of the pair interaction.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
@@ -121,8 +104,7 @@ to be specified in an input script that reads a restart file.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lj_smooth_linear.html">pair
-lj/smooth/linear</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
 </P>

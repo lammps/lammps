@@ -116,6 +116,7 @@ This pair style can only be used via the {pair} keyword of the
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair
+lj/smooth/linear"_pair_lj_smooth_linear.html
 
 [Default:] none

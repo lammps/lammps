@@ -664,6 +664,7 @@ potentials.  Click on the style itself for a full description:
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
+"lj/smooth/linear"_pair_lj_smooth_linear.html,
 "lj96/cut"_pair_lj96.html,
 "lubricate"_pair_lubricate.html,
 "lubricate/poly"_pair_lubricate.html,

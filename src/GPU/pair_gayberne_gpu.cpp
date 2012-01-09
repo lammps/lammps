@@ -77,6 +77,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
     error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

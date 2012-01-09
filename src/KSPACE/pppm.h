@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -95,7 +95,7 @@ class PPPM : public KSpace {
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
-  double gf_denom(double, double, double);
+
   virtual void particle_map();
   virtual void make_rho();
   virtual void brick2fft();
@@ -107,6 +107,30 @@ class PPPM : public KSpace {
 		     const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr(int);
+
+/* ----------------------------------------------------------------------
+   denominator for Hockney-Eastwood Green's function
+     of x,y,z = sin(kx*deltax/2), etc
+
+            inf                 n-1
+   S(n,k) = Sum  W(k+pi*j)**2 = Sum b(l)*(z*z)**l
+           j=-inf               l=0
+
+          = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
+   gf_b = denominator expansion coeffs 
+------------------------------------------------------------------------- */
+
+  inline double gf_denom(const double &x, const double &y, const double &z) const {
+    double sx,sy,sz;
+    sz = sy = sx = 0.0;
+    for (int l = order-1; l >= 0; l--) {
+      sx = gf_b[l] + sx*x;
+      sy = gf_b[l] + sy*y;
+      sz = gf_b[l] + sz*z;
+    }
+    double s = sx*sy*sz;
+    return s*s;
+  };
 };
 
 }

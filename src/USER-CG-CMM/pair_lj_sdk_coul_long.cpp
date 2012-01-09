@@ -726,7 +726,7 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSDKCoulLong::extract(char *str, int &dim)
+void *PairLJSDKCoulLong::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;

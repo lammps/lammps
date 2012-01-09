@@ -215,10 +215,13 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
     const int ifrom = tid*idelta;
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
-    for (int m = ifrom; m < ito; ++m) {
-      for (int n = 1; n < nthreads; ++n) {
-	dall[m] += dall[n*nvals + m];
-	dall[n*nvals + m] = 0.0;
+    // this if protects against having more threads than atoms
+    if (ifrom < nvals) { 
+      for (int m = ifrom; m < ito; ++m) {
+	for (int n = 1; n < nthreads; ++n) {
+	  dall[m] += dall[n*nvals + m];
+	  dall[n*nvals + m] = 0.0;
+	}
       }
     }
   }

@@ -16,10 +16,12 @@
 <PRE>pair_style reax/c cfile keyword value 
 </PRE>
 <UL><LI>cfile = NULL or name of a control file 
-</UL>
-<PRE>one keyword value pair may be appended
-keyword = <I>checkqeq</I> 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>checkqeq</I> or <I>lgvdw</I>
   <I>checkqeq</I> value = <I>yes</I> or <I>no</I> = whether or not to require qeq/reax fix 
+  <I>lgvdw</I> value = <I>yes</I> or <I>no</I> = whether or not to use a low gradient vdW correction 
 </PRE>
 
 </UL>
@@ -27,6 +29,7 @@ keyword = <I>checkqeq</I>
 </P>
 <PRE>pair_style reax/c NULL
 pair_style reax/c controlfile checkqeq no
+pair_style reax/c NULL lgvdw yes
 pair_coeff * * ffield.reax 1 2 2 3 
 </PRE>
 <P><B>Description:</B>
@@ -88,6 +91,16 @@ In this case, the static charges you
 assign to each atom will be used for computing the electrostatic
 interactions in the system.
 See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
+</P>
+<P>Using the optional keyword <I>lgvdw</I> with the value <I>yes</I> turns on 
+the low-gradient correction of the ReaxFF/C for long-range 
+London Dispersion, as described in the "(Liu)" paper. Force field 
+file <I>ffield.reax.lg</I> is designed for this correction, and is trained
+for several energetic materials (see "Liu"). When using lg-correction, 
+recommended value for parameter <I>thb</I> is 0.01, which can be set in 
+the control file.  Note: Force field files 
+are different for the original or lg corrected pair styles, using
+wrong ffield file generates an error message.
 </P>
 <P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -260,7 +273,7 @@ appropriate units if your simulation doesn't use "real" units.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword default is checkqeq = yes.
+<P>The keyword defaults are checkqeq = yes, lgvdw = no.
 </P>
 <HR>
 
@@ -273,5 +286,10 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 <P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
 appear (2011).
+</P>
+<A NAME = "Liu"></A>
+
+<P><B>(Liu)</B> L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
+of Physical Chemistry A, 115, 11016-11022 (2011).
 </P>
 </HTML>

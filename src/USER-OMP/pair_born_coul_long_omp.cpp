@@ -171,8 +171,8 @@ void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
 	      + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
 	    evdwl *= factor_lj;
-	  }
-	} else evdwl = 0.0;
+	  } else evdwl = 0.0;
+	}
 
 	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);

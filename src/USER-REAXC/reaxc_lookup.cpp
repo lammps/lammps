@@ -266,7 +266,7 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
 		     "lookup:LR[i,j].CEclmb", comm );
 	  
 	  for( r = 1; r <= control->tabulate; ++r ) {
-	    LR_vdW_Coulomb( system, workspace, i, j, r * dr, &(LR[i][j].y[r]) );
+	    LR_vdW_Coulomb( system, workspace, control, i, j, r * dr, &(LR[i][j].y[r]) );
 	    h[r] = LR[i][j].dx;
 	    fh[r] = LR[i][j].y[r].H;
 	    fvdw[r] = LR[i][j].y[r].e_vdW;

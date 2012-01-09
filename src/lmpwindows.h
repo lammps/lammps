@@ -1,9 +1,13 @@
 #include <iso646.h>
+#if !defined(__MINGW32_VERSION)
 #include "erf.h"
+#endif
 #include "direct.h"
 #include "math.h"
 // LAMMPS uses usleep with 100 ms arguments, no microsecond precision needed
+#if !defined(__MINGW32_VERSION)
 #include "sleep.h"
+#endif
 
 // some symbols have different names in Windows
 
@@ -18,6 +22,10 @@
 
 inline double pow(int i, int j){
   return pow((double)i,(double) j);
+}
+
+inline double pow(double i, int j){
+  return pow(i,(double) j);
 }
 
 inline double sqrt(int i){
@@ -36,6 +44,6 @@ inline double trunc(double x) {
 # define S_IRWXU 0
 # define S_IRGRP 0
 # define S_IXGRP 0
-inline int mkdir(const char *path, int flags){
+inline int mkdir(const char *path, int){
   return _mkdir(path);
 }

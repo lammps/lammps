@@ -56,13 +56,14 @@ using namespace MathConst;
 #define ONEF  1.0
 #endif
 
-
 // External functions from cuda library for atom decomposition
+
 #ifdef FFT_SINGLE
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _f
 #else
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _d
 #endif
+
 FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
 			       const int order, const int nxlo_out, 
 			       const int nylo_out, const int nzlo_out,
@@ -91,6 +92,8 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   density_brick_gpu = vd_brick = NULL;
   kspace_split = false;
   im_real_space = false;
+
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

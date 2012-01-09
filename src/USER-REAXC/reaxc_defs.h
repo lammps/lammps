@@ -104,6 +104,7 @@
 #define MAX_ITR 10
 #define RESTART 30
 
+#define MAX_BOND 20
 
 
 /******************* ENUMERATIONS *************************/

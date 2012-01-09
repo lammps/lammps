@@ -14,6 +14,7 @@ pair_style coul/long command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
 pair_style coul/wolf command :h3
+pair_style coul/wolf/omp command :h3
 
 [Syntax:]
 

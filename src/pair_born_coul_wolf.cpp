@@ -69,7 +69,7 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
   double prefactor;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
+  double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -116,13 +116,9 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
-      if (j < nall) factor_coul = factor_lj = 1.0;
-      else {
-	factor_coul = special_coul[j/nall];
-	factor_lj = special_lj[j/nall];
-	j %= nall;
-      }
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

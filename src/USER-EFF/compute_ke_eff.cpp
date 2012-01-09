@@ -63,6 +63,7 @@ double ComputeKEEff::compute_scalar()
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   double ke = 0.0;
 
@@ -71,7 +72,7 @@ double ComputeKEEff::compute_scalar()
       if (mask[i] & groupbit) {
         ke += mass[type[i]]*(v[i][0]*v[i][0] + v[i][1]*v[i][1] + 
                              v[i][2]*v[i][2]);
-        if (fabs(spin[i])==1) ke += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) ke += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
   }
 

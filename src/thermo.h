@@ -85,7 +85,7 @@ class Thermo : protected Pointers {
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs
-  int *compute_which;          // 0/1 if should call scalar() or vector()
+  int *compute_which;          // 0/1/2 if should call scalar,vector,array
   class Compute **computes;    // list of ptrs to the Compute objects
 
   int nfix;                    // # of Fix objects called by thermo

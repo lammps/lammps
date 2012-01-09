@@ -104,9 +104,11 @@ double ComputeTempRegionEff::compute_scalar()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   Region *region = domain->regions[iregion];
   int count = 0;
+  int ecount = 0;
   double t = 0.0;
 
   if (mass) {
@@ -115,12 +117,16 @@ double ComputeTempRegionEff::compute_scalar()
         count++;
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
           mass[type[i]];
-        if (fabs(spin[i])==1) t += 0.75*mass[type[i]]*ervel[i]*ervel[i];
+        if (fabs(spin[i])==1) {
+          t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
+          ecount++;
+        }
       }
   }
 
   double tarray[2],tarray_all[2];
-  tarray[0] = count;
+  // Assume 3/2 k T per nucleus
+  tarray[0] = count-ecount;
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
@@ -130,12 +136,6 @@ double ComputeTempRegionEff::compute_scalar()
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
       if (fabs(spin[i])==1) one++;
     }
-  int nelectrons_region;
-  MPI_Allreduce(&one,&nelectrons_region,1,MPI_INT,MPI_SUM,world);
-
-  // average over nuclear dof only
-
-  dof -= domain->dimension * nelectrons_region ;
 
   if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
@@ -158,6 +158,7 @@ void ComputeTempRegionEff::compute_vector()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double mefactor = domain->dimension/4.0;
 
   Region *region = domain->regions[iregion];
   double massone,t[6];
@@ -175,9 +176,9 @@ void ComputeTempRegionEff::compute_vector()
       t[5] += massone * v[i][1]*v[i][2];
                 
       if (fabs(spin[i])==1) {
-        t[0] += 0.75 * massone * ervel[i]*ervel[i];
-        t[1] += 0.75 * massone * ervel[i]*ervel[i];
-        t[2] += 0.75 * massone * ervel[i]*ervel[i];
+        t[0] += mefactor * massone * ervel[i]*ervel[i];
+        t[1] += mefactor * massone * ervel[i]*ervel[i];
+        t[2] += mefactor * massone * ervel[i]*ervel[i];
       }
     }
 

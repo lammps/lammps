@@ -66,6 +66,7 @@ PairLJ96CutGPU::PairLJ96CutGPU(LAMMPS *lmp) : PairLJ96Cut(lmp), gpu_mode(GPU_FOR
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

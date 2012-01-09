@@ -122,6 +122,7 @@ class Data {
   double *pair_gb_epsilon,*pair_gb_sigma;
   double *pair_gb_epsa,*pair_gb_epsb,*pair_gb_epsc;
   double *pair_lj_epsilon,*pair_lj_sigma;
+  double *pair_gauss_hgauss,*pair_gauss_rmh,*pair_gauss_sigmah;
   double **pair_cg_epsilon,**pair_cg_sigma;
   int **pair_cg_cmm_type, **pair_setflag;
   double **pair_cut_coul, **pair_cut_lj;
@@ -329,21 +330,17 @@ int main (int narg, char **arg)
   // process command-line args
 
   int iarg = 1;
-  if (strcmp(arg[iarg],"-h") == 0) {
-    printf("Syntax: restart2data switch arg ... "
+  if (narg < 2 || strcmp(arg[iarg],"-h") == 0) {
+    printf("Syntax: restart2data (switch) ... "
 	   "restart-file data-file (input-file)\n");
-    printf("  restart-file and data-file are mandatory");
-    printf("  input-file is optional");
-    printf("    if specified it will contain LAMMPS input script commands");
-    printf("    for mass and force field info");
-    printf("    only a few force field styles support this option");
+    printf("  'restart-file' and 'data-file' are mandatory\n");
+    printf("  'input-file' is optional\n");
+    printf("    If specified, it will contain LAMMPS input script\n");
+    printf("    commands for mass and force field info.\n");
+    printf("    Only a few force field styles support this option.\n");
+    printf("  'switch' is optional\n");
+    printf("    The only supported switch is '-h' to print this message\n");
     return 0;
-  }
-
-  if ((narg-iarg != 2) && (narg-iarg != 3)) {
-    printf("Syntax: restart2data switch arg ... "
-	   "restart-file data-file (input-file)\n");
-    return 1;
   }
 
   char *restartfile = arg[iarg];
@@ -478,7 +475,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  char *version = "19 Aug 2011";
+  const char *version = "5 Jan 2012";
 
   data.triclinic = 0;
 
@@ -490,7 +487,8 @@ void header(FILE *fp, Data &data)
     if (flag == VERSION) {
       data.version = read_char(fp);
       if (strcmp(version,data.version) != 0) {
-	char *str = "Restart file version does not match restart2data version";
+	const char *str = 
+	  "Restart file version does not match restart2data version";
 	printf("WARNING %s\n",str);
 	printf("  restart2data version = %s\n",version);
       }
@@ -1508,9 +1506,35 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
+  } else if (strcmp(style,"coul/diel") == 0) {
+    m = 1;
+    double cut_coul = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+    if (!flag) return;
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    double diel_rme = read_double(fp);
+	    double diel_sigmae = read_double(fp);
+	    double cut_coul = read_double(fp);
+	  } else {
+	    double diel_rme = read_double(fp);
+	    double diel_sigmae = read_double(fp);
+	    double cut_coul = read_double(fp);
+	  }
+	}
+      }
+
   } else if ((strcmp(style,"coul/cut") == 0) ||
-	     (strcmp(style,"coul/debye") == 0) ||
-	     (strcmp(style,"coul/long") == 0)) {
+	     (strcmp(style,"coul/debye") == 0)) {
 
     if (strcmp(style,"coul/cut") == 0) {
       double cut_coul = read_double(fp);
@@ -1520,10 +1544,6 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       m = 1;
       double cut_coul = read_double(fp);
       double kappa = read_double(fp);
-      int offset_flag = read_int(fp);
-      int mix_flag = read_int(fp);
-    } else if (strcmp(style,"coul/long") == 0) {
-      double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     }
@@ -1545,6 +1565,14 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	  }
 	}
       }
+
+  } else if (strcmp(style,"coul/long") == 0) {
+
+    double cut_coul = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
 
   } else if (strcmp(style,"dipole/cut") == 0) {
 
@@ -1724,6 +1752,69 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
     }
 
+  } else if (strcmp(style,"gauss") == 0) {
+
+    double cut_lj_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_gauss_hgauss = new double[data.ntypes+1];
+    data.pair_gauss_rmh = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_gauss_hgauss[i] = read_double(fp);
+	    data.pair_gauss_rmh[i] = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  } else {
+	    double dipole_hgauss = read_double(fp);
+	    double dipole_rmh = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  }
+	}
+      }
+  } else if (strcmp(style,"gauss/cut") == 0) {
+
+    double cut_lj_global = read_double(fp);
+    int offset_flag = read_int(fp);
+    int mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    data.pair_gauss_hgauss = new double[data.ntypes+1];
+    data.pair_gauss_rmh = new double[data.ntypes+1];
+    data.pair_gauss_sigmah = new double[data.ntypes+1];
+
+    for (i = 1; i <= data.ntypes; i++)
+      for (j = i; j <= data.ntypes; j++) {
+	itmp = read_int(fp);
+	if (i == j && itmp == 0) {
+	  printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+	  exit(1);
+	}
+	if (itmp) {
+	  if (i == j) {
+	    data.pair_gauss_hgauss[i] = read_double(fp);
+	    data.pair_gauss_rmh[i] = read_double(fp);
+	    data.pair_gauss_sigmah[i] = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  } else {
+	    double dipole_hgauss = read_double(fp);
+	    double dipole_rmh = read_double(fp);
+	    double dipole_sigmah = read_double(fp);
+	    double cut_lj = read_double(fp);
+	  }
+	}
+      }
   } else if ((strcmp(style,"gran/hooke") == 0) ||
 	   (strcmp(style,"gran/hooke/history") == 0) ||
 	   (strcmp(style,"gran/hertz/history") == 0)) {
@@ -2157,6 +2248,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     int n = read_int(fp);
 
   } else if (strcmp(style,"tersoff") == 0) {
+  } else if (strcmp(style,"tersoff/table") == 0) {
   } else if (strcmp(style,"tersoff/zbl") == 0) {
 
   } else if ((strcmp(style,"yukawa") == 0) || 
@@ -2190,9 +2282,55 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       }
 
   } else if ((strcmp(style,"cg/cmm") == 0) ||
-             (strcmp(style,"cg/cmm/coul/cut") == 0) ||
-             (strcmp(style,"cg/cmm/coul/long") == 0)) {
+             (strcmp(style,"cg/cmm/coul/long") == 0) ||
+	     (strcmp(style,"lj/sdk") == 0) ||
+             (strcmp(style,"lj/sdk/coul/long") == 0)) {
 
+    m = 0;
+    data.cut_lj_global = read_double(fp);
+    if ((strcmp(style,"cg/cmm/coul/long") == 0) ||
+	(strcmp(style,"lj/sdk/coul/long") == 0)) {
+      data.cut_coul_global = read_double(fp);
+    }
+    data.offset_flag = read_int(fp);
+    data.mix_flag = read_int(fp);
+
+    if (!flag) return;
+
+    const int numtyp=data.ntypes+1;
+    data.pair_cg_cmm_type = new int*[numtyp];
+    data.pair_setflag = new int*[numtyp];
+    data.pair_cg_epsilon = new double*[numtyp];
+    data.pair_cg_sigma = new double*[numtyp];
+    data.pair_cut_lj = new double*[numtyp];
+    data.pair_cut_coul = NULL;
+    m=0;
+
+    for (i = 1; i <= data.ntypes; i++) {
+      data.pair_cg_cmm_type[i] = new int[numtyp];
+      data.pair_setflag[i] = new int[numtyp];
+      data.pair_cg_epsilon[i] = new double[numtyp];
+      data.pair_cg_sigma[i] = new double[numtyp];
+      data.pair_cut_lj[i] = new double[numtyp];
+
+      for (j = i; j <= data.ntypes; j++) {
+        itmp = read_int(fp);
+        data.pair_setflag[i][j] = itmp;
+        if (i == j && itmp == 0) {
+          printf("ERROR: Pair coeff %d,%d is not in restart file\n",i,j);
+          exit(1);
+        }
+        if (itmp) {
+          data.pair_cg_cmm_type[i][j] = read_int(fp);
+          data.pair_cg_epsilon[i][j] = read_double(fp);
+          data.pair_cg_sigma[i][j] = read_double(fp);
+          data.pair_cut_lj[i][j] = read_double(fp);
+        }
+      }
+    }
+  } else if ((strcmp(style,"cg/cmm/old") == 0) ||
+             (strcmp(style,"cg/cmm/coul/cut/old") == 0) ||
+             (strcmp(style,"cg/cmm/coul/long/old") == 0)) {
     m = 0;
     data.cut_lj_global = read_double(fp);
     data.cut_coul_global = read_double(fp);
@@ -2208,8 +2346,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     data.pair_cg_epsilon = new double*[numtyp];
     data.pair_cg_sigma = new double*[numtyp];
     data.pair_cut_lj = new double*[numtyp];
-    if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-	(strcmp(style,"cg/cmm/coul/long") == 0)) {
+    if ((strcmp(style,"cg/cmm/coul/cut/old") == 0) ||
+	(strcmp(style,"cg/cmm/coul/long/old") == 0)) {
       data.pair_cut_coul = new double*[numtyp];
       m=1;
     } else {
@@ -2223,8 +2361,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       data.pair_cg_epsilon[i] = new double[numtyp];
       data.pair_cg_sigma[i] = new double[numtyp];
       data.pair_cut_lj[i] = new double[numtyp];
-      if ((strcmp(style,"cg/cmm/coul/cut") == 0) ||
-          (strcmp(style,"cg/cmm/coul/long") == 0)) {
+      if ((strcmp(style,"cg/cmm/coul/cut/old") == 0) ||
+          (strcmp(style,"cg/cmm/coul/long/old") == 0)) {
         data.pair_cut_coul[i] = new double[numtyp];
       }
 
@@ -2247,7 +2385,6 @@ void pair(FILE *fp, Data &data, char *style, int flag)
         }
       }
     }
-
   } else if ((strcmp(style,"hybrid") == 0) ||
 	     (strcmp(style,"hybrid/overlay") == 0)) {
 
@@ -2394,7 +2531,8 @@ void angle(FILE *fp, Data &data)
 {
   if (strcmp(data.angle_style,"none") == 0) {
 
-  } else if (strcmp(data.angle_style,"cg/cmm") == 0) {
+  } else if ((strcmp(data.angle_style,"cg/cmm") == 0) ||
+	     (strcmp(data.angle_style,"sdk") == 0)) {
 
     data.angle_harmonic_k = new double[data.nangletypes+1];
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
@@ -2818,18 +2956,18 @@ void Data::stats()
 
   if (nellipsoids) printf("  Nellipsoids = " BIGINT_FORMAT "\n",nellipsoids);
 
-  printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
-  printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
-  printf("  Ndihedrals = " BIGINT_FORMAT "\n",ndihedrals);
-  printf("  Nimpropers = " BIGINT_FORMAT "\n",nimpropers);
+  if (nbonds) printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
+  if (nangles) printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
+  if (ndihedrals) printf("  Ndihedrals = " BIGINT_FORMAT "\n",ndihedrals);
+  if (nimpropers) printf("  Nimpropers = " BIGINT_FORMAT "\n",nimpropers);
 
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);
-  printf("  Pair style = %s\n",pair_style);
-  printf("  Bond style = %s\n",bond_style);
-  printf("  Angle style = %s\n",angle_style);
-  printf("  Dihedral style = %s\n",dihedral_style);
-  printf("  Improper style = %s\n",improper_style);
+  if (pair_style) printf("  Pair style = %s\n",pair_style);
+  if (bond_style) printf("  Bond style = %s\n",bond_style);
+  if (angle_style) printf("  Angle style = %s\n",angle_style);
+  if (dihedral_style) printf("  Dihedral style = %s\n",dihedral_style);
+  if (improper_style) printf("  Improper style = %s\n",improper_style);
 
   printf("  Xlo xhi = %g %g\n",xlo,xhi);
   printf("  Ylo yhi = %g %g\n",ylo,yhi);
@@ -2882,7 +3020,7 @@ void Data::write(FILE *fp, FILE *fp2)
     if (angle_style) fprintf(fp2,"angle_style %s\n",angle_style);
     if (dihedral_style) fprintf(fp2,"dihedral_style %s\n",dihedral_style);
     if (improper_style) fprintf(fp2,"improper_style %s\n",improper_style);
-    fprintf(fp2,"special_bonds %g %g %g %g %g %g\n",
+    fprintf(fp2,"special_bonds lj %g %g %g coul %g %g %g\n",
             special_lj[1],special_lj[2],special_lj[3],
             special_lj[1],special_coul[2],special_coul[3]);
     fprintf(fp2,"\n");
@@ -2910,23 +3048,28 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"brownian") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
+	(strcmp(pair_style,"coul/diel") != 0) &&
 	(strcmp(pair_style,"coul/long") != 0) &&
 	(strcmp(pair_style,"eam") != 0) &&
 	(strcmp(pair_style,"eam/alloy") != 0) &&
 	(strcmp(pair_style,"eam/fs") != 0) &&
 	(strcmp(pair_style,"eim") != 0) &&
 	(strcmp(pair_style,"eff/cut") != 0) &&
+	(strcmp(pair_style,"gauss") != 0) &&
+	(strcmp(pair_style,"gauss/cut") != 0) &&
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
 	(strcmp(pair_style,"gran/hertzian") != 0) &&
 	(strcmp(pair_style,"lubricate2") != 0) &&
 	(strcmp(pair_style,"lubricateU") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
+	(strcmp(pair_style,"rebo") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
 	(strcmp(pair_style,"reax/c") != 0) &&
 	(strcmp(pair_style,"sw") != 0) &&
 	(strcmp(pair_style,"table") != 0) &&
 	(strcmp(pair_style,"tersoff") != 0) &&
+	(strcmp(pair_style,"tersoff/table") != 0) &&
 	(strcmp(pair_style,"tersoff/zbl") != 0) &&
 	(strcmp(pair_style,"hybrid") != 0) &&
 	(strcmp(pair_style,"hybrid/overlay") != 0))
@@ -3035,7 +3178,9 @@ void Data::write(FILE *fp, FILE *fp2)
 
     } else if ((strcmp(pair_style,"cg/cmm") == 0) ||
                (strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-               (strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+               (strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
+               (strcmp(pair_style,"lj/sdk") == 0) ||
+               (strcmp(pair_style,"lj/sdk/coul/long") == 0)) {
       printf("ERROR: Cannot write pair_style %s to data file\n",
 	     pair_style);
       exit(1);
@@ -3046,9 +3191,13 @@ void Data::write(FILE *fp, FILE *fp2)
   // only supported styles = cg/cmm
 
   if (pair_style && fp2) {
-    if ((strcmp(pair_style,"cg/cmm") == 0) ||
+    if ((strcmp(pair_style,"lj/sdk") == 0) ||
+	(strcmp(pair_style,"lj/sdk/coul/long") == 0) ||
+	(strcmp(pair_style,"cg/cmm") == 0) ||
 	(strcmp(pair_style,"cg/cmm/coul/cut") == 0) ||
-	(strcmp(pair_style,"cg/cmm/coul/long") == 0)) {
+	(strcmp(pair_style,"cg/cmm/old") == 0) ||
+	(strcmp(pair_style,"cg/cmm/coul/cut/old") == 0) ||
+	(strcmp(pair_style,"cg/cmm/coul/long/old") == 0)) {
       for (int i = 1; i <= ntypes; i++) {
 	for (int j = i; j <= ntypes; j++) {
 	  fprintf(fp2,"pair_coeff %d %d %s %g %g\n",i,j,

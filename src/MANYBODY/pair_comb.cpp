@@ -49,6 +49,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  ghostneigh = 1;
 
   nmax = 0;
   NCo = NULL;
@@ -73,6 +74,8 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   sht_first = NULL;
   maxpage = 0;
   pages = NULL;
+
+  cutmax = cutmin = 0.0;
 
   // set comm size needed by this Pair
 
@@ -109,6 +112,7 @@ PairComb::~PairComb()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(cutghost);
     delete [] map;
     delete [] esm;
   }
@@ -143,15 +147,6 @@ void PairComb::compute(int eflag, int vflag)
   // int ntimestep=update->ntimestep;
   // if(ntimestep <= 1 || (ntimestep % every == 0))
     Short_neigh();
-
-  // grow coordination array if necessary
-  if (atom->nmax > nmax) {
-    memory->destroy(NCo);
-    memory->destroy(bbij);
-    nmax = atom->nmax;
-    memory->create(NCo,nmax,"pair:NCo");
-    memory->create(bbij,nmax,nmax,"pair:bbij");
-  }
 
   double **x = atom->x;
   double **f = atom->f;
@@ -280,7 +275,6 @@ void PairComb::compute(int eflag, int vflag)
     if (cor_flag) {
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
-	j &= NEIGHMASK;
 	jtype = map[type[j]];
 	iparam_ij = elem2param[itype][jtype][jtype];
 	
@@ -301,7 +295,6 @@ void PairComb::compute(int eflag, int vflag)
 
     for (jj = 0; jj < sht_jnum; jj++) {
       j = sht_jlist[jj];
-      j &= NEIGHMASK;
 
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
@@ -325,7 +318,6 @@ void PairComb::compute(int eflag, int vflag)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -370,7 +362,6 @@ void PairComb::compute(int eflag, int vflag)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -427,6 +418,7 @@ void PairComb::allocate()
 
  memory->create(setflag,n+1,n+1,"pair:setflag");
  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+ memory->create(cutghost,n+1,n+1,"pair:cutghost");
 
  map = new int[n+1];
  esm = new double[n]; 
@@ -565,6 +557,8 @@ void PairComb::init_style()
 double PairComb::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  cutghost[i][j] = cutmin;
+  cutghost[j][i] = cutmin;
   return cutmax;
 }
 
@@ -1059,7 +1053,12 @@ void PairComb::force_zeta(Param *param, int eflag, int i, int j, double rsq,
   double r,fa,fa_d,bij;
 
   r = sqrt(rsq);
-  if (r > param->bigr+param->bigd) return;
+  if (r > param->bigr+param->bigd) {
+     fforce = 0.0;
+     prefactor = 0.0;
+     eng = 0.0;
+     return;
+  }
   fa = comb_fa(r,param,iq,jq);
   fa_d = comb_fa_d(r,param,iq,jq);
   bij = comb_bij(zeta_ij,param);
@@ -1352,7 +1351,6 @@ void PairComb::sm_table()
   double exp2ear,exp2ebr,exp2earsh,exp2ebrsh,fafbsh,dfafbsh;
 
   int n = atom->ntypes;
-  int nmax = atom->nmax;
   
   dra  = 0.001;  // lookup table step size
   drin = 0.1;    // starting distance of 1/r 
@@ -1379,11 +1377,6 @@ void PairComb::sm_table()
   memory->create(phin,ncoul,nntypes,"pair:phin");
   memory->create(dphin,ncoul,nntypes,"pair:dphin");
   memory->create(erpaw,25000,2,"pair:erpaw");
-  memory->create(NCo,nmax,"pair:NCo");
-  memory->create(bbij,nmax,nmax,"pair:bbij");
-  memory->create(sht_num,nmax,"pair:sht_num");
-  sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-	    "pair:sht_first");
   
   // set interaction number: 0-0=0, 1-1=1, 0-1=1-0=2
   
@@ -2069,9 +2062,13 @@ void PairComb::Short_neigh()
   int ntype = atom->ntypes;
 
   if (atom->nmax > nmax) {
-    nmax = int(1.0 * atom->nmax);
     memory->sfree(sht_num);
     memory->sfree(sht_first);
+    memory->destroy(NCo);
+    memory->destroy(bbij);
+    nmax = atom->nmax;
+    memory->create(NCo,nmax,"pair:NCo");
+    memory->create(bbij,nmax,nmax,"pair:bbij");
     memory->create(sht_num,nmax,"pair:sht_num");
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
 	    "pair:sht_first");

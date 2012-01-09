@@ -37,6 +37,7 @@ using namespace MathConst;
 #define NCOLORS 140
 #define NELEMENTS 109
 #define BIG 1.0e20
+#define EPSILON 1.0e-6
 
 enum{NUMERIC,MINVALUE,MAXVALUE};
 enum{CONTINUOUS,DISCRETE,SEQUENTIAL};
@@ -164,6 +165,43 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   camDir[1] = sin(theta)*sin(phi);
   camDir[2] = cos(theta);
 
+  // normalize up vector
+
+  if (up[0] == 0.0 && up[1] == 0.0 && up[2] == 0.0)
+    error->all(FLERR,"Invalid image up vector");
+  MathExtra::norm3(up);
+
+  // adjust camDir by epsilon if camDir and up are parallel
+  // do this by tweaking view direction, not up direction
+  // try to insure continuous images as changing view passes thru up
+  // sufficient to handle common cases where theta = 0 or 180 is degenerate?
+
+  double dot = MathExtra::dot3(up,camDir);
+  if (fabs(dot) > 1.0-EPSILON) {
+    if (theta == 0.0) {
+      camDir[0] = sin(EPSILON)*cos(phi);
+      camDir[1] = sin(EPSILON)*sin(phi);
+      camDir[2] = cos(EPSILON);
+    } else if (theta == MY_PI) {
+      camDir[0] = sin(theta-EPSILON)*cos(phi);
+      camDir[1] = sin(theta-EPSILON)*sin(phi);
+      camDir[2] = cos(theta-EPSILON);
+    } else {
+      camDir[0] = sin(theta+EPSILON)*cos(phi);
+      camDir[1] = sin(theta+EPSILON)*sin(phi);
+      camDir[2] = cos(theta+EPSILON);
+    }
+  }
+
+  // camUp = camDir x (Up x camDir)
+
+  MathExtra::cross3(up,camDir,camRight);
+  MathExtra::norm3(camRight);
+  MathExtra::cross3(camDir,camRight,camUp);
+  if (camUp[0] == 0.0 && camUp[1] == 0.0 && camUp[2] == 0.0)
+    error->all(FLERR,"Invalid image up vector");
+  MathExtra::norm3(camUp);
+
   // zdist = camera distance = function of zoom & bounding box
   // camPos = camera position = function of camDir and zdist
 
@@ -181,32 +219,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   camPos[0] = camDir[0] * zdist;
   camPos[1] = camDir[1] * zdist;
   camPos[2] = camDir[2] * zdist;
-
-  // normalize up vector
-
-  if (up[0] == 0.0 && up[1] == 0.0 && up[2] == 0.0)
-    error->all(FLERR,"Invalid image up vector");
-  MathExtra::norm3(up);
-
-  // rotate up if camDir and up point in same direction
-  // should also check for opposite direction
-  // NOTE: this is not yet right for preserving view as rotate thru up
-
-  if (camDir[0] == up[0] && camDir[1] == up[1] && camDir[2] == up[2]) {
-    double tmp = up[0];
-    up[0] = up[1];
-    up[1] = up[2];
-    up[2] = tmp;
-  }
-
-  // camUp = camDir x (Up x camDir)
-
-  MathExtra::cross3(up,camDir,camRight);
-  MathExtra::norm3(camRight);
-  MathExtra::cross3(camDir,camRight,camUp);
-  if (camUp[0] == 0.0 && camUp[1] == 0.0 && camUp[2] == 0.0)
-    error->all(FLERR,"Invalid image up vector");
-  MathExtra::norm3(camUp);
 
   // light directions in terms of -camDir = z
 
@@ -932,13 +944,13 @@ void Image::compute_SSAO()
       double sy = surfaceBuffer[index * 2 + 1];
       double sin_t = -sqrt(sx*sx + sy*sy);
 
-      double theta = random->uniform() * SSAOJitter;
+      double mytheta = random->uniform() * SSAOJitter;
       double ao = 0.0;
 
       for (s = 0; s < SSAOSamples; s ++) {
-        double hx = cos(theta);
-        double hy = sin(theta);
-        theta += delTheta;
+        double hx = cos(mytheta);
+        double hy = sin(mytheta);
+        mytheta += delTheta;
 
 	// multiply by z cross surface tangent
 	// so that dot (aka cos) works here

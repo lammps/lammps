@@ -92,6 +92,7 @@ inline void reax_atom_Copy( reax_atom *dest, reax_atom *src )
   dest->Hindex = src->Hindex;
   dest->num_bonds = src->num_bonds;
   dest->num_hbonds = src->num_hbonds;
+  dest->numbonds = src->numbonds;
 }
 
 

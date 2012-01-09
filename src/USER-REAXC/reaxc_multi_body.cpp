@@ -91,7 +91,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     workspace->CdDelta[i] += CElp;  // lp - 1st term  
 
     /* tally into per-atom energy */
-    if( system->evflag)
+    if( system->pair_ptr->evflag)
       system->pair_ptr->ev_tally(i,i,system->n,1,e_lp,0.0,0.0,0.0,0.0,0.0);
 
 #ifdef TEST_ENERGY
@@ -128,7 +128,7 @@ void Atom_Energy( reax_system *system, control_params *control,
 	    workspace->CdDelta[i] += deahu2dsbo;
 
 	    /* tally into per-atom energy */
-	    if( system->evflag)
+	    if( system->pair_ptr->evflag)
               system->pair_ptr->ev_tally(i,j,system->n,1,e_lph,0.0,0.0,0.0,0.0,0.0);
 		
 #ifdef TEST_ENERGY
@@ -219,7 +219,7 @@ void Atom_Energy( reax_system *system, control_params *control,
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
     
     /* tally into per-atom energy */
-    if( system->evflag) {
+    if( system->pair_ptr->evflag) {
       eng_tmp = e_ov + e_un;
       f_tmp = CEover3 + CEunder3;
       system->pair_ptr->ev_tally(i,i,system->n,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);

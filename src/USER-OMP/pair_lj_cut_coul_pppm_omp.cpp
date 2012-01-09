@@ -85,7 +85,6 @@ void PairLJCutCoulPPPMOMP::compute(int eflag, int vflag)
 
     // thread id 0 runs pppm, the rest the pair style
     if (tid < nproxy) {
-      if (update->setupflag) kspace->setup_proxy();
       kspace->compute_proxy(eflag,vflag);
     } else {
       if (evflag) {

@@ -10,15 +10,17 @@ fix spring/self command :h3
 
 [Syntax:]
 
-fix ID group-ID spring/self K :pre
+fix ID group-ID spring/self K dir :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 spring/self = style name of this fix command
-K = spring constant (force/distance units) :ul
+K = spring constant (force/distance units)
+dir = xyz, xy, xz, yz, x, y, or z (optional, default: xyz) :ul
 
 [Examples:]
 
-fix tether boundary-atoms spring/self 10.0 :pre
+fix tether boundary-atoms spring/self 10.0
+fix zrest  move spring/self 10.0 z :pre
 
 [Description:]
 
@@ -28,6 +30,12 @@ location at the time the fix command was issued.  At each timestep,
 the magnitude of the force on each atom is -Kr, where r is the
 displacement of the atom from its current position to its initial
 position.
+
+With the (optional) dir flag, one can select in which direction the
+spring force is applied. By default, the restraint is applied in all
+directions, but it can be limited to the xy-, xz-, yz-plane and the
+x-, y-, or z-direction, thus restraining the atoms to a line or a
+plane, respectively.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

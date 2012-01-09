@@ -18,12 +18,16 @@
 #include "pppm_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
 #include "memory.h"
+#include "math_const.h"
 
 #include <string.h>
+#include <math.h>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -33,13 +37,14 @@ using namespace LAMMPS_NS;
 #define ONEF  1.0
 #endif
 
+#define EPS_HOC 1.0e-7
+
 /* ---------------------------------------------------------------------- */
 
 PPPMOMP::PPPMOMP(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
 }
-
 
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order 
@@ -82,7 +87,7 @@ void PPPMOMP::allocate()
 // multi-dimensional arrays like force stored in this order
 // x1,y1,z1,x2,y2,z2,...
 // we need to post a barrier to wait until all threads are done
-// with writing to the array .
+// writing to the array.
 static void data_reduce_fft(FFT_SCALAR *dall, int nall, int nthreads, int ndim, int tid)
 {
 #if defined(_OPENMP)
@@ -95,10 +100,13 @@ static void data_reduce_fft(FFT_SCALAR *dall, int nall, int nthreads, int ndim, 
     const int ifrom = tid*idelta;
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
-    for (int m = ifrom; m < ito; ++m) {
-      for (int n = 1; n < nthreads; ++n) {
-	dall[m] += dall[n*nvals + m];
-	dall[n*nvals + m] = 0.0;
+    // this if protects against having more threads than atoms
+    if (ifrom < nall) { 
+      for (int m = ifrom; m < ito; ++m) {
+	for (int n = 1; n < nthreads; ++n) {
+	  dall[m] += dall[n*nvals + m];
+	  dall[n*nvals + m] = 0.0;
+	}
       }
     }
   }
@@ -121,6 +129,185 @@ void PPPMOMP::deallocate()
     memory->destroy2d_offset(rho1d_thr,-order/2);
   }
 }
+
+/* ----------------------------------------------------------------------
+   adjust PPPM coeffs, called initially and whenever volume has changed 
+------------------------------------------------------------------------- */
+
+void PPPMOMP::setup()
+{
+  int i,j,k,n;
+  double *prd;
+
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+    
+  delxinv = nx_pppm/xprd;
+  delyinv = ny_pppm/yprd;
+  delzinv = nz_pppm/zprd_slab;
+
+  delvolinv = delxinv*delyinv*delzinv;
+
+  const double unitkx = (2.0*MY_PI/xprd);
+  const double unitky = (2.0*MY_PI/yprd);
+  const double unitkz = (2.0*MY_PI/zprd_slab);
+
+  // fkx,fky,fkz for my FFT grid pts
+
+  double per;
+
+  for (i = nxlo_fft; i <= nxhi_fft; i++) {
+    per = i - nx_pppm*(2*i/nx_pppm);
+    fkx[i] = unitkx*per;
+  }
+
+  for (i = nylo_fft; i <= nyhi_fft; i++) {
+    per = i - ny_pppm*(2*i/ny_pppm);
+    fky[i] = unitky*per;
+  }
+
+  for (i = nzlo_fft; i <= nzhi_fft; i++) {
+    per = i - nz_pppm*(2*i/nz_pppm);
+    fkz[i] = unitkz*per;
+  }
+
+  // virial coefficients
+
+  double sqk,vterm;
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++) {
+    for (j = nylo_fft; j <= nyhi_fft; j++) {
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+	sqk = fkx[i]*fkx[i] + fky[j]*fky[j] + fkz[k]*fkz[k];
+	if (sqk == 0.0) {
+	  vg[n][0] = 0.0;
+	  vg[n][1] = 0.0;
+	  vg[n][2] = 0.0;
+	  vg[n][3] = 0.0;
+	  vg[n][4] = 0.0;
+	  vg[n][5] = 0.0;
+	} else {
+	  vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+	  vg[n][0] = 1.0 + vterm*fkx[i]*fkx[i];
+	  vg[n][1] = 1.0 + vterm*fky[j]*fky[j];
+	  vg[n][2] = 1.0 + vterm*fkz[k]*fkz[k];
+	  vg[n][3] = vterm*fkx[i]*fky[j];
+	  vg[n][4] = vterm*fkx[i]*fkz[k];
+	  vg[n][5] = vterm*fky[j]*fkz[k];
+	}
+	n++;
+      }
+    }
+  }
+
+  // modified (Hockney-Eastwood) Coulomb Green's function
+
+  const int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+  const int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+  const int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
+				    pow(-log(EPS_HOC),0.25));
+
+  const double form = 1.0;
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
+    double snx,sny,snz,sqk;
+    double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+    double sum1,dot1,dot2;
+    double numerator,denominator;
+    const double gew2 = -4.0*g_ewald*g_ewald;
+    
+    const int nnx = nxhi_fft-nxlo_fft+1;
+    const int nny = nyhi_fft-nylo_fft+1;
+    
+    loop_setup_thr(nnfrom, nnto, tid, nfft, comm->nthreads);
+    
+    for (m = nzlo_fft; m <= nzhi_fft; m++) {
+      
+      const double fkzm = fkz[m];
+      snz = sin(0.5*fkzm*zprd_slab/nz_pppm);
+      snz *= snz;
+
+      for (l = nylo_fft; l <= nyhi_fft; l++) {
+	const double fkyl = fky[l];
+	sny = sin(0.5*fkyl*yprd/ny_pppm);
+	sny *= sny;
+
+	for (k = nxlo_fft; k <= nxhi_fft; k++) {
+
+	  /* only compute the part designated to this thread */
+	  nn = k-nxlo_fft + nnx*(l-nylo_fft + nny*(m-nzlo_fft));
+	  if ((nn < nnfrom) || (nn >=nnto)) continue;
+
+	  const double fkxk = fkx[k];
+	  snx = sin(0.5*fkxk*xprd/nx_pppm);
+	  snx *= snx;
+      
+	  sqk = fkxk*fkxk + fkyl*fkyl + fkzm*fkzm;
+
+	  if (sqk != 0.0) {
+	    numerator = form*MY_4PI/sqk;
+	    denominator = gf_denom(snx,sny,snz);  
+	    sum1 = 0.0;
+	    for (nx = -nbx; nx <= nbx; nx++) {
+	      qx = fkxk + unitkx*nx_pppm*nx;
+	      sx = exp(qx*qx/gew2);
+	      wx = 1.0;
+	      argx = 0.5*qx*xprd/nx_pppm;
+	      if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+	      wx *=wx;
+
+	      for (ny = -nby; ny <= nby; ny++) {
+		qy = fkyl + unitky*ny_pppm*ny;
+		sy = exp(qy*qy/gew2);
+		wy = 1.0;
+		argy = 0.5*qy*yprd/ny_pppm;
+		if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+		wy *= wy;
+
+		for (nz = -nbz; nz <= nbz; nz++) {
+		  qz = fkzm + unitkz*nz_pppm*nz;
+		  sz = exp(qz*qz/gew2);
+		  wz = 1.0;
+		  argz = 0.5*qz*zprd_slab/nz_pppm;
+		  if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+		  wz *= wz;
+
+		  dot1 = fkxk*qx + fkyl*qy + fkzm*qz;
+		  dot2 = qx*qx+qy*qy+qz*qz;
+		  sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+		}
+	      }
+	    }
+	    greensfn[nn] = numerator*sum1/denominator;
+	  } else greensfn[nn] = 0.0;
+	}
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   run the regular toplevel compute method from plain PPPPM 
+   which will have individual methods replaced by our threaded
+   versions and then call the obligatory force reduction.
+------------------------------------------------------------------------- */
 
 void PPPMOMP::compute(int eflag, int vflag)
 {
@@ -153,20 +340,21 @@ void PPPMOMP::make_rho()
   const double * const q = atom->q;
   const double * const * const x = atom->x;
   const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
   {  
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
-    const int inum = atom->nlocal;
+    const int inum = nlocal;
     const int idelta = 1 + inum/nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
     const int tid = 0;
     const int ifrom = 0;
-    const int ito = atom->nlocal;
+    const int ito = nlocal;
 #endif
 
     int l,m,n,nx,ny,nz,mx,my,mz;
@@ -184,28 +372,31 @@ void PPPMOMP::make_rho()
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // (dx,dy,dz) = distance to "lower left" grid pt
     // (mx,my,mz) = global coords of moving stencil pt
+    
+    // this if protects against having more threads than local atoms
+    if (ifrom < nlocal) { 
+      for (int i = ifrom; i < ito; i++) {
 
-    for (int i = ifrom; i < ito; i++) {
+	nx = part2grid[i][0];
+	ny = part2grid[i][1];
+	nz = part2grid[i][2];
+	dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+	dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+	dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-      nx = part2grid[i][0];
-      ny = part2grid[i][1];
-      nz = part2grid[i][2];
-      dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-      dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-      dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+	compute_rho1d_thr(r1d,dx,dy,dz);
 
-      compute_rho1d_thr(r1d,dx,dy,dz);
-
-      z0 = delvolinv * q[i];
-      for (n = nlower; n <= nupper; n++) {
-	mz = n+nz;
-	y0 = z0*r1d[2][n];
-	for (m = nlower; m <= nupper; m++) {
-	  my = m+ny;
-	  x0 = y0*r1d[1][m];
-	  for (l = nlower; l <= nupper; l++) {
-	    mx = l+nx;
-	    db[mz][my][mx] += x0*r1d[0][l];
+	z0 = delvolinv * q[i];
+	for (n = nlower; n <= nupper; n++) {
+	  mz = n+nz;
+	  y0 = z0*r1d[2][n];
+	  for (m = nlower; m <= nupper; m++) {
+	    my = m+ny;
+	    x0 = y0*r1d[1][m];
+	    for (l = nlower; l <= nupper; l++) {
+	      mx = l+nx;
+	      db[mz][my][mx] += x0*r1d[0][l];
+	    }
 	  }
 	}
       }
@@ -213,7 +404,6 @@ void PPPMOMP::make_rho()
 #if defined(_OPENMP)
     // reduce 3d density array
     if (nthreads > 1) {
-      sync_threads();
       data_reduce_fft(&(density_brick[nzlo_out][nylo_out][nxlo_out]),ngrid,nthreads,1,tid);
     }
   }
@@ -235,6 +425,7 @@ void PPPMOMP::fieldforce()
   const double * const q = atom->q;
   const double * const * const x = atom->x;
   const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -242,13 +433,13 @@ void PPPMOMP::fieldforce()
   {  
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
-    const int inum = atom->nlocal;
+    const int inum = nlocal;
     const int idelta = 1 + inum/nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
     const int ifrom = 0;
-    const int ito = atom->nlocal;
+    const int ito = nlocal;
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
@@ -259,39 +450,42 @@ void PPPMOMP::fieldforce()
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR ekx,eky,ekz;
 
-    for (int i = ifrom; i < ito; i++) {
+    // this if protects against having more threads than local atoms
+    if (ifrom < nlocal) { 
+      for (int i = ifrom; i < ito; i++) {
 
-      nx = part2grid[i][0];
-      ny = part2grid[i][1];
-      nz = part2grid[i][2];
-      dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-      dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-      dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+	nx = part2grid[i][0];
+	ny = part2grid[i][1];
+	nz = part2grid[i][2];
+	dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+	dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+	dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
 
-      compute_rho1d_thr(r1d,dx,dy,dz);
+	compute_rho1d_thr(r1d,dx,dy,dz);
 
-      ekx = eky = ekz = ZEROF;
-      for (n = nlower; n <= nupper; n++) {
-	mz = n+nz;
-	z0 = r1d[2][n];
-	for (m = nlower; m <= nupper; m++) {
-	  my = m+ny;
-	  y0 = z0*r1d[1][m];
-	  for (l = nlower; l <= nupper; l++) {
-	    mx = l+nx;
-	    x0 = y0*r1d[0][l];
-	    ekx -= x0*vdx_brick[mz][my][mx];
-	    eky -= x0*vdy_brick[mz][my][mx];
-	    ekz -= x0*vdz_brick[mz][my][mx];
+	ekx = eky = ekz = ZEROF;
+	for (n = nlower; n <= nupper; n++) {
+	  mz = n+nz;
+	  z0 = r1d[2][n];
+	  for (m = nlower; m <= nupper; m++) {
+	    my = m+ny;
+	    y0 = z0*r1d[1][m];
+	    for (l = nlower; l <= nupper; l++) {
+	      mx = l+nx;
+	      x0 = y0*r1d[0][l];
+	      ekx -= x0*vdx_brick[mz][my][mx];
+	      eky -= x0*vdy_brick[mz][my][mx];
+	      ekz -= x0*vdz_brick[mz][my][mx];
+	    }
 	  }
 	}
-      }
 
-      // convert E-field to force
-      const double qfactor = qqrd2e*scale*q[i];
-      f[i][0] += qfactor*ekx;
-      f[i][1] += qfactor*eky;
-      f[i][2] += qfactor*ekz;
+	// convert E-field to force
+	const double qfactor = qqrd2e*scale*q[i];
+	f[i][0] += qfactor*ekx;
+	f[i][1] += qfactor*eky;
+	f[i][2] += qfactor*ekz;
+      }
     }
 #if defined(_OPENMP)
   }

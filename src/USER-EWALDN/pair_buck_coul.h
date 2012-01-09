@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -43,7 +43,7 @@ class PairBuckCoul : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
-  void *extract(char *, int &);
+  void *extract(const char *, int &);
 
   void compute_inner();
   void compute_middle();

@@ -25,6 +25,7 @@
 #include "respa.h"
 #include "error.h"
 #include "math.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -80,6 +81,7 @@ void FixNVEEff::initial_integrate(int vflag)
   double *erforce = atom->erforce;
   double *mass = atom->mass;
   int *spin = atom->spin;
+  double mefactor = domain->dimension/4.0;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -98,7 +100,7 @@ void FixNVEEff::initial_integrate(int vflag)
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
         if (fabs(spin[i])==1) {
-          ervel[i] += dtfm * erforce[i] / 0.75;
+          ervel[i] += dtfm * erforce[i] / mefactor;
           eradius[i] += dtv * ervel[i];
         }
       }
@@ -118,6 +120,7 @@ void FixNVEEff::final_integrate()
   double **f = atom->f;
   double *mass = atom->mass;
   int *spin = atom->spin;
+  double mefactor = domain->dimension/4.0;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -133,7 +136,7 @@ void FixNVEEff::final_integrate()
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
         if (fabs(spin[i])==1)
-          ervel[i] += dtfm * erforce[i] / 0.75;
+          ervel[i] += dtfm * erforce[i] / mefactor;
       }
     }
   }

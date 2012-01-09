@@ -60,6 +60,8 @@ atoms becomes less than 50.0.
 This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
+For 2d simulations, the z dimension must be periodic.
+
 [Related commands:]
 
 See the "thermo_modify"_thermo_modify.html command for a discussion

@@ -116,8 +116,8 @@
 #define MAX_BIO_SHARED_TYPES 128
 
 #ifdef _DOUBLE_DOUBLE
-ucl_inline double4 fetch_pos(const int& i, const double4 *pos) { return pos[i]; }
-ucl_inline double fetch_q(const int& i, const double *q) { return q[i]; }
+ucl_inline double4 fetch_pos(const int& i, const double4 *pos) { return pos[i]; };
+ucl_inline double fetch_q(const int& i, const double *q) { return q[i]; };
 #endif
 
 #if (__CUDA_ARCH__ < 200)
@@ -344,5 +344,5 @@ typedef struct _double4 double4;
 
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
-ucl_inline int sbmask(int j) { return j >> SBBITS & 3; }
+ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
 

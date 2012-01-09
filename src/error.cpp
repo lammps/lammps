@@ -15,7 +15,6 @@
 #include "stdlib.h"
 #include "error.h"
 #include "universe.h"
-#include "memory.h"
 #include "output.h"
 
 using namespace LAMMPS_NS;

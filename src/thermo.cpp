@@ -249,7 +249,7 @@ void Thermo::init()
   for (i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0) 
-      error->all(FLERR,"Could not find thermo custom variable name");
+      error->all(FLERR,"Could not find thermo variable name");
     variables[i] = ivariable;
   }
 
@@ -295,7 +295,6 @@ void Thermo::compute(int flag)
   else normflag = normvalue;
 
   // invoke Compute methods needed for thermo keywords
-  // which = 0 is global scalar, which = 1 is global vector
 
   for (i = 0; i < ncompute; i++)
     if (compute_which[i] == SCALAR) {
@@ -440,17 +439,20 @@ void Thermo::modify_params(int narg, char **arg)
 	error->all(FLERR,"Thermo_modify temperature ID does not "
 		   "compute temperature");
       if (temperature->igroup != 0 && comm->me == 0)
-	error->warning(FLERR,"Temperature for thermo pressure is not for group all");
+	error->warning(FLERR,
+		       "Temperature for thermo pressure is not for group all");
 
       // reset id_temp of pressure to new temperature ID
       // either pressure currently being used by thermo or "thermo_press"
 
       if (index_press_scalar >= 0) {
 	icompute = modify->find_compute(id_compute[index_press_scalar]);
-	if (icompute < 0) error->all(FLERR,"Pressure ID for thermo does not exist");
+	if (icompute < 0) error->all(FLERR,
+				     "Pressure ID for thermo does not exist");
       } else if (index_press_vector >= 0) {
 	icompute = modify->find_compute(id_compute[index_press_vector]);
-	if (icompute < 0) error->all(FLERR,"Pressure ID for thermo does not exist");
+	if (icompute < 0) error->all(FLERR,
+				     "Pressure ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
       modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
@@ -476,7 +478,8 @@ void Thermo::modify_params(int narg, char **arg)
       }
 
       int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) error->all(FLERR,"Could not find thermo_modify pressure ID");
+      if (icompute < 0) error->all(FLERR,
+				   "Could not find thermo_modify pressure ID");
       pressure = modify->compute[icompute];
 
       if (pressure->pressflag == 0)
@@ -526,7 +529,8 @@ void Thermo::modify_params(int narg, char **arg)
 	format_bigint_user = new char[n];
 	char *ptr = strchr(format_int_user,'d');
 	if (ptr == NULL) 
-	  error->all(FLERR,"Thermo_modify int format does not contain d character");
+	  error->all(FLERR,
+		     "Thermo_modify int format does not contain d character");
 	*ptr = '\0';
 	sprintf(format_bigint_user,"%s%s%s",format_int_user,
 		BIGINT_FORMAT,ptr+1);

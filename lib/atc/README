@@ -20,6 +20,12 @@ SYSPATH is the path(s) to where those libraries are
 You must insure these settings are correct for your system, else
 the LAMMPS build will likely fail.
 
+Note that there is a lib/linalg directory which has the BLAS and
+LAPACK files needed by the USER-ATC package.  If you don't have BLAS
+and LAPACK on your system, you can build the pseudo-library in the
+linalg directory, and point to that with the SYSLIB and SYSPATH
+variables discussed above.
+
 -------------------------------------------------------------------------
 
 ATC (Atom To Continuum methods)

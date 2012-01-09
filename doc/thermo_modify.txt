@@ -100,13 +100,13 @@ this case.  If the format for a specific column has been set, it will
 take precedent over the {int} or {float} setting.
 
 IMPORTANT NOTE: The thermo output values {step} and {atoms} are stored
-internally as 8-byte unsigned integers, rather than the usual 4-byte
+internally as 8-byte signed integers, rather than the usual 4-byte
 signed integers.  When specifying the "format int" keyword you can use
 a "%d"-style format identifier in the format string and LAMMPS will
 convert this to the corresponding "%lu" form when it is applied to
 those keywords.  However, when specifying the "format M string"
 keyword for {step} and {natoms}, you should specify a string
-appropriate for an 8-byte unsigned integer, e.g. one with "%lu".
+appropriate for an 8-byte signed integer, e.g. one with "%ld".
 
 The {temp} keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a

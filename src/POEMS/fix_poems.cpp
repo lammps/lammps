@@ -680,7 +680,7 @@ void FixPOEMS::setup(int vflag)
 /* ----------------------------------------------------------------------
    update vcm,omega by 1/2 step and xcm,orientation by full step
    set x,v of body atoms accordingly
-/* ---------------------------------------------------------------------- */
+   ---------------------------------------------------------------------- */
 
 void FixPOEMS::initial_integrate(int vflag)
 {

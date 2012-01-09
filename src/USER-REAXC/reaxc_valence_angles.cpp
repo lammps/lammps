@@ -416,7 +416,7 @@ void Valence_Angles( reax_system *system, control_params *control,
 		}
 
 		/* tally into per-atom virials */
-		if( system->vflag_atom || system->evflag) {
+		if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 			
 		  /* Acquire vectors */
 		  rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
@@ -430,9 +430,9 @@ void Valence_Angles( reax_system *system, control_params *control,
 		  
 		  eng_tmp = e_ang + e_pen + e_coa;
 
-		  if( system->evflag)
+		  if( system->pair_ptr->evflag)
 			  system->pair_ptr->ev_tally(j,j,system->N,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
-		  if( system->vflag_atom)
+		  if( system->pair_ptr->vflag_atom)
 			  system->pair_ptr->v_tally3(i,j,k,fi_tmp,fk_tmp,delij,delkj);
 		}
 		

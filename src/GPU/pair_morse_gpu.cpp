@@ -65,6 +65,7 @@ using namespace LAMMPS_NS;
 PairMorseGPU::PairMorseGPU(LAMMPS *lmp) : PairMorse(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ----------------------------------------------------------------------

@@ -116,8 +116,8 @@ void Neighbor::half_multi_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;
@@ -245,8 +245,8 @@ void Neighbor::half_multi_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;
@@ -358,8 +358,8 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;

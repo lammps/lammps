@@ -27,13 +27,17 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>scale</I> or <I>tally</I>
+<PRE>keyword = <I>scale</I> or <I>tally</I> or <I>zero</I>
   <I>scale</I> values = type ratio
     type = atom type (1-N)
     ratio = factor by which to scale the damping coefficient
   <I>tally</I> values = <I>no</I> or <I>yes</I>
     <I>no</I> = do not tally the energy added/subtracted to atoms
     <I>yes</I> = do tally the energy added/subtracted to atoms 
+</PRE>
+<PRE>  <I>zero</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not set total random force to zero
+    <I>yes</I> = set total random force to zero 
 </PRE>
 
 </UL>

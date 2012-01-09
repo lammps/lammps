@@ -8,10 +8,10 @@ SHELL = /bin/sh
 # unless additional compiler/linker flags or libraries needed for your machine
 
 CC =		g++
-CCFLAGS =	-O
+CCFLAGS =	-O -g
 DEPFLAGS =	-M
 LINK =		g++
-LINKFLAGS =	-O
+LINKFLAGS =	-O -g
 LIB =           
 ARCHIVE =	ar
 ARFLAGS =	-rc
@@ -25,7 +25,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
+LMP_INC =	#-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

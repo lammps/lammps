@@ -22,10 +22,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -47,16 +43,6 @@ void PairCombOMP::compute(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
-
-  // grow coordination array if necessary
-
-  if (atom->nmax > nmax) {
-    memory->destroy(NCo);
-    memory->destroy(bbij);
-    nmax = atom->nmax;
-    memory->create(NCo,nmax,"pair:NCo");
-    memory->create(bbij,nmax,nmax,"pair:bbij");
-  }
 
   // Build short range neighbor list
   Short_neigh_thr();
@@ -242,7 +228,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       int numcoor = 0;
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
-	j &= NEIGHMASK;
 	jtype = map[type[j]];
 	iparam_ij = elem2param[itype][jtype][jtype];
 	
@@ -264,7 +249,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     for (jj = 0; jj < sht_jnum; jj++) {
       j = sht_jlist[jj];
-      j &= NEIGHMASK;
 
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
@@ -289,7 +273,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -334,7 +317,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -559,9 +541,13 @@ void PairCombOMP::Short_neigh_thr()
 {
 
   if (atom->nmax > nmax) {
-    nmax = int(1.0 * atom->nmax);
     memory->sfree(sht_num);
     memory->sfree(sht_first);
+    memory->destroy(NCo);
+    memory->destroy(bbij);
+    nmax = atom->nmax;
+    memory->create(NCo,nmax,"pair:NCo");
+    memory->create(bbij,nmax,nmax,"pair:bbij");
     memory->create(sht_num,nmax,"pair:sht_num");
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
 	    "pair:sht_first");

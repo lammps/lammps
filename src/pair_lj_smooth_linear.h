@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLJSmoothLinear : public Pair {
  public:
   PairLJSmoothLinear(class LAMMPS *);
-  ~PairLJSmoothLinear();
-  void compute(int, int);
+  virtual ~PairLJSmoothLinear();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -38,7 +38,7 @@ class PairLJSmoothLinear : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
- private:
+ protected:
   double cut_global;
   double **cut;
   double **epsilon,**sigma;

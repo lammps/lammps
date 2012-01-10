@@ -267,7 +267,7 @@ class Neighbor : protected Pointers {
   // if it is and special flag is 0 (both coeffs are 0.0), return -1
   // if it is and special flag is 1 (both coeffs are 1.0), return 0
   // if it is and special flag is 2 (otherwise), return 1,2,3
-  //   for which neighbor it is (and which coeff it maps to)
+  //   for which level of neighbor it is (and which coeff it maps to)
 
   inline int find_special(const int *list, const int *nspecial, 
 			  const int tag) const {

@@ -944,7 +944,8 @@ These are dihedral styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html,
+"table"_dihedral_table.html :tb(c=4,ea=c)
 
 These are accelerated dihedral styles, which can be used if LAMMPS is
 built with the "appropriate accelerated

@@ -814,6 +814,7 @@ package"_Section_accelerate.html.
 "lj/sf/omp"_pair_lj_sf.html,
 "lj/smooth/cuda"_pair_lj_smooth.html,
 "lj/smooth/omp"_pair_lj_smooth.html,
+"lj/smooth/linear/omp"_pair_lj_smooth_linear.html,
 "lj96/cut/cuda"_pair_lj96.html,
 "lj96/cut/gpu"_pair_lj96.html,
 "lj96/cut/omp"_pair_lj96.html,

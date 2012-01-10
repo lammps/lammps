@@ -4,6 +4,7 @@ if (test $1 = 1) then
 
   cp angle_cosine_shift.cpp ..
   cp angle_cosine_shift_exp.cpp ..
+  cp angle_dipole.cpp ..
   cp bond_harmonic_shift.cpp ..
   cp bond_harmonic_shift_cut.cpp ..
   cp compute_ackland_atom.cpp ..
@@ -21,6 +22,7 @@ if (test $1 = 1) then
 
   cp angle_cosine_shift.h ..
   cp angle_cosine_shift_exp.h ..
+  cp angle_dipole.h ..
   cp bond_harmonic_shift.h ..
   cp bond_harmonic_shift_cut.h ..
   cp compute_ackland_atom.h ..
@@ -40,6 +42,7 @@ elif (test $1 = 0) then
 
   rm -f ../angle_cosine_shift.cpp
   rm -f ../angle_cosine_shift_exp.cpp
+  rm -f ../angle_dipole.cpp
   rm -f ../bond_harmonic_shift.cpp
   rm -f ../bond_harmonic_shift_cut.cpp
   rm -f ../compute_ackland_atom.cpp
@@ -57,6 +60,7 @@ elif (test $1 = 0) then
 
   rm -f ../angle_cosine_shift.h
   rm -f ../angle_cosine_shift_exp.h
+  rm -f ../angle_dipole.h
   rm -f ../bond_harmonic_shift.h
   rm -f ../bond_harmonic_shift_cut.h
   rm -f ../compute_ackland_atom.h

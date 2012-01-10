@@ -20,6 +20,7 @@ about the feature or its coding.
 
 angle_style cosine/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 angle_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+angle_style dipole, Mario Orsi, orsimario at gmail.com, 10 Jan 12
 bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007

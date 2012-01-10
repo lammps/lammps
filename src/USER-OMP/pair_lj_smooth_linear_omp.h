@@ -11,41 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(lj/smooth/linear,PairLJSmoothLinear)
+PairStyle(lj/smooth/linear/omp,PairLJSmoothLinearOMP)
 
 #else
 
-#ifndef PAIR_LJ_SMOOTH_LINEAR_H
-#define PAIR_LJ_SMOOTH_LINEAR_H
+#ifndef LMP_PAIR_LJ_SMOOTH_LINEAR_OMP_H
+#define LMP_PAIR_LJ_SMOOTH_LINEAR_OMP_H
 
-#include "pair.h"
+#include "pair_lj_smooth_linear.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSmoothLinear : public Pair {
+class PairLJSmoothLinearOMP : public PairLJSmoothLinear, public ThrOMP {
+
  public:
-  PairLJSmoothLinear(class LAMMPS *);
-  virtual ~PairLJSmoothLinear();
+  PairLJSmoothLinearOMP(class LAMMPS *);
+
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double memory_usage();
 
- protected:
-  double cut_global;
-  double **cut;
-  double **epsilon,**sigma;
-  double **ljcut,**dljcut;
-  double **lj1,**lj2,**lj3,**lj4;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

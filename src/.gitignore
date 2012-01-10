@@ -5,6 +5,7 @@ lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 lmp_*
 
+
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -39,6 +40,10 @@ angle_cosine_squared.cpp
 angle_cosine_squared.h
 angle_cosine_squared_omp.cpp
 angle_cosine_squared_omp.h
+angle_dipole.cpp
+angle_dipole.h
+angle_dipole_omp.cpp
+angle_dipole_omp.h
 angle_harmonic.cpp
 angle_harmonic.h
 angle_harmonic_omp.cpp
@@ -169,6 +174,10 @@ dihedral_opls.cpp
 dihedral_opls.h
 dihedral_opls_omp.cpp
 dihedral_opls_omp.h
+dihedral_table.cpp
+dihedral_table.h
+dihedral_table_omp.cpp
+dihedral_table_omp.h
 dump_xtc.cpp
 dump_xtc.h
 ewald.cpp
@@ -279,6 +288,8 @@ fix_reax_bonds.cpp
 fix_reax_bonds.h
 fix_reax_c.cpp
 fix_reax_c.h
+fix_reaxc_bonds.cpp
+fix_reaxc_bonds.h
 fix_shear_history_omp.cpp
 fix_shear_history_omp.h
 fix_smd.cpp
@@ -565,6 +576,8 @@ pair_lj_gromacs_coul_gromacs_omp.cpp
 pair_lj_gromacs_coul_gromacs_omp.h
 pair_lj_smooth_omp.cpp
 pair_lj_smooth_omp.h
+pair_lj_smooth_linear_omp.cpp
+pair_lj_smooth_linear_omp.h
 pair_lj_cut_coul_cut_gpu.cpp
 pair_lj_cut_coul_cut_gpu.h
 pair_lj_cut_coul_long_gpu.cpp

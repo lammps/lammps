@@ -904,7 +904,8 @@ package"_Section_start.html#start_3.
 
 "sdk"_angle_sdk.html,
 "cosine/shift"_angle_cosine_shift.html,
-"cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
+"cosine/shift/exp"_angle_cosine_shift_exp.html,
+"dipole"_angle_dipole.html :tb(c=4,ea=c)
 
 These are accelerated angle styles, which can be used if LAMMPS is
 built with the "appropriate accelerated

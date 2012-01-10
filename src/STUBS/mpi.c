@@ -125,6 +125,15 @@ int MPI_Send(void *buf, int count, MPI_Datatype datatype,
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+              int source, int tag, MPI_Comm comm, MPI_Request *request)
+{
+  printf("MPI Stub WARNING: Should not send message to self\n");
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm)
 {

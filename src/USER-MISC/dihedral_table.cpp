@@ -49,9 +49,6 @@ using namespace std;
 using namespace LAMMPS_NS;
 using namespace DIHEDRAL_TABLE_NS;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
-
 /* ---------------------------------------------------------------------- */
 
 DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp)

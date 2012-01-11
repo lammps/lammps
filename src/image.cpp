@@ -51,7 +51,7 @@ Image::Image(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  // defaults
+  // defaults for 3d viz
 
   width = height = 512;
   theta = 60.0 * MY_PI/180.0;
@@ -60,6 +60,10 @@ Image::Image(LAMMPS *lmp) : Pointers(lmp)
   persp = 0.0;
   shiny = 1.0;
   ssao = NO;
+
+  up[0] = 0.0;
+  up[1] = 0.0;
+  up[2] = 1.0;
 
   // colors
 

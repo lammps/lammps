@@ -73,8 +73,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
   // create Image class
+  // change defaults for 2d
 
   image = new Image(lmp);
+
+  if (domain->dimension == 2) {
+    image->theta = 0.0;
+    image->phi = 0.0;
+    image->up[0] = 0.0; image->up[1] = 1.0; image->up[2] = 0.0;
+  }
 
   // set defaults for optional args
 
@@ -91,12 +98,6 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   cflag = STATIC;
   cx = cy = cz = 0.5;
   cxstr = cystr = czstr = NULL;
-
-  if (domain->dimension == 3) {
-    image->up[0] = 0.0; image->up[1] = 0.0; image->up[2] = 1.0;
-  } else {
-    image->up[0] = 0.0; image->up[1] = 1.0; image->up[2] = 0.0;
-  }
 
   upxstr = upystr = upzstr = NULL;
   zoomstr = NULL;
@@ -343,6 +344,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (thetastr || phistr || cflag == DYNAMIC || 
       upxstr || upystr || upzstr || zoomstr || perspstr) viewflag = DYNAMIC;
 
+  box_bounds();
   if (cflag == STATIC) box_center();
   if (viewflag == STATIC) view_params();
 
@@ -478,6 +480,7 @@ void DumpImage::write()
 
   // reset box center and view parameters if dynamic
 
+  box_bounds();
   if (cflag == DYNAMIC) box_center();
   if (viewflag == DYNAMIC) view_params();
 
@@ -546,8 +549,6 @@ void DumpImage::box_bounds()
 
 void DumpImage::box_center()
 {
-  box_bounds();
-
   if (cxstr) cx = input->variable->compute_equal(cxvar);
   if (cystr) cy = input->variable->compute_equal(cyvar);
   if (czstr) cz = input->variable->compute_equal(czvar);
@@ -593,10 +594,6 @@ void DumpImage::view_params()
   if (image->zoom <= 0.0) error->all(FLERR,"Invalid dump image zoom value");
   if (perspstr) image->persp = input->variable->compute_equal(perspvar);
   if (image->persp < 0.0) error->all(FLERR,"Invalid dump image persp value");
-
-  // current simulation box bounds
-
-  box_bounds();
 
   // remainder of view setup is internal to Image class
 

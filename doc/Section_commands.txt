@@ -921,6 +921,7 @@ package"_Section_accelerate.html.
 "cosine/shift/omp"_angle_cosine_shift.html,
 "cosine/shift/exp/omp"_angle_cosine_shift_exp.html,
 "cosine/squared/omp"_angle_cosine_squared.html,
+"dipole/omp"_angle_dipole.html
 "harmonic/omp"_angle_harmonic.html,
 "table/omp"_angle_table.html :tb(c=4,ea=c,w=100)
 
@@ -958,7 +959,8 @@ package"_Section_accelerate.html.
 "harmonic/omp"_dihedral_harmonic.html,
 "helix/omp"_dihedral_helix.html,
 "multi/harmonic/omp"_dihedral_multi_harmonic.html,
-"opls/omp"_dihedral_opls.html :tb(c=4,ea=c,w=100)
+"opls/omp"_dihedral_opls.html
+"table/omp"_dihedral_table.html :tb(c=4,ea=c,w=100)
 
 :line
 

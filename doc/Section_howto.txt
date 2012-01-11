@@ -491,11 +491,15 @@ This site M is located at a fixed distance away from the oxygen along
 the bisector of the HOH bond angle.  A bond style of {harmonic} and an
 angle style of {harmonic} or {charmm} should also be used.
 
-Currently, only a four-point model for long-range Coulombics is
-implemented via the LAMMPS "pair style
-lj/cut/coul/long/tip4p"_pair_lj.html.  A cutoff version may be added
-the future.  For both models, the bond lengths and bond angles should
-be held fixed using the "fix shake"_fix_shake.html command.
+A TIP4P model is run with LAMMPS using two commands:
+
+"pair_style lj/cut/coul/long/tip4p"_pair_lj.html
+"kspace_style pppm/tip4p"_kspace_style.html :ul
+
+Note that only a TIP4P model with long-range Coulombics is currently
+implemented.  A cutoff version may be added in the future.  for both
+models, the bond lengths and bond angles should be held fixed using
+the "fix shake"_fix_shake.html command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff

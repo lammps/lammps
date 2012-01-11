@@ -281,9 +281,6 @@ int AtomVecMolecular::pack_comm_vel(int n, int *list, double *buf,
       dz = pbc[2]*domain->zprd;
     }
     if (!deform_vremap) {
-      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-      dvz = pbc[2]*h_rate[2];
       for (i = 0; i < n; i++) {
 	j = list[i];
 	buf[m++] = x[j][0] + dx;
@@ -294,6 +291,9 @@ int AtomVecMolecular::pack_comm_vel(int n, int *list, double *buf,
 	buf[m++] = v[j][2];
       }
     } else {
+      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+      dvz = pbc[2]*h_rate[2];
       for (i = 0; i < n; i++) {
 	j = list[i];
 	buf[m++] = x[j][0] + dx;

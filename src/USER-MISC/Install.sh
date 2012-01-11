@@ -4,11 +4,13 @@ if (test $1 = 1) then
 
   cp angle_cosine_shift.cpp ..
   cp angle_cosine_shift_exp.cpp ..
+  cp angle_dipole.cpp ..
   cp bond_harmonic_shift.cpp ..
   cp bond_harmonic_shift_cut.cpp ..
   cp compute_ackland_atom.cpp ..
   cp compute_temp_rotate.cpp ..
   cp dihedral_cosine_shift_exp.cpp ..
+  cp dihedral_table.cpp ..
   cp fix_addtorque.cpp ..
   cp fix_imd.cpp ..
   cp fix_smd.cpp ..
@@ -21,11 +23,13 @@ if (test $1 = 1) then
 
   cp angle_cosine_shift.h ..
   cp angle_cosine_shift_exp.h ..
+  cp angle_dipole.h ..
   cp bond_harmonic_shift.h ..
   cp bond_harmonic_shift_cut.h ..
   cp compute_ackland_atom.h ..
   cp compute_temp_rotate.h ..
   cp dihedral_cosine_shift_exp.h ..
+  cp dihedral_table.h ..
   cp fix_addtorque.h ..
   cp fix_imd.h ..
   cp fix_smd.h ..
@@ -40,11 +44,13 @@ elif (test $1 = 0) then
 
   rm -f ../angle_cosine_shift.cpp
   rm -f ../angle_cosine_shift_exp.cpp
+  rm -f ../angle_dipole.cpp
   rm -f ../bond_harmonic_shift.cpp
   rm -f ../bond_harmonic_shift_cut.cpp
   rm -f ../compute_ackland_atom.cpp
   rm -f ../compute_temp_rotate.cpp
   rm -f ../dihedral_cosine_shift_exp.cpp
+  rm -f ../dihedral_table.cpp
   rm -f ../fix_addtorque.cpp
   rm -f ../fix_imd.cpp
   rm -f ../fix_smd.cpp
@@ -57,11 +63,13 @@ elif (test $1 = 0) then
 
   rm -f ../angle_cosine_shift.h
   rm -f ../angle_cosine_shift_exp.h
+  rm -f ../angle_dipole.h
   rm -f ../bond_harmonic_shift.h
   rm -f ../bond_harmonic_shift_cut.h
   rm -f ../compute_ackland_atom.h
   rm -f ../compute_temp_rotate.h
   rm -f ../dihedral_cosine_shift_exp.h
+  rm -f ../dihedral_table.h
   rm -f ../fix_addtorque.h
   rm -f ../fix_imd.h
   rm -f ../fix_smd.h

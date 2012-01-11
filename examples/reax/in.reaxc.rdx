@@ -39,5 +39,4 @@ timestep	1.0
 
 dump		1 all atom 10 dump.reax.rdx
 
-
 run		100

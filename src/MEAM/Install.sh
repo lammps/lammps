@@ -1,5 +1,5 @@
 # Install/unInstall package files in LAMMPS
-# edit 2 Makefile.package files to include/exclude GPU info
+# edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
 

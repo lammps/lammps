@@ -7,6 +7,7 @@ atom_style	charge
 read_data	data.rdx
 
 #     reax args: hbcut hbnewflag tripflag precision
+
 pair_style	reax 10.0 0 1 1.0e-6
 pair_coeff	* * ffield.reax 1 2 3 4
 
@@ -39,7 +40,5 @@ timestep	1.0
 
 #dump		1 all atom 10 dump.reax.rdx
 dump            1 all custom 1 dump.reax.rdx id type q xs ys zs
-
-reset_timestep 1000
 
 run		100

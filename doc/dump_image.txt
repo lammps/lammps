@@ -364,7 +364,7 @@ file:
 a) Use the ImageMagick convert program. :ulb,l
 
 % convert *.jpg foo.gif
-% convert *.ppm foo.mpg :pre
+% convert -loop 1 *.ppm foo.mpg :pre
 
 b) Use QuickTime. :l
 

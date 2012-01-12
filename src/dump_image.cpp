@@ -213,7 +213,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 	int n = strlen(&arg[iarg+2][2]) + 1;
 	upystr = new char[n];
 	strcpy(upystr,&arg[iarg+2][2]);
-      } else image->up[1] = atof(arg[iarg+1]);
+      } else image->up[1] = atof(arg[iarg+2]);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
 	int n = strlen(&arg[iarg+3][2]) + 1;
 	upzstr = new char[n];

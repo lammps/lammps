@@ -28,11 +28,6 @@ pair_coeff   1 1 3.0 1.0 1 1 1 1 1 1 2.5
 pair_coeff   1 2 3.0 1.0 1 1 1 0 0 0
 pair_coeff   2 2 1.0 1.0 1 1 0.2 0 0 0
 
-#pair_style   resquared 4.0
-#pair_coeff   1 1 3.0 1 1 1 1 1 1 1 2.5
-#pair_coeff   1 2 3.0 1 1 1 1 0 0 0
-#pair_coeff   2 2 1.0 1 1 1 0.2 0 0 0
-
 neighbor     0.8 bin
 
 thermo_style custom step c_rot epair etotal press vol
@@ -42,11 +37,12 @@ timestep     0.002
 
 compute	     q all property/atom quatw quati quatj quatk
 
-dump	     1 all custom 100 dump.ellipse.gayberne &
-	     id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
-
-#dump	     1 all custom 100 dump.ellipse.resquared &
+#dump	     1 all custom 100 dump.ellipse.gayberne &
 #	     id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
+
+#dump	     1 all image 100 image.*.jpg type type &
+#	     zoom 1.6 center d 0.5 0.5 0.5
+#dump_modify  1 pad 4 adiam 1 1.0 adiam 2 2.0
 
 fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0 &
 	       mtk no pchain 0 tchain 1

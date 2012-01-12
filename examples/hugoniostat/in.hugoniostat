@@ -82,10 +82,16 @@ variable pzz   equal pzz  # axial stress
 variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
 variable time equal dt*step
 
-thermo          100
+thermo          1000
 thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (no drag)'
+
+#dump		id all atom 500 dump.hugoniostat
+
+#dump		1 all image 500 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 5
 
 run		10000
 
@@ -122,7 +128,7 @@ variable pzz   equal pzz  # axial stress
 variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
 variable time equal dt*step
 
-thermo          100
+thermo          1000
 thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (with drag)'
@@ -162,7 +168,7 @@ variable pzz   equal pzz  # axial stress
 variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
 variable time equal dt*step
 
-thermo          100
+thermo          1000
 thermo_style custom step temp ke epair etotal pzz v_tau lz f_myhug v_dele v_us v_up
 
 fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (Nose-Hoover chain)'

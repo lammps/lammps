@@ -41,5 +41,10 @@ thermo		1000
 thermo_modify	lost ignore norm no
 compute_modify	thermo_temp dynamic yes
 
-dump		id all atom 250 dump.pour
+#dump		id all atom 250 dump.pour
+
+#dump		1 all image 500 image.*.jpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	1 pad 5
+
 run		25000

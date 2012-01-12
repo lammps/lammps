@@ -4,8 +4,9 @@ Each of these sub-directories contains a sample problem you can run
 with LAMMPS.  Most are 2d models so that they run quickly, requiring a
 few seconds to a few minutes to run on a desktop machine.  Each
 problem has an input script (in.*) and produces a log file (log.*) and
-dump file (dump.*) when it runs.  Some use a data file (data.*) of
-initial coordinates as additional input.
+(optionally) a dump file (dump.*) or image files (image.*) when it
+runs.  Some use a data file (data.*) of initial coordinates as
+additional input.
 
 A few sample log file outputs on different machines and different
 numbers of processors are included in the directories to compare your
@@ -16,11 +17,6 @@ on different machines or different numbers of processors, but not
 identical answers to those in the log of dump files included here.
 See the Errors section of the LAMMPS documentation for more
 discussion.
-
-The dump files produced by the example runs can be animated using the
-xmovie tool described in the "Additional Tools" section of the LAMMPS
-documentation.  Animations of many of these examples can be viewed on
-the Movies section of the LAMMPS WWW Site.
 
 These are the sample problems and their output in the various
 sub-directories:
@@ -61,10 +57,22 @@ cd indent
 cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
 lmp_linux < in.indent              # run the problem
 
-Running the simulation produces the files dump.indent and log.lammps.
-You can visualize the dump file as follows:
+If you uncomment the dump atom (or dump custom or dump cfg) line(s) in
+the input script a dump.* file will be produced by the run.  These can
+be animated using tools like VMD or AtomEye, or the xmovie tool
+described in the "Additional Tools" section of the LAMMPS
+documentation, e.g.
 
-../../tools/xmovie/xmovie -scale dump.indent
+% ../../tools/xmovie/xmovie -scale dump.indent
+
+If you uncomment the dump image line(s) in the input script a series
+of JPG images will be produced by the run.  These can be viewed
+individually or turned into a movie or animated by tools like
+ImageMagick or QuickTime or various Windows-based tools.  See the dump
+image doc page for more details.  E.g. this Imagemagick command would
+create a GIF file suitable for viewing in a browser.
+
+% convert -loop 1 *.jpg foo.gif
 
 ------------------------------------------
 

@@ -311,6 +311,7 @@ void FixThermalConductivity::end_of_step()
                           vcm[2] * (vcm[2] - sbuf[2]));
     }
   }
+
   // tally energy exchange from all swaps
 
   double eswap_all;

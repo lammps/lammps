@@ -1,5 +1,7 @@
 # TIPS water from charmm.
 
+package gpu force/neigh 0 0 1.0
+
 boundary 	p p p
 units		real
 atom_style	full
@@ -33,7 +35,6 @@ thermo		10
 thermo_style 	custom step pe temp evdwl ecoul vol press spcpu
 thermo_modify   norm yes
 
-fix		0 all gpu force/neigh 0 1 1.0
 
 minimize        1.0e-4 1.0e-6 100 1000
 

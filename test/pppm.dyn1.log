@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 -1 threads_per_atom 1
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -69,24 +69,24 @@ PPPM initialization ...
   RMS precision = 4.53695e-05
   using double precision FFTs
   brick FFT buffer size/proc = 10933 4608 7569
-Memory usage per processor = 8.59337 Mbytes
+Memory usage per processor = 10.4244 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -4.8899635   0.59246614    2.6419489    4.8014089   -2.1553005 
      100    1.5653159    -3.997106   0.53227234    2.4535606    4.8009475     4.482793 
-     200    1.9120678   -3.6115319   0.50248645    1.9329343     4.800319    7.5318494 
-     300    2.0762369   -3.6068484   0.48634626    1.6868796    4.8004563    7.7874467 
-     400    2.1645557    -3.567067   0.45603718    1.5544102     4.800432    7.6600529 
-Loop time of 3.16493 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+     200    1.9120678   -3.6115316   0.50248645    1.9329346    4.8003192    7.5318505 
+     300    2.0762363   -3.6068485   0.48634627    1.6868796    4.8004555    7.7874466 
+     400    2.1645573   -3.5670698   0.45603707    1.5544071    4.8004313    7.6600383 
+Loop time of 3.18208 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 1.66393 (52.5739)
-Kspce time (%) = 0.729183 (23.0395)
-Neigh time (%) = 0.599751 (18.9499)
-Comm  time (%) = 0.158625 (5.01196)
-Outpt time (%) = 0.00124613 (0.0393732)
-Other time (%) = 0.0121991 (0.385446)
+Pair  time (%) = 1.5658 (49.2069)
+Kspce time (%) = 0.830026 (26.0844)
+Neigh time (%) = 0.615658 (19.3476)
+Comm  time (%) = 0.156638 (4.92249)
+Outpt time (%) = 0.001429 (0.0449078)
+Other time (%) = 0.0125281 (0.393708)
 
-FFT time (% of Kspce) = 0.38599 (52.9346)
-FFT Gflps 3d (1d only) = 2.73168 4.79121
+FFT time (% of Kspce) = 0.390174 (47.0074)
+FFT Gflps 3d (1d only) = 2.70239 4.5931
 
 Nlocal:    1333.33 ave 1515 max 1240 min
 Histogram: 2 0 0 0 0 0 0 0 0 1
@@ -94,10 +94,10 @@ Nghost:    8970.67 ave 9172 max 8653 min
 Histogram: 1 0 0 0 0 0 0 0 1 1
 Neighs:    0 ave 0 max 0 min
 Histogram: 3 0 0 0 0 0 0 0 0 0
-FullNghs: 705826 ave 803579 max 641549 min
+FullNghs: 705824 ave 803575 max 641548 min
 Histogram: 1 1 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 2117478
-Ave neighs/atom = 529.37
+Total # of neighbors = 2117472
+Ave neighs/atom = 529.368
 Neighbor list builds = 20
 Dangerous builds = 0

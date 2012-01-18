@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 0.8
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -61,18 +61,18 @@ timestep 0.003
 thermo   100
 thermo_style custom step temp evdwl ecoul epair etotal press
 run		200
-Memory usage per processor = 9.94365 Mbytes
+Memory usage per processor = 11.7747 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -8.0744201    3.9599587   -4.1144614   -1.9550014   -4.4122455 
      100    1.0534461   -7.2795437    4.2095038   -3.0700399   -1.4902659  -0.71140808 
      200    1.3528835   -7.4146211    4.5828982   -2.8317229  -0.80290501  -0.36323999 
-Loop time of 1.50743 on 3 procs (3 MPI x 1 OpenMP) for 200 steps with 4000 atoms
+Loop time of 1.50915 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
 
-Pair  time (%) = 1.07099 (71.0476)
-Neigh time (%) = 0.305733 (20.2817)
-Comm  time (%) = 0.114222 (7.57728)
-Outpt time (%) = 0.0104606 (0.693938)
-Other time (%) = 0.0060207 (0.399403)
+Pair  time (%) = 1.09098 (72.2911)
+Neigh time (%) = 0.312998 (20.74)
+Comm  time (%) = 0.0907558 (6.01371)
+Outpt time (%) = 0.00841745 (0.557761)
+Other time (%) = 0.00599829 (0.397462)
 
 Nlocal:    1333.33 ave 1475 max 1202 min
 Histogram: 1 0 0 0 1 0 0 0 0 1
@@ -94,18 +94,18 @@ pair_coeff	1 2 lj12_6 1.1 1.0
 pair_coeff	2 2 lj12_4 1.2 0.9
 
 run 200
-Memory usage per processor = 9.10273 Mbytes
+Memory usage per processor = 10.9338 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
      200    1.3528835    -7.414621    3.6960268   -3.7185942   -1.6897764    0.3079265 
      300    1.5031055   -7.4165745    3.9982244   -3.4183501   -1.1642555    1.7041504 
      400    1.4794974   -7.4488543     3.929953   -3.5189012     -1.30021    1.3853261 
-Loop time of 1.69431 on 3 procs (3 MPI x 1 OpenMP) for 200 steps with 4000 atoms
+Loop time of 1.68962 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
 
-Pair  time (%) = 1.08204 (63.8635)
-Neigh time (%) = 0.304694 (17.9834)
-Comm  time (%) = 0.283623 (16.7397)
-Outpt time (%) = 0.0180876 (1.06755)
-Other time (%) = 0.00585953 (0.345837)
+Pair  time (%) = 1.09888 (65.037)
+Neigh time (%) = 0.309717 (18.3306)
+Comm  time (%) = 0.258935 (15.3251)
+Outpt time (%) = 0.0160763 (0.951477)
+Other time (%) = 0.00601395 (0.355936)
 
 Nlocal:    1333.33 ave 1547 max 1200 min
 Histogram: 1 1 0 0 0 0 0 0 0 1

@@ -1,5 +1,8 @@
 # Cu ring
 
+newton off
+
+
 units           metal
 boundary        p p p
 

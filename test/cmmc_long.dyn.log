@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 -1
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -69,24 +69,24 @@ PPPM initialization ...
   RMS precision = 5.38264e-05
   using double precision FFTs
   brick FFT buffer size/proc = 18375 9000 11025
-Memory usage per processor = 9.5141 Mbytes
+Memory usage per processor = 11.3452 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44     -7.79503    1.6682615    16.608443    18.767903    8.8792399 
      100     1.954538   -6.5470872    1.5100626    15.846736     18.77781     13.95536 
      200    2.8661875   -5.2926227    1.4473846    14.504158    18.802365    18.948423 
      300     3.137324   -4.0713823    1.4854908    14.087802    18.792612    23.979839 
      400    3.1865206   -3.4977858     1.540444    13.999154     18.77774    26.603547 
-Loop time of 2.51892 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+Loop time of 2.44614 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 0.17029 (6.76041)
-Kspce time (%) = 1.65104 (65.5453)
-Neigh time (%) = 0.602009 (23.8995)
-Comm  time (%) = 0.0822544 (3.26546)
-Outpt time (%) = 0.000213782 (0.00848704)
-Other time (%) = 0.0131206 (0.52088)
+Pair  time (%) = 0.172978 (7.07147)
+Kspce time (%) = 1.59483 (65.1979)
+Neigh time (%) = 0.592918 (24.2389)
+Comm  time (%) = 0.0722406 (2.95325)
+Outpt time (%) = 0.000212669 (0.00869407)
+Other time (%) = 0.0129602 (0.529822)
 
-FFT time (% of Kspce) = 0.862083 (52.2147)
-FFT Gflps 3d (1d only) = 2.55657 4.45538
+FFT time (% of Kspce) = 0.854429 (53.5748)
+FFT Gflps 3d (1d only) = 2.57947 4.33195
 
 Nlocal:    1333.33 ave 1583 max 1066 min
 Histogram: 1 0 0 0 0 1 0 0 0 1

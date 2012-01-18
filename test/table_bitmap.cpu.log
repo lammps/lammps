@@ -1,0 +1,71 @@
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 10*$x
+variable	xx equal 10*1
+variable	yy equal 10*$y
+variable	yy equal 10*1
+variable	zz equal 10*$z
+variable	zz equal 10*1
+
+units		lj
+atom_style	atomic
+newton      off
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 10 0 ${yy} 0 ${zz}
+region		box block 0 10 0 10 0 ${zz}
+region		box block 0 10 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 1 by 3 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style  table bitmap 10
+pair_coeff	1 1 lj126_table.txt LJ_126
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep 0.003
+thermo   100
+run		400
+Memory usage per processor = 3.25843 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44 -1.8973992e-12            0      2.15946    1.2153441 
+     100    1.1349583    0.9506224            0    2.6526342    6.4802554 
+     200    1.1337457   0.99843555            0     2.698629    6.8086277 
+     300    1.1343472   0.98197474            0    2.6830702    6.6958771 
+     400     1.128032   0.99639664            0    2.6880216    6.7655653 
+Loop time of 1.54315 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
+
+Pair  time (%) = 1.27906 (82.8865)
+Neigh time (%) = 0.165801 (10.7444)
+Comm  time (%) = 0.0868477 (5.62796)
+Outpt time (%) = 0.00110841 (0.0718278)
+Other time (%) = 0.0103288 (0.669332)
+
+Nlocal:    1333.33 ave 1338 max 1328 min
+Histogram: 1 0 0 0 0 0 1 0 0 1
+Nghost:    4337.33 ave 4356 max 4327 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Neighs:    113817 ave 114226 max 113591 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 341451
+Ave neighs/atom = 85.3628
+Neighbor list builds = 20
+Dangerous builds = 0
+
+
+

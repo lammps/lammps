@@ -18,7 +18,7 @@ mass		1 1.0
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style  table/gpu spline 1000
+pair_style  table/gpu linear 1000
 pair_coeff	1 1 lj126_table.txt LJ_126
 
 neighbor	0.3 bin

@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force/neigh 0 0 0.8
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -61,18 +61,18 @@ timestep 0.003
 thermo   100
 thermo_style custom step temp evdwl ecoul epair etotal press
 run		200
-Memory usage per processor = 6.42197 Mbytes
+Memory usage per processor = 8.25304 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -8.0744201    3.9599587   -4.1144614   -1.9550014   -4.4122455 
      100    1.0534461   -7.2795437    4.2095038   -3.0700399   -1.4902659  -0.71140808 
-     200    1.3528834   -7.4146211    4.5828983   -2.8317229  -0.80290505  -0.36324004 
-Loop time of 1.53631 on 3 procs (3 MPI x 1 OpenMP) for 200 steps with 4000 atoms
+     200    1.3528835   -7.4146211    4.5828982   -2.8317229  -0.80290501  -0.36323999 
+Loop time of 1.52583 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
 
-Pair  time (%) = 1.17593 (76.5428)
-Neigh time (%) = 0.265699 (17.2946)
-Comm  time (%) = 0.0815001 (5.30493)
-Outpt time (%) = 0.00713936 (0.464709)
-Other time (%) = 0.00603731 (0.392975)
+Pair  time (%) = 1.14865 (75.2802)
+Neigh time (%) = 0.261323 (17.1266)
+Comm  time (%) = 0.0980086 (6.42329)
+Outpt time (%) = 0.0119524 (0.783337)
+Other time (%) = 0.00589879 (0.386595)
 
 Nlocal:    1333.33 ave 1475 max 1202 min
 Histogram: 1 0 0 0 1 0 0 0 0 1
@@ -92,27 +92,27 @@ pair_coeff	1 2 lj12_6 1.1 1.0
 pair_coeff	2 2 lj12_4 1.2 0.9
 
 run 200
-Memory usage per processor = 6.30767 Mbytes
+Memory usage per processor = 8.13874 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
-     200    1.3528834    -7.414621    3.6960268   -3.7185942   -1.6897764   0.30792643 
-     300    1.5031057   -7.4165617    3.9982245   -3.4183373   -1.1642424    1.7041641 
-     400    1.4794971   -7.4488539     3.929953   -3.5189009   -1.3002101    1.3853276 
-Loop time of 1.66435 on 3 procs (3 MPI x 1 OpenMP) for 200 steps with 4000 atoms
+     200    1.3528835    -7.414621    3.6960268   -3.7185942   -1.6897764    0.3079265 
+     300    1.5031055   -7.4165745    3.9982244   -3.4183501   -1.1642555    1.7041504 
+     400    1.4794974   -7.4488543     3.929953   -3.5189012     -1.30021    1.3853261 
+Loop time of 1.67186 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
 
-Pair  time (%) = 1.1504 (69.1202)
-Neigh time (%) = 0.266001 (15.9822)
-Comm  time (%) = 0.229543 (13.7917)
-Outpt time (%) = 0.012313 (0.739806)
-Other time (%) = 0.00609231 (0.366047)
+Pair  time (%) = 1.11749 (66.841)
+Neigh time (%) = 0.26181 (15.6598)
+Comm  time (%) = 0.270456 (16.177)
+Outpt time (%) = 0.0162154 (0.969902)
+Other time (%) = 0.00588894 (0.352239)
 
 Nlocal:    1333.33 ave 1547 max 1200 min
 Histogram: 1 1 0 0 0 0 0 0 0 1
 Nghost:    9168 ave 9426 max 8997 min
 Histogram: 1 1 0 0 0 0 0 0 0 1
-Neighs:    544525 ave 682130 max 409990 min
+Neighs:    544524 ave 682127 max 409990 min
 Histogram: 1 0 0 0 1 0 0 0 0 1
 
-Total # of neighbors = 1633575
-Ave neighs/atom = 408.394
+Total # of neighbors = 1633571
+Ave neighs/atom = 408.393
 Neighbor list builds = 10
 Dangerous builds = 0

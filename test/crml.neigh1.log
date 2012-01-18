@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force/neigh 0 0 1 threads_per_atom 1
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -69,24 +69,24 @@ PPPM initialization ...
   RMS precision = 4.53695e-05
   using double precision FFTs
   brick FFT buffer size/proc = 10933 4608 7569
-Memory usage per processor = 4.61563 Mbytes
+Memory usage per processor = 6.4467 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -4.8899636   0.59246617    2.6419485    4.8014085   -2.1553006 
      100    1.5653158   -3.9971061   0.53227236    2.4535605    4.8009473    4.4827929 
      200    1.9120684   -3.6115323    0.5024865     1.932934    4.8003196     7.531849 
      300    2.0762334   -3.6068436   0.48634631    1.6868846    4.8004561    7.7874615 
      400    2.1645346   -3.5670297   0.45603604    1.5544424    4.8004326    7.6602168 
-Loop time of 2.03949 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+Loop time of 2.03194 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 0.873839 (42.8459)
-Kspce time (%) = 1.07701 (52.8077)
-Neigh time (%) = 1.05699e-05 (0.000518261)
-Comm  time (%) = 0.0749962 (3.6772)
-Outpt time (%) = 0.00136065 (0.0667154)
-Other time (%) = 0.0122782 (0.602024)
+Pair  time (%) = 0.919306 (45.2428)
+Kspce time (%) = 1.01631 (50.0169)
+Neigh time (%) = 1.23183e-05 (0.000606234)
+Comm  time (%) = 0.0831978 (4.09451)
+Outpt time (%) = 0.00136765 (0.0673076)
+Other time (%) = 0.0117405 (0.577799)
 
-FFT time (% of Kspce) = 0.402069 (37.332)
-FFT Gflps 3d (1d only) = 2.62244 4.53669
+FFT time (% of Kspce) = 0.367057 (36.1165)
+FFT Gflps 3d (1d only) = 2.87259 4.7908
 
 Nlocal:    1333.33 ave 1515 max 1240 min
 Histogram: 2 0 0 0 0 0 0 0 0 1

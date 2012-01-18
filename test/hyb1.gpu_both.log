@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 1
 variable	x index 1
 variable	y index 1
@@ -26,7 +26,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -62,20 +62,20 @@ thermo   100
 thermo_style custom step temp evdwl ecoul epair etotal press
 
 run		400
-Memory usage per processor = 12.4748 Mbytes
+Memory usage per processor = 14.3058 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -4.6540199    3.2322455   -1.4217744   0.73768558   -2.9369757 
      100    1.1663384   -4.0342659    2.6671734   -1.3670924   0.38197775    1.8370982 
      200    1.2770234   -3.9480794    1.9776143   -1.9704651 -0.055408906    2.1690458 
      300    1.3235613   -3.8448674    1.5238312   -2.3210362  -0.33619066    2.5380777 
      400    1.3704529   -3.7952254    1.2356939   -2.5595315  -0.50436613    2.4809254 
-Loop time of 1.2205 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+Loop time of 1.21663 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 0.375904 (30.7991)
-Neigh time (%) = 0.611406 (50.0946)
-Comm  time (%) = 0.214387 (17.5654)
-Outpt time (%) = 0.00724069 (0.593254)
-Other time (%) = 0.0115662 (0.947655)
+Pair  time (%) = 0.370556 (30.4576)
+Neigh time (%) = 0.60838 (50.0055)
+Comm  time (%) = 0.219236 (18.02)
+Outpt time (%) = 0.00658623 (0.541352)
+Other time (%) = 0.0118686 (0.97553)
 
 Nlocal:    1333.33 ave 1447 max 1126 min
 Histogram: 1 0 0 0 0 0 0 0 0 2

@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 -1 threads_per_atom 1
 variable	x index 1
 variable	y index 1
@@ -23,7 +23,7 @@ region		box block 0 10 0 10 0 ${zz}
 region		box block 0 10 0 10 0 10
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 
@@ -58,20 +58,20 @@ thermo   100
 thermo_style custom step temp evdwl ecoul epair etotal press
 
 run		400
-Memory usage per processor = 7.50343 Mbytes
+Memory usage per processor = 9.33449 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44    4.3491398  0.010296709    4.3594366    6.5188966    71.235149 
-     100    2.0094767    3.4236948  0.027391867    3.4510867    6.4645482     68.19358 
-     200    2.0466598    3.3576541  0.029462606    3.3871167    6.4563389     68.05463 
-     300    2.0750364    3.2995187  0.030561552    3.3300802    6.4418567     67.92846 
-     400    2.1165885    3.2384323  0.022912467    3.2613448    6.4354337    67.745965 
-Loop time of 2.29856 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+     100    2.0094767    3.4236952  0.027391873    3.4510871    6.4645485    68.193581 
+     200    2.0466593    3.3576557  0.029422061    3.3870778    6.4562993    68.054624 
+     300    2.0750337    3.2995219  0.030723637    3.3302455     6.442018    67.928515 
+     400    2.1165846    3.2384221  0.022993678    3.2614158    6.4354989    67.745973 
+Loop time of 2.28655 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 1.58875 (69.1195)
-Neigh time (%) = 0.592857 (25.7925)
-Comm  time (%) = 0.105088 (4.57189)
-Outpt time (%) = 0.000326713 (0.0142138)
-Other time (%) = 0.0115361 (0.501885)
+Pair  time (%) = 1.59478 (69.7463)
+Neigh time (%) = 0.584066 (25.5435)
+Comm  time (%) = 0.095791 (4.18932)
+Outpt time (%) = 0.000336965 (0.0147368)
+Other time (%) = 0.0115724 (0.506105)
 
 Nlocal:    1333.33 ave 1358 max 1320 min
 Histogram: 2 0 0 0 0 0 0 0 0 1
@@ -79,10 +79,10 @@ Nghost:    9018 ave 9078 max 8965 min
 Histogram: 1 0 0 0 1 0 0 0 0 1
 Neighs:    0 ave 0 max 0 min
 Histogram: 3 0 0 0 0 0 0 0 0 0
-FullNghs: 704229 ave 713414 max 697872 min
+FullNghs: 704228 ave 713413 max 697868 min
 Histogram: 1 0 1 0 0 0 0 0 0 1
 
-Total # of neighbors = 2112688
-Ave neighs/atom = 528.172
+Total # of neighbors = 2112684
+Ave neighs/atom = 528.171
 Neighbor list builds = 20
 Dangerous builds = 0

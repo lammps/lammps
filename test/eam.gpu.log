@@ -1,37 +1,75 @@
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
+# Cu ring
+
+newton off
+
+package gpu force 0 0 1
+
+units           metal
+boundary        p p p
+
+atom_style      atomic
+
+read_data       ring.data
+  orthogonal box = (97.4376 97.5604 73.5248) to (857.438 857.56 123.384)
+  3 by 1 by 1 MPI processor grid
+  15602 atoms
+
+mass            1 12.0107
+
+pair_style	eam/gpu
+pair_coeff	* * ../potentials/Cu_u3.eam
+pair_modify	shift yes
+
+group           particles type 1
+15602 atoms in group particles
+
+velocity	particles create 1500 102932
+	
+fix  1		particles nve
+
+neighbor        5.0 bin
+neigh_modify    delay 0 every 20 check no
+
+thermo          10
+
+thermo_style    custom step pe etotal temp press
+
+timestep        0.001
 
 run             100
+Memory usage per processor = 5.32026 Mbytes
+Step PotEng TotEng Temp Press 
+       0   -44795.251    -41770.37         1500   -203.12315 
+      10   -44801.675    -41770.37    1503.1855    -196.3475 
+      20   -44822.255   -41770.382    1513.3847   -182.76446 
+      30   -44835.804   -41770.391     1520.099   -161.36915 
+      40   -44835.717   -41770.377    1520.0628   -135.12403 
+      50   -44842.827   -41770.376    1523.5893   -108.59471 
+      60   -44867.527   -41770.385    1535.8332   -85.641687 
+      70   -44900.615   -41770.399     1552.234   -66.978067 
+      80   -44935.633   -41770.401    1569.5979   -52.737158 
+      90   -44971.459   -41770.408    1587.3602   -42.882376 
+     100   -45003.968   -41770.406    1603.4826   -37.422515 
+Loop time of 0.460612 on 12 procs (3 MPI x 4 OpenMP) for 100 steps with 15602 atoms
 
-Memory usage per processor = 15.7574 Mbytes
-Step PotEng TotEng Temp 
-       0   -44795.247   -41770.366         1500 
-      10   -44801.673   -41770.366    1503.1865 
-      20   -44822.256   -41770.378    1513.3871 
-      30   -44835.802   -41770.383    1520.1017 
-      40   -44835.721   -41770.377    1520.0649 
-      50    -44842.83   -41770.374    1523.5918 
-      60   -44867.536   -41770.386    1535.8372 
-      70   -44900.611   -41770.385    1552.2392 
-      80   -44935.628   -41770.386    1569.6035 
-      90   -44971.468   -41770.403    1587.3672 
-     100   -45003.986   -41770.403    1603.4926 
-Loop time of 3.54369 on 1 procs for 100 steps with 15602 atoms
+Pair  time (%) = 0.291997 (63.3932)
+Neigh time (%) = 0.104869 (22.7673)
+Comm  time (%) = 0.0446249 (9.68818)
+Outpt time (%) = 0.00734234 (1.59404)
+Other time (%) = 0.0117788 (2.55721)
 
-Pair  time (%) = 3.22046 (90.8789)
-Neigh time (%) = 0.294111 (8.29959)
-Comm  time (%) = 0.00141788 (0.0400113)
-Outpt time (%) = 0.000984669 (0.0277866)
-Other time (%) = 0.0267079 (0.753675)
-
-Nlocal:    15602 ave 15602 max 15602 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    0 ave 0 max 0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    5200.67 ave 8353 max 3620 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Nghost:    587 ave 921 max 412 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
 Neighs:    0 ave 0 max 0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs: 2.36854e+06 ave 2.36854e+06 max 2.36854e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 789513 ave 1.26788e+06 max 549190 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 2368542
+Total # of neighbors = 2368538
 Ave neighs/atom = 151.81
 Neighbor list builds = 5
 Dangerous builds = 0

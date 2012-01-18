@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 package gpu force 0 0 -1
 newton off
 units lj
@@ -10,7 +10,7 @@ Lattice spacing in x,y,z = 3.68403 3.68403 3.68403
 region  box block 0 10 0 10 0 10
 create_box 1 box
 Created orthogonal box = (0 0 0) to (36.8403 36.8403 36.8403)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms 1 box
 Created 1000 atoms
 
@@ -42,20 +42,20 @@ fix  1 all npt/asphere temp 2.4 2.4 0.5 iso 0.0 8.0 0.5
 compute_modify 1_temp extra ${dof}
 compute_modify 1_temp extra 1003
 run 400
-Memory usage per processor = 4.6593 Mbytes
+Memory usage per processor = 6.49036 Mbytes
 Step Temp E_pair E_mol TotEng Press Volume 
        0          2.4 -0.016278871            0    3.5801211  0.047117792        50000 
      100    3.5053901 -0.077143061            0     5.175684   0.11405457    30357.926 
      200    5.0673675  -0.30231288            0    7.2911374   0.45107931    16548.998 
      300     6.116147  -0.48393849            0    8.6811078    1.4244422    9940.2547 
      400     7.306158  -0.60475036            0    10.343527    3.4423553    6722.3034 
-Loop time of 1.20144 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 1000 atoms
+Loop time of 1.20252 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 1000 atoms
 
-Pair  time (%) = 0.773269 (64.3617)
-Neigh time (%) = 0.097143 (8.08552)
-Comm  time (%) = 0.0457128 (3.80482)
-Outpt time (%) = 9.40164e-05 (0.00782528)
-Other time (%) = 0.285225 (23.7402)
+Pair  time (%) = 0.765345 (63.645)
+Neigh time (%) = 0.0976343 (8.11912)
+Comm  time (%) = 0.0456378 (3.79518)
+Outpt time (%) = 9.54469e-05 (0.00793722)
+Other time (%) = 0.29381 (24.4328)
 
 Nlocal:    333.333 ave 344 max 325 min
 Histogram: 1 0 0 1 0 0 0 0 0 1

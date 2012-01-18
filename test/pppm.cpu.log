@@ -1,5 +1,5 @@
-LAMMPS (25 Oct 2011)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
 variable	x index 1
 variable	y index 1
 variable	z index 1
@@ -25,7 +25,7 @@ region    half block 0 10 0 ${yy} 0 4.5
 region    half block 0 10 0 10 0 4.5
 create_box	2 box
 Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
-  1 by 1 by 3 processor grid
+  1 by 1 by 3 MPI processor grid
 create_atoms	1 box
 Created 4000 atoms
 group     ga region box 
@@ -68,24 +68,24 @@ PPPM initialization ...
   RMS precision = 4.53695e-05
   using double precision FFTs
   brick FFT buffer size/proc = 10933 4608 7569
-Memory usage per processor = 6.83867 Mbytes
+Memory usage per processor = 8.66972 Mbytes
 Step Temp E_vdwl E_coul E_pair TotEng Press 
        0         1.44   -4.8899632   0.59246594    2.6419487    4.8014087   -2.1553003 
      100     1.565316   -3.9971059   0.53227214    2.4535605    4.8009474    4.4827931 
      200     1.912068   -3.6115318    0.5024863    1.9329343    4.8003193    7.5318493 
      300    2.0762384   -3.6068506   0.48634611    1.6868769    4.8004559    7.7874387 
      400    2.1645451   -3.5670414   0.45603564    1.5544263    4.8004321    7.6601779 
-Loop time of 10.9752 on 3 procs (3 MPI x 1 OpenMP) for 400 steps with 4000 atoms
+Loop time of 11.5562 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 4000 atoms
 
-Pair  time (%) = 8.74611 (79.6899)
-Kspce time (%) = 1.59667 (14.548)
-Neigh time (%) = 0.543917 (4.95588)
-Comm  time (%) = 0.0751104 (0.684365)
-Outpt time (%) = 0.000137885 (0.00125634)
-Other time (%) = 0.0132331 (0.120573)
+Pair  time (%) = 8.83182 (76.4252)
+Kspce time (%) = 2.06847 (17.8993)
+Neigh time (%) = 0.549633 (4.75619)
+Comm  time (%) = 0.0933561 (0.807846)
+Outpt time (%) = 0.000134389 (0.00116292)
+Other time (%) = 0.012745 (0.110287)
 
-FFT time (% of Kspce) = 0.392348 (24.5728)
-FFT Gflps 3d (1d only) = 2.68742 4.53681
+FFT time (% of Kspce) = 0.378081 (18.2783)
+FFT Gflps 3d (1d only) = 2.78883 4.50734
 
 Nlocal:    1333.33 ave 1515 max 1240 min
 Histogram: 2 0 0 0 0 0 0 0 0 1

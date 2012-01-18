@@ -72,7 +72,8 @@ int TableT::init(const int ntypes,
   
   _tabstyle = tabstyle;
   _ntables = ntables;
-  _tablength = tablength;
+  if (tabstyle != BITMAP) _tablength = tablength;
+  else _tablength = 1 << tablength;
   
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp4> host_write(lj_types*lj_types,*(this->ucl_device),
@@ -106,66 +107,64 @@ int TableT::init(const int ntypes,
   ucl_copy(coeff2,host_write,false);
   
   // Allocate tablength arrays
-  if (tabstyle == BITMAP) tablength = 1 << tablength;
-
-  UCL_H_Vec<numtyp4> host_write2(ntables*tablength,*(this->ucl_device),
+  UCL_H_Vec<numtyp4> host_write2(_ntables*_tablength,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
-  for (int i=0; i<ntables*tablength; i++) {
+  for (int i=0; i<_ntables*_tablength; i++) {
     host_write2[i].x = 0.0;
     host_write2[i].y = 0.0;
     host_write2[i].z = 0.0;
     host_write2[i].w = 0.0;
   }
 
-  coeff3.alloc(ntables*tablength,*(this->ucl_device),UCL_READ_ONLY);
-  for (int n=0; n<ntables; n++) {
+  coeff3.alloc(_ntables*_tablength,*(this->ucl_device),UCL_READ_ONLY);
+  for (int n=0; n<_ntables; n++) {
     if (tabstyle == LOOKUP) {
-      for (int k=0; k<tablength-1; k++) {
-          host_write2[n*tablength+k].x = (numtyp)0;
-          host_write2[n*tablength+k].y = host_table_data[n][8*k+1]; // e
-          host_write2[n*tablength+k].z = host_table_data[n][8*k+2]; // f
-          host_write2[n*tablength+k].w = (numtyp)0;
+      for (int k=0; k<_tablength-1; k++) {
+          host_write2[n*_tablength+k].x = (numtyp)0;
+          host_write2[n*_tablength+k].y = host_table_data[n][8*k+1]; // e
+          host_write2[n*_tablength+k].z = host_table_data[n][8*k+2]; // f
+          host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == LINEAR || tabstyle == SPLINE || tabstyle == BITMAP) {
-      for (int k=0; k<tablength; k++) {
-          host_write2[n*tablength+k].x = host_table_data[n][8*k+0]; // rsq
-          host_write2[n*tablength+k].y = host_table_data[n][8*k+1]; // e
-          host_write2[n*tablength+k].z = host_table_data[n][8*k+2]; // f
-          host_write2[n*tablength+k].w = (numtyp)0;
+      for (int k=0; k<_tablength; k++) {
+          host_write2[n*_tablength+k].x = host_table_data[n][8*k+0]; // rsq
+          host_write2[n*_tablength+k].y = host_table_data[n][8*k+1]; // e
+          host_write2[n*_tablength+k].z = host_table_data[n][8*k+2]; // f
+          host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } 
   }
   ucl_copy(coeff3,host_write2,false);
   
-  coeff4.alloc(ntables*tablength,*(this->ucl_device),UCL_READ_ONLY);
-  for (int i=0; i<ntables*tablength; i++) {
+  coeff4.alloc(_ntables*_tablength,*(this->ucl_device),UCL_READ_ONLY);
+  for (int i=0; i<_ntables*_tablength; i++) {
     host_write2[i].x = 0.0;
     host_write2[i].y = 0.0;
     host_write2[i].z = 0.0;
     host_write2[i].w = 0.0;
   }
 
-  for (int n=0; n<ntables; n++) {
+  for (int n=0; n<_ntables; n++) {
     if (tabstyle == LINEAR) {
-      for (int k=0; k<tablength-1; k++) {
-        host_write2[n*tablength+k].x = (numtyp)0; 
-        host_write2[n*tablength+k].y = host_table_data[n][8*k+3]; // de
-        host_write2[n*tablength+k].z = host_table_data[n][8*k+4]; // df
-        host_write2[n*tablength+k].w = (numtyp)0;
+      for (int k=0; k<_tablength-1; k++) {
+        host_write2[n*_tablength+k].x = (numtyp)0; 
+        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // de
+        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // df
+        host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == SPLINE) {
-      for (int k=0; k<tablength; k++) {
-        host_write2[n*tablength+k].x = (numtyp)0; 
-        host_write2[n*tablength+k].y = host_table_data[n][8*k+3]; // e2
-        host_write2[n*tablength+k].z = host_table_data[n][8*k+4]; // f2
-        host_write2[n*tablength+k].w = (numtyp)0;
+      for (int k=0; k<_tablength; k++) {
+        host_write2[n*_tablength+k].x = (numtyp)0; 
+        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // e2
+        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // f2
+        host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == BITMAP) {
-      for (int k=0; k<tablength; k++) {
-        host_write2[n*tablength+k].x = (numtyp)0; 
-        host_write2[n*tablength+k].y = host_table_data[n][8*k+3]; // de
-        host_write2[n*tablength+k].z = host_table_data[n][8*k+4]; // df
-        host_write2[n*tablength+k].w = host_table_data[n][8*k+5]; // drsq
+      for (int k=0; k<_tablength; k++) {
+        host_write2[n*_tablength+k].x = (numtyp)0; 
+        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // de
+        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // df
+        host_write2[n*_tablength+k].w = host_table_data[n][8*k+5]; // drsq
       }
     }
   }

@@ -19,7 +19,7 @@ mass		1 1.0
 velocity	all create 1.44 87287 loop geom
 
 pair_style  table/gpu lookup 1000
-pair_coeff	1 1 lj126_table.txt LJ_126
+pair_coeff	1 1 lj126_table.txt LJ_126_1.0
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 20 check no

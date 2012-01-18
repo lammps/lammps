@@ -30,8 +30,6 @@ class PairEAMGPU : public PairEAM {
 
   PairEAMGPU(class LAMMPS *);
   virtual ~PairEAMGPU();
-  void cpu_compute(int, int, int, int, int *, int *, int **);
-  void cpu_compute_energy(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
   double memory_usage();
@@ -41,7 +39,7 @@ class PairEAMGPU : public PairEAM {
 
  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
- private:
+ protected:
   int gpu_mode;
   double cpu_time;
   int *gpulist;

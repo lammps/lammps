@@ -1,7 +1,7 @@
 /***************************************************************************
-                              lal_buck_coul.cpp
+                                buck_coul.cpp
                              -------------------
-                      Trung Dac Nguyen, W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Class for acceleration of the buck/coul/cut pair style.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov nguyentd@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #ifdef USE_OPENCL

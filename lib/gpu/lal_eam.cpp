@@ -1,7 +1,7 @@
 /***************************************************************************
-                                lal_eam.cpp
+                                   eam.cpp
                              -------------------
-                      W. Michael Brown, Trung Dac Nguyen (ORNL)
+                   Trung Dac Nguyen, W. Michael Brown (ORNL)
 
   Class for acceleration of the eam pair style.
 
@@ -41,19 +41,17 @@ EAMT::~EAM() {
 }
  
 template <class numtyp, class acctyp>
-int EAMT::init(const int ntypes, double host_cutforcesq,
-              int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
-              double ***host_rhor_spline, double ***host_z2r_spline,
-              double ***host_frho_spline,
-              double rdr, double rdrho, int nrhor, int nrho, 
-              int nz2r, int nfrho, int nr,
-              const int nlocal, const int nall, const int max_nbors,
-              const int maxspecial, const double cell_size,
-              const double gpu_split, FILE *_screen) 
+int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
+               int **host_type2z2r, int *host_type2frho,
+               double ***host_rhor_spline, double ***host_z2r_spline,
+               double ***host_frho_spline, double rdr, double rdrho, int nrhor,
+               int nrho, int nz2r, int nfrho, int nr, const int nlocal,
+               const int nall, const int max_nbors, const int maxspecial,
+               const double cell_size, const double gpu_split, FILE *_screen) 
 {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,eam);
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
+                            gpu_split,_screen,eam);
   
   if (success!=0)
     return success;
@@ -132,14 +130,12 @@ int EAMT::init(const int ntypes, double host_cutforcesq,
   
   // pack type2frho
   UCL_H_Vec<int> dview_type2frho(lj_types,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                                 UCL_WRITE_OPTIMIZED);
 
   type2frho.alloc(lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<ntypes; i++)
     dview_type2frho[i]=host_type2frho[i];
   ucl_copy(type2frho,dview_type2frho,false);
-
-  
 
   // pack frho_spline
   UCL_H_Vec<numtyp4> dview_frho_spline(nfrho*(nrho+1),*(this->ucl_device),

@@ -1,17 +1,17 @@
-// **************************************************************************
-//                               lal_eam_ext.cpp
-//                             -------------------
-//                     W. Michael Brown, Trung Dac Nguyen (ORNL)
-//
-//  Class for acceleration of the eam pair style
-//
-// __________________________________________________________________________
-//    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
-// __________________________________________________________________________
-//
-//    begin                : 
-//    email                : brownw@ornl.gov nguyentd@ornl.gov
-// ***************************************************************************/
+/***************************************************************************
+                                 eam_ext.cpp
+                             -------------------
+                   Trung Dac Nguyen, W. Michael Brown (ORNL)
+
+  Functions for LAMMPS access to buck acceleration routines.
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : 
+    email                : brownw@ornl.gov nguyentd@ornl.gov
+ ***************************************************************************/
 
 #include <iostream>
 #include <cassert>

@@ -1,7 +1,7 @@
 /***************************************************************************
-                                   lal_buck.cpp
+                                  buck.cpp
                              -------------------
-                            W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Class for acceleration of the lj/cut pair style.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #ifdef USE_OPENCL

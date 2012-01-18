@@ -51,15 +51,6 @@ class PairEAMLJGPU : public PairEAM {
   double **lj1,**lj2,**lj3,**lj4,**offset;
 
   void allocate();
-
- private:
-  int gpu_mode;
-  double cpu_time;
-  int *gpulist;
-  void *fp_pinned;
-  bool fp_single;
-
-  
 };
 
 }

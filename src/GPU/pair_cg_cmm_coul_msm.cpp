@@ -33,6 +33,7 @@ PairCGCMMCoulMSM::PairCGCMMCoulMSM(LAMMPS *lmp) : PairCMMCommon(lmp)
 {
   respa_enable = 0;
   single_enable = 0;
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
 }
 
 /* ---------------------------------------------------------------------- */

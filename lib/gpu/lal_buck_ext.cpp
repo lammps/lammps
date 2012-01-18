@@ -1,7 +1,7 @@
 /***************************************************************************
-                                 lal_buck_ext.cpp
+                                 buck_ext.cpp
                              -------------------
-                            W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Functions for LAMMPS access to buck acceleration routines.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #include <iostream>

@@ -1,7 +1,7 @@
 // **************************************************************************
-//                             lal_eam.cu
+//                                   eam.cu
 //                             -------------------
-//                     Trung Dac Nguyen, W. Michael Brown (ORNL)
+//                   Trung Dac Nguyen, W. Michael Brown (ORNL)
 //
 //  Device code for acceleration of the eam pair style
 //

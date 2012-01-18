@@ -1,7 +1,7 @@
 /***************************************************************************
-                              lal_eam.h
+                                    eam.h
                              -------------------
-                      W. Michael Brown, Trung Dac Nguyen (ORNL)
+                   Trung Dac Nguyen, W. Michael Brown (ORNL)
 
   Class for acceleration of the eam pair style.
 

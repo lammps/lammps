@@ -1,7 +1,7 @@
 /***************************************************************************
-                                lal_yukawa.h
+                                  yukawa.h
                              -------------------
-                    Trung Dac Nguyen, W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Class for acceleration of the yukawa pair style.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov nguyentd@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #ifndef LAL_YUKAWA_H

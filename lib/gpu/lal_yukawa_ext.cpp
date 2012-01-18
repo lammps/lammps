@@ -1,7 +1,7 @@
 /***************************************************************************
-                              lal_yukawa_ext.cpp
+                               yukawa_ext.cpp
                              -------------------
-                     Trung Dac Nguyen, W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Functions for LAMMPS access to yukawa acceleration routines.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov nguyentd@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #include <iostream>

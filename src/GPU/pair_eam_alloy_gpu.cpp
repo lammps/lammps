@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Trung Dac Nguyen, W. Michael Brown (ORNL)
+   Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"

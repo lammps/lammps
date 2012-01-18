@@ -1,7 +1,7 @@
 /***************************************************************************
-                                  lal_buck.h
+                                   buck.h
                              -------------------
-                            W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Class for acceleration of the buck pair style.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #ifndef LAL_BUCK_H

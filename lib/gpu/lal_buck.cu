@@ -1,16 +1,16 @@
 // **************************************************************************
-//                                   lj.cu
+//                                   buck.cu
 //                             -------------------
-//                           W. Michael Brown (ORNL)
+//                           Trung Dac Nguyen (ORNL)
 //
-//  Device code for acceleration of the lj/cut pair style
+//  Device code for acceleration of the buck pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
 //    begin                : 
-//    email                : brownw@ornl.gov
+//    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
 #ifdef NV_KERNEL

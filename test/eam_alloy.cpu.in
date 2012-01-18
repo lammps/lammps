@@ -1,5 +1,7 @@
 # bulk Cu lattice
 
+newton off
+
 variable	x index 1
 variable	y index 1
 variable	z index 1

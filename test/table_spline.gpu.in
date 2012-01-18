@@ -22,7 +22,7 @@ set type 1 type/fraction 2 0.5 190343
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style  table/gpu linear 1000
+pair_style  table/gpu spline 1000
 pair_coeff	1 1 lj126_table.txt LJ_126_1.0
 pair_coeff	1 2 lj126_table.txt LJ_126_1.0
 pair_coeff	2 2 lj126_table.txt LJ_126_2.0

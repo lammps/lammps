@@ -76,32 +76,40 @@ int TableT::init(const int ntypes,
   else _tablength = 1 << tablength;
   
   // Allocate a host write buffer for data initialization
+  UCL_H_Vec<int> host_write_int(lj_types*lj_types,*(this->ucl_device),
+                               UCL_WRITE_OPTIMIZED);
+
+  for (int i=0; i<lj_types*lj_types; i++) 
+    host_write_int[i] = 0;
+    
+  tabindex.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  nshiftbits.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  nmask.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+
+  for (int ix=1; ix<ntypes; ix++)
+    for (int iy=1; iy<ntypes; iy++) 
+      host_write_int[ix*lj_types+iy] = (int)host_table_coeffs[ix][iy][0]; // tabindex
+  ucl_copy(tabindex,host_write_int,false);
+  
+  for (int ix=1; ix<ntypes; ix++)
+    for (int iy=1; iy<ntypes; iy++)   
+      host_write_int[ix*lj_types+iy] = (int)host_table_coeffs[ix][iy][1]; // nshiftbits
+  ucl_copy(nshiftbits,host_write_int,false);
+  
+  for (int ix=1; ix<ntypes; ix++)
+    for (int iy=1; iy<ntypes; iy++)     
+      host_write_int[ix*lj_types+iy] = (int)host_table_coeffs[ix][iy][2]; // nmask
+  ucl_copy(nmask,host_write_int,false);
+  
   UCL_H_Vec<numtyp4> host_write(lj_types*lj_types,*(this->ucl_device),
                                UCL_WRITE_OPTIMIZED);
 
-  for (int i=0; i<lj_types*lj_types; i++) {
-    host_write[i].x=(numtyp)0.0;
-    host_write[i].y=(numtyp)0.0;
-    host_write[i].z=(numtyp)0.0;
-    host_write[i].w=(numtyp)0.0;
-  }
-  
-  coeff1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  for (int ix=1; ix<ntypes; ix++)
-    for (int iy=1; iy<ntypes; iy++) {
-      host_write[ix*lj_types+iy].x = host_table_coeffs[ix][iy][0]; // tabindex
-      host_write[ix*lj_types+iy].y = host_table_coeffs[ix][iy][1]; // ntablebits
-      host_write[ix*lj_types+iy].z = host_table_coeffs[ix][iy][2]; // nshiftbits
-      host_write[ix*lj_types+iy].w = host_table_coeffs[ix][iy][3]; // nmask
-  }
-  ucl_copy(coeff1,host_write,false);
-  
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int ix=1; ix<ntypes; ix++)
     for (int iy=1; iy<ntypes; iy++) {
-      host_write[ix*lj_types+iy].x = host_table_coeffs[ix][iy][4]; // innersq
-      host_write[ix*lj_types+iy].y = host_table_coeffs[ix][iy][5]; // invdelta
-      host_write[ix*lj_types+iy].z = host_table_coeffs[ix][iy][6]; // deltasq6
+      host_write[ix*lj_types+iy].x = host_table_coeffs[ix][iy][3]; // innersq
+      host_write[ix*lj_types+iy].y = host_table_coeffs[ix][iy][4]; // invdelta
+      host_write[ix*lj_types+iy].z = host_table_coeffs[ix][iy][5]; // deltasq6
       host_write[ix*lj_types+iy].w = (numtyp)0.0;
   }
   ucl_copy(coeff2,host_write,false);
@@ -121,21 +129,21 @@ int TableT::init(const int ntypes,
     if (tabstyle == LOOKUP) {
       for (int k=0; k<_tablength-1; k++) {
           host_write2[n*_tablength+k].x = (numtyp)0;
-          host_write2[n*_tablength+k].y = host_table_data[n][8*k+1]; // e
-          host_write2[n*_tablength+k].z = host_table_data[n][8*k+2]; // f
+          host_write2[n*_tablength+k].y = host_table_data[n][6*k+1]; // e
+          host_write2[n*_tablength+k].z = host_table_data[n][6*k+2]; // f
           host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == LINEAR || tabstyle == SPLINE || tabstyle == BITMAP) {
       for (int k=0; k<_tablength; k++) {
-          host_write2[n*_tablength+k].x = host_table_data[n][8*k+0]; // rsq
-          host_write2[n*_tablength+k].y = host_table_data[n][8*k+1]; // e
-          host_write2[n*_tablength+k].z = host_table_data[n][8*k+2]; // f
+          host_write2[n*_tablength+k].x = host_table_data[n][6*k+0]; // rsq
+          host_write2[n*_tablength+k].y = host_table_data[n][6*k+1]; // e
+          host_write2[n*_tablength+k].z = host_table_data[n][6*k+2]; // f
           host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } 
   }
   ucl_copy(coeff3,host_write2,false);
-  
+
   coeff4.alloc(_ntables*_tablength,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<_ntables*_tablength; i++) {
     host_write2[i].x = 0.0;
@@ -148,23 +156,23 @@ int TableT::init(const int ntypes,
     if (tabstyle == LINEAR) {
       for (int k=0; k<_tablength-1; k++) {
         host_write2[n*_tablength+k].x = (numtyp)0; 
-        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // de
-        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // df
+        host_write2[n*_tablength+k].y = host_table_data[n][6*k+3]; // de
+        host_write2[n*_tablength+k].z = host_table_data[n][6*k+4]; // df
         host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == SPLINE) {
       for (int k=0; k<_tablength; k++) {
         host_write2[n*_tablength+k].x = (numtyp)0; 
-        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // e2
-        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // f2
+        host_write2[n*_tablength+k].y = host_table_data[n][6*k+3]; // e2
+        host_write2[n*_tablength+k].z = host_table_data[n][6*k+4]; // f2
         host_write2[n*_tablength+k].w = (numtyp)0;
       }
     } else if (tabstyle == BITMAP) {
       for (int k=0; k<_tablength; k++) {
         host_write2[n*_tablength+k].x = (numtyp)0; 
-        host_write2[n*_tablength+k].y = host_table_data[n][8*k+3]; // de
-        host_write2[n*_tablength+k].z = host_table_data[n][8*k+4]; // df
-        host_write2[n*_tablength+k].w = host_table_data[n][8*k+5]; // drsq
+        host_write2[n*_tablength+k].y = host_table_data[n][6*k+3]; // de
+        host_write2[n*_tablength+k].z = host_table_data[n][6*k+4]; // df
+        host_write2[n*_tablength+k].w = host_table_data[n][6*k+5]; // drsq
       }
     }
   }
@@ -181,7 +189,8 @@ int TableT::init(const int ntypes,
   ucl_copy(sp_lj,dview,false);
 
   _allocated=true;
-  this->_max_bytes=coeff1.row_bytes()+coeff2.row_bytes()
+  this->_max_bytes=tabindex.row_bytes()+nshiftbits.row_bytes()
+    +nmask.row_bytes()+coeff2.row_bytes()
     +coeff3.row_bytes()+coeff4.row_bytes()+cutsq.row_bytes()
     +sp_lj.row_bytes();
   return 0;
@@ -193,7 +202,9 @@ void TableT::clear() {
     return;
   _allocated=false;
 
-  coeff1.clear();
+  tabindex.clear();
+  nshiftbits.clear();
+  nmask.clear();
   coeff2.clear();
   coeff3.clear();
   coeff4.clear();
@@ -232,7 +243,8 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &coeff1.begin(), 
+    this->k_pair_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                          &nshiftbits.begin(), &nmask.begin(),   
                           &coeff2.begin(), &coeff3.begin(),
                           &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
                           &this->nbor->dev_nbor.begin(),
@@ -243,7 +255,8 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
                           &_tabstyle, &_tablength);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &coeff1.begin(), 
+    this->k_pair.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                     &nshiftbits.begin(), &nmask.begin(), 
                      &coeff2.begin(), &coeff3.begin(), &coeff4.begin(), &cutsq.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),

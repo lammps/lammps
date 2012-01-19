@@ -35,9 +35,9 @@ typedef union {
 } union_int_float;
 #endif
 
-/// ------ inline functions per table style ---------------------------------
+/// ------ -------inline functions per table style ----------------------------
 
-ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
+ucl_inline void lookup(__global numtyp4 *x_, __global int *tabindex,
                      __global numtyp4* coeff2, 
                      __global numtyp4 *coeff3,
                      __global numtyp4 *coeff4,
@@ -84,8 +84,7 @@ ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
     _sp_lj = sp_lj_in;
   } 
   
-  int tlm1;
-  tlm1 = tablength - 1;
+  int tlm1 = tablength - 1;
   
   if (ii<inum) {
     __global int *nbor, *list_end;
@@ -106,7 +105,7 @@ ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
-      int tabindex = coeff1[mtype].x;
+      int tbindex = tabindex[mtype];
       
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -119,7 +118,7 @@ ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
         numtyp force = (numtyp)0;
         itable = (rsq - coeff2[mtype].x) * coeff2[mtype].y;
         if (itable < tlm1) {
-          idx = itable + tabindex*tablength;
+          idx = itable + tbindex*tablength;
           force = factor_lj * coeff3[idx].z;
         } else force = (numtyp)0.0;
                        
@@ -129,10 +128,8 @@ ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
         if (eflag>0) {
           numtyp e = (numtyp)0.0;
-          if (itable < tlm1) {
-            idx = itable + tabindex*tablength;
+          if (itable < tlm1) 
             e = coeff3[idx].y;
-          }  
           energy+=factor_lj*e;
         }
         if (vflag>0) {
@@ -151,7 +148,7 @@ ucl_inline void lookup(__global numtyp4 *x_, __global numtyp4 *coeff1,
   } // if ii
 }
 
-ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
+ucl_inline void linear(__global numtyp4 *x_, __global int *tabindex,
                                __global numtyp4* coeff2, 
                                __global numtyp4 *coeff3,
                                __global numtyp4 *coeff4,
@@ -198,8 +195,7 @@ ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
     _sp_lj = sp_lj_in;
   } 
 
-  int tlm1;
-  tlm1 = tablength - 1;
+  int tlm1 = tablength - 1;
   
   if (ii<inum) {
     __global int *nbor, *list_end;
@@ -220,7 +216,7 @@ ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
-      int tabindex = coeff1[mtype].x;
+      int tbindex = tabindex[mtype];
       
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -235,7 +231,7 @@ ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
         numtyp force = (numtyp)0;
         itable = (rsq - coeff2[mtype].x) * coeff2[mtype].y;
         if (itable < tlm1) {
-          idx = itable + tabindex*tablength;
+          idx = itable + tbindex*tablength;
           fraction = (rsq - coeff3[idx].x) * coeff2[mtype].y;
           value = coeff3[idx].z + fraction*coeff4[idx].z;
           force = factor_lj * value;
@@ -247,10 +243,8 @@ ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
         if (eflag>0) {
           numtyp e = (numtyp)0.0;
-          if (itable < tlm1) {
-            idx = itable + tabindex*tablength;
+          if (itable < tlm1) 
             e = coeff3[idx].y + fraction*coeff4[idx].y;
-          }
           energy+=factor_lj*e;
         }
         if (vflag>0) {
@@ -269,7 +263,7 @@ ucl_inline void linear(__global numtyp4 *x_, __global numtyp4 *coeff1,
   } // if ii
 }
 
-ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
+ucl_inline void spline(__global numtyp4 *x_, __global int *tabindex,
                      __global numtyp4* coeff2, 
                      __global numtyp4 *coeff3,
                      __global numtyp4 *coeff4,
@@ -316,8 +310,7 @@ ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
     _sp_lj = sp_lj_in;
   } 
   
-  int tlm1;
-  tlm1 = tablength - 1;
+  int tlm1 = tablength - 1;
   
   if (ii<inum) {
     __global int *nbor, *list_end;
@@ -338,7 +331,7 @@ ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
-      int tabindex = coeff1[mtype].x;
+      int tbindex = tabindex[mtype];
       
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -354,7 +347,7 @@ ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
         numtyp force = (numtyp)0;
         itable = (rsq - coeff2[mtype].x) * coeff2[mtype].y;
         if (itable < tlm1) {
-          idx = itable + tabindex*tablength;
+          idx = itable + tbindex*tablength;
           b = (rsq - coeff3[idx].x) * coeff2[mtype].y;
           a = (numtyp)1.0 - b;
           value = a * coeff3[idx].z + b * coeff3[idx+1].z + 
@@ -370,7 +363,6 @@ ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
         if (eflag>0) {
           numtyp e = (numtyp)0.0;
           if (itable < tlm1) {
-            idx = itable + tabindex*tablength;
             e = a * coeff3[idx].y + b * coeff3[idx+1].y + 
                 ((a*a*a-a)*coeff4[idx].y + (b*b*b-b)*coeff4[idx+1].y) * 
                   coeff2[mtype].z;
@@ -393,18 +385,19 @@ ucl_inline void spline(__global numtyp4 *x_, __global numtyp4 *coeff1,
   } // if ii
 }
 
-ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
-                     __global numtyp4* coeff2, 
-                     __global numtyp4 *coeff3,
-                     __global numtyp4 *coeff4,
-                     const int lj_types,
-                     __global numtyp *cutsq_in,
-                     __global numtyp* sp_lj_in, 
-                     __global int *dev_nbor, __global int *dev_packed, 
-                     __global acctyp4 *ans, __global acctyp *engv, 
-                     const int eflag, const int vflag, const int inum, 
-                     const int nbor_pitch, const int t_per_atom, 
-                     int tablength, bool shared_types) {
+ucl_inline void bitmap(__global numtyp4 *x_, __global int *tabindex,
+                       __global int *nshiftbits, __global int *nmask,
+                       __global numtyp4* coeff2, 
+                       __global numtyp4 *coeff3,
+                       __global numtyp4 *coeff4,
+                       const int lj_types,
+                       __global numtyp *cutsq_in,
+                       __global numtyp* sp_lj_in, 
+                       __global int *dev_nbor, __global int *dev_packed, 
+                       __global acctyp4 *ans, __global acctyp *engv, 
+                       const int eflag, const int vflag, const int inum, 
+                       const int nbor_pitch, const int t_per_atom, 
+                       int tablength, bool shared_types) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -440,8 +433,7 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
     _sp_lj = sp_lj_in;
   } 
   
-  int tlm1;
-  tlm1 = tablength - 1;
+  int tlm1 = tablength - 1;
   
   if (ii<inum) {
     __global int *nbor, *list_end;
@@ -462,7 +454,7 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
       numtyp4 jx=fetch_pos(j,x_); //x_[j];
       int mtype=itype+jx.w;
-      int tabindex = coeff1[mtype].x;
+      int tbindex = tabindex[mtype];
       
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -477,10 +469,10 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
         numtyp force = (numtyp)0;
         union_int_float rsq_lookup; 
         rsq_lookup.f = rsq;
-        itable = rsq_lookup.i & ((int)coeff1[mtype].w);
-        itable >>= (int)coeff1[mtype].z;
-        if (itable < tlm1) {
-          idx = itable + tabindex*tablength;
+        itable = rsq_lookup.i & nmask[mtype];
+        itable >>= nshiftbits[mtype];
+        if (itable <= tlm1) {
+          idx = itable + tbindex*tablength;
           fraction = (rsq_lookup.f - coeff3[idx].x) * coeff4[idx].w;
           value = coeff3[idx].z + fraction*coeff4[idx].z;
           force = factor_lj * value;
@@ -492,10 +484,8 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
         if (eflag>0) {
           numtyp e = (numtyp)0.0;
-          if (itable < tlm1) {
-            idx = itable + tabindex*tablength;
+          if (itable <= tlm1) 
             e = coeff3[idx].y + fraction*coeff4[idx].y;
-          }  
           energy+=factor_lj*e;
         }
         if (vflag>0) {
@@ -516,7 +506,8 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global numtyp4 *coeff1,
 
 /// -------------------------------------------------------------------------
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *coeff1,
+__kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
+                          __global int *nshiftbits, __global int *nmask,
                           __global numtyp4* coeff2, __global numtyp4* coeff3,
                           __global numtyp4* coeff4, __global numtyp *cutsq,
                           const int lj_types, 
@@ -528,29 +519,31 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *coeff1,
                           int tabstyle, int tablength) {
   bool shared_types = false;
   if (tabstyle == LOOKUP)
-    lookup(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    lookup(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else if (tabstyle == LINEAR)
-    linear(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    linear(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else if (tabstyle == SPLINE)
-    spline(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    spline(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else // tabstyle == BITMAP
-    bitmap(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    bitmap(x_, tabindex, nshiftbits, nmask, 
+           coeff2, coeff3, coeff4, lj_types,
+           cutsq, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
 }
 
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *coeff1,
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
+                                __global int *nshiftbits, __global int *nmask,
                                __global numtyp4* coeff2, 
                                __global numtyp4 *coeff3,
                                __global numtyp4 *coeff4,
@@ -564,24 +557,25 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *coeff1,
   bool shared_types = true;
   int lj_types = 1; // dummy 
   if (tabstyle == LOOKUP)
-    lookup(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    lookup(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else if (tabstyle == LINEAR)
-    linear(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    linear(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else if (tabstyle == SPLINE)
-    spline(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    spline(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
+           cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   else // tabstyle == BITMAP
-    bitmap(x_, coeff1, coeff2, coeff3, coeff4, lj_types,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength, shared_types);
+    bitmap(x_, tabindex, nshiftbits, nmask, 
+           coeff2, coeff3, coeff4, lj_types,
+           cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
+           ans, engv, eflag, vflag, inum, 
+           nbor_pitch, t_per_atom, tablength, shared_types);
   
 }

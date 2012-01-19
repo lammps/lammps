@@ -155,7 +155,7 @@ void PairTableGPU::init_style()
   // pack tables and send them to device
   double ***table_coeffs = NULL;
   double **table_data = NULL;
-  memory->create(table_coeffs, ntypes+1, ntypes+1, 8, "table:coeffs");
+  memory->create(table_coeffs, ntypes+1, ntypes+1, 6, "table:coeffs");
     
   Table *tb;
   for (int i = 1; i <= atom->ntypes; i++)
@@ -163,57 +163,55 @@ void PairTableGPU::init_style()
       int n = tabindex[i][j];
       tb = &tables[n];
       table_coeffs[i][j][0] = n;
-      table_coeffs[i][j][1] = tb->ntablebits;
-      table_coeffs[i][j][2] = tb->nshiftbits;
-      table_coeffs[i][j][3] = tb->nmask;
-      table_coeffs[i][j][4] = tb->innersq;
-      table_coeffs[i][j][5] = tb->invdelta;
-      table_coeffs[i][j][6] = tb->deltasq6;
-      table_coeffs[i][j][7] = 0.0;
+      table_coeffs[i][j][1] = tb->nshiftbits;
+      table_coeffs[i][j][2] = tb->nmask;
+      table_coeffs[i][j][3] = tb->innersq;
+      table_coeffs[i][j][4] = tb->invdelta;
+      table_coeffs[i][j][5] = tb->deltasq6;
   }
   
   if (tabstyle != BITMAP) {
-    memory->create(table_data, ntables, 8*tablength, "table:data");
+    memory->create(table_data, ntables, 6*tablength, "table:data");
     for (int n = 0; n < ntables; n++) {
       tb = &tables[n];
       if (tabstyle == LOOKUP) {
         for (int k = 0; k<tablength-1; k++) {
-          table_data[n][8*k+1] = tb->e[k];
-          table_data[n][8*k+2] = tb->f[k];
-       }
+          table_data[n][6*k+1] = tb->e[k];
+          table_data[n][6*k+2] = tb->f[k];
+        }
       } else if (tabstyle == LINEAR) {
         for (int k = 0; k<tablength; k++) {
-          table_data[n][8*k+0] = tb->rsq[k];
-          table_data[n][8*k+1] = tb->e[k];
-          table_data[n][8*k+2] = tb->f[k];
+          table_data[n][6*k+0] = tb->rsq[k];
+          table_data[n][6*k+1] = tb->e[k];
+          table_data[n][6*k+2] = tb->f[k];
           if (k<tablength-1) {
-            table_data[n][8*k+3] = tb->de[k];
-            table_data[n][8*k+4] = tb->df[k];
+            table_data[n][6*k+3] = tb->de[k];
+            table_data[n][6*k+4] = tb->df[k];
           }
        }
       } else if (tabstyle == SPLINE) {
         for (int k = 0; k<tablength; k++) {
-          table_data[n][8*k+0] = tb->rsq[k];
-          table_data[n][8*k+1] = tb->e[k];
-          table_data[n][8*k+2] = tb->f[k];
-          table_data[n][8*k+3] = tb->e2[k];
-          table_data[n][8*k+4] = tb->f2[k];
+          table_data[n][6*k+0] = tb->rsq[k];
+          table_data[n][6*k+1] = tb->e[k];
+          table_data[n][6*k+2] = tb->f[k];
+          table_data[n][6*k+3] = tb->e2[k];
+          table_data[n][6*k+4] = tb->f2[k];
         }
       } 
     }
   } else {
     int ntable = 1 << tablength;
-    memory->create(table_data, ntables, 8*ntable, "table:data");
-    
+    memory->create(table_data, ntables, 6*ntable, "table:data");
+
     for (int n = 0; n < ntables; n++) {
       tb = &tables[n];
       for (int k = 0; k<ntable; k++) {
-        table_data[n][8*k+0] = tb->rsq[k];
-        table_data[n][8*k+1] = tb->e[k];
-        table_data[n][8*k+2] = tb->f[k];
-        table_data[n][8*k+3] = tb->de[k];
-        table_data[n][8*k+4] = tb->df[k];
-        table_data[n][8*k+5] = tb->drsq[k];
+        table_data[n][6*k+0] = tb->rsq[k];
+        table_data[n][6*k+1] = tb->e[k];
+        table_data[n][6*k+2] = tb->f[k];
+        table_data[n][6*k+3] = tb->de[k];
+        table_data[n][6*k+4] = tb->df[k];
+        table_data[n][6*k+5] = tb->drsq[k];
       }
     }   
   }

@@ -57,9 +57,7 @@ class Table : public BaseAtomic<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// coeff1.x = tabindex, coeff1.y = ntablebits, coeff1.z = nshiftbits,
-  /// coeff1.w = nmask
-  UCL_D_Vec<numtyp4> coeff1;
+  UCL_D_Vec<int> tabindex, nshiftbits, nmask;
   
   /// coeff2.x = innersq, coeff2.y = invdelta, coeff2.z = deltasq6, 
   UCL_D_Vec<numtyp4> coeff2;

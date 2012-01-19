@@ -64,13 +64,11 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=EAMMF.init(ntypes, host_cutforcesq,
-                    host_type2rhor, host_type2z2r, host_type2frho,
-                    host_rhor_spline, host_z2r_spline,
-                    host_frho_spline,
-                    rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, 
-                    nlocal, nall, 300, maxspecial,
-                    cell_size, gpu_split, screen);
+    init_ok=EAMMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+                       host_type2frho, host_rhor_spline, host_z2r_spline,
+                       host_frho_spline, rdr, rdrho, nrhor, nrho, nz2r, nfrho,
+                       nr, nlocal, nall, 300, maxspecial, cell_size, gpu_split,
+                       screen);
 
   EAMMF.device->world_barrier();
   if (message)
@@ -86,13 +84,11 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=EAMMF.init(ntypes, host_cutforcesq,
-                    host_type2rhor, host_type2z2r, host_type2frho,
-                    host_rhor_spline, host_z2r_spline,
-                    host_frho_spline,
-                    rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr, 
-                    nlocal, nall, 300, maxspecial,
-                    cell_size, gpu_split, screen);
+      init_ok=EAMMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+                         host_type2frho, host_rhor_spline, host_z2r_spline,
+                         host_frho_spline, rdr, rdrho, nrhor, nrho, nz2r, nfrho,
+                         nr, nlocal, nall, 300, maxspecial, cell_size, 
+                         gpu_split, screen);
 
     EAMMF.device->gpu_barrier();
     if (message) 
@@ -118,9 +114,9 @@ int ** eam_gpu_compute_n(const int ago, const int inum_full,
                          int **ilist, int **jnum,  const double cpu_time,
                          bool &success, int &inum, void **fp_ptr) {
   return EAMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
-                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                        vatom, host_start, ilist, jnum, cpu_time, success,
-                        inum, fp_ptr);
+                       subhi, tag, nspecial, special, eflag, vflag, eatom,
+                       vatom, host_start, ilist, jnum, cpu_time, success,
+                       inum, fp_ptr);
 }  
 
 void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, 

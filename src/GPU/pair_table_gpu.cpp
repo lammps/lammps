@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Trung Dac Nguyen, W. Michael Brown (ORNL)
+   Contributing authors: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -44,24 +44,24 @@
 // External functions from cuda library for atom decomposition
 
 int table_gpu_init(const int ntypes, double **cutsq, 
-     double ***host_table_coeffs, double **host_table_data, 
-		 double *special_lj, const int nlocal, 
-		 const int nall, const int max_nbors, const int maxspecial,
-		 const double cell_size, int &gpu_mode, FILE *screen, 
-     int tabstyle, int ntables, int tablength);
+		   double ***host_table_coeffs, double **host_table_data, 
+		   double *special_lj, const int nlocal, const int nall,
+		   const int max_nbors, const int maxspecial,
+		   const double cell_size, int &gpu_mode, FILE *screen, 
+		   int tabstyle, int ntables, int tablength);
 void table_gpu_clear();
-int ** table_gpu_compute_n(const int ago, const int inum,
-			 const int nall, double **host_x, int *host_type, 
-			 double *sublo, double *subhi, int *tag, int **nspecial,
-			 int **special, const bool eflag, const bool vflag,
-			 const bool eatom, const bool vatom, int &host_start,
-			 int **ilist, int **jnum,
-			 const double cpu_time, bool &success);
+int ** table_gpu_compute_n(const int ago, const int inum, const int nall,
+			   double **host_x, int *host_type, double *sublo,
+			   double *subhi, int *tag, int **nspecial,
+			   int **special, const bool eflag, const bool vflag,
+			   const bool eatom, const bool vatom, int &host_start,
+			   int **ilist, int **jnum, const double cpu_time,
+			   bool &success);
 void table_gpu_compute(const int ago, const int inum, const int nall, 
-		     double **host_x, int *host_type, int *ilist, int *numj,
-		     int **firstneigh, const bool eflag, const bool vflag,
-		     const bool eatom, const bool vatom, int &host_start,
-		     const double cpu_time, bool &success);
+		       double **host_x, int *host_type, int *ilist, int *numj,
+		       int **firstneigh, const bool eflag, const bool vflag,
+		       const bool eatom, const bool vatom, int &host_start,
+		       const double cpu_time, bool &success);
 double table_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -69,7 +69,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTableGPU::PairTableGPU(LAMMPS *lmp) : PairTable(lmp), 
-  gpu_mode(GPU_FORCE)
+					  gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
@@ -99,20 +99,20 @@ void PairTableGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
-    firstneigh = table_gpu_compute_n(neighbor->ago, inum, nall,
-				   atom->x, atom->type, domain->sublo,
-				   domain->subhi, atom->tag, atom->nspecial,
-				   atom->special, eflag, vflag, eflag_atom,
-				   vflag_atom, host_start, 
-				   &ilist, &numneigh, cpu_time, success);
+    firstneigh = table_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+				     atom->type, domain->sublo, domain->subhi,
+				     atom->tag, atom->nspecial, atom->special,
+				     eflag, vflag, eflag_atom, vflag_atom,
+				     host_start, &ilist, &numneigh, cpu_time,
+				     success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     table_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		    vflag_atom, host_start, cpu_time, success);
+		      ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+		      vflag_atom, host_start, cpu_time, success);
   }
   if (!success)
     error->one(FLERR,"Out of memory on GPGPU");
@@ -168,7 +168,7 @@ void PairTableGPU::init_style()
       table_coeffs[i][j][3] = tb->innersq;
       table_coeffs[i][j][4] = tb->invdelta;
       table_coeffs[i][j][5] = tb->deltasq6;
-  }
+    }
   
   if (tabstyle != BITMAP) {
     memory->create(table_data, ntables, 6*tablength, "table:data");
@@ -219,12 +219,11 @@ void PairTableGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = table_gpu_init(atom->ntypes+1, cutsq, 
-           table_coeffs, table_data,
-			     force->special_lj, atom->nlocal,
-			     atom->nlocal+atom->nghost, 300, maxspecial,
-			     cell_size, gpu_mode, screen, 
-           tabstyle, ntables, tablength);
+  int success = table_gpu_init(atom->ntypes+1, cutsq, table_coeffs, table_data,
+			       force->special_lj, atom->nlocal,
+			       atom->nlocal+atom->nghost, 300, maxspecial,
+			       cell_size, gpu_mode, screen, tabstyle, ntables,
+			       tablength);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {

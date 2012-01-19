@@ -38,15 +38,13 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double host_cutforcesq,
-          int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
-          double ***host_rhor_spline, double ***host_z2r_spline,
-          double ***host_frho_spline,
-          double rdr, double rdrho, int nrhor, int nrho, 
-          int nz2r, int nfrho, int nr,
-          const int nlocal, const int nall, const int max_nbors,
-          const int maxspecial, const double cell_size,
-          const double gpu_split, FILE *_screen);
+  int init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
+           int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
+           double ***host_z2r_spline, double ***host_frho_spline, double rdr,
+           double rdrho, int nrhor, int nrho, int nz2r, int nfrho, int nr,
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size, const double gpu_split,
+           FILE *_screen);
   
   // Copy charges to device asynchronously
   inline void add_fp_data() {
@@ -88,8 +86,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 int &inum, void **fp_ptr);
 
   /// Pair loop with host neighboring
-  void compute2(int *ilist, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom);
+  void compute2(int *ilist, const bool eflag, const bool vflag, 
+                const bool eatom, const bool vatom);
   
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Kernel k_energy, k_energy_fast;

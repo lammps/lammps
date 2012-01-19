@@ -1,7 +1,7 @@
 // **************************************************************************
 //                                   lal_table.cu
 //                             -------------------
-//                      Trung Dac Nguyen, W. Michael Brown (ORNL)
+//                           Trung Dac Nguyen (ORNL)
 //
 //  Device code for acceleration of the table pair style
 //
@@ -10,7 +10,7 @@
 // __________________________________________________________________________
 //
 //    begin                : 
-//    email                : brownw@ornl.gov nguyentd@ornl.gov
+//    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
 #ifdef NV_KERNEL

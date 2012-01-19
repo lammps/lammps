@@ -1,7 +1,7 @@
 /***************************************************************************
                                  lal_table.h
                              -------------------
-                        Trung Dac Nguyen, W. Michael Brown (ORNL)
+                           Trung Dac Nguyen (ORNL)
 
   Class for acceleration of the table pair style.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                : 
-    email                : brownw@ornl.gov
+    email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #ifndef LAL_LJ_H

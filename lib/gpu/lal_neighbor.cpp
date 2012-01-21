@@ -464,8 +464,10 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
         ptr+=mn;
       }                                                 
       _gpu_bytes+=dev_host_nbor.row_bytes();
-    } else
+    } else {
       dev_host_nbor.view(dev_nbor);
+      dev_host_numj.view(dev_nbor);
+    }
     if (_alloc_packed) {
       dev_packed.clear();
       success=success && (dev_packed.alloc((mn+2)*_max_atoms,*dev,

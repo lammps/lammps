@@ -26,6 +26,7 @@
 #include "comm.h"
 #include "pair.h"
 #include "pair_hybrid.h"
+#include "pair_hybrid_overlay.h"
 #include "bond.h"
 #include "bond_hybrid.h"
 #include "angle.h"

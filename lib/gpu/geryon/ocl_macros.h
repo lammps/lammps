@@ -3,7 +3,12 @@
 
 #include <stdio.h>
 #include <cassert>
-#include "CL/cl.h"
+
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
 
 #ifdef MPI_GERYON
 #include "mpi.h"

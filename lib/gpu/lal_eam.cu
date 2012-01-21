@@ -66,6 +66,15 @@ ucl_inline float4 fetch_z2r_sp2(const int& i, const float4 *z2r_spline2)
   { return tex1Dfetch(z2r_sp2_tex, i); }
 #endif
 
+#else // OPENCL
+
+#define fetch_q(i,y) fp_[i]
+#define fetch_rhor_sp1(i,y) rhor_spline1[i]
+#define fetch_rhor_sp2(i,y) rhor_spline2[i]
+#define fetch_frho_sp1(i,y) frho_spline1[i]
+#define fetch_frho_sp2(i,y) frho_spline2[i]
+#define fetch_z2r_sp1(i,y) z2r_spline1[i] 
+#define fetch_z2r_sp2(i,y) z2r_spline2[i]
 
 #endif
 

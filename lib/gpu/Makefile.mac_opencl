@@ -2,7 +2,7 @@
 #  Generic Mac Makefile for OpenCL 
 # ------------------------------------------------------------------------- */
 
-OCL_CPP = mpic++ -I./geryon/opencl_1_0 -O3 -DMPI_GERYON -DUCL_NO_EXIT
+OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT
 OCL_LINK = -framework OpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 

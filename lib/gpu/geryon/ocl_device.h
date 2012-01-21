@@ -28,8 +28,14 @@
 #include <vector>
 #include <iostream>
 
-#include "CL/cl.h"
-#include "CL/cl_platform.h"
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#include <OpenCL/cl_platform.h>
+#else
+#include <CL/cl.h>
+#include <CL/cl_platform.h>
+#endif
+
 #include "ocl_macros.h"
 #include "ucl_types.h"
 

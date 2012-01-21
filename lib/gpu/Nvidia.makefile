@@ -358,7 +358,7 @@ $(OBJ_DIR)/eam.ptx: lal_eam.cu lal_precision.h lal_preprocessor.h
 $(OBJ_DIR)/eam_ptx.h: $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam.ptx
 	$(BSH) ./geryon/file_to_cstr.sh eam $(OBJ_DIR)/eam.ptx $(OBJ_DIR)/eam_ptx.h
     
-$(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp $(OBJ_DIR)/eam_ptx.h $(OBJ_DIR)/lal_base_charge.o
+$(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp $(OBJ_DIR)/eam_ptx.h $(OBJ_DIR)/lal_base_atomic.o
 	$(CUDR) -o $@ -c lal_eam.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h

@@ -7,6 +7,7 @@
 :line
 
 pair_style yukawa command :h3
+pair_style yukawa/gpu command :h3
 pair_style yukawa/omp command :h3
 
 [Syntax:]

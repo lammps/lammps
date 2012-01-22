@@ -44,7 +44,7 @@ class PairReaxC : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
-  void *extract(char *, int &);
+  void *extract(const char *, int &);
   int fixbond_flag, fixspecies_flag;
 
   control_params *control;

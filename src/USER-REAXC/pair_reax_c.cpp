@@ -48,7 +48,7 @@
 #include "reaxc_traj.h"
 #include "reaxc_vector.h"
 #include "fix_reaxc_bonds.h"
-#include "fix_reaxc_species.h"
+//#include "fix_reaxc_species.h"
 
 using namespace LAMMPS_NS;
 
@@ -763,7 +763,7 @@ void PairReaxC::read_reax_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void *PairReaxC::extract(char *str, int &dim)
+void *PairReaxC::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"chi") == 0 && chi) {

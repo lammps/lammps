@@ -65,7 +65,12 @@ neigh_modify	exclude group clump8 clump8
 neigh_modify	exclude group clump9 clump9
 
 thermo		100
-dump		1 all atom 50 dump.rigid
+
+#dump		1 all atom 50 dump.rigid.poems
+
+#dump		1 all image 100 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 5
 
 timestep 	0.0001
 thermo		50

@@ -22,7 +22,11 @@ neigh_modify	delay 0 every 1 check yes
 fix		1 all nve
 fix		2 all enforce2d
 
-dump		1 all atom 100 dump.min
+#dump		1 all atom 500 dump.min
+
+#dump		1 all image 500 image.*.jpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	1 pad 4
 
 thermo		100
 
@@ -30,9 +34,7 @@ run		1000
 
 neigh_modify	delay 0 every 1 check yes
 
-
 velocity	all create 0.0 1
-dump_modify	1 every 25
 thermo		50
 minimize	1.0e-6 0.001 1000 10000
 

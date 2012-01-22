@@ -664,6 +664,7 @@ potentials.  Click on the style itself for a full description:
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
 "lj/smooth"_pair_lj_smooth.html,
+"lj/smooth/linear"_pair_lj_smooth_linear.html,
 "lj96/cut"_pair_lj96.html,
 "lubricate"_pair_lubricate.html,
 "lubricate/poly"_pair_lubricate.html,
@@ -816,6 +817,7 @@ package"_Section_accelerate.html.
 "lj/sf/omp"_pair_lj_sf.html,
 "lj/smooth/cuda"_pair_lj_smooth.html,
 "lj/smooth/omp"_pair_lj_smooth.html,
+"lj/smooth/linear/omp"_pair_lj_smooth_linear.html,
 "lj96/cut/cuda"_pair_lj96.html,
 "lj96/cut/gpu"_pair_lj96.html,
 "lj96/cut/omp"_pair_lj96.html,
@@ -906,7 +908,8 @@ package"_Section_start.html#start_3.
 
 "sdk"_angle_sdk.html,
 "cosine/shift"_angle_cosine_shift.html,
-"cosine/shift/exp"_angle_cosine_shift_exp.html :tb(c=4,ea=c)
+"cosine/shift/exp"_angle_cosine_shift_exp.html,
+"dipole"_angle_dipole.html :tb(c=4,ea=c)
 
 These are accelerated angle styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -944,7 +947,8 @@ These are dihedral styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"cosine/shift/exp"_dihedral_cosine_shift_exp.html :tb(c=4,ea=c)
+"cosine/shift/exp"_dihedral_cosine_shift_exp.html,
+"table"_dihedral_table.html :tb(c=4,ea=c)
 
 These are accelerated dihedral styles, which can be used if LAMMPS is
 built with the "appropriate accelerated

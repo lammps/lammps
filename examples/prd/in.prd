@@ -79,8 +79,9 @@ run             100
 # only output atoms near vacancy
 
 compute coord all coord/atom $r
-dump events all custom 1 dump.prd id type x y z
-dump_modify events thresh c_coord != 4
+
+#dump events all custom 1 dump.prd id type x y z
+#dump_modify events thresh c_coord != 4
 
 compute  patom all pe/atom
 compute  pe all reduce sum c_patom

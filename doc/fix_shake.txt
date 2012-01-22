@@ -76,6 +76,17 @@ for in temperature and pressure computations.  Similarly, the SHAKE
 contribution to the pressure of the system (virial) is also accounted
 for.
 
+IMPORTANT NOTE: This command works by using the current forces on
+atoms to caculate an additional constraint force which when added will
+leave the atoms in positions that satisfy the SHAKE constraints
+(e.g. bond length) after the next time integration step.  If you
+define fixes (e.g. "fix efield"_fix_efield.html) that add additional
+force to the atoms after fix shake operates, then this fix will not
+take them into account and the time integration will typically not
+satisfy the SHAKE constraints.  The solution for this is to make sure
+that fix shake is defined in your input script after any other fixes
+which add or change forces (to atoms that fix shake operates on).
+
 :line
 
 Styles with a {cuda} suffix are functionally the same as the

@@ -55,8 +55,8 @@ fix		3 all enforce2d
 
 thermo		100
 
-dump		1 nebatoms atom 10 dump.neb.$u
-dump		2 nonneb atom 10 dump.nonneb.$u
+#dump		1 nebatoms atom 10 dump.neb.$u
+#dump		2 nonneb atom 10 dump.nonneb.$u
 
 # run NEB for 2000 steps or to force tolerance
 

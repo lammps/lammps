@@ -398,6 +398,20 @@ int AtomVecAngle::pack_border_vel(int n, int *list, double *buf,
       dz = pbc[2];
     }
     if (!deform_vremap) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+	buf[m++] = tag[j];
+	buf[m++] = type[j];
+	buf[m++] = mask[j];
+	buf[m++] = molecule[j];
+	buf[m++] = v[j][0];
+	buf[m++] = v[j][1];
+	buf[m++] = v[j][2];
+      }
+    } else {
       dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
       dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
       dvz = pbc[2]*h_rate[2];
@@ -420,7 +434,6 @@ int AtomVecAngle::pack_border_vel(int n, int *list, double *buf,
 	  buf[m++] = v[j][2];
 	}
       }
-    } else {
     }
   }
   return m;

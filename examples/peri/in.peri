@@ -32,6 +32,10 @@ compute         1 all damage/atom
 timestep        1.0e-7
 thermo          100
 
-dump            1 all custom 100 dump.peri id type x y z c_1
+#dump            1 all custom 100 dump.peri id type x y z c_1
+
+#dump		1 all image 50 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 80 -30 adiam 0.0006
+#dump_modify	1 pad 4
 
 run             1000

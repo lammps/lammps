@@ -41,6 +41,10 @@ fix		2 all enforce2d
 
 thermo_style	custom step temp f_1[7] etotal press f_1[3] f_1[4] f_1[6]
 thermo		100
-dump		1 all atom 250 dump.srd.pure
+
+#dump		1 all atom 250 dump.srd.pure
+
+#dump		1 all image 250 image.*.jpg type type zoom 1.6 adiam 0.2
+#dump_modify	1 pad 4
 
 run		5000

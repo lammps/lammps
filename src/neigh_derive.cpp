@@ -470,15 +470,15 @@ void Neighbor::skip_from_respa(NeighList *list)
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
 

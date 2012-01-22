@@ -40,8 +40,11 @@ fix	      5 all enforce2d
 
 thermo	      10
 
-dump	      1 all atom 10 dump.indent
-dump_modify   1 scale no
+#dump	      1 all atom 10 dump.indent
+
+#dump	      1 all image 25 image.*.jpg type type &
+#	      zoom 1.6 adiam 1.5
+#dump_modify   1 pad 4
 
 minimize      1.0e-6 1.0e-6 1000 1000
 

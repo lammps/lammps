@@ -24,7 +24,10 @@ neigh_modify	delay 0 every 1
 fix		1 all nvt/sllod temp 1.0 1.0 1.0 tchain 1
 fix		2 all deform 1 xy erate 0.01 remap v
 
-dump		1 all custom 500 dump.nemd id type x y z
+#dump		1 all custom 5000 dump.nemd id type x y z
+
+#dump		1 all image 1000 image.*.jpg type type adiam 1.2
+#dump_modify	1 pad 5
 
 thermo		1000
 

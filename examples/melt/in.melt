@@ -19,7 +19,11 @@ neigh_modify	every 20 delay 0 check no
 
 fix		1 all nve
 
-dump		id all atom 50 dump.melt
+#dump		id all atom 50 dump.melt
+
+#dump		1 all image 25 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 3
 
 thermo		50
 run		250

@@ -14,6 +14,7 @@
  ***************************************************************************/
 
 #include "lal_base_ellipsoid.h"
+#include <cstdlib>
 using namespace LAMMPS_AL;
 
 #ifdef USE_OPENCL

@@ -32,7 +32,8 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-TableT::Table() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
+TableT::Table() : BaseAtomic<numtyp,acctyp>(), 
+  _allocated(false), _compiled_styles(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -59,6 +60,14 @@ int TableT::init(const int ntypes,
                             _screen,table);
   if (success!=0)
     return success;
+  
+  k_pair_linear.set_function(*(this->pair_program),"kernel_pair_linear");
+  k_pair_linear_fast.set_function(*(this->pair_program),"kernel_pair_linear_fast");
+  k_pair_spline.set_function(*(this->pair_program),"kernel_pair_spline");
+  k_pair_spline_fast.set_function(*(this->pair_program),"kernel_pair_spline_fast");
+  k_pair_bitmap.set_function(*(this->pair_program),"kernel_pair_bitmap");
+  k_pair_bitmap_fast.set_function(*(this->pair_program),"kernel_pair_bitmap_fast");
+  _compiled_styles = true;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -209,6 +218,17 @@ void TableT::clear() {
   coeff3.clear();
   coeff4.clear();
   sp_lj.clear();
+  
+  if (_compiled_styles) {
+    k_pair_linear_fast.clear();
+    k_pair_linear.clear();
+    k_pair_spline_fast.clear();
+    k_pair_spline.clear();
+    k_pair_bitmap_fast.clear();
+    k_pair_bitmap.clear();
+    _compiled_styles=false;
+  }
+  
   this->clear_atomic();
 }
 
@@ -242,27 +262,87 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
-                          &nshiftbits.begin(), &nmask.begin(),   
-                          &coeff2.begin(), &coeff3.begin(),
-                          &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->_threads_per_atom, 
-                          &_tabstyle, &_tablength);
+    if (_tabstyle == LOOKUP) {
+      this->k_pair_fast.set_size(GX,BX);
+      this->k_pair_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                            &coeff2.begin(), &coeff3.begin(),
+                            &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
+                            &this->nbor->dev_nbor.begin(),
+                            &this->_nbor_data->begin(),
+                            &this->ans->dev_ans.begin(),
+                            &this->ans->dev_engv.begin(), &eflag, &vflag,
+                            &ainum, &nbor_pitch, &this->_threads_per_atom, 
+                            &_tablength);
+    } else if (_tabstyle == LINEAR) {
+      this->k_pair_linear_fast.set_size(GX,BX);
+      this->k_pair_linear_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                            &coeff2.begin(), &coeff3.begin(),
+                            &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
+                            &this->nbor->dev_nbor.begin(),
+                            &this->_nbor_data->begin(),
+                            &this->ans->dev_ans.begin(),
+                            &this->ans->dev_engv.begin(), &eflag, &vflag,
+                            &ainum, &nbor_pitch, &this->_threads_per_atom, 
+                            &_tablength);
+    } else if (_tabstyle == SPLINE) {
+      this->k_pair_spline_fast.set_size(GX,BX);
+      this->k_pair_spline_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                            &coeff2.begin(), &coeff3.begin(),
+                            &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
+                            &this->nbor->dev_nbor.begin(),
+                            &this->_nbor_data->begin(),
+                            &this->ans->dev_ans.begin(),
+                            &this->ans->dev_engv.begin(), &eflag, &vflag,
+                            &ainum, &nbor_pitch, &this->_threads_per_atom, 
+                            &_tablength);
+    } else if (_tabstyle == BITMAP) {
+      this->k_pair_bitmap_fast.set_size(GX,BX);
+      this->k_pair_bitmap_fast.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                            &nshiftbits.begin(), &nmask.begin(),   
+                            &coeff2.begin(), &coeff3.begin(),
+                            &coeff4.begin(), &cutsq.begin(), &sp_lj.begin(),
+                            &this->nbor->dev_nbor.begin(),
+                            &this->_nbor_data->begin(),
+                            &this->ans->dev_ans.begin(),
+                            &this->ans->dev_engv.begin(), &eflag, &vflag,
+                            &ainum, &nbor_pitch, &this->_threads_per_atom, 
+                            &_tablength);
+    }
   } else {
-    this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+    if (_tabstyle == LOOKUP) {
+      this->k_pair.set_size(GX,BX);
+      this->k_pair.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                     &coeff2.begin(), &coeff3.begin(), &coeff4.begin(), &cutsq.begin(),
+                     &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
+                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &nbor_pitch, &this->_threads_per_atom, &_tablength);
+    } else if (_tabstyle == LINEAR) {
+      this->k_pair_linear.set_size(GX,BX);
+      this->k_pair_linear.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                     &coeff2.begin(), &coeff3.begin(), &coeff4.begin(), &cutsq.begin(),
+                     &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
+                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &nbor_pitch, &this->_threads_per_atom, &_tablength);
+    } else if (_tabstyle == SPLINE) {
+      this->k_pair_spline.set_size(GX,BX);
+      this->k_pair_spline.run(&this->atom->dev_x.begin(), &tabindex.begin(),
+                     &coeff2.begin(), &coeff3.begin(), &coeff4.begin(), &cutsq.begin(),
+                     &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
+                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
+                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
+                     &nbor_pitch, &this->_threads_per_atom, &_tablength);
+    } else if (_tabstyle == BITMAP) {
+      this->k_pair_bitmap.set_size(GX,BX);
+      this->k_pair_bitmap.run(&this->atom->dev_x.begin(), &tabindex.begin(),
                      &nshiftbits.begin(), &nmask.begin(), 
                      &coeff2.begin(), &coeff3.begin(), &coeff4.begin(), &cutsq.begin(),
                      &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
                      &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
                      &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->_threads_per_atom,
-                     &_tabstyle, &_tablength);
+                     &nbor_pitch, &this->_threads_per_atom, &_tablength);
+    }
   }
   this->time_pair.stop();
 }

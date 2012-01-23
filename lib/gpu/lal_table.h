@@ -54,7 +54,12 @@ class Table : public BaseAtomic<numtyp, acctyp> {
 
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
-
+  
+  // ------------------------- DEVICE KERNELS -------------------------
+  UCL_Kernel k_pair_linear, k_pair_linear_fast;
+  UCL_Kernel k_pair_spline, k_pair_spline_fast;
+  UCL_Kernel k_pair_bitmap, k_pair_bitmap_fast;
+  
   // --------------------------- TYPE DATA --------------------------
 
   UCL_D_Vec<int> tabindex, nshiftbits, nmask;
@@ -79,7 +84,11 @@ class Table : public BaseAtomic<numtyp, acctyp> {
   /// Number of atom types 
   int _lj_types;
   
+  /// Table style, length and number of tables
   int _tabstyle,_tablength,_ntables;
+  
+  /// True if extra style kernels are compiled
+  bool _compiled_styles;
   
  private:
   bool _allocated;

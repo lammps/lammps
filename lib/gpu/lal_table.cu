@@ -35,9 +35,9 @@ typedef union {
 } union_int_float;
 #endif
 
-/// ------ -------inline functions per table style ----------------------------
+/// ---------------- LOOKUP -------------------------------------------------
 
-ucl_inline void lookup(__global numtyp4 *x_, __global int *tabindex,
+__kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -128,7 +128,7 @@ ucl_inline void lookup(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void lookup_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -223,7 +223,9 @@ ucl_inline void lookup_fast(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void linear(__global numtyp4 *x_, __global int *tabindex,
+/// ---------------- LINEAR -------------------------------------------------
+
+__kernel void kernel_pair_linear(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -318,7 +320,7 @@ ucl_inline void linear(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void linear_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void kernel_pair_linear_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -417,7 +419,9 @@ ucl_inline void linear_fast(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void spline(__global numtyp4 *x_, __global int *tabindex,
+/// ---------------- SPLINE -------------------------------------------------
+
+__kernel void kernel_pair_spline(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -519,7 +523,7 @@ ucl_inline void spline(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void spline_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void kernel_pair_spline_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -625,7 +629,9 @@ ucl_inline void spline_fast(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void bitmap(__global numtyp4 *x_, __global int *tabindex,
+/// ---------------- BITMAP -------------------------------------------------
+
+__kernel void kernel_pair_bitmap(__global numtyp4 *x_, __global int *tabindex,
                        __global int *nshiftbits, __global int *nmask,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
@@ -724,7 +730,7 @@ ucl_inline void bitmap(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-ucl_inline void bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void kernel_pair_bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global int *nshiftbits, __global int *nmask,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
@@ -825,76 +831,4 @@ ucl_inline void bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
     store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                   ans,engv);
   } // if ii
-}
-
-/// -------------------------------------------------------------------------
-
-__kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
-                          __global int *nshiftbits, __global int *nmask,
-                          __global numtyp4* coeff2, __global numtyp4* coeff3,
-                          __global numtyp4* coeff4, __global numtyp *cutsq,
-                          const int lj_types, 
-                          __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                          __global int *dev_packed, __global acctyp4 *ans,
-                          __global acctyp *engv, const int eflag, 
-                          const int vflag, const int inum,
-                          const int nbor_pitch, const int t_per_atom, 
-                          int tabstyle, int tablength) {
-  if (tabstyle == LOOKUP)
-    lookup(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
-           cutsq, sp_lj_in, dev_nbor, dev_packed, 
-           ans, engv, eflag, vflag, inum, 
-           nbor_pitch, t_per_atom, tablength);
-  else if (tabstyle == LINEAR)
-    linear(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
-           cutsq, sp_lj_in, dev_nbor, dev_packed, 
-           ans, engv, eflag, vflag, inum, 
-           nbor_pitch, t_per_atom, tablength);
-  else if (tabstyle == SPLINE)
-    spline(x_, tabindex, coeff2, coeff3, coeff4, lj_types,
-           cutsq, sp_lj_in, dev_nbor, dev_packed, 
-           ans, engv, eflag, vflag, inum, 
-           nbor_pitch, t_per_atom, tablength);
-  else // tabstyle == BITMAP
-    bitmap(x_, tabindex, nshiftbits, nmask, 
-           coeff2, coeff3, coeff4, lj_types,
-           cutsq, sp_lj_in, dev_nbor, dev_packed, 
-           ans, engv, eflag, vflag, inum, 
-           nbor_pitch, t_per_atom, tablength);
-}
-
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
-                                __global int *nshiftbits, __global int *nmask,
-                               __global numtyp4* coeff2, 
-                               __global numtyp4 *coeff3,
-                               __global numtyp4 *coeff4,
-                               __global numtyp *cutsq_in,
-                               __global numtyp* sp_lj_in, 
-                               __global int *dev_nbor, __global int *dev_packed, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, const int t_per_atom, 
-                               int tabstyle, int tablength) {
-  if (tabstyle == LOOKUP)
-    lookup_fast(x_, tabindex, coeff2, coeff3, coeff4,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength);
-  else if (tabstyle == LINEAR)
-    linear_fast(x_, tabindex, coeff2, coeff3, coeff4,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength);
-  else if (tabstyle == SPLINE)
-    spline_fast(x_, tabindex, coeff2, coeff3, coeff4,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength);
-  else // tabstyle == BITMAP
-    bitmap_fast(x_, tabindex, nshiftbits, nmask, 
-                coeff2, coeff3, coeff4,
-                cutsq_in, sp_lj_in, dev_nbor, dev_packed, 
-                ans, engv, eflag, vflag, inum, 
-                nbor_pitch, t_per_atom, tablength);
-  
 }

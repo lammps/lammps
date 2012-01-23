@@ -87,11 +87,9 @@ class Table : public BaseAtomic<numtyp, acctyp> {
   /// Table style, length and number of tables
   int _tabstyle,_tablength,_ntables;
   
-  /// True if extra style kernels are compiled
-  bool _compiled_styles;
-  
  private:
-  bool _allocated;
+  bool _allocated, _compiled_styles;
+  
   void loop(const bool _eflag, const bool _vflag);
 };
 

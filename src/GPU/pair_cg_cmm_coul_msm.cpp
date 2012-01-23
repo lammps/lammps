@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "force.h"
 #include "kspace.h"
+#include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
 

@@ -45,3 +45,18 @@ class PairTableGPU : public PairTable {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with table/gpu pair style
+
+UNDOCUMENTED
+
+E: Pair distance > table outer cutoff
+
+Two atoms are further apart than the pairwise table allows.
+
+*/

@@ -45,3 +45,14 @@ class PairYukawaGPU : public PairYukawa {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with yukawa/gpu pair style
+
+UNDOCUMENTED
+
+*/

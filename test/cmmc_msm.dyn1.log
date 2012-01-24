@@ -1,0 +1,122 @@
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
+package gpu force 0 0 -1 threads_per_atom 1
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 10*$x
+variable	xx equal 10*1
+variable	yy equal 10*$y
+variable	yy equal 10*1
+variable	zz equal 10*$z
+variable	zz equal 10*1
+
+units		lj
+atom_style	charge
+newton      off
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 10 0 ${yy} 0 ${zz}
+region		box block 0 10 0 10 0 ${zz}
+region		box block 0 10 0 10 0 10
+region    half block 0 ${xx} 0 ${yy} 0 4.5
+region    half block 0 10 0 ${yy} 0 4.5
+region    half block 0 10 0 10 0 4.5
+create_box	2 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 1 by 3 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+group     ga region box 
+4000 atoms in group ga
+group     gp region half
+2000 atoms in group gp
+group     gn subtract ga gp
+2000 atoms in group gn
+set group gp charge 0.9
+  2000 settings made for charge
+set group gn charge -0.9
+  2000 settings made for charge
+set group gn type 2
+  2000 settings made for type
+
+mass		1 1.0
+mass    2 1.1
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style  cg/cmm/coul/msm/gpu C3 2.5 5.0
+pair_coeff	1 1 lj9_6 1.0 1.1
+pair_coeff	1 2 lj12_6 1.1 1.0
+pair_coeff	2 2 lj12_4 1.2 0.9
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep 0.003
+thermo   100
+thermo_style custom step temp evdwl ecoul epair etotal press
+run		200
+Memory usage per processor = 11.7759 Mbytes
+Step Temp E_vdwl E_coul E_pair TotEng Press 
+       0         1.44   -8.0744201    3.9599586   -4.1144615   -1.9550015   -4.4122458 
+     100    1.0534461   -7.2795436    4.2095037   -3.0700398   -1.4902657  -0.71140761 
+     200    1.3528835    -7.414621    4.5828981   -2.8317229  -0.80290496  -0.36323984 
+Loop time of 1.29128 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
+
+Pair  time (%) = 0.880673 (68.2013)
+Neigh time (%) = 0.313375 (24.2685)
+Comm  time (%) = 0.0909831 (7.04593)
+Outpt time (%) = 0.000168006 (0.0130107)
+Other time (%) = 0.00608516 (0.471248)
+
+Nlocal:    1333.33 ave 1475 max 1202 min
+Histogram: 1 0 0 0 1 0 0 0 0 1
+Nghost:    9177.67 ave 9278 max 9127 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Neighs:    536461 ave 618119 max 444348 min
+Histogram: 1 0 0 0 0 1 0 0 0 1
+FullNghs: 711377 ave 831213 max 589176 min
+Histogram: 1 0 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 2134130
+Ave neighs/atom = 533.533
+Neighbor list builds = 10
+Dangerous builds = 0
+
+pair_style  cg/cmm/coul/msm/gpu C4 2.5 5.0
+pair_coeff	1 1 lj9_6 1.0 1.1
+pair_coeff	1 2 lj12_6 1.1 1.0
+pair_coeff	2 2 lj12_4 1.2 0.9
+
+run 200
+Memory usage per processor = 10.9348 Mbytes
+Step Temp E_vdwl E_coul E_pair TotEng Press 
+     200    1.3528835    -7.414621    3.6960266   -3.7185943   -1.6897764   0.30792628 
+     300    1.5031069   -7.4165911    3.9982238   -3.4183673   -1.1642706    1.7041255 
+     400    1.4794867   -7.4488133    3.9299518   -3.5188615   -1.3001863    1.3854027 
+Loop time of 1.3043 on 12 procs (3 MPI x 4 OpenMP) for 200 steps with 4000 atoms
+
+Pair  time (%) = 0.883336 (67.7247)
+Neigh time (%) = 0.309951 (23.7637)
+Comm  time (%) = 0.104851 (8.03883)
+Outpt time (%) = 0.000154972 (0.0118816)
+Other time (%) = 0.00601188 (0.460926)
+
+Nlocal:    1333.33 ave 1547 max 1200 min
+Histogram: 1 1 0 0 0 0 0 0 0 1
+Nghost:    9168 ave 9426 max 8997 min
+Histogram: 1 1 0 0 0 0 0 0 0 1
+Neighs:    544526 ave 682129 max 409991 min
+Histogram: 1 0 0 0 1 0 0 0 0 1
+FullNghs: 721542 ave 923658 max 550502 min
+Histogram: 1 0 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 2164626
+Ave neighs/atom = 541.157
+Neighbor list builds = 10
+Dangerous builds = 0

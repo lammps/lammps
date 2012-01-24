@@ -1,0 +1,72 @@
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
+package gpu force 0 0 -1
+newton off
+units lj
+atom_style  ellipsoid
+
+lattice sc 0.02
+Lattice spacing in x,y,z = 3.68403 3.68403 3.68403
+region  box block 0 10 0 10 0 10
+create_box 1 box
+Created orthogonal box = (0 0 0) to (36.8403 36.8403 36.8403)
+  1 by 1 by 3 MPI processor grid
+create_atoms 1 box
+Created 1000 atoms
+
+set type 1 mass 1.5
+  1000 settings made for mass
+set type 1 shape 1 1 3
+  1000 settings made for shape
+set group all quat/random 982381
+  1000 settings made for quat/random
+
+compute  rot all temp/asphere
+group      spheroid type 1
+1000 atoms in group spheroid
+variable     dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+compute_modify rot extra 1003
+
+velocity all create 2.4 41787 loop geom
+
+pair_style gayberne/gpu 1.0 3.0 1.0 7.0
+pair_coeff  1 1 1.0 1.0 1.0 1.0 0.2 1.0 1.0 0.2
+
+neighbor 0.8 bin
+
+timestep 0.002
+thermo 100
+
+fix  1 all npt/asphere temp 2.4 2.4 0.5 iso 0.0 8.0 0.5
+compute_modify 1_temp extra ${dof}
+compute_modify 1_temp extra 1003
+run 400
+Memory usage per processor = 6.49036 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          2.4 -0.016278871            0    3.5801211  0.047117792        50000 
+     100    3.5053901 -0.077143061            0     5.175684   0.11405457    30357.926 
+     200    5.0673675  -0.30231288            0    7.2911374   0.45107931    16548.998 
+     300     6.116147  -0.48393849            0    8.6811078    1.4244422    9940.2547 
+     400     7.306158  -0.60475036            0    10.343527    3.4423553    6722.3034 
+Loop time of 1.20252 on 12 procs (3 MPI x 4 OpenMP) for 400 steps with 1000 atoms
+
+Pair  time (%) = 0.765345 (63.645)
+Neigh time (%) = 0.0976343 (8.11912)
+Comm  time (%) = 0.0456378 (3.79518)
+Outpt time (%) = 9.54469e-05 (0.00793722)
+Other time (%) = 0.29381 (24.4328)
+
+Nlocal:    333.333 ave 344 max 325 min
+Histogram: 1 0 0 1 0 0 0 0 0 1
+Nghost:    3500 ave 3513 max 3493 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 3 0 0 0 0 0 0 0 0 0
+FullNghs: 97954 ave 102231 max 93980 min
+Histogram: 1 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 293862
+Ave neighs/atom = 293.862
+Neighbor list builds = 39
+Dangerous builds = 38

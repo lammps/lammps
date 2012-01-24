@@ -45,6 +45,9 @@ namespace GPU_EXTRA {
       else if (all_success == -7)
 	error->all(FLERR,
                    "Accelerator sharing is not currently supported on system");
+      else if (all_success == -8)
+	error->all(FLERR,
+                   "GPU particle split must be set to 1 for this pair style.");
       else
 	error->all(FLERR,"Unknown error in GPU library");
     }

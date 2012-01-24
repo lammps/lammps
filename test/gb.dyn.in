@@ -1,0 +1,32 @@
+package gpu force 0 0 -1
+newton off
+units lj
+atom_style  ellipsoid
+
+lattice sc 0.02
+region  box block 0 10 0 10 0 10
+create_box 1 box
+create_atoms 1 box
+
+set type 1 mass 1.5
+set type 1 shape 1 1 3
+set group all quat/random 982381
+
+compute  rot all temp/asphere
+group      spheroid type 1
+variable     dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+
+velocity all create 2.4 41787 loop geom
+
+pair_style gayberne/gpu 1.0 3.0 1.0 7.0
+pair_coeff  1 1 1.0 1.0 1.0 1.0 0.2 1.0 1.0 0.2
+
+neighbor 0.8 bin
+
+timestep 0.002
+thermo 100
+
+fix  1 all npt/asphere temp 2.4 2.4 0.5 iso 0.0 8.0 0.5
+compute_modify 1_temp extra ${dof}
+run 400

@@ -1339,7 +1339,23 @@ Too many neighbor bins will be created.  This typically happens when
 the simulation box is very small in some dimension, compared to the
 neighbor cutoff.  Use the "nsq" style instead of "bin" style. :dd
 
+{Cannot use newton pair with buck/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot use newton pair with buck/coul/cut/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot use newton pair with buck/coul/long/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
 {Cannot use newton pair with coul/long/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot use newton pair with eam/gpu pair style} :dt
 
 UNDOCUMENTED :dd
 
@@ -1384,6 +1400,14 @@ UNDOCUMENTED :dd
 UNDOCUMENTED :dd
 
 {Cannot use newton pair with resquared/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot use newton pair with table/gpu pair style} :dt
+
+UNDOCUMENTED :dd
+
+{Cannot use newton pair with yukawa/gpu pair style} :dt
 
 UNDOCUMENTED :dd
 

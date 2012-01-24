@@ -67,7 +67,7 @@ class UCL_D_Mat : public UCL_BaseMat {
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " 
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       return err;
     }
@@ -103,7 +103,7 @@ class UCL_D_Mat : public UCL_BaseMat {
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate "
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       return err;
     }

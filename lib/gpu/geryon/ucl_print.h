@@ -13,7 +13,7 @@
     copyright            : (C) 2010 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -119,7 +119,7 @@ inline void ucl_print(mat_type &mat, const size_t n, std::ostream &out,
   if (n>mat.numel()) {
     std::cerr << "Attempted to ucl_print " << n << " elements of matrix "
               << "that only has " << mat.numel() << " elements.";
-    exit(1);
+    UCL_GERYON_EXIT;
   }
   _ucl_print<mat_type::MEM_TYPE>::p(mat,n,out,delim);
 }
@@ -144,7 +144,7 @@ inline void ucl_print(mat_type &mat, const size_t rows, const size_t cols,
   if (rows*cols>mat.numel()) {
     std::cerr << "Attempted to ucl_print " << rows*cols << " elements of matrix "
               << "that only has " << mat.numel() << " elements.";
-    exit(1);
+    UCL_GERYON_EXIT;
   }
   _ucl_print<mat_type::MEM_TYPE>::p(mat,rows,cols,out,delim,row_delim);
 }
@@ -189,7 +189,7 @@ inline void ucl_print(const mat_type &mat, const size_t n, std::ostream &out,
   if (n>mat.numel()) {
     std::cerr << "Attempted to ucl_print " << n << " elements of matrix "
               << "that only has " << mat.numel() << " elements.";
-    exit(1);
+    UCL_GERYON_EXIT;
   }
   _ucl_print<mat_type::MEM_TYPE>::p(mat,n,out,delim,dev);
 }
@@ -216,7 +216,7 @@ inline void ucl_print(const mat_type &mat,const size_t rows,const size_t cols,
   if (rows*cols>mat.numel()) {
     std::cerr << "Attempted to ucl_print " << rows*cols << " elements of matrix "
               << "that only has " << mat.numel() << " elements.";
-    exit(1);
+    UCL_GERYON_EXIT;
   }
   _ucl_print<mat_type::MEM_TYPE>::p(mat,rows,cols,out,delim,row_delim,dev);
 }

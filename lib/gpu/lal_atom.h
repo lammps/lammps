@@ -28,12 +28,15 @@ using namespace ucl_opencl;
 
 #else
 
-#include "cudpp.h"
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 #include "geryon/nvd_kernel.h"
 using namespace ucl_cudadr;
 
+#endif
+
+#ifdef USE_CUDPP
+#include "cudpp.h"
 #endif
 
 #include "lal_precision.h"
@@ -135,7 +138,7 @@ class Atom {
       time_quat.zero_total();
     }
     
-    return total;
+    return total+_time_transfer/1000.0;
   }
   
   /// Return the total time for data cast/pack
@@ -350,6 +353,12 @@ class Atom {
     }
   }
 
+  /// Add in casting time from additional data (seconds)
+  inline void add_cast_time(double t) { _time_cast+=t; }
+
+  /// Add in transfer time from additional data (ms)
+  inline void add_transfer_time(double t) { _time_transfer+=t; }
+
   /// Return number of bytes used on device
   inline double max_gpu_bytes() 
     { double m=_max_gpu_bytes; _max_gpu_bytes=0.0; return m; } 
@@ -412,11 +421,11 @@ class Atom {
   bool _allocated, _rot, _charge, _other;
   int _max_atoms, _nall, _gpu_nbor;
   bool _bonds;
-  double _time_cast;
+  double _time_cast, _time_transfer;
   
   double _max_gpu_bytes;
   
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   CUDPPConfiguration sort_config;
   CUDPPHandle sort_plan;
   #endif

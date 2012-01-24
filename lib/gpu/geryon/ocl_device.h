@@ -28,8 +28,14 @@
 #include <vector>
 #include <iostream>
 
-#include "CL/cl.h"
-#include "CL/cl_platform.h"
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#include <OpenCL/cl_platform.h>
+#else
+#include <CL/cl.h>
+#include <CL/cl_platform.h>
+#endif
+
 #include "ocl_macros.h"
 #include "ucl_types.h"
 
@@ -118,7 +124,7 @@ class UCL_Device {
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name() 
                 << std::endl;
-      exit(1);
+      UCL_GERYON_EXIT;
     }
   }
 
@@ -293,7 +299,7 @@ inline int UCL_Device::create_context() {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << _device
               << " for use.\n";
-    exit(1);
+    UCL_GERYON_EXIT;
     #endif
     return UCL_ERROR;
   }

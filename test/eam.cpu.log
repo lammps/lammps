@@ -1,0 +1,72 @@
+LAMMPS (7 Jan 2012)
+  using 4 OpenMP thread(s) per MPI task
+# Cu ring
+
+newton off
+
+
+units           metal
+boundary        p p p
+
+atom_style      atomic
+
+read_data       ring.data
+  orthogonal box = (97.4376 97.5604 73.5248) to (857.438 857.56 123.384)
+  3 by 1 by 1 MPI processor grid
+  15602 atoms
+
+mass            1 12.0107
+
+pair_style	eam
+pair_coeff      * * ../potentials/Cu_u3.eam
+pair_modify	shift yes
+
+group           particles type 1
+15602 atoms in group particles
+
+velocity	particles create 1500 102932
+	
+fix  1   	particles nve
+
+neighbor        5.0 bin
+neigh_modify    delay 0 every 20 check no
+
+thermo          10
+
+thermo_style    custom step pe etotal temp press
+
+timestep        0.001
+
+run             100
+Memory usage per processor = 3.16116 Mbytes
+Step PotEng TotEng Temp Press 
+       0   -44795.244   -41770.363         1500   -203.12047 
+      10   -44801.673   -41770.368    1503.1856   -196.34591 
+      20   -44822.257   -41770.384    1513.3847   -182.76359 
+      30   -44835.804   -41770.392    1520.0991   -161.36869 
+      40   -44835.719   -41770.379    1520.0627   -135.12342 
+      50   -44842.826   -41770.375     1523.589   -108.59463 
+      60    -44867.53   -41770.388     1535.833   -85.641893 
+      70   -44900.613   -41770.398    1552.2338    -66.97709 
+      80   -44935.633   -41770.402     1569.598   -52.736713 
+      90   -44971.459   -41770.408    1587.3601   -42.882732 
+     100   -45003.971   -41770.409    1603.4824   -37.422025 
+Loop time of 2.06241 on 12 procs (3 MPI x 4 OpenMP) for 100 steps with 15602 atoms
+
+Pair  time (%) = 1.53093 (74.2298)
+Neigh time (%) = 0.0746647 (3.62026)
+Comm  time (%) = 0.391467 (18.981)
+Outpt time (%) = 0.0520021 (2.52142)
+Other time (%) = 0.013354 (0.647493)
+
+Nlocal:    5200.67 ave 8353 max 3620 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Nghost:    587 ave 921 max 412 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+Neighs:    403155 ave 646535 max 280821 min
+Histogram: 2 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 1209465
+Ave neighs/atom = 77.5199
+Neighbor list builds = 5
+Dangerous builds = 0

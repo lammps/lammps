@@ -574,6 +574,19 @@ calculations.  The USER-CUDA package currently supports a wider range
 of pair styles and can also accelerate many fix styles and some
 compute styles, as well as neighbor list and PPPM calculations. 
 
+<LI>The USER-CUDA package does not support acceleration for minimization. 
+
+<LI>The USER-CUDA package does not support hybrid pair styles. 
+
+<LI>The USER-CUDA package can order atoms in the neighbor list differently
+from run to run resulting in a different order for force accumulation. 
+
+<LI>The USER-CUDA package has a limit on the number of atom types that can be
+used in a simulation. 
+
+<LI>The GPU package requires neighbor lists to be built on the CPU when using
+exclusion lists or a triclinic simulation box. 
+
 <LI>The GPU package uses more GPU memory than the USER-CUDA package.  This
 is generally not a problem since typical runs are computation-limited
 rather than memory-limited. 

@@ -17,6 +17,40 @@ if (test $1 = 1) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
     sed -i '4 i include ..\/..\/lib\/gpu\/Makefile.lammps' ../Makefile.package.settings
   fi
+
+  if (test -e ../pair_yukawa.cpp) then
+    cp pair_yukawa_gpu.cpp ..
+    cp pair_yukawa_gpu.h ..
+  fi
+  
+  if (test -e ../pair_table.cpp) then
+    cp pair_table_gpu.cpp ..
+    cp pair_table_gpu.h ..
+  fi
+
+  if (test -e ../pair_buck.cpp) then
+    cp pair_buck_gpu.cpp ..
+    cp pair_buck_gpu.h ..
+  fi
+
+  if (test -e ../pair_buck_coul_cut.cpp) then
+    cp pair_buck_coul_cut_gpu.cpp ..
+    cp pair_buck_coul_cut_gpu.h ..
+  fi
+
+  if (test -e ../pair_buck_coul_long.cpp) then
+    cp pair_buck_coul_long_gpu.cpp ..
+    cp pair_buck_coul_long_gpu.h ..
+  fi
+  
+  if (test -e ../pair_eam.cpp) then
+    cp pair_eam_gpu.cpp ..
+    cp pair_eam_gpu.h ..
+    cp pair_eam_alloy_gpu.cpp ..
+    cp pair_eam_alloy_gpu.h ..
+    cp pair_eam_fs_gpu.cpp ..
+    cp pair_eam_fs_gpu.h ..
+  fi
   
   if (test -e ../pair_gayberne.cpp) then
     cp pair_gayberne_gpu.cpp ..
@@ -93,6 +127,7 @@ elif (test $1 = 0) then
   fi
 
   rm -f ../pppm_gpu.cpp
+  rm -f ../pair_eam_gpu.cpp
   rm -f ../pair_gayberne_gpu.cpp
   rm -f ../pair_resquared_gpu.cpp
   rm -f ../pair_lj_cut_gpu.cpp
@@ -111,6 +146,7 @@ elif (test $1 = 0) then
   rm -f ../fix_gpu.cpp
 
   rm -f ../pppm_gpu.h
+  rm -f ../pair_eam_gpu.h
   rm -f ../pair_gayberne_gpu.h
   rm -f ../pair_resquared_gpu.h
   rm -f ../pair_lj_cut_gpu.h

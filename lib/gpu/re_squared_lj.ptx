@@ -1,0 +1,3549 @@
+	.version 2.3
+	.target sm_20
+	.address_size 64
+	// compiled with /usr/local/cuda/open64/lib//be
+	// nvopencc 4.0 built on 2011-05-12
+
+	//-----------------------------------------------------------
+	// Compiling /tmp/tmpxft_00009bfa_00000000-9_lal_re_squared_lj.cpp3.i (/home/sjplimp/ccBI#.L3ZA3I)
+	//-----------------------------------------------------------
+
+	//-----------------------------------------------------------
+	// Options:
+	//-----------------------------------------------------------
+	//  Target:ptx, ISA:sm_20, Endian:little, Pointer Size:64
+	//  -O3	(Optimization level)
+	//  -g0	(Debug level)
+	//  -m2	(Report advisories)
+	//-----------------------------------------------------------
+
+	.file	1	"<command-line>"
+	.file	2	"/tmp/tmpxft_00009bfa_00000000-8_lal_re_squared_lj.cudafe2.gpu"
+	.file	3	"/usr/lib/gcc/x86_64-redhat-linux/4.4.5/include/stddef.h"
+	.file	4	"/usr/local/cuda/include/crt/device_runtime.h"
+	.file	5	"/usr/local/cuda/include/host_defines.h"
+	.file	6	"/usr/local/cuda/include/builtin_types.h"
+	.file	7	"/usr/local/cuda/include/device_types.h"
+	.file	8	"/usr/local/cuda/include/driver_types.h"
+	.file	9	"/usr/local/cuda/include/surface_types.h"
+	.file	10	"/usr/local/cuda/include/texture_types.h"
+	.file	11	"/usr/local/cuda/include/vector_types.h"
+	.file	12	"/usr/local/cuda/include/device_launch_parameters.h"
+	.file	13	"/usr/local/cuda/include/crt/storage_class.h"
+	.file	14	"/usr/include/bits/types.h"
+	.file	15	"/usr/include/time.h"
+	.file	16	"lal_ellipsoid_extra.h"
+	.file	17	"lal_re_squared_lj.cu"
+	.file	18	"/usr/local/cuda/include/common_functions.h"
+	.file	19	"/usr/local/cuda/include/math_functions.h"
+	.file	20	"/usr/local/cuda/include/math_constants.h"
+	.file	21	"/usr/local/cuda/include/device_functions.h"
+	.file	22	"/usr/local/cuda/include/sm_11_atomic_functions.h"
+	.file	23	"/usr/local/cuda/include/sm_12_atomic_functions.h"
+	.file	24	"/usr/local/cuda/include/sm_13_double_functions.h"
+	.file	25	"/usr/local/cuda/include/sm_20_atomic_functions.h"
+	.file	26	"/usr/local/cuda/include/sm_20_intrinsics.h"
+	.file	27	"/usr/local/cuda/include/surface_functions.h"
+	.file	28	"/usr/local/cuda/include/texture_fetch_functions.h"
+	.file	29	"/usr/local/cuda/include/math_functions_dbl_ptx3.h"
+
+
+	.entry kernel_ellipsoid_sphere (
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_x_,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_q,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_shape,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_well,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_splj,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_sig_eps,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_ntypes,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_dev_nbor,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_stride,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_ans,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_astride,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_engv,
+		.param .u64 __cudaparm_kernel_ellipsoid_sphere_err_flag,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_eflag,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_vflag,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_inum,
+		.param .s32 __cudaparm_kernel_ellipsoid_sphere_t_per_atom)
+	{
+	.reg .u32 %r<66>;
+	.reg .u64 %rd<73>;
+	.reg .f32 %f<777>;
+	.reg .pred %p<34>;
+	.shared .align 16 .b8 __cuda___cuda_local_var_32886_33_non_const_sp_lj120[16];
+	.shared .align 4 .b8 __cuda___cuda_local_var_33120_37_non_const_red_acc136[3584];
+	.shared .f32 __cuda_local_var_32892_33_non_const_b_alpha;
+	.shared .f32 __cuda_local_var_32892_42_non_const_cr60;
+	.shared .f32 __cuda_local_var_32892_48_non_const_solv_f_a;
+	.shared .f32 __cuda_local_var_32892_58_non_const_solv_f_r;
+	// __cuda_local_var_32907_9_non_const_virial = 32
+	// __cuda_local_var_33040_15_non_const_u = 56
+	.loc	17	27	0
+$LDWbegin_kernel_ellipsoid_sphere:
+	.loc	17	32	0
+	ld.param.u64 	%rd1, [__cudaparm_kernel_ellipsoid_sphere_splj];
+	ldu.global.f32 	%f1, [%rd1+0];
+	.loc	17	33	0
+	ld.global.f32 	%f2, [%rd1+4];
+	.loc	17	34	0
+	ld.global.f32 	%f3, [%rd1+8];
+	.loc	17	35	0
+	ld.global.f32 	%f4, [%rd1+12];
+	st.shared.v4.f32 	[__cuda___cuda_local_var_32886_33_non_const_sp_lj120+0], {%f1,%f2,%f3,%f4};
+	.loc	17	38	0
+	mov.f32 	%f5, 0f3f4db6db;     	// 0.803571
+	st.shared.f32 	[__cuda_local_var_32892_33_non_const_b_alpha], %f5;
+	.loc	17	39	0
+	mov.f32 	%f6, 0f42700000;     	// 60
+	lg2.approx.ftz.f32 	%f7, %f6;
+	mov.f32 	%f8, 0f3eaaaaab;     	// 0.333333
+	mul.ftz.f32 	%f9, %f7, %f8;
+	ex2.approx.ftz.f32 	%f10, %f9;
+	mov.f32 	%f11, 0f42700000;    	// 60
+	mul.ftz.f32 	%f12, %f10, %f10;
+	div.approx.ftz.f32 	%f13, %f11, %f12;
+	sub.ftz.f32 	%f14, %f10, %f13;
+	mov.f32 	%f15, 0f3eaaaaab;    	// 0.333333
+	mul.ftz.f32 	%f16, %f14, %f15;
+	sub.ftz.f32 	%f17, %f10, %f16;
+	st.shared.f32 	[__cuda_local_var_32892_42_non_const_cr60], %f17;
+	.loc	21	544	0
+	mov.f32 	%f18, 0f3f800000;    	// 1
+	mov.f32 	%f19, 0fbf52c7ea;    	// -0.823363
+	mov.f32 	%f20, 0fc0b59883;    	// -5.67487
+	fma.rn.ftz.f32 	%f21, %f18, %f19, %f20;
+	mov.f32 	%f22, 0f41455dc0;    	// 12.3354
+	mov.f32 	%f23, 0f3f800000;    	// 1
+	mov.f32 	%f24, 0f41e6bd60;    	// 28.8425
+	fma.rn.ftz.f32 	%f25, %f22, %f23, %f24;
+	mov.f32 	%f26, 0f3f800000;    	// 1
+	mov.f32 	%f27, 0fc0d21907;    	// -6.56556
+	fma.rn.ftz.f32 	%f28, %f21, %f26, %f27;
+	mov.f32 	%f29, 0f3f800000;    	// 1
+	mov.f32 	%f30, 0f419d92c8;    	// 19.6967
+	fma.rn.ftz.f32 	%f31, %f25, %f29, %f30;
+	rcp.approx.ftz.f32 	%f32, %f31;
+	mov.f32 	%f33, 0f3f800000;    	// 1
+	fma.rn.ftz.f32 	%f34, %f28, %f32, %f33;
+	mov.b32 	%r1, %f34;
+	mov.b32 	%f35, %r1;
+	mov.f32 	%f36, 0f41800000;    	// 16
+	mul.ftz.f32 	%f37, %f35, %f36;
+	mov.f32 	%f38, 0f40400000;    	// 3
+	mov.f32 	%f39, 0fc2100000;    	// -36
+	mul.ftz.f32 	%f40, %f37, %f39;
+	div.approx.ftz.f32 	%f41, %f38, %f40;
+	.loc	17	40	0
+	st.shared.f32 	[__cuda_local_var_32892_48_non_const_solv_f_a], %f41;
+	.loc	21	544	0
+	mov.f32 	%f42, 0f40400000;    	// 3
+	mov.f32 	%f43, 0f44fd2000;    	// 2025
+	mul.ftz.f32 	%f44, %f37, %f43;
+	div.approx.ftz.f32 	%f45, %f42, %f44;
+	.loc	17	41	0
+	st.shared.f32 	[__cuda_local_var_32892_58_non_const_solv_f_r], %f45;
+	.loc	17	54	0
+	mov.f32 	%f46, 0f00000000;    	// 0
+	mov.f32 	%f47, %f46;
+	mov.f32 	%f48, 0f00000000;    	// 0
+	mov.f32 	%f49, %f48;
+	mov.f32 	%f50, 0f00000000;    	// 0
+	mov.f32 	%f51, %f50;
+	mov.f32 	%f52, 0f00000000;    	// 0
+	mov.f32 	%f53, %f52;
+	mov.f32 	%f54, 0f00000000;    	// 0
+	mov.f32 	%f55, %f54;
+	mov.f32 	%f56, 0f00000000;    	// 0
+	mov.f32 	%f57, %f56;
+	ld.param.s32 	%r2, [__cudaparm_kernel_ellipsoid_sphere_t_per_atom];
+	cvt.s32.u32 	%r3, %tid.x;
+	div.s32 	%r4, %r3, %r2;
+	cvt.s32.u32 	%r5, %ntid.x;
+	div.s32 	%r6, %r5, %r2;
+	cvt.s32.u32 	%r7, %ctaid.x;
+	mul.lo.s32 	%r8, %r7, %r6;
+	add.s32 	%r9, %r4, %r8;
+	ld.param.s32 	%r10, [__cudaparm_kernel_ellipsoid_sphere_inum];
+	setp.le.s32 	%p1, %r10, %r9;
+	@%p1 bra 	$Lt_0_73474;
+	.loc	17	59	0
+	cvt.s64.s32 	%rd2, %r9;
+	mul.wide.s32 	%rd3, %r9, 4;
+	ld.param.u64 	%rd4, [__cudaparm_kernel_ellipsoid_sphere_dev_nbor];
+	add.u64 	%rd5, %rd4, %rd3;
+	ld.global.s32 	%r11, [%rd5+0];
+	ld.param.s32 	%r12, [__cudaparm_kernel_ellipsoid_sphere_stride];
+	cvt.s64.s32 	%rd6, %r12;
+	mul.wide.s32 	%rd7, %r12, 4;
+	add.u64 	%rd8, %rd7, %rd5;
+	ld.global.s32 	%r13, [%rd8+0];
+	.loc	17	62	0
+	cvt.s64.s32 	%rd9, %r11;
+	mul.wide.s32 	%rd10, %r11, 16;
+	ld.param.u64 	%rd11, [__cudaparm_kernel_ellipsoid_sphere_x_];
+	add.u64 	%rd12, %rd10, %rd11;
+	ld.global.v4.f32 	{%f58,%f59,%f60,%f61}, [%rd12+0];
+	.loc	17	70	0
+	cvt.rzi.ftz.s32.f32 	%r14, %f61;
+	cvt.s64.s32 	%rd13, %r14;
+	mul.wide.s32 	%rd14, %r14, 16;
+	ld.param.u64 	%rd15, [__cudaparm_kernel_ellipsoid_sphere_shape];
+	add.u64 	%rd16, %rd15, %rd14;
+	ld.global.v4.f32 	{%f62,%f63,%f64,_}, [%rd16+0];
+	.loc	17	74	0
+	ld.param.u64 	%rd17, [__cudaparm_kernel_ellipsoid_sphere_q];
+	add.u64 	%rd18, %rd17, %rd10;
+	ld.global.v4.f32 	{%f65,%f66,%f67,%f68}, [%rd18+0];
+	.loc	17	75	0
+	ld.param.u64 	%rd19, [__cudaparm_kernel_ellipsoid_sphere_well];
+	add.u64 	%rd20, %rd19, %rd14;
+	ld.global.v4.f32 	{%f69,%f70,%f71,_}, [%rd20+0];
+	.loc	17	78	0
+	cvt.s32.s64 	%r15, %rd6;
+	sub.s32 	%r16, %r2, 1;
+	and.b32 	%r17, %r16, %r3;
+	add.u64 	%rd21, %rd7, %rd8;
+	mul.lo.s32 	%r18, %r15, %r17;
+	cvt.s64.s32 	%rd22, %r18;
+	mul.wide.s32 	%rd23, %r18, 4;
+	add.u64 	%rd24, %rd21, %rd23;
+	mov.s64 	%rd25, %rd24;
+	mul.lo.s32 	%r19, %r15, %r13;
+	cvt.s64.s32 	%rd26, %r19;
+	mul.wide.s32 	%rd27, %r19, 4;
+	add.u64 	%rd28, %rd21, %rd27;
+	setp.ge.u64 	%p2, %rd24, %rd28;
+	@%p2 bra 	$Lt_0_75266;
+	ld.param.s32 	%r20, [__cudaparm_kernel_ellipsoid_sphere_vflag];
+	mov.s32 	%r21, 0;
+	setp.gt.s32 	%p3, %r20, %r21;
+	add.ftz.f32 	%f72, %f66, %f66;
+	add.ftz.f32 	%f73, %f68, %f68;
+	mul.ftz.f32 	%f74, %f65, %f65;
+	mul.ftz.f32 	%f75, %f66, %f66;
+	mul.ftz.f32 	%f76, %f67, %f67;
+	mul.ftz.f32 	%f77, %f68, %f68;
+	add.ftz.f32 	%f78, %f67, %f67;
+	mul.ftz.f32 	%f79, %f62, %f63;
+	add.ftz.f32 	%f80, %f62, %f62;
+	add.ftz.f32 	%f81, %f63, %f63;
+	add.ftz.f32 	%f82, %f64, %f64;
+	ld.param.s32 	%r22, [__cudaparm_kernel_ellipsoid_sphere_ntypes];
+	mul.lo.s32 	%r23, %r22, %r14;
+	mul.ftz.f32 	%f83, %f72, %f67;
+	mul.ftz.f32 	%f84, %f72, %f68;
+	mul.ftz.f32 	%f85, %f72, %f65;
+	mul.ftz.f32 	%f86, %f73, %f65;
+	add.ftz.f32 	%f87, %f74, %f75;
+	sub.ftz.f32 	%f88, %f74, %f75;
+	mul.ftz.f32 	%f89, %f78, %f65;
+	mul.ftz.f32 	%f90, %f78, %f68;
+	mul.ftz.f32 	%f91, %f79, %f64;
+	sub.ftz.f32 	%f92, %f83, %f86;
+	add.ftz.f32 	%f93, %f83, %f86;
+	sub.ftz.f32 	%f94, %f86, %f83;
+	sub.ftz.f32 	%f95, %f87, %f76;
+	add.ftz.f32 	%f96, %f76, %f88;
+	sub.ftz.f32 	%f97, %f88, %f76;
+	add.ftz.f32 	%f98, %f84, %f89;
+	sub.ftz.f32 	%f99, %f84, %f89;
+	sub.ftz.f32 	%f100, %f89, %f84;
+	sub.ftz.f32 	%f101, %f90, %f85;
+	add.ftz.f32 	%f102, %f85, %f90;
+	sub.ftz.f32 	%f103, %f85, %f90;
+	mul.ftz.f32 	%f104, %f92, %f70;
+	mul.ftz.f32 	%f105, %f93, %f69;
+	neg.ftz.f32 	%f106, %f93;
+	sub.ftz.f32 	%f107, %f95, %f77;
+	sub.ftz.f32 	%f108, %f77, %f95;
+	sub.ftz.f32 	%f109, %f96, %f77;
+	sub.ftz.f32 	%f110, %f77, %f96;
+	add.ftz.f32 	%f111, %f77, %f97;
+	mul.ftz.f32 	%f112, %f98, %f71;
+	neg.ftz.f32 	%f113, %f98;
+	mul.ftz.f32 	%f114, %f99, %f69;
+	mul.ftz.f32 	%f115, %f101, %f71;
+	mul.ftz.f32 	%f116, %f102, %f70;
+	mul.ftz.f32 	%f117, %f92, %f104;
+	mul.ftz.f32 	%f118, %f102, %f104;
+	mul.ftz.f32 	%f119, %f107, %f69;
+	mul.ftz.f32 	%f120, %f104, %f109;
+	mul.ftz.f32 	%f121, %f109, %f70;
+	mul.ftz.f32 	%f122, %f111, %f71;
+	neg.ftz.f32 	%f123, %f111;
+	mul.ftz.f32 	%f124, %f92, %f116;
+	mul.ftz.f32 	%f125, %f109, %f116;
+	mul.ftz.f32 	%f126, %f102, %f116;
+	fma.rn.ftz.f32 	%f127, %f107, %f119, %f117;
+	fma.rn.ftz.f32 	%f128, %f119, %f99, %f118;
+	fma.rn.ftz.f32 	%f129, %f119, %f93, %f120;
+	mul.ftz.f32 	%f130, %f92, %f121;
+	mul.ftz.f32 	%f131, %f109, %f121;
+	mul.ftz.f32 	%f132, %f102, %f121;
+	fma.rn.ftz.f32 	%f133, %f107, %f114, %f124;
+	fma.rn.ftz.f32 	%f134, %f93, %f114, %f125;
+	fma.rn.ftz.f32 	%f135, %f99, %f114, %f126;
+	fma.rn.ftz.f32 	%f136, %f112, %f98, %f127;
+	fma.rn.ftz.f32 	%f137, %f112, %f111, %f128;
+	fma.rn.ftz.f32 	%f138, %f112, %f101, %f129;
+	fma.rn.ftz.f32 	%f139, %f107, %f105, %f130;
+	fma.rn.ftz.f32 	%f140, %f93, %f105, %f131;
+	fma.rn.ftz.f32 	%f141, %f99, %f105, %f132;
+	fma.rn.ftz.f32 	%f142, %f98, %f122, %f133;
+	fma.rn.ftz.f32 	%f143, %f101, %f122, %f134;
+	fma.rn.ftz.f32 	%f144, %f111, %f122, %f135;
+	mov.f32 	%f145, 0f3f800000;   	// 1
+	add.ftz.f32 	%f146, %f136, %f145;
+	fma.rn.ftz.f32 	%f147, %f115, %f98, %f139;
+	fma.rn.ftz.f32 	%f148, %f115, %f101, %f140;
+	fma.rn.ftz.f32 	%f149, %f115, %f111, %f141;
+	abs.ftz.f32 	%f150, %f142;
+	mov.f32 	%f151, 0f3f800000;   	// 1
+	add.ftz.f32 	%f152, %f144, %f151;
+	abs.ftz.f32 	%f153, %f146;
+	abs.ftz.f32 	%f154, %f147;
+	mov.f32 	%f155, 0f3f800000;   	// 1
+	add.ftz.f32 	%f156, %f148, %f155;
+	setp.lt.ftz.f32 	%p4, %f153, %f154;
+	ld.param.u64 	%rd29, [__cudaparm_kernel_ellipsoid_sphere_sig_eps];
+	mov.f32 	%f157, 0f00000000;   	// 0
+	mov.f32 	%f158, 0f00000000;   	// 0
+	mov.f32 	%f159, 0f00000000;   	// 0
+	mov.f32 	%f160, 0f00000000;   	// 0
+	mov.f32 	%f161, 0f00000000;   	// 0
+	mov.f32 	%f162, 0f00000000;   	// 0
+	mov.f32 	%f163, 0f00000000;   	// 0
+	mov.u64 	%rd30, __cuda___cuda_local_var_32886_33_non_const_sp_lj120;
+$Lt_0_51970:
+ //<loop> Loop body line 78, nesting depth: 1, estimated iterations: unknown
+	.loc	17	83	0
+	ld.global.s32 	%r24, [%rd25+0];
+	.loc	17	87	0
+	and.b32 	%r25, %r24, 1073741823;
+	cvt.s64.s32 	%rd31, %r25;
+	mul.wide.s32 	%rd32, %r25, 16;
+	add.u64 	%rd33, %rd11, %rd32;
+	ld.global.v4.f32 	{%f164,%f165,%f166,%f167}, [%rd33+0];
+	.loc	17	98	0
+	sub.ftz.f32 	%f168, %f165, %f59;
+	sub.ftz.f32 	%f169, %f164, %f58;
+	sub.ftz.f32 	%f170, %f166, %f60;
+	mul.ftz.f32 	%f171, %f168, %f168;
+	fma.rn.ftz.f32 	%f172, %f169, %f169, %f171;
+	fma.rn.ftz.f32 	%f173, %f170, %f170, %f172;
+	rsqrt.approx.ftz.f32 	%f174, %f173;
+	mul.ftz.f32 	%f175, %f169, %f174;
+	.loc	17	99	0
+	mul.ftz.f32 	%f176, %f168, %f174;
+	.loc	17	104	0
+	cvt.rzi.ftz.s32.f32 	%r26, %f167;
+	add.s32 	%r27, %r26, %r23;
+	cvt.s64.s32 	%rd34, %r27;
+	mul.wide.s32 	%rd35, %r27, 8;
+	add.u64 	%rd36, %rd29, %rd35;
+	ld.global.v2.f32 	{%f177,%f178}, [%rd36+0];
+	.loc	17	105	0
+	shr.s32 	%r28, %r24, 30;
+	and.b32 	%r29, %r28, 3;
+	cvt.s64.s32 	%rd37, %r29;
+	mul.wide.s32 	%rd38, %r29, 4;
+	add.u64 	%rd39, %rd30, %rd38;
+	ld.shared.f32 	%f179, [%rd39+0];
+	mul.ftz.f32 	%f180, %f179, %f178;
+	.loc	16	299	0
+	mov.f32 	%f181, %f175;
+	.loc	16	300	0
+	mov.f32 	%f182, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f183, %f177, %f182;
+	add.ftz.f32 	%f184, %f183, %f63;
+	add.ftz.f32 	%f185, %f183, %f62;
+	add.ftz.f32 	%f186, %f183, %f64;
+	mul.ftz.f32 	%f187, %f184, %f184;
+	mul.ftz.f32 	%f188, %f185, %f185;
+	mul.ftz.f32 	%f189, %f186, %f186;
+	mov.f32 	%f190, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f191, %f187, %f190;
+	mov.f32 	%f192, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f193, %f188, %f192;
+	mov.f32 	%f194, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f195, %f189, %f194;
+	mul.ftz.f32 	%f196, %f92, %f191;
+	mul.ftz.f32 	%f197, %f98, %f195;
+	mul.ftz.f32 	%f198, %f193, %f107;
+	mul.ftz.f32 	%f199, %f92, %f196;
+	fma.rn.ftz.f32 	%f200, %f107, %f198, %f199;
+	fma.rn.ftz.f32 	%f201, %f197, %f98, %f200;
+	mov.f32 	%f202, %f201;
+	.loc	16	301	0
+	mul.ftz.f32 	%f203, %f109, %f196;
+	fma.rn.ftz.f32 	%f204, %f198, %f93, %f203;
+	fma.rn.ftz.f32 	%f205, %f197, %f101, %f204;
+	mov.f32 	%f206, %f205;
+	.loc	16	302	0
+	mul.ftz.f32 	%f207, %f102, %f196;
+	fma.rn.ftz.f32 	%f208, %f198, %f99, %f207;
+	fma.rn.ftz.f32 	%f209, %f197, %f111, %f208;
+	mov.f32 	%f210, %f209;
+	.loc	16	303	0
+	mov.f32 	%f211, %f176;
+	.loc	16	304	0
+	mul.ftz.f32 	%f212, %f93, %f193;
+	mul.ftz.f32 	%f213, %f101, %f195;
+	mul.ftz.f32 	%f214, %f191, %f109;
+	mul.ftz.f32 	%f215, %f92, %f214;
+	fma.rn.ftz.f32 	%f216, %f107, %f212, %f215;
+	fma.rn.ftz.f32 	%f217, %f213, %f98, %f216;
+	mov.f32 	%f218, %f217;
+	.loc	16	305	0
+	mul.ftz.f32 	%f219, %f109, %f214;
+	fma.rn.ftz.f32 	%f220, %f93, %f212, %f219;
+	fma.rn.ftz.f32 	%f221, %f213, %f101, %f220;
+	mov.f32 	%f222, %f221;
+	.loc	16	306	0
+	mul.ftz.f32 	%f223, %f102, %f214;
+	fma.rn.ftz.f32 	%f224, %f99, %f212, %f223;
+	fma.rn.ftz.f32 	%f225, %f213, %f111, %f224;
+	mov.f32 	%f226, %f225;
+	.loc	16	307	0
+	mul.ftz.f32 	%f227, %f170, %f174;
+	mov.f32 	%f228, %f227;
+	.loc	16	308	0
+	mul.ftz.f32 	%f229, %f102, %f191;
+	mul.ftz.f32 	%f230, %f99, %f193;
+	mul.ftz.f32 	%f231, %f195, %f111;
+	mul.ftz.f32 	%f232, %f92, %f229;
+	fma.rn.ftz.f32 	%f233, %f107, %f230, %f232;
+	fma.rn.ftz.f32 	%f234, %f98, %f231, %f233;
+	mov.f32 	%f235, %f234;
+	.loc	16	309	0
+	mul.ftz.f32 	%f236, %f109, %f229;
+	fma.rn.ftz.f32 	%f237, %f93, %f230, %f236;
+	fma.rn.ftz.f32 	%f238, %f101, %f231, %f237;
+	mov.f32 	%f239, %f238;
+	.loc	16	310	0
+	mul.ftz.f32 	%f240, %f102, %f229;
+	fma.rn.ftz.f32 	%f241, %f99, %f230, %f240;
+	fma.rn.ftz.f32 	%f242, %f111, %f231, %f241;
+	mov.f32 	%f243, %f242;
+	abs.ftz.f32 	%f244, %f217;
+	abs.ftz.f32 	%f245, %f201;
+	setp.gt.ftz.f32 	%p5, %f244, %f245;
+	@!%p5 bra 	$Lt_0_52226;
+	.loc	16	314	0
+	mov.f32 	%f202, %f217;
+	mov.f32 	%f218, %f201;
+	.loc	16	315	0
+	mov.f32 	%f206, %f221;
+	mov.f32 	%f222, %f205;
+	.loc	16	316	0
+	mov.f32 	%f210, %f225;
+	mov.f32 	%f226, %f209;
+	.loc	16	317	0
+	mov.f32 	%f181, %f176;
+	mov.f32 	%f211, %f175;
+$Lt_0_52226:
+	mov.f32 	%f246, %f202;
+	abs.ftz.f32 	%f247, %f246;
+	abs.ftz.f32 	%f248, %f234;
+	setp.lt.ftz.f32 	%p6, %f247, %f248;
+	@!%p6 bra 	$Lt_0_52738;
+	.loc	16	321	0
+	mov.f32 	%f202, %f234;
+	mov.f32 	%f235, %f246;
+	.loc	16	322	0
+	mov.f32 	%f249, %f206;
+	mov.f32 	%f206, %f238;
+	mov.f32 	%f239, %f249;
+	.loc	16	323	0
+	mov.f32 	%f250, %f210;
+	mov.f32 	%f210, %f242;
+	mov.f32 	%f243, %f250;
+	.loc	16	324	0
+	mov.f32 	%f251, %f181;
+	mov.f32 	%f181, %f227;
+	mov.f32 	%f228, %f251;
+$Lt_0_52738:
+	mov.f32 	%f252, %f202;
+	mov.f32 	%f253, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p7, %f252, %f253;
+	@!%p7 bra 	$Lt_0_53506;
+	bra.uni 	$Lt_0_54274;
+$Lt_0_53506:
+	mov.f32 	%f254, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p8, %f218, %f254;
+	@!%p8 bra 	$Lt_0_54018;
+	.loc	16	338	0
+	mov.f32 	%f202, %f218;
+	mov.f32 	%f218, %f252;
+	.loc	16	339	0
+	mov.f32 	%f255, %f206;
+	mov.f32 	%f206, %f222;
+	mov.f32 	%f222, %f255;
+	.loc	16	340	0
+	mov.f32 	%f256, %f210;
+	mov.f32 	%f210, %f226;
+	mov.f32 	%f226, %f256;
+	.loc	16	341	0
+	mov.f32 	%f257, %f181;
+	mov.f32 	%f181, %f211;
+	mov.f32 	%f211, %f257;
+	bra.uni 	$Lt_0_54274;
+$Lt_0_54018:
+	mov.f32 	%f258, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p9, %f235, %f258;
+	@!%p9 bra 	$Lt_0_54530;
+	.loc	16	346	0
+	mov.f32 	%f202, %f235;
+	mov.f32 	%f235, %f252;
+	.loc	16	347	0
+	mov.f32 	%f259, %f206;
+	mov.f32 	%f206, %f239;
+	mov.f32 	%f239, %f259;
+	.loc	16	348	0
+	mov.f32 	%f260, %f210;
+	mov.f32 	%f210, %f243;
+	mov.f32 	%f243, %f260;
+	.loc	16	349	0
+	mov.f32 	%f261, %f181;
+	mov.f32 	%f181, %f228;
+	mov.f32 	%f228, %f261;
+	bra.uni 	$Lt_0_54274;
+$Lt_0_54530:
+	.loc	16	352	0
+	mov.s32 	%r30, 2;
+	ld.param.u64 	%rd40, [__cudaparm_kernel_ellipsoid_sphere_err_flag];
+	st.global.s32 	[%rd40+0], %r30;
+$Lt_0_54274:
+$Lt_0_53762:
+$Lt_0_53250:
+	.loc	16	355	0
+	div.approx.ftz.f32 	%f262, %f218, %f202;
+	mul.ftz.f32 	%f263, %f206, %f262;
+	sub.ftz.f32 	%f264, %f222, %f263;
+	mov.f32 	%f222, %f264;
+	.loc	16	356	0
+	mul.ftz.f32 	%f265, %f210, %f262;
+	sub.ftz.f32 	%f266, %f226, %f265;
+	mov.f32 	%f226, %f266;
+	.loc	16	357	0
+	mul.ftz.f32 	%f267, %f181, %f262;
+	sub.ftz.f32 	%f268, %f211, %f267;
+	mov.f32 	%f211, %f268;
+	.loc	16	359	0
+	div.approx.ftz.f32 	%f269, %f235, %f202;
+	mul.ftz.f32 	%f270, %f206, %f269;
+	sub.ftz.f32 	%f239, %f239, %f270;
+	.loc	16	360	0
+	mul.ftz.f32 	%f271, %f210, %f269;
+	sub.ftz.f32 	%f243, %f243, %f271;
+	.loc	16	361	0
+	mul.ftz.f32 	%f272, %f181, %f269;
+	sub.ftz.f32 	%f228, %f228, %f272;
+	abs.ftz.f32 	%f273, %f264;
+	abs.ftz.f32 	%f274, %f239;
+	setp.lt.ftz.f32 	%p10, %f273, %f274;
+	@!%p10 bra 	$Lt_0_54786;
+	.loc	16	366	0
+	mov.f32 	%f222, %f239;
+	mov.f32 	%f239, %f264;
+	.loc	16	367	0
+	mov.f32 	%f226, %f243;
+	mov.f32 	%f243, %f266;
+	.loc	16	368	0
+	mov.f32 	%f211, %f228;
+	mov.f32 	%f228, %f268;
+$Lt_0_54786:
+	mov.f32 	%f275, %f222;
+	mov.f32 	%f276, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p11, %f275, %f276;
+	@!%p11 bra 	$Lt_0_55554;
+	bra.uni 	$Lt_0_55810;
+$Lt_0_55554:
+	mov.f32 	%f277, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p12, %f239, %f277;
+	@!%p12 bra 	$Lt_0_55810;
+	.loc	16	383	0
+	mov.f32 	%f222, %f239;
+	mov.f32 	%f239, %f275;
+	.loc	16	384	0
+	mov.f32 	%f278, %f226;
+	mov.f32 	%f226, %f243;
+	mov.f32 	%f243, %f278;
+	.loc	16	385	0
+	mov.f32 	%f279, %f211;
+	mov.f32 	%f211, %f228;
+	mov.f32 	%f228, %f279;
+$Lt_0_55810:
+$Lt_0_55298:
+	.loc	16	390	0
+	div.approx.ftz.f32 	%f280, %f239, %f222;
+	mul.ftz.f32 	%f281, %f226, %f280;
+	sub.ftz.f32 	%f243, %f243, %f281;
+	.loc	16	391	0
+	mul.ftz.f32 	%f282, %f211, %f280;
+	sub.ftz.f32 	%f228, %f228, %f282;
+	mov.f32 	%f283, 0f00000000;   	// 0
+	setp.eq.ftz.f32 	%p13, %f243, %f283;
+	@!%p13 bra 	$Lt_0_56322;
+	.loc	16	394	0
+	mov.s32 	%r31, 2;
+	ld.param.u64 	%rd41, [__cudaparm_kernel_ellipsoid_sphere_err_flag];
+	st.global.s32 	[%rd41+0], %r31;
+$Lt_0_56322:
+	.loc	16	396	0
+	div.approx.ftz.f32 	%f284, %f228, %f243;
+	.loc	16	399	0
+	mul.ftz.f32 	%f285, %f284, %f226;
+	sub.ftz.f32 	%f286, %f211, %f285;
+	div.approx.ftz.f32 	%f287, %f286, %f222;
+	.loc	16	403	0
+	mul.ftz.f32 	%f288, %f287, %f206;
+	fma.rn.ftz.f32 	%f289, %f210, %f284, %f288;
+	sub.ftz.f32 	%f290, %f181, %f289;
+	div.approx.ftz.f32 	%f291, %f290, %f202;
+	.loc	17	124	0
+	mul.ftz.f32 	%f292, %f287, %f176;
+	fma.rn.ftz.f32 	%f293, %f175, %f291, %f292;
+	fma.rn.ftz.f32 	%f294, %f227, %f284, %f293;
+	mov.f32 	%f295, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f296, %f294, %f295;
+	rsqrt.approx.ftz.f32 	%f297, %f296;
+	.loc	16	299	0
+	mov.f32 	%f181, %f175;
+	.loc	16	300	0
+	mov.f32 	%f202, %f146;
+	.loc	16	301	0
+	mov.f32 	%f206, %f138;
+	.loc	16	302	0
+	mov.f32 	%f210, %f137;
+	.loc	16	303	0
+	mov.f32 	%f211, %f176;
+	.loc	16	304	0
+	mov.f32 	%f218, %f147;
+	.loc	16	305	0
+	mov.f32 	%f222, %f156;
+	.loc	16	306	0
+	mov.f32 	%f226, %f149;
+	.loc	16	307	0
+	mov.f32 	%f228, %f227;
+	.loc	16	308	0
+	mov.f32 	%f235, %f142;
+	.loc	16	309	0
+	mov.f32 	%f239, %f143;
+	.loc	16	310	0
+	mov.f32 	%f243, %f152;
+	@!%p4 bra 	$Lt_0_56834;
+	.loc	16	314	0
+	mov.f32 	%f202, %f147;
+	mov.f32 	%f218, %f146;
+	.loc	16	315	0
+	mov.f32 	%f206, %f156;
+	mov.f32 	%f222, %f138;
+	.loc	16	316	0
+	mov.f32 	%f210, %f149;
+	mov.f32 	%f226, %f137;
+	.loc	16	317	0
+	mov.f32 	%f181, %f176;
+	mov.f32 	%f211, %f175;
+$Lt_0_56834:
+	mov.f32 	%f298, %f202;
+	abs.ftz.f32 	%f299, %f298;
+	setp.gt.ftz.f32 	%p14, %f150, %f299;
+	@!%p14 bra 	$Lt_0_57346;
+	.loc	16	321	0
+	mov.f32 	%f202, %f142;
+	mov.f32 	%f235, %f298;
+	.loc	16	322	0
+	mov.f32 	%f300, %f206;
+	mov.f32 	%f206, %f143;
+	mov.f32 	%f239, %f300;
+	.loc	16	323	0
+	mov.f32 	%f301, %f210;
+	mov.f32 	%f210, %f152;
+	mov.f32 	%f243, %f301;
+	.loc	16	324	0
+	mov.f32 	%f302, %f181;
+	mov.f32 	%f181, %f227;
+	mov.f32 	%f228, %f302;
+$Lt_0_57346:
+	mov.f32 	%f303, %f202;
+	mov.f32 	%f304, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p15, %f303, %f304;
+	@!%p15 bra 	$Lt_0_58114;
+	bra.uni 	$Lt_0_58882;
+$Lt_0_58114:
+	mov.f32 	%f305, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p16, %f218, %f305;
+	@!%p16 bra 	$Lt_0_58626;
+	.loc	16	338	0
+	mov.f32 	%f202, %f218;
+	mov.f32 	%f218, %f303;
+	.loc	16	339	0
+	mov.f32 	%f306, %f206;
+	mov.f32 	%f206, %f222;
+	mov.f32 	%f222, %f306;
+	.loc	16	340	0
+	mov.f32 	%f307, %f210;
+	mov.f32 	%f210, %f226;
+	mov.f32 	%f226, %f307;
+	.loc	16	341	0
+	mov.f32 	%f308, %f181;
+	mov.f32 	%f181, %f211;
+	mov.f32 	%f211, %f308;
+	bra.uni 	$Lt_0_58882;
+$Lt_0_58626:
+	mov.f32 	%f309, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p17, %f235, %f309;
+	@!%p17 bra 	$Lt_0_59138;
+	.loc	16	346	0
+	mov.f32 	%f202, %f235;
+	mov.f32 	%f235, %f303;
+	.loc	16	347	0
+	mov.f32 	%f310, %f206;
+	mov.f32 	%f206, %f239;
+	mov.f32 	%f239, %f310;
+	.loc	16	348	0
+	mov.f32 	%f311, %f210;
+	mov.f32 	%f210, %f243;
+	mov.f32 	%f243, %f311;
+	.loc	16	349	0
+	mov.f32 	%f312, %f181;
+	mov.f32 	%f181, %f228;
+	mov.f32 	%f228, %f312;
+	bra.uni 	$Lt_0_58882;
+$Lt_0_59138:
+	.loc	16	352	0
+	mov.s32 	%r32, 2;
+	ld.param.u64 	%rd42, [__cudaparm_kernel_ellipsoid_sphere_err_flag];
+	st.global.s32 	[%rd42+0], %r32;
+$Lt_0_58882:
+$Lt_0_58370:
+$Lt_0_57858:
+	.loc	16	355	0
+	div.approx.ftz.f32 	%f313, %f218, %f202;
+	mul.ftz.f32 	%f314, %f206, %f313;
+	sub.ftz.f32 	%f315, %f222, %f314;
+	mov.f32 	%f222, %f315;
+	.loc	16	356	0
+	mul.ftz.f32 	%f316, %f210, %f313;
+	sub.ftz.f32 	%f317, %f226, %f316;
+	mov.f32 	%f226, %f317;
+	.loc	16	357	0
+	mul.ftz.f32 	%f318, %f181, %f313;
+	sub.ftz.f32 	%f319, %f211, %f318;
+	mov.f32 	%f211, %f319;
+	.loc	16	359	0
+	div.approx.ftz.f32 	%f320, %f235, %f202;
+	mul.ftz.f32 	%f321, %f206, %f320;
+	sub.ftz.f32 	%f239, %f239, %f321;
+	.loc	16	360	0
+	mul.ftz.f32 	%f322, %f210, %f320;
+	sub.ftz.f32 	%f243, %f243, %f322;
+	.loc	16	361	0
+	mul.ftz.f32 	%f323, %f181, %f320;
+	sub.ftz.f32 	%f228, %f228, %f323;
+	abs.ftz.f32 	%f324, %f315;
+	abs.ftz.f32 	%f325, %f239;
+	setp.lt.ftz.f32 	%p18, %f324, %f325;
+	@!%p18 bra 	$Lt_0_59394;
+	.loc	16	366	0
+	mov.f32 	%f222, %f239;
+	mov.f32 	%f239, %f315;
+	.loc	16	367	0
+	mov.f32 	%f226, %f243;
+	mov.f32 	%f243, %f317;
+	.loc	16	368	0
+	mov.f32 	%f211, %f228;
+	mov.f32 	%f228, %f319;
+$Lt_0_59394:
+	mov.f32 	%f326, %f222;
+	mov.f32 	%f327, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p19, %f326, %f327;
+	@!%p19 bra 	$Lt_0_60162;
+	bra.uni 	$Lt_0_60418;
+$Lt_0_60162:
+	mov.f32 	%f328, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p20, %f239, %f328;
+	@!%p20 bra 	$Lt_0_60418;
+	.loc	16	383	0
+	mov.f32 	%f222, %f239;
+	mov.f32 	%f239, %f326;
+	.loc	16	384	0
+	mov.f32 	%f329, %f226;
+	mov.f32 	%f226, %f243;
+	mov.f32 	%f243, %f329;
+	.loc	16	385	0
+	mov.f32 	%f330, %f211;
+	mov.f32 	%f211, %f228;
+	mov.f32 	%f228, %f330;
+$Lt_0_60418:
+$Lt_0_59906:
+	.loc	16	390	0
+	div.approx.ftz.f32 	%f331, %f239, %f222;
+	mul.ftz.f32 	%f332, %f226, %f331;
+	sub.ftz.f32 	%f243, %f243, %f332;
+	.loc	16	391	0
+	mul.ftz.f32 	%f333, %f211, %f331;
+	sub.ftz.f32 	%f228, %f228, %f333;
+	mov.f32 	%f334, 0f00000000;   	// 0
+	setp.eq.ftz.f32 	%p21, %f243, %f334;
+	@!%p21 bra 	$Lt_0_60930;
+	.loc	16	394	0
+	mov.s32 	%r33, 2;
+	ld.param.u64 	%rd43, [__cudaparm_kernel_ellipsoid_sphere_err_flag];
+	st.global.s32 	[%rd43+0], %r33;
+$Lt_0_60930:
+	.loc	17	133	0
+	div.approx.ftz.f32 	%f335, %f228, %f243;
+	mul.ftz.f32 	%f336, %f335, %f226;
+	sub.ftz.f32 	%f337, %f211, %f336;
+	div.approx.ftz.f32 	%f338, %f337, %f222;
+	mul.ftz.f32 	%f339, %f338, %f206;
+	fma.rn.ftz.f32 	%f340, %f210, %f335, %f339;
+	mul.ftz.f32 	%f341, %f338, %f176;
+	sub.ftz.f32 	%f342, %f181, %f340;
+	div.approx.ftz.f32 	%f343, %f342, %f202;
+	fma.rn.ftz.f32 	%f344, %f175, %f343, %f341;
+	fma.rn.ftz.f32 	%f345, %f227, %f335, %f344;
+	add.ftz.f32 	%f346, %f345, %f345;
+	.loc	17	141	0
+	rcp.approx.ftz.f32 	%f347, %f174;
+	sub.ftz.f32 	%f348, %f347, %f297;
+	mov.f32 	%f349, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f350, %f348, %f349;
+	mul.ftz.f32 	%f351, %f348, %f348;
+	mul.ftz.f32 	%f352, %f348, %f351;
+	add.ftz.f32 	%f353, %f350, %f64;
+	add.ftz.f32 	%f354, %f350, %f62;
+	add.ftz.f32 	%f355, %f350, %f63;
+	mul.ftz.f32 	%f356, %f354, %f355;
+	mul.ftz.f32 	%f357, %f353, %f356;
+	mul.ftz.f32 	%f358, %f352, %f357;
+	.loc	17	142	0
+	div.approx.ftz.f32 	%f359, %f177, %f348;
+	mul.ftz.f32 	%f360, %f359, %f346;
+	mov.f32 	%f361, 0f3f800000;   	// 1
+	mov.f32 	%f362, 0f40400000;   	// 3
+	fma.rn.ftz.f32 	%f363, %f362, %f360, %f361;
+	mul.ftz.f32 	%f364, %f91, %f363;
+	.loc	17	146	0
+	div.approx.ftz.f32 	%f365, %f348, %f17;
+	add.ftz.f32 	%f366, %f365, %f64;
+	add.ftz.f32 	%f367, %f365, %f62;
+	add.ftz.f32 	%f368, %f365, %f63;
+	mul.ftz.f32 	%f369, %f367, %f368;
+	mul.ftz.f32 	%f370, %f366, %f369;
+	mul.ftz.f32 	%f371, %f352, %f370;
+	.loc	17	148	0
+	mov.f32 	%f372, 0f3f800000;   	// 1
+	mov.f32 	%f373, 0f3f4db6db;   	// 0.803571
+	fma.rn.ftz.f32 	%f374, %f373, %f360, %f372;
+	mul.ftz.f32 	%f375, %f91, %f374;
+	.loc	17	150	0
+	mul.ftz.f32 	%f376, %f359, %f359;
+	mul.ftz.f32 	%f377, %f359, %f376;
+	mul.ftz.f32 	%f378, %f377, %f377;
+	.loc	17	153	0
+	mul.ftz.f32 	%f379, %f177, %f177;
+	mov.f32 	%f380, 0f41000000;   	// 8
+	div.approx.ftz.f32 	%f381, %f358, %f380;
+	mov.f32 	%f382, 0f42700000;   	// 60
+	div.approx.ftz.f32 	%f383, %f371, %f382;
+	mul.ftz.f32 	%f384, %f379, %f177;
+	div.approx.ftz.f32 	%f385, %f364, %f381;
+	div.approx.ftz.f32 	%f386, %f375, %f383;
+	mul.ftz.f32 	%f387, %f385, %f180;
+	mul.ftz.f32 	%f388, %f386, %f180;
+	mul.ftz.f32 	%f389, %f384, %f387;
+	mul.ftz.f32 	%f390, %f384, %f388;
+	mul.ftz.f32 	%f391, %f389, %f41;
+	mul.ftz.f32 	%f392, %f390, %f378;
+	mul.ftz.f32 	%f393, %f392, %f45;
+	add.ftz.f32 	%f394, %f391, %f393;
+	add.ftz.f32 	%f163, %f163, %f394;
+	.loc	17	160	0
+	mov.f32 	%f395, 0f40800000;   	// 4
+	mul.ftz.f32 	%f396, %f343, %f395;
+	.loc	17	167	0
+	mov.f32 	%f397, 0f40400000;   	// 3
+	div.approx.ftz.f32 	%f398, %f397, %f348;
+	add.ftz.f32 	%f399, %f80, %f348;
+	rcp.approx.ftz.f32 	%f400, %f399;
+	add.ftz.f32 	%f401, %f81, %f348;
+	rcp.approx.ftz.f32 	%f402, %f401;
+	add.ftz.f32 	%f403, %f400, %f402;
+	add.ftz.f32 	%f404, %f82, %f348;
+	rcp.approx.ftz.f32 	%f405, %f404;
+	add.ftz.f32 	%f406, %f403, %f405;
+	add.ftz.f32 	%f407, %f398, %f406;
+	.loc	17	172	0
+	mul.ftz.f32 	%f408, %f177, %f346;
+	mov.f32 	%f409, 0f40400000;   	// 3
+	fma.rn.ftz.f32 	%f410, %f409, %f408, %f348;
+	rcp.approx.ftz.f32 	%f411, %f410;
+	rcp.approx.ftz.f32 	%f412, %f348;
+	sub.ftz.f32 	%f413, %f412, %f411;
+	add.ftz.f32 	%f414, %f407, %f413;
+	.loc	17	175	0
+	fma.rn.ftz.f32 	%f415, %f17, %f62, %f348;
+	rcp.approx.ftz.f32 	%f416, %f415;
+	fma.rn.ftz.f32 	%f417, %f17, %f63, %f348;
+	rcp.approx.ftz.f32 	%f418, %f417;
+	add.ftz.f32 	%f419, %f416, %f418;
+	fma.rn.ftz.f32 	%f420, %f17, %f64, %f348;
+	rcp.approx.ftz.f32 	%f421, %f420;
+	add.ftz.f32 	%f422, %f419, %f421;
+	add.ftz.f32 	%f423, %f398, %f422;
+	.loc	17	186	0
+	mul.ftz.f32 	%f424, %f175, %f175;
+	neg.ftz.f32 	%f425, %f424;
+	mov.f32 	%f426, %f425;
+	.loc	17	187	0
+	mul.ftz.f32 	%f427, %f176, %f175;
+	neg.ftz.f32 	%f428, %f427;
+	mov.f32 	%f429, %f428;
+	.loc	17	188	0
+	mul.ftz.f32 	%f430, %f227, %f175;
+	neg.ftz.f32 	%f431, %f430;
+	mov.f32 	%f432, %f431;
+	.loc	17	189	0
+	mov.f32 	%f433, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f434, %f433, %f424;
+	mov.f32 	%f435, %f434;
+	.loc	17	190	0
+	mul.ftz.f32 	%f436, %f174, %f434;
+	mov.f32 	%f437, %f436;
+	.loc	17	191	0
+	mov.f32 	%f438, %f429;
+	mul.ftz.f32 	%f439, %f438, %f174;
+	mov.f32 	%f440, %f439;
+	.loc	17	192	0
+	mov.f32 	%f441, %f432;
+	mul.ftz.f32 	%f442, %f441, %f174;
+	mov.f32 	%f443, %f442;
+	.loc	17	196	0
+	mul.ftz.f32 	%f444, %f297, %f297;
+	mov.f32 	%f445, 0f3f4db6db;   	// 0.803571
+	mul.ftz.f32 	%f446, %f177, %f445;
+	mov.f32 	%f447, 0f40800000;   	// 4
+	mul.ftz.f32 	%f448, %f335, %f447;
+	mul.ftz.f32 	%f449, %f444, %f297;
+	mov.f32 	%f450, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f451, %f449, %f450;
+	mul.ftz.f32 	%f452, %f451, %f287;
+	mul.ftz.f32 	%f453, %f451, %f291;
+	mul.ftz.f32 	%f454, %f451, %f284;
+	mov.f32 	%f455, 0f40800000;   	// 4
+	mul.ftz.f32 	%f456, %f338, %f455;
+	mul.ftz.f32 	%f457, %f452, %f439;
+	mul.ftz.f32 	%f458, %f456, %f439;
+	mov.f32 	%f459, 0f40e00000;   	// 7
+	div.approx.ftz.f32 	%f460, %f459, %f348;
+	mov.f32 	%f461, 0f3f4db6db;   	// 0.803571
+	fma.rn.ftz.f32 	%f462, %f461, %f408, %f348;
+	rcp.approx.ftz.f32 	%f463, %f462;
+	fma.rn.ftz.f32 	%f464, %f453, %f436, %f457;
+	fma.rn.ftz.f32 	%f465, %f396, %f436, %f458;
+	sub.ftz.f32 	%f466, %f460, %f463;
+	mul.ftz.f32 	%f467, %f446, %f463;
+	fma.rn.ftz.f32 	%f468, %f454, %f442, %f464;
+	fma.rn.ftz.f32 	%f469, %f448, %f442, %f465;
+	add.ftz.f32 	%f470, %f466, %f423;
+	add.ftz.f32 	%f471, %f468, %f175;
+	mul.ftz.f32 	%f472, %f470, %f471;
+	mul.ftz.f32 	%f473, %f467, %f469;
+	sub.ftz.f32 	%f474, %f473, %f472;
+	.loc	17	197	0
+	mov.f32 	%f475, 0f40400000;   	// 3
+	mul.ftz.f32 	%f476, %f177, %f475;
+	mul.ftz.f32 	%f477, %f476, %f411;
+	mul.ftz.f32 	%f478, %f393, %f474;
+	mul.ftz.f32 	%f479, %f471, %f414;
+	mul.ftz.f32 	%f480, %f477, %f469;
+	sub.ftz.f32 	%f481, %f480, %f479;
+	fma.rn.ftz.f32 	%f482, %f391, %f481, %f478;
+	.loc	17	199	0
+	add.ftz.f32 	%f162, %f482, %f162;
+	@!%p3 bra 	$Lt_0_61954;
+	.loc	17	201	0
+	mov.f32 	%f483, %f47;
+	mul.ftz.f32 	%f484, %f169, %f482;
+	sub.ftz.f32 	%f485, %f483, %f484;
+	mov.f32 	%f47, %f485;
+$Lt_0_61954:
+	.loc	17	186	0
+	mov.f32 	%f486, %f428;
+	.loc	17	187	0
+	mul.ftz.f32 	%f487, %f176, %f176;
+	neg.ftz.f32 	%f488, %f487;
+	mov.f32 	%f489, %f488;
+	.loc	17	188	0
+	mul.ftz.f32 	%f490, %f227, %f176;
+	neg.ftz.f32 	%f491, %f490;
+	mov.f32 	%f492, %f491;
+	.loc	17	189	0
+	mov.f32 	%f493, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f494, %f493, %f487;
+	mov.f32 	%f495, %f494;
+	.loc	17	190	0
+	mov.f32 	%f496, %f486;
+	mul.ftz.f32 	%f497, %f496, %f174;
+	mov.f32 	%f498, %f497;
+	.loc	17	191	0
+	mul.ftz.f32 	%f499, %f174, %f494;
+	mov.f32 	%f500, %f499;
+	.loc	17	192	0
+	mov.f32 	%f501, %f492;
+	mul.ftz.f32 	%f502, %f501, %f174;
+	mov.f32 	%f503, %f502;
+	.loc	17	196	0
+	mul.ftz.f32 	%f504, %f452, %f499;
+	mul.ftz.f32 	%f505, %f456, %f499;
+	fma.rn.ftz.f32 	%f506, %f453, %f497, %f504;
+	fma.rn.ftz.f32 	%f507, %f396, %f497, %f505;
+	fma.rn.ftz.f32 	%f508, %f454, %f502, %f506;
+	fma.rn.ftz.f32 	%f509, %f448, %f502, %f507;
+	add.ftz.f32 	%f510, %f508, %f176;
+	mul.ftz.f32 	%f511, %f470, %f510;
+	mul.ftz.f32 	%f512, %f467, %f509;
+	sub.ftz.f32 	%f513, %f512, %f511;
+	.loc	17	197	0
+	mul.ftz.f32 	%f514, %f393, %f513;
+	mul.ftz.f32 	%f515, %f510, %f414;
+	mul.ftz.f32 	%f516, %f477, %f509;
+	sub.ftz.f32 	%f517, %f516, %f515;
+	fma.rn.ftz.f32 	%f482, %f391, %f517, %f514;
+	.loc	17	203	0
+	add.ftz.f32 	%f161, %f482, %f161;
+	@!%p3 bra 	$Lt_0_65538;
+	.loc	17	205	0
+	mov.f32 	%f518, %f49;
+	mul.ftz.f32 	%f519, %f168, %f482;
+	sub.ftz.f32 	%f520, %f518, %f519;
+	mov.f32 	%f49, %f520;
+	.loc	17	206	0
+	mov.f32 	%f521, %f53;
+	mul.ftz.f32 	%f522, %f169, %f482;
+	sub.ftz.f32 	%f523, %f521, %f522;
+	mov.f32 	%f53, %f523;
+$Lt_0_65538:
+	.loc	17	186	0
+	mov.f32 	%f524, %f431;
+	.loc	17	187	0
+	mov.f32 	%f525, %f491;
+	.loc	17	188	0
+	mul.ftz.f32 	%f526, %f227, %f227;
+	neg.ftz.f32 	%f527, %f526;
+	mov.f32 	%f528, %f527;
+	.loc	17	189	0
+	mov.f32 	%f529, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f530, %f529, %f526;
+	mov.f32 	%f531, %f530;
+	.loc	17	190	0
+	mov.f32 	%f532, %f524;
+	mul.ftz.f32 	%f533, %f532, %f174;
+	mov.f32 	%f534, %f533;
+	.loc	17	191	0
+	mov.f32 	%f535, %f525;
+	mul.ftz.f32 	%f536, %f535, %f174;
+	mov.f32 	%f537, %f536;
+	.loc	17	192	0
+	mul.ftz.f32 	%f538, %f174, %f530;
+	mov.f32 	%f539, %f538;
+	.loc	17	196	0
+	mul.ftz.f32 	%f540, %f452, %f536;
+	mul.ftz.f32 	%f541, %f456, %f536;
+	fma.rn.ftz.f32 	%f542, %f453, %f533, %f540;
+	fma.rn.ftz.f32 	%f543, %f396, %f533, %f541;
+	fma.rn.ftz.f32 	%f544, %f454, %f538, %f542;
+	fma.rn.ftz.f32 	%f545, %f448, %f538, %f543;
+	add.ftz.f32 	%f546, %f544, %f227;
+	mul.ftz.f32 	%f547, %f546, %f470;
+	mul.ftz.f32 	%f548, %f467, %f545;
+	sub.ftz.f32 	%f549, %f548, %f547;
+	.loc	17	197	0
+	mul.ftz.f32 	%f550, %f393, %f549;
+	mul.ftz.f32 	%f551, %f546, %f414;
+	mul.ftz.f32 	%f552, %f477, %f545;
+	sub.ftz.f32 	%f553, %f552, %f551;
+	fma.rn.ftz.f32 	%f482, %f391, %f553, %f550;
+	.loc	17	209	0
+	add.ftz.f32 	%f160, %f482, %f160;
+	@!%p3 bra 	$Lt_0_68610;
+	.loc	17	211	0
+	mov.f32 	%f554, %f51;
+	mul.ftz.f32 	%f555, %f170, %f482;
+	sub.ftz.f32 	%f556, %f554, %f555;
+	mov.f32 	%f51, %f556;
+	.loc	17	212	0
+	mov.f32 	%f557, %f55;
+	mul.ftz.f32 	%f558, %f169, %f482;
+	sub.ftz.f32 	%f559, %f557, %f558;
+	mov.f32 	%f55, %f559;
+	.loc	17	213	0
+	mul.ftz.f32 	%f560, %f168, %f482;
+	sub.ftz.f32 	%f56, %f56, %f560;
+	mov.f32 	%f57, %f56;
+$Lt_0_68610:
+	.loc	17	232	0
+	mul.ftz.f32 	%f561, %f102, %f338;
+	mul.ftz.f32 	%f562, %f100, %f338;
+	mul.ftz.f32 	%f563, %f111, %f338;
+	mov.f32 	%f564, 0f00000000;   	// 0
+	mov.f32 	%f565, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f566, %f565, %f212, %f564;
+	mov.f32 	%f567, 0f00000000;   	// 0
+	mov.f32 	%f568, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f569, %f568, %f230, %f567;
+	mov.f32 	%f570, 0f00000000;   	// 0
+	mov.f32 	%f571, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f572, %f571, %f198, %f570;
+	mul.ftz.f32 	%f573, %f121, %f456;
+	mul.ftz.f32 	%f574, %f105, %f456;
+	mul.ftz.f32 	%f575, %f115, %f456;
+	neg.ftz.f32 	%f576, %f561;
+	neg.ftz.f32 	%f577, %f563;
+	neg.ftz.f32 	%f578, %f207;
+	neg.ftz.f32 	%f579, %f240;
+	mov.f32 	%f580, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f581, %f213, %f580, %f566;
+	mov.f32 	%f582, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f583, %f582, %f231, %f569;
+	mov.f32 	%f584, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f585, %f197, %f584, %f572;
+	neg.ftz.f32 	%f586, %f223;
+	fma.rn.ftz.f32 	%f587, %f198, %f100, %f578;
+	fma.rn.ftz.f32 	%f588, %f100, %f230, %f579;
+	fma.rn.ftz.f32 	%f589, %f100, %f212, %f586;
+	fma.rn.ftz.f32 	%f590, %f197, %f123, %f587;
+	fma.rn.ftz.f32 	%f591, %f123, %f231, %f588;
+	fma.rn.ftz.f32 	%f592, %f213, %f123, %f589;
+	mov.f32 	%f593, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f594, %f343, %f593, %f576;
+	mov.f32 	%f595, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f596, %f595, %f343, %f562;
+	mov.f32 	%f597, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f598, %f343, %f597, %f577;
+	mul.ftz.f32 	%f599, %f452, %f590;
+	mul.ftz.f32 	%f600, %f452, %f591;
+	mul.ftz.f32 	%f601, %f452, %f592;
+	fma.rn.ftz.f32 	%f602, %f396, %f104, %f573;
+	fma.rn.ftz.f32 	%f603, %f119, %f396, %f574;
+	fma.rn.ftz.f32 	%f604, %f396, %f112, %f575;
+	fma.rn.ftz.f32 	%f605, %f335, %f109, %f594;
+	fma.rn.ftz.f32 	%f606, %f93, %f335, %f596;
+	fma.rn.ftz.f32 	%f607, %f335, %f101, %f598;
+	fma.rn.ftz.f32 	%f608, %f453, %f585, %f599;
+	fma.rn.ftz.f32 	%f609, %f453, %f583, %f600;
+	fma.rn.ftz.f32 	%f610, %f453, %f581, %f601;
+	fma.rn.ftz.f32 	%f611, %f448, %f116, %f602;
+	fma.rn.ftz.f32 	%f612, %f448, %f114, %f603;
+	fma.rn.ftz.f32 	%f613, %f448, %f122, %f604;
+	fma.rn.ftz.f32 	%f614, %f454, %f205, %f608;
+	fma.rn.ftz.f32 	%f615, %f454, %f238, %f609;
+	fma.rn.ftz.f32 	%f616, %f454, %f221, %f610;
+	mul.ftz.f32 	%f617, %f605, %f611;
+	mul.ftz.f32 	%f618, %f616, %f287;
+	fma.rn.ftz.f32 	%f619, %f612, %f606, %f617;
+	fma.rn.ftz.f32 	%f620, %f291, %f614, %f618;
+	fma.rn.ftz.f32 	%f621, %f613, %f607, %f619;
+	fma.rn.ftz.f32 	%f622, %f284, %f615, %f620;
+	neg.ftz.f32 	%f623, %f621;
+	mul.ftz.f32 	%f624, %f470, %f622;
+	fma.rn.ftz.f32 	%f625, %f467, %f623, %f624;
+	mul.ftz.f32 	%f626, %f393, %f625;
+	mul.ftz.f32 	%f627, %f622, %f414;
+	fma.rn.ftz.f32 	%f628, %f477, %f623, %f627;
+	fma.rn.ftz.f32 	%f629, %f391, %f628, %f626;
+	sub.ftz.f32 	%f159, %f159, %f629;
+	.loc	17	245	0
+	mul.ftz.f32 	%f630, %f94, %f196;
+	mul.ftz.f32 	%f631, %f94, %f229;
+	mov.f32 	%f632, 0f00000000;   	// 0
+	mov.f32 	%f633, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f634, %f198, %f633, %f632;
+	mul.ftz.f32 	%f635, %f94, %f214;
+	fma.rn.ftz.f32 	%f636, %f99, %f198, %f207;
+	fma.rn.ftz.f32 	%f637, %f198, %f108, %f630;
+	fma.rn.ftz.f32 	%f638, %f108, %f230, %f631;
+	mov.f32 	%f639, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f640, %f197, %f639, %f634;
+	fma.rn.ftz.f32 	%f641, %f108, %f212, %f635;
+	fma.rn.ftz.f32 	%f642, %f197, %f111, %f636;
+	fma.rn.ftz.f32 	%f643, %f197, %f113, %f637;
+	fma.rn.ftz.f32 	%f644, %f113, %f231, %f638;
+	mul.ftz.f32 	%f645, %f452, %f581;
+	mul.ftz.f32 	%f646, %f452, %f583;
+	mul.ftz.f32 	%f647, %f452, %f640;
+	fma.rn.ftz.f32 	%f648, %f213, %f113, %f641;
+	fma.rn.ftz.f32 	%f649, %f453, %f242, %f646;
+	fma.rn.ftz.f32 	%f650, %f453, %f642, %f647;
+	fma.rn.ftz.f32 	%f651, %f453, %f225, %f645;
+	mov.f32 	%f652, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f653, %f343, %f102, %f652;
+	mov.f32 	%f654, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f655, %f99, %f343, %f654;
+	mov.f32 	%f656, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f657, %f343, %f111, %f656;
+	fma.rn.ftz.f32 	%f658, %f454, %f644, %f649;
+	fma.rn.ftz.f32 	%f659, %f454, %f643, %f650;
+	fma.rn.ftz.f32 	%f660, %f454, %f648, %f651;
+	fma.rn.ftz.f32 	%f661, %f335, %f94, %f653;
+	fma.rn.ftz.f32 	%f662, %f108, %f335, %f655;
+	fma.rn.ftz.f32 	%f663, %f335, %f113, %f657;
+	mul.ftz.f32 	%f664, %f660, %f287;
+	fma.rn.ftz.f32 	%f665, %f291, %f659, %f664;
+	mul.ftz.f32 	%f666, %f661, %f611;
+	fma.rn.ftz.f32 	%f667, %f284, %f658, %f665;
+	fma.rn.ftz.f32 	%f668, %f612, %f662, %f666;
+	fma.rn.ftz.f32 	%f669, %f613, %f663, %f668;
+	neg.ftz.f32 	%f670, %f669;
+	mul.ftz.f32 	%f671, %f470, %f667;
+	fma.rn.ftz.f32 	%f672, %f467, %f670, %f671;
+	mul.ftz.f32 	%f673, %f393, %f672;
+	mul.ftz.f32 	%f674, %f667, %f414;
+	fma.rn.ftz.f32 	%f675, %f477, %f670, %f674;
+	fma.rn.ftz.f32 	%f676, %f391, %f675, %f673;
+	sub.ftz.f32 	%f158, %f158, %f676;
+	.loc	17	258	0
+	mul.ftz.f32 	%f677, %f92, %f338;
+	mul.ftz.f32 	%f678, %f107, %f338;
+	mul.ftz.f32 	%f679, %f98, %f338;
+	mul.ftz.f32 	%f680, %f110, %f196;
+	mul.ftz.f32 	%f681, %f110, %f229;
+	mul.ftz.f32 	%f682, %f110, %f214;
+	fma.rn.ftz.f32 	%f683, %f198, %f107, %f199;
+	fma.rn.ftz.f32 	%f684, %f106, %f198, %f680;
+	fma.rn.ftz.f32 	%f685, %f106, %f230, %f681;
+	fma.rn.ftz.f32 	%f686, %f106, %f212, %f682;
+	fma.rn.ftz.f32 	%f687, %f197, %f98, %f683;
+	fma.rn.ftz.f32 	%f688, %f197, %f103, %f684;
+	fma.rn.ftz.f32 	%f689, %f103, %f231, %f685;
+	fma.rn.ftz.f32 	%f690, %f213, %f103, %f686;
+	mul.ftz.f32 	%f691, %f452, %f687;
+	mul.ftz.f32 	%f692, %f452, %f234;
+	mul.ftz.f32 	%f693, %f452, %f217;
+	fma.rn.ftz.f32 	%f694, %f343, %f110, %f677;
+	fma.rn.ftz.f32 	%f695, %f106, %f343, %f678;
+	fma.rn.ftz.f32 	%f696, %f343, %f103, %f679;
+	fma.rn.ftz.f32 	%f697, %f453, %f688, %f691;
+	fma.rn.ftz.f32 	%f698, %f453, %f689, %f692;
+	fma.rn.ftz.f32 	%f699, %f453, %f690, %f693;
+	mov.f32 	%f700, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f701, %f335, %f700, %f694;
+	mov.f32 	%f702, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f703, %f702, %f335, %f695;
+	mov.f32 	%f704, 0f00000000;   	// 0
+	fma.rn.ftz.f32 	%f705, %f335, %f704, %f696;
+	fma.rn.ftz.f32 	%f706, %f454, %f640, %f697;
+	fma.rn.ftz.f32 	%f707, %f454, %f583, %f698;
+	fma.rn.ftz.f32 	%f708, %f454, %f581, %f699;
+	mul.ftz.f32 	%f709, %f708, %f287;
+	mul.ftz.f32 	%f710, %f701, %f611;
+	fma.rn.ftz.f32 	%f711, %f291, %f706, %f709;
+	fma.rn.ftz.f32 	%f712, %f612, %f703, %f710;
+	fma.rn.ftz.f32 	%f713, %f284, %f707, %f711;
+	fma.rn.ftz.f32 	%f714, %f613, %f705, %f712;
+	neg.ftz.f32 	%f715, %f714;
+	mul.ftz.f32 	%f716, %f470, %f713;
+	fma.rn.ftz.f32 	%f717, %f467, %f715, %f716;
+	mul.ftz.f32 	%f718, %f393, %f717;
+	mul.ftz.f32 	%f719, %f713, %f414;
+	fma.rn.ftz.f32 	%f720, %f477, %f715, %f719;
+	fma.rn.ftz.f32 	%f721, %f391, %f720, %f718;
+	sub.ftz.f32 	%f157, %f157, %f721;
+	mul.lo.s32 	%r34, %r15, %r2;
+	cvt.s64.s32 	%rd44, %r34;
+	mul.wide.s32 	%rd45, %r34, 4;
+	add.u64 	%rd25, %rd25, %rd45;
+	setp.gt.u64 	%p22, %rd28, %rd25;
+	@%p22 bra 	$Lt_0_51970;
+	bra.uni 	$Lt_0_51458;
+$Lt_0_75266:
+	mov.f32 	%f157, 0f00000000;   	// 0
+	mov.f32 	%f158, 0f00000000;   	// 0
+	mov.f32 	%f159, 0f00000000;   	// 0
+	mov.f32 	%f160, 0f00000000;   	// 0
+	mov.f32 	%f161, 0f00000000;   	// 0
+	mov.f32 	%f162, 0f00000000;   	// 0
+	mov.f32 	%f163, 0f00000000;   	// 0
+$Lt_0_51458:
+	mov.u32 	%r35, 1;
+	setp.le.s32 	%p23, %r2, %r35;
+	@%p23 bra 	$Lt_0_71426;
+	.loc	17	267	0
+	mov.u64 	%rd46, __cuda___cuda_local_var_33120_37_non_const_red_acc136;
+	cvt.s64.s32 	%rd47, %r3;
+	mul.wide.s32 	%rd48, %r3, 4;
+	add.u64 	%rd49, %rd46, %rd48;
+	mov.f32 	%f722, %f162;
+	st.shared.f32 	[%rd49+0], %f722;
+	.loc	17	268	0
+	mov.f32 	%f723, %f161;
+	st.shared.f32 	[%rd49+512], %f723;
+	.loc	17	269	0
+	mov.f32 	%f724, %f160;
+	st.shared.f32 	[%rd49+1024], %f724;
+	.loc	17	270	0
+	mov.f32 	%f725, %f159;
+	st.shared.f32 	[%rd49+1536], %f725;
+	.loc	17	271	0
+	mov.f32 	%f726, %f158;
+	st.shared.f32 	[%rd49+2048], %f726;
+	.loc	17	272	0
+	mov.f32 	%f727, %f157;
+	st.shared.f32 	[%rd49+2560], %f727;
+	.loc	17	274	0
+	shr.s32 	%r36, %r2, 31;
+	mov.s32 	%r37, 1;
+	and.b32 	%r38, %r36, %r37;
+	add.s32 	%r39, %r38, %r2;
+	shr.s32 	%r40, %r39, 1;
+	mov.s32 	%r41, %r40;
+	mov.u32 	%r42, 0;
+	setp.ne.u32 	%p24, %r40, %r42;
+	@!%p24 bra 	$Lt_0_69890;
+$Lt_0_70402:
+	setp.ge.u32 	%p25, %r17, %r41;
+	@%p25 bra 	$Lt_0_70658;
+	.loc	17	277	0
+	add.u32 	%r43, %r3, %r41;
+	cvt.u64.u32 	%rd50, %r43;
+	mul.wide.u32 	%rd51, %r43, 4;
+	add.u64 	%rd52, %rd46, %rd51;
+	ld.shared.f32 	%f728, [%rd52+0];
+	add.ftz.f32 	%f722, %f728, %f722;
+	st.shared.f32 	[%rd49+0], %f722;
+	ld.shared.f32 	%f729, [%rd52+512];
+	add.ftz.f32 	%f723, %f729, %f723;
+	st.shared.f32 	[%rd49+512], %f723;
+	ld.shared.f32 	%f730, [%rd52+1024];
+	add.ftz.f32 	%f724, %f730, %f724;
+	st.shared.f32 	[%rd49+1024], %f724;
+	ld.shared.f32 	%f731, [%rd52+1536];
+	add.ftz.f32 	%f725, %f731, %f725;
+	st.shared.f32 	[%rd49+1536], %f725;
+	ld.shared.f32 	%f732, [%rd52+2048];
+	add.ftz.f32 	%f726, %f732, %f726;
+	st.shared.f32 	[%rd49+2048], %f726;
+	ld.shared.f32 	%f733, [%rd52+2560];
+	add.ftz.f32 	%f727, %f733, %f727;
+	st.shared.f32 	[%rd49+2560], %f727;
+$Lt_0_70658:
+	.loc	17	274	0
+	shr.u32 	%r41, %r41, 1;
+	mov.u32 	%r44, 0;
+	setp.ne.u32 	%p26, %r41, %r44;
+	@%p26 bra 	$Lt_0_70402;
+$Lt_0_69890:
+	.loc	17	281	0
+	mov.f32 	%f162, %f722;
+	.loc	17	282	0
+	mov.f32 	%f161, %f723;
+	.loc	17	283	0
+	mov.f32 	%f160, %f724;
+	.loc	17	284	0
+	mov.f32 	%f159, %f725;
+	.loc	17	285	0
+	mov.f32 	%f158, %f726;
+	.loc	17	286	0
+	mov.f32 	%f157, %f727;
+	ld.param.s32 	%r45, [__cudaparm_kernel_ellipsoid_sphere_eflag];
+	mov.s32 	%r46, 0;
+	set.gt.u32.s32 	%r47, %r45, %r46;
+	neg.s32 	%r48, %r47;
+	ld.param.s32 	%r49, [__cudaparm_kernel_ellipsoid_sphere_vflag];
+	mov.s32 	%r50, 0;
+	set.gt.u32.s32 	%r51, %r49, %r50;
+	neg.s32 	%r52, %r51;
+	or.b32 	%r53, %r48, %r52;
+	mov.u32 	%r54, 0;
+	setp.eq.s32 	%p27, %r53, %r54;
+	@%p27 bra 	$Lt_0_71426;
+	.loc	17	290	0
+	mov.f32 	%f722, %f47;
+	st.shared.f32 	[%rd49+0], %f722;
+	mov.f32 	%f723, %f49;
+	st.shared.f32 	[%rd49+512], %f723;
+	mov.f32 	%f724, %f51;
+	st.shared.f32 	[%rd49+1024], %f724;
+	mov.f32 	%f725, %f53;
+	st.shared.f32 	[%rd49+1536], %f725;
+	mov.f32 	%f726, %f55;
+	st.shared.f32 	[%rd49+2048], %f726;
+	mov.f32 	%f727, %f56;
+	st.shared.f32 	[%rd49+2560], %f727;
+	.loc	17	291	0
+	mov.f32 	%f734, %f163;
+	st.shared.f32 	[%rd49+3072], %f734;
+	.loc	17	293	0
+	mov.s32 	%r55, %r40;
+	@!%p24 bra 	$Lt_0_71938;
+$Lt_0_72450:
+	setp.ge.u32 	%p28, %r17, %r55;
+	@%p28 bra 	$Lt_0_72706;
+	.loc	17	296	0
+	add.u32 	%r56, %r3, %r55;
+	cvt.u64.u32 	%rd53, %r56;
+	mul.wide.u32 	%rd54, %r56, 4;
+	add.u64 	%rd55, %rd46, %rd54;
+	ld.shared.f32 	%f735, [%rd55+0];
+	add.ftz.f32 	%f722, %f735, %f722;
+	st.shared.f32 	[%rd49+0], %f722;
+	ld.shared.f32 	%f736, [%rd55+512];
+	add.ftz.f32 	%f723, %f736, %f723;
+	st.shared.f32 	[%rd49+512], %f723;
+	ld.shared.f32 	%f737, [%rd55+1024];
+	add.ftz.f32 	%f724, %f737, %f724;
+	st.shared.f32 	[%rd49+1024], %f724;
+	ld.shared.f32 	%f738, [%rd55+1536];
+	add.ftz.f32 	%f725, %f738, %f725;
+	st.shared.f32 	[%rd49+1536], %f725;
+	ld.shared.f32 	%f739, [%rd55+2048];
+	add.ftz.f32 	%f726, %f739, %f726;
+	st.shared.f32 	[%rd49+2048], %f726;
+	ld.shared.f32 	%f740, [%rd55+2560];
+	add.ftz.f32 	%f727, %f740, %f727;
+	st.shared.f32 	[%rd49+2560], %f727;
+	ld.shared.f32 	%f741, [%rd55+3072];
+	add.ftz.f32 	%f734, %f741, %f734;
+	st.shared.f32 	[%rd49+3072], %f734;
+$Lt_0_72706:
+	.loc	17	293	0
+	shr.u32 	%r55, %r55, 1;
+	mov.u32 	%r57, 0;
+	setp.ne.u32 	%p29, %r55, %r57;
+	@%p29 bra 	$Lt_0_72450;
+$Lt_0_71938:
+	.loc	17	301	0
+	mov.f32 	%f47, %f722;
+	mov.f32 	%f49, %f723;
+	mov.f32 	%f51, %f724;
+	mov.f32 	%f53, %f725;
+	mov.f32 	%f55, %f726;
+	mov.f32 	%f57, %f727;
+	.loc	17	302	0
+	mov.f32 	%f163, %f734;
+$Lt_0_71426:
+$Lt_0_69378:
+	mov.u32 	%r58, 0;
+	setp.ne.s32 	%p30, %r17, %r58;
+	@%p30 bra 	$Lt_0_73474;
+	.loc	17	308	0
+	ld.param.u64 	%rd56, [__cudaparm_kernel_ellipsoid_sphere_engv];
+	add.u64 	%rd57, %rd56, %rd3;
+	ld.param.s32 	%r59, [__cudaparm_kernel_ellipsoid_sphere_astride];
+	ld.param.s32 	%r60, [__cudaparm_kernel_ellipsoid_sphere_eflag];
+	mov.u32 	%r61, 0;
+	setp.le.s32 	%p31, %r60, %r61;
+	@%p31 bra 	$Lt_0_73986;
+	.loc	17	310	0
+	ld.global.f32 	%f742, [%rd57+0];
+	add.ftz.f32 	%f743, %f742, %f163;
+	st.global.f32 	[%rd57+0], %f743;
+	.loc	17	311	0
+	cvt.s64.s32 	%rd58, %r59;
+	mul.wide.s32 	%rd59, %r59, 4;
+	add.u64 	%rd57, %rd57, %rd59;
+$Lt_0_73986:
+	ld.param.s32 	%r62, [__cudaparm_kernel_ellipsoid_sphere_vflag];
+	mov.u32 	%r63, 0;
+	setp.le.s32 	%p32, %r62, %r63;
+	@%p32 bra 	$Lt_0_74498;
+	.loc	17	315	0
+	ld.global.f32 	%f744, [%rd57+0];
+	mov.f32 	%f745, %f47;
+	add.ftz.f32 	%f746, %f744, %f745;
+	st.global.f32 	[%rd57+0], %f746;
+	.loc	17	316	0
+	cvt.s64.s32 	%rd60, %r59;
+	mul.wide.s32 	%rd61, %r59, 4;
+	add.u64 	%rd62, %rd61, %rd57;
+	.loc	17	315	0
+	ld.global.f32 	%f747, [%rd62+0];
+	mov.f32 	%f748, %f49;
+	add.ftz.f32 	%f749, %f747, %f748;
+	st.global.f32 	[%rd62+0], %f749;
+	.loc	17	316	0
+	add.u64 	%rd63, %rd61, %rd62;
+	.loc	17	315	0
+	ld.global.f32 	%f750, [%rd63+0];
+	mov.f32 	%f751, %f51;
+	add.ftz.f32 	%f752, %f750, %f751;
+	st.global.f32 	[%rd63+0], %f752;
+	.loc	17	316	0
+	add.u64 	%rd64, %rd61, %rd63;
+	.loc	17	315	0
+	ld.global.f32 	%f753, [%rd64+0];
+	mov.f32 	%f754, %f53;
+	add.ftz.f32 	%f755, %f753, %f754;
+	st.global.f32 	[%rd64+0], %f755;
+	.loc	17	316	0
+	add.u64 	%rd65, %rd61, %rd64;
+	.loc	17	315	0
+	ld.global.f32 	%f756, [%rd65+0];
+	mov.f32 	%f757, %f55;
+	add.ftz.f32 	%f758, %f756, %f757;
+	st.global.f32 	[%rd65+0], %f758;
+	.loc	17	316	0
+	add.u64 	%rd57, %rd61, %rd65;
+	.loc	17	315	0
+	ld.global.f32 	%f759, [%rd57+0];
+	mov.f32 	%f760, %f57;
+	add.ftz.f32 	%f761, %f759, %f760;
+	st.global.f32 	[%rd57+0], %f761;
+$Lt_0_74498:
+	.loc	17	319	0
+	ld.param.u64 	%rd66, [__cudaparm_kernel_ellipsoid_sphere_ans];
+	mul.lo.u64 	%rd67, %rd2, 16;
+	add.u64 	%rd68, %rd66, %rd67;
+	ld.global.v4.f32 	{%f762,%f763,%f764,%f765}, [%rd68+0];
+	.loc	17	321	0
+	add.ftz.f32 	%f766, %f763, %f161;
+	.loc	17	322	0
+	add.ftz.f32 	%f767, %f764, %f160;
+	.loc	17	323	0
+	add.ftz.f32 	%f768, %f762, %f162;
+	st.global.v4.f32 	[%rd68+0], {%f768,%f766,%f767,%f765};
+	.loc	17	325	0
+	add.s32 	%r64, %r9, %r59;
+	cvt.s64.s32 	%rd69, %r64;
+	mul.wide.s32 	%rd70, %r64, 16;
+	add.u64 	%rd71, %rd66, %rd70;
+	ld.global.v4.f32 	{%f769,%f770,%f771,%f772}, [%rd71+0];
+	.loc	17	327	0
+	add.ftz.f32 	%f773, %f770, %f158;
+	.loc	17	328	0
+	add.ftz.f32 	%f774, %f771, %f157;
+	.loc	17	329	0
+	add.ftz.f32 	%f775, %f769, %f159;
+	st.global.v4.f32 	[%rd71+0], {%f775,%f773,%f774,%f772};
+$Lt_0_73474:
+$Lt_0_50946:
+	.loc	17	332	0
+	exit;
+$LDWend_kernel_ellipsoid_sphere:
+	} // kernel_ellipsoid_sphere
+
+	.entry kernel_sphere_ellipsoid (
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_x_,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_q,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_shape,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_well,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_splj,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_sig_eps,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_ntypes,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_dev_nbor,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_stride,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_ans,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid___val_paramengv,
+		.param .u64 __cudaparm_kernel_sphere_ellipsoid_err_flag,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_eflag,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_vflag,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_start,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_inum,
+		.param .s32 __cudaparm_kernel_sphere_ellipsoid_t_per_atom)
+	{
+	.reg .u32 %r<58>;
+	.reg .u64 %rd<70>;
+	.reg .f32 %f<567>;
+	.reg .pred %p<34>;
+	.shared .align 16 .b8 __cuda___cuda_local_var_33201_33_non_const_sp_lj3836[16];
+	.shared .align 4 .b8 __cuda___cuda_local_var_33377_55_non_const_red_acc3852[3072];
+	.shared .f32 __cuda_local_var_33207_33_non_const_b_alpha;
+	.shared .f32 __cuda_local_var_33207_42_non_const_cr60;
+	.shared .f32 __cuda_local_var_33207_48_non_const_solv_f_a;
+	.shared .f32 __cuda_local_var_33207_58_non_const_solv_f_r;
+	// __cuda_local_var_33214_10_non_const_f = 80
+	// __cuda_local_var_33218_9_non_const_virial = 32
+	// __cuda_local_var_33344_15_non_const_u = 56
+	.loc	17	341	0
+$LDWbegin_kernel_sphere_ellipsoid:
+	.loc	17	347	0
+	ld.param.u64 	%rd1, [__cudaparm_kernel_sphere_ellipsoid_splj];
+	ldu.global.f32 	%f1, [%rd1+0];
+	.loc	17	348	0
+	ld.global.f32 	%f2, [%rd1+4];
+	.loc	17	349	0
+	ld.global.f32 	%f3, [%rd1+8];
+	.loc	17	350	0
+	ld.global.f32 	%f4, [%rd1+12];
+	st.shared.v4.f32 	[__cuda___cuda_local_var_33201_33_non_const_sp_lj3836+0], {%f1,%f2,%f3,%f4};
+	.loc	17	353	0
+	mov.f32 	%f5, 0f3f4db6db;     	// 0.803571
+	st.shared.f32 	[__cuda_local_var_33207_33_non_const_b_alpha], %f5;
+	.loc	17	354	0
+	mov.f32 	%f6, 0f42700000;     	// 60
+	lg2.approx.ftz.f32 	%f7, %f6;
+	mov.f32 	%f8, 0f3eaaaaab;     	// 0.333333
+	mul.ftz.f32 	%f9, %f7, %f8;
+	ex2.approx.ftz.f32 	%f10, %f9;
+	mov.f32 	%f11, 0f42700000;    	// 60
+	mul.ftz.f32 	%f12, %f10, %f10;
+	div.approx.ftz.f32 	%f13, %f11, %f12;
+	sub.ftz.f32 	%f14, %f10, %f13;
+	mov.f32 	%f15, 0f3eaaaaab;    	// 0.333333
+	mul.ftz.f32 	%f16, %f14, %f15;
+	sub.ftz.f32 	%f17, %f10, %f16;
+	st.shared.f32 	[__cuda_local_var_33207_42_non_const_cr60], %f17;
+	.loc	21	544	0
+	mov.f32 	%f18, 0f3f800000;    	// 1
+	mov.f32 	%f19, 0fbf52c7ea;    	// -0.823363
+	mov.f32 	%f20, 0fc0b59883;    	// -5.67487
+	fma.rn.ftz.f32 	%f21, %f18, %f19, %f20;
+	mov.f32 	%f22, 0f41455dc0;    	// 12.3354
+	mov.f32 	%f23, 0f3f800000;    	// 1
+	mov.f32 	%f24, 0f41e6bd60;    	// 28.8425
+	fma.rn.ftz.f32 	%f25, %f22, %f23, %f24;
+	mov.f32 	%f26, 0f3f800000;    	// 1
+	mov.f32 	%f27, 0fc0d21907;    	// -6.56556
+	fma.rn.ftz.f32 	%f28, %f21, %f26, %f27;
+	mov.f32 	%f29, 0f3f800000;    	// 1
+	mov.f32 	%f30, 0f419d92c8;    	// 19.6967
+	fma.rn.ftz.f32 	%f31, %f25, %f29, %f30;
+	rcp.approx.ftz.f32 	%f32, %f31;
+	mov.f32 	%f33, 0f3f800000;    	// 1
+	fma.rn.ftz.f32 	%f34, %f28, %f32, %f33;
+	mov.b32 	%r1, %f34;
+	mov.b32 	%f35, %r1;
+	mov.f32 	%f36, 0f41800000;    	// 16
+	mul.ftz.f32 	%f37, %f35, %f36;
+	mov.f32 	%f38, 0f40400000;    	// 3
+	mov.f32 	%f39, 0fc2100000;    	// -36
+	mul.ftz.f32 	%f40, %f37, %f39;
+	div.approx.ftz.f32 	%f41, %f38, %f40;
+	.loc	17	355	0
+	st.shared.f32 	[__cuda_local_var_33207_48_non_const_solv_f_a], %f41;
+	.loc	21	544	0
+	mov.f32 	%f42, 0f40400000;    	// 3
+	mov.f32 	%f43, 0f44fd2000;    	// 2025
+	mul.ftz.f32 	%f44, %f37, %f43;
+	div.approx.ftz.f32 	%f45, %f42, %f44;
+	.loc	17	356	0
+	st.shared.f32 	[__cuda_local_var_33207_58_non_const_solv_f_r], %f45;
+	.loc	17	365	0
+	mov.f32 	%f46, 0f00000000;    	// 0
+	mov.f32 	%f47, %f46;
+	mov.f32 	%f48, 0f00000000;    	// 0
+	mov.f32 	%f49, %f48;
+	mov.f32 	%f50, 0f00000000;    	// 0
+	mov.f32 	%f51, %f50;
+	mov.f32 	%f52, 0f00000000;    	// 0
+	mov.f32 	%f53, %f52;
+	mov.f32 	%f54, 0f00000000;    	// 0
+	mov.f32 	%f55, %f54;
+	mov.f32 	%f56, 0f00000000;    	// 0
+	mov.f32 	%f57, %f56;
+	ld.param.s32 	%r2, [__cudaparm_kernel_sphere_ellipsoid_t_per_atom];
+	cvt.s32.u32 	%r3, %tid.x;
+	div.s32 	%r4, %r3, %r2;
+	cvt.s32.u32 	%r5, %ntid.x;
+	div.s32 	%r6, %r5, %r2;
+	cvt.s32.u32 	%r7, %ctaid.x;
+	mul.lo.s32 	%r8, %r7, %r6;
+	add.s32 	%r9, %r4, %r8;
+	ld.param.s32 	%r10, [__cudaparm_kernel_sphere_ellipsoid_start];
+	add.s32 	%r11, %r10, %r9;
+	ld.param.s32 	%r12, [__cudaparm_kernel_sphere_ellipsoid_inum];
+	setp.ge.s32 	%p1, %r11, %r12;
+	@%p1 bra 	$Lt_1_73218;
+	.loc	17	370	0
+	cvt.s64.s32 	%rd2, %r11;
+	mul.wide.s32 	%rd3, %r11, 4;
+	ld.param.u64 	%rd4, [__cudaparm_kernel_sphere_ellipsoid_dev_nbor];
+	add.u64 	%rd5, %rd4, %rd3;
+	ld.global.s32 	%r13, [%rd5+0];
+	ld.param.s32 	%r14, [__cudaparm_kernel_sphere_ellipsoid_stride];
+	cvt.s64.s32 	%rd6, %r14;
+	mul.wide.s32 	%rd7, %r14, 4;
+	add.u64 	%rd8, %rd7, %rd5;
+	ld.global.s32 	%r15, [%rd8+0];
+	.loc	17	373	0
+	ld.param.u64 	%rd9, [__cudaparm_kernel_sphere_ellipsoid_x_];
+	cvt.s64.s32 	%rd10, %r13;
+	mul.wide.s32 	%rd11, %r13, 16;
+	add.u64 	%rd12, %rd9, %rd11;
+	ld.global.v4.f32 	{%f58,%f59,%f60,%f61}, [%rd12+0];
+	.loc	17	374	0
+	cvt.s32.s64 	%r16, %rd6;
+	sub.s32 	%r17, %r2, 1;
+	and.b32 	%r18, %r17, %r3;
+	add.u64 	%rd13, %rd7, %rd8;
+	mul.lo.s32 	%r19, %r16, %r18;
+	cvt.s64.s32 	%rd14, %r19;
+	mul.wide.s32 	%rd15, %r19, 4;
+	add.u64 	%rd16, %rd13, %rd15;
+	mov.s64 	%rd17, %rd16;
+	mul.lo.s32 	%r20, %r16, %r15;
+	cvt.s64.s32 	%rd18, %r20;
+	mul.wide.s32 	%rd19, %r20, 4;
+	add.u64 	%rd20, %rd13, %rd19;
+	setp.ge.u64 	%p2, %rd16, %rd20;
+	@%p2 bra 	$Lt_1_75010;
+	ld.param.s32 	%r21, [__cudaparm_kernel_sphere_ellipsoid_vflag];
+	mov.s32 	%r22, 0;
+	setp.gt.s32 	%p3, %r21, %r22;
+	cvt.rzi.ftz.s32.f32 	%r23, %f61;
+	ld.param.u64 	%rd21, [__cudaparm_kernel_sphere_ellipsoid_sig_eps];
+	ld.param.s32 	%r24, [__cudaparm_kernel_sphere_ellipsoid_ntypes];
+	ld.param.u64 	%rd22, [__cudaparm_kernel_sphere_ellipsoid_well];
+	ld.param.u64 	%rd23, [__cudaparm_kernel_sphere_ellipsoid_q];
+	ld.param.u64 	%rd24, [__cudaparm_kernel_sphere_ellipsoid_shape];
+	mov.f32 	%f62, 0f00000000;    	// 0
+	mov.f32 	%f63, 0f00000000;    	// 0
+	mov.f32 	%f64, 0f00000000;    	// 0
+	mov.f32 	%f65, 0f00000000;    	// 0
+	mov.u64 	%rd25, __cuda___cuda_local_var_33201_33_non_const_sp_lj3836;
+$Lt_1_51714:
+ //<loop> Loop body line 374, nesting depth: 1, estimated iterations: unknown
+	.loc	17	378	0
+	ld.global.s32 	%r25, [%rd17+0];
+	.loc	17	382	0
+	and.b32 	%r26, %r25, 1073741823;
+	cvt.s64.s32 	%rd26, %r26;
+	mul.wide.s32 	%rd27, %r26, 16;
+	add.u64 	%rd28, %rd27, %rd9;
+	ld.global.v4.f32 	{%f66,%f67,%f68,%f69}, [%rd28+0];
+	.loc	17	389	0
+	cvt.rzi.ftz.s32.f32 	%r27, %f69;
+	cvt.s64.s32 	%rd29, %r27;
+	mul.wide.s32 	%rd30, %r27, 16;
+	add.u64 	%rd31, %rd30, %rd24;
+	ld.global.v4.f32 	{%f70,%f71,%f72,_}, [%rd31+0];
+	.loc	17	390	0
+	add.u64 	%rd32, %rd27, %rd23;
+	ld.global.v4.f32 	{%f73,%f74,%f75,%f76}, [%rd32+0];
+	.loc	17	391	0
+	add.u64 	%rd33, %rd30, %rd22;
+	ld.global.v4.f32 	{%f77,%f78,%f79,_}, [%rd33+0];
+	.loc	17	401	0
+	sub.ftz.f32 	%f80, %f67, %f59;
+	sub.ftz.f32 	%f81, %f66, %f58;
+	sub.ftz.f32 	%f82, %f68, %f60;
+	mul.ftz.f32 	%f83, %f80, %f80;
+	fma.rn.ftz.f32 	%f84, %f81, %f81, %f83;
+	fma.rn.ftz.f32 	%f85, %f82, %f82, %f84;
+	rsqrt.approx.ftz.f32 	%f86, %f85;
+	mul.ftz.f32 	%f87, %f81, %f86;
+	.loc	17	402	0
+	mul.ftz.f32 	%f88, %f80, %f86;
+	.loc	17	407	0
+	mul.lo.s32 	%r28, %r27, %r24;
+	add.s32 	%r29, %r23, %r28;
+	cvt.s64.s32 	%rd34, %r29;
+	mul.wide.s32 	%rd35, %r29, 8;
+	add.u64 	%rd36, %rd21, %rd35;
+	ld.global.v2.f32 	{%f89,%f90}, [%rd36+0];
+	.loc	17	408	0
+	shr.s32 	%r30, %r25, 30;
+	and.b32 	%r31, %r30, 3;
+	cvt.s64.s32 	%rd37, %r31;
+	mul.wide.s32 	%rd38, %r31, 4;
+	add.u64 	%rd39, %rd25, %rd38;
+	ld.shared.f32 	%f91, [%rd39+0];
+	mul.ftz.f32 	%f92, %f91, %f90;
+	.loc	16	299	0
+	mov.f32 	%f93, %f87;
+	.loc	16	300	0
+	mov.f32 	%f94, 0f3f000000;    	// 0.5
+	mul.ftz.f32 	%f95, %f89, %f94;
+	add.ftz.f32 	%f96, %f74, %f74;
+	add.ftz.f32 	%f97, %f76, %f76;
+	mul.ftz.f32 	%f98, %f73, %f73;
+	mul.ftz.f32 	%f99, %f74, %f74;
+	mul.ftz.f32 	%f100, %f75, %f75;
+	mul.ftz.f32 	%f101, %f76, %f76;
+	add.ftz.f32 	%f102, %f75, %f75;
+	add.ftz.f32 	%f103, %f95, %f71;
+	add.ftz.f32 	%f104, %f95, %f70;
+	add.ftz.f32 	%f105, %f95, %f72;
+	mul.ftz.f32 	%f106, %f96, %f75;
+	mul.ftz.f32 	%f107, %f96, %f76;
+	mul.ftz.f32 	%f108, %f97, %f73;
+	add.ftz.f32 	%f109, %f98, %f99;
+	mul.ftz.f32 	%f110, %f102, %f73;
+	mul.ftz.f32 	%f111, %f103, %f103;
+	mul.ftz.f32 	%f112, %f104, %f104;
+	mul.ftz.f32 	%f113, %f105, %f105;
+	sub.ftz.f32 	%f114, %f106, %f108;
+	sub.ftz.f32 	%f115, %f109, %f100;
+	add.ftz.f32 	%f116, %f107, %f110;
+	mov.f32 	%f117, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f118, %f111, %f117;
+	mov.f32 	%f119, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f120, %f112, %f119;
+	mov.f32 	%f121, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f122, %f113, %f121;
+	sub.ftz.f32 	%f123, %f115, %f101;
+	mul.ftz.f32 	%f124, %f114, %f118;
+	mul.ftz.f32 	%f125, %f116, %f122;
+	mul.ftz.f32 	%f126, %f120, %f123;
+	mul.ftz.f32 	%f127, %f114, %f124;
+	fma.rn.ftz.f32 	%f128, %f123, %f126, %f127;
+	fma.rn.ftz.f32 	%f129, %f125, %f116, %f128;
+	mov.f32 	%f130, %f129;
+	.loc	16	301	0
+	mul.ftz.f32 	%f131, %f96, %f73;
+	sub.ftz.f32 	%f132, %f98, %f99;
+	mul.ftz.f32 	%f133, %f102, %f76;
+	add.ftz.f32 	%f134, %f106, %f108;
+	add.ftz.f32 	%f135, %f100, %f132;
+	sub.ftz.f32 	%f136, %f133, %f131;
+	sub.ftz.f32 	%f137, %f135, %f101;
+	mul.ftz.f32 	%f138, %f137, %f124;
+	fma.rn.ftz.f32 	%f139, %f126, %f134, %f138;
+	fma.rn.ftz.f32 	%f140, %f125, %f136, %f139;
+	mov.f32 	%f141, %f140;
+	.loc	16	302	0
+	sub.ftz.f32 	%f142, %f132, %f100;
+	sub.ftz.f32 	%f143, %f107, %f110;
+	add.ftz.f32 	%f144, %f131, %f133;
+	add.ftz.f32 	%f145, %f101, %f142;
+	mul.ftz.f32 	%f146, %f144, %f124;
+	fma.rn.ftz.f32 	%f147, %f126, %f143, %f146;
+	fma.rn.ftz.f32 	%f148, %f125, %f145, %f147;
+	mov.f32 	%f149, %f148;
+	.loc	16	303	0
+	mov.f32 	%f150, %f88;
+	.loc	16	304	0
+	mul.ftz.f32 	%f151, %f134, %f120;
+	mul.ftz.f32 	%f152, %f136, %f122;
+	mul.ftz.f32 	%f153, %f118, %f137;
+	mul.ftz.f32 	%f154, %f114, %f153;
+	fma.rn.ftz.f32 	%f155, %f123, %f151, %f154;
+	fma.rn.ftz.f32 	%f156, %f152, %f116, %f155;
+	mov.f32 	%f157, %f156;
+	.loc	16	305	0
+	mul.ftz.f32 	%f158, %f137, %f153;
+	fma.rn.ftz.f32 	%f159, %f134, %f151, %f158;
+	fma.rn.ftz.f32 	%f160, %f152, %f136, %f159;
+	.loc	16	306	0
+	mul.ftz.f32 	%f161, %f144, %f153;
+	fma.rn.ftz.f32 	%f162, %f143, %f151, %f161;
+	fma.rn.ftz.f32 	%f163, %f152, %f145, %f162;
+	.loc	16	307	0
+	mul.ftz.f32 	%f164, %f82, %f86;
+	mov.f32 	%f165, %f164;
+	.loc	16	308	0
+	mul.ftz.f32 	%f166, %f144, %f118;
+	mul.ftz.f32 	%f167, %f143, %f120;
+	mul.ftz.f32 	%f168, %f122, %f145;
+	mul.ftz.f32 	%f169, %f114, %f166;
+	fma.rn.ftz.f32 	%f170, %f123, %f167, %f169;
+	fma.rn.ftz.f32 	%f171, %f116, %f168, %f170;
+	mov.f32 	%f172, %f171;
+	.loc	16	309	0
+	mul.ftz.f32 	%f173, %f137, %f166;
+	fma.rn.ftz.f32 	%f174, %f134, %f167, %f173;
+	fma.rn.ftz.f32 	%f175, %f136, %f168, %f174;
+	.loc	16	310	0
+	mul.ftz.f32 	%f176, %f144, %f166;
+	fma.rn.ftz.f32 	%f177, %f143, %f167, %f176;
+	fma.rn.ftz.f32 	%f178, %f145, %f168, %f177;
+	abs.ftz.f32 	%f179, %f156;
+	abs.ftz.f32 	%f180, %f129;
+	setp.gt.ftz.f32 	%p4, %f179, %f180;
+	@!%p4 bra 	$Lt_1_51970;
+	.loc	16	314	0
+	mov.f32 	%f130, %f156;
+	mov.f32 	%f157, %f129;
+	.loc	16	315	0
+	mov.f32 	%f141, %f160;
+	mov.f32 	%f160, %f140;
+	.loc	16	316	0
+	mov.f32 	%f149, %f163;
+	mov.f32 	%f163, %f148;
+	.loc	16	317	0
+	mov.f32 	%f93, %f88;
+	mov.f32 	%f150, %f87;
+$Lt_1_51970:
+	mov.f32 	%f181, %f130;
+	abs.ftz.f32 	%f182, %f181;
+	abs.ftz.f32 	%f183, %f171;
+	setp.lt.ftz.f32 	%p5, %f182, %f183;
+	@!%p5 bra 	$Lt_1_52482;
+	.loc	16	321	0
+	mov.f32 	%f130, %f171;
+	mov.f32 	%f172, %f181;
+	.loc	16	322	0
+	mov.f32 	%f184, %f141;
+	mov.f32 	%f141, %f175;
+	mov.f32 	%f175, %f184;
+	.loc	16	323	0
+	mov.f32 	%f185, %f149;
+	mov.f32 	%f149, %f178;
+	mov.f32 	%f178, %f185;
+	.loc	16	324	0
+	mov.f32 	%f186, %f93;
+	mov.f32 	%f93, %f164;
+	mov.f32 	%f165, %f186;
+$Lt_1_52482:
+	mov.f32 	%f187, %f130;
+	mov.f32 	%f188, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p6, %f187, %f188;
+	@!%p6 bra 	$Lt_1_53250;
+	bra.uni 	$Lt_1_54018;
+$Lt_1_53250:
+	mov.f32 	%f189, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p7, %f157, %f189;
+	@!%p7 bra 	$Lt_1_53762;
+	.loc	16	338	0
+	mov.f32 	%f130, %f157;
+	mov.f32 	%f157, %f187;
+	.loc	16	339	0
+	mov.f32 	%f190, %f141;
+	mov.f32 	%f141, %f160;
+	mov.f32 	%f160, %f190;
+	.loc	16	340	0
+	mov.f32 	%f191, %f149;
+	mov.f32 	%f149, %f163;
+	mov.f32 	%f163, %f191;
+	.loc	16	341	0
+	mov.f32 	%f192, %f93;
+	mov.f32 	%f93, %f150;
+	mov.f32 	%f150, %f192;
+	bra.uni 	$Lt_1_54018;
+$Lt_1_53762:
+	mov.f32 	%f193, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p8, %f172, %f193;
+	@!%p8 bra 	$Lt_1_54274;
+	.loc	16	346	0
+	mov.f32 	%f130, %f172;
+	mov.f32 	%f172, %f187;
+	.loc	16	347	0
+	mov.f32 	%f194, %f141;
+	mov.f32 	%f141, %f175;
+	mov.f32 	%f175, %f194;
+	.loc	16	348	0
+	mov.f32 	%f195, %f149;
+	mov.f32 	%f149, %f178;
+	mov.f32 	%f178, %f195;
+	.loc	16	349	0
+	mov.f32 	%f196, %f93;
+	mov.f32 	%f93, %f165;
+	mov.f32 	%f165, %f196;
+	bra.uni 	$Lt_1_54018;
+$Lt_1_54274:
+	.loc	16	352	0
+	mov.s32 	%r32, 2;
+	ld.param.u64 	%rd40, [__cudaparm_kernel_sphere_ellipsoid_err_flag];
+	st.global.s32 	[%rd40+0], %r32;
+$Lt_1_54018:
+$Lt_1_53506:
+$Lt_1_52994:
+	.loc	16	355	0
+	div.approx.ftz.f32 	%f197, %f157, %f130;
+	mul.ftz.f32 	%f198, %f141, %f197;
+	sub.ftz.f32 	%f199, %f160, %f198;
+	mov.f32 	%f160, %f199;
+	.loc	16	356	0
+	mul.ftz.f32 	%f200, %f149, %f197;
+	sub.ftz.f32 	%f201, %f163, %f200;
+	mov.f32 	%f163, %f201;
+	.loc	16	357	0
+	mul.ftz.f32 	%f202, %f93, %f197;
+	sub.ftz.f32 	%f203, %f150, %f202;
+	mov.f32 	%f150, %f203;
+	.loc	16	359	0
+	div.approx.ftz.f32 	%f204, %f172, %f130;
+	mul.ftz.f32 	%f205, %f141, %f204;
+	sub.ftz.f32 	%f175, %f175, %f205;
+	.loc	16	360	0
+	mul.ftz.f32 	%f206, %f149, %f204;
+	sub.ftz.f32 	%f178, %f178, %f206;
+	.loc	16	361	0
+	mul.ftz.f32 	%f207, %f93, %f204;
+	sub.ftz.f32 	%f165, %f165, %f207;
+	abs.ftz.f32 	%f208, %f199;
+	abs.ftz.f32 	%f209, %f175;
+	setp.lt.ftz.f32 	%p9, %f208, %f209;
+	@!%p9 bra 	$Lt_1_54530;
+	.loc	16	366	0
+	mov.f32 	%f160, %f175;
+	mov.f32 	%f175, %f199;
+	.loc	16	367	0
+	mov.f32 	%f163, %f178;
+	mov.f32 	%f178, %f201;
+	.loc	16	368	0
+	mov.f32 	%f150, %f165;
+	mov.f32 	%f165, %f203;
+$Lt_1_54530:
+	mov.f32 	%f210, %f160;
+	mov.f32 	%f211, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p10, %f210, %f211;
+	@!%p10 bra 	$Lt_1_55298;
+	bra.uni 	$Lt_1_55554;
+$Lt_1_55298:
+	mov.f32 	%f212, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p11, %f175, %f212;
+	@!%p11 bra 	$Lt_1_55554;
+	.loc	16	383	0
+	mov.f32 	%f160, %f175;
+	mov.f32 	%f175, %f210;
+	.loc	16	384	0
+	mov.f32 	%f213, %f163;
+	mov.f32 	%f163, %f178;
+	mov.f32 	%f178, %f213;
+	.loc	16	385	0
+	mov.f32 	%f214, %f150;
+	mov.f32 	%f150, %f165;
+	mov.f32 	%f165, %f214;
+$Lt_1_55554:
+$Lt_1_55042:
+	.loc	16	390	0
+	div.approx.ftz.f32 	%f215, %f175, %f160;
+	mul.ftz.f32 	%f216, %f163, %f215;
+	sub.ftz.f32 	%f178, %f178, %f216;
+	.loc	16	391	0
+	mul.ftz.f32 	%f217, %f150, %f215;
+	sub.ftz.f32 	%f165, %f165, %f217;
+	mov.f32 	%f218, 0f00000000;   	// 0
+	setp.eq.ftz.f32 	%p12, %f178, %f218;
+	@!%p12 bra 	$Lt_1_56066;
+	.loc	16	394	0
+	mov.s32 	%r33, 2;
+	ld.param.u64 	%rd41, [__cudaparm_kernel_sphere_ellipsoid_err_flag];
+	st.global.s32 	[%rd41+0], %r33;
+$Lt_1_56066:
+	.loc	16	396	0
+	div.approx.ftz.f32 	%f219, %f165, %f178;
+	.loc	16	399	0
+	mul.ftz.f32 	%f220, %f219, %f163;
+	sub.ftz.f32 	%f221, %f150, %f220;
+	div.approx.ftz.f32 	%f222, %f221, %f160;
+	.loc	16	403	0
+	mul.ftz.f32 	%f223, %f222, %f141;
+	fma.rn.ftz.f32 	%f224, %f149, %f219, %f223;
+	sub.ftz.f32 	%f225, %f93, %f224;
+	div.approx.ftz.f32 	%f226, %f225, %f130;
+	.loc	17	427	0
+	mul.ftz.f32 	%f227, %f222, %f88;
+	fma.rn.ftz.f32 	%f228, %f87, %f226, %f227;
+	fma.rn.ftz.f32 	%f229, %f164, %f219, %f228;
+	mov.f32 	%f230, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f231, %f229, %f230;
+	rsqrt.approx.ftz.f32 	%f232, %f231;
+	.loc	16	299	0
+	mov.f32 	%f93, %f87;
+	.loc	16	300	0
+	mul.ftz.f32 	%f233, %f114, %f78;
+	mul.ftz.f32 	%f234, %f116, %f79;
+	mul.ftz.f32 	%f235, %f114, %f233;
+	mul.ftz.f32 	%f236, %f123, %f77;
+	fma.rn.ftz.f32 	%f237, %f123, %f236, %f235;
+	fma.rn.ftz.f32 	%f238, %f234, %f116, %f237;
+	mov.f32 	%f239, 0f3f800000;   	// 1
+	add.ftz.f32 	%f240, %f238, %f239;
+	mov.f32 	%f130, %f240;
+	.loc	16	301	0
+	mul.ftz.f32 	%f241, %f233, %f137;
+	fma.rn.ftz.f32 	%f242, %f236, %f134, %f241;
+	fma.rn.ftz.f32 	%f243, %f234, %f136, %f242;
+	mov.f32 	%f141, %f243;
+	.loc	16	302	0
+	mul.ftz.f32 	%f244, %f144, %f233;
+	fma.rn.ftz.f32 	%f245, %f236, %f143, %f244;
+	fma.rn.ftz.f32 	%f246, %f234, %f145, %f245;
+	mov.f32 	%f149, %f246;
+	.loc	16	303	0
+	mov.f32 	%f150, %f88;
+	.loc	16	304	0
+	mul.ftz.f32 	%f247, %f134, %f77;
+	mul.ftz.f32 	%f248, %f136, %f79;
+	mul.ftz.f32 	%f249, %f137, %f78;
+	mul.ftz.f32 	%f250, %f114, %f249;
+	fma.rn.ftz.f32 	%f251, %f123, %f247, %f250;
+	fma.rn.ftz.f32 	%f252, %f248, %f116, %f251;
+	mov.f32 	%f157, %f252;
+	.loc	16	305	0
+	mul.ftz.f32 	%f253, %f137, %f249;
+	fma.rn.ftz.f32 	%f254, %f134, %f247, %f253;
+	fma.rn.ftz.f32 	%f255, %f248, %f136, %f254;
+	mov.f32 	%f256, 0f3f800000;   	// 1
+	add.ftz.f32 	%f160, %f255, %f256;
+	.loc	16	306	0
+	mul.ftz.f32 	%f257, %f144, %f249;
+	fma.rn.ftz.f32 	%f258, %f143, %f247, %f257;
+	fma.rn.ftz.f32 	%f163, %f248, %f145, %f258;
+	.loc	16	307	0
+	mov.f32 	%f165, %f164;
+	.loc	16	308	0
+	mul.ftz.f32 	%f259, %f143, %f77;
+	mul.ftz.f32 	%f260, %f144, %f78;
+	mul.ftz.f32 	%f261, %f145, %f79;
+	mul.ftz.f32 	%f262, %f114, %f260;
+	fma.rn.ftz.f32 	%f263, %f123, %f259, %f262;
+	fma.rn.ftz.f32 	%f264, %f116, %f261, %f263;
+	mov.f32 	%f172, %f264;
+	.loc	16	309	0
+	mul.ftz.f32 	%f265, %f137, %f260;
+	fma.rn.ftz.f32 	%f266, %f134, %f259, %f265;
+	fma.rn.ftz.f32 	%f175, %f136, %f261, %f266;
+	.loc	16	310	0
+	mul.ftz.f32 	%f267, %f144, %f260;
+	fma.rn.ftz.f32 	%f268, %f143, %f259, %f267;
+	fma.rn.ftz.f32 	%f269, %f145, %f261, %f268;
+	mov.f32 	%f270, 0f3f800000;   	// 1
+	add.ftz.f32 	%f178, %f269, %f270;
+	abs.ftz.f32 	%f271, %f252;
+	abs.ftz.f32 	%f272, %f240;
+	setp.gt.ftz.f32 	%p13, %f271, %f272;
+	@!%p13 bra 	$Lt_1_56578;
+	.loc	16	314	0
+	mov.f32 	%f130, %f252;
+	mov.f32 	%f157, %f240;
+	.loc	16	315	0
+	mov.f32 	%f141, %f160;
+	mov.f32 	%f160, %f243;
+	.loc	16	316	0
+	mov.f32 	%f149, %f163;
+	mov.f32 	%f163, %f246;
+	.loc	16	317	0
+	mov.f32 	%f93, %f88;
+	mov.f32 	%f150, %f87;
+$Lt_1_56578:
+	mov.f32 	%f273, %f130;
+	abs.ftz.f32 	%f274, %f273;
+	abs.ftz.f32 	%f275, %f264;
+	setp.lt.ftz.f32 	%p14, %f274, %f275;
+	@!%p14 bra 	$Lt_1_57090;
+	.loc	16	321	0
+	mov.f32 	%f130, %f264;
+	mov.f32 	%f172, %f273;
+	.loc	16	322	0
+	mov.f32 	%f276, %f141;
+	mov.f32 	%f141, %f175;
+	mov.f32 	%f175, %f276;
+	.loc	16	323	0
+	mov.f32 	%f277, %f149;
+	mov.f32 	%f149, %f178;
+	mov.f32 	%f178, %f277;
+	.loc	16	324	0
+	mov.f32 	%f278, %f93;
+	mov.f32 	%f93, %f164;
+	mov.f32 	%f165, %f278;
+$Lt_1_57090:
+	mov.f32 	%f279, %f130;
+	mov.f32 	%f280, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p15, %f279, %f280;
+	@!%p15 bra 	$Lt_1_57858;
+	bra.uni 	$Lt_1_58626;
+$Lt_1_57858:
+	mov.f32 	%f281, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p16, %f157, %f281;
+	@!%p16 bra 	$Lt_1_58370;
+	.loc	16	338	0
+	mov.f32 	%f130, %f157;
+	mov.f32 	%f157, %f279;
+	.loc	16	339	0
+	mov.f32 	%f282, %f141;
+	mov.f32 	%f141, %f160;
+	mov.f32 	%f160, %f282;
+	.loc	16	340	0
+	mov.f32 	%f283, %f149;
+	mov.f32 	%f149, %f163;
+	mov.f32 	%f163, %f283;
+	.loc	16	341	0
+	mov.f32 	%f284, %f93;
+	mov.f32 	%f93, %f150;
+	mov.f32 	%f150, %f284;
+	bra.uni 	$Lt_1_58626;
+$Lt_1_58370:
+	mov.f32 	%f285, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p17, %f172, %f285;
+	@!%p17 bra 	$Lt_1_58882;
+	.loc	16	346	0
+	mov.f32 	%f130, %f172;
+	mov.f32 	%f172, %f279;
+	.loc	16	347	0
+	mov.f32 	%f286, %f141;
+	mov.f32 	%f141, %f175;
+	mov.f32 	%f175, %f286;
+	.loc	16	348	0
+	mov.f32 	%f287, %f149;
+	mov.f32 	%f149, %f178;
+	mov.f32 	%f178, %f287;
+	.loc	16	349	0
+	mov.f32 	%f288, %f93;
+	mov.f32 	%f93, %f165;
+	mov.f32 	%f165, %f288;
+	bra.uni 	$Lt_1_58626;
+$Lt_1_58882:
+	.loc	16	352	0
+	mov.s32 	%r34, 2;
+	ld.param.u64 	%rd42, [__cudaparm_kernel_sphere_ellipsoid_err_flag];
+	st.global.s32 	[%rd42+0], %r34;
+$Lt_1_58626:
+$Lt_1_58114:
+$Lt_1_57602:
+	.loc	16	355	0
+	div.approx.ftz.f32 	%f289, %f157, %f130;
+	mul.ftz.f32 	%f290, %f141, %f289;
+	sub.ftz.f32 	%f291, %f160, %f290;
+	mov.f32 	%f160, %f291;
+	.loc	16	356	0
+	mul.ftz.f32 	%f292, %f149, %f289;
+	sub.ftz.f32 	%f293, %f163, %f292;
+	mov.f32 	%f163, %f293;
+	.loc	16	357	0
+	mul.ftz.f32 	%f294, %f93, %f289;
+	sub.ftz.f32 	%f295, %f150, %f294;
+	mov.f32 	%f150, %f295;
+	.loc	16	359	0
+	div.approx.ftz.f32 	%f296, %f172, %f130;
+	mul.ftz.f32 	%f297, %f141, %f296;
+	sub.ftz.f32 	%f175, %f175, %f297;
+	.loc	16	360	0
+	mul.ftz.f32 	%f298, %f149, %f296;
+	sub.ftz.f32 	%f178, %f178, %f298;
+	.loc	16	361	0
+	mul.ftz.f32 	%f299, %f93, %f296;
+	sub.ftz.f32 	%f165, %f165, %f299;
+	abs.ftz.f32 	%f300, %f291;
+	abs.ftz.f32 	%f301, %f175;
+	setp.lt.ftz.f32 	%p18, %f300, %f301;
+	@!%p18 bra 	$Lt_1_59138;
+	.loc	16	366	0
+	mov.f32 	%f160, %f175;
+	mov.f32 	%f175, %f291;
+	.loc	16	367	0
+	mov.f32 	%f163, %f178;
+	mov.f32 	%f178, %f293;
+	.loc	16	368	0
+	mov.f32 	%f150, %f165;
+	mov.f32 	%f165, %f295;
+$Lt_1_59138:
+	mov.f32 	%f302, %f160;
+	mov.f32 	%f303, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p19, %f302, %f303;
+	@!%p19 bra 	$Lt_1_59906;
+	bra.uni 	$Lt_1_60162;
+$Lt_1_59906:
+	mov.f32 	%f304, 0f00000000;   	// 0
+	setp.neu.ftz.f32 	%p20, %f175, %f304;
+	@!%p20 bra 	$Lt_1_60162;
+	.loc	16	383	0
+	mov.f32 	%f160, %f175;
+	mov.f32 	%f175, %f302;
+	.loc	16	384	0
+	mov.f32 	%f305, %f163;
+	mov.f32 	%f163, %f178;
+	mov.f32 	%f178, %f305;
+	.loc	16	385	0
+	mov.f32 	%f306, %f150;
+	mov.f32 	%f150, %f165;
+	mov.f32 	%f165, %f306;
+$Lt_1_60162:
+$Lt_1_59650:
+	.loc	16	390	0
+	div.approx.ftz.f32 	%f307, %f175, %f160;
+	mul.ftz.f32 	%f308, %f163, %f307;
+	sub.ftz.f32 	%f178, %f178, %f308;
+	.loc	16	391	0
+	mul.ftz.f32 	%f309, %f150, %f307;
+	sub.ftz.f32 	%f165, %f165, %f309;
+	mov.f32 	%f310, 0f00000000;   	// 0
+	setp.eq.ftz.f32 	%p21, %f178, %f310;
+	@!%p21 bra 	$Lt_1_60674;
+	.loc	16	394	0
+	mov.s32 	%r35, 2;
+	ld.param.u64 	%rd43, [__cudaparm_kernel_sphere_ellipsoid_err_flag];
+	st.global.s32 	[%rd43+0], %r35;
+$Lt_1_60674:
+	.loc	17	436	0
+	div.approx.ftz.f32 	%f311, %f165, %f178;
+	mul.ftz.f32 	%f312, %f311, %f163;
+	sub.ftz.f32 	%f313, %f150, %f312;
+	div.approx.ftz.f32 	%f314, %f313, %f160;
+	mul.ftz.f32 	%f315, %f314, %f141;
+	fma.rn.ftz.f32 	%f316, %f149, %f311, %f315;
+	mul.ftz.f32 	%f317, %f314, %f88;
+	sub.ftz.f32 	%f318, %f93, %f316;
+	div.approx.ftz.f32 	%f319, %f318, %f130;
+	fma.rn.ftz.f32 	%f320, %f87, %f319, %f317;
+	fma.rn.ftz.f32 	%f321, %f164, %f311, %f320;
+	add.ftz.f32 	%f322, %f321, %f321;
+	.loc	17	444	0
+	rcp.approx.ftz.f32 	%f323, %f86;
+	sub.ftz.f32 	%f324, %f323, %f232;
+	mov.f32 	%f325, 0f40000000;   	// 2
+	div.approx.ftz.f32 	%f326, %f324, %f325;
+	mul.ftz.f32 	%f327, %f324, %f324;
+	mul.ftz.f32 	%f328, %f324, %f327;
+	add.ftz.f32 	%f329, %f326, %f72;
+	add.ftz.f32 	%f330, %f326, %f70;
+	add.ftz.f32 	%f331, %f326, %f71;
+	mul.ftz.f32 	%f332, %f330, %f331;
+	mul.ftz.f32 	%f333, %f329, %f332;
+	mul.ftz.f32 	%f334, %f328, %f333;
+	.loc	17	446	0
+	mul.ftz.f32 	%f335, %f70, %f71;
+	mul.ftz.f32 	%f336, %f335, %f72;
+	div.approx.ftz.f32 	%f337, %f89, %f324;
+	mul.ftz.f32 	%f338, %f337, %f322;
+	mov.f32 	%f339, 0f3f800000;   	// 1
+	mov.f32 	%f340, 0f40400000;   	// 3
+	fma.rn.ftz.f32 	%f341, %f340, %f338, %f339;
+	mul.ftz.f32 	%f342, %f336, %f341;
+	.loc	17	450	0
+	div.approx.ftz.f32 	%f343, %f324, %f17;
+	add.ftz.f32 	%f344, %f343, %f72;
+	add.ftz.f32 	%f345, %f343, %f70;
+	add.ftz.f32 	%f346, %f343, %f71;
+	mul.ftz.f32 	%f347, %f345, %f346;
+	mul.ftz.f32 	%f348, %f344, %f347;
+	mul.ftz.f32 	%f349, %f328, %f348;
+	.loc	17	452	0
+	mov.f32 	%f350, 0f3f800000;   	// 1
+	mov.f32 	%f351, 0f3f4db6db;   	// 0.803571
+	fma.rn.ftz.f32 	%f352, %f351, %f338, %f350;
+	mul.ftz.f32 	%f353, %f336, %f352;
+	.loc	17	454	0
+	mul.ftz.f32 	%f354, %f337, %f337;
+	mul.ftz.f32 	%f355, %f337, %f354;
+	mul.ftz.f32 	%f356, %f355, %f355;
+	.loc	17	457	0
+	mul.ftz.f32 	%f357, %f89, %f89;
+	mov.f32 	%f358, 0f41000000;   	// 8
+	div.approx.ftz.f32 	%f359, %f334, %f358;
+	mov.f32 	%f360, 0f42700000;   	// 60
+	div.approx.ftz.f32 	%f361, %f349, %f360;
+	mul.ftz.f32 	%f362, %f357, %f89;
+	div.approx.ftz.f32 	%f363, %f342, %f359;
+	div.approx.ftz.f32 	%f364, %f353, %f361;
+	mul.ftz.f32 	%f365, %f363, %f92;
+	mul.ftz.f32 	%f366, %f364, %f92;
+	mul.ftz.f32 	%f367, %f362, %f365;
+	mul.ftz.f32 	%f368, %f362, %f366;
+	mul.ftz.f32 	%f369, %f367, %f41;
+	mul.ftz.f32 	%f370, %f368, %f356;
+	mul.ftz.f32 	%f371, %f370, %f45;
+	add.ftz.f32 	%f372, %f369, %f371;
+	add.ftz.f32 	%f65, %f65, %f372;
+	.loc	17	464	0
+	mov.f32 	%f373, 0f40800000;   	// 4
+	mul.ftz.f32 	%f374, %f319, %f373;
+	.loc	17	471	0
+	mov.f32 	%f375, 0f40400000;   	// 3
+	div.approx.ftz.f32 	%f376, %f375, %f324;
+	add.ftz.f32 	%f377, %f70, %f70;
+	add.ftz.f32 	%f378, %f324, %f377;
+	rcp.approx.ftz.f32 	%f379, %f378;
+	add.ftz.f32 	%f380, %f71, %f71;
+	add.ftz.f32 	%f381, %f324, %f380;
+	rcp.approx.ftz.f32 	%f382, %f381;
+	add.ftz.f32 	%f383, %f379, %f382;
+	add.ftz.f32 	%f384, %f72, %f72;
+	add.ftz.f32 	%f385, %f324, %f384;
+	rcp.approx.ftz.f32 	%f386, %f385;
+	add.ftz.f32 	%f387, %f383, %f386;
+	add.ftz.f32 	%f388, %f376, %f387;
+	.loc	17	476	0
+	mul.ftz.f32 	%f389, %f89, %f322;
+	mov.f32 	%f390, 0f40400000;   	// 3
+	fma.rn.ftz.f32 	%f391, %f390, %f389, %f324;
+	rcp.approx.ftz.f32 	%f392, %f391;
+	rcp.approx.ftz.f32 	%f393, %f324;
+	sub.ftz.f32 	%f394, %f393, %f392;
+	add.ftz.f32 	%f395, %f388, %f394;
+	.loc	17	479	0
+	fma.rn.ftz.f32 	%f396, %f17, %f70, %f324;
+	rcp.approx.ftz.f32 	%f397, %f396;
+	fma.rn.ftz.f32 	%f398, %f17, %f71, %f324;
+	rcp.approx.ftz.f32 	%f399, %f398;
+	add.ftz.f32 	%f400, %f397, %f399;
+	fma.rn.ftz.f32 	%f401, %f17, %f72, %f324;
+	rcp.approx.ftz.f32 	%f402, %f401;
+	add.ftz.f32 	%f403, %f400, %f402;
+	add.ftz.f32 	%f404, %f376, %f403;
+	.loc	17	490	0
+	mul.ftz.f32 	%f405, %f87, %f87;
+	neg.ftz.f32 	%f406, %f405;
+	mov.f32 	%f407, %f406;
+	.loc	17	491	0
+	mul.ftz.f32 	%f408, %f88, %f87;
+	neg.ftz.f32 	%f409, %f408;
+	mov.f32 	%f410, %f409;
+	.loc	17	492	0
+	mul.ftz.f32 	%f411, %f164, %f87;
+	neg.ftz.f32 	%f412, %f411;
+	mov.f32 	%f413, %f412;
+	.loc	17	493	0
+	mov.f32 	%f414, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f415, %f414, %f405;
+	mov.f32 	%f416, %f415;
+	.loc	17	494	0
+	mul.ftz.f32 	%f417, %f86, %f415;
+	mov.f32 	%f418, %f417;
+	.loc	17	495	0
+	mov.f32 	%f419, %f410;
+	mul.ftz.f32 	%f420, %f419, %f86;
+	mov.f32 	%f421, %f420;
+	.loc	17	496	0
+	mov.f32 	%f422, %f413;
+	mul.ftz.f32 	%f423, %f422, %f86;
+	mov.f32 	%f424, %f423;
+	.loc	17	500	0
+	mul.ftz.f32 	%f425, %f232, %f232;
+	mov.f32 	%f426, 0f3f4db6db;   	// 0.803571
+	mul.ftz.f32 	%f427, %f89, %f426;
+	mov.f32 	%f428, 0f40800000;   	// 4
+	mul.ftz.f32 	%f429, %f311, %f428;
+	mul.ftz.f32 	%f430, %f425, %f232;
+	mov.f32 	%f431, 0f3f000000;   	// 0.5
+	mul.ftz.f32 	%f432, %f430, %f431;
+	mul.ftz.f32 	%f433, %f432, %f222;
+	mul.ftz.f32 	%f434, %f432, %f226;
+	mul.ftz.f32 	%f435, %f432, %f219;
+	mov.f32 	%f436, 0f40800000;   	// 4
+	mul.ftz.f32 	%f437, %f314, %f436;
+	mul.ftz.f32 	%f438, %f433, %f420;
+	mul.ftz.f32 	%f439, %f437, %f420;
+	mov.f32 	%f440, 0f40e00000;   	// 7
+	div.approx.ftz.f32 	%f441, %f440, %f324;
+	mov.f32 	%f442, 0f3f4db6db;   	// 0.803571
+	fma.rn.ftz.f32 	%f443, %f442, %f389, %f324;
+	rcp.approx.ftz.f32 	%f444, %f443;
+	fma.rn.ftz.f32 	%f445, %f434, %f417, %f438;
+	fma.rn.ftz.f32 	%f446, %f374, %f417, %f439;
+	sub.ftz.f32 	%f447, %f441, %f444;
+	mul.ftz.f32 	%f448, %f427, %f444;
+	fma.rn.ftz.f32 	%f449, %f435, %f423, %f445;
+	fma.rn.ftz.f32 	%f450, %f429, %f423, %f446;
+	add.ftz.f32 	%f451, %f447, %f404;
+	add.ftz.f32 	%f452, %f449, %f87;
+	mul.ftz.f32 	%f453, %f451, %f452;
+	mul.ftz.f32 	%f454, %f448, %f450;
+	sub.ftz.f32 	%f455, %f454, %f453;
+	.loc	17	501	0
+	mov.f32 	%f456, 0f40400000;   	// 3
+	mul.ftz.f32 	%f457, %f89, %f456;
+	mul.ftz.f32 	%f458, %f457, %f392;
+	mul.ftz.f32 	%f459, %f371, %f455;
+	mul.ftz.f32 	%f460, %f452, %f395;
+	mul.ftz.f32 	%f461, %f458, %f450;
+	sub.ftz.f32 	%f462, %f461, %f460;
+	fma.rn.ftz.f32 	%f463, %f369, %f462, %f459;
+	.loc	17	503	0
+	add.ftz.f32 	%f64, %f463, %f64;
+	@!%p3 bra 	$Lt_1_61698;
+	.loc	17	505	0
+	mov.f32 	%f464, %f47;
+	mul.ftz.f32 	%f465, %f81, %f463;
+	sub.ftz.f32 	%f466, %f464, %f465;
+	mov.f32 	%f47, %f466;
+$Lt_1_61698:
+	.loc	17	490	0
+	mov.f32 	%f467, %f409;
+	.loc	17	491	0
+	mul.ftz.f32 	%f468, %f88, %f88;
+	neg.ftz.f32 	%f469, %f468;
+	mov.f32 	%f470, %f469;
+	.loc	17	492	0
+	mul.ftz.f32 	%f471, %f164, %f88;
+	neg.ftz.f32 	%f472, %f471;
+	mov.f32 	%f473, %f472;
+	.loc	17	493	0
+	mov.f32 	%f474, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f475, %f474, %f468;
+	mov.f32 	%f476, %f475;
+	.loc	17	494	0
+	mov.f32 	%f477, %f467;
+	mul.ftz.f32 	%f478, %f477, %f86;
+	mov.f32 	%f479, %f478;
+	.loc	17	495	0
+	mul.ftz.f32 	%f480, %f86, %f475;
+	mov.f32 	%f481, %f480;
+	.loc	17	496	0
+	mov.f32 	%f482, %f473;
+	mul.ftz.f32 	%f483, %f482, %f86;
+	mov.f32 	%f484, %f483;
+	.loc	17	500	0
+	mul.ftz.f32 	%f485, %f433, %f480;
+	mul.ftz.f32 	%f486, %f437, %f480;
+	fma.rn.ftz.f32 	%f487, %f434, %f478, %f485;
+	fma.rn.ftz.f32 	%f488, %f374, %f478, %f486;
+	fma.rn.ftz.f32 	%f489, %f435, %f483, %f487;
+	fma.rn.ftz.f32 	%f490, %f429, %f483, %f488;
+	add.ftz.f32 	%f491, %f489, %f88;
+	mul.ftz.f32 	%f492, %f451, %f491;
+	mul.ftz.f32 	%f493, %f448, %f490;
+	sub.ftz.f32 	%f494, %f493, %f492;
+	.loc	17	501	0
+	mul.ftz.f32 	%f495, %f371, %f494;
+	mul.ftz.f32 	%f496, %f491, %f395;
+	mul.ftz.f32 	%f497, %f458, %f490;
+	sub.ftz.f32 	%f498, %f497, %f496;
+	fma.rn.ftz.f32 	%f463, %f369, %f498, %f495;
+	.loc	17	507	0
+	add.ftz.f32 	%f63, %f463, %f63;
+	@!%p3 bra 	$Lt_1_65282;
+	.loc	17	509	0
+	mov.f32 	%f499, %f49;
+	mul.ftz.f32 	%f500, %f80, %f463;
+	sub.ftz.f32 	%f501, %f499, %f500;
+	mov.f32 	%f49, %f501;
+	.loc	17	510	0
+	mov.f32 	%f502, %f53;
+	mul.ftz.f32 	%f503, %f81, %f463;
+	sub.ftz.f32 	%f504, %f502, %f503;
+	mov.f32 	%f53, %f504;
+$Lt_1_65282:
+	.loc	17	490	0
+	mov.f32 	%f505, %f412;
+	.loc	17	491	0
+	mov.f32 	%f506, %f472;
+	.loc	17	492	0
+	mul.ftz.f32 	%f507, %f164, %f164;
+	neg.ftz.f32 	%f508, %f507;
+	mov.f32 	%f509, %f508;
+	.loc	17	493	0
+	mov.f32 	%f510, 0f3f800000;   	// 1
+	sub.ftz.f32 	%f511, %f510, %f507;
+	mov.f32 	%f512, %f511;
+	.loc	17	494	0
+	mov.f32 	%f513, %f505;
+	mul.ftz.f32 	%f514, %f513, %f86;
+	mov.f32 	%f515, %f514;
+	.loc	17	495	0
+	mov.f32 	%f516, %f506;
+	mul.ftz.f32 	%f517, %f516, %f86;
+	mov.f32 	%f518, %f517;
+	.loc	17	496	0
+	mul.ftz.f32 	%f519, %f86, %f511;
+	mov.f32 	%f520, %f519;
+	.loc	17	500	0
+	mul.ftz.f32 	%f521, %f433, %f517;
+	mul.ftz.f32 	%f522, %f437, %f517;
+	fma.rn.ftz.f32 	%f523, %f434, %f514, %f521;
+	fma.rn.ftz.f32 	%f524, %f374, %f514, %f522;
+	fma.rn.ftz.f32 	%f525, %f435, %f519, %f523;
+	fma.rn.ftz.f32 	%f526, %f429, %f519, %f524;
+	add.ftz.f32 	%f527, %f525, %f164;
+	mul.ftz.f32 	%f528, %f527, %f451;
+	mul.ftz.f32 	%f529, %f448, %f526;
+	sub.ftz.f32 	%f530, %f529, %f528;
+	.loc	17	501	0
+	mul.ftz.f32 	%f531, %f371, %f530;
+	mul.ftz.f32 	%f532, %f527, %f395;
+	mul.ftz.f32 	%f533, %f458, %f526;
+	sub.ftz.f32 	%f534, %f533, %f532;
+	fma.rn.ftz.f32 	%f463, %f369, %f534, %f531;
+	.loc	17	513	0
+	add.ftz.f32 	%f62, %f463, %f62;
+	@!%p3 bra 	$Lt_1_68354;
+	.loc	17	515	0
+	mov.f32 	%f535, %f51;
+	mul.ftz.f32 	%f536, %f82, %f463;
+	sub.ftz.f32 	%f537, %f535, %f536;
+	mov.f32 	%f51, %f537;
+	.loc	17	516	0
+	mov.f32 	%f538, %f55;
+	mul.ftz.f32 	%f539, %f81, %f463;
+	sub.ftz.f32 	%f540, %f538, %f539;
+	mov.f32 	%f55, %f540;
+	.loc	17	517	0
+	mul.ftz.f32 	%f541, %f80, %f463;
+	sub.ftz.f32 	%f56, %f56, %f541;
+	mov.f32 	%f57, %f56;
+$Lt_1_68354:
+	mul.lo.s32 	%r36, %r16, %r2;
+	cvt.s64.s32 	%rd44, %r36;
+	mul.wide.s32 	%rd45, %r36, 4;
+	add.u64 	%rd17, %rd17, %rd45;
+	setp.gt.u64 	%p22, %rd20, %rd17;
+	@%p22 bra 	$Lt_1_51714;
+	bra.uni 	$Lt_1_51202;
+$Lt_1_75010:
+	mov.f32 	%f62, 0f00000000;    	// 0
+	mov.f32 	%f63, 0f00000000;    	// 0
+	mov.f32 	%f64, 0f00000000;    	// 0
+	mov.f32 	%f65, 0f00000000;    	// 0
+$Lt_1_51202:
+	mov.u32 	%r37, 1;
+	setp.le.s32 	%p23, %r2, %r37;
+	@%p23 bra 	$Lt_1_71170;
+	.loc	17	522	0
+	mov.u64 	%rd46, __cuda___cuda_local_var_33377_55_non_const_red_acc3852;
+	cvt.s64.s32 	%rd47, %r3;
+	mul.wide.s32 	%rd48, %r3, 4;
+	add.u64 	%rd49, %rd46, %rd48;
+	mov.f32 	%f542, %f64;
+	st.shared.f32 	[%rd49+0], %f542;
+	mov.f32 	%f543, %f63;
+	st.shared.f32 	[%rd49+512], %f543;
+	mov.f32 	%f544, %f62;
+	st.shared.f32 	[%rd49+1024], %f544;
+	mov.f32 	%f545, %f65;
+	st.shared.f32 	[%rd49+1536], %f545;
+	shr.s32 	%r38, %r2, 31;
+	mov.s32 	%r39, 1;
+	and.b32 	%r40, %r38, %r39;
+	add.s32 	%r41, %r40, %r2;
+	shr.s32 	%r42, %r41, 1;
+	mov.s32 	%r43, %r42;
+	mov.u32 	%r44, 0;
+	setp.ne.u32 	%p24, %r42, %r44;
+	@!%p24 bra 	$Lt_1_69634;
+$Lt_1_70146:
+	setp.ge.u32 	%p25, %r18, %r43;
+	@%p25 bra 	$Lt_1_70402;
+	add.u32 	%r45, %r3, %r43;
+	cvt.u64.u32 	%rd50, %r45;
+	mul.wide.u32 	%rd51, %r45, 4;
+	add.u64 	%rd52, %rd46, %rd51;
+	ld.shared.f32 	%f546, [%rd52+0];
+	add.ftz.f32 	%f542, %f546, %f542;
+	st.shared.f32 	[%rd49+0], %f542;
+	ld.shared.f32 	%f547, [%rd52+512];
+	add.ftz.f32 	%f543, %f547, %f543;
+	st.shared.f32 	[%rd49+512], %f543;
+	ld.shared.f32 	%f548, [%rd52+1024];
+	add.ftz.f32 	%f544, %f548, %f544;
+	st.shared.f32 	[%rd49+1024], %f544;
+	ld.shared.f32 	%f549, [%rd52+1536];
+	add.ftz.f32 	%f545, %f549, %f545;
+	st.shared.f32 	[%rd49+1536], %f545;
+$Lt_1_70402:
+	shr.u32 	%r43, %r43, 1;
+	mov.u32 	%r46, 0;
+	setp.ne.u32 	%p26, %r43, %r46;
+	@%p26 bra 	$Lt_1_70146;
+$Lt_1_69634:
+	mov.f32 	%f64, %f542;
+	mov.f32 	%f63, %f543;
+	mov.f32 	%f62, %f544;
+	mov.f32 	%f65, %f545;
+	ld.param.s32 	%r47, [__cudaparm_kernel_sphere_ellipsoid_vflag];
+	mov.u32 	%r48, 0;
+	setp.le.s32 	%p27, %r47, %r48;
+	@%p27 bra 	$Lt_1_71170;
+	mov.f32 	%f542, %f47;
+	st.shared.f32 	[%rd49+0], %f542;
+	mov.f32 	%f543, %f49;
+	st.shared.f32 	[%rd49+512], %f543;
+	mov.f32 	%f544, %f51;
+	st.shared.f32 	[%rd49+1024], %f544;
+	mov.f32 	%f545, %f53;
+	st.shared.f32 	[%rd49+1536], %f545;
+	mov.f32 	%f550, %f55;
+	st.shared.f32 	[%rd49+2048], %f550;
+	mov.f32 	%f551, %f56;
+	st.shared.f32 	[%rd49+2560], %f551;
+	mov.s32 	%r49, %r42;
+	@!%p24 bra 	$Lt_1_71682;
+$Lt_1_72194:
+	setp.ge.u32 	%p28, %r18, %r49;
+	@%p28 bra 	$Lt_1_72450;
+	add.u32 	%r50, %r3, %r49;
+	cvt.u64.u32 	%rd53, %r50;
+	mul.wide.u32 	%rd54, %r50, 4;
+	add.u64 	%rd55, %rd46, %rd54;
+	ld.shared.f32 	%f552, [%rd55+0];
+	add.ftz.f32 	%f542, %f552, %f542;
+	st.shared.f32 	[%rd49+0], %f542;
+	ld.shared.f32 	%f553, [%rd55+512];
+	add.ftz.f32 	%f543, %f553, %f543;
+	st.shared.f32 	[%rd49+512], %f543;
+	ld.shared.f32 	%f554, [%rd55+1024];
+	add.ftz.f32 	%f544, %f554, %f544;
+	st.shared.f32 	[%rd49+1024], %f544;
+	ld.shared.f32 	%f555, [%rd55+1536];
+	add.ftz.f32 	%f545, %f555, %f545;
+	st.shared.f32 	[%rd49+1536], %f545;
+	ld.shared.f32 	%f556, [%rd55+2048];
+	add.ftz.f32 	%f550, %f556, %f550;
+	st.shared.f32 	[%rd49+2048], %f550;
+	ld.shared.f32 	%f557, [%rd55+2560];
+	add.ftz.f32 	%f551, %f557, %f551;
+	st.shared.f32 	[%rd49+2560], %f551;
+$Lt_1_72450:
+	shr.u32 	%r49, %r49, 1;
+	mov.u32 	%r51, 0;
+	setp.ne.u32 	%p29, %r49, %r51;
+	@%p29 bra 	$Lt_1_72194;
+$Lt_1_71682:
+	mov.f32 	%f47, %f542;
+	mov.f32 	%f49, %f543;
+	mov.f32 	%f51, %f544;
+	mov.f32 	%f53, %f545;
+	mov.f32 	%f55, %f550;
+	mov.f32 	%f57, %f551;
+$Lt_1_71170:
+$Lt_1_69122:
+	mov.u32 	%r52, 0;
+	setp.ne.s32 	%p30, %r18, %r52;
+	@%p30 bra 	$Lt_1_73218;
+	ld.param.u64 	%rd56, [__cudaparm_kernel_sphere_ellipsoid___val_paramengv];
+	add.u64 	%rd57, %rd56, %rd3;
+	ld.param.s32 	%r53, [__cudaparm_kernel_sphere_ellipsoid_eflag];
+	mov.u32 	%r54, 0;
+	setp.le.s32 	%p31, %r53, %r54;
+	@%p31 bra 	$Lt_1_73730;
+	st.global.f32 	[%rd57+0], %f65;
+	cvt.s64.s32 	%rd58, %r12;
+	mul.wide.s32 	%rd59, %r12, 4;
+	add.u64 	%rd57, %rd57, %rd59;
+$Lt_1_73730:
+	ld.param.s32 	%r55, [__cudaparm_kernel_sphere_ellipsoid_vflag];
+	mov.u32 	%r56, 0;
+	setp.le.s32 	%p32, %r55, %r56;
+	@%p32 bra 	$Lt_1_74242;
+	mov.f32 	%f558, %f47;
+	st.global.f32 	[%rd57+0], %f558;
+	cvt.s64.s32 	%rd60, %r12;
+	mul.wide.s32 	%rd61, %r12, 4;
+	add.u64 	%rd62, %rd61, %rd57;
+	mov.f32 	%f559, %f49;
+	st.global.f32 	[%rd62+0], %f559;
+	add.u64 	%rd63, %rd61, %rd62;
+	mov.f32 	%f560, %f51;
+	st.global.f32 	[%rd63+0], %f560;
+	add.u64 	%rd64, %rd61, %rd63;
+	mov.f32 	%f561, %f53;
+	st.global.f32 	[%rd64+0], %f561;
+	add.u64 	%rd57, %rd61, %rd64;
+	mov.f32 	%f562, %f55;
+	st.global.f32 	[%rd57+0], %f562;
+	mov.f32 	%f563, %f57;
+	add.u64 	%rd65, %rd61, %rd57;
+	st.global.f32 	[%rd65+0], %f563;
+$Lt_1_74242:
+	ld.param.u64 	%rd66, [__cudaparm_kernel_sphere_ellipsoid_ans];
+	mul.lo.u64 	%rd67, %rd2, 16;
+	add.u64 	%rd68, %rd66, %rd67;
+	mov.f32 	%f564, %f565;
+	st.global.v4.f32 	[%rd68+0], {%f64,%f63,%f62,%f564};
+$Lt_1_73218:
+$Lt_1_50690:
+	.loc	17	525	0
+	exit;
+$LDWend_kernel_sphere_ellipsoid:
+	} // kernel_sphere_ellipsoid
+
+	.entry kernel_lj (
+		.param .u64 __cudaparm_kernel_lj_x_,
+		.param .u64 __cudaparm_kernel_lj_lj1,
+		.param .u64 __cudaparm_kernel_lj_lj3,
+		.param .s32 __cudaparm_kernel_lj_lj_types,
+		.param .u64 __cudaparm_kernel_lj_gum,
+		.param .s32 __cudaparm_kernel_lj_stride,
+		.param .u64 __cudaparm_kernel_lj_dev_ij,
+		.param .u64 __cudaparm_kernel_lj_ans,
+		.param .u64 __cudaparm_kernel_lj___val_paramengv,
+		.param .u64 __cudaparm_kernel_lj_err_flag,
+		.param .s32 __cudaparm_kernel_lj_eflag,
+		.param .s32 __cudaparm_kernel_lj_vflag,
+		.param .s32 __cudaparm_kernel_lj_start,
+		.param .s32 __cudaparm_kernel_lj_inum,
+		.param .s32 __cudaparm_kernel_lj_t_per_atom)
+	{
+	.reg .u32 %r<55>;
+	.reg .u64 %rd<60>;
+	.reg .f32 %f<115>;
+	.reg .pred %p<19>;
+	.shared .align 16 .b8 __cuda___cuda_local_var_33394_33_non_const_sp_lj7028[16];
+	.shared .align 4 .b8 __cuda___cuda_local_var_33459_55_non_const_red_acc7044[3072];
+	// __cuda_local_var_33405_9_non_const_virial = 16
+	.loc	17	534	0
+$LDWbegin_kernel_lj:
+	.loc	17	540	0
+	ld.param.u64 	%rd1, [__cudaparm_kernel_lj_gum];
+	ldu.global.f32 	%f1, [%rd1+0];
+	.loc	17	541	0
+	ld.global.f32 	%f2, [%rd1+4];
+	.loc	17	542	0
+	ld.global.f32 	%f3, [%rd1+8];
+	.loc	17	543	0
+	ld.global.f32 	%f4, [%rd1+12];
+	st.shared.v4.f32 	[__cuda___cuda_local_var_33394_33_non_const_sp_lj7028+0], {%f1,%f2,%f3,%f4};
+	.loc	17	552	0
+	mov.f32 	%f5, 0f00000000;     	// 0
+	mov.f32 	%f6, %f5;
+	mov.f32 	%f7, 0f00000000;     	// 0
+	mov.f32 	%f8, %f7;
+	mov.f32 	%f9, 0f00000000;     	// 0
+	mov.f32 	%f10, %f9;
+	mov.f32 	%f11, 0f00000000;    	// 0
+	mov.f32 	%f12, %f11;
+	mov.f32 	%f13, 0f00000000;    	// 0
+	mov.f32 	%f14, %f13;
+	mov.f32 	%f15, 0f00000000;    	// 0
+	mov.f32 	%f16, %f15;
+	ld.param.s32 	%r1, [__cudaparm_kernel_lj_t_per_atom];
+	cvt.s32.u32 	%r2, %tid.x;
+	div.s32 	%r3, %r2, %r1;
+	cvt.s32.u32 	%r4, %ntid.x;
+	div.s32 	%r5, %r4, %r1;
+	cvt.s32.u32 	%r6, %ctaid.x;
+	mul.lo.s32 	%r7, %r6, %r5;
+	add.s32 	%r8, %r3, %r7;
+	ld.param.s32 	%r9, [__cudaparm_kernel_lj_start];
+	add.s32 	%r10, %r9, %r8;
+	ld.param.s32 	%r11, [__cudaparm_kernel_lj_inum];
+	setp.ge.s32 	%p1, %r10, %r11;
+	@%p1 bra 	$Lt_2_25346;
+	.loc	17	557	0
+	cvt.s64.s32 	%rd2, %r10;
+	mul.wide.s32 	%rd3, %r10, 4;
+	ld.param.u64 	%rd4, [__cudaparm_kernel_lj_dev_ij];
+	add.u64 	%rd5, %rd4, %rd3;
+	ld.global.s32 	%r12, [%rd5+0];
+	ld.param.s32 	%r13, [__cudaparm_kernel_lj_stride];
+	cvt.s64.s32 	%rd6, %r13;
+	mul.wide.s32 	%rd7, %r13, 4;
+	add.u64 	%rd8, %rd7, %rd5;
+	ld.global.s32 	%r14, [%rd8+0];
+	.loc	17	560	0
+	ld.param.u64 	%rd9, [__cudaparm_kernel_lj_x_];
+	cvt.s64.s32 	%rd10, %r12;
+	mul.wide.s32 	%rd11, %r12, 16;
+	add.u64 	%rd12, %rd9, %rd11;
+	ld.global.v4.f32 	{%f17,%f18,%f19,%f20}, [%rd12+0];
+	.loc	17	561	0
+	cvt.s32.s64 	%r15, %rd6;
+	sub.s32 	%r16, %r1, 1;
+	and.b32 	%r17, %r16, %r2;
+	add.u64 	%rd13, %rd7, %rd8;
+	mul.lo.s32 	%r18, %r15, %r17;
+	cvt.s64.s32 	%rd14, %r18;
+	mul.wide.s32 	%rd15, %r18, 4;
+	add.u64 	%rd16, %rd13, %rd15;
+	mov.s64 	%rd17, %rd16;
+	mul.lo.s32 	%r19, %r15, %r14;
+	cvt.s64.s32 	%rd18, %r19;
+	mul.wide.s32 	%rd19, %r19, 4;
+	add.u64 	%rd20, %rd13, %rd19;
+	setp.ge.u64 	%p2, %rd16, %rd20;
+	@%p2 bra 	$Lt_2_26882;
+	cvt.rzi.ftz.s32.f32 	%r20, %f20;
+	ld.param.s32 	%r21, [__cudaparm_kernel_lj_lj_types];
+	mul.lo.s32 	%r22, %r21, %r20;
+	ld.param.u64 	%rd21, [__cudaparm_kernel_lj_lj1];
+	mov.f32 	%f21, 0f00000000;    	// 0
+	mov.f32 	%f22, 0f00000000;    	// 0
+	mov.f32 	%f23, 0f00000000;    	// 0
+	mov.f32 	%f24, 0f00000000;    	// 0
+	mov.u64 	%rd22, __cuda___cuda_local_var_33394_33_non_const_sp_lj7028;
+$Lt_2_19714:
+ //<loop> Loop body line 561, nesting depth: 1, estimated iterations: unknown
+	.loc	17	566	0
+	ld.global.s32 	%r23, [%rd17+0];
+	.loc	17	567	0
+	shr.s32 	%r24, %r23, 30;
+	and.b32 	%r25, %r24, 3;
+	cvt.s64.s32 	%rd23, %r25;
+	mul.wide.s32 	%rd24, %r25, 4;
+	add.u64 	%rd25, %rd22, %rd24;
+	ld.shared.f32 	%f25, [%rd25+0];
+	.loc	17	570	0
+	and.b32 	%r26, %r23, 1073741823;
+	cvt.s64.s32 	%rd26, %r26;
+	mul.wide.s32 	%rd27, %r26, 16;
+	add.u64 	%rd28, %rd9, %rd27;
+	ld.global.v4.f32 	{%f26,%f27,%f28,%f29}, [%rd28+0];
+	.loc	17	566	0
+	cvt.rzi.ftz.s32.f32 	%r27, %f29;
+	sub.ftz.f32 	%f30, %f18, %f27;
+	sub.ftz.f32 	%f31, %f17, %f26;
+	sub.ftz.f32 	%f32, %f19, %f28;
+	mul.ftz.f32 	%f33, %f30, %f30;
+	fma.rn.ftz.f32 	%f34, %f31, %f31, %f33;
+	fma.rn.ftz.f32 	%f35, %f32, %f32, %f34;
+	add.s32 	%r28, %r27, %r22;
+	cvt.s64.s32 	%rd29, %r28;
+	mul.wide.s32 	%rd30, %r28, 16;
+	add.u64 	%rd31, %rd30, %rd21;
+	ld.global.f32 	%f36, [%rd31+8];
+	setp.gt.ftz.f32 	%p3, %f36, %f35;
+	@!%p3 bra 	$Lt_2_27138;
+	ld.global.f32 	%f37, [%rd31+12];
+	mov.f32 	%f38, 0f00000000;    	// 0
+	setp.eq.ftz.f32 	%p4, %f37, %f38;
+	@!%p4 bra 	$Lt_2_27138;
+	.loc	17	584	0
+	rcp.approx.ftz.f32 	%f39, %f35;
+	mul.ftz.f32 	%f40, %f39, %f39;
+	mul.ftz.f32 	%f41, %f39, %f40;
+	mul.ftz.f32 	%f42, %f39, %f41;
+	ld.global.v2.f32 	{%f43,%f44}, [%rd31+0];
+	mul.ftz.f32 	%f45, %f43, %f41;
+	sub.ftz.f32 	%f46, %f45, %f44;
+	mul.ftz.f32 	%f47, %f42, %f46;
+	mul.ftz.f32 	%f48, %f25, %f47;
+	.loc	17	586	0
+	fma.rn.ftz.f32 	%f23, %f31, %f48, %f23;
+	.loc	17	587	0
+	fma.rn.ftz.f32 	%f22, %f30, %f48, %f22;
+	.loc	17	588	0
+	fma.rn.ftz.f32 	%f21, %f32, %f48, %f21;
+	ld.param.s32 	%r29, [__cudaparm_kernel_lj_eflag];
+	mov.u32 	%r30, 0;
+	setp.le.s32 	%p5, %r29, %r30;
+	@%p5 bra 	$Lt_2_19970;
+	.loc	17	592	0
+	ld.param.u64 	%rd32, [__cudaparm_kernel_lj_lj3];
+	add.u64 	%rd33, %rd32, %rd30;
+	ld.global.v4.f32 	{%f49,%f50,%f51,_}, [%rd33+0];
+	mul.ftz.f32 	%f52, %f49, %f41;
+	sub.ftz.f32 	%f53, %f52, %f50;
+	mul.ftz.f32 	%f54, %f41, %f53;
+	sub.ftz.f32 	%f55, %f54, %f51;
+	fma.rn.ftz.f32 	%f24, %f25, %f55, %f24;
+$Lt_2_19970:
+	ld.param.s32 	%r31, [__cudaparm_kernel_lj_vflag];
+	mov.u32 	%r32, 0;
+	setp.le.s32 	%p6, %r31, %r32;
+	@%p6 bra 	$Lt_2_27138;
+	.loc	17	595	0
+	mov.f32 	%f56, %f6;
+	mul.ftz.f32 	%f57, %f31, %f31;
+	fma.rn.ftz.f32 	%f58, %f48, %f57, %f56;
+	mov.f32 	%f6, %f58;
+	.loc	17	596	0
+	mov.f32 	%f59, %f8;
+	fma.rn.ftz.f32 	%f60, %f48, %f33, %f59;
+	mov.f32 	%f8, %f60;
+	.loc	17	597	0
+	mov.f32 	%f61, %f10;
+	mul.ftz.f32 	%f62, %f32, %f32;
+	fma.rn.ftz.f32 	%f63, %f48, %f62, %f61;
+	mov.f32 	%f10, %f63;
+	.loc	17	598	0
+	mov.f32 	%f64, %f12;
+	mul.ftz.f32 	%f65, %f30, %f31;
+	fma.rn.ftz.f32 	%f66, %f48, %f65, %f64;
+	mov.f32 	%f12, %f66;
+	.loc	17	599	0
+	mov.f32 	%f67, %f14;
+	mul.ftz.f32 	%f68, %f31, %f32;
+	fma.rn.ftz.f32 	%f69, %f48, %f68, %f67;
+	mov.f32 	%f14, %f69;
+	.loc	17	600	0
+	mul.ftz.f32 	%f70, %f30, %f32;
+	fma.rn.ftz.f32 	%f15, %f48, %f70, %f15;
+	mov.f32 	%f16, %f15;
+$Lt_2_27138:
+$L_2_18178:
+	.loc	17	594	0
+	mul.lo.s32 	%r33, %r15, %r1;
+	cvt.s64.s32 	%rd34, %r33;
+	mul.wide.s32 	%rd35, %r33, 4;
+	add.u64 	%rd17, %rd17, %rd35;
+	setp.gt.u64 	%p7, %rd20, %rd17;
+	@%p7 bra 	$Lt_2_19714;
+	bra.uni 	$Lt_2_19202;
+$Lt_2_26882:
+	mov.f32 	%f21, 0f00000000;    	// 0
+	mov.f32 	%f22, 0f00000000;    	// 0
+	mov.f32 	%f23, 0f00000000;    	// 0
+	mov.f32 	%f24, 0f00000000;    	// 0
+$Lt_2_19202:
+	mov.u32 	%r34, 1;
+	setp.le.s32 	%p8, %r1, %r34;
+	@%p8 bra 	$Lt_2_23298;
+	.loc	17	604	0
+	mov.u64 	%rd36, __cuda___cuda_local_var_33459_55_non_const_red_acc7044;
+	cvt.s64.s32 	%rd37, %r2;
+	mul.wide.s32 	%rd38, %r2, 4;
+	add.u64 	%rd39, %rd36, %rd38;
+	mov.f32 	%f71, %f23;
+	st.shared.f32 	[%rd39+0], %f71;
+	mov.f32 	%f72, %f22;
+	st.shared.f32 	[%rd39+512], %f72;
+	mov.f32 	%f73, %f21;
+	st.shared.f32 	[%rd39+1024], %f73;
+	mov.f32 	%f74, %f24;
+	st.shared.f32 	[%rd39+1536], %f74;
+	shr.s32 	%r35, %r1, 31;
+	mov.s32 	%r36, 1;
+	and.b32 	%r37, %r35, %r36;
+	add.s32 	%r38, %r37, %r1;
+	shr.s32 	%r39, %r38, 1;
+	mov.s32 	%r40, %r39;
+	mov.u32 	%r41, 0;
+	setp.ne.u32 	%p9, %r39, %r41;
+	@!%p9 bra 	$Lt_2_21762;
+$Lt_2_22274:
+	setp.ge.u32 	%p10, %r17, %r40;
+	@%p10 bra 	$Lt_2_22530;
+	add.u32 	%r42, %r2, %r40;
+	cvt.u64.u32 	%rd40, %r42;
+	mul.wide.u32 	%rd41, %r42, 4;
+	add.u64 	%rd42, %rd36, %rd41;
+	ld.shared.f32 	%f75, [%rd42+0];
+	add.ftz.f32 	%f71, %f75, %f71;
+	st.shared.f32 	[%rd39+0], %f71;
+	ld.shared.f32 	%f76, [%rd42+512];
+	add.ftz.f32 	%f72, %f76, %f72;
+	st.shared.f32 	[%rd39+512], %f72;
+	ld.shared.f32 	%f77, [%rd42+1024];
+	add.ftz.f32 	%f73, %f77, %f73;
+	st.shared.f32 	[%rd39+1024], %f73;
+	ld.shared.f32 	%f78, [%rd42+1536];
+	add.ftz.f32 	%f74, %f78, %f74;
+	st.shared.f32 	[%rd39+1536], %f74;
+$Lt_2_22530:
+	shr.u32 	%r40, %r40, 1;
+	mov.u32 	%r43, 0;
+	setp.ne.u32 	%p11, %r40, %r43;
+	@%p11 bra 	$Lt_2_22274;
+$Lt_2_21762:
+	mov.f32 	%f23, %f71;
+	mov.f32 	%f22, %f72;
+	mov.f32 	%f21, %f73;
+	mov.f32 	%f24, %f74;
+	ld.param.s32 	%r44, [__cudaparm_kernel_lj_vflag];
+	mov.u32 	%r45, 0;
+	setp.le.s32 	%p12, %r44, %r45;
+	@%p12 bra 	$Lt_2_23298;
+	mov.f32 	%f71, %f6;
+	st.shared.f32 	[%rd39+0], %f71;
+	mov.f32 	%f72, %f8;
+	st.shared.f32 	[%rd39+512], %f72;
+	mov.f32 	%f73, %f10;
+	st.shared.f32 	[%rd39+1024], %f73;
+	mov.f32 	%f74, %f12;
+	st.shared.f32 	[%rd39+1536], %f74;
+	mov.f32 	%f79, %f14;
+	st.shared.f32 	[%rd39+2048], %f79;
+	mov.f32 	%f80, %f15;
+	st.shared.f32 	[%rd39+2560], %f80;
+	mov.s32 	%r46, %r39;
+	@!%p9 bra 	$Lt_2_23810;
+$Lt_2_24322:
+	setp.ge.u32 	%p13, %r17, %r46;
+	@%p13 bra 	$Lt_2_24578;
+	add.u32 	%r47, %r2, %r46;
+	cvt.u64.u32 	%rd43, %r47;
+	mul.wide.u32 	%rd44, %r47, 4;
+	add.u64 	%rd45, %rd36, %rd44;
+	ld.shared.f32 	%f81, [%rd45+0];
+	add.ftz.f32 	%f71, %f81, %f71;
+	st.shared.f32 	[%rd39+0], %f71;
+	ld.shared.f32 	%f82, [%rd45+512];
+	add.ftz.f32 	%f72, %f82, %f72;
+	st.shared.f32 	[%rd39+512], %f72;
+	ld.shared.f32 	%f83, [%rd45+1024];
+	add.ftz.f32 	%f73, %f83, %f73;
+	st.shared.f32 	[%rd39+1024], %f73;
+	ld.shared.f32 	%f84, [%rd45+1536];
+	add.ftz.f32 	%f74, %f84, %f74;
+	st.shared.f32 	[%rd39+1536], %f74;
+	ld.shared.f32 	%f85, [%rd45+2048];
+	add.ftz.f32 	%f79, %f85, %f79;
+	st.shared.f32 	[%rd39+2048], %f79;
+	ld.shared.f32 	%f86, [%rd45+2560];
+	add.ftz.f32 	%f80, %f86, %f80;
+	st.shared.f32 	[%rd39+2560], %f80;
+$Lt_2_24578:
+	shr.u32 	%r46, %r46, 1;
+	mov.u32 	%r48, 0;
+	setp.ne.u32 	%p14, %r46, %r48;
+	@%p14 bra 	$Lt_2_24322;
+$Lt_2_23810:
+	mov.f32 	%f6, %f71;
+	mov.f32 	%f8, %f72;
+	mov.f32 	%f10, %f73;
+	mov.f32 	%f12, %f74;
+	mov.f32 	%f14, %f79;
+	mov.f32 	%f16, %f80;
+$Lt_2_23298:
+$Lt_2_21250:
+	mov.u32 	%r49, 0;
+	setp.ne.s32 	%p15, %r17, %r49;
+	@%p15 bra 	$Lt_2_25346;
+	ld.param.u64 	%rd46, [__cudaparm_kernel_lj___val_paramengv];
+	add.u64 	%rd47, %rd46, %rd3;
+	ld.param.s32 	%r50, [__cudaparm_kernel_lj_eflag];
+	mov.u32 	%r51, 0;
+	setp.le.s32 	%p16, %r50, %r51;
+	@%p16 bra 	$Lt_2_25858;
+	ld.global.f32 	%f87, [%rd47+0];
+	add.ftz.f32 	%f88, %f87, %f24;
+	st.global.f32 	[%rd47+0], %f88;
+	cvt.s64.s32 	%rd48, %r11;
+	mul.wide.s32 	%rd49, %r11, 4;
+	add.u64 	%rd47, %rd47, %rd49;
+$Lt_2_25858:
+	ld.param.s32 	%r52, [__cudaparm_kernel_lj_vflag];
+	mov.u32 	%r53, 0;
+	setp.le.s32 	%p17, %r52, %r53;
+	@%p17 bra 	$Lt_2_26370;
+	ld.global.f32 	%f89, [%rd47+0];
+	mov.f32 	%f90, %f6;
+	add.ftz.f32 	%f91, %f89, %f90;
+	st.global.f32 	[%rd47+0], %f91;
+	cvt.s64.s32 	%rd50, %r11;
+	mul.wide.s32 	%rd51, %r11, 4;
+	add.u64 	%rd52, %rd51, %rd47;
+	ld.global.f32 	%f92, [%rd52+0];
+	mov.f32 	%f93, %f8;
+	add.ftz.f32 	%f94, %f92, %f93;
+	st.global.f32 	[%rd52+0], %f94;
+	add.u64 	%rd53, %rd51, %rd52;
+	ld.global.f32 	%f95, [%rd53+0];
+	mov.f32 	%f96, %f10;
+	add.ftz.f32 	%f97, %f95, %f96;
+	st.global.f32 	[%rd53+0], %f97;
+	add.u64 	%rd54, %rd51, %rd53;
+	ld.global.f32 	%f98, [%rd54+0];
+	mov.f32 	%f99, %f12;
+	add.ftz.f32 	%f100, %f98, %f99;
+	st.global.f32 	[%rd54+0], %f100;
+	add.u64 	%rd55, %rd51, %rd54;
+	ld.global.f32 	%f101, [%rd55+0];
+	mov.f32 	%f102, %f14;
+	add.ftz.f32 	%f103, %f101, %f102;
+	st.global.f32 	[%rd55+0], %f103;
+	add.u64 	%rd47, %rd51, %rd55;
+	ld.global.f32 	%f104, [%rd47+0];
+	mov.f32 	%f105, %f16;
+	add.ftz.f32 	%f106, %f104, %f105;
+	st.global.f32 	[%rd47+0], %f106;
+$Lt_2_26370:
+	ld.param.u64 	%rd56, [__cudaparm_kernel_lj_ans];
+	mul.lo.u64 	%rd57, %rd2, 16;
+	add.u64 	%rd58, %rd56, %rd57;
+	ld.global.v4.f32 	{%f107,%f108,%f109,%f110}, [%rd58+0];
+	add.ftz.f32 	%f111, %f108, %f22;
+	add.ftz.f32 	%f112, %f109, %f21;
+	add.ftz.f32 	%f113, %f107, %f23;
+	st.global.v4.f32 	[%rd58+0], {%f113,%f111,%f112,%f110};
+$Lt_2_25346:
+$Lt_2_18690:
+	.loc	17	607	0
+	exit;
+$LDWend_kernel_lj:
+	} // kernel_lj
+
+	.entry kernel_lj_fast (
+		.param .u64 __cudaparm_kernel_lj_fast_x_,
+		.param .u64 __cudaparm_kernel_lj_fast_lj1_in,
+		.param .u64 __cudaparm_kernel_lj_fast_lj3_in,
+		.param .u64 __cudaparm_kernel_lj_fast_gum,
+		.param .s32 __cudaparm_kernel_lj_fast_stride,
+		.param .u64 __cudaparm_kernel_lj_fast_dev_ij,
+		.param .u64 __cudaparm_kernel_lj_fast_ans,
+		.param .u64 __cudaparm_kernel_lj_fast___val_paramengv,
+		.param .u64 __cudaparm_kernel_lj_fast_err_flag,
+		.param .s32 __cudaparm_kernel_lj_fast_eflag,
+		.param .s32 __cudaparm_kernel_lj_fast_vflag,
+		.param .s32 __cudaparm_kernel_lj_fast_start,
+		.param .s32 __cudaparm_kernel_lj_fast_inum,
+		.param .s32 __cudaparm_kernel_lj_fast_t_per_atom)
+	{
+	.reg .u32 %r<57>;
+	.reg .u64 %rd<72>;
+	.reg .f32 %f<122>;
+	.reg .pred %p<22>;
+	.shared .align 4 .b8 __cuda___cuda_local_var_33475_33_non_const_sp_lj10212[16];
+	.shared .align 16 .b8 __cuda___cuda_local_var_33476_34_non_const_lj110240[1936];
+	.shared .align 16 .b8 __cuda___cuda_local_var_33477_34_non_const_lj312176[1936];
+	.shared .align 4 .b8 __cuda___cuda_local_var_33547_55_non_const_red_acc14112[3072];
+	// __cuda_local_var_33491_9_non_const_virial = 16
+	.loc	17	615	0
+$LDWbegin_kernel_lj_fast:
+	cvt.s32.u32 	%r1, %tid.x;
+	mov.u32 	%r2, 3;
+	setp.gt.s32 	%p1, %r1, %r2;
+	@%p1 bra 	$Lt_3_20994;
+	.loc	17	624	0
+	mov.u64 	%rd1, __cuda___cuda_local_var_33475_33_non_const_sp_lj10212;
+	cvt.s64.s32 	%rd2, %r1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	ld.param.u64 	%rd4, [__cudaparm_kernel_lj_fast_gum];
+	add.u64 	%rd5, %rd4, %rd3;
+	ld.global.f32 	%f1, [%rd5+0];
+	add.u64 	%rd6, %rd3, %rd1;
+	st.shared.f32 	[%rd6+0], %f1;
+$Lt_3_20994:
+	mov.u64 	%rd1, __cuda___cuda_local_var_33475_33_non_const_sp_lj10212;
+	mov.u32 	%r3, 120;
+	setp.gt.s32 	%p2, %r1, %r3;
+	@%p2 bra 	$Lt_3_21506;
+	.loc	17	626	0
+	mov.u64 	%rd7, __cuda___cuda_local_var_33476_34_non_const_lj110240;
+	cvt.s64.s32 	%rd8, %r1;
+	mul.wide.s32 	%rd9, %r1, 16;
+	ld.param.u64 	%rd10, [__cudaparm_kernel_lj_fast_lj1_in];
+	add.u64 	%rd11, %rd10, %rd9;
+	add.u64 	%rd12, %rd9, %rd7;
+	ld.global.v4.f32 	{%f2,%f3,%f4,%f5}, [%rd11+0];
+	st.shared.v4.f32 	[%rd12+0], {%f2,%f3,%f4,%f5};
+	ld.param.s32 	%r4, [__cudaparm_kernel_lj_fast_eflag];
+	mov.u32 	%r5, 0;
+	setp.le.s32 	%p3, %r4, %r5;
+	@%p3 bra 	$Lt_3_22018;
+	.loc	17	628	0
+	mov.u64 	%rd13, __cuda___cuda_local_var_33477_34_non_const_lj312176;
+	ld.param.u64 	%rd14, [__cudaparm_kernel_lj_fast_lj3_in];
+	add.u64 	%rd15, %rd14, %rd9;
+	add.u64 	%rd16, %rd9, %rd13;
+	ld.global.v4.f32 	{%f6,%f7,%f8,%f9}, [%rd15+0];
+	st.shared.v4.f32 	[%rd16+0], {%f6,%f7,%f8,%f9};
+$Lt_3_22018:
+	mov.u64 	%rd13, __cuda___cuda_local_var_33477_34_non_const_lj312176;
+$Lt_3_21506:
+	mov.u64 	%rd13, __cuda___cuda_local_var_33477_34_non_const_lj312176;
+	mov.u64 	%rd7, __cuda___cuda_local_var_33476_34_non_const_lj110240;
+	.loc	17	638	0
+	mov.f32 	%f10, 0f00000000;    	// 0
+	mov.f32 	%f11, %f10;
+	mov.f32 	%f12, 0f00000000;    	// 0
+	mov.f32 	%f13, %f12;
+	mov.f32 	%f14, 0f00000000;    	// 0
+	mov.f32 	%f15, %f14;
+	mov.f32 	%f16, 0f00000000;    	// 0
+	mov.f32 	%f17, %f16;
+	mov.f32 	%f18, 0f00000000;    	// 0
+	mov.f32 	%f19, %f18;
+	mov.f32 	%f20, 0f00000000;    	// 0
+	mov.f32 	%f21, %f20;
+	.loc	17	640	0
+	bar.sync 	0;
+	ld.param.s32 	%r6, [__cudaparm_kernel_lj_fast_t_per_atom];
+	div.s32 	%r7, %r1, %r6;
+	cvt.s32.u32 	%r8, %ntid.x;
+	div.s32 	%r9, %r8, %r6;
+	cvt.s32.u32 	%r10, %ctaid.x;
+	mul.lo.s32 	%r11, %r10, %r9;
+	add.s32 	%r12, %r7, %r11;
+	ld.param.s32 	%r13, [__cudaparm_kernel_lj_fast_start];
+	add.s32 	%r14, %r13, %r12;
+	ld.param.s32 	%r15, [__cudaparm_kernel_lj_fast_inum];
+	setp.ge.s32 	%p4, %r14, %r15;
+	@%p4 bra 	$Lt_3_29186;
+	.loc	17	645	0
+	cvt.s64.s32 	%rd17, %r14;
+	mul.wide.s32 	%rd18, %r14, 4;
+	ld.param.u64 	%rd19, [__cudaparm_kernel_lj_fast_dev_ij];
+	add.u64 	%rd20, %rd19, %rd18;
+	ld.global.s32 	%r16, [%rd20+0];
+	ld.param.s32 	%r17, [__cudaparm_kernel_lj_fast_stride];
+	cvt.s64.s32 	%rd21, %r17;
+	mul.wide.s32 	%rd22, %r17, 4;
+	add.u64 	%rd23, %rd22, %rd20;
+	ld.global.s32 	%r18, [%rd23+0];
+	.loc	17	648	0
+	ld.param.u64 	%rd24, [__cudaparm_kernel_lj_fast_x_];
+	cvt.s64.s32 	%rd25, %r16;
+	mul.wide.s32 	%rd26, %r16, 16;
+	add.u64 	%rd27, %rd24, %rd26;
+	ld.global.v4.f32 	{%f22,%f23,%f24,%f25}, [%rd27+0];
+	.loc	17	650	0
+	cvt.s32.s64 	%r19, %rd21;
+	sub.s32 	%r20, %r6, 1;
+	and.b32 	%r21, %r20, %r1;
+	add.u64 	%rd28, %rd22, %rd23;
+	mul.lo.s32 	%r22, %r19, %r21;
+	cvt.s64.s32 	%rd29, %r22;
+	mul.wide.s32 	%rd30, %r22, 4;
+	add.u64 	%rd31, %rd28, %rd30;
+	mov.s64 	%rd32, %rd31;
+	mul.lo.s32 	%r23, %r19, %r18;
+	cvt.s64.s32 	%rd33, %r23;
+	mul.wide.s32 	%rd34, %r23, 4;
+	add.u64 	%rd35, %rd28, %rd34;
+	setp.ge.u64 	%p5, %rd31, %rd35;
+	@%p5 bra 	$Lt_3_30722;
+	cvt.rzi.ftz.s32.f32 	%r24, %f25;
+	mul.lo.s32 	%r25, %r24, 11;
+	cvt.rn.f32.s32 	%f26, %r25;
+	mov.f32 	%f27, 0f00000000;    	// 0
+	mov.f32 	%f28, 0f00000000;    	// 0
+	mov.f32 	%f29, 0f00000000;    	// 0
+	mov.f32 	%f30, 0f00000000;    	// 0
+$Lt_3_23554:
+ //<loop> Loop body line 650, nesting depth: 1, estimated iterations: unknown
+	.loc	17	655	0
+	ld.global.s32 	%r26, [%rd32+0];
+	.loc	17	656	0
+	shr.s32 	%r27, %r26, 30;
+	and.b32 	%r28, %r27, 3;
+	cvt.s64.s32 	%rd36, %r28;
+	mul.wide.s32 	%rd37, %r28, 4;
+	add.u64 	%rd38, %rd1, %rd37;
+	ld.shared.f32 	%f31, [%rd38+0];
+	.loc	17	659	0
+	and.b32 	%r29, %r26, 1073741823;
+	cvt.s64.s32 	%rd39, %r29;
+	mul.wide.s32 	%rd40, %r29, 16;
+	add.u64 	%rd41, %rd24, %rd40;
+	ld.global.v4.f32 	{%f32,%f33,%f34,%f35}, [%rd41+0];
+	.loc	17	655	0
+	sub.ftz.f32 	%f36, %f23, %f33;
+	sub.ftz.f32 	%f37, %f22, %f32;
+	sub.ftz.f32 	%f38, %f24, %f34;
+	mul.ftz.f32 	%f39, %f36, %f36;
+	fma.rn.ftz.f32 	%f40, %f37, %f37, %f39;
+	fma.rn.ftz.f32 	%f41, %f38, %f38, %f40;
+	add.ftz.f32 	%f42, %f26, %f35;
+	cvt.rzi.ftz.s32.f32 	%r30, %f42;
+	cvt.s64.s32 	%rd42, %r30;
+	mul.wide.s32 	%rd43, %r30, 16;
+	add.u64 	%rd44, %rd43, %rd7;
+	ld.shared.f32 	%f43, [%rd44+8];
+	setp.gt.ftz.f32 	%p6, %f43, %f41;
+	@!%p6 bra 	$Lt_3_30978;
+	ld.shared.f32 	%f44, [%rd44+12];
+	mov.f32 	%f45, 0f00000000;    	// 0
+	setp.eq.ftz.f32 	%p7, %f44, %f45;
+	@!%p7 bra 	$Lt_3_30978;
+	.loc	17	671	0
+	rcp.approx.ftz.f32 	%f46, %f41;
+	mul.ftz.f32 	%f47, %f46, %f46;
+	mul.ftz.f32 	%f48, %f46, %f47;
+	mul.ftz.f32 	%f49, %f46, %f31;
+	mul.ftz.f32 	%f50, %f48, %f49;
+	ld.shared.v2.f32 	{%f51,%f52}, [%rd44+0];
+	mul.ftz.f32 	%f53, %f51, %f48;
+	sub.ftz.f32 	%f54, %f53, %f52;
+	mul.ftz.f32 	%f55, %f50, %f54;
+	.loc	17	673	0
+	fma.rn.ftz.f32 	%f29, %f37, %f55, %f29;
+	.loc	17	674	0
+	fma.rn.ftz.f32 	%f28, %f36, %f55, %f28;
+	.loc	17	675	0
+	fma.rn.ftz.f32 	%f27, %f38, %f55, %f27;
+	ld.param.s32 	%r31, [__cudaparm_kernel_lj_fast_eflag];
+	mov.u32 	%r32, 0;
+	setp.le.s32 	%p8, %r31, %r32;
+	@%p8 bra 	$Lt_3_23810;
+	.loc	17	678	0
+	add.u64 	%rd45, %rd43, %rd13;
+	ld.shared.v4.f32 	{%f56,%f57,%f58,_}, [%rd45+0];
+	mul.ftz.f32 	%f59, %f56, %f48;
+	sub.ftz.f32 	%f60, %f59, %f57;
+	mul.ftz.f32 	%f61, %f48, %f60;
+	.loc	17	679	0
+	sub.ftz.f32 	%f62, %f61, %f58;
+	fma.rn.ftz.f32 	%f30, %f31, %f62, %f30;
+$Lt_3_23810:
+	ld.param.s32 	%r33, [__cudaparm_kernel_lj_fast_vflag];
+	mov.u32 	%r34, 0;
+	setp.le.s32 	%p9, %r33, %r34;
+	@%p9 bra 	$Lt_3_30978;
+	.loc	17	682	0
+	mov.f32 	%f63, %f11;
+	mul.ftz.f32 	%f64, %f37, %f37;
+	fma.rn.ftz.f32 	%f65, %f55, %f64, %f63;
+	mov.f32 	%f11, %f65;
+	.loc	17	683	0
+	mov.f32 	%f66, %f13;
+	fma.rn.ftz.f32 	%f67, %f55, %f39, %f66;
+	mov.f32 	%f13, %f67;
+	.loc	17	684	0
+	mov.f32 	%f68, %f15;
+	mul.ftz.f32 	%f69, %f38, %f38;
+	fma.rn.ftz.f32 	%f70, %f55, %f69, %f68;
+	mov.f32 	%f15, %f70;
+	.loc	17	685	0
+	mov.f32 	%f71, %f17;
+	mul.ftz.f32 	%f72, %f36, %f37;
+	fma.rn.ftz.f32 	%f73, %f55, %f72, %f71;
+	mov.f32 	%f17, %f73;
+	.loc	17	686	0
+	mov.f32 	%f74, %f19;
+	mul.ftz.f32 	%f75, %f37, %f38;
+	fma.rn.ftz.f32 	%f76, %f55, %f75, %f74;
+	mov.f32 	%f19, %f76;
+	.loc	17	687	0
+	mul.ftz.f32 	%f77, %f36, %f38;
+	fma.rn.ftz.f32 	%f20, %f55, %f77, %f20;
+	mov.f32 	%f21, %f20;
+$Lt_3_30978:
+$L_3_20482:
+	.loc	17	681	0
+	mul.lo.s32 	%r35, %r19, %r6;
+	cvt.s64.s32 	%rd46, %r35;
+	mul.wide.s32 	%rd47, %r35, 4;
+	add.u64 	%rd32, %rd32, %rd47;
+	setp.gt.u64 	%p10, %rd35, %rd32;
+	@%p10 bra 	$Lt_3_23554;
+	bra.uni 	$Lt_3_23042;
+$Lt_3_30722:
+	mov.f32 	%f27, 0f00000000;    	// 0
+	mov.f32 	%f28, 0f00000000;    	// 0
+	mov.f32 	%f29, 0f00000000;    	// 0
+	mov.f32 	%f30, 0f00000000;    	// 0
+$Lt_3_23042:
+	mov.u32 	%r36, 1;
+	setp.le.s32 	%p11, %r6, %r36;
+	@%p11 bra 	$Lt_3_27138;
+	.loc	17	692	0
+	mov.u64 	%rd48, __cuda___cuda_local_var_33547_55_non_const_red_acc14112;
+	cvt.s64.s32 	%rd49, %r1;
+	mul.wide.s32 	%rd50, %r1, 4;
+	add.u64 	%rd51, %rd48, %rd50;
+	mov.f32 	%f78, %f29;
+	st.shared.f32 	[%rd51+0], %f78;
+	mov.f32 	%f79, %f28;
+	st.shared.f32 	[%rd51+512], %f79;
+	mov.f32 	%f80, %f27;
+	st.shared.f32 	[%rd51+1024], %f80;
+	mov.f32 	%f81, %f30;
+	st.shared.f32 	[%rd51+1536], %f81;
+	shr.s32 	%r37, %r6, 31;
+	mov.s32 	%r38, 1;
+	and.b32 	%r39, %r37, %r38;
+	add.s32 	%r40, %r39, %r6;
+	shr.s32 	%r41, %r40, 1;
+	mov.s32 	%r42, %r41;
+	mov.u32 	%r43, 0;
+	setp.ne.u32 	%p12, %r41, %r43;
+	@!%p12 bra 	$Lt_3_25602;
+$Lt_3_26114:
+	setp.ge.u32 	%p13, %r21, %r42;
+	@%p13 bra 	$Lt_3_26370;
+	add.u32 	%r44, %r1, %r42;
+	cvt.u64.u32 	%rd52, %r44;
+	mul.wide.u32 	%rd53, %r44, 4;
+	add.u64 	%rd54, %rd48, %rd53;
+	ld.shared.f32 	%f82, [%rd54+0];
+	add.ftz.f32 	%f78, %f82, %f78;
+	st.shared.f32 	[%rd51+0], %f78;
+	ld.shared.f32 	%f83, [%rd54+512];
+	add.ftz.f32 	%f79, %f83, %f79;
+	st.shared.f32 	[%rd51+512], %f79;
+	ld.shared.f32 	%f84, [%rd54+1024];
+	add.ftz.f32 	%f80, %f84, %f80;
+	st.shared.f32 	[%rd51+1024], %f80;
+	ld.shared.f32 	%f85, [%rd54+1536];
+	add.ftz.f32 	%f81, %f85, %f81;
+	st.shared.f32 	[%rd51+1536], %f81;
+$Lt_3_26370:
+	shr.u32 	%r42, %r42, 1;
+	mov.u32 	%r45, 0;
+	setp.ne.u32 	%p14, %r42, %r45;
+	@%p14 bra 	$Lt_3_26114;
+$Lt_3_25602:
+	mov.f32 	%f29, %f78;
+	mov.f32 	%f28, %f79;
+	mov.f32 	%f27, %f80;
+	mov.f32 	%f30, %f81;
+	ld.param.s32 	%r46, [__cudaparm_kernel_lj_fast_vflag];
+	mov.u32 	%r47, 0;
+	setp.le.s32 	%p15, %r46, %r47;
+	@%p15 bra 	$Lt_3_27138;
+	mov.f32 	%f78, %f11;
+	st.shared.f32 	[%rd51+0], %f78;
+	mov.f32 	%f79, %f13;
+	st.shared.f32 	[%rd51+512], %f79;
+	mov.f32 	%f80, %f15;
+	st.shared.f32 	[%rd51+1024], %f80;
+	mov.f32 	%f81, %f17;
+	st.shared.f32 	[%rd51+1536], %f81;
+	mov.f32 	%f86, %f19;
+	st.shared.f32 	[%rd51+2048], %f86;
+	mov.f32 	%f87, %f20;
+	st.shared.f32 	[%rd51+2560], %f87;
+	mov.s32 	%r48, %r41;
+	@!%p12 bra 	$Lt_3_27650;
+$Lt_3_28162:
+	setp.ge.u32 	%p16, %r21, %r48;
+	@%p16 bra 	$Lt_3_28418;
+	add.u32 	%r49, %r1, %r48;
+	cvt.u64.u32 	%rd55, %r49;
+	mul.wide.u32 	%rd56, %r49, 4;
+	add.u64 	%rd57, %rd48, %rd56;
+	ld.shared.f32 	%f88, [%rd57+0];
+	add.ftz.f32 	%f78, %f88, %f78;
+	st.shared.f32 	[%rd51+0], %f78;
+	ld.shared.f32 	%f89, [%rd57+512];
+	add.ftz.f32 	%f79, %f89, %f79;
+	st.shared.f32 	[%rd51+512], %f79;
+	ld.shared.f32 	%f90, [%rd57+1024];
+	add.ftz.f32 	%f80, %f90, %f80;
+	st.shared.f32 	[%rd51+1024], %f80;
+	ld.shared.f32 	%f91, [%rd57+1536];
+	add.ftz.f32 	%f81, %f91, %f81;
+	st.shared.f32 	[%rd51+1536], %f81;
+	ld.shared.f32 	%f92, [%rd57+2048];
+	add.ftz.f32 	%f86, %f92, %f86;
+	st.shared.f32 	[%rd51+2048], %f86;
+	ld.shared.f32 	%f93, [%rd57+2560];
+	add.ftz.f32 	%f87, %f93, %f87;
+	st.shared.f32 	[%rd51+2560], %f87;
+$Lt_3_28418:
+	shr.u32 	%r48, %r48, 1;
+	mov.u32 	%r50, 0;
+	setp.ne.u32 	%p17, %r48, %r50;
+	@%p17 bra 	$Lt_3_28162;
+$Lt_3_27650:
+	mov.f32 	%f11, %f78;
+	mov.f32 	%f13, %f79;
+	mov.f32 	%f15, %f80;
+	mov.f32 	%f17, %f81;
+	mov.f32 	%f19, %f86;
+	mov.f32 	%f21, %f87;
+$Lt_3_27138:
+$Lt_3_25090:
+	mov.u32 	%r51, 0;
+	setp.ne.s32 	%p18, %r21, %r51;
+	@%p18 bra 	$Lt_3_29186;
+	ld.param.u64 	%rd58, [__cudaparm_kernel_lj_fast___val_paramengv];
+	add.u64 	%rd59, %rd58, %rd18;
+	ld.param.s32 	%r52, [__cudaparm_kernel_lj_fast_eflag];
+	mov.u32 	%r53, 0;
+	setp.le.s32 	%p19, %r52, %r53;
+	@%p19 bra 	$Lt_3_29698;
+	ld.global.f32 	%f94, [%rd59+0];
+	add.ftz.f32 	%f95, %f94, %f30;
+	st.global.f32 	[%rd59+0], %f95;
+	cvt.s64.s32 	%rd60, %r15;
+	mul.wide.s32 	%rd61, %r15, 4;
+	add.u64 	%rd59, %rd59, %rd61;
+$Lt_3_29698:
+	ld.param.s32 	%r54, [__cudaparm_kernel_lj_fast_vflag];
+	mov.u32 	%r55, 0;
+	setp.le.s32 	%p20, %r54, %r55;
+	@%p20 bra 	$Lt_3_30210;
+	ld.global.f32 	%f96, [%rd59+0];
+	mov.f32 	%f97, %f11;
+	add.ftz.f32 	%f98, %f96, %f97;
+	st.global.f32 	[%rd59+0], %f98;
+	cvt.s64.s32 	%rd62, %r15;
+	mul.wide.s32 	%rd63, %r15, 4;
+	add.u64 	%rd64, %rd63, %rd59;
+	ld.global.f32 	%f99, [%rd64+0];
+	mov.f32 	%f100, %f13;
+	add.ftz.f32 	%f101, %f99, %f100;
+	st.global.f32 	[%rd64+0], %f101;
+	add.u64 	%rd65, %rd63, %rd64;
+	ld.global.f32 	%f102, [%rd65+0];
+	mov.f32 	%f103, %f15;
+	add.ftz.f32 	%f104, %f102, %f103;
+	st.global.f32 	[%rd65+0], %f104;
+	add.u64 	%rd66, %rd63, %rd65;
+	ld.global.f32 	%f105, [%rd66+0];
+	mov.f32 	%f106, %f17;
+	add.ftz.f32 	%f107, %f105, %f106;
+	st.global.f32 	[%rd66+0], %f107;
+	add.u64 	%rd67, %rd63, %rd66;
+	ld.global.f32 	%f108, [%rd67+0];
+	mov.f32 	%f109, %f19;
+	add.ftz.f32 	%f110, %f108, %f109;
+	st.global.f32 	[%rd67+0], %f110;
+	add.u64 	%rd59, %rd63, %rd67;
+	ld.global.f32 	%f111, [%rd59+0];
+	mov.f32 	%f112, %f21;
+	add.ftz.f32 	%f113, %f111, %f112;
+	st.global.f32 	[%rd59+0], %f113;
+$Lt_3_30210:
+	ld.param.u64 	%rd68, [__cudaparm_kernel_lj_fast_ans];
+	mul.lo.u64 	%rd69, %rd17, 16;
+	add.u64 	%rd70, %rd68, %rd69;
+	ld.global.v4.f32 	{%f114,%f115,%f116,%f117}, [%rd70+0];
+	add.ftz.f32 	%f118, %f115, %f28;
+	add.ftz.f32 	%f119, %f116, %f27;
+	add.ftz.f32 	%f120, %f114, %f29;
+	st.global.v4.f32 	[%rd70+0], {%f120,%f118,%f119,%f117};
+$Lt_3_29186:
+$Lt_3_22530:
+	.loc	17	695	0
+	exit;
+$LDWend_kernel_lj_fast:
+	} // kernel_lj_fast
+

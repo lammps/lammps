@@ -21,7 +21,7 @@ using namespace LAMMPS_AL;
 template <class numtyp, class acctyp>
 AtomT::Atom() : _compiled(false),_allocated(false),
                               _max_gpu_bytes(0) {
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   sort_config.op = CUDPP_ADD;
   sort_config.datatype = CUDPP_UINT;
   sort_config.algorithm = CUDPP_SORT_RADIX;
@@ -56,7 +56,7 @@ bool AtomT::alloc(const int nall) {
     cpuview=true;
     
   // Allocate storage for CUDPP sort
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   if (_gpu_nbor==1) {
     CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
     if (CUDPP_SUCCESS != result)
@@ -190,6 +190,7 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   _rot=rot;
   _other=_charge || _rot;
   dev=&devi;
+  _time_transfer=0;
 
   // Initialize atom and nbor data
   int ef_nall=nall;
@@ -241,7 +242,7 @@ void AtomT::clear_resize() {
   dev_type_cast.clear();
   #endif
 
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   if (_gpu_nbor==1) cudppDestroyPlan(sort_plan);
   #endif
   
@@ -285,7 +286,7 @@ double AtomT::host_memory_usage() const {
 // Sort arrays for neighbor list calculation
 template <class numtyp, class acctyp>
 void AtomT::sort_neighbor(const int num_atoms) {
-  #ifndef USE_OPENCL
+  #ifdef USE_CUDPP
   CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(), 
                                  (int *)dev_particle_id.begin(), 
                                  8*sizeof(unsigned), num_atoms);

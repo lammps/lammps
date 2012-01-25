@@ -1,0 +1,101 @@
+	.version 2.3
+	.target sm_20
+	.address_size 64
+	// compiled with /usr/local/cuda/open64/lib//be
+	// nvopencc 4.0 built on 2011-05-12
+
+	//-----------------------------------------------------------
+	// Compiling /tmp/tmpxft_000099dd_00000000-9_lal_atom.cpp3.i (/home/sjplimp/ccBI#.Q6OzuV)
+	//-----------------------------------------------------------
+
+	//-----------------------------------------------------------
+	// Options:
+	//-----------------------------------------------------------
+	//  Target:ptx, ISA:sm_20, Endian:little, Pointer Size:64
+	//  -O3	(Optimization level)
+	//  -g0	(Debug level)
+	//  -m2	(Report advisories)
+	//-----------------------------------------------------------
+
+	.file	1	"<command-line>"
+	.file	2	"/tmp/tmpxft_000099dd_00000000-8_lal_atom.cudafe2.gpu"
+	.file	3	"/usr/lib/gcc/x86_64-redhat-linux/4.4.5/include/stddef.h"
+	.file	4	"/usr/local/cuda/include/crt/device_runtime.h"
+	.file	5	"/usr/local/cuda/include/host_defines.h"
+	.file	6	"/usr/local/cuda/include/builtin_types.h"
+	.file	7	"/usr/local/cuda/include/device_types.h"
+	.file	8	"/usr/local/cuda/include/driver_types.h"
+	.file	9	"/usr/local/cuda/include/surface_types.h"
+	.file	10	"/usr/local/cuda/include/texture_types.h"
+	.file	11	"/usr/local/cuda/include/vector_types.h"
+	.file	12	"/usr/local/cuda/include/device_launch_parameters.h"
+	.file	13	"/usr/local/cuda/include/crt/storage_class.h"
+	.file	14	"/usr/include/bits/types.h"
+	.file	15	"/usr/include/time.h"
+	.file	16	"lal_atom.cu"
+	.file	17	"/usr/local/cuda/include/common_functions.h"
+	.file	18	"/usr/local/cuda/include/math_functions.h"
+	.file	19	"/usr/local/cuda/include/math_constants.h"
+	.file	20	"/usr/local/cuda/include/device_functions.h"
+	.file	21	"/usr/local/cuda/include/sm_11_atomic_functions.h"
+	.file	22	"/usr/local/cuda/include/sm_12_atomic_functions.h"
+	.file	23	"/usr/local/cuda/include/sm_13_double_functions.h"
+	.file	24	"/usr/local/cuda/include/sm_20_atomic_functions.h"
+	.file	25	"/usr/local/cuda/include/sm_20_intrinsics.h"
+	.file	26	"/usr/local/cuda/include/surface_functions.h"
+	.file	27	"/usr/local/cuda/include/texture_fetch_functions.h"
+	.file	28	"/usr/local/cuda/include/math_functions_dbl_ptx3.h"
+
+
+	.entry kernel_cast_x (
+		.param .u64 __cudaparm_kernel_cast_x_x_type,
+		.param .u64 __cudaparm_kernel_cast_x_x,
+		.param .u64 __cudaparm_kernel_cast_x_type,
+		.param .s32 __cudaparm_kernel_cast_x_nall)
+	{
+	.reg .u32 %r<10>;
+	.reg .u64 %rd<13>;
+	.reg .f32 %f<6>;
+	.reg .f64 %fd<5>;
+	.reg .pred %p<3>;
+	.loc	16	21	0
+$LDWbegin_kernel_cast_x:
+	cvt.s32.u32 	%r1, %ctaid.x;
+	cvt.s32.u32 	%r2, %ntid.x;
+	mul24.lo.s32 	%r3, %r1, %r2;
+	mov.u32 	%r4, %tid.x;
+	add.u32 	%r5, %r3, %r4;
+	ld.param.s32 	%r6, [__cudaparm_kernel_cast_x_nall];
+	setp.le.s32 	%p1, %r6, %r5;
+	@%p1 bra 	$Lt_0_1026;
+	.loc	16	26	0
+	cvt.s64.s32 	%rd1, %r5;
+	ld.param.u64 	%rd2, [__cudaparm_kernel_cast_x_type];
+	mul.wide.s32 	%rd3, %r5, 4;
+	add.u64 	%rd4, %rd2, %rd3;
+	ld.global.s32 	%r7, [%rd4+0];
+	cvt.rn.f32.s32 	%f1, %r7;
+	.loc	16	29	0
+	ld.param.u64 	%rd5, [__cudaparm_kernel_cast_x_x];
+	mul.lo.s32 	%r8, %r5, 3;
+	cvt.s64.s32 	%rd6, %r8;
+	mul.wide.s32 	%rd7, %r8, 8;
+	add.u64 	%rd8, %rd5, %rd7;
+	ld.global.f64 	%fd1, [%rd8+8];
+	cvt.rn.ftz.f32.f64 	%f2, %fd1;
+	.loc	16	30	0
+	ld.global.f64 	%fd2, [%rd8+16];
+	cvt.rn.ftz.f32.f64 	%f3, %fd2;
+	.loc	16	31	0
+	ld.param.u64 	%rd9, [__cudaparm_kernel_cast_x_x_type];
+	mul.wide.s32 	%rd10, %r5, 16;
+	add.u64 	%rd11, %rd9, %rd10;
+	ld.global.f64 	%fd3, [%rd8+0];
+	cvt.rn.ftz.f32.f64 	%f4, %fd3;
+	st.global.v4.f32 	[%rd11+0], {%f4,%f2,%f3,%f1};
+$Lt_0_1026:
+	.loc	16	33	0
+	exit;
+$LDWend_kernel_cast_x:
+	} // kernel_cast_x
+

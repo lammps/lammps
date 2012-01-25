@@ -30,7 +30,13 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_morse.o $(OBJ_DIR)/lal_morse_ext.o \
        $(OBJ_DIR)/lal_charmm_long.o $(OBJ_DIR)/lal_charmm_long_ext.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
-       $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o 
+       $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
+       $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
+       $(OBJ_DIR)/lal_buck.o $(OBJ_DIR)/lal_buck_ext.o \
+       $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
+       $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
+       $(OBJ_DIR)/lal_table.o $(OBJ_DIR)/lal_table_ext.o \
+       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
        $(OBJ_DIR)/ellipsoid_nbor_cl.h $(OBJ_DIR)/gayberne_cl.h \
@@ -40,7 +46,10 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_class2_long_cl.h \
        $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/morse_cl.h \
        $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/cg_cmm_cl.h \
-       $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h
+       $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h \
+       $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/buck_cl.h \
+       $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/buck_coul_long_cl.h \
+       $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/yukawa_cl.h
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
@@ -216,6 +225,60 @@ $(OBJ_DIR)/lal_cg_cmm_long.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long.cpp  $(
 
 $(OBJ_DIR)/lal_cg_cmm_long_ext.o: $(ALL_H) lal_cg_cmm_long.h lal_cg_cmm_long_ext.cpp lal_base_charge.h
 	$(OCL) -o $@ -c lal_cg_cmm_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/eam_cl.h: lal_eam.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh eam $(PRE1_H) lal_eam.cu $(OBJ_DIR)/eam_cl.h;
+
+$(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp  $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_eam.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_eam_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck_cl.h: lal_buck.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh buck $(PRE1_H) lal_buck.cu $(OBJ_DIR)/buck_cl.h;
+
+$(OBJ_DIR)/lal_buck.o: $(ALL_H) lal_buck.h lal_buck.cpp  $(OBJ_DIR)/buck_cl.h $(OBJ_DIR)/buck_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_buck.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_ext.o: $(ALL_H) lal_buck.h lal_buck_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_buck_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck_coul_cl.h: lal_buck_coul.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh buck_coul $(PRE1_H) lal_buck_coul.cu $(OBJ_DIR)/buck_coul_cl.h;
+
+$(OBJ_DIR)/lal_buck_coul.o: $(ALL_H) lal_buck_coul.h lal_buck_coul.cpp  $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_buck_coul.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_coul_ext.o: $(ALL_H) lal_buck_coul.h lal_buck_coul_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_buck_coul_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/buck_coul_long_cl.h: lal_buck_coul_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh buck_coul_long $(PRE1_H) lal_buck_coul_long.cu $(OBJ_DIR)/buck_coul_long_cl.h;
+
+$(OBJ_DIR)/lal_buck_coul_long.o: $(ALL_H) lal_buck_coul_long.h lal_buck_coul_long.cpp  $(OBJ_DIR)/buck_coul_long_cl.h $(OBJ_DIR)/buck_coul_long_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_buck_coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_buck_coul_long_ext.o: $(ALL_H) lal_buck_coul_long.h lal_buck_coul_long_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_buck_coul_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/table_cl.h: lal_table.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh table $(PRE1_H) lal_table.cu $(OBJ_DIR)/table_cl.h;
+
+$(OBJ_DIR)/lal_table.o: $(ALL_H) lal_table.h lal_table.cpp  $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_table.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_table_ext.o: $(ALL_H) lal_table.h lal_table_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_table_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/yukawa_cl.h: lal_yukawa.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh yukawa $(PRE1_H) lal_yukawa.cu $(OBJ_DIR)/yukawa_cl.h;
+
+$(OBJ_DIR)/lal_yukawa.o: $(ALL_H) lal_yukawa.h lal_yukawa.cpp  $(OBJ_DIR)/yukawa_cl.h $(OBJ_DIR)/yukawa_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_yukawa.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_yukawa_ext.o: $(ALL_H) lal_yukawa.h lal_yukawa_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_yukawa_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

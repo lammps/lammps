@@ -211,7 +211,7 @@ inline int UCL_Device::set(int num) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << num
               << " for use.\n";
-    exit(1);
+    UCL_GERYON_EXIT;
     #endif
     return UCL_ERROR;
   }

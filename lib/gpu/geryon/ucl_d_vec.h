@@ -68,7 +68,7 @@ class UCL_D_Vec : public UCL_BaseMat {
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
       _row_bytes=0;
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       _row_bytes=0;
       return err;
@@ -102,7 +102,7 @@ class UCL_D_Vec : public UCL_BaseMat {
       std::cerr << "UCL Error: Could not allocate " << _row_bytes
                 << " bytes on device.\n";
       _row_bytes=0;
-      exit(1);
+      UCL_GERYON_EXIT;
       #endif
       _row_bytes=0;
       return err;

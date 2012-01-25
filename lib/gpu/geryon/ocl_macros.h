@@ -3,13 +3,22 @@
 
 #include <stdio.h>
 #include <cassert>
-#include "CL/cl.h"
+
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
 
 #ifdef MPI_GERYON
 #include "mpi.h"
 #define OCL_GERYON_EXIT MPI_Abort(MPI_COMM_WORLD,-1)
 #else
 #define OCL_GERYON_EXIT assert(0==1)
+#endif
+
+#ifndef UCL_GERYON_EXIT
+#define UCL_GERYON_EXIT OCL_GERYON_EXIT
 #endif
 
 #ifdef UCL_DEBUG

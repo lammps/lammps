@@ -19,5 +19,7 @@ OBJ_DIR = ./
 LIB_DIR = ./
 AR = ar
 
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+
 include Nvidia.makefile
 

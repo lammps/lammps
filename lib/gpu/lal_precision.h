@@ -16,6 +16,14 @@
 #ifndef LAL_PRECISION_H
 #define LAL_PRECISION_H
 
+struct _lgpu_int2 {
+  int x; int y;
+};
+
+#ifndef int2
+#define int2 _lgpu_int2
+#endif
+
 struct _lgpu_float2 {
   float x; float y;
 };

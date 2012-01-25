@@ -88,6 +88,9 @@ class UCL_Timer {
   inline double add_to_total() 
     { double t=time(); _total_time+=t; return t/1000.0; }
   
+  /// Add a user specified time to the total (ms)
+  inline void add_time_to_total(const double t) { _total_time+=t; }
+
   /// Return the time (ms) of last start to stop - Forces synchronization
   inline double time() {
     cl_ulong tstart,tend;

@@ -56,7 +56,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   if (_device_init)
     return 0;
   _device_init=true;
-  _comm_world=world;
+  _comm_world=replica; //world;
   _comm_replica=replica;
   _first_device=first_gpu;
   _last_device=last_gpu;
@@ -164,7 +164,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     gpu_nbor=1;
   else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  #ifdef USE_OPENCL
+  #ifndef USE_CUDPP
   if (gpu_nbor==1)
     gpu_nbor=2;
   #endif

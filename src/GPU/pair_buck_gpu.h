@@ -45,3 +45,14 @@ class PairBuckGPU : public PairBuck {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with buck/gpu pair style
+
+UNDOCUMENTED
+
+*/

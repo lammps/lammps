@@ -51,3 +51,19 @@ class PairEAMGPU : public PairEAM {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Out of memory on GPGPU
+
+UNDOCUMENTED
+
+E: Cannot use newton pair with eam/gpu pair style
+
+UNDOCUMENTED
+
+E: Not allocate memory eam/gpu pair style
+
+UNDOCUMENTED
+
+*/

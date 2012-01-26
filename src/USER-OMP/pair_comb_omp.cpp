@@ -24,6 +24,8 @@
 
 using namespace LAMMPS_NS;
 
+#define MAXNEIGH 24
+
 /* ---------------------------------------------------------------------- */
 
 PairCombOMP::PairCombOMP(LAMMPS *lmp) :
@@ -45,6 +47,7 @@ void PairCombOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
   // Build short range neighbor list
+
   Short_neigh_thr();
 
 #if defined(_OPENMP)
@@ -88,7 +91,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   double yaself;
   double potal,fac11,fac11e;
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
-  int sht_jnum, *sht_jlist;
+  int sht_jnum, *sht_jlist, nj;
 
   evdwl = ecoul = 0.0;
 
@@ -125,7 +128,8 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     fxtmp = fytmp = fztmp = 0.0;
 
     iq = q[i];
-    NCo[i] = 0;  
+    NCo[i] = 0;
+    nj = 0;
     iparam_i = elem2param[itype][itype][itype];
 
     // self energy, only on i atom
@@ -263,6 +267,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq1 = vec3_dot(delr1,delr1);
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
+      nj ++;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -292,7 +297,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (cuo_flag1 && cuo_flag2) cuo_flag = 1;
       else cuo_flag = 0;
 
-      force_zeta(&params[iparam_ij],EFLAG,i,j,rsq1,zeta_ij,
+      force_zeta(&params[iparam_ij],EFLAG,i,nj,rsq1,zeta_ij,
 		 iq,jq,fpair,prefactor,evdwl);
 
       // over-coordination correction for HfO2
@@ -411,6 +416,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
     const int i = ilist[ii];
     const int itag = tag[i];
+    int nj = 0;
 
     if (mask[i] & groupbit) {
       fqi = fqj = fqij = fqji = fqjj = 0.0; // should not be needed.
@@ -493,10 +499,11 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         const int iparam_ij = elem2param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
+	nj ++;
 
         // charge force in Aij and Bij
 
-        qfo_short(&params[iparam_ij],i,j,rsq1,iq,jq,fqij,fqjj);
+        qfo_short(&params[iparam_ij],i,nj,rsq1,iq,jq,fqij,fqjj);
         fqi += fqij;  
 #if defined(_OPENMP)
 #pragma omp atomic
@@ -504,7 +511,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 	qf[j] += fqjj;
       }
 
-#if defined(_OPENMP) && 0
+#if defined(_OPENMP)
 #pragma omp atomic
 #endif
       qf[i] += fqi;

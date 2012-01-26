@@ -2049,15 +2049,15 @@ void PairComb::Short_neigh()
   int nlocal = atom->nlocal;
   int ntype = atom->ntypes;
 
-  /*
   if (atom->nmax > nmax) {
-    nmax = int(1.0 * atom->nmax);
-    memory->sfree(sht_num);
     memory->sfree(sht_first);
-    memory->create(sht_num,nmax,"pair:sht_num");
+    nmax = atom->nmax;
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-	    "pair:sht_first");
-  } */
+					 "pair:sht_first");
+    memory->grow(sht_num,nmax,"pair:sht_num");
+    memory->grow(NCo,nmax,"pair:NCo");
+    memory->grow(bbij,nmax,MAXNEIGH,"pair:bbij");
+  }
 
   inum = list->inum;
   ilist = list->ilist;

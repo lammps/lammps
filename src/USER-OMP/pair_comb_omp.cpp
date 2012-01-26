@@ -548,16 +548,13 @@ void PairCombOMP::Short_neigh_thr()
 {
 
   if (atom->nmax > nmax) {
-    memory->sfree(sht_num);
-    memory->sfree(sht_first);
-    memory->destroy(NCo);
-    memory->destroy(bbij);
     nmax = atom->nmax;
-    memory->create(NCo,nmax,"pair:NCo");
-    memory->create(bbij,nmax,nmax,"pair:bbij");
-    memory->create(sht_num,nmax,"pair:sht_num");
+    memory->sfree(sht_first);
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
 	    "pair:sht_first");
+    memory->grow(sht_num,nmax,"pair:sht_num");
+    memory->grow(NCo,nmax,"pair:NCo");
+    memory->grow(bbij,nmax,nmax,"pair:bbij");
   }
 
   const int nthreads = comm->nthreads;
@@ -605,8 +602,8 @@ void PairCombOMP::Short_neigh_thr()
 #endif
 	if(pgsize - npntj < oneatom) {
 	  npntj = 0;
-	  npage++;
-	  if (npage == maxpage) add_pages(nthreads);
+	  npage += nthreads;
+	  if (npage >= maxpage) add_pages(nthreads);
 	}
  
 	neighptrj = &pages[npage][npntj];
@@ -623,7 +620,6 @@ void PairCombOMP::Short_neigh_thr()
 	  j = jlist[jj];
 	  j &= NEIGHMASK;
 	  jtype = type[j];
-	  iparam_ij = elem2param[itype][jtype][jtype];
 
 	  delrj[0] = xtmp - x[j][0];
 	  delrj[1] = ytmp - x[j][1];

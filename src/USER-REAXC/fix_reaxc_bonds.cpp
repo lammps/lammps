@@ -89,7 +89,7 @@ void FixReaxCBonds::init()
 		  "pair_style reax/c");
 
   // Notify pair_reax_c to calculation bonding information
-  reaxc->fixspecies_flag = 1;
+  reaxc->fixbond_flag = 1;
 
 }
 

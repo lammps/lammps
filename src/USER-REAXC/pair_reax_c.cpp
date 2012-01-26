@@ -100,6 +100,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   pvector = new double[nextra];
 
   setup_flag = 0;
+
+  fixbond_flag = fixspecies_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

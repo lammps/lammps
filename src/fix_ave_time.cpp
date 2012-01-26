@@ -375,8 +375,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
     } else {
       array_flag = 1;
-      size_local_rows = nrows;
-      size_local_cols = nvalues;
+      size_array_rows = nrows;
+      size_array_cols = nvalues;
       int value;
       for (int i = 0; i < nvalues; i++) {
 	if (which[i] == COMPUTE) {

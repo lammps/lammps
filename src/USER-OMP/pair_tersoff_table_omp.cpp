@@ -108,6 +108,14 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    if (jnum > leadingDimensionInteractionList) {
+      char errmsg[256];
+      sprintf(errmsg,"Too many neighbors for interaction list: %d vs %d.\n"
+	      "Check your system or increase 'leadingDimensionInteractionList'",
+	      jnum, leadingDimensionInteractionList);
+      error->one(FLERR,errmsg);
+    }
+
     // Pre-calculate gteta and cutoff function
     for (int neighbor_j = 0; neighbor_j < jnum; neighbor_j++) {
 

@@ -2,7 +2,7 @@
 # settings for Nvidia CUDA and OpenCL builds
 gpu_SYSINC =
 gpu_SYSLIB = # -lOpenCL -lcudart -lcuda
-gpu_SYSPATH = -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64
+gpu_SYSPATH = -L$(HOME)/cuda/lib64 -Wl,-rpath,$(HOME)/cuda/lib64:$(HOME)/compile/lammps-icms/lib/gpu
 
 # Settings for generic OpenCL BUILDS
 #gpu_SYSINC =

@@ -16,6 +16,7 @@
 #include "pair_tersoff_table_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"

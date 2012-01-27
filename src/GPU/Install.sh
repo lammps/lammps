@@ -126,41 +126,55 @@ elif (test $1 = 0) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
   fi
 
-  rm -f ../pppm_gpu.cpp
+  rm -f ../pair_buck_coul_cut_gpu.cpp
+  rm -f ../pair_buck_coul_long_gpu.cpp
+  rm -f ../pair_buck_gpu.cpp
+  rm -f ../pair_coul_long_gpu.cpp
+  rm -f ../pair_eam_alloy_gpu.cpp
+  rm -f ../pair_eam_fs_gpu.cpp
   rm -f ../pair_eam_gpu.cpp
   rm -f ../pair_gayberne_gpu.cpp
-  rm -f ../pair_resquared_gpu.cpp
-  rm -f ../pair_lj_cut_gpu.cpp
-  rm -f ../pair_morse_gpu.cpp
   rm -f ../pair_lj96_cut_gpu.cpp
-  rm -f ../pair_lj_expand_gpu.cpp
+  rm -f ../pair_lj_charmm_coul_long_gpu.cpp
+  rm -f ../pair_lj_class2_coul_long_gpu.cpp
+  rm -f ../pair_lj_class2_gpu.cpp
   rm -f ../pair_lj_cut_coul_cut_gpu.cpp
   rm -f ../pair_lj_cut_coul_long_gpu.cpp
-  rm -f ../pair_lj_class2_gpu.cpp
-  rm -f ../pair_lj_class2_coul_long_gpu.cpp
-  rm -f ../pair_lj_charmm_coul_long_gpu.cpp
-  rm -f ../pair_lj_sdk_gpu.cpp
+  rm -f ../pair_lj_cut_gpu.cpp
+  rm -f ../pair_lj_expand_gpu.cpp
   rm -f ../pair_lj_sdk_coul_long_gpu.cpp
-  rm -f ../pair_coul_long_gpu.cpp
+  rm -f ../pair_lj_sdk_gpu.cpp
+  rm -f ../pair_morse_gpu.cpp
+  rm -f ../pair_resquared_gpu.cpp
+  rm -f ../pair_table_gpu.cpp
+  rm -f ../pair_yukawa_gpu.cpp
+  rm -f ../pppm_gpu.cpp
 
   rm -f ../fix_gpu.cpp
 
-  rm -f ../pppm_gpu.h
+  rm -f ../pair_buck_coul_cut_gpu.h
+  rm -f ../pair_buck_coul_long_gpu.h
+  rm -f ../pair_buck_gpu.h
+  rm -f ../pair_coul_long_gpu.h
+  rm -f ../pair_eam_alloy_gpu.h
+  rm -f ../pair_eam_fs_gpu.h
   rm -f ../pair_eam_gpu.h
   rm -f ../pair_gayberne_gpu.h
-  rm -f ../pair_resquared_gpu.h
-  rm -f ../pair_lj_cut_gpu.h
-  rm -f ../pair_morse_gpu.h
   rm -f ../pair_lj96_cut_gpu.h
-  rm -f ../pair_lj_expand_gpu.h
+  rm -f ../pair_lj_charmm_coul_long_gpu.h
+  rm -f ../pair_lj_class2_coul_long_gpu.h
+  rm -f ../pair_lj_class2_gpu.h
   rm -f ../pair_lj_cut_coul_cut_gpu.h
   rm -f ../pair_lj_cut_coul_long_gpu.h
-  rm -f ../pair_lj_class2_gpu.h
-  rm -f ../pair_lj_class2_coul_long_gpu.h
-  rm -f ../pair_lj_charmm_coul_long_gpu.h
-  rm -f ../pair_lj_sdk_gpu.h
+  rm -f ../pair_lj_cut_gpu.h
+  rm -f ../pair_lj_expand_gpu.h
   rm -f ../pair_lj_sdk_coul_long_gpu.h
-  rm -f ../pair_coul_long_gpu.h
+  rm -f ../pair_lj_sdk_gpu.h
+  rm -f ../pair_morse_gpu.h
+  rm -f ../pair_resquared_gpu.h
+  rm -f ../pair_table_gpu.h
+  rm -f ../pair_yukawa_gpu.h
+  rm -f ../pppm_gpu.h
 
   rm -f ../fix_gpu.h
   rm -f ../gpu_extra.h

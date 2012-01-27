@@ -89,7 +89,7 @@ communication costs due to the high surface area of each processor's
 sub-domain.
 </P>
 <P>Also note that if multiple partitions are being used then P is the
-number of processors in this partition; see <A HREF = "Section_start.html#start_6">this
+number of processors in this partition; see <A HREF = "Section_start.html#start_7">this
 section</A> for an explanation of the
 -partition command-line switch.  Also note that you can prefix the
 processors command with the <A HREF = "partition.html">partition</A> command to
@@ -236,7 +236,7 @@ dependency bewteen a sending partition <I>Psend</I> and a receiving
 partition <I>Precv</I> which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of <I>Psend</I>
 and <I>Precv</I> must be integers from 1 to Np, where Np is the number of
-partitions you have defined via the <A HREF = "Section_start.html#start_6">-partition command-line
+partitions you have defined via the <A HREF = "Section_start.html#start_7">-partition command-line
 switch</A>.
 </P>
 <P>A "dependency" means that the sending partition will create its 3d
@@ -274,7 +274,7 @@ processors and their mapping to the 3d grid to the specified file
 processors in the manner you desired, which can be tricky to figure
 out, especially when running on multiple partitions or on, a multicore
 machine or when the processor ranks were reordered by use of the
-<A HREF = "Section_start.html#start_6">-reorder command-line switch</A> or due to
+<A HREF = "Section_start.html#start_7">-reorder command-line switch</A> or due to
 use of MPI-specific launch options such as a config file.
 </P>
 <P>If you have multiple partitions you should insure that each one writes
@@ -288,9 +288,9 @@ one-line per processor in this format:
 universe (of multiple simulations), and the original MPI communicator
 used to instantiate LAMMPS, respectively.  The world and universe IDs
 will only be different if you are running on more than one partition;
-see the <A HREF = "Section_start.html#start_6">-partition command-line switch</A>.
+see the <A HREF = "Section_start.html#start_7">-partition command-line switch</A>.
 The universe and original IDs will only be different if you used the
-<A HREF = "Section_start.html#start_6">-reorder command-line switch</A> to reorder
+<A HREF = "Section_start.html#start_7">-reorder command-line switch</A> to reorder
 the processors differently than their rank in the original
 communicator LAMMPS was instantiated with.
 </P>
@@ -320,7 +320,7 @@ option.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "partition.html">partition</A>, <A HREF = "Section_start.html#start_6">-reorder command-line
+<P><A HREF = "partition.html">partition</A>, <A HREF = "Section_start.html#start_7">-reorder command-line
 switch</A>
 </P>
 <P><B>Default:</B>

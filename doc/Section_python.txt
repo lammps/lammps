@@ -31,7 +31,7 @@ packages.  It can be used to glue multiple pieces of software
 together, e.g. to run a coupled or multiscale model.  See "this
 section"_Section_howto.html#howto_10 of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See "Section_start 4"_Section_start.html#start_4 about
+other codes.  See "Section_start 4"_Section_start.html#start_5 about
 how to build LAMMPS as a library, and "this
 section"_Section_howto.html#howto_19 for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
@@ -577,7 +577,7 @@ Add a new interface function to src/library.cpp and
 src/library.h. :ulb,l
 
 Verify the new function is syntactically correct by building LAMMPS as
-a library - see "Section_start 4"_Section_start.html#start_4 of the
+a library - see "Section_start 4"_Section_start.html#start_5 of the
 manual. :l
 
 Add a wrapper method in the Python LAMMPS module to python/lammps.py

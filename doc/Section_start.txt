@@ -14,11 +14,12 @@ experienced users.
 2.1 "What's in the LAMMPS distribution"_#start_1
 2.2 "Making LAMMPS"_#start_2
 2.3 "Making LAMMPS with optional packages"_#start_3
-2.4 "Building LAMMPS as a library"_#start_4
-2.5 "Running LAMMPS"_#start_5
-2.6 "Command-line options"_#start_6
-2.7 "Screen output"_#start_7
-2.8 "Tips for users of previous versions"_#start_8 :all(b)
+2.4 "Building LAMMPS via the Make.py script"_#start_4
+2.5 "Building LAMMPS as a library"_#start_5
+2.6 "Running LAMMPS"_#start_6
+2.7 "Command-line options"_#start_7
+2.8 "Screen output"_#start_8
+2.9 "Tips for users of previous versions"_#start_9 :all(b)
 
 :line
 :line
@@ -50,7 +51,7 @@ then you just get a single file:
 
 lmp_windows.exe :pre
 
-Skip to the "Running LAMMPS"_#start_5 sections for info on how to
+Skip to the "Running LAMMPS"_#start_6 sections for info on how to
 launch these executables on a Windows box.
 
 The Windows executables for serial or parallel only include certain
@@ -87,18 +88,18 @@ pre-built, etc.
 Please read this section carefully.  If you are not comfortable with
 makefiles, or building codes on a Unix platform, or running an MPI job
 on your machine, please find a local expert to help you.  Many
-compiling, linking, and run problems that users have are not really
+compiling, linking, and run problems that users have are often not
 LAMMPS issues - they are peculiar to the user's system, compilers,
 libraries, etc.  Such questions are better answered by a local expert.
 
 If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
-please send an email to the
-"developers"_http://lammps.sandia.gov/authors.html.
+please post a question to the "LAMMPS mail
+list"_http://lammps.sandia.gov/mail.html.
 
 If you succeed in building LAMMPS on a new kind of machine, for which
 there isn't a similar Makefile for in the src/MAKE directory, send it
-to the developers and we'll include it in future LAMMPS releases.
+to the developers and we can include it in the LAMMPS distribution.
 
 :line
 
@@ -419,7 +420,7 @@ above in Step 4.
 
 You can make LAMMPS for multiple platforms from the same src
 directory.  Each target creates its own object sub-directory called
-Obj_name where it stores the system-specific *.o files.
+Obj_target where it stores the system-specific *.o files.
 
 (2) Cleaning up.
 
@@ -470,7 +471,8 @@ secs/timestep.
 
 [{Building for a Mac:}] :link(start_2_5)
 
-OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
+OS X is BSD Unix, so it should just work.  See the
+src/MAKE/Makefile.mac file.
 
 :line
 
@@ -478,7 +480,7 @@ OS X is BSD Unix, so it should just work.  See the Makefile.mac file.
 
 The LAMMPS download page has an option to download both a serial and
 parallel pre-built Windows exeutable.  See the "Running
-LAMMPS"_#start_5 section for instructions for running these
+LAMMPS"_#start_6 section for instructions for running these
 executables on a Windows box.
 
 If the pre-built executable doesn't have the options you want, then
@@ -533,7 +535,7 @@ package.  You can also type
 lmp_machine -h :pre
 
 to run your executable with the optional "-h command-line
-switch"_#start_6 for "help", which will list the styles and commands
+switch"_#start_7 for "help", which will list the styles and commands
 known to your executable.
 
 There are two kinds of packages in LAMMPS, standard and user packages.
@@ -689,7 +691,64 @@ build will likely fail.
 
 :line
 
-2.4 Building LAMMPS as a library :h4,link(start_4)
+2.4 Building LAMMPS via the Make.py script :h4,link(start_4)
+
+The src directory includes a Make.py script, written
+in Python, which can be used to automate various steps
+of the build process.
+
+You can run the script from the src directory by typing either:
+
+Make.py
+python Make.py :pre
+
+which will give you info about the tool.  For the former to work, you
+may need to edit the 1st line of the script to point to your local
+Python.  And you may need to insure the script is executable:
+
+chmod +x Make.py :pre
+
+The following options are supported as switches:
+
+-i file1 file2 ...
+-p package1 package2 ...
+-u package1 package2 ...
+-e package1 arg1 arg2 package2 ...
+-o dir
+-b machine
+-s suffix1 suffix2 ...
+-l dir
+-j N
+-h switch1 switch2 ... :ul
+
+Help on any switch can be listed by using -h, e.g.
+
+Make.py -h -i -p :pre
+
+At a hi-level, these are the kinds of package management
+and build tasks that can be performed easily, using
+the Make.py tool:
+
+install/uninstall packages and build the associated external libs (use -p and -u and -e)
+install packages needed for one or more input scripts (use -i and -p)
+build LAMMPS, either in the src dir or new dir (use -b)
+create a new dir with only the source code needed for one or more input scripts (use -i and -o) :ul
+
+The last bullet can be useful when you wish to build a stripped-down
+version of LAMMPS to run a specific script(s).  Or when you wish to
+move the minimal amount of files to another platform for a remote
+LAMMPS build.
+
+Note that using Make.py is not a substitute for insuring you have a
+valid src/MAKE/Makefile.foo for your system, or that external library
+Makefiles in any lib/* directories you use are also valid for your
+system.  But once you have done that, you can use Make.py to quickly
+include/exclude the packages and external libraries needed by your
+input scripts.
+
+:line
+
+2.5 Building LAMMPS as a library :h4,link(start_5)
 
 LAMMPS itself can be built as a library, which can then be called from
 another application or a scripting language.  See "this
@@ -732,7 +791,7 @@ your needs.
 
 :line
 
-2.5 Running LAMMPS :h4,link(start_5)
+2.6 Running LAMMPS :h4,link(start_6)
 
 By default, LAMMPS runs by reading commands from stdin; e.g. lmp_linux
 < in.file.  This means you first create an input script (e.g. in.file)
@@ -839,7 +898,7 @@ more processors or setup a smaller problem.
 
 :line
 
-2.6 Command-line options :h4,link(start_6)
+2.7 Command-line options :h4,link(start_7)
 
 At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
@@ -1108,7 +1167,7 @@ negative numeric value.  It is OK if the first value1 starts with a
 
 :line
 
-2.7 LAMMPS screen output :h4,link(start_7)
+2.8 LAMMPS screen output :h4,link(start_8)
 
 As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
@@ -1205,7 +1264,7 @@ communication, roughly 75% in the example above.
 
 :line
 
-2.8 Tips for users of previous LAMMPS versions :h4,link(start_8)
+2.9 Tips for users of previous LAMMPS versions :h4,link(start_9)
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed

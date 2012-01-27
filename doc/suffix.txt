@@ -24,7 +24,7 @@ suffix gpu :pre
 
 This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the "-suffix
-command-line switch"_Section_start.html#start_6.  It also has options
+command-line switch"_Section_start.html#start_7.  It also has options
 to turn off/on any suffix setting made via the command line.
 
 The specified style can be {opt}, {omp}, {gpu}, or {cuda}.  These refer to
@@ -77,6 +77,6 @@ commands in your input script.
 
 [Related commands:]
 
-"Command-line switch -suffix"_Section_start.html#start_6
+"Command-line switch -suffix"_Section_start.html#start_7
 
 [Default:] none

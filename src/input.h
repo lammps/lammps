@@ -59,6 +59,7 @@ class Input : protected Pointers {
   void next_command();
   void partition();
   void print();
+  void quit();
   void shell();
   void variable_command();
 

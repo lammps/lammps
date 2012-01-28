@@ -135,6 +135,7 @@ void Error::message(const char *file, int line, const char *str, int logflag)
 }
 
 /* ----------------------------------------------------------------------
+   shutdown LAMMPS
    called by all procs in one world
    close all output, screen, and log files in world
    no abort, so insure all procs in world call, else will hang

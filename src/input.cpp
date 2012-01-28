@@ -420,6 +420,7 @@ int Input::execute_command()
   else if (!strcmp(command,"next")) next_command();
   else if (!strcmp(command,"partition")) partition();
   else if (!strcmp(command,"print")) print();
+  else if (!strcmp(command,"quit")) quit();
   else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
 
@@ -788,6 +789,14 @@ void Input::print()
     if (screen) fprintf(screen,"%s\n",arg[0]);
     if (logfile) fprintf(logfile,"%s\n",arg[0]);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::quit()
+{
+  if (narg) error->all(FLERR,"Illegal quit command");
+  error->done();
 }
 
 /* ---------------------------------------------------------------------- */

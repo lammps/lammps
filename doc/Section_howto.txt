@@ -315,7 +315,7 @@ All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
 the "-partition" command-line switch as described in "this
-section"_Section_start.html#start_6 of the manual.
+section"_Section_start.html#start_7 of the manual.
 
 In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the "index" and "loop" variables were
@@ -357,7 +357,7 @@ for more info on packages.
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
 run-time by using the "-partition command-line
-switch"_Section_start.html#start_6 to launch LAMMPS on multiple
+switch"_Section_start.html#start_7 to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:
 
@@ -365,7 +365,7 @@ mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
 mpirun -np 8 lmp_linux -partition 8x1 -in in.neb :pre
 
 would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the "-in command-line switch"_Section_start.html#start_6 to specify
+of the "-in command-line switch"_Section_start.html#start_7 to specify
 the input script which is required when running in multi-replica mode.
 
 Also note that with MPI installed on a machine (e.g. your desktop),
@@ -659,7 +659,7 @@ strain induced across grain boundaries :l,ule
 :link(quest,http://dft.sandia.gov/Quest)
 :link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
 
-"This section"_Section_start.html#start_4 of the documentation
+"This section"_Section_start.html#start_5 of the documentation
 describes how to build LAMMPS as a library.  Once this is done, you
 can interface with LAMMPS either via C++, C, Fortran, or Python (or
 any other language that supports a vanilla C-like interface).  For
@@ -1649,7 +1649,7 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 6.19 Library interface to LAMMPS :link(howto_19),h4
 
-As described in "Section_start 4"_Section_start.html#start_4, LAMMPS
+As described in "Section_start 4"_Section_start.html#start_5, LAMMPS
 can be built as a library, so that it can be called by another code,
 used in a "coupled manner"_Section_howto.html#howto_10 with other
 codes, or driven through a "Python interface"_Section_python.html.
@@ -1672,7 +1672,7 @@ char *lammps_command(void *, char *); :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line
-arguments"_Section_start.html#start_6 when LAMMPS is run in
+arguments"_Section_start.html#start_7 when LAMMPS is run in
 stand-alone mode from the command line, and a MPI communicator for
 LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
 created, and which is used in subsequent library calls.  The

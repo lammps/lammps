@@ -404,7 +404,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   create();
   post_create();
 
-  // if helpflag set, print help and exit
+  // if helpflag set, print help and quit
 
   if (helpflag) {
     if (universe->me == 0) print_styles();

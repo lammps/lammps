@@ -44,7 +44,7 @@ style exist in LAMMPS:
 Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
 script.  Or you can use the "-suffix command-line
-switch"_Section_start.html#start_6 to invoke the accelerated versions
+switch"_Section_start.html#start_7 to invoke the accelerated versions
 automatically, without changing your input script.  The
 "suffix"_suffix.html command allows you to set a suffix explicitly and
 to turn off/on the comand-line switch setting, both from within your
@@ -312,7 +312,7 @@ Additional input script requirements to run pair or PPPM styles with a
 
 To invoke specific styles from the GPU package, you can either append
 "gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
-"-suffix command-line switch"_Section_start.html#start_6, or use the
+"-suffix command-line switch"_Section_start.html#start_7, or use the
 "suffix"_suffix.html command. :ulb,l
 
 The "newton pair"_newton.html setting must be {off}. :l
@@ -476,7 +476,7 @@ suffix are as follows:
 
 To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
-the "-suffix command-line switch"_Section_start.html#start_6, or use
+the "-suffix command-line switch"_Section_start.html#start_7, or use
 the "suffix"_suffix.html command.  One exception is that the
 "kspace_style pppm/cuda"_kspace_style.html command has to be requested
 explicitly. :ulb,l
@@ -484,7 +484,7 @@ explicitly. :ulb,l
 To use the USER-CUDA package with its default settings, no additional
 command is needed in your input script.  This is because when LAMMPS
 starts up, it detects if it has been built with the USER-CUDA package.
-See the "-cuda command-line switch"_Section_start.html#start_6 for
+See the "-cuda command-line switch"_Section_start.html#start_7 for
 more details. :l
 
 To change settings for the USER-CUDA package at run-time, the "package

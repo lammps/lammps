@@ -40,6 +40,7 @@ class ThrOMP {
   FixOMP *fix; // pointer to fix_omp;
 
   const int thr_style;
+  int thr_error;
 
  public:
   ThrOMP(LAMMPS *, int);

@@ -42,7 +42,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL), thr_style(style)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL),
+					 thr_style(style), thr_error(0)
 {
   // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
@@ -66,6 +67,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
 			  double **vatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
+  if (tid == 0) thr_error = 0;
   
   if (thr_style & THR_PAIR) {
     if (eflag & 2) {

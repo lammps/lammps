@@ -22,7 +22,7 @@ e1,e2,...,eN = one or more LAMMPS commands to execute if no condition is met, ea
 
 [Examples:]
 
-if "$\{steps\} > 1000" then exit
+if "$\{steps\} > 1000" then quit
 if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
 if "($\{eng\} > 0.0) || ($n < 1000)" then &
   "timestep 0.005" &
@@ -77,9 +77,9 @@ else &
   'print "Minimum value = $b"' &
   "minimize 0.001 0.001 1000 10000" :pre
 
-Note that if one of the commands to execute is an invalid LAMMPS
-command, such as "exit" in the first example above, then executing the
-command will cause LAMMPS to halt.
+Note that if one of the commands to execute is "quit"_quit.html (of an
+invalid LAMMPS command such as "blah"), as in the first example above,
+then executing the command will cause LAMMPS to stop.
 
 Note that by jumping to a label in the same input script, the if
 command can be used to break out of a loop.  See the "variable

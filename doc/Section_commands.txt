@@ -366,6 +366,7 @@ in the command's documentation.
 "prd"_prd.html,
 "print"_print.html,
 "processors"_processors.html,
+"quit"_quit.html,
 "read_data"_read_data.html,
 "read_restart"_read_restart.html,
 "region"_region.html,

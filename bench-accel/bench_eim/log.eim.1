@@ -1,0 +1,53 @@
+LAMMPS (23 Sep 2010)
+# EIM benchmark
+# if run long enough (e.g. 1M steps), the unstable CsCl form of a NaCl single
+# crystal can be annealed to the correct NaCl type of NaCl polycrystals
+
+units		metal
+atom_style      atomic
+
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (71.58 143.66 71.58)
+  1 by 1 by 1 processor grid
+  32000 atoms
+  32000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl 
+
+neighbor	0.3 bin
+neigh_modify    delay 0 every 1
+
+timestep        0.0005
+thermo_style    custom step pe pxx pyy pzz temp
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+
+fix             int all npt temp 1400.0 1400.0 0.1 aniso 0.0 0.0 0.1
+# anneal in much longer run
+#fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+run             100
+Memory usage per processor = 14.1747 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0    -90567.58    -117883.6   -118039.81   -117894.07         1400 
+     100   -91997.012   -4104.7052    -4138.276   -4145.8936    944.10136 
+Loop time of 30.8865 on 1 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 28.5253 (92.3552)
+Neigh time (%) = 1.81533 (5.87742)
+Comm  time (%) = 0.0761199 (0.24645)
+Outpt time (%) = 0.000514984 (0.00166734)
+Other time (%) = 0.469253 (1.51928)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    21502 ave 21502 max 21502 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.58216e+06 ave 1.58216e+06 max 1.58216e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1582160
+Ave neighs/atom = 49.4425
+Neighbor list builds = 22
+Dangerous builds = 0

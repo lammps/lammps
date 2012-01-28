@@ -1,0 +1,78 @@
+LAMMPS (28 Sep 2010)
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+# NPT, T=2.4, P=8.0
+
+units	      lj
+atom_style    ellipsoid
+
+# creation
+#lattice	      sc 0.22
+#region	      box block 0 32 0 32 0 32
+#create_box    1 box
+#create_atoms  1 box
+#set	      group all quat/random 982381
+
+read_data     data.gb
+  orthogonal box = (2.19575 2.19575 2.19575) to (50.8124 50.8124 50.8124)
+  1 by 2 by 2 processor grid
+  32768 atoms
+  32768 velocities
+
+mass	      1 1.5
+shape	      1 1 1.5 2
+
+compute	      rot all temp/asphere
+group	      spheroid type 1
+32768 atoms in group spheroid
+variable      dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+compute_modify rot extra 32771
+
+velocity      all create 2.4 41787 loop geom
+
+pair_style    gayberne 1.0 3.0 1.0 4.0
+pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor      0.8 bin
+
+timestep      0.002
+thermo	      20
+
+# equilibration run
+#fix	      1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
+#compute_modify 1_temp extra ${dof}
+#run	      100
+#write_restart tmp.restart
+
+fix	      1 all npt/asphere temp 2.4 2.4 0.2 iso 8.0 8.0 0.2
+run	      100
+Memory usage per processor = 7.94378 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          2.4   0.50438568            0    4.1042758    6.7818168    114909.09 
+      20    2.7422339   0.25762755            0    4.3708529    6.8208107    111751.45 
+      40    2.9305024   0.22869201            0    4.6243115    7.0727264    109551.15 
+      60    2.9988632   0.19988299            0    4.6980405    7.1418773    108506.19 
+      80    3.0296528   0.15459555            0    4.6989361    7.1626702    107800.86 
+     100    3.0391837   0.11042268            0    4.6690592     7.150613    107317.45 
+Loop time of 33.7868 on 4 procs for 100 steps with 32768 atoms
+
+Pair  time (%) = 32.4929 (96.1704)
+Neigh time (%) = 0.11647 (0.344719)
+Comm  time (%) = 0.641545 (1.8988)
+Outpt time (%) = 0.000439525 (0.00130088)
+Other time (%) = 0.53545 (1.58479)
+
+Nlocal:    8192 ave 8220 max 8163 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Nghost:    11953.2 ave 11969 max 11934 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:    575354 ave 579385 max 571106 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+
+Total # of neighbors = 2301415
+Ave neighs/atom = 70.2336
+Neighbor list builds = 4
+Dangerous builds = 0

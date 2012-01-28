@@ -79,7 +79,7 @@ else &
 
 Note that if one of the commands to execute is "quit"_quit.html (of an
 invalid LAMMPS command such as "blah"), as in the first example above,
-then executing the command will cause LAMMPS to stop.
+then executing the command will cause LAMMPS to halt.
 
 Note that by jumping to a label in the same input script, the if
 command can be used to break out of a loop.  See the "variable

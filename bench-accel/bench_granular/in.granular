@@ -1,7 +1,7 @@
 # granular chute flow
 
 units		lj
-atom_style	granular
+atom_style	sphere
 boundary	p p fs
 newton		off
 communicate	single vel yes

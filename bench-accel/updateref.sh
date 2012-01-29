@@ -16,7 +16,7 @@ do \
 
   egrep -v '(LAMMPS|OpenMP|MPI|serial|Memory|Loop|Perform|FFT)' $s \
     | sed -e 's/-0\.0000000000/0.0000000000 /g'   \
-          -e '/^Section.*/,$d' \
+          -e '/^Section.*/,$d' -e '/^.*Pair time.*/,$d' \
     | gzip -9 > refoutput/${t}.gz
   popd
 done

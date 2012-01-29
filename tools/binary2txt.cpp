@@ -20,14 +20,19 @@
 // Creates:           file1.txt file2.txt ...
 
 #include "stdio.h"
-#include "stdlib.h"
 #include "string.h"
 
 // this should match setting in src/lmptype.h
 
-typedef int64_t bigint;
+#include "stdint.h"
+#define __STDC_FORMAT_MACROS
+#include "inttypes.h"
 
-main(int narg, char **arg)
+typedef int tagint;
+typedef int64_t bigint;
+#define BIGINT_FORMAT "%" PRId64
+
+int main(int narg, char **arg)
 {
   int i,j,k,m,n;
   bigint ntimestep,natoms;
@@ -41,7 +46,7 @@ main(int narg, char **arg)
 
   if (narg == 1) {
     printf("Syntax: binary2txt file1 file2 ...\n");
-    exit(1);
+    return 1;
   }
 
   // loop over files
@@ -52,7 +57,7 @@ main(int narg, char **arg)
     FILE *fp = fopen(arg[iarg],"rb");
     if (!fp) {
       printf("ERROR: Could not open %s\n",arg[iarg]);
-      exit(1);
+      return 1;
     }
 
     n = strlen(arg[iarg]) + 1 + 4;
@@ -93,17 +98,10 @@ main(int narg, char **arg)
       fread(&size_one,sizeof(int),1,fp);
       fread(&nchunk,sizeof(int),1,fp);
       
-      if (sizeof(bigint) == 8) {
-	fprintf(fptxt,"ITEM: TIMESTEP\n");
-	fprintf(fptxt,"%ld\n",ntimestep);
-	fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
-	fprintf(fptxt,"%ld\n",natoms);
-      } else if (sizeof(bigint) == 4) {
-	fprintf(fptxt,"ITEM: TIMESTEP\n");
-	fprintf(fptxt,"%d\n",ntimestep);
-	fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
-	fprintf(fptxt,"%d\n",natoms);
-      }
+      fprintf(fptxt,"ITEM: TIMESTEP\n");
+      fprintf(fptxt,BIGINT_FORMAT "\n",ntimestep);
+      fprintf(fptxt,"ITEM: NUMBER OF ATOMS\n");
+      fprintf(fptxt,BIGINT_FORMAT "\n",natoms);
 
       m = 0;
       for (int idim = 0; idim < 3; idim++) {
@@ -156,12 +154,12 @@ main(int narg, char **arg)
 	}
       }
 
-      if (sizeof(bigint) == 8) printf(" %ld",ntimestep);
-      else if (sizeof(bigint) == 4) printf(" %d",ntimestep);
+      printf(" " BIGINT_FORMAT,ntimestep);
       fflush(stdout);
     }
     printf("\n");
   }
 
   if (buf) delete [] buf;
+  return 0;
 }

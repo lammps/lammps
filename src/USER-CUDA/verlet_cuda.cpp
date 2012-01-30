@@ -107,7 +107,7 @@ void VerletCuda::setup()
 	if(cuda->shared_data.me==0)
 	printf("# CUDA: VerletCuda::setup: Allocate memory on device for maximum of %i atoms...\n", atom->nmax);
 	if(cuda->shared_data.me==0)
-	printf("# CUDA: Using precision: Global: %u X: %u V: %u F: %u PPPM: %u \n", CUDA_PRECISION==1?4:8,sizeof(X_FLOAT),sizeof(V_FLOAT),sizeof(F_FLOAT),sizeof(PPPM_FLOAT));
+	printf("# CUDA: Using precision: Global: %i X: %i V: %i F: %i PPPM: %i \n", CUDA_PRECISION==1?4:8,static_cast<int>(sizeof(X_FLOAT)),static_cast<int>(sizeof(V_FLOAT)),static_cast<int>(sizeof(F_FLOAT)),static_cast<int>(sizeof(PPPM_FLOAT)));
 	cuda->allocate();
 	
 
@@ -241,7 +241,10 @@ void VerletCuda::setup()
    cuda->cu_f->download();
    if(cuda->cu_torque)
    cuda->cu_torque->download();
-   
+
+   // run setup for fixes that have implement pre_force()   
+   modify->setup_pre_force(vflag);
+
   //printf("# Verlet::setup: g f[0] = (%f, %f, %f)\n", atom->f[0][0], atom->f[0][1], atom->f[0][2]);
   
   MYDBG( printf("# CUDA: VerletCuda::setup: initial force compute\n"); )
@@ -1065,7 +1068,7 @@ void VerletCuda::test_atom(int aatom, char* string)  //printing properties of on
   if((atom->tag[i]==aatom)&&(i<atom->nlocal))
   	{
   	  
-  	  printf("%i # CUDA %s: %i %i %e %e %e %i ",comm->me,string,update->ntimestep,atom->tag[i],atom->x[i][0],atom->v[i][0],atom->f[i][0],i);  
+  	  printf("%i # CUDA %s: " BIGINT_FORMAT " %i %e %e %e %i ",comm->me,string,update->ntimestep,atom->tag[i],atom->x[i][0],atom->v[i][0],atom->f[i][0],i);  
   	  if(atom->molecular && (i<atom->nlocal))
 	  {
 	  	printf(" // %i %i %i ",atom->num_bond[i],atom->num_angle[i],atom->num_dihedral[i]);

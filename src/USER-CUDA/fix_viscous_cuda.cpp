@@ -34,6 +34,8 @@
 #include "cuda.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
 
 /* ---------------------------------------------------------------------- */
 

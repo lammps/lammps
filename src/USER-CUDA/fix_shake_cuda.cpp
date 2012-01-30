@@ -37,6 +37,8 @@
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
 using namespace MathConst;
 
 #define BIG 1.0e20
@@ -2448,7 +2450,7 @@ int FixShakeCuda::unpack_exchange(int nlocal, double *buf)
    prediction portion is different than Verlet
    rRESPA updating of atom coords is done with full v, but only portions of f
 ------------------------------------------------------------------------- */
-/*
+#if 0
 void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
 {
   // call stats only on outermost level
@@ -2527,6 +2529,7 @@ void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
     else shake3angle(m);
   }
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 

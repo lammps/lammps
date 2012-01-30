@@ -51,6 +51,8 @@
 #include "cuda_modify_flags.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
 
 enum{NOBIAS,BIAS};
 

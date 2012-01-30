@@ -649,6 +649,7 @@ potentials.  Click on the style itself for a full description:
 "gran/hooke/history"_pair_gran.html,
 "hbond/dreiding/lj"_pair_hbond_dreiding.html,
 "hbond/dreiding/morse"_pair_hbond_dreiding.html,
+"kim"_pair_kim.html,
 "line/lj"_pair_line_lj.html,
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,

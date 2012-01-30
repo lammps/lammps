@@ -40,6 +40,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define EV_TO_KCAL_PER_MOL 14.4
 #define SAFE_ZONE       1.2

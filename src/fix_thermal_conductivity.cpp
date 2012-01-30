@@ -28,6 +28,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define BIG 1.0e10
 

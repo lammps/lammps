@@ -41,6 +41,7 @@
 #include <stdio.h>
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 static int get_tid()
 {

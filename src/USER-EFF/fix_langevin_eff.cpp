@@ -38,6 +38,7 @@
 #include "group.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL,ATOM};

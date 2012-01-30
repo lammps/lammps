@@ -29,6 +29,7 @@
 #include "group.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum { SMD_NONE=0, 
        SMD_TETHER=1<<0, SMD_COUPLE=1<<1, 

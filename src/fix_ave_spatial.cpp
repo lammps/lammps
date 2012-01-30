@@ -33,6 +33,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{LOWER,CENTER,UPPER,COORD};
 enum{V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};

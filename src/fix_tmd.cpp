@@ -33,6 +33,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define CHUNK 1000
 #define MAXLINE 256

@@ -27,6 +27,7 @@
 #include "force.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define BIG      1.0e30
 #define EPSILON  1.0e-6

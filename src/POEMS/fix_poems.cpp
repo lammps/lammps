@@ -37,6 +37,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define MAXBODY 2         // currently 2 since only linear chains allowed
 #define DELTA 128

@@ -29,6 +29,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 

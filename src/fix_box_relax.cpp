@@ -31,6 +31,7 @@
 #include "math_extra.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};

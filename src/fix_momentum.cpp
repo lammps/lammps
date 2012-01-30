@@ -20,6 +20,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ----------------------------------------------------------------------
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)

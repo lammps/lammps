@@ -318,7 +318,7 @@ void VerletCuda::setup()
   test_atom(testatom,"post reverse comm");
   
  if(cuda->shared_data.me==0)
-  printf("# CUDA: Total Device Memory useage post setup: %lf MB\n",1.0*CudaWrapper_CheckMemUseage()/1024/1024);
+  printf("# CUDA: Total Device Memory usage post setup: %lf MB\n",1.0*CudaWrapper_CheckMemUseage()/1024/1024);
 
   MYDBG( printf("# CUDA: VerletCuda::setup: call modify setup\n"); )
   modify->setup(vflag);
@@ -485,7 +485,7 @@ void VerletCuda::setup_minimal(int flag)
   test_atom(testatom,"post reverse comm");
   
  if(cuda->shared_data.me==0)
-  printf("# CUDA: Total Device Memory useage post setup: %lf MB\n",1.0*CudaWrapper_CheckMemUseage()/1024/1024);
+  printf("# CUDA: Total Device Memory usage post setup: %lf MB\n",1.0*CudaWrapper_CheckMemUseage()/1024/1024);
 
   MYDBG( printf("# CUDA: VerletCuda::setup: call modify setup\n"); )
   modify->setup(vflag);

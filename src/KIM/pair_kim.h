@@ -83,8 +83,6 @@ class PairKIM : public Pair {
   static void neigh_iterator(void *,int **,int *, int *);
   static void neigh_iterator2(void*, int **, int *, int *,
 			      double **, double **);
-  static void err_treat(char *, int);
-  static void err_treat(int, char *, int);
   static int get_neigh(void **,int *, int *, int *, int *, int **, double **);
 
   static void process_d1Edr_init(KIM_API_model **,
@@ -93,7 +91,8 @@ class PairKIM : public Pair {
   static void process_d1Edr_fast();
   static void process_d1Edr(KIM_API_model **, double *, double *,
 			    double **, int *, int *, int *);
-
+  static void err_treat(const char *, int);
+  static void err_treat(int, const char *, int);
 };
 
 }

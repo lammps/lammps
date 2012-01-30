@@ -171,7 +171,7 @@ void PairKIM::settings(int narg, char **arg)
   strcpy(modelname,arg[0]);
 
   delete [] testname;
-  char *test = "test_LAMMPS";
+  const char *test = "test_LAMMPS";
   n = strlen(test) + 1;
   testname = new char[n];
   strcpy(testname,test);
@@ -368,7 +368,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
   if (key1strun) {  //this block will be changed in case of hybride/composite KIM potential
     int kimerr;
     
-    neighObject_ind = pkim->get_index("neighObject",&kimerr);
+    neighObject_ind = pkim->get_index((char*) "neighObject",&kimerr);
     err_treat(__LINE__,"get_neigh:get_index of : neighObject",kimerr);
     
     
@@ -376,11 +376,11 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
     cout<<"inum="<<neiobj->inum;
     cout<<", ghostflag ="<<neiobj->ghostflag<<" requires full neighbor? :"<<pkim->requiresFullNeighbors()<<endl;
     
-    numberOfAtoms_ind= pkim->get_index("numberOfAtoms",&kimerr);
+    numberOfAtoms_ind= pkim->get_index((char *) "numberOfAtoms",&kimerr);
     err_treat(__LINE__,"get_neigh:get_index of : neighObject",kimerr);
     key1strun=false;
     
-    coordinates_ind= pkim->get_index("coordinates",&kimerr);
+    coordinates_ind= pkim->get_index((char *) "coordinates",&kimerr);
     err_treat(__LINE__,"get_neigh:get_index of : coordinates",kimerr);
     key1strun=false;
   }
@@ -699,9 +699,9 @@ void PairKIM::my_init2()
   err_treat(__LINE__,"get_index_multiple",kimerr);
   
   if(support_atypes){
-    numberAtomTypes_ind = pkim->get_index("numberAtomTypes",&kimerr);
+    numberAtomTypes_ind = pkim->get_index((char *) "numberAtomTypes",&kimerr);
     err_treat(__LINE__,"numberAtomTypes",kimerr);
-    atomTypes_ind = pkim->get_index("atomTypes",&kimerr);
+    atomTypes_ind = pkim->get_index((char *) "atomTypes",&kimerr);
     err_treat(__LINE__,"atomTypes",kimerr);
   }
   
@@ -749,7 +749,7 @@ void PairKIM::set_statics(){ //set pointers that are fixed (never reallocated)
   if(support_atypes)
     pkim->set_data_byi(numberAtomTypes_ind,1,(void *) &(atom->ntypes )) ;
   if ( process_d1Edr_ind >= 0 )
-    pkim->set_data("process_d1Edr",1, (void*) &process_d1Edr);
+    pkim->set_data((char *) "process_d1Edr",1, (void*) &process_d1Edr);
   localnall = (int) (atom->nghost + atom->nlocal);
   int kimerr;
   pkim->set_data_byI_multiple(&kimerr,24,
@@ -761,7 +761,7 @@ void PairKIM::set_statics(){ //set pointers that are fixed (never reallocated)
 			      virialGlobal_ind,1,(void *)&(virial[0]),1);
   err_treat(__LINE__,"set_data_byI_multiple",kimerr);
   
-  pkim->set_data("numberContributingAtoms",1,(void *)&(atom->nlocal));
+  pkim->set_data((char *) "numberContributingAtoms",1,(void *)&(atom->nlocal));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -820,14 +820,15 @@ void PairKIM:: init2zero(KIM_API_model *pkim,int *kimerr)
   virialGlobal_flag = 0;
   virialPerAtom_flag =0;
   int ierGlobal,ierPerAtom;
-  virialGlobal = (double *) pkim->get_data("virialGlobal",&ierGlobal);
-  virialPerAtom = (double *) pkim->get_data("virialPerAtom",&ierPerAtom);
-  numberOfAtoms = (int *) pkim->get_data("numberOfAtoms",kimerr);
+  virialGlobal = (double *) pkim->get_data((char *) "virialGlobal",&ierGlobal);
+  virialPerAtom = (double *) pkim->get_data((char *) "virialPerAtom",
+					    &ierPerAtom);
+  numberOfAtoms = (int *) pkim->get_data((char *) "numberOfAtoms",kimerr);
   //halfNeighbors = !pkim->requiresFullNeighbors();
-  p1_ind = pkim->get_index("process_d1Edr");
+  p1_ind = pkim->get_index((char *) "process_d1Edr");
   if (*kimerr !=KIM_STATUS_OK) return;
   if (ierGlobal == KIM_STATUS_OK && virialGlobal != NULL) {
-    virialGlobal_flag = pkim->isit_compute("virialGlobal");
+    virialGlobal_flag = pkim->isit_compute((char *) "virialGlobal");
     if (virialGlobal_flag==1 && pkim->virialGlobal_need2add){
       virialGlobal[0] =0.0;  virialGlobal[1] =0.0;  virialGlobal[2] =0.0;
       virialGlobal[3] =0.0;  virialGlobal[4] =0.0;  virialGlobal[5] =0.0;
@@ -836,18 +837,15 @@ void PairKIM:: init2zero(KIM_API_model *pkim,int *kimerr)
   }
   
   if (ierPerAtom == KIM_STATUS_OK && virialPerAtom != NULL) {
-    virialPerAtom_flag = pkim->isit_compute("virialPerAtom");
+    virialPerAtom_flag = pkim->isit_compute((char *) "virialPerAtom");
     if (virialPerAtom_flag==1 && pkim->virialPerAtom_need2add) {
       for (int i =0;i<(*numberOfAtoms)*6 ;i++) virialPerAtom[i]=0.0;
       process_d1=true;
     }
   }
-  if (p1_ind >=0){
-    if (process_d1) {
-      pkim->set2_compute("process_d1Edr");
-    } else {
-      pkim->set2_donotcompute("process_d1Edr");
-    }
+  if (p1_ind >= 0) {
+    if (process_d1) pkim->set2_compute((char *) "process_d1Edr");
+    else pkim->set2_donotcompute((char *) "process_d1Edr");
   }
 }
 
@@ -914,14 +912,18 @@ void PairKIM::process_d1Edr(KIM_API_model **ppkim,
 
 /* ---------------------------------------------------------------------- */
 
- void PairKIM::err_treat(char* msg, int errcode)
+void PairKIM::err_treat(const char* msg, int errcode)
 {
-  if (KIM_API_model::report_error(__LINE__,__FILE__,msg,errcode) < 1) exit(327);
+  if (KIM_API_model::report_error(__LINE__,(char *) __FILE__,
+				  (char *) msg,errcode) < 1)
+    exit(327);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::err_treat(int ln,char* msg, int errcode)
+void PairKIM::err_treat(int ln, const char* msg, int errcode)
 {
-  if (KIM_API_model::report_error(ln,__FILE__,msg,errcode) < 1) exit(327);
+  if (KIM_API_model::report_error(ln,(char *) __FILE__,
+				  (char *) msg,errcode) < 1) 
+    exit(327);
 }

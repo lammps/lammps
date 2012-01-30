@@ -301,6 +301,7 @@ void Comm::init()
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication
   // query pair,fix,compute,dump for their requirements
+  // pair style can force reverse comm even if newton off
 
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
@@ -324,6 +325,7 @@ void Comm::init()
   }
 
   if (force->newton == 0) maxreverse = 0;
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
 
   // memory for multi-style communication
 

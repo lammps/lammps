@@ -47,7 +47,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   eng_vdwl = eng_coul = 0.0;
 
-  comm_forward = comm_reverse = 0;
+  comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
   restartinfo = 1;

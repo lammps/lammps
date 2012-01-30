@@ -260,11 +260,13 @@ void PairHybrid::settings(int narg, char **arg)
     nstyles++;
   }
 
-  // set comm_forward, comm_reverse to max of any sub-style
+  // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
 
   for (m = 0; m < nstyles; m++) {
     if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
     if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
+					  styles[m]->comm_reverse_off);
   }
 
   // single_enable = 1 if any sub-style is set

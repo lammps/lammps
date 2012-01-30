@@ -17,6 +17,8 @@ cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      graphical processor (GPU) routines, GPU package
 	        from Mike Brown (ORNL)
+kim           interface to link with OpenKIM library
+	        from Valeriu Smirichinski, www.openkim.org
 linalg        set of BLAS and LAPACK routines needed by USER-ATC package
 	        from Axel Kohlmeyer (Temple U)
 poems	      POEMS rigid-body integration package, POEMS package

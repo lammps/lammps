@@ -59,12 +59,12 @@ Cuda::Cuda(LAMMPS *lmp) : Pointers(lmp)
 	
 	Cuda_Cuda_GetCompileSettings(&shared_data);
 	
-	if(shared_data.compile_settings.prec_glob!=sizeof(CUDA_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: Global Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_glob, sizeof(CUDA_FLOAT)/4);
-	if(shared_data.compile_settings.prec_x!=sizeof(X_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: X Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_x, sizeof(X_FLOAT)/4);
-	if(shared_data.compile_settings.prec_v!=sizeof(V_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: V Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_v, sizeof(V_FLOAT)/4);
-	if(shared_data.compile_settings.prec_f!=sizeof(F_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: F Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_f, sizeof(F_FLOAT)/4);
-	if(shared_data.compile_settings.prec_pppm!=sizeof(PPPM_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: PPPM Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_pppm, sizeof(PPPM_FLOAT)/4);
-	if(shared_data.compile_settings.prec_fft!=sizeof(FFT_FLOAT)/4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: FFT Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_fft, sizeof(FFT_FLOAT)/4);
+	if(shared_data.compile_settings.prec_glob!=static_cast<int>(sizeof(CUDA_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: Global Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_glob, static_cast<int>(sizeof(CUDA_FLOAT)/4));
+	if(shared_data.compile_settings.prec_x!=static_cast<int>(sizeof(X_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: X Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_x, static_cast<int>(sizeof(X_FLOAT)/4));
+	if(shared_data.compile_settings.prec_v!=static_cast<int>(sizeof(V_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: V Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_v, static_cast<int>(sizeof(V_FLOAT)/4));
+	if(shared_data.compile_settings.prec_f!=static_cast<int>(sizeof(F_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: F Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_f, static_cast<int>(sizeof(F_FLOAT)/4));
+	if(shared_data.compile_settings.prec_pppm!=static_cast<int>(sizeof(PPPM_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: PPPM Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_pppm, static_cast<int>(sizeof(PPPM_FLOAT)/4));
+	if(shared_data.compile_settings.prec_fft!=static_cast<int>(sizeof(FFT_FLOAT)/4)) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: FFT Precision: cuda %i cpp %i\n\n",shared_data.compile_settings.prec_fft, static_cast<int>(sizeof(FFT_FLOAT)/4));
     #ifdef FFT_CUFFT
       if(shared_data.compile_settings.cufft!=1) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: cufft: cuda %i cpp %i\n\n",shared_data.compile_settings.cufft, 1);
     #else	

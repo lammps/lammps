@@ -93,7 +93,6 @@ communicate     multi
 fix             1 all nve/limit 0.2
 fix             2 all langevin 1.0 1.0 0.05 18273
 
-thermo_style    multi
-thermo          500
+thermo          10
 
-run             2000
+run             100

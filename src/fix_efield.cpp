@@ -104,21 +104,24 @@ void FixEfield::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
+    if (xvar < 0) error->all(FLERR,
+			     "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
+    if (yvar < 0) error->all(FLERR,
+			     "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,"Variable name for fix efield does not exist");
+    if (zvar < 0) error->all(FLERR,
+			     "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");

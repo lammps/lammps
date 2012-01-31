@@ -14,7 +14,7 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CUDA_INSTALL_PATH = /usr/local/cuda
+CUDA_INSTALL_PATH = $(HOME)/cuda
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 

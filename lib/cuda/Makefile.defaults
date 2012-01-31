@@ -1,9 +1,9 @@
 
 #precision setting: 1 single, 2 double, 4 mixed
-precision ?= 1
+precision ?= 4
 
 #GPU architecture (compute capability): 13, 20, 21
-arch ?= 21
+arch ?= 20
 
 #Using cufft (should not be changed)
 cufft ?= 1

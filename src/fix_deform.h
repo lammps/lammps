@@ -58,6 +58,8 @@ class FixDeform : public Fix {
     double tilt_min,tilt_max;
     double vol_initial,vol_start;
     int fixed,dynamic1,dynamic2;
+    char *hstr,*hratestr;
+    int hvar,hratevar;
   };
   Set *set;
 

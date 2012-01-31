@@ -39,6 +39,7 @@ class Pair : protected Pointers {
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
+  int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
   int restartinfo;               // 1 if pair style writes restart info

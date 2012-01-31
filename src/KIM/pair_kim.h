@@ -49,6 +49,8 @@ class PairKIM : public Pair {
 
   // KIM data
 
+  static PairKIM *self;
+
   KIM_API_model *pkim;
   int coordinates_ind,numberOfAtoms_ind,numberAtomTypes_ind;
   int atomTypes_ind,compute_ind;
@@ -69,6 +71,7 @@ class PairKIM : public Pair {
   int *atypeMapKIM;
   int *atomTypes;      // atom types converted to KIM indices
 
+  void kim_error(int, const char *, int);
   void my_init();
   void my_init2();
   void my_free();
@@ -88,11 +91,8 @@ class PairKIM : public Pair {
   static void process_d1Edr_init(KIM_API_model **,
 				 double *, double *, double **,
 				 int *, int *, int *);
-  static void process_d1Edr_fast();
   static void process_d1Edr(KIM_API_model **, double *, double *,
 			    double **, int *, int *, int *);
-  static void err_treat(const char *, int);
-  static void err_treat(int, const char *, int);
 };
 
 }

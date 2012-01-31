@@ -53,6 +53,11 @@ PairKIM::PairKIM(LAMMPS *lmp) : Pair(lmp)
   modelname = NULL;
   testname = NULL;
 
+  maxall = 0;
+  kimtype = NULL;
+
+  // static pointer that static callbacks can use to access class variables
+
   self = this;
 
   // reverse comm even if newton off
@@ -71,63 +76,86 @@ PairKIM::~PairKIM()
   delete [] modelname;
   delete [] testname;
 
-  my_free();
+  memory->destroy(kimtype);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
   }
+
+  kim_free();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairKIM::compute(int eflag , int vflag)
 {
+  int kimerr;
+
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 
-	 vflag_global = vflag_atom = 0;
+  else evflag = eflag_global = eflag_atom = vflag_global = vflag_atom = 0;
+
+  // grow kimtype array if necessary
+  // needs to be atom->nmax in length
+
+  if (atom->nmax > maxall) {
+    memory->destroy(kimtype);
+    maxall = atom->nmax;
+    memory->create(kimtype,maxall,"pair:kimtype");
+  }
+
+  // kimtype = KIM atom type for each LAMMPS atom
+  // set ielement to valid 0 if map[] stores an un-used -1
+
+  int *type = atom->type;
+  int nall = atom->nlocal + atom->nghost;
+  int ielement;
+
+  for (int i = 0; i < nall; i++) {
+    ielement = map[type[i]];
+    ielement = MAX(ielement,0);
+    kimtype[i] = atypeMapKIM[2*ielement+1];
+  }
+
+  // pass current atom pointers to KIM
 
   set_volatiles();
 
-  int energyPerAtom_flag,virialPerAtom_flag,virialGlobal_flag;
-  int kimerr;
+  // set callback for virial tallying if necessary
 
-  if (eflag_atom==1)  energyPerAtom_flag=1;
-  else                energyPerAtom_flag=0;
-
-  if (vflag_atom==1)  virialPerAtom_flag=1;
-  else                virialPerAtom_flag=0;
-
-  if (vflag_global ==1) virialGlobal_flag =1;
-  else                  virialGlobal_flag =0;
-
-  int process_d1Edr_flag=0; 
-  if (process_d1Edr_ind >= 0) {
-    if (vflag_atom==1 || vflag_global==1) process_d1Edr_flag =1;
-    else process_d1Edr_flag=0;
-  }
+  int process_d1Edr_flag = 0; 
+  if (process_d1Edr_ind >= 0 && (vflag_atom || vflag_global))
+    process_d1Edr_flag = 1;
 
   pkim->set_compute_byI_multiple(&kimerr,12, energyPerAtom_ind,
-				 energyPerAtom_flag,1,
-				 virialPerAtom_ind,virialPerAtom_flag,1,
-				 virialGlobal_ind,virialGlobal_flag,1,
+				 eflag_atom,1,
+				 virialPerAtom_ind,vflag_atom,1,
+				 virialGlobal_ind,vflag_global,1,
 				 process_d1Edr_ind,process_d1Edr_flag,1);
   kim_error(__LINE__,"set_compute_byI_multiple",kimerr);
 
+  // KIM initialization
   init2zero(pkim,&kimerr);
   kim_error(__LINE__,"PairKIM::init2zero(..)",kimerr);
+
+  // compute energy, forces, virial via KIM model
 
   pkim->model_compute(&kimerr);
   kim_error(__LINE__,"PairKIM::pkim->model_compute() error",kimerr);
 
+  // reverse comm for ghost atoms
+  // required even when newton flag is off
+
   comm->reverse_comm_pair(this);
   
-  if (virialGlobal_flag==1 && !pkim->virialGlobal_need2add)
-    for(int i=0; i<6;i++) virial[i]=-1.0*virial[i];
-  if (virialPerAtom_flag==1 && !pkim->virialPerAtom_need2add)
-    for(int i = 0; i < atom->nlocal; i++) 
-      for(int j=0; j<6;j++) vatom[i][j] = -1.0*vatom[i][j];
+  // flip sign of virial
+
+  if (vflag_global && !pkim->virialGlobal_need2add)
+    for (int i = 0; i < 6; i++) virial[i] = -1.0*virial[i];
+  if (vflag_atom && !pkim->virialPerAtom_need2add)
+    for (int i = 0; i < atom->nlocal; i++) 
+      for (int j = 0; j < 6; j++) vatom[i][j] = -1.0*vatom[i][j];
 }
  
 /* ----------------------------------------------------------------------
@@ -216,7 +244,7 @@ void PairKIM::coeff(int narg, char **arg)
 
   // KIM initialization
 
-  my_init();
+  kim_init();
   if (!pkim->model_init())
     kim_error(__LINE__,"KIM API:model_init() failed",-1);
 
@@ -338,6 +366,16 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays 
+------------------------------------------------------------------------- */
+
+double PairKIM::memory_usage()
+{
+  double bytes = maxall * sizeof(int);
+  return bytes;
+}
+
+/* ----------------------------------------------------------------------
    KIM-specific interface
 ------------------------------------------------------------------------- */
 
@@ -456,27 +494,20 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::my_free(){
-    int kimerr;
-    pkim->model_destroy(&kimerr);
-  
-    pkim->free();
-  
-    delete  pkim;
-    if (atypeMapKIM != NULL) delete [] atypeMapKIM;
-    if (atomTypes!=NULL) delete [] atomTypes;
+void PairKIM::kim_free()
+{
+  int kimerr;
+  pkim->model_destroy(&kimerr);
+  pkim->free();
+  delete pkim;
+  delete [] atypeMapKIM;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::my_init()
+void PairKIM::kim_init()
 {
-  support_atypes=true;
-  //if (narg == 0) support_atypes=false;
-
-  // the section has to be done once?*********************
-  // get paths
-
+  support_atypes = true;
   strcpy(modelfile,"");
   strcpy(testfile,"");
   char * kim_dir =getenv("KIM_DIR");
@@ -491,7 +522,7 @@ void PairKIM::my_init()
     strcat(modelfile,kim_dir);strcat(modelfile,"MODELs/");
     strcat(modelfile,modelname); strcat(modelfile,"/");
     strcat(modelfile,modelname); strcat(modelfile,".kim");
-  }else{
+  } else {
     strcat(modelfile,kim_models_dir);strcat(modelfile,modelname);
     strcat(modelfile,"/");
     strcat(modelfile,modelname);
@@ -509,170 +540,152 @@ void PairKIM::my_init()
 		    "LAMMPS unit_style must be metal to "
 		    "work with KIM models",-12);
   
-    // create temporary kim file
+  // create temporary kim file
 
-    test_descriptor_string = new char[80*60];
-    for(int i=50;i<80*60;i++) test_descriptor_string[i]='\0';
+  test_descriptor_string = new char[80*60];
+  for (int i=50;i<80*60;i++) test_descriptor_string[i]='\0';
+  
+  // 1. write atomic header and atomic type spec
+  
+  int i_s;
+  sprintf(test_descriptor_string,
+	  "# This file is automatically generated from LAMMPS "
+	  "pair_style PairKIM command\n");
+  i_s=strlen(test_descriptor_string);
+  
+  sprintf(&test_descriptor_string[i_s],"TEST_NAME :=%s\n" ,testname);
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"#Unit_Handling := flexible\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"Unit_length := A\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"Unit_energy := eV \n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"Unit_charge := e\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"Unit_temperature := K\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"Unit_time := fs\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"SUPPORTED_ATOM/PARTICLES_TYPES:\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s], 
+	  "# Simbol/name           Type            code\n");
+  int code=1;
+  for (int i=0; i < nelements; i++){
+    i_s=strlen(test_descriptor_string);
+    sprintf(&test_descriptor_string[i_s],"%s\t\t\tspec\t\t%d\n",
+	    elements[i],code++);
+  }
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"\n");
+  
+  // 2. conventions
+  
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],				\
+	  "CONVENTIONS:\n# Name                  Type\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s], "ZeroBasedLists           flag\n\n");
+  i_s=strlen(test_descriptor_string);
+  
+  // can use iterator or locator neighbor mode, unless hybrid
+  
+  int iterator_only = 0;
+  if (force->pair_match("hybrid",0)) iterator_only = 1;
+  if (iterator_only)
+    sprintf(&test_descriptor_string[i_s],"Neigh_IterAccess         flag\n\n");
+  else
+    sprintf(&test_descriptor_string[i_s],"Neigh_BothAccess         flag\n\n");
+  
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-H             flag\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-F             flag\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"NEIGH-RVEC-F             flag\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"CLUSTER                  flag\n\n");
+  
+  // 3. input-output
+  
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],"MODEL_INPUT:\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "# Name                  Type         Unit       Shape\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "numberOfAtoms           integer      none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "numberContributingAtoms    integer      none    []\n\n");
+  
+  if (support_atypes){
+    i_s=strlen(test_descriptor_string);
+    sprintf(&test_descriptor_string[i_s],
+	    "numberAtomTypes         integer      none []\n\n");
+    i_s=strlen(test_descriptor_string);
+    sprintf(&test_descriptor_string[i_s],
+	    "atomTypes               integer      none [numberOfAtoms]\n\n");
+  }
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "coordinates             real*8       length     "
+	  "[numberOfAtoms,3]\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "neighObject             pointer      none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "get_half_neigh          method       none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "get_full_neigh          method       none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s], "MODEL_OUPUT:\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "# Name                  Type         Unit       Shape\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "compute                 method       none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "destroy                 method       none       []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "cutoff                  real*8       length     []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "energy                  real*8       energy     []\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "forces                  real*8       force      "
+	  "[numberOfAtoms,3]\n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "energyPerAtom           real*8       energy    "
+	  "[numberOfAtoms]\n\n");
+  //virial and virial per atom will be added here
+  //  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s], 
+	  "virialGlobal          real*8       pressure    [6] \n\n\0");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "process_d1Edr        method       none   [] \n\n");
+  i_s=strlen(test_descriptor_string);
+  sprintf(&test_descriptor_string[i_s],
+	  "virialPerAtom         real*8       pressure   "
+	  "[numberOfAtoms,6] \n\n\0");
+  
+  // kim file created now init and maptypes
 
-    // 1. write atomic header and atomic type spec
-
-    int i_s;
-    sprintf(test_descriptor_string,
-	    "# This file is automatically generated from LAMMPS "
-	    "pair_style PairKIM command\n");
-    i_s=strlen(test_descriptor_string);
-    
-    sprintf(&test_descriptor_string[i_s],"TEST_NAME :=%s\n" ,testname);
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"#Unit_Handling := flexible\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"Unit_length := A\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"Unit_energy := eV \n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"Unit_charge := e\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"Unit_temperature := K\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"Unit_time := fs\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"SUPPORTED_ATOM/PARTICLES_TYPES:\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s], 
-	    "# Simbol/name           Type            code\n");
-    int code=1;
-    for (int i=0; i < nelements; i++){
-      i_s=strlen(test_descriptor_string);
-      sprintf(&test_descriptor_string[i_s],"%s\t\t\tspec\t\t%d\n",
-	      elements[i],code++);
-    }
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"\n");
-    
-    // 2. conventions
-
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s], \
-	    "CONVENTIONS:\n# Name                  Type\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s], "ZeroBasedLists           flag\n\n");
-    i_s=strlen(test_descriptor_string);
-
-    // can use iterator or locator neighbor mode, unless hybrid
-
-    int iterator_only = 0;
-    if (force->pair_match("hybrid",0)) iterator_only = 1;
-    if (iterator_only)
-      sprintf(&test_descriptor_string[i_s],"Neigh_IterAccess         flag\n\n");
-    else
-      sprintf(&test_descriptor_string[i_s],"Neigh_BothAccess         flag\n\n");
-
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-H             flag\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-F             flag\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"NEIGH-RVEC-F             flag\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"CLUSTER                  flag\n\n");
-    
-    // 3. input-output
-
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],"MODEL_INPUT:\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "# Name                  Type         Unit       Shape\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "numberOfAtoms           integer      none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "numberContributingAtoms    integer      none    []\n\n");
-    
-    if (support_atypes){
-      i_s=strlen(test_descriptor_string);
-      sprintf(&test_descriptor_string[i_s],
-	      "numberAtomTypes         integer      none []\n\n");
-      i_s=strlen(test_descriptor_string);
-      sprintf(&test_descriptor_string[i_s],
-	      "atomTypes               integer      none [numberOfAtoms]\n\n");
-    }
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "coordinates             real*8       length     "
-	    "[numberOfAtoms,3]\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "neighObject             pointer      none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "get_half_neigh          method       none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "get_full_neigh          method       none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s], "MODEL_OUPUT:\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "# Name                  Type         Unit       Shape\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "compute                 method       none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "destroy                 method       none       []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "cutoff                  real*8       length     []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "energy                  real*8       energy     []\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "forces                  real*8       force      "
-	    "[numberOfAtoms,3]\n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "energyPerAtom           real*8       energy    "
-	    "[numberOfAtoms]\n\n");
-    //virial and virial per atom will be added here
-    //  i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s], 
-	    "virialGlobal          real*8       pressure    [6] \n\n\0");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "process_d1Edr        method       none   [] \n\n");
-    i_s=strlen(test_descriptor_string);
-    sprintf(&test_descriptor_string[i_s],
-	    "virialPerAtom         real*8       pressure   "
-	    "[numberOfAtoms,6] \n\n\0");
-    
-    //.kim file created now init and maptypes
-    
-    my_init2();
-    
-    create_atypeMapKIM();
-
-    //check if Rij needed for get_neigh
-    char * NBC_method =(char *) pkim->get_NBC_method(&kimerr);
-    self->kim_error(__LINE__,"NBC method not set",kimerr);
-    support_Rij=false;
-    if (strcmp(NBC_method,"NEIGH-RVEC-F")==0) support_Rij=true;
-    delete [] NBC_method;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairKIM::my_init2()
-{
   pkim = new KIM_API_model();
   if (!pkim->init_str_testname(test_descriptor_string,modelname))
     error->all(FLERR,"KIM initialization failed");
   
   delete [] test_descriptor_string;
-  
-  int kimerr=0;
     
   // get correct index of each variable in kim_api object
   
@@ -699,12 +712,9 @@ void PairKIM::my_init2()
   }
   
   set_statics();
-}
 
-/* ---------------------------------------------------------------------- */
+  // setup mapping between LAMMPS and KIM atom types
 
-void PairKIM:: create_atypeMapKIM()
-{
   atypeMapKIM = new int[2*nelements];
   for(int i = 0; i < nelements; i++){
     atypeMapKIM[i*2 + 0] = i;
@@ -712,32 +722,18 @@ void PairKIM:: create_atypeMapKIM()
     atypeMapKIM[i*2 + 1] = pkim->get_aTypeCode(elements[i],&kimerr);
     self->kim_error(__LINE__,"create_atypeMapKIM: symbol not found ",kimerr);
   }
-  atomTypes=NULL;
+
+  // check if Rij needed for get_neigh
+  
+  char * NBC_method =(char *) pkim->get_NBC_method(&kimerr);
+  self->kim_error(__LINE__,"NBC method not set",kimerr);
+  support_Rij=false;
+  if (strcmp(NBC_method,"NEIGH-RVEC-F")==0) support_Rij=true;
+  delete [] NBC_method;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::atypeMap2KIM()
-{
-  static long long n=0;
-  if (n!= (long long)localnall) {
-    n=(long long)localnall;
-    if (atomTypes != NULL) delete [] atomTypes;
-    atomTypes = new int[n];
-  }
-
-  int itype;
-  int *type = atom->type;
-
-  for (int i= 0; i < (int) n; i++) {
-    itype = map[type[i]];
-    itype = MAX(itype,0);
-    atomTypes[i] = atypeMapKIM[2*itype+1];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-//set pointers that are fixed (never reallocated)
 void PairKIM::set_statics()
 { 
   if(support_atypes)
@@ -761,7 +757,7 @@ void PairKIM::set_statics()
 /* ---------------------------------------------------------------------- */
 
 void PairKIM::set_volatiles()
-{ //set pointers that might be reallocated
+{
   localnall = (int) (atom->nghost + atom->nlocal);
   bigint nall = (bigint) localnall;
     
@@ -770,10 +766,8 @@ void PairKIM::set_volatiles()
   pkim->set_data_byi(energyPerAtom_ind,nall,  (void *)this->eatom) ;
   pkim->set_data_byi(neighObject_ind,1,  (void *)this->list) ;
   
-  if(support_atypes) {
-    atypeMap2KIM();
-    pkim->set_data_byi(atomTypes_ind,nall,  (void *) atomTypes) ;
-  }
+  if (support_atypes)
+    pkim->set_data_byi(atomTypes_ind,nall,  (void *) kimtype) ;
   
   if(vflag_atom != 1) {
     (*pkim)[virialPerAtom_ind].flag->calculate = 0;
@@ -807,7 +801,7 @@ namespace process_fij_4_pair_KIM
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM:: init2zero(KIM_API_model *pkim,int *kimerr)
+void PairKIM::init2zero(KIM_API_model *pkim, int *kimerr)
 {
   using namespace process_fij_4_pair_KIM;
   int p1_ind=-1;bool process_d1=false;

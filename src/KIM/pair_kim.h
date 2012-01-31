@@ -37,13 +37,17 @@ class PairKIM : public Pair {
   double init_one(int, int);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
+  double memory_usage();
 
  private:
-  double cut_global;
+  double cut_global;            // returned from KIM model
 
   char **elements;              // names of unique elements
   int *map;                     // mapping from atom types to elements
   int nelements;                // # of unique elements
+
+  int maxall;
+  int *kimtype;                 // KIM atom types for each LAMMPS atom
 
   void allocate();
 
@@ -68,29 +72,20 @@ class PairKIM : public Pair {
   char modelfile[160];
   char *test_descriptor_string;
 
-  int *atypeMapKIM;
-  int *atomTypes;      // atom types converted to KIM indices
+  int *atypeMapKIM;              // one pair of values per KIM element used
+                                 // 1st value = element index
+                                 // 2nd value = KIM atom type
 
   void kim_error(int, const char *, int);
-  void my_init();
-  void my_init2();
-  void my_free();
-  void create_atypeMapKIM();
-  void atypeMap2KIM();
+  void kim_init();
+  void kim_free();
   void set_statics();
   void set_volatiles();
   void init2zero(KIM_API_model *, int *);
 
   // static methods used as callbacks from KIM
 
-  static void neigh_iterator(void *,int **,int *, int *);
-  static void neigh_iterator2(void*, int **, int *, int *,
-			      double **, double **);
   static int get_neigh(void **,int *, int *, int *, int *, int **, double **);
-
-  static void process_d1Edr_init(KIM_API_model **,
-				 double *, double *, double **,
-				 int *, int *, int *);
   static void process_d1Edr(KIM_API_model **, double *, double *,
 			    double **, int *, int *, int *);
 };

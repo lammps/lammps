@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Valeriu Smirichinski, Ryan S. Elliott,
-                         Ellad B. Tadmor (U Minn)
+   Contributing authors: Valeriu Smirichinski, Ryan Elliott, 
+                         Ellad Tadmor (U Minn)
 ------------------------------------------------------------------------- */
 
 #include "math.h"

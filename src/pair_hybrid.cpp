@@ -197,8 +197,8 @@ void PairHybrid::settings(int narg, char **arg)
   allocated = 0;
 
   // count sub-styles by skipping numeric args
-  // exception is 1st arg of table style, which is non-numeric word
-  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st arg of table styles, which is non-numeric word
+  // exception is 1st two args of lj/coul styles, which are non-numeric
   // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
   // execption is 1st 6 args of gran styles, which can have NULLs
@@ -207,12 +207,12 @@ void PairHybrid::settings(int narg, char **arg)
   nstyles = 0;
   i = 0;
   while (i < narg) {
-    if (strcmp(arg[i],"table") == 0) i++;
-    if (strcmp(arg[i],"lj/coul") == 0) i += 2;
-    if (strcmp(arg[i],"buck/coul") == 0) i += 2;
+    if (strncmp(arg[i],"table",5) == 0) i++;
+    if (strncmp(arg[i],"lj/coul",7) == 0) i += 2;
+    if (strncmp(arg[i],"buck/coul",9) == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
-    if (strstr(arg[i],"gran/hooke")) i += 6;
-    if (strstr(arg[i],"gran/hertz")) i += 6;
+    if (strncmp(arg[i],"gran/hooke",10)) i += 6;
+    if (strncmp(arg[i],"gran/hertz",10)) i += 6;
     i++;
     while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     nstyles++;
@@ -225,8 +225,8 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style and call its settings() with subset of args
   // define subset of args for a sub-style by skipping numeric args
-  // exception is 1st arg of table style, which is non-numeric word
-  // exception is 1st two args of lj/coul style, which are non-numeric
+  // exception is 1st arg of table styles, which is non-numeric word
+  // exception is 1st two args of lj/coul styles, which are non-numeric
   // exception is 1st two args of buck/coul, which are non-numeric
   // exception is 1st arg of reax/c style, which is non-numeric
   // execption is 1st 6 args of gran styles, which can have NULLs
@@ -248,12 +248,12 @@ void PairHybrid::settings(int narg, char **arg)
     keywords[nstyles] = new char[strlen(arg[i])+1];
     strcpy(keywords[nstyles],arg[i]);
     istyle = i;
-    if (strcmp(arg[i],"table") == 0) i++;
-    if (strcmp(arg[i],"lj/coul") == 0) i += 2;
-    if (strcmp(arg[i],"buck/coul") == 0) i += 2;
+    if (strncmp(arg[i],"table",5) == 0) i++;
+    if (strncmp(arg[i],"lj/coul",7) == 0) i += 2;
+    if (strncmp(arg[i],"buck/coul",9) == 0) i += 2;
     if (strcmp(arg[i],"reax/c") == 0) i++;
-    if (strstr(arg[i],"gran/hooke")) i += 6;
-    if (strstr(arg[i],"gran/hertz")) i += 6;
+    if (strncmp(arg[i],"gran/hooke",10)) i += 6;
+    if (strncmp(arg[i],"gran/hertz",10)) i += 6;
     i++;
     while (i < narg && (!isalpha(arg[i][0]) || strcmp(arg[i],"NULL") == 0)) i++;
     styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);

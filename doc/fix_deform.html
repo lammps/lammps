@@ -25,7 +25,7 @@
 
 <PRE>parameter = <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>xz</I> or <I>yz</I>
   <I>x</I>, <I>y</I>, <I>z</I> args = style value(s)
-    style = <I>final</I> or <I>delta</I> or <I>scale</I> or <I>vel</I> or <I>erate</I> or <I>trate</I> or <I>volume</I> or <I>wiggle</I>
+    style = <I>final</I> or <I>delta</I> or <I>scale</I> or <I>vel</I> or <I>erate</I> or <I>trate</I> or <I>volume</I> or <I>wiggle</I> or <I>variable</I>
       <I>final</I> values = lo hi
         lo hi = box boundaries at end of run (distance units)
       <I>delta</I> values = dlo dhi
@@ -40,9 +40,12 @@
       <I>trate</I> value = R
         R = true strain rate (1/time units)
       <I>volume</I> value = none = adjust this dim to preserve volume of system
-      <I>wiggle</I> value = A Tp
+      <I>wiggle</I> values = A Tp
         A = amplitude of oscillation (distance units)
 	Tp = period of oscillation (time units)
+      <I>variable</I> values = v_name1 v_name2
+        v_name1 = variable with name1 for box length change as function of time
+	v_name2 = variable with name2 for change rate as function of time
   <I>xy</I>, <I>xz</I>, <I>yz</I> args = style value
     style = <I>final</I> or <I>delta</I> or <I>vel</I> or <I>erate</I> or <I>trate</I> or <I>wiggle</I>
       <I>final</I> value = tilt
@@ -56,9 +59,12 @@
         R = engineering shear strain rate (1/time units)
       <I>trate</I> value = R
         R = true shear strain rate (1/time units)
-      <I>wiggle</I> value = A Tp
+      <I>wiggle</I> values = A Tp
         A = amplitude of oscillation (distance units)
-	Tp = period of oscillation (time units) 
+	Tp = period of oscillation (time units)
+      <I>variable</I> values = v_name1 v_name2
+        v_name1 = variable with name1 for tilt change as function of time
+	v_name2 = variable with name2 for change rate as function of time 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -244,8 +250,40 @@ negative then the box initially contracts, then expands, etc.  The
 amplitude can be in lattice or box distance units.  See the discussion
 of the units keyword below.
 </P>
-<P>For the <I>scale</I>, <I>vel</I>, <I>erate</I>, <I>trate</I>, <I>volume</I>, and <I>wiggle</I>
-styles, the box length is expanded or compressed around its mid point.
+<P>The <I>variable</I> style changes the specified box length dimension by
+evaluating a variable, which presumably is a function of time.  The
+variable with <I>name1</I> must be an <A HREF = "variable.html">equal-style variable</A>
+and should calculate a change in box length in units of distance.
+Note that this distance is in box units, not lattice units; see the
+discussion of the <I>units</I> keyword below.  The formula associated with
+variable <I>name1</I> can reference the current timestep.  Note that it
+should return the "change" in box length, not the absolute box length.
+This means it should evaluate to 0.0 when invoked on the initial
+timestep of the run following the definition of fix deform.  It should
+evaluate to a value > 0.0 to dilate the box at future times, or a
+value < 0.0 to compress the box.
+</P>
+<P>The variable <I>name2</I> must also be an <A HREF = "variable.html">equal-style
+variable</A> and should calculate the rate of box length
+change, in units of distance/time, i.e. the time-derivative of the
+<I>name1</I> variable.  This quantity is used internally by LAMMPS to reset
+atom velocities when they cross periodic boundaries.  It is computed
+internally for the other styles, but you must provide it when using an
+arbitrary variable.
+</P>
+<P>Here is an example of using the <I>variable</I> style to perform the same
+box deformation as the <I>wiggle</I> style formula listed above, where we
+assume that the current timestep = 0.
+</P>
+<PRE>variable A equal 10.0
+variable Tp equal 3.0
+variable displace equal "v_A * sin(2*pi * step/v_Tp)"
+variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
+fix 1 all deform 10 x variable v_displace v_rate 
+</PRE>
+<P>For the <I>scale</I>, <I>vel</I>, <I>erate</I>, <I>trate</I>, <I>volume</I>, <I>wiggle</I>, and
+<I>variable</I> styles, the box length is expanded or compressed around its
+mid point.
 </P>
 <HR>
 
@@ -350,7 +388,38 @@ becomes more negative, then more positive, etc.  The amplitude can be
 in lattice or box distance units.  See the discussion of the units
 keyword below.
 </P>
-<P>All of these styles change the xy, xz, yz tilt factors during a
+<P>The <I>variable</I> style changes the specified tilt factor by evaluating a
+variable, which presumably is a function of time.  The variable with
+<I>name1</I> must be an <A HREF = "variable.html">equal-style variable</A> and should
+calculate a change in tilt in units of distance.  Note that this
+distance is in box units, not lattice units; see the discussion of the
+<I>units</I> keyword below.  The formula associated with variable <I>name1</I>
+can reference the current timestep.  Note that it should return the
+"change" in tilt factor, not the absolute tilt factor.  This means it
+should evaluate to 0.0 when invoked on the initial timestep of the run
+following the definition of fix deform.
+</P>
+<P>The variable <I>name2</I> must also be an <A HREF = "variable.html">equal-style
+variable</A> and should calculate the rate of tilt change,
+in units of distance/time, i.e. the time-derivative of the <I>name1</I>
+variable.  This quantity is used internally by LAMMPS to reset atom
+velocities when they cross periodic boundaries.  It is computed
+internally for the other styles, but you must provide it when using an
+arbitrary variable.
+</P>
+<P>Here is an example of using the <I>variable</I> style to perform the same
+box deformation as the <I>wiggle</I> style formula listed above, where we
+assume that the current timestep = 0.
+</P>
+<PRE>variable A equal 10.0
+variable Tp equal 3.0
+variable displace equal "v_A * sin(2*pi * step/v_Tp)"
+variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
+fix 1 all deform 10 xy variable v_displace v_rate 
+</PRE>
+<HR>
+
+<P>All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
 are always bounded by half the distance of the parallel box length.
 For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
@@ -429,7 +498,10 @@ units = real or metal.  A <I>lattice</I> value means the distance units are
 in lattice spacings.  The <A HREF = "lattice.html">lattice</A> command must have
 been previously used to define the lattice spacing.  Note that the
 units choice also affects the <I>vel</I> style parameters since it is
-defined in terms of distance/time.
+defined in terms of distance/time.  Also note that the units keyword
+does not affect the <I>variable</I> style.  You should use the <I>xlat</I>,
+<I>ylat</I>, <I>zlat</I> keywords of the <A HREF = "thermo_style.html">thermo_style</A>
+command if you want to include lattice spacings in a variable formula.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

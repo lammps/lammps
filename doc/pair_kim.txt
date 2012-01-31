@@ -21,9 +21,9 @@ pair_coeff * * Ar Ar :pre
 
 [Description:]
 
-This pair style is a wrapper on the Knowledge Base for Interatomic
-Models (KIM) repository of interatomic potentials, so that they can be
-used by LAMMPS scripts.
+This pair style is a wrapper on the "Knowledge Base for Interatomic
+Models (KIM)"_http://openkim.org, repository of interatomic
+potentials, so that they can be used by LAMMPS scripts.
 
 In KIM lingo, a potential is a "model" and a model contains both the
 analytic formulas that define the potential as well as the parameters
@@ -58,28 +58,125 @@ placeholders for atom types that will be used with other potentials.
 
 :line
 
-Where to look for error messages
-
-Some of the KIM models might fail to work with lammps. Check generated
-kim.log file for error messages.
+In addition to the usual LAMMPS error messages, the KIM library itself
+may generate errors, which should be printed to the screen.  In this
+case it is also useful to check the kim.log file for additional error
+information.  This file kim.log should be generated in the same
+directory where LAMMPS is running.
 
 :line
 
-How to build KIM
+Here is information on how to build KIM for use with LAMMPS.  There is
+a directory lib/kim with an important file in it: Makefile.lammps.
+When you build LAMMPS with its KIM package installed (which contains
+the pair_style kim command), then it will use the settings in
+lib/kim/Makefile.lammps to find KIM header files and the KIM library
+itself for linking purposes.  Thus you should insure Makefile.lammps
+has the correct settings for your system and your build of KIM.
 
-ENV variables
+Consult the KIM documentation for further details on KIM specifics.
 
-setenv KIM_MODELS_DIR `pwd`/MODELs/
-setenv KIM_DIR `pwd`/
-setenv KIM_DYNAMIC yes
+OpenKIM is available for download from "this site"_http://openkim.org,
+namely http://openkim.org.  The tarball you download is
+"openkim-api-vX.X.X.tgz", which can be unpacked via
 
-It is required that OPENKIM directory with
-needed file structure is installed (can be downloaded from openkim.org)
-and needed environment variables are set:
-KIM_DIR = path  openkim-api directory
-KIM_DYNAMIC -- if dynamic linking is used during building (default --static) 
-KIM_MODELS_DIR = path to kim models directory (default -- $KIM_DIR/MODELs)
-See openkim-api/INSTALL for detailed instruction.
+tar xvfz openkim*tgz :pre
+
+The openkim/DOCs directory has further documentation.  For more
+information on installing KIM and troubleshooting refer to
+openkim/INSTALL.
+
+Here is a brief summary of how to build KIM:
+
+Set the following environment variables.  It is recommended to place
+the above environment variables definitions in your shell setup file
+which is located in your home directory (e.g. ~/.bashrc). :olb,l
+
+   (a) Define the location of the openKIM API root directory.  For example, 
+       if you untarred the `openkim-api-vX.X.X.tgz' tarball in your home 
+       directory, you would do: :pre
+
+       bash:
+       % export KIM_DIR=~/openkim-api-vX.X.X/ :pre
+
+       tcsh:
+       % setenv KIM_DIR ~/openkim-api-vX.X.X/ :pre
+
+       Make sure to include the trailing slash. The `%' symbol represents the
+       bash sell prompt and should not be typed. :pre
+
+   (b) By default, all makefiles use the GNU compilers for 64 bit Linux.  
+       In order to use the Intel compiler, define the environment variable
+       KIM_INTEL :pre
+
+       bash: 
+       % export KIM_INTEL="yes" :pre
+
+       tcsh:
+       % setenv KIM_INTEL "yes" :pre
+
+   (c) For using a 32 bit machine, define the environment variable KIM_SYSTEM32 :pre
+
+       bash: 
+       % export KIM_SYSTEM32="yes" :pre
+
+       tchs:
+       % setenv KIM_SYSTEM32 "yes" :pre
+
+   (d) Define variable for dynamic linking (preferable option) :pre
+      
+       bash:
+       export KIM_DYNAMIC=yes :pre
+
+       tcsh:
+       setenv KIM_DYNAMIC=yes :pre
+
+       If this environment variable is not set the default will be
+       static linking.  In that case all KIM models will be linked,
+       producing potentially a very large file.  It is also possible
+       to build KIM with only a subset of models or a single
+       model you wish to use with LAMMPS.  Consult the KIM
+       documentation for details. :pre
+
+To compile the package, go to the $KIM_DIR directory and execute
+make. :l
+
+   % cd $KIM_DIR
+   % make :pre
+
+     This builds all Models, Tests, and the openKIM API service routine
+     library. The targets defined by the Makefile in this directory include: :pre
+
+       `make'             -- compiles the API and all Models and Tests
+       `make all'         -- same as `make'
+       `make openkim-api' -- compiles only the API
+       `make clean'       -- will remove all .o, .mod, .a, .so and executable files :pre
+
+Verify that the compilation was successful by running a Test. :l
+
+   The provided example Tests read in the name of a Model (or Models)
+   which they use to perform their calculations.  For most Tests the
+   name of the Model can be piped in using an `echo' command.  For
+   example, the following Fortran 90 Test reads in one Model: :pre
+
+   % cd $KIM_DIR/TESTs/test_Ar_free_cluster_CLUSTER_F90
+   % echo "model_Ar_P_MLJ_CLUSTER_C" | ./test_Ar_free_cluster_CLUSTER_F90 :pre
+
+  (See the README files in the Test directories for an explanation of what 
+   the Tests do.) :pre
+
+Each Test (and Model) has its own make file for compiling and linking.
+If changes are made to the code, perform step (2) again (from the
+$KIM_DIR directory). :l
+
+In case of using a non-standard location for any of the directories
+KIM_API, TESTs, or MODELs one or more of the following environment
+variables must be set: :l,ole
+
+     KIM_API_DIR
+     KIM_TESTS_DIR
+     KIM_MODELS_DIR
+     KIM_MODEL_DRIVERS_DIR :pre
 
 :line
 
@@ -109,12 +206,8 @@ This pair style requires the "newton"_newton.html setting to be "off"
 for pair interactions.
 
 Currently this pair style only works with LAMMPS metal
-"units"_units.html, since KIM models are written using
-those units.
-
-Only KIM models that are using NEIGH-PURE-H, NEIGH-PURE-F and
-NEIGH-RVEC-F can be used with lammps. (see KIM documentation on NBC
-methods)
+"units"_units.html. In the future changes will be made so it can work
+with LAMMPS unit choices as well.
 
 [Related commands:]
 

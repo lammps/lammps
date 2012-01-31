@@ -301,6 +301,20 @@ void ModifyCuda::pre_neighbor()
    pre_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
+void ModifyCuda::setup_pre_force(int vflag)
+{
+	for(int i = 0; i < n_pre_force_cuda; i++)
+		fix[list_pre_force_cuda[i]]->pre_force(vflag);
+
+	if(n_pre_force_host != 0)
+	{
+		cuda->downloadAll(); cuda->oncpu = true;
+		for (int i = 0; i < n_pre_force_host; i++)
+			fix[list_pre_force[i]]->pre_force(vflag);
+		cuda->uploadAll(); cuda->oncpu = false;
+	}
+}
+
 void ModifyCuda::pre_force(int vflag)
 {
 	for(int i = 0; i < n_pre_force_cuda; i++)

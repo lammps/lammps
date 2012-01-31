@@ -110,20 +110,23 @@ PairReaxC::~PairReaxC()
 {
   if (fix_reax) modify->delete_fix("REAXC");
 
-  Close_Output_Files( system, control, out_control, mpi_data );
+  if (setup_flag) {
+    Close_Output_Files( system, control, out_control, mpi_data );
 
-  // deallocate reax data-structures
+    // deallocate reax data-structures
 
-  if( control->tabulate ) Deallocate_Lookup_Tables( system );
+    if( control->tabulate ) Deallocate_Lookup_Tables( system );
 
-  if( control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world );
-  Delete_List( lists+BONDS, world );
-  Delete_List( lists+THREE_BODIES, world );
-  Delete_List( lists+FAR_NBRS, world );
-  // fprintf( stderr, "3\n" );
+    if( control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world );
+    Delete_List( lists+BONDS, world );
+    Delete_List( lists+THREE_BODIES, world );
+    Delete_List( lists+FAR_NBRS, world );
+    // fprintf( stderr, "3\n" );
 
-  DeAllocate_Workspace( control, workspace );
-  DeAllocate_System( system );
+
+    DeAllocate_Workspace( control, workspace );
+    DeAllocate_System( system );
+  }
   //fprintf( stderr, "4\n" );
   
   memory->destroy( system );

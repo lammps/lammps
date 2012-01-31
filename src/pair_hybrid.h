@@ -30,6 +30,7 @@ class PairHybrid : public Pair {
   int nstyles;                  // # of different sub-styles
   Pair **styles;                // list of Pair style classes
   char **keywords;              // style name of each Pair style
+  int *multiple;                // 0 if style used once, else Mth instance
 
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
@@ -56,8 +57,13 @@ class PairHybrid : public Pair {
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to
 
+  char **allstyles;
+  int nallstyles;
+
   void allocate();
   virtual void modify_requests();
+  void build_styles();
+  int known_style(char *);
 };
 
 }

@@ -11,12 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Jonathan Zimmerman (Sandia)
+------------------------------------------------------------------------- */
+
 #include "math.h"
+#include "stdio.h"
 #include "stdlib.h"
-#include "pair_yukawa.h"
+#include "pair_beck.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
@@ -25,32 +30,36 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp) {}
+PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairYukawa::~PairYukawa()
+PairBeck::~PairBeck()
 {
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-
-    memory->destroy(rad);
     memory->destroy(cut);
-    memory->destroy(a);
-    memory->destroy(offset);
+    memory->destroy(AA);
+    memory->destroy(BB);
+    memory->destroy(aa);
+    memory->destroy(alpha);
+    memory->destroy(beta);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairYukawa::compute(int eflag, int vflag)
+void PairBeck::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
+  double rsq,r5,force_beck,factor_lj;
+  double r,rinv;
+  double aaij,alphaij,betaij;
+  double term1,term1inv,term2,term3,term4,term5,term6;
   int *ilist,*jlist,*numneigh,**firstneigh;
-
+  
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -61,7 +70,7 @@ void PairYukawa::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-
+  
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -80,7 +89,7 @@ void PairYukawa::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor = special_lj[sbmask(j)];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -88,16 +97,24 @@ void PairYukawa::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-
+      
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	screening = exp(-kappa*r);
-	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-
-	fpair = factor*forceyukawa * r2inv;
-
+        r = sqrt(rsq);
+        r5 = rsq*rsq*r; 
+        aaij = aa[itype][jtype];
+        alphaij = alpha[itype][jtype];
+        betaij = beta[itype][jtype];
+        term1 = aaij*aaij + rsq;
+        term2 = 1.0/pow(term1,5);
+        term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
+        term4 = alphaij + r5*betaij;
+        term5 = alphaij + 6.0*r5*betaij; 
+        rinv  = 1.0/r;
+	force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
+        force_beck -= BB[itype][jtype]*r*term2*term3; 
+ 
+	fpair = factor_lj*force_beck*rinv;
+        
 	f[i][0] += delx*fpair;
 	f[i][1] += dely*fpair;
 	f[i][2] += delz*fpair;
@@ -106,10 +123,12 @@ void PairYukawa::compute(int eflag, int vflag)
 	  f[j][1] -= dely*fpair;
 	  f[j][2] -= delz*fpair;
 	}
-
+	
 	if (eflag) {
-	  evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-	  evdwl *= factor;
+          term6 = 1.0/pow(term1,3);
+          term1inv = 1.0/term1;
+          evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
+          evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
 	}
 
 	if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -125,7 +144,7 @@ void PairYukawa::compute(int eflag, int vflag)
    allocate all arrays 
 ------------------------------------------------------------------------- */
 
-void PairYukawa::allocate()
+void PairBeck::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -137,22 +156,23 @@ void PairYukawa::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  memory->create(rad,n+1,"pair:rad");
   memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(a,n+1,n+1,"pair:a");
-  memory->create(offset,n+1,n+1,"pair:offset");
+  memory->create(AA,n+1,n+1,"pair:AA");
+  memory->create(BB,n+1,n+1,"pair:BB");
+  memory->create(aa,n+1,n+1,"pair:aa");
+  memory->create(alpha,n+1,n+1,"pair:alpha");
+  memory->create(beta,n+1,n+1,"pair:beta");
 }
 
 /* ----------------------------------------------------------------------
    global settings 
 ------------------------------------------------------------------------- */
 
-void PairYukawa::settings(int narg, char **arg)
+void PairBeck::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  kappa = force->numeric(arg[0]);
-  cut_global = force->numeric(arg[1]);
+  cut_global = atof(arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -160,7 +180,9 @@ void PairYukawa::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+	if (setflag[i][j]) {
+	  cut[i][j] = cut_global; 
+	}
   }
 }
 
@@ -168,9 +190,9 @@ void PairYukawa::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairYukawa::coeff(int narg, char **arg)
+void PairBeck::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) 
+  if (narg != 7 && narg != 8)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -178,15 +200,23 @@ void PairYukawa::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double a_one = force->numeric(arg[2]);
-
+  double AA_one = atof(arg[2]);
+  double BB_one = atof(arg[3]);
+  double aa_one = atof(arg[4]);
+  double alpha_one = atof(arg[5]);
+  double beta_one = atof(arg[6]);
+  
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(arg[3]);
+  if (narg == 8) cut_one = atof(arg[7]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      a[i][j] = a_one;
+      AA[i][j] = AA_one;
+      BB[i][j] = BB_one;
+      aa[i][j] = aa_one;
+      alpha[i][j] = alpha_one;
+      beta[i][j] = beta_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -200,29 +230,25 @@ void PairYukawa::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairYukawa::init_one(int i, int j)
+double PairBeck::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    a[i][j] = mix_energy(a[i][i],a[j][j],1.0,1.0);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  }
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
-  if (offset_flag) {
-    double screening = exp(-kappa * cut[i][j]);
-    offset[i][j] = a[i][j] * screening / cut[i][j];
-  } else offset[i][j] = 0.0;
-
-  a[j][i] = a[i][j];
-  offset[j][i] = offset[i][j];
+  AA[j][i] = AA[i][j];
+  BB[j][i] = BB[i][j];
+  aa[j][i] = aa[i][j];
+  alpha[j][i] = alpha[i][j];
+  beta[j][i] = beta[i][j];
+  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
+   proc 0 writes to restart file 
 ------------------------------------------------------------------------- */
 
-void PairYukawa::write_restart(FILE *fp)
+void PairBeck::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -231,7 +257,11 @@ void PairYukawa::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a[i][j],sizeof(double),1,fp);
+	fwrite(&AA[i][j],sizeof(double),1,fp);
+	fwrite(&BB[i][j],sizeof(double),1,fp);
+	fwrite(&aa[i][j],sizeof(double),1,fp);
+	fwrite(&alpha[i][j],sizeof(double),1,fp);
+	fwrite(&beta[i][j],sizeof(double),1,fp);
 	fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
@@ -241,10 +271,9 @@ void PairYukawa::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairYukawa::read_restart(FILE *fp)
+void PairBeck::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
 
   int i,j;
@@ -255,10 +284,18 @@ void PairYukawa::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
 	if (me == 0) {
-	  fread(&a[i][j],sizeof(double),1,fp);
+	  fread(&AA[i][j],sizeof(double),1,fp);
+	  fread(&BB[i][j],sizeof(double),1,fp);
+	  fread(&aa[i][j],sizeof(double),1,fp);
+	  fread(&alpha[i][j],sizeof(double),1,fp);
+	  fread(&beta[i][j],sizeof(double),1,fp);
 	  fread(&cut[i][j],sizeof(double),1,fp);
 	}
-	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&AA[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&BB[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&aa[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
+	MPI_Bcast(&beta[i][j],1,MPI_DOUBLE,0,world);
 	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -268,11 +305,9 @@ void PairYukawa::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairYukawa::write_restart_settings(FILE *fp)
+void PairBeck::write_restart_settings(FILE *fp)
 {
-  fwrite(&kappa,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
@@ -280,35 +315,48 @@ void PairYukawa::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairYukawa::read_restart_settings(FILE *fp)
+void PairBeck::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) {
-    fread(&kappa,sizeof(double),1,fp);
+  int me = comm->me;
+  if (me == 0) {
     fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
   }
-  MPI_Bcast(&kappa,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
-			  double factor_coul, double factor_lj,
-			  double &fforce)
+double PairBeck::single(int i, int j, int itype, int jtype, 
+				  double rsq,
+				  double factor_coul, double factor_lj,
+				  double &fforce)
 {
-  double r2inv,r,rinv,screening,forceyukawa,phi;
+  double phi_beck,r,rinv;
+  double r5,force_beck;
+  double aaij,alphaij,betaij;
+  double term1,term1inv,term2,term3,term4,term5,term6;
 
-  r2inv = 1.0/rsq;
   r = sqrt(rsq);
-  rinv = 1.0/r;
-  screening = exp(-kappa*r);
-  forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-  fforce = factor_lj*forceyukawa * r2inv;
+  r5 = rsq*rsq*r;
+  aaij = aa[itype][jtype];
+  alphaij = alpha[itype][jtype];
+  betaij = beta[itype][jtype];
+  term1 = aaij*aaij + rsq;
+  term2 = 1.0/pow(term1,5);
+  term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
+  term4 = alphaij + r5*betaij;
+  term5 = alphaij + 6.0*r5*betaij;
+  rinv  = 1.0/r;
+  force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
+  force_beck -= BB[itype][jtype]*r*term2*term3;
+  fforce = factor_lj*force_beck*rinv;
 
-  phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-  return factor_lj*phi;
+  term6 = 1.0/pow(term1,3);
+  term1inv = 1.0/term1;
+  phi_beck = AA[itype][jtype]*exp(-1.0*r*term4);
+  phi_beck -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
+
+  return factor_lj*phi_beck;
 }

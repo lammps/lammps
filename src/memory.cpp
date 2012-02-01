@@ -34,7 +34,8 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 
 #if defined(LAMMPS_MEMALIGN)
   void *ptr;
-  posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
+  int retval = posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
+  if (retval) ptr = NULL;
 #else
   void *ptr = malloc(nbytes);
 #endif

@@ -36,15 +36,15 @@ namespace LAMMPS_NS {
 class DihedralTable : public Dihedral {
  public:
   DihedralTable(class LAMMPS *);
-  ~DihedralTable();
-  void compute(int, int);
+  virtual ~DihedralTable();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   double single(int type, int i1, int i2, int i3, int i4);
 
- private:
+ protected:
   int tabstyle,tablength;
   // double *phi0;       <- equilibrium angles not supported
 

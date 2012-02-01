@@ -22,11 +22,9 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
-
 using namespace LAMMPS_NS;
+
+#define MAXNEIGH 24
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,17 +46,8 @@ void PairCombOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  // grow coordination array if necessary
-
-  if (atom->nmax > nmax) {
-    memory->destroy(NCo);
-    memory->destroy(bbij);
-    nmax = atom->nmax;
-    memory->create(NCo,nmax,"pair:NCo");
-    memory->create(bbij,nmax,nmax,"pair:bbij");
-  }
-
   // Build short range neighbor list
+
   Short_neigh_thr();
 
 #if defined(_OPENMP)
@@ -102,7 +91,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   double yaself;
   double potal,fac11,fac11e;
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
-  int sht_jnum, *sht_jlist;
+  int sht_jnum, *sht_jlist, nj;
 
   evdwl = ecoul = 0.0;
 
@@ -139,7 +128,8 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     fxtmp = fytmp = fztmp = 0.0;
 
     iq = q[i];
-    NCo[i] = 0;  
+    NCo[i] = 0;
+    nj = 0;
     iparam_i = elem2param[itype][itype][itype];
 
     // self energy, only on i atom
@@ -242,7 +232,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       int numcoor = 0;
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
-	j &= NEIGHMASK;
 	jtype = map[type[j]];
 	iparam_ij = elem2param[itype][jtype][jtype];
 	
@@ -264,7 +253,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     for (jj = 0; jj < sht_jnum; jj++) {
       j = sht_jlist[jj];
-      j &= NEIGHMASK;
 
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
@@ -279,6 +267,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq1 = vec3_dot(delr1,delr1);
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
+      nj ++;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -289,7 +278,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -309,7 +297,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (cuo_flag1 && cuo_flag2) cuo_flag = 1;
       else cuo_flag = 0;
 
-      force_zeta(&params[iparam_ij],EFLAG,i,j,rsq1,zeta_ij,
+      force_zeta(&params[iparam_ij],EFLAG,i,nj,rsq1,zeta_ij,
 		 iq,jq,fpair,prefactor,evdwl);
 
       // over-coordination correction for HfO2
@@ -334,7 +322,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = 0; kk < sht_jnum; kk++) {
 	k = sht_jlist[kk];
 	if (j == k) continue;
-	k &= NEIGHMASK;
 	ktype = map[type[k]];
 	iparam_ijk = elem2param[itype][jtype][ktype];
 
@@ -429,6 +416,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
     const int i = ilist[ii];
     const int itag = tag[i];
+    int nj = 0;
 
     if (mask[i] & groupbit) {
       fqi = fqj = fqij = fqji = fqjj = 0.0; // should not be needed.
@@ -511,10 +499,11 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         const int iparam_ij = elem2param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
+	nj ++;
 
         // charge force in Aij and Bij
 
-        qfo_short(&params[iparam_ij],i,j,rsq1,iq,jq,fqij,fqjj);
+        qfo_short(&params[iparam_ij],i,nj,rsq1,iq,jq,fqij,fqjj);
         fqi += fqij;  
 #if defined(_OPENMP)
 #pragma omp atomic
@@ -522,7 +511,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 	qf[j] += fqjj;
       }
 
-#if defined(_OPENMP) && 0
+#if defined(_OPENMP)
 #pragma omp atomic
 #endif
       qf[i] += fqi;
@@ -559,12 +548,13 @@ void PairCombOMP::Short_neigh_thr()
 {
 
   if (atom->nmax > nmax) {
-    nmax = int(1.0 * atom->nmax);
-    memory->sfree(sht_num);
+    nmax = atom->nmax;
     memory->sfree(sht_first);
-    memory->create(sht_num,nmax,"pair:sht_num");
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
 	    "pair:sht_first");
+    memory->grow(sht_num,nmax,"pair:sht_num");
+    memory->grow(NCo,nmax,"pair:NCo");
+    memory->grow(bbij,nmax,nmax,"pair:bbij");
   }
 
   const int nthreads = comm->nthreads;
@@ -602,46 +592,47 @@ void PairCombOMP::Short_neigh_thr()
     int npage = tid;
     npntj = 0;
 
-    for (ii = iifrom; ii < iito; ii++) {
-      i = ilist[ii];
-      itype = type[i];
+    if (iifrom < inum) {
+      for (ii = iifrom; ii < iito; ii++) {
+	i = ilist[ii];
+	itype = type[i];
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-      if(pgsize - npntj < oneatom) {
-	npntj = 0;
-	npage++;
-	if (npage == maxpage) add_pages(nthreads);
-      }
+	if(pgsize - npntj < oneatom) {
+	  npntj = 0;
+	  npage += nthreads;
+	  if (npage >= maxpage) add_pages(nthreads);
+	}
  
-      neighptrj = &pages[npage][npntj];
-      nj = 0;
+	neighptrj = &pages[npage][npntj];
+	nj = 0;
 
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+	xtmp = x[i][0];
+	ytmp = x[i][1];
+	ztmp = x[i][2];
 
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+	jlist = firstneigh[i];
+	jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
-	jtype = type[j];
-	iparam_ij = elem2param[itype][jtype][jtype];
+	for (jj = 0; jj < jnum; jj++) {
+	  j = jlist[jj];
+	  j &= NEIGHMASK;
+	  jtype = type[j];
 
-	delrj[0] = xtmp - x[j][0];
-	delrj[1] = ytmp - x[j][1];
-	delrj[2] = ztmp - x[j][2];
-	rsq = vec3_dot(delrj,delrj);
+	  delrj[0] = xtmp - x[j][0];
+	  delrj[1] = ytmp - x[j][1];
+	  delrj[2] = ztmp - x[j][2];
+	  rsq = vec3_dot(delrj,delrj);
       
-	if (rsq > cutmin) continue;
-	neighptrj[nj++] = j;
+	  if (rsq > cutmin) continue;
+	  neighptrj[nj++] = j;
+	}
+	sht_first[i] = neighptrj;
+	sht_num[i] = nj;
+	npntj += nj;
       }
-      sht_first[i] = neighptrj;
-      sht_num[i] = nj;
-      npntj += nj;
     }
   }
 }

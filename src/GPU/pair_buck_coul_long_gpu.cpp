@@ -248,7 +248,7 @@ void PairBuckCoulLongGPU::cpu_compute(int start, int inum, int eflag,
 
       if (rsq < cutsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-
+	r = sqrt(rsq);
 	if (rsq < cut_coulsq) {
 	  grij = g_ewald * r;
 	  expm2 = exp(-grij*grij);

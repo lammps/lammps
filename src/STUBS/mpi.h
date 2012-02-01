@@ -73,6 +73,8 @@ int MPI_Type_size(int, int *);
 
 int MPI_Send(void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm);
+int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+              int source, int tag, MPI_Comm comm, MPI_Request *request);
 int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm);
 int MPI_Recv(void *buf, int count, MPI_Datatype datatype,

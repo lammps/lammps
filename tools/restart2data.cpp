@@ -475,7 +475,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "5 Jan 2012";
+  const char *version = "31 Jan 2012";
 
   data.triclinic = 0;
 
@@ -1505,6 +1505,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	  }
 	}
       }
+
+  } else if (strcmp(style,"comb") == 0) {
 
   } else if (strcmp(style,"coul/diel") == 0) {
     m = 1;
@@ -2537,6 +2539,16 @@ void angle(FILE *fp, Data &data)
     data.angle_harmonic_k = new double[data.nangletypes+1];
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
     data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
+
+    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
+
+  } else if (strcmp(data.angle_style,"cg/cmm/old") == 0) {
+
+    data.angle_harmonic_k = new double[data.nangletypes+1];
+    data.angle_harmonic_theta0 = new double[data.nangletypes+1];
+    data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
     data.angle_cg_cmm_sigma = new double[data.nangletypes+1];
     double *angle_cg_cmm_rcut = new double[data.nangletypes+1];
     data.angle_cg_cmm_type = new int[data.nangletypes+1];
@@ -3046,6 +3058,7 @@ void Data::write(FILE *fp, FILE *fp2)
 	(strcmp(pair_style,"adp") != 0) &&
 	(strcmp(pair_style,"airebo") != 0) &&
 	(strcmp(pair_style,"brownian") != 0) &&
+	(strcmp(pair_style,"comb") != 0) &&
 	(strcmp(pair_style,"coul/cut") != 0) &&
 	(strcmp(pair_style,"coul/debye") != 0) &&
 	(strcmp(pair_style,"coul/diel") != 0) &&
@@ -3181,7 +3194,7 @@ void Data::write(FILE *fp, FILE *fp2)
                (strcmp(pair_style,"cg/cmm/coul/long") == 0) ||
                (strcmp(pair_style,"lj/sdk") == 0) ||
                (strcmp(pair_style,"lj/sdk/coul/long") == 0)) {
-      printf("ERROR: Cannot write pair_style %s to data file\n",
+      printf("ERROR: Cannot write pair_style %s to data file alone. please provide an input file, too.\n",
 	     pair_style);
       exit(1);
     }
@@ -3351,7 +3364,13 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp,"%d %g %g\n",i,
 		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0);
 
-    } else if (strcmp(angle_style,"cg/cmm") == 0) {
+    } else if ((strcmp(angle_style,"cg/cmm") == 0) ||
+	       (strcmp(angle_style,"sdk") == 0)) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp,"%d %g %g %g\n",i,angle_harmonic_k[i],
+		angle_harmonic_theta0[i]/PI*180.0,angle_cg_cmm_epsilon[i]);
+
+    } else if (strcmp(angle_style,"cg/cmm/old") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp,"%d %g %g %s %g %g\n",i,
 		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0,
@@ -3376,7 +3395,13 @@ void Data::write(FILE *fp, FILE *fp2)
 	fprintf(fp2,"angle_coeffs  %d %g %g\n",i,
 		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0);
 
-    } else if (strcmp(angle_style,"cg/cmm") == 0) {
+    } else if ((strcmp(angle_style,"cg/cmm") == 0) ||
+	       (strcmp(angle_style,"sdk") == 0)) {
+      for (int i = 1; i <= nangletypes; i++)
+	fprintf(fp2,"angle_coeffs  %d %g %g %g\n",i,angle_harmonic_k[i],
+		angle_harmonic_theta0[i]/PI*180.0,angle_cg_cmm_epsilon[i]);
+
+    } else if (strcmp(angle_style,"cg/cmm/old") == 0) {
       for (int i = 1; i <= nangletypes; i++)
 	fprintf(fp2,"angle_coeffs  %d %g %g %s %g %g\n",i,
 		angle_harmonic_k[i],angle_harmonic_theta0[i]/PI*180.0,

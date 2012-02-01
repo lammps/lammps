@@ -88,6 +88,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   double * const * const f = thr->get_f();
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
+  const int tid = thr->get_tid();
   const double * const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
 
@@ -121,25 +122,36 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsq[itype][jtype]) {
 	tb = &tables[tabindex[itype][jtype]];
-	if (rsq < tb->innersq)
-	  error->one(FLERR,"Pair distance < table inner cutoff");
+
+	if (check_error_thr((rsq < tb->innersq),tid,
+			    FLERR,"Pair distance < table inner cutoff"))
+	  return;
  
 	if (tabstyle == LOOKUP) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
+
+	  if (check_error_thr((itable >= tlm1),tid,
+			      FLERR,"Pair distance > table outer cutoff"))
+	    return;
+
 	  fpair = factor_lj * tb->f[itable];
 	} else if (tabstyle == LINEAR) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
+
+	  if (check_error_thr((itable >= tlm1),tid,
+			      FLERR,"Pair distance > table outer cutoff"))
+	    return;
+
 	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  value = tb->f[itable] + fraction*tb->df[itable];
 	  fpair = factor_lj * value;
 	} else if (tabstyle == SPLINE) {
 	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
+
+	  if (check_error_thr((itable >= tlm1),tid,
+			      FLERR,"Pair distance > table outer cutoff"))
+	    return;
+
 	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
 	  a = 1.0 - b;
 	  value = a * tb->f[itable] + b * tb->f[itable+1] + 

@@ -179,6 +179,7 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const q = atom->q;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
+  const int tid = thr->get_tid();
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
@@ -249,8 +250,11 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 	  x2 = mpos[j];
 	  jH1 = h1idx[j];
 	  jH2 = h2idx[j];
-	  if (jtype == typeO  && ( jH1 < 0 || jH2 < 0 ))
-	    error->one(FLERR,"TIP4P hydrogen is missing");
+
+	  if (check_error_thr((jtype == typeO  && ( jH1 < 0 || jH2 < 0 )),
+			      tid, FLERR,"TIP4P hydrogen is missing"))
+	    return;
+
 	  delx = x1[0] - x2[0];
 	  dely = x1[1] - x2[1];
 	  delz = x1[2] - x2[2];

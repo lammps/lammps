@@ -42,7 +42,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL), thr_style(style)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL),
+					 thr_style(style), thr_error(0)
 {
   // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
@@ -66,6 +67,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
 			  double **vatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
+  if (tid == 0) thr_error = 0;
   
   if (thr_style & THR_PAIR) {
     if (eflag & 2) {
@@ -171,6 +173,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   double **f = lmp->atom->f;
   double **x = lmp->atom->x;
 
+  if (evflag)
+    sync_threads();
+
   switch (thr_style) {
 
   case THR_PAIR: {
@@ -201,11 +206,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  }
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -248,11 +251,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	}
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -272,11 +273,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  bond->virial[i] += thr->virial_bond[i];
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -295,11 +294,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  angle->virial[i] += thr->virial_angle[i];
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -318,11 +315,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  dihedral->virial[i] += thr->virial_dihed[i];
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -351,12 +346,10 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	}
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
 	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
 	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
@@ -376,11 +369,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  improper->virial[i] += thr->virial_imprp[i];
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -401,11 +392,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  kspace->virial[i] += thr->virial_kspce[i];
       }
       if (eflag & 2) {
-	sync_threads();
 	data_reduce_thr(&(kspace->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	sync_threads();
 	data_reduce_thr(&(kspace->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
@@ -418,7 +407,6 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   }
     
     if (style == fix->last_omp_style) {
-    sync_threads();
     data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);

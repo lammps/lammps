@@ -105,8 +105,8 @@ void Neighbor::full_nsq_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
   list->inum = nlocal;
@@ -213,8 +213,8 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
   list->inum = nlocal;
@@ -314,8 +314,8 @@ void Neighbor::full_bin_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
   list->inum = nlocal;
@@ -324,7 +324,7 @@ void Neighbor::full_bin_omp(NeighList *list)
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   include neighbors of ghost atoms (no "special neighbors" for ghosts)
+   include neighbors of ghost atoms, but no "special neighbors" for ghosts
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -446,8 +446,8 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
   list->inum = nlocal;
@@ -555,8 +555,8 @@ void Neighbor::full_multi_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
   list->inum = nlocal;

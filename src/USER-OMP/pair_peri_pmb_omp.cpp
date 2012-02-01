@@ -203,9 +203,7 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
   // each thread works on a fixed chunk of atoms.
   const int idelta = 1 + nlocal/comm->nthreads;
   iifrom = thr->get_tid()*idelta;
-  iito   = iifrom + idelta;
-  if (iito > nlocal)
-    iito = nlocal;
+  iito   = ((iifrom + idelta) > nlocal) ? nlocal : (iifrom + idelta);
 #else 
   iifrom = 0;
   iito = nlocal;
@@ -234,8 +232,8 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
       // check if lost a partner without first breaking bond
 
       if (j < 0) {
-        partner[i][jj] = 0;
-        continue;
+	partner[i][jj] = 0;
+	continue;
       }
 
       // compute force density, add to PD equation of motion
@@ -257,7 +255,7 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
       // scale vfrac[j] if particle j near the horizon
 
       if ((fabs(r0[i][jj] - delta)) <= half_lc)
-        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
+	vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
 	  (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
@@ -285,9 +283,9 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
       // update s0 for next timestep
 
       if (first)
-         s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
+	s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
-         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+	s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
 
       first = false;
     }
@@ -296,7 +294,8 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
   sync_threads();
 
   // store new s0 (in parallel)
-  for (i = iifrom; i < iito; i++) s0[i] = s0_new[i]; 
+  if (iifrom < nlocal)
+    for (i = iifrom; i < iito; i++) s0[i] = s0_new[i]; 
 }
 
 /* ---------------------------------------------------------------------- */

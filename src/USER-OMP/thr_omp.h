@@ -19,6 +19,7 @@
 #define LMP_THR_OMP_H
 
 #include "pointers.h"
+#include "error.h"
 #include "fix_omp.h"
 #include "thr_data.h"
 
@@ -40,6 +41,7 @@ class ThrOMP {
   FixOMP *fix; // pointer to fix_omp;
 
   const int thr_style;
+  int thr_error;
 
  public:
   ThrOMP(LAMMPS *, int);
@@ -68,7 +70,34 @@ class ThrOMP {
 				const int, const int, const int);
 
   // reduce per thread data as needed
-  void reduce_thr(void * const style, const int eflag, const int vflag, ThrData * const thr, const int nproxy=0);
+  void reduce_thr(void * const style, const int eflag, const int vflag,
+		  ThrData * const thr, const int nproxy=0);
+
+  // thread safe variant error abort support.
+  // signals an error condition in any thread by making
+  // thr_error > 0, if condition "cond" is true.
+  // will abort from thread 0 if thr_error is > 0
+  // otherwise return true.
+  // returns false if no error found on any thread.
+  // use return value to jump/return to end of threaded region.
+
+  bool check_error_thr(const bool cond, const int tid, const char *fname,
+		       const int line, const char *errmsg) {
+    if (cond) {
+#if defined(_OPENMP)
+#pragma omp atomic
+      ++thr_error;
+#endif
+      if (tid > 0) return true;
+      else lmp->error->one(fname,line,errmsg);
+    } else {
+      if (thr_error > 0) {
+	if (tid == 0) lmp->error->one(fname,line,errmsg);
+	else return true;
+      } else return false;
+    }
+    return false;
+  };
 
  protected:
 

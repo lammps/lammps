@@ -2653,7 +2653,6 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
 void PairAIREBOOMP::REBO_neigh_thr()
 {
   const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
 
   if (atom->nmax > maxlocal) {
@@ -2697,9 +2696,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
 
     const int iidelta = 1 + allnum/nthreads;
     const int iifrom = tid*iidelta;
-    int iito   = iifrom + iidelta;
-    if (iito > allnum)
-      iito = allnum;
+    const int iito = ((iifrom+iidelta)>allnum) ? allnum : (iifrom+iidelta);
 
     // store all REBO neighs of owned and ghost atoms
     // scan full neighbor list of I
@@ -2756,6 +2753,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
     }
   }
 }
+
 
 /* ---------------------------------------------------------------------- */
 

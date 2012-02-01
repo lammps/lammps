@@ -52,7 +52,7 @@ void Neighbor::respa_nsq_no_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,n,itype,jtype,which,n_inner,n_middle;
+  int i,j,n,itype,jtype,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -90,6 +90,8 @@ void Neighbor::respa_nsq_no_newton_omp(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = tid;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = ifrom; i < ito; i++) {
 
@@ -168,23 +170,23 @@ void Neighbor::respa_nsq_no_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
   NEIGH_OMP_CLOSE;
@@ -225,7 +227,7 @@ void Neighbor::respa_nsq_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,n,itype,jtype,itag,jtag,which,n_inner,n_middle;
+  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -263,6 +265,8 @@ void Neighbor::respa_nsq_newton_omp(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = tid;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = ifrom; i < ito; i++) {
 
@@ -359,23 +363,23 @@ void Neighbor::respa_nsq_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
   NEIGH_OMP_CLOSE;
@@ -419,7 +423,7 @@ void Neighbor::respa_bin_no_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -458,6 +462,8 @@ void Neighbor::respa_bin_no_newton_omp(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = tid;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = ifrom; i < ito; i++) {
 
@@ -545,23 +551,23 @@ void Neighbor::respa_bin_no_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
   NEIGH_OMP_CLOSE;
@@ -604,7 +610,7 @@ void Neighbor::respa_bin_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -643,6 +649,8 @@ void Neighbor::respa_bin_newton_omp(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = tid;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = ifrom; i < ito; i++) {
 
@@ -766,23 +774,23 @@ void Neighbor::respa_bin_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
   NEIGH_OMP_CLOSE;
@@ -825,7 +833,7 @@ void Neighbor::respa_bin_newton_tri_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -864,6 +872,8 @@ void Neighbor::respa_bin_newton_tri_omp(NeighList *list)
   int npnt_inner = 0;
   int npage_middle = tid;
   int npnt_middle = 0;
+
+  int which = 0;
 
   for (i = ifrom; i < ito; i++) {
 
@@ -959,23 +969,23 @@ void Neighbor::respa_bin_newton_tri_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     npnt += n;
-    if (n > oneatom || npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     npnt_inner += n_inner;
-    if (npnt_inner >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+    if (n_inner > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
-      if (npnt_middle >= pgsize)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      if (n_middle > oneatom)
+	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
   NEIGH_OMP_CLOSE;

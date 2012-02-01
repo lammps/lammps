@@ -16,6 +16,7 @@
 #include "pair_tersoff_table_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -89,6 +90,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   double * const * const f = thr->get_f();
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
+  const int tid = thr->get_tid();
 
   inum = list->inum;
   ilist = list->ilist;
@@ -107,6 +109,12 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+
+    if (check_error_thr((jnum > leadingDimensionInteractionList), tid,
+			FLERR,"Too many neighbors for interaction list.\n"
+			"Check your system or increase 'leadingDimension"
+			"InteractionList'"))
+      return;
 
     // Pre-calculate gteta and cutoff function
     for (int neighbor_j = 0; neighbor_j < jnum; neighbor_j++) {

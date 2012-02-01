@@ -15,7 +15,10 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*atc.*$/d' ../Makefile.package.settings
-    sed -i -e '4 i include ..\/..\/lib\/atc\/Makefile.lammps' ../Makefile.package.settings
+    # multiline form needed for BSD sed on Macs
+    sed -i -e '4 i \
+include ..\/..\/lib\/atc\/Makefile.lammps\
+' ../Makefile.package.settings
   fi
 
   cp fix_atc.h ..

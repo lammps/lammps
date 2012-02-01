@@ -48,6 +48,8 @@ class PairKIM : public Pair {
 
   int maxall;
   int *kimtype;                 // KIM atom types for each LAMMPS atom
+  double **fcopy;               // copy of f, when running with pair hybrid
+  int hybrid;                   // 1 if running with pair hybrid
 
   int *onebuf;                  // neighbors of one atom
   int molecular;
@@ -56,7 +58,7 @@ class PairKIM : public Pair {
 
   // KIM data
 
-  static PairKIM *self;
+ // static PairKIM *self;
 
   KIM_API_model *pkim;
   int coordinates_ind,numberOfAtoms_ind,numberAtomTypes_ind;
@@ -66,6 +68,19 @@ class PairKIM : public Pair {
   int energyPerAtom_ind,force_ind,forces_ind,virialGlobal_ind;
   int virialPerAtom_ind,process_d1Edr_ind;
   int localnall;
+  int pointsto;    //get_neigh iterator index
+  double *Rij;//size of [3*KIM_API_MAX_NEIGHBORS]
+  struct process_fij_4_pair_KIM{
+    double *virialGlobal;
+    double *virialPerAtom;
+    int virialGlobal_flag;
+    int virialPerAtom_flag;
+    int *numberOfAtoms;
+    bool halfNeighbors;
+   
+  };
+  process_fij_4_pair_KIM process_dE;
+  
   bool support_atypes;
   bool support_Rij;
 

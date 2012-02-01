@@ -118,31 +118,36 @@ void FixIndent::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
+    if (xvar < 0) 
+      error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(xvar))
       error->all(FLERR,"Variable for fix indent is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
+    if (yvar < 0) 
+      error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(yvar))
       error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
+    if (zvar < 0) 
+      error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(zvar))
       error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (rstr) {
     rvar = input->variable->find(rstr);
-    if (rvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
+    if (rvar < 0) 
+      error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(rvar))
       error->all(FLERR,"Variable for fix indent is not equal style");
   }
   if (pstr) {
     pvar = input->variable->find(pstr);
-    if (pvar < 0) error->all(FLERR,"Variable name for fix indent does not exist");
+    if (pvar < 0) 
+      error->all(FLERR,"Variable name for fix indent does not exist");
     if (!input->variable->equalstyle(pvar))
       error->all(FLERR,"Variable for fix indent is not equal style");
   }

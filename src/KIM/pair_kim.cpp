@@ -448,7 +448,18 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
       }else{
 	*numnei = numneigh[pointsto] ;
 	*atom   =ilist[pointsto];
-	*nei1atom = firstneigh[pointsto];
+
+	// strip off neighbor mask for molecular systems
+
+	if (atom->molecular) {
+	  int n = *numnei;
+	  for (int i = 0; i < n; i++) {
+	    onebuf[i] = *neiatom & NEIGHMASK;
+	    neiatom++;
+	  }
+	  *nei1atom = onebuf;
+	} else *nei1atom = firstneigh[pointsto];
+
 	pointsto++;
 	if (*numnei > KIM_API_MAX_NEIGHBORS) 
 	  return KIM_STATUS_NEIGH_TOO_MANY_NEIGHBORS;
@@ -474,7 +485,12 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
     }
     *atom=ilist[*request];
     *numnei=numneigh[*request];
-    *nei1atom = firstneigh[*request];
+    
+    // strip off neighbor mask for molecular systems
+    
+    if (atom->molecular) {
+    } else *nei1atom = firstneigh[*request];
+
     if (*numnei > KIM_API_MAX_NEIGHBORS) 
       return KIM_STATUS_NEIGH_TOO_MANY_NEIGHBORS;
     if (pkim->support_Rij){

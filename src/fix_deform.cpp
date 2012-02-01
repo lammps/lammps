@@ -236,7 +236,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (set[5].style && domain->yperiodic == 0)
     error->all(FLERR,"Cannot use fix deform on a 2nd non-periodic boundary");
 
-  // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have distance/vel units
+  // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have dist/vel units
 
   int flag = 0;
   for (int i = 0; i < 6; i++)
@@ -320,6 +320,12 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     }
   }
 
+  // set varflag
+
+  varflag = 0;
+  for (int i = 0; i < 6; i++)
+    if (set[i].style == VARIABLE) varflag = 1;
+
   // set initial values at time fix deform is issued
 
   for (int i = 0; i < 3; i++) {
@@ -333,7 +339,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     else if (i == 3) set[i].tilt_initial = domain->yz;
   }
 
-  // reneighboring only forced if flips will occur due to shape changes
+  // reneighboring only forced if flips can occur due to shape changes
 
   if (set[3].style || set[4].style || set[5].style) force_reneighbor = 1;
   next_reneighbor = -1;
@@ -422,7 +428,7 @@ void FixDeform::init()
   // if single run, start is current values
   // if multiple runs enabled via run start/stop settings,
   //   start is value when fix deform was issued
-  // if NONE, no need to set
+  // if VARIABLE or NONE, no need to set
 
   for (int i = 0; i < 3; i++) {
     if (update->firststep == update->beginstep) {
@@ -466,13 +472,6 @@ void FixDeform::init()
 	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       set[i].hi_stop = set[i].hi_start +
 	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-    } else if (set[i].style == VARIABLE) {
-      bigint holdstep = update->ntimestep;
-      update->ntimestep = update->endstep;
-      double delta = input->variable->compute_equal(set[i].hvar);
-      update->ntimestep = holdstep;
-      set[i].lo_stop = set[i].lo_start - 0.5*delta;
-      set[i].hi_stop = set[i].hi_start + 0.5*delta;
     }
   }
 
@@ -537,13 +536,6 @@ void FixDeform::init()
 	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
 	}
       }
-
-    } else if (set[i].style == VARIABLE) {
-      bigint holdstep = update->ntimestep;
-      update->ntimestep = update->endstep;
-      double delta_tilt = input->variable->compute_equal(set[i].hvar);
-      update->ntimestep = holdstep;
-      set[i].tilt_stop = set[i].tilt_start + delta_tilt;
     }
   }
 
@@ -554,33 +546,29 @@ void FixDeform::init()
       error->all(FLERR,"Cannot use fix deform trate on a box with zero tilt");
 
   // if yz changes and will cause box flip, then xy cannot be changing
-  // NOTE: is this comment correct, not what is tested below?
-  // test for WIGGLE is on min/max oscillation limit, not tilt_stop
-  // test for VARIABLE is error, since no way to calculate min/max limits
+  // yz = [3], xy = [5]
   // this is b/c the flips would induce continuous changes in xz
   //   in order to keep the edge vectors of the flipped shape matrix
   //   an integer combination of the edge vectors of the unflipped shape matrix
+  // VARIABLE for yz is error, since no way to calculate if box flip occurs
+  // WIGGLE lo/hi flip test is on min/max oscillation limit, not tilt_stop
 
   if (set[3].style && set[5].style) {
     int flag = 0;
     double lo,hi;
+    if (set[3].style == VARIABLE)
+      error->all(FLERR,"Fix deform cannot use yz variable with xy");
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
     } else lo = hi = set[3].tilt_stop;
-    if (set[3].style == VARIABLE)
-      error->all(FLERR,"Fix deform is changing yz with xy variable");
-    // NOTE is this preceding error test and message correct?
-    // NOTE is this test on set[1] correct?  which is y dim?
     if (lo < -0.5*(set[1].hi_start-set[1].lo_start) ||
 	hi > 0.5*(set[1].hi_start-set[1].lo_start)) flag = 1;
     if (set[1].style) {
       if (lo < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
 	  hi > 0.5*(set[1].hi_stop-set[1].lo_stop)) flag = 1;
     }
-    if (flag)
-      error->all(FLERR,
-		 "Fix deform is changing yz by too much with changing xy");
+    if (flag) error->all(FLERR,"Fix deform is changing yz too much with xy");
   }
 
   // set domain->h_rate values for use by domain and other fixes/computes
@@ -672,10 +660,14 @@ void FixDeform::end_of_step()
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
 
+  // wrap variable evaluations with clear/add
+
+  if (varflag) modify->clearstep_compute();
+
   // set new box size
   // for TRATE, set target directly based on current time, also set h_rate
   // for WIGGLE, set target directly based on current time, also set h_rate
-  // for VARIABLE, set target directly based on current time, also set h_rate
+  // for VARIABLE, set target directly via variable eval, also set h_rate
   // for NONE, target is current box size
   // for others except VOLUME, target is linear value between start and stop
 
@@ -698,11 +690,9 @@ void FixDeform::end_of_step()
 	cos(TWOPI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == VARIABLE) {
-      // NOTE: worry about clearstep, addstep, maybe set on
-      // outside of loop with global varflag
-      double delta = input->variable->compute_equal(set[i].hvar);
-      set[i].lo_target = set[i].lo_start - 0.5*delta;
-      set[i].hi_target = set[i].hi_start + 0.5*delta;
+      double del = input->variable->compute_equal(set[i].hvar);
+      set[i].lo_target = set[i].lo_start - 0.5*del;
+      set[i].hi_target = set[i].hi_start + 0.5*del;
       h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == NONE) {
@@ -769,7 +759,7 @@ void FixDeform::end_of_step()
   // for triclinic, set new box shape
   // for TRATE, set target directly based on current time. also set h_rate
   // for WIGGLE, set target directly based on current time. also set h_rate
-  // for VARIABLE, set target directly based on current time. also set h_rate
+  // for VARIABLE, set target directly via variable eval. also set h_rate
   // for NONE, target is current tilt
   // for other styles, target is linear value between start and stop values
 
@@ -819,6 +809,8 @@ void FixDeform::end_of_step()
 	set[i].tilt_target -= denom;
     }
   }
+
+  if (varflag) modify->addstep_compute(update->ntimestep + nevery);
 
   // if any tilt targets exceed bounds, set flip flag and new tilt_flip values
   // flip will be performed on next timestep before reneighboring

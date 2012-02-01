@@ -20,6 +20,7 @@ if (test $1 = 1) then
   cp pair_edip.cpp ..
   cp pair_gauss_cut.cpp ..
   cp pair_lj_sf.cpp ..
+  cp pair_meam_spline.cpp ..
   cp pair_tersoff_table.cpp ..
 
   cp angle_cosine_shift.h ..
@@ -40,6 +41,7 @@ if (test $1 = 1) then
   cp pair_edip.h ..
   cp pair_gauss_cut.h ..
   cp pair_lj_sf.h ..
+  cp pair_meam_spline.h ..
   cp pair_tersoff_table.h ..
 
 elif (test $1 = 0) then
@@ -62,6 +64,7 @@ elif (test $1 = 0) then
   rm -f ../pair_edip.cpp
   rm -f ../pair_gauss_cut.cpp
   rm -f ../pair_lj_sf.cpp
+  rm -f ../pair_meam_spline.cpp
   rm -f ../pair_tersoff_table.cpp
 
   rm -f ../angle_cosine_shift.h
@@ -82,6 +85,7 @@ elif (test $1 = 0) then
   rm -f ../pair_edip.h
   rm -f ../pair_gauss_cut.h
   rm -f ../pair_lj_sf.h
+  rm -f ../pair_meam_spline.h
   rm -f ../pair_tersoff_table.h
 
 fi

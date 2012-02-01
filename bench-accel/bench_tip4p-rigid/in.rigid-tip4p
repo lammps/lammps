@@ -1,0 +1,28 @@
+units		real	
+atom_style	full
+dimension       3
+boundary        p p p
+
+read_data	data.rigid-tip4p
+
+pair_style	lj/cut/coul/long 10.0 
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.2106 3.166
+pair_coeff	* 2 0.0000 0.0000
+pair_coeff	* 3 0.0000 0.0000	 
+
+fix             1 all rigid/nvt molecule temp 300.0 300.0 100.0
+
+neighbor        2.0 bin  
+neigh_modify    exclude type 1 2 
+neigh_modify    exclude type 1 3 
+neigh_modify    exclude molecule all
+neigh_modify    delay 4 every 2 one 2048 page 204800
+
+timestep	0.5
+
+thermo_style    custom step temp epair evdwl ecoul press
+thermo		10
+run		100
+

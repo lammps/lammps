@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -75,14 +75,6 @@ class Fix : protected Pointers {
 
   double virial[6];              // accumlated virial
   double **vatom;                // accumulated per-atom virial
-
-  int INITIAL_INTEGRATE,POST_INTEGRATE;    // mask settings
-  int PRE_EXCHANGE,PRE_NEIGHBOR;
-  int PRE_FORCE,POST_FORCE,FINAL_INTEGRATE,END_OF_STEP,THERMO_ENERGY;
-  int INITIAL_INTEGRATE_RESPA,POST_INTEGRATE_RESPA;
-  int PRE_FORCE_RESPA,POST_FORCE_RESPA,FINAL_INTEGRATE_RESPA;
-  int MIN_PRE_EXCHANGE,MIN_PRE_FORCE,MIN_POST_FORCE,MIN_ENERGY;
-  int POST_RUN;
 
   Fix(class LAMMPS *, int, char **);
   virtual ~Fix();
@@ -166,6 +158,29 @@ class Fix : protected Pointers {
   void v_setup(int);
   void v_tally(int, int *, double, double *);
 };
+
+namespace FixConst {
+  static const int INITIAL_INTEGRATE =       1<<0;
+  static const int POST_INTEGRATE =          1<<1;
+  static const int PRE_EXCHANGE =            1<<2;
+  static const int PRE_NEIGHBOR =            1<<3;
+  static const int PRE_FORCE =               1<<4;
+  static const int POST_FORCE =              1<<5;
+  static const int FINAL_INTEGRATE =         1<<6;
+  static const int END_OF_STEP =             1<<7;
+  static const int THERMO_ENERGY =           1<<8;
+  static const int INITIAL_INTEGRATE_RESPA = 1<<9;
+  static const int POST_INTEGRATE_RESPA =    1<<10;
+  static const int PRE_FORCE_RESPA =         1<<11;
+  static const int POST_FORCE_RESPA =        1<<12;
+  static const int FINAL_INTEGRATE_RESPA =   1<<13;
+  static const int MIN_PRE_EXCHANGE =        1<<14;
+  static const int MIN_PRE_FORCE =           1<<15;
+  static const int MIN_POST_FORCE =          1<<16;
+  static const int MIN_ENERGY =              1<<17;
+  static const int POST_RUN =                1<<18;
+  static const int FIX_CONST_LAST =          1<<19;
+}
 
 }
 

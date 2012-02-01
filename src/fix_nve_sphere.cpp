@@ -23,6 +23,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define INERTIA 0.4          // moment of inertia prefactor for sphere
 

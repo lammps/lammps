@@ -34,6 +34,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 using namespace MathConst;
 
 enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};

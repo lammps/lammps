@@ -17,6 +17,7 @@
 #include "memory.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 

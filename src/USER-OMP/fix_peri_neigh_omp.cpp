@@ -22,6 +22,7 @@
 #include "neigh_request.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 

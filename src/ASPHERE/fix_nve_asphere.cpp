@@ -28,6 +28,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
 

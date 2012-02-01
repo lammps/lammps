@@ -22,6 +22,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 using namespace MathConst;
 
 #define INERTIA (1.0/12.0)     // moment of inertia prefactor for line segment

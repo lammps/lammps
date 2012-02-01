@@ -26,6 +26,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{LJ93,LJ126,COLLOID,HARMONIC};
 

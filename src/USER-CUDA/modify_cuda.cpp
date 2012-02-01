@@ -27,33 +27,16 @@
 #include "memory.h"
 #include "error.h"
 
+#include "cuda_modify_flags.h"
+
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
 
 #define DELTA 4
 
-// mask settings - same as in fix.cpp
-
-#define INITIAL_INTEGRATE   1
-#define POST_INTEGRATE      2
-#define PRE_EXCHANGE        4
-#define PRE_NEIGHBOR        8
-#define PRE_FORCE          16
-#define POST_FORCE         32
-#define FINAL_INTEGRATE    64
-#define END_OF_STEP       128
-#define THERMO_ENERGY     256
-#define INITIAL_INTEGRATE_RESPA   512
-#define POST_INTEGRATE_RESPA     1024
-#define PRE_FORCE_RESPA          2048
-#define POST_FORCE_RESPA         4096
-#define FINAL_INTEGRATE_RESPA    8192
-#define MIN_PRE_EXCHANGE        16384
-#define MIN_POST_FORCE          32768
-#define MIN_ENERGY              65536
-
-#include "cuda_modify_flags.h"
-
 #define BIG 1.0e20
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -317,6 +300,20 @@ void ModifyCuda::pre_neighbor()
 /* ----------------------------------------------------------------------
    pre_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
+
+void ModifyCuda::setup_pre_force(int vflag)
+{
+	for(int i = 0; i < n_pre_force_cuda; i++)
+		fix[list_pre_force_cuda[i]]->pre_force(vflag);
+
+	if(n_pre_force_host != 0)
+	{
+		cuda->downloadAll(); cuda->oncpu = true;
+		for (int i = 0; i < n_pre_force_host; i++)
+			fix[list_pre_force[i]]->pre_force(vflag);
+		cuda->uploadAll(); cuda->oncpu = false;
+	}
+}
 
 void ModifyCuda::pre_force(int vflag)
 {

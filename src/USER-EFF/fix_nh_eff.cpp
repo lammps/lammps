@@ -24,6 +24,7 @@
 #include "domain.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 

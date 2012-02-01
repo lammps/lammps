@@ -29,6 +29,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define MAXTOUCH 15
 

@@ -35,6 +35,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 using namespace MathConst;
 
 #define BIG 1.0e20

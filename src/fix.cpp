@@ -20,6 +20,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,28 +68,6 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   maxvatom = 0;
   vatom = NULL;
-
-  // mask settings - same as in modify.cpp
-
-  INITIAL_INTEGRATE = 1;
-  POST_INTEGRATE = 2;
-  PRE_EXCHANGE = 4;
-  PRE_NEIGHBOR = 8;
-  PRE_FORCE = 16;
-  POST_FORCE = 32;
-  FINAL_INTEGRATE = 64;
-  END_OF_STEP = 128;
-  THERMO_ENERGY = 256;
-  INITIAL_INTEGRATE_RESPA = 512;
-  POST_INTEGRATE_RESPA = 1024;
-  PRE_FORCE_RESPA = 2048;
-  POST_FORCE_RESPA = 4096;
-  FINAL_INTEGRATE_RESPA = 8192;
-  MIN_PRE_EXCHANGE = 16384;
-  MIN_PRE_FORCE = 32768;
-  MIN_POST_FORCE = 65536;
-  MIN_ENERGY = 131072;
-  POST_RUN = 262144;
 }
 
 /* ---------------------------------------------------------------------- */

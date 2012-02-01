@@ -32,6 +32,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 using namespace MathConst;
 
 #define EPSILON 0.001

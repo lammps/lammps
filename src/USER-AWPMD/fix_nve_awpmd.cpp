@@ -29,6 +29,7 @@
 #include "TCP/wpmd_split.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 

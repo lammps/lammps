@@ -29,6 +29,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};

@@ -429,6 +429,7 @@ static void  imdsock_destroy(void *);
  ***************************************************************/
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 /* struct for packed data communication of coordinates and forces. */
 struct commdata { 

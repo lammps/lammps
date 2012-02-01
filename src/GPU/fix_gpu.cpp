@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 

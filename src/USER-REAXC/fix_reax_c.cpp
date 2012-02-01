@@ -28,6 +28,7 @@
 #include "memory.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 #define MAX_REAX_BONDS      30
 #define MIN_REAX_BONDS      15

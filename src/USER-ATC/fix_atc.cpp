@@ -34,6 +34,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS; 
+using namespace FixConst;
 
 // main page of doxygen documentation
 /*! \mainpage AtC : Atom-to-Continuum methods

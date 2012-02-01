@@ -31,6 +31,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{NONE,SPHERE,CYLINDER,PLANE};
 enum{INSIDE,OUTSIDE};

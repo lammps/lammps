@@ -37,6 +37,8 @@
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
 using namespace MathConst;
 
 #define BIG 1.0e20

@@ -27,6 +27,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 // needs to be big, but not so big that lose precision when subtract velocity
 

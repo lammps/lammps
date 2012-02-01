@@ -16,7 +16,15 @@
 #include "modify.h"
 #include "error.h"
 
+#include "cuda_modify_flags.h"
+
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace FixConstCuda;
+using namespace FixConst;
+using namespace FixConstCuda;
+using namespace FixConstCuda;
+using namespace FixConstCuda;
 
 /* ---------------------------------------------------------------------- */
 

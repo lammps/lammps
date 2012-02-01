@@ -27,6 +27,7 @@
 #include "math.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 

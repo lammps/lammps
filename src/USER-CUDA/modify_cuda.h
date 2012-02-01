@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -50,6 +50,7 @@ class ModifyCuda : public Modify {
   //void pre_decide();
   void pre_exchange();
   void pre_neighbor();
+  void setup_pre_force(int);
   void pre_force(int);
   void post_force(int);
   void final_integrate();

@@ -21,6 +21,7 @@
 #include "update.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 
 enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};    // XYZ PLANE need to be 0,1,2

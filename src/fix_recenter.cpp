@@ -27,6 +27,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 
 enum{BOX,LATTICE,FRACTION};
 

@@ -24,6 +24,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
 using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};

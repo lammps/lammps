@@ -265,11 +265,11 @@ Here is an example of using the {variable} style to perform the same
 box deformation as the {wiggle} style formula listed above, where we
 assume that the current timestep = 0.
 
-variable A equal 10.0
-variable Tp equal 3.0
-variable displace equal "v_A * sin(2*pi * step/v_Tp)"
-variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
-fix 1 all deform 10 x variable v_displace v_rate :pre
+variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
+fix 2 all deform 1 x variable v_displace v_rate remap v :pre
 
 For the {scale}, {vel}, {erate}, {trate}, {volume}, {wiggle}, and
 {variable} styles, the box length is expanded or compressed around its
@@ -401,11 +401,11 @@ Here is an example of using the {variable} style to perform the same
 box deformation as the {wiggle} style formula listed above, where we
 assume that the current timestep = 0.
 
-variable A equal 10.0
-variable Tp equal 3.0
-variable displace equal "v_A * sin(2*pi * step/v_Tp)"
-variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
-fix 1 all deform 10 xy variable v_displace v_rate :pre
+variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
+fix 2 all deform 1 xy variable v_displace v_rate remap v :pre
 
 :line
 

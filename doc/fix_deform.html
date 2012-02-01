@@ -275,11 +275,11 @@ arbitrary variable.
 box deformation as the <I>wiggle</I> style formula listed above, where we
 assume that the current timestep = 0.
 </P>
-<PRE>variable A equal 10.0
-variable Tp equal 3.0
-variable displace equal "v_A * sin(2*pi * step/v_Tp)"
-variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
-fix 1 all deform 10 x variable v_displace v_rate 
+<PRE>variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
+fix 2 all deform 1 x variable v_displace v_rate remap v 
 </PRE>
 <P>For the <I>scale</I>, <I>vel</I>, <I>erate</I>, <I>trate</I>, <I>volume</I>, <I>wiggle</I>, and
 <I>variable</I> styles, the box length is expanded or compressed around its
@@ -411,11 +411,11 @@ arbitrary variable.
 box deformation as the <I>wiggle</I> style formula listed above, where we
 assume that the current timestep = 0.
 </P>
-<PRE>variable A equal 10.0
-variable Tp equal 3.0
-variable displace equal "v_A * sin(2*pi * step/v_Tp)"
-variable rate equal "2*pi*v_A/v_Tp * cos(2*pi * step/v_Tp)"
-fix 1 all deform 10 xy variable v_displace v_rate 
+<PRE>variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal "v_A * sin(2*PI * step*dt/v_Tp)"
+variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
+fix 2 all deform 1 xy variable v_displace v_rate remap v 
 </PRE>
 <HR>
 

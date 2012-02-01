@@ -171,11 +171,10 @@ Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to Pair class if matches word or to matching hybrid sub-class
+   return ptr to Pair class if matches word or matches hybrid sub-style
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
-   return NULL if no match
-   return NULL if not exact and multiple hybrid sub-styles match
+   return NULL if no match or multiple sub-styles match
 ------------------------------------------------------------------------- */
 
 Pair *Force::pair_match(const char *word, int exact)
@@ -188,28 +187,24 @@ Pair *Force::pair_match(const char *word, int exact)
   else if (strstr(pair_style,"hybrid/overlay")) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
     count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (exact && strcmp(hybrid->keywords[i],word) == 0)
-	return hybrid->styles[i];
-      else if (!exact && strstr(hybrid->keywords[i],word)) {
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if ((exact && strcmp(hybrid->keywords[i],word) == 0) ||
+	  (!exact && strstr(hybrid->keywords[i],word))) {
 	iwhich = i;
 	count++;
       }
-    }
-    if (!exact && count == 1) return hybrid->styles[iwhich];
-
+    if (count == 1) return hybrid->styles[iwhich];
+    
   } else if (strstr(pair_style,"hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     count = 0;
-    for (int i = 0; i < hybrid->nstyles; i++) {
-      if (exact && strcmp(hybrid->keywords[i],word) == 0)
-	return hybrid->styles[i];
-      if (!exact && strstr(hybrid->keywords[i],word)) {
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if ((exact && strcmp(hybrid->keywords[i],word) == 0) ||
+	  (!exact && strstr(hybrid->keywords[i],word))) {
 	iwhich = i;
 	count++;
       }
-    }
-    if (!exact && count == 1) return hybrid->styles[iwhich];
+    if (count == 1) return hybrid->styles[iwhich];
   }
 
   return NULL;

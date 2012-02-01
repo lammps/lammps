@@ -631,10 +631,10 @@ type "make package" to see all of the package-related make options.
 
 A few of the standard and user packages require additional auxiliary
 libraries to be compiled first.  If you get a LAMMPS build error about
-a missing library, this is likely the reason.  The source code for
-these libraries is included in the LAMMPS distribution under the "lib"
-directory.  Look at the lib/README file for a list of these or see
-"Section_packages"_Section_packages.html of the doc pages.
+a missing library, this is likely the reason.  The source code or
+hooks to these libraries is included in the LAMMPS distribution under
+the "lib" directory.  Look at the lib/README file for a list of these
+or see "Section_packages"_Section_packages.html of the doc pages.
 
 Each lib directory has a README file (e.g. lib/reax/README) with
 instructions on how to build that library.  Typically this is done 
@@ -643,13 +643,16 @@ in this manner:
 make -f Makefile.g++ :pre
 
 in the appropriate directory, e.g. in lib/reax.  Some of the libraries
-do not build this way.  Again, see the libary README file for details.
+do not build this way.  Some of the directories do not even have
+source code for the library, since you are expected to download and
+build it separately.  Again, see the libary README file for details.
 
-In any event, you will need to use a Makefile that is a match for your
-system.  If one of the provided Makefiles is not appropriate for your
-system you will need to edit or add one.  For example, in the case of
-Fortran-based libraries, your system must have a Fortran compiler, the
-settings for which will need to be listed in the Makefile.
+If you are building the library, you will need to use a Makefile that
+is a match for your system.  If one of the provided Makefiles is not
+appropriate for your system you will need to edit or add one.  For
+example, in the case of Fortran-based libraries, your system must have
+a Fortran compiler, the settings for which will need to be listed in
+the Makefile.
 
 When you have built one of these libraries, there are 2 things to
 check:

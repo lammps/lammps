@@ -154,13 +154,14 @@ commands)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
+  "KIM archive"_http://openkim.org of potentials
   long-range Coulombics and dispersion: Ewald, Wolf, \
     PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
   force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
-  handful of GPU-enabled pair styles :ul
+  handful of GPU-enabled pair styles
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation
-  overlaid potentials: superposition of multiple pair potentials
+  overlaid potentials: superposition of multiple pair potentials :ul
 
 Atom creation :h4
 ("read_data"_read_data.html, "lattice"_lattice.html,

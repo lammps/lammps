@@ -11,7 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "pair_hybrid_overlay.h"
 #include "atom.h"
 #include "force.h"
@@ -39,11 +41,26 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   // 3rd arg = pair sub-style name
+  // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
+  int multflag;
   int m;
-  for (m = 0; m < nstyles; m++)
-    if (strcmp(arg[2],keywords[m]) == 0) break;
+
+  for (m = 0; m < nstyles; m++) {
+    multflag = 0;
+    if (strcmp(arg[2],keywords[m]) == 0) {
+      if (multiple[m]) {
+	multflag = 1;
+	if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+	if (!isdigit(arg[3][0]))
+	  error->all(FLERR,"Incorrect args for pair coefficients");
+	int index = atoi(arg[3]);
+	if (index == multiple[m]) break;
+	else continue;
+      } else break;
+    }
+  }
 
   int none = 0;
   if (m == nstyles) {
@@ -52,14 +69,15 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   }
 
   // move 1st/2nd args to 2nd/3rd args
+  // if multflag: move 1st/2nd args to 3rd/4th args
   // just copy ptrs, since arg[] points into original input line
 
-  arg[2] = arg[1];
-  arg[1] = arg[0];
+  arg[2+multflag] = arg[1];
+  arg[1+multflag] = arg[0];
 
-  // invoke sub-style coeff() starting with 1st arg
+  // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid subflag, wipe out map

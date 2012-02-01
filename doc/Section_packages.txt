@@ -46,6 +46,7 @@ DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dip
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
 GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
 GRANULAR, granular systems, -, "howto"_Section_howto.html#howto_6, pour, -
+KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), pair_style kim"_pair_kim.html, kim, lib/kim
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
@@ -70,6 +71,9 @@ Jonathan Higdon's group at UIUC.
 (2) The OPT package was created by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge
 Technolgy).
+
+(3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
+and Ellad Tadmor (U Minn).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script

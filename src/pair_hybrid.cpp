@@ -223,7 +223,7 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0) 
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_pair(arg[i],lmp->suffix,dummy);
+    styles[nstyles] = force->new_pair(arg[iarg],lmp->suffix,dummy);
     int n = strlen(arg[iarg]) + 1;
     keywords[nstyles] = new char[n];
     strcpy(keywords[nstyles],arg[iarg]);

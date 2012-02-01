@@ -85,6 +85,7 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
   double * const * const f = thr->get_f();
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
+  const int tid = thr->get_tid();
   const double * const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
 
@@ -146,7 +147,11 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
 	  evdwl = 2.0/9.0*fR * 
 	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
 	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-	if (rsq <= K[1]) error->one(FLERR,"Overlapping small/large in pair colloid");
+
+	if (check_error_thr((rsq <= K[1]),tid,FLERR,
+			    "Overlapping small/large in pair colloid"))
+	  return;
+
 	break;
 
       case LARGE_LARGE:

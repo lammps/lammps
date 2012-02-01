@@ -80,6 +80,7 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
   double * const * const f = thr->get_f();
   const int * const * const bondlist = neighbor->bondlist;
   const int nlocal = atom->nlocal;
+  const int tid = thr->get_tid();
 
   for (n = nfrom; n < nto; n++) {
     i1 = bondlist[n][0];
@@ -101,10 +102,14 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (rlogarg < 0.1) {
       char str[128];
+
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %d %d %g",
 	      update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(FLERR,str,0);
-      if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
+
+      if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
+	return;
+
       rlogarg = 0.1;
     }
 

@@ -110,21 +110,11 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // checking for interaction list overflows from threads is a bit tricky.
-    // we have to check with all threads, but only thread 0 may call abort.
-    // all failing threads need to return to avoid the segfault until tid 0
-    // picks up the error condition (may be on the next iteration).
-     
-    if (jnum > leadingDimensionInteractionList) {
-      ++thr_error;
-      if (tid > 0) return;
-    }
-
-    if (thr_error)
-      if (tid == 0) 
-	error->one(FLERR,"Too many neighbors for interaction list.\n"
-		   "Check your system or increase 'leadingDimensionInteractionList'");
-      else return;
+    if (check_error_thr((jnum > leadingDimensionInteractionList), tid,
+			FLERR,"Too many neighbors for interaction list.\n"
+			"Check your system or increase 'leadingDimension"
+			"InteractionList'"))
+      return;
 
     // Pre-calculate gteta and cutoff function
     for (int neighbor_j = 0; neighbor_j < jnum; neighbor_j++) {

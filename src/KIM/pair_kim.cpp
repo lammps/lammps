@@ -400,13 +400,15 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
   *pRij=&Rij[0];
    
   KIM_API_model *pkim = (KIM_API_model *) *kimmdl;
+
   //get neighObj from KIM API obj
-  if (key1strun) {  //this block will be changed in case of hybride/composite KIM potential
+  //this block will be changed in case of hybride/composite KIM potential
+
+  if (key1strun) {  
     int kimerr;
     
     neighObject_ind = pkim->get_index((char*) "neighObject",&kimerr);
     self->kim_error(__LINE__,"get_neigh:get_index of : neighObject",kimerr);
-    
     
     NeighList * neiobj = (NeighList * ) (*pkim)[neighObject_ind].data;
     

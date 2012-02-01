@@ -18,54 +18,65 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style meam/spline
-pair_coeff * * Ti.splinemeam 
+pair_coeff * * Ti.meam.spline 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>The <I>meam/spline</I> style computes pairwise interactions for metals
-using a variant of modified embedded-atom method (MEAM) potentials <A HREF = "#Lenosky">(Lenosky)</A>.  The total
-energy E is given by
+using a variant of modified embedded-atom method (MEAM) potentials
+<A HREF = "#Lenosky">(Lenosky)</A>.  The total energy E is given by
 </P>
-<CENTER><IMG SRC = "spline_meam_formula1.png">
+<CENTER><IMG SRC = "Eqs/pair_meam_spline_1.png">
 </CENTER>
 <P>with the density at atom i
 </P>
-<CENTER><IMG SRC = "spline_meam_formula2.png">
+<CENTER><IMG SRC = "Eqs/pair_meam_spline_2.png">
 </CENTER>
 <P>where theta_jik is the angle between atoms j, i, and k centered on
-atom i. The five functions Phi, U, rho, f, and g are represented by cubic
-splines.
+atom i. The five functions Phi, U, rho, f, and g are represented by
+cubic splines.
 </P>
-<P>The cutoffs and the coefficients for these spline functions are listed 
-in a parameter file which is specified by the <A HREF = "pair_coeff.html">pair_coeff</A> command. 
-Parameter files for different elements are 
-included in the "potentials" directory of the LAMMPS distribution and have a ".splinemeam" file suffix.  
-All of these files are parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
+<P>The cutoffs and the coefficients for these spline functions are listed
+in a parameter file which is specified by the
+<A HREF = "pair_coeff.html">pair_coeff</A> command.  Parameter files for different
+elements are included in the "potentials" directory of the LAMMPS
+distribution and have a ".meam.spline" file suffix.  All of these
+files are parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
 </P>
-<P>IMPORTANT NOTE: The <I>meam/spline</I> style currently supports only single-element MEAM potentials.
+<P>Note that unlike for other potentials, cutoffs for spline-based MEAM
+potentials are not set in the pair_style or pair_coeff command; they
+are specified in the potential files themselves.
 </P>
-<P>The cutoff for spline-based MEAM potentials is
-not set in the pair_style or pair_coeff command; it is specified in
-the potential parameter file.
+<P>Unlike the EAM pair style, which retrieves the atomic mass from the
+potential file, the spline-based MEAM potentials do not include mass
+information; thus you need to use the <A HREF = "mass.html">mass</A> command to
+specify it.
 </P>
-<P>Unlike the EAM pair style, which retrieves the atomic mass from the potential file, 
-the spline-based MEAM potentials do not include mass information; thus you need to use the <A HREF = "mass.html">mass</A>
-command to specify it.
+<P>Only a single pair_coeff command is used with the <I>meam/spline</I> style
+which specifies the spline-based MEAM potential file:
+</P>
+<UL><LI>meam/spline potential file 
+</UL>
+<P>IMPORTANT NOTE: The <I>meam/spline</I> style currently supports only
+single-element MEAM potentials.  Thus it cannot be used with
+<A HREF = "pair_hybrid.html">pair_style hybrid</A> command, and with a NULL syntax
+in the pair_coeff command, as used by other many-body potentials, to
+determine what subset of atom types to apply the potential to.
 </P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>The current version of this pair style does not support multiple element types or mixing. 
-It has been designed for pure elements only.
+<P>The current version of this pair style does not support multiple
+element types or mixing.  It has been designed for pure elements only.
 </P>
 <P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
 shift, table, and tail options.
 </P>
-<P>The <I>meam/spline</I> pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in an external potential parameter file.
-Thus, you need to re-specify the pair_style and pair_coeff commands in
-an input script that reads a restart file.
+<P>The <I>meam/spline</I> pair style does not write its information to <A HREF = "restart.html">binary
+restart files</A>, since it is stored in an external
+potential parameter file.  Thus, you need to re-specify the pair_style
+and pair_coeff commands in an input script that reads a restart file.
 </P>
 <P>The <I>meam/spline</I> pair style can only be used via the <I>pair</I> keyword of the
 <A HREF = "run_style.html">run_style respa</A> command.  They do not support the
@@ -78,12 +89,13 @@ an input script that reads a restart file.
 <P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "on"
 for pair interactions.
 </P>
-<P>This pair style is only enabled if LAMMPS was built with the USER-MISC package.
-See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+<P>This pair style is only enabled if LAMMPS was built with the USER-MISC
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_meam.html">pair_style meam</A>
 </P>
 <P><B>Default:</B> none
 </P>
@@ -91,6 +103,8 @@ See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for mor
 
 <A NAME = "Lenosky"></A>
 
-<P><B>(Lenosky)</B> Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter, Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
+<P><B>(Lenosky)</B> Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
+Kress, Modelling Simulation Materials Science Enginerring, 8, 825
+(2000).
 </P>
 </HTML>

@@ -15,54 +15,65 @@ pair_style meam/spline :pre
 [Examples:]
 
 pair_style meam/spline
-pair_coeff * * Ti.splinemeam :pre
+pair_coeff * * Ti.meam.spline :pre
 
 [Description:]
 
 The {meam/spline} style computes pairwise interactions for metals
-using a variant of modified embedded-atom method (MEAM) potentials "(Lenosky)"_#Lenosky.  The total
-energy E is given by
+using a variant of modified embedded-atom method (MEAM) potentials
+"(Lenosky)"_#Lenosky.  The total energy E is given by
 
-:c,image(spline_meam_formula1.png)
+:c,image(Eqs/pair_meam_spline_1.png)
 
 with the density at atom i
 
-:c,image(spline_meam_formula2.png)
+:c,image(Eqs/pair_meam_spline_2.png)
 
 where theta_jik is the angle between atoms j, i, and k centered on
-atom i. The five functions Phi, U, rho, f, and g are represented by cubic
-splines.
+atom i. The five functions Phi, U, rho, f, and g are represented by
+cubic splines.
 
-The cutoffs and the coefficients for these spline functions are listed 
-in a parameter file which is specified by the "pair_coeff"_pair_coeff.html command. 
-Parameter files for different elements are 
-included in the "potentials" directory of the LAMMPS distribution and have a ".splinemeam" file suffix.  
-All of these files are parameterized in terms of LAMMPS "metal units"_units.html.
+The cutoffs and the coefficients for these spline functions are listed
+in a parameter file which is specified by the
+"pair_coeff"_pair_coeff.html command.  Parameter files for different
+elements are included in the "potentials" directory of the LAMMPS
+distribution and have a ".meam.spline" file suffix.  All of these
+files are parameterized in terms of LAMMPS "metal units"_units.html.
 
-IMPORTANT NOTE: The {meam/spline} style currently supports only single-element MEAM potentials.
+Note that unlike for other potentials, cutoffs for spline-based MEAM
+potentials are not set in the pair_style or pair_coeff command; they
+are specified in the potential files themselves.
 
-The cutoff for spline-based MEAM potentials is
-not set in the pair_style or pair_coeff command; it is specified in
-the potential parameter file.
+Unlike the EAM pair style, which retrieves the atomic mass from the
+potential file, the spline-based MEAM potentials do not include mass
+information; thus you need to use the "mass"_mass.html command to
+specify it.
 
-Unlike the EAM pair style, which retrieves the atomic mass from the potential file, 
-the spline-based MEAM potentials do not include mass information; thus you need to use the "mass"_mass.html
-command to specify it.
+Only a single pair_coeff command is used with the {meam/spline} style
+which specifies the spline-based MEAM potential file:
+
+meam/spline potential file :ul
+
+IMPORTANT NOTE: The {meam/spline} style currently supports only
+single-element MEAM potentials.  Thus it cannot be used with
+"pair_style hybrid"_pair_hybrid.html command, and with a NULL syntax
+in the pair_coeff command, as used by other many-body potentials, to
+determine what subset of atom types to apply the potential to.
 
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-The current version of this pair style does not support multiple element types or mixing. 
-It has been designed for pure elements only.
+The current version of this pair style does not support multiple
+element types or mixing.  It has been designed for pure elements only.
 
 This pair style does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
 
-The {meam/spline} pair style does not write its information to "binary restart
-files"_restart.html, since it is stored in an external potential parameter file.
-Thus, you need to re-specify the pair_style and pair_coeff commands in
-an input script that reads a restart file.
+The {meam/spline} pair style does not write its information to "binary
+restart files"_restart.html, since it is stored in an external
+potential parameter file.  Thus, you need to re-specify the pair_style
+and pair_coeff commands in an input script that reads a restart file.
 
 The {meam/spline} pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  They do not support the
@@ -75,16 +86,19 @@ The {meam/spline} pair style can only be used via the {pair} keyword of the
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-This pair style is only enabled if LAMMPS was built with the USER-MISC package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+This pair style is only enabled if LAMMPS was built with the USER-MISC
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "pair_style meam"_pair_meam.html
 
 [Default:] none
 
 :line
 
 :link(Lenosky)
-[(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter, Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
+[(Lenosky)] Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
+Kress, Modelling Simulation Materials Science Enginerring, 8, 825
+(2000).

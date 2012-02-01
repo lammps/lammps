@@ -40,7 +40,7 @@ tar xvf lammps*.tar
 <P>This will create a LAMMPS directory containing two files and several
 sub-directories:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
@@ -479,6 +479,11 @@ secs/timestep.
 
 <P>OS X is BSD Unix, so it should just work.  See the
 src/MAKE/Makefile.mac file.
+One exception to this is the BSD version of sed that comes standard
+on many Apple systems. It does not support
+some of the features of GNU sed used by the LAMMPS package installer.
+The solution is to install GNU sed using fink, MacPorts, or some other
+method.
 </P>
 <HR>
 

@@ -473,6 +473,11 @@ secs/timestep.
 
 OS X is BSD Unix, so it should just work.  See the
 src/MAKE/Makefile.mac file.
+One exception to this is the BSD version of sed that comes standard
+on many Apple systems. It does not support
+some of the features of GNU sed used by the LAMMPS package installer.
+The solution is to install GNU sed using fink, MacPorts, or some other
+method.
 
 :line
 

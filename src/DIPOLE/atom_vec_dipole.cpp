@@ -637,7 +637,7 @@ int AtomVecDipole::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 15 * nlocal;
+  int n = 16 * nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
@@ -671,6 +671,7 @@ int AtomVecDipole::pack_restart(int i, double *buf)
   buf[m++] = mu[i][0];
   buf[m++] = mu[i][1];
   buf[m++] = mu[i][2];
+  buf[m++] = mu[i][3];
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
@@ -709,6 +710,7 @@ int AtomVecDipole::unpack_restart(double *buf)
   mu[nlocal][0] = buf[m++];
   mu[nlocal][1] = buf[m++];
   mu[nlocal][2] = buf[m++];
+  mu[nlocal][3] = buf[m++];
 
   double **extra = atom->extra;
   if (atom->nextra_store) {

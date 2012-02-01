@@ -34,10 +34,9 @@ namespace LAMMPS_NS {
   {							\
     const int tid = omp_get_thread_num();		\
     const int idelta = 1 + num/nthreads;		\
-    int ifrom = tid*idelta;				\
-    int ito   = ifrom + idelta;				\
-    if (ito > num) ito = num;				\
-    if (ifrom >= num) ifrom = ito + 1
+    const int ifrom = tid*idelta;			\
+    const int ito   = ((ifrom + idelta) > num)		\
+      ? num : (ifrom+idelta);				\
 
 #define NEIGH_OMP_CLOSE }
 

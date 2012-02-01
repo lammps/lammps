@@ -2653,7 +2653,6 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
 void PairAIREBOOMP::REBO_neigh_thr()
 {
   const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
 
   if (atom->nmax > maxlocal) {
@@ -2697,9 +2696,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
 
     const int iidelta = 1 + allnum/nthreads;
     const int iifrom = tid*iidelta;
-    int iito   = iifrom + iidelta;
-    if (iito > allnum)
-      iito = allnum;
+    const int iito = ((iifrom+iidelta)>allnum) ? allnum : (iifrom+iidelta);
 
     // store all REBO neighs of owned and ghost atoms
     // scan full neighbor list of I
@@ -2707,57 +2704,56 @@ void PairAIREBOOMP::REBO_neigh_thr()
     int npage = tid;
     int npnt = 0;
 
-    if (iifrom < allnum) {
-      for (ii = iifrom; ii < iito; ii++) {
-	i = ilist[ii];
+    for (ii = iifrom; ii < iito; ii++) {
+      i = ilist[ii];
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-	if (pgsize - npnt < oneatom) {
-	  npnt = 0;
-	  npage += nthreads;
-	  if (npage >= maxpage) add_pages(nthreads);
-	}
-	neighptr = &(pages[npage][npnt]);
-	n = 0;
-
-	xtmp = x[i][0];
-	ytmp = x[i][1];
-	ztmp = x[i][2];
-	itype = map[type[i]];
-	nC[i] = nH[i] = 0.0;
-	jlist = firstneigh[i];
-	jnum = numneigh[i];
-
-	for (jj = 0; jj < jnum; jj++) {
-	  j = jlist[jj];
-	  j &= NEIGHMASK;
-	  jtype = map[type[j]];
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-
-	  if (rsq < rcmaxsq[itype][jtype]) {
-	    neighptr[n++] = j;
-	    if (jtype == 0)
-	      nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-	    else
-	      nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
-	  }
-	}
-
-	REBO_firstneigh[i] = neighptr;
-	REBO_numneigh[i] = n;
-	npnt += n;
-
-	if (npnt >= pgsize)
-	  error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
+      if (pgsize - npnt < oneatom) {
+	npnt = 0;
+	npage += nthreads;
+	if (npage >= maxpage) add_pages(nthreads);
       }
+      neighptr = &(pages[npage][npnt]);
+      n = 0;
+
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = map[type[i]];
+      nC[i] = nH[i] = 0.0;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+	j = jlist[jj];
+	j &= NEIGHMASK;
+	jtype = map[type[j]];
+	delx = xtmp - x[j][0];
+	dely = ytmp - x[j][1];
+	delz = ztmp - x[j][2];
+	rsq = delx*delx + dely*dely + delz*delz;
+
+	if (rsq < rcmaxsq[itype][jtype]) {
+	  neighptr[n++] = j;
+	  if (jtype == 0)
+	    nC[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	  else
+	    nH[i] += Sp(sqrt(rsq),rcmin[itype][jtype],rcmax[itype][jtype],dS);
+	}
+      }
+
+      REBO_firstneigh[i] = neighptr;
+      REBO_numneigh[i] = n;
+      npnt += n;
+
+      if (npnt >= pgsize)
+	error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
     }
   }
 }
+
 
 /* ---------------------------------------------------------------------- */
 

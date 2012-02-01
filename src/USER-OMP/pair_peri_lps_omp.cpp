@@ -213,18 +213,15 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
   // each thread works on a fixed chunk of atoms.
   const int idelta = 1 + nlocal/comm->nthreads;
   iifrom = thr->get_tid()*idelta;
-  iito   = iifrom + idelta;
-  if (iito > nlocal)
-    iito = nlocal;
+  iito   = ((iifrom + idelta) > nlocal) ? nlocal : (iifrom + idelta);
 #else 
   iifrom = 0;
   iito = nlocal;
 #endif
 
-  if (iifrom < nlocal) {
-    // Compute the dilatation on each particle
+  // Compute the dilatation on each particle
+  if (iifrom < nlocal)
     compute_dilatation_thr(iifrom, iito);
-  }
 
   // wait until all threads are done before communication
   sync_threads();
@@ -352,7 +349,8 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
   sync_threads();
 
   // store new s0 (in parallel)
-  for (i = iifrom; i < iito; i++) s0[i] = s0_new[i]; 
+  if (iifrom < nlocal)
+    for (i = iifrom; i < iito; i++) s0[i] = s0_new[i];
 }
 
 /* ---------------------------------------------------------------------- */

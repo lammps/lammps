@@ -203,9 +203,7 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
   // each thread works on a fixed chunk of atoms.
   const int idelta = 1 + nlocal/comm->nthreads;
   iifrom = thr->get_tid()*idelta;
-  iito   = iifrom + idelta;
-  if (iito > nlocal)
-    iito = nlocal;
+  iito   = ((iifrom + idelta) > nlocal) ? nlocal : (iifrom + idelta);
 #else 
   iifrom = 0;
   iito = nlocal;
@@ -216,84 +214,83 @@ void PairPeriPMBOMP::eval(int iifrom, int iito, ThrData * const thr)
   // if bond already broken, skip this partner
   // first = true if this is first neighbor of particle i
 
-  if (iifrom < nlocal) {
-    bool first;
+  bool first;
 
-    for (i = iifrom; i < iito; ++i) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      itype = type[i];
-      jnum = npartner[i];
-      s0_new[i] = DBL_MAX;
-      first = true;
+  for (i = iifrom; i < iito; ++i) {
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jnum = npartner[i];
+    s0_new[i] = DBL_MAX;
+    first = true;
 
-      for (jj = 0; jj < jnum; jj++) {
-	if (partner[i][jj] == 0) continue;
-	j = atom->map(partner[i][jj]);
+    for (jj = 0; jj < jnum; jj++) {
+      if (partner[i][jj] == 0) continue;
+      j = atom->map(partner[i][jj]);
 
-	// check if lost a partner without first breaking bond
+      // check if lost a partner without first breaking bond
 
-	if (j < 0) {
-	  partner[i][jj] = 0;
-	  continue;
-	}
-
-	// compute force density, add to PD equation of motion
-
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	if (periodic) domain->minimum_image(delx,dely,delz);
-	rsq = delx*delx + dely*dely + delz*delz;
-	jtype = type[j];
-	delta = cut[itype][jtype];
-	r = sqrt(rsq);
-	dr = r - r0[i][jj];
-
-	// avoid roundoff errors
-
-	if (fabs(dr) < 2.2204e-016) dr = 0.0;
-
-	// scale vfrac[j] if particle j near the horizon
-
-	if ((fabs(r0[i][jj] - delta)) <= half_lc)
-	  vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
-	    (1.0 + ((delta - half_lc)/(2*half_lc) ) );
-	else vfrac_scale = 1.0;
-
-	stretch = dr / r0[i][jj];
-	rk = (kspring[itype][jtype] * vfrac[j]) * vfrac_scale * stretch;
-	if (r > 0.0) fbond = -(rk/r);
-	else fbond = 0.0;
-
-	f[i][0] += delx*fbond;
-	f[i][1] += dely*fbond;
-	f[i][2] += delz*fbond;
-
-	// since I-J is double counted, set newton off & use 1/2 factor and I,I 
-
-	if (EFLAG) evdwl = 0.5*rk*dr;
-	if (EVFLAG) 
-	  ev_tally_thr(this,i,i,nlocal,0,0.5*evdwl,0.0,
-		       0.5*fbond*vfrac[i],delx,dely,delz,thr);
-
-	// find stretch in bond I-J and break if necessary
-	// use s0 from previous timestep
-
-	if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
-
-	// update s0 for next timestep
-
-	if (first)
-	  s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
-	else
-	  s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
-
-	first = false;
+      if (j < 0) {
+	partner[i][jj] = 0;
+	continue;
       }
+
+      // compute force density, add to PD equation of motion
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      if (periodic) domain->minimum_image(delx,dely,delz);
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+      delta = cut[itype][jtype];
+      r = sqrt(rsq);
+      dr = r - r0[i][jj];
+
+      // avoid roundoff errors
+
+      if (fabs(dr) < 2.2204e-016) dr = 0.0;
+
+      // scale vfrac[j] if particle j near the horizon
+
+      if ((fabs(r0[i][jj] - delta)) <= half_lc)
+	vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
+	  (1.0 + ((delta - half_lc)/(2*half_lc) ) );
+      else vfrac_scale = 1.0;
+
+      stretch = dr / r0[i][jj];
+      rk = (kspring[itype][jtype] * vfrac[j]) * vfrac_scale * stretch;
+      if (r > 0.0) fbond = -(rk/r);
+      else fbond = 0.0;
+
+      f[i][0] += delx*fbond;
+      f[i][1] += dely*fbond;
+      f[i][2] += delz*fbond;
+
+      // since I-J is double counted, set newton off & use 1/2 factor and I,I 
+
+      if (EFLAG) evdwl = 0.5*rk*dr;
+      if (EVFLAG) 
+	ev_tally_thr(this,i,i,nlocal,0,0.5*evdwl,0.0,
+		     0.5*fbond*vfrac[i],delx,dely,delz,thr);
+
+      // find stretch in bond I-J and break if necessary
+      // use s0 from previous timestep
+
+      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+
+      // update s0 for next timestep
+
+      if (first)
+	s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
+      else
+	s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+
+      first = false;
     }
   }
+
   sync_threads();
 
   // store new s0 (in parallel)

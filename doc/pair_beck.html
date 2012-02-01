@@ -1,0 +1,90 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style beck/cut command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style beck/cut Rc 
+</PRE>
+<UL><LI>Rc = cutoff for interactions (distance units) 
+</UL>
+<P><B>Examples:</B> 
+</P>
+<PRE>pair_style beck 8.0
+pair_coeff * * 399.671876712 0.0000867636112694 0.675 4.390 0.0003746
+pair_coeff 1 1 399.671876712 0.0000867636112694 0.675 4.390 0.0003746 6.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>beck/cut</I> computes interactions based on the potential by
+<A HREF = "#Beck">(Beck)</A>, originally designed for simulation of Helium.  It
+includes truncation at a cutoff distance Rc.
+</P>
+<CENTER><IMG SRC = "Eqs/pair_beck_cut.jpg">
+</CENTER>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<UL><LI>A (energy units)
+<LI>B (energy-distance^6 units)
+<LI>a (distance units)
+<LI>alpha (1/distance units)
+<LI>beta  (1/distance^6 units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional.  If not specified, the global cutoff
+Rc is used.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, coeffiecients must be specified.
+No default miture rules are used.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Beck"></A>
+
+<P><B>(Beck)</B> Beck, Molecular Physics, 14, 311 (1968).
+</P>
+</HTML>

@@ -620,6 +620,7 @@ potentials.  Click on the style itself for a full description:
 "hybrid/overlay"_pair_hybrid.html,
 "adp"_pair_adp.html,
 "airebo"_pair_airebo.html,
+"beck"_pair_beck.html,
 "born"_pair_born.html,
 "born/coul/long"_pair_born.html,
 "born/coul/wolf"_pair_born.html,

@@ -46,6 +46,11 @@ PairKIM::PairKIM(LAMMPS *lmp) : Pair(lmp)
   nelements = 0;
   elements = NULL;
 
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
+  no_virial_fdotr_compute = 1;
+
   virialGlobal_ind = -1;
   virialPerAtom_ind = -1;
   process_d1Edr_ind = -1;
@@ -55,6 +60,7 @@ PairKIM::PairKIM(LAMMPS *lmp) : Pair(lmp)
 
   maxall = 0;
   kimtype = NULL;
+  onebuf = NULL;
 
   // static pointer that static callbacks can use to access class variables
 
@@ -77,6 +83,7 @@ PairKIM::~PairKIM()
   delete [] testname;
 
   memory->destroy(kimtype);
+  memory->destroy(onebuf);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -277,6 +284,14 @@ void PairKIM::init_style()
   if (force->newton_pair != 0)
     error->all(FLERR,"Pair style pair_KIM requires newton pair Off");
 
+  // setup onebuf for neighbors of one atom if needed
+
+  molecular = atom->molecular;
+  if (molecular) {
+    memory->destroy(onebuf);
+    memory->create(onebuf,neighbor->oneatom,"pair:onebuf");
+  }
+
   // request half or full neighbor list depending on KIM model requirement
 
   int irequest = neighbor->request(this);
@@ -446,17 +461,17 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
 	*numnei=0;
 	return KIM_STATUS_NEIGH_ITER_PAST_END; //reached end by iterator
       }else{
-	*numnei = numneigh[pointsto] ;
-	*atom   =ilist[pointsto];
+	*numnei = numneigh[pointsto];
+	*atom = ilist[pointsto];
 
 	// strip off neighbor mask for molecular systems
 
-	if (atom->molecular) {
+	if (self->molecular) {
 	  int n = *numnei;
-	  for (int i = 0; i < n; i++) {
-	    onebuf[i] = *neiatom & NEIGHMASK;
-	    neiatom++;
-	  }
+	  int *ptr = firstneigh[pointsto];
+	  int *onebuf = self->onebuf;
+	  for (int i = 0; i < n; i++)
+	    onebuf[i] = *(ptr++) & NEIGHMASK;
 	  *nei1atom = onebuf;
 	} else *nei1atom = firstneigh[pointsto];
 
@@ -487,9 +502,15 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
     *numnei=numneigh[*request];
     
     // strip off neighbor mask for molecular systems
-    
-    if (atom->molecular) {
-    } else *nei1atom = firstneigh[*request];
+
+    if (self->molecular) {
+      int n = *numnei;
+      int *ptr = firstneigh[pointsto];
+      int *onebuf = self->onebuf;
+      for (int i = 0; i < n; i++)
+	onebuf[i] = *(ptr++) & NEIGHMASK;
+      *nei1atom = onebuf;
+    } else *nei1atom = firstneigh[pointsto];
 
     if (*numnei > KIM_API_MAX_NEIGHBORS) 
       return KIM_STATUS_NEIGH_TOO_MANY_NEIGHBORS;

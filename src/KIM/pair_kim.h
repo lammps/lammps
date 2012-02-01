@@ -49,6 +49,9 @@ class PairKIM : public Pair {
   int maxall;
   int *kimtype;                 // KIM atom types for each LAMMPS atom
 
+  int *onebuf;                  // neighbors of one atom
+  int molecular;
+
   void allocate();
 
   // KIM data

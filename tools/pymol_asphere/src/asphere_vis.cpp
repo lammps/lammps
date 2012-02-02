@@ -17,6 +17,7 @@ __________________________________________________________________________
 #include "commandline.h"
 #include "glsurface.h"
 #include <limits>
+#include <cstring>
 
 // Describe the program parameters
 void Describe(CommandLine &cl,ostream &out);

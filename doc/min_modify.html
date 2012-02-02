@@ -20,8 +20,8 @@
 <PRE>keyword = <I>dmax</I> or <I>line</I>
   <I>dmax</I> value = max
     max = maximum distance for line search to move (distance units)
-  <I>line</I> value = <I>backtrack</I> or <I>quadratic</I>
-    backtrack,quadratic = style of linesearch to use 
+  <I>line</I> value = <I>backtrack</I> or <I>quadratic</I>or <I>forcezero</I>
+    backtrack,quadratic,forcezero = style of linesearch to use 
 </PRE>
 
 </UL>
@@ -58,10 +58,13 @@ difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
 </P>
-<P>By contast, the <I>quadratic</I> line search algorithm is often able to
-reduce forces closer to 0.0.  It may also be more efficient than the
-backtracking algorithm by requiring fewer energy/force evaluations.
-However, it may not be as robust for some problems.
+<P>By contrast, the <I>quadratic</I> line search algorithm tries to 
+reduce the forces to zero, while guaranteeing that the energy
+changes is not positive (uphill). For some systems, it may also 
+be more efficient than the backtracking algorithm by 
+requiring fewer energy/force evaluations. The <I>forcezero</I> 
+line search algorithm is similar to <I>quadratic</I>.
+It may be more efficient than <I>quadratic</I> on some systems.
 </P>
 <P><B>Restrictions:</B> none
 </P>

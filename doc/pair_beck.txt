@@ -26,7 +26,7 @@ Style {beck/cut} computes interactions based on the potential by
 "(Beck)"_#Beck, originally designed for simulation of Helium.  It
 includes truncation at a cutoff distance Rc.
 
-:c,image(Eqs/pair_beck_cut.jpg)
+:c,image(Eqs/pair_beck.jpg)
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

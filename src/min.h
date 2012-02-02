@@ -52,7 +52,7 @@ class Min : protected Pointers {
   int external_force_clear;   // clear forces locally or externally
 
   double dmax;                // max dist to move any atom in one step
-  int linestyle;              // 0 = backtrack, 1 = quadratic
+  int linestyle;              // 0 = backtrack, 1 = quadratic, 2 = forcezero
 
   int nelist_global,nelist_atom;    // # of PE,virial computes to check
   int nvlist_global,nvlist_atom;

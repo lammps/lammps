@@ -585,6 +585,7 @@ void Min::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
       if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
       else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
+      else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal min_modify command");

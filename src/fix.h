@@ -181,7 +181,7 @@ namespace FixConst {
   static const int POST_RUN =                1<<18;
   static const int FIX_CONST_LAST =          1<<19;
 }
-  
+
 }
 
 #endif

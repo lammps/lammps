@@ -335,7 +335,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style eam"_pair_eam.html
+"pair_coeff"_pair_coeff.html, "pair_style eam"_pair_eam.html,
+"pair_style meam/spline"_pair_meam_spline.html
 
 [Default:] none
 

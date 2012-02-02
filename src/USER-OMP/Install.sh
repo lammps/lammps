@@ -5,7 +5,8 @@ for file in *_omp.cpp *_omp.h  pppm*proxy.h pppm*proxy.cpp; do
     # let us see if the "rain man" can count the toothpicks...
    ofile=`echo $file | sed  -e s,_pppm_tip4p_omp,_long_tip4p_omp, \
    -e s,pppm.\\*_proxy,pppm_omp, -e s,_pppm_omp,_long_omp, \
-   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.\\\\\\(h\\\\\\|cpp\\\\\\),\\\\1.\\\\2,`
+   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.h,\\\\1.h, \
+   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.cpp,\\\\1.cpp,`
   if (test $1 = 1) then
     if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") then
       :  # always install those files.

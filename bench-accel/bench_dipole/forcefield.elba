@@ -1,0 +1,52 @@
+pair_style dipole/sf 12
+special_bonds lj/coul 0.0 1.0 1.0 
+bond_style harmonic 
+angle_style hybrid cosine/squared dipole
+
+#    type  mass [grams/mol]
+mass    1   40.000 # water
+mass    2   90.000 # choline
+mass    3   90.000 # phosphate
+mass    4   62.000 # glycerol
+mass    5   62.000 # ester
+mass    6   42.000 # tail
+
+# LJ coeffs: iType jType epsilon_ij [kcal/mol] sigma_ij [angstrom]
+pair_coeff    1    1	  0.466  3.000 # water-water
+pair_coeff    1    2	  0.585  4.100 # water-choline
+pair_coeff    1    3	  1.054  4.100 # water-phosphate
+pair_coeff    1    4	  0.574  3.800 # water-glycerol
+pair_coeff    1    5	  0.765  3.800 # water-ester
+pair_coeff    1    6	  0.447  3.750 # water-tail
+pair_coeff    2    2	  1.434  5.200 # choline-choline
+pair_coeff    2    3	  1.434  5.200 # choline-phosphate
+pair_coeff    2    4	  1.171  4.900 # choline-glycerol
+pair_coeff    2    5	  1.171  4.900 # choline-ester
+pair_coeff    2    6	  1.095  4.850 # choline-tail
+pair_coeff    3    3	  1.434  5.200 # phosphate-phosphate
+pair_coeff    3    4	  1.171  4.900 # phosphate-glycerol
+pair_coeff    3    5	  1.171  4.900 # phosphate-ester
+pair_coeff    3    6	  1.095  4.850 # phosphate-tail
+pair_coeff    4    4	  0.956  4.600 # glycerol-glycerol
+pair_coeff    4    5	  0.956  4.600 # glycerol-ester
+pair_coeff    4    6	  0.894  4.550 # glycerol-tail
+pair_coeff    5    5	  0.956  4.600 # ester-ester 
+pair_coeff    5    6	  0.894  4.550 # ester-tail
+pair_coeff    6    6	  0.837  4.500 # tail-tail
+
+# harmonic bond coeffs:  K [kcal/(mol*angstrom^2)] r0 [angstrom] 
+bond_coeff    1   1.506  4.680 # choline--phosphate
+bond_coeff    2   1.506  4.410 # phosphate--glycerol
+bond_coeff    3   1.506  4.140 # glycerol--ester
+bond_coeff    4   1.506  4.095 # ester--tail
+bond_coeff    5   1.506  4.050 # tail--tail
+
+# angle coeffs: K [kcal/mol] theta0 [degrees]
+angle_coeff 1 cosine/squared 3.5851 115.00 # choline-phosphate-glycerol
+angle_coeff 2 cosine/squared 3.5851 160.00 # phosphate-glycerol-ester
+angle_coeff 3 cosine/squared 3.5851 180.00 # gly-est-tail, tail-tail-tail (sat)
+angle_coeff 4 cosine/squared 3.5851 120.00 # tail-tail-tail (unsat)
+# dipole angle coeffs:  K [kcal/mol] gamma0 [degrees] 
+angle_coeff 5  dipole    1.195  0.000 # glyDipole-phosphate, estDipole-tail
+
+

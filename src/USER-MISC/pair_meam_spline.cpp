@@ -80,294 +80,387 @@ using namespace LAMMPS_NS;
 
 PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
 {
-	single_enable = 0;
-	one_coeff = 1;
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
 
-	Uprime_values = NULL;
-	nmax = 0;
-	maxNeighbors = 0;
-	twoBodyInfo = NULL;
+  nelements = 0;
+  elements = NULL;
 
-	comm_forward = 1;
-	comm_reverse = 0;
+  Uprime_values = NULL;
+  nmax = 0;
+  maxNeighbors = 0;
+  twoBodyInfo = NULL;
+  
+  comm_forward = 1;
+  comm_reverse = 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 PairMEAMSpline::~PairMEAMSpline()
 {
-	delete[] twoBodyInfo;
-	memory->destroy(Uprime_values);
+  if (elements)
+    for (int i = 0; i < nelements; i++) delete [] elements[i];
+  delete [] elements;
 
-	if(allocated) {
-		memory->destroy(setflag);
-		memory->destroy(cutsq);
-	}
+  delete[] twoBodyInfo;
+  memory->destroy(Uprime_values);
+  
+  if(allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    delete [] map;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairMEAMSpline::compute(int eflag, int vflag)
 {
-	if(eflag || vflag) ev_setup(eflag, vflag);
-	else evflag = vflag_fdotr = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  if (eflag || vflag) ev_setup(eflag, vflag);
+  else evflag = vflag_fdotr = 
+	 eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
-	double cutforcesq = cutoff*cutoff;
+  double cutforcesq = cutoff*cutoff;
 
-	// Grow per-atom array if necessary.
-	if(atom->nmax > nmax) {
-		memory->sfree(Uprime_values);
-		nmax = atom->nmax;
-		Uprime_values = (double*)memory->smalloc(nmax*sizeof(double), "pair:Uprime");
+  // Grow per-atom array if necessary
+
+  if (atom->nmax > nmax) {
+    memory->destroy(Uprime_values);
+    nmax = atom->nmax;
+    memory->create(Uprime_values,nmax,"pair:Uprime");
+  }
+
+  double** const x = atom->x;
+  double** forces = atom->f;
+  int nlocal = atom->nlocal;
+  bool newton_pair = force->newton_pair;
+
+  int inum_full = listfull->inum;
+  int* ilist_full = listfull->ilist;
+  int* numneigh_full = listfull->numneigh;
+  int** firstneigh_full = listfull->firstneigh;
+
+  // Determine the maximum number of neighbors a single atom has
+
+  int newMaxNeighbors = 0;
+  for(int ii = 0; ii < inum_full; ii++) {
+    int jnum = numneigh_full[ilist_full[ii]];
+    if(jnum > newMaxNeighbors) newMaxNeighbors = jnum;
+  }
+
+  // Allocate array for temporary bond info
+
+  if(newMaxNeighbors > maxNeighbors) {
+    maxNeighbors = newMaxNeighbors;
+    delete[] twoBodyInfo;
+    twoBodyInfo = new MEAM2Body[maxNeighbors];
+  }
+  
+  // Sum three-body contributions to charge density and
+  // compute embedding energies
+
+  for(int ii = 0; ii < inum_full; ii++) {
+    int i = ilist_full[ii];
+    double xtmp = x[i][0];
+    double ytmp = x[i][1];
+    double ztmp = x[i][2];
+    int* jlist = firstneigh_full[i];
+    int jnum = numneigh_full[i];
+    double rho_value = 0;
+    int numBonds = 0;
+    MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
+    
+    for(int jj = 0; jj < jnum; jj++) {
+      int j = jlist[jj];
+      j &= NEIGHMASK;
+      
+      double jdelx = x[j][0] - xtmp;
+      double jdely = x[j][1] - ytmp;
+      double jdelz = x[j][2] - ztmp;
+      double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
+      
+      if(rij_sq < cutforcesq) {
+	double rij = sqrt(rij_sq);
+	double partial_sum = 0;
+	
+	nextTwoBodyInfo->tag = j;
+	nextTwoBodyInfo->r = rij;
+	nextTwoBodyInfo->f = f.eval(rij, nextTwoBodyInfo->fprime);
+	nextTwoBodyInfo->del[0] = jdelx / rij;
+	nextTwoBodyInfo->del[1] = jdely / rij;
+	nextTwoBodyInfo->del[2] = jdelz / rij;
+	
+	for(int kk = 0; kk < numBonds; kk++) {
+	  const MEAM2Body& bondk = twoBodyInfo[kk];
+	  double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] + 
+			      nextTwoBodyInfo->del[1]*bondk.del[1] + 
+			      nextTwoBodyInfo->del[2]*bondk.del[2]);
+	  partial_sum += bondk.f * g.eval(cos_theta);
 	}
+	
+	rho_value += nextTwoBodyInfo->f * partial_sum;
+	rho_value += rho.eval(rij);
+	
+	numBonds++;
+	nextTwoBodyInfo++;
+      }
+    }
+    
+    // Compute embedding energy and its derivative
 
-	double** const x = atom->x;
-	double** forces = atom->f;
-	int nlocal = atom->nlocal;
-	bool newton_pair = force->newton_pair;
+    double Uprime_i;
+    double embeddingEnergy = U.eval(rho_value, Uprime_i) - zero_atom_energy;
+    Uprime_values[i] = Uprime_i;
+    if(eflag) {
+      if(eflag_global) eng_vdwl += embeddingEnergy;
+      if(eflag_atom) eatom[i] += embeddingEnergy;
+    }
+    
+    double forces_i[3] = {0, 0, 0};
+    
+    // Compute three-body contributions to force
 
-	int inum_full = listfull->inum;
-	int* ilist_full = listfull->ilist;
-	int* numneigh_full = listfull->numneigh;
-	int** firstneigh_full = listfull->firstneigh;
-
-	// Determine the maximum number of neighbors a single atom has.
-	int newMaxNeighbors = 0;
-	for(int ii = 0; ii < inum_full; ii++) {
-		int jnum = numneigh_full[ilist_full[ii]];
-		if(jnum > newMaxNeighbors) newMaxNeighbors = jnum;
+    for(int jj = 0; jj < numBonds; jj++) {
+      const MEAM2Body bondj = twoBodyInfo[jj];
+      double rij = bondj.r;
+      int j = bondj.tag;
+      
+      double f_rij_prime = bondj.fprime;
+      double f_rij = bondj.f;
+      
+      double forces_j[3] = {0, 0, 0};
+      
+      MEAM2Body const* bondk = twoBodyInfo;
+      for(int kk = 0; kk < jj; kk++, ++bondk) {
+	double rik = bondk->r;
+	
+	double cos_theta = (bondj.del[0]*bondk->del[0] + 
+			    bondj.del[1]*bondk->del[1] + 
+			    bondj.del[2]*bondk->del[2]);
+	double g_prime;
+	double g_value = g.eval(cos_theta, g_prime);
+	double f_rik_prime = bondk->fprime;
+	double f_rik = bondk->f;
+	
+	double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
+	double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
+	
+	double prefactor = Uprime_i * f_rij * f_rik * g_prime;
+	double prefactor_ij = prefactor / rij;
+	double prefactor_ik = prefactor / rik;
+	fij += prefactor_ij * cos_theta;
+	fik += prefactor_ik * cos_theta;
+	
+	double fj[3], fk[3];
+	
+	fj[0] = bondj.del[0] * fij - bondk->del[0] * prefactor_ij;
+	fj[1] = bondj.del[1] * fij - bondk->del[1] * prefactor_ij;
+	fj[2] = bondj.del[2] * fij - bondk->del[2] * prefactor_ij;
+	forces_j[0] += fj[0];
+	forces_j[1] += fj[1];
+	forces_j[2] += fj[2];
+	
+	fk[0] = bondk->del[0] * fik - bondj.del[0] * prefactor_ik;
+	fk[1] = bondk->del[1] * fik - bondj.del[1] * prefactor_ik;
+	fk[2] = bondk->del[2] * fik - bondj.del[2] * prefactor_ik;
+	forces_i[0] -= fk[0];
+	forces_i[1] -= fk[1];
+	forces_i[2] -= fk[2];
+	
+	int k = bondk->tag;
+	forces[k][0] += fk[0];
+	forces[k][1] += fk[1];
+	forces[k][2] += fk[2];
+	
+	if(evflag) {
+	  double delta_ij[3];
+	  double delta_ik[3];
+	  delta_ij[0] = bondj.del[0] * rij;
+	  delta_ij[1] = bondj.del[1] * rij;
+	  delta_ij[2] = bondj.del[2] * rij;
+	  delta_ik[0] = bondk->del[0] * rik;
+	  delta_ik[1] = bondk->del[1] * rik;
+	  delta_ik[2] = bondk->del[2] * rik;
+	  ev_tally3(i, j, k, 0.0, 0.0, fj, fk, delta_ij, delta_ik);
 	}
+      }
+      
+      forces[i][0] -= forces_j[0];
+      forces[i][1] -= forces_j[1];
+      forces[i][2] -= forces_j[2];
+      forces[j][0] += forces_j[0];
+      forces[j][1] += forces_j[1];
+      forces[j][2] += forces_j[2];
+    }
+    
+    forces[i][0] += forces_i[0];
+    forces[i][1] += forces_i[1];
+    forces[i][2] += forces_i[2];
+  }
+  
+  // Communicate U'(rho) values
 
-	// Allocate array for temporary bond info.
-	if(newMaxNeighbors > maxNeighbors) {
-		maxNeighbors = newMaxNeighbors;
-		delete[] twoBodyInfo;
-		twoBodyInfo = new MEAM2Body[maxNeighbors];
-	}
+  comm->forward_comm_pair(this);
+  
+  int inum_half = listhalf->inum;
+  int* ilist_half = listhalf->ilist;
+  int* numneigh_half = listhalf->numneigh;
+  int** firstneigh_half = listhalf->firstneigh;
+  
+  // Compute two-body pair interactions
 
-	// Sum three-body contributions to charge density and compute embedding energies.
-	for(int ii = 0; ii < inum_full; ii++) {
-		int i = ilist_full[ii];
-		double xtmp = x[i][0];
-		double ytmp = x[i][1];
-		double ztmp = x[i][2];
-		int* jlist = firstneigh_full[i];
-		int jnum = numneigh_full[i];
-		double rho_value = 0;
-		int numBonds = 0;
-		MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
+  for(int ii = 0; ii < inum_half; ii++) {
+    int i = ilist_half[ii];
+    double xtmp = x[i][0];
+    double ytmp = x[i][1];
+    double ztmp = x[i][2];
+    int* jlist = firstneigh_half[i];
+    int jnum = numneigh_half[i];
+    
+    for(int jj = 0; jj < jnum; jj++) {
+      int j = jlist[jj];
+      j &= NEIGHMASK;
+      
+      double jdel[3];
+      jdel[0] = x[j][0] - xtmp;
+      jdel[1] = x[j][1] - ytmp;
+      jdel[2] = x[j][2] - ztmp;
+      double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
+      
+      if(rij_sq < cutforcesq) {
+	double rij = sqrt(rij_sq);
+	
+	double rho_prime;
+	rho.eval(rij, rho_prime);
+	double fpair = rho_prime * (Uprime_values[i] + Uprime_values[j]);
+	
+	double pair_pot_deriv;
+	double pair_pot = phi.eval(rij, pair_pot_deriv);
+	fpair += pair_pot_deriv;
+	
+	// Divide by r_ij to get forces from gradient
 
-		for(int jj = 0; jj < jnum; jj++) {
-			int j = jlist[jj];
-			j &= NEIGHMASK;
-
-			double jdelx = x[j][0] - xtmp;
-			double jdely = x[j][1] - ytmp;
-			double jdelz = x[j][2] - ztmp;
-			double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
-
-			if(rij_sq < cutforcesq) {
-				double rij = sqrt(rij_sq);
-				double partial_sum = 0;
-
-				nextTwoBodyInfo->tag = j;
-				nextTwoBodyInfo->r = rij;
-				nextTwoBodyInfo->f = f.eval(rij, nextTwoBodyInfo->fprime);
-				nextTwoBodyInfo->del[0] = jdelx / rij;
-				nextTwoBodyInfo->del[1] = jdely / rij;
-				nextTwoBodyInfo->del[2] = jdelz / rij;
-
-				for(int kk = 0; kk < numBonds; kk++) {
-					const MEAM2Body& bondk = twoBodyInfo[kk];
-					double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] + nextTwoBodyInfo->del[1]*bondk.del[1] + nextTwoBodyInfo->del[2]*bondk.del[2]);
-					partial_sum += bondk.f * g.eval(cos_theta);
-				}
-
-				rho_value += nextTwoBodyInfo->f * partial_sum;
-				rho_value += rho.eval(rij);
-
-				numBonds++;
-				nextTwoBodyInfo++;
-			}
-		}
-
-		// Compute embedding energy and its derivative.
-		double Uprime_i;
-		double embeddingEnergy = U.eval(rho_value, Uprime_i) - zero_atom_energy;
-		Uprime_values[i] = Uprime_i;
-		if(eflag) {
-			if(eflag_global) eng_vdwl += embeddingEnergy;
-			if(eflag_atom) eatom[i] += embeddingEnergy;
-		}
-
-		double forces_i[3] = {0, 0, 0};
-
-		// Compute three-body contributions to force.
-		for(int jj = 0; jj < numBonds; jj++) {
-			const MEAM2Body bondj = twoBodyInfo[jj];
-			double rij = bondj.r;
-			int j = bondj.tag;
-
-			double f_rij_prime = bondj.fprime;
-			double f_rij = bondj.f;
-
-			double forces_j[3] = {0, 0, 0};
-
-			MEAM2Body const* bondk = twoBodyInfo;
-			for(int kk = 0; kk < jj; kk++, ++bondk) {
-				double rik = bondk->r;
-
-				double cos_theta = (bondj.del[0]*bondk->del[0] + bondj.del[1]*bondk->del[1] + bondj.del[2]*bondk->del[2]);
-				double g_prime;
-				double g_value = g.eval(cos_theta, g_prime);
-				double f_rik_prime = bondk->fprime;
-				double f_rik = bondk->f;
-
-				double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
-				double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
-
-				double prefactor = Uprime_i * f_rij * f_rik * g_prime;
-				double prefactor_ij = prefactor / rij;
-				double prefactor_ik = prefactor / rik;
-				fij += prefactor_ij * cos_theta;
-				fik += prefactor_ik * cos_theta;
-
-				double fj[3], fk[3];
-
-				fj[0] = bondj.del[0] * fij - bondk->del[0] * prefactor_ij;
-				fj[1] = bondj.del[1] * fij - bondk->del[1] * prefactor_ij;
-				fj[2] = bondj.del[2] * fij - bondk->del[2] * prefactor_ij;
-				forces_j[0] += fj[0];
-				forces_j[1] += fj[1];
-				forces_j[2] += fj[2];
-
-				fk[0] = bondk->del[0] * fik - bondj.del[0] * prefactor_ik;
-				fk[1] = bondk->del[1] * fik - bondj.del[1] * prefactor_ik;
-				fk[2] = bondk->del[2] * fik - bondj.del[2] * prefactor_ik;
-				forces_i[0] -= fk[0];
-				forces_i[1] -= fk[1];
-				forces_i[2] -= fk[2];
-
-				int k = bondk->tag;
-				forces[k][0] += fk[0];
-				forces[k][1] += fk[1];
-				forces[k][2] += fk[2];
-
-				if(evflag) {
-					double delta_ij[3];
-					double delta_ik[3];
-					delta_ij[0] = bondj.del[0] * rij;
-					delta_ij[1] = bondj.del[1] * rij;
-					delta_ij[2] = bondj.del[2] * rij;
-					delta_ik[0] = bondk->del[0] * rik;
-					delta_ik[1] = bondk->del[1] * rik;
-					delta_ik[2] = bondk->del[2] * rik;
-					ev_tally3(i, j, k, 0.0, 0.0, fj, fk, delta_ij, delta_ik);
-				}
-			}
-
-			forces[i][0] -= forces_j[0];
-			forces[i][1] -= forces_j[1];
-			forces[i][2] -= forces_j[2];
-			forces[j][0] += forces_j[0];
-			forces[j][1] += forces_j[1];
-			forces[j][2] += forces_j[2];
-		}
-
-		forces[i][0] += forces_i[0];
-		forces[i][1] += forces_i[1];
-		forces[i][2] += forces_i[2];
-	}
-
-	// Communicate U'(rho) values.
-	comm->forward_comm_pair(this);
-
-	int inum_half = listhalf->inum;
-	int* ilist_half = listhalf->ilist;
-	int* numneigh_half = listhalf->numneigh;
-	int** firstneigh_half = listhalf->firstneigh;
-
-	// Compute two-body pair interactions.
-	for(int ii = 0; ii < inum_half; ii++) {
-		int i = ilist_half[ii];
-		double xtmp = x[i][0];
-		double ytmp = x[i][1];
-		double ztmp = x[i][2];
-		int* jlist = firstneigh_half[i];
-		int jnum = numneigh_half[i];
-
-		for(int jj = 0; jj < jnum; jj++) {
-			int j = jlist[jj];
-			j &= NEIGHMASK;
-
-			double jdel[3];
-			jdel[0] = x[j][0] - xtmp;
-			jdel[1] = x[j][1] - ytmp;
-			jdel[2] = x[j][2] - ztmp;
-			double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
-
-			if(rij_sq < cutforcesq) {
-				double rij = sqrt(rij_sq);
-
-				double rho_prime;
-				rho.eval(rij, rho_prime);
-				double fpair = rho_prime * (Uprime_values[i] + Uprime_values[j]);
-
-				double pair_pot_deriv;
-				double pair_pot = phi.eval(rij, pair_pot_deriv);
-				fpair += pair_pot_deriv;
-
-				// Divide by r_ij to get forces from gradient.
-				fpair /= rij;
-
-				forces[i][0] += jdel[0]*fpair;
-				forces[i][1] += jdel[1]*fpair;
-				forces[i][2] += jdel[2]*fpair;
-				forces[j][0] -= jdel[0]*fpair;
-				forces[j][1] -= jdel[1]*fpair;
-				forces[j][2] -= jdel[2]*fpair;
-				if(evflag) ev_tally(i, j, nlocal, newton_pair, pair_pot, 0.0, -fpair, jdel[0], jdel[1], jdel[2]);
-			}
-		}
-	}
-
-	if(vflag_fdotr) virial_fdotr_compute();
+	fpair /= rij;
+	
+	forces[i][0] += jdel[0]*fpair;
+	forces[i][1] += jdel[1]*fpair;
+	forces[i][2] += jdel[2]*fpair;
+	forces[j][0] -= jdel[0]*fpair;
+	forces[j][1] -= jdel[1]*fpair;
+	forces[j][2] -= jdel[2]*fpair;
+	if (evflag) ev_tally(i, j, nlocal, newton_pair, 
+			     pair_pot, 0.0, -fpair, jdel[0], jdel[1], jdel[2]);
+      }
+    }
+  }
+  
+  if(vflag_fdotr) virial_fdotr_compute();
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairMEAMSpline::allocate()
 {
-	allocated = 1;
-	int n = atom->ntypes;
+  allocated = 1;
+  int n = atom->ntypes;
+  
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-	memory->create(setflag,n+1,n+1,"pair:setflag");
-	for(int i = 0; i <= n; i++)
-		for(int j = 0; j <= n; j++)
-			setflag[i][j] = 0;
-
-	memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
    global settings 
 ------------------------------------------------------------------------- */
+
 void PairMEAMSpline::settings(int narg, char **arg)
 {
-	if(narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if(narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
+
 void PairMEAMSpline::coeff(int narg, char **arg)
 {
-	if(narg < 3) error->all(FLERR, "Not enough arguments for meam/spline pair coefficients");
+  int i,j,n;
 
-	if(!allocated) allocate();
+  if (!allocated) allocate();
 
-	// insure I,J args are * *
-	if(strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-		error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
-	read_file(arg[2]);
+  // insure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // read args that map atom types to elements in potential file
+  // map[i] = which element the Ith atom type is, -1 if NULL
+  // nelements = # of unique elements
+  // elements = list of element names
+
+  if (elements) {
+    for (i = 0; i < nelements; i++) delete [] elements[i];
+    delete [] elements;
+  }
+  elements = new char*[atom->ntypes];
+  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+
+  nelements = 0;
+  for (i = 3; i < narg; i++) {
+    if (strcmp(arg[i],"NULL") == 0) {
+      map[i-2] = -1;
+      continue;
+    }
+    for (j = 0; j < nelements; j++)
+      if (strcmp(arg[i],elements[j]) == 0) break;
+    map[i-2] = j;
+    if (j == nelements) {
+      n = strlen(arg[i]) + 1;
+      elements[j] = new char[n];
+      strcpy(elements[j],arg[i]);
+      nelements++;
+    }
+  }
+
+  // for now, only allow single element
+
+  if (nelements > 1)
+    error->all(FLERR,
+	       "Pair meam/spline only supports single element potentials");
+
+  // read potential file
+  
+  read_file(arg[2]);
+
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
+
+  int count = 0;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+	setflag[i][j] = 1;
+	count++;
+      }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
 
 #define MAXLINE 1024
 

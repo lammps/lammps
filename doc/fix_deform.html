@@ -99,13 +99,12 @@ continuously strained system.  See the <A HREF = "fix_nvt_sllod.html">fix
 nvt/sllod</A> and <A HREF = "compute_temp_deform.html">compute
 temp/deform</A> commands for more details.
 </P>
-<P>Any parameter varied by this command must refer to a periodic
-dimension - see the <A HREF = "boundary.html">boundary</A> command.  For parameters
-<I>xy</I>, <I>xz</I>, and <I>yz</I>, the 2nd dimension must be periodic, e.g. <I>y</I> for
-<I>xy</I>.  Dimensions not varied by this command can be periodic or
-non-periodic.  Dimensions corresponding to unspecified parameters can
-also be controlled by a <A HREF = "fix_nh.html">fix npt</A> or <A HREF = "fix_nh.html">fix nph</A>
-command.
+<P>For the <I>x</I>, <I>y</I>, <I>z</I> parameters, the associated dimension cannot be
+shrink-wrapped.  For the <I>xy</I>, <I>yz</I>, <I>xz</I> parameters, the associated
+2nd dimension cannot be shrink-wrapped.  Dimensions not varied by this
+command can be periodic or non-periodic.  Dimensions corresponding to
+unspecified parameters can also be controlled by a <A HREF = "fix_nh.html">fix
+npt</A> or <A HREF = "fix_nh.html">fix nph</A> command.
 </P>
 <P>The size and shape of the simulation box at the beginning of the
 simulation run were either specified by the
@@ -433,16 +432,23 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 applied via the <I>xy</I>, <I>xz</I>, or <I>yz</I> parameters, the following
 algorithm is used.  If <I>prd</I> is the associated parallel box length (10
 in the example above), then if the tilt factor exceeds the accepted
-range of -5 to 5 during the simulation, then the box is re-shaped to
-the other limit (an equivalent box) and the simulation continues.
-Thus for this example, if the initial xy tilt factor was 0.0 and "xy
-final 100.0" was specified, then during the simulation the xy tilt
-factor would increase from 0.0 to 5.0, the box would be re-shaped so
-that the tilt factor becomes -5.0, the tilt factor would increase from
--5.0 to 5.0, the box would be re-shaped again, etc.  The re-shaping
-would occur 10 times and the final tilt factor at the end of the
-simulation would be 0.0.  During each re-shaping event, atoms are
-remapped into the new box in the appropriate manner.
+range of -5 to 5 during the simulation, then the box is flipped to the
+other limit (an equivalent box) and the simulation continues.  Thus
+for this example, if the initial xy tilt factor was 0.0 and "xy final
+100.0" was specified, then during the simulation the xy tilt factor
+would increase from 0.0 to 5.0, the box would be flipped so that the
+tilt factor becomes -5.0, the tilt factor would increase from -5.0 to
+5.0, the box would be flipped again, etc.  The flip occurs 10 times
+and the final tilt factor at the end of the simulation would be 0.0.
+During each flip event, atoms are remapped into the new box in the
+appropriate manner.
+</P>
+<P>The one exception to this rule is if the 1st dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient due to the highly skewed simulation box.
 </P>
 <HR>
 
@@ -519,7 +525,11 @@ and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Any box dimension varied by this fix must be periodic.
+<P>You cannot apply x, y, or z deformations to a dimension that is
+shrink-wrapped via the <A HREF = "boundary.html">boundary</A> comamnd.
+</P>
+<P>You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
+xy) that is shrink-wrapped via the <A HREF = "boundary.html">boundary</A> comamnd.
 </P>
 <P><B>Related commands:</B>
 </P>

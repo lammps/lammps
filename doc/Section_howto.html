@@ -758,7 +758,7 @@ See the <A HREF = "dump.html">dump</A> command for more information on XTC files
 </H4>
 <P>By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The <A HREF = "boundary.html">boundary</A> command sets the boundary
-conditions of the box (periodic, non-periodic, etc).  The orthogonal
+conditions of the box (periodic, non-,periodic, etc).  The orthogonal
 box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
 starting from the origin given by <B>a</B> = (xhi-xlo,0,0); <B>b</B> =
 (0,yhi-ylo,0); <B>c</B> = (0,0,zhi-zlo).  The 6 parameters
@@ -818,16 +818,26 @@ the x box length is 10 and the xy tilt factor must be between -5 and
 +(yhi-ylo)/2.  Note that this is not a limitation, since if the
 maximum tilt factor is 5 (as in this example), then configurations
 with tilt = ..., -15, -5, 5, 15, 25, ... are geometrically all
-equivalent.
+equivalent.  If the box tilt exceeds this limit during a dynamics run
+(e.g. via the <A HREF = "fix_deform.html">fix deform</A> command), then the box is
+"flipped" to an equivalent shape with a tilt factor within the bounds,
+so the run can continue.  See the <A HREF = "fix_deform.html">fix deform</A> doc
+page for further details.
+</P>
+<P>The one exception to this rule is if the 1st dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient, due to the highly skewed simulation box.
 </P>
 <P>Triclinic crystal structures are often defined using three lattice
 constants <I>a</I>, <I>b</I>, and <I>c</I>, and three angles <I>alpha</I>, <I>beta</I> and
-<I>gamma</I>. Note that in this nomenclature, the a, b, and c lattice constants
-are the scalar lengths of the edge vectors <B>a</B>, <B>b</B>, and <B>c</B> defined 
-above.  The
-relationship between these 6 quantities (a,b,c,alpha,beta,gamma) and
-the LAMMPS box sizes (lx,ly,lz) = (xhi-xlo,yhi-ylo,zhi-zlo) and tilt
-factors (xy,xz,yz) is as follows:
+<I>gamma</I>. Note that in this nomenclature, the a, b, and c lattice
+constants are the scalar lengths of the edge vectors <B>a</B>, <B>b</B>, and <B>c</B>
+defined above.  The relationship between these 6 quantities
+(a,b,c,alpha,beta,gamma) and the LAMMPS box sizes (lx,ly,lz) =
+(xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is as follows:
 </P>
 <CENTER><IMG SRC = "Eqs/box.jpg">
 </CENTER>
@@ -910,9 +920,9 @@ LAMMPS for computational efficiency to be 1/2 of the parallel box
 length.  However, <A HREF = "fix_deform.html">fix deform</A> can continuously strain
 a box by an arbitrary amount.  As discussed in the <A HREF = "fix_deform.html">fix
 deform</A> command, when the tilt value reaches a limit,
-the box is re-shaped to the opposite limit which is an equivalent
-tiling of periodic space.  The strain rate can then continue to change
-as before.  In a long NEMD simulation these box re-shaping events may
+the box is flipped to the opposite limit which is an equivalent tiling
+of periodic space.  The strain rate can then continue to change as
+before.  In a long NEMD simulation these box re-shaping events may
 occur many times.
 </P>
 <P>In a NEMD simulation, the "remap" option of <A HREF = "fix_deform.html">fix

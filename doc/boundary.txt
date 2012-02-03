@@ -55,6 +55,20 @@ face has a value of 50.0 in the data file, the face will always be
 positioned at 50.0 or above, even if the maximum z-extent of all the
 atoms becomes less than 50.0.
 
+For triclinic (non-orthogonal) simulation boxes, if the 2nd dimension
+of a tilt factor (e.g. y for xy) is periodic, then the periodicity is
+enforced with the tilt factor offset.  If the 1st dimension is
+shrink-wrapped, then the shrink wrapping is applied to the tilted box
+face, to encompass the atoms.  E.g. for a positive xy tilt, the xlo
+and xhi faces of the box are planes tilting in the +y direction as y
+increases.  These tilted planes are shrink-wrapped around the atoms to
+determine the x extent of the box.
+
+See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
+for a geometric description of triclinic boxes, as defined by LAMMPS,
+and how to transform these parameters to and from other commonly used
+triclinic representations.
+
 [Restrictions:]
 
 This command cannot be used after the simulation box is defined by a

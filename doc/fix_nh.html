@@ -275,16 +275,15 @@ specified values of the external stress tensor.  A value of <I>nstep</I>
 means that every <I>nstep</I> timesteps, the reference dimensions are set
 to those of the current simulation domain.
 </P>
-<P>The <I>scaleyz</I>, <I>scalexz</I>, and <I>scalexy</I> keywords control whether or 
-not the corresponding tilt factors are scaled with the
-associated box dimensions
-when barostatting triclinic periodic cells.
-The default values <I>yes</I> will turn on scaling, which corresponds to
-adjusting the linear dimensions of the cell while preserving its shape.
-Choosing <I>no</I> ensures that the tilt factors are not scaled with the
-box dimensions. See below for restrictions and default values in different
-situations. In older versions of LAMMPS, scaling of tilt factors was not
-performed. The old behavior can be recovered by setting all three 
+<P>The <I>scaleyz</I>, <I>scalexz</I>, and <I>scalexy</I> keywords control whether or
+not the corresponding tilt factors are scaled with the associated box
+dimensions when barostatting triclinic periodic cells.  The default
+values <I>yes</I> will turn on scaling, which corresponds to adjusting the
+linear dimensions of the cell while preserving its shape.  Choosing
+<I>no</I> ensures that the tilt factors are not scaled with the box
+dimensions. See below for restrictions and default values in different
+situations. In older versions of LAMMPS, scaling of tilt factors was
+not performed. The old behavior can be recovered by setting all three
 scale keywords to <I>no</I>.
 </P>
 <HR>
@@ -292,24 +291,24 @@ scale keywords to <I>no</I>.
 <P>IMPORTANT NOTE: Using a barostat coupled to tilt dimensions <I>xy</I>,
 <I>xz</I>, <I>yz</I> can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a little beyond the normal limit
-of half the box length (0.6 times the box length), and then performs
+allows the tilt factors to grow a little beyond the normal limit of
+half the box length (0.6 times the box length), and then performs
 flipping or re-shaping to an equivalent periodic cell. The re-shaping
-operation is described in more detail in the doc page for 
-<A HREF = "fix_deform.html">fix deform</A>. Both the barostat dynamics and
-the atom trajectories are unaffected by this operation. However,
-if a tilt factor is incremented by a large amount (1.5 times the 
-box length) on a single timestep, LAMMPS can not accomodate 
-this event and will terminate the simulation
-with an error. This error typically
-indicates that there is something badly wrong with how the simulation
-was constructed, such as specifying values of <I>Pstart</I> that are 
-too far from the current stress value, or specifying a timestep that
-is too large. Triclinic barostatting should be used with
-care. This also is true for other barostat styles, although they tend
-to be more forgiving of insults. In particular, it is important to
-recognize that equilibrium liquids can not support a shear stress and 
-that equilibrium solids can not support shear stresses that exceed the yield stress.
+operation is described in more detail in the doc page for <A HREF = "fix_deform.html">fix
+deform</A>. Both the barostat dynamics and the atom
+trajectories are unaffected by this operation. However, if a tilt
+factor is incremented by a large amount (1.5 times the box length) on
+a single timestep, LAMMPS can not accomodate this event and will
+terminate the simulation with an error. This error typically indicates
+that there is something badly wrong with how the simulation was
+constructed, such as specifying values of <I>Pstart</I> that are too far
+from the current stress value, or specifying a timestep that is too
+large. Triclinic barostatting should be used with care. This also is
+true for other barostat styles, although they tend to be more
+forgiving of insults. In particular, it is important to recognize that
+equilibrium liquids can not support a shear stress and that
+equilibrium solids can not support shear stresses that exceed the
+yield stress.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_temp_berendsen.html">fix
 temp/berendsen</A> command which performs
@@ -493,14 +492,15 @@ space measure of the underlying non-Hamiltonian equations of motion.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>Non-periodic dimensions cannot be barostatted.  <I>Z</I>, <I>xz</I>, and <I>yz</I>,
-cannot be barostatted 2D simulations.  <I>Xy</I>, <I>xz</I>, and <I>yz</I> can only
-be barostatted if the simulation domain is triclinic and the 2nd
-dimension in the keyword (<I>y</I> dimension in <I>xy</I>) is periodic.  The
-<A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read data</A>, and
-<A HREF = "read_restart.html">read_restart</A> commands specify whether the
-simulation box is orthogonal or non-orthogonal (triclinic) and explain
-the meaning of the xy,xz,yz tilt factors.
+<P><I>X</I>, <I>y</I>, <I>z</I> cannot be barostatted if the associated dimension is not
+periodic.  <I>Xy</I>, <I>xz</I>, and <I>yz</I> can only be barostatted if the
+simulation domain is triclinic and the 2nd dimension in the keyword
+(<I>y</I> dimension in <I>xy</I>) is periodic.  <I>Z</I>, <I>xz</I>, and <I>yz</I>, cannot be
+barostatted for 2D simulations.  The <A HREF = "create_box.html">create_box</A>,
+<A HREF = "read_data.html">read data</A>, and <A HREF = "read_restart.html">read_restart</A>
+commands specify whether the simulation box is orthogonal or
+non-orthogonal (triclinic) and explain the meaning of the xy,xz,yz
+tilt factors.
 </P>
 <P>For the <I>temp</I> keyword, the final Tstop cannot be 0.0 since it would
 make the external T = 0.0 at some timestep during the simulation which

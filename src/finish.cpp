@@ -50,6 +50,11 @@ void Finish::end(int flag)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
+  // recompute natoms in case atoms have been lost
+
+  bigint nblocal = atom->nlocal;
+  MPI_Allreduce(&nblocal,&atom->nlocal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  
   // choose flavors of statistical output
   // flag determines caller
   // flag = 0 = just loop summary
@@ -591,7 +596,8 @@ void Finish::end(int flag)
     double nspec_all;
     if (atom->molecular) {
       nspec = 0;
-      for (i = 0; i < atom->nlocal; i++) nspec += atom->nspecial[i][2];
+      int nlocal = atom->nlocal;
+      for (i = 0; i < nlocal; i++) nspec += atom->nspecial[i][2];
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
     }

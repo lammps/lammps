@@ -31,10 +31,12 @@
 #include "region.h"
 #include "lattice.h"
 #include "comm.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
@@ -132,16 +134,11 @@ void Domain::set_initial_box()
   if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
     error->one(FLERR,"Box bounds are invalid");
 
+  // error check on triclinic tilt factors
+
   if (triclinic) {
     if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
       error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
-    if (xy != 0.0 && (!xperiodic || !yperiodic))
-      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
-    if (xz != 0.0 && (!xperiodic || !zperiodic))
-      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
-    if (yz != 0.0 && (!yperiodic || !zperiodic))
-      error->all(FLERR,"Triclinic box must be periodic in skewed dimensions");
-
     if (fabs(xy/(boxhi[0]-boxlo[0])) > 0.5)
       error->all(FLERR,"Triclinic box skew is too large");
     if (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5)
@@ -150,21 +147,28 @@ void Domain::set_initial_box()
       error->all(FLERR,"Triclinic box skew is too large");
   }
 
+  // set small based on box size and SMALL
+  // this works for any unit system
+
+  small[0] = SMALL * (boxhi[0] - boxlo[0]);
+  small[1] = SMALL * (boxhi[1] - boxlo[1]);
+  small[2] = SMALL * (boxhi[2] - boxlo[2]);
+
   // adjust box lo/hi for shrink-wrapped dims
 
-  if (boundary[0][0] == 2) boxlo[0] -= SMALL;
+  if (boundary[0][0] == 2) boxlo[0] -= small[0];
   else if (boundary[0][0] == 3) minxlo = boxlo[0];
-  if (boundary[0][1] == 2) boxhi[0] += SMALL;
+  if (boundary[0][1] == 2) boxhi[0] += small[0];
   else if (boundary[0][1] == 3) minxhi = boxhi[0];
 
-  if (boundary[1][0] == 2) boxlo[1] -= SMALL;
+  if (boundary[1][0] == 2) boxlo[1] -= small[1];
   else if (boundary[1][0] == 3) minylo = boxlo[1];
-  if (boundary[1][1] == 2) boxhi[1] += SMALL;
+  if (boundary[1][1] == 2) boxhi[1] += small[1];
   else if (boundary[1][1] == 3) minyhi = boxhi[1];
 
-  if (boundary[2][0] == 2) boxlo[2] -= SMALL;
+  if (boundary[2][0] == 2) boxlo[2] -= small[2];
   else if (boundary[2][0] == 3) minzlo = boxlo[2];
-  if (boundary[2][1] == 2) boxhi[2] += SMALL;
+  if (boundary[2][1] == 2) boxhi[2] += small[2];
   else if (boundary[2][1] == 3) minzhi = boxhi[2];
 }
 
@@ -270,19 +274,16 @@ void Domain::set_local_box()
 /* ----------------------------------------------------------------------
    reset global & local boxes due to global box boundary changes
    if shrink-wrapped, determine atom extent and reset boxlo/hi
-   if shrink-wrapped and triclinic, perform shrink-wrap in box coords
+   if triclinic, perform any shrink-wrap in lamda space
 ------------------------------------------------------------------------- */
 
 void Domain::reset_box()
 {
+  // perform shrink-wrapping
+  // compute extent of atoms on this proc
+  // for triclinic, this is done in lamda space
+
   if (nonperiodic == 2) {
-
-    // convert back to box coords for shrink-wrap operation
-
-    if (triclinic) lamda2x(atom->nlocal);
-
-    // compute extent of atoms on this proc
-
     double extent[3][2],all[3][2];
 
     extent[2][0] = extent[1][0] = extent[0][0] = BIG;
@@ -309,37 +310,91 @@ void Domain::reset_box()
 
     MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
 
+    // for triclinic, convert back to box coords before changing box
+
+    if (triclinic) lamda2x(atom->nlocal);
+
     // in shrink-wrapped dims, set box by atom extent
     // if minimum set, enforce min box size settings
+    // for triclinic, convert lamda extent to box coords, then set box lo/hi
+    // decided NOT to do the next comment - don't want to sneakily change tilt
+    // for triclinic, adjust tilt factors if 2nd dim is shrink-wrapped,
+    //   so that displacement in 1st dim stays the same
 
-    if (xperiodic == 0) {
-      if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - SMALL;
-      else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
-      if (boundary[0][1] == 2) boxhi[0] = all[0][1] + SMALL;
-      else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+SMALL,minxhi);
-      if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
-    }
-    if (yperiodic == 0) {
-      if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - SMALL;
-      else if (boundary[1][0] == 3) boxlo[1] = MIN(-all[1][0]-SMALL,minylo);
-      if (boundary[1][1] == 2) boxhi[1] = all[1][1] + SMALL;
-      else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+SMALL,minyhi);
-      if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-    }
-    if (zperiodic == 0) {
-      if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - SMALL;
-      else if (boundary[2][0] == 3) boxlo[2] = MIN(-all[2][0]-SMALL,minzlo);
-      if (boundary[2][1] == 2) boxhi[2] = all[2][1] + SMALL;
-      else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+SMALL,minzhi);
-      if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
+    if (triclinic == 0) {
+      if (xperiodic == 0) {
+	if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - small[0];
+	else if (boundary[0][0] == 3) 
+	  boxlo[0] = MIN(-all[0][0]-small[0],minxlo);
+	if (boundary[0][1] == 2) boxhi[0] = all[0][1] + small[0];
+	else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+small[0],minxhi);
+	if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
+      }
+      if (yperiodic == 0) {
+	if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - small[1];
+	else if (boundary[1][0] == 3)
+	  boxlo[1] = MIN(-all[1][0]-small[1],minylo);
+	if (boundary[1][1] == 2) boxhi[1] = all[1][1] + small[1];
+	else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+small[1],minyhi);
+	if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
+      }
+      if (zperiodic == 0) {
+	if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - small[2];
+	else if (boundary[2][0] == 3)
+	  boxlo[2] = MIN(-all[2][0]-small[2],minzlo);
+	if (boundary[2][1] == 2) boxhi[2] = all[2][1] + small[2];
+	else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+small[2],minzhi);
+	if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
+      }
+
+    } else {
+      double lo[3],hi[3];
+      if (xperiodic == 0) {
+	lo[0] = -all[0][0]; lo[1] = 0.0; lo[2] = 0.0;
+	lamda2x(lo,lo);
+	hi[0] = all[0][1]; hi[1] = 0.0; hi[2] = 0.0;
+	lamda2x(hi,hi);
+	if (boundary[0][0] == 2) boxlo[0] = lo[0] - small[0];
+	else if (boundary[0][0] == 3) boxlo[0] = MIN(lo[0]-small[0],minxlo);
+	if (boundary[0][1] == 2) boxhi[0] = hi[0] + small[0];
+	else if (boundary[0][1] == 3) boxhi[0] = MAX(hi[0]+small[0],minxhi);
+	if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
+      }
+      if (yperiodic == 0) {
+	lo[0] = 0.0; lo[1] = -all[1][0]; lo[2] = 0.0;
+	lamda2x(lo,lo);
+	hi[0] = 0.0; hi[1] = all[1][1]; hi[2] = 0.0;
+	lamda2x(hi,hi);
+	if (boundary[1][0] == 2) boxlo[1] = lo[1] - small[1];
+	else if (boundary[1][0] == 3) boxlo[1] = MIN(lo[1]-small[1],minylo);
+	if (boundary[1][1] == 2) boxhi[1] = hi[1] + small[1];
+	else if (boundary[1][1] == 3) boxhi[1] = MAX(hi[1]+small[1],minyhi);
+	if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
+	//xy *= (boxhi[1]-boxlo[1]) / yprd;
+      }
+      if (zperiodic == 0) {
+	lo[0] = 0.0; lo[1] = 0.0; lo[2] = -all[2][0];
+	lamda2x(lo,lo);
+	hi[0] = 0.0; hi[1] = 0.0; hi[2] = all[2][1];
+	lamda2x(hi,hi);
+	if (boundary[2][0] == 2) boxlo[2] = lo[2] - small[2];
+	else if (boundary[2][0] == 3) boxlo[2] = MIN(lo[2]-small[2],minzlo);
+	if (boundary[2][1] == 2) boxhi[2] = hi[2] + small[2];
+	else if (boundary[2][1] == 3) boxhi[2] = MAX(hi[2]+small[2],minzhi);
+	if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
+	//xz *= (boxhi[2]-boxlo[2]) / xprd;
+	//yz *= (boxhi[2]-boxlo[2]) / yprd;
+      }
     }
   }
+
+  // reset box whether shrink-wrapping or not
 
   set_global_box();
   set_local_box();
 
-  // if shrink-wrapped, convert to lamda coords for new box
-  // must re-invoke pbc() b/c x2lamda result can be outside 0,1 due to roundoff
+  // if shrink-wrapped & triclinic, re-convert to lamda coords for new box
+  // re-invoke pbc() b/c x2lamda result can be outside [0,1] due to roundoff
 
   if (nonperiodic == 2 && triclinic) {
     x2lamda(atom->nlocal);

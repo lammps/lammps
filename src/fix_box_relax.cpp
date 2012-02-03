@@ -198,18 +198,26 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
     error->all(FLERR,"Invalid fix box/relax command pressure settings");
 
+  // require periodicity in tensile dimension
+
   if (p_flag[0] && domain->xperiodic == 0)
     error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
     error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix box/relax on a non-periodic dimension");
+
+  // require periodicity in 2nd dim of off-diagonal tilt component
+
   if (p_flag[3] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[4] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix box/relax on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
 
   if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
     error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
@@ -689,18 +697,21 @@ int FixBoxRelax::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
+    if (icompute < 0) 
+      error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,
+		 "Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Temperature for fix modify is not for group all");
 
     // reset id_temp of pressure to new temperature ID
     
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all(FLERR,"Pressure ID for fix modify does not exist");
+    if (icompute < 0) 
+      error->all(FLERR,"Pressure ID for fix modify does not exist");
     modify->compute[icompute]->reset_extra_compute_fix(id_temp);
 
     return 2;

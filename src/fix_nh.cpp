@@ -312,18 +312,26 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
     error->all(FLERR,"Invalid fix nvt/npt/nph command pressure settings");
 
+  // require periodicity in tensile dimension
+
   if (p_flag[0] && domain->xperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph on a non-periodic dimension");
+
+  // require periodicity in 2nd dim of off-diagonal tilt component
+
   if (p_flag[3] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
   if (p_flag[4] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
 
   if (scaleyz == 1 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph "
@@ -2120,11 +2128,12 @@ void FixNH::nh_omega_dot()
 }
 
 /* ----------------------------------------------------------------------
-  if box tilt exceeds limits,
-    create new box in domain
-    remap to put far-away atoms back into new box
-    perform irregular on atoms in lamda coords to get atoms to new procs
-    force reneighboring on next timestep
+  if any tilt ratios exceed 0.5, set flip = 1 & compute new tilt_flip values
+  do not flip in x or y if non-periodic
+  when yz flips and xy is non-zero, xz must also change
+  this is to keep the edge vectors of the flipped shape matrix
+    an integer combination of the edge vectors of the unflipped shape matrix
+  perform irregular on atoms in lamda coords to get atoms to new procs
 ------------------------------------------------------------------------- */
 
 void FixNH::pre_exchange()
@@ -2132,38 +2141,41 @@ void FixNH::pre_exchange()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
 
-  // flip is triggered when tilt exceeds 0.5 by 
-  // an amount DELTAFLIP that is somewhat arbitrary
+  // flip is triggered when tilt exceeds 0.5 by an amount DELTAFLIP
+  // this avoids immediate re-flipping due to tilt oscillations
 
   double xtiltmax = (0.5+DELTAFLIP)*xprd;
   double ytiltmax = (0.5+DELTAFLIP)*yprd;
 
   int flip = 0;
 
-  if (domain->yz < -ytiltmax) {
-    flip = 1;
-    domain->yz += yprd;
-    domain->xz += domain->xy;
-  } else if (domain->yz >= ytiltmax) {
-    flip = 1;
-    domain->yz -= yprd;
-    domain->xz -= domain->xy;
+  if (domain->yperiodic) {
+    if (domain->yz < -ytiltmax) {
+      flip = 1;
+      domain->yz += yprd;
+      domain->xz += domain->xy;
+    } else if (domain->yz >= ytiltmax) {
+      flip = 1;
+      domain->yz -= yprd;
+      domain->xz -= domain->xy;
+    }
   }
 
-  if (domain->xz < -xtiltmax) {
-    flip = 1;
-    domain->xz += xprd;
-  } else if (domain->xz >= xtiltmax) {
-    flip = 1;
-    domain->xz -= xprd;
-  }
-
-  if (domain->xy < -xtiltmax) {
-    flip = 1;
-    domain->xy += xprd;
-  } else if (domain->xy >= xtiltmax) {
-    flip = 1;
-    domain->xy -= xprd;
+  if (domain->xperiodic) {
+    if (domain->xz < -xtiltmax) {
+      flip = 1;
+      domain->xz += xprd;
+    } else if (domain->xz >= xtiltmax) {
+      flip = 1;
+      domain->xz -= xprd;
+    }
+    if (domain->xy < -xtiltmax) {
+      flip = 1;
+      domain->xy += xprd;
+    } else if (domain->xy >= xtiltmax) {
+      flip = 1;
+      domain->xy -= xprd;
+    }
   }
 
   if (flip) {
@@ -2180,4 +2192,3 @@ void FixNH::pre_exchange()
     domain->lamda2x(atom->nlocal);
   }
 }
-

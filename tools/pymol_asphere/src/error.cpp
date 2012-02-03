@@ -12,6 +12,7 @@
  ***************************************************************************/
 
 #include "error.h"
+#include <cstring>
  
 Notice::Notice() {
 	nullout=new ostream(NULL);

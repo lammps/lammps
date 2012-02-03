@@ -31,10 +31,18 @@
 #define inline __inline__
 #endif /*IBMC*/
 
+#ifndef SUCCESS
 #define SUCCESS  1
+#endif
+#ifndef FAILURE
 #define FAILURE  0
+#endif
+#ifndef TRUE
 #define TRUE  1
+#endif
+#ifndef FALSE
 #define FALSE 0
+#endif
 
 #define SQR(x)        ((x)*(x))
 #define CUBE(x)       ((x)*(x)*(x))

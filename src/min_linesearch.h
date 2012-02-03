@@ -46,8 +46,10 @@ class MinLineSearch : public Min {
   FnPtr linemin;
   int linemin_backtrack(double, double &);
   int linemin_quadratic(double, double &);
+  int linemin_forcezero(double, double &);
 
   double alpha_step(double, int);
+  double compute_dir_deriv(double &);
 };
 
 }

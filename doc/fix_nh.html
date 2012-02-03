@@ -292,11 +292,11 @@ scale keywords to <I>no</I>.
 <I>xz</I>, <I>yz</I> can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
 allows the tilt factors to grow a little beyond the normal limit of
-half the box length (0.6 times the box length), and then performs
-flipping or re-shaping to an equivalent periodic cell. The re-shaping
-operation is described in more detail in the doc page for <A HREF = "fix_deform.html">fix
-deform</A>. Both the barostat dynamics and the atom
-trajectories are unaffected by this operation. However, if a tilt
+half the box length (0.6 times the box length), and then performs a
+box "flip" to an equivalent periodic cell. The flip operation is
+described in more detail in the doc page for <A HREF = "fix_deform.html">fix
+deform</A>.  Both the barostat dynamics and the atom
+trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
 a single timestep, LAMMPS can not accomodate this event and will
 terminate the simulation with an error. This error typically indicates
@@ -309,6 +309,13 @@ forgiving of insults. In particular, it is important to recognize that
 equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
+</P>
+<P>The one exception to this rule is if the 1st dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient due to the highly skewed simulation box.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_temp_berendsen.html">fix
 temp/berendsen</A> command which performs
@@ -514,7 +521,8 @@ and if the tilt factor is not coupled to the barostat via keywords
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "run_style.html">run_style</A>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_modify.html">fix_modify</A>,
+<A HREF = "run_style.html">run_style</A>
 </P>
 <P><B>Default:</B>
 </P>

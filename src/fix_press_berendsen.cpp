@@ -68,7 +68,8 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
@@ -80,7 +81,8 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4; 
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
@@ -93,21 +95,24 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg)
+	error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[0] = atof(arg[iarg+1]);
       p_stop[0] = atof(arg[iarg+2]);
       p_period[0] = atof(arg[iarg+3]);
       p_flag[0] = 1;
       iarg += 4; 
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg)
+	error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[1] = atof(arg[iarg+1]);
       p_stop[1] = atof(arg[iarg+2]);
       p_period[1] = atof(arg[iarg+3]);
       p_flag[1] = 1;
       iarg += 4; 
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[2] = atof(arg[iarg+1]);
       p_stop[2] = atof(arg[iarg+2]);
       p_period[2] = atof(arg[iarg+3]);
@@ -117,7 +122,8 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Invalid fix press/berendsen for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
@@ -127,13 +133,15 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"modulus") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       bulkmodulus = atof(arg[iarg+1]);
       if (bulkmodulus <= 0.0) 
 	error->all(FLERR,"Illegal fix press/berendsen command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg) 
+	error->all(FLERR,"Illegal fix press/berendsen command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
       else error->all(FLERR,"Illegal fix press/berendsen command");
@@ -162,11 +170,14 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,"Cannot use fix press/berendsen on a non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix press/berendsen on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix press/berendsen on a non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix press/berendsen on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix press/berendsen on a non-periodic dimension");
+    error->all(FLERR,
+	       "Cannot use fix press/berendsen on a non-periodic dimension");
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 

@@ -566,7 +566,8 @@ void FixNH::init()
 
   if (pstat_flag) {
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all(FLERR,"Pressure ID for fix npt/nph does not exist");
+    if (icompute < 0) 
+      error->all(FLERR,"Pressure ID for fix npt/nph does not exist");
     pressure = modify->compute[icompute];
   }
 

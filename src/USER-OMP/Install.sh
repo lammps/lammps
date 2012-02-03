@@ -24,7 +24,7 @@ done
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|& -DLMP_USER_OMP |' ../Makefile.package
   fi
 
   # force rebuild of files with LMP_USER_OMP switch

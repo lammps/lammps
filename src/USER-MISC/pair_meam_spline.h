@@ -97,7 +97,7 @@ private:
 	public:
 
 		/// Default constructor.
-		SplineFunction() : N(0), X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL) {}
+		SplineFunction() : X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL), N(0) {}
 
 		/// Destructor.
 		~SplineFunction() {

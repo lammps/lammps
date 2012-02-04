@@ -223,19 +223,31 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (dimflag[0] || dimflag[1] || dimflag[2]) box_change_size = 1;
   if (dimflag[3] || dimflag[4] || dimflag[5]) box_change_shape = 1;
 
-  // check periodicity
+  // no tensile deformation on shrink-wrapped dims
+  // b/c shrink wrap will change box-length
 
-  if ((set[0].style && domain->xperiodic == 0) ||
-      (set[1].style && domain->yperiodic == 0) ||
-      (set[2].style && domain->zperiodic == 0))
-    error->all(FLERR,"Cannot use fix deform on a non-periodic boundary");
+  if (set[0].style && 
+      (domain->boundary[0][0] >= 2 || domain->boundary[0][1] >= 2))
+      error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
+  if (set[1].style && 
+      (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
+      error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
+  if (set[2].style && 
+      (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
+      error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
 
-  if (set[3].style && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix deform on a 2nd non-periodic boundary");
-  if (set[4].style && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot use fix deform on a 2nd non-periodic boundary");
-  if (set[5].style && domain->yperiodic == 0)
-    error->all(FLERR,"Cannot use fix deform on a 2nd non-periodic boundary");
+  // no tilt deformation on shrink-wrapped 2nd dim
+  // b/c shrink wrap will change tilt factor in domain::reset_box()
+
+  if (set[3].style && 
+      (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
+    error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+  if (set[4].style && 
+      (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
+    error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+  if (set[4].style && 
+      (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
+    error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
 
   // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have dist/vel units
 
@@ -563,11 +575,11 @@ void FixDeform::init()
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
     } else lo = hi = set[3].tilt_stop;
-    if (lo < -0.5*(set[1].hi_start-set[1].lo_start) ||
-	hi > 0.5*(set[1].hi_start-set[1].lo_start)) flag = 1;
+    if (lo/(set[1].hi_start-set[1].lo_start) < -0.5 ||
+	hi/(set[1].hi_start-set[1].lo_start) > 0.5) flag = 1;
     if (set[1].style) {
-      if (lo < -0.5*(set[1].hi_stop-set[1].lo_stop) ||
-	  hi > 0.5*(set[1].hi_stop-set[1].lo_stop)) flag = 1;
+      if (lo/(set[1].hi_stop-set[1].lo_stop) < -0.5 ||
+	  hi/(set[1].hi_stop-set[1].lo_stop) > 0.5) flag = 1;
     }
     if (flag) error->all(FLERR,"Fix deform is changing yz too much with xy");
   }
@@ -623,6 +635,8 @@ void FixDeform::init()
 
 /* ----------------------------------------------------------------------
   box flipped on previous step
+  do not allow box flip in a non-periodic dimension (can tilt but not flip)
+    this is b/c the box length will be changed (dramatically) by flip
   perform irregular comm to migrate atoms to new procs
   reset box tilts for flipped config and create new box in domain
   remap to put far-away atoms back into new box
@@ -633,7 +647,7 @@ void FixDeform::init()
 void FixDeform::pre_exchange()
 {
   if (flip == 0) return;
-  
+
   domain->yz = set[3].tilt_target = set[3].tilt_flip;
   domain->xz = set[4].tilt_target = set[4].tilt_flip;
   domain->xy = set[5].tilt_target = set[5].tilt_flip;
@@ -666,14 +680,17 @@ void FixDeform::end_of_step()
   if (varflag) modify->clearstep_compute();
 
   // set new box size
+  // for NONE, target is current box size
   // for TRATE, set target directly based on current time, also set h_rate
   // for WIGGLE, set target directly based on current time, also set h_rate
   // for VARIABLE, set target directly via variable eval, also set h_rate
-  // for NONE, target is current box size
   // for others except VOLUME, target is linear value between start and stop
 
   for (i = 0; i < 3; i++) {
-    if (set[i].style == TRATE) {
+    if (set[i].style == NONE) {
+      set[i].lo_target = domain->boxlo[i];
+      set[i].hi_target = domain->boxhi[i];
+    } else if (set[i].style == TRATE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) - 
 	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
@@ -696,9 +713,6 @@ void FixDeform::end_of_step()
       set[i].hi_target = set[i].hi_start + 0.5*del;
       h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       h_ratelo[i] = -0.5*h_rate[i];
-    } else if (set[i].style == NONE) {
-      set[i].lo_target = domain->boxlo[i];
-      set[i].hi_target = domain->boxhi[i];
     } else if (set[i].style != VOLUME) {
       set[i].lo_target = set[i].lo_start + 
 	delta*(set[i].lo_stop - set[i].lo_start);
@@ -758,17 +772,21 @@ void FixDeform::end_of_step()
   }
 
   // for triclinic, set new box shape
+  // for NONE, target is current tilt
   // for TRATE, set target directly based on current time. also set h_rate
   // for WIGGLE, set target directly based on current time. also set h_rate
   // for VARIABLE, set target directly via variable eval. also set h_rate
-  // for NONE, target is current tilt
   // for other styles, target is linear value between start and stop values
 
   if (triclinic) {
     double *h = domain->h;
 
     for (i = 3; i < 6; i++) {
-      if (set[i].style == TRATE) {
+      if (set[i].style == NONE) {
+	if (i == 5) set[i].tilt_target = domain->xy;
+	else if (i == 4) set[i].tilt_target = domain->xz;
+	else if (i == 3) set[i].tilt_target = domain->yz;
+      } else if (set[i].style == TRATE) {
 	double delt = (update->ntimestep - update->beginstep) * update->dt;
 	set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
 	h_rate[i] = set[i].rate * domain->h[i];
@@ -782,10 +800,6 @@ void FixDeform::end_of_step()
 	double delta_tilt = input->variable->compute_equal(set[i].hvar);
 	set[i].tilt_target = set[i].tilt_start + delta_tilt;
 	h_rate[i] = input->variable->compute_equal(set[i].hratevar);
-      } else if (set[i].style == NONE) {
-	if (i == 5) set[i].tilt_target = domain->xy;
-	else if (i == 4) set[i].tilt_target = domain->xz;
-	else if (i == 3) set[i].tilt_target = domain->yz;
       } else {
 	set[i].tilt_target = set[i].tilt_start + 
 	  delta*(set[i].tilt_stop - set[i].tilt_start);
@@ -801,6 +815,7 @@ void FixDeform::end_of_step()
       double denom = set[idenom].hi_target - set[idenom].lo_target;
 
       double current = h[i]/h[idenom];
+
       while (set[i].tilt_target/denom - current > 0.0)
 	set[i].tilt_target -= denom;
       while (set[i].tilt_target/denom - current < 0.0)
@@ -813,36 +828,59 @@ void FixDeform::end_of_step()
 
   if (varflag) modify->addstep_compute(update->ntimestep + nevery);
 
-  // if any tilt targets exceed bounds, set flip flag and new tilt_flip values
-  // flip will be performed on next timestep before reneighboring
+  // if any tilt ratios exceed 0.5, set flip = 1 & compute new tilt_flip values
+  // do not flip in x or y if non-periodic
   // when yz flips and xy is non-zero, xz must also change
   // this is to keep the edge vectors of the flipped shape matrix
   //   an integer combination of the edge vectors of the unflipped shape matrix
+  // flip is performed on next timestep before reneighboring
 
   if (triclinic) {
     double xprd = set[0].hi_target - set[0].lo_target;
     double yprd = set[1].hi_target - set[1].lo_target;
-    if (set[3].tilt_target < -0.5*yprd || set[3].tilt_target > 0.5*yprd ||
-	set[4].tilt_target < -0.5*xprd || set[4].tilt_target > 0.5*xprd ||
-	set[5].tilt_target < -0.5*xprd || set[5].tilt_target > 0.5*xprd) {
-
-      flip = 1;
-      next_reneighbor = update->ntimestep + 1;
+    double xprdinv = 1.0 / xprd;
+    double yprdinv = 1.0 / yprd;
+    if (set[3].tilt_target*yprdinv < -0.5 || 
+				     set[3].tilt_target*yprdinv > 0.5 ||
+	set[4].tilt_target*xprdinv < -0.5 || 
+				     set[4].tilt_target*xprdinv > 0.5 ||
+	set[5].tilt_target*xprdinv < -0.5 || 
+				     set[5].tilt_target*xprdinv > 0.5) {
       set[3].tilt_flip = set[3].tilt_target;
       set[4].tilt_flip = set[4].tilt_target;
       set[5].tilt_flip = set[5].tilt_target;
-
-      if (set[3].tilt_flip < -0.5*yprd) {
-	set[3].tilt_flip += yprd;
-	set[4].tilt_flip += set[5].tilt_flip;
-      } else if (set[3].tilt_flip >= 0.5*yprd) {
-	set[3].tilt_flip -= yprd;
-	set[4].tilt_flip -= set[5].tilt_flip;
+      
+      if (domain->yperiodic) {
+	if (set[3].tilt_flip*yprdinv < -0.5) {
+	  set[3].tilt_flip += yprd;
+	  set[4].tilt_flip += set[5].tilt_flip;
+	  flip = 1;
+	} else if (set[3].tilt_flip*yprdinv > 0.5) {
+	  set[3].tilt_flip -= yprd;
+	  set[4].tilt_flip -= set[5].tilt_flip;
+	  flipy = 1;
+	}
       }
-      if (set[4].tilt_flip < -0.5*xprd) set[4].tilt_flip += xprd;
-      if (set[4].tilt_flip > 0.5*xprd) set[4].tilt_flip -= xprd;
-      if (set[5].tilt_flip < -0.5*xprd) set[5].tilt_flip += xprd;
-      if (set[5].tilt_flip > 0.5*xprd) set[5].tilt_flip -= xprd;
+      if (domain->xperiodic) {
+	if (set[4].tilt_flip*xprdinv < -0.5) {
+	  set[4].tilt_flip += xprd;
+	  flip = 1;
+	}
+	if (set[4].tilt_flip*xprdinv > 0.5) {
+	  set[4].tilt_flip -= xprd;
+	  flip = 1;
+	}
+	if (set[5].tilt_flip*xprdinv < -0.5) {
+	  set[5].tilt_flip += xprd;
+	  flip = 1;
+	}
+	if (set[5].tilt_flip*xprdinv > 0.5) {
+	  set[5].tilt_flip -= xprd;
+	  flip = 1;
+	}
+      }
+
+      if (flip) next_reneighbor = update->ntimestep + 1;
     }
   }
 

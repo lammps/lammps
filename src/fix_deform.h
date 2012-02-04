@@ -37,7 +37,8 @@ class FixDeform : public Fix {
   void end_of_step();
 
  private:
-  int triclinic,scaleflag,flip;
+  int triclinic,scaleflag;
+  int flip,flipx,flipy;
   double *h_rate,*h_ratelo;
   int varflag;                     // 1 if VARIABLE option is used, 0 if not
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not

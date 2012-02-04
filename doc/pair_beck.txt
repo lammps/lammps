@@ -6,11 +6,11 @@
 
 :line
 
-pair_style beck/cut command :h3
+pair_style beck command :h3
 
 [Syntax:]
 
-pair_style beck/cut Rc :pre
+pair_style beck Rc :pre
 
 Rc = cutoff for interactions (distance units) :ul
 
@@ -22,7 +22,7 @@ pair_coeff 1 1 399.671876712 0.0000867636112694 0.675 4.390 0.0003746 6.0 :pre
 
 [Description:]
 
-Style {beck/cut} computes interactions based on the potential by
+Style {beck} computes interactions based on the potential by
 "(Beck)"_#Beck, originally designed for simulation of Helium.  It
 includes truncation at a cutoff distance Rc.
 

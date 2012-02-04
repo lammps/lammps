@@ -89,13 +89,12 @@ continuously strained system.  See the "fix
 nvt/sllod"_fix_nvt_sllod.html and "compute
 temp/deform"_compute_temp_deform.html commands for more details.
 
-Any parameter varied by this command must refer to a periodic
-dimension - see the "boundary"_boundary.html command.  For parameters
-{xy}, {xz}, and {yz}, the 2nd dimension must be periodic, e.g. {y} for
-{xy}.  Dimensions not varied by this command can be periodic or
-non-periodic.  Dimensions corresponding to unspecified parameters can
-also be controlled by a "fix npt"_fix_nh.html or "fix nph"_fix_nh.html
-command.
+For the {x}, {y}, {z} parameters, the associated dimension cannot be
+shrink-wrapped.  For the {xy}, {yz}, {xz} parameters, the associated
+2nd dimension cannot be shrink-wrapped.  Dimensions not varied by this
+command can be periodic or non-periodic.  Dimensions corresponding to
+unspecified parameters can also be controlled by a "fix
+npt"_fix_nh.html or "fix nph"_fix_nh.html command.
 
 The size and shape of the simulation box at the beginning of the
 simulation run were either specified by the
@@ -423,16 +422,23 @@ To obey this constraint and allow for large shear deformations to be
 applied via the {xy}, {xz}, or {yz} parameters, the following
 algorithm is used.  If {prd} is the associated parallel box length (10
 in the example above), then if the tilt factor exceeds the accepted
-range of -5 to 5 during the simulation, then the box is re-shaped to
-the other limit (an equivalent box) and the simulation continues.
-Thus for this example, if the initial xy tilt factor was 0.0 and "xy
-final 100.0" was specified, then during the simulation the xy tilt
-factor would increase from 0.0 to 5.0, the box would be re-shaped so
-that the tilt factor becomes -5.0, the tilt factor would increase from
--5.0 to 5.0, the box would be re-shaped again, etc.  The re-shaping
-would occur 10 times and the final tilt factor at the end of the
-simulation would be 0.0.  During each re-shaping event, atoms are
-remapped into the new box in the appropriate manner.
+range of -5 to 5 during the simulation, then the box is flipped to the
+other limit (an equivalent box) and the simulation continues.  Thus
+for this example, if the initial xy tilt factor was 0.0 and "xy final
+100.0" was specified, then during the simulation the xy tilt factor
+would increase from 0.0 to 5.0, the box would be flipped so that the
+tilt factor becomes -5.0, the tilt factor would increase from -5.0 to
+5.0, the box would be flipped again, etc.  The flip occurs 10 times
+and the final tilt factor at the end of the simulation would be 0.0.
+During each flip event, atoms are remapped into the new box in the
+appropriate manner.
+
+The one exception to this rule is if the 1st dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient due to the highly skewed simulation box.
 
 :line
 
@@ -509,7 +515,11 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-Any box dimension varied by this fix must be periodic.
+You cannot apply x, y, or z deformations to a dimension that is
+shrink-wrapped via the "boundary"_boundary.html comamnd.
+
+You cannot apply xy, yz, or xz deformations to a 2nd dimension (y in
+xy) that is shrink-wrapped via the "boundary"_boundary.html comamnd.
 
 [Related commands:]
 

@@ -2320,6 +2320,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if (strcmp(style,"meam") == 0) {
 
+  } else if (strcmp(style,"meam/spline") == 0) {
+
   } else if (strcmp(style,"morse") == 0) {
 
     double cut_global = read_double(fp);
@@ -3225,6 +3227,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	(strcmp(pair_style,"lubricate2") != 0) &&
 	(strcmp(pair_style,"lubricateU") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
+	(strcmp(pair_style,"meam/spline") != 0) &&
 	(strcmp(pair_style,"rebo") != 0) &&
 	(strcmp(pair_style,"reax") != 0) &&
 	(strcmp(pair_style,"reax/c") != 0) &&

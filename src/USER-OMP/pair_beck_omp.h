@@ -11,40 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
-PairStyle(beck,PairBeck)
+PairStyle(beck/omp,PairBeckOMP)
 
 #else
 
-#ifndef PAIR_BECK_H
-#define PAIR_BECK_H
+#ifndef LMP_PAIR_BECK_OMP_H
+#define LMP_PAIR_BECK_OMP_H
 
-#include "pair.h"
+#include "pair_beck.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairBeck : public Pair {
+class PairBeckOMP : public PairBeck, public ThrOMP {
+
  public:
-  PairBeck(class LAMMPS *);
-  virtual ~PairBeck();
+  PairBeckOMP(class LAMMPS *);
+
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double memory_usage();
 
- protected:
-  double cut_global;
-  double **cut;
-  double **AA,**BB;
-  double **aa,**alpha,**beta;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData * const thr);
 };
 
 }

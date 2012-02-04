@@ -77,8 +77,8 @@ class PairMEAMSpline : public Pair
 {
 public:
 	PairMEAMSpline(class LAMMPS *);
-	~PairMEAMSpline();
-	void compute(int, int);
+	virtual ~PairMEAMSpline();
+	virtual void compute(int, int);
 	void settings(int, char **);
 	void coeff(int, char **);
 	void init_style();
@@ -91,7 +91,7 @@ public:
 	void unpack_reverse_comm(int, int *, double *);
 	double memory_usage();
 
-private:
+protected:
 
 	class SplineFunction {
 	public:

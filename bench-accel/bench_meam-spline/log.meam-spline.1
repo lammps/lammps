@@ -1,0 +1,105 @@
+LAMMPS (6 Feb 2012-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+# 3d metal shear simulation
+
+units		metal
+boundary	s s p
+
+atom_style	atomic
+lattice		fcc 4.14
+Lattice spacing in x,y,z = 4.14 4.14 4.14
+region		box block 0 16.0 0 20.0 0 28.28427
+create_box	3 box
+Created orthogonal box = (0 0 0) to (66.24 82.8 117.097)
+  1 by 1 by 1 MPI processor grid
+region		lower block INF INF INF 1.0 INF INF
+region		upper block INF INF 19.0 INF INF INF
+
+lattice		fcc 4.14 orient	x 1 0 0 orient y 0 1 1 orient z 0 -1 1 		origin 0.5 0 0 
+Lattice spacing in x,y,z = 4.14 5.85484 5.85484
+create_atoms	1 box
+Created 37600 atoms
+
+pair_style	meam/spline
+pair_coeff	* * Ti.meam.spline
+
+neighbor	0.5 bin
+neigh_modify	delay 5
+
+group		lower region lower
+1960 atoms in group lower
+group		upper region upper
+1960 atoms in group upper
+group		boundary union lower upper
+3920 atoms in group boundary
+group		mobile subtract all boundary
+33680 atoms in group mobile
+
+set		group lower type 2
+  1960 settings made for type
+set		group upper type 3
+  1960 settings made for type
+
+mass 1 47.867
+mass 2 47.867
+mass 3 47.867
+
+# temp controllers
+
+compute		new3d mobile temp
+compute		new2d mobile temp/partial 0 1 1
+
+# equilibrate
+
+velocity	mobile create 300.0 5812775 temp new3d
+fix		1 all nve
+fix		2 boundary setforce 0.0 0.0 0.0
+
+fix		3 mobile temp/rescale 10 300.0 300.0 10.0 1.0
+fix_modify	3 temp new3d
+
+thermo		10
+thermo_modify	temp new3d
+WARNING: Temperature for thermo pressure is not for group all (thermo.cpp:444)
+
+timestep	0.001
+run		100
+Memory usage per processor = 20.6138 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          300   -176493.93            0   -175187.92   -15972.673    635786.62 
+      10          300   -176439.89            0   -175133.89   -13718.527    635786.62 
+      20          300   -176260.08            0   -174954.08   -8482.1681    635786.62 
+      30          300      -175931            0   -174624.99   -3254.8191    635786.62 
+      40          300   -175478.48            0   -174172.48     780.2919     636970.4 
+      50          300   -175007.76            0   -173701.75    3239.9982     636970.4 
+      60          300   -174682.44            0   -173376.43    3681.9135    638582.52 
+      70          300   -174595.33            0   -173289.33    1775.9807    638582.52 
+      80          300   -174651.04            0   -173345.03   -2067.3361    638582.52 
+      90          300   -174700.14            0   -173394.14   -7065.9635    642555.99 
+     100    303.00084   -174713.16            0   -173394.09   -11213.713    642555.99 
+Loop time of 172.264 on 1 procs (1 MPI x 1 OpenMP) for 100 steps with 37600 atoms
+Performance: 0.050 ns/day  478.512 hours/ns  0.581 timesteps/s
+
+Section |  min time  |  avg time  |  max time  |%total |  #Thr
+--------------------------------------------------------------
+Pair    | 171.9      | 171.9      | 171.9      | 99.78 |  1.0x
+Neigh   | 0.2739     | 0.2739     | 0.2739     |  0.16 |  1.0x
+Comm    | 0.005186   | 0.005186   | 0.005186   |  0.00 |  1.0x
+Output  | 0.001457   | 0.001457   | 0.001457   |  0.00 |  1.0x
+Modify  | 0.07794    | 0.07794    | 0.07794    |  0.05 |  1.0x
+Other   |            | 0.02337    |            |  0.01 |
+
+Nlocal:    37600 ave 37600 max 37600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4098 ave 4098 max 4098 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    907313 ave 907313 max 907313 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs: 1.81463e+06 ave 1.81463e+06 max 1.81463e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1814626
+Ave neighs/atom = 48.2613
+Neighbor list builds = 3
+Dangerous builds = 0
+

@@ -722,6 +722,7 @@ package"_Section_accelerate.html.
 
 "adp/omp"_pair_adp.html,
 "airebo/omp"_pair_airebo.html,
+"beck/omp"_pair_beck.html,
 "born/coul/long/cuda"_pair_born.html,
 "born/coul/long/omp"_pair_born.html,
 "born/coul/wolf/omp"_pair_born.html,
@@ -831,6 +832,7 @@ package"_Section_accelerate.html.
 "lj96/cut/omp"_pair_lj96.html,
 "lubricate/omp"_pair_lubricate.html,
 "lubricate/poly/omp"_pair_lubricate.html,
+"meam/spline/omp"_pair_meam_spline.html,
 "morse/cuda"_pair_morse.html,
 "morse/gpu"_pair_morse.html,
 "morse/omp"_pair_morse.html,

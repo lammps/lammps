@@ -622,8 +622,8 @@ void PairTable::compute_table(Table *tb)
 
     // ep0,epn = dE/dr at inner and at cut
 
-    double ep0 = - tb->f[0];
-    double epn = - tb->f[tlm1];
+    double ep0 = - tb->f[0] / (2.0 * sqrt(tb->innersq));
+    double epn = - tb->f[tlm1] / (2.0 * tb->cut);
     spline(tb->rsq,tb->e,tablength,ep0,epn,tb->e2);
 
     // fp0,fpn = dh/dg at inner and at cut

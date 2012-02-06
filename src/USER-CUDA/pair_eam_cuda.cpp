@@ -195,9 +195,9 @@ void PairEAMCuda::array2spline()
   memory->destroy(rhor_spline);
   memory->destroy(z2r_spline);
 
-  memory->create(frho_spline,nfrho,nrho+1,7,"pair:frho");
-  memory->create(rhor_spline,nrhor,nr+1,7,"pair:rhor");
-  memory->create(z2r_spline,nz2r,nr+1,7,"pair:z2r");
+  memory->create(frho_spline,nfrho,nrho+1,8,"pair:frho");
+  memory->create(rhor_spline,nrhor,nr+1,8,"pair:rhor");
+  memory->create(z2r_spline,nz2r,nr+1,8,"pair:z2r");
 
   for (int i = 0; i < nfrho; i++){
     interpolate(nrho,drho,frho[i],frho_spline[i]);

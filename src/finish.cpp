@@ -53,7 +53,7 @@ void Finish::end(int flag)
   // recompute natoms in case atoms have been lost
 
   bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&atom->nlocal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   
   // choose flavors of statistical output
   // flag determines caller

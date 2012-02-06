@@ -365,8 +365,6 @@ void ChangeBox::command(int narg, char **arg)
 
   // check if any atoms were lost
 
-  domain->print_box("  ");
-
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);

@@ -72,7 +72,10 @@ triclinic representations.
 [Restrictions:]
 
 This command cannot be used after the simulation box is defined by a
-"read_data"_read_data.html or "create_box"_create_box.html command.
+"read_data"_read_data.html or "create_box"_create_box.html command or
+"read_restart"_read_restart.html command.  See the
+"change_box"_change_box.html command for how to change the simulation
+box boundaries after it has been defined.
 
 For 2d simulations, the z dimension must be periodic.
 

@@ -147,18 +147,24 @@ preceding "key".  I.e. this sequence of keywords is allowed:
 overall box volume is unchanged relative to its value before the
 preceding keyword was invoked. 
 </P>
-<P>If "x scale 1.1 z volume" is used, then the z box length will
-shrink by the same 1.1 factor the x box length was increased by.
+<P>If the following command is used, then the z box length will shrink by
+the same 1.1 factor the x box length was increased by:
 </P>
-<P>If "x scale 1.1 y volume z volume" is used, then the y,z box lengths
-will each shrink by sqrt(1.1) to keep the volume constant.  In this
-case, the y,z box lengths shrink so as to keep their relative aspect
-ratio constant.
+<PRE>change_box all x scale 1.1 z volume 
+</PRE>
+<P>If the following command is used, then the y,z box lengths will each
+shrink by sqrt(1.1) to keep the volume constant.  In this case, the
+y,z box lengths shrink so as to keep their relative aspect ratio
+constant:
 </P>
-<P>If "x scale 1.1 z volume y scale 1.1 z volume" is used, then
-the final box will be a factor of 10% larger in x and y, and a
-factor of 21% smaller in z, so as to keep the volume constant.
+<PRE>change_box all"x scale 1.1 y volume z volume 
+</PRE>
+<P>If the following command is used, then the final box will be a factor
+of 10% larger in x and y, and a factor of 21% smaller in z, so as to
+keep the volume constant:
 </P>
+<PRE>change_box all x scale 1.1 z volume y scale 1.1 z volume 
+</PRE>
 <P>IMPORTANT NOTE: For solids or liquids, when one dimension of the box
 is expanded, it may be physically undesirable to hold the other 2 box
 lengths constant since that implies a density change.  For solids,

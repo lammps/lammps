@@ -139,17 +139,23 @@ The {volume} style changes the associated dimension so that the
 overall box volume is unchanged relative to its value before the
 preceding keyword was invoked. 
 
-If "x scale 1.1 z volume" is used, then the z box length will
-shrink by the same 1.1 factor the x box length was increased by.
+If the following command is used, then the z box length will shrink by
+the same 1.1 factor the x box length was increased by:
 
-If "x scale 1.1 y volume z volume" is used, then the y,z box lengths
-will each shrink by sqrt(1.1) to keep the volume constant.  In this
-case, the y,z box lengths shrink so as to keep their relative aspect
-ratio constant.
+change_box all x scale 1.1 z volume :pre
 
-If "x scale 1.1 z volume y scale 1.1 z volume" is used, then
-the final box will be a factor of 10% larger in x and y, and a
-factor of 21% smaller in z, so as to keep the volume constant.
+If the following command is used, then the y,z box lengths will each
+shrink by sqrt(1.1) to keep the volume constant.  In this case, the
+y,z box lengths shrink so as to keep their relative aspect ratio
+constant:
+
+change_box all"x scale 1.1 y volume z volume :pre
+
+If the following command is used, then the final box will be a factor
+of 10% larger in x and y, and a factor of 21% smaller in z, so as to
+keep the volume constant:
+
+change_box all x scale 1.1 z volume y scale 1.1 z volume :pre
 
 IMPORTANT NOTE: For solids or liquids, when one dimension of the box
 is expanded, it may be physically undesirable to hold the other 2 box

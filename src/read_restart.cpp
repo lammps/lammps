@@ -464,7 +464,8 @@ void ReadRestart::header()
     if (flag == VERSION) {
       char *version = read_char();
       if (strcmp(version,universe->version) != 0 && me == 0) {
-	error->warning(FLERR,"Restart file version does not match LAMMPS version");
+	error->warning(FLERR,
+		       "Restart file version does not match LAMMPS version");
 	if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
 			    version,universe->version);
       }
@@ -581,7 +582,8 @@ void ReadRestart::header()
 	    boundary[2][0] != domain->boundary[2][0] ||
 	    boundary[2][1] != domain->boundary[2][1]) {
 	  if (me == 0) 
-	    error->warning(FLERR,"Restart file used different boundary settings, "
+	    error->warning(FLERR,
+			   "Restart file used different boundary settings, "
 			   "using restart file values");
 	}
       }

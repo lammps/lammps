@@ -930,7 +930,7 @@ void Input::boundary()
 {
   if (domain->box_exist)
     error->all(FLERR,"Boundary command after simulation box is defined");
-  domain->set_boundary(narg,arg);
+  domain->set_boundary(narg,arg,0);
 }
 
 /* ---------------------------------------------------------------------- */

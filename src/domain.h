@@ -107,13 +107,14 @@ class Domain : protected Pointers {
   void add_region(int, char **);
   void delete_region(int, char **);
   int find_region(char *);
-  void set_boundary(int, char **);
+  void set_boundary(int, char **, int);
   void print_box(const char *);
 
   virtual void lamda2x(int);
   virtual void x2lamda(int);
   void lamda2x(double *, double *);
   void x2lamda(double *, double *);
+  void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();
 

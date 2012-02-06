@@ -1109,10 +1109,12 @@ int Domain::find_region(char *name)
 }
 
 /* ----------------------------------------------------------------------
-   boundary settings from the input script 
+   (re)set boundary settings
+   flag = 0, called from the input script
+   flag = 1, called from change box command
 ------------------------------------------------------------------------- */
 
-void Domain::set_boundary(int narg, char **arg)
+void Domain::set_boundary(int narg, char **arg, int flag)
 {
   if (narg != 3) error->all(FLERR,"Illegal boundary command");
 
@@ -1127,7 +1129,10 @@ void Domain::set_boundary(int narg, char **arg)
       else if (c == 'f') boundary[idim][iside] = 1;
       else if (c == 's') boundary[idim][iside] = 2;
       else if (c == 'm') boundary[idim][iside] = 3;
-      else error->all(FLERR,"Illegal boundary command");
+      else {
+	if (flag == 0) error->all(FLERR,"Illegal boundary command");
+	if (flag == 1) error->all(FLERR,"Illegal change_box command");
+      }
     }
 
   for (int idim = 0; idim < 3; idim++)
@@ -1255,6 +1260,26 @@ void Domain::x2lamda(double *x, double *lamda)
   lamda[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
   lamda[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
   lamda[2] = h_inv[2]*delta[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert box coords to triclinic 0-1 lamda coords for one atom
+   use my_boxlo & my_h_inv stored by caller for previous state of box
+   lamda = H^-1 (x - x0)
+   x and lamda can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void Domain::x2lamda(double *x, double *lamda,
+		     double *my_boxlo, double *my_h_inv)
+{
+  double delta[3];
+  delta[0] = x[0] - my_boxlo[0];
+  delta[1] = x[1] - my_boxlo[1];
+  delta[2] = x[2] - my_boxlo[2];
+
+  lamda[0] = my_h_inv[0]*delta[0] + my_h_inv[5]*delta[1] + my_h_inv[4]*delta[2];
+  lamda[1] = my_h_inv[1]*delta[1] + my_h_inv[3]*delta[2];
+  lamda[2] = my_h_inv[2]*delta[2];
 }
 
 /* ----------------------------------------------------------------------

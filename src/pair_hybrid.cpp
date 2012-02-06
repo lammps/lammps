@@ -16,6 +16,7 @@
 #include "string.h"
 #include "ctype.h"
 #include "pair_hybrid.h"
+#include "style_pair.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -763,4 +764,3 @@ double PairHybrid::memory_usage()
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }
-

@@ -111,7 +111,8 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
   if (iatomtype == jatomtype && 
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
-    error->all(FLERR,"Inconsistent iparam/jparam values in fix bond/create command");
+    error->all(FLERR,
+	       "Inconsistent iparam/jparam values in fix bond/create command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -249,7 +250,8 @@ void FixBondCreate::setup(int vflag)
 	if (newton_bond) {
 	  m = atom->map(bond_atom[i][j]);
 	  if (m < 0)
-	    error->one(FLERR,"Could not count initial bonds in fix bond/create");
+	    error->one(FLERR,
+		       "Could not count initial bonds in fix bond/create");
 	  bondcount[m]++;
 	}
       }
@@ -422,7 +424,8 @@ void FixBondCreate::post_integrate()
     n1 = nspecial[i][0];
     n3 = nspecial[i][2];
     if (n3 == atom->maxspecial)
-      error->one(FLERR,"New bond exceeded special list size in fix bond/create");
+      error->one(FLERR,
+		 "New bond exceeded special list size in fix bond/create");
     for (m = n3; m > n1; m--) slist[m+1] = slist[m];
     slist[n1] = tag[j];
     nspecial[i][0]++;

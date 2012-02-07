@@ -68,29 +68,29 @@ define the lattice spacing.
 
 :line
 
-Care should be taken not to move atoms on top of other atoms.  After
-the move, atoms are remapped into the periodic simulation box if
-needed.
+IMPORTANT NOTE: Care should be taken not to move atoms on top of other
+atoms.  After the move, atoms are remapped into the periodic
+simulation box if needed, and any shrink-wrap boundary conditions (see
+the "boundary"_boundary.html command) are enforced which may change
+the box size.  Other than this effect, this command does not change
+the size or shape of the simulation box.  See the
+"change_box"_change_box.html command if that effect is desired.
 
-Atoms can be moved arbitrarily long distances by this command.  If the
-simulation box is non-periodic, this can change its size or shape.
-This is not a problem, except that the mapping of processors to the
-simulation box is not changed by this command from its initial 3d
-configuration; see the "processors"_processors.html command.  Thus, if
-the box size or shape changes dramatically, the simulation may not be
-as well load-balanced (atoms per processor) as the initial mapping
-tried to achieve.
+IMPORTANT NOTE: Atoms can be moved arbitrarily long distances by this
+command.  If the simulation box is non-periodic and shrink-wrapped
+(see the "boundary"_boundary.html command), this can change its size
+or shape.  This is not a problem, except that the mapping of
+processors to the simulation box is not changed by this command from
+its initial 3d configuration; see the "processors"_processors.html
+command.  Thus, if the box size/shape changes dramatically, the
+mapping of processors to the simulation box may not end up as optimal
+as the initial mapping attempted to be.
 
-[Restrictions:]
-
-This command requires inter-processor communication to migrate atoms
-once they have been displaced.  This means that your system must be
-ready to perform a simulation before using this command (force fields
-are setup, atom masses are set, etc).
+[Restrictions:] none
 
 [Related commands:]
 
-"lattice"_lattice.html
+"lattice"_lattice.html, "change_box"_change_box.html
 
 [Default:]
 

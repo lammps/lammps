@@ -28,6 +28,28 @@ class ChangeBox : protected Pointers {
  public:
   ChangeBox(class LAMMPS *);
   void command(int, char **);
+
+ private:
+  int scaleflag;
+  double scale[3];
+
+  struct Operation {
+    int style,flavor;
+    int dim,boundindex;
+    int vdim1,vdim2;
+    double flo,fhi,ftilt;
+    double dlo,dhi,dtilt;
+    double scale;
+  };
+
+  Operation *ops;
+  int nops;
+
+  double boxlo[3],h_inv[6];
+
+  void options(int, char **);
+  void save_box_state();
+  void volume_preserve(int, int, double);
 };
 
 }
@@ -37,7 +59,7 @@ class ChangeBox : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Change_box command before simulation box is defined
+E: Displace_box command before simulation box is defined
 
 Self-explanatory.
 
@@ -47,22 +69,41 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Change_box operation is invalid
+E: Cannot displace_box after reading restart file with per-atom info
 
-Cannot change orthogonal box to orthogonal or a triclinic box to
-triclinic.
+This is because the restart file info cannot be migrated with the
+atoms.  You can get around this by performing a 0-timestep run which
+will assign the restart file info to actual atoms.
 
-E: Cannot change box to orthogonal when tilt is non-zero
+E: Could not find displace_box group ID
 
-Self-explanatory
+Group ID used in the displace_box command does not exist.
 
-E: Cannot change box with dumps defined
+E: Displace_box tilt factors require triclinic box
+
+Cannot use tilt factors unless the simulation box is
+non-orthogonal.
+
+E: Cannot displace_box on a non-periodic boundary
 
 Self-explanatory.
 
-E: Cannot change box with certain fixes defined
+E: Use of displace_box with undefined lattice
 
-The change_box command cannot be used when fix ave/spatial or
-fix/deform are defined .
+Must use lattice command with displace_box command if units option is
+set to lattice.
+
+E: Fix deform volume setting is invalid
+
+Cannot use volume style unless other dimensions are being controlled.
+
+E: Induced tilt by displace_box is too large
+
+The final tilt value must be between -1/2 and 1/2 of the perpendicular
+box length.
+
+E: Lost atoms via displace_box: original %ld current %ld
+
+UNDOCUMENTED
 
 */

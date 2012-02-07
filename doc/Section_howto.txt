@@ -1647,8 +1647,8 @@ derivative w.r.t. e_i, it follows that C_ij is also symmetric, with at
 most 7*6/2 = 21 distinct elements.
 
 At zero temperature, it is easy to estimate these derivatives by
-deforming the cell in one of the six directions using the command
-"displace_box"_displace_box.html and measuring the change in the
+deforming the simulation box in one of the six directions using the
+"change_box"_change_box.html command and measuring the change in the
 stress tensor. A general-purpose script that does this is given in the
 examples/elastic directory described in "this
 section"_Section_example.html.

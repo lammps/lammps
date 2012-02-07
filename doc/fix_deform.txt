@@ -523,7 +523,7 @@ xy) that is shrink-wrapped via the "boundary"_boundary.html comamnd.
 
 [Related commands:]
 
-"displace_box"_displace_box.html
+"change_box"_change_box.html
 
 [Default:]
 

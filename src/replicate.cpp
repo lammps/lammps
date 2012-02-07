@@ -209,8 +209,15 @@ void Replicate::command(int narg, char **arg)
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // insures all replicated atoms will be owned even with round-off
 
-  double sublo[3],subhi[3];
+  double epsilon[3];
+  if (triclinic) epsilon[0] = epsilon[1] = epsilon[2] = EPSILON;
+  else {
+    epsilon[0] = domain->prd[0] * EPSILON;
+    epsilon[1] = domain->prd[1] * EPSILON;
+    epsilon[2] = domain->prd[2] * EPSILON;
+  }
 
+  double sublo[3],subhi[3];
   if (triclinic == 0) {
     sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
     sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];
@@ -222,16 +229,16 @@ void Replicate::command(int narg, char **arg)
   }
 
   if (domain->xperiodic) {
-    if (comm->myloc[0] == 0) sublo[0] -= EPSILON;
-    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += EPSILON;
+    if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
+    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += epsilon[0];
   }
   if (domain->yperiodic) {
-    if (comm->myloc[1] == 0) sublo[1] -= EPSILON;
-    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += EPSILON;
+    if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
+    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += epsilon[1];
   }
   if (domain->zperiodic) {
-    if (comm->myloc[2] == 0) sublo[2] -= EPSILON;
-    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += EPSILON;
+    if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
+    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += epsilon[2];
   }
 
   // loop over all procs

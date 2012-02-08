@@ -777,7 +777,7 @@ void Pair::v_tally(int i, double *fi)
   v[1] = x[i][1]*fi[1];
   v[2] = x[i][2]*fi[2];
   v[3] = x[i][0]*fi[1];
-  v[4] = x[i][0]*fi[1];
+  v[4] = x[i][0]*fi[2];
   v[5] = x[i][1]*fi[2];
 
   vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];

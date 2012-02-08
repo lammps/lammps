@@ -681,7 +681,7 @@ line syntax: depends on atom style :ul
 
 all styles except those listed: atom-ID vx vy vz
 dipole: atom-ID vx vy vz wx wy wz
-electron: atom-ID vx vy vz evel
+electron: atom-ID vx vy vz ervel
 ellipsoid: atom-ID vx vy vz lx ly lz
 sphere: atom-ID vx vy vz wx wy wz :tb(s=:)
 
@@ -690,14 +690,14 @@ where the keywords have these meanings:
 vx,vy,vz = translational velocity of atom
 lx,ly,lz = angular momentum of aspherical atom
 wx,wy,wz = angular velocity of spherical atom
-evel = electron radial velocity (0 for fixed-core):ul
+ervel = electron radial velocity (0 for fixed-core):ul
 
 The velocity lines can appear in any order.  This section can only be
 used after an {Atoms} section.  This is because the {Atoms} section
 must have assigned a unique atom ID to each atom so that velocities
 can be assigned to them.
 
-Vx, vy, vz, and evel are in "units"_units.html of velocity.  Lx, ly,
+Vx, vy, vz, and ervel are in "units"_units.html of velocity.  Lx, ly,
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
 Wz are in units of angular velocity (radians/time).
 

@@ -157,8 +157,15 @@ on a Linux machine, it would typically be somewhere like
 /usr/local/lib/python2.5/site-packages.  Installing Python packages
 this way often requires you to be able to write to the Python
 directories, which may require root priveleges, hence the "sudo"
-prefix.  If this is not the case, you can drop the "sudo".
+prefix.  If this is not the case, you can drop the "sudo".  If you use
+the "sudo" prefix and you have installed Python yourself, you should
+make sure that root uses the same Python as the one you did the
+"install" in.  E.g. these 2 commands may do the install in different
+Python versions:
 </P>
+<PRE>python setup_serial.py install --home=~/foo
+python /usr/local/bin/python/setup_serial.py install --home=~/foo 
+</PRE>
 <P>Alternatively, you can install the LAMMPS files (or any other Python
 packages) in your own user space.  The second "install" command does
 this, where you should replace "foo" with your directory of choice.

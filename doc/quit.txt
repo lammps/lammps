@@ -1,0 +1,37 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+quit command :h3
+
+[Syntax:]
+
+quit :pre
+
+[Examples:]
+
+quit
+if "$n > 10000" then quit :pre
+
+[Description:]
+
+This command causes LAMMPS to exit, after shutting down all
+output cleanly.
+
+It can be used as a debug statement in an input script, to terminate
+the script at some intermediate point.
+
+It can also be used as an invoked command inside the
+"then" or "else" portion of an "if"_if.html command.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"if"_if.html
+
+[Default:] none

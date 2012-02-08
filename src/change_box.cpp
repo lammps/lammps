@@ -200,10 +200,13 @@ void ChangeBox::command(int narg, char **arg)
 
   // perform sequence of operations
   // first insure atoms are in current box & update box via shrink-wrap
-  // then save current box state so can remap atoms from it
+  // no exchange() since doesn't matter if atoms are assigned to correct procs
+  // save current box state so can remap atoms from it, if requested
 
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
   save_box_state();
 
   for (int i = 0; i < nops; i++) {

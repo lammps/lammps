@@ -416,7 +416,6 @@ void CreateAtoms::add_lattice()
   }
 
   double sublo[3],subhi[3];
-
   if (triclinic == 0) {
     sublo[0] = domain->sublo[0]; subhi[0] = domain->subhi[0];
     sublo[1] = domain->sublo[1]; subhi[1] = domain->subhi[1];

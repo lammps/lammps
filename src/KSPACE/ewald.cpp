@@ -79,7 +79,8 @@ void Ewald::init()
 
   // error check
 
-  if (domain->triclinic) error->all(FLERR,"Cannot use Ewald with triclinic box");
+  if (domain->triclinic) 
+    error->all(FLERR,"Cannot use Ewald with triclinic box");
   if (domain->dimension == 2) 
     error->all(FLERR,"Cannot use Ewald with 2d simulation");
 

@@ -23,6 +23,7 @@ doc/angle_cosine_periodic.html
 doc/angle_cosine_shift.html
 doc/angle_cosine_shift_exp.html
 doc/angle_cosine_squared.html
+doc/angle_dipole.html
 doc/angle_harmonic.html
 doc/angle_hybrid.html
 doc/angle_none.html
@@ -123,9 +124,9 @@ doc/dihedral_multi_harmonic.html
 doc/dihedral_none.html
 doc/dihedral_opls.html
 doc/dihedral_style.html
+doc/dihedral_table.html
 doc/dimension.html
 doc/displace_atoms.html
-doc/displace_box.html
 doc/dump.html
 doc/dump_image.html
 doc/dump_modify.html
@@ -258,6 +259,7 @@ doc/package.html
 doc/pair_adp.html
 doc/pair_airebo.html
 doc/pair_awpmd.html
+doc/pair_beck.html
 doc/pair_born.html
 doc/pair_brownian.html
 doc/pair_buck_coul.html
@@ -282,6 +284,7 @@ doc/pair_gran.html
 doc/pair_gromacs.html
 doc/pair_hbond_dreiding.html
 doc/pair_hybrid.html
+doc/pair_kim.html
 doc/pair_lj.html
 doc/pair_line_lj.html
 doc/pair_lj96.html
@@ -290,9 +293,11 @@ doc/pair_lj_cubic.html
 doc/pair_lj_expand.html
 doc/pair_lj_sf.html
 doc/pair_lj_smooth.html
+doc/pair_lj_smooth_linear.html
 doc/pair_lubricate.html
 doc/pair_lubricateU.html
 doc/pair_meam.html
+doc/pair_meam_spline.html
 doc/pair_modify.html
 doc/pair_morse.html
 doc/pair_none.html

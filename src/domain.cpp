@@ -215,58 +215,57 @@ void Domain::set_global_box()
 }
 
 /* ----------------------------------------------------------------------
-   set lamda box params, only need be done one time
-   assumes global box is defined and proc assignment has been made by comm
-   for uppermost proc, insure subhi = 1.0 (in case round-off occurs)
+   set lamda box params
+   assumes global box is defined and proc assignment has been made
+   uses comm->xyz_split to define subbox boundaries in consistent manner
 ------------------------------------------------------------------------- */
 
 void Domain::set_lamda_box()
 {
   int *myloc = comm->myloc;
-  int *procgrid = comm->procgrid;
+  double *xsplit = comm->xsplit;
+  double *ysplit = comm->ysplit;
+  double *zsplit = comm->zsplit;
 
-  sublo_lamda[0] = 1.0*myloc[0] / procgrid[0];
-  sublo_lamda[1] = 1.0*myloc[1] / procgrid[1];
-  sublo_lamda[2] = 1.0*myloc[2] / procgrid[2];
+  sublo_lamda[0] = xsplit[myloc[0]];
+  subhi_lamda[0] = xsplit[myloc[0]+1];
 
-  if (myloc[0] < procgrid[0]-1)
-    subhi_lamda[0] = 1.0*(myloc[0]+1) / procgrid[0];
-  else subhi_lamda[0] = 1.0;
+  sublo_lamda[1] = ysplit[myloc[1]];
+  subhi_lamda[1] = ysplit[myloc[1]+1];
 
-  if (myloc[1] < procgrid[1]-1)
-    subhi_lamda[1] = 1.0*(myloc[1]+1) / procgrid[1];
-  else subhi_lamda[1] = 1.0;
-
-  if (myloc[2] < procgrid[2]-1)
-    subhi_lamda[2] = 1.0*(myloc[2]+1) / procgrid[2];
-  else subhi_lamda[2] = 1.0;
+  sublo_lamda[2] = zsplit[myloc[2]];
+  subhi_lamda[2] = zsplit[myloc[2]+1];
 }
 
 /* ----------------------------------------------------------------------
-   set local subbox params
+   set local subbox params for orthogonal boxes
    assumes global box is defined and proc assignment has been made
-   for uppermost proc, insure subhi = boxhi (in case round-off occurs)
+   uses comm->xyz_split to define subbox boundaries in consistent manner
+   insure subhi[max] = boxhi
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()
 {
   int *myloc = comm->myloc;
   int *procgrid = comm->procgrid;
+  double *xsplit = comm->xsplit;
+  double *ysplit = comm->ysplit;
+  double *zsplit = comm->zsplit;
 
   if (triclinic == 0) {
-    sublo[0] = boxlo[0] + myloc[0] * xprd / procgrid[0];
+    sublo[0] = boxlo[0] + xprd*xsplit[myloc[0]];
     if (myloc[0] < procgrid[0]-1)
-      subhi[0] = boxlo[0] + (myloc[0]+1) * xprd / procgrid[0];
+      subhi[0] = boxlo[0] + xprd*xsplit[myloc[0]+1];
     else subhi[0] = boxhi[0];
-    
-    sublo[1] = boxlo[1] + myloc[1] * yprd / procgrid[1];
+
+    sublo[1] = boxlo[1] + yprd*ysplit[myloc[1]];
     if (myloc[1] < procgrid[1]-1)
-      subhi[1] = boxlo[1] + (myloc[1]+1) * yprd / procgrid[1];
+      subhi[1] = boxlo[1] + yprd*ysplit[myloc[1]+1];
     else subhi[1] = boxhi[1];
 
-    sublo[2] = boxlo[2] + myloc[2] * zprd / procgrid[2];
+    sublo[2] = boxlo[2] + zprd*zsplit[myloc[2]];
     if (myloc[2] < procgrid[2]-1)
-      subhi[2] = boxlo[2] + (myloc[2]+1) * zprd / procgrid[2];
+      subhi[2] = boxlo[2] + zprd*zsplit[myloc[2]+1];
     else subhi[2] = boxhi[2];
   }
 }
@@ -274,7 +273,7 @@ void Domain::set_local_box()
 /* ----------------------------------------------------------------------
    reset global & local boxes due to global box boundary changes
    if shrink-wrapped, determine atom extent and reset boxlo/hi
-   if triclinic, perform any shrink-wrap in lamda space
+   for triclinic, atoms must be in lamda coords (0-1) before reset_box is called
 ------------------------------------------------------------------------- */
 
 void Domain::reset_box()

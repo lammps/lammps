@@ -24,8 +24,10 @@ class Comm : protected Pointers {
   int procgrid[3];                  // procs assigned in each dim of 3d grid
   int user_procgrid[3];             // user request for procs in each dim
   int myloc[3];                     // which proc I am in each dim
-  int procneigh[3][2];              // my 6 neighboring procs
+  int procneigh[3][2];              // my 6 neighboring procs, 0/1 = left/right
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
+  int uniform;                      // 1 = equal subdomains, 0 = load-balanced
+  double *xsplit,*ysplit,*zsplit;   // fractional (0-1) sub-domain sizes
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
   int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
@@ -63,8 +65,10 @@ class Comm : protected Pointers {
 
  protected:
   int style;                        // single vs multi-type comm
-  int nswap;                        // # of swaps to perform
-  int need[3];                      // procs I need atoms from in each dim
+  int nswap;                        // # of swaps to perform = sum of maxneed
+  int recvneed[3][2];               // # of procs away I recv atoms from
+  int sendneed[3][2];               // # of procs away I send atoms to
+  int maxneed[3];                   // max procs away any proc needs, per dim
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int maxswap;                      // max # of swaps memory is allocated for
   int size_forward;                 // # of per-atom datums in forward comm
@@ -106,6 +110,8 @@ class Comm : protected Pointers {
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
  
+  int updown(int, int, int, double, int, double *);
+                                            // compare cutoff to procs
   virtual void grow_send(int,int);          // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer
   virtual void grow_list(int, int);         // reallocate one sendlist

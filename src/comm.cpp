@@ -78,6 +78,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
   bordergroup = 0;
   style = SINGLE;
+  uniform = 1;
+  xsplit = ysplit = zsplit = NULL;
   multilo = multihi = NULL;
   cutghostmulti = NULL;
   cutghostuser = 0.0;
@@ -124,6 +126,10 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
 Comm::~Comm()
 {
+  memory->destroy(xsplit);
+  memory->destroy(ysplit);
+  memory->destroy(zsplit);
+
   delete [] customfile;
   delete [] outfile;
 
@@ -145,7 +151,7 @@ Comm::~Comm()
 
 /* ----------------------------------------------------------------------
    create 3d grid of procs based on Nprocs and box size & shape
-   map processors to grid
+   map processors to grid, setup xyz split for a uniform grid
 ------------------------------------------------------------------------- */
 
 void Comm::set_proc_grid()
@@ -252,13 +258,30 @@ void Comm::set_proc_grid()
 
   if (outfile) pmap->output(outfile,procgrid,grid2proc);
 
-  // set lamda box params after procs are assigned
-
-  if (domain->triclinic) domain->set_lamda_box();
-
   // free ProcMap class
 
   delete pmap;
+
+  // set xsplit,ysplit,zsplit for uniform spacings
+
+  memory->destroy(xsplit);
+  memory->destroy(ysplit);
+  memory->destroy(zsplit);
+
+  memory->create(xsplit,procgrid[0]+1,"comm:xsplit");
+  memory->create(ysplit,procgrid[1]+1,"comm:ysplit");
+  memory->create(zsplit,procgrid[2]+1,"comm:zsplit");
+
+  for (int i = 0; i < procgrid[0]; i++) xsplit[i] = i * 1.0/procgrid[0];
+  for (int i = 0; i < procgrid[1]; i++) ysplit[i] = i * 1.0/procgrid[1];
+  for (int i = 0; i < procgrid[2]; i++) zsplit[i] = i * 1.0/procgrid[2];
+
+  xsplit[procgrid[0]] = ysplit[procgrid[1]] = zsplit[procgrid[2]] = 1.0;
+
+  // set lamda box params after procs are assigned
+  // only set once unless load-balancing occurs
+
+  if (domain->triclinic) domain->set_lamda_box();
 
   // send my 3d proc grid to another partition if requested
 
@@ -399,25 +422,112 @@ void Comm::setup()
     }
   }
 
-  // need = # of procs I need atoms from in each dim based on max cutoff
-  // for 2d, don't communicate in z
-
-  need[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
-  need[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
-  need[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
-  if (domain->dimension == 2) need[2] = 0;
-
-  // if non-periodic, do not communicate further than procgrid-1 away
-  // this enables very large cutoffs in non-periodic systems
+  // recvneed[idim][0/1] = # of procs away I recv atoms from, within cutghost
+  //   0 = from left, 1 = from right
+  //   do not cross non-periodic boundaries, need[2] = 0 for 2d
+  // sendneed[idim][0/1] = # of procs away I send atoms to
+  //   0 = to left, 1 = to right
+  //   set equal to recvneed[idim][1/0] of neighbor proc
+  // maxneed[idim] = max procs away any proc recvs atoms in either direction
+  // uniform = 1 = uniform sized sub-domains:
+  //   maxneed is directly computable from sub-domain size
+  //     limit to procgrid-1 for non-PBC
+  //   recvneed = maxneed except for procs near non-PBC
+  //   sendneed = recvneed of neighbor on each side
+  // uniform = 0 = non-uniform sized sub-domains:
+  //   compute recvneed via updown() which accounts for non-PBC
+  //   sendneed = recvneed of neighbor on each side
+  //   maxneed via Allreduce() of recvneed
 
   int *periodicity = domain->periodicity;
-  if (periodicity[0] == 0) need[0] = MIN(need[0],procgrid[0]-1);
-  if (periodicity[1] == 0) need[1] = MIN(need[1],procgrid[1]-1);
-  if (periodicity[2] == 0) need[2] = MIN(need[2],procgrid[2]-1);
+  int left,right;
+
+  if (uniform) {
+    maxneed[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
+    maxneed[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
+    maxneed[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
+    if (domain->dimension == 2) maxneed[2] = 0;
+    if (!periodicity[0]) maxneed[0] = MIN(maxneed[0],procgrid[0]-1);
+    if (!periodicity[1]) maxneed[1] = MIN(maxneed[1],procgrid[1]-1);
+    if (!periodicity[2]) maxneed[2] = MIN(maxneed[2],procgrid[2]-1);
+
+    if (!periodicity[0]) {
+      recvneed[0][0] = MIN(maxneed[0],myloc[0]);
+      recvneed[0][1] = MIN(maxneed[0],procgrid[0]-myloc[0]-1);
+      left = myloc[0] - 1;
+      if (left < 0) left = procgrid[0] - 1;
+      sendneed[0][0] = MIN(maxneed[0],procgrid[0]-left-1);
+      right = myloc[0] + 1;
+      if (right == procgrid[0]) right = 0;
+      sendneed[0][1] = MIN(maxneed[0],right);
+    } else recvneed[0][0] = recvneed[0][1] = 
+	     sendneed[0][0] = sendneed[0][1] = maxneed[0];
+
+    if (!periodicity[1]) {
+      recvneed[1][0] = MIN(maxneed[1],myloc[1]);
+      recvneed[1][1] = MIN(maxneed[1],procgrid[1]-myloc[1]-1);
+      left = myloc[1] - 1;
+      if (left < 0) left = procgrid[1] - 1;
+      sendneed[1][0] = MIN(maxneed[1],procgrid[1]-left-1);
+      right = myloc[1] + 1;
+      if (right == procgrid[1]) right = 0;
+      sendneed[1][1] = MIN(maxneed[1],right);
+    } else recvneed[1][0] = recvneed[1][1] = 
+	     sendneed[1][0] = sendneed[1][1] = maxneed[1];
+
+    if (!periodicity[2]) {
+      recvneed[2][0] = MIN(maxneed[2],myloc[2]);
+      recvneed[2][1] = MIN(maxneed[2],procgrid[2]-myloc[2]-1);
+      left = myloc[2] - 1;
+      if (left < 0) left = procgrid[2] - 1;
+      sendneed[2][0] = MIN(maxneed[2],procgrid[2]-left-1);
+      right = myloc[2] + 1;
+      if (right == procgrid[2]) right = 0;
+      sendneed[2][1] = MIN(maxneed[2],right);
+    } else recvneed[2][0] = recvneed[2][1] = 
+	     sendneed[2][0] = sendneed[2][1] = maxneed[2];
+
+  } else {
+    recvneed[0][0] = updown(0,0,myloc[0],prd[0],periodicity[0],xsplit);
+    recvneed[0][1] = updown(0,1,myloc[0],prd[0],periodicity[0],xsplit);
+    left = myloc[0] - 1;
+    if (left < 0) left = procgrid[0] - 1;
+    sendneed[0][0] = updown(0,1,left,prd[0],periodicity[0],xsplit);
+    right = myloc[0] + 1;
+    if (right == procgrid[0]) right = 0;
+    sendneed[0][1] = updown(0,0,right,prd[0],periodicity[0],xsplit);
+
+    recvneed[1][0] = updown(1,0,myloc[1],prd[1],periodicity[1],ysplit);
+    recvneed[1][1] = updown(1,1,myloc[1],prd[1],periodicity[1],ysplit);
+    left = myloc[1] - 1;
+    if (left < 0) left = procgrid[1] - 1;
+    sendneed[1][0] = updown(1,1,left,prd[1],periodicity[1],ysplit);
+    right = myloc[1] + 1;
+    if (right == procgrid[1]) right = 0;
+    sendneed[1][1] = updown(1,0,right,prd[1],periodicity[1],ysplit);
+
+    if (domain->dimension == 3) { 
+      recvneed[2][0] = updown(2,0,myloc[2],prd[2],periodicity[2],zsplit);
+      recvneed[2][1] = updown(2,1,myloc[2],prd[2],periodicity[2],zsplit);
+      left = myloc[2] - 1;
+      if (left < 0) left = procgrid[2] - 1;
+      sendneed[2][0] = updown(2,1,left,prd[2],periodicity[2],zsplit);
+      right = myloc[2] + 1;
+      if (right == procgrid[2]) right = 0;
+      sendneed[2][1] = updown(2,0,right,prd[2],periodicity[2],zsplit);
+    } else recvneed[2][0] = recvneed[2][1] = 
+	     sendneed[2][0] = sendneed[2][1] = 0;
+
+    int all[6];
+    MPI_Allreduce(&recvneed[0][0],all,6,MPI_INT,MPI_MAX,world);
+    maxneed[0] = MAX(all[0],all[1]);
+    maxneed[1] = MAX(all[2],all[3]);
+    maxneed[2] = MAX(all[4],all[5]);
+  }
 
   // allocate comm memory
 
-  nswap = 2 * (need[0]+need[1]+need[2]);
+  nswap = 2 * (maxneed[0]+maxneed[1]+maxneed[2]);
   if (nswap > maxswap) grow_swap(nswap);
 
   // setup parameters for each exchange:
@@ -428,13 +538,11 @@ void Comm::setup()
   //   use -BIG/midpt/BIG to insure all atoms included even if round-off occurs
   //   if round-off, atoms recvd across PBC can be < or > than subbox boundary
   //   note that borders() only loops over subset of atoms during each swap
-  //   set slablo > slabhi for swaps across non-periodic boundaries
-  //     this insures no atoms are swapped
-  //     only for procs owning sub-box at non-periodic end of global box
+  //   treat all as PBC here, non-PBC is handled in borders() via r/s need[][]
   // for style MULTI:
-  //   multilo/multihi is same as slablo/slabhi, only for each atom type
+  //   multilo/multihi is same, with slablo/slabhi for each atom type
   // pbc_flag: 0 = nothing across a boundary, 1 = something across a boundary
-  // pbc = -1/0/1 for PBC factor in each of 3/6 orthog/triclinic dirs
+  // pbc = -1/0/1 for PBC factor in each of 3/6 orthogonal/triclinic dirs
   // for triclinic, slablo/hi and pbc_border will be used in lamda (0-1) coords
   // 1st part of if statement is sending to the west/south/down
   // 2nd part of if statement is sending to the east/north/up
@@ -443,7 +551,7 @@ void Comm::setup()
 
   int iswap = 0;
   for (dim = 0; dim < 3; dim++) {
-    for (ineed = 0; ineed < 2*need[dim]; ineed++) {
+    for (ineed = 0; ineed < 2*maxneed[dim]; ineed++) {
       pbc_flag[iswap] = 0;
       pbc[iswap][0] = pbc[iswap][1] = pbc[iswap][2] =
 	pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
@@ -463,18 +571,11 @@ void Comm::setup()
 	  }
 	}
 	if (myloc[dim] == 0) {
-	  if (periodicity[dim] == 0) {
-	    if (style == SINGLE) slabhi[iswap] = slablo[iswap] - 1.0;
-	    else 
-	      for (i = 1; i <= ntypes; i++)
-		multihi[iswap][i] = multilo[iswap][i] - 1.0;
-	  } else {
-	    pbc_flag[iswap] = 1;
-	    pbc[iswap][dim] = 1;
-	    if (triclinic) {
-	      if (dim == 1) pbc[iswap][5] = 1;
-	      else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = 1;
-	    }
+	  pbc_flag[iswap] = 1;
+	  pbc[iswap][dim] = 1;
+	  if (triclinic) {
+	    if (dim == 1) pbc[iswap][5] = 1;
+	    else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = 1;
 	  }
 	}
 	
@@ -493,18 +594,11 @@ void Comm::setup()
 	  }
 	}
 	if (myloc[dim] == procgrid[dim]-1) {
-	  if (periodicity[dim] == 0) {
-	    if (style == SINGLE) slabhi[iswap] = slablo[iswap] - 1.0;
-	    else
-	      for (i = 1; i <= ntypes; i++)
-		multihi[iswap][i] = multilo[iswap][i] - 1.0;
-	  } else {
-	    pbc_flag[iswap] = 1;
-	    pbc[iswap][dim] = -1;
-	    if (triclinic) {
-	      if (dim == 1) pbc[iswap][5] = -1;
-	      else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = -1;
-	    }
+	  pbc_flag[iswap] = 1;
+	  pbc[iswap][dim] = -1;
+	  if (triclinic) {
+	    if (dim == 1) pbc[iswap][5] = -1;
+	    else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = -1;
 	  }
 	}
       }
@@ -513,6 +607,55 @@ void Comm::setup()
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   walk up/down the extent of nearby processors in dim and dir
+   loc = myloc of proc to start at
+   dir = 0/1 = walk to left/right
+   do not cross non-periodic boundaries
+   is not called for z dim in 2d
+   return how many procs away are needed to encompass cutghost away from loc
+------------------------------------------------------------------------- */
+
+int Comm::updown(int dim, int dir, int loc, 
+		 double prd, int periodicity, double *split)
+{
+  int index,count;
+  double frac,delta;
+
+  if (dir == 0) {
+    frac = cutghost[dim]/prd;
+    index = loc - 1;
+    delta = 0.0;
+    count = 0;
+    while (delta < frac) {
+      if (index < 0) {
+	if (!periodicity) break;
+	index = procgrid[dim] - 1;
+      }
+      count++;
+      delta += split[index+1] - split[index];
+      index--;
+    }
+
+  } else {
+    frac = cutghost[dim]/prd;
+    index = loc + 1;
+    delta = 0.0;
+    count = 0;
+    while (delta < frac) {
+      if (index >= procgrid[dim]) {
+	if (!periodicity) break;
+	index = 0;
+      }
+      count++;
+      delta += split[index+1] - split[index];
+      index++;
+    }
+  }
+
+  return count;
+}  
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep
@@ -537,27 +680,30 @@ void Comm::forward_comm(int dummy)
       if (comm_x_only) {
 	if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
 	else buf = NULL;
-	MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
+	if (size_forward_recv[iswap])
+	  MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
+		    recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
 			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
       } else if (ghost_velocity) {
-	MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
+	if (size_forward_recv[iswap])
+	  MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+		    recvproc[iswap],0,world,&request);
 	n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
 				buf_send,pbc_flag[iswap],pbc[iswap]);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
 	avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
       } else {
-	MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
+	if (size_forward_recv[iswap])
+	  MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+		    recvproc[iswap],0,world,&request);
 	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
 			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
 	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -601,19 +747,22 @@ void Comm::reverse_comm()
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
       if (comm_f_only) {
-	MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-		  sendproc[iswap],0,world,&request);
+	if (size_reverse_recv[iswap])
+	  MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+		    sendproc[iswap],0,world,&request);
 	if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
 	else buf = NULL;
-	MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
-		 recvproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (size_reverse_send[iswap])
+	  MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
+		   recvproc[iswap],0,world);
+	if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
       } else {
-	MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-		  sendproc[iswap],0,world,&request);
+	if (size_reverse_recv[iswap])
+	  MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+		    sendproc[iswap],0,world,&request);
 	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
+	if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
       }
       avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
 
@@ -752,8 +901,8 @@ void Comm::exchange()
 
 void Comm::borders()
 {
-  int i,n,itype,iswap,dim,ineed,maxneed,smax,rmax;
-  int nsend,nrecv,nfirst,nlast,ngroup;
+  int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
+  int nsend,nrecv,sendflag,nfirst,nlast,ngroup;
   double lo,hi;
   int *type;
   double **x;
@@ -774,8 +923,8 @@ void Comm::borders()
 
   for (dim = 0; dim < 3; dim++) {
     nlast = 0;
-    maxneed = 2*need[dim];
-    for (ineed = 0; ineed < maxneed; ineed++) {
+    twoneed = 2*maxneed[dim];
+    for (ineed = 0; ineed < twoneed; ineed++) {
 
       // find atoms within slab boundaries lo/hi using <= and >=
       // check atoms between nfirst and nlast
@@ -799,55 +948,64 @@ void Comm::borders()
 
       nsend = 0;
 
+      // sendflag = 0 if I do not send on this swap
+      // sendneed test indicates receiver no longer requires data
+      // e.g. due to non-PBC or non-uniform sub-domains
+
+      if (ineed/2 >= sendneed[dim][ineed % 2]) sendflag = 0;
+      else sendflag = 1;
+
       // find send atoms according to SINGLE vs MULTI
       // all atoms eligible versus atoms in bordergroup
       // only need to limit loop to bordergroup for first sends (ineed < 2)
       // on these sends, break loop in two: owned (in group) and ghost
 
-      if (!bordergroup || ineed >= 2) {
-	if (style == SINGLE) {
-	  for (i = nfirst; i < nlast; i++)
-	    if (x[i][dim] >= lo && x[i][dim] <= hi) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
-	    }
-	} else {
-	  for (i = nfirst; i < nlast; i++) {
-	    itype = type[i];
-	    if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
-	    }
-	  }
-	}
-
-      } else {
-	if (style == SINGLE) {
-	  ngroup = atom->nfirst;
-	  for (i = 0; i < ngroup; i++)
-	    if (x[i][dim] >= lo && x[i][dim] <= hi) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
-	    }
-	  for (i = atom->nlocal; i < nlast; i++)
-	    if (x[i][dim] >= lo && x[i][dim] <= hi) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
-	    }
-	} else {
-	  ngroup = atom->nfirst;
-	  for (i = 0; i < ngroup; i++) {
-	    itype = type[i];
-	    if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
+      if (sendflag) {
+	if (!bordergroup || ineed >= 2) {
+	  if (style == SINGLE) {
+	    for (i = nfirst; i < nlast; i++)
+	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	  } else {
+	    for (i = nfirst; i < nlast; i++) {
+	      itype = type[i];
+	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
 	    }
 	  }
-	  for (i = atom->nlocal; i < nlast; i++) {
-	    itype = type[i];
-	    if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-	      if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-	      sendlist[iswap][nsend++] = i;
+	  
+	} else {
+	  if (style == SINGLE) {
+	    ngroup = atom->nfirst;
+	    for (i = 0; i < ngroup; i++)
+	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	    for (i = atom->nlocal; i < nlast; i++)
+	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	  } else {
+	    ngroup = atom->nfirst;
+	    for (i = 0; i < ngroup; i++) {
+	      itype = type[i];
+	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
+	    }
+	    for (i = atom->nlocal; i < nlast; i++) {
+	      itype = type[i];
+	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+		sendlist[iswap][nsend++] = i;
+	      }
 	    }
 	  }
 	}
@@ -865,18 +1023,18 @@ void Comm::borders()
 			      pbc_flag[iswap],pbc[iswap]);
       
       // swap atoms with other proc
+      // no MPI calls except SendRecv if nsend/nrecv = 0
       // put incoming ghosts at end of my atom arrays
       // if swapping with self, simply copy, no messages
 
       if (sendproc[iswap] != me) {
 	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
 		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*size_border > maxrecv) 
-	  grow_recv(nrecv*size_border);
-	MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+	if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
+	if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
+			     recvproc[iswap],0,world,&request);
+	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+	if (nrecv) MPI_Wait(&request,&status);
 	buf = buf_recv;
       } else {
 	nrecv = nsend;
@@ -939,10 +1097,12 @@ void Comm::forward_comm_pair(Pair *pair)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (recvnum[iswap])
+	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		  world,&request);
+      if (sendnum[iswap])
+	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -973,10 +1133,12 @@ void Comm::reverse_comm_pair(Pair *pair)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (sendnum[iswap]) 
+	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		  world,&request);
+      if (recvnum[iswap])
+	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1008,10 +1170,12 @@ void Comm::forward_comm_fix(Fix *fix)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (recvnum[iswap]) 
+	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		  world,&request);
+      if (sendnum[iswap]) 
+	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1042,10 +1206,12 @@ void Comm::reverse_comm_fix(Fix *fix)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (sendnum[iswap]) 
+	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		  world,&request);
+      if (recvnum[iswap]) 
+	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1077,10 +1243,12 @@ void Comm::forward_comm_compute(Compute *compute)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (recvnum[iswap]) 
+	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		  world,&request);
+      if (sendnum[iswap]) 
+	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1111,10 +1279,12 @@ void Comm::reverse_comm_compute(Compute *compute)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (sendnum[iswap]) 
+	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		  world,&request);
+      if (recvnum[iswap]) 
+	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1146,10 +1316,12 @@ void Comm::forward_comm_dump(Dump *dump)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (recvnum[iswap]) 
+	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+		  world,&request);
+      if (sendnum[iswap]) 
+	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1180,10 +1352,12 @@ void Comm::reverse_comm_dump(Dump *dump)
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		world,&request);
-      MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      if (sendnum[iswap]) 
+	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+		  world,&request);
+      if (recvnum[iswap]) 
+	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1372,6 +1546,10 @@ void Comm::set_processors(int narg, char **arg)
 
   if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0) 
     error->all(FLERR,"Illegal processors command");
+
+  int p = user_procgrid[0]*user_procgrid[1]*user_procgrid[2];
+  if (p && p != nprocs)
+    error->all(FLERR,"Specified processors != physical processors");
 
   int iarg = 3;
   while (iarg < narg) {

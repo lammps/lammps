@@ -150,13 +150,13 @@ void ChangeBox::command(int narg, char **arg)
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"ortho") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal change_box command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal change_box command");
       ops[nops].style = ORTHO;
       nops++;
       iarg += 1;
 
     } else if (strcmp(arg[iarg],"triclinic") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal change_box command");
+      if (iarg+1 > narg) error->all(FLERR,"Illegal change_box command");
       ops[nops].style = TRICLINIC;
       nops++;
       iarg += 1;

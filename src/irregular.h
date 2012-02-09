@@ -32,8 +32,12 @@ class Irregular : protected Pointers {
   int me,nprocs;
   int triclinic;
   int map_style;
-  int *procgrid;
-  int ***grid2proc;
+  int uniform;
+  double *xsplit,*ysplit,*zsplit;   // ptrs to comm
+  int *procgrid;                    // ptr to comm
+  int ***grid2proc;                 // ptr to comm
+  double *boxlo;                    // ptr to domain 
+  double *prd;                      // ptr to domain
 
   int maxsend,maxrecv;              // size of buffers in # of doubles
   double *buf_send,*buf_recv;
@@ -81,6 +85,7 @@ class Irregular : protected Pointers {
   void exchange_atom(double *, int *, double *);
   void destroy_atom();
   int coord2proc(double *);
+  int binary(double, int, double *);
 
   void grow_send(int,int);          // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer

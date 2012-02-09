@@ -87,6 +87,8 @@ void Balance::command(int narg, char **arg)
 
   // parse arguments
 
+  if (narg < 1) error->all(FLERR,"Illegal balance command");
+
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
   xflag = yflag = zflag = NONE;

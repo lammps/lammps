@@ -112,3 +112,39 @@ class PairKIM : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Pair style pair_KIM requires newton pair Off
+
+UNDOCUMENTED
+
+E: All pair coeffs are not set
+
+UNDOCUMENTED
+
+E: KIM neighbor iterator exceeded range
+
+UNDOCUMENTED
+
+E: KIM_DIR environement variable is unset
+
+UNDOCUMENTED
+
+E: PWD environement variable is unset
+
+UNDOCUMENTED
+
+E: KIM initialization failed
+
+UNDOCUMENTED
+
+*/

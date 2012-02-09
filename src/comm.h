@@ -155,6 +155,10 @@ E: Invalid cutoff in communicate command
 
 Specified cutoff must be >= 0.0.
 
+E: Specified processors != physical processors
+
+UNDOCUMENTED
+
 E: Cannot use processors part command without using partitions
 
 UNDOCUMENTED

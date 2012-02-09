@@ -137,11 +137,6 @@ E: Cannot skew triclinic box in z for 2d simulation
 
 Self-explanatory.
 
-E: Triclinic box must be periodic in skewed dimensions
-
-This is a requirement for using a non-orthogonal box.  E.g. to set a
-non-zero xy tilt, both x and y must be periodic dimensions.
-
 E: Triclinic box skew is too large
 
 The displacement in a skewed direction must be less than half the box
@@ -174,5 +169,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+U: Triclinic box must be periodic in skewed dimensions
+
+This is a requirement for using a non-orthogonal box.  E.g. to set a
+non-zero xy tilt, both x and y must be periodic dimensions.
 
 */

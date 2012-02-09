@@ -165,23 +165,7 @@ E: Invalid dump image persp value
 
 UNDOCUMENTED
 
-E: Invalid dump image up vector
-
-UNDOCUMENTED
-
-E: Invalid dump image color range
-
-UNDOCUMENTED
-
 E: Invalid color in dump_modify command
-
-UNDOCUMENTED
-
-E: Illega dump_modify command
-
-UNDOCUMENTED
-
-E: Invalid color map in dump_modify command
 
 UNDOCUMENTED
 
@@ -190,6 +174,22 @@ E: Dump modify bcolor not allowed with no bond types
 UNDOCUMENTED
 
 E: Dump modify bdiam not allowed with no bond types
+
+UNDOCUMENTED
+
+U: Invalid dump image up vector
+
+UNDOCUMENTED
+
+U: Invalid dump image color range
+
+UNDOCUMENTED
+
+U: Illega dump_modify command
+
+UNDOCUMENTED
+
+U: Invalid color map in dump_modify command
 
 UNDOCUMENTED
 

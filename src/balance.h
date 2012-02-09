@@ -69,3 +69,35 @@ class Balance : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Balance command before simulation box is defined
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot balance in z dimension for 2d simulation
+
+UNDOCUMENTED
+
+E: Balance dynamic string is invalid
+
+UNDOCUMENTED
+
+E: Balance dynamic string is invalid for 2d simulation
+
+UNDOCUMENTED
+
+E: Lost atoms via balance: original %ld current %ld
+
+UNDOCUMENTED
+
+E: Cannot open balance output file
+
+UNDOCUMENTED
+
+*/

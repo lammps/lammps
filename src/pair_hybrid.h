@@ -79,11 +79,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Pair style hybrid cannot use same pair style twice
-
-The sub-style arguments of pair_style hybrid cannot be duplicated.
-Check the input script.
-
 E: Pair style hybrid cannot have hybrid as an argument
 
 Self-explanatory.
@@ -125,5 +120,10 @@ E: Coulomb cutoffs of pair hybrid sub-styles do not match
 
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same.
+
+U: Pair style hybrid cannot use same pair style twice
+
+The sub-style arguments of pair_style hybrid cannot be duplicated.
+Check the input script.
 
 */

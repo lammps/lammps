@@ -13,7 +13,11 @@
 
 /* ERROR/WARNING messages:
 
-E: Neighbor list overflow, boost neigh_modify one or page
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
+
+U: Neighbor list overflow, boost neigh_modify one or page
 
 There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the neighbor page size and the max number of

@@ -81,14 +81,16 @@ balancing.
 
 :c,image(JPG/balance.jpg)
 
-When the balance command completes, it prints out the change in
-"imbalance factor".  The imbalance factor is defined as the maximum
-number of particles owned by any processor, divided by the average
-number of particles per processor.  Thus an imbalance factor of 1.0 is
-perfect balance.  For 10000 particles running on 10 processors, if the
-most heavily loaded processor has 1200 particles, then the factor is
-1.2, meaning there is a 20% imbalance.  The change in the maximum
-number of particles (on any processor) is also printed.
+When the balance command completes, it prints out the final positions
+of all cutting planes in each of the 3 dimensions (as fractions of the
+box length).  It also prints statistics about its results, including
+the change in "imbalance factor".  This factor is defined as the
+maximum number of particles owned by any processor, divided by the
+average number of particles per processor.  Thus an imbalance factor
+of 1.0 is perfect balance.  For 10000 particles running on 10
+processors, if the most heavily loaded processor has 1200 particles,
+then the factor is 1.2, meaning there is a 20% imbalance.  The change
+in the maximum number of particles (on any processor) is also printed.
 
 IMPORTANT NOTE: This command attempts to minimize the imbalance
 factor, as defined above.  But because of the topology constraint that
@@ -156,12 +158,13 @@ balance y dynamic 1 10 xxxxx 1.2
 balance y dynamic 50 1 x 1.2 :pre
 
 A rebalance operation in a single dimension is performed using an
-iterative "diffusive" load-balancing algorithm.  One iteration (which
-is repeated {Niter} times), works as follows.  Assume there are Px
-processors in the x dimension.  This defines Px slices of the
-simulation, each of which contains Py*Pz processors.  The task is to
-adjust the position of the Px-1 cuts between slices, leaving the end
-cuts unchanged (left and right edges of the simulation box).
+iterative "diffusive" load-balancing algorithm "(Cybenko)"_#Cybenko.
+One iteration on a dimension (which is repeated {Niter} times), works
+as follows.  Assume there are Px processors in the x dimension.  This
+defines Px slices of the simulation, each of which contains Py*Pz
+processors.  The task is to adjust the position of the Px-1 cuts
+between slices, leaving the end cuts unchanged (left and right edges
+of the simulation box).
 
 The iteration beings by calculating the number of atoms within each of
 the Px slices.  Then for each slice, its atom count is compared to its
@@ -194,4 +197,5 @@ appear in {dimstr} for the {dynamic} keyword.
 
 :line
 
-add a citation and image
+:link(Cybenko)
+[(Cybenko)] Cybenko, J Par Dist Comp, 7, 279-301 (1989).

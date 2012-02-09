@@ -15,8 +15,7 @@ balancing has not yet been released.
 
 balance group-ID keyword args ... :pre
 
-group-ID = ID of group of atoms to balance across processors :ule,l
-one or more keyword/arg pairs may be appended :l
+one or more keyword/arg pairs may be appended :ule,l
 keyword = {x} or {y} or {z} or {dynamic} :l
   {x} args = {uniform} or Px-1 numbers between 0 and 1
     {uniform} = evenly spaced cuts between processors in x dimension

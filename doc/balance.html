@@ -1,0 +1,206 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>balance command 
+</H3>
+<P>NOTE: the fix balance command referred to here for dynamic load
+balancing has not yet been released.
+</P>
+<P><B>Syntax:</B>
+</P>
+<PRE>balance group-ID keyword args ... 
+</PRE>
+<LI>group-ID = ID of group of atoms to balance across processors 
+</UL>
+<LI>one or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>x</I> or <I>y</I> or <I>z</I> or <I>dynamic</I> 
+
+<PRE>  <I>x</I> args = <I>uniform</I> or Px-1 numbers between 0 and 1
+    <I>uniform</I> = evenly spaced cuts between processors in x dimension
+    numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
+  <I>y</I> args = <I>uniform</I> or Py-1 numbers between 0 and 1
+    <I>uniform</I> = evenly spaced cuts between processors in x dimension
+    numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
+  <I>z</I> args = <I>uniform</I> or Pz-1 numbers between 0 and 1
+    <I>uniform</I> = evenly spaced cuts between processors in x dimension
+    numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
+  <I>dynamic</I> args = Nrepeat Niter dimstr thresh
+    Nrepeat = # of times to repeat dimstr sequence
+    Niter = # of times to iterate within each dimension of dimstr sequence
+    dimstr = sequence of letters containing "x" or "y" or "z"
+    thresh = stop balancing when this imbalance threshhold is reached 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>balance x uniform y 0.4 0.5 0.6
+balance dynamic 1 5 xzx 1.1
+balance dynamic 5 10 x 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command adjusts the size of processor sub-domains within the
+simulation box, to attempt to balance the number of particles and thus
+the computational cost (load) evenly across processors.  The load
+balancing is "static" in the sense that this command performs the
+balancing once, before or between simulations.  The processor
+sub-domains will then remain static during the subsequent run.  To
+perform "dynammic" balancing, see the <A HREF = "fix_balance.html">fix balance</A>
+command, which can adjust processor sub-domain sizes on-the-fly during
+a <A HREF = "run.html">run</A>.
+</P>
+<P>Load-balancing is only useful if the particles in the simulation box
+have a spatially-varying density distribution.  E.g. a model of a
+vapor/liquid interface, or a solid with an irregular-shaped geometry
+containing void regions.  In this case, the LAMMPS default of dividing
+the simulation box volume into a regular-spaced grid of processor
+sub-domain, with one equal-volume sub-domain per procesor, may assign
+very different numbers of particles per processor.  This can lead to
+poor performance in a scalability sense, when the simulation is run in
+parallel.
+</P>
+<P>Note that the <A HREF = "processors.html">processors</A> command gives you some
+control over how the box volume is split across processors.
+Specifically, for a Px by Py by Pz grid of processors, it lets you
+choose Px, Py, and Pz, subject to the constraint that Px * Py * Pz =
+P, the total number of processors.  This can be sufficient to achieve
+good load-balance for some models on some processor counts.  However,
+all the processor sub-domains will still be the same shape and have
+the same volume.
+</P>
+<P>This command does not alter the topology of the Px by Py by Pz grid or
+processors.  But it shifts the cutting planes between processors (in
+3d, or lines in 2d), which adjusts the volume (area in 2d) assigned to
+each processor, as in the following 2d diagram.  The left diagram is
+the default partitioning of the simulation box across processors (one
+sub-box for each of 16 processors); the right diagram is after
+balancing.
+</P>
+<CENTER><IMG SRC = "JPG/balance.jpg">
+</CENTER>
+<P>When the balance command completes, it prints out the change in
+"imbalance factor".  The imbalance factor is defined as the maximum
+number of particles owned by any processor, divided by the average
+number of particles per processor.  Thus an imbalance factor of 1.0 is
+perfect balance.  For 10000 particles running on 10 processors, if the
+most heavily loaded processor has 1200 particles, then the factor is
+1.2, meaning there is a 20% imbalance.  The change in the maximum
+number of particles (on any processor) is also printed.
+</P>
+<P>IMPORTANT NOTE: This command attempts to minimize the imbalance
+factor, as defined above.  But because of the topology constraint that
+only the cutting planes (lines) between processors are moved, there
+are many irregular distributions of particles, where this factor
+cannot be shrunk to 1.0, particuarly in 3d.  Also, computational cost
+is not strictly proportional to particle count, and changing the
+relative size and shape of processor sub-domains may lead to
+additional computational and communication overheads, e.g. in the PPPM
+solver used via the <A HREF = "kspace_style.html">kspace_style</A> command.  Thus
+you should benchmark the run times of your simulation before and after
+balancing.
+</P>
+<HR>
+
+<P>The <I>x</I>, <I>y</I>, and <I>z</I> keywords adjust the position of cutting planes
+between processor sub-domains in a specific dimension.  The <I>uniform</I>
+argument spaces the planes evenly, as in the left diagram above.  The
+<I>numeric</I> argument requires you to list Ps-1 numbers that specify the
+position of the cutting planes.  This requires that you know Ps = Px
+or Py or Pz = the number of processors assigned by LAMMPS to the
+relevant dimension.  This assignment is made (and the Px, Py, Pz
+values printed out) when the simulation box is created by the
+"create_box" or "read_data" or "read_restart" command and is
+influenced by the settings of the "processors" command.
+</P>
+<P>Each of the numeric values must be between 0 and 1, and they must be
+listed in ascending order.  They represent the fractional position of
+the cutting place.  The left (or lower) edge of the box is 0.0, and
+the right (or upper) edge is 1.0.  Neither of these values is
+specified.  Only the interior Ps-1 positions are specified.  Thus is
+there are 2 procesors in the x dimension, you specify a single value
+such as 0.75, which would make the left processor's sub-domain 3x
+larger than the right processor's sub-domain.
+</P>
+<HR>
+
+<P>The <I>dynamic</I> keyword changes the cutting planes between processors in
+an iterative fashion, seeking to reduce the imbalance factor, similar
+to how the <A HREF = "fix_balance.html">fix balance</A> command operates.  Note that
+this keyword begins its operation from the current processor
+partitioning, which could be uniform or the result of a previous
+balance command.
+</P>
+<P>The <I>dimstr</I> argument is a string of characters, each of which must be
+an "x" or "y" or "z".  The characters can appear in any order, and can
+be repeated as many times as desired.  These are all valid <I>dimstr</I>
+arguments: "x" or "xyzyx" or "yyyzzz".
+</P>
+<P>Balancing proceeds by adjusting the cutting planes in each of the
+dimensions listed in <I>dimstr</I>, one dimension at a time.  The entire
+sequence of dimensions is repeated <I>Nrepeat</I> times.  For a single
+dimension, the balancing operation (described below) is iterated on
+<I>Niter</I> times.  After each dimension finishes, the imbalance factor is
+re-computed, and the balancing operation halts if the <I>thresh</I>
+criterion is met.
+</P>
+<P>The interplay between <I>Nrepeat</I>, <I>Niter</I>, and <I>dimstr</I> means that
+these commands do essentially the same thing, the only difference
+being how often the imbalance factor is computed and checked against
+the threshhold:
+</P>
+<PRE>balance y dynamic 5 10 x 1.2
+balance y dynamic 1 10 xxxxx 1.2
+balance y dynamic 50 1 x 1.2 
+</PRE>
+<P>A rebalance operation in a single dimension is performed using an
+iterative "diffusive" load-balancing algorithm.  One iteration (which
+is repeated <I>Niter</I> times), works as follows.  Assume there are Px
+processors in the x dimension.  This defines Px slices of the
+simulation, each of which contains Py*Pz processors.  The task is to
+adjust the position of the Px-1 cuts between slices, leaving the end
+cuts unchanged (left and right edges of the simulation box).
+</P>
+<P>The iteration beings by calculating the number of atoms within each of
+the Px slices.  Then for each slice, its atom count is compared to its
+neighbors.  If a slice has more atoms than its left (or right)
+neighbor, the cut is moved towards the center of the slice,
+effectively shrinking the width of the slice and migrating atoms to
+the other slice.  The distance to move the cut is a function of the
+"density" of atoms in the donor slice and the difference in counts
+between the 2 slices.  A damping factor is also applied to avoid
+oscillations in the position of the cutting plane as iterations
+proceed.  Hence the "diffusive" nature of the algorithm as work
+(atoms) effectively diffuses from highly loaded processors to
+less-loaded processors.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>dynamic</I> keyword cannot be used with the <I>x</I>, <I>y</I>, or <I>z</I>
+arguments.
+</P>
+<P>For 2d simulations, the <I>z</I> keyword cannot be used.  Nor can a "z"
+appear in <I>dimstr</I> for the <I>dynamic</I> keyword.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "processors.html">processors</A>, <A HREF = "fix_balance.html">fix balance</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<P>add a citation and image
+</P>
+</HTML>

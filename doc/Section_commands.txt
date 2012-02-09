@@ -313,6 +313,7 @@ in the command's documentation.
 "angle_style"_angle_style.html,
 "atom_modify"_atom_modify.html,
 "atom_style"_atom_style.html,
+"balance"_balance.html,
 "bond_coeff"_bond_coeff.html,
 "bond_style"_bond_style.html,
 "boundary"_boundary.html,

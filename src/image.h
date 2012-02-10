@@ -151,3 +151,15 @@ class Image : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid image up vector
+
+UNDOCUMENTED
+
+E: Invalid image color range
+
+UNDOCUMENTED
+
+*/

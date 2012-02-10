@@ -83,7 +83,8 @@ void Irregular::migrate_atoms()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // subbox bounds for orthogonal or triclinic
+  // subbox bounds for orthogonal or triclinic box
+  // other comm/domain data used by coord2proc()
 
   double *sublo,*subhi;
   if (triclinic == 0) {
@@ -93,6 +94,13 @@ void Irregular::migrate_atoms()
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
   }
+
+  uniform = comm->uniform;
+  xsplit = comm->xsplit;
+  ysplit = comm->ysplit;
+  zsplit = comm->zsplit;
+  boxlo = domain->boxlo;
+  prd = domain->prd;
 
   // loop over atoms, flag any that are not in my sub-box
   // fill buffer with atoms leaving my box, using < and >=
@@ -603,24 +611,35 @@ void Irregular::destroy_data()
 /* ----------------------------------------------------------------------
    determine which proc owns atom with coord x[3]
    x will be in box (orthogonal) or lamda coords (triclinic)
+   for uniform = 1, directly calculate owning proc
+   for non-uniform, iteratively find owning proc via binary search
 ------------------------------------------------------------------------- */
 
 int Irregular::coord2proc(double *x)
 {
   int loc[3];
-  if (triclinic == 0) {
-    double *boxlo = domain->boxlo;
-    double *boxhi = domain->boxhi;
-    loc[0] = static_cast<int>
-      (procgrid[0] * (x[0]-boxlo[0]) / (boxhi[0]-boxlo[0]));
-    loc[1] = static_cast<int>
-      (procgrid[1] * (x[1]-boxlo[1]) / (boxhi[1]-boxlo[1]));
-    loc[2] = static_cast<int>
-      (procgrid[2] * (x[2]-boxlo[2]) / (boxhi[2]-boxlo[2]));
+
+  if (uniform) {
+    if (triclinic == 0) {
+      loc[0] = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
+      loc[1] = static_cast<int>	(procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
+      loc[2] = static_cast<int>	(procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
+    } else {
+      loc[0] = static_cast<int> (procgrid[0] * x[0]);
+      loc[1] = static_cast<int> (procgrid[1] * x[1]);
+      loc[2] = static_cast<int> (procgrid[2] * x[2]);
+    }
+
   } else {
-    loc[0] = static_cast<int> (procgrid[0] * x[0]);
-    loc[1] = static_cast<int> (procgrid[1] * x[1]);
-    loc[2] = static_cast<int> (procgrid[2] * x[2]);
+    if (triclinic == 0) {
+      loc[0] = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      loc[1] = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      loc[2] = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+    } else {
+      loc[0] = binary(x[0],procgrid[0],xsplit);
+      loc[1] = binary(x[1],procgrid[1],ysplit);
+      loc[2] = binary(x[2],procgrid[2],zsplit);
+    }
   }
 
   if (loc[0] < 0) loc[0] = 0;
@@ -631,6 +650,36 @@ int Irregular::coord2proc(double *x)
   if (loc[2] >= procgrid[2]) loc[2] = procgrid[2] - 1;
 
   return grid2proc[loc[0]][loc[1]][loc[2]];
+}
+
+/* ----------------------------------------------------------------------
+   binary search for value in N-length ascending vec
+   value may be outside range of vec limits
+   always return index from 0 to N-1 inclusive
+   return 0 if value < vec[0]
+   reutrn N-1 if value >= vec[N-1]
+   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+------------------------------------------------------------------------- */
+
+int Irregular::binary(double value, int n, double *vec)
+{
+  int lo = 0;
+  int hi = n-1;
+
+  if (value < vec[lo]) return lo;
+  if (value >= vec[hi]) return hi;
+
+  // insure vec[lo] <= value < vec[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo+hi)/2;
+  while (lo < hi-1) {
+    if (value < vec[index]) hi = index;
+    else if (value >= vec[index]) lo = index;
+    index = (lo+hi)/2;
+  }
+
+  return index;
 }
 
 /* ----------------------------------------------------------------------

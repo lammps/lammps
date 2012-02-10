@@ -52,3 +52,15 @@ class PairLJSmoothLinear : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+*/

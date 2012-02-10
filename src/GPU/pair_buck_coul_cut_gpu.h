@@ -55,7 +55,7 @@ E: Cannot use newton pair with buck/coul/cut/gpu pair style
 
 UNDOCUMENTED
 
-E: Pair style buck/coul/cut/gpu requires atom attribute q
+U: Pair style buck/coul/cut/gpu requires atom attribute q
 
 The atom style defined does not have this attribute.
 

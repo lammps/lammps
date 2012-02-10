@@ -207,9 +207,9 @@ E: Thermo and fix not computed at compatible times
 Fixes generate values on specific timesteps.  The thermo output
 does not match these timesteps.
 
-E: Could not find thermo custom variable name
+E: Could not find thermo variable name
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Too many total atoms
 
@@ -315,6 +315,10 @@ E: Thermo fix does not compute array
 Self-explanatory.
 
 E: Thermo fix array is accessed out-of-range
+
+Self-explanatory.
+
+E: Could not find thermo custom variable name
 
 Self-explanatory.
 

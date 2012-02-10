@@ -239,14 +239,16 @@ void PPPM::init()
     //   global PPPM grid that I own without ghost cells
     // for slab PPPM, assign z grid as if it were not extended
 
-    nxlo_in = comm->myloc[0]*nx_pppm / comm->procgrid[0];
-    nxhi_in = (comm->myloc[0]+1)*nx_pppm / comm->procgrid[0] - 1;
-    nylo_in = comm->myloc[1]*ny_pppm / comm->procgrid[1];
-    nyhi_in = (comm->myloc[1]+1)*ny_pppm / comm->procgrid[1] - 1;
-    nzlo_in = comm->myloc[2] * 
-      (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2];
-    nzhi_in = (comm->myloc[2]+1) * 
-      (static_cast<int> (nz_pppm/slab_volfactor)) / comm->procgrid[2] - 1;
+    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_pppm);
+    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_pppm) - 1;
+
+    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_pppm);
+    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_pppm) - 1;
+
+    nzlo_in = static_cast<int> 
+      (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
+    nzhi_in = static_cast<int> 
+      (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
 
     // nlower,nupper = stencil size for mapping particles to PPPM grid
 
@@ -331,8 +333,8 @@ void PPPM::init()
     //   -z proc, but not vice versa
     // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
 
-    if (slabflag && ((comm->myloc[2]+1) == (comm->procgrid[2]))) {
-      nzhi_in =  nz_pppm - 1;
+    if (slabflag && (comm->myloc[2] == comm->procgrid[2]-1)) {
+      nzhi_in = nz_pppm - 1;
       nzhi_out = nz_pppm - 1;
     }
   

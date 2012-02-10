@@ -769,12 +769,13 @@ void PairKIM::kim_init()
   }
 
   // check if Rij needed for get_neigh
-  
-  char * NBC_method =(char *) pkim->get_NBC_method(&kimerr);
+  // get_NBC_method mallocs a string, so free it here
+
+  char *NBC_method = (char *) pkim->get_NBC_method(&kimerr);
   this->kim_error(__LINE__,"NBC method not set",kimerr);
-  support_Rij=false;
-  if (strcmp(NBC_method,"NEIGH-RVEC-F")==0) support_Rij=true;
-  delete [] NBC_method;
+  support_Rij = false;
+  if (strcmp(NBC_method,"NEIGH-RVEC-F")==0) support_Rij = true;
+  memory->sfree(NBC_method);
 }
 
 /* ---------------------------------------------------------------------- */

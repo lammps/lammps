@@ -86,16 +86,13 @@ E: Fix deform tilt factors require triclinic box
 Cannot deform the tilt factors of a simulation box unless it
 is a triclinic (non-orthogonal) box.
 
-E: Cannot use fix deform on a non-periodic boundary
+E: Cannot use fix deform on a shrink-wrapped boundary
 
-When specifying a change is a box dimension, the dimension must be
-periodic.
+UNDOCUMENTED
 
-E: Cannot use fix deform on a 2nd non-periodic boundary
+E: Cannot use fix deform tilt on a shrink-wrapped 2nd dim
 
-When specifying a tilt factor change, the 2nd of the two dimensions
-must be periodic.  E.g. if the xy tilt is specified, then the y
-dimension must be periodic.
+UNDOCUMENTED
 
 E: Use of fix deform with undefined lattice
 
@@ -109,6 +106,14 @@ E: More than one fix deform
 
 Only one fix deform can be defined at a time.
 
+E: Variable name for fix deform does not exist
+
+UNDOCUMENTED
+
+E: Variable for fix deform is invalid style
+
+UNDOCUMENTED
+
 E: Final box dimension due to fix deform is < 0.0
 
 Self-explanatory.
@@ -117,7 +122,26 @@ E: Cannot use fix deform trate on a box with zero tilt
 
 The trate style alters the current strain.
 
-E: Fix deform is changing yz by too much with changing xy
+E: Fix deform cannot use yz variable with xy
+
+UNDOCUMENTED
+
+E: Fix deform is changing yz too much with xy
+
+UNDOCUMENTED
+
+U: Cannot use fix deform on a non-periodic boundary
+
+When specifying a change is a box dimension, the dimension must be
+periodic.
+
+U: Cannot use fix deform on a 2nd non-periodic boundary
+
+When specifying a tilt factor change, the 2nd of the two dimensions
+must be periodic.  E.g. if the xy tilt is specified, then the y
+dimension must be periodic.
+
+U: Fix deform is changing yz by too much with changing xy
 
 When both yz and xy are changing, it induces changes in xz if the
 box must flip from one tilt extreme to another.  Thus it is not

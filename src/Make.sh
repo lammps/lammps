@@ -48,7 +48,6 @@ if (test $1 = "style") then
   style IMPROPER_CLASS  improper_   improper   force
   style INTEGRATE_CLASS ""          integrate  update
   style KSPACE_CLASS    ""          kspace     force
-  style LB_CLASS        ""          lb
   style MINIMIZE_CLASS  min_        minimize   update
   style PAIR_CLASS      pair_       pair       force
   style REGION_CLASS    region_     region     domain

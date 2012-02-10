@@ -70,7 +70,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       if (domain->boundary[0][0] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atom");
+      error->all(FLERR,"Only zhi currently implemented for append_atoms");
       xhiflag = 1;
       iarg++;
       if (domain->boundary[0][1] != 3) 

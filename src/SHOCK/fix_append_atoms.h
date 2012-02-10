@@ -65,39 +65,40 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Only zhi currently implemented for append_atoms
 
-UNDOCUMENTED
+The face keyword must be zhi.
 
 E: Append boundary must be shrink/minimum
 
-UNDOCUMENTED
-
-E: Only zhi currently implemented for append_atom
-
-UNDOCUMENTED
+The boundary style of the face where atoms are added
+must be of type m (shrink/minimum). 
 
 E: Bad fix ID in fix append_atoms command
 
-UNDOCUMENTED
+The value of the fix_id for keyword spatial
+must start with the suffix f_.  
 
 E: Cannot use append_atoms in periodic dimension
 
-UNDOCUMENTED
+The boundary style of the face where atoms are added
+can not be of type p (periodic). 
 
 E: Cannot append atoms to a triclinic box
 
-UNDOCUMENTED
+The simulation box must be defined with edges alligned
+with the Cartesian axes.
 
 E: Use of fix append_atoms with undefined lattice
 
-UNDOCUMENTED
+A lattice must be defined before using this fix.
 
 E: Fix ID for fix ave/spatial does not exist
 
-Self-explanatory.
+The fix_id value for the spatial keyword does
+not correspond to any defined fix.
 
 E: Must define lattice to append_atoms
 
-UNDOCUMENTED
+A lattice must be defined before using this fix.
 
 U: must define lattice to append_atoms
 

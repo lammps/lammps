@@ -61,7 +61,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   if (p_start[0] != p_stop[0] ||
       p_start[1] != p_stop[1] ||  
       p_start[2] != p_stop[2])
-    error->all(FLERR,"Invalid argument for fix nphug");
+    error->all(FLERR,"Pstart and Pstop must have the same value");
 
   // uniaxial = 0 means hydrostatic compression
   // uniaxial = 1 means uniaxial compression
@@ -97,7 +97,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
       uniaxial = 1;
       idir = 2;
 
-    } else error->all(FLERR,"Invalid argument for fix nphug");
+    } else error->all(FLERR,"Specified target stress must be uniaxial or hydrostatic");
 
     // triclinic hydrostatic compression
 
@@ -110,7 +110,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 	p_start[5] == 0.0 )
       uniaxial = 0;
 
-    else error->all(FLERR,"Invalid argument for fix nphug");
+    else error->all(FLERR,"For triclinic deformation, specified target stress must be hydrostatic");
   }
 
   if (!tstat_flag)

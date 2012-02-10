@@ -13,13 +13,11 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID append_atoms face arg ... keyword value ... 
+<PRE>fix ID group-ID append_atoms face ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>append_atoms = style name of this fix command 
-
-<LI>one face/arg pairs must be appended 
 
 <LI>face = <I>zhi</I> 
 
@@ -55,7 +53,7 @@ fix A all append_atoms zhi size 1.0 freq 1000 units lattice
 </P>
 <P>This fix creates atoms on a lattice, appended on the zhi edge of the system box.
 This can be useful when a shock or wave is propagating from zlo.  This allows
-the system to grow with time to accommodate an expanding wave.   A simulation 
+the system to grow with time to accommodate an expanding wave.  A simulation 
 box must already exist, which is typically created via the 
 <A HREF = "create_box.html">create_box</A> command.  Before using this command, a
 lattice must also be defined using the <A HREF = "lattice.html">lattice</A> command.
@@ -98,8 +96,8 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The zhi boundary on which atoms are added with append_atoms must be
-shrink-wrapped.  The zlo boundary may be any boundary type other than
+<P>The boundary on which atoms are added with append_atoms must be
+shrink/minimum.  The opposite boundary may be any boundary type other than
 periodic.
 </P>
 <P><B>Related commands:</B>

@@ -10,11 +10,10 @@ fix append_atoms command :h3
 
 [Syntax:]
 
-fix ID group-ID append_atoms face arg ... keyword value ... :pre
+fix ID group-ID append_atoms face ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 append_atoms = style name of this fix command :l
-one face/arg pairs must be appended :l
 face = {zhi} :l
 zero or more keyword/value pairs may be appended :l
 keyword = {size} or {freq} or {temp} or {random} or {units}  :l
@@ -45,7 +44,7 @@ fix A all append_atoms zhi size 1.0 freq 1000 units lattice :pre
 
 This fix creates atoms on a lattice, appended on the zhi edge of the system box.
 This can be useful when a shock or wave is propagating from zlo.  This allows
-the system to grow with time to accommodate an expanding wave.   A simulation 
+the system to grow with time to accommodate an expanding wave.  A simulation 
 box must already exist, which is typically created via the 
 "create_box"_create_box.html command.  Before using this command, a
 lattice must also be defined using the "lattice"_lattice.html command.
@@ -88,8 +87,8 @@ This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The zhi boundary on which atoms are added with append_atoms must be
-shrink-wrapped.  The zlo boundary may be any boundary type other than
+The boundary on which atoms are added with append_atoms must be
+shrink/minimum.  The opposite boundary may be any boundary type other than
 periodic.
 
 [Related commands:]

@@ -5,6 +5,7 @@ lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 lmp_*
 
+
 angle_cg_cmm.cpp
 angle_cg_cmm.h
 angle_charmm.cpp
@@ -342,6 +343,8 @@ pair_airebo.cpp
 pair_airebo.h
 pair_airebo_omp.cpp
 pair_airebo_omp.h
+pair_beck_omp.cpp
+pair_beck_omp.h
 pair_born_omp.cpp
 pair_born_omp.h
 pair_born_coul_long.cpp
@@ -627,6 +630,10 @@ pair_lubricate_omp.cpp
 pair_lubricate_omp.h
 pair_meam.cpp
 pair_meam.h
+pair_meam_spline.cpp
+pair_meam_spline.h
+pair_meam_spline_omp.cpp
+pair_meam_spline_omp.h
 pair_morse_gpu.cpp
 pair_morse_gpu.h
 pair_morse_omp.cpp

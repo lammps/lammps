@@ -62,7 +62,8 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL), last_omp_style(NULL), _nthr(-1), _neighbor(true), _newton(false)
+              thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
+              _nthr(-1), _neighbor(true), _newton(false)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
@@ -191,6 +192,7 @@ void FixOMP::init()
     error->all(FLERR,"Cannot use r-RESPA with /omp styles");
 
   int check_hybrid;
+  last_pair_hybrid = NULL;
   last_omp_style = NULL;
   char *last_omp_name = NULL;
 
@@ -226,6 +228,8 @@ void FixOMP::init()
 
   CheckStyleForOMP(pair);
   CheckHybridForOMP(pair,Pair);
+  if (check_hybrid)
+    last_pair_hybrid = last_omp_style;
 
   CheckStyleForOMP(bond);
   CheckHybridForOMP(bond,Bond);

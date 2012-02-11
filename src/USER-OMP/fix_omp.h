@@ -50,8 +50,10 @@ class FixOMP : public Fix {
 
  protected:
   ThrData **thr;
-  void *last_omp_style; // pointer to the style that needs
-						// to do the force reduction
+  void *last_omp_style;    // pointer to the style that needs
+                           // to do the general force reduction
+  void *last_pair_hybrid;  // pointer to the pair style that needs
+                           // to call virial_fdot_compute()
   
  public:
   bool get_neighbor() const {return _neighbor;};

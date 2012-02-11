@@ -181,7 +181,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_PAIR: {
     Pair * const pair = lmp->force->pair;
   
-    if (pair->vflag_fdotr) {
+    if (pair->vflag_fdotr && (style == fix->last_pair_hybrid)) {
       if (lmp->neighbor->includegroup == 0)
 	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
       else
@@ -218,7 +218,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_PAIR|THR_PROXY: {
     Pair * const pair = lmp->force->pair;
     
-    if (tid >= nproxy && pair->vflag_fdotr) {
+    if (tid >= nproxy && pair->vflag_fdotr && (style == fix->last_pair_hybrid)) {
       if (lmp->neighbor->includegroup == 0)
 	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
       else

@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixOMP;
   friend class ThrOMP;
 
  public:
@@ -134,6 +135,7 @@ class Pair : protected Pointers {
 
  protected:
   int allocated;                       // 0/1 = whether arrays are allocated
+  int suffix_compat;                   // constant indicating compatibility with suffixes
 
                                        // pair_modify settings
   int offset_flag,mix_flag;            // flags for offset and mixing

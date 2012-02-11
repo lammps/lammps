@@ -23,6 +23,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -30,6 +31,7 @@ using namespace LAMMPS_NS;
 PairMEAMSplineOMP::PairMEAMSplineOMP(LAMMPS *lmp) :
   PairMEAMSpline(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_compat |= Suffix::OMP;
   respa_enable = 0;
 }
 

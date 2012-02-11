@@ -170,7 +170,6 @@ void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirs
       virial_pair[4] += _f[i][2]*x[i][0];
       virial_pair[5] += _f[i][2]*x[i][1];
     }
-
     nall = nlocal + nghost;
     for (int i = nlocal; i < nall; i++) {
       virial_pair[0] += _f[i][0]*x[i][0];

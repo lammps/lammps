@@ -22,6 +22,7 @@
 
 #include "lj_sdk_common.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace LJSDKParms;
 
@@ -38,6 +39,7 @@ using namespace LJSDKParms;
 PairLJSDKCoulLongOMP::PairLJSDKCoulLongOMP(LAMMPS *lmp) :
   PairLJSDKCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_compat |= Suffix::OMP;
   respa_enable = 0;
 }
 

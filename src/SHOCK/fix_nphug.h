@@ -62,21 +62,30 @@ class FixNPHug : public FixNH {
 
 /* ERROR/WARNING messages:
 
-E: Invalid argument for fix nphug
+E: Pstart and Pstop must have the same value
 
-UNDOCUMENTED
+Self-explanatory
+
+E: Specified target stress must be uniaxial or hydrostatic
+
+Self-explanatory
+
+E: For triclinic deformation, specified target stress must be hydrostatic
+
+Triclinic pressure control is allowed using the tri keyword, but
+non-hydrostatic pressure control can not be used in this case.
 
 E: Temperature control must be used with fix nphug
 
-UNDOCUMENTED
+The temp keyword must be provided.
 
 E: Pressure control must be used with fix nphug
 
-UNDOCUMENTED
+A pressure control keyword (iso, aniso, tri, x, y, or z) must be provided.
 
 E: Potential energy ID for fix nvt/nph/npt does not exist
 
-UNDOCUMENTED
+A compute for potential energy must be defined.
 
 E: Illegal ... command
 

@@ -10,11 +10,10 @@ fix wall/piston command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/piston face arg ... keyword value ... :pre
+fix ID group-ID wall/piston face ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/piston = style name of this fix command :l
-one face/arg pair must be appended :l
 face = {zlo} :l
 zero or more keyword/value pairs may be appended :l
 keyword = {pos} or {vel} or {ramp} or {units}  :l
@@ -52,7 +51,7 @@ put back inside the face by the same delta, and the velocity relative to
 the moving wall is flipped in z.  For instance, a stationary particle hit with a
 piston wall with velocity vz, will end the timestep with a velocity of 2*vz.
 
-Currently only face {zlo} may be specified.
+Currently the {face} keyword can only be {zlo}.
 This creates a piston moving in the positive z direction.
 Particles with z coordinate less than the wall position
 are reflected to a z coordinate
@@ -102,8 +101,8 @@ This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The face that has the wall/piston must be boundary type 'm' (shrink-wrapped 
-with minimum a minimum value). The opposing face can be 
+The face that has the wall/piston must be boundary type 's' 
+(shrink-wrapped). The opposing face can be 
 any boundary type other than periodic.
 
 A wall/piston should not be used with rigid bodies such as those

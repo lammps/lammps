@@ -13,13 +13,11 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID wall/piston face arg ... keyword value ... 
+<PRE>fix ID group-ID wall/piston face ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
 <LI>wall/piston = style name of this fix command 
-
-<LI>one face/arg pair must be appended 
 
 <LI>face = <I>zlo</I> 
 
@@ -62,7 +60,7 @@ put back inside the face by the same delta, and the velocity relative to
 the moving wall is flipped in z.  For instance, a stationary particle hit with a
 piston wall with velocity vz, will end the timestep with a velocity of 2*vz.
 </P>
-<P>Currently only face <I>zlo</I> may be specified.
+<P>Currently the <I>face</I> keyword can only be <I>zlo</I>.
 This creates a piston moving in the positive z direction.
 Particles with z coordinate less than the wall position
 are reflected to a z coordinate
@@ -112,8 +110,8 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The face that has the wall/piston must be boundary type 'm' (shrink-wrapped 
-with minimum a minimum value). The opposing face can be 
+<P>The face that has the wall/piston must be boundary type 's' 
+(shrink-wrapped). The opposing face can be 
 any boundary type other than periodic.
 </P>
 <P>A wall/piston should not be used with rigid bodies such as those

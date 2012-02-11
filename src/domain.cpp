@@ -82,7 +82,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   lattice = NULL;
   nregion = maxregion = 0;
   regions = NULL;
-
+}
 
 /* ---------------------------------------------------------------------- */
 

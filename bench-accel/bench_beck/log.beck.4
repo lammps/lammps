@@ -1,0 +1,67 @@
+LAMMPS (6 Feb 2012-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+# helium
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 10.0
+Lattice spacing in x,y,z = 10 10 10
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (200 200 200)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+mass		1 4.0
+
+velocity	all create 300.0 87287 loop geom mom yes
+
+pair_style beck 14.0
+pair_coeff * * 399.671876712 0.0000867636112694 0.675 4.390 0.0003746
+pair_modify shift yes
+
+neighbor	1.8 bin
+neigh_modify  delay 5 every 1 
+
+fix		1 all nve
+
+thermo 10
+
+run		100
+Memory usage per processor = 4.24338 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300 -0.00015876492            0    1240.8585    165.67281 
+      10          300 -0.00015958098            0    1240.8585    165.67281 
+      20          300 -0.00016172264            0    1240.8585    165.67281 
+      30          300 -0.00016491742            0    1240.8585    165.67281 
+      40          300 -0.00016941932            0    1240.8585    165.67281 
+      50          300 -0.00017546304            0    1240.8585    165.67281 
+      60    300.00001 -0.00018332892            0    1240.8585     165.6728 
+      70    300.00001 -0.00019292456            0    1240.8585     165.6728 
+      80    300.00001 -0.00019591695            0    1240.8585    165.67282 
+      90    299.99999 -9.8548084e-05            0    1240.8585    165.67304 
+     100    299.99977 0.00079106563            0    1240.8585    165.67442 
+Loop time of 1.52982 on 4 procs (4 MPI x 1 OpenMP) for 100 steps with 32000 atoms
+Performance: 5.648 ns/day  4.250 hours/ns  65.367 timesteps/s
+
+Section |  min time  |  avg time  |  max time  |%total |  #Thr
+--------------------------------------------------------------
+Pair    | 1.308      | 1.363      | 1.455      | 89.12 |  1.0x
+Neigh   | 0.02509    | 0.02591    | 0.02705    |  1.69 |  1.0x
+Comm    | 0.02713    | 0.1205     | 0.177      |  7.87 |  1.0x
+Output  | 0.0006459  | 0.0007368  | 0.0008671  |  0.05 |  1.0x
+Modify  | 0.0112     | 0.01163    | 0.01231    |  0.76 |  0.7x
+Other   |            | 0.007708   |            |  0.50 |
+
+Nlocal:    8000 ave 8033 max 7973 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:    8719.5 ave 8741 max 8688 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:    261270 ave 262864 max 259623 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 1045079
+Ave neighs/atom = 32.6587
+Neighbor list builds = 2
+Dangerous builds = 0

@@ -15,7 +15,7 @@ compute ID group-ID pair/local input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 pair/local = style name of this compute command :l
 zero or more keywords may be appended :l
-keyword = {dist} or {eng} or {force} or {fx} or {fy} or {fz} or {fN} :l
+keyword = {dist} or {eng} or {force} or {fx} or {fy} or {fz} or {pN} :l
   {dist} = pairwise distance
   {eng} = pairwise energy
   {force} = pairwise force

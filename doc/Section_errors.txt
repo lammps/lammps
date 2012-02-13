@@ -434,7 +434,7 @@ Specified angle type is not valid. :dd
 
 Specified bond type is not valid. :dd
 
-{Bad fix ID in fix append_atoms command} :dt
+{Bad fix ID in fix append/atoms command} :dt
 
 The value of the fix_id for keyword spatial must start with the suffix
 f_. :dd
@@ -1170,7 +1170,7 @@ style. :dd
 This is a current restriction in LAMMPS.  Use another minimizer
 style. :dd
 
-{Cannot use append_atoms in periodic dimension} :dt
+{Cannot use append/atoms in periodic dimension} :dt
 
 The boundary style of the face where atoms are added can not be of
 type p (periodic). :dd
@@ -4821,7 +4821,7 @@ defines AngleAngle Coeffs. :dd
 Must use an improper_style command before reading a data file that
 defines Improper Coeffs. :dd
 
-{Must define lattice to append_atoms} :dt
+{Must define lattice to append/atoms} :dt
 
 A lattice must be defined before using this fix. :dd
 
@@ -5158,7 +5158,7 @@ contain the same atom. :dd
 Any rigid body defined by the fix rigid command must contain 2 or more
 atoms. :dd
 
-{Only zhi currently implemented for fix append_atoms} :dt
+{Only zhi currently implemented for fix append/atoms} :dt
 
 Self-explanatory. :dd
 
@@ -6636,7 +6636,7 @@ option is set to lattice. :dd
 Must use lattice command with displace_atoms command if units option
 is set to lattice. :dd
 
-{Use of fix append_atoms with undefined lattice} :dt
+{Use of fix append/atoms with undefined lattice} :dt
 
 A lattice must be defined before using this fix. :dd
 

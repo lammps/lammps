@@ -13,7 +13,7 @@ balancing has not yet been released.
 
 [Syntax:]
 
-balance group-ID keyword args ... :pre
+balance keyword args ... :pre
 
 one or more keyword/arg pairs may be appended :ule,l
 keyword = {x} or {y} or {z} or {dynamic} :l
@@ -47,7 +47,7 @@ the computational cost (load) evenly across processors.  The load
 balancing is "static" in the sense that this command performs the
 balancing once, before or between simulations.  The processor
 sub-domains will then remain static during the subsequent run.  To
-perform "dynammic" balancing, see the "fix balance"_fix_balance.html
+perform "dynamic" balancing, see the "fix balance"_fix_balance.html
 command, which can adjust processor sub-domain sizes on-the-fly during
 a "run"_run.html.
 

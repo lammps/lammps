@@ -40,39 +40,40 @@ fix top all wall/piston zlo vel 0.0 0.0 10.0 ramp :pre
 
 [Description:]
 
-Bound the simulation with a moving wall which reflect particles
-in the specified group and drive the system with an effective infinite-mass
-piston capable of driving shock waves. 
+Bound the simulation with a moving wall which reflect particles in the
+specified group and drive the system with an effective infinite-mass
+piston capable of driving shock waves.
 
-A momentum mirror technique is used, which means that if an atom (or the wall)
-moves such that an atom is outside the wall on a timestep
-by a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is
-put back inside the face by the same delta, and the velocity relative to 
-the moving wall is flipped in z.  For instance, a stationary particle hit with a
-piston wall with velocity vz, will end the timestep with a velocity of 2*vz.
+A momentum mirror technique is used, which means that if an atom (or
+the wall) moves such that an atom is outside the wall on a timestep by
+a distance delta (e.g. due to "fix nve"_fix_nve.html), then it is put
+back inside the face by the same delta, and the velocity relative to
+the moving wall is flipped in z.  For instance, a stationary particle
+hit with a piston wall with velocity vz, will end the timestep with a
+velocity of 2*vz.
 
-Currently the {face} keyword can only be {zlo}.
-This creates a piston moving in the positive z direction.
-Particles with z coordinate less than the wall position
-are reflected to a z coordinate
-greater than the wall position.
-If the piston velocity is vpz and the particle velocity 
-before reflection is vzi, the particle velocity after
-reflection is -vzi + 2*vpz. 
+Currently the {face} keyword can only be {zlo}.  This creates a piston
+moving in the positive z direction.  Particles with z coordinate less
+than the wall position are reflected to a z coordinate greater than
+the wall position.  If the piston velocity is vpz and the particle
+velocity before reflection is vzi, the particle velocity after
+reflection is -vzi + 2*vpz.
 
 The initial position of the wall can be specified by the {pos} keyword.
 
 The final velocity of the wall can be specified by the {vel} keyword
 
-The {ramp} keyword will cause the wall/piston to adjust the velocity linearly
-from zero velocity to {vel} over the course of the run. If the {ramp} keyword is omitted
-then the wall/piston moves at a constant velocity defined by {vel}.
+The {ramp} keyword will cause the wall/piston to adjust the velocity
+linearly from zero velocity to {vel} over the course of the run. If
+the {ramp} keyword is omitted then the wall/piston moves at a constant
+velocity defined by {vel}.
 
-The {temp} keyword will cause the region immediately in front of the wall/piston
-to be thermostated with a Langevin thermostat.  This region moves with the piston.
-The damping and kicking are measured in the reference frame of the piston.
-So, a temperature of zero would mean all particles were moving at exactly the speed
-of the wall/piston.
+The {temp} keyword will cause the region immediately in front of the
+wall/piston to be thermostated with a Langevin thermostat.  This
+region moves with the piston.  The damping and kicking are measured in
+the reference frame of the piston.  So, a temperature of zero would
+mean all particles were moving at exactly the speed of the
+wall/piston.
 
 The {units} keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant is used.
@@ -111,10 +112,9 @@ displaces atoms directly rather than exerting a force on them.
 
 [Related commands:]
 
-"fix wall/reflect"_fix_wall.html command
+"fix wall/reflect"_fix_wall.html command, "fix
+append/atoms"_fix_append_atoms.html command
 
-"fix append/atoms"_fix_append_atoms.html command
+[Default:]
 
-[Default:] {pos} = 0, {vel} = 0, {units} = lattice.
-
-:line
+The keyword defaults are pos = 0, vel = 0, units = lattice.

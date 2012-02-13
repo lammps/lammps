@@ -9,15 +9,15 @@
 
 <HR>
 
-<H3>fix append_atoms command 
+<H3>fix append/atoms command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID append_atoms face ... keyword value ... 
+<PRE>fix ID group-ID append/atoms face ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>append_atoms = style name of this fix command 
+<LI>append/atoms = style name of this fix command 
 
 <LI>face = <I>zhi</I> 
 
@@ -45,30 +45,32 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all append_atoms zhi size 5.0 freq 295 units lattice
-fix 4 all append_atoms zhi size 15.0 freq 5 units box
-fix A all append_atoms zhi size 1.0 freq 1000 units lattice 
+<PRE>fix 1 all append/atoms zhi size 5.0 freq 295 units lattice
+fix 4 all append/atoms zhi size 15.0 freq 5 units box
+fix A all append/atoms zhi size 1.0 freq 1000 units lattice 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix creates atoms on a lattice, appended on the zhi edge of the system box.
-This can be useful when a shock or wave is propagating from zlo.  This allows
-the system to grow with time to accommodate an expanding wave.  A simulation 
-box must already exist, which is typically created via the 
-<A HREF = "create_box.html">create_box</A> command.  Before using this command, a
-lattice must also be defined using the <A HREF = "lattice.html">lattice</A> command.
+<P>This fix creates atoms on a lattice, appended on the zhi edge of the
+system box.  This can be useful when a shock or wave is propagating
+from zlo.  This allows the system to grow with time to accommodate an
+expanding wave.  A simulation box must already exist, which is
+typically created via the <A HREF = "create_box.html">create_box</A> command.
+Before using this command, a lattice must also be defined using the
+<A HREF = "lattice.html">lattice</A> command.
 </P>
-<P>This fix will automatically freeze atoms on the zhi edge of the system, so that
-overlaps are avoided when new atoms are appended.  
+<P>This fix will automatically freeze atoms on the zhi edge of the
+system, so that overlaps are avoided when new atoms are appended.
 </P>
-<P>The <I>size</I> keyword defines the size in z of the chunk of material to be added.
+<P>The <I>size</I> keyword defines the size in z of the chunk of material to
+be added.
 </P>
-<P>The <I>random</I> keyword will give the atoms random displacements around their
-lattice points to simulate some initial temperature.
+<P>The <I>random</I> keyword will give the atoms random displacements around
+their lattice points to simulate some initial temperature.
 </P>
-<P>The <I>temp</I> keyword will cause a region to be thermostated with a Langevin
-thermostat on the zhi boundary.  The size of the region is measured from zhi and
-is set with the <I>extent</I> argument.
+<P>The <I>temp</I> keyword will cause a region to be thermostated with a
+Langevin thermostat on the zhi boundary.  The size of the region is
+measured from zhi and is set with the <I>extent</I> argument.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant is used.
@@ -96,16 +98,16 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The boundary on which atoms are added with append_atoms must be
-shrink/minimum.  The opposite boundary may be any boundary type other than
-periodic.
+<P>The boundary on which atoms are added with append/atoms must be
+shrink/minimum.  The opposite boundary may be any boundary type other
+than periodic.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_wall_piston.html">fix wall/piston</A> command
 </P>
-<P><B>Default:</B> <I>size</I> = 0.0, <I>freq</I> = 0, <I>units</I> = lattice.
+<P><B>Default:</B>
 </P>
-<HR>
-
+<P>The keyword defaults are size = 0.0, freq = 0, units = lattice.
+</P>
 </HTML>

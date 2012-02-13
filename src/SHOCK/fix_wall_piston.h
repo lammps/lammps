@@ -59,8 +59,8 @@ The face keyword must be zlo.
 
 E: Must shrink-wrap piston boundary
 
-The boundary style of the face where the piston is
-applied must be of type s (shrink-wrapped). 
+The boundary style of the face where the piston is applied must be of
+type s (shrink-wrapped).
 
 E: Illegal fix wall/piston velocity
 
@@ -68,8 +68,8 @@ The piston velocity must be positive.
 
 E: Cannot use wall in periodic dimension
 
-The boundary style of the face where atoms are added
-can not be of type p (periodic). 
+The boundary style of the face where atoms are added can not be of
+type p (periodic).
 
 E: Use of fix wall/piston with undefined lattice
 
@@ -77,7 +77,6 @@ A lattice must be defined before using this fix.
 
 E: NL ramp in wall/piston only implemented in zlo for now
 
-The ramp keyword can only be used for piston applied
-to face zlo.
+The ramp keyword can only be used for piston applied to face zlo.
 
 */

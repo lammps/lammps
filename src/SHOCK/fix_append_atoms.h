@@ -74,18 +74,18 @@ must be of type m (shrink/minimum).
 
 E: Bad fix ID in fix append_atoms command
 
-The value of the fix_id for keyword spatial
-must start with the suffix f_.  
+The value of the fix_id for keyword spatial must start with the suffix
+f_.
 
 E: Cannot use append_atoms in periodic dimension
 
-The boundary style of the face where atoms are added
-can not be of type p (periodic). 
+The boundary style of the face where atoms are added can not be of
+type p (periodic).
 
 E: Cannot append atoms to a triclinic box
 
-The simulation box must be defined with edges alligned
-with the Cartesian axes.
+The simulation box must be defined with edges alligned with the
+Cartesian axes.
 
 E: Use of fix append_atoms with undefined lattice
 
@@ -93,15 +93,11 @@ A lattice must be defined before using this fix.
 
 E: Fix ID for fix ave/spatial does not exist
 
-The fix_id value for the spatial keyword does
-not correspond to any defined fix.
+The fix_id value for the spatial keyword does not correspond to any
+defined fix.
 
 E: Must define lattice to append_atoms
 
 A lattice must be defined before using this fix.
-
-U: must define lattice to append_atoms
-
-UNDOCUMENTED
 
 */

@@ -27,15 +27,15 @@ fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq :pre
 [Description:]
 
 Perform the charge equilibration (QEq) method as described in "(Rappe
-and Goddard, 1991)"_#Rappe_1991 and formulated in "(Nakano,
-1997)"_#Nakano_1997.  It is typically used in conjunction with the
-ReaxFF force field model as implemented in the "pair_style
-reax/c"_pair_reax_c.html command, but it can be used with any
-potential in LAMMPS, so long as it defines and uses charges on each
-atom.  The "fix qeq/comb"_fix_qeq_comb.html command should be used to
-perform charge equliibration with the "COMB potential"_pair_comb.html.
-For more technical details about the charge equilibration performed by
-fix qeq/reax, see the "(Aktulga)" paper.
+and Goddard)"_#Rappe and formulated in "(Nakano)"_#Nakano.  It is
+typically used in conjunction with the ReaxFF force field model as
+implemented in the "pair_style reax/c"_pair_reax_c.html command, but
+it can be used with any potential in LAMMPS, so long as it defines and
+uses charges on each atom.  The "fix qeq/comb"_fix_qeq_comb.html
+command should be used to perform charge equliibration with the "COMB
+potential"_pair_comb.html.  For more technical details about the
+charge equilibration performed by fix qeq/reax, see the
+"(Aktulga)"_#Aktulga paper.
 
 The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
@@ -86,12 +86,13 @@ be used for periodic cell dimensions less than 10 angstroms.
 
 :line
 
-:link(Rappe_1991)
+:link(Rappe)
 [(Rappe)] Rappe and Goddard III, Journal of Physical Chemistry, 105,
 3358-3363 (1991).
 
-:link(Nakano_1997)
+:link(Nakano)
 [(Nakano)] Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 :link(Aktulga)
-[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to appear (2011).
+[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
+appear (2011).

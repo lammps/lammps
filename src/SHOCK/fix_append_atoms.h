@@ -63,9 +63,9 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Only zhi currently implemented for append_atoms
+E: Only zhi currently implemented for fix append_atoms
 
-The face keyword must be zhi.
+Self-explanatory.
 
 E: Append boundary must be shrink/minimum
 

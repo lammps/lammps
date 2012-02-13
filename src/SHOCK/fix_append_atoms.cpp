@@ -64,31 +64,31 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"xlo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
       xloflag = 1;
       iarg++;
       if (domain->boundary[0][0] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
       xhiflag = 1;
       iarg++;
       if (domain->boundary[0][1] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"ylo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atom");
+      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
       yloflag = 1;
       iarg++;
       if (domain->boundary[1][0] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"yhi") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atom");
+      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
       yhiflag = 1;
       iarg++;
       if (domain->boundary[1][1] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zlo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for append_atom");
+      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
       zloflag = 1;
       iarg++;
       if (domain->boundary[2][0] != 3) 

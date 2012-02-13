@@ -31,6 +31,10 @@ enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
 enum{EXPAND,CONTRACT};
 
+#define BIG
+
+#define BALANCE_DEBUG 1
+
 /* ---------------------------------------------------------------------- */
 
 Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
@@ -215,7 +219,9 @@ void Balance::command(int narg, char **arg)
 
   // debug output of initial state
 
-  //dumpout(update->ntimestep);
+#ifdef BALANCE_DEBUG
+  dumpout(update->ntimestep);
+#endif
 
   // explicit setting of sub-domain sizes
 
@@ -246,16 +252,19 @@ void Balance::command(int narg, char **arg)
   if (zflag == USER)
     for (int i = 0; i <= procgrid[2]; i++) comm->zsplit[i] = user_zsplit[i];
 
-  // dynamic load-balance of sub-domain sizes
+  // static load-balance of sub-domain sizes
 
+  int count = 0;
   if (dflag) {
     dynamic_setup(bstr);
-    dynamic();
-  } else count = 0;
+    count = dynamic_once();
+  }
 
   // debug output of final result
 
-  //dumpout(-1);
+#ifdef BALANCE_DEBUG
+  dumpout(-1);
+#endif
 
   // reset comm->uniform flag if necessary
 
@@ -403,8 +412,8 @@ double Balance::imbalance_splits(int &max)
 }
 
 /* ----------------------------------------------------------------------
-   setup dynamic load balance operations
-   called from command & fix balance
+   setup static load balance operations
+   called from command
 ------------------------------------------------------------------------- */
 
 void Balance::dynamic_setup(char *str)
@@ -437,11 +446,27 @@ void Balance::dynamic_setup(char *str)
 }
 
 /* ----------------------------------------------------------------------
-   perform dynamic load balance by changing xyz split proc boundaries in Comm
-   called from command and fix balance
+   setup dynamic load balance operations
+   called from fix balance
 ------------------------------------------------------------------------- */
 
-void Balance::dynamic()
+void Balance::dynamic_setup(int nrepeat_in, int niter_in,
+			    char *str, double thresh_in)
+{
+  nrepeat = nrepeat_in;
+  niter = niter_in;
+  thresh = thresh_in;
+
+  dynamic_setup(str);
+}
+
+/* ----------------------------------------------------------------------
+   perform static load balance by changing xyz split proc boundaries in Comm
+   called from command
+   return actual iteration count
+------------------------------------------------------------------------- */
+
+int Balance::dynamic_once()
 {
   int i,m,max;
   double imbfactor;
@@ -450,15 +475,17 @@ void Balance::dynamic()
 
   domain->x2lamda(atom->nlocal);
 
-  count = 0;
+  int count = 0;
   for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
     for (i = 0; i < nops; i++) {
       for (m = 0; m < niter; m++) {
 	stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
 	adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
 	count++;
-	// debug output of intermediate result
-	//dumpout(-1);
+
+#ifdef BALANCE_DEBUG
+	dumpout(-1);
+#endif
       }
       imbfactor = imbalance_splits(max);
       if (imbfactor <= thresh) break;
@@ -467,6 +494,54 @@ void Balance::dynamic()
   }
 
   domain->lamda2x(atom->nlocal);
+
+  return count;
+}
+
+/* ----------------------------------------------------------------------
+   perform dynamic load balance by changing xyz split proc boundaries in Comm
+   called from command and fix balance
+   return actual iteration count
+------------------------------------------------------------------------- */
+
+int Balance::dynamic()
+{
+  int i,m,max;
+  double imbfactor;
+
+#ifdef BALANCE_DEBUG
+  dumpout(update->ntimestep);
+#endif
+
+  int *procgrid = comm->procgrid;
+
+  domain->x2lamda(atom->nlocal);
+
+  int count = 0;
+  for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
+    for (i = 0; i < nops; i++) {
+      for (m = 0; m < niter; m++) {
+	stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
+	adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
+	count++;
+
+#ifdef BALANCE_DEBUG
+	dumpout(-1);
+#endif
+      }
+      imbfactor = imbalance_splits(max);
+      if (imbfactor <= thresh) break;
+    }
+    if (i < nops) break;
+  }
+
+  domain->lamda2x(atom->nlocal);
+
+#ifdef BALANCE_DEBUG
+  dumpout(-1);
+#endif
+
+  return count;
 }
 
 /* ----------------------------------------------------------------------
@@ -506,18 +581,27 @@ void Balance::adjust(int n, bigint *count, double *split)
 
   double damp = 0.5;
 
-  // loop over slices from 1 to N-2 inclusive (not end slices 0 and N-1)
+  // maxcount = max atoms in any slice
+
+  bigint maxcount = 0;
+  for (int i = 0; i < n; i++)
+    maxcount = MAX(maxcount,count[i]);
+  
+  // loop over slices
   // cut I is between 2 slices (I-1 and I) with counts
   // cut I+1 is between 2 slices (I and I+1) with counts
   // for a cut between 2 slices, only slice with larger count adjusts it
+  // special treatment of end slices with only 1 neighbor
 
   bigint leftcount,mycount,rightcount;
   double rho,target,targetleft,targetright;
 
-  for (int i = 1; i < n-1; i++) {
-    leftcount = count[i-1];
+  for (int i = 0; i < n; i++) {
+    if (i == 0) leftcount = maxcount;
+    else leftcount = count[i-1];
     mycount = count[i];
-    rightcount = count[i+1];
+    if (i == n-1) rightcount = maxcount;
+    else rightcount = count[i+1];
 
     // middle slice is <= both left and right, so do nothing
     // special case if 2 slices both have count = 0, no change in cut

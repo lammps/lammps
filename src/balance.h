@@ -31,6 +31,9 @@ class Balance : protected Pointers {
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
+  void dynamic_setup(int, int, char *, double);
+  int dynamic();
+  double imbalance_nlocal(int &);
 
  private:
   int me,nprocs;
@@ -48,16 +51,14 @@ class Balance : protected Pointers {
   bigint *onecount;
   MPI_Comm commslice[3];
 
-  int count;
   int *pcount,*allcount;
 
   FILE *fp;                      // for debug output
   bigint laststep;
 
-  double imbalance_splits(int &);
-  double imbalance_nlocal(int &);
   void dynamic_setup(char *);
-  void dynamic();
+  int dynamic_once();
+  double imbalance_splits(int &);
   void stats(int, int, double *, bigint *);
   void adjust(int, bigint *, double *);
   int binary(double, int, double *);

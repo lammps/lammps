@@ -63,7 +63,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Only zhi currently implemented for fix append_atoms
+E: Only zhi currently implemented for fix append/atoms
 
 Self-explanatory.
 
@@ -72,12 +72,12 @@ E: Append boundary must be shrink/minimum
 The boundary style of the face where atoms are added
 must be of type m (shrink/minimum). 
 
-E: Bad fix ID in fix append_atoms command
+E: Bad fix ID in fix append/atoms command
 
 The value of the fix_id for keyword spatial must start with the suffix
 f_.
 
-E: Cannot use append_atoms in periodic dimension
+E: Cannot use append/atoms in periodic dimension
 
 The boundary style of the face where atoms are added can not be of
 type p (periodic).
@@ -87,16 +87,15 @@ E: Cannot append atoms to a triclinic box
 The simulation box must be defined with edges alligned with the
 Cartesian axes.
 
-E: Use of fix append_atoms with undefined lattice
+E: Use of fix append/atoms with undefined lattice
 
 A lattice must be defined before using this fix.
 
 E: Fix ID for fix ave/spatial does not exist
 
-The fix_id value for the spatial keyword does not correspond to any
-defined fix.
+Self-explanatory.
 
-E: Must define lattice to append_atoms
+E: Must define lattice to append/atoms
 
 A lattice must be defined before using this fix.
 

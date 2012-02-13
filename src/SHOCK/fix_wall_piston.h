@@ -68,8 +68,7 @@ The piston velocity must be positive.
 
 E: Cannot use wall in periodic dimension
 
-The boundary style of the face where atoms are added can not be of
-type p (periodic).
+Self-explanatory.
 
 E: Use of fix wall/piston with undefined lattice
 

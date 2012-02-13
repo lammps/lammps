@@ -42,7 +42,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   box_change = 1;
   time_depend = 1;
 
-  if (narg < 4) error->all(FLERR,"Illegal fix append_atoms command");
+  if (narg < 4) error->all(FLERR,"Illegal fix append/atoms command");
 
   // default settings
 
@@ -64,31 +64,31 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"xlo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       xloflag = 1;
       iarg++;
       if (domain->boundary[0][0] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"xhi") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       xhiflag = 1;
       iarg++;
       if (domain->boundary[0][1] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"ylo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       yloflag = 1;
       iarg++;
       if (domain->boundary[1][0] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"yhi") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       yhiflag = 1;
       iarg++;
       if (domain->boundary[1][1] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"zlo") == 0) {
-      error->all(FLERR,"Only zhi currently implemented for fix append_atoms");
+      error->all(FLERR,"Only zhi currently implemented for fix append/atoms");
       zloflag = 1;
       iarg++;
       if (domain->boundary[2][0] != 3) 
@@ -99,14 +99,14 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       if (domain->boundary[2][1] != 3) 
 	error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"freq") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       freq = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"spatial") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       if (strcmp(arg[iarg+1],"f_") == 0)
 	error->all(FLERR,
-		   "Bad fix ID in fix append_atoms command");
+		   "Bad fix ID in fix append/atoms command");
       spatflag = 1;
       int n = strlen(arg[iarg+1]);
       spatlead = atof(arg[iarg+2]);
@@ -118,49 +118,49 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       delete [] suffix;
       iarg += 3;
     } else if (strcmp(arg[iarg],"size") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       size = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix append_atoms command");
+      else error->all(FLERR,"Illegal fix append/atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"random") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       ranflag = 1;
       ranx = atof(arg[iarg+1]);
       rany = atof(arg[iarg+2]);
       ranz = atof(arg[iarg+3]);
       xseed = atoi(arg[iarg+4]);
-      if (xseed <= 0) error->all(FLERR,"Illegal fix append_atoms command");
+      if (xseed <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       randomx = new RanMars(lmp,xseed + comm->me);
       iarg += 5;
     } else if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix append_atoms command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       tempflag = 1;
       t_target = atof(arg[iarg+1]);
       t_period = atof(arg[iarg+2]);
       tseed    = atoi(arg[iarg+3]);
       t_extent = atof(arg[iarg+4]);
-      if (t_target <= 0) error->all(FLERR,"Illegal fix append_atoms command");
-      if (t_period <= 0) error->all(FLERR,"Illegal fix append_atoms command");
-      if (t_extent <= 0) error->all(FLERR,"Illegal fix append_atoms command");
-      if (tseed <= 0) error->all(FLERR,"Illegal fix append_atoms command");
+      if (t_target <= 0) error->all(FLERR,"Illegal fix append/atoms command");
+      if (t_period <= 0) error->all(FLERR,"Illegal fix append/atoms command");
+      if (t_extent <= 0) error->all(FLERR,"Illegal fix append/atoms command");
+      if (tseed <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       randomt = new RanMars(lmp,tseed + comm->me);
       gfactor1 = new double[atom->ntypes+1];
       gfactor2 = new double[atom->ntypes+1];
       iarg += 5;
-    } else error->all(FLERR,"Illegal fix append_atoms command");
+    } else error->all(FLERR,"Illegal fix append/atoms command");
   }
 
   if ((xloflag || xhiflag) && domain->xperiodic)
-    error->all(FLERR,"Cannot use append_atoms in periodic dimension");
+    error->all(FLERR,"Cannot use append/atoms in periodic dimension");
   if ((yloflag || yhiflag) && domain->yperiodic)
-    error->all(FLERR,"Cannot use append_atoms in periodic dimension");
+    error->all(FLERR,"Cannot use append/atoms in periodic dimension");
   if ((zloflag || zhiflag) && domain->zperiodic)
-    error->all(FLERR,"Cannot use append_atoms in periodic dimension");
+    error->all(FLERR,"Cannot use append/atoms in periodic dimension");
 
   if (domain->triclinic == 1) 
     error->all(FLERR,"Cannot append atoms to a triclinic box");
@@ -168,7 +168,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   // setup scaling
 
   if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix append_atoms with undefined lattice");
+    error->all(FLERR,"Use of fix append/atoms with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {
@@ -395,7 +395,7 @@ void FixAppendAtoms::pre_exchange()
 	nbasis = domain->lattice->nbasis;
 	basistype = new int[nbasis];
 	for (int i = 0; i < nbasis; i++) basistype[i] = 1;
-      } else error->all(FLERR,"Must define lattice to append_atoms");
+      } else error->all(FLERR,"Must define lattice to append/atoms");
 
       double bboxlo[3],bboxhi[3];
 

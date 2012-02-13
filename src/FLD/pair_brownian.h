@@ -71,18 +71,18 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair brownian requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Pair brownian needs newton pair on for momentum conservation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair brownian requires extended particles
 
-UNDOCUMENTED
+One of the particles has radius 0.0.
 
 E: Pair brownian requires monodisperse particles
 
-UNDOCUMENTED
+All particles must be the same finite size.
 
 */

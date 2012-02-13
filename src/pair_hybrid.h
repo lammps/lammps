@@ -121,9 +121,4 @@ E: Coulomb cutoffs of pair hybrid sub-styles do not match
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same.
 
-U: Pair style hybrid cannot use same pair style twice
-
-The sub-style arguments of pair_style hybrid cannot be duplicated.
-Check the input script.
-
 */

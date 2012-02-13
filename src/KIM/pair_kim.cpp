@@ -35,8 +35,6 @@
 
 using namespace LAMMPS_NS;
 
-
-
 /* ---------------------------------------------------------------------- */
 
 PairKIM::PairKIM(LAMMPS *lmp) : Pair(lmp)
@@ -298,7 +296,7 @@ void PairKIM::coeff(int narg, char **arg)
 void PairKIM::init_style()
 {
   if (force->newton_pair != 0)
-    error->all(FLERR,"Pair style pair_KIM requires newton pair Off");
+    error->all(FLERR,"Pair style kim requires newton pair off");
 
   // setup onebuf for neighbors of one atom if needed
 
@@ -460,14 +458,14 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
       self->pointsto =0;
       *numnei=0;
       return KIM_STATUS_NEIGH_ITER_INIT_OK; //succsesful restart
-    } else if(*request==1){//increment iterator
-      if (self->pointsto > inum || inum <0){
+    } else if (*request==1) { //increment iterator
+      if (self->pointsto > inum || inum <0) {
 	self->error->one(FLERR,"KIM neighbor iterator exceeded range");
-      }else if(self->pointsto == inum) {
+      } else if (self->pointsto == inum) {
 	self->pointsto ==0;
 	*numnei=0;
 	return KIM_STATUS_NEIGH_ITER_PAST_END; //reached end by iterator
-      }else{
+      } else{
 	*atom = ilist[self->pointsto];
 	*numnei = numneigh[*atom];
 
@@ -486,7 +484,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
 	if (*numnei > KIM_API_MAX_NEIGHBORS) 
 	  return KIM_STATUS_NEIGH_TOO_MANY_NEIGHBORS;
 	if (pkim->support_Rij){
-	  for( jj=0; jj < *numnei; jj++){
+	  for (jj=0; jj < *numnei; jj++){ 
 	    int i = *atom;
 	    j = (*nei1atom)[jj];
 	    self->Rij[jj*3 +0] = -x[i*3+0] + x[j*3+0];
@@ -531,10 +529,9 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
       }
     }
     return KIM_STATUS_OK;//successful end
-  }else{
-    return KIM_STATUS_NEIGH_INVALID_MODE;//invalid mode
-  }
-  return -16;//should not get here: unspecified error
+  } else return KIM_STATUS_NEIGH_INVALID_MODE;//invalid mode
+
+  return -16; //should not get here: unspecified error
 }
 
 /* ---------------------------------------------------------------------- */

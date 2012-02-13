@@ -94,13 +94,11 @@ Self-explantory.
 
 E: Fix ave/time compute does not calculate a scalar
 
-Only computes that calculate a scalar or vector quantity (not a
-per-atom quantity) can be used with fix ave/time.
+Self-explantory.
 
 E: Fix ave/time compute does not calculate a vector
 
-Only computes that calculate a scalar or vector quantity (not a
-per-atom quantity) can be used with fix ave/time.
+Self-explantory.
 
 E: Fix ave/time compute vector is accessed out-of-range
 
@@ -112,15 +110,15 @@ Self-explanatory.
 
 E: Fix ave/time compute array is accessed out-of-range
 
-Self-explanatory.
+An index for the array is out of bounds.
 
 E: Fix ave/time fix does not calculate a scalar
 
-A fix used by fix ave/time must generate global values.
+Self-explanatory.
 
 E: Fix ave/time fix does not calculate a vector
 
-A fix used by fix ave/time must generate global values.
+Self-explanatory.
 
 E: Fix ave/time fix vector is accessed out-of-range
 
@@ -137,7 +135,7 @@ Self-explanatory.
 
 E: Fix ave/time fix array is accessed out-of-range
 
-Self-explanatory.
+An index for the array is out of bounds.
 
 E: Variable name for fix ave/time does not exist
 
@@ -145,7 +143,7 @@ Self-explanatory.
 
 E: Fix ave/time variable is not equal-style variable
 
-A variable used by fix ave/time must generate a global value.
+Self-explanatory.
 
 E: Fix ave/time cannot use variable with vector mode
 

@@ -135,7 +135,9 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Numeric index is out of bounds
 
-UNDOCUMENTED
+A command with an argument that specifies an integer or range of
+integers is using a value that is less than 1 or greater than the
+maximum allowed limit.
 
 E: Expected floating point parameter in input script or data file
 

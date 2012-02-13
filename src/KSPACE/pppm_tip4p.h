@@ -48,7 +48,7 @@ class PPPMTIP4P : public PPPM {
 
 E: Kspace style pppm/tip4p requires newton on
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Out of range atoms - cannot compute PPPM
 

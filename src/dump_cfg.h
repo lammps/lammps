@@ -50,11 +50,11 @@ class DumpCFG : public DumpCustom {
 
 E: Dump cfg arguments must start with 'id type xs ys zs' or 'id type xsu ysu zsu'
 
-This is a requirement of the CFG output format. :dd
+This is a requirement of the CFG output format.
 
 E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid keyword in dump cfg command
 

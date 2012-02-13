@@ -53,14 +53,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix nve/line requires atom style line
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/line can only be used for 2d simulations
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/line requires line particles
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

@@ -86,15 +86,15 @@ Self-explanatory.
 
 E: Fix ave/correlate compute does not calculate a scalar
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/correlate compute does not calculate a vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/correlate compute vector is accessed out-of-range
 
-UNDOCUMENTED
+The index for the vector is out of bounds.
 
 E: Fix ID for fix ave/correlate does not exist
 
@@ -102,15 +102,15 @@ Self-explanatory.
 
 E: Fix ave/correlate fix does not calculate a scalar
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/correlate fix does not calculate a vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/correlate fix vector is accessed out-of-range
 
-UNDOCUMENTED
+The index for the vector is out of bounds.
 
 E: Fix for fix ave/correlate not computed at compatible time
 
@@ -123,6 +123,6 @@ Self-explanatory.
 
 E: Fix ave/correlate variable is not equal-style variable
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

@@ -100,7 +100,7 @@ class AtomVecTri : public AtomVec {
 
 E: Atom_style tri can only be used in 3d simulations
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Per-processor system is too big
 
@@ -121,18 +121,20 @@ Density value cannot be <= 0.0.
 
 E: Assigning tri parameters to non-tri atom
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shape in Triangles section of data file
 
-UNDOCUMENTED
+Two or more of the triangle corners are duplicate points.
 
 E: Inconsistent triangle in data file
 
-UNDOCUMENTED
+The centroid of the triangle as defined by the corner points is not
+the atom coordinate.
 
 E: Insufficient Jacobi rotations for triangle
 
-UNDOCUMENTED
+The calculation of the intertia tensor of the triangle failed.  This
+should not happen if it is a reasonably shaped triangle.
 
 */

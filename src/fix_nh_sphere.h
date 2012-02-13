@@ -37,7 +37,7 @@ class FixNHSphere : public FixNH {
 
 E: Fix nvt/nph/npt sphere requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nvt/sphere requires extended particles
 

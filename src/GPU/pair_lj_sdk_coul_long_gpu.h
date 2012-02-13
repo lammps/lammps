@@ -51,18 +51,20 @@ class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Pair style lj/sdk/coul/long/gpu requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Cannot use newton pair with lj/sdk/coul/long/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair style is incompatible with KSpace style
 
-UNDOCUMENTED
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
 
 */

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+ndoc/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -67,11 +67,12 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot use order greater than 8 with pppm/gpu.
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Out of range atoms - cannot compute PPPM
 

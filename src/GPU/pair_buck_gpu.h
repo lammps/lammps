@@ -49,10 +49,11 @@ class PairBuckGPU : public PairBuck {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with buck/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

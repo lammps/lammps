@@ -157,30 +157,33 @@ Specified cutoff must be >= 0.0.
 
 E: Specified processors != physical processors
 
-UNDOCUMENTED
+The 3d grid of processors defined by the processors command does not
+match the number of processors LAMMPS is being run on.
 
 E: Cannot use processors part command without using partitions
 
-UNDOCUMENTED
+See the command-line -partition switch.
 
 E: Invalid partitions in processors part command
 
-UNDOCUMENTED
+Valid partitions are numbered 1 to N and the sender and receiver
+cannot be the same partition.
 
 E: Sending partition in processors part command is already a sender
 
-UNDOCUMENTED
+Cannot specify a partition to be a sender twice.
 
 E: Receiving partition in processors part command is already a receiver
 
-UNDOCUMENTED
+Cannot specify a partition to be a receiver twice.
 
 E: Processors grid numa and map style are incompatible
 
-UNDOCUMENTED
+Using numa for gstyle in the processors command requires using
+cart for the map option.
 
 E: Processors part option and grid style are incompatible
 
-UNDOCUMENTED
+Cannot use gstyle numa or custom with the part option.
 
 */

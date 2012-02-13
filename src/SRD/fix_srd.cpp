@@ -1190,13 +1190,13 @@ void FixSRD::collisions_single()
 		sprintf(str,
 			"SRD particle %d started "
 			"inside big particle %d on step " BIGINT_FORMAT 
-			" bounce %d\n",
+			" bounce %d",
 			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 	      else
 		sprintf(str,
 			"SRD particle %d started "
 			"inside big particle %d on step " BIGINT_FORMAT 
-			" bounce %d\n",
+			" bounce %d",
 			atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 	      if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
 	      error->warning(FLERR,str);
@@ -1344,7 +1344,7 @@ void FixSRD::collisions_multi()
 	      sprintf(str,
 		      "SRD particle %d started "
 		      "inside big particle %d on step " BIGINT_FORMAT 
-		      " bounce %d\n",
+		      " bounce %d",
 		      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
 	      if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
 	      error->warning(FLERR,str);

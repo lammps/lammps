@@ -73,7 +73,7 @@ Use the communicate vel yes command to enable this.
 
 W: Pair dpd needs newton pair on for momentum conservation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: All pair coeffs are not set
 

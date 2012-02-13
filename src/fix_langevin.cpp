@@ -183,9 +183,9 @@ int FixLangevin::setmask()
 void FixLangevin::init()
 {
   if (oflag && !atom->sphere_flag)
-    error->all(FLERR,"Fix langevin omega require atom style sphere");
+    error->all(FLERR,"Fix langevin omega requires atom style sphere");
   if (aflag && !atom->ellipsoid_flag)
-    error->all(FLERR,"Fix langevin angmom require atom style ellipsoid");
+    error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
   // check variable
 

@@ -66,9 +66,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style born/coul/Wolf requires atom attribute q
+E: Pair style born/coul/wolf requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: All pair coeffs are not set
 

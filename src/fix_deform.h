@@ -88,11 +88,13 @@ is a triclinic (non-orthogonal) box.
 
 E: Cannot use fix deform on a shrink-wrapped boundary
 
-UNDOCUMENTED
+The x, y, z options cannot be applied to shrink-wrapped
+dimensions.
 
 E: Cannot use fix deform tilt on a shrink-wrapped 2nd dim
 
-UNDOCUMENTED
+This is because the shrink-wrapping will change the value
+of the strain implied by the tilt factor.
 
 E: Use of fix deform with undefined lattice
 
@@ -108,11 +110,11 @@ Only one fix deform can be defined at a time.
 
 E: Variable name for fix deform does not exist
 
-UNDOCUMENTED
+Self-explantory.
 
 E: Variable for fix deform is invalid style
 
-UNDOCUMENTED
+The variable must be an equal-style variable.
 
 E: Final box dimension due to fix deform is < 0.0
 
@@ -124,24 +126,11 @@ The trate style alters the current strain.
 
 E: Fix deform cannot use yz variable with xy
 
-UNDOCUMENTED
+The yz setting cannot be a variable if xy deformation is also
+specified.  This is because LAMMPS cannot determine if the yz setting
+will induce a box flip which would be invalid if xy is also changing.
 
 E: Fix deform is changing yz too much with xy
-
-UNDOCUMENTED
-
-U: Cannot use fix deform on a non-periodic boundary
-
-When specifying a change is a box dimension, the dimension must be
-periodic.
-
-U: Cannot use fix deform on a 2nd non-periodic boundary
-
-When specifying a tilt factor change, the 2nd of the two dimensions
-must be periodic.  E.g. if the xy tilt is specified, then the y
-dimension must be periodic.
-
-U: Fix deform is changing yz by too much with changing xy
 
 When both yz and xy are changing, it induces changes in xz if the
 box must flip from one tilt extreme to another.  Thus it is not

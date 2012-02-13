@@ -120,7 +120,7 @@ after the PRD simulation.
 
 E: Too many timesteps
 
-UNDOCUMENTED
+The cummulative timesteps must fit in a 64-bit integer.
 
 E: Cannot use PRD with a time-dependent fix defined
 

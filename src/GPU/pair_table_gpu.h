@@ -49,15 +49,16 @@ class PairTableGPU : public PairTable {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with table/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair distance < table inner cutoff
 
-UNDOCUMENTED
+Two atoms are closer together than the pairwise table allows.
 
 E: Pair distance > table outer cutoff
 

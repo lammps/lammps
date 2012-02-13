@@ -50,10 +50,10 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix nve/asphere/noforce requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/asphere/noforce requires extended particles
 
-UNDOCUMENTED
+One of the particles is not an ellipsoid.
 
 */

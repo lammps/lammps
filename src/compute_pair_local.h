@@ -75,10 +75,11 @@ Self-explanatory.
 E: Pair style does not support compute pair/local
 
 The pair style does not have a single() function, so it can
-not be invoked by fix bond/swap.
+not be invoked by compute pair/local.
 
-E: Pair style does not have single field requested by compute pair/local
+E: Pair style does not have extra field requested by compute pair/local
 
-UNDOCUMENTED
+The pair style does not support the pN value requested by the compute
+pair/local command.
 
 */

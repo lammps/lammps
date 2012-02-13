@@ -100,27 +100,28 @@ section.
 
 E: Invalid data file section: Ellipsoids
 
-UNDOCUMENTED
+Atom style does not allow ellipsoids.
 
 E: Must read Atoms before Ellipsoids
 
-UNDOCUMENTED
+The Atoms section of a data file must come before a Ellipsoids
+section.
 
 E: Invalid data file section: Lines
 
-UNDOCUMENTED
+Atom style does not allow lines.
 
 E: Must read Atoms before Lines
 
-UNDOCUMENTED
+The Atoms section of a data file must come before a Lines section.
 
 E: Invalid data file section: Triangles
 
-UNDOCUMENTED
+Atom style does not allow triangles.
 
 E: Must read Atoms before Triangles
 
-UNDOCUMENTED
+The Atoms section of a data file must come before a Triangles section.
 
 E: Invalid data file section: Bonds
 
@@ -284,15 +285,15 @@ section.  Something is wrong with the format of the data file.
 
 E: No ellipsoids allowed with this atom style
 
-UNDOCUMENTED
+Self-explanatory.  Check data file.
 
 E: No lines allowed with this atom style
 
-UNDOCUMENTED
+Self-explanatory.  Check data file.
 
 E: No triangles allowed with this atom style
 
-UNDOCUMENTED
+Self-explanatory.  Check data file.
 
 E: System in data file is too big
 
@@ -375,7 +376,8 @@ dihedrals or impropers would be included, but they were not present.
 
 E: Needed bonus data not in data file
 
-UNDOCUMENTED
+Some atom styles require bonus data.  See the read_data doc page for
+details.
 
 E: Cannot open gzipped file
 

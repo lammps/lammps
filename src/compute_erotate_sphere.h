@@ -50,6 +50,6 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute erotate/sphere requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.  
 
 */

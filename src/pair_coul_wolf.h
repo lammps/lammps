@@ -64,6 +64,6 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair coul/wolf requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 */

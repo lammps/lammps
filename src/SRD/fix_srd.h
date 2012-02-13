@@ -298,7 +298,8 @@ deform needs to be used.
 
 W: Using fix srd with box deformation but no SRD thermostat
 
-UNDOCUMENTED
+The deformation will heat the SRD particles so this can
+be dangerous.
 
 W: Fix srd SRD moves may trigger frequent reneighboring
 
@@ -328,17 +329,23 @@ E: Fix SRD: bad bin assignment for SRD advection
 Something has gone wrong in your SRD model; try using more
 conservative settings.
 
-E: SRD particle %d started inside big particle %d on step %ld bounce %d\n
+E: SRD particle %d started inside big particle %d on step %ld bounce %d
 
-UNDOCUMENTED
+See the inside keyword if you want this message to be an error vs
+warning.
+
+W: SRD particle %d started inside big particle %d on step %ld bounce %d
+
+See the inside keyword if you want this message to be an error vs
+warning.
 
 E: Bad quadratic solve for particle/line collision
 
-UNDOCUMENTED
+This is an internal error.  It should nornally not occur.
 
 E: Bad quadratic solve for particle/tri collision
 
-UNDOCUMENTED
+This is an internal error.  It should nornally not occur.
 
 W: Fix srd particle moved outside valid domain
 
@@ -350,11 +357,11 @@ Big particles must be extended spheriods or ellipsoids.
 
 E: Cannot use lines with fix srd unless overlap is set
 
-UNDOCUMENTED
+This is because line segements are connected to each other.
 
 E: Cannot use tris with fix srd unless overlap is set
 
-UNDOCUMENTED
+This is because triangles are connected to each other.
 
 E: Fix srd requires SRD particles all have same mass
 
@@ -366,11 +373,23 @@ This is not allowed.  Make your SRD bin size smaller.
 
 E: SRD bins for fix srd are not cubic enough
 
-The bin shape is not within tolerance of cubic.
+The bin shape is not within tolerance of cubic.  See the cubic
+keyword if you want this message to be an error vs warning.
+
+W: SRD bins for fix srd are not cubic enough
+
+The bin shape is not within tolerance of cubic.  See the cubic
+keyword if you want this message to be an error vs warning.
 
 E: SRD bin size for fix srd differs from user request
 
-Fix SRD had to adjust the bin size to fit the simulation box.
+Fix SRD had to adjust the bin size to fit the simulation box.  See the
+cubic keyword if you want this message to be an error vs warning.
+
+W: SRD bin size for fix srd differs from user request
+
+Fix SRD had to adjust the bin size to fit the simulation box.  See the
+cubic keyword if you want this message to be an error vs warning.
 
 E: Fix srd lamda must be >= 0.6 of SRD grid size
 

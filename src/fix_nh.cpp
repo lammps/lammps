@@ -344,7 +344,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 	       "with xy dynamics when y is non-periodic dimension");
 
   if (p_flag[3] && scaleyz == 1)
-    error->all(FLERR,"Cannot use fix nvt/npt/nph with"
+    error->all(FLERR,"Cannot use fix nvt/npt/nph with "
 	       "both yz dynamics and yz scaling");
   if (p_flag[4] && scalexz == 1)
     error->all(FLERR,"Cannot use fix nvt/npt/nph with "
@@ -1093,8 +1093,7 @@ void FixNH::remap()
   domain->xz = h[4];
   domain->xy = h[5];
 
-  // tilt factor to cell length ratio can not exceed TILTMAX
-  // in one step
+  // tilt factor to cell length ratio can not exceed TILTMAX in one step
 
   if (domain->yz < -TILTMAX*domain->yprd || domain->yz > TILTMAX*domain->yprd ||
       domain->xz < -TILTMAX*domain->xprd || domain->xz > TILTMAX*domain->xprd ||

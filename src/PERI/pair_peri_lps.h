@@ -83,7 +83,7 @@ pair_coeff command before running a simulation.
 
 E: Pair style peri requires atom style peri
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair peri requires an atom map, see atom_modify
 

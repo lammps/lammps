@@ -62,14 +62,17 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix restrain requires an atom map, see atom_modify
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Restrain atoms %d %d %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
+The 4 atoms in a restrain dihedral specified by the fix restrain
+command are not all accessible to a processor.  This probably means an
+atom has moved too far.
 
 W: Restrain problem: %d %ld %d %d %d %d
 
-UNDOCUMENTED
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.
 
 */

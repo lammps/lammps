@@ -78,7 +78,7 @@ class PairGayBerne : public Pair {
 
 E: Pair gayberne requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -92,7 +92,7 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair gayberne requires atoms with same type have same shape
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair gayberne epsilon a,b,c coeffs are not all set
 
@@ -101,6 +101,6 @@ have these 3 coefficients set at least once.
 
 E: Bad matrix inversion in mldivide3
 
-UNDOCUMENTED
+This error should not occur unless the matrix is badly formed.
 
 */

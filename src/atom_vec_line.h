@@ -99,7 +99,7 @@ class AtomVecLine : public AtomVec {
 
 E: Atom_style line can only be used in 2d simulations
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Per-processor system is too big
 
@@ -120,18 +120,11 @@ Density value cannot be <= 0.0.
 
 E: Assigning line parameters to non-line atom
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Inconsistent line segment in data file
 
-UNDOCUMENTED
-
-E: BAD VECLINE PTRS: %s: %d %d: %d\n
-
-UNDOCUMENTED
-
-E: BAD VECLINE COUNT: %s: %d %d: %d %d\n
-
-UNDOCUMENTED
+The end points of the line segment are not equal distances from the
+center point which is the atom coordinate.
 
 */

@@ -67,8 +67,8 @@ E: Use of displace_atoms with undefined lattice
 Must use lattice command with displace_atoms command if units option
 is set to lattice.
 
-E: Lost atoms via displace_atoms: original %ld current %ld
+W: Lost atoms via displace_atoms: original %ld current %ld
 
-UNDOCUMENTED
+The command options you have used caused atoms to be lost.
 
 */

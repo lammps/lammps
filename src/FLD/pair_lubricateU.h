@@ -87,14 +87,14 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair lubricateU requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair lubricateU requires ghost atoms store velocity
 
-UNDOCUMENTED
+Use the communicate vel yes command to enable this.
 
 E: Pair lubricateU requires monodisperse particles
 
-UNDOCUMENTED
+All particles must be the same finite size.
 
 */

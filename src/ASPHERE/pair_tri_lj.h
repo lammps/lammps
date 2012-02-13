@@ -64,7 +64,7 @@ class PairTriLJ : public Pair {
 
 E: Pair tri/lj requires atom style tri
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 

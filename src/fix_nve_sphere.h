@@ -51,7 +51,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix nve/sphere requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/sphere requires atom attribute mu
 

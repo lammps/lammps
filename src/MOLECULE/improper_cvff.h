@@ -51,7 +51,7 @@ class ImproperCvff : public Improper {
 W: Improper problem: %d %ld %d %d %d %d
 
 Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry. :dd
+to check your simulation geometry.
 
 E: Incorrect args for improper coefficients
 

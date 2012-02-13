@@ -277,7 +277,8 @@ void ChangeBox::command(int narg, char **arg)
       domain->set_boundary(3,&arg[ops[i].boundindex],1);
       if (domain->dimension == 2 && domain->zperiodic == 0)
 	error->all(FLERR,
-		   "Cannot run 2d simulation with nonperiodic Z dimension");
+		   "Cannot change box z boundary to "
+		   "nonperiodic for a 2d simulation");
       domain->set_initial_box();
       domain->set_global_box();
       domain->set_local_box();
@@ -371,7 +372,7 @@ void ChangeBox::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms) {
+  if (natoms != atom->natoms && comm->me == 0) {
     char str[128];
     sprintf(str,"Lost atoms via change_box: original " BIGINT_FORMAT 
 	    " current " BIGINT_FORMAT,atom->natoms,natoms);

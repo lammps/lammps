@@ -79,11 +79,11 @@ Self-explanatory.
 
 E: Fix wall/region colloid requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix wall/region colloid requires extended particles
 
-Self-explanatory.
+One of the particles has radius 0.0.
 
 E: Particle on or inside surface of region used in fix wall/region
 

@@ -79,23 +79,23 @@ The attribute being set does not exist for the defined atom style.
 
 E: Invalid mass in set command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shape in set command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid length in set command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid dipole length in set command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid diameter in set command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot set non-zero image flag for non-periodic dimension
 
@@ -103,7 +103,7 @@ Self-explanatory.
 
 E: Cannot set meso_rho for this atom style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use set atom with no atom IDs defined
 
@@ -111,7 +111,7 @@ Atom IDs are not defined, so they cannot be used to identify an atom.
 
 E: Cannot use set mol with no molecule IDs defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find set group ID
 
@@ -123,11 +123,11 @@ Region ID specified in set command does not exist.
 
 E: Cannot set quaternion for atom that has none
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot set theta for atom that is not a line
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Bond atom missing in set command
 

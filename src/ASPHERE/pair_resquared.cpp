@@ -328,7 +328,7 @@ void PairRESquared::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
+      error->all(FLERR,"Pair resquared requires atoms with same type have same shape");
     if (setwell[i]) {
       shape2[i][0] = shape1[i][0]*shape1[i][0];
       shape2[i][1] = shape1[i][1]*shape1[i][1];

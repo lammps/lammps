@@ -86,39 +86,36 @@ The time window for temperature relaxation must be > 0
 
 E: Fix langevin angmom requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Fix langevin omega require atom style sphere
+E: Fix langevin omega requires atom style sphere
 
-UNDOCUMENTED
-
-E: Fix langevin angmom require atom style ellipsoid
-
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable name for fix langevin does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for fix langevin is invalid style
 
-UNDOCUMENTED
+It must be an equal-style variable.
 
 E: Fix langevin omega requires extended particles
 
-UNDOCUMENTED
+One of the particles has radius 0.0.
 
 E: Fix langevin angmom requires extended particles
 
-UNDOCUMENTED
+This fix option cannot be used with point paritlces.
 
 E: Fix langevin variable returned negative temperature
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot zero Langevin force of 0 atoms
 
-UNDOCUMENTED
+The group has zero atoms, so you cannot request its force
+be zeroed.
 
 E: Could not find fix_modify temperature ID
 

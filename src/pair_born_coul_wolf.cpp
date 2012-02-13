@@ -279,7 +279,7 @@ void PairBornCoulWolf::coeff(int narg, char **arg)
 void PairBornCoulWolf::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style born/coul/Wolf requires atom attribute q");
+    error->all(FLERR,"Pair style born/coul/wolf requires atom attribute q");
 
   int irequest = neighbor->request(this);
 

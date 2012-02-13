@@ -64,7 +64,7 @@ class PairLineLJ : public Pair {
 
 E: Pair line/lj requires atom style line
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 

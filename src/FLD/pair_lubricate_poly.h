@@ -41,22 +41,22 @@ class PairLubricatePoly : public PairLubricate {
 
 E: Pair lubricate/poly requires newton pair off
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair lubricate/poly requires ghost atoms store velocity
 
-UNDOCUMENTED
+Use the communicate vel yes command to enable this.
 
 E: Pair lubricate/poly requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair lubricate/poly requires extended particles
 
-UNDOCUMENTED
+One of the particles has radius 0.0.
 
 E: Using pair lubricate/poly with inconsistent fix deform remap option
 
-UNDOCUMENTED
+If fix deform is used, the remap v option is required.
 
 */

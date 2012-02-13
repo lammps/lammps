@@ -54,18 +54,18 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Pair lubricateU/poly requires newton pair off
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair lubricateU/poly requires ghost atoms store velocity
 
-UNDOCUMENTED
+Use the communicate vel yes command to enable this.
 
 E: Pair lubricate/poly requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair lubricate/poly requires extended particles
 
-UNDOCUMENTED
+One of the particles has radius 0.0.
 
 */

@@ -85,7 +85,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix wall/gran requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use wall in periodic dimension
 

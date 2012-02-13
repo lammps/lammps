@@ -71,6 +71,6 @@ Self-explanatory.
 
 E: Too many timesteps
 
-UNDOCUMENTED
+The cummulative timesteps must fit in a 64-bit integer.
 
 */

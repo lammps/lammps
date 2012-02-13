@@ -107,14 +107,16 @@ Self-explanatory.  Check the input script or data file.
 
 E: No matching element in ADP potential file
 
-UNDOCUMENTED
+The ADP potential file does not contain elements that match the
+requested elements.
 
 E: Cannot open ADP potential file %s
 
-UNDOCUMENTED
+The specified ADP potential file cannot be opened.  Check that the
+path and name are correct.
 
 E: Incorrect element names in ADP potential file
 
-UNDOCUMENTED
+The element names in the ADP file do not match those requested.
 
 */

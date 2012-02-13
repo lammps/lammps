@@ -49,14 +49,11 @@ class PairBuckCoulCutGPU : public PairBuckCoulCut {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with buck/coul/cut/gpu pair style
 
-UNDOCUMENTED
-
-U: Pair style buck/coul/cut/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
+Self-explanatory.
 
 */

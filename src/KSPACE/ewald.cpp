@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
+     per-atom energy/virial added by German Samolyuk (ORNL), Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"

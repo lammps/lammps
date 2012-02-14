@@ -236,7 +236,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
   // 2d slab correction
 
-  if (slabflag) slabcorr(eflag);
+  if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
   
@@ -399,7 +399,7 @@ void PPPMCG::fieldforce()
    111, 3155).  Slabs defined here to be parallel to the xy plane. 
 ------------------------------------------------------------------------- */
 
-void PPPMCG::slabcorr(int eflag)
+void PPPMCG::slabcorr()
 {
   // compute local contribution to global dipole moment
 
@@ -422,7 +422,7 @@ void PPPMCG::slabcorr(int eflag)
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
   // add on force corrections
 

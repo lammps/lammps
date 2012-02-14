@@ -210,18 +210,12 @@ void Ewald::setup()
 
 void Ewald::compute(int eflag, int vflag)
 {
-  int i,k,n;
+  int i,j,k;
 
   // set energy/virial flags
-  // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
-
-  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
-    allocate_peratom();
-    peratom_allocate_flag = 1;
-  }
 
   // extend size of per-atom arrays if necessary
 
@@ -245,13 +239,14 @@ void Ewald::compute(int eflag, int vflag)
 
   // K-space portion of electric field
   // double loop over K-vectors and local atoms
+  // perform per-atom calculations if needed
 
   double **f = atom->f;
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
   int kx,ky,kz;
-  double cypz,sypz,exprl,expim,partial;
+  double cypz,sypz,exprl,expim,partial,partial_peratom;
 
   for (i = 0; i < nlocal; i++) {
     ek[i][0] = 0.0;
@@ -273,6 +268,14 @@ void Ewald::compute(int eflag, int vflag)
       ek[i][0] += partial*eg[k][0];
       ek[i][1] += partial*eg[k][1];
       ek[i][2] += partial*eg[k][2];
+
+      if (eflag_atom || vflag_atom) {
+        partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];		
+    	if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
+        if (vflag_atom)
+	  for (j = 0; j < 6; j++)
+	    vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
+      }
     }
   }
 
@@ -286,7 +289,7 @@ void Ewald::compute(int eflag, int vflag)
     f[i][2] += qscale * q[i]*ek[i][2];
   }
  
-  // global energy if requested
+  // global energy
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++)
@@ -297,15 +300,32 @@ void Ewald::compute(int eflag, int vflag)
     energy *= qscale;
   }
 
-  // global virial if requested
+  // global virial
 
   if (vflag_global) {
     double uk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-      for (n = 0; n < 6; n++) virial[n] += uk*vg[k][n];
+      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j];
     }
-    for (n = 0; n < 6; n++) virial[n] *= qscale;
+    for (j = 0; j < 6; j++) virial[j] *= qscale;
+  }
+
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (eflag_atom || vflag_atom) {
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+      
+    if (vflag_atom)
+      for (i = 0; i < nlocal; i++)
+	for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
   }
 
   // 2d slab correction

@@ -785,7 +785,7 @@ void PPPM::compute(int eflag, int vflag)
 
   // 2d slab correction
 
-  if (slabflag) slabcorr(eflag_global);
+  if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
   

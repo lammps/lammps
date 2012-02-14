@@ -121,7 +121,8 @@ void PPPMGPU::init()
     return;
   }
 
-  // GPU precision specific init.
+  // GPU precision specific init
+
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
   PPPM_GPU_API(clear)(poisson_time);
@@ -152,8 +153,18 @@ void PPPMGPU::init()
 
 void PPPMGPU::compute(int eflag, int vflag)
 {
-  if (im_real_space)
-    return;
+  if (im_real_space) return;
+
+  // set energy/virial flags
+  // invoke allocate_peratom() if needed for first time
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+
+  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+    allocate_peratom();
+    peratom_allocate_flag = 1;
+  }
 
   bool success = true;
   int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal + 
@@ -175,9 +186,6 @@ void PPPMGPU::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  energy = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
-
   double t3=MPI_Wtime();
 
   // all procs communicate density values from their ghost cells
@@ -190,7 +198,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
   
-  poisson(eflag,vflag);
+  poisson();
 
   // all procs communicate E-field values to fill ghost cells
   //   surrounding their 3d bricks
@@ -206,7 +214,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   // sum energy across procs and add in volume-dependent term
 
-  if (eflag) {
+  if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
@@ -219,7 +227,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   // sum virial across procs
 
-  if (vflag) {
+  if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
@@ -227,14 +235,13 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   // 2d slab correction
 
-  if (slabflag) slabcorr(eflag);
+  if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
   
   if (triclinic) domain->lamda2x(atom->nlocal);
 
-  if (kspace_split)
-    PPPM_GPU_API(forces)(atom->f);
+  if (kspace_split) PPPM_GPU_API(forces)(atom->f);
 }
 
 /* ----------------------------------------------------------------------
@@ -690,7 +697,7 @@ void PPPMGPU::fillbrick()
    FFT-based Poisson solver 
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::poisson(int eflag, int vflag)
+void PPPMGPU::poisson()
 {
   int i,j,k,n;
   double eng;
@@ -710,13 +717,13 @@ void PPPMGPU::poisson(int eflag, int vflag)
   double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
   double s2 = scaleinv*scaleinv;
 
-  if (eflag || vflag) {
-    if (vflag) {
+  if (eflag_global || vflag_global) {
+    if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft; i++) {
 	eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
 	for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-	energy += eng;
+	if (eflag_global) energy += eng;
 	n += 2;
       }
     } else {
@@ -820,8 +827,10 @@ FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
 
-  FFT_SCALAR **plane = (FFT_SCALAR **)memory->smalloc(n1*n2*sizeof(FFT_SCALAR *),name);
-  FFT_SCALAR ***array = (FFT_SCALAR ***)memory->smalloc(n1*sizeof(FFT_SCALAR **),name);
+  FFT_SCALAR **plane = (FFT_SCALAR **)
+    memory->smalloc(n1*n2*sizeof(FFT_SCALAR *),name);
+  FFT_SCALAR ***array = (FFT_SCALAR ***)
+    memory->smalloc(n1*sizeof(FFT_SCALAR **),name);
 
   int n = 0;
   for (i = 0; i < n1; i++) {
@@ -886,7 +895,6 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d) {
 
 void PPPMGPU::setup()
 {
-  if (im_real_space)
-    return;
+  if (im_real_space) return;
   PPPM::setup();
 } 

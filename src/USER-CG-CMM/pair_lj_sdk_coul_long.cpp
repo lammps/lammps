@@ -118,8 +118,6 @@ void PairLJSDKCoulLong::eval()
   double r,rsq,r2inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
 
-  evdwl = ecoul = 0.0;
-
   const double * const * const x = atom->x;
   double * const * const f = atom->f;
   const double * const q = atom->q;
@@ -151,6 +149,8 @@ void PairLJSDKCoulLong::eval()
     const int jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
+      forcecoul = forcelj = evdwl = ecoul = 0.0;
+
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
@@ -175,7 +175,13 @@ void PairLJSDKCoulLong::eval()
 	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 	    prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	    if (EFLAG)
+	      ecoul = prefactor*erfc;
+	    if (factor_coul < 1.0) {
+	      forcecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG)
+		ecoul -= (1.0-factor_coul)*prefactor;
+	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
 	    rsq_lookup.f = rsq;
@@ -184,15 +190,16 @@ void PairLJSDKCoulLong::eval()
 	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	    table = ftable[itable] + fraction*dftable[itable];
 	    forcecoul = qtmp*q[j] * table;
+	    if (EFLAG)
+	      ecoul = qtmp*q[j] * table;
 	    if (factor_coul < 1.0) {
 	      table = ctable[itable] + fraction*dctable[itable];
 	      prefactor = qtmp*q[j] * table;
 	      forcecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG)
+		ecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  }
-	} else {
-	  forcecoul = 0.0;
-	  ecoul = 0.0;
 	}
 
 	if (rsq < cut_ljsq[itype][jtype]) {
@@ -205,7 +212,7 @@ void PairLJSDKCoulLong::eval()
 	    if (EFLAG)
 	      evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  
+
 	  } else if (ljt == LJ9_6) {
 	    const double r3inv = r2inv*sqrt(r2inv);
 	    const double r6inv = r3inv*r3inv;
@@ -223,12 +230,12 @@ void PairLJSDKCoulLong::eval()
 	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
 	  }
-	} else {
-	  forcelj=0.0;
-	  evdwl = 0.0;
+	  forcelj *= factor_lj;
+	  if (EFLAG)
+	    evdwl *= factor_lj;
 	}
 
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = (forcecoul + forcelj) * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -239,24 +246,9 @@ void PairLJSDKCoulLong::eval()
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (EFLAG) {
-	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
-
 	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			       evdwl,ecoul,fpair,delx,dely,delz);
+			   evdwl,ecoul,fpair,delx,dely,delz);
+
       }
     }
     f[i][0] += fxtmp;
@@ -662,6 +654,8 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
   double fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
 
+  forcecoul = forcelj = phicoul = philj = 0.0;
+
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
@@ -672,7 +666,11 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
       erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
       prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
       forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+      phicoul = prefactor*erfc;
+      if (factor_coul < 1.0) {
+	forcecoul -= (1.0-factor_coul)*prefactor;
+	phicoul -= (1.0-factor_coul)*prefactor;
+      }
     } else {
       union_int_float_t rsq_lookup_single;
       rsq_lookup_single.f = rsq;
@@ -681,13 +679,16 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
       fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction*dftable[itable];
       forcecoul = atom->q[i]*atom->q[j] * table;
+      table = etable[itable] + fraction*detable[itable];
+      phicoul = atom->q[i]*atom->q[j] * table;
       if (factor_coul < 1.0) {
 	table = ctable[itable] + fraction*dctable[itable];
 	prefactor = atom->q[i]*atom->q[j] * table;
 	forcecoul -= (1.0-factor_coul)*prefactor;
+	phicoul -= (1.0-factor_coul)*prefactor;
       }
     }
-  } else forcecoul = 0.0;
+  }
 
   if (rsq < cut_ljsq[itype][jtype]) {
     const int ljt = lj_type[itype][jtype];
@@ -698,30 +699,15 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
     const double ratio = sigma[itype][jtype]/sqrt(rsq);
     const double eps = epsilon[itype][jtype];
 
-    fforce = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1) 
+    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1) 
 			  - ljpow2*pow(ratio,ljpow2))/rsq;
     philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
 			 - offset[itype][jtype]);
-  } else fforce=0.0;
-
-  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-
-  double eng = 0.0;
-  if (rsq < cut_coulsq) {
-    if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc;
-    else {
-      table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
-    }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    eng += phicoul;
   }
 
-  if (rsq < cut_ljsq[itype][jtype])
-    eng += philj;
+  fforce = (forcecoul + forcelj) * r2inv;
 
-  return eng;
+  return phicoul + philj;
 }
 
 /* ---------------------------------------------------------------------- */

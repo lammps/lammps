@@ -58,10 +58,10 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
   if (me == 0) {
     if (screen)
-      fprintf(screen,"%-8s|%- 12.4g|%- 12.4g|%- 12.4g|%6.2f | %4.1fx\n",
+      fprintf(screen,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
 	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
     if (logfile)
-      fprintf(logfile,"%-8s|%- 12.4g|%- 12.4g|%- 12.4g|%6.2f | %4.1fx\n",
+      fprintf(logfile,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
 	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
   }
 #else

@@ -34,16 +34,21 @@ class ReadRestart : protected Pointers {
   int me,nprocs,nprocs_file;
   FILE *fp;
   int nfix_restart_global,nfix_restart_peratom;
+  int swapflag;
 
   void file_search(char *, char *);
   void header();
   void type_arrays();
   void force_fields();
 
+  void nread_int(int *, int, FILE *);
+  void nread_double(double *, int, FILE *);
+  void nread_char(char *, int, FILE *);
   int read_int();
   double read_double();
   char *read_char();
   bigint read_bigint();
+  int autodetect(FILE **, char *);
 };
 
 }

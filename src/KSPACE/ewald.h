@@ -51,7 +51,7 @@ class Ewald : public KSpace {
   void coeffs();
   virtual void allocate();
   void deallocate();
-  void slabcorr(int);
+  void slabcorr();
 };
 
 }

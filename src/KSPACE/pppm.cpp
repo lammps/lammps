@@ -72,11 +72,13 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
+  u_brick = NULL;
+  v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
   greensfn = NULL;
   work1 = work2 = NULL;
   vg = NULL;
   fkx = fky = fkz = NULL;
-  buf1 = buf2 = NULL;
+  buf1 = buf2 = buf3 = buf4 = NULL;
 
   gf_b = NULL;
   rho1d = rho_coeff = NULL;
@@ -96,6 +98,7 @@ PPPM::~PPPM()
 {
   delete [] factors;
   deallocate();
+  deallocate_peratom();
   memory->destroy(part2grid);
 }
 
@@ -136,6 +139,8 @@ void PPPM::init()
   // free all arrays previously allocated
 
   deallocate();
+  deallocate_peratom();
+  peratom_allocate_flag = 0;
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -479,6 +484,8 @@ void PPPM::init()
 
   nbuf = MAX(nxx,nyy);
   nbuf = MAX(nbuf,nzz);
+
+  nbuf_peratom = 7*nbuf;
   nbuf *= 3;
 
   // print stats
@@ -496,6 +503,7 @@ void PPPM::init()
   }
 
   // allocate K-space dependent memory
+  // don't invoke allocate_peratom() here, wait to see if needed
 
   allocate();
 
@@ -665,7 +673,18 @@ void PPPM::setup()
 
 void PPPM::compute(int eflag, int vflag)
 {
-  int i;
+  int i,j;
+
+  // set energy/virial flags
+  // invoke allocate_peratom() if needed for first time
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+
+  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+    allocate_peratom();
+    peratom_allocate_flag = 1;
+  }
 
   // convert atoms from box to lamda coords
   
@@ -683,9 +702,6 @@ void PPPM::compute(int eflag, int vflag)
     memory->create(part2grid,nmax,3,"pppm:part2grid");
   }
 
-  energy = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
-
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
 
@@ -701,23 +717,32 @@ void PPPM::compute(int eflag, int vflag)
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
-  
-  poisson(eflag,vflag);
+  // also performs per-atom calculations via poisson_peratom()
 
-  // all procs communicate E-field values to fill ghost cells
-  //   surrounding their 3d bricks
+  poisson();
+
+  // all procs communicate E-field values
+  // to fill ghost cells surrounding their 3d bricks
 
   fillbrick();
+
+  // extra per-atom energy/virial communication
+
+  if (eflag_atom || vflag_atom) fillbrick_peratom();
 
   // calculate the force on my particles
 
   fieldforce();
 
-  // sum energy across procs and add in volume-dependent term
+  // extra per-atom energy/virial communication
+
+  if (eflag_atom || vflag_atom) fieldforce_peratom();
+
+  // sum global energy across procs and add in volume-dependent term
 
   const double qscale = force->qqrd2e * scale;
 
-  if (eflag) {
+  if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
@@ -728,17 +753,39 @@ void PPPM::compute(int eflag, int vflag)
     energy *= qscale;
   }
 
-  // sum virial across procs
+  // sum global virial across procs
 
-  if (vflag) {
+  if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (eflag_atom || vflag_atom) {
+    double *q = atom->q;
+    int nlocal = atom->nlocal;
+
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+	eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+
+    if (vflag_atom) {
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*q[i]*qscale;
+    }
+  }
+
   // 2d slab correction
 
-  if (slabflag) slabcorr(eflag);
+  if (slabflag) slabcorr(eflag_global);
 
   // convert atoms back from lamda to box coords
   
@@ -803,6 +850,32 @@ void PPPM::allocate()
 }
 
 /* ----------------------------------------------------------------------
+   allocate per-atom memory that depends on # of K-vectors and order 
+------------------------------------------------------------------------- */
+
+void PPPM::allocate_peratom()
+{  
+  memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:u_brick");
+  
+  memory->create3d_offset(v0_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v0_brick");
+  memory->create3d_offset(v1_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v1_brick");
+  memory->create3d_offset(v2_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v2_brick");
+  memory->create3d_offset(v3_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v3_brick");
+  memory->create3d_offset(v4_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v4_brick");
+  memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:v5_brick");
+
+  memory->create(buf3,nbuf_peratom,"pppm:buf3");
+  memory->create(buf4,nbuf_peratom,"pppm:buf4");
+}
+
+/* ----------------------------------------------------------------------
    deallocate memory that depends on # of K-vectors and order 
 ------------------------------------------------------------------------- */
 
@@ -833,6 +906,25 @@ void PPPM::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
+}
+
+/* ----------------------------------------------------------------------
+   deallocate per-atom memory that depends on # of K-vectors and order 
+------------------------------------------------------------------------- */
+
+void PPPM::deallocate_peratom()
+{
+  memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
+    
+  memory->destroy3d_offset(v0_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v1_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v2_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v3_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v4_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(v5_brick,nzlo_out,nylo_out,nxlo_out);
+
+  memory->destroy(buf3);
+  memory->destroy(buf4); 
 }
 
 /* ----------------------------------------------------------------------
@@ -995,14 +1087,14 @@ void PPPM::set_grid()
     const char fft_prec[] = "double";
 #endif
     if (screen) {
-      fprintf(screen,"  G vector = %g\n",g_ewald);
+      fprintf(screen,"  G vector (1/distance)= %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  RMS precision = %g\n",MAX(lpr,spr));
       fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
-      fprintf(logfile,"  G vector = %g\n",g_ewald);
+      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  RMS precision = %g\n",MAX(lpr,spr));
@@ -1455,6 +1547,275 @@ void PPPM::fillbrick()
 }
 
 /* ----------------------------------------------------------------------
+   ghost-swap to fill ghost cells of my brick with per-atom field values
+------------------------------------------------------------------------- */
+
+void PPPM::fillbrick_peratom()
+{
+  int i,n,ix,iy,iz;
+  MPI_Request request;
+  MPI_Status status;
+
+  // pack my real cells for +z processor
+  // pass data to self or +z processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[2][1] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[2][0],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzlo_out; iz < nzlo_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+
+  // pack my real cells for -z processor
+  // pass data to self or -z processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[2][0] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[2][1],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+
+  // pack my real cells for +y processor
+  // pass data to self or +y processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[1][1] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[1][0],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy < nylo_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+
+  // pack my real cells for -y processor
+  // pass data to self or -y processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[1][0] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[1][1],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+
+  // pack my real cells for +x processor
+  // pass data to self or +x processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy <= nyhi_out; iy++)
+      for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[0][1] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[0][0],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy <= nyhi_out; iy++)
+      for (ix = nxlo_out; ix < nxlo_in; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+
+  // pack my real cells for -x processor
+  // pass data to self or -x processor
+  // unpack and sum recv data into my ghost cells
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy <= nyhi_out; iy++)
+      for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++) {
+	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+	if (vflag_atom) {
+	  buf3[n++] = v0_brick[iz][iy][ix];
+	  buf3[n++] = v1_brick[iz][iy][ix];
+	  buf3[n++] = v2_brick[iz][iy][ix];
+	  buf3[n++] = v3_brick[iz][iy][ix];
+	  buf3[n++] = v4_brick[iz][iy][ix];
+	  buf3[n++] = v5_brick[iz][iy][ix];
+	}
+      }
+
+  if (comm->procneigh[0][0] == me)
+    for (i = 0; i < n; i++) buf4[i] = buf3[i];
+  else {
+    MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
+	      comm->procneigh[0][1],0,world,&request);
+    MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
+    MPI_Wait(&request,&status);
+  }
+
+  n = 0;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy <= nyhi_out; iy++)
+      for (ix = nxhi_in+1; ix <= nxhi_out; ix++) {
+	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+	if (vflag_atom) {
+	  v0_brick[iz][iy][ix] = buf4[n++];
+	  v1_brick[iz][iy][ix] = buf4[n++];
+	  v2_brick[iz][iy][ix] = buf4[n++];
+	  v3_brick[iz][iy][ix] = buf4[n++];
+	  v4_brick[iz][iy][ix] = buf4[n++];
+	  v5_brick[iz][iy][ix] = buf4[n++];
+	}
+      }
+}
+
+/* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
    store central grid pt indices in part2grid array 
@@ -1550,7 +1911,7 @@ void PPPM::make_rho()
    FFT-based Poisson solver 
 ------------------------------------------------------------------------- */
 
-void PPPM::poisson(int eflag, int vflag)
+void PPPM::poisson()
 {
   int i,j,k,n;
   double eng;
@@ -1565,18 +1926,18 @@ void PPPM::poisson(int eflag, int vflag)
  
   fft1->compute(work1,work1,1);
 
-  // if requested, compute energy and virial contribution
+  // global energy and virial contribution
 
   double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
   double s2 = scaleinv*scaleinv;
 
-  if (eflag || vflag) {
-    if (vflag) {
+  if (eflag_global || vflag_global) {
+    if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft; i++) {
 	eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
 	for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-	energy += eng;
+	if (eflag_global) energy += eng;
 	n += 2;
       }
     } else {
@@ -1597,6 +1958,10 @@ void PPPM::poisson(int eflag, int vflag)
     work1[n++] *= scaleinv * greensfn[i];
     work1[n++] *= scaleinv * greensfn[i];
   }
+
+  // extra FFTs for per-atom energy/virial
+
+  if (eflag_atom || vflag_atom) poisson_peratom();
 
   // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
   // FFT leaves data in 3d brick decomposition
@@ -1667,6 +2032,142 @@ void PPPM::poisson(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   FFT-based Poisson solver for per-atom energy/virial
+------------------------------------------------------------------------- */
+
+void PPPM::poisson_peratom()
+{
+  int i,j,k,n;
+
+  // energy
+    
+  if (eflag_atom) {
+    n = 0;
+    for (i = 0; i < nfft; i++) {
+      work2[n] = work1[n];
+      work2[n+1] = work1[n+1];
+      n += 2;
+    }
+    
+    fft2->compute(work2,work2,-1); 
+    
+    n = 0;
+    for (k = nzlo_in; k <= nzhi_in; k++)
+      for (j = nylo_in; j <= nyhi_in; j++)
+        for (i = nxlo_in; i <= nxhi_in; i++) {
+	  u_brick[k][j][i] = work2[n];
+	  n += 2;
+        }
+  }
+   
+  // 6 components of virial in v0 thru v5
+
+  if (!vflag_atom) return;
+	 
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][0];
+    work2[n+1] = work1[n+1]*vg[i][0];
+    n += 2;
+  }
+    
+  fft2->compute(work2,work2,-1); 
+    
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v0_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+  
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][1];
+    work2[n+1] = work1[n+1]*vg[i][1];
+    n += 2;
+  }
+  
+  fft2->compute(work2,work2,-1); 
+  
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v1_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+  
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][2];
+    work2[n+1] = work1[n+1]*vg[i][2];
+    n += 2;
+  }
+    
+  fft2->compute(work2,work2,-1); 
+  
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v2_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+  
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][3];
+    work2[n+1] = work1[n+1]*vg[i][3];
+    n += 2;
+  }
+  
+  fft2->compute(work2,work2,-1); 
+  
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v3_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+   
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][4];
+    work2[n+1] = work1[n+1]*vg[i][4];
+    n += 2;
+  }
+  
+  fft2->compute(work2,work2,-1); 
+  
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v4_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+  
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = work1[n]*vg[i][5];
+    work2[n+1] = work1[n+1]*vg[i][5];
+    n += 2;
+  }
+    
+  fft2->compute(work2,work2,-1); 
+    
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+	v5_brick[k][j][i] = work2[n];
+	n += 2;
+      }
+}
+
+/* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles 
 ------------------------------------------------------------------------- */
 
@@ -1721,6 +2222,72 @@ void PPPM::fieldforce()
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     f[i][2] += qfactor*ekz;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   interpolate from grid to get per-atom energy/virial
+------------------------------------------------------------------------- */
+
+void PPPM::fieldforce_peratom()
+{
+  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
+
+  // loop over my charges, interpolate from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double **f = atom->f;
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+    compute_rho1d(dx,dy,dz);
+
+    u = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;
+      z0 = rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+	my = m+ny;
+	y0 = z0*rho1d[1][m];
+	for (l = nlower; l <= nupper; l++) {
+	  mx = l+nx;
+	  x0 = y0*rho1d[0][l];
+	  if (eflag_atom) u += x0*u_brick[mz][my][mx];	
+	  if (vflag_atom) {
+	    v0 += x0*v0_brick[mz][my][mx];
+	    v1 += x0*v1_brick[mz][my][mx];
+	    v2 += x0*v2_brick[mz][my][mx];
+	    v3 += x0*v3_brick[mz][my][mx];
+	    v4 += x0*v4_brick[mz][my][mx];
+	    v5 += x0*v5_brick[mz][my][mx];
+	  }
+	}
+      }
+    }
+
+    if (eflag_atom) eatom[i] += q[i]*u;
+    if (vflag_atom) {
+      vatom[i][0] += v0;
+      vatom[i][1] += v1;
+      vatom[i][2] += v2;
+      vatom[i][3] += v3;
+      vatom[i][4] += v4;
+      vatom[i][5] += v5;
+    }
   }
 }
 
@@ -1853,7 +2420,7 @@ void PPPM::compute_rho_coeff()
    111, 3155).  Slabs defined here to be parallel to the xy plane. 
 ------------------------------------------------------------------------- */
 
-void PPPM::slabcorr(int eflag)
+void PPPM::slabcorr()
 {
   // compute local contribution to global dipole moment
 
@@ -1874,7 +2441,7 @@ void PPPM::slabcorr(int eflag)
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
   // add on force corrections
 
@@ -1937,5 +2504,11 @@ double PPPM::memory_usage()
   bytes += nfft_both * sizeof(double);
   bytes += nfft_both*5 * sizeof(FFT_SCALAR);
   bytes += 2 * nbuf * sizeof(FFT_SCALAR);
+
+  if (peratom_allocate_flag) {
+    bytes += 7 * nbrick * sizeof(FFT_SCALAR);
+    bytes += 2 * nbuf_peratom * sizeof(FFT_SCALAR);
+  }
+
   return bytes;
 }

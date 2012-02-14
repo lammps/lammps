@@ -492,4 +492,3 @@ void WriteRestart::write_bigint(int flag, bigint value)
   fwrite(&flag,sizeof(int),1,fp);
   fwrite(&value,sizeof(bigint),1,fp);
 }
-

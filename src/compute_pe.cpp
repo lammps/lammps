@@ -88,6 +88,7 @@ double ComputePE::compute_scalar()
   MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (kspaceflag && force->kspace) scalar += force->kspace->energy;
+
   if (pairflag && force->pair && force->pair->tail_flag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
     scalar += force->pair->etail / volume;

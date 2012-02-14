@@ -97,6 +97,7 @@ void ReadRestart::command(int narg, char **arg)
   else multiproc = 0;
 
   // open single restart file or base file for multiproc case
+  // auto-detect whether byte swapping needs to be done as file is read
 
   if (me == 0) {
     if (screen) fprintf(screen,"Reading restart file ...\n");
@@ -114,8 +115,11 @@ void ReadRestart::command(int narg, char **arg)
       sprintf(str,"Cannot open restart file %s",hfile);
       error->one(FLERR,str);
     }
+    swapflag = autodetect(&fp,hfile);
     if (multiproc) delete [] hfile;
   }
+
+  MPI_Bcast(&swapflag,1,MPI_INT,0,world);
 
   // read header info and create atom style and simulation box
 
@@ -175,8 +179,7 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     for (int iproc = 0; iproc < nprocs_file; iproc++) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       if (n > maxbuf) {
 	maxbuf = n;
 	memory->destroy(buf);
@@ -184,7 +187,7 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       if (n > 0) {
-	if (me == 0) fread(buf,sizeof(double),n,fp);
+	if (me == 0) nread_double(buf,n,fp);
 	MPI_Bcast(buf,n,MPI_DOUBLE,0,world);
       }
 
@@ -229,13 +232,13 @@ void ReadRestart::command(int narg, char **arg)
 	error->one(FLERR,str);
       }
 
-      fread(&n,sizeof(int),1,fp);
+      nread_int(&n,1,fp);
       if (n > maxbuf) {
 	maxbuf = n;
 	memory->destroy(buf);
 	memory->create(buf,maxbuf,"read_restart:buf");
       }
-      if (n > 0) fread(buf,sizeof(double),n,fp);
+      if (n > 0) nread_double(buf,n,fp);
 
       m = 0;
       while (m < n) m += avec->unpack_restart(&buf[m]);
@@ -708,7 +711,7 @@ void ReadRestart::type_arrays()
 
     if (flag == MASS) {
       double *mass = new double[atom->ntypes+1];
-      if (me == 0) fread(&mass[1],sizeof(double),atom->ntypes,fp);
+      if (me == 0) nread_double(&mass[1],atom->ntypes,fp);
       MPI_Bcast(&mass[1],atom->ntypes,MPI_DOUBLE,0,world);
       atom->set_mass(mass);
       delete [] mass;
@@ -731,10 +734,9 @@ void ReadRestart::force_fields()
   while (flag >= 0) {
 
     if (flag == PAIR) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       style = new char[n];
-      if (me == 0) fread(style,sizeof(char),n,fp);
+      if (me == 0) nread_char(style,n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       force->create_pair(style);
@@ -746,10 +748,9 @@ void ReadRestart::force_fields()
       }
 
     } else if (flag == BOND) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       style = new char[n];
-      if (me == 0) fread(style,sizeof(char),n,fp);
+      if (me == 0) nread_char(style,n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
       
       force->create_bond(style);
@@ -757,10 +758,9 @@ void ReadRestart::force_fields()
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       style = new char[n];
-      if (me == 0) fread(style,sizeof(char),n,fp);
+      if (me == 0) nread_char(style,n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       force->create_angle(style);
@@ -768,10 +768,9 @@ void ReadRestart::force_fields()
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       style = new char[n];
-      if (me == 0) fread(style,sizeof(char),n,fp);
+      if (me == 0) nread_char(style,n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       force->create_dihedral(style);
@@ -779,10 +778,9 @@ void ReadRestart::force_fields()
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
-      if (me == 0) fread(&n,sizeof(int),1,fp);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+      n = read_int();
       style = new char[n];
-      if (me == 0) fread(style,sizeof(char),n,fp);
+      if (me == 0) nread_char(style,n,fp);
       MPI_Bcast(style,n,MPI_CHAR,0,world);
 
       force->create_improper(style);
@@ -797,13 +795,48 @@ void ReadRestart::force_fields()
 }
 
 /* ----------------------------------------------------------------------
+   read N ints from restart file
+   do not bcast them, caller does that if required
+------------------------------------------------------------------------- */
+
+void ReadRestart::nread_int(int *buf, int n, FILE *fp)
+{
+  fread(buf,sizeof(int),n,fp);
+  if (swapflag) {}
+}
+
+/* ----------------------------------------------------------------------
+   read N doubles from restart file
+   do not bcast them, caller does that if required
+------------------------------------------------------------------------- */
+
+void ReadRestart::nread_double(double *buf, int n, FILE *fp)
+{
+  fread(buf,sizeof(double),n,fp);
+  if (swapflag) {}
+}
+
+/* ----------------------------------------------------------------------
+   read N chars from restart file
+   do not bcast them, caller does that if required
+------------------------------------------------------------------------- */
+
+void ReadRestart::nread_char(char *buf, int n, FILE *fp)
+{
+  fread(buf,sizeof(char),n,fp);
+}
+
+/* ----------------------------------------------------------------------
    read an int from restart file and bcast it
 ------------------------------------------------------------------------- */
 
 int ReadRestart::read_int()
 {
   int value;
-  if (me == 0) fread(&value,sizeof(int),1,fp);
+  if (me == 0) {
+    fread(&value,sizeof(int),1,fp);
+    if (swapflag) {}
+  }
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
 }
@@ -815,7 +848,10 @@ int ReadRestart::read_int()
 double ReadRestart::read_double()
 {
   double value;
-  if (me == 0) fread(&value,sizeof(double),1,fp);
+  if (me == 0) {
+    fread(&value,sizeof(double),1,fp);
+    if (swapflag) {}
+  }
   MPI_Bcast(&value,1,MPI_DOUBLE,0,world);
   return value;
 }
@@ -828,10 +864,16 @@ double ReadRestart::read_double()
 char *ReadRestart::read_char()
 {
   int n;
-  if (me == 0) fread(&n,sizeof(int),1,fp);
+  if (me == 0) {
+    fread(&n,sizeof(int),1,fp);
+    if (swapflag) {}
+  }
   MPI_Bcast(&n,1,MPI_INT,0,world);
   char *value = new char[n];
-  if (me == 0) fread(value,sizeof(char),n,fp);
+  if (me == 0) {
+    fread(value,sizeof(char),n,fp);
+    if (swapflag) {}
+  }
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -843,7 +885,34 @@ char *ReadRestart::read_char()
 bigint ReadRestart::read_bigint()
 {
   bigint value;
-  if (me == 0) fread(&value,sizeof(bigint),1,fp);
+  if (me == 0) {
+    fread(&value,sizeof(bigint),1,fp);
+    if (swapflag) {}
+  }
   MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
+}
+
+/* ----------------------------------------------------------------------
+// auto-detect if restart file needs to be byte-swapped on this platform
+// return 0 if not, 1 if it does
+// re-open file with fp after checking first few bytes
+   read a bigint from restart file and bcast it
+------------------------------------------------------------------------- */
+
+int ReadRestart::autodetect(FILE **pfp, char *file)
+{
+  FILE *fp = *pfp;
+
+  // read, check, set return flag
+
+  int flag = 0;
+
+  // reset file pointer
+
+  fclose(fp);
+  fp = fopen(file,"rb");
+  *pfp = fp;
+
+  return flag;
 }

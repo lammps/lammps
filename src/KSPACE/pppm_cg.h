@@ -28,7 +28,7 @@ class PPPMCG : public PPPM {
  public:
   PPPMCG(class LAMMPS *, int, char **);
   virtual ~PPPMCG();
-  virtual void compute(int eflag, int vflag);
+  virtual void compute(int, int);
   virtual double memory_usage();
 
  protected:

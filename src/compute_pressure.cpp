@@ -57,7 +57,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   if (icompute < 0) 
     error->all(FLERR,"Could not find compute pressure temperature ID");
   if (modify->compute[icompute]->tempflag == 0)
-    error->all(FLERR,"Compute pressure temperature ID does not compute temperature");
+    error->all(FLERR,
+	       "Compute pressure temperature ID does not compute temperature");
 
   // process optional args
 

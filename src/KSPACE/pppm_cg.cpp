@@ -44,7 +44,8 @@ using namespace MathConst;
 
 PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
-  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal kspace_style pppm/cg command");
+  if ((narg < 1) || (narg > 2)) 
+    error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
   if (narg == 2)
     smallq = atof(arg[1]);
@@ -70,7 +71,18 @@ PPPMCG::~PPPMCG()
 
 void PPPMCG::compute(int eflag, int vflag)
 {
-  int i;
+  int i,j;
+
+  // set energy/virial flags
+  // invoke allocate_peratom() if needed for first time
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+
+  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+    allocate_peratom();
+    peratom_allocate_flag = 1;
+  }
 
   // convert atoms from box to lamda coords
   
@@ -90,7 +102,7 @@ void PPPMCG::compute(int eflag, int vflag)
     memory->create(is_charged,nmax,"pppm/cg:is_charged");
   }
 
-  // one time setup message.
+  // one time setup message
 
   if (num_charged < 0) {
     bigint charged_all, charged_num;
@@ -134,15 +146,12 @@ void PPPMCG::compute(int eflag, int vflag)
     }
   }
 
-  num_charged=0;
-  for (i=0; i < atom->nlocal; ++i)
+  num_charged = 0;
+  for (i = 0; i < atom->nlocal; ++i)
     if (fabs(atom->q[i]) > smallq) {
       is_charged[num_charged] = i;
       ++num_charged;
     }
-
-  energy = 0.0;
-  if (vflag) for (i = 0; i < 6; i++) virial[i] = 0.0;
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
@@ -159,23 +168,32 @@ void PPPMCG::compute(int eflag, int vflag)
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
-  
-  poisson(eflag,vflag);
+  // also performs per-atom calculations via poisson_peratom()
 
-  // all procs communicate E-field values to fill ghost cells
-  //   surrounding their 3d bricks
+  poisson();
+
+  // all procs communicate E-field values
+  // to fill ghost cells surrounding their 3d bricks
 
   fillbrick();
+
+  // extra per-atom energy/virial communication
+
+  if (eflag_atom || vflag_atom) fillbrick_peratom();
 
   // calculate the force on my particles
 
   fieldforce();
 
-  // sum energy across procs and add in volume-dependent term
+  // extra per-atom energy/virial communication
+
+  if (eflag_atom || vflag_atom) fieldforce_peratom();
+
+  // sum global energy across procs and add in volume-dependent term
 
   const double qscale = force->qqrd2e * scale;
 
-  if (eflag) {
+  if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
@@ -186,12 +204,34 @@ void PPPMCG::compute(int eflag, int vflag)
     energy *= qscale;
   }
 
-  // sum virial across procs
+  // sum global virial across procs
 
-  if (vflag) {
+  if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
+  }
+
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (eflag_atom || vflag_atom) {
+    double *q = atom->q;
+    int nlocal = atom->nlocal;
+
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+	eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+
+    if (vflag_atom) {
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*q[i]*qscale;
+    }
   }
 
   // 2d slab correction
@@ -344,6 +384,7 @@ void PPPMCG::fieldforce()
     }
 
     // convert E-field to force
+
     const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;

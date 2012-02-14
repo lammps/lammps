@@ -132,8 +132,8 @@ void Ewald::init()
   gsqmx = -4.0*g_ewald*g_ewald*log(precision);
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"  G vector = %g\n",g_ewald);
-    if (logfile) fprintf(logfile,"  G vector = %g\n",g_ewald);
+    if (screen) fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
+    if (logfile) fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
   }
 
   // setup Ewald coefficients so can print stats
@@ -212,8 +212,16 @@ void Ewald::compute(int eflag, int vflag)
 {
   int i,k,n;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  // set energy/virial flags
+  // invoke allocate_peratom() if needed for first time
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+
+  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+    allocate_peratom();
+    peratom_allocate_flag = 1;
+  }
 
   // extend size of per-atom arrays if necessary
 
@@ -278,9 +286,9 @@ void Ewald::compute(int eflag, int vflag)
     f[i][2] += qscale * q[i]*ek[i][2];
   }
  
-  // energy if requested
+  // global energy if requested
 
-  if (eflag) {
+  if (eflag_global) {
     for (k = 0; k < kcount; k++)
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
 			 sfacim_all[k]*sfacim_all[k]);
@@ -289,9 +297,9 @@ void Ewald::compute(int eflag, int vflag)
     energy *= qscale;
   }
 
-  // virial if requested
+  // global virial if requested
 
-  if (vflag) {
+  if (vflag_global) {
     double uk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
@@ -300,7 +308,9 @@ void Ewald::compute(int eflag, int vflag)
     for (n = 0; n < 6; n++) virial[n] *= qscale;
   }
 
-  if (slabflag) slabcorr(eflag);
+  // 2d slab correction
+
+  if (slabflag) slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -801,7 +811,7 @@ void Ewald::deallocate()
    111, 3155).  Slabs defined here to be parallel to the xy plane. 
 ------------------------------------------------------------------------- */
 
-void Ewald::slabcorr(int eflag)
+void Ewald::slabcorr()
 {
   // compute local contribution to global dipole moment
   
@@ -822,7 +832,7 @@ void Ewald::slabcorr(int eflag)
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
   // add on force corrections
 

@@ -182,7 +182,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
       user_procgrid[0] > 1 ||          // user specified grid > 1 in any dim
       user_procgrid[1] > 1 ||
       user_procgrid[2] > 1)
-    error->all(FLERR,"Could not create numa 3d grid of processors");
+    error->all(FLERR,"Could not create numa grid of processors");
   
   // user settings for the factorization per numa node
   // currently not user settable
@@ -336,7 +336,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
       if (cmap[i][3] <= 0 || cmap[i][3] > procgrid[2]) flag = 1;
     }
   }
-  if (flag) error->all(FLERR,"Processors custom grid file is invalid");
+  if (flag) error->all(FLERR,"Processors custom grid file is inconsistent");
 }
 
 /* ----------------------------------------------------------------------
@@ -653,7 +653,7 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
   FILE *fp;
   if (me == 0) {
     fp = fopen(file,"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open processors custom file");
+    if (fp == NULL) error->one(FLERR,"Cannot open processors output file");
     fprintf(fp,"LAMMPS mapping of processors to 3d grid\n");
     fprintf(fp,"partition = %d\n",universe->iworld+1);
     fprintf(fp,"Px Py Pz = %d %d %d\n",procgrid[0],procgrid[1],procgrid[2]);

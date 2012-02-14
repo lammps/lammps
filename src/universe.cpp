@@ -112,16 +112,16 @@ void Universe::reorder(char *style, char *arg)
       sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
 	  me_new < 0 || me_new >= nprocs)
-	error->one(FLERR,"Invalid entry in reorder file");
+	error->one(FLERR,"Invalid entry in -reorder file");
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
 	if (!fgets(line,MAXLINE,fp))
-	  error->one(FLERR,"Unexpected end of reorder file");
+	  error->one(FLERR,"Unexpected end of -reorder file");
 	sscanf(line,"%d %d",&me_orig,&me_new);
 	if (me_orig < 0 || me_orig >= nprocs ||
 	    me_new < 0 || me_new >= nprocs)
-	  error->one(FLERR,"Invalid entry in reorder file");
+	  error->one(FLERR,"Invalid entry in -reorder file");
 	uni2orig[me_new] = me_orig;
       }
       fclose(fp);

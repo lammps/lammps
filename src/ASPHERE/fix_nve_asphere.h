@@ -44,7 +44,7 @@ class FixNVEAsphere : public FixNVE {
 
 E: Compute nve/asphere requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/asphere requires extended particles
 

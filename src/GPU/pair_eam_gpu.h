@@ -56,11 +56,12 @@ class PairEAMGPU : public PairEAM {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with eam/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Not allocate memory eam/gpu pair style
 

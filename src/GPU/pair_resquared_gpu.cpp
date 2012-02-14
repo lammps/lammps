@@ -73,7 +73,7 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp),
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) 
-    error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
+    error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 

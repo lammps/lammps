@@ -279,11 +279,13 @@ after a read_data, read_restart, or create_box command.
 
 E: Package command after simulation box is defined
 
-UNDOCUMENTED
+The package command cannot be used afer a read_data, read_restart, or
+create_box command.
 
 E: Package cuda command without USER-CUDA installed
 
-UNDOCUMENTED
+The USER-CUDA package must be installed via "make yes-user-cuda"
+before LAMMPS is built.
 
 E: Pair_coeff command before simulation box is defined
 

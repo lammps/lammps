@@ -41,7 +41,7 @@ class FixNHAsphere : public FixNH {
 
 E: Compute nvt/nph/npt asphere requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nvt/nph/npt asphere requires extended particles
 

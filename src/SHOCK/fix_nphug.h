@@ -64,11 +64,11 @@ class FixNPHug : public FixNH {
 
 E: Pstart and Pstop must have the same value
 
-Self-explanatory
+Self-explanatory.
 
 E: Specified target stress must be uniaxial or hydrostatic
 
-Self-explanatory
+Self-explanatory.
 
 E: For triclinic deformation, specified target stress must be hydrostatic
 
@@ -81,7 +81,8 @@ The temp keyword must be provided.
 
 E: Pressure control must be used with fix nphug
 
-A pressure control keyword (iso, aniso, tri, x, y, or z) must be provided.
+A pressure control keyword (iso, aniso, tri, x, y, or z) must be
+provided.
 
 E: Potential energy ID for fix nvt/nph/npt does not exist
 

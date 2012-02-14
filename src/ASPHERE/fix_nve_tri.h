@@ -53,14 +53,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix nve/tri requires atom style tri
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Fix nve/line can only be used for 3d simulations
+E: Fix nve/tri can only be used for 3d simulations
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/tri requires tri particles
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

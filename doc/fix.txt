@@ -157,6 +157,7 @@ list of fix styles available in LAMMPS:
 
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
+"append/atoms"_fix_append_atoms.html - append atoms to a running simulation
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
@@ -247,6 +248,7 @@ nve/limit"_fix_nve_limit.html - NVE with limited step length
 "wall/harmonic"_fix_wall.html - harmonic spring wall
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
+"wall/piston"_fix_wall_piston.html - moving reflective piston wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "wall/region"_fix_wall_region.html - use region surface as wall
 "wall/srd"_fix_wall_srd.html - slip/no-slip wall for SRD particles :ul

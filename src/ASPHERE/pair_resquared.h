@@ -100,7 +100,7 @@ class PairRESquared : public Pair {
 
 E: Pair resquared requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -112,9 +112,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair gayberne requires atoms with same type have same shape
+E: Pair resquared requires atoms with same type have same shape
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair resquared epsilon a,b,c coeffs are not all set
 
@@ -126,6 +126,6 @@ Self-explanatory.
 
 E: Bad matrix inversion in mldivide3
 
-UNDOCUMENTED
+This error should not occur unless the matrix is badly formed.
 
 */

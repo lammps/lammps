@@ -80,7 +80,7 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair granular requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair granular requires ghost atoms store velocity
 

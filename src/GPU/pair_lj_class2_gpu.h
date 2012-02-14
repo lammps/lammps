@@ -49,10 +49,11 @@ class PairLJClass2GPU : public PairLJClass2 {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with lj/class2/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

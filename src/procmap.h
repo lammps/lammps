@@ -60,42 +60,41 @@ class ProcMap : protected Pointers {
 
 E: Could not create 3d grid of processors
 
-UNDOCUMENTED
+The specified constraints did not allow a Px by Py by Pz grid to be
+created where Px * Py * Pz = P = total number of processors.
 
 E: Processors twogrid requires proc count be a multiple of core count
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not create twolevel 3d grid of processors
 
-UNDOCUMENTED
-
-E: Could not create numa 3d grid of processors
-
-UNDOCUMENTED
+The specified constraints did not allow this style of grid to be
+created.
 
 E: Could not create numa grid of processors
 
-UNDOCUMENTED
+The specified constraints did not allow this style of grid to be
+created.  Usually this is because the total processor count is not a
+multiple of the cores/node or the user specified processor count is >
+1 in one of the dimensions.
 
 E: Cannot open custom file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Unexpected end of custom file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Processors custom grid file is inconsistent
 
-UNDOCUMENTED
+The vales in the custom file are not consistent with the number of
+processors you are running on or the Px,Py,Pz settings of the
+processors command.  Or there was not a setting for every processor.
 
-E: Processors custom grid file is invalid
+E: Cannot open processors output file
 
-UNDOCUMENTED
-
-E: Cannot open processors custom file
-
-UNDOCUMENTED
+Self-explanatory.
 
 */

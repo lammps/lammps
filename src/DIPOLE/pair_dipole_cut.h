@@ -65,6 +65,6 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair dipole/cut requires atom attributes q, mu, torque
 
-UNDOCUMENTED
+The atom style defined does not have these attributes.
 
 */

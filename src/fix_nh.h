@@ -46,7 +46,6 @@ class FixNH : public Fix {
   double vol0;                      // reference volume
   double t0;                        // reference temperature 
                                     // used for barostat mass
-
   double t_start,t_stop;
   double t_current,t_target,ke_target;
   double t_freq;
@@ -168,27 +167,27 @@ then the y dimension must be periodic.
 
 E: Cannot use fix nvt/npt/nph with yz dynamics when z is non-periodic dimension
 
-UNDOCUMENTED
+The 2nd dimension in the barostatted tilt factor must be periodic.
 
 E: Cannot use fix nvt/npt/nph with xz dynamics when z is non-periodic dimension
 
-UNDOCUMENTED
+The 2nd dimension in the barostatted tilt factor must be periodic.
 
 E: Cannot use fix nvt/npt/nph with xy dynamics when y is non-periodic dimension
 
-UNDOCUMENTED
+The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph withboth yz dynamics and yz scaling
+E: Cannot use fix nvt/npt/nph with both yz dynamics and yz scaling
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix nvt/npt/nph with both xz dynamics and xz scaling
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix nvt/npt/nph with both xy dynamics and xy scaling
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Can not specify Pxy/Pxz/Pyz in fix nvt/npt/nph with non-triclinic box
 
@@ -217,7 +216,8 @@ Self-explanatory.
 
 E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
 
-UNDOCUMENTED
+Self-explanatory.  The change in the box tilt is too extreme
+on a short timescale.
 
 E: Could not find fix_modify temperature ID
 

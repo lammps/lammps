@@ -50,7 +50,7 @@ class DihedralOPLS : public Dihedral {
 W: Dihedral problem: %d %ld %d %d %d %d
 
 Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry. :dd
+to check your simulation geometry.
 
 E: Incorrect args for dihedral coefficients
 

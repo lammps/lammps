@@ -31,6 +31,9 @@ class Balance : protected Pointers {
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
+  void dynamic_setup(int, int, char *, double);
+  int dynamic();
+  double imbalance_nlocal(int &);
 
  private:
   int me,nprocs;
@@ -48,16 +51,14 @@ class Balance : protected Pointers {
   bigint *onecount;
   MPI_Comm commslice[3];
 
-  int count;
   int *pcount,*allcount;
 
   FILE *fp;                      // for debug output
   bigint laststep;
 
-  double imbalance_splits(int &);
-  double imbalance_nlocal(int &);
   void dynamic_setup(char *);
-  void dynamic();
+  int dynamic_once();
+  double imbalance_splits(int &);
   void stats(int, int, double *, bigint *);
   void adjust(int, bigint *, double *);
   int binary(double, int, double *);
@@ -74,30 +75,34 @@ class Balance : protected Pointers {
 
 E: Balance command before simulation box is defined
 
-UNDOCUMENTED
+The balance command cannot be used before a read_data, read_restart,
+or create_box command.
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Cannot balance in z dimension for 2d simulation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Balance dynamic string is invalid
 
-UNDOCUMENTED
+The string can only contain the characters "x", "y", or "z".
 
 E: Balance dynamic string is invalid for 2d simulation
 
-UNDOCUMENTED
+The string cannot contain the letter "z".
 
 E: Lost atoms via balance: original %ld current %ld
 
-UNDOCUMENTED
+This should not occur.  Report the problem to the developers.
 
 E: Cannot open balance output file
 
-UNDOCUMENTED
+This error message can only occur if debug options
+are uncommented in src/balance.cpp.
 
 */

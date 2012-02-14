@@ -60,7 +60,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute temp/sphere requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find compute ID for temperature bias
 

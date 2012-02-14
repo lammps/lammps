@@ -277,11 +277,13 @@ atoms.
 
 E: Incorrect bonus data format in data file
 
-UNDOCUMENTED
+See the read_data doc page for a description of how various kinds of
+bonus data must be formatted for certain atom styles.
 
 E: Invalid atom ID in Bonus section of data file
 
-UNDOCUMENTED
+Atom IDs must be positive integers and within range of defined
+atoms.
 
 E: Invalid atom ID in Bonds section of data file
 

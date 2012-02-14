@@ -49,24 +49,21 @@ class PairRESquaredGPU : public PairRESquared {
 
 /* ERROR/WARNING messages:
 
-E: Pair gayberne requires atom style ellipsoid
+E: Pair resquared/gpu requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Cannot use newton pair with resquared/gpu pair style
 
-UNDOCUMENTED
-
-E: Pair resquared/gpu requires atom style ellipsoid
-
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair resquared/gpu requires atoms with same type have same shape
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

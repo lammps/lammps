@@ -66,11 +66,11 @@ class Update : protected Pointers {
 
 E: USER-CUDA mode requires CUDA variant of run style
 
-UNDOCUMENTED
+CUDA mode is enabled, so the run style must include a cuda suffix.
 
 E: USER-CUDA mode requires CUDA variant of min style
 
-UNDOCUMENTED
+CUDA mode is enabled, so the min style must include a cuda suffix.
 
 E: Illegal ... command
 
@@ -80,7 +80,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Illegal integrate style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot reset timestep with dump file already written to
 
@@ -106,10 +106,10 @@ are defined.
 
 E: Timestep must be >= 0
 
-Specified timestep size is invalid.
+Specified timestep is invalid.
 
 E: Too big a timestep
 
-UNDOCUMENTED
+Specified timestep is too large.
 
 */

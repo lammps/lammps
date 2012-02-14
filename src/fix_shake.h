@@ -181,19 +181,19 @@ E: Shake atoms %d %d missing on proc %d at step %ld
 
 The 2 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means
-an atom has moved too far. :dd
+an atom has moved too far.
 
 E: Shake atoms %d %d %d missing on proc %d at step %ld
 
 The 3 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means
-an atom has moved too far. :dd
+an atom has moved too far.
 
 E: Shake atoms %d %d %d %d missing on proc %d at step %ld
 
 The 4 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means
-an atom has moved too far. :dd
+an atom has moved too far.
 
 E: Did not find fix shake partner info
 

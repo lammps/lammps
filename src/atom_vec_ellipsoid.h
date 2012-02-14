@@ -114,10 +114,10 @@ Density value cannot be <= 0.0.
 
 E: Assigning ellipsoid parameters to non-ellipsoid atom
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shape in Ellipsoids section of data file
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

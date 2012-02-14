@@ -148,15 +148,15 @@ The fix specification did not end up defining any rigid bodies.
 
 E: Fix rigid z force cannot be on for 2d simulation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid xy torque cannot be on for 2d simulation
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid langevin period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: One or zero atoms in rigid body
 

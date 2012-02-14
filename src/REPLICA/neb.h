@@ -106,7 +106,7 @@ for NEB.
 
 E: Too many timesteps
 
-UNDOCUMENTED
+The cummulative timesteps must fit in a 64-bit integer.
 
 E: Incorrect format in NEB coordinate file
 

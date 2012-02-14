@@ -49,7 +49,8 @@ class PairBuckCoulLongGPU : public PairBuckCoulLong {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Pair style buck/coul/long/gpu requires atom attribute q
 
@@ -57,10 +58,11 @@ The atom style defined does not have this attribute.
 
 E: Cannot use newton pair with buck/coul/long/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair style is incompatible with KSpace style
 
-UNDOCUMENTED
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
 
 */

@@ -1154,17 +1154,16 @@ void AtomVecLine::consistency_check(int n, char *str)
   }
 
   if (iflag) {
-    char msg[128];
-    sprintf(msg,"BAD VECLINE PTRS: %s: %d %d: %d\n",str,comm->me,
-	    update->ntimestep,iflag);
-    error->one(FLERR,msg);
+    printf("BAD vecline ptrs: %s: %d %d: %d\n",str,comm->me,
+	   update->ntimestep,iflag);
+    MPI_Abort(world,1);
   }
 
   if (count != nlocal_bonus) {
     char msg[128];
-    sprintf(msg,"BAD VECLINE COUNT: %s: %d %d: %d %d\n",
-	    str,comm->me,update->ntimestep,count,nlocal_bonus);
-    error->one(FLERR,msg);
+    printf("BAD vecline count: %s: %d %d: %d %d\n",
+           str,comm->me,update->ntimestep,count,nlocal_bonus);
+    MPI_Abort(world,1);
   }
 }
 */

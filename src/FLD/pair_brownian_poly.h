@@ -42,14 +42,14 @@ class PairBrownianPoly : public PairBrownian {
 
 E: Pair brownian/poly requires newton pair off
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair brownian/poly requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair brownian/poly requires extended particles
 
-UNDOCUMENTED
+One of the particles has radius 0.0.
 
 */

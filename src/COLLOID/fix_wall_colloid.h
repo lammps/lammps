@@ -44,11 +44,11 @@ class FixWallColloid : public FixWall {
 
 E: Fix wall/colloid requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix wall/colloid requires extended particles
 
-Self-explanatory.
+One of the particles has radius 0.0.
 
 E: Particle on or inside fix wall surface
 

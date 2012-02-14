@@ -56,8 +56,52 @@ namespace GPU_EXTRA {
   inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error) {
     int ifix = modify->find_fix("package_gpu");
     if (ifix < 0)
-      error->all(FLERR,"The 'package gpu' command is required for /gpu styles");
+      error->all(FLERR,"The package gpu command is required for gpu styles");
   };
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Accelerated style in input script but no fix gpu
+
+UNDOCUMENTED
+
+E: Could not find/initialize a specified accelerator device
+
+UNDOCUMENTED
+
+E: Insufficient memory on accelerator
+
+UNDOCUMENTED
+
+E: GPU library not compiled for this accelerator
+
+UNDOCUMENTED
+
+E: Double precision is not supported on this accelerator
+
+UNDOCUMENTED
+
+E: Unable to initialize accelerator for use
+
+UNDOCUMENTED
+
+E: Accelerator sharing is not currently supported on system
+
+UNDOCUMENTED
+
+E: GPU particle split must be set to 1 for this pair style.
+
+UNDOCUMENTED
+
+E: Unknown error in GPU library
+
+UNDOCUMENTED
+
+E: The package gpu command is required for gpu styles
+
+UNDOCUMENTED
+
+*/

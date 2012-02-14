@@ -81,11 +81,12 @@ class DumpImage : public DumpCustom {
 
 E: Invalid dump image filename
 
-UNDOCUMENTED
+The file produced by dump image cannot be binary and must
+be for a single processor.
 
 E: Cannot dump JPG file
 
-UNDOCUMENTED
+LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile.
 
 E: Illegal ... command
 
@@ -95,102 +96,88 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Dump image bond not allowed with no bond types
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid dump image theta value
 
-UNDOCUMENTED
+Theta must be between 0.0 and 180.0 inclusive.
 
 E: Dump image persp option is not yet supported
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Dump image requires one snapshot per file
 
-UNDOCUMENTED
+Use a "*" in the filename.
 
 E: Dump image cannot perform sorting
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable name for dump image theta does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for dump image theta is invalid style
 
-UNDOCUMENTED
+Must be an equal-style variable.
 
 E: Variable name for dump image phi does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for dump image phi is invalid style
 
-UNDOCUMENTED
+Must be an equal-style variable.
 
 E: Variable name for dump image center does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for dump image center is invalid style
 
-UNDOCUMENTED
+Must be an equal-style variable.
 
 E: Variable name for dump image zoom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for dump image zoom is invalid style
 
-UNDOCUMENTED
+Must be an equal-style variable.
 
 E: Variable name for dump image persp does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for dump image persp is invalid style
 
-UNDOCUMENTED
+Must be an equal-style variable.
 
 E: Invalid dump image element name
 
-UNDOCUMENTED
+The specified element name was not in the standard list of elements.
+See the dump_modify doc page.
 
 E: Invalid dump image zoom value
 
-UNDOCUMENTED
+Zoom value must be > 0.0.
 
 E: Invalid dump image persp value
 
-UNDOCUMENTED
+Persp value must be >= 0.0.
 
 E: Invalid color in dump_modify command
 
-UNDOCUMENTED
+The specified color name was not in the list of recognized colors.
+See the dump_modify doc page.
 
 E: Dump modify bcolor not allowed with no bond types
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Dump modify bdiam not allowed with no bond types
 
-UNDOCUMENTED
-
-U: Invalid dump image up vector
-
-UNDOCUMENTED
-
-U: Invalid dump image color range
-
-UNDOCUMENTED
-
-U: Illega dump_modify command
-
-UNDOCUMENTED
-
-U: Invalid color map in dump_modify command
-
-UNDOCUMENTED
+Self-explanatory.
 
 */

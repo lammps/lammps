@@ -156,10 +156,10 @@ class Image : protected Pointers {
 
 E: Invalid image up vector
 
-UNDOCUMENTED
+Up vector cannot be (0,0,0).
 
 E: Invalid image color range
 
-UNDOCUMENTED
+The lo value in the range is larger than the hi value.
 
 */

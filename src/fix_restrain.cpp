@@ -87,9 +87,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
 
   if (rstyle == DIHEDRAL) {
     cos_shift = (double *)
-      memory->smalloc(n_bonds * sizeof(double), "restrain:cos_shift");
+      memory->smalloc(n_bonds * sizeof(double),"restrain:cos_shift");
     sin_shift = (double *)
-      memory->smalloc(n_bonds * sizeof(double), "restrain:sin_shift");
+      memory->smalloc(n_bonds * sizeof(double),"restrain:sin_shift");
     for (ibond = 0; ibond < n_bonds; ibond++) {
       double my_arg = MY_PI * (180.0 + target[ibond]) / 180.0;
       cos_shift[ibond] = cos(my_arg);

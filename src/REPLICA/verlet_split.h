@@ -57,18 +57,20 @@ class VerletSplit : public Verlet {
 
 E: Verlet/split requires 2 partitions
 
-UNDOCUMENTED
+See the -partition command-line switch.
 
 E: Verlet/split requires Rspace partition size be multiple of Kspace partition size
 
-UNDOCUMENTED
+This is so there is an equal number of Rspace processors for every
+Kspace processor.
 
 E: Verlet/split requires Rspace partition layout be multiple of Kspace partition layout in each dim
 
-UNDOCUMENTED
+This is controlled by the processors command.
 
 W: No Kspace calculation with verlet/split
 
-UNDOCUMENTED
+The 2nd partition performs a kspace calculation so the kspace_style
+command must be used.
 
 */

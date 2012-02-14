@@ -54,27 +54,23 @@ class Universe : protected Pointers {
 
 E: Invalid -reorder N value
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Nprocs not a multiple of N for -reorder
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot open -reorder file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Unexpected end of -reorder file
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Invalid entry in reorder file
+E: Invalid entry in -reorder file
 
-UNDOCUMENTED
-
-E: Unexpected end of reorder file
-
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid command-line argument
 

@@ -336,12 +336,13 @@ pre-defined color names with new RBG values.
 
 <P>The <I>element</I> keyword applies only to the the dump <I>cfg</I> and <I>image</I>
 styles.  It associates element names (e.g. H, C, Fe) with LAMMPS atom
-types.  In the case of dump <I>cfg</I>, it allows the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
-visualization package to read the dump file and render atoms with the
-appropriate size and color.  In the case of dump <I>image</I>, the output
-images will follow the same <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> convention.  An element
-name is specified for each atom type (1 to Ntype) in the simulation.
-The same element name can be given to multiple atom types.
+types.  See the list of element names at the bottom of this page.  In
+the case of dump <I>cfg</I>, it allows the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization
+package to read the dump file and render atoms with the appropriate
+size and color.  In the case of dump <I>image</I>, the output images will
+follow the same <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> convention.  An element name is
+specified for each atom type (1 to Ntype) in the simulation.  The same
+element name can be given to multiple atom types.
 </P>
 
 
@@ -543,6 +544,23 @@ box size stored with the snapshot.
 <LI>sort = id for dump styles <I>dcd</I>, <I>xtc</I>, and <I>xyz</I>
 <LI>thresh = none
 <LI>unwrap = no 
+</UL>
+<HR>
+
+<P>These are the standard 109 element names that LAMMPS pre-defines for
+use with the <A HREF = "dump_image.html">dump image</A> and dump_modify commands.
+</P>
+<UL><LI>1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
+<LI>11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
+<LI>21-30 = "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"
+<LI>31-40 = "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr"
+<LI>41-50 = "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn"
+<LI>51-60 = "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd"
+<LI>61-70 = "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb"
+<LI>71-80 = "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg"
+<LI>81-90 = "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th"
+<LI>91-100 = "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm"
+<LI>101-109 = "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt" 
 </UL>
 <HR>
 

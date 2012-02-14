@@ -58,7 +58,7 @@ void FixNVETri::init()
   int i,itype;
 
   if (domain->dimension != 3)
-    error->all(FLERR,"Fix nve/line can only be used for 3d simulations");
+    error->all(FLERR,"Fix nve/tri can only be used for 3d simulations");
 
   // check that all particles are triangles
   // no point particles allowed

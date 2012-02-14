@@ -96,7 +96,7 @@ void ComputePairLocal::init()
 
   for (int i = 0; i < nvalues; i++)
     if (pstyle[i] == PN && pindex[i] >= force->pair->single_extra)
-      error->all(FLERR,"Pair style does not have single field"
+      error->all(FLERR,"Pair style does not have extra field"
 		 " requested by compute pair/local");
 
   // need an occasional half neighbor list

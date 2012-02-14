@@ -52,7 +52,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute erotate/asphere requires atom style ellipsoid or line or tri
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute erotate/asphere requires extended particles
 

@@ -61,7 +61,7 @@ class ChangeBox : protected Pointers {
 
 E: Change_box command before simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -71,91 +71,59 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot change_box after reading restart file with per-atom info
 
-UNDOCUMENTED
-
-E: Could not find change_box group ID
-
-UNDOCUMENTED
-
-E: Cannot change_box in z dimension for 2d simulation
-
-UNDOCUMENTED
-
-E: Change_box volume used incorrectly
-
-UNDOCUMENTED
-
-E: Cannot change_box in xz or yz for 2d simulation
-
-UNDOCUMENTED
-
-E: Use of change_box with undefined lattice
-
-UNDOCUMENTED
-
-E: Cannot change box tilt factors for orthogonal box
-
-UNDOCUMENTED
-
-E: Cannot run 2d simulation with nonperiodic Z dimension
-
-UNDOCUMENTED
-
-E: Cannot change box to orthogonal when tilt is non-zero
-
-UNDOCUMENTED
-
-E: Cannot change box ortho/triclinic with dumps defined
-
-UNDOCUMENTED
-
-E: Cannot change box ortho/triclinic with certain fixes defined
-
-UNDOCUMENTED
-
-W: Lost atoms via change_box: original %ld current %ld
-
-UNDOCUMENTED
-
-U: Displace_box command before simulation box is defined
-
-Self-explanatory.
-
-U: Cannot displace_box after reading restart file with per-atom info
-
 This is because the restart file info cannot be migrated with the
 atoms.  You can get around this by performing a 0-timestep run which
 will assign the restart file info to actual atoms.
 
-U: Could not find displace_box group ID
+E: Could not find change_box group ID
 
-Group ID used in the displace_box command does not exist.
+Group ID used in the change_box command does not exist.
 
-U: Displace_box tilt factors require triclinic box
-
-Cannot use tilt factors unless the simulation box is
-non-orthogonal.
-
-U: Cannot displace_box on a non-periodic boundary
+E: Cannot change_box in z dimension for 2d simulation
 
 Self-explanatory.
 
-U: Use of displace_box with undefined lattice
+E: Change_box volume used incorrectly
+
+The "dim volume" option must be used immediately following one or two
+settings for "dim1 ..." (and optionally "dim2 ...") and must be for a
+different dimension, i.e. dim != dim1 and dim != dim2.
+
+E: Cannot change_box in xz or yz for 2d simulation
+
+Self-explanatory.
+
+E: Use of change_box with undefined lattice
 
 Must use lattice command with displace_box command if units option is
 set to lattice.
 
-U: Fix deform volume setting is invalid
+E: Cannot change box tilt factors for orthogonal box
 
-Cannot use volume style unless other dimensions are being controlled.
+Cannot use tilt factors unless the simulation box is non-orthogonal.
 
-U: Induced tilt by displace_box is too large
+E: Cannot change box z boundary to nonperiodic for a 2d simulation
 
-The final tilt value must be between -1/2 and 1/2 of the perpendicular
-box length.
+Self-explanatory.
 
-U: Lost atoms via displace_box: original %ld current %ld
+E: Cannot change box to orthogonal when tilt is non-zero
 
-UNDOCUMENTED
+Self-explanatory.
+
+E: Cannot change box ortho/triclinic with dumps defined
+
+This is because some dumps store the shape of the box.  You need to
+use undump to discard the dump, change the box, then redefine a new
+dump.
+
+E: Cannot change box ortho/triclinic with certain fixes defined
+
+This is because those fixes store the shape of the box.  You need to
+use unfix to discard the fix, change the box, then redefine a new
+fix.
+
+W: Lost atoms via change_box: original %ld current %ld
+
+The command options you have used caused atoms to be lost.
 
 */

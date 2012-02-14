@@ -49,15 +49,16 @@ class PairLJCharmmCoulLongGPU : public PairLJCharmmCoulLong {
 
 E: Out of memory on GPGPU
 
-UNDOCUMENTED
+GPU memory is limited.  Reduce the size of the problem or increase the
+number of GPUs.
 
 E: Pair style lj/charmm/coul/long/gpu requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Cannot use newton pair with lj/charmm/coul/long/gpu pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair style is incompatible with KSpace style
 

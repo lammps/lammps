@@ -60,7 +60,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute temp/asphere requires atom style ellipsoid
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute temp/asphere requires extended particles
 

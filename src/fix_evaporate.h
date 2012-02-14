@@ -70,7 +70,8 @@ a list to enable the atom_modify first command.
 
 W: Fix evaporate may delete atom with non-zero molecule ID
 
-UNDOCUMENTED
+This is probably an error, since you should not delete only one atom
+of a molecule.
 
 E: Fix evaporate molecule requires atom attribute molecule
 

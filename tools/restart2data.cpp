@@ -67,6 +67,8 @@ enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
 static const char * const cg_type_list[] =
   {"none", "lj9_6", "lj12_4", "lj12_6"};
 
+int swapflag;
+
 // ---------------------------------------------------------------------
 // Data class to hold problem
 // ---------------------------------------------------------------------
@@ -341,10 +343,14 @@ int atom_wavepacket(double *, Data &, int);
 
 void strip_suffix(char *);
 
+void nread_int(int *buf, int n, FILE *fp);
+void nread_double(double *buf, int n, FILE *fp);
 int read_int(FILE *fp);
 double read_double(FILE *fp);
 char *read_char(FILE *fp);
 bigint read_bigint(FILE *fp);
+
+int autodetect(FILE **, char *);
 
 static void helpmsg(int exitval) 
 {
@@ -423,6 +429,10 @@ int main (int narg, char **arg)
     }
   }
 
+  // auto-detect whether byte swapping needs to be done as file is read
+
+  swapflag = autodetect(&fp,restartfile);
+
   // read beginning of restart file
 
   Data data;
@@ -468,7 +478,7 @@ int main (int narg, char **arg)
       buf = new double[maxbuf];
     }
 
-    fread(buf,sizeof(double),n,fp);
+    nread_double(buf,n,fp);
 
     m = 0;
     while (m < n) m += atom(&buf[m],data);
@@ -698,7 +708,7 @@ void type_arrays(FILE *fp, Data &data)
 
     if (flag == MASS) {
       data.mass = new double[data.ntypes+1];
-      fread(&data.mass[1],sizeof(double),data.ntypes,fp);
+      nread_double(&data.mass[1],data.ntypes,fp);
     } else {
       printf("ERROR: Invalid flag in type arrays section of restart file %d\n",
 	     flag);
@@ -2563,10 +2573,10 @@ void bond(FILE *fp, Data &data)
     data.bond_class2_k2 = new double[data.nbondtypes+1];
     data.bond_class2_k3 = new double[data.nbondtypes+1];
     data.bond_class2_k4 = new double[data.nbondtypes+1];
-    fread(&data.bond_class2_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_class2_k2[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_class2_k3[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_class2_k4[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_class2_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_class2_k2[1],data.nbondtypes,fp);
+    nread_double(&data.bond_class2_k3[1],data.nbondtypes,fp);
+    nread_double(&data.bond_class2_k4[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"fene") == 0) {
 
@@ -2574,10 +2584,10 @@ void bond(FILE *fp, Data &data)
     data.bond_fene_r0 = new double[data.nbondtypes+1];
     data.bond_fene_epsilon = new double[data.nbondtypes+1];
     data.bond_fene_sigma = new double[data.nbondtypes+1];
-    fread(&data.bond_fene_k[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_fene_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_fene_epsilon[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_fene_sigma[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_fene_k[1],data.nbondtypes,fp);
+    nread_double(&data.bond_fene_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_fene_epsilon[1],data.nbondtypes,fp);
+    nread_double(&data.bond_fene_sigma[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"fene/expand") == 0) {
 
@@ -2586,55 +2596,54 @@ void bond(FILE *fp, Data &data)
     data.bond_feneexpand_epsilon = new double[data.nbondtypes+1];
     data.bond_feneexpand_sigma = new double[data.nbondtypes+1];
     data.bond_feneexpand_shift = new double[data.nbondtypes+1];
-    fread(&data.bond_feneexpand_k[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_feneexpand_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_feneexpand_epsilon[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_feneexpand_sigma[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_feneexpand_shift[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_feneexpand_k[1],data.nbondtypes,fp);
+    nread_double(&data.bond_feneexpand_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_feneexpand_epsilon[1],data.nbondtypes,fp);
+    nread_double(&data.bond_feneexpand_sigma[1],data.nbondtypes,fp);
+    nread_double(&data.bond_feneexpand_shift[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"harmonic") == 0) {
 
     data.bond_harmonic_k = new double[data.nbondtypes+1];
     data.bond_harmonic_r0 = new double[data.nbondtypes+1];
-    fread(&data.bond_harmonic_k[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_harmonic_r0[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_harmonic_k[1],data.nbondtypes,fp);
+    nread_double(&data.bond_harmonic_r0[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"harmonicshift") == 0) {
 
     data.bond_harmonicshift_umin = new double[data.nbondtypes+1];
     data.bond_harmonicshift_r0 = new double[data.nbondtypes+1];
     data.bond_harmonicshift_rc = new double[data.nbondtypes+1];
-    fread(&data.bond_harmonicshift_umin[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_harmonicshift_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_harmonicshift_rc[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshift_umin[1],data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshift_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshift_rc[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"harmonicshiftcut") == 0) {
 
     data.bond_harmonicshiftcut_umin = new double[data.nbondtypes+1];
     data.bond_harmonicshiftcut_r0 = new double[data.nbondtypes+1];
     data.bond_harmonicshiftcut_rc = new double[data.nbondtypes+1];
-    fread(&data.bond_harmonicshiftcut_umin[1],sizeof(double),
-	  data.nbondtypes,fp);
-    fread(&data.bond_harmonicshiftcut_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_harmonicshiftcut_rc[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshiftcut_umin[1],data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshiftcut_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_harmonicshiftcut_rc[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"morse") == 0) {
 
     data.bond_morse_d0 = new double[data.nbondtypes+1];
     data.bond_morse_alpha = new double[data.nbondtypes+1];
     data.bond_morse_r0 = new double[data.nbondtypes+1];
-    fread(&data.bond_morse_d0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_morse_alpha[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_morse_r0[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_morse_d0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_morse_alpha[1],data.nbondtypes,fp);
+    nread_double(&data.bond_morse_r0[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"nonlinear") == 0) {
 
     data.bond_nonlinear_epsilon = new double[data.nbondtypes+1];
     data.bond_nonlinear_r0 = new double[data.nbondtypes+1];
     data.bond_nonlinear_lamda = new double[data.nbondtypes+1];
-    fread(&data.bond_nonlinear_epsilon[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_nonlinear_r0[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_nonlinear_lamda[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_nonlinear_epsilon[1],data.nbondtypes,fp);
+    nread_double(&data.bond_nonlinear_r0[1],data.nbondtypes,fp);
+    nread_double(&data.bond_nonlinear_lamda[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"quartic") == 0) {
 
@@ -2643,11 +2652,11 @@ void bond(FILE *fp, Data &data)
     data.bond_quartic_b2 = new double[data.nbondtypes+1];
     data.bond_quartic_rc = new double[data.nbondtypes+1];
     data.bond_quartic_u0 = new double[data.nbondtypes+1];
-    fread(&data.bond_quartic_k[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_quartic_b1[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_quartic_b2[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_quartic_rc[1],sizeof(double),data.nbondtypes,fp);
-    fread(&data.bond_quartic_u0[1],sizeof(double),data.nbondtypes,fp);
+    nread_double(&data.bond_quartic_k[1],data.nbondtypes,fp);
+    nread_double(&data.bond_quartic_b1[1],data.nbondtypes,fp);
+    nread_double(&data.bond_quartic_b2[1],data.nbondtypes,fp);
+    nread_double(&data.bond_quartic_rc[1],data.nbondtypes,fp);
+    nread_double(&data.bond_quartic_u0[1],data.nbondtypes,fp);
 
   } else if (strcmp(data.bond_style,"table") == 0) {
 
@@ -2682,9 +2691,9 @@ void angle(FILE *fp, Data &data)
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
     data.angle_cg_cmm_epsilon = new double[data.nangletypes+1];
 
-    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_theta0[1],data.nangletypes,fp);
+    nread_double(&data.angle_cg_cmm_epsilon[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"cg/cmm/old") == 0) {
 
@@ -2695,12 +2704,12 @@ void angle(FILE *fp, Data &data)
     double *angle_cg_cmm_rcut = new double[data.nangletypes+1];
     data.angle_cg_cmm_type = new int[data.nangletypes+1];
 
-    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_epsilon[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_sigma[1],sizeof(double),data.nangletypes,fp);
-    fread(angle_cg_cmm_rcut,sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cg_cmm_type[1],sizeof(int),data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_theta0[1],data.nangletypes,fp);
+    nread_double(&data.angle_cg_cmm_epsilon[1],data.nangletypes,fp);
+    nread_double(&data.angle_cg_cmm_sigma[1],data.nangletypes,fp);
+    nread_double(angle_cg_cmm_rcut,data.nangletypes,fp);
+    nread_int(&data.angle_cg_cmm_type[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"charmm") == 0) {
 
@@ -2708,10 +2717,11 @@ void angle(FILE *fp, Data &data)
     data.angle_charmm_theta0 = new double[data.nangletypes+1];
     data.angle_charmm_k_ub = new double[data.nangletypes+1];
     data.angle_charmm_r_ub = new double[data.nangletypes+1];
-    fread(&data.angle_charmm_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_charmm_theta0[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_charmm_k_ub[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_charmm_r_ub[1],sizeof(double),data.nangletypes,fp);
+
+    nread_double(&data.angle_charmm_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_charmm_theta0[1],data.nangletypes,fp);
+    nread_double(&data.angle_charmm_k_ub[1],data.nangletypes,fp);
+    nread_double(&data.angle_charmm_r_ub[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"class2") == 0) {
 
@@ -2729,75 +2739,70 @@ void angle(FILE *fp, Data &data)
     data.angle_class2_ba_r1 = new double[data.nangletypes+1];
     data.angle_class2_ba_r2 = new double[data.nangletypes+1];
 
-    fread(&data.angle_class2_theta0[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_k2[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_k3[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_k4[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_class2_theta0[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_k2[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_k3[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_k4[1],data.nangletypes,fp);
 
-    fread(&data.angle_class2_bb_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_bb_r1[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_bb_r2[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_class2_bb_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_bb_r1[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_bb_r2[1],data.nangletypes,fp);
 
-    fread(&data.angle_class2_ba_k1[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_ba_k2[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_ba_r1[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_class2_ba_r2[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_class2_ba_k1[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_ba_k2[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_ba_r1[1],data.nangletypes,fp);
+    nread_double(&data.angle_class2_ba_r2[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"cosineshift") == 0) {
 
     data.angle_cosineshift_umin = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshift_umin[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosineshift_umin[1],data.nangletypes,fp);
     data.angle_cosineshift_cost = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshift_cost[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosineshift_cost[1],data.nangletypes,fp);
     data.angle_cosineshift_sint = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshift_sint[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosineshift_sint[1],data.nangletypes,fp);
     data.angle_cosineshift_theta0 = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshift_theta0[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosineshift_theta0[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"cosineshiftexp") == 0) {
 
     data.angle_cosineshiftexp_umin = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshiftexp_umin[1],sizeof(double),
-	  data.nangletypes,fp);
+    nread_double(&data.angle_cosineshiftexp_umin[1],data.nangletypes,fp);
     data.angle_cosineshiftexp_a = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshiftexp_a[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosineshiftexp_a[1],data.nangletypes,fp);
     data.angle_cosineshiftexp_cost = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshiftexp_cost[1],sizeof(double),
-	  data.nangletypes,fp);
+    nread_double(&data.angle_cosineshiftexp_cost[1],data.nangletypes,fp);
     data.angle_cosineshiftexp_sint = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshiftexp_sint[1],sizeof(double),
-	  data.nangletypes,fp);
+    nread_double(&data.angle_cosineshiftexp_sint[1],data.nangletypes,fp);
     data.angle_cosineshiftexp_theta0 = new double[data.nangletypes+1];
-    fread(&data.angle_cosineshiftexp_theta0[1],sizeof(double),
-	  data.nangletypes,fp);
+    nread_double(&data.angle_cosineshiftexp_theta0[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"cosine") == 0) {
 
     data.angle_cosine_k = new double[data.nangletypes+1];
-    fread(&data.angle_cosine_k[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosine_k[1],data.nangletypes,fp);
 
   } else if ((strcmp(data.angle_style,"cosine/squared") == 0) ||
              (strcmp(data.angle_style,"cosine/delta") == 0)) {
 
     data.angle_cosine_squared_k = new double[data.nangletypes+1];
     data.angle_cosine_squared_theta0 = new double[data.nangletypes+1];
-    fread(&data.angle_cosine_squared_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_cosine_squared_theta0[1],
-	  sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_cosine_squared_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_cosine_squared_theta0[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"dipole") == 0) {
 
     data.angle_harmonic_k = new double[data.nangletypes+1];
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
-    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_theta0[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"harmonic") == 0) {
 
     data.angle_harmonic_k = new double[data.nangletypes+1];
     data.angle_harmonic_theta0 = new double[data.nangletypes+1];
-    fread(&data.angle_harmonic_k[1],sizeof(double),data.nangletypes,fp);
-    fread(&data.angle_harmonic_theta0[1],sizeof(double),data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_k[1],data.nangletypes,fp);
+    nread_double(&data.angle_harmonic_theta0[1],data.nangletypes,fp);
 
   } else if (strcmp(data.angle_style,"table") == 0) {
 
@@ -2831,12 +2836,10 @@ void dihedral(FILE *fp, Data &data)
     data.dihedral_charmm_multiplicity = new int[data.ndihedraltypes+1];
     data.dihedral_charmm_sign = new int[data.ndihedraltypes+1];
     data.dihedral_charmm_weight = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_charmm_k[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_charmm_multiplicity[1],sizeof(int),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_charmm_sign[1],sizeof(int),data.ndihedraltypes,fp);
-    fread(&data.dihedral_charmm_weight[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_charmm_k[1],data.ndihedraltypes,fp);
+    nread_int(&data.dihedral_charmm_multiplicity[1],data.ndihedraltypes,fp);
+    nread_int(&data.dihedral_charmm_sign[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_charmm_weight[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"class2") == 0) {
 
@@ -2880,90 +2883,63 @@ void dihedral(FILE *fp, Data &data)
     data.dihedral_class2_bb13_r10 = new double[data.ndihedraltypes+1];
     data.dihedral_class2_bb13_r30 = new double[data.ndihedraltypes+1];
 
-    fread(&data.dihedral_class2_k1[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_k2[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_k3[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_phi1[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_phi2[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_phi3[1],sizeof(double),data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_k1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_k2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_k3[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_phi1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_phi2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_phi3[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_mbt_f1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_mbt_f2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_mbt_f3[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_mbt_r0[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_mbt_f1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_mbt_f2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_mbt_f3[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_mbt_r0[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_ebt_f1_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_f2_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_f3_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_r0_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f1_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f2_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f3_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_r0_1[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_ebt_f1_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_f2_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_f3_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_ebt_r0_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f1_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f2_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_f3_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_ebt_r0_2[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_at_f1_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_f2_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_f3_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_theta0_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f1_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f2_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f3_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_theta0_1[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_at_f1_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_f2_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_f3_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_at_theta0_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f1_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f2_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_f3_2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_at_theta0_2[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_aat_k[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_aat_theta0_1[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_aat_theta0_2[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_aat_k[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_aat_theta0_1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_aat_theta0_2[1],data.ndihedraltypes,fp);
 
-    fread(&data.dihedral_class2_bb13_k[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_bb13_r10[1],sizeof(double),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_class2_bb13_r30[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_bb13_k[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_bb13_r10[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_class2_bb13_r30[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"harmonic") == 0) {
 
     data.dihedral_harmonic_k = new double[data.ndihedraltypes+1];
     data.dihedral_harmonic_multiplicity = new int[data.ndihedraltypes+1];
     data.dihedral_harmonic_sign = new int[data.ndihedraltypes+1];
-    fread(&data.dihedral_harmonic_k[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_harmonic_multiplicity[1],sizeof(int),
-	  data.ndihedraltypes,fp);
-    fread(&data.dihedral_harmonic_sign[1],sizeof(int),data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_harmonic_k[1],data.ndihedraltypes,fp);
+    nread_int(&data.dihedral_harmonic_multiplicity[1],data.ndihedraltypes,fp);
+    nread_int(&data.dihedral_harmonic_sign[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"helix") == 0) {
 
     data.dihedral_helix_aphi = new double[data.ndihedraltypes+1];
     data.dihedral_helix_bphi = new double[data.ndihedraltypes+1];
     data.dihedral_helix_cphi = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_helix_aphi[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_helix_bphi[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_helix_cphi[1],sizeof(double),data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_helix_aphi[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_helix_bphi[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_helix_cphi[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"multi/harmonic") == 0) {
 
@@ -2972,11 +2948,11 @@ void dihedral(FILE *fp, Data &data)
     data.dihedral_multi_a3 = new double[data.ndihedraltypes+1];
     data.dihedral_multi_a4 = new double[data.ndihedraltypes+1];
     data.dihedral_multi_a5 = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_multi_a1[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_multi_a2[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_multi_a3[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_multi_a4[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_multi_a5[1],sizeof(double),data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_multi_a1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_multi_a2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_multi_a3[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_multi_a4[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_multi_a5[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"opls") == 0) {
 
@@ -2984,28 +2960,23 @@ void dihedral(FILE *fp, Data &data)
     data.dihedral_opls_k2 = new double[data.ndihedraltypes+1];
     data.dihedral_opls_k3 = new double[data.ndihedraltypes+1];
     data.dihedral_opls_k4 = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_opls_k1[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_opls_k2[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_opls_k3[1],sizeof(double),data.ndihedraltypes,fp);
-    fread(&data.dihedral_opls_k4[1],sizeof(double),data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_opls_k1[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_opls_k2[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_opls_k3[1],data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_opls_k4[1],data.ndihedraltypes,fp);
   
   } else if (strcmp(data.dihedral_style,"cosineshiftexp") == 0) {
 
     data.dihedral_cosineshiftexp_umin = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_cosineshiftexp_umin[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_cosineshiftexp_umin[1],data.ndihedraltypes,fp);
     data.dihedral_cosineshiftexp_a = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_cosineshiftexp_a[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_cosineshiftexp_a[1],data.ndihedraltypes,fp);
     data.dihedral_cosineshiftexp_cost = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_cosineshiftexp_cost[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_cosineshiftexp_cost[1],data.ndihedraltypes,fp);
     data.dihedral_cosineshiftexp_sint = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_cosineshiftexp_sint[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_cosineshiftexp_sint[1],data.ndihedraltypes,fp);
     data.dihedral_cosineshiftexp_theta = new double[data.ndihedraltypes+1];
-    fread(&data.dihedral_cosineshiftexp_theta[1],sizeof(double),
-	  data.ndihedraltypes,fp);
+    nread_double(&data.dihedral_cosineshiftexp_theta[1],data.ndihedraltypes,fp);
 
   } else if (strcmp(data.dihedral_style,"table") == 0) {
 
@@ -3045,41 +3016,31 @@ void improper(FILE *fp, Data &data)
     data.improper_class2_aa_theta0_2 = new double[data.nimpropertypes+1];
     data.improper_class2_aa_theta0_3 = new double[data.nimpropertypes+1];
 
-    fread(&data.improper_class2_k0[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_chi0[1],sizeof(double),
-	  data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_k0[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_chi0[1],data.nimpropertypes,fp);
 
-    fread(&data.improper_class2_aa_k1[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_aa_k2[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_aa_k3[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_aa_theta0_1[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_aa_theta0_2[1],sizeof(double),
-	  data.nimpropertypes,fp);
-    fread(&data.improper_class2_aa_theta0_3[1],sizeof(double),
-	  data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_k1[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_k2[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_k3[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_theta0_1[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_theta0_2[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_class2_aa_theta0_3[1],data.nimpropertypes,fp);
 
   } else if (strcmp(data.improper_style,"cvff") == 0) {
 
     data.improper_cvff_k = new double[data.nimpropertypes+1];
     data.improper_cvff_sign = new int[data.nimpropertypes+1];
     data.improper_cvff_multiplicity = new int[data.nimpropertypes+1];
-    fread(&data.improper_cvff_k[1],sizeof(double),data.nimpropertypes,fp);
-    fread(&data.improper_cvff_sign[1],sizeof(int),data.nimpropertypes,fp);
-    fread(&data.improper_cvff_multiplicity[1],sizeof(int),
-	  data.nimpropertypes,fp);
+    nread_double(&data.improper_cvff_k[1],data.nimpropertypes,fp);
+    nread_int(&data.improper_cvff_sign[1],data.nimpropertypes,fp);
+    nread_int(&data.improper_cvff_multiplicity[1],data.nimpropertypes,fp);
 
   } else if (strcmp(data.improper_style,"harmonic") == 0) {
 
     data.improper_harmonic_k = new double[data.nimpropertypes+1];
     data.improper_harmonic_chi = new double[data.nimpropertypes+1];
-    fread(&data.improper_harmonic_k[1],sizeof(double),data.nimpropertypes,fp);
-    fread(&data.improper_harmonic_chi[1],sizeof(double),
-	  data.nimpropertypes,fp);
+    nread_double(&data.improper_harmonic_k[1],data.nimpropertypes,fp);
+    nread_double(&data.improper_harmonic_chi[1],data.nimpropertypes,fp);
 
   } else if (strcmp(data.improper_style,"hybrid") == 0) {
 
@@ -4138,12 +4099,27 @@ void strip_suffix(char *style)
 
 // ---------------------------------------------------------------------
 // binary reads from restart file
+// all are wrappers on fread()
+// perform endian swap if swapflag is set
 // ---------------------------------------------------------------------
+
+void nread_int(int *buf, int n, FILE *fp)
+{
+  fread(buf,sizeof(int),n,fp);
+  if (swapflag) {}
+}
+
+void nread_double(double *buf, int n, FILE *fp)
+{
+  fread(buf,sizeof(double),n,fp);
+  if (swapflag) {}
+}
 
 int read_int(FILE *fp)
 {
   int value;
   fread(&value,sizeof(int),1,fp);
+  if (swapflag) {}
   return value;
 }
 
@@ -4151,6 +4127,7 @@ double read_double(FILE *fp)
 {
   double value;
   fread(&value,sizeof(double),1,fp);
+  if (swapflag) {}
   return value;
 }
 
@@ -4158,9 +4135,11 @@ char *read_char(FILE *fp)
 {
   int n;
   fread(&n,sizeof(int),1,fp);
+  if (swapflag) {}
   if (n == 0) return NULL;
   char *value = new char[n];
   fread(value,sizeof(char),n,fp);
+  if (swapflag) {}
   return value;
 }
 
@@ -4168,5 +4147,29 @@ bigint read_bigint(FILE *fp)
 {
   bigint value;
   fread(&value,sizeof(bigint),1,fp);
+  if (swapflag) {}
   return value;
+}
+
+// ---------------------------------------------------------------------
+// auto-detect if restart file needs to be byte-swapped on this platform
+// return 0 if not, 1 if it does
+// re-open file with fp after checking first few bytes
+// ---------------------------------------------------------------------
+
+int autodetect(FILE **pfp, char *file)
+{
+  FILE *fp = *pfp;
+
+  // read, check, set return flag
+
+  int flag = 0;
+
+  // reset file pointer
+
+  fclose(fp);
+  fp = fopen(file,"rb");
+  *pfp = fp;
+
+  return flag;
 }

@@ -15,7 +15,7 @@ compute ID group-ID pe/atom keyword ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 pe/atom = style name of this compute command
 zero or more keywords may be appended
-keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} :ul
+keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} :ul
 
 [Examples:]
 
@@ -32,8 +32,9 @@ you want the potential energy of the entire system.
 The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
 listed, then the potential energy is the sum of pair, bond, angle,
-dihedral, and improper energy.  If any extra keywords are listed, then
-only those components are summed to compute the potential energy.
+dihedral,improper, and kspace energy.  If any extra keywords are
+listed, then only those components are summed to compute the potential
+energy.
 
 Note that the energy of each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -55,13 +56,9 @@ compute		peratom all pe/atom
 compute		pe all reduce sum c_peratom
 thermo_style	custom step temp etotal press pe c_pe :pre
 
-IMPORTANT NOTE: The per-atom energy does NOT include contributions due
-to long-range Coulombic interactions (via the
-"kspace_style"_kspace_style.html command).  It's not clear this
-contribution can easily be computed.  It also does not include any
-Lennard-Jones tail corrections invoked by the "pair_modify tail
-yes"_pair_modify.html command, since those are global contributions to
-the system energy.
+IMPORTANT NOTE: The per-atom energy does not any Lennard-Jones tail
+corrections invoked by the "pair_modify tail yes"_pair_modify.html
+command, since those are global contributions to the system energy.
 
 [Output info:]
 

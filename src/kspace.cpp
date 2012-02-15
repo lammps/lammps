@@ -64,6 +64,9 @@ void KSpace::ev_setup(int eflag, int vflag)
   vflag_global = vflag % 4;
   vflag_atom = vflag / 4;
   
+  if (eflag_atom || vflag_atom) evflag_atom = 1;
+  else evflag_atom = 0;
+
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nlocal > maxeatom) {

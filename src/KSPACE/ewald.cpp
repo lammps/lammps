@@ -216,7 +216,8 @@ void Ewald::compute(int eflag, int vflag)
   // set energy/virial flags
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global = 
+	 eflag_atom = vflag_atom = 0;
 
   // extend size of per-atom arrays if necessary
 
@@ -270,7 +271,7 @@ void Ewald::compute(int eflag, int vflag)
       ek[i][1] += partial*eg[k][1];
       ek[i][2] += partial*eg[k][2];
 
-      if (eflag_atom || vflag_atom) {
+      if (evflag_atom) {
         partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];		
     	if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
         if (vflag_atom)
@@ -315,7 +316,7 @@ void Ewald::compute(int eflag, int vflag)
   // per-atom energy/virial
   // energy includes self-energy correction
 
-  if (eflag_atom || vflag_atom) {
+  if (evflag_atom) {
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
         eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 

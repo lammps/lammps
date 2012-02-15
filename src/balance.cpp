@@ -488,6 +488,7 @@ int Balance::dynamic_once()
 #endif
       }
       imbfactor = imbalance_splits(max);
+      if (comm->me == 0) printf("AAA %d %d %g\n",irepeat,i,imbfactor);
       if (imbfactor <= thresh) break;
     }
     if (i < nops) break;
@@ -500,7 +501,7 @@ int Balance::dynamic_once()
 
 /* ----------------------------------------------------------------------
    perform dynamic load balance by changing xyz split proc boundaries in Comm
-   called from command and fix balance
+   called from fix balance
    return actual iteration count
 ------------------------------------------------------------------------- */
 
@@ -581,12 +582,6 @@ void Balance::adjust(int n, bigint *count, double *split)
 
   double damp = 0.5;
 
-  // maxcount = max atoms in any slice
-
-  bigint maxcount = 0;
-  for (int i = 0; i < n; i++)
-    maxcount = MAX(maxcount,count[i]);
-  
   // loop over slices
   // cut I is between 2 slices (I-1 and I) with counts
   // cut I+1 is between 2 slices (I and I+1) with counts
@@ -597,14 +592,14 @@ void Balance::adjust(int n, bigint *count, double *split)
   double rho,target,targetleft,targetright;
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) leftcount = maxcount;
+    if (i == 0) leftcount = MAXBIGINT;
     else leftcount = count[i-1];
     mycount = count[i];
-    if (i == n-1) rightcount = maxcount;
+    if (i == n-1) rightcount = MAXBIGINT;
     else rightcount = count[i+1];
 
     // middle slice is <= both left and right, so do nothing
-    // special case if 2 slices both have count = 0, no change in cut
+    // special case if 2 slices both have count = 0 -> no change in cut
 
     if (mycount <= leftcount && mycount <= rightcount) {
       if (leftcount == 0) cuts[i] = split[i];
@@ -616,6 +611,19 @@ void Balance::adjust(int n, bigint *count, double *split)
 
     rho = mycount / (split[i+1] - split[i]);
 
+    // middle slice has more atoms than left or right slice
+    // send atoms in that dir
+
+    if (mycount > leftcount) {
+      target = damp * 0.5*(mycount-leftcount);
+      cuts[i] = split[i] + target/rho;
+    }
+    if (mycount > rightcount) {
+      target = damp * 0.5*(mycount-rightcount);
+      cuts[i+1] = split[i+1] - target/rho;
+    }
+
+    /*
     // middle slice has more atoms then left or right slice
     // if delta from middle to top slice > delta between top and bottom slice
     //   then send atoms both dirs to bring all 3 slices to same count
@@ -656,6 +664,7 @@ void Balance::adjust(int n, bigint *count, double *split)
       target = damp * 0.5*(mycount-rightcount);
       cuts[i+1] = split[i+1] - target/rho;
     }
+    */
   }
 
   // overwrite adjustable splits with new cuts

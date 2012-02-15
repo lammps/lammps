@@ -101,7 +101,8 @@ class PairComb : public Pair {
   double comb_bij(double, Param *);
   double comb_bij_d(double, Param *);
 
-  inline double comb_gijk(const double costheta, const Param * const param) const {
+  inline double comb_gijk(const double costheta, 
+			  const Param * const param) const {
     const double comb_c = param->c * param->c;
     const double comb_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -109,7 +110,8 @@ class PairComb : public Pair {
     return param->gamma*(1.0 + comb_c/comb_d - comb_c / (comb_d + hcth*hcth));
   }
 
-  inline double comb_gijk_d(const double costheta, const Param * const param) const {
+  inline double comb_gijk_d(const double costheta, 
+			    const Param * const param) const {
     const double comb_c = param->c * param->c;
     const double comb_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -143,7 +145,7 @@ class PairComb : public Pair {
   int pack_comm(int , int *, double *, int, int *);
   void unpack_comm(int , int , double *);
 
-  // Short range neighbor list
+  // short range neighbor list
 
   void add_pages(int howmany=1);
   void Short_neigh();

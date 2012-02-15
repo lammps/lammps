@@ -571,8 +571,8 @@ void Balance::stats(int dim, int n, double *split, bigint *count)
    count = atoms per slice
    split = current N+1 cuts, with 0.0 and 1.0 at end points
    overwrite split with new cuts
-   diffusion means slices with more atoms than their neighbors
-     "send" them atoms by moving cut closer to sender, further from receiver
+   diffusion means slices with more atoms than their neighbors "send" atoms,
+     by moving cut closer to sender, further from receiver
 ------------------------------------------------------------------------- */
 
 void Balance::adjust(int n, bigint *count, double *split)

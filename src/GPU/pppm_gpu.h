@@ -43,12 +43,12 @@ class PPPMGPU : public PPPM {
   virtual void deallocate();
   virtual void brick2fft();
   virtual void fillbrick();
-  virtual void poisson(int, int);
+  virtual void poisson();
 
   double poisson_time;  
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
-			     FFT_SCALAR *, int);
+				 FFT_SCALAR *, int);
   void destroy_3d_offset(FFT_SCALAR ***, int, int);
 };
 

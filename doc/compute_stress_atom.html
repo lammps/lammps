@@ -18,7 +18,7 @@
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>stress/atom = style name of this compute command
 <LI>zero or more keywords may be appended
-<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>fix</I> or <I>virial</I> 
+<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> or <I>fix</I> or <I>virial</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -47,11 +47,12 @@ atoms in the pairwise interaction, and <I>F1</I> and <I>F2</I> are the forces on
 the 2 atoms resulting from the pairwise interaction.  The third term
 is a bond contribution of similar form for the <I>Nb</I> bonds which atom
 <I>I</I> is part of.  There are similar terms for the <I>Na</I> angle, <I>Nd</I>
-dihedral, and <I>Ni</I> improper interactions atom <I>I</I> is part of.
-Finally, there is a term for the <I>Nf</I> <A HREF = "fix.html">fixes</A> that apply
-internal constraint forces to atom <I>I</I>.  Currently, only the <A HREF = "fix_shake.html">fix
-shake</A> and <A HREF = "fix_rigid.html">fix rigid</A> commands
-contribute to this term.
+dihedral, and <I>Ni</I> improper interactions atom <I>I</I> is part of.  There
+is also a term for the KSpace contribution from long-range Coulombic
+interactions, if defined.  Finally, there is a term for the <I>Nf</I>
+<A HREF = "fix.html">fixes</A> that apply internal constraint forces to atom <I>I</I>.
+Currently, only the <A HREF = "fix_shake.html">fix shake</A> and <A HREF = "fix_rigid.html">fix
+rigid</A> commands contribute to this term.
 </P>
 <P>As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
@@ -74,6 +75,12 @@ other atoms in the simulation, not just with other atoms in the group.
 pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 </P>
+<P>The KSpace contribution to the per-atom stress requires 6 extra FFTs
+each timestep that per-atom stress is calculated, if using the PPPM
+solver via the <A HREF = "kspace_style.html">kspace_style pppm</A> command.  Thus it
+can significantly increase the cost of the PPPM calculation if it is
+needed on a large fraction of the simulation timesteps.
+</P>
 <P>Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress*volume
 formulation, meaning the computed quantity is in units of
@@ -93,11 +100,6 @@ compute		p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable	press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 thermo_style	custom step temp etotal press v_press 
 </PRE>
-<P>IMPORTANT NOTE: The per-atom stress does NOT include contributions due
-to long-range Coulombic interactions (via the
-<A HREF = "kspace_style.html">kspace_style</A> command).  It's not clear this
-contribution can easily be computed.
-</P>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a per-atom array with 6 columns, which can be

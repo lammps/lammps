@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
+     per-atom energy/virial added by German Samolyuk (ORNL), Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -132,8 +133,8 @@ void Ewald::init()
   gsqmx = -4.0*g_ewald*g_ewald*log(precision);
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"  G vector = %g\n",g_ewald);
-    if (logfile) fprintf(logfile,"  G vector = %g\n",g_ewald);
+    if (screen) fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
+    if (logfile) fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
   }
 
   // setup Ewald coefficients so can print stats
@@ -210,10 +211,12 @@ void Ewald::setup()
 
 void Ewald::compute(int eflag, int vflag)
 {
-  int i,k,n;
+  int i,j,k;
 
-  energy = 0.0;
-  if (vflag) for (n = 0; n < 6; n++) virial[n] = 0.0;
+  // set energy/virial flags
+
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
   // extend size of per-atom arrays if necessary
 
@@ -237,13 +240,14 @@ void Ewald::compute(int eflag, int vflag)
 
   // K-space portion of electric field
   // double loop over K-vectors and local atoms
+  // perform per-atom calculations if needed
 
   double **f = atom->f;
   double *q = atom->q;
   int nlocal = atom->nlocal;
 
   int kx,ky,kz;
-  double cypz,sypz,exprl,expim,partial;
+  double cypz,sypz,exprl,expim,partial,partial_peratom;
 
   for (i = 0; i < nlocal; i++) {
     ek[i][0] = 0.0;
@@ -265,6 +269,14 @@ void Ewald::compute(int eflag, int vflag)
       ek[i][0] += partial*eg[k][0];
       ek[i][1] += partial*eg[k][1];
       ek[i][2] += partial*eg[k][2];
+
+      if (eflag_atom || vflag_atom) {
+        partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];		
+    	if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
+        if (vflag_atom)
+	  for (j = 0; j < 6; j++)
+	    vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
+      }
     }
   }
 
@@ -278,9 +290,9 @@ void Ewald::compute(int eflag, int vflag)
     f[i][2] += qscale * q[i]*ek[i][2];
   }
  
-  // energy if requested
+  // global energy
 
-  if (eflag) {
+  if (eflag_global) {
     for (k = 0; k < kcount; k++)
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
 			 sfacim_all[k]*sfacim_all[k]);
@@ -289,18 +301,37 @@ void Ewald::compute(int eflag, int vflag)
     energy *= qscale;
   }
 
-  // virial if requested
+  // global virial
 
-  if (vflag) {
+  if (vflag_global) {
     double uk;
     for (k = 0; k < kcount; k++) {
       uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-      for (n = 0; n < 6; n++) virial[n] += uk*vg[k][n];
+      for (j = 0; j < 6; j++) virial[j] += uk*vg[k][j];
     }
-    for (n = 0; n < 6; n++) virial[n] *= qscale;
+    for (j = 0; j < 6; j++) virial[j] *= qscale;
   }
 
-  if (slabflag) slabcorr(eflag);
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (eflag_atom || vflag_atom) {
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+      
+    if (vflag_atom)
+      for (i = 0; i < nlocal; i++)
+	for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
+  }
+
+  // 2d slab correction
+
+  if (slabflag) slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -801,7 +832,7 @@ void Ewald::deallocate()
    111, 3155).  Slabs defined here to be parallel to the xy plane. 
 ------------------------------------------------------------------------- */
 
-void Ewald::slabcorr(int eflag)
+void Ewald::slabcorr()
 {
   // compute local contribution to global dipole moment
   
@@ -822,7 +853,7 @@ void Ewald::slabcorr(int eflag)
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
   
-  if (eflag) energy += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
   // add on force corrections
 

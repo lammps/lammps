@@ -55,22 +55,27 @@ class PPPM : public KSpace {
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;
   double shift,shiftone;
+  int peratom_allocate_flag;
 
   int nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in;
   int nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out;
   int nxlo_ghost,nxhi_ghost,nylo_ghost,nyhi_ghost,nzlo_ghost,nzhi_ghost;
   int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
   int nlower,nupper;
-  int ngrid,nfft,nbuf,nfft_both;
+  int ngrid,nfft,nfft_both;
+  int nbuf,nbuf_peratom;
 
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
+  FFT_SCALAR ***u_brick;
+  FFT_SCALAR ***v0_brick,***v1_brick,***v2_brick;
+  FFT_SCALAR ***v3_brick,***v4_brick,***v5_brick;
   double *greensfn;
   double **vg;
   double *fkx,*fky,*fkz;
   FFT_SCALAR *density_fft;
   FFT_SCALAR *work1,*work2;
-  FFT_SCALAR *buf1,*buf2;
+  FFT_SCALAR *buf1,*buf2,*buf3,*buf4;
 
   double *gf_b;
   FFT_SCALAR **rho1d,**rho_coeff;
@@ -90,7 +95,9 @@ class PPPM : public KSpace {
 
   void set_grid();
   virtual void allocate();
+  virtual void allocate_peratom();
   virtual void deallocate();
+  virtual void deallocate_peratom();
   int factorable(int);
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
@@ -100,13 +107,16 @@ class PPPM : public KSpace {
   virtual void make_rho();
   virtual void brick2fft();
   virtual void fillbrick();
-  virtual void poisson(int, int);
+  virtual void fillbrick_peratom();
+  virtual void poisson();
+  virtual void poisson_peratom();
   virtual void fieldforce();
+  virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
 		     const FFT_SCALAR &);
   void compute_rho_coeff();
-  void slabcorr(int);
+  void slabcorr();
 
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
@@ -120,7 +130,8 @@ class PPPM : public KSpace {
    gf_b = denominator expansion coeffs 
 ------------------------------------------------------------------------- */
 
-  inline double gf_denom(const double &x, const double &y, const double &z) const {
+  inline double gf_denom(const double &x, const double &y, 
+			 const double &z) const {
     double sx,sy,sz;
     sz = sy = sx = 0.0;
     for (int l = order-1; l >= 0; l--) {

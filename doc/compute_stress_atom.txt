@@ -15,7 +15,7 @@ compute ID group-ID stress/atom keyword ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 stress/atom = style name of this compute command
 zero or more keywords may be appended
-keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {fix} or {virial} :ul
+keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} :ul
 
 [Examples:]
 
@@ -44,11 +44,12 @@ atoms in the pairwise interaction, and {F1} and {F2} are the forces on
 the 2 atoms resulting from the pairwise interaction.  The third term
 is a bond contribution of similar form for the {Nb} bonds which atom
 {I} is part of.  There are similar terms for the {Na} angle, {Nd}
-dihedral, and {Ni} improper interactions atom {I} is part of.
-Finally, there is a term for the {Nf} "fixes"_fix.html that apply
-internal constraint forces to atom {I}.  Currently, only the "fix
-shake"_fix_shake.html and "fix rigid"_fix_rigid.html commands
-contribute to this term.
+dihedral, and {Ni} improper interactions atom {I} is part of.  There
+is also a term for the KSpace contribution from long-range Coulombic
+interactions, if defined.  Finally, there is a term for the {Nf}
+"fixes"_fix.html that apply internal constraint forces to atom {I}.
+Currently, only the "fix shake"_fix_shake.html and "fix
+rigid"_fix_rigid.html commands contribute to this term.
 
 As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
@@ -71,6 +72,12 @@ The "dihedral_style charmm"_dihedral_charmm.html style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 
+The KSpace contribution to the per-atom stress requires 6 extra FFTs
+each timestep that per-atom stress is calculated, if using the PPPM
+solver via the "kspace_style pppm"_kspace_style.html command.  Thus it
+can significantly increase the cost of the PPPM calculation if it is
+needed on a large fraction of the simulation timesteps.
+
 Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress*volume
 formulation, meaning the computed quantity is in units of
@@ -89,11 +96,6 @@ compute		peratom all stress/atom
 compute		p all reduce sum c_peratom\[1\] c_peratom\[2\] c_peratom\[3\]
 variable	press equal -(c_p\[1\]+c_p\[2\]+c_p\[3\])/(3*vol)
 thermo_style	custom step temp etotal press v_press :pre
-
-IMPORTANT NOTE: The per-atom stress does NOT include contributions due
-to long-range Coulombic interactions (via the
-"kspace_style"_kspace_style.html command).  It's not clear this
-contribution can easily be computed.
 
 [Output info:]
 

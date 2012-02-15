@@ -66,7 +66,8 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   if (modify->compute[ipe]->peatomflag == 0)
     error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
   if (modify->compute[istress]->pressatomflag == 0)
-    error->all(FLERR,"Compute heat/flux compute ID does not compute stress/atom");
+    error->all(FLERR,
+	       "Compute heat/flux compute ID does not compute stress/atom");
 
   vector = new double[6];
 }

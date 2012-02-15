@@ -28,7 +28,7 @@ class PPPMCG : public PPPM {
  public:
   PPPMCG(class LAMMPS *, int, char **);
   virtual ~PPPMCG();
-  virtual void compute(int eflag, int vflag);
+  virtual void compute(int, int);
   virtual double memory_usage();
 
  protected:
@@ -39,7 +39,7 @@ class PPPMCG : public PPPM {
   virtual void particle_map();
   virtual void make_rho();
   virtual void fieldforce();
-  virtual void slabcorr(int);
+  virtual void slabcorr();
 };
 
 }

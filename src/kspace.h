@@ -21,13 +21,15 @@ namespace LAMMPS_NS {
 class KSpace : protected Pointers {
   friend class ThrOMP;
  public:
-  double energy;
-  double virial[6];
+  double energy;                  // accumulated energy
+  double virial[6];               // accumlated virial
+  double *eatom,**vatom;          // accumulated per-atom energy/virial
+
   double g_ewald;
   int nx_pppm,ny_pppm,nz_pppm;
  
   KSpace(class LAMMPS *, int, char **);
-  virtual ~KSpace() {}
+  virtual ~KSpace();
   void modify_params(int, char **);
   void *extract(const char *);
 
@@ -38,11 +40,18 @@ class KSpace : protected Pointers {
   virtual double memory_usage() {return 0.0;}
 
  protected:
-  double slab_volfactor;
   int gridflag,gewaldflag;
   int order;
   int slabflag;
   double scale;
+  double slab_volfactor;
+
+  int evflag;
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+  int maxeatom,maxvatom;
+
+  void ev_setup(int, int);
 };
 
 }

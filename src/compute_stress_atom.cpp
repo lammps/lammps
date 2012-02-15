@@ -23,6 +23,7 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
+#include "kspace.h"
 #include "modify.h"
 #include "fix.h"
 #include "memory.h"
@@ -47,11 +48,13 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
     keflag = 1;
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
+    kspaceflag = 1;
     fixflag = 1;
   } else {
     keflag = 0;
     pairflag = 0;
     bondflag = angleflag = dihedralflag = improperflag = 0;
+    kspaceflag = 0;
     fixflag = 0;
     int iarg = 3;
     while (iarg < narg) {
@@ -61,6 +64,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
+      else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
       else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
       else if (strcmp(arg[iarg],"virial") == 0) {
 	pairflag = 1;
@@ -174,6 +178,15 @@ void ComputeStressAtom::compute_peratom()
   // communicate ghost atom virials between neighbor procs
 
   if (force->newton) comm->reverse_comm_compute(this);
+
+  // KSpace contribution is already per local atom
+
+  if (kspaceflag && force->kspace) {
+    double **vatom = force->kspace->vatom;
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < 6; j++)
+	stress[i][j] += vatom[i][j];
+  }
 
   // zero virial of atoms not in group
   // only do this after comm since ghost contributions must be included

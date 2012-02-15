@@ -22,6 +22,7 @@
 #include "math.h"
 #include "ewald_n.h"
 #include "math_vector.h"
+#include "math_const.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -31,6 +32,7 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define KSPACE_ILLEGAL	"Illegal kspace_style ewald/n command"
 #define KSPACE_ORDER	"Unsupported order in kspace_style ewald/n for"
@@ -141,14 +143,14 @@ void EwaldN::setup()
 {
   volume = shape_det(domain->h)*slab_volfactor;		// cell volume
   memcpy(unit, domain->h_inv, sizeof(shape));		// wave vector units
-  shape_scalar_mult(unit, 2.0*M_PI);
+  shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
 
   //int nbox_old = nbox, nkvec_old = nkvec;
   if (precision>=1) nbox = 0;
   else {
     vector n = {1.0, 1.0, 1.0};				// based on cutoff
-    vec_scalar_mult(n, g_ewald*sqrt(-log(precision))/M_PI);
+    vec_scalar_mult(n, g_ewald*sqrt(-log(precision))/MY_PI);
     shape_vec_dot(n, n, domain->h);
     n[2] *= slab_volfactor;
     nbox = (int) n[0];
@@ -179,7 +181,9 @@ void EwaldN::reallocate()				// allocate memory
   vector h;
 
   nkvec = 0;						// determine size(kvec)
-  int kflag[(nbox+1)*(2*nbox+1)*(2*nbox+1)], *flag = kflag;
+  int *kflag = new int[(nbox+1)*(2*nbox+1)*(2*nbox+1)];
+  int *flag = kflag;
+
   for (ix=0; ix<=nbox; ++ix)
     for (iy=-nbox; iy<=nbox; ++iy)
       for (iz=-nbox; iz<=nbox; ++iz)
@@ -222,8 +226,8 @@ void EwaldN::reallocate()				// allocate memory
 	  (hi++)->z = unit[4]*ix+unit[3]*iy+unit[2]*iz;
 	  k->x = ix+nbox; k->y = iy+nbox; (k++)->z = iz+nbox; }
 
+  delete [] kflag;
 }
-
 
 void EwaldN::reallocate_atoms()
 {
@@ -271,7 +275,7 @@ void EwaldN::coefficients()				// set up pre-factors
     if (func12) {					// -Bij/r^6 coeffs
       b1 = sqrt(b2);					// minus sign folded
       h1 = sqrt(h2);					// into constants
-      *(ke++) = c1 = -h1*h2*((c2=sqrt(M_PI)*erfc(b1))+(0.5/b2-1.0)*expb2/b1);
+      *(ke++) = c1 = -h1*h2*((c2=sqrt(MY_PI)*erfc(b1))+(0.5/b2-1.0)*expb2/b1);
       *(kv++) = c1-(c2 = 3.0*h1*(c2-expb2/b1))*h[0]*h[0];
       *(kv++) = c1-c2*h[1]*h[1];			// lammps convention
       *(kv++) = c1-c2*h[2]*h[2];			// instead of voigt
@@ -370,21 +374,21 @@ void EwaldN::init_self()
   const double qscale = force->qqrd2e * scale;
 
   if (function[0]) {					// 1/r
-    virial_self[0] = -0.5*M_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
-    energy_self[0] = sum[0].x2*qscale*g1/sqrt(M_PI)-virial_self[0];
+    virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
+    energy_self[0] = sum[0].x2*qscale*g1/sqrt(MY_PI)-virial_self[0];
   }
   if (function[1]) {					// geometric 1/r^6
-    virial_self[1] = M_PI*sqrt(M_PI)*g3/(6.0*volume)*sum[1].x*sum[1].x;
+    virial_self[1] = MY_PI*sqrt(MY_PI)*g3/(6.0*volume)*sum[1].x*sum[1].x;
     energy_self[1] = -sum[1].x2*g3*g3/12.0+virial_self[1];
   }
   if (function[2]) {					// arithmetic 1/r^6
-    virial_self[2] = M_PI*sqrt(M_PI)*g3/(48.0*volume)*(sum[2].x*sum[8].x+
+    virial_self[2] = MY_PI*sqrt(MY_PI)*g3/(48.0*volume)*(sum[2].x*sum[8].x+
 	sum[3].x*sum[7].x+sum[4].x*sum[6].x+0.5*sum[5].x*sum[5].x);
     energy_self[2] = -sum[2].x2*g3*g3/3.0+virial_self[2];
   }
   if (function[3]) {					// dipole
     virial_self[3] = 0;					// in surface
-    energy_self[3] = sum[9].x2*mumurd2e*2.0*g3/3.0/sqrt(M_PI)-virial_self[3];
+    energy_self[3] = sum[9].x2*mumurd2e*2.0*g3/3.0/sqrt(MY_PI)-virial_self[3];
   }
 }
 
@@ -410,7 +414,8 @@ void EwaldN::compute_ek()
   int lbytes = (2*nbox+1)*sizeof(cvector);
   hvector *h;
   kvector *k, *nk = kvec+nkvec;
-  cvector z1, z[2*nbox+1], *zx, *zy, *zz, *zn = z+2*nbox;
+  cvector *z = new cvector[2*nbox+1];
+  cvector z1, *zx, *zy, *zz, *zn = z+2*nbox;
   complex *cek, zxyz, zxy, cx;
   vector mui;
   double *x = atom->x[0], *xn = x+3*atom->nlocal, *q = atom->q, qi, bi, ci[7];
@@ -473,8 +478,9 @@ void EwaldN::compute_ek()
     ++type;
   }
   MPI_Allreduce(cek_local, cek_global, 2*n, MPI_DOUBLE, MPI_SUM, world);
-}
 
+  delete [] z;
+}
 
 void EwaldN::compute_force()
 {
@@ -487,9 +493,9 @@ void EwaldN::compute_force()
   double *mu = atom->mu ? atom->mu[0] : NULL;
   const double qscale = force->qqrd2e * scale;
   double *ke, c[EWALD_NFUNCS] = {
-    8.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(12.0*volume),
-    2.0*M_PI*sqrt(M_PI)/(192.0*volume), 8.0*M_PI*mumurd2e/volume};
-  double kt = 4.0*pow(g_ewald, 3.0)/3.0/sqrt(M_PI)/c[3];
+    8.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(12.0*volume),
+    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
+  double kt = 4.0*pow(g_ewald, 3.0)/3.0/sqrt(MY_PI)/c[3];
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
   int func[EWALD_NFUNCS];
 
@@ -578,7 +584,7 @@ void EwaldN::compute_surface()
 
   energy_self[3] += virial_self[3];
   virial_self[3] =
-    mumurd2e*(2.0*M_PI*vec_dot(sum_total,sum_total)/(2.0*dielectric+1)/volume);
+    mumurd2e*(2.0*MY_PI*vec_dot(sum_total,sum_total)/(2.0*dielectric+1)/volume);
   energy_self[3] -= virial_self[3];
 }
 
@@ -591,8 +597,8 @@ void EwaldN::compute_energy(int eflag)
   double *ke = kenergy;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
-    2.0*M_PI*sqrt(M_PI)/(192.0*volume), 4.0*M_PI*mumurd2e/volume};
+    4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
+    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   double sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
 
@@ -630,8 +636,8 @@ void EwaldN::compute_virial(int vflag)
   double *kv = kvirial;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*M_PI*qscale/volume, 2.0*M_PI*sqrt(M_PI)/(24.0*volume),
-    2.0*M_PI*sqrt(M_PI)/(192.0*volume), 4.0*M_PI*mumurd2e/volume};
+    4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
+    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   shape sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
 
@@ -692,13 +698,13 @@ void EwaldN::compute_slabcorr(int eflag)
 
   const double qscale = force->qqrd2e * scale;
   
-  double ffact = -4.0*M_PI*qscale*dipole_all/volume;
+  double ffact = -4.0*MY_PI*qscale*dipole_all/volume;
   double *f = atom->f[0]-1, *fn = f+3*atom->nlocal-3;
   
   q = atom->q;
   while ((f+=3)<fn) *f += ffact* *(q++);
 
   if (eflag) 						// energy correction
-    energy += qscale*(2.0*M_PI*dipole_all*dipole_all/volume);
+    energy += qscale*(2.0*MY_PI*dipole_all*dipole_all/volume);
 }
 

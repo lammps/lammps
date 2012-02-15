@@ -65,9 +65,7 @@ for which terms to include in their calculation (pair, bond, etc).
 The heat flux calculation will thus include exactly the same terms.
 Normally you should use "compute stress/atom
 virial"_compute_stress_atom.html so as not to include a kinetic energy
-term in the heat flux.  Note that neither of those computes is able to
-include a long-range Coulombic contribution to the per-atom energy or
-stress.
+term in the heat flux.
 
 This compute calculates 6 quantities and stores them in a 6-component
 vector.  The first 3 components are the x, y, z components of the full

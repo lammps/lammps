@@ -14,8 +14,10 @@
 #include "stdlib.h"
 #include "string.h"
 #include "kspace.h"
-#include "error.h"
+#include "atom.h"
 #include "comm.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,6 +31,71 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   gewaldflag = 0;
   slabflag = 0;
   slab_volfactor = 1;
+
+  maxeatom = maxvatom = 0;
+  eatom = NULL;
+  vatom = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+KSpace::~KSpace()
+{
+  memory->destroy(eatom);
+  memory->destroy(vatom);
+}
+
+/* ----------------------------------------------------------------------
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+void KSpace::ev_setup(int eflag, int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+  
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nlocal > maxeatom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"kspace:eatom");
+  }
+  if (vflag_atom && atom->nlocal > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"kspace:vatom");
+  }
+
+  // zero accumulators
+
+  if (eflag_global) energy = 0.0;
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) eatom[i] = 0.0;
+  }
+  if (vflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) {
+      vatom[i][0] = 0.0;
+      vatom[i][1] = 0.0;
+      vatom[i][2] = 0.0;
+      vatom[i][3] = 0.0;
+      vatom[i][4] = 0.0;
+      vatom[i][5] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

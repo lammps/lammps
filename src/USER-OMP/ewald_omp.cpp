@@ -56,10 +56,10 @@ void EwaldOMP::allocate()
 
 void EwaldOMP::compute(int eflag, int vflag)
 {
-  // clear out global energy/virial
+  // set energy/virial flags
 
-  energy = 0.0;
-  if (vflag) for (int n = 0; n < 6; n++) virial[n] = 0.0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
 
   // extend size of per-atom arrays if necessary
 
@@ -77,7 +77,7 @@ void EwaldOMP::compute(int eflag, int vflag)
   // partial structure factors on each processor
   // total structure factor by summing over procs
 
-  eik_dot_r(); 
+  eik_dot_r();
   MPI_Allreduce(sfacrl,sfacrl_all,kcount,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(sfacim,sfacim_all,kcount,MPI_DOUBLE,MPI_SUM,world);
 
@@ -127,6 +127,17 @@ void EwaldOMP::compute(int eflag, int vflag)
 	ek[i][0] += partial*eg[k][0];
 	ek[i][1] += partial*eg[k][1];
 	ek[i][2] += partial*eg[k][2];
+
+#if 0
+	if (eflag_atom || vflag_atom) {
+	  partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];		
+	  if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
+	  if (vflag_atom)
+	    for (j = 0; j < 6; j++)
+	      vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
+	}
+#endif
+
       }
     }
 
@@ -141,7 +152,7 @@ void EwaldOMP::compute(int eflag, int vflag)
  
     // energy if requested
 
-    if (eflag) {
+    if (eflag_global) {
 #if defined(_OPENMP)
 #pragma omp for private(k)
 #endif
@@ -152,7 +163,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
     // virial if requested
 
-    if (vflag) {
+    if (vflag_global) {
 #if defined(_OPENMP)
 #pragma omp for private(k)
 #endif
@@ -170,13 +181,13 @@ void EwaldOMP::compute(int eflag, int vflag)
     reduce_thr(this, eflag,vflag,thr);
   } // end of omp parallel region
 
-  if (eflag) {
+  if (eflag_global) {
     eng_tmp -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy = eng_tmp * qscale;
   }
 
-  if (vflag) {
+  if (vflag_global) {
     virial[0] = v0 * qscale;
     virial[1] = v1 * qscale;
     virial[2] = v2 * qscale;
@@ -185,7 +196,26 @@ void EwaldOMP::compute(int eflag, int vflag)
     virial[5] = v5 * qscale;
   }
 
-  if (slabflag) slabcorr(eflag);
+#if 0
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (eflag_atom || vflag_atom) {
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+      
+    if (vflag_atom)
+      for (i = 0; i < nlocal; i++)
+	for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
+  }
+#endif
+
+  if (slabflag) slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */

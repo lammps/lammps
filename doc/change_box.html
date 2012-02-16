@@ -92,13 +92,22 @@ triclinic representations.
 simulation box and the atoms in it, in the order specified.
 </P>
 <P>Before the sequence of keywords are invoked, the current box
-size/shape are stored, in case a <I>remap</I> keyword is used to map the
-atom coordinates from the previous box size/shape to the current one.
+size/shape is stored, in case a <I>remap</I> keyword is used to map the
+atom coordinates from a previously stored box size/shape to the
+current one.
 </P>
 <P>After all the keywords have been processed, any shrink-wrap boundary
 conditions are invoked (see the <A HREF = "boundary.html">boundary</A> command)
 which may change simulation box boundaries, and atoms are migrated to
 new owning processors.
+</P>
+<P>IMPORTANT NOTE: Unlike the earlier "displace_box" version of this
+command, atom remapping is NOT performed by default.  The new command
+allows remapping to be done in a more general way, exactly when you
+specify it (zero or more times) in the sequence of transformations.
+Thus if you do not specify the <I>remap</I> keyword, atom coordinates will
+not be changed even if the box size/shape changes.  This may be the
+behavior you desire, but can also cause atoms to be lost.
 </P>
 <P>IMPORTANT NOTE: It is possible to lose atoms with this command.
 E.g. by changing the box without remapping the atoms, and having atoms
@@ -107,8 +116,8 @@ alter bonds between atoms straddling a boundary in bad ways.  E.g. by
 converting a boundary from periodic to non-periodic.  It is also
 possible when remapping atoms to put them (nearly) on top of each
 other.  E.g. by converting a boundary from non-periodic to periodic.
-All of these will typically generate error messages or lead to bad
-dynamics.
+All of these will typically lead to bad dynamics and/or generate error
+messages.
 </P>
 <P>IMPORTANT NOTE: The simulation box size/shape can be changed by
 arbitrarily large amounts by this command.  This is not a problem,
@@ -269,16 +278,11 @@ conform to the new box size/shape, as if the atoms moved with the box
 as it deformed.
 </P>
 <P>Note that this operation is performed without regard to periodic
-boundaries.  Any shrink-wrapping of non-periodic boundaries (see the
-<A HREF = "boundary.html">boundary</A> command occurs after all keywords, including
-this one, have been processed.
+boundaries.  Also, any shrink-wrapping of non-periodic boundaries (see
+the <A HREF = "boundary.html">boundary</A> command) occurs after all keywords,
+including this one, have been processed.
 </P>
 <P>Only atoms in the specified group are remapped.
-</P>
-<P>IMPORTANT NOTE: If you do not explicitly specify the <I>remap</I> keyword,
-atom coordinates will not be changed even though the box size/shape
-changes.  This may be the behavior you desire, but can also cause
-atoms to be lost.
 </P>
 <HR>
 

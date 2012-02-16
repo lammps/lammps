@@ -27,6 +27,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -34,6 +35,7 @@ using namespace LAMMPS_NS;
 PairPeriPMBOMP::PairPeriPMBOMP(LAMMPS *lmp) :
  PairPeriPMB(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

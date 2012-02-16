@@ -21,6 +21,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define EWALD_F   1.12837917
@@ -36,6 +37,7 @@ using namespace LAMMPS_NS;
 PairBuckCoulOMP::PairBuckCoulOMP(LAMMPS *lmp) :
   PairBuckCoul(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

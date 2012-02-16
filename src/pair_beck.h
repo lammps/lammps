@@ -28,7 +28,7 @@ class PairBeck : public Pair {
  public:
   PairBeck(class LAMMPS *);
   virtual ~PairBeck();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -56,17 +56,14 @@ class PairBeck : public Pair {
 
 E: Illegal ... command
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+UNDOCUMENTED
 
 E: Incorrect args for pair coefficients
 
-Self-explanatory.  Check the input script or data file.
+UNDOCUMENTED
 
 E: All pair coeffs are not set
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+UNDOCUMENTED
 
 */

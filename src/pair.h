@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -26,6 +26,7 @@ class Pair : protected Pointers {
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;
+  friend class FixOMP;
   friend class ThrOMP;
 
  public:
@@ -133,7 +134,8 @@ class Pair : protected Pointers {
   virtual void min_x_set(int) {}
 
  protected:
-  int allocated;                       // 0/1 = whether arrays are allocated
+  int allocated;               // 0/1 = whether arrays are allocated
+  int suffix_flag;             // suffix compatibility flag
 
                                        // pair_modify settings
   int offset_flag,mix_flag;            // flags for offset and mixing

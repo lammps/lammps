@@ -26,6 +26,7 @@
 
 #include <string.h>
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -33,6 +34,7 @@ using namespace LAMMPS_NS;
 PairLineLJOMP::PairLineLJOMP(LAMMPS *lmp) :
   PairLineLJ(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

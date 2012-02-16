@@ -27,6 +27,7 @@
 
 #include <string.h>
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define EWALD_F   1.12837917
@@ -42,6 +43,7 @@ using namespace LAMMPS_NS;
 PairLJCutCoulPPPMTIP4POMP::PairLJCutCoulPPPMTIP4POMP(LAMMPS *lmp) :
   PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   nproxy=1;
   

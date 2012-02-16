@@ -173,6 +173,8 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   double **f = lmp->atom->f;
   double **x = lmp->atom->x;
 
+  int need_force_reduce = 1;
+
   if (evflag)
     sync_threads();
 
@@ -180,12 +182,23 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
   case THR_PAIR: {
     Pair * const pair = lmp->force->pair;
-  
+
     if (pair->vflag_fdotr) {
-      if (lmp->neighbor->includegroup == 0)
-	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
-      else
-	thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+
+      if (style == fix->last_pair_hybrid) {
+	// pair_style hybrid will compute fdotr for us
+	// but we first need to reduce the forces
+	data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+	need_force_reduce = 0;
+      }
+
+      // this is a non-hybrid pair style. compute per thread fdotr
+      if (fix->last_pair_hybrid == NULL) {
+	if (lmp->neighbor->includegroup == 0)
+	  thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+	else
+	  thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+      }
     }
 
     if (evflag) {
@@ -217,12 +230,23 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
   case THR_PAIR|THR_PROXY: {
     Pair * const pair = lmp->force->pair;
-    
+
     if (tid >= nproxy && pair->vflag_fdotr) {
-      if (lmp->neighbor->includegroup == 0)
-	thr->virial_fdotr_compute(x, nlocal, nghost, -1);
-      else
-	thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+
+      if (fix->last_pair_hybrid) {
+	if (tid == nproxy)
+	  lmp->error->all(FLERR,
+			  "Cannot use hybrid pair style with kspace proxy");
+	else return;
+      }
+
+      // this is a non-hybrid pair style. compute per thread fdotr
+      if (fix->last_pair_hybrid == NULL) {
+	if (lmp->neighbor->includegroup == 0)
+	  thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+	else
+	  thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+      }
     }
     
     if (evflag) {
@@ -406,8 +430,10 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     break;
   }
     
-    if (style == fix->last_omp_style) {
-    data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+  if (style == fix->last_omp_style) {
+    if (need_force_reduce)
+      data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
   }

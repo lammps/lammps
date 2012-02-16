@@ -21,6 +21,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -28,6 +29,7 @@ using namespace LAMMPS_NS;
 PairColloidOMP::PairColloidOMP(LAMMPS *lmp) :
   PairColloid(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

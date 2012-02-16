@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "math_const.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -36,6 +37,7 @@ using namespace MathConst;
 PairPeriLPSOMP::PairPeriLPSOMP(LAMMPS *lmp) :
   PairPeriLPS(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

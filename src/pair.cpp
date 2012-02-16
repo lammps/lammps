@@ -33,6 +33,7 @@
 #include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -71,6 +72,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner = sqrt(2.0);
 
   allocated = 0;
+  suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;

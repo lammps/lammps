@@ -22,6 +22,7 @@
 #include "update.h"
 #include "random_mars.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-10
@@ -31,6 +32,7 @@ using namespace LAMMPS_NS;
 PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
   PairDPDTstat(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
 }

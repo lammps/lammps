@@ -24,6 +24,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 // This is for debugging purposes. The ASSERT() macro is used in the code to check
@@ -46,6 +47,7 @@ using namespace LAMMPS_NS;
 PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
   PairEAM(lmp), PairCDEAM(lmp,_cdeamVersion), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

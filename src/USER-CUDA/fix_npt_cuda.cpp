@@ -21,10 +21,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace FixConstCuda;
-using namespace FixConst;
-using namespace FixConstCuda;
-using namespace FixConstCuda;
-using namespace FixConstCuda;
 
 /* ---------------------------------------------------------------------- */
 

@@ -26,6 +26,7 @@
 #include <omp.h>
 #endif
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define TOL 1.0e-9
@@ -35,6 +36,7 @@ using namespace LAMMPS_NS;
 PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
   PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

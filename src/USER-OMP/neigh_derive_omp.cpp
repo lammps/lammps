@@ -56,14 +56,14 @@ void Neighbor::half_from_full_no_newton_omp(NeighList *list)
 
   for (ii = ifrom; ii < ito; ii++) {
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
       // only one thread at a time may check whether we 
       // need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 
@@ -132,14 +132,14 @@ void Neighbor::half_from_full_newton_omp(NeighList *list)
 
   for (ii = ifrom; ii < ito; ii++) {
 
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
       // only one thread at a time may check  whether we
       // need new neighbor list pages and then add to them.
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
       if (npage >= list->maxpage) list->add_pages(nthreads);
     }
 

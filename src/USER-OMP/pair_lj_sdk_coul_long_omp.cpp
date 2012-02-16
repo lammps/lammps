@@ -22,6 +22,7 @@
 
 #include "lj_sdk_common.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace LJSDKParms;
 
@@ -38,6 +39,7 @@ using namespace LJSDKParms;
 PairLJSDKCoulLongOMP::PairLJSDKCoulLongOMP(LAMMPS *lmp) :
   PairLJSDKCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 
@@ -91,8 +93,6 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
   double r,rsq,r2inv,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
 
-  evdwl = ecoul = 0.0;
-
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
@@ -123,6 +123,8 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
     const int jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
+      forcecoul = forcelj = evdwl = ecoul = 0.0;
+
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
@@ -147,7 +149,13 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 	    prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+	    if (EFLAG)
+	      ecoul = prefactor*erfc;
+	    if (factor_coul < 1.0) {
+	      forcecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG)
+		ecoul -= (1.0-factor_coul)*prefactor;
+	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
 	    rsq_lookup.f = rsq;
@@ -156,15 +164,16 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	    table = ftable[itable] + fraction*dftable[itable];
 	    forcecoul = qtmp*q[j] * table;
+	    if (EFLAG)
+	      ecoul = qtmp*q[j] * table;
 	    if (factor_coul < 1.0) {
 	      table = ctable[itable] + fraction*dctable[itable];
 	      prefactor = qtmp*q[j] * table;
 	      forcecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG)
+		ecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  }
-	} else {
-	  forcecoul = 0.0;
-	  ecoul = 0.0;
 	}
 
 	if (rsq < cut_ljsq[itype][jtype]) {
@@ -177,7 +186,7 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	    if (EFLAG)
 	      evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  
+
 	  } else if (ljt == LJ9_6) {
 	    const double r3inv = r2inv*sqrt(r2inv);
 	    const double r6inv = r3inv*r3inv;
@@ -195,12 +204,12 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
 	  }
-	} else {
-	  forcelj=0.0;
-	  evdwl = 0.0;
+	  forcelj *= factor_lj;
+	  if (EFLAG)
+	    evdwl *= factor_lj;
 	}
 
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+	fpair = (forcecoul + forcelj) * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -211,24 +220,9 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	  f[j][2] -= delz*fpair;
 	}
 
-	if (EFLAG) {
-	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
-
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);
+
       }
     }
     f[i][0] += fxtmp;

@@ -23,6 +23,7 @@
 
 #include "math_const.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -33,6 +34,7 @@ using namespace MathConst;
 PairHbondDreidingLJOMP::PairHbondDreidingLJOMP(LAMMPS *lmp) :
   PairHbondDreidingLJ(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   hbcount_thr = hbeng_thr = NULL;
 }
@@ -41,7 +43,6 @@ PairHbondDreidingLJOMP::PairHbondDreidingLJOMP(LAMMPS *lmp) :
 
 PairHbondDreidingLJOMP::~PairHbondDreidingLJOMP()
 {
-  respa_enable = 0;
   if (hbcount_thr) {
     delete[] hbcount_thr;
     delete[] hbeng_thr;

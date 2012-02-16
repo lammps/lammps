@@ -20,6 +20,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-10
@@ -28,6 +29,7 @@ using namespace LAMMPS_NS;
 PairGaussOMP::PairGaussOMP(LAMMPS *lmp) :
   PairGauss(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

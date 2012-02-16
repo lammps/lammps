@@ -154,7 +154,7 @@ void PairBornCoulLongCuda::init_style()
   cuda->shared_data.pppm.qqrd2e=force->qqrd2e;
   
 
-  if(ncoultablebits) error->warning(FLERR,"# CUDA: You asked for the useage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
+  if(ncoultablebits) error->warning(FLERR,"# CUDA: You asked for the usage of Coulomb Tables. This is not supported in CUDA Pair forces. Setting is ignored.\n");
 }
 
 void PairBornCoulLongCuda::init_list(int id, NeighList *ptr)

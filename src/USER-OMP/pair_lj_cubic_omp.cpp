@@ -20,6 +20,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;
 
@@ -28,6 +29,7 @@ using namespace PairLJCubicConstants;
 PairLJCubicOMP::PairLJCubicOMP(LAMMPS *lmp) :
   PairLJCubic(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

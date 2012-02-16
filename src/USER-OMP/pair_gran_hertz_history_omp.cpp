@@ -21,6 +21,7 @@
 #include "neigh_list.h"
 #include "update.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -28,6 +29,7 @@ using namespace LAMMPS_NS;
 PairGranHertzHistoryOMP::PairGranHertzHistoryOMP(LAMMPS *lmp) :
   PairGranHertzHistory(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

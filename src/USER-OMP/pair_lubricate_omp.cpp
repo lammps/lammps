@@ -24,6 +24,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -32,6 +33,7 @@ using namespace MathConst;
 PairLubricateOMP::PairLubricateOMP(LAMMPS *lmp) :
   PairLubricate(lmp), ThrOMP(lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

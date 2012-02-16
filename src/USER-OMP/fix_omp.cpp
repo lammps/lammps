@@ -40,12 +40,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "suffix.h"
+
 #if defined(LMP_USER_CUDA)
 #include "cuda_modify_flags.h"
 #endif
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 using namespace FixConst;
 #if defined(LMP_USER_CUDA)
 using namespace FixConstCuda;
@@ -63,7 +64,8 @@ static int get_tid()
 /* ---------------------------------------------------------------------- */
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-  thr(NULL), last_omp_style(NULL), _nthr(-1), _neighbor(true), _newton(false)
+              thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
+              _nthr(-1), _neighbor(true), _newton(false)
 {
   if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
@@ -192,8 +194,10 @@ void FixOMP::init()
     error->all(FLERR,"Cannot use r-RESPA with /omp styles");
 
   int check_hybrid;
+  last_pair_hybrid = NULL;
   last_omp_style = NULL;
   char *last_omp_name = NULL;
+  char *last_hybrid_name = NULL;
 
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
@@ -220,13 +224,21 @@ void FixOMP::init()
       char *suffix = style->keywords[i] + len - 4;			\
       if (strcmp(suffix,"/omp") == 0) {					\
 	last_omp_name = force->name ## _style;				\
-	last_omp_style = (void *) force->name;				\
+	last_omp_style = style->styles[i];				\
       }									\
     }									\
   }
 
   CheckStyleForOMP(pair);
-  CheckHybridForOMP(pair,Pair);
+  if (check_hybrid) {
+    PairHybrid *style = (PairHybrid *) force->pair;
+    for (int i=0; i < style->nstyles; i++) {
+      if (style->styles[i]->suffix_flag & Suffix::OMP) {
+	last_pair_hybrid = style->styles[i];
+	last_omp_name = style->keywords[i];
+      }
+    }
+  }
 
   CheckStyleForOMP(bond);
   CheckHybridForOMP(bond,Bond);

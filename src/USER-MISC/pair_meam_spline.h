@@ -77,8 +77,8 @@ class PairMEAMSpline : public Pair
 {
 public:
 	PairMEAMSpline(class LAMMPS *);
-	~PairMEAMSpline();
-	void compute(int, int);
+	virtual ~PairMEAMSpline();
+	virtual void compute(int, int);
 	void settings(int, char **);
 	void coeff(int, char **);
 	void init_style();
@@ -91,7 +91,7 @@ public:
 	void unpack_reverse_comm(int, int *, double *);
 	double memory_usage();
 
-private:
+protected:
   char **elements;              // names of unique elements
   int *map;                     // mapping from atom types to elements
   int nelements;                // # of unique elements
@@ -100,7 +100,7 @@ private:
 	public:
 
 		/// Default constructor.
-		SplineFunction() : N(0), X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL) {}
+		SplineFunction() : X(NULL), Xs(NULL), Y(NULL), Y2(NULL), Ydelta(NULL), N(0) {}
 
 		/// Destructor.
 		~SplineFunction() {

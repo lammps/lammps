@@ -64,6 +64,8 @@ VerletCuda::VerletCuda(LAMMPS *lmp, int narg, char **arg) : Verlet(lmp, narg, ar
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	modify_cuda=(ModifyCuda*) modify;
+    int ifix = modify->find_fix("package_omp");
+    if (ifix >= 0) external_force_clear = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -77,8 +79,8 @@ void VerletCuda::setup()
 	cuda->cu_debugdata->upload();
 	dotestatom=cuda->dotestatom;
 	int testatom=cuda->testatom;//48267;
-	
-	
+	if(atom->nlocal==0)
+		error->warning(FLERR,"# CUDA: There are currently no atoms on one of the MPI processes. This is known to cause errors with the USER-CUDA package. Please use the 'processors' keyword to enforce more balanced processor layout.");
 	MYDBG(printf("# CUDA VerletCuda::setup start\n"); )
 
 	cuda->oncpu = true;
@@ -116,6 +118,7 @@ void VerletCuda::setup()
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
+  modify->setup_pre_exchange();
 
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -237,7 +240,9 @@ void VerletCuda::setup()
    neighbor->ncalls = 0;
    
    force_clear();
-  
+
+   modify->setup_pre_force(vflag);
+
    cuda->cu_f->download();
    if(cuda->cu_torque)
    cuda->cu_torque->download();
@@ -246,7 +251,7 @@ void VerletCuda::setup()
   
   MYDBG( printf("# CUDA: VerletCuda::setup: initial force compute\n"); )
 
-  test_atom(testatom,"pre pair force");
+  //test_atom(testatom,"pre pair force");
     
   if(cuda->shared_data.pair.cudable_force)
   {
@@ -573,6 +578,8 @@ void VerletCuda::run(int n)
 
 		for(int i = 0; i < n; i++)
 		{
+			if(atom->nlocal==0)
+				error->warning(FLERR,"# CUDA: There are currently no atoms on one of the MPI processes. This is currently prone to encountering errors with USER-CUDA package. Please use the 'processors' keyword to use a more balanced processor layout.");
 			ntimestep = ++update->ntimestep;
 			ev_set(ntimestep);
 			

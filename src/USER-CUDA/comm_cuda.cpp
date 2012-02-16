@@ -893,7 +893,7 @@ void CommCuda::borders()
 
 void CommCuda::borders_cuda()
 {
-  int i,n,itype,iswap,dim,ineed,maxneed,smax,rmax;
+  int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,nfirst,nlast,ngroup;
   double lo,hi;
   int *type;
@@ -916,8 +916,8 @@ void CommCuda::borders_cuda()
   cuda->shared_data.comm.nsend=0;
   for (dim = 0; dim < 3; dim++) {
     nlast = 0;
-    maxneed = 2*need[dim];
-    for (ineed = 0; ineed < maxneed; ineed++) {
+    twoneed = 2*maxneed[dim];
+    for (ineed = 0; ineed < twoneed; ineed++) {
 
       // find atoms within slab boundaries lo/hi using <= and >=
       // check atoms between nfirst and nlast
@@ -1028,7 +1028,7 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
 
 void CommCuda::borders_cuda_overlap_forward_comm()
 {
-  int i,n,itype,iswap,dim,ineed,maxneed,smax,rmax;
+  int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,nfirst,nlast,ngroup;
   double lo,hi;
   int *type;
@@ -1051,8 +1051,8 @@ void CommCuda::borders_cuda_overlap_forward_comm()
   cuda->shared_data.comm.nsend=0;
   for (dim = 0; dim < 3; dim++) {
     nlast = 0;
-    maxneed = 2*need[dim];
-    for (ineed = 0; ineed < maxneed; ineed++) {
+    twoneed = 2*maxneed[dim];
+    for (ineed = 0; ineed < twoneed; ineed++) {
 
       // find atoms within slab boundaries lo/hi using <= and >=
       // check atoms between nfirst and nlast

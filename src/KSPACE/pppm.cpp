@@ -2445,6 +2445,13 @@ void PPPM::slabcorr()
   
   if (eflag_global) energy += qscale * e_slabcorr;
 
+  // per-atom energy
+    
+  if (eflag_atom) {
+    double efact = 2.0*MY_PI*dipole_all/volume; 
+    for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
+  }
+
   // add on force corrections
 
   double ffact = -4.0*MY_PI*dipole_all/volume; 

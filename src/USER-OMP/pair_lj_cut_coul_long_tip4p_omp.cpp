@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
   PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 
   // for caching m-shift corrected positions

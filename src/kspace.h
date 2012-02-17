@@ -46,7 +46,7 @@ class KSpace : protected Pointers {
   double scale;
   double slab_volfactor;
 
-  int evflag;
+  int evflag,evflag_atom;
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;
   int maxeatom,maxvatom;

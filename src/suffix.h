@@ -18,15 +18,12 @@ namespace LAMMPS_NS {
 
 namespace Suffix {
   static const int NONE = 0;
-  static const int CUDA = 1<<0;
+  static const int OPT  = 1<<0;
   static const int GPU  = 1<<1;
-  static const int OMP  = 1<<2;
-  static const int OPT  = 1<<3;
+  static const int CUDA = 1<<2;
+  static const int OMP  = 1<<3;
 }
 
 }
 
 #endif
-/* ERROR/WARNING messages:
-
-*/

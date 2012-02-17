@@ -39,7 +39,7 @@ using namespace LJSDKParms;
 PairLJSDKCoulLongOMP::PairLJSDKCoulLongOMP(LAMMPS *lmp) :
   PairLJSDKCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

@@ -233,7 +233,7 @@ void FixOMP::init()
   if (check_hybrid) {
     PairHybrid *style = (PairHybrid *) force->pair;
     for (int i=0; i < style->nstyles; i++) {
-      if (style->styles[i]->suffix_compat & Suffix::OMP) {
+      if (style->styles[i]->suffix_flag & Suffix::OMP) {
 	last_pair_hybrid = style->styles[i];
 	last_omp_name = style->keywords[i];
       }

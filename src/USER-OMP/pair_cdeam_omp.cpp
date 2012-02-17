@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 PairCDEAMOMP::PairCDEAMOMP(LAMMPS *lmp, int _cdeamVersion) :
   PairEAM(lmp), PairCDEAM(lmp,_cdeamVersion), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

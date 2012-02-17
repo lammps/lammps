@@ -72,11 +72,13 @@ The "dihedral_style charmm"_dihedral_charmm.html style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 
-The KSpace contribution to the per-atom stress requires 6 extra FFTs
-each timestep that per-atom stress is calculated, if using the PPPM
-solver via the "kspace_style pppm"_kspace_style.html command.  Thus it
-can significantly increase the cost of the PPPM calculation if it is
-needed on a large fraction of the simulation timesteps.
+The KSpace contribution is calculated using the method in
+"(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
+as specified by the "kspace_style pppm"_kspace_style.html command.
+For PPPM, the calcluation requires 6 extra FFTs each timestep that
+per-atom stress is calculated.  Thus it can significantly increase the
+cost of the PPPM calculation if it is needed on a large fraction of
+the simulation timesteps.
 
 Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress*volume
@@ -115,3 +117,8 @@ The per-atom array values will be in pressure*volume
 "compute pe"_compute_pe.html, "compute pressure"_compute_pressure.html
 
 [Default:] none
+
+:line
+
+:link(Heyes)
+[(Heyes)] Heyes, Phys Rev B 49, 755 (1994),

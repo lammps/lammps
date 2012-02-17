@@ -33,7 +33,7 @@ using namespace MathConst;
 PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *lmp) :
   PairLubricatePoly(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

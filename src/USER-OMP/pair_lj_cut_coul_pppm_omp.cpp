@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 PairLJCutCoulPPPMOMP::PairLJCutCoulPPPMOMP(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   nproxy=1;
 

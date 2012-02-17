@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 PairPeriPMBOMP::PairPeriPMBOMP(LAMMPS *lmp) :
  PairPeriPMB(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

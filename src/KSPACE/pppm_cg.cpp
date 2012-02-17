@@ -77,9 +77,10 @@ void PPPMCG::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global = 
+	 eflag_atom = vflag_atom = 0;
 
-  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+  if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
     peratom_allocate_flag = 1;
   }
@@ -179,7 +180,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
   // extra per-atom energy/virial communication
 
-  if (eflag_atom || vflag_atom) fillbrick_peratom();
+  if (evflag_atom) fillbrick_peratom();
 
   // calculate the force on my particles
 
@@ -187,7 +188,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
   // extra per-atom energy/virial communication
 
-  if (eflag_atom || vflag_atom) fieldforce_peratom();
+  if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
 
@@ -215,7 +216,7 @@ void PPPMCG::compute(int eflag, int vflag)
   // per-atom energy/virial
   // energy includes self-energy correction
 
-  if (eflag_atom || vflag_atom) {
+  if (evflag_atom) {
     double *q = atom->q;
     int nlocal = atom->nlocal;
 

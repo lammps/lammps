@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 PairYukawaOMP::PairYukawaOMP(LAMMPS *lmp) :
   PairYukawa(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

@@ -30,7 +30,7 @@ using namespace MathConst;
 PairBornCoulWolfOMP::PairBornCoulWolfOMP(LAMMPS *lmp) :
   PairBornCoulWolf(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

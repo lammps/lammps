@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 PairTersoffOMP::PairTersoffOMP(LAMMPS *lmp) :
   PairTersoff(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

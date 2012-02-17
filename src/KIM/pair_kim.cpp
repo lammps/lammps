@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "error.h"
 
-#include "KIMservice.h"
+#include "KIM_API.h"
 
 using namespace LAMMPS_NS;
 
@@ -48,8 +48,8 @@ PairKIM::PairKIM(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
 
   virialGlobal_ind = -1;
-  virialPerAtom_ind = -1;
-  process_d1Edr_ind = -1;
+  particleVirial_ind = -1;
+  process_dEdr_ind = -1;
 
   modelname = NULL;
   testname = NULL;
@@ -132,16 +132,16 @@ void PairKIM::compute(int eflag , int vflag)
 
   // set callback for virial tallying if necessary
 
-  int process_d1Edr_flag = 0; 
-  if (process_d1Edr_ind >= 0 && (vflag_atom || vflag_global))
-    process_d1Edr_flag = 1;
+  int process_dEdr_flag = 0; 
+  if (process_dEdr_ind >= 0 && (vflag_atom || vflag_global))
+    process_dEdr_flag = 1;
 
-  pkim->set_compute_byI_multiple(&kimerr,12, energyPerAtom_ind,
+  pkim->setm_compute_by_index(&kimerr,12, particleEnergy_ind,
 				 eflag_atom,1,
-				 virialPerAtom_ind,vflag_atom,1,
+				 particleVirial_ind,vflag_atom,1,
 				 virialGlobal_ind,vflag_global,1,
-				 process_d1Edr_ind,process_d1Edr_flag,1);
-  kim_error(__LINE__,"set_compute_byI_multiple",kimerr);
+				 process_dEdr_ind,process_dEdr_flag,1);
+  kim_error(__LINE__,"setm_compute_by_index",kimerr);
 
   // KIM initialization
 
@@ -172,9 +172,9 @@ void PairKIM::compute(int eflag , int vflag)
   
   // flip sign of virial
 
-  if (vflag_global && !pkim->virialGlobal_need2add)
+  if (vflag_global && !pkim->virial_need2add)
     for (int i = 0; i < 6; i++) virial[i] = -1.0*virial[i];
-  if (vflag_atom && !pkim->virialPerAtom_need2add)
+  if (vflag_atom && !pkim->particleVirial_need2add)
     for (int i = 0; i < atom->nlocal; i++) 
       for (int j = 0; j < 6; j++) vatom[i][j] = -1.0*vatom[i][j];
 }
@@ -444,7 +444,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
   
   NeighList * neiobj = (NeighList * ) (*pkim)[self->neighObject_ind].data;
   
-  int * pnAtoms = (int *)(*pkim)[self->numberOfAtoms_ind].data;
+  int * pnAtoms = (int *)(*pkim)[self->numberOfParticles_ind].data;
   if(pkim->support_Rij) x = (double *)(*pkim)[self->coordinates_ind].data;
   int nAtoms = *pnAtoms;
   int j,jj,inum,*ilist,*numneigh,**firstneigh;
@@ -459,13 +459,13 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
       *numnei=0;
       return KIM_STATUS_NEIGH_ITER_INIT_OK; //succsesful restart
     } else if (*request==1) { //increment iterator
-      if (self->pointsto > inum || inum <0) {
+      if (self->pointsto > inum || inum <0){
 	self->error->one(FLERR,"KIM neighbor iterator exceeded range");
       } else if (self->pointsto == inum) {
-	self->pointsto ==0;
-	*numnei=0;
+	self->pointsto = 0;
+	*numnei = 0;
 	return KIM_STATUS_NEIGH_ITER_PAST_END; //reached end by iterator
-      } else{
+      } else {
 	*atom = ilist[self->pointsto];
 	*numnei = numneigh[*atom];
 
@@ -483,8 +483,8 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
 	self->pointsto++;
 	if (*numnei > KIM_API_MAX_NEIGHBORS) 
 	  return KIM_STATUS_NEIGH_TOO_MANY_NEIGHBORS;
-	if (pkim->support_Rij){
-	  for (jj=0; jj < *numnei; jj++){ 
+	if (pkim->support_Rij) {
+	  for (jj=0; jj < *numnei; jj++) {
 	    int i = *atom;
 	    j = (*nei1atom)[jj];
 	    self->Rij[jj*3 +0] = -x[i*3+0] + x[j*3+0];
@@ -531,7 +531,7 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
     return KIM_STATUS_OK;//successful end
   } else return KIM_STATUS_NEIGH_INVALID_MODE;//invalid mode
 
-  return -16; //should not get here: unspecified error
+  return -16;//should not get here: unspecified error
 }
 
 /* ---------------------------------------------------------------------- */
@@ -641,11 +641,11 @@ void PairKIM::kim_init()
     sprintf(&test_descriptor_string[i_s],"Neigh_BothAccess         flag\n\n");
   
   i_s=strlen(test_descriptor_string);
-  sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-H             flag\n\n");
+  sprintf(&test_descriptor_string[i_s],"NEIGH_PURE_H             flag\n\n");
   i_s=strlen(test_descriptor_string);
-  sprintf(&test_descriptor_string[i_s],"NEIGH-PURE-F             flag\n\n");
+  sprintf(&test_descriptor_string[i_s],"NEIGH_PURE_F             flag\n\n");
   i_s=strlen(test_descriptor_string);
-  sprintf(&test_descriptor_string[i_s],"NEIGH-RVEC-F             flag\n\n");
+  sprintf(&test_descriptor_string[i_s],"NEIGH_RVEC_F             flag\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],"CLUSTER                  flag\n\n");
   
@@ -658,32 +658,29 @@ void PairKIM::kim_init()
 	  "# Name                  Type         Unit       Shape\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "numberOfAtoms           integer      none       []\n\n");
+	  "numberOfParticles           integer      none       []\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "numberContributingAtoms    integer      none    []\n\n");
+	  "numberContributingParticles    integer      none    []\n\n");
   
   if (support_atypes){
     i_s=strlen(test_descriptor_string);
     sprintf(&test_descriptor_string[i_s],
-	    "numberAtomTypes         integer      none []\n\n");
+	    "numberParticleTypes         integer      none []\n\n");
     i_s=strlen(test_descriptor_string);
     sprintf(&test_descriptor_string[i_s],
-	    "atomTypes               integer      none [numberOfAtoms]\n\n");
+	    "particleTypes               integer      none [numberOfParticles]\n\n");
   }
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
 	  "coordinates             real*8       length     "
-	  "[numberOfAtoms,3]\n\n");
+	  "[numberOfParticles,3]\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
 	  "neighObject             pointer      none       []\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "get_half_neigh          method       none       []\n\n");
-  i_s=strlen(test_descriptor_string);
-  sprintf(&test_descriptor_string[i_s],
-	  "get_full_neigh          method       none       []\n\n");
+	  "get_neigh          method       none       []\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s], "MODEL_OUPUT:\n");
   i_s=strlen(test_descriptor_string);
@@ -704,22 +701,22 @@ void PairKIM::kim_init()
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
 	  "forces                  real*8       force      "
-	  "[numberOfAtoms,3]\n\n");
+	  "[numberOfParticles,3]\n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "energyPerAtom           real*8       energy    "
-	  "[numberOfAtoms]\n\n");
+	  "particleEnergy           real*8       energy    "
+	  "[numberOfParticles]\n\n");
   //virial and virial per atom will be added here
   //  i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s], 
-	  "virialGlobal          real*8       pressure    [6] \n\n\0");
+	  "virial          real*8       pressure    [6] \n\n\0");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "process_d1Edr        method       none   [] \n\n");
+	  "process_dEdr        method       none   [] \n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "virialPerAtom         real*8       pressure   "
-	  "[numberOfAtoms,6] \n\n\0");
+	  "particleVirial         real*8       pressure   "
+	  "[numberOfParticles,6] \n\n\0");
   
   // kim file created now init and maptypes
 
@@ -731,26 +728,25 @@ void PairKIM::kim_init()
     
   // get correct index of each variable in kim_api object
   
-  pkim->get_index_multiple(&kimerr,36,
+  pkim->getm_index(&kimerr,33,
 			   "coordinates", &coordinates_ind,1,
 			   "cutoff",  &cutoff_ind,1,
-			   "energyPerAtom",&energyPerAtom_ind,1,
+			   "particleEnergy",&particleEnergy_ind,1,
 			   "energy", &energy_ind,1,
 			   "forces",  &forces_ind,1,
 			   "neighObject", &neighObject_ind,1,
-			   "numberOfAtoms",&numberOfAtoms_ind,1,
-			   "get_half_neigh", &get_half_neigh_ind,1,
-			   "get_full_neigh",&get_full_neigh_ind,1,
-			   "virialPerAtom", &virialPerAtom_ind,1,
-			   "virialGlobal", &virialGlobal_ind,1,
-			   "process_d1Edr",&process_d1Edr_ind,1 );
-  this->kim_error(__LINE__,"get_index_multiple",kimerr);
+			   "numberOfParticles",&numberOfParticles_ind,1,
+			   "get_neigh", &get_neigh_ind,1,
+			   "particleVirial", &particleVirial_ind,1,
+			   "virial", &virialGlobal_ind,1,
+			   "process_dEdr",&process_dEdr_ind,1 );
+  this->kim_error(__LINE__,"getm_index",kimerr);
   
   if(support_atypes){
-    numberAtomTypes_ind = pkim->get_index((char *) "numberAtomTypes",&kimerr);
-    this->kim_error(__LINE__,"numberAtomTypes",kimerr);
-    atomTypes_ind = pkim->get_index((char *) "atomTypes",&kimerr);
-    this->kim_error(__LINE__,"atomTypes",kimerr);
+    numberParticleTypes_ind = pkim->get_index((char *) "numberParticleTypes",&kimerr);
+    this->kim_error(__LINE__,"numberParticleTypes",kimerr);
+    particleTypes_ind = pkim->get_index((char *) "particleTypes",&kimerr);
+    this->kim_error(__LINE__,"particleTypes",kimerr);
   }
   
   set_statics();
@@ -761,18 +757,17 @@ void PairKIM::kim_init()
   for(int i = 0; i < nelements; i++){
     atypeMapKIM[i*2 + 0] = i;
     int kimerr;
-    atypeMapKIM[i*2 + 1] = pkim->get_aTypeCode(elements[i],&kimerr);
+    atypeMapKIM[i*2 + 1] = pkim->get_partcl_type_code(elements[i],&kimerr);
     this->kim_error(__LINE__,"create_atypeMapKIM: symbol not found ",kimerr);
   }
 
   // check if Rij needed for get_neigh
-  // get_NBC_method mallocs a string, so free it here
-
-  char *NBC_method = (char *) pkim->get_NBC_method(&kimerr);
+  
+  char * NBC_method =(char *) pkim->get_NBC_method(&kimerr);
   this->kim_error(__LINE__,"NBC method not set",kimerr);
-  support_Rij = false;
-  if (strcmp(NBC_method,"NEIGH-RVEC-F")==0) support_Rij = true;
-  memory->sfree(NBC_method);
+  support_Rij=false;
+  if (strcmp(NBC_method,"NEIGH_RVEC_F")==0) support_Rij=true;
+  free((void*)NBC_method);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -780,21 +775,20 @@ void PairKIM::kim_init()
 void PairKIM::set_statics()
 { 
   if(support_atypes)
-    pkim->set_data_byi(numberAtomTypes_ind,1,(void *) &(atom->ntypes )) ;
-  if ( process_d1Edr_ind >= 0 )
-    pkim->set_data((char *) "process_d1Edr",1, (void*) &process_d1Edr);
+    pkim->set_data_by_index(numberParticleTypes_ind,1,(void *) &(atom->ntypes )) ;
+  if ( process_dEdr_ind >= 0 )
+    pkim->set_data((char *) "process_dEdr",1, (void*) &process_dEdr);
   localnall = (int) (atom->nghost + atom->nlocal);
   int kimerr;
-  pkim->set_data_byI_multiple(&kimerr,24,
+  pkim->setm_data_by_index(&kimerr,20,
 			      energy_ind,1,  (void *)&(this->eng_vdwl),1,
 			      cutoff_ind,1,  (void *)&(this->cut_global),1,
-			      get_half_neigh_ind,1,(void *) &get_neigh,1,
-			      get_full_neigh_ind,1,(void *) &get_neigh,1,
-			      numberOfAtoms_ind,1,  (void *) &localnall,1,
+			      get_neigh_ind,1,(void *) &get_neigh,1,
+			      numberOfParticles_ind,1,  (void *) &localnall,1,
 			      virialGlobal_ind,1,(void *)&(virial[0]),1);
-  this->kim_error(__LINE__,"set_data_byI_multiple",kimerr);
+  this->kim_error(__LINE__,"setm_data_by_index",kimerr);
   
-  pkim->set_data((char *) "numberContributingAtoms",1,(void *)&(atom->nlocal));
+  pkim->set_data((char *) "numberContributingParticles",1,(void *)&(atom->nlocal));
 
   pkim->set_test_buffer( (void *)this, &kimerr);
 
@@ -809,22 +803,22 @@ void PairKIM::set_volatiles()
   localnall = (int) (atom->nghost + atom->nlocal);
   bigint nall = (bigint) localnall;
     
-  pkim->set_data_byi(coordinates_ind,nall*3,(void *) &(atom->x[0][0]) );
+  pkim->set_data_by_index(coordinates_ind,nall*3,(void *) &(atom->x[0][0]) );
   if (hybrid)
-    pkim->set_data_byi(forces_ind,nall*3,(void *) &(fcopy[0][0]) ) ;
+    pkim->set_data_by_index(forces_ind,nall*3,(void *) &(fcopy[0][0]) ) ;
   else
-    pkim->set_data_byi(forces_ind,nall*3,(void *) &(atom->f[0][0]) ) ;
-  pkim->set_data_byi(energyPerAtom_ind,nall,  (void *)this->eatom) ;
-  pkim->set_data_byi(neighObject_ind,1,  (void *)this->list) ;
+    pkim->set_data_by_index(forces_ind,nall*3,(void *) &(atom->f[0][0]) ) ;
+  pkim->set_data_by_index(particleEnergy_ind,nall,  (void *)this->eatom) ;
+  pkim->set_data_by_index(neighObject_ind,1,  (void *)this->list) ;
   
   if (support_atypes)
-    pkim->set_data_byi(atomTypes_ind,nall,  (void *) kimtype) ;
+    pkim->set_data_by_index(particleTypes_ind,nall,  (void *) kimtype) ;
   
   if(vflag_atom != 1) {
-    (*pkim)[virialPerAtom_ind].flag->calculate = 0;
+    (*pkim)[particleVirial_ind].flag->calculate = 0;
   } else {
-    (*pkim)[virialPerAtom_ind].flag->calculate = 1;
-    pkim->set_data_byi(virialPerAtom_ind,(intptr_t)nall,
+    (*pkim)[particleVirial_ind].flag->calculate = 1;
+    pkim->set_data_by_index(particleVirial_ind,(intptr_t)nall,
 		       (void *)&vatom[0][0]) ;
   }
   if (vflag_global != 1) {
@@ -849,18 +843,18 @@ void PairKIM::init2zero(KIM_API_model *pkim, int *kimerr)
 
   int p1_ind=-1;bool process_d1=false;
   self->process_dE.virialGlobal_flag = 0;
-  self->process_dE.virialPerAtom_flag =0;
+  self->process_dE.particleVirial_flag =0;
   int ierGlobal,ierPerAtom;
-  self->process_dE.virialGlobal = (double *) pkim->get_data((char *) "virialGlobal",&ierGlobal);
-  self->process_dE.virialPerAtom = (double *) pkim->get_data((char *) "virialPerAtom",
+  self->process_dE.virialGlobal = (double *) pkim->get_data((char *) "virial",&ierGlobal);
+  self->process_dE.particleVirial = (double *) pkim->get_data((char *) "particleVirial",
 					    &ierPerAtom);
-  self->process_dE.numberOfAtoms = (int *) pkim->get_data((char *) "numberOfAtoms",kimerr);
+  self->process_dE.numberOfParticles = (int *) pkim->get_data((char *) "numberOfParticles",kimerr);
   //halfNeighbors = !pkim->requiresFullNeighbors();
-  p1_ind = pkim->get_index((char *) "process_d1Edr");
+  p1_ind = pkim->get_index((char *) "process_dEdr");
   if (*kimerr !=KIM_STATUS_OK) return;
   if (ierGlobal == KIM_STATUS_OK && self->process_dE.virialGlobal != NULL) {
-    self->process_dE.virialGlobal_flag = pkim->isit_compute((char *) "virialGlobal");
-    if (self->process_dE.virialGlobal_flag==1 && pkim->virialGlobal_need2add){
+    self->process_dE.virialGlobal_flag = pkim->get_compute((char *) "virial");
+    if (self->process_dE.virialGlobal_flag==1 && pkim->virial_need2add){
       self->process_dE.virialGlobal[0] =0.0;  self->process_dE.virialGlobal[1] =0.0;
       self->process_dE.virialGlobal[2] =0.0;  self->process_dE.virialGlobal[3] =0.0;
       self->process_dE.virialGlobal[4] =0.0;  self->process_dE.virialGlobal[5] =0.0;
@@ -868,22 +862,22 @@ void PairKIM::init2zero(KIM_API_model *pkim, int *kimerr)
     }
   }
   
-  if (ierPerAtom == KIM_STATUS_OK && self->process_dE.virialPerAtom != NULL) {
-    self->process_dE.virialPerAtom_flag = pkim->isit_compute((char *) "virialPerAtom");
-    if (self->process_dE.virialPerAtom_flag==1 && pkim->virialPerAtom_need2add) {
-      for (int i =0;i<(*self->process_dE.numberOfAtoms)*6 ;i++) self->process_dE.virialPerAtom[i]=0.0;
+  if (ierPerAtom == KIM_STATUS_OK && self->process_dE.particleVirial != NULL) {
+    self->process_dE.particleVirial_flag = pkim->get_compute((char *) "particleVirial");
+    if (self->process_dE.particleVirial_flag==1 && pkim->particleVirial_need2add) {
+      for (int i =0;i<(*self->process_dE.numberOfParticles)*6 ;i++) self->process_dE.particleVirial[i]=0.0;
       process_d1=true;
     }
   }
   if (p1_ind >= 0) {
-    if (process_d1) pkim->set2_compute((char *) "process_d1Edr");
-    else pkim->set2_donotcompute((char *) "process_d1Edr");
+    if (process_d1) pkim->set_compute((char *) "process_dEdr",1,kimerr);
+    else pkim->set_compute((char *) "process_dEdr",0,kimerr);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairKIM::process_d1Edr(KIM_API_model **ppkim,
+void PairKIM::process_dEdr(KIM_API_model **ppkim,
 			    double *de,double *r,double ** pdx,
 			    int *i,int *j,int *ier)
 {
@@ -898,7 +892,7 @@ void PairKIM::process_d1Edr(KIM_API_model **ppkim,
   
   v=-(*de)/(*r);
   
-  if (self->process_dE.virialGlobal_flag ==1 && pkim->virialGlobal_need2add) {
+  if (self->process_dE.virialGlobal_flag ==1 && pkim->virial_need2add) {
     vir[0] = v * dx[0] * dx[0];
     vir[1] = v * dx[1] * dx[1];
     vir[2] = v * dx[2] * dx[2];
@@ -913,26 +907,26 @@ void PairKIM::process_d1Edr(KIM_API_model **ppkim,
     self->process_dE.virialGlobal[5] += vir[5];
   }
 
-  if (self->process_dE.virialPerAtom_flag==1 && pkim->virialPerAtom_need2add ){
+  if (self->process_dE.particleVirial_flag==1 && pkim->particleVirial_need2add ){
     vir[0] =0.5 * v * dx[0] * dx[0];
     vir[1] =0.5 * v * dx[1] * dx[1];
     vir[2] =0.5 * v * dx[2] * dx[2];
     vir[3] =0.5 * v * dx[1] * dx[2];
     vir[4] =0.5 * v * dx[0] * dx[2];
     vir[5] =0.5 * v * dx[0] * dx[1];
-    self->process_dE.virialPerAtom[(*i)*6 + 0] += vir[0];
-    self->process_dE.virialPerAtom[(*i)*6 + 1] += vir[1];
-    self->process_dE.virialPerAtom[(*i)*6 + 2] += vir[2];
-    self->process_dE.virialPerAtom[(*i)*6 + 3] += vir[3];
-    self->process_dE.virialPerAtom[(*i)*6 + 4] += vir[4];
-    self->process_dE.virialPerAtom[(*i)*6 + 5] += vir[5];
+    self->process_dE.particleVirial[(*i)*6 + 0] += vir[0];
+    self->process_dE.particleVirial[(*i)*6 + 1] += vir[1];
+    self->process_dE.particleVirial[(*i)*6 + 2] += vir[2];
+    self->process_dE.particleVirial[(*i)*6 + 3] += vir[3];
+    self->process_dE.particleVirial[(*i)*6 + 4] += vir[4];
+    self->process_dE.particleVirial[(*i)*6 + 5] += vir[5];
     
-    self->process_dE.virialPerAtom[(*j)*6 + 0] += vir[0];
-    self->process_dE.virialPerAtom[(*j)*6 + 1] += vir[1];
-    self->process_dE.virialPerAtom[(*j)*6 + 2] += vir[2];
-    self->process_dE.virialPerAtom[(*j)*6 + 3] += vir[3];
-    self->process_dE.virialPerAtom[(*j)*6 + 4] += vir[4];
-    self->process_dE.virialPerAtom[(*j)*6 + 5] += vir[5];
+    self->process_dE.particleVirial[(*j)*6 + 0] += vir[0];
+    self->process_dE.particleVirial[(*j)*6 + 1] += vir[1];
+    self->process_dE.particleVirial[(*j)*6 + 2] += vir[2];
+    self->process_dE.particleVirial[(*j)*6 + 3] += vir[3];
+    self->process_dE.particleVirial[(*j)*6 + 4] += vir[4];
+    self->process_dE.particleVirial[(*j)*6 + 5] += vir[5];
   }
   
   *ier = KIM_STATUS_OK;

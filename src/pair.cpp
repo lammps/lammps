@@ -72,7 +72,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner = sqrt(2.0);
 
   allocated = 0;
-  suffix_compat = Suffix::NONE;
+  suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;

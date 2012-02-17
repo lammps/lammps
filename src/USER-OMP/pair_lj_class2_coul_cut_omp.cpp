@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 PairLJClass2CoulCutOMP::PairLJClass2CoulCutOMP(LAMMPS *lmp) :
   PairLJClass2CoulCut(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

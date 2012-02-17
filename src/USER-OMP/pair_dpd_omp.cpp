@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 PairDPDOMP::PairDPDOMP(LAMMPS *lmp) :
   PairDPD(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
 }

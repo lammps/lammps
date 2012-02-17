@@ -58,26 +58,24 @@ class PairKIM : public Pair {
 
   // KIM data
 
- // static PairKIM *self;
-
+  // static PairKIM *self;
   KIM_API_model *pkim;
-  int coordinates_ind,numberOfAtoms_ind,numberAtomTypes_ind;
-  int atomTypes_ind,compute_ind;
-  int get_half_neigh_ind,get_full_neigh_ind,neighObject_ind;
+  int coordinates_ind,numberOfParticles_ind,numberParticleTypes_ind;
+  int particleTypes_ind,compute_ind;
+  int get_neigh_ind,neighObject_ind;
   int cutoff_ind,energy_ind;
-  int energyPerAtom_ind,force_ind,forces_ind,virialGlobal_ind;
-  int virialPerAtom_ind,process_d1Edr_ind;
+  int particleEnergy_ind,force_ind,forces_ind,virialGlobal_ind;
+  int particleVirial_ind,process_dEdr_ind;
   int localnall;
   int pointsto;    //get_neigh iterator index
   double *Rij;//size of [3*KIM_API_MAX_NEIGHBORS]
   struct process_fij_4_pair_KIM{
     double *virialGlobal;
-    double *virialPerAtom;
+    double *particleVirial;
     int virialGlobal_flag;
-    int virialPerAtom_flag;
-    int *numberOfAtoms;
+    int particleVirial_flag;
+    int *numberOfParticles;
     bool halfNeighbors;
-   
   };
   process_fij_4_pair_KIM process_dE;
   
@@ -104,7 +102,7 @@ class PairKIM : public Pair {
   // static methods used as callbacks from KIM
 
   static int get_neigh(void **,int *, int *, int *, int *, int **, double **);
-  static void process_d1Edr(KIM_API_model **, double *, double *,
+  static void process_dEdr(KIM_API_model **, double *, double *,
 			    double **, int *, int *, int *);
 };
 
@@ -112,45 +110,3 @@ class PairKIM : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style kim requires newton pair off
-
-Self-explanatory.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: KIM neighbor iterator exceeded range
-
-This error should not normally occur if the KIM library is working
-correctly.
-
-E: KIM_DIR environement variable is unset
-
-The KIM library requires that this environment variable be set before
-running LAMMPS>
-
-E: PWD environement variable is unset
-
-The KIM library requires that this environment variable be set before
-running LAMMPS>
-
-E: KIM initialization failed
-
-This is an error return from the KIM library.
-
-*/

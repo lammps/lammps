@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
   PairGranHookeHistory(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   // trigger use of OpenMP version of FixShearHistory
   suffix = new char[4];

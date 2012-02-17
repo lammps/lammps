@@ -134,8 +134,8 @@ class Pair : protected Pointers {
   virtual void min_x_set(int) {}
 
  protected:
-  int allocated;                       // 0/1 = whether arrays are allocated
-  int suffix_compat;                   // constant indicating compatibility with suffixes
+  int allocated;               // 0/1 = whether arrays are allocated
+  int suffix_flag;             // suffix compatibility flag
 
                                        // pair_modify settings
   int offset_flag,mix_flag;            // flags for offset and mixing

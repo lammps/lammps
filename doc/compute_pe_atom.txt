@@ -48,6 +48,12 @@ The "dihedral_style charmm"_dihedral_charmm.html style calculates
 pairwise interactions between 1-4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 
+The KSpace contribution is calculated using the method in
+"(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
+as specified by the "kspace_style pppm"_kspace_style.html command.
+For PPPM, the calcluation requires 1 extra FFT each timestep that
+per-atom stress is calculated.
+
 As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
@@ -77,3 +83,8 @@ The per-atom vector values will be in energy "units"_units.html.
 stress/atom"_compute_stress_atom.html
 
 [Default:] none
+
+:line
+
+:link(Heyes)
+[(Heyes)] Heyes, Phys Rev B 49, 755 (1994),

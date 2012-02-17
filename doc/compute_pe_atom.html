@@ -51,6 +51,12 @@ E.g. 1/4 of the dihedral energy to each of the 4 atoms.
 pairwise interactions between 1-4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 </P>
+<P>The KSpace contribution is calculated using the method in
+<A HREF = "#Heyes">(Heyes)</A> for the Ewald method and a related method for PPPM,
+as specified by the <A HREF = "kspace_style.html">kspace_style pppm</A> command.
+For PPPM, the calcluation requires 1 extra FFT each timestep that
+per-atom stress is calculated.
+</P>
 <P>As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
@@ -80,5 +86,11 @@ LAMMPS output options.
 stress/atom</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Heyes"></A>
+
+<P><B>(Heyes)</B> Heyes, Phys Rev B 49, 755 (1994),
 </P>
 </HTML>

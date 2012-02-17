@@ -34,7 +34,7 @@ using namespace MathConst;
 PairBrownianPolyOMP::PairBrownianPolyOMP(LAMMPS *lmp) :
   PairBrownianPoly(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   random_thr = NULL;
 }

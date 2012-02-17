@@ -104,7 +104,8 @@ void Group::assign(int narg, char **arg)
       if (output->dump[i]->igroup == igroup)
 	error->all(FLERR,"Cannot delete group currently used by a dump");
     if (atom->firstgroupname && strcmp(arg[0],atom->firstgroupname) == 0)
-      error->all(FLERR,"Cannot delete group currently used by atom_modify first");
+      error->all(FLERR,
+		 "Cannot delete group currently used by atom_modify first");
 
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

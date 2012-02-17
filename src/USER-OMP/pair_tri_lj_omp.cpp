@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 PairTriLJOMP::PairTriLJOMP(LAMMPS *lmp) :
   PairTriLJ(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

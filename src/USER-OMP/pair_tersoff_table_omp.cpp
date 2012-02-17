@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
   PairTersoffTable(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  suffix_compat |= Suffix::OMP;
+  suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
 

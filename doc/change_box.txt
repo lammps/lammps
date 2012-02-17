@@ -94,12 +94,12 @@ which may change simulation box boundaries, and atoms are migrated to
 new owning processors.
 
 IMPORTANT NOTE: Unlike the earlier "displace_box" version of this
-command, atom remapping is NOT performed by default.  The new command
+command, atom remapping is NOT performed by default.  This command
 allows remapping to be done in a more general way, exactly when you
 specify it (zero or more times) in the sequence of transformations.
-Thus if you do not specify the {remap} keyword, atom coordinates will
-not be changed even if the box size/shape changes.  This may be the
-behavior you desire, but can also cause atoms to be lost.
+Thus if you do not use the {remap} keyword, atom coordinates will not
+be changed even if the box size/shape changes.  If a uniformly
+strained state is desired, the {remap} keyword should be specified.
 
 IMPORTANT NOTE: It is possible to lose atoms with this command.
 E.g. by changing the box without remapping the atoms, and having atoms

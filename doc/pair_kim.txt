@@ -115,7 +115,7 @@ which is located in your home directory (e.g. ~/.bashrc). :olb,l
        tcsh:
        % setenv KIM_INTEL "yes" :pre
 
-   (c) For using a 32 bit machine, define the environment variable KIM_SYSTEM32 :pre
+   (c) For a 32 bit machine, define the environment variable KIM_SYSTEM32 :pre
 
        bash: 
        % export KIM_SYSTEM32="yes" :pre
@@ -142,16 +142,20 @@ To compile the package, go to the $KIM_DIR directory and execute
 make. :l
 
    % cd $KIM_DIR
+   % make examples
    % make :pre
 
-     This builds all Models, Tests, and the openKIM API service routine
-     library. The targets defined by the Makefile in this directory include: :pre
+   This builds all Models, Tests, and the openKIM API service routine
+   library. The targets defined by the Makefile in this directory include: :pre
 
-       `make'             -- compiles the API and all Models and Tests
-       `make all'         -- same as `make'
-       `make openkim-api' -- compiles only the API
-       `make clean'       -- will remove all .o, .mod, .a, .so and executable files :pre
-
+   make             -- compiles the API and all Models and Tests
+   make all         -- same as `make'
+   make examples    -- copy examples into the appropriate directories
+                         then do a `make all'
+   make openkim-api -- compiles only the API
+   make examples-clean -- remove all examples from the MODEL_DRIVERs,
+                          MODELs, and TESTs directories. :pre
+       
 Verify that the compilation was successful by running a Test. :l
 
    The provided example Tests read in the name of a Model (or Models)
@@ -173,10 +177,10 @@ In case of using a non-standard location for any of the directories
 KIM_API, TESTs, or MODELs one or more of the following environment
 variables must be set: :l,ole
 
-     KIM_API_DIR
-     KIM_TESTS_DIR
-     KIM_MODELS_DIR
-     KIM_MODEL_DRIVERS_DIR :pre
+   KIM_API_DIR
+   KIM_TESTS_DIR
+   KIM_MODELS_DIR
+   KIM_MODEL_DRIVERS_DIR :pre
 
 :line
 

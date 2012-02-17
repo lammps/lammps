@@ -24,8 +24,8 @@ done
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[ \t]*[^ \t=]*OMP[^ \t]*[ \t]*//g' \
-    	-e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
+    sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
   fi
 
   # force rebuild of files with LMP_USER_OMP switch
@@ -38,7 +38,7 @@ if (test $1 = 1) then
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[ \t=]*[^ \t]*OMP[^ \t]*[ \t]*//g' ../Makefile.package
+    sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
   fi
 
   # force rebuild of files with LMP_USER_OMP switch

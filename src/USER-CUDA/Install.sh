@@ -7,12 +7,12 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*cuda[^ \t]* //g' ../Makefile.package
     sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|& -I..\/..\/lib\/cuda -DLMP_USER_CUDA |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|& -L..\/..\/lib\/cuda |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|& -llammpscuda |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|& $(user-cuda_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|& $(user-cuda_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|& $(user-cuda_SYSPATH) |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/cuda -DLMP_USER_CUDA |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/cuda |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-llammpscuda |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(user-cuda_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(user-cuda_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(user-cuda_SYSPATH) |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

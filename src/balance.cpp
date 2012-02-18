@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"

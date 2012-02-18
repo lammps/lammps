@@ -175,7 +175,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"a1") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all(FLERR,"Invalid option in lattice command for non-custom style");
+	error->all(FLERR,
+		   "Invalid option in lattice command for non-custom style");
       a1[0] = atof(arg[iarg+1]);
       a1[1] = atof(arg[iarg+2]);
       a1[2] = atof(arg[iarg+3]);
@@ -183,7 +184,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"a2") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all(FLERR,"Invalid option in lattice command for non-custom style");
+	error->all(FLERR,
+		   "Invalid option in lattice command for non-custom style");
       a2[0] = atof(arg[iarg+1]);
       a2[1] = atof(arg[iarg+2]);
       a2[2] = atof(arg[iarg+3]);
@@ -191,7 +193,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"a3") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all(FLERR,"Invalid option in lattice command for non-custom style");
+	error->all(FLERR,
+		   "Invalid option in lattice command for non-custom style");
       a3[0] = atof(arg[iarg+1]);
       a3[1] = atof(arg[iarg+2]);
       a3[2] = atof(arg[iarg+3]);
@@ -200,7 +203,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM) 
-	error->all(FLERR,"Invalid option in lattice command for non-custom style");
+	error->all(FLERR,
+		   "Invalid option in lattice command for non-custom style");
       double x = atof(arg[iarg+1]);
       double y = atof(arg[iarg+2]);
       double z = atof(arg[iarg+3]);
@@ -223,12 +227,15 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (dimension == 2) {
     if (origin[2] != 0.0)
-      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,
+		 "Lattice settings are not compatible with 2d simulation");
     if (orientx[2] != 0 || orienty[2] != 0 || 
 	orientz[0] != 0 || orientz[1] != 0)
-      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,
+		 "Lattice settings are not compatible with 2d simulation");
     if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
-      error->all(FLERR,"Lattice settings are not compatible with 2d simulation");
+      error->all(FLERR,
+		 "Lattice settings are not compatible with 2d simulation");
   }
 
   if (spaceflag) {

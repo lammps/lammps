@@ -65,17 +65,17 @@ void ComputeInertia::compute_vector()
   if (vector[0] < vector[1]) {
     tmp = vector[1];
     vector[1] = vector[0];
-    vector[0] = vector[1];
+    vector[0] = tmp;
   }
   if (vector[0] < vector[2]) {
     tmp = vector[2];
     vector[2] = vector[0];
-    vector[0] = vector[2];
+    vector[0] = tmp;
   }
   if (vector[1] < vector[2]) {
     tmp = vector[2];
     vector[2] = vector[1];
-    vector[1] = vector[2];
+    vector[1] = tmp;
   }
   return;
 }

@@ -23,22 +23,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/coul/debye/cuda,PairCGCMMCoulDebyeCuda)
-PairStyle(cg/cmm/coul/debye/old/cuda,PairCGCMMCoulDebyeCuda)
+PairStyle(lj/sdk/cuda,PairLJSDKCuda)
+PairStyle(cg/cmm/cuda,PairLJSDKCuda)
 
 #else
 
-#ifndef PAIR_CG_CMM_COUL_DEBYE_CUDA_H
-#define PAIR_CG_CMM_COUL_DEBYE_CUDA_H
+#ifndef PAIR_LJ_SDK_CUDA_H
+#define PAIR_LJ_SDK_CUDA_H
 
-#include "pair_cg_cmm_coul_cut.h"
+#include "pair_lj_sdk.h"
+#include "cuda_data.h"
 
 namespace LAMMPS_NS {
 
-class PairCGCMMCoulDebyeCuda : public PairCGCMMCoulCut
+class PairLJSDKCuda : public PairLJSDK
 {
 	public:
-		PairCGCMMCoulDebyeCuda(class LAMMPS *);
+		PairLJSDKCuda(class LAMMPS *);
 		void compute(int, int);
 		void settings(int, char **);
 		void coeff(int, char **);
@@ -51,6 +52,11 @@ class PairCGCMMCoulDebyeCuda : public PairCGCMMCoulCut
 		bool allocated2;
 		class CudaNeighList* cuda_neigh_list;
 		double** cg_type_double;
+		cCudaData<double  , F_FLOAT , x >* cu_lj1_gm;
+		cCudaData<double  , F_FLOAT , x >* cu_lj2_gm;
+		cCudaData<double  , F_FLOAT , x >* cu_lj3_gm;
+		cCudaData<double  , F_FLOAT , x >* cu_lj4_gm;
+		cCudaData<double  , F_FLOAT , x >* cu_cg_type_double_gm;
 };
 
 }

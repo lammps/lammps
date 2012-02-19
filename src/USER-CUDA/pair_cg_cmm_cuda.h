@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/cuda,PairCGCMMCuda)
+PairStyle(cg/cmm/old/cuda,PairCGCMMCuda)
 
 #else
 

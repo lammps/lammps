@@ -24,6 +24,7 @@
 #ifdef PAIR_CLASS
 
 PairStyle(cg/cmm/coul/cut/cuda,PairCGCMMCoulCutCuda)
+PairStyle(cg/cmm/coul/cut/old/cuda,PairCGCMMCoulCutCuda)
 
 #else
 

@@ -23,22 +23,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/coul/debye/cuda,PairCGCMMCoulDebyeCuda)
-PairStyle(cg/cmm/coul/debye/old/cuda,PairCGCMMCoulDebyeCuda)
+PairStyle(cg/cmm/coul/long/cuda,PairLJSDKCoulLongCuda)
+PairStyle(lj/sdk/coul/long/cuda,PairLJSDKCoulLongCuda)
 
 #else
 
-#ifndef PAIR_CG_CMM_COUL_DEBYE_CUDA_H
-#define PAIR_CG_CMM_COUL_DEBYE_CUDA_H
+#ifndef PAIR_LJ_SDK_COUL_LONG_CUDA_H
+#define PAIR_LJ_SDK_COUL_LONG_CUDA_H
 
-#include "pair_cg_cmm_coul_cut.h"
+#include "pair_lj_sdk_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairCGCMMCoulDebyeCuda : public PairCGCMMCoulCut
+class PairLJSDKCoulLongCuda : public PairLJSDKCoulLong
 {
 	public:
-		PairCGCMMCoulDebyeCuda(class LAMMPS *);
+		PairLJSDKCoulLongCuda(class LAMMPS *);
 		void compute(int, int);
 		void settings(int, char **);
 		void coeff(int, char **);

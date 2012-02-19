@@ -62,9 +62,19 @@ include ..\/..\/lib\/cuda\/Makefile.lammps\
     cp pair_cg_cmm_coul_debye_cuda.h ..
   fi
 
+  if (test -e ../pair_lj_sdk.cpp) then
+    cp pair_lj_sdk_cuda.cpp ..
+    cp pair_lj_sdk_cuda.h ..
+  fi
+
   if (test -e ../pair_cg_cmm_coul_long.cpp) then
     cp pair_cg_cmm_coul_long_cuda.cpp ..
     cp pair_cg_cmm_coul_long_cuda.h ..
+  fi
+
+  if (test -e ../pair_lj_sdk_coul_long.cpp) then
+    cp pair_lj_sdk_coul_long_cuda.cpp ..
+    cp pair_lj_sdk_coul_long_cuda.h ..
   fi
 
   if (test -e ../pppm.cpp) then

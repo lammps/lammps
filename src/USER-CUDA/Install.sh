@@ -289,6 +289,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_expand_cuda.cpp
   rm -f ../pair_lj_gromacs_coul_gromacs_cuda.cpp
   rm -f ../pair_lj_gromacs_cuda.cpp
+  rm -f ../pair_lj_sdk_coul_long_cuda.cpp
+  rm -f ../pair_lj_sdk_cuda.cpp
   rm -f ../pair_lj_smooth_cuda.cpp
   rm -f ../pair_morse_cuda.cpp
   rm -f ../pppm_cuda.cpp
@@ -353,6 +355,8 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_expand_cuda.h
   rm -f ../pair_lj_gromacs_coul_gromacs_cuda.h
   rm -f ../pair_lj_gromacs_cuda.h
+  rm -f ../pair_lj_sdk_coul_long_cuda.h
+  rm -f ../pair_lj_sdk_cuda.h
   rm -f ../pair_lj_smooth_cuda.h
   rm -f ../pair_morse_cuda.h
   rm -f ../pppm_cuda.h

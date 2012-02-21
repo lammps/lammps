@@ -373,9 +373,9 @@ void Input::parse()
       if (ptr)
 	*ptr = '\0';
     }
+    narg++;
     if (ptr == NULL) break;
     ++ptr;
-    narg++;
   }
 
   if (quote) error->all(FLERR,"Unbalanced quotes in input line");

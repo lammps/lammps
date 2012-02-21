@@ -785,6 +785,15 @@ arbitrary vectors.  As indicated, <B>a</B> must be aligned with the x axis,
 not a restriction since it is possible to rotate any set of 3 crystal
 basis vectors so that they meet this restriction.
 </P>
+<P>For example, assume that the 3 vectors <B>A</B>,<B>B</B>,<B>C</B> are the edge
+vectors of a general parallelipied, where there is no directional
+requirements <B>A</B>,<B>B</B>,<B>C</B> other than they are not co-linear and that
+<B>C</B> dotted into (<B>A</B> x <B>B</B>) be > 0, i.e.  the vectors are ordered to
+satisfy a right-hand rule.  The equivalent LAMMPS <B>a</B>,<B>b</B>,<B>c</B> vectors
+can be computed as follows where A = |<B>A</B>| = scalar length of <B>A</B>.
+</P>
+<CENTER><IMG SRC = "Eqs/transform.jpg">
+</CENTER>
 <P>There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension
 of the tilt (y in xy) if you want to enforce a shift in periodic

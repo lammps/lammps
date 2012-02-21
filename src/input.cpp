@@ -1223,6 +1223,7 @@ void Input::package()
     modify->add_fix(2+narg,fixarg,NULL);
     modify->allow_early_fix = 0;
     delete [] fixarg;
+    force->newton_pair = 0;
 
   } else if (strcmp(arg[0],"omp") == 0) {
     char **fixarg = new char*[2+narg];

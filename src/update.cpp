@@ -132,6 +132,8 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
+    force->angstrom = 1.0;
+    force->qelectron = 1.0;
 
     dt = 0.005;
     neighbor->skin = 0.3;
@@ -150,6 +152,8 @@ void Update::set_units(const char *style)
     force->e_mass = 1.0/1836.1527556560675;
     force->hhmrr2e = 0.0957018663603261;
     force->mvh2r = 1.5339009481951;
+    force->angstrom = 1.0;
+    force->qelectron = 1.0;
 
     dt = 1.0;
     neighbor->skin = 2.0;
@@ -168,6 +172,8 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
+    force->angstrom = 1.0;
+    force->qelectron = 1.0;
 
     dt = 0.001;
     neighbor->skin = 2.0;
@@ -186,6 +192,8 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
+    force->angstrom = 1e-10;
+    force->qelectron = 1.6021765e-19;
 
     dt = 1.0e-8;
     neighbor->skin = 0.001;
@@ -204,6 +212,8 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
+    force->angstrom = 1e-8;
+    force->qelectron = 4.8032044e-10;
 
     dt = 1.0e-8;
     neighbor->skin = 0.1;
@@ -222,6 +232,8 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
+    force->angstrom = 1.88972612;
+    force->qelectron = 1.0;
 
     dt = 0.001;
     neighbor->skin = 2.0;

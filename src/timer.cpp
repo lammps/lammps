@@ -15,15 +15,27 @@
 #include "timer.h"
 #include "memory.h"
 
+// #define LMP_CLOCK_GETTIME 1
+
+#ifdef LMP_CLOCK_GETTIME
+#include <time.h>
+#endif
 #ifndef _WIN32
-#include "sys/time.h"
-#include "sys/resource.h"
+#include <sys/time.h>
+#include <sys/resource.h>
 #endif
 
 using namespace LAMMPS_NS;
 
 static double get_cpu_time()
 {
+#ifdef LMP_CLOCK_GETTIME
+  struct timespec tp;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&tp);
+  double rv = (double) tp.tv_sec;
+  rv += (double) tp.tv_nsec * 0.0000000001;
+  return rv;
+#else
 #ifndef _WIN32
   struct rusage ru;
   double rv = 0.0;
@@ -32,6 +44,7 @@ static double get_cpu_time()
     rv += (double) ru.ru_utime.tv_usec * 0.000001;
   }
   return rv;
+#endif
 #endif
   return 0.0;
 }
@@ -54,7 +67,15 @@ static double get_sys_time()
 /* ---------------------------------------------------------------------- */
 static double get_wall_time()
 {
+#ifdef LMP_CLOCK_GETTIME
+  struct timespec tp;
+  clock_gettime(CLOCK_REALTIME_HR,&tp);
+  double rv = (double) tp.tv_sec;
+  rv += (double) tp.tv_nsec * 0.0000000001;
+  return rv;
+#else
   return MPI_Wtime();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

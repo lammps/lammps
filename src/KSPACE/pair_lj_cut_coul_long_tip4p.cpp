@@ -401,6 +401,7 @@ void PairLJCutCoulLongTIP4P::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom attribute q");
   if ( (strcmp(force->kspace_style,"pppm/tip4p") != 0) &&
+       (strcmp(force->kspace_style,"pppm/tip4p/omp") != 0) &&
        (strcmp(force->kspace_style,"pppm/tip4p/proxy") != 0) )
     error->all(FLERR,"Pair style is incompatible with KSpace style");
   if (force->bond == NULL)

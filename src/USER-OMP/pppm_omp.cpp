@@ -344,7 +344,9 @@ void PPPMOMP::make_rho()
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
+#endif
   {  
+#if defined(_OPENMP)
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
@@ -406,8 +408,8 @@ void PPPMOMP::make_rho()
     if (nthreads > 1) {
       data_reduce_fft(&(density_brick[nzlo_out][nylo_out][nxlo_out]),ngrid,nthreads,1,tid);
     }
-  }
 #endif
+  }
 }
 
 /* ----------------------------------------------------------------------

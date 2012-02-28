@@ -12,7 +12,7 @@ path = os.path.dirname(os.getcwd())
 # list of src files for LAMMPS and MPI STUBS
 
 libfiles = glob.glob("%s/src/*.cpp" % path) + \
-           glob.glob("%s/src/STUBS/*.cpp" % path)
+           glob.glob("%s/src/STUBS/*.c" % path)
 
 lammps_library = Extension("_lammps_serial",
                            sources = libfiles,

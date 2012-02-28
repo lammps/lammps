@@ -192,7 +192,7 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
-    force->angstrom = 1e-10;
+    force->angstrom = 1.0e-10;
     force->qelectron = 1.6021765e-19;
 
     dt = 1.0e-8;
@@ -212,7 +212,7 @@ void Update::set_units(const char *style)
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
-    force->angstrom = 1e-8;
+    force->angstrom = 1.0e-8;
     force->qelectron = 4.8032044e-10;
 
     dt = 1.0e-8;

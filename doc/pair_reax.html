@@ -55,6 +55,17 @@ potentials dir, each called potentials/ffield.reax.label.  These are
 documented in potentials/README.reax.  The default ffield.reax
 contains parameterizations for the following elements: C, H, O, N, S.
 </P>
+<P>IMPORTANT NOTE: We do not distribute a wide variety of ReaxFF force
+field files with LAMMPS.  Adri van Duin's group at PSU is the central
+repository for this kind of data as they are continuously deriving and
+updating parameterizations for different classes of materials.  You
+can visit their WWW site at
+<A HREF = "http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</A>, register
+as a "new user", and then submit a request to their group describing
+material(s) you are interested in modeling with ReaxFF.  They can tell
+you what is currently available or what it would take to create a
+suitable ReaxFF parameterization.
+</P>
 <P>The format of these files is identical to that used originally by van
 Duin.  We have tested the accuracy of <I>pair_style reax</I> potential
 against the original ReaxFF code for the systems mentioned above.  You

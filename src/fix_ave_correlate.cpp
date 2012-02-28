@@ -17,7 +17,6 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
-//#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_correlate.h"

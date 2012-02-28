@@ -16,7 +16,6 @@
                         Axel Kohlmeyer (Temple U), support for groups
 ------------------------------------------------------------------------- */
 
-//#include "lmptype.h"
 #include "math.h"
 #include "inttypes.h"
 #include "stdio.h"

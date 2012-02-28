@@ -17,7 +17,7 @@
 
 #include "lmptype.h"
 #include "mpi.h"
-#include <math.h>
+#include "math.h"
 #include "fix_qeq_comb_omp.h"
 #include "atom.h"
 #include "force.h"

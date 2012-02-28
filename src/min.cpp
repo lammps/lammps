@@ -19,7 +19,6 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-//#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"

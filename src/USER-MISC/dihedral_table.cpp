@@ -27,7 +27,6 @@
 #include <cassert>
 using namespace std;
 
-#include "lmptype.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"

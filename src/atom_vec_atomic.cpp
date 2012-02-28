@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-//#include "lmptype.h"
 #include "stdlib.h"
 #include "atom_vec_atomic.h"
 #include "atom.h"

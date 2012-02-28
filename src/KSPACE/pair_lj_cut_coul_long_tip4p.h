@@ -37,7 +37,6 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
  protected:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
   int typeA,typeB;             // angle and bond types of TIP4P water
-  double qdist;                // distance from O site to negative charge
   double alpha;                // geometric constraint parameter for TIP4P
 
   void find_M(int, int &, int &, double *);

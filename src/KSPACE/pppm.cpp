@@ -60,8 +60,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
-  precision = atof(arg[0]);
-  
+  accuracy_relative = atof(arg[0]);
+
   nfactors = 3;
   factors = new int[nfactors];
   factors[0] = 2;
@@ -222,6 +222,11 @@ void PPPM::init()
     error->warning(FLERR,str);
   }
 
+  // set accuracy (force units) from accuracy_relative or accuracy_absolute
+  
+  if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
+  else accuracy = accuracy_relative * two_charge_force;
+  
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
   // if grid stencil extends beyond neighbor proc, reduce order and try again
@@ -229,7 +234,6 @@ void PPPM::init()
   int iteration = 0;
 
   while (order > 0) {
-
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
 		     "beyond neighbor processor");
@@ -970,9 +974,7 @@ void PPPM::set_grid()
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
 
-  //double q2 = qsqsum * force->qqrd2e / force->dielectric;
-  double q2 = qsqsum / force->dielectric;
-  bigint natoms = atom->natoms;
+  double q2 = qsqsum * force->qqrd2e / force->dielectric;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM
@@ -984,20 +986,21 @@ void PPPM::set_grid()
   double zprd_slab = zprd*slab_volfactor;
   
   // make initial g_ewald estimate
-  // based on desired error and real space cutoff
+  // based on desired accuracy and real space cutoff
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
   double h_x,h_y,h_z;
+  bigint natoms = atom->natoms;
 
   if (!gewaldflag)
-    g_ewald = sqrt(-log(precision*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
+    g_ewald = sqrt(-log(accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
 			(2.0*q2))) / cutoff;
 
-  // set optimal nx_pppm,ny_pppm,nz_pppm based on order and precision
+  // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
   // h = 1/g_ewald is upper bound on h such that h*g_ewald <= 1
-  // reduce it until precision target is met
+  // reduce it until accuracy target is met
 
   if (!gridflag) {
     double err;
@@ -1008,21 +1011,21 @@ void PPPM::set_grid()
     nz_pppm = static_cast<int> (zprd_slab/h_z + 1);
 
     err = rms(h_x,xprd,natoms,q2,acons);
-    while (err > precision) {
+    while (err > accuracy) {
       err = rms(h_x,xprd,natoms,q2,acons);
       nx_pppm++;
       h_x = xprd/nx_pppm;
     }
 
     err = rms(h_y,yprd,natoms,q2,acons);
-    while (err > precision) {
+    while (err > accuracy) {
       err = rms(h_y,yprd,natoms,q2,acons);
       ny_pppm++;
       h_y = yprd/ny_pppm;
     }
 
     err = rms(h_z,zprd_slab,natoms,q2,acons);
-    while (err > precision) {
+    while (err > accuracy) {
       err = rms(h_z,zprd_slab,natoms,q2,acons);
       nz_pppm++;
       h_z = zprd_slab/nz_pppm;
@@ -1067,7 +1070,7 @@ void PPPM::set_grid()
     }
   }
 
-  // final RMS precision
+  // final RMS accuracy
 
   double lprx = rms(h_x,xprd,natoms,q2,acons);
   double lpry = rms(h_y,yprd,natoms,q2,acons);
@@ -1092,14 +1095,18 @@ void PPPM::set_grid()
       fprintf(screen,"  G vector (1/distance)= %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(screen,"  absolute RMS force accuracy = %g\n",MAX(lpr,spr));
+      fprintf(screen,"  relative force accuracy = %g\n",
+	      MAX(lpr,spr)/two_charge_force);
       fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
       fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  RMS precision = %g\n",MAX(lpr,spr));
+      fprintf(logfile,"  absolute RMS force accuracy = %g\n",MAX(lpr,spr));
+      fprintf(logfile,"  relative force accuracy = %g\n",
+	      MAX(lpr,spr)/two_charge_force);
       fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }
   }
@@ -1128,7 +1135,7 @@ int PPPM::factorable(int n)
 }
 
 /* ----------------------------------------------------------------------
-   compute RMS precision for a dimension
+   compute RMS accuracy for a dimension
 ------------------------------------------------------------------------- */
 
 double PPPM::rms(double h, double prd, bigint natoms,
@@ -1143,7 +1150,7 @@ double PPPM::rms(double h, double prd, bigint natoms,
 }
 
 /* ----------------------------------------------------------------------
-   compute difference in real-space and kspace RMS precision
+   compute difference in real-space and KSpace RMS accuracy
 ------------------------------------------------------------------------- */
 
 double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, 

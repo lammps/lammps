@@ -18,25 +18,25 @@
 <UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/proxy</I> 
 
 <PRE>  <I>none</I> value = none
-  <I>ewald</I> value = precision
-    precision = desired accuracy
-  <I>pppm</I> value = precision
-    precision = desired accuracy
-  <I>pppm/cg</I> value = precision (smallq)
-    precision = desired accuracy
+  <I>ewald</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm/cg</I> value = accuracy (smallq)
+    accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
-  <I>pppm/tip4p</I> value = precision
-    precision = desired accuracy
-  <I>ewald/n</I> value = precision
-    precision = desired accuracy
-  <I>pppm/gpu</I> value = precision
-    precision = desired accuracy
-  <I>ewald/omp</I> value = precision
-    precision = desired accuracy
-  <I>pppm/omp</I> value = precision
-    precision = desired accuracy
-  <I>pppm/proxy</I> value = precision
-    precision = desired accuracy 
+  <I>pppm/tip4p</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>ewald/n</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm/gpu</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>ewald/omp</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm/omp</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm/proxy</I> value = accuracy
+    accuracy = desired relative error in forces 
 </PRE>
 
 </UL>
@@ -119,13 +119,23 @@ dispersion forces in a Lennard-Jones or Buckingham potential, see the
 <A HREF = "pair_lj_coul.html">pair_style lj/coul</A> or <A HREF = "pair_buck_coul.html">pair_style
 buck/coul</A> commands.
 </P>
-<P>A precision value of 1.0e-4 means one part in 10000.  This setting is
-used in conjunction with the pairwise cutoff to determine the number
-of K-space vectors for style <I>ewald</I> or the FFT grid size for style
-<I>pppm</I>.
+<P>The specified <I>accuracy</I> determines the relative RMS error in per-atom
+forces calculated by the long-range solver.  It is set as a
+dimensionless number, relative to the force that two unit point
+charges (e.g. 2 monovalent ions) exert on each other at a distance of
+1 Angstrom.  This reference value was chosen as representative of the
+magnitude of electrostatic forces in atomic systems.  Thus an accuracy
+value of 1.0e-4 means that the RMS error will be a factor of 10000
+smaller than the reference force.
+</P>
+<P>The accuracy setting is used in conjunction with the pairwise cutoff
+to determine the number of K-space vectors for style <I>ewald</I> or the
+FFT grid size for style <I>pppm</I>.
 </P>
 <P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional
-options of the K-space solvers that can be set.
+options of the K-space solvers that can be set, including a <I>force</I>
+option for setting an absoulte RMS error in forces, as opposed to a
+relative RMS error.
 </P>
 <HR>
 

@@ -14,25 +14,25 @@ kspace_style style value :pre
 
 style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/proxy} :ulb,l
   {none} value = none
-  {ewald} value = precision
-    precision = desired accuracy
-  {pppm} value = precision
-    precision = desired accuracy
-  {pppm/cg} value = precision (smallq)
-    precision = desired accuracy
+  {ewald} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/cg} value = accuracy (smallq)
+    accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
-  {pppm/tip4p} value = precision
-    precision = desired accuracy
-  {ewald/n} value = precision
-    precision = desired accuracy
-  {pppm/gpu} value = precision
-    precision = desired accuracy
-  {ewald/omp} value = precision
-    precision = desired accuracy
-  {pppm/omp} value = precision
-    precision = desired accuracy
-  {pppm/proxy} value = precision
-    precision = desired accuracy :pre
+  {pppm/tip4p} value = accuracy
+    accuracy = desired relative error in forces
+  {ewald/n} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/gpu} value = accuracy
+    accuracy = desired relative error in forces
+  {ewald/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/proxy} value = accuracy
+    accuracy = desired relative error in forces :pre
 :ule
 
 [Examples:]
@@ -114,13 +114,23 @@ dispersion forces in a Lennard-Jones or Buckingham potential, see the
 "pair_style lj/coul"_pair_lj_coul.html or "pair_style
 buck/coul"_pair_buck_coul.html commands.
 
-A precision value of 1.0e-4 means one part in 10000.  This setting is
-used in conjunction with the pairwise cutoff to determine the number
-of K-space vectors for style {ewald} or the FFT grid size for style
-{pppm}.
+The specified {accuracy} determines the relative RMS error in per-atom
+forces calculated by the long-range solver.  It is set as a
+dimensionless number, relative to the force that two unit point
+charges (e.g. 2 monovalent ions) exert on each other at a distance of
+1 Angstrom.  This reference value was chosen as representative of the
+magnitude of electrostatic forces in atomic systems.  Thus an accuracy
+value of 1.0e-4 means that the RMS error will be a factor of 10000
+smaller than the reference force.
+
+The accuracy setting is used in conjunction with the pairwise cutoff
+to determine the number of K-space vectors for style {ewald} or the
+FFT grid size for style {pppm}.
 
 See the "kspace_modify"_kspace_modify.html command for additional
-options of the K-space solvers that can be set.
+options of the K-space solvers that can be set, including a {force}
+option for setting an absoulte RMS error in forces, as opposed to a
+relative RMS error.
 
 :line
 

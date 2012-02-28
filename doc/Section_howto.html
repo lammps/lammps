@@ -545,6 +545,17 @@ theta of HOH angle = 104.52 <BR>
 LJ sigma of O-O = 3.16435<BR>
 LJ epsilon, sigma of OH, HH = 0.0 <BR>
 </P>
+<P>Note that the when using the TIP4P pair style, the neighobr list
+cutoff for Coulomb interactions is effectively extended by a distance
+2 * (OM distance), to account for the offset distance of the
+fictitious charges on O atoms in water molecules.  Thus it is
+typically best in an efficiency sense to use a LJ cutoff >= Coulomb
+cutoff + 2*(OM distance), to shrink the size of the neighbor list.
+This leads to slightly larger cost for the long-range calculation, so
+you can test the trade-off for your model.  The OM distance and the LJ
+and Coulombic cutoffs are set in the <A HREF = "pair_lj.html">pair_style
+lj/cut/coul/long/tip4p</A> command.
+</P>
 <P>Wikipedia also has a nice article on <A HREF = "http://en.wikipedia.org/wiki/Water_model">water
 models</A>.
 </P>

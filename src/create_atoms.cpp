@@ -89,6 +89,7 @@ void CreateAtoms::command(int narg, char **arg)
   // process optional keywords
 
   int scaleflag = 1;
+  remapflag = 0;
 
   if (domain->lattice) {
     nbasis = domain->lattice->nbasis;
@@ -108,6 +109,12 @@ void CreateAtoms::command(int narg, char **arg)
 	error->all(FLERR,"Illegal create_atoms command");
       basistype[ibasis-1] = itype;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"remap") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
+      if (strcmp(arg[iarg+1],"yes") == 0) remapflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) remapflag = 0;
+      else error->all(FLERR,"Illegal create_atoms command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
@@ -213,6 +220,13 @@ void CreateAtoms::command(int narg, char **arg)
 void CreateAtoms::add_single()
 {
   double *sublo,*subhi;
+
+  // remap atom if requested
+
+  if (remapflag) {
+    int imagetmp = (512 << 20) | (512 << 10) | 512;
+    domain->remap(xone,imagetmp);
+  }
 
   // sub-domain bounding box, in lamda units if triclinic
 

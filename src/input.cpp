@@ -284,7 +284,7 @@ void Input::parse()
 
   strcpy(copy,line);
 
-  // strip any # comment by resetting string terminator
+  // strip any # comment by replacing it with 0
   // do not strip # inside single/double quotes
 
   char quote = '\0';
@@ -306,40 +306,59 @@ void Input::parse()
 
   // command = 1st arg
 
-  command = strtok(copy," \t\n\r\f");
+  char *next;
+  command = nextword(copy,&next);
   if (command == NULL) return;
 
   // point arg[] at each subsequent arg
-  // treat text between single/double quotes as one arg
-  // insert string terminators in copy to delimit args
-
-  quote = '\0';
-  int iarg,argstart;
+  // nextword() inserts zeroes in copy to delimit args
+  // nextword() treats text between single/double quotes as one arg
 
   narg = 0;
-  while (1) {
+  ptr = next;
+  while (ptr) {
     if (narg == maxarg) {
       maxarg += DELTA;
       arg = (char **) memory->srealloc(arg,maxarg*sizeof(char *),"input:arg");
     }
-    arg[narg] = strtok(NULL," \t\n\r\f");
+    arg[narg] = nextword(ptr,&next);
     if (!arg[narg]) break;
-    if (!quote && (arg[narg][0] == '"' || arg[narg][0] == '\'')) {
-      quote = arg[narg][0];
-      argstart = narg;
-      arg[narg] = &arg[narg][1];
-    }
-    if (quote && arg[narg][strlen(arg[narg])-1] == quote) {
-      for (iarg = argstart; iarg < narg; iarg++)
-	arg[iarg][strlen(arg[iarg])] = ' ';
-      arg[narg][strlen(arg[narg])-1] = '\0';
-      narg = argstart;
-      quote = '\0';
-    }
     narg++;
+    ptr = next;
   }
+}
 
-  if (quote) error->all(FLERR,"Unbalanced quotes in input line");
+/* ----------------------------------------------------------------------
+   find next word in str
+   insert 0 at end of word
+   ignore leading whitespace
+   treat text between single/double quotes as one arg
+     matching quote must be followed by whitespace char if not end of string
+     strip quotes from returned word
+   return ptr to start of word
+   return next = ptr after word or NULL if word ended with 0
+   return NULL if no word in string
+------------------------------------------------------------------------- */
+
+char *Input::nextword(char *str, char **next)
+{
+  char *start,*stop;
+
+  start = &str[strspn(str," \t\n\v\f\r")];
+  if (*start == '\0') return NULL;
+
+  if (*start == '"' || *start == '\'') {
+    stop = strchr(&start[1],*start);
+    if (!stop) error->all(FLERR,"Unbalanced quotes in input line");
+    if (stop[1] && !isspace(stop[1]))
+      error->all(FLERR,"Input line quote not followed by whitespace");
+    start++;
+  } else stop = &start[strcspn(start," \t\n\v\f\r")];
+
+  if (*stop == '\0') *next = NULL;
+  else *next = stop+1;
+  *stop = '\0';
+  return start;
 }
 
 /* ----------------------------------------------------------------------

@@ -638,19 +638,19 @@ void PPPM::setup()
 	  sum1 = 0.0;
 	  for (nx = -nbx; nx <= nbx; nx++) {
 	    qx = unitkx*(kper+nx_pppm*nx);
-	    sx = exp(-.25*pow(qx/g_ewald,2.0));
+	    sx = exp(-0.25*pow(qx/g_ewald,2.0));
 	    wx = 1.0;
 	    argx = 0.5*qx*xprd/nx_pppm;
 	    if (argx != 0.0) wx = pow(sin(argx)/argx,order);
 	    for (ny = -nby; ny <= nby; ny++) {
 	      qy = unitky*(lper+ny_pppm*ny);
-	      sy = exp(-.25*pow(qy/g_ewald,2.0));
+	      sy = exp(-0.25*pow(qy/g_ewald,2.0));
 	      wy = 1.0;
 	      argy = 0.5*qy*yprd/ny_pppm;
 	      if (argy != 0.0) wy = pow(sin(argy)/argy,order);
 	      for (nz = -nbz; nz <= nbz; nz++) {
 		qz = unitkz*(mper+nz_pppm*nz);
-		sz = exp(-.25*pow(qz/g_ewald,2.0));
+		sz = exp(-0.25*pow(qz/g_ewald,2.0));
 		wz = 1.0;
 		argz = 0.5*qz*zprd_slab/nz_pppm;
 		if (argz != 0.0) wz = pow(sin(argz)/argz,order);

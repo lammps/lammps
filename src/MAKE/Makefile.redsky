@@ -1,7 +1,6 @@
 # redsky - SUN X6275 with dual socket/quad core nodes, mpic++, openmpi, FFTW 
 
 SHELL = /bin/sh
-.IGNORE:
 
 # this Makefile builds LAMMPS for RedSky with OpenMPI
 # to invoke this Makefile, you need these modules loaded:

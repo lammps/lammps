@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
+//#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_histo.h"

@@ -15,7 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
+//#include "lmptype.h"
 #include "stdlib.h"
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"

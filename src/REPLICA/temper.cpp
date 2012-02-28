@@ -15,7 +15,6 @@
    Contributing author: Mark Sears (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"

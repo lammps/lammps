@@ -15,7 +15,6 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"

@@ -55,39 +55,6 @@ using namespace LAMMPS_NS;
 #define MAXLINE 2048
 #define DELTA 4
 
-static char *skipspace(char *string)
-{
-  if (string)
-    while (*string != NULL)
-      if (isspace(*string))
-	++string;
-      else return string;
-
-  return NULL;
-}
-
-static char *skipword(char *string)
-{
-  if (string)
-    while (*string != NULL)
-      if (!isspace(*string))
-	++string;
-      else return string;
-
-  return NULL;
-}
-
-static char *skiptoquote(char *string, char quote)
-{
-  if (string)
-    while (*string != NULL)
-      if (*string != quote)
-	++string;
-      else return string;
-
-  return NULL;
-}
-
 /* ---------------------------------------------------------------------- */
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
@@ -339,11 +306,8 @@ void Input::parse()
 
   // command = 1st arg
 
-  command = skipspace(copy);
+  command = strtok(copy," \t\n\r\f");
   if (command == NULL) return;
-  ptr = skipword(command);
-  if (ptr != NULL) *ptr = '\0';
-  ++ptr;
 
   // point arg[] at each subsequent arg
   // treat text between single/double quotes as one arg
@@ -358,24 +322,21 @@ void Input::parse()
       maxarg += DELTA;
       arg = (char **) memory->srealloc(arg,maxarg*sizeof(char *),"input:arg");
     }
-    arg[narg] = skipspace(ptr);
+    arg[narg] = strtok(NULL," \t\n\r\f");
     if (!arg[narg]) break;
-    if (arg[narg][0] == '"' || arg[narg][0] == '\'') {
+    if (!quote && (arg[narg][0] == '"' || arg[narg][0] == '\'')) {
       quote = arg[narg][0];
+      argstart = narg;
       arg[narg] = &arg[narg][1];
-      ptr = skiptoquote(arg[narg],quote);
-      if (ptr) {
-	*ptr = '\0';
-	quote = '\0';
-      }
-    } else {
-      ptr = skipword(arg[narg]);
-      if (ptr)
-	*ptr = '\0';
+    }
+    if (quote && arg[narg][strlen(arg[narg])-1] == quote) {
+      for (iarg = argstart; iarg < narg; iarg++)
+	arg[iarg][strlen(arg[iarg])] = ' ';
+      arg[narg][strlen(arg[narg])-1] = '\0';
+      narg = argstart;
+      quote = '\0';
     }
     narg++;
-    if (ptr == NULL) break;
-    ++ptr;
   }
 
   if (quote) error->all(FLERR,"Unbalanced quotes in input line");

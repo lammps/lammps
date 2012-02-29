@@ -245,7 +245,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
     }
   if (nextra_global) modify->min_store();
 
-  // Important diagnostic: test the gradient against energy
+  // important diagnostic: test the gradient against energy
   // double etmp;
   // double alphatmp = alphamax*1.0e-4;
   // etmp = alpha_step(alphatmp,1);
@@ -846,13 +846,13 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
   if (nextra_global) modify->min_step(0.0,hextra);
   for (i = 0; i < nvec; i++) xvec[i] = x0[i];
   if (nextra_atom)
-      for (m = 0; m < nextra_atom; m++) {
- xatom = xextra_atom[m];
- x0atom = x0extra_atom[m];
- n = extra_nlen[m];
- for (i = 0; i < n; i++) xatom[i] = x0atom[i];
- requestor[m]->min_x_set(m);
-      }
+    for (m = 0; m < nextra_atom; m++) {
+      xatom = xextra_atom[m];
+      x0atom = x0extra_atom[m];
+      n = extra_nlen[m];
+      for (i = 0; i < n; i++) xatom[i] = x0atom[i];
+      requestor[m]->min_x_set(m);
+    }
   
   // step forward along h
 
@@ -861,11 +861,11 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
     for (i = 0; i < nvec; i++) xvec[i] += alpha*h[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
- xatom = xextra_atom[m];
- hatom = hextra_atom[m];
- n = extra_nlen[m];
- for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
- requestor[m]->min_x_set(m);
+	xatom = xextra_atom[m];
+	hatom = hextra_atom[m];
+	n = extra_nlen[m];
+	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
+	requestor[m]->min_x_set(m);
       }
   }
 

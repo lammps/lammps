@@ -51,6 +51,7 @@ PairLJCutCoulLong::PairLJCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   ftable = NULL;
+  qdist = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

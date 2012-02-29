@@ -42,7 +42,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
-  precision = atof(arg[0]);
+  accuracy_relative = atof(arg[0]);
 
   kmax = 0;
   kxvecs = kyvecs = kzvecs = NULL;
@@ -127,25 +127,68 @@ void Ewald::init()
     error->warning(FLERR,str);
   }
 
+  // set accuracy (force units) from accuracy_relative or accuracy_absolute
+  
+  if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
+  else accuracy = accuracy_relative * two_charge_force;
+  
   // setup K-space resolution
 
-  if (!gewaldflag) g_ewald = (1.35 - 0.15*log(precision))/cutoff;
-  gsqmx = -4.0*g_ewald*g_ewald*log(precision);
+  q2 = qsqsum * force->qqrd2e / force->dielectric;
+  bigint natoms = atom->natoms;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-    if (logfile) fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
-  }
+  // use xprd,yprd,zprd even if triclinic so grid size is the same
+  // adjust z dimension for 2d slab Ewald
+  // 3d Ewald just uses zprd since slab_volfactor = 1.0
+
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double zprd_slab = zprd*slab_volfactor;
+  
+  // make initial g_ewald estimate
+  // based on desired accuracy and real space cutoff
+  // fluid-occupied volume used to estimate real-space error
+  // zprd used rather than zprd_slab
+
+  if (!gewaldflag)
+    g_ewald = sqrt(-log(accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
+                        (2.0*q2))) / cutoff;
 
   // setup Ewald coefficients so can print stats
 
   setup();
 
+ // final RMS accuracy
+
+  double lprx = rms(kxmax,xprd,natoms,q2);
+  double lpry = rms(kymax,yprd,natoms,q2);
+  double lprz = rms(kzmax,zprd_slab,natoms,q2);
+  double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
+  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
+    sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+
+  // stats
+
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"  vectors: actual 1d max = %d %d %d\n",
-			kcount,kmax,kmax3d);
-    if (logfile) fprintf(logfile,"  vectors: actual 1d max = %d %d %d\n",
-			 kcount,kmax,kmax3d);
+    if (screen) {
+      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
+      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
+	      MAX(lpr,spr));
+      fprintf(screen,"  estimated relative force accuracy = %g\n",
+	      MAX(lpr,spr)/two_charge_force);
+      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
+	      kcount,kmax,kmax3d);
+    }
+    if (logfile) {
+      fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
+      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
+	      MAX(lpr,spr));
+      fprintf(logfile,"  estimated relative force accuracy = %g\n",
+	      MAX(lpr,spr)/two_charge_force);
+      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
+	      kcount,kmax,kmax3d);
+    }
   }
 }
 
@@ -172,18 +215,43 @@ void Ewald::setup()
   unitk[2] = 2.0*MY_PI/zprd_slab;
 
   // determine kmax
-  // function of current box size, precision, G_ewald (short-range cutoff)
+  // function of current box size, accuracy, G_ewald (short-range cutoff)
 
-  int nkxmx = static_cast<int> ((g_ewald*xprd/MY_PI) * sqrt(-log(precision)));
-  int nkymx = static_cast<int> ((g_ewald*yprd/MY_PI) * sqrt(-log(precision)));
-  int nkzmx = 
-    static_cast<int> ((g_ewald*zprd_slab/MY_PI) * sqrt(-log(precision)));
+  bigint natoms = atom->natoms;
+  double err;
+  kxmax = 1;
+  kymax = 1;
+  kzmax = 1;
+  
+  err = rms(kxmax,xprd,natoms,q2);
+  while (err > accuracy) {
+    kxmax++;
+    err = rms(kxmax,xprd,natoms,q2);
+  }
+
+  err = rms(kymax,yprd,natoms,q2);
+  while (err > accuracy) {
+    kymax++;
+    err = rms(kymax,yprd,natoms,q2);
+  }
+
+  err = rms(kzmax,zprd_slab,natoms,q2);
+  while (err > accuracy) {
+    kzmax++;
+    err = rms(kzmax,zprd_slab,natoms,q2);
+  } 
 
   int kmax_old = kmax;
-  kmax = MAX(nkxmx,nkymx);
-  kmax = MAX(kmax,nkzmx);
+  kmax = MAX(kxmax,kymax);
+  kmax = MAX(kmax,kzmax);
   kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
 
+  double gsqxmx = unitk[0]*unitk[0]*kxmax*kxmax;
+  double gsqymx = unitk[1]*unitk[1]*kymax*kymax;
+  double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
+  gsqmx = MAX(gsqxmx,gsqymx);
+  gsqmx = MAX(gsqmx,gsqzmx);
+  
   // if size has grown, reallocate k-dependent and nlocal-dependent arrays
 
   if (kmax > kmax_old) {
@@ -203,6 +271,19 @@ void Ewald::setup()
   // pre-compute Ewald coefficients
 
   coeffs();
+}
+
+/* ----------------------------------------------------------------------
+   compute RMS accuracy for a dimension
+------------------------------------------------------------------------- */
+
+double Ewald::rms(int km, double prd, bigint natoms, double q2)
+{
+  double value = 2.0*q2*g_ewald/prd * 
+    sqrt(1.0/(MY_PI*km*natoms)) * 
+    exp(-MY_PI*MY_PI*km*km/(g_ewald*g_ewald*prd*prd));
+
+  return value;
 }
 
 /* ----------------------------------------------------------------------
@@ -395,8 +476,8 @@ void Ewald::eik_dot_r()
 
   // 1 = (k,l,0), 2 = (k,-l,0)
 
-  for (k = 1; k <= kmax; k++) {
-    for (l = 1; l <= kmax; l++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (l = 1; l <= kymax; l++) {
       sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]);
       if (sqk <= gsqmx) {
 	cstr1 = 0.0;
@@ -419,8 +500,8 @@ void Ewald::eik_dot_r()
 
   // 1 = (0,l,m), 2 = (0,l,-m)
 
-  for (l = 1; l <= kmax; l++) {
-    for (m = 1; m <= kmax; m++) {
+  for (l = 1; l <= kymax; l++) {
+    for (m = 1; m <= kzmax; m++) {
       sqk = (l*unitk[1] * l*unitk[1]) + (m*unitk[2] * m*unitk[2]);
       if (sqk <= gsqmx) {
 	cstr1 = 0.0;
@@ -443,8 +524,8 @@ void Ewald::eik_dot_r()
 
   // 1 = (k,0,m), 2 = (k,0,-m)
 
-  for (k = 1; k <= kmax; k++) {
-    for (m = 1; m <= kmax; m++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (m = 1; m <= kzmax; m++) {
       sqk = (k*unitk[0] * k*unitk[0]) + (m*unitk[2] * m*unitk[2]);
       if (sqk <= gsqmx) {
 	cstr1 = 0.0;
@@ -467,9 +548,9 @@ void Ewald::eik_dot_r()
 
   // 1 = (k,l,m), 2 = (k,-l,m), 3 = (k,l,-m), 4 = (k,-l,-m)
 
-  for (k = 1; k <= kmax; k++) {
-    for (l = 1; l <= kmax; l++) {
-      for (m = 1; m <= kmax; m++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (l = 1; l <= kymax; l++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]) +
 	  (m*unitk[2] * m*unitk[2]);
 	if (sqk <= gsqmx) {
@@ -594,8 +675,8 @@ void Ewald::coeffs()
 
   // 1 = (k,l,0), 2 = (k,-l,0)
 
-  for (k = 1; k <= kmax; k++) {
-    for (l = 1; l <= kmax; l++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (l = 1; l <= kymax; l++) {
       sqk = (unitkx*k) * (unitkx*k) + (unitky*l) * (unitky*l);
       if (sqk <= gsqmx) {
 	kxvecs[kcount] = k;
@@ -634,8 +715,8 @@ void Ewald::coeffs()
 
   // 1 = (0,l,m), 2 = (0,l,-m)
 
-  for (l = 1; l <= kmax; l++) {
-    for (m = 1; m <= kmax; m++) {
+  for (l = 1; l <= kymax; l++) {
+    for (m = 1; m <= kzmax; m++) {
       sqk = (unitky*l) * (unitky*l) + (unitkz*m) * (unitkz*m);
       if (sqk <= gsqmx) {
 	kxvecs[kcount] = 0;
@@ -674,8 +755,8 @@ void Ewald::coeffs()
 
   // 1 = (k,0,m), 2 = (k,0,-m)
 
-  for (k = 1; k <= kmax; k++) {
-    for (m = 1; m <= kmax; m++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (m = 1; m <= kzmax; m++) {
       sqk = (unitkx*k) * (unitkx*k) + (unitkz*m) * (unitkz*m);
       if (sqk <= gsqmx) {
 	kxvecs[kcount] = k;
@@ -714,9 +795,9 @@ void Ewald::coeffs()
 
   // 1 = (k,l,m), 2 = (k,-l,m), 3 = (k,l,-m), 4 = (k,-l,-m)
 
-  for (k = 1; k <= kmax; k++) {
-    for (l = 1; l <= kmax; l++) {
-      for (m = 1; m <= kmax; m++) {
+  for (k = 1; k <= kxmax; k++) {
+    for (l = 1; l <= kymax; l++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (unitkx*k) * (unitkx*k) + (unitky*l) * (unitky*l) + 
 	  (unitkz*m) * (unitkz*m);
 	if (sqk <= gsqmx) {

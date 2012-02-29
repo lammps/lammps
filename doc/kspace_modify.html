@@ -23,8 +23,9 @@
     x,y,z = PPPM FFT grid size in each dimension
   <I>order</I> value = N
     N = grid extent of Gaussian for PPPM mapping of each charge
-  <I>gewald</I> value = r
-    r = PPPM G-ewald parameter
+  <I>force</I> value = accuracy (force units)
+  <I>gewald</I> value = rinv (1/distance units)
+    rinv = PPPM G-ewald parameter
   <I>slab</I> value = volfactor
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain 
@@ -66,15 +67,25 @@ small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
 LAMMPS to run the problem.
 </P>
+<P>The <I>force</I> keyword overrides the relative accuracy parameter set by
+the <A HREF = "kspace_style.html">kspace_style</A> command with an absolute
+accuracy.  The accuracy determines the RMS error in per-atom forces
+calculated by the long-range solver and is thus specified in force
+units.  A negative value for the accuracy setting means to use the
+relative accuracy parameter.  The accuracy setting is used in
+conjunction with the pairwise cutoff to determine the number of
+K-space vectors for style <I>ewald</I> or the FFT grid size for style
+<I>pppm</I>.
+</P>
 <P>The <I>gewald</I> keyword sets the value of the Ewald or PPPM G-ewald
-parameter.  Without this setting, LAMMPS chooses the parameter
-automatically as a function of cutoff, precision, grid spacing, etc.
-This means it can vary from one simulation to the next which may not
-be desirable for matching a KSpace solver to a pre-tabulated pairwise
-potential.  This setting can also be useful if Ewald or PPPM fails to
-choose a good grid spacing and G-ewald parameter automatically.  If
-the value is set to 0.0, LAMMPS will choose the G-ewald parameter
-automatically.
+parameter as <I>rinv</I> in reciprocal distance units.  Without this
+setting, LAMMPS chooses the parameter automatically as a function of
+cutoff, precision, grid spacing, etc.  This means it can vary from one
+simulation to the next which may not be desirable for matching a
+KSpace solver to a pre-tabulated pairwise potential.  This setting can
+also be useful if Ewald or PPPM fails to choose a good grid spacing
+and G-ewald parameter automatically.  If the value is set to 0.0,
+LAMMPS will choose the G-ewald parameter automatically.
 </P>
 <P>The <I>slab</I> keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
@@ -98,8 +109,8 @@ option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are mesh = 0 0 0, order = 5, gewald = 0.0, and
-slab = 1.0.
+<P>The option defaults are mesh = 0 0 0, order = 5, force = -1.0, gewald
+= 0.0, and slab = 1.0.
 </P>
 <HR>
 

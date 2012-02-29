@@ -31,11 +31,12 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>basis</I> or <I>units</I> 
+<LI>keyword = <I>basis</I> or <I>remap</I> or <I>units</I> 
 
 <PRE>  <I>basis</I> values = M itype
     M = which basis atom
     itype = atom type (1-N) to assign to this basis atom
+  <I>remap</I> value = <I>yes</I> or <I>no</I>
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     <I>lattice</I> = the geometry is defined in lattice units
     <I>box</I> = the geometry is defined in simulation box units 
@@ -110,6 +111,12 @@ specific basis atoms as they are created.  See the
 defined for the unit cell of the lattice.  By default, all created
 atoms are assigned the argument <I>type</I> as their atom type.
 </P>
+<P>The <I>remap</I> keyword only applies to the <I>single</I> style.  If it is set
+to <I>yes</I>, then if the specified position is outside the simulation
+box, it will mapped back into the box, assuming the relevant
+dimensions are periodic.  If it is set to <I>no</I>, no remapping is done
+and no atom is created if its position is outside the box.
+</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to specify the coordinates of the one atom created by the <I>single</I>
 style.  A <I>box</I> value selects standard distance units as defined by
@@ -183,8 +190,8 @@ command.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default for the <I>basis</I> keyword, is all created atoms are assigned
-the argument <I>type</I> as their atom type.  The default for the
-<I>units</I> keyword is lattice.
+<P>The default for the <I>basis</I> keyword is that all created atoms are
+assigned the argument <I>type</I> as their atom type.  The default for 
+<I>remap</I> = no and for <I>units</I> = lattice.
 </P>
 </HTML>

@@ -15,7 +15,6 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_reaxc_bonds.h"

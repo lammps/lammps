@@ -15,8 +15,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
 #include "math.h"
 #include "dihedral_cosine_shift_exp_omp.h"
 #include "atom.h"

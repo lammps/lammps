@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
-#include "math.h"
 #include "mpi.h"
+#include "math.h"
 #include "string.h"
 #include "stdlib.h"
 #include "ctype.h"

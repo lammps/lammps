@@ -52,6 +52,7 @@ class PairLJCutCoulLong : public Pair {
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
   double *cut_respa;
+  double qdist;             // TIP4P distance from O site to negative charge
   double g_ewald;
 
   double tabinnersq;

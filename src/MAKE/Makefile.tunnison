@@ -1,7 +1,6 @@
 # tunnison - 64-bit dual-core Linux cluster, mpic++, OpenMPI-1.1, FFTW2
 
 SHELL = /bin/sh
-.IGNORE:
 
 # this Makefile builds LAMMPS for Tunnison with OpenMPI
 # to invoke this Makefile, you need these modules loaded:

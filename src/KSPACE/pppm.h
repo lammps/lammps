@@ -47,7 +47,6 @@ class PPPM : public KSpace {
 
  protected:
   int me,nprocs;
-  double precision;
   int nfactors;
   int *factors;
   double qsum,qsqsum;
@@ -221,7 +220,7 @@ E: PPPM grid is too large
 
 The global PPPM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 4096.  You likely need to decrease the
-requested precision.
+requested accuracy.
 
 E: PPPM order has been reduced to 0
 

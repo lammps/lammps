@@ -15,7 +15,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "bond_harmonic_shift_cut_omp.h"
 #include "atom.h"
 #include "comm.h"

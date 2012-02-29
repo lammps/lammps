@@ -22,7 +22,6 @@
 			   support for groups
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

@@ -15,7 +15,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "angle_cosine_squared_omp.h"
 #include "atom.h"
 #include "comm.h"

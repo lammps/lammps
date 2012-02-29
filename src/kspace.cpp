@@ -16,6 +16,7 @@
 #include "kspace.h"
 #include "atom.h"
 #include "comm.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -31,6 +32,11 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   gewaldflag = 0;
   slabflag = 0;
   slab_volfactor = 1;
+
+  accuracy_absolute = -1.0;
+  two_charge_force = force->qqr2e * 
+    (force->qelectron * force->qelectron) / 
+    (force->angstrom * force->angstrom);
 
   maxeatom = maxvatom = 0;
   eatom = NULL;
@@ -120,6 +126,10 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"order") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"force") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      accuracy_absolute = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

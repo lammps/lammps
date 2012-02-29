@@ -1,7 +1,6 @@
 # glory = Linux cluster with 4-way quad cores, Intel mpicxx, native MPI, FFTW
 
 SHELL = /bin/sh
-.IGNORE:
 
 # this Makefile builds LAMMPS for mvapich running on Glory
 # to invoke this Makefile, you need these modules loaded:

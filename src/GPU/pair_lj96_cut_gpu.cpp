@@ -15,7 +15,6 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

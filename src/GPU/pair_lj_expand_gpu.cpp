@@ -19,7 +19,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "pair_lj_expand_gpu.h"
-#include "lmptype.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"

@@ -46,8 +46,9 @@ class Input : protected Pointers {
 
   FILE **infiles;              // list of open input files
 
-  void parse();                // parse an input text line
-  int execute_command();       // execute a single command
+  void parse();                      // parse an input text line
+  char *nextword(char *, char **);   // find next word in string, with quotes
+  int execute_command();             // execute a single command
 
   void clear();                // input script commands
   void echo();

@@ -324,7 +324,8 @@ void FixBoxRelax::init()
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) error->all(FLERR,"Pressure ID for fix box/relax does not exist");
+  if (icompute < 0) 
+    error->all(FLERR,"Pressure ID for fix box/relax does not exist");
   pressure = modify->compute[icompute];
 
   pv2e = 1.0 / force->nktv2p;

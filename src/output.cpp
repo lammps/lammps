@@ -502,6 +502,8 @@ void Output::create_restart(int narg, char **arg)
 
   restart = new WriteRestart(lmp);
 
+  if (narg != 2 && narg != 3) error->all(FLERR,"Illegal restart command");
+
   int n = strlen(arg[1]) + 3;
   restart1 = new char[n];
   strcpy(restart1,arg[1]);

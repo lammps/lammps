@@ -45,6 +45,13 @@ class KSpace : protected Pointers {
   int slabflag;
   double scale;
   double slab_volfactor;
+ 
+  double accuracy;                  // accuracy of KSpace solver (force units)
+  double accuracy_absolute;         // user-specifed accuracy in force units
+  double accuracy_relative;         // user-specified dimensionless accuracy
+                                    // accurary = acc_rel * two_charge_force
+  double two_charge_force;          // force in user units of two point
+                                    // charges separated by 1 Angstrom
 
   int evflag,evflag_atom;
   int eflag_either,eflag_global,eflag_atom;

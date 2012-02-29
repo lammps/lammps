@@ -732,7 +732,9 @@ double PairLJCutCoulLong::init_one(int i, int j)
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
   }
 
-  double cut = MAX(cut_lj[i][j],cut_coul);
+  // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
+
+  double cut = MAX(cut_lj[i][j],cut_coul+2.0*qdist);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
 
   lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);

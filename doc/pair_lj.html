@@ -100,8 +100,8 @@ pair_style lj/cut/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
-<PRE>pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.3 12.0
-pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.3 12.0 10.0
+<PRE>pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.15 12.0
+pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
@@ -155,7 +155,14 @@ with each O atom.  For example, if the atom ID of an O atom in a TIP4P
 water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 </P>
 <P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
-information on how to use the TIP4P pair style.
+information on how to use the TIP4P pair style.  Note that the
+neighobr list cutoff for Coulomb interactions is effectively extended
+by a distance 2*qdist when using the TIP4P pair style, to account for
+the offset distance of the fictitious charges on O atoms in water
+molecules.  Thus it is typically best in an efficiency sense to use a
+LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
+neighbor list.  This leads to slightly larger cost for the long-range
+calculation, so you can test the trade-off for your model.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

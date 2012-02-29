@@ -24,10 +24,11 @@ style = {box} or {region} or {single} or {random} :l
     seed = random # seed (positive integer)
     region-ID = create atoms within this region, use NULL for entire simulation box :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {basis} or {units} :l
+keyword = {basis} or {remap} or {units} :l
   {basis} values = M itype
     M = which basis atom
     itype = atom type (1-N) to assign to this basis atom
+  {remap} value = {yes} or {no}
   {units} value = {lattice} or {box}
     {lattice} = the geometry is defined in lattice units
     {box} = the geometry is defined in simulation box units :pre
@@ -101,13 +102,19 @@ specific basis atoms as they are created.  See the
 defined for the unit cell of the lattice.  By default, all created
 atoms are assigned the argument {type} as their atom type.
 
+The {remap} keyword only applies to the {single} style.  If it is set
+to {yes}, then if the specified position is outside the simulation
+box, it will mapped back into the box, assuming the relevant
+dimensions are periodic.  If it is set to {no}, no remapping is done
+and no atom is created if its position is outside the box.
+
 The {units} keyword determines the meaning of the distance units used
 to specify the coordinates of the one atom created by the {single}
 style.  A {box} value selects standard distance units as defined by
 the "units"_units.html command, e.g. Angstroms for units = real or
 metal.  A {lattice} value means the distance units are in lattice
 spacings.
-
+ 
 Note that this command adds atoms to those that already exist.  By
 using the create_atoms command multiple times, multiple sets of atoms
 can be added to the simulation.  For example, interleaving
@@ -174,6 +181,6 @@ command.
 
 [Default:]
 
-The default for the {basis} keyword, is all created atoms are assigned
-the argument {type} as their atom type.  The default for the
-{units} keyword is lattice.
+The default for the {basis} keyword is that all created atoms are
+assigned the argument {type} as their atom type.  The default for 
+{remap} = no and for {units} = lattice.

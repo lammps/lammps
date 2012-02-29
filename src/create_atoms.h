@@ -33,6 +33,7 @@ class CreateAtoms : protected Pointers {
   int itype,style,nregion,nbasis,nrandom,seed;
   int *basistype;
   double xone[3];
+  int remapflag;
 
   void add_single();
   void add_random();

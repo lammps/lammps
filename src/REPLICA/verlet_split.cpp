@@ -223,6 +223,32 @@ void VerletSplit::init()
 }
 
 /* ----------------------------------------------------------------------
+   setup before run
+   servant partition only sets up KSpace calculation
+------------------------------------------------------------------------- */
+
+void VerletSplit::setup()
+{
+  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+
+  if (!master) force->kspace->setup();
+  else Verlet::setup();
+}
+
+/* ----------------------------------------------------------------------
+   setup without output
+   flag = 0 = just force calculation
+   flag = 1 = reneighbor and force calculation
+   servant partition only sets up KSpace calculation
+------------------------------------------------------------------------- */
+
+void VerletSplit::setup_minimal(int flag)
+{
+  if (!master) force->kspace->setup();
+  else Verlet::setup_minimal(flag);
+}
+
+/* ----------------------------------------------------------------------
    run for N steps
    master partition does everything but Kspace
    servant partition does just Kspace
@@ -419,8 +445,11 @@ void VerletSplit::rk_setup()
   // KSpace procs need to acquire ghost atoms and map all their atoms
   // map_clear() call is in lieu of comm->exchange() which performs map_clear
   // borders() call acquires ghost atoms and maps them
+  // NOTE: don't atom coords need to be communicated here before borders() ??
+  //   could do this by calling r2k_comm() here and not again from run()
 
   if (tip4p_flag) {
+    //r2k_comm();
     MPI_Gatherv(atom->type,n,MPI_INT,atom->type,qsize,qdisp,MPI_INT,0,block);
     MPI_Gatherv(atom->tag,n,MPI_INT,atom->tag,qsize,qdisp,MPI_INT,0,block);
     if (!master) {

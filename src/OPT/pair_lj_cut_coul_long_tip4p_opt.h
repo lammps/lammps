@@ -39,7 +39,7 @@ class PairLJCutCoulLongTIP4POpt : public PairLJCutCoulLongTIP4P {
   double **mpos;      // coordinates corrected for m-shift.
   void find_M_permissive(int, int &, int &, double *);
 
-  template < const int, const int, const int, const int, const int >
+  template < const int, const int, const int, const int >
   void eval();
 
 };

@@ -87,26 +87,33 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Invalid atom type in fix GCMC command
 
-UNDOCUMENTED
+Self-explanatory. The atom type specified in the GCMC command does 
+not exist.
 
 E: Cannot do GCMC on atoms in atom_modify first group
 
-UNDOCUMENTED
+This is a restriction due to the way atoms are organized in
+a list to enable the atom_modify first command.
 
 W: Fix GCMC may delete atom with non-zero molecule ID
 
-UNDOCUMENTED
+This is probably an error, since you should not delete only one atom
+of a molecule. The GCMC molecule exchange feature does not yet work.
 
 E: Fix GCMC molecule command requires atom attribute molecule
 
-UNDOCUMENTED
+Should not choose the GCMC molecule feature if no molecules 
+are being simulated. The general molecule flag is off, but
+GCMC's molecule flag is on.
 
 E: Fix GCMC molecule feature does not yet work
 
-UNDOCUMENTED
+Self-explanatory. Fix GCMC cannot (yet) be used to exchange
+molecules, only atoms.
 
 E: Fix GCMC incompatible with given pair_style
 
-UNDOCUMENTED
+Self-explanatory. Some pair_styles do not provide single-atom
+energies, which are needed by fix GCMC.
 
 */

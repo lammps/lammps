@@ -127,6 +127,14 @@ The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
 FFT grid size for style {pppm}.
 
+RMS force errors in real space for {ewald} and {pppm} are estimated 
+using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as 
+equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space 
+for {ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
+which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force errors 
+in K-space for {pppm} are estimated using equation 38 of 
+"(Deserno)"_#Deserno.
+
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
 option for setting an absoulte RMS error in forces, as opposed to a
@@ -193,12 +201,23 @@ kspace_style none :pre
 :link(Darden)
 [(Darden)] Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
 
+:link(Deserno)
+[(Deserno)] Deserno and Holm, J Chem Phys, 109, 7694 (1998).
+
 :link(Hockney) 
 [(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
+
+:link(Kolafa)
+[(Kolafa)] Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).
+
+:link(Petersen)
+[(Petersen)] Petersen, J Chem Phys, 103, 3668 (1995).
 
 :link(Pollock)
 [(Pollock)] Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
 
 :link(Veld)
 [(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
+
+

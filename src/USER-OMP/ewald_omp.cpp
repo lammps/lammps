@@ -288,8 +288,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,l,0), 2 = (k,-l,0)
 
-    for (k = 1; k <= kmax; k++) {
-      for (l = 1; l <= kmax; l++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (l = 1; l <= kymax; l++) {
 	sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -312,8 +312,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (0,l,m), 2 = (0,l,-m)
 
-    for (l = 1; l <= kmax; l++) {
-      for (m = 1; m <= kmax; m++) {
+    for (l = 1; l <= kymax; l++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (l*unitk[1] * l*unitk[1]) + (m*unitk[2] * m*unitk[2]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -336,8 +336,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,0,m), 2 = (k,0,-m)
 
-    for (k = 1; k <= kmax; k++) {
-      for (m = 1; m <= kmax; m++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (k*unitk[0] * k*unitk[0]) + (m*unitk[2] * m*unitk[2]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -360,9 +360,9 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,l,m), 2 = (k,-l,m), 3 = (k,l,-m), 4 = (k,-l,-m)
 
-    for (k = 1; k <= kmax; k++) {
-      for (l = 1; l <= kmax; l++) {
-	for (m = 1; m <= kmax; m++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (l = 1; l <= kymax; l++) {
+	for (m = 1; m <= kzmax; m++) {
 	  sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]) +
 	    (m*unitk[2] * m*unitk[2]);
 	  if (sqk <= gsqmx) {

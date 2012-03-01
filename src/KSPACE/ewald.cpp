@@ -857,7 +857,7 @@ void Ewald::coeffs()
 	  vg[kcount][3] = -vterm*unitk[0]*k*unitk[1]*l;
 	  vg[kcount][4] = -vterm*unitk[0]*k*unitk[2]*m;
 	  vg[kcount][5] = vterm*unitk[1]*l*unitk[2]*m;
-	  kcount++;;
+	  kcount++;
 	}
       }
     }

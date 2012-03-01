@@ -1029,4 +1029,6 @@ package"_Section_accelerate.html.
 "pppm/gpu"_kspace_style.html,
 "pppm/omp"_kspace_style.html,
 "pppm/cg/omp"_kspace_style.html,
-"pppm/proxy"_kspace_style.html :tb(c=4,ea=c)
+"pppm/tip4p/omp"_kspace_style.html,
+"pppm/proxy"_kspace_style.html,
+"pppm/tip4p/proxy"_kspace_style.html :tb(c=4,ea=c)

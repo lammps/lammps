@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm/tip4p/omp,PPPMOMP)
+KSpaceStyle(pppm/tip4p/omp,PPPMTIP4POMP)
 
 #else
 

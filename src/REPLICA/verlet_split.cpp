@@ -445,8 +445,9 @@ void VerletSplit::rk_setup()
   // KSpace procs need to acquire ghost atoms and map all their atoms
   // map_clear() call is in lieu of comm->exchange() which performs map_clear
   // borders() call acquires ghost atoms and maps them
-  // NOTE: don't atom coords need to be communicated here before borders() ??
+  // NOTE: do atom coords need to be communicated here before borders() call?
   //   could do this by calling r2k_comm() here and not again from run()
+  //   except that forward_comm() in r2k_comm() is wrong
 
   if (tip4p_flag) {
     //r2k_comm();

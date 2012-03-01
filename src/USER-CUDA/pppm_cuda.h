@@ -92,7 +92,6 @@ class PPPMCuda : public PPPM {
   bool firstpass;
   
   void set_grid();
-  void make_power_of_prime(int* n);
   void allocate();
   void deallocate();
   
@@ -105,7 +104,6 @@ class PPPMCuda : public PPPM {
   int old_nmax;
   int global_flag;
   dev_array* adev_data_array;
-  char precisionmodify;
   double qqrd2e;
 };
 

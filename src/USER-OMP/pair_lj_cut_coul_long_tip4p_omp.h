@@ -46,7 +46,7 @@ class PairLJCutCoulLongTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
   void find_M_permissive(int, int &, int &, double *);
 
  private:
-  template <int EVFLAG, int EFLAG, int VFLAG>
+  template <int CFLAG, int EVFLAG, int EFLAG, int VFLAG>
   void eval(int ifrom, int ito, ThrData * const thr);
 };
 

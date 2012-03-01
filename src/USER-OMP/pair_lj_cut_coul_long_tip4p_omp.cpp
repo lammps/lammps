@@ -42,6 +42,11 @@ PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 
+  // TIP4P cannot compute virial as F dot r
+  // due to find_M() finding bonded H atoms which are not near O atom
+
+  no_virial_fdotr_compute = 1;
+
   // for caching m-shift corrected positions
   maxmpos = 0;
   h1idx = h2idx = NULL;
@@ -111,17 +116,28 @@ void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
     ThrData *thr = fix->get_thr(tid);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
+  if (!ncoultablebits) {
     if (evflag) {
       if (eflag) {
-	if (vflag) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+	if (vflag) eval<1,1,1,1>(ifrom, ito, thr);
+	else eval<1,1,1,0>(ifrom, ito, thr);
       } else {
-	if (vflag) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+	if (vflag) eval<1,1,0,1>(ifrom, ito, thr);
+	else eval<1,1,0,0>(ifrom, ito, thr);
       }
-    } else {
-      eval<0,0,0>(ifrom, ito, thr);
-    }
+    } else eval<1,0,0,0>(ifrom, ito, thr);
+  } else {
+    if (evflag) {
+      if (eflag) {
+	if (vflag) eval<0,1,1,1>(ifrom, ito, thr);
+	else eval<0,1,1,0>(ifrom, ito, thr);
+      } else {
+	if (vflag) eval<0,1,0,1>(ifrom, ito, thr);
+	else eval<0,1,0,0>(ifrom, ito, thr);
+      }
+    } else eval<0,0,0,0>(ifrom, ito, thr);
+  }
+  
 
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
@@ -129,7 +145,7 @@ void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int VFLAG>
+template <const int CTABLE, const int EVFLAG, const int EFLAG, const int VFLAG>
 void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
@@ -157,6 +173,8 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
+  const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
+
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -193,34 +211,37 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      // LJ interaction based on true rsq
 
+      if (rsq < cut_ljsq[itype][jtype]) {
 	r2inv = 1.0/rsq;
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  forcelj *= factor_lj * r2inv;
+	r6inv = r2inv*r2inv*r2inv;
+	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+	forcelj *= factor_lj * r2inv;
 
-	  fxtmp += delx*forcelj;
-	  fytmp += dely*forcelj;
-	  fztmp += delz*forcelj;
-	  f[j][0] -= delx*forcelj;
-	  f[j][1] -= dely*forcelj;
-	  f[j][2] -= delz*forcelj;
+	fxtmp += delx*forcelj;
+	fytmp += dely*forcelj;
+	fztmp += delz*forcelj;
+	f[j][0] -= delx*forcelj;
+	f[j][1] -= dely*forcelj;
+	f[j][2] -= delz*forcelj;
 
-	  if (EFLAG) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
+	if (EFLAG) {
+	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+	    offset[itype][jtype];
+	  evdwl *= factor_lj;
+	} else evdwl = 0.0;
 
-	  if (EVFLAG) ev_tally_thr(this,i,j,nlocal, /* newton_pair = */ 1,
-				   evdwl,0.0,forcelj,delx,dely,delz,thr);
-	}
+	if (EVFLAG) ev_tally_thr(this,i,j,nlocal, /* newton_pair = */ 1,
+				 evdwl,0.0,forcelj,delx,dely,delz,thr);
+      }
 
-	// adjust rsq and delxyz for off-site O charge(s)
+      // adjust rsq and delxyz for off-site O charge(s),
+      // but only if they are within reach
 
-	if (itype == typeO || jtype == typeO) { 
+      if (rsq < cut_coulsqplus) {
+
+	if (itype == typeO || jtype == typeO) {
 	  x2 = mpos[j];
 	  jH1 = h1idx[j];
 	  jH2 = h2idx[j];
@@ -235,11 +256,11 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 	  rsq = delx*delx + dely*dely + delz*delz;
 	}
 
-	// test current rsq against cutoff and compute Coulombic force
+	// Coulombic interaction based on modified rsq
 
 	if (rsq < cut_coulsq) {
 	  r2inv = 1 / rsq;
-	  if (!ncoultablebits || rsq <= tabinnersq) {
+	  if (CTABLE || rsq <= tabinnersq) {
 	    r = sqrt(rsq);
 	    grij = g_ewald * r;
 	    expm2 = exp(-grij*grij);
@@ -294,40 +315,40 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 
 	  } else {
 
-            fdx = delx*cforce;
-            fdy = dely*cforce;
-            fdz = delz*cforce;
+	    fdx = delx*cforce;
+	    fdy = dely*cforce;
+	    fdz = delz*cforce;
 
-            delxOM = x[i][0] - x1[0];
-            delyOM = x[i][1] - x1[1];
-            delzOM = x[i][2] - x1[2];
+	    delxOM = x[i][0] - x1[0];
+	    delyOM = x[i][1] - x1[1];
+	    delzOM = x[i][2] - x1[2];
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
+	    ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
 	      (qdist*qdist);
 
 	    f1x = alpha * (fdx - ddotf * delxOM);
 	    f1y = alpha * (fdy - ddotf * delyOM);
 	    f1z = alpha * (fdz - ddotf * delzOM);
 
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
+	    fOx = fdx - f1x;
+	    fOy = fdy - f1y;
+	    fOz = fdz - f1z;
 
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+	    fHx = 0.5 * f1x;
+	    fHy = 0.5 * f1y;
+	    fHz = 0.5 * f1z;
 
-            fxtmp += fOx;
-            fytmp += fOy;
-            fztmp += fOz;
+	    fxtmp += fOx;
+	    fytmp += fOy;
+	    fztmp += fOz;
 
-            f[iH1][0] += fHx;
-            f[iH1][1] += fHy;
-            f[iH1][2] += fHz;
+	    f[iH1][0] += fHx;
+	    f[iH1][1] += fHy;
+	    f[iH1][2] += fHz;
 
-            f[iH2][0] += fHx;
-            f[iH2][1] += fHy;
-            f[iH2][2] += fHz;
+	    f[iH2][0] += fHx;
+	    f[iH2][1] += fHy;
+	    f[iH2][2] += fHz;
 
 	    if (VFLAG) {
 	      domain->closest_image(x[i],x[iH1],xH1);
@@ -371,32 +392,32 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 	    delyOM = x[j][1] - x2[1];
 	    delzOM = x[j][2] - x2[2];
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
+	    ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
 	      (qdist*qdist);
 
 	    f1x = alpha * (fdx - ddotf * delxOM);
 	    f1y = alpha * (fdy - ddotf * delyOM);
 	    f1z = alpha * (fdz - ddotf * delzOM);
 
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
+	    fOx = fdx - f1x;
+	    fOy = fdy - f1y;
+	    fOz = fdz - f1z;
 
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+	    fHx = 0.5 * f1x;
+	    fHy = 0.5 * f1y;
+	    fHz = 0.5 * f1z;
 
 	    f[j][0] += fOx;
 	    f[j][1] += fOy;
 	    f[j][2] += fOz;
 
-            f[jH1][0] += fHx;
-            f[jH1][1] += fHy;
-            f[jH1][2] += fHz;
+	    f[jH1][0] += fHx;
+	    f[jH1][1] += fHy;
+	    f[jH1][2] += fHz;
 
-            f[jH2][0] += fHx;
-            f[jH2][1] += fHy;
-            f[jH2][2] += fHz;
+	    f[jH2][0] += fHx;
+	    f[jH2][1] += fHy;
+	    f[jH2][2] += fHz;
 
 	    if (VFLAG) {
 	      domain->closest_image(x[j],x[jH1],xH1);
@@ -416,7 +437,7 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 	  }
 
 	  if (EFLAG) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
+	    if (CTABLE || rsq <= tabinnersq)
 	      ecoul = prefactor*erfc;
 	    else {
 	      table = etable[itable] + fraction*detable[itable];

@@ -20,6 +20,8 @@ PACKAGE = asphere class2 colloid dipole fld gpu granular kim \
 PACKUSER = user-misc user-atc user-awpmd user-cg-cmm \
 	   user-cuda user-eff user-ewaldn user-omp user-reaxc user-sph
 
+PACKLIB = gpu kim meam poems reax user-atc user-awpmd user-cuda
+
 PACKALL = $(PACKAGE) $(PACKUSER)
 
 PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
@@ -48,6 +50,7 @@ help:
 	@echo 'make no-standard         remove all standard packages'
 	@echo 'make yes-user            install all user packages'
 	@echo 'make no-user             remove all user packages'
+	@echo 'make no-lib              remove all packages with external libs'
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
@@ -132,6 +135,7 @@ package:
 	@echo 'make no-standard         remove all standard packages'
 	@echo 'make yes-user            install all user packages'
 	@echo 'make no-user             remove all user packages'
+	@echo 'make no-lib              remove all packages with external libs'
 	@echo ''
 	@echo 'make package-update      replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
@@ -154,6 +158,9 @@ yes-user:
 
 no-user:
 	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
+
+no-lib:
+	@for p in $(PACKLIB); do $(MAKE) no-$$p; done
 
 yes-%:
 	@if [ ! -e Makefile.package ]; \

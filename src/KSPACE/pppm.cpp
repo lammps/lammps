@@ -1095,8 +1095,9 @@ void PPPM::set_grid()
       fprintf(screen,"  G vector (1/distance)= %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  absolute RMS force accuracy = %g\n",MAX(lpr,spr));
-      fprintf(screen,"  relative force accuracy = %g\n",
+      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
+	      MAX(lpr,spr));
+      fprintf(screen,"  estimated relative force accuracy = %g\n",
 	      MAX(lpr,spr)/two_charge_force);
       fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
@@ -1104,8 +1105,9 @@ void PPPM::set_grid()
       fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  absolute RMS force accuracy = %g\n",MAX(lpr,spr));
-      fprintf(logfile,"  relative force accuracy = %g\n",
+      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
+	      MAX(lpr,spr));
+      fprintf(logfile,"  estimated relative force accuracy = %g\n",
 	      MAX(lpr,spr)/two_charge_force);
       fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }

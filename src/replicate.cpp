@@ -57,13 +57,16 @@ void Replicate::command(int narg, char **arg)
 
   // error and warning checks
 
-  if (nx <= 0 || ny <= 0 || nz <= 0) error->all(FLERR,"Illegal replicate command");
+  if (nx <= 0 || ny <= 0 || nz <= 0) 
+    error->all(FLERR,"Illegal replicate command");
   if (domain->dimension == 2 && nz != 1)
     error->all(FLERR,"Cannot replicate 2d simulation in z dimension");
   if ((nx > 1 && domain->xperiodic == 0) || 
       (ny > 1 && domain->yperiodic == 0) ||
-      (nz > 1 && domain->zperiodic == 0)) 
-    error->warning(FLERR,"Replicating in a non-periodic dimension");
+      (nz > 1 && domain->zperiodic == 0)) { 
+    if (comm->me == 0)
+      error->warning(FLERR,"Replicating in a non-periodic dimension");
+  }
 
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
@@ -340,7 +343,7 @@ void Replicate::command(int narg, char **arg)
 	}
       }
     }
-  } // end of proc loop
+  }
 
   // free communication buffer and old atom class
 

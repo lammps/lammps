@@ -29,6 +29,8 @@ class VerletSplit : public Verlet {
   VerletSplit(class LAMMPS *, int, char **);
   ~VerletSplit();
   void init();
+  void setup();
+  void setup_minimal(int);
   void run(int);
   bigint memory_usage();
 

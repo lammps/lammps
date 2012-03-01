@@ -34,9 +34,9 @@ class Ewald : public KSpace {
   double memory_usage();
 
  protected:
-  double precision;
+  int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
-  double gsqmx,qsum,qsqsum,volume;
+  double gsqmx,qsum,qsqsum,q2,volume;
   int nmax;
 
   double unitk[3];
@@ -47,6 +47,7 @@ class Ewald : public KSpace {
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
 
+  double rms(int, double, bigint, double);
   virtual void eik_dot_r();
   void coeffs();
   virtual void allocate();

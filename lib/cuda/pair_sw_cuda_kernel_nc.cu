@@ -389,7 +389,6 @@ __global__ void Pair_SW_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_numnei
         }
       }
     }
-    __syncthreads();
 
   }
   __syncthreads();
@@ -429,19 +428,21 @@ __global__ void Pair_SW_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_numnei
    }
    if(eflag_atom && i<_nlocal)
    {
-     _eatom[i] += evdwl;
+     _eatom[i] = ENERGY_F(0.5) * evdwl;
    }
 
    if(vflag_atom && i<_nlocal)
    {
-     _vatom[i]         += ENERGY_F(0.5) * sharedV[0 * blockDim.x];
-     _vatom[i+_nmax]   += ENERGY_F(0.5) * sharedV[1 * blockDim.x];
-     _vatom[i+2*_nmax] += ENERGY_F(0.5) * sharedV[2 * blockDim.x];
-     _vatom[i+3*_nmax] += ENERGY_F(0.5) * sharedV[3 * blockDim.x];
-     _vatom[i+4*_nmax] += ENERGY_F(0.5) * sharedV[4 * blockDim.x];
-     _vatom[i+5*_nmax] += ENERGY_F(0.5) * sharedV[5 * blockDim.x];
+     _vatom[i]         = ENERGY_F(0.5) * sharedV[0 * blockDim.x];
+     _vatom[i+_nmax]   = ENERGY_F(0.5) * sharedV[1 * blockDim.x];
+     _vatom[i+2*_nmax] = ENERGY_F(0.5) * sharedV[2 * blockDim.x];
+     _vatom[i+3*_nmax] = ENERGY_F(0.5) * sharedV[3 * blockDim.x];
+     _vatom[i+4*_nmax] = ENERGY_F(0.5) * sharedV[4 * blockDim.x];
+     _vatom[i+5*_nmax] = ENERGY_F(0.5) * sharedV[5 * blockDim.x];
    }
-   if(vflagm||eflag) PairVirialCompute_A_Kernel_Template<1,1>();
+   if(vflagm&&eflag) PairVirialCompute_A_Kernel_Template<1,1>();
+   else if(eflag) PairVirialCompute_A_Kernel_Template<1,0>();
+   else if(vflagm) PairVirialCompute_A_Kernel_Template<0,1>();
 #undef fxtmp
 #undef fytmp
 #undef fztmp

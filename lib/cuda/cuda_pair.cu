@@ -794,6 +794,7 @@ void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlis
 	grid.x = layout.x; grid.y = layout.y; grid.z = 1;
 	
 	int size=(unsigned)(layout.y*layout.x)*sharedperproc*sizeof(ENERGY_FLOAT);
+	if(sdata->pair.collect_forces_later) size+=(unsigned)(sdata->atom.nmax*3*sizeof(F_FLOAT));
  		Cuda_UpdateBuffer(sdata,size);
  		
     if(sdata->pair.use_block_per_atom)

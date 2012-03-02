@@ -28,10 +28,6 @@
 #define A4       -1.453152027
 #define A5        1.061405429
 
-inline __device__ int sbmask(int j) {
-  return j >> SBBITS & 3;
-}
-
 template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_atom)
 {

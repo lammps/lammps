@@ -90,7 +90,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  double cut_coulplus2q = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
+  double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -151,9 +151,9 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       }
 
       // adjust rsq and delxyz for off-site O charge(s) if necessary
-      // but only if they are within reach.
+      // but only if they are within reach
 
-      if (rsq < cut_coulplus2q) {
+      if (rsq < cut_coulsqplus) {
 
 	if (itype == typeO || jtype == typeO) { 
 	  if (jtype == typeO) {

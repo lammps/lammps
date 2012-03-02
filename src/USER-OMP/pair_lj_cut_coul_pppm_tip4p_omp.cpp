@@ -195,7 +195,7 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
-  const double cut_coulplus2q = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
+  const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 
   double fxtmp,fytmp,fztmp;
 
@@ -259,9 +259,9 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       // adjust rsq and delxyz for off-site O charge(s),
-      // but only if they are within reach.
+      // but only if they are within reach
 
-      if (rsq < cut_coulplus2q) {
+      if (rsq < cut_coulsqplus) {
 
 	if (itype == typeO || jtype == typeO) {
 	  x2 = mpos[j];

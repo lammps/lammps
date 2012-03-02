@@ -36,7 +36,6 @@ enum COUL_FORCES {COUL_NONE,COUL_CHARMM,COUL_CHARMM_IMPLICIT,COUL_CUT,COUL_LONG,
 #define DATA_V_RADIUS 512
 #define DATA_OMEGA_RMASS 1024
 
-#define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 
 #define MY_PREFIX cuda_pair
@@ -291,16 +290,17 @@ void Cuda_Pair_Init_AllStyles(cuda_shared_data* sdata, int ncoeff, bool need_q=f
 	  {
 		for(int i=1; i<=sdata->atom.ntypes; ++i)
 		{
-			for(int j=1; j<=sdata->atom.ntypes; ++j)
+			for(int j=i; j<=sdata->atom.ntypes; ++j)
 			{
 				if(sdata->pair.cut[i][j]>1e-6)
-				cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut[i][j] * sdata->pair.cut[i][j]);
-				else
-				if(sdata->pair.cut[j][i]>1e-6)
-				cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut[j][i] * sdata->pair.cut[j][i]);
+				{
+				  cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut[i][j] * sdata->pair.cut[i][j]);
+				  cutsq[j * cuda_ntypes + i] = (X_FLOAT) (sdata->pair.cut[i][j] * sdata->pair.cut[i][j]);
+				}
+
 				if(i==1&&j==1) cutsq_global = cutsq[i * cuda_ntypes + j];
 				if((cutsq_global - cutsq[i * cuda_ntypes + j])*(cutsq_global - cutsq[i * cuda_ntypes + j]) > 1e-6)
-				  cutsqdiffer++;
+				 cutsqdiffer++;
 			}
 		}
 	  }
@@ -309,22 +309,24 @@ void Cuda_Pair_Init_AllStyles(cuda_shared_data* sdata, int ncoeff, bool need_q=f
 	  {
 		for(int i=1; i<=sdata->atom.ntypes; ++i)
 		{
-			for(int j=1; j<=sdata->atom.ntypes; ++j)
+			for(int j=i; j<=sdata->atom.ntypes; ++j)
 			{
 				if(sdata->pair.cut[i][j]>1e-6)
-				cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cutsq[i][j]);
-				else
-				if(sdata->pair.cut[j][i]>1e-6)
-				cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cutsq[j][i]);
+				{
+				  cutsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cutsq[i][j]);
+				  cutsq[j * cuda_ntypes + i] = (X_FLOAT) (sdata->pair.cutsq[i][j]);
+				}
+
 				if(i==1&&j==1) cutsq_global = cutsq[i * cuda_ntypes + j];
 				if((cutsq_global - cutsq[i * cuda_ntypes + j])*(cutsq_global - cutsq[i * cuda_ntypes + j]) > 1e-6)
-				  cutsqdiffer++;
+				 cutsqdiffer++;
 			}
 		}
 	  }
-	  
+	  //printf("CUTSQGLOB: %i %e\n",cutsqdiffer,cutsq_global);
 	  if(cutsqdiffer) 
 	  {
+
 	  	cutsq_global = -1.0;
 	    cudaMemcpyToSymbol(MY_CONST(cutsq)      	, cutsq                    		, nx               );
 	  }
@@ -349,13 +351,13 @@ void Cuda_Pair_Init_AllStyles(cuda_shared_data* sdata, int ncoeff, bool need_q=f
 	  {
 		for(int i=1; i<=sdata->atom.ntypes; ++i)
 		{
-			for(int j=1; j<=sdata->atom.ntypes; ++j)
+			for(int j=i; j<=sdata->atom.ntypes; ++j)
 			{
 				if(sdata->pair.cut_inner[i][j]>1e-6)
-				cut_innersq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_inner[i][j] * sdata->pair.cut_inner[i][j]);
-				else
-				if(sdata->pair.cut_inner[j][i]>1e-6)
-				cut_innersq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_inner[j][i] * sdata->pair.cut_inner[j][i]);
+				{
+				  cut_innersq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_inner[i][j] * sdata->pair.cut_inner[i][j]);
+				  cut_innersq[j * cuda_ntypes + i] = (X_FLOAT) (sdata->pair.cut_inner[i][j] * sdata->pair.cut_inner[i][j]);
+				}
 				if(i==1&&j==1) cut_innersq_global = cut_innersq[i * cuda_ntypes + j];
 				if((cut_innersq_global - cut_innersq[i * cuda_ntypes + j])*(cut_innersq_global - cut_innersq[i * cuda_ntypes + j]) > 1e-6)
 				  cutsqdiffer++;
@@ -389,13 +391,13 @@ void Cuda_Pair_Init_AllStyles(cuda_shared_data* sdata, int ncoeff, bool need_q=f
 	  {
 		for(int i=1; i<=sdata->atom.ntypes; ++i)
 		{
-			for(int j=1; j<=sdata->atom.ntypes; ++j)
+			for(int j=i; j<=sdata->atom.ntypes; ++j)
 			{
 				if(sdata->pair.cut_coul[i][j]>1e-6)
-				cut_coulsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_coul[i][j] * sdata->pair.cut_coul[i][j]);
-				else
-				if(sdata->pair.cut_coul[j][i]>1e-6)
-				cut_coulsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_coul[j][i] * sdata->pair.cut_coul[j][i]);
+				{
+				  cut_coulsq[i * cuda_ntypes + j] = (X_FLOAT) (sdata->pair.cut_coul[i][j] * sdata->pair.cut_coul[i][j]);
+				  cut_coulsq[j * cuda_ntypes + i] = (X_FLOAT) (sdata->pair.cut_coul[i][j] * sdata->pair.cut_coul[i][j]);
+				}
 				if(i==1&&j==1) cut_coulsq_global = cut_coulsq[i * cuda_ntypes + j];
 				if((cut_coulsq_global - cut_coulsq[i * cuda_ntypes + j])*(cut_coulsq_global - cut_coulsq[i * cuda_ntypes + j]) > 1e-6)
 				  cutsqdiffer++;
@@ -761,8 +763,9 @@ timespec startpairtime, endpairtime;
 //Function which is called prior to kernel invocation, determins grid, Binds Textures, updates constant memory if necessary
 void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist,int eflag, int vflag, dim3& grid, dim3& threads, int& sharedperproc,bool need_q=false,int maxthreads=256)
 {
-  if(sdata->atom.update_neigh)
-    Cuda_Pair_UpdateNeighbor_AllStyles(sdata,sneighlist);
+	if(sdata->atom.nlocal==0) return;
+	if(sdata->atom.update_neigh)
+        Cuda_Pair_UpdateNeighbor_AllStyles(sdata,sneighlist);
 	if(sdata->atom.update_nmax) 
 		Cuda_Pair_UpdateNmax_AllStyles(sdata,sneighlist);
 	if(sdata->atom.update_nlocal) 		
@@ -886,7 +889,8 @@ void Cuda_Pair_UpdateNmax(cuda_shared_data* sdata)
 		cudaMemcpyToSymbol(MY_CONST(v_radius)  , & sdata->atom.v_radius   .dev_data, sizeof(V_FLOAT4*) );
 		cudaMemcpyToSymbol(MY_CONST(omega)     , & sdata->atom.omega      .dev_data, sizeof(V_FLOAT*) );
 		cudaMemcpyToSymbol(MY_CONST(rmass)     , & sdata->atom.rmass      .dev_data, sizeof(V_FLOAT*) );
-	  cudaMemcpyToSymbol(MY_CONST(omega_rmass),& sdata->atom.omega_rmass.dev_data, sizeof(V_FLOAT4*) );
+	    cudaMemcpyToSymbol(MY_CONST(omega_rmass),& sdata->atom.omega_rmass.dev_data, sizeof(V_FLOAT4*) );
+		cudaMemcpyToSymbol(MY_CONST(map_array), & sdata->atom.map_array .dev_data, sizeof(int*)     );
 	CUT_CHECK_ERROR("Cuda_Pair: updateNmax failed");
 }
 

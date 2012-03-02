@@ -801,3 +801,59 @@ static __device__ inline X_FLOAT4 fetchXType(int i)
 		#endif		
 }
 */
+#define SBBITS 30
+
+static inline __device__ int sbmask(int j) {
+  return j >> SBBITS & 3;
+}
+
+static inline __device__ void minimum_image(X_FLOAT4& delta)
+{
+  if (_triclinic == 0) {
+    if (_periodicity[0]) {
+    	delta.x += delta.x < -X_F(0.5)*_prd[0] ? _prd[0] :
+    	          (delta.x >  X_F(0.5)*_prd[0] ?-_prd[0] : X_F(0.0));
+    }
+    if (_periodicity[1]) {
+    	delta.y += delta.y < -X_F(0.5)*_prd[1] ? _prd[1] :
+    	          (delta.y >  X_F(0.5)*_prd[1] ?-_prd[1] : X_F(0.0));
+    }
+    if (_periodicity[2]) {
+    	delta.z += delta.z < -X_F(0.5)*_prd[2] ? _prd[2] :
+    	          (delta.z >  X_F(0.5)*_prd[2] ?-_prd[2] : X_F(0.0));
+    }
+
+  } else {
+    if (_periodicity[1]) {
+    	delta.z += delta.z < -X_F(0.5)*_prd[2] ? _prd[2] :
+    	          (delta.z >  X_F(0.5)*_prd[2] ?-_prd[2] : X_F(0.0));
+   		delta.y += delta.z < -X_F(0.5)*_prd[2] ? _h[3] :
+    	          (delta.z >  X_F(0.5)*_prd[2] ?-_h[3] : X_F(0.0));
+     	delta.x += delta.z < -X_F(0.5)*_prd[2] ? _h[4] :
+    	          (delta.z >  X_F(0.5)*_prd[2] ?-_h[4] : X_F(0.0));
+
+    }
+    if (_periodicity[1]) {
+    	delta.y += delta.y < -X_F(0.5)*_prd[1] ? _prd[1] :
+    	          (delta.y >  X_F(0.5)*_prd[1] ?-_prd[1] : X_F(0.0));
+    	delta.x += delta.y < -X_F(0.5)*_prd[1] ? _h[5] :
+    	          (delta.y >  X_F(0.5)*_prd[1] ?-_h[5] : X_F(0.0));
+
+    }
+    if (_periodicity[0]) {
+    	delta.x += delta.x < -X_F(0.5)*_prd[0] ? _prd[0] :
+    	          (delta.x >  X_F(0.5)*_prd[0] ?-_prd[0] : X_F(0.0));
+    }
+  }
+}
+
+static inline __device__ void closest_image(X_FLOAT4& x1,X_FLOAT4& x2,X_FLOAT4& ci)
+{
+  ci.x=x2.x-x1.x;
+  ci.y=x2.y-x1.y;
+  ci.z=x2.z-x1.z;
+  minimum_image(ci);
+  ci.x+=x1.x;
+  ci.y+=x1.y;
+  ci.z+=x1.z;
+}

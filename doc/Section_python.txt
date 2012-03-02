@@ -119,7 +119,7 @@ The discussion below describes how to create a shared MPI library.  I
 suggest you start by configuing LAMMPS without packages installed that
 require any libraries besides MPI.  See "this
 section"_Section_start.html#start_3 of the manual for a discussion of
-LAMMPS pacakges.  E.g. do not use the KSPACE, GPU, MEAM, POEMS, or
+LAMMPS packages.  E.g. do not use the KSPACE, GPU, MEAM, POEMS, or
 REAX packages.
 
 If you are successfully follow the steps belwo to build the Python

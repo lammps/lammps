@@ -552,13 +552,13 @@ void PairKIM::kim_init()
   support_atypes = true;
   strcpy(modelfile,"");
   strcpy(testfile,"");
-  char * kim_dir =getenv("KIM_DIR");
-  char * kim_models_dir = getenv("KIM_MODELS_DIR");
-  char * current_path = getenv("PWD");
+  char *kim_dir = getenv("KIM_DIR");
+  char *kim_models_dir = getenv("KIM_MODELS_DIR");
+  char *current_path = getenv("PWD");
   if (kim_dir == NULL)
-    error->all(FLERR,"KIM_DIR environement variable is unset");
+    error->all(FLERR,"KIM_DIR environment variable is unset");
   if (current_path == NULL)
-    error->all(FLERR,"PWD environement variable is unset");
+    error->all(FLERR,"PWD environment variable is unset");
 
   if (kim_models_dir == NULL) {
     strcat(modelfile,kim_dir);strcat(modelfile,"MODELs/");

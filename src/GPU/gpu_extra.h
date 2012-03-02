@@ -71,11 +71,12 @@ Self-explanatory.
 
 E: Could not find/initialize a specified accelerator device
 
-Could not initialize at least one of the devices specified for the gpu package
+Could not initialize at least one of the devices specified for the gpu
+package
 
 E: Insufficient memory on accelerator
 
-There is insufficient memory on one of the devices specified for the gpu 
+There is insufficient memory on one of the devices specified for the gpu
 package
 
 E: GPU library not compiled for this accelerator
@@ -92,13 +93,14 @@ There was a problem initializing an accelerator for the gpu package
 
 E: Accelerator sharing is not currently supported on system
 
-Multiple MPI processes cannot share the accelerator on your system. For NVIDIA
-GPUs, see the nvidia-smi command to change this setting.
+Multiple MPI processes cannot share the accelerator on your
+system. For NVIDIA GPUs, see the nvidia-smi command to change this
+setting.
 
 E: GPU particle split must be set to 1 for this pair style.
 
-For this pair style, you cannot run part of the force calculation on the host.
-See the package command.
+For this pair style, you cannot run part of the force calculation on
+the host.  See the package command.
 
 E: Unknown error in GPU library
 

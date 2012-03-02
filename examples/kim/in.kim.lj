@@ -22,7 +22,7 @@ create_atoms	1 box
 #pair_coeff	1 1 0.0031 2.7400
 #pair_modify     shift yes
 
-pair_style      kim ex+model_Ne_P_fastLJ
+pair_style      kim ex_model_Ne_P_fastLJ
 pair_coeff      * * Ne
 
 mass		1 20.18

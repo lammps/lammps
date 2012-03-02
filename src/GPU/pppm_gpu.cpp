@@ -172,11 +172,21 @@ void PPPMGPU::compute(int eflag, int vflag)
 			     atom->q, domain->boxlo, delxinv, delyinv,
 			     delzinv);
   if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
+    error->one(FLERR,"Insufficient memory on accelerator");
   if (flag != 0)
     error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 
-  int i;
+  // If need per-atom energies/virials, also do particle map on host
+  // concurrently with GPU calculations
+
+  if (evflag_atom) {
+    memory->destroy(part2grid);
+    nmax = atom->nmax;
+    memory->create(part2grid,nmax,3,"pppm:part2grid");
+    particle_map();
+  }
+
+  int i,j;
 
   // convert atoms from box to lamda coords
   
@@ -211,6 +221,29 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   FFT_SCALAR qscale = force->qqrd2e * scale;
   PPPM_GPU_API(interp)(qscale);
+
+  // Compute per-atom energy/virial on host if requested
+
+  if (evflag_atom) {
+    fillbrick_peratom();
+    fieldforce_peratom();
+    double *q = atom->q;
+    int nlocal = atom->nlocal;
+
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+	eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
+	  (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+
+    if (vflag_atom) {
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*q[i]*qscale;
+    }
+  }
 
   // sum energy across procs and add in volume-dependent term
 
@@ -745,6 +778,10 @@ void PPPMGPU::poisson()
     work1[n++] *= scaleinv * greensfn[i];
   }
 
+  // extra FFTs for per-atom energy/virial
+
+  if (evflag_atom) poisson_peratom();
+
   // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
@@ -873,6 +910,12 @@ double PPPMGPU::memory_usage()
   bytes += nfft_both * sizeof(double);
   bytes += nfft_both*5 * sizeof(FFT_SCALAR);
   bytes += 2 * nbuf * sizeof(double);
+
+  if (peratom_allocate_flag) {
+    bytes += 7 * nbrick * sizeof(FFT_SCALAR);
+    bytes += 2 * nbuf_peratom * sizeof(FFT_SCALAR);
+  }
+
   return bytes + PPPM_GPU_API(bytes)();
 }
 

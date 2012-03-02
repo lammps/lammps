@@ -29,7 +29,8 @@ namespace GPU_EXTRA {
     MPI_Allreduce(&error_flag, &all_success, 1, MPI_INT, MPI_MIN, world);
     if (all_success != 0) {
       if (all_success == -1)
-	error->all(FLERR,"Accelerated style in input script but no fix gpu"); 
+	error->all(FLERR,
+		   "The package gpu command is required for gpu styles"); 
       else if (all_success == -2)
 	error->all(FLERR,
 		   "Could not find/initialize a specified accelerator device");
@@ -64,44 +65,43 @@ namespace GPU_EXTRA {
 
 /* ERROR/WARNING messages:
 
-E: Accelerated style in input script but no fix gpu
+E: The package gpu command is required for gpu styles
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find/initialize a specified accelerator device
 
-UNDOCUMENTED
+Could not initialize at least one of the devices specified for the gpu package
 
 E: Insufficient memory on accelerator
 
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu 
+package
 
 E: GPU library not compiled for this accelerator
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Double precision is not supported on this accelerator
 
-UNDOCUMENTED
+Self-explanatory
 
 E: Unable to initialize accelerator for use
 
-UNDOCUMENTED
+There was a problem initializing an accelerator for the gpu package
 
 E: Accelerator sharing is not currently supported on system
 
-UNDOCUMENTED
+Multiple MPI processes cannot share the accelerator on your system. For NVIDIA
+GPUs, see the nvidia-smi command to change this setting.
 
 E: GPU particle split must be set to 1 for this pair style.
 
-UNDOCUMENTED
+For this pair style, you cannot run part of the force calculation on the host.
+See the package command.
 
 E: Unknown error in GPU library
 
-UNDOCUMENTED
-
-E: The package gpu command is required for gpu styles
-
-UNDOCUMENTED
+Self-explanatory.
 
 */

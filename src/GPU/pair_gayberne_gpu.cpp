@@ -137,7 +137,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 			   cpu_time, success, quat);
   }
   if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
+    error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start < inum) {
     cpu_time = MPI_Wtime();

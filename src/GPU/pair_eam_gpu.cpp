@@ -130,7 +130,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
   }
     
   if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
+    error->one(FLERR,"Insufficient memory on accelerator");
 
   // communicate derivative of embedding function
 
@@ -151,8 +151,6 @@ void PairEAMGPU::init_style()
 {
   if (force->newton_pair) 
     error->all(FLERR,"Cannot use newton pair with eam/gpu pair style");
-  
-  if (!allocated) error->all(FLERR,"Not allocate memory eam/gpu pair style");
   
   // convert read-in file(s) to arrays and spline them
 

@@ -59,7 +59,8 @@ void EwaldOMP::compute(int eflag, int vflag)
   // set energy/virial flags
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
 
   // extend size of per-atom arrays if necessary
 
@@ -99,7 +100,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 #endif
   {
 
-    int i,k,ifrom,ito,tid;
+    int i,j,k,ifrom,ito,tid;
     int kx,ky,kz;
     double cypz,sypz,exprl,expim,partial;
 
@@ -128,16 +129,13 @@ void EwaldOMP::compute(int eflag, int vflag)
 	ek[i][1] += partial*eg[k][1];
 	ek[i][2] += partial*eg[k][2];
 
-#if 0
-	if (eflag_atom || vflag_atom) {
-	  partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];		
+	if (evflag_atom) {
+	  const double partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
 	  if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
 	  if (vflag_atom)
 	    for (j = 0; j < 6; j++)
 	      vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
 	}
-#endif
-
       }
     }
 
@@ -150,7 +148,7 @@ void EwaldOMP::compute(int eflag, int vflag)
       f[i][2] += fac*ek[i][2];
     }
  
-    // energy if requested
+    // global energy
 
     if (eflag_global) {
 #if defined(_OPENMP)
@@ -161,7 +159,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 			    sfacim_all[k]*sfacim_all[k]);
     }
 
-    // virial if requested
+    // global virial
 
     if (vflag_global) {
 #if defined(_OPENMP)
@@ -176,6 +174,23 @@ void EwaldOMP::compute(int eflag, int vflag)
 	v4 += uk*vg[k][4];
 	v5 += uk*vg[k][5];
       }
+    }
+
+    // per-atom energy/virial
+    // energy includes self-energy correction
+
+    if (evflag_atom) {
+      if (eflag_atom) {
+	for (i = ifrom; i < ito; i++) {
+	  eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+	    (g_ewald*g_ewald*volume);
+	  eatom[i] *= qscale;
+	}
+      }
+
+      if (vflag_atom)
+	for (i = ifrom; i < ito; i++)
+	  for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
     }
 
     reduce_thr(this, eflag,vflag,thr);
@@ -195,25 +210,6 @@ void EwaldOMP::compute(int eflag, int vflag)
     virial[4] = v4 * qscale;
     virial[5] = v5 * qscale;
   }
-
-#if 0
-  // per-atom energy/virial
-  // energy includes self-energy correction
-
-  if (eflag_atom || vflag_atom) {
-    if (eflag_atom) {
-      for (i = 0; i < nlocal; i++) {
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
-	  (g_ewald*g_ewald*volume);
-        eatom[i] *= qscale;
-      }
-    }
-      
-    if (vflag_atom)
-      for (i = 0; i < nlocal; i++)
-	for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
-  }
-#endif
 
   if (slabflag) slabcorr();
 }
@@ -288,8 +284,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,l,0), 2 = (k,-l,0)
 
-    for (k = 1; k <= kmax; k++) {
-      for (l = 1; l <= kmax; l++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (l = 1; l <= kymax; l++) {
 	sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -312,8 +308,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (0,l,m), 2 = (0,l,-m)
 
-    for (l = 1; l <= kmax; l++) {
-      for (m = 1; m <= kmax; m++) {
+    for (l = 1; l <= kymax; l++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (l*unitk[1] * l*unitk[1]) + (m*unitk[2] * m*unitk[2]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -336,8 +332,8 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,0,m), 2 = (k,0,-m)
 
-    for (k = 1; k <= kmax; k++) {
-      for (m = 1; m <= kmax; m++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (m = 1; m <= kzmax; m++) {
 	sqk = (k*unitk[0] * k*unitk[0]) + (m*unitk[2] * m*unitk[2]);
 	if (sqk <= gsqmx) {
 	  cstr1 = 0.0;
@@ -360,9 +356,9 @@ void EwaldOMP::eik_dot_r()
 
     // 1 = (k,l,m), 2 = (k,-l,m), 3 = (k,l,-m), 4 = (k,-l,-m)
 
-    for (k = 1; k <= kmax; k++) {
-      for (l = 1; l <= kmax; l++) {
-	for (m = 1; m <= kmax; m++) {
+    for (k = 1; k <= kxmax; k++) {
+      for (l = 1; l <= kymax; l++) {
+	for (m = 1; m <= kzmax; m++) {
 	  sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]) +
 	    (m*unitk[2] * m*unitk[2]);
 	  if (sqk <= gsqmx) {

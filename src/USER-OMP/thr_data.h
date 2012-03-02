@@ -67,28 +67,28 @@ class ThrData {
  private:
   double eng_vdwl;        // non-bonded non-coulomb energy
   double eng_coul;        // non-bonded coulomb energy
-  double virial_pair[6];  // virial contribution from non-bonded
-  double *eatom_pair;
-  double **vatom_pair;
   double eng_bond;        // bond energy
-  double virial_bond[6];  // virial contribution from bonds
-  double *eatom_bond;
-  double **vatom_bond;
   double eng_angle;       // angle energy
-  double virial_angle[6]; // virial contribution from angles
-  double *eatom_angle;
-  double **vatom_angle;
   double eng_dihed;       // dihedral energy
-  double virial_dihed[6]; // virial contribution from dihedrals
-  double *eatom_dihed;
-  double **vatom_dihed;
   double eng_imprp;       // improper energy
-  double virial_imprp[6]; // virial contribution from impropers 
-  double *eatom_imprp;
-  double **vatom_imprp;
   double eng_kspce;       // kspace energy
+  double virial_pair[6];  // virial contribution from non-bonded
+  double virial_bond[6];  // virial contribution from bonds
+  double virial_angle[6]; // virial contribution from angles
+  double virial_dihed[6]; // virial contribution from dihedrals
+  double virial_imprp[6]; // virial contribution from impropers 
   double virial_kspce[6]; // virial contribution from kspace
+  double *eatom_pair;
+  double *eatom_bond;
+  double *eatom_angle;
+  double *eatom_dihed;
+  double *eatom_imprp;
   double *eatom_kspce;
+  double **vatom_pair;
+  double **vatom_bond;
+  double **vatom_angle;
+  double **vatom_dihed;
+  double **vatom_imprp;
   double **vatom_kspce;
 
   // per thread segments of various force or similar arrays
@@ -113,7 +113,7 @@ class ThrData {
   const int _tid;
 
  public:
-  // compute global per thread virial contribution from per-thread force
+  // compute global per thread virial contribution from global forces and positions
   void virial_fdotr_compute(double **, int, int, int);
 
   double memory_usage();

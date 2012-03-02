@@ -134,20 +134,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     }
   }
 
-#if 0 /* not supported (yet) */
-  if (thr_style & THR_KSPACE) {
-    if (eflag & 2) {
-      thr->eatom_kspce = eatom + tid*nall;
-      if (nall > 0)
-	memset(&(thr->eatom_kspce[0]),0,nall*sizeof(double));
-    }
-    if (vflag & 4) {
-      thr->vatom_kspce = vatom + tid*nall;
-      if (nall > 0)
-	memset(&(thr->vatom_kspce[0][0]),0,nall*6*sizeof(double));
-    }
-  }
-#endif
+  // nothing to do for THR_KSPACE
 }
 
 /* ----------------------------------------------------------------------
@@ -255,7 +242,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #endif
       {
 	if (tid < nproxy) {
-	  // nothing to do for kspace?
+	  // nothing to collect for kspace proxy threads
+	  // just reset pair accumulators to 0.0.
+	  if (eflag & 1) {
+	    thr->eng_vdwl = 0.0;
+	    thr->eng_coul = 0.0;
+	  }
 	  if (vflag & 3)
 	    for (int i=0; i < 6; ++i) {
 	      thr->virial_pair[i] = 0.0;
@@ -403,26 +395,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
   case THR_KSPACE|THR_PROXY: // fallthrough
   case THR_KSPACE:
-    // nothing to do (for now)
-#if 0
-    if (evflag) {
-      KSpace *kspace = lmp->force->kspace;
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-      {
-	kspace->energy += thr->eng_kspce;
-	for (int i=0; i < 6; ++i)
-	  kspace->virial[i] += thr->virial_kspce[i];
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(kspace->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(kspace->vatom[0][0]), nall, nthreads, 6, tid);
-      }
-    }
-#endif
+    // nothing to do
     break;
 
   default:

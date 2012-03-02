@@ -85,7 +85,7 @@ __kernel void kernel_calc_cell_counts(unsigned *cell_id,
 __kernel void transpose(__global int *out, __global int *in, int columns_in, 
                         int rows_in)
 {
-	__local float block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
+	__local int block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 	
 	unsigned ti=THREAD_ID_X;
 	unsigned tj=THREAD_ID_Y;

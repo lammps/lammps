@@ -117,6 +117,14 @@ class UCL_Device {
     _cq.pop_back();
   }
   
+  /// Set the default command queue (by default this is the null stream)
+  /** \param i index of the command queue (as added by push_command_queue()) 
+      If i is 0, the default command queue is set to the null stream **/
+  inline void set_command_queue(const int i) {
+    if (i==0) _cq[0]=0;
+    else _cq[0]=_cq[i];
+  }
+  
   /// Get the current CUDA device name
   inline std::string name() { return name(_device); }
   /// Get the CUDA device name
@@ -280,6 +288,7 @@ inline int UCL_Device::set(int num) {
   if (_device>-1) {
     CU_SAFE_CALL_NS(cuCtxDestroy(_context));
     for (int i=1; i<num_queues(); i++) pop_command_queue();
+    _cq[0]=0;
   }
   _device=_properties[num].device_id;
   CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));

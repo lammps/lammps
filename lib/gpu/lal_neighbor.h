@@ -106,13 +106,24 @@ class Neighbor {
 
   inline void acc_timers() {
     if (_nbor_time_avail) {
-      time_nbor.add_to_total();
-      time_kernel.add_to_total();
       if (_gpu_nbor==2) {
-        time_hybrid1.add_to_total();
-        time_hybrid2.add_to_total();
+        int mn=0;
+        for (int i=0; i<_total_atoms; i++)
+          mn=std::max(mn,host_acc[i]);
+        if (mn>_max_nbors)
+          assert(0==1);
       }
-      _nbor_time_avail=false;
+      if (_time_device) {
+        time_nbor.add_to_total();
+        time_kernel.add_to_total();
+        if (_gpu_nbor==2) {
+          time_hybrid1.add_to_total();
+          time_hybrid2.add_to_total();
+        }
+        if (_maxspecial>0)
+          time_transpose.add_to_total();
+        _nbor_time_avail=false;
+      }
     }
   }
 
@@ -213,7 +224,7 @@ class Neighbor {
   UCL_D_Vec<int> dev_cell_counts;
 
   /// Device timers
-  UCL_Timer time_nbor, time_kernel, time_hybrid1, time_hybrid2;
+  UCL_Timer time_nbor, time_kernel, time_hybrid1, time_hybrid2, time_transpose;
   
  private:
   NeighborShared *_shared;
@@ -228,6 +239,10 @@ class Neighbor {
   
   int _block_cell_2d, _block_cell_id, _block_nbor_build, _ncells;
   int _threads_per_atom;
+  int _total_atoms;
+
+  template <class numtyp, class acctyp>
+  inline void resize_max_neighbors(const int maxn, bool &success);
 };
 
 }

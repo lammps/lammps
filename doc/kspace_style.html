@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/proxy</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/tip4p</I> or <I>ewald/n</I> or <I>pppm/gpu</I> or <I>ewald/omp</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>pppm/proxy</I> or <I>pppm/tip4p/proxy</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = accuracy
@@ -35,7 +35,12 @@
     accuracy = desired relative error in forces
   <I>pppm/omp</I> value = accuracy
     accuracy = desired relative error in forces
+  <I>pppm/tip4p/omp</I> value = accuracy
+    accuracy = desired relative error in forces
   <I>pppm/proxy</I> value = accuracy
+    accuracy = desired relative error in forces 
+</PRE>
+<PRE>  <I>pppm/tip4p/proxy</I> value = accuracy
     accuracy = desired relative error in forces 
 </PRE>
 
@@ -132,12 +137,12 @@ smaller than the reference force.
 to determine the number of K-space vectors for style <I>ewald</I> or the
 FFT grid size for style <I>pppm</I>.
 </P>
-<P>RMS force errors in real space for <I>ewald</I> and <I>pppm</I> are estimated 
-using equation 18 of <A HREF = "#Kolafa">(Kolafa)</A>, which is also referenced as 
-equation 9 of <A HREF = "#Petersen">(Petersen)</A>. RMS force errors in K-space 
-for <I>ewald</I> are estimated using equation 11 of <A HREF = "#Petersen">(Petersen)</A>,
-which is similar to equation 32 of <A HREF = "#Kolafa">(Kolafa)</A>. RMS force errors 
-in K-space for <I>pppm</I> are estimated using equation 38 of 
+<P>RMS force errors in real space for <I>ewald</I> and <I>pppm</I> are estimated
+using equation 18 of <A HREF = "#Kolafa">(Kolafa)</A>, which is also referenced as
+equation 9 of <A HREF = "#Petersen">(Petersen)</A>. RMS force errors in K-space for
+<I>ewald</I> are estimated using equation 11 of <A HREF = "#Petersen">(Petersen)</A>,
+which is similar to equation 32 of <A HREF = "#Kolafa">(Kolafa)</A>. RMS force
+errors in K-space for <I>pppm</I> are estimated using equation 38 of
 <A HREF = "#Deserno">(Deserno)</A>.
 </P>
 <P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional

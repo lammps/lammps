@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/proxy} :ulb,l
+style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -31,7 +31,11 @@ style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or
     accuracy = desired relative error in forces
   {pppm/omp} value = accuracy
     accuracy = desired relative error in forces
+  {pppm/tip4p/omp} value = accuracy
+    accuracy = desired relative error in forces
   {pppm/proxy} value = accuracy
+    accuracy = desired relative error in forces :pre
+  {pppm/tip4p/proxy} value = accuracy
     accuracy = desired relative error in forces :pre
 :ule
 
@@ -127,12 +131,12 @@ The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
 FFT grid size for style {pppm}.
 
-RMS force errors in real space for {ewald} and {pppm} are estimated 
-using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as 
-equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space 
-for {ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
-which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force errors 
-in K-space for {pppm} are estimated using equation 38 of 
+RMS force errors in real space for {ewald} and {pppm} are estimated
+using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
+equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
+{ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
+which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
+errors in K-space for {pppm} are estimated using equation 38 of
 "(Deserno)"_#Deserno.
 
 See the "kspace_modify"_kspace_modify.html command for additional

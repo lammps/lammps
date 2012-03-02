@@ -723,6 +723,7 @@ package"_Section_accelerate.html.
 
 "adp/omp"_pair_adp.html,
 "airebo/omp"_pair_airebo.html,
+"beck/omp"_pair_beck.html,
 "born/coul/long/cuda"_pair_born.html,
 "born/coul/long/omp"_pair_born.html,
 "born/coul/wolf/omp"_pair_born.html,
@@ -832,6 +833,7 @@ package"_Section_accelerate.html.
 "lj96/cut/omp"_pair_lj96.html,
 "lubricate/omp"_pair_lubricate.html,
 "lubricate/poly/omp"_pair_lubricate.html,
+"meam/spline/omp"_pair_meam_spline.html,
 "morse/cuda"_pair_morse.html,
 "morse/gpu"_pair_morse.html,
 "morse/omp"_pair_morse.html,
@@ -934,6 +936,7 @@ package"_Section_accelerate.html.
 "cosine/shift/omp"_angle_cosine_shift.html,
 "cosine/shift/exp/omp"_angle_cosine_shift_exp.html,
 "cosine/squared/omp"_angle_cosine_squared.html,
+"dipole/omp"_angle_dipole.html
 "harmonic/omp"_angle_harmonic.html,
 "table/omp"_angle_table.html :tb(c=4,ea=c,w=100)
 
@@ -971,7 +974,8 @@ package"_Section_accelerate.html.
 "harmonic/omp"_dihedral_harmonic.html,
 "helix/omp"_dihedral_helix.html,
 "multi/harmonic/omp"_dihedral_multi_harmonic.html,
-"opls/omp"_dihedral_opls.html :tb(c=4,ea=c,w=100)
+"opls/omp"_dihedral_opls.html
+"table/omp"_dihedral_table.html :tb(c=4,ea=c,w=100)
 
 :line
 
@@ -1024,4 +1028,6 @@ package"_Section_accelerate.html.
 "pppm/gpu"_kspace_style.html,
 "pppm/omp"_kspace_style.html,
 "pppm/cg/omp"_kspace_style.html,
-"pppm/proxy"_kspace_style.html :tb(c=4,ea=c)
+"pppm/tip4p/omp"_kspace_style.html,
+"pppm/proxy"_kspace_style.html,
+"pppm/tip4p/proxy"_kspace_style.html :tb(c=4,ea=c)

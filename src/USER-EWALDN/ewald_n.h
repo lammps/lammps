@@ -50,8 +50,9 @@ class EwaldN : public KSpace {
   int nkvec, nkvec_max, nevec, nevec_max,
       nbox, nfunctions, nsums, sums;
   int peratom_allocate_flag;
+  int nmax;
   double bytes;
-  double precision, g2_max;
+  double gsqmx,q2;
   double *kenergy, energy_self[EWALD_NFUNCS];
   double *kvirial, virial_self[EWALD_NFUNCS];
   double **energy_self_peratom;
@@ -64,6 +65,7 @@ class EwaldN : public KSpace {
   struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
   complex *cek_local, *cek_global;
  
+  double rms(int, double, bigint, double);
   void reallocate();
   void allocate_peratom();
   void reallocate_atoms();
@@ -77,7 +79,6 @@ class EwaldN : public KSpace {
   void compute_ek();
   void compute_force();
   void compute_surface();
-  void compute_surface_peratom();
   void compute_energy();
   void compute_energy_peratom();
   void compute_virial();

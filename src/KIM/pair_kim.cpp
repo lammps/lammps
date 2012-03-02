@@ -709,13 +709,13 @@ void PairKIM::kim_init()
   //virial and virial per atom will be added here
   //  i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s], 
-	  "virial          real*8       pressure    [6] \n\n\0");
+	  "virial          real*8       energy    [6] \n\n\0");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
 	  "process_dEdr        method       none   [] \n\n");
   i_s=strlen(test_descriptor_string);
   sprintf(&test_descriptor_string[i_s],
-	  "particleVirial         real*8       pressure   "
+	  "particleVirial         real*8       energy   "
 	  "[numberOfParticles,6] \n\n\0");
   
   // kim file created now init and maptypes

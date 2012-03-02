@@ -148,6 +148,10 @@ E: Unbalanced quotes in input line
 No matching end double quote was found following a leading double
 quote.
 
+E: Input line quote not followed by whitespace
+
+An end quote must be followed by whitespace.
+
 E: Invalid variable name
 
 Variable name used in an input script line is invalid.

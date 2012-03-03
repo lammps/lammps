@@ -47,7 +47,8 @@ class FixGCMC : public Fix {
   int ngas;           // # of gas molecules (or atoms) on all procs 
   int ngas_local;     // # of gas molecules (or atoms) on this proc 
   int ngas_before;    // # of gas molecules (or atoms) on procs < this proc
-  int molflag;        // 0 = atomic, 1 = molecular system                                                
+  int molflag;        // 0 = atomic, 1 = molecular system
+
   double nmove_attempts;   
   double nmove_successes;  
   double ndel_attempts;    
@@ -87,13 +88,12 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Invalid atom type in fix GCMC command
 
-Self-explanatory. The atom type specified in the GCMC command does 
-not exist.
+The atom type specified in the GCMC command does not exist.
 
 E: Cannot do GCMC on atoms in atom_modify first group
 
-This is a restriction due to the way atoms are organized in
-a list to enable the atom_modify first command.
+This is a restriction due to the way atoms are organized in a list to
+enable the atom_modify first command.
 
 W: Fix GCMC may delete atom with non-zero molecule ID
 
@@ -102,18 +102,17 @@ of a molecule. The GCMC molecule exchange feature does not yet work.
 
 E: Fix GCMC molecule command requires atom attribute molecule
 
-Should not choose the GCMC molecule feature if no molecules 
-are being simulated. The general molecule flag is off, but
-GCMC's molecule flag is on.
+Should not choose the GCMC molecule feature if no molecules are being
+simulated. The general molecule flag is off, but GCMC's molecule flag
+is on.
 
 E: Fix GCMC molecule feature does not yet work
 
-Self-explanatory. Fix GCMC cannot (yet) be used to exchange
-molecules, only atoms.
+Fix GCMC cannot (yet) be used to exchange molecules, only atoms.
 
 E: Fix GCMC incompatible with given pair_style
 
-Self-explanatory. Some pair_styles do not provide single-atom
-energies, which are needed by fix GCMC.
+Some pair_styles do not provide single-atom energies, which are needed
+by fix GCMC.
 
 */

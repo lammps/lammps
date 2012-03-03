@@ -348,8 +348,9 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   // copy fp from device to host for comm
   _nlocal=nlocal;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,nlocal,false);
+  ucl_copy(host_fp,dev_fp,nlocal,true);
   time_fp1.stop();
+  time_fp1.sync_stop();
 }
 
 // ---------------------------------------------------------------------------
@@ -427,8 +428,9 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // copy fp from device to host for comm
   _nlocal=inum_full;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,inum_full,false);
+  ucl_copy(host_fp,dev_fp,inum_full,true);
   time_fp1.stop();
+  time_fp1.sync_stop();
   
   return this->nbor->host_jlist.begin()-host_start;
 }

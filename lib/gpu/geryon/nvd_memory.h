@@ -57,6 +57,7 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
     *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
   if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
     return UCL_MEMORY_ERROR;
+  mat.cq()=cm.cq();
   return UCL_SUCCESS;
 }
 
@@ -72,6 +73,7 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
     *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
   if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
     return UCL_MEMORY_ERROR;
+  mat.cq()=dev.cq();
   return UCL_SUCCESS;
 }
 
@@ -92,6 +94,7 @@ inline int _device_alloc(mat_type &mat, copy_type &cm, const size_t n,
   CUresult err=cuMemAlloc(&mat.cbegin(),n);
   if (err!=CUDA_SUCCESS)
     return UCL_MEMORY_ERROR;
+  mat.cq()=cm.cq();
   return UCL_SUCCESS;
 }
 
@@ -101,6 +104,7 @@ inline int _device_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
   CUresult err=cuMemAlloc(&mat.cbegin(),n);
   if (err!=CUDA_SUCCESS)
     return UCL_MEMORY_ERROR;
+  mat.cq()=dev.cq();
   return UCL_SUCCESS;
 }
 
@@ -115,6 +119,7 @@ inline int _device_alloc(mat_type &mat, copy_type &cm, const size_t rows,
   pitch=static_cast<size_t>(upitch);                               
   if (err!=CUDA_SUCCESS)
     return UCL_MEMORY_ERROR;
+  mat.cq()=cm.cq();
   return UCL_SUCCESS;
 }    
 
@@ -129,6 +134,7 @@ inline int _device_alloc(mat_type &mat, UCL_Device &d, const size_t rows,
   pitch=static_cast<size_t>(upitch);                               
   if (err!=CUDA_SUCCESS)
     return UCL_MEMORY_ERROR;
+  mat.cq()=d.cq();
   return UCL_SUCCESS;
 }    
 
@@ -243,8 +249,8 @@ template<> struct _ucl_memcpy<2,2> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -255,8 +261,8 @@ template<> struct _ucl_memcpy<2,2> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -280,8 +286,8 @@ template<> struct _ucl_memcpy<2,0> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcDevice=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -292,8 +298,8 @@ template<> struct _ucl_memcpy<2,0> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcDevice=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -317,8 +323,8 @@ template<> struct _ucl_memcpy<2,1> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -329,8 +335,8 @@ template<> struct _ucl_memcpy<2,1> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstArray=dst.cbegin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -354,8 +360,8 @@ template<> struct _ucl_memcpy<0,2> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstDevice=dst.cbegin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -366,8 +372,8 @@ template<> struct _ucl_memcpy<0,2> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstDevice=dst.cbegin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -391,8 +397,8 @@ template<> struct _ucl_memcpy<1,2> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -403,8 +409,8 @@ template<> struct _ucl_memcpy<1,2> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcArray=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -428,8 +434,8 @@ template <> struct _ucl_memcpy<1,0> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcDevice=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -440,8 +446,8 @@ template <> struct _ucl_memcpy<1,0> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcDevice=src.cbegin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -465,8 +471,8 @@ template <> struct _ucl_memcpy<0,1> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstDevice=dst.cbegin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -477,8 +483,8 @@ template <> struct _ucl_memcpy<0,1> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstDevice=dst.cbegin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -500,8 +506,8 @@ template <> struct _ucl_memcpy<1,1> {
                             const size_t rows) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -512,8 +518,8 @@ template <> struct _ucl_memcpy<1,1> {
                             const size_t rows, CUstream &cq) {
     CUDA_MEMCPY2D ins;
     _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+    ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+    ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
     ins.dstHost=dst.begin();
     ins.srcHost=src.begin();
     CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));
@@ -529,7 +535,7 @@ template <int mem1, int mem2> struct _ucl_memcpy {
   template <class p1, class p2>
   static inline void mc(p1 &dst, const p2 &src, const size_t n,
                         CUstream &cq) {
-    CU_SAFE_CALL(cuMemcpyDtoD(dst.cbegin(),src.cbegin(),n));
+    CU_SAFE_CALL(cuMemcpyDtoDAsync(dst.cbegin(),src.cbegin(),n,cq));
   }
   template <class p1, class p2>
       static inline void mc(p1 &dst, const size_t dpitch, const p2 &src, 
@@ -546,8 +552,8 @@ template <int mem1, int mem2> struct _ucl_memcpy {
     } else {                                       
       CUDA_MEMCPY2D ins;
       _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-      ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-      ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+      ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+      ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
       ins.dstDevice=dst.cbegin();
       ins.srcDevice=src.cbegin();
       CU_SAFE_CALL(cuMemcpy2D(&ins));
@@ -560,16 +566,16 @@ template <int mem1, int mem2> struct _ucl_memcpy {
     if (p1::PADDED==0 || p2::PADDED==0) {
       size_t src_offset=0, dst_offset=0;
       for (size_t i=0; i<rows; i++) {                       
-        CU_SAFE_CALL(cuMemcpyDtoD(dst.cbegin()+dst_offset,
-                                  src.cbegin()+src_offset,cols));
+        CU_SAFE_CALL(cuMemcpyDtoDAsync(dst.cbegin()+dst_offset,
+                                       src.cbegin()+src_offset,cols,cq));
         src_offset+=spitch;
         dst_offset+=dpitch;
       }
     } else {
       CUDA_MEMCPY2D ins;
       _nvd_set_2D_loc(ins,dpitch,spitch,cols,rows);
-      ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();                            
-      ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();                            
+      ins.dstMemoryType=_nvd_set_2D_mem<p1::MEM_TYPE>::a();
+      ins.srcMemoryType=_nvd_set_2D_mem<p2::MEM_TYPE>::a();
       ins.dstDevice=dst.cbegin();
       ins.srcDevice=src.cbegin();
       CU_SAFE_CALL(cuMemcpy2DAsync(&ins,cq));

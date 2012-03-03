@@ -15,6 +15,7 @@
 #include "atom_vec.h"
 #include "atom.h"
 #include "domain.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -26,6 +27,7 @@ AtomVec::AtomVec(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
   mass_type = dipole_type = 0;
   size_data_bonus = 0;
+  cudable = false;
 }
 
 /* ----------------------------------------------------------------------
@@ -37,6 +39,9 @@ void AtomVec::init()
   deform_vremap = domain->deform_vremap;
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
+
+  if (lmp->cuda != NULL && cudable == false)
+    error->all(FLERR,"USER-CUDA package requires a cuda enabled atom_style");
 }
 
 /* ----------------------------------------------------------------------

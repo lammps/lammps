@@ -131,12 +131,12 @@ The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
 FFT grid size for style {pppm}.
 
-RMS force errors in real space for {ewald} and {pppm} are estimated 
-using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as 
-equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space 
-for {ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
-which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force errors 
-in K-space for {pppm} are estimated using equation 38 of 
+RMS force errors in real space for {ewald} and {pppm} are estimated
+using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
+equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
+{ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
+which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
+errors in K-space for {pppm} are estimated using equation 38 of
 "(Deserno)"_#Deserno.
 
 See the "kspace_modify"_kspace_modify.html command for additional

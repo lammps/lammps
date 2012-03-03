@@ -123,7 +123,7 @@ void PairLJClass2CoulLongGPU::compute(int eflag, int vflag)
 		     atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
+    error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();

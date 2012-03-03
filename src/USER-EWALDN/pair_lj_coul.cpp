@@ -463,7 +463,8 @@ void PairLJCoul::compute(int eflag, int vflag)
 
   int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
-  double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double qi = 0.0, qri = 0.0;
+  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   vector xi, d;
@@ -586,7 +587,7 @@ void PairLJCoul::compute(int eflag, int vflag)
 
 void PairLJCoul::compute_inner()
 {
-  double rsq, r2inv, force_coul, force_lj, fpair;
+  double rsq, r2inv, force_coul = 0.0, force_lj, fpair;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -669,7 +670,7 @@ void PairLJCoul::compute_inner()
 
 void PairLJCoul::compute_middle()
 {
-  double rsq, r2inv, force_coul, force_lj, fpair;
+  double rsq, r2inv, force_coul = 0.0, force_lj, fpair;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -779,10 +780,11 @@ void PairLJCoul::compute_outer(int eflag, int vflag)
 
   int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni, respa_flag;
-  double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double qi = 0.0, qri = 0.0; 
+  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
-  double respa_lj, respa_coul, frespa;
+  double respa_lj = 0.0, respa_coul = 0.0, frespa = 0.0;
   vector xi, d;
 
   double cut_in_off = cut_respa[2];
@@ -1037,7 +1039,7 @@ void PairLJCoul::init_tables()
   // deltas at itablemax only needed if corresponding rsq < cut*cut
   // if so, compute deltas between rsq and cut*cut 
 	
-  double f_tmp,c_tmp,e_tmp,p_tmp,v_tmp;
+  double f_tmp,c_tmp,e_tmp,p_tmp = 0.0,v_tmp = 0.0;
   itablemin = minrsq_lookup.i & ncoulmask;
   itablemin >>= ncoulshiftbits;  
   int itablemax = itablemin - 1; 

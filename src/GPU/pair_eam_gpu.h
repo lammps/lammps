@@ -54,17 +54,13 @@ class PairEAMGPU : public PairEAM {
 
 /* ERROR/WARNING messages:
 
-E: Out of memory on GPGPU
+E: Insufficient memory on accelerator
 
-GPU memory is limited.  Reduce the size of the problem or increase the
-number of GPUs.
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Cannot use newton pair with eam/gpu pair style
 
 Self-explanatory.
-
-E: Not allocate memory eam/gpu pair style
-
-UNDOCUMENTED
 
 */

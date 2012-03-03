@@ -107,7 +107,7 @@ void PairLJ96CutGPU::compute(int eflag, int vflag)
 		     vflag_atom, host_start, cpu_time, success);
   }
   if (!success)
-    error->one(FLERR,"Out of memory on GPGPU");
+    error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
     cpu_time = MPI_Wtime();

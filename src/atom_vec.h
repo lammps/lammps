@@ -95,6 +95,11 @@ class AtomVec : protected Pointers {
 }
 
 #endif
+
 /* ERROR/WARNING messages:
+
+E: USER-CUDA package requires a cuda enabled atom_style
+
+Self-explanatory.
 
 */

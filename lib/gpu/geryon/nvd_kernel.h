@@ -34,11 +34,11 @@ class UCL_Texture;
 /// Class storing 1 or more kernel functions from a single string or file
 class UCL_Program {
  public:
-  inline UCL_Program(UCL_Device &device) {}
+  inline UCL_Program(UCL_Device &device) { _cq=device.cq(); }
   inline ~UCL_Program() {}
 
   /// Initialize the program with a device
-  inline void init(UCL_Device &device) { }
+  inline void init(UCL_Device &device) { _cq=device.cq(); }
 
   /// Clear any data associated with program
   /** \note Must call init() after each clear **/
@@ -130,6 +130,7 @@ class UCL_Program {
   friend class UCL_Kernel;
  private:
   CUmodule _module;
+  CUstream _cq;
   friend class UCL_Texture;
 };
 
@@ -141,7 +142,7 @@ class UCL_Kernel {
   
   UCL_Kernel(UCL_Program &program, const char *function) : 
     _dimensions(1), _num_args(0), _param_size(0) 
-    { _num_blocks[0]=0; set_function(program,function); }
+    { _num_blocks[0]=0; set_function(program,function); _cq=program._cq; }
   
   ~UCL_Kernel() {}
 
@@ -160,6 +161,7 @@ class UCL_Kernel {
       #endif
       return UCL_FUNCTION_NOT_FOUND;
     }
+    _cq=program._cq;
     return UCL_SUCCESS;
   }
 
@@ -229,7 +231,7 @@ class UCL_Kernel {
   /// Run the kernel in the default command queue
   inline void run() {
     CU_SAFE_CALL(cuParamSetSize(_kernel,_param_size));
-    CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],0));
+    CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],_cq));
   }
   
   /// Run the kernel in the specified command queue
@@ -245,6 +247,7 @@ class UCL_Kernel {
 
  private:
   CUfunction _kernel;
+  CUstream _cq;
   unsigned _dimensions;
   unsigned _num_blocks[2];
   unsigned _num_args;

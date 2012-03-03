@@ -124,16 +124,25 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   if (my_gpu>=gpu->num_devices())
     return -2;
     
+  #ifndef CUDA_PRX
   if (_procs_per_gpu>1 && gpu->sharing_supported(my_gpu)==false)
     return -7;
+  #endif
   
   if (gpu->set(my_gpu)!=UCL_SUCCESS)
     return -6;
 
+  gpu->push_command_queue();
+  gpu->set_command_queue(1);
+
   _long_range_precompute=0;
 
-  int flag=compile_kernels();
-
+  int flag=0;
+  for (int i=0; i<_procs_per_gpu; i++) {
+    if (_gpu_rank==i)
+      flag=compile_kernels();
+    gpu_barrier();
+  }
   return flag;
 }
 

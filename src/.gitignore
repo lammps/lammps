@@ -715,6 +715,8 @@ pppm_proxy.cpp
 pppm_proxy.h
 pppm_tip4p.cpp
 pppm_tip4p.h
+pppm_tip4p_omp.cpp
+pppm_tip4p_omp.h
 pppm_tip4p_proxy.cpp
 pppm_tip4p_proxy.h
 prd.cpp

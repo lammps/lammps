@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class AngleDipoleOMP : public AngleDipole, public ThrOMP {
 
  public:
-    AngleDipoleOMP(class LAMMPS *lmp) : 
-      AngleDipole(lmp), ThrOMP(lmp,THR_ANGLE) {};
-
+  AngleDipoleOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

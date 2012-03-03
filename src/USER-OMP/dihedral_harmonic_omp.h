@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class DihedralHarmonicOMP : public DihedralHarmonic, public ThrOMP {
 
  public:
-    DihedralHarmonicOMP(class LAMMPS *lmp) : 
-      DihedralHarmonic(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
-
+  DihedralHarmonicOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

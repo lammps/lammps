@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondFENEOMP : public BondFENE, public ThrOMP {
 
  public:
-    BondFENEOMP(class LAMMPS *lmp) : 
-      BondFENE(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondFENEOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

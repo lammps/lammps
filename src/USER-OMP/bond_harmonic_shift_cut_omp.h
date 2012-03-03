@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondHarmonicShiftCutOMP : public BondHarmonicShiftCut, public ThrOMP {
 
  public:
-    BondHarmonicShiftCutOMP(class LAMMPS *lmp) : 
-      BondHarmonicShiftCut(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondHarmonicShiftCutOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

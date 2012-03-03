@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondQuarticOMP : public BondQuartic, public ThrOMP {
 
  public:
-    BondQuarticOMP(class LAMMPS *lmp) : 
-      BondQuartic(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondQuarticOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

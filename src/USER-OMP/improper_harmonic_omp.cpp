@@ -25,10 +25,19 @@
 #include "update.h"
 #include "error.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
+
+/* ---------------------------------------------------------------------- */
+
+ImproperHarmonicOMP::ImproperHarmonicOMP(class LAMMPS *lmp)
+  : ImproperHarmonic(lmp), ThrOMP(lmp,THR_IMPROPER)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

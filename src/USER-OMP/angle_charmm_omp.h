@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class AngleCharmmOMP : public AngleCharmm, public ThrOMP {
 
  public:
-    AngleCharmmOMP(class LAMMPS *lmp) : 
-      AngleCharmm(lmp), ThrOMP(lmp,THR_ANGLE) {};
-
+  AngleCharmmOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

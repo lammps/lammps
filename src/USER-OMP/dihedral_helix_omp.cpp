@@ -26,12 +26,21 @@
 #include "math_const.h"
 #include "error.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
 #define SMALLER   0.00001
+
+/* ---------------------------------------------------------------------- */
+
+DihedralHelixOMP::DihedralHelixOMP(class LAMMPS *lmp)
+  : DihedralHelix(lmp), ThrOMP(lmp,THR_DIHEDRAL)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

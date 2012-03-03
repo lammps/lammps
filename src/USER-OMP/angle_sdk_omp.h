@@ -33,9 +33,7 @@ namespace LAMMPS_NS {
 class AngleSDKOMP : public AngleSDK, public ThrOMP {
 
  public:
-    AngleSDKOMP(class LAMMPS *lmp) : 
-      AngleSDK(lmp), ThrOMP(lmp,THR_ANGLE) {};
-
+  AngleSDKOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class ImproperHarmonicOMP : public ImproperHarmonic, public ThrOMP {
 
  public:
-    ImproperHarmonicOMP(class LAMMPS *lmp) : 
-      ImproperHarmonic(lmp), ThrOMP(lmp,THR_IMPROPER) {};
-
+  ImproperHarmonicOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

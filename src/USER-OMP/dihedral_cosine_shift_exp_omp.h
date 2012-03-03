@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class DihedralCosineShiftExpOMP : public DihedralCosineShiftExp, public ThrOMP {
 
  public:
-    DihedralCosineShiftExpOMP(class LAMMPS *lmp) : 
-      DihedralCosineShiftExp(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
-
+  DihedralCosineShiftExpOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

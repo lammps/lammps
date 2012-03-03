@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class DihedralHelixOMP : public DihedralHelix, public ThrOMP {
 
  public:
-    DihedralHelixOMP(class LAMMPS *lmp) : 
-      DihedralHelix(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
-
+  DihedralHelixOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

@@ -42,8 +42,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(NULL),
-					 thr_style(style), thr_error(0)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style)
+  : lmp(ptr), fix(NULL), thr_style(style), thr_error(0)
 {
   // register fix omp with this class
   int ifix = lmp->modify->find_fix("package_omp");
@@ -284,15 +284,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	bond->energy += thr->eng_bond;
-	for (int i=0; i < 6; ++i)
-	  bond->virial[i] += thr->virial_bond[i];
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
+	if (eflag & 1) {
+	  bond->energy += thr->eng_bond;
+	  thr->eng_bond = 0.0;
+	}
+
+	if (vflag & 3) {
+	  for (int i=0; i < 6; ++i) {
+	    bond->virial[i] += thr->virial_bond[i];
+	    thr->virial_bond[i] = 0.0;
+	  }
+	}
+
+	if (eflag & 2) {
+	  data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
+	}
+	if (vflag & 4) {
+	  data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
+	}
       }
     }
     break;
@@ -305,15 +314,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	angle->energy += thr->eng_angle;
-	for (int i=0; i < 6; ++i)
-	  angle->virial[i] += thr->virial_angle[i];
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+	if (eflag & 1) {
+	  angle->energy += thr->eng_angle;
+	  thr->eng_angle = 0.0;
+	}
+
+	if (vflag & 3) {
+	  for (int i=0; i < 6; ++i) {
+	    angle->virial[i] += thr->virial_angle[i];
+	    thr->virial_angle[i] = 0.0;
+	  }
+	}
+
+	if (eflag & 2) {
+	  data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+	}
+	if (vflag & 4) {
+	  data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+	}
       }
     }
     break;
@@ -326,15 +344,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	dihedral->energy += thr->eng_dihed;
-	for (int i=0; i < 6; ++i)
-	  dihedral->virial[i] += thr->virial_dihed[i];
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+	if (eflag & 1) {
+	  dihedral->energy += thr->eng_dihed;
+	  thr->eng_dihed = 0.0;
+	}
+
+	if (vflag & 3) {
+	  for (int i=0; i < 6; ++i) {
+	    dihedral->virial[i] += thr->virial_dihed[i];
+	    thr->virial_dihed[i] = 0.0;
+	  }
+	}
+
+	if (eflag & 2) {
+	  data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+	}
+	if (vflag & 4) {
+	  data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+	}
       }
     }
     break;
@@ -352,22 +379,28 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 	  dihedral->energy += thr->eng_dihed;
 	  pair->eng_vdwl += thr->eng_vdwl;
 	  pair->eng_coul += thr->eng_coul;
+	  thr->eng_dihed = 0.0;
+	  thr->eng_vdwl = 0.0;
+	  thr->eng_coul = 0.0;
 	}
 
 	if (vflag & 3) {
 	  for (int i=0; i < 6; ++i) {
 	    dihedral->virial[i] += thr->virial_dihed[i];
 	    pair->virial[i] += thr->virial_pair[i];
+	    thr->virial_dihed[i] = 0.0;
+	    thr->virial_pair[i] = 0.0;
 	  }
 	}
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+
+	if (eflag & 2) {
+	  data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+	  data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+	}
+	if (vflag & 4) {
+	  data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+	  data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+	}
       }
     }
     break;
@@ -380,15 +413,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	improper->energy += thr->eng_imprp;
-	for (int i=0; i < 6; ++i)
-	  improper->virial[i] += thr->virial_imprp[i];
-      }
-      if (eflag & 2) {
-	data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-	data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+	if (eflag & 1) {
+	  improper->energy += thr->eng_imprp;
+	  thr->eng_imprp = 0.0;
+	}
+
+	if (vflag & 3) {
+	  for (int i=0; i < 6; ++i) {
+	    improper->virial[i] += thr->virial_imprp[i];
+	    thr->virial_imprp[i] = 0.0;
+	  }
+	}
+
+	if (eflag & 2) {
+	  data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
+	}
+	if (vflag & 4) {
+	  data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+	}
       }
     }
     break;

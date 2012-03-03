@@ -140,7 +140,7 @@ void colvarvalue::p2leg_opt (colvarvalue const                        &x,
     break;
   case colvarvalue::type_quaternion:
     while (xvi != xv_end) {
-      cvm::real const cosine = (xvi++)->quaternion_value.cos (x.quaternion_value);
+      cvm::real const cosine = (xvi++)->quaternion_value.cosine (x.quaternion_value);
       *(ii++) += 1.5*cosine*cosine - 0.5;
     }
     break;

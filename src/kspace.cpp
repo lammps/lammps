@@ -19,6 +19,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,6 +33,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   gewaldflag = 0;
   slabflag = 0;
   slab_volfactor = 1;
+  suffix_flag = Suffix::NONE;
 
   accuracy_absolute = -1.0;
   two_charge_force = force->qqr2e * 

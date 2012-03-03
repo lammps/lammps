@@ -15,7 +15,7 @@ SRC = colvaratoms.C colvarbias_abf.C colvarbias.C colvarbias_meta.C	\
  colvarcomp_distances.C colvarcomp_protein.C colvarcomp_rotations.C	\
  colvargrid.C colvarmodule.C colvarparse.C colvarvalue.C
 
-LIB = libpoems.a
+LIB = libcolvars.a
 OBJ = $(SRC:.C=.o)
 
 # ------ MAKE PROCEDURE ------

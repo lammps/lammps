@@ -5,6 +5,10 @@ lammps-icms-mpich-win.exe
 lammps-icms-mpich-win.zip
 lmp_*
 
+colvarproxy_lammps.cpp
+colvarproxy_lammps.h
+fix_colvars.cpp
+fix_colvars.h
 
 angle_cg_cmm.cpp
 angle_cg_cmm.h

@@ -17,10 +17,10 @@ PACKAGE = asphere class2 colloid dipole fld gpu granular kim \
 	  kspace manybody mc meam molecule opt peri poems reax replica \
 	  shock srd xtc
 
-PACKUSER = user-misc user-atc user-awpmd user-cg-cmm \
+PACKUSER = user-misc user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-cuda user-eff user-ewaldn user-omp user-reaxc user-sph
 
-PACKLIB = gpu kim meam poems reax user-atc user-awpmd user-cuda
+PACKLIB = gpu kim meam poems reax user-atc user-awpmd user-colvars user-cuda
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

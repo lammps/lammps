@@ -79,5 +79,5 @@ colvarvalue.o: colvarvalue.C colvarmodule.h colvartypes.h colvarproxy.h \
 # ------ CLEAN ------
 
 clean:
-	-rm *.o *.d *~ $(LIB)
+	-rm *.o *~ $(LIB)
 

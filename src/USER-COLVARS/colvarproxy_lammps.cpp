@@ -6,6 +6,13 @@
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
 
+// TODO:
+// figure out units for forces, velocities, and time.
+// interface random number generator.
+// make it, so that the fix requires specific "units"
+// settings that we know how to convert inputs to.
+// hook up to lammps i/o.
+
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp) : colvarproxy()
 {
   _lmp = lmp;

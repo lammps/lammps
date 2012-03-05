@@ -26,6 +26,10 @@ FixStyle(colvars,FixColvars)
 
 #include "fix.h"
 
+// forward declaration
+class colvarproxy_lammps;
+
+
 namespace LAMMPS_NS {
 
 class FixColvars : public Fix {
@@ -43,6 +47,10 @@ class FixColvars : public Fix {
 #endif
 
  protected:
+  class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
+  double restraint_energy;      // restraint energy from colvars
+  int    me;                    // my MPI rank in this "world".
+  
   int    num_coords;            // total number of atoms controlled by this fix 
   int    size_one;              // bytes per atom in communication buffer.
   int    maxbuf;                // size of atom communication buffer.
@@ -53,7 +61,6 @@ class FixColvars : public Fix {
   int    imd_forces;            // number of forces communicated via IMD.
   void  *force_buf;             // force data buffer
 
-  int    me;                    // my MPI rank in this "world".
   int    nlevels_respa;         // flag to determine respa levels.
 
   int    msglen;

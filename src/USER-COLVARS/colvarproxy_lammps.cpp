@@ -1,40 +1,44 @@
+
 #include "mpi.h"
 #include "lammps.h"
+#include "comm.h"
+#include "error.h"
+#include "random_park.h"
 
 #include "colvarmodule.h"
 #include "colvaratoms.h"
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
 
-// TODO:
-// figure out units for forces, velocities, and time.
-// interface random number generator.
-// make it, so that the fix requires specific "units"
-// settings that we know how to convert inputs to.
-// hook up to lammps i/o.
+#include <cstdio>
+#include <iostream>
+#include <sstream>
+#include <string>
 
-colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp) : colvarproxy()
+// TODO:
+// figure out units for forces, velocities.
+// interface random number generator.
+
+colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
+				       const char *conf_file,
+				       const char *rest_file)
 {
   _lmp = lmp;
-
-#if 0  
-  first_timestep = true;
-  system_force_requested = false;
-
-  // initialize pointers to NAMD configuration data
-  simparams = Node::Object()->simParameters;
-  lattice = &(simparams->lattice);
+  _random = new LAMMPS_NS::RanPark(lmp,1966); // FIXME: insert proper seed
+  
+  first_timestep=true;
+  system_force_requested=false;
+  thermostat_temperature = 0.0;
 
   if (cvm::debug())
-    iout << "Info: initializing the colvars proxy object.\n" << endi;
+    fputs("Info: initializing the colvars proxy object.\n",stderr);
+  
+  // initiate the colvarmodule, this object will
+  // be the communication proxy
+  colvars = new colvarmodule (conf_file, this);
+    
 
-  // find the configuration file
-  StringList *config = Node::Object()->configList->find ("colvarsConfig");
-  if (!config)
-    NAMD_die ("No configuration file for collective variables: exiting.\n");
-
-  // find the input state file
-  StringList *input_restart = Node::Object()->configList->find ("colvarsInput");
+#if 0  
   input_prefix_str = std::string (input_restart ? input_restart->data : "");
   if (input_prefix_str.rfind (".colvars.state") != std::string::npos) {
     // strip the extension, if present
@@ -54,18 +58,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp) : colvarproxy()
   //else if (simparams->loweAndersenOn)
   //  thermostat_temperature = simparams->loweAndersenTemp;
   else 
-    thermostat_temperature = 0.0;
-
-  random = Random (simparams->randomSeed);
 
   // take the output prefixes from the namd input
   output_prefix_str = std::string (simparams->outputFilename);
   restart_output_prefix_str = std::string (simparams->restartFilename);
   restart_frequency_s = simparams->restartFrequency;
 
-  // initiate the colvarmodule, this object will be the communication
-  // proxy
-  colvars = new colvarmodule (config->data, this);
 
   if (cvm::debug()) {
     cvm::log ("colvars_atoms = "+cvm::to_str (colvars_atoms)+"\n");
@@ -88,13 +86,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp) : colvarproxy()
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
-#if 0
-  delete reduction;
+  delete _random;
+
   if (colvars != NULL) {
     delete colvars;
     colvars = NULL;
   }
-#endif
 }
 
 #if 0
@@ -216,45 +213,72 @@ void colvarproxy_lammps::calculate()
     colvars->write_output_files();
   }
 }
+#endif
 
-
-void colvarproxy_lammps::add_energy (cvm::real energy)
+cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
+						   cvm::atom_pos const &pos2)
 {
-  reduction->item(REDUCTION_MISC_ENERGY) += energy;
+  double xtmp = pos2.x - pos1.x;
+  double ytmp = pos2.y - pos1.y;
+  double ztmp = pos2.z - pos1.z;
+  _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
+  return cvm::rvector (xtmp, ytmp, ztmp);
 }
 
-void colvarproxy_lammps::request_system_force (bool yesno)
+cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
+					   cvm::atom_pos const &pos2)
 {
-  system_force_requested = yesno;
+  double xtmp = pos2.x - pos1.x;
+  double ytmp = pos2.y - pos1.y;
+  double ztmp = pos2.z - pos1.z;
+  _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
+  return cvm::real(xtmp*xtmp + ytmp*ytmp + ztmp*ztmp);
 }
 
-void colvarproxy_lammps::log (std::string const &message)
+
+inline void colvarproxy_lammps::select_closest_image (cvm::atom_pos &pos,
+						      cvm::atom_pos const &ref_pos)
+{
+#if 0
+  Position const p (pos.x, pos.y, pos.z);
+  Position const rp (ref_pos.x, ref_pos.y, ref_pos.z);
+  ScaledPosition const srp = this->lattice->scale (rp);
+  Position const np = this->lattice->nearest (p, srp);
+  pos.x = np.x;
+  pos.y = np.y;
+  pos.z = np.z;
+#endif
+}
+
+void colvarproxy_lammps::log(std::string const &message)
 {
   std::istringstream is (message);
   std::string line;
-  while (std::getline (is, line))
-    iout << "colvars: " << line << "\n";
-  iout << endi;
+  while (std::getline (is, line)) {
+    if (_lmp->screen)
+      fprintf(_lmp->screen,"colvars: %s\n",line.c_str());
+    if (_lmp->logfile)
+      fprintf(_lmp->logfile,"colvars: %s\n",line.c_str());
+  }
 }
 
-
-void colvarproxy_lammps::fatal_error (std::string const &message)
+void colvarproxy_lammps::fatal_error(std::string const &message)
 {
-  cvm::log (message);
+  log(message);
   if (!cvm::debug())
-    cvm::log ("If this error message is unclear, "
-              "try recompiling with -DCOLVARS_DEBUG.\n");
-  NAMD_die ("Error in the collective variables module: exiting.\n");
+    log ("If this error message is unclear, "
+	 "try recompiling with -DCOLVARS_DEBUG.\n");
+  _lmp->error->one(FLERR,
+		   "Fatal error in the collective variables module.\n");
 }
 
-
-void colvarproxy_lammps::exit (std::string const &message)
+void colvarproxy_lammps::exit(std::string const &message)
 {
-  cvm::log (message);
-  BackEnd::exit();
+  log(message);
+  // ::exit(0);
 }
 
-
+#if 0
 enum e_pdb_field {
   e_pdb_none,
   e_pdb_occ,
@@ -302,7 +326,7 @@ e_pdb_field pdb_field_str2enum (std::string const &pdb_field_str)
 
   return pdb_field;
 }
-
+#endif
 
 void colvarproxy_lammps::load_coords (char const *pdb_filename,
                                     std::vector<cvm::atom_pos> &pos,
@@ -310,6 +334,7 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
                                     std::string const pdb_field_str,
                                     double const pdb_field_value)
 {
+#if 0
   if (pdb_field_str.size() == 0 && indices.size() == 0) {
     cvm::fatal_error ("Bug alert: either PDB field should be defined or list of "
                       "atom IDs should be available when loading atom coordinates!\n");
@@ -415,6 +440,7 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
   }
 
   delete pdb;
+#endif
 }
 
 
@@ -423,6 +449,7 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
                                    std::string const pdb_field_str,
                                    double const pdb_field_value)
 {
+#if 0
   if (pdb_field_str.size() == 0)
     cvm::fatal_error ("Error: must define which PDB field to use "
                       "in order to define atoms from a PDB file.\n");
@@ -467,19 +494,24 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
   }
 
   delete pdb;
+#endif
 }
 
 
 void colvarproxy_lammps::backup_file (char const *filename)
 {
-  if (std::string (filename).rfind (std::string (".colvars.state")) != std::string::npos) {
+#if 0
+  if (std::string (filename).rfind (std::string (".colvars.state"))
+      != std::string::npos) {
     NAMD_backup_file (filename, ".old");
   } else {
     NAMD_backup_file (filename, ".BAK");
   }
+#endif
 }
 
 
+#if 0
 size_t colvarproxy_lammps::init_namd_atom (AtomID const &aid)
 {
   modifyRequestedAtoms().add (aid);
@@ -500,11 +532,13 @@ size_t colvarproxy_lammps::init_namd_atom (AtomID const &aid)
 
   return (colvars_atoms.size()-1);
 }
+#endif
 
-// atom member functions, NAMD specific implementations
+// atom member functions, LAMMPS specific implementations
 
 cvm::atom::atom (int const &atom_number)
 {
+#if 0
   // NAMD internal numbering starts from zero
   AtomID const aid (atom_number-1);
 
@@ -522,6 +556,7 @@ cvm::atom::atom (int const &atom_number)
   this->id = aid;
   this->mass = Node::Object()->molecule->atommass (aid);
   this->reset_data();
+#endif
 }
 
 
@@ -532,6 +567,7 @@ cvm::atom::atom (cvm::residue_id const &residue,
                  std::string const     &atom_name,
                  std::string const     &segment_id)
 {
+#if 0
   AtomID const aid =
     (segment_id.size() ? 
        Node::Object()->molecule->get_atom_from_name (segment_id.c_str(),
@@ -567,6 +603,7 @@ cvm::atom::atom (cvm::residue_id const &residue,
   this->id = aid;
   this->mass = Node::Object()->molecule->atommass (aid);
   this->reset_data();
+#endif
 }
 
 
@@ -574,49 +611,60 @@ cvm::atom::atom (cvm::residue_id const &residue,
 cvm::atom::atom (cvm::atom const &a)
   : index (a.index), id (a.id), mass (a.mass)
 {
+#if 0
   // init_namd_atom() has already been called by a's constructor, no
   // need to call it again
 
   // need to increment the counter anyway
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
   gm->colvars_atoms_ncopies[this->index] += 1;
+#endif
 }
 
 
 cvm::atom::~atom() 
 {
+#if 0
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
   if (gm->colvars_atoms_ncopies[this->index] > 0)
     gm->colvars_atoms_ncopies[this->index] -= 1;
+#endif
 }
 
 
 void cvm::atom::read_position()
 {
+#if 0
   colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
   this->pos = gm->positions[this->index];
+#endif
 }
 
 
 void cvm::atom::read_velocity()
 {
+#if 0
   cvm::fatal_error ("Error: NAMD does not have yet a way to communicate "
                     "atom velocities to the colvars.\n");
+#endif
 }
 
 
 void cvm::atom::read_system_force()
 {
+#if 0
   colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
   this->system_force = gm->total_forces[this->index] - gm->applied_forces[this->index];
+#endif
 }
 
 
 void cvm::atom::apply_force (cvm::rvector const &new_force)
 {
+#if 0
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
   gm->modifyForcedAtoms().add (this->id);
   gm->modifyAppliedForces().add (Vector (new_force.x, new_force.y, new_force.z));
+#endif
 }
 
-#endif

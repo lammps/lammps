@@ -298,69 +298,37 @@ struct commdata {
 };
 
 /***************************************************************
- * create class and parse arguments in LAMMPS script. Syntax: 
- * fix ID group-ID colvars <config_file>
+ create class and parse arguments in LAMMPS script. Syntax: 
+
+ fix ID group-ID colvars <config_file> [<restart_file>]
+
+ TODO: add (optional) arguments for RNG seed, temperature compute
  ***************************************************************/
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 2) 
+  if ((narg < 4) || (narg > 5))
     error->all(FLERR,"Illegal fix colvars command");
 
-#if 0
-  imd_port = atoi(arg[3]); 
-  if (imd_port < 1024)
-    error->all(FLERR,"Illegal fix imd parameter: port < 1024");
-
-  /* default values for optional flags */
-  unwrap_flag = 0;
-  nowait_flag = 0;
-  connect_msg = 1;
-  imd_fscale = 1.0;
-  imd_trate = 1;
+  me = comm->me;
   
-  /* parse optional arguments */
-  int argsdone = 4;
-  while (argsdone+1 < narg) {
-    if (0 == strcmp(arg[argsdone], "unwrap")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {  
-        unwrap_flag = 1;
-      } else {
-        unwrap_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "nowait")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {  
-        nowait_flag = 1;
-      } else {
-        nowait_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = atof(arg[argsdone+1]);
-    } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = atoi(arg[argsdone+1]);
-    } else {
-      error->all(FLERR,"Unknown fix imd parameter");
-    }
-    ++argsdone; ++argsdone;
+  if (me == 0) {
+    if (narg == 4)
+      printf("fix colvars with config '%s' and no restart\n",arg[3]);
+    else 
+      printf("fix colvars with config '%s' and restart '%s'\n",arg[3], arg[4]);
+
+    // the proxy object is only run on the master rank
+    if (narg == 4)
+      proxy = new colvarproxy_lammps(lmp, arg[3], NULL);
+    else
+      proxy = new colvarproxy_lammps(lmp, arg[3], arg[4]);
   }
 
-  /* sanity check on parameters */
-  if (imd_trate < 1)
-    error->all(FLERR,"Illegal fix imd parameter. trate < 1.");
+  restraint_energy = 0.0;
 
-  bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix imd");
-  num_coords = static_cast<int> (n);
-
-  MPI_Comm_rank(world,&me);
-
-  /* initialize various imd state variables. */
-  clientsock = NULL;
-  localsock  = NULL;
+  /* initialize various colvars state variables. */
   nlevels_respa = 0;
-  imd_inactive = 0;
-  imd_terminate = 0;
-  imd_forces = 0;
   force_buf = NULL;
   maxbuf = 0;
   msgdata = NULL;
@@ -369,52 +337,8 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   idmap = NULL;
   rev_idmap = NULL;
   
-  if (me == 0) {
-    /* set up incoming socket on MPI rank 0. */
-    imdsock_init();
-    localsock = imdsock_create();
-    clientsock = NULL;
-    if (imdsock_bind(localsock,imd_port)) {
-      perror("bind to socket failed");
-      imdsock_destroy(localsock);
-      imd_terminate = 1;
-    } else {
-      imdsock_listen(localsock);
-    }
-  }
-  MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-  if (imd_terminate)
-    error->all(FLERR,"LAMMPS Terminated on error in IMD.");
-    
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
-
-#if defined(LAMMPS_ASYNC_IMD)
-  /* set up for i/o worker thread on MPI rank 0.*/
-  if (me == 0) {
-    if (screen)
-      fputs("Using fix imd with asynchronous I/O.\n",screen);
-    if (logfile)
-      fputs("Using fix imd with asynchronous I/O.\n",logfile);
-
-    /* set up mutex and condition variable for i/o thread */
-    /* hold mutex before creating i/o thread to keep it waiting. */
-    pthread_mutex_init(&read_mutex, NULL);
-    pthread_mutex_init(&write_mutex, NULL);
-    pthread_cond_init(&write_cond, NULL);
-
-    pthread_mutex_lock(&write_mutex);
-    buf_has_data=0;
-    pthread_mutex_unlock(&write_mutex);
-
-    /* set up and launch i/o thread */
-    pthread_attr_init(&iot_attr);
-    pthread_attr_setdetachstate(&iot_attr, PTHREAD_CREATE_JOINABLE);
-    pthread_create(&iothread, &iot_attr, &fix_imd_ioworker, this);
-  }
-#endif
-
-#endif
 }
 
 /*********************************

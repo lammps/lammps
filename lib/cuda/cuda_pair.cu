@@ -794,6 +794,7 @@ void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlis
 	grid.x = layout.x; grid.y = layout.y; grid.z = 1;
 	
 	int size=(unsigned)(layout.y*layout.x)*sharedperproc*sizeof(ENERGY_FLOAT);
+	if(sdata->pair.collect_forces_later) size+=(unsigned)(sdata->atom.nmax*3*sizeof(F_FLOAT));
  		Cuda_UpdateBuffer(sdata,size);
  		
     if(sdata->pair.use_block_per_atom)
@@ -843,10 +844,10 @@ void Cuda_Pair_PostKernel_AllStyles(cuda_shared_data* sdata, dim3& grid, int& sh
 #include "pair_buck_coul_cut_cuda.cu"
 #include "pair_buck_coul_long_cuda.cu"
 #include "pair_buck_cuda.cu"
-#include "pair_cg_cmm_cuda.cu"
-#include "pair_cg_cmm_coul_cut_cuda.cu"
-#include "pair_cg_cmm_coul_debye_cuda.cu"
-#include "pair_cg_cmm_coul_long_cuda.cu"
+#include "pair_lj_sdk_cuda.cu"
+#include "pair_lj_sdk_coul_cut_cuda.cu"
+#include "pair_lj_sdk_coul_debye_cuda.cu"
+#include "pair_lj_sdk_coul_long_cuda.cu"
 #include "pair_gran_hooke_cuda.cu"
 #include "pair_lj_charmm_coul_charmm_implicit_cuda.cu"
 #include "pair_lj_charmm_coul_charmm_cuda.cu"

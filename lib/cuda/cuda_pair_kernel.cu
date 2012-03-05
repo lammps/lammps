@@ -28,9 +28,6 @@
 #define A4       -1.453152027
 #define A5        1.061405429
 
-inline __device__ int sbmask(int j) {
-  return j >> SBBITS & 3;
-}
 
 template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_atom)
@@ -132,7 +129,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag,int eflag_atom,int vflag_at
 				  fpair += PairBuckCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_CG_CMM:
-				  fpair += PairCGCMMCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
+				  fpair += PairLJSDKCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_LJ_CHARMM:
 				  fpair += PairLJCharmmCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
@@ -417,7 +414,7 @@ template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned
 				  fpair += PairBuckCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_CG_CMM:
-				  fpair += PairCGCMMCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
+				  fpair += PairLJSDKCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_LJ_CHARMM:
 				  fpair += PairLJCharmmCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
@@ -751,7 +748,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag,int eflag_atom,int vfla
 				  fpair += PairBuckCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_CG_CMM:
-				  fpair += PairCGCMMCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
+				  fpair += PairLJSDKCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_LJ_CHARMM:
 				  fpair += PairLJCharmmCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
@@ -1037,7 +1034,7 @@ template <const PAIR_FORCES pair_type,const COUL_FORCES coul_type,const unsigned
 				  fpair += PairBuckCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_CG_CMM:
-				  fpair += PairCGCMMCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
+				  fpair += PairLJSDKCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);
 				  break;
 				case PAIR_LJ_CHARMM:
 				  fpair += PairLJCharmmCuda_Eval(rsq,itype * _cuda_ntypes + jtype,factor_lj,eflag,evdwl);

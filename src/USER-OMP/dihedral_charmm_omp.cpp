@@ -28,10 +28,19 @@
 #include "update.h"
 #include "error.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
+
+/* ---------------------------------------------------------------------- */
+
+DihedralCharmmOMP::DihedralCharmmOMP(class LAMMPS *lmp)
+  : DihedralCharmm(lmp), ThrOMP(lmp,THR_DIHEDRAL|THR_CHARMM)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

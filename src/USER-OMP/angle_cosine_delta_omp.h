@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class AngleCosineDeltaOMP : public AngleCosineDelta, public ThrOMP {
 
  public:
-    AngleCosineDeltaOMP(class LAMMPS *lmp) : 
-      AngleCosineDelta(lmp), ThrOMP(lmp,THR_ANGLE) {};
-
+  AngleCosineDeltaOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

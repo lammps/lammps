@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondMorseOMP : public BondMorse, public ThrOMP {
 
  public:
-    BondMorseOMP(class LAMMPS *lmp) : 
-      BondMorse(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondMorseOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

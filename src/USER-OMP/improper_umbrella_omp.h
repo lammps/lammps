@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class ImproperUmbrellaOMP : public ImproperUmbrella, public ThrOMP {
 
  public:
-    ImproperUmbrellaOMP(class LAMMPS *lmp) : 
-      ImproperUmbrella(lmp), ThrOMP(lmp,THR_IMPROPER) {};
-
+  ImproperUmbrellaOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

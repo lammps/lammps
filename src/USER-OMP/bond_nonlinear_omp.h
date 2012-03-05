@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondNonlinearOMP : public BondNonlinear, public ThrOMP {
 
  public:
-    BondNonlinearOMP(class LAMMPS *lmp) : 
-      BondNonlinear(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondNonlinearOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

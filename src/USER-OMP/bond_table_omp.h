@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondTableOMP : public BondTable, public ThrOMP {
 
  public:
-    BondTableOMP(class LAMMPS *lmp) : 
-      BondTable(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondTableOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

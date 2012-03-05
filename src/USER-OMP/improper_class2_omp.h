@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class ImproperClass2OMP : public ImproperClass2, public ThrOMP {
 
  public:
-    ImproperClass2OMP(class LAMMPS *lmp) : 
-      ImproperClass2(lmp), ThrOMP(lmp,THR_IMPROPER) {};
-
+  ImproperClass2OMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

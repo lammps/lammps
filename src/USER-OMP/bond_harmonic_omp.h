@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class BondHarmonicOMP : public BondHarmonic, public ThrOMP {
 
  public:
-    BondHarmonicOMP(class LAMMPS *lmp) : 
-      BondHarmonic(lmp), ThrOMP(lmp,THR_BOND) {};
-
+  BondHarmonicOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

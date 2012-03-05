@@ -19,6 +19,7 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 

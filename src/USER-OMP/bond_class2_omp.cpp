@@ -24,7 +24,17 @@
 
 #include <math.h>
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
+
+
+/* ---------------------------------------------------------------------- */
+
+BondClass2OMP::BondClass2OMP(class LAMMPS *lmp)
+  : BondClass2(lmp), ThrOMP(lmp,THR_BOND)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

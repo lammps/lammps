@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -20,8 +20,8 @@
 namespace LAMMPS_NS {
 
 class Dihedral : protected Pointers {
- friend class ThrOMP;
-
+  friend class ThrOMP;
+  friend class FixOMP;
  public:
   int allocated;
   int *setflag;
@@ -41,6 +41,8 @@ class Dihedral : protected Pointers {
   virtual double memory_usage();
 
  protected:
+  int suffix_flag;             // suffix compatibility flag
+
   int evflag;
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;

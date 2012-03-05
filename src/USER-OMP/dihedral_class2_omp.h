@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class DihedralClass2OMP : public DihedralClass2, public ThrOMP {
 
  public:
-    DihedralClass2OMP(class LAMMPS *lmp) : 
-      DihedralClass2(lmp), ThrOMP(lmp,THR_DIHEDRAL) {};
-
+  DihedralClass2OMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

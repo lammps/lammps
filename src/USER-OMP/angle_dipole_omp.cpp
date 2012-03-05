@@ -27,10 +27,19 @@
 
 #include <math.h>
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define SMALL 0.001
+
+/* ---------------------------------------------------------------------- */
+
+AngleDipoleOMP::AngleDipoleOMP(class LAMMPS *lmp)
+  : AngleDipole(lmp), ThrOMP(lmp,THR_ANGLE)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,6 +74,7 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
 
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
 }
 
 template <int EFLAG>

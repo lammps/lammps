@@ -18,6 +18,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -28,6 +29,7 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
   energy = 0.0;
 
   allocated = 0;
+  suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;

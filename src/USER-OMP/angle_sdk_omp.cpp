@@ -27,11 +27,20 @@
 
 #include "lj_sdk_common.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace LJSDKParms;
 
 #define SMALL 0.001
+
+/* ---------------------------------------------------------------------- */
+
+AngleSDKOMP::AngleSDKOMP(class LAMMPS *lmp)
+  : AngleSDK(lmp), ThrOMP(lmp,THR_ANGLE)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

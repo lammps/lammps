@@ -32,9 +32,7 @@ namespace LAMMPS_NS {
 class AngleTableOMP : public AngleTable, public ThrOMP {
 
  public:
-    AngleTableOMP(class LAMMPS *lmp) : 
-      AngleTable(lmp), ThrOMP(lmp,THR_ANGLE) {};
-
+  AngleTableOMP(class LAMMPS *lmp);
   virtual void compute(int, int);
 
  private:

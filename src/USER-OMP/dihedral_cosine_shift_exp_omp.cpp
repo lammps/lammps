@@ -25,10 +25,19 @@
 #include "update.h"
 #include "error.h"
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
+
+/* ---------------------------------------------------------------------- */
+
+DihedralCosineShiftExpOMP::DihedralCosineShiftExpOMP(class LAMMPS *lmp)
+  : DihedralCosineShiftExp(lmp), ThrOMP(lmp,THR_DIHEDRAL)
+{
+  suffix_flag |= Suffix::OMP;
+}
 
 /* ---------------------------------------------------------------------- */
 

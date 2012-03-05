@@ -26,6 +26,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -44,6 +45,7 @@ using namespace MathConst;
 PPPMOMP::PPPMOMP(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ----------------------------------------------------------------------

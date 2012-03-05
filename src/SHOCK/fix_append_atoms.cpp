@@ -248,14 +248,14 @@ int FixAppendAtoms::get_spatial()
       else failed = 0;
       count++;
     } 
-    double pos[count-2];
-    double val[count-2];
+    double *pos = new double[count-2];
+    double *val = new double[count-2];
     for (int loop=0; loop < count-2; loop++) {
       pos[loop] = fix->compute_vector(2*loop);
       val[loop] = fix->compute_vector(2*loop+1);
     }
 
-// Always ignore the first and last
+    // always ignore the first and last
 
     double binsize = 2.0; 
     double min_energy=0.0;
@@ -291,12 +291,19 @@ int FixAppendAtoms::get_spatial()
       }
     }
     if      (front_found1 + front_found2 == 0) shockfront_loc = 0.0; 
-    else if (front_found1 + front_found2 == 1) shockfront_loc = shockfront_max + shockfront_min;
-    else if (front_found1 == 1 && front_found2 == 1 && shockfront_max-shockfront_min > spatlead/2.0) shockfront_loc = shockfront_max;
+    else if (front_found1 + front_found2 == 1) 
+      shockfront_loc = shockfront_max + shockfront_min;
+    else if (front_found1 == 1 && front_found2 == 1 && 
+	     shockfront_max-shockfront_min > spatlead/2.0) 
+      shockfront_loc = shockfront_max;
     else shockfront_loc = (shockfront_max + shockfront_min) / 2.0;
-    if (comm->me == 0) printf("SHOCK: %g %g %g %g %g\n", shockfront_loc, shockfront_min, shockfront_max, domain->boxlo[2], domain->boxhi[2]);
+    if (comm->me == 0) 
+      printf("SHOCK: %g %g %g %g %g\n", shockfront_loc, shockfront_min, 
+	     shockfront_max, domain->boxlo[2], domain->boxhi[2]);
 
     if (domain->boxhi[2] - shockfront_loc < spatlead) advance = 1;
+
+    delete [] pos,val;
   }
   
   advance_sum = 0;

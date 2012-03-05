@@ -99,7 +99,7 @@ void TAD::command(int narg, char **arg)
   delta_conf = atof(arg[4]);
   tmax = atof(arg[5]);
   
-  char id_compute[strlen(arg[6])+1];
+  char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
   
   options(narg-7,&arg[7]);
@@ -422,6 +422,8 @@ void TAD::command(int narg, char **arg)
   neighbor->delay = neigh_delay;
   neighbor->dist_check = neigh_dist_check;
 
+  
+  delete [] id_compute;
   delete finish;
   modify->delete_fix("tad_event");
   modify->delete_fix("tad_revert");

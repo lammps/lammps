@@ -134,6 +134,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0;
     force->femtosecond = 1.0;
     force->qelectron = 1.0;
+    force->kcal = 1.0;
 
     dt = 0.005;
     neighbor->skin = 0.3;
@@ -155,6 +156,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0;
     force->femtosecond = 1.0;
     force->qelectron = 1.0;
+    force->kcal = 1.0;
 
     dt = 1.0;
     neighbor->skin = 2.0;
@@ -176,6 +178,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0;
     force->femtosecond = 1.0e-3;
     force->qelectron = 1.0;
+    force->kcal = 0.0433634;
 
     dt = 0.001;
     neighbor->skin = 2.0;
@@ -197,6 +200,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-10;
     force->femtosecond = 1.0e-15;
     force->qelectron = 1.6021765e-19;
+    force->kcal = 4184.0/6.02214129e23;
 
     dt = 1.0e-8;
     neighbor->skin = 0.001;
@@ -218,6 +222,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-8;
     force->femtosecond = 1.0e-15;
     force->qelectron = 4.8032044e-10;
+    force->kcal = 4184.0/6.02214129e16;
 
     dt = 1.0e-8;
     neighbor->skin = 0.1;
@@ -239,6 +244,7 @@ void Update::set_units(const char *style)
     force->angstrom = 1.88972612;
     force->femtosecond = 0.0241888428;
     force->qelectron = 1.0;
+    force->kcal = 0.00159362;
 
     dt = 0.001;
     neighbor->skin = 2.0;

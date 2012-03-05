@@ -29,7 +29,6 @@ FixStyle(colvars,FixColvars)
 // forward declaration
 class colvarproxy_lammps;
 
-
 namespace LAMMPS_NS {
 
 class FixColvars : public Fix {
@@ -40,31 +39,31 @@ class FixColvars : public Fix {
   int setmask();
   void init();
   void setup(int);
-#if 0
   void post_force(int); 
   void post_force_respa(int, int, int);
+//  void post_run();
   double memory_usage();
-#endif
 
  protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
-  double restraint_energy;      // restraint energy from colvars
-  int    me;                    // my MPI rank in this "world".
-  
-  int    num_coords;            // total number of atoms controlled by this fix 
-  int    size_one;              // bytes per atom in communication buffer.
-  int    maxbuf;                // size of atom communication buffer.
-  void  *comm_buf;              // communication buffer
-  void  *idmap;                 // hash for mapping atom indices to consistent order.
-  int   *rev_idmap;             // list of the hash keys for reverse mapping.
 
-  int    imd_forces;            // number of forces communicated via IMD.
-  void  *force_buf;             // force data buffer
+  int    me;             // my MPI rank in this "world".
+  int    num_coords;     // total number of atoms controlled by this fix 
 
-  int    nlevels_respa;         // flag to determine respa levels.
+  int    size_one;       // bytes per atom in communication buffer.
+  int    maxbuf;         // size of atom communication buffer.
+
+  void  *coord_buf;      // coordinate communication buffer
+  void  *force_buf;      // force data buffer
+
+  void  *idmap;          // hash for mapping atom indices to consistent order.
+  int   *rev_idmap;      // list of the hash keys for reverse mapping.
+
+  int    nlevels_respa;  // flag to determine respa levels.
 
   int    msglen;
   char  *msgdata;
+  double restraint_energy;      // restraint energy from colvars
 };
 
 }

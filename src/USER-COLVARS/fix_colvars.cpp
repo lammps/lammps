@@ -293,7 +293,7 @@ using namespace FixConst;
 
 /* struct for packed data communication of coordinates and forces. */
 struct commdata { 
-  int tag; 
+  int tag,type; 
   float x,y,z; 
 };
 
@@ -311,7 +311,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix colvars command");
 
   me = comm->me;
-  
   if (me == 0) {
     if (narg == 4)
       printf("fix colvars with config '%s' and no restart\n",arg[3]);
@@ -329,14 +328,18 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* initialize various colvars state variables. */
   nlevels_respa = 0;
-  force_buf = NULL;
   maxbuf = 0;
-  msgdata = NULL;
   msglen = 0;
-  comm_buf = NULL;
+  msgdata = NULL;
+  coord_buf = NULL;
+  force_buf = NULL;
   idmap = NULL;
   rev_idmap = NULL;
-  
+
+  bigint n = group->count(igroup);
+  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix imd");
+  num_coords = static_cast<int> (n);
+
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
 }
@@ -346,33 +349,22 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
  *********************************/
 FixColvars::~FixColvars()
 {
-
-#if 0
+  delete proxy;
   inthash_t *hashtable = (inthash_t *)idmap;
-  memory->sfree(comm_buf);
+  memory->sfree(coord_buf);
   memory->sfree(force_buf);
   inthash_destroy(hashtable);
   delete hashtable;
   free(rev_idmap);
-  // close sockets
-  imdsock_shutdown(clientsock);
-  imdsock_destroy(clientsock);
-  imdsock_shutdown(localsock);
-  imdsock_destroy(localsock);
-  clientsock=NULL;
-  localsock=NULL;
   return;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
 int FixColvars::setmask()
 {
   int mask = 0;
-#if 0
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-#endif
   return mask;
 }
 
@@ -386,16 +378,15 @@ void FixColvars::init()
 }
 
 /* ---------------------------------------------------------------------- */
-/* wait for IMD client (e.g. VMD) to respond, initialize communication 
- * buffers and collect tag/id maps. */
+
+// initial setup of colvars run.
+
 void FixColvars::setup(int)
 {
 
-#if 0
   /* nme:    number of atoms in group on this MPI task
    * nmax:   max number of atoms in group across all MPI tasks
-   * nlocal: all local atoms
-   */
+   * nlocal: all local atoms  */
   int i,j;
   int nmax,nme,nlocal;
   int *mask  = atom->mask;
@@ -407,14 +398,7 @@ void FixColvars::setup(int)
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   maxbuf = nmax*size_one;
-  comm_buf = (void *) memory->smalloc(maxbuf,"imd:comm_buf");
-
-  connect_msg = 1;
-  reconnect();
-  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-  if (imd_terminate)
-    error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
+  coord_buf = (void *) memory->smalloc(maxbuf,"colvars:coord_buf");
 
   /* initialize and build hashtable. */
   inthash_t *hashtable=new inthash_t;
@@ -424,11 +408,13 @@ void FixColvars::setup(int)
   MPI_Status status;
   MPI_Request request;
   int tmp, ndata;
-  struct commdata *buf = static_cast<struct commdata *>(comm_buf);
+  struct commdata *buf = static_cast<struct commdata *>(coord_buf);
 
   if (me == 0) {
     int *taglist = new int[num_coords];
-    int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
+
+    // counter to map atom tags to a 0-based consecutive index list
+    int numtag=0;
     
     for (i=0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
@@ -439,7 +425,7 @@ void FixColvars::setup(int)
     
     /* loop over procs to receive remote data */
     for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
+      MPI_Irecv(coord_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
       MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
       MPI_Wait(&request, &status);
       MPI_Get_count(&status, MPI_BYTE, &ndata);
@@ -460,7 +446,7 @@ void FixColvars::setup(int)
     delete[] taglist;
 
     /* generate reverse index-to-tag map for communicating 
-     * IMD forces back to the proper atoms */
+     * colvar forces back to the proper atoms */
     rev_idmap=inthash_keys(hashtable);
   } else {
     nme=0;
@@ -472,206 +458,27 @@ void FixColvars::setup(int)
     }
     /* blocking receive to wait until it is our turn to send data. */
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
+    MPI_Rsend(coord_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
   
   return;
-#endif
 }
 
-#if 0
 /* ---------------------------------------------------------------------- */
-/* Main IMD protocol handler:
- * Send coodinates, energies, and add IMD forces to atoms. */
+/* Main colvars handler:
+ * Send coodinates and add colvar forces to atoms. */
 void FixColvars::post_force(int vflag)
 {
-  /* check for reconnect */
-  if (imd_inactive) {
-    reconnect();
-    MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
-    MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-    if (imd_terminate)
-      error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
-    if (imd_inactive)
-      return;     /* IMD client has detached and not yet come back. do nothing. */
-  }
 
   int *tag = atom->tag;
+  int *type = atom->type;
   double **x = atom->x;
+  double **f = atom->f;
   int *image = atom->image;
   int nlocal = atom->nlocal;
   int *mask  = atom->mask;
   struct commdata *buf;
 
-  if (me == 0) {
-    /* process all pending incoming data. */
-    int imd_paused=0;
-    while ((imdsock_selread(clientsock, 0) > 0) || imd_paused) {
-      /* if something requested to turn off IMD while paused get out */
-      if (imd_inactive) break;
-      
-      int32 length;
-      int msg = imd_recv_header(clientsock, &length);
-
-      switch(msg) {
-
-        case IMD_GO:
-          if (screen)
-            fprintf(screen, "Ignoring unexpected IMD_GO message.\n");
-          break;
-
-        case IMD_IOERROR:
-          if (screen)
-            fprintf(screen, "IMD connection lost.\n");
-          /* fallthrough */
-
-        case IMD_DISCONNECT: {
-          /* disconnect from client. wait for new connection. */
-          imd_paused = 0;
-          imd_forces = 0;
-          memory->destroy(force_buf);
-          force_buf = NULL;
-          imdsock_destroy(clientsock);
-          clientsock = NULL;
-          if (screen)
-            fprintf(screen, "IMD client detached. LAMMPS run continues.\n");
-
-          connect_msg = 1;
-          reconnect();
-          if (imd_terminate) imd_inactive = 1;
-          break;
-        }
-
-        case IMD_KILL:
-          /* stop the simulation job and shutdown IMD */
-          if (screen)
-            fprintf(screen, "IMD client requested termination of run.\n");
-          imd_inactive = 1;
-          imd_terminate = 1;
-          imd_paused = 0;
-          imdsock_destroy(clientsock);
-          clientsock = NULL;
-          break;
-
-        case IMD_PAUSE:
-          /* pause the running simulation. wait for second IMD_PAUSE to continue. */
-          if (imd_paused) {
-            if (screen) 
-              fprintf(screen, "Continuing run on IMD client request.\n");
-            imd_paused = 0;
-          } else {
-            if (screen)
-              fprintf(screen, "Pausing run on IMD client request.\n");
-            imd_paused = 1;
-          }
-          break;
-
-        case IMD_TRATE:
-          /* change the IMD transmission data rate */
-          if (length > 0) 
-            imd_trate = length;
-          if (screen) 
-            fprintf(screen, "IMD client requested change of transfer rate. Now it is %d.\n", imd_trate);
-          break;
-
-        case IMD_ENERGIES: {
-          IMDEnergies dummy_energies;
-          imd_recv_energies(clientsock, &dummy_energies);
-          break;
-        }
-            
-        case IMD_FCOORDS: {
-          float *dummy_coords = new float[3*length];
-          imd_recv_fcoords(clientsock, length, dummy_coords);
-          delete[] dummy_coords;
-          break;
-        }
-
-        case IMD_MDCOMM: {
-          int32 *imd_tags = new int32[length];
-          float *imd_fdat = new float[3*length];
-          imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
-
-          if (imd_forces < length) { /* grow holding space for forces, if needed. */
-            memory->destroy(force_buf);
-            force_buf = (void *) memory->smalloc(length*size_one,
-                                                 "imd:force_buf");
-          }
-          imd_forces = length;
-          buf = static_cast<struct commdata *>(force_buf);
-          
-          /* compare data to hash table */
-          for (int ii=0; ii < length; ++ii) {
-            buf[ii].tag = rev_idmap[imd_tags[ii]];
-            buf[ii].x   = imd_fdat[3*ii];
-            buf[ii].y   = imd_fdat[3*ii+1];
-            buf[ii].z   = imd_fdat[3*ii+2];
-          }
-          delete[] imd_tags;
-          delete[] imd_fdat;
-          break;
-        }
-            
-        default:
-          if (screen)
-            fprintf(screen, "Unhandled incoming IMD message #%d. length=%d\n", msg, length);
-          break;
-      }
-    }
-  }
-  
-  /* update all tasks with current settings. */
-  int old_imd_forces = imd_forces;
-  MPI_Bcast(&imd_trate, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);  
-  MPI_Bcast(&imd_forces, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-  if (imd_terminate)
-    error->all(FLERR,"LAMMPS terminated on IMD request.");
-
-  if (imd_forces > 0) {
-    /* check if we need to readjust the forces comm buffer on the receiving nodes. */
-    if (me != 0) {
-      if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
-        if (force_buf != NULL) 
-          memory->sfree(force_buf);
-        force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
-      }
-    }
-    MPI_Bcast(force_buf, imd_forces*size_one, MPI_BYTE, 0, world);
-  }
-
-  /* Check if we need to communicate coordinates to the client.
-   * Tuning imd_trate allows to keep the overhead for IMD low
-   * at the expense of a more jumpy display. Rather than using
-   * end_of_step() we do everything here in one go.
-   *
-   * If we don't communicate, only check if we have forces 
-   * stored away and apply them. */
-  if (update->ntimestep % imd_trate) {
-    if (imd_forces > 0) {
-      double **f = atom->f;
-      buf = static_cast<struct commdata *>(force_buf);
-
-      /* XXX. this is in principle O(N**2) == not good. 
-       * however we assume for now that the number of atoms 
-       * that we manipulate via IMD will be small compared 
-       * to the total system size, so we don't hurt too much. */
-      for (int j=0; j < imd_forces; ++j) {
-        for (int i=0; i < nlocal; ++i) {
-          if (mask[i] & groupbit) {
-            if (buf[j].tag == tag[i]) {
-              f[i][0] += imd_fscale*buf[j].x;
-              f[i][1] += imd_fscale*buf[j].y;
-              f[i][2] += imd_fscale*buf[j].z;
-            }
-          }
-        }
-      }
-    }
-    return;
-  }
-  
   /* check and potentially grow local communication buffers. */
   int i, k, nmax, nme=0;
   for (i=0; i < nlocal; ++i)
@@ -679,70 +486,36 @@ void FixColvars::post_force(int vflag)
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   if (nmax*size_one > maxbuf) {
-    memory->sfree(comm_buf);
+    memory->sfree(coord_buf);
     maxbuf = nmax*size_one;
-    comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
+    coord_buf = memory->smalloc(maxbuf,"colvars:coord_buf");
   }
 
   MPI_Status status;
   MPI_Request request;
   int tmp, ndata;
-  buf = static_cast<struct commdata *>(comm_buf);
+  buf = static_cast<struct commdata *>(coord_buf);
   
   if (me == 0) {
-    /* collect data into new array. we bypass the IMD API to save
-     * us one extra copy of the data. */
-    msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
-    msgdata = new char[msglen];
-    imd_fill_header((IMDheader *)msgdata, IMD_FCOORDS, num_coords);
-    /* array pointer, to the offset where we receive the coordinates. */
-    float *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
+    // XXX feed coordinate data to colvars proxy here
 
-    /* add local data */
-    if (unwrap_flag) {
-      double xprd = domain->xprd;
-      double yprd = domain->yprd;
-      double zprd = domain->zprd;
-      double xy = domain->xy;
-      double xz = domain->xz;
-      double yz = domain->yz;
-
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
-          if (j != HASH_FAIL) {
-            int ix = (image[i] & 1023) - 512;
-            int iy = (image[i] >> 10 & 1023) - 512;
-            int iz = (image[i] >> 20) - 512;
-
-            if (domain->triclinic) {
-              recvcoord[j]   = x[i][0] + ix * xprd + iy * xy + iz * xz;
-              recvcoord[j+1] = x[i][1] + iy * yprd + iz * yz;
-              recvcoord[j+2] = x[i][2] + iz * zprd;
-            } else {
-              recvcoord[j]   = x[i][0] + ix * xprd;
-              recvcoord[j+1] = x[i][1] + iy * yprd;
-              recvcoord[j+2] = x[i][2] + iz * zprd;
-            }
-          }
-        }
-      }
-    } else {
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
-          if (j != HASH_FAIL) {
-            recvcoord[j]   = x[i][0];
-            recvcoord[j+1] = x[i][1];
-            recvcoord[j+2] = x[i][2];
-          }
+    for (i=0; i<nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
+        if (j != HASH_FAIL) {
+          ;
+#if 0
+          recvcoord[j]   = x[i][0];
+          recvcoord[j+1] = x[i][1];
+          recvcoord[j+2] = x[i][2];
+#endif
         }
       }
     }
 
     /* loop over procs to receive remote data */
     for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
+      MPI_Irecv(coord_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
       MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
       MPI_Wait(&request, &status);
       MPI_Get_count(&status, MPI_BYTE, &ndata);
@@ -751,83 +524,76 @@ void FixColvars::post_force(int vflag)
       for (k=0; k<ndata; ++k) {
         const int j = 3*inthash_lookup((inthash_t *)idmap, buf[k].tag);
         if (j != HASH_FAIL) {
+          ;
+#if 0
           recvcoord[j]   = buf[k].x;
           recvcoord[j+1] = buf[k].y;
           recvcoord[j+2] = buf[k].z;
+#endif
         }
       }
     }
 
-    /* done collecting frame data now communicate with IMD client. */
+    /* done collecting frame data now communicate with colvars. */
+    // XXX call calculate here!
 
-#if defined(LAMMPS_ASYNC_IMD)
-    /* wake up i/o worker thread and release lock on i/o buffer
-     * we can go back to our MD and let the i/o thread do the rest */
-    buf_has_data=1;
-    pthread_cond_signal(&write_cond);
-    pthread_mutex_unlock(&write_mutex);
-#else
-    /* send coordinate data, if client is able to accept */
-    if (clientsock && imdsock_selwrite(clientsock,0)) {
-      imd_writen(clientsock, msgdata, msglen);
-    }
-    delete[] msgdata;
-#endif
-
-  } else {
+  } else { // me != 0
     /* copy coordinate data into communication buffer */
     nme = 0;
-    if (unwrap_flag) {
-      double xprd = domain->xprd;
-      double yprd = domain->yprd;
-      double zprd = domain->zprd;
-      double xy = domain->xy;
-      double xz = domain->xz;
-      double yz = domain->yz;
-
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          int ix = (image[i] & 1023) - 512;
-          int iy = (image[i] >> 10 & 1023) - 512;
-          int iz = (image[i] >> 20) - 512;
-
-          if (domain->triclinic) {
-            buf[nme].tag = tag[i];
-            buf[nme].x   = x[i][0] + ix * xprd + iy * xy + iz * xz;
-            buf[nme].y   = x[i][1] + iy * yprd + iz * yz;
-            buf[nme].z   = x[i][2] + iz * zprd;
-          } else {
-            buf[nme].tag = tag[i];
-            buf[nme].x   = x[i][0] + ix * xprd;
-            buf[nme].y   = x[i][1] + iy * yprd;
-            buf[nme].z   = x[i][2] + iz * zprd;
-          }
-          ++nme;
-        }
-      }
-    } else {
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          buf[nme].tag = tag[i];
-          buf[nme].x   = x[i][0];
-          buf[nme].y   = x[i][1];
-          buf[nme].z   = x[i][2];
-          ++nme;
-        }
+    for (i=0; i<nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        buf[nme].tag  = tag[i];
+        buf[nme].type = type[i];
+        buf[nme].x    = x[i][0];
+        buf[nme].y    = x[i][1];
+        buf[nme].z    = x[i][2];
+        ++nme;
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
+    MPI_Rsend(coord_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
+#if 0
+  if (me == 0) {
+    imd_forces = length;
+    buf = static_cast<struct commdata *>(force_buf);
+          
+    /* compare data to hash table */
+    for (int ii=0; ii < length; ++ii) {
+      buf[ii].tag = rev_idmap[imd_tags[ii]];
+      buf[ii].x   = imd_fdat[3*ii];
+      buf[ii].y   = imd_fdat[3*ii+1];
+      buf[ii].z   = imd_fdat[3*ii+2];
+      MPI_Bcast(force_buf, num_coords*size_one, MPI_BYTE, 0, world);
+    }
+  }
+  
+  /* XXX. this is in principle O(N**2), i.e. not good. 
+   * however we assume for now that the number of atoms 
+   * that we manipulate via IMD will be small compared 
+   * to the total system size, so we don't hurt too much. */
+  for (int j=0; j < num_coords; ++j) {
+    for (int i=0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        if (buf[j].tag == tag[i]) {
+          f[i][0] += imd_fscale*buf[j].x;
+          f[i][1] += imd_fscale*buf[j].y;
+          f[i][2] += imd_fscale*buf[j].z;
+        }
+      }
+    }
+  }
+#endif
+  
   return;
 }
 
 /* ---------------------------------------------------------------------- */
 void FixColvars::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  /* only process IMD on the outmost RESPA level. */
+  /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
   return;
 }
@@ -836,10 +602,9 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int iloop)
 /* local memory usage. approximately. */
 double FixColvars::memory_usage(void)
 {
-  return static_cast<double>(num_coords+maxbuf+imd_forces)*size_one;
+  return static_cast<double>(2*num_coords+maxbuf)*size_one;
 }
 
-#endif
 /* End of FixColvars class implementation. */
 
 // Local Variables:

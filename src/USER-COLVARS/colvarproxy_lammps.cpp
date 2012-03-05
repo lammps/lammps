@@ -443,7 +443,6 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
 #endif
 }
 
-
 void colvarproxy_lammps::load_atoms (char const *pdb_filename,
                                    std::vector<cvm::atom> &atoms,
                                    std::string const pdb_field_str,

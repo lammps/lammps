@@ -993,10 +993,13 @@ void PPPM::set_grid()
   double h_x,h_y,h_z;
   bigint natoms = atom->natoms;
 
-  if (!gewaldflag)
-    g_ewald = sqrt(-log(accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
-			(2.0*q2))) / cutoff;
-
+  if (!gewaldflag) {
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0)
+      error->all(FLERR,"Too large accuracy to estimate G vector");
+    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+  }
+ 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
   // h = 1/g_ewald is upper bound on h such that h*g_ewald <= 1

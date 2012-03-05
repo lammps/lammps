@@ -1994,6 +1994,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	     (strcmp(style,"lj/charmm/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/long") == 0)) {
       
     if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
@@ -2007,6 +2008,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul_inner = read_double(fp);
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/charmm/coul/pppm") == 0) {
+      double cut_lj_inner = read_double(fp);
+      double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
@@ -2049,6 +2056,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/class2") == 0) ||
 	   (strcmp(style,"lj/class2/coul/cut") == 0) ||
+	   (strcmp(style,"lj/class2/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/class2/coul/long") == 0)) {
 
     if (strcmp(style,"lj/class2") == 0) {
@@ -2058,6 +2066,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int mix_flag = read_int(fp);
     } else if (strcmp(style,"lj/class2/coul/cut") == 0) {
       m = 1;
+      double cut_lj_global = read_double(fp);
+      double cut_lj_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/class2/coul/pppm") == 0) {
+      m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
@@ -2102,6 +2116,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
+	     (strcmp(style,"lj/cut/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
 	     (strcmp(style,"lj/coul") == 0)) {
 
@@ -2129,6 +2144,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/long") == 0) {
+      m = 0;
+      double cut_lj_global = read_double(fp);
+      double cut_lj_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/cut/coul/pppm") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
@@ -3150,17 +3171,16 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
     fprintf(fp2,"\n");
   }
 
-  // mass to either data file or input file
+  // mass to both data file and input file for convenience
 
   if (mass) {
     if (fp2) {
       fprintf(fp2,"\n");
       for (int i = 1; i <= ntypes; i++) fprintf(fp2,"mass %d %g\n",i,mass[i]);
       fprintf(fp2,"\n");
-    } else {
-      fprintf(fp,"\nMasses\n\n");
-      for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
     }
+    fprintf(fp,"\nMasses\n\n");
+    for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
   }
 
   // pair coeffs to data file
@@ -3246,6 +3266,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
@@ -3254,6 +3275,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/class2") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/cut") == 0) ||
+	       (strcmp(pair_style,"lj/class2/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
@@ -3264,6 +3286,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
 	       (strcmp(pair_style,"lj/coul") == 0)) {
       for (int i = 1; i <= ntypes; i++)
@@ -3315,7 +3338,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
   }
 
   // pair coeffs to input file
-  // only supported styles = cg/cmm
+  // only supported styles = lj/sdk and cg/cmm
 
   if (write_coeffs && pair_style && fp2) {
     if ((strcmp(pair_style,"lj/sdk") == 0) ||

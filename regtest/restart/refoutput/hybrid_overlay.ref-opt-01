@@ -26,11 +26,3 @@ Velocities
 Bonds
 
 1 1 1 2
-
-pair_style lj/sdk
-special_bonds lj 1 1 1 coul 1 1 1
-
-
-mass 1 1
-
-pair_coeff 1 1 lj12_6 1 1

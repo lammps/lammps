@@ -13,6 +13,10 @@ Masses
 
 1 1
 
+Pair Coeffs
+
+1 1 1
+
 Atoms
 
 1 1 1 5.0000000000000000e-01 0.0000000000000000e+00 0.0000000000000000e+00 -1.0000000000000000e+00 0 0 0
@@ -26,11 +30,3 @@ Velocities
 Bonds
 
 1 1 1 2
-
-pair_style lj/sdk
-special_bonds lj 1 1 1 coul 1 1 1
-
-
-mass 1 1
-
-pair_coeff 1 1 lj12_6 1 1

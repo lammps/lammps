@@ -1,9 +1,11 @@
 
-variable pstyle index coul_cut coul_diel coul_long gauss gauss_cut lj_cut lj_sdk
+variable pstyle index coul_cut coul_diel coul_long gauss gauss_cut lj_cut lj_sdk &
+ lj_cut_coul_long hybrid_overlay
 label pstyle_non
 
 variable newtn index on
 variable astyle index full
+variable coeff index ""
 
 include common-1.inc
 

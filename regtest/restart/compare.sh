@@ -10,7 +10,7 @@ for s in *.restart-*-* ; do \
   test -f $c && grep -v LAMMPS $c | sed -e 's/-0\.0000000000/0.0000000000 /g' >> ${t}
   if [ -f refoutput/${t} ]
   then
-     diff refoutput/${t} $t && rm $t
+     diff -u refoutput/${t} $t && rm $t
   else
      echo no reference output for $s
   fi

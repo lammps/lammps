@@ -397,6 +397,20 @@ void FixColvars::deallocate()
   }
 }
 
+// check if atom id (=tag) is in group
+bool FixColvars::has_id(const int id) const
+{
+  int idx = inthash_lookup((inthash_t *)idmap, id); 
+  return (idx >= 0);
+}
+
+// check if atom id (=tag) is in group
+double FixColvars::get_mass(const int id) const
+{
+  // XXX FIXME
+  return 0.0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixColvars::post_run()
@@ -434,7 +448,8 @@ void FixColvars::setup(int)
 {
 
   if (me == 0) {
-    proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,rng_seed);
+    proxy = new colvarproxy_lammps(lmp, this, conf_file, inp_name,
+                                   out_name, rng_seed);
     if (tmp_name) {
       thermo_id = modify->find_fix(tmp_name);
       if (thermo_id < 0) error->one(FLERR,"Could not find thermo fix ID");

@@ -32,6 +32,7 @@ class colvarproxy_lammps;
 namespace LAMMPS_NS {
 
 class FixColvars : public Fix {
+  friend class colvarproxy_lammps;
 
  public:
   FixColvars(class LAMMPS *, int, char **);
@@ -46,7 +47,10 @@ class FixColvars : public Fix {
   double memory_usage();
 
  protected:
-  void deallocate();     // free internal buffers
+  void   deallocate();        // free internal buffers
+ public:
+  bool   has_id(int) const;   // check if atom id (=tag) is in group
+  double get_mass(int) const; // provide mass of atom
 
  protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
@@ -63,6 +67,7 @@ class FixColvars : public Fix {
   int   size_one;      // bytes per atom in communication buffer.
   int   maxbuf;        // size of atom communication buffer.
 
+  double *masses;      // masses of the atoms
   void *coord_buf;     // coordinate communication buffer
   void *force_buf;     // force data buffer
 

@@ -23,6 +23,7 @@ class colvarproxy_lammps : public colvarproxy {
   /// pointer to a LAMMPS class instance
   class LAMMPS_NS::LAMMPS *_lmp;
   class LAMMPS_NS::RanPark *_random;
+  class LAMMPS_NS::FixColvars *_fix;
 
   std::string input_prefix_str, output_prefix_str, restart_prefix_str;
   double t_target;
@@ -40,8 +41,8 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
-		      const char *, const char *, const int);
+  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, LAMMPS_NS::FixColvars *fix,
+		      const char *, const char *, const char *, const int);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor
@@ -85,6 +86,7 @@ class colvarproxy_lammps : public colvarproxy {
   void select_closest_image (cvm::atom_pos &pos,
                              cvm::atom_pos const &ref_pos);
 
+  int init_lammps_atom(const int &aid);
 
   void load_atoms(char const *filename,
                   std::vector<cvm::atom> &atoms,

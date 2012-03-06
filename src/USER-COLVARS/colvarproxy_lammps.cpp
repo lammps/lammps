@@ -6,6 +6,8 @@
 #include "output.h"
 #include "random_park.h"
 
+#include "fix_colvars.h"
+
 #include "colvarmodule.h"
 #include "colvaratoms.h"
 #include "colvarproxy.h"
@@ -22,6 +24,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#define HASH_FAIL  -1
 
 ////////////////////////////////////////////////////////////////////////
 // local helper functions
@@ -51,10 +55,12 @@ static void my_backup_file(const char *filename, const char *extension)
 ////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
+				       LAMMPS_NS::FixColvars *fix,
 				       const char *conf_file,
 				       const char *inp_name,
 				       const char *out_name,
-				       const int seed) : _lmp(lmp)
+				       const int seed) 
+  : _lmp(lmp), _fix(fix)
 {
   if (cvm::debug())
     log("Info: initializing the colvars proxy object.\n");
@@ -348,6 +354,8 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
                                     std::string const pdb_field_str,
                                     double const pdb_field_value)
 {
+
+  log("load_coords called");
 #if 0
   if (pdb_field_str.size() == 0 && indices.size() == 0) {
     cvm::fatal_error ("Bug alert: either PDB field should be defined or list of "
@@ -462,6 +470,7 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
                                    std::string const pdb_field_str,
                                    double const pdb_field_value)
 {
+  log("load_atoms called");
 #if 0
   if (pdb_field_str.size() == 0)
     cvm::fatal_error ("Error: must define which PDB field to use "
@@ -522,10 +531,8 @@ void colvarproxy_lammps::backup_file (char const *filename)
 }
 
 
-#if 0
-size_t colvarproxy_lammps::init_namd_atom (AtomID const &aid)
+int colvarproxy_lammps::init_lammps_atom (const int &aid)
 {
-  modifyRequestedAtoms().add (aid);
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
       // this atom id was already recorded
@@ -543,31 +550,27 @@ size_t colvarproxy_lammps::init_namd_atom (AtomID const &aid)
 
   return (colvars_atoms.size()-1);
 }
-#endif
 
 // atom member functions, LAMMPS specific implementations
 
-cvm::atom::atom (int const &atom_number)
+cvm::atom::atom (const int &atom_number)
 {
-#if 0
-  // NAMD internal numbering starts from zero
-  AtomID const aid (atom_number-1);
 
   if (cvm::debug())
-    cvm::log ("Adding atom "+cvm::to_str (aid+1)+
+    cvm::log ("Adding atom "+cvm::to_str(atom_number)+
               " for collective variables calculation.\n");
 
-  if ( (aid < 0) || (aid >= Node::Object()->molecule->numAtoms) ) 
+  if ( (atom_number <= 0) || !((colvarproxy_lammps *) cvm::proxy)->_fix->has_id(atom_number) ) {
     cvm::fatal_error ("Error: invalid atom number specified, "+
                       cvm::to_str (atom_number)+"\n");
-  this->index = ((colvarproxy_lammps *) cvm::proxy)->init_namd_atom (aid);
+  }
+  this->index = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(atom_number);
   if (cvm::debug())
-    cvm::log ("The index of this atom in the colvarproxy_namd arrays is "+
+    cvm::log ("The index of this atom in the colvarproxy_lammps arrays is "+
               cvm::to_str (this->index)+".\n");
-  this->id = aid;
-  this->mass = Node::Object()->molecule->atommass (aid);
+  this->id = atom_number;
+  this->mass = ((colvarproxy_lammps *) cvm::proxy)->_fix->get_mass(atom_number);
   this->reset_data();
-#endif
 }
 
 

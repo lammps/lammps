@@ -345,7 +345,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
     ++argsdone; ++argsdone;
   }
 
-  if (!out_name) out_name = strdup("colvars.out");
+  if (!out_name) out_name = strdup("out");
 
   /* initialize various state variables. */
   thermo_id = -1;
@@ -630,6 +630,8 @@ void FixColvars::post_force(int vflag)
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
     MPI_Rsend(coord_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
+
+  if (me == 0) proxy->compute();
 
 #if 0
   if (me == 0) {

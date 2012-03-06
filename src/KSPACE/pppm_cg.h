@@ -39,6 +39,7 @@ class PPPMCG : public PPPM {
   virtual void particle_map();
   virtual void make_rho();
   virtual void fieldforce();
+  virtual void fieldforce_peratom();
   virtual void slabcorr();
 };
 

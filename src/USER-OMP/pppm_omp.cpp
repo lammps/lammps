@@ -434,7 +434,9 @@ void PPPMOMP::fieldforce()
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
+#endif
   {  
+#if defined(_OPENMP)
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
@@ -491,9 +493,96 @@ void PPPMOMP::fieldforce()
 	f[i][2] += qfactor*ekz;
       }
     }
-#if defined(_OPENMP)
   }
+}
+
+/* ----------------------------------------------------------------------
+ interpolate from grid to get per-atom energy/virial
+ ------------------------------------------------------------------------- */
+
+void PPPMOMP::fieldforce_peratom()
+{
+  // loop over my charges, interpolate from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+
+  const double * const q = atom->q;
+  const double * const * const x = atom->x;
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
 #endif
+  {
+#if defined(_OPENMP)
+    // each thread works on a fixed chunk of atoms.
+    const int tid = omp_get_thread_num();
+    const int inum = nlocal;
+    const int idelta = 1 + inum/nthreads;
+    const int ifrom = tid*idelta;
+    const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
+#else
+    const int ifrom = 0;
+    const int ito = nlocal;
+    const int tid = 0;
+#endif
+    ThrData *thr = fix->get_thr(tid);
+    FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
+
+    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
+
+    // this if protects against having more threads than local atoms
+    if (ifrom < nlocal) {
+      for (int i = ifrom; i < ito; i++) {
+
+	nx = part2grid[i][0];
+	ny = part2grid[i][1];
+	nz = part2grid[i][2];
+	dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+	dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+	dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+	compute_rho1d_thr(r1d,dx,dy,dz);
+
+	u = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
+	for (n = nlower; n <= nupper; n++) {
+	  mz = n+nz;
+	  z0 = r1d[2][n];
+	  for (m = nlower; m <= nupper; m++) {
+	    my = m+ny;
+	    y0 = z0*r1d[1][m];
+	    for (l = nlower; l <= nupper; l++) {
+	      mx = l+nx;
+	      x0 = y0*r1d[0][l];
+	      if (eflag_atom) u += x0*u_brick[mz][my][mx];
+	      if (vflag_atom) {
+		v0 += x0*v0_brick[mz][my][mx];
+		v1 += x0*v1_brick[mz][my][mx];
+		v2 += x0*v2_brick[mz][my][mx];
+		v3 += x0*v3_brick[mz][my][mx];
+		v4 += x0*v4_brick[mz][my][mx];
+		v5 += x0*v5_brick[mz][my][mx];
+	      }
+	    }
+	  }
+	}
+
+	if (eflag_atom) eatom[i] += q[i]*u;
+	if (vflag_atom) {
+	  vatom[i][0] += v0;
+	  vatom[i][1] += v1;
+	  vatom[i][2] += v2;
+	  vatom[i][3] += v3;
+	  vatom[i][4] += v4;
+	  vatom[i][5] += v5;
+	}
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

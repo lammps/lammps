@@ -36,6 +36,7 @@ namespace LAMMPS_NS {
   virtual void allocate();
   virtual void deallocate();
   virtual void fieldforce();
+  virtual void fieldforce_peratom();
   virtual void make_rho();
 
   void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,

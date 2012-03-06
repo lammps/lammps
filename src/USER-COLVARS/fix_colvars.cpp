@@ -316,7 +316,7 @@ struct commdata {
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5)
+  if (narg < 4)
     error->all(FLERR,"Illegal fix colvars command");
 
   me = comm->me;

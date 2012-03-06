@@ -69,7 +69,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"virial") == 0) {
 	pairflag = 1;
 	bondflag = angleflag = dihedralflag = improperflag = 1;
-	fixflag = 1;
+	kspaceflag = fixflag = 1;
       } else error->all(FLERR,"Illegal compute stress/atom command");
       iarg++;
     }

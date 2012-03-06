@@ -43,7 +43,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "pair_cg_cmm_coul_cut_cuda.h"
-#include "pair_cg_cmm_coul_cut_cuda_cu.h"
+#include "pair_lj_sdk_coul_cut_cuda_cu.h"
 #include "cuda_data.h"
 #include "atom.h"
 #include "comm.h"
@@ -118,7 +118,7 @@ void PairCGCMMCoulCutCuda::compute(int eflag, int vflag)
 	if(eflag) cuda->cu_eng_coul->upload();
 	if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairCGCMMCoulCutCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+	Cuda_PairLJSDKCoulCutCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {

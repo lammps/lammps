@@ -43,7 +43,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "pair_cg_cmm_coul_long_cuda.h"
-#include "pair_cg_cmm_coul_long_cuda_cu.h"
+#include "pair_lj_sdk_coul_long_cuda_cu.h"
 #include "cuda_data.h"
 #include "atom.h"
 #include "comm.h"
@@ -119,7 +119,7 @@ void PairCGCMMCoulLongCuda::compute(int eflag, int vflag)
 	if(eflag) cuda->cu_eng_coul->upload();
 	if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairCGCMMCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+	Cuda_PairLJSDKCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {

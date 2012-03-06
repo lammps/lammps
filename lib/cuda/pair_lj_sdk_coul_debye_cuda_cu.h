@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
 
    Original Version:
@@ -21,39 +21,6 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#include "cuda_shared.h"
 
-PairStyle(cg/cmm/coul/long/cuda,PairLJSDKCoulLongCuda)
-PairStyle(lj/sdk/coul/long/cuda,PairLJSDKCoulLongCuda)
-
-#else
-
-#ifndef PAIR_LJ_SDK_COUL_LONG_CUDA_H
-#define PAIR_LJ_SDK_COUL_LONG_CUDA_H
-
-#include "pair_lj_sdk_coul_long.h"
-
-namespace LAMMPS_NS {
-
-class PairLJSDKCoulLongCuda : public PairLJSDKCoulLong
-{
-	public:
-		PairLJSDKCoulLongCuda(class LAMMPS *);
-		void compute(int, int);
-		void settings(int, char **);
-		void coeff(int, char **);
-		void init_list(int, class NeighList *);
-		void init_style();
-		void ev_setup(int eflag, int vflag);
-	protected:
-		class Cuda *cuda;
-		void allocate();
-		bool allocated2;
-		class CudaNeighList* cuda_neigh_list;
-		double** lj_type_double;
-};
-
-}
-
-#endif
-#endif
+extern "C" void Cuda_PairLJSDKCoulDebyeCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag,int eflag_atom,int vflag_atom);

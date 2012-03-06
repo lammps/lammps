@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="stubs"
+	Name="STUBS"
 	ProjectGUID="{FD83089F-1BF6-455F-9BEA-BB1C21FC137C}"
 	RootNamespace="stubs"
 	Keyword="Win32Proj"
@@ -143,7 +143,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\STUBS\mpi.cpp"
+			RelativePath="..\STUBS\mpi.c"
 			>
 		</File>
 		<File

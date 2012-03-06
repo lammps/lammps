@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
-	Name="LAMMPS-default"
-	ProjectGUID="{B11BF870-BC44-4A87-9938-94D33EB5E219}"
-	RootNamespace="LAMMPS"
+	Version="8,00"
+	Name="LAMMPS"
+	ProjectGUID="{74AC9767-A52F-47BD-BB26-07C739DA3EA5}"
+	RootNamespace="testmacro"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -40,15 +40,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;extra;extra/fftw2;settings_default;../KSPACE;../MANYBODY;../MOLECULE"
-				PreprocessorDefinitions="_DEBUG;FFT_FFTW; _CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..;extra;settings;../../lib/awpmd/systems/interact/TCP;../MOLECULE;../KSPACE;extra/fftw2;../MANYBODY"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;FFT_FFTW"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4267;4244;4101;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -61,9 +62,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="extra/fftw2/FFTW2dll.lib mpi.lib mkl_c_dll.lib"
+				AdditionalDependencies="mpi.lib extra/fftw2/FFTW2dll.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;S:\Program Files (x86)\MPICH2\lib&quot;;&quot;S:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;D:\download\LAMMPS\fftw213"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -118,16 +118,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
-				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..;extra;extra/fftw2;settings_default;../KSPACE;../MANYBODY;../MOLECULE"
-				PreprocessorDefinitions="FFT_FFTW; _CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..;extra;settings;../../lib/awpmd/systems/interact/TCP;../MOLECULE;../KSPACE;extra/fftw2;../MANYBODY"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;FFT_FFTW"
 				RuntimeLibrary="2"
-				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4267;4244;4101;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -140,10 +138,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="extra/fftw2/FFTW2dll.lib mpi.lib mkl_c_dll.lib"
+				AdditionalDependencies="mpi.lib extra/fftw2/FFTW2dll.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;S:\Program Files (x86)\MPICH2\lib&quot;;&quot;S:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;D:\download\LAMMPS\LAMMPS\Release;D:\download\LAMMPS\fftw213"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -199,16 +196,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;extra;extra/fftw2;settings_default;../STUBS;../KSPACE;../MANYBODY;../MOLECULE"
-				PreprocessorDefinitions="_DEBUG;FFT_FFTW; _CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..;extra;settings;../STUBS;../MOLECULE;../KSPACE;extra/fftw2;../MANYBODY"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;FFT_FFTW"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)\$(TargetName).pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4267;4244;4101;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -221,9 +218,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="extra/fftw2/FFTW2dll.lib Debug_STUBS/stubs.lib mkl_c_dll.lib"
+				AdditionalDependencies="$(OutDir)/stubs.lib extra/fftw2/FFTW2dll.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -278,17 +274,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
-				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..;extra;extra/fftw2;settings_default;../STUBS;../KSPACE;../MANYBODY;../MOLECULE"
-				PreprocessorDefinitions="FFT_FFTW; _CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..;extra;settings;../STUBS;../../lib/awpmd/systems/interact/TCP;../MOLECULE;../KSPACE;extra/fftw2;../MANYBODY"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;FFT_FFTW"
 				RuntimeLibrary="2"
-				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)\$(TargetName).pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4267;4244;4101;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -301,10 +294,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="extra/fftw2/FFTW2dll.lib Release_STUBS/stubs.lib mkl_c_dll.lib"
+				AdditionalDependencies="$(OutDir)/stubs.lib extra/fftw2/FFTW2dll.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;S:\Program Files (x86)\MPICH2\lib&quot;;&quot;S:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;D:\download\LAMMPS\LAMMPS\Release;D:\download\LAMMPS\fftw213"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -341,11 +333,13 @@
 	<Files>
 		<Filter
 			Name="src"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath="..\accelerator_cuda.h"
+				>
+			</File>
+			<File
+				RelativePath="..\accelerator_omp.h"
 				>
 			</File>
 			<File
@@ -405,11 +399,35 @@
 				>
 			</File>
 			<File
+				RelativePath="..\atom_vec_line.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\atom_vec_line.h"
+				>
+			</File>
+			<File
 				RelativePath="..\atom_vec_sphere.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\atom_vec_sphere.h"
+				>
+			</File>
+			<File
+				RelativePath="..\atom_vec_tri.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\atom_vec_tri.h"
+				>
+			</File>
+			<File
+				RelativePath="..\balance.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\balance.h"
 				>
 			</File>
 			<File
@@ -842,14 +860,6 @@
 			</File>
 			<File
 				RelativePath="..\displace_atoms.h"
-				>
-			</File>
-			<File
-				RelativePath="..\displace_box.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\displace_box.h"
 				>
 			</File>
 			<File
@@ -1309,6 +1319,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fix_restrain.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\fix_restrain.h"
+				>
+			</File>
+			<File
 				RelativePath="..\fix_rigid.cpp"
 				>
 			</File>
@@ -1517,6 +1535,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\image.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\image.h"
+				>
+			</File>
+			<File
 				RelativePath="..\improper.cpp"
 				>
 			</File>
@@ -1585,7 +1611,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\lmpwindows.h"
+				>
+			</File>
+			<File
 				RelativePath="..\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\math_const.h"
 				>
 			</File>
 			<File
@@ -1681,7 +1715,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\neigh_bond.h"
+				>
+			</File>
+			<File
 				RelativePath="..\neigh_derive.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\neigh_derive.h"
 				>
 			</File>
 			<File
@@ -1689,7 +1731,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\neigh_full.h"
+				>
+			</File>
+			<File
 				RelativePath="..\neigh_gran.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\neigh_gran.h"
 				>
 			</File>
 			<File
@@ -1697,11 +1747,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\neigh_half_bin.h"
+				>
+			</File>
+			<File
 				RelativePath="..\neigh_half_multi.cpp"
 				>
 			</File>
 			<File
+				RelativePath="..\neigh_half_multi.h"
+				>
+			</File>
+			<File
 				RelativePath="..\neigh_half_nsq.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\neigh_half_nsq.h"
 				>
 			</File>
 			<File
@@ -1725,6 +1787,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\neigh_respa.h"
+				>
+			</File>
+			<File
 				RelativePath="..\neigh_stencil.cpp"
 				>
 			</File>
@@ -1745,10 +1811,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\pack.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\pack.h"
 				>
 			</File>
@@ -1761,11 +1823,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\pair_beck.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_beck.h"
+				>
+			</File>
+			<File
 				RelativePath="..\pair_born.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\pair_born.h"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_born_coul_wolf.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_born_coul_wolf.h"
 				>
 			</File>
 			<File
@@ -1798,6 +1876,14 @@
 			</File>
 			<File
 				RelativePath="..\pair_coul_debye.h"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_coul_wolf.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_coul_wolf.h"
 				>
 			</File>
 			<File
@@ -1846,6 +1932,14 @@
 			</File>
 			<File
 				RelativePath="..\pair_lj96_cut.h"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_lj_cubic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_lj_cubic.h"
 				>
 			</File>
 			<File
@@ -1905,6 +1999,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\pair_lj_smooth_linear.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\pair_lj_smooth_linear.h"
+				>
+			</File>
+			<File
 				RelativePath="..\pair_morse.cpp"
 				>
 			</File>
@@ -1938,6 +2040,14 @@
 			</File>
 			<File
 				RelativePath="..\pointers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\procmap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\procmap.h"
 				>
 			</File>
 			<File
@@ -2085,6 +2195,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\suffix.h"
+				>
+			</File>
+			<File
 				RelativePath="..\thermo.cpp"
 				>
 			</File>
@@ -2154,32 +2268,228 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="extra"
+			Name="packages"
 			>
-			<File
-				RelativePath=".\extra\erf.h"
+			<Filter
+				Name="MANYBODY"
 				>
-			</File>
-			<File
-				RelativePath=".\extra\erf_namd.c"
+				<File
+					RelativePath="..\MANYBODY\fix_qeq_comb.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\fix_qeq_comb.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_adp.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_adp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_airebo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_airebo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_comb.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_comb.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam_alloy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam_alloy.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam_fs.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eam_fs.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eim.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_eim.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_rebo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_rebo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_sw.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_sw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_tersoff.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_tersoff.h"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_tersoff_zbl.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\MANYBODY\pair_tersoff_zbl.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="KSPACE"
 				>
-			</File>
-			<File
-				RelativePath=".\extra\math.h"
-				>
-			</File>
-			<File
-				RelativePath=".\extra\sleep.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\extra\sleep.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="PACKAGES"
-			>
+				<File
+					RelativePath="..\KSPACE\ewald.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\ewald.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\fft3d.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\fft3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\fft3d_wrap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\fft3d_wrap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\kissfft.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_born_coul_long.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_born_coul_long.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_buck_coul_long.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_buck_coul_long.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_coul_long.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_coul_long.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_charmm_coul_long.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_charmm_coul_long.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_cut_coul_long.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_cut_coul_long.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_cut_coul_long_tip4p.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pair_lj_cut_coul_long_tip4p.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm_cg.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm_cg.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm_tip4p.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\pppm_tip4p.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\remap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\remap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\remap_wrap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\KSPACE\remap_wrap.h"
+					>
+				</File>
+			</Filter>
 			<Filter
 				Name="MOLECULE"
 				>
@@ -2384,30 +2694,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\MOLECULE\fix_bond_break.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MOLECULE\fix_bond_break.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MOLECULE\fix_bond_create.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MOLECULE\fix_bond_create.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MOLECULE\fix_bond_swap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MOLECULE\fix_bond_swap.h"
-					>
-				</File>
-				<File
 					RelativePath="..\MOLECULE\improper_cvff.cpp"
 					>
 				</File>
@@ -2473,263 +2759,195 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="KSPACE"
+				Name="ASPHERE"
 				>
-				<File
-					RelativePath="..\KSPACE\ewald.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\ewald.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\fft3d.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\fft3d.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\fft3d_wrap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\fft3d_wrap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_born_coul_long.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_born_coul_long.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_buck_coul_long.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_buck_coul_long.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_coul_long.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_coul_long.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_charmm_coul_long.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_charmm_coul_long.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_cut_coul_long.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_cut_coul_long.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_cut_coul_long_tip4p.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pair_lj_cut_coul_long_tip4p.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pppm.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pppm.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pppm_tip4p.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\pppm_tip4p.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\remap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\remap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\remap_wrap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\KSPACE\remap_wrap.h"
-					>
-				</File>
 			</Filter>
 			<Filter
-				Name="MANYBODY"
+				Name="CLASS2"
 				>
-				<File
-					RelativePath="..\MANYBODY\fix_qeq_comb.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\fix_qeq_comb.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_airebo.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_airebo.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_comb.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_comb.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam_alloy.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam_alloy.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam_fs.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eam_fs.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eim.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_eim.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_rebo.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_rebo.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_sw.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_sw.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_tersoff.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_tersoff.h"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_tersoff_zbl.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\MANYBODY\pair_tersoff_zbl.h"
-					>
-				</File>
+			</Filter>
+			<Filter
+				Name="DIPOLE"
+				>
+			</Filter>
+			<Filter
+				Name="COLLOID"
+				>
+			</Filter>
+			<Filter
+				Name="FLD"
+				>
+			</Filter>
+			<Filter
+				Name="REAX"
+				>
+			</Filter>
+			<Filter
+				Name="REPLICA"
+				>
+			</Filter>
+			<Filter
+				Name="SHOCK"
+				>
+			</Filter>
+			<Filter
+				Name="SRD"
+				>
+			</Filter>
+			<Filter
+				Name="KIM"
+				>
+			</Filter>
+			<Filter
+				Name="USER-REAXC"
+				>
+			</Filter>
+			<Filter
+				Name="USER-SPH"
+				>
+			</Filter>
+			<Filter
+				Name="XTC"
+				>
+			</Filter>
+			<Filter
+				Name="GRANULAR"
+				>
+			</Filter>
+			<Filter
+				Name="MC"
+				>
+			</Filter>
+			<Filter
+				Name="MEAM"
+				>
+			</Filter>
+			<Filter
+				Name="OPT"
+				>
+			</Filter>
+			<Filter
+				Name="PERI"
+				>
+			</Filter>
+			<Filter
+				Name="POEMS"
+				>
+			</Filter>
+			<Filter
+				Name="USER-ATC"
+				>
+			</Filter>
+			<Filter
+				Name="USER-CUDA"
+				>
+			</Filter>
+			<Filter
+				Name="USER-EFF"
+				>
+			</Filter>
+			<Filter
+				Name="USER-EWALDN"
+				>
+			</Filter>
+			<Filter
+				Name="USER-MISC"
+				>
+			</Filter>
+			<Filter
+				Name="USER-OMP"
+				>
+			</Filter>
+			<Filter
+				Name="USER-AWPMD"
+				>
+			</Filter>
+			<Filter
+				Name="USER-CG-CMM"
+				>
+			</Filter>
+			<Filter
+				Name="GPU"
+				>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="settings"
 			>
 			<File
-				RelativePath=".\settings_default\style_angle.h"
+				RelativePath=".\settings\style_angle.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_atom.h"
+				RelativePath=".\settings\style_atom.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_bond.h"
+				RelativePath=".\settings\style_bond.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_command.h"
+				RelativePath=".\settings\style_command.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_compute.h"
+				RelativePath=".\settings\style_compute.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_dihedral.h"
+				RelativePath=".\settings\style_dihedral.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_dump.h"
+				RelativePath=".\settings\style_dump.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_fix.h"
+				RelativePath=".\settings\style_fix.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_improper.h"
+				RelativePath=".\settings\style_improper.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_integrate.h"
+				RelativePath=".\settings\style_integrate.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_kspace.h"
+				RelativePath=".\settings\style_kspace.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_minimize.h"
+				RelativePath=".\settings\style_minimize.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_pair.h"
+				RelativePath=".\settings\style_pair.h"
 				>
 			</File>
 			<File
-				RelativePath=".\settings_default\style_region.h"
+				RelativePath=".\settings\style_region.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="extra"
+			>
+			<File
+				RelativePath=".\extra\erf.h"
+				>
+			</File>
+			<File
+				RelativePath=".\extra\erf_namd.c"
+				>
+			</File>
+			<File
+				RelativePath=".\extra\sleep.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\extra\sleep.h"
 				>
 			</File>
 		</Filter>

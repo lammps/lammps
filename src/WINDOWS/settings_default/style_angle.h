@@ -1,8 +1,0 @@
-#include "angle_charmm.h"
-#include "angle_cosine_delta.h"
-#include "angle_cosine.h"
-#include "angle_cosine_periodic.h"
-#include "angle_cosine_squared.h"
-#include "angle_harmonic.h"
-#include "angle_hybrid.h"
-#include "angle_table.h"

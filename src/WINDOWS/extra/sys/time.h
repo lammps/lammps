@@ -13,12 +13,7 @@ struct timeval
 };
 
 
-
-
-
-
-
-inline int gettimeofday(struct timeval *tp, void *tzp)
+__inline int gettimeofday(struct timeval *tp, void *tzp)
 {
     
     struct _timeb timebuffer;
@@ -28,8 +23,6 @@ inline int gettimeofday(struct timeval *tp, void *tzp)
     tp->tv_usec = timebuffer.millitm * 1000;
     
     return 0;
-    
-
 }
 
 #endif /* GETTIMEOFDAY_H */

@@ -20,6 +20,7 @@
 // the following functions ared defined to get rid of 
 // 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
 
+#if defined(__MINGW32_VERSION)
 inline double pow(int i, int j){
   return pow((double)i,(double) j);
 }
@@ -27,6 +28,11 @@ inline double pow(int i, int j){
 inline double pow(double i, int j){
   return pow(i,(double) j);
 }
+#else
+inline double pow(int i, int j){
+  return pow((double)i,j);
+}
+#endif
 
 inline double sqrt(int i){
   return sqrt((double) i);

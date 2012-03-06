@@ -43,7 +43,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "pair_lj_sdk_cuda.h"
-#include "pair_cg_cmm_cuda_cu.h"
+#include "pair_lj_sdk_cuda_cu.h"
 #include "cuda_data.h"
 #include "atom.h"
 #include "comm.h"
@@ -70,7 +70,7 @@ PairLJSDKCuda::PairLJSDKCuda(LAMMPS *lmp) : PairLJSDK(lmp)
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
-	cg_type_double = NULL;
+	lj_type_double = NULL;
 	cuda->shared_data.pair.cudable_force = 1;
 	cuda->setSystemParams();
 }
@@ -88,26 +88,26 @@ void PairLJSDKCuda::allocate()
 		allocated2 = true;
 		
   
-  		memory->create(cg_type_double,n+1,n+1,"paircg:cgtypedouble");
+  		memory->create(lj_type_double,n+1,n+1,"pairlj:ljtypedouble");
   		
 		cuda->shared_data.pair.cut     = cut;
 		cuda->shared_data.pair.coeff1  = lj1;
 		cuda->shared_data.pair.coeff2  = lj2;
 		cuda->shared_data.pair.coeff3  = lj3;
 		cuda->shared_data.pair.coeff4  = lj4;
-		cuda->shared_data.pair.coeff5  = cg_type_double;
+		cuda->shared_data.pair.coeff5  = lj_type_double;
 	    /*cu_lj1_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj1, &cuda->shared_data.pair.coeff1_gm, (atom->ntypes+1)*(atom->ntypes+1));
 	    cu_lj2_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj2, &cuda->shared_data.pair.coeff2_gm, (atom->ntypes+1)*(atom->ntypes+1));
 	    cu_lj3_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj3, &cuda->shared_data.pair.coeff3_gm, (atom->ntypes+1)*(atom->ntypes+1));
 	    cu_lj4_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj4, &cuda->shared_data.pair.coeff4_gm, (atom->ntypes+1)*(atom->ntypes+1));
-	    cu_cg_type_double_gm = new cCudaData<double, F_FLOAT, x> ((double*)cg_type_double, &cuda->shared_data.pair.coeff5_gm, (atom->ntypes+1)*(atom->ntypes+1));*/
+	    cu_lj_type_double_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj_type_double, &cuda->shared_data.pair.coeff5_gm, (atom->ntypes+1)*(atom->ntypes+1));*/
 		cuda->shared_data.pair.offset  = offset;
 		cuda->shared_data.pair.special_lj  = force->special_lj;
 	}
   	for (int i = 1; i <= n; i++) {
       for (int j = i; j <= n; j++) {
-        cg_type_double[i][j] = lj_type[i][j];
-        cg_type_double[j][i] = lj_type[i][j];
+        lj_type_double[i][j] = lj_type[i][j];
+        lj_type_double[j][i] = lj_type[i][j];
       }
     }
 }
@@ -120,7 +120,7 @@ void PairLJSDKCuda::compute(int eflag, int vflag)
 	if(eflag) cuda->cu_eng_vdwl->upload();
 	if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairCGCMMCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+	Cuda_PairLJSDKCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {
@@ -149,14 +149,11 @@ void PairLJSDKCuda::coeff(int narg, char **arg)
 void PairLJSDKCuda::init_style()
 {
   MYDBG(printf("# CUDA PairLJSDKCuda::init_style start\n"); )
-
-  int irequest;
  
-  irequest = neighbor->request(this);
+  int irequest = neighbor->request(this);
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->cudable = 1;
-  //neighbor->style=0; //0=NSQ neighboring
 
   MYDBG(printf("# CUDA PairLJSDKCuda::init_style end\n"); )
 }

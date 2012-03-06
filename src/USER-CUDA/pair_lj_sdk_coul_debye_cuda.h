@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
 
    Original Version:
@@ -23,22 +23,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cg/cmm/coul/long/cuda,PairLJSDKCoulLongCuda)
-PairStyle(lj/sdk/coul/long/cuda,PairLJSDKCoulLongCuda)
+PairStyle(lj/sdk/coul/debye/cuda,PairLJSDKCoulDebyeCuda)
 
 #else
 
-#ifndef PAIR_LJ_SDK_COUL_LONG_CUDA_H
-#define PAIR_LJ_SDK_COUL_LONG_CUDA_H
+#ifndef PAIR_CG_CMM_COUL_DEBYE_CUDA_H
+#define PAIR_CG_CMM_COUL_DEBYE_CUDA_H
 
-#include "pair_lj_sdk_coul_long.h"
+#include "pair_lj_sdk_coul_cut.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSDKCoulLongCuda : public PairLJSDKCoulLong
+class PairLJSDKCoulDebyeCuda : public PairLJSDKCoulCut
 {
 	public:
-		PairLJSDKCoulLongCuda(class LAMMPS *);
+		PairLJSDKCoulDebyeCuda(class LAMMPS *);
 		void compute(int, int);
 		void settings(int, char **);
 		void coeff(int, char **);

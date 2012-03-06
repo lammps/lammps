@@ -1,17 +1,16 @@
 INSTRUCTIONS FOR COMPILING LAMMPS WITH VISUAL STUDIO 2005
 
-Note: These instructions and this framework for building LAMMPS under
-Windows via Visual Studio, were created by Ilya Valuev (JIHT), valuev
-at physik.hu-berlin.de.  Please contact him for questions or updates.
+The provided project
 
-There are 3 VS projects provided:
-LAMMPS.vcproj            -- minimal package set: KSPACE, MANYBODY, MOLECULE
-LAMMPS-std.vcproj        -- standard package set (except for REPLICA, REAX, GPU)
-LAMMPS-std-user.vcproj   -- standard set with some user packages
- 
-Each of the projects has configurations to compile either with MPI
-support or with MPI stubs.
+LAMMPS.vcproj                  
 
+includes the minimal package set: KSPACE, MANYBODY, MOLECULE.
+
+The package set may be reconfiured with the help of the supplied VS
+macro (see below).
+
+The project has configurations to compile either with MPI support or
+with MPI stubs.
 
 To compile with MPI:
 
@@ -20,29 +19,60 @@ To compile with MPI:
     Directories
 
 2.  Compile LAMMPS using Debug or Release configurations from the
-provided projects
+    provided projects
 
 To compile with MPI STUBS
    
-1.  Compile the STUBS.vcproj 
+1.  Compile STUBS.vcproj 
 
 2.  Compile LAMMPS using Debug_STUBS or Release_STUBS configurations
-from the provided projects
+from the provided project
 
-To run the code you will need the mpich and fftw213 dlls accessible by
-the system search (they may be copied to Windows/system32 directory).
-The fftw213 ddlls may be found in vs9/extra/fftw213 or downloaded from
-the fftw site
+To run the code you may need mpich and fftw213 dlls accessible by the
+system search (they may be copied to Windows/system32 directory).  The
+fftw213 dlls can be found in vs9/extra/fftw213 or downloaded from the
+fftw site
 
-To include additional packages into LAMMPS projects, you may follow
-the pattern of LAMMPS-std-user.vcproj:
+To customise the packages via a Visual Basic macro:
 
-1. Add the appropriate *.cpp files to the project (for example to USER-* filter)
+1. Load LAMMPS solution in Visual Studio IDE
+2. Select in the main menu "Tools/Macros/Load Macro Project..."
+   and load the file src/WINDOWS/LAMMPS.vsmacros
+3. In the "Macro Explorer" on the right panel open LAMMPS and LAMMPS_settings
+4. Double click on "ManagePackages" to run the configuration
+   macro. Please note that the window for running macro sometimes
+   opens in the background, so use Alt-TAB to locate it.
+5. Configure a custom set of packages and press Ok. Wait till the
+   macro completes.
+6. Rebuild the LAMMPS project
 
-2. Add corresponding .h files from the project directory to the
-   style_* headers listed in the Settings filter of the project.  For
-   example, if there is a pair_*.h file in the project directory, it
-   should be added to settings/style_pair.h aggregate header.
-   
+Before the first build or after an update from LAMMPS src repository
+it is recommended to run "ManagePackages" macro an check "Refresh file
+list in src filter" to get an up to date list of source files in the
+"src" project filter. This may be needed as the file composition in
+src may change between LAMMPS releases.
 
-  
+Some of the packages were not tested to be compatible with VS compiler
+or require additional libraries. They are marked with asterics in the
+package list displayed when the macro is running. If you wish to try
+those packages, install them using the macro and then change the
+project properties (libraries, includes, etc.) manually.
+
+Please note that "ManagePackages" macro works on the project named
+LAMMPS.  So if you rename the LAMMPS project and still want to use
+automatic package configuration, please specify the new name in the
+line "Dim LAMMPS_project_name As String =" at the beginning of the
+macro code.
+
+The default package options such as the path to include and library
+files, description, etc can also be changed by editing the
+"ManagePackages" macro code. To do this right click on
+"ManagePackages" in the "Macro Explorer" and select Edit. Then go to
+the section named 
+
+"===================== Custom Package options ========================",
+
+find the required package and change its properties by modyfing the
+corresponding PKG_OPTS(...) entry.
+
+

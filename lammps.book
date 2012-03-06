@@ -32,6 +32,7 @@ doc/angle_style.html
 doc/angle_table.html
 doc/atom_modify.html
 doc/atom_style.html
+doc/balance.html
 doc/bond_class2.html
 doc/bond_coeff.html
 doc/bond_fene_expand.html
@@ -242,7 +243,6 @@ doc/kspace_modify.html
 doc/kspace_style.html
 doc/label.html
 doc/lattice.html
-doc/loadbalance.html
 doc/log.html
 doc/mass.html
 doc/minimize.html
@@ -326,6 +326,7 @@ doc/partition.html
 doc/prd.html
 doc/print.html
 doc/processors.html
+doc/quit.html
 doc/read_data.html
 doc/read_restart.html
 doc/region.html

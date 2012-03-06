@@ -1,0 +1,20 @@
+# collective variable example: monitor distances
+
+colvarsTrajFrequency 10 # output every 10 steps
+
+colvar {
+  name groups_distance
+
+  outputSystemForce no
+
+  distance {
+    group1 {
+      atomNumbers 1 2 3
+    }
+    group2 {
+      atomNumbers 4 5 6
+    }
+  }
+}
+
+

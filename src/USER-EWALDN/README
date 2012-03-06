@@ -10,10 +10,16 @@ lj/cut/coul/long can be used with ewald/n.  The two new pair_style
 commands provide the modifications for the short-range LJ and
 Buckingham interactions that can also be used with ewald/n.
 
-Another advantage of kspace_style ewald/n is that it can be used with
-non-orthogonal (triclinic symmetry) simulation boxes, either for just
-long-range Coulombic interactions, or for both Coulombic and 1/r^N LJ
-or Buckingham, which is not currently possible for other kspace styles
+Two other advantages of kspace_style ewald/n are that 
+
+a) it can be used with non-orthogonal (triclinic symmetry) simulation
+boxes
+
+b) it can include long-range summations not just for Coulombic
+interactions (1/r), but also for dispersion interactions (1/r^6) and
+dipole interactions (1/r^3).
+
+Neither of these options is currently possible for other kspace styles
 such as PPPM and ewald.
 
 See the doc pages for these commands for details.

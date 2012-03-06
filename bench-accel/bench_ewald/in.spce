@@ -7,8 +7,8 @@ read_data	data.spce
 
 replicate	2 4 1
 
-pair_style	lj/cut/coul/long 12.0 12.0
-kspace_style	pppm 1.0e-4
+pair_style	lj/cut/coul/long 12.0 18.0
+kspace_style	ewald 1.0e-4
 
 pair_coeff	1 1 0.15535 3.166
 pair_coeff	* 2 0.0000 0.0000	
@@ -23,8 +23,8 @@ angle_coeff	1 100.0 109.47
 
 special_bonds   lj/coul 0.0 0.0 0.5
 
-neighbor        2.0 bin
-neigh_modify	every 1 delay 10 check yes
+neighbor        2.5 bin
+neigh_modify	every 1 delay 10 check yes one 10000
 
 fix		1 all shake 0.0001 20 0 b 1 a 1
 fix		2 all nvt temp 300.0 300.0 100.0

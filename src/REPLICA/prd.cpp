@@ -79,7 +79,7 @@ void PRD::command(int narg, char **arg)
   t_dephase = atoi(arg[3]);
   t_corr = atoi(arg[4]);
 
-  char id_compute[strlen(arg[5])+1];
+  char *id_compute = new char[strlen(arg[5])+1];
   strcpy(id_compute,arg[5]);
   int seed = atoi(arg[6]);
   
@@ -415,6 +415,7 @@ void PRD::command(int narg, char **arg)
   memory->destroy(xall);
   memory->destroy(imageall);
   
+  delete [] id_compute;
   MPI_Comm_free(&comm_replica);
   delete random_select;
   delete random_dephase;
@@ -698,7 +699,8 @@ void PRD::replicate(int ireplica)
   int nreplica = universe->nworlds;
   int nprocs_universe = universe->nprocs;
   int i,m,flag,commflag;
-  int counts[nprocs];
+
+  int *counts = new int[nprocs];
 
   if (nreplica == nprocs_universe) commflag = 0;
   else if (equal_size_replicas) {
@@ -750,6 +752,8 @@ void PRD::replicate(int ireplica)
       }
     }
   }
+
+  delete [] counts;
 }
 
 /* ----------------------------------------------------------------------

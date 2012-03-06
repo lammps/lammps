@@ -157,7 +157,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   int name_length;
   char node_name[MPI_MAX_PROCESSOR_NAME];
-  char node_names[MPI_MAX_PROCESSOR_NAME*nprocs];
+  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Get_processor_name(node_name,&name_length);
   MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
@@ -176,6 +176,8 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procs_per_node = name_map.begin()->second;
   procs_per_numa = procs_per_node / numa_nodes;
   
+  delete [] node_names;
+
   // error if any of these conditions met
   
   if (nprocs % procs_per_numa ||       // total procs not a multiple of node

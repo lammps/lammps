@@ -24,17 +24,14 @@ The {cvff} improper style uses the potential
 
 :c,image(Eqs/improper_cvff.jpg)
 
-where phi is the Wilson out-of-plane angle.
+where phi is the improper dihedral angle.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the "read_data"_read_data.html command) are ordered I,J,K,L then
-the Wilson angle is between the plane of I,J,K and the plane of J,K,L.
-This is essentially a dihedral angle, which is why the formula for
-this improper style is the same as for "dihedral_style
-harmonic"_dihedral_harmonic.html.  Alternatively, you can think of
-atoms J,K,L as being in a plane, and atom I above the plane, and the
-Wilson angle as a measure of how far out-of-plane I is with respect to
-the other 3 atoms.
+the improper dihedral angle is between the plane of I,J,K and the
+plane of J,K,L.  Note that because this is effectively a dihedral
+angle, the formula for this improper style is the same as for
+"dihedral_style harmonic"_dihedral_harmonic.html.
 
 Note that defining 4 atoms to interact in this way, does not mean that
 bonds necessarily exist between I-J, J-K, or K-L, as they would in a

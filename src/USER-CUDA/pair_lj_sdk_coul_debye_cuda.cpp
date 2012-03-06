@@ -42,8 +42,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "pair_cg_cmm_coul_cut_cuda.h"
-#include "pair_lj_sdk_coul_cut_cuda_cu.h"
+#include "pair_lj_sdk_coul_debye_cuda.h"
+#include "pair_lj_sdk_coul_debye_cuda_cu.h"
 #include "cuda_data.h"
 #include "atom.h"
 #include "comm.h"
@@ -63,14 +63,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCGCMMCoulCutCuda::PairCGCMMCoulCutCuda(LAMMPS *lmp) : PairCGCMMCoulCut(lmp)
+PairLJSDKCoulDebyeCuda::PairLJSDKCoulDebyeCuda(LAMMPS *lmp) : PairLJSDKCoulCut(lmp)
 {
   cuda = lmp->cuda;
-  if(cuda == NULL)
+   if(cuda == NULL)
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
-	cg_type_double = NULL;
+	lj_type_double = NULL;
 	cuda->shared_data.pair.cudable_force = 1;
 	cuda->setSystemParams();
 }
@@ -79,16 +79,16 @@ PairCGCMMCoulCutCuda::PairCGCMMCoulCutCuda(LAMMPS *lmp) : PairCGCMMCoulCut(lmp)
    remember pointer to arrays in cuda shared data
 ------------------------------------------------------------------------- */
 
-void PairCGCMMCoulCutCuda::allocate()
+void PairLJSDKCoulDebyeCuda::allocate()
 {
-	if(! allocated) PairCGCMMCoulCut::allocate();
+	if(! allocated) PairLJSDKCoulCut::allocate();
 	int n = atom->ntypes;
 	if(! allocated2)
 	{
 		allocated2 = true;
 		
   
-  		memory->create(cg_type_double,n+1,n+1,"paircg:cgtypedouble");
+  		memory->create(lj_type_double,n+1,n+1,"pairlj:ljtypedouble");
   		
 		cuda->shared_data.pair.cut     = cut_lj;
 		cuda->shared_data.pair.cut_coul= cut_coul;
@@ -96,29 +96,29 @@ void PairCGCMMCoulCutCuda::allocate()
 		cuda->shared_data.pair.coeff2  = lj2;
 		cuda->shared_data.pair.coeff3  = lj3;
 		cuda->shared_data.pair.coeff4  = lj4;
-		cuda->shared_data.pair.coeff5  = cg_type_double;
+		cuda->shared_data.pair.coeff5  = lj_type_double;
 		cuda->shared_data.pair.offset  = offset;
 		cuda->shared_data.pair.special_lj  = force->special_lj;
 		cuda->shared_data.pair.special_coul  = force->special_coul;
 	}
   	for (int i = 1; i <= n; i++) {
       for (int j = i; j <= n; j++) {
-        cg_type_double[i][j] = cg_type[i][j];
-        cg_type_double[j][i] = cg_type[i][j];
+        lj_type_double[i][j] = lj_type[i][j];
+        lj_type_double[j][i] = lj_type[i][j];
       }
     }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairCGCMMCoulCutCuda::compute(int eflag, int vflag)
+void PairLJSDKCoulDebyeCuda::compute(int eflag, int vflag)
 {
 	if (eflag || vflag) ev_setup(eflag,vflag);
 	if(eflag) cuda->cu_eng_vdwl->upload();
 	if(eflag) cuda->cu_eng_coul->upload();
 	if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairLJSDKCoulCutCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+	Cuda_PairLJSDKCoulDebyeCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {
@@ -131,9 +131,9 @@ void PairCGCMMCoulCutCuda::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCGCMMCoulCutCuda::settings(int narg, char **arg)
+void PairLJSDKCoulDebyeCuda::settings(int narg, char **arg)
 {
-	PairCGCMMCoulCut::settings(narg, arg);
+	PairLJSDKCoulCut::settings(narg, arg);
 	cuda->shared_data.pair.cut_global = (F_FLOAT) cut_lj_global;
 	cuda->shared_data.pair.cut_coul_global = (F_FLOAT) cut_coul_global;
 	cuda->shared_data.pair.kappa = (F_FLOAT) kappa;
@@ -141,15 +141,15 @@ void PairCGCMMCoulCutCuda::settings(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCGCMMCoulCutCuda::coeff(int narg, char **arg)
+void PairLJSDKCoulDebyeCuda::coeff(int narg, char **arg)
 {
-	PairCGCMMCoulCut::coeff(narg, arg);
+	PairLJSDKCoulCut::coeff(narg, arg);
 	allocate();
 }
 
-void PairCGCMMCoulCutCuda::init_style()
+void PairLJSDKCoulDebyeCuda::init_style()
 {
-	MYDBG(printf("# CUDA PairCGCMMCoulCutCuda::init_style start\n"); )
+	MYDBG(printf("# CUDA PairLJSDKCoulDebyeCuda::init_style start\n"); )
   // request regular or rRESPA neighbor lists
 
   int irequest;
@@ -170,25 +170,25 @@ void PairCGCMMCoulCutCuda::init_style()
   cut_respa=NULL;
   if (force->newton) error->warning(FLERR,"Pair style uses does not use \"newton\" setting. You might test if \"newton off\" makes the simulation run faster.");
 
-  MYDBG(printf("# CUDA PairCGCMMCoulCutCuda::init_style end\n"); )
+  MYDBG(printf("# CUDA PairLJSDKCoulDebyeCuda::init_style end\n"); )
 }
 
-void PairCGCMMCoulCutCuda::init_list(int id, NeighList *ptr)
+void PairLJSDKCoulDebyeCuda::init_list(int id, NeighList *ptr)
 {
-	MYDBG(printf("# CUDA PairCGCMMCoulCutCuda::init_list\n");)
-	PairCGCMMCoulCut::init_list(id, ptr);
+	MYDBG(printf("# CUDA PairLJSDKCoulDebyeCuda::init_list\n");)
+	PairLJSDKCoulCut::init_list(id, ptr);
 	#ifndef CUDA_USE_BINNING
 	// right now we can only handle verlet (id 0), not respa
 	if(id == 0) cuda_neigh_list = cuda->registerNeighborList(ptr);
 	// see Neighbor::init() for details on lammps lists' logic
 	#endif
-	MYDBG(printf("# CUDA PairCGCMMCoulCutCuda::init_list end\n");)
+	MYDBG(printf("# CUDA PairLJSDKCoulDebyeCuda::init_list end\n");)
 }
 
-void PairCGCMMCoulCutCuda::ev_setup(int eflag, int vflag)
+void PairLJSDKCoulDebyeCuda::ev_setup(int eflag, int vflag)
 {
 	int maxeatomold=maxeatom;
-	PairCGCMMCoulCut::ev_setup(eflag,vflag);
+	PairLJSDKCoulCut::ev_setup(eflag,vflag);
 
   if (eflag_atom && atom->nmax > maxeatomold) 
 	{delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}

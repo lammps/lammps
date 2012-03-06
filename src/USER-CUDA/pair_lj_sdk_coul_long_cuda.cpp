@@ -43,7 +43,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "pair_lj_sdk_coul_long_cuda.h"
-#include "pair_cg_cmm_coul_long_cuda_cu.h"
+#include "pair_lj_sdk_coul_long_cuda_cu.h"
 #include "cuda_data.h"
 #include "atom.h"
 #include "comm.h"
@@ -55,6 +55,7 @@
 #include "cuda_neigh_list.h"
 #include "update.h"
 #include "integrate.h"
+#include "respa.h"
 #include "memory.h"
 #include "error.h"
 #include "cuda.h"
@@ -70,7 +71,7 @@ PairLJSDKCoulLongCuda::PairLJSDKCoulLongCuda(LAMMPS *lmp) : PairLJSDKCoulLong(lm
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
 	allocated2 = false;
-	cg_type_double = NULL;
+	lj_type_double = NULL;
 	cuda->shared_data.pair.cudable_force = 1;
 	cuda->setSystemParams();
 }
@@ -88,7 +89,7 @@ void PairLJSDKCoulLongCuda::allocate()
 		allocated2 = true;
 		
   
-  		memory->create(cg_type_double,n+1,n+1,"paircg:cgtypedouble");
+  		memory->create(lj_type_double,n+1,n+1,"pairlj:ljtypedouble");
   		
 		cuda->shared_data.pair.cut     = cut_lj;
 		cuda->shared_data.pair.cut_coul= NULL;
@@ -96,15 +97,16 @@ void PairLJSDKCoulLongCuda::allocate()
 		cuda->shared_data.pair.coeff2  = lj2;
 		cuda->shared_data.pair.coeff3  = lj3;
 		cuda->shared_data.pair.coeff4  = lj4;
-		cuda->shared_data.pair.coeff5  = cg_type_double;
+		cuda->shared_data.pair.coeff5  = lj_type_double;
 		cuda->shared_data.pair.offset  = offset;
 		cuda->shared_data.pair.special_lj  = force->special_lj;
-		cuda->shared_data.pair.special_coul  = force->special_coul;
+                cuda->shared_data.pair.special_coul  = force->special_coul;
+
 	}
   	for (int i = 1; i <= n; i++) {
       for (int j = i; j <= n; j++) {
-        cg_type_double[i][j] = lj_type[i][j];
-        cg_type_double[j][i] = lj_type[i][j];
+        lj_type_double[i][j] = lj_type[i][j];
+        lj_type_double[j][i] = lj_type[i][j];
       }
     }
 }
@@ -118,7 +120,7 @@ void PairLJSDKCoulLongCuda::compute(int eflag, int vflag)
 	if(eflag) cuda->cu_eng_coul->upload();
 	if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairCGCMMCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+	Cuda_PairLJSDKCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {
@@ -136,7 +138,6 @@ void PairLJSDKCoulLongCuda::settings(int narg, char **arg)
 	PairLJSDKCoulLong::settings(narg, arg);
 	cuda->shared_data.pair.cut_global = (F_FLOAT) cut_lj_global;
 	cuda->shared_data.pair.cut_coul_global = (F_FLOAT) cut_coul;
-	cuda->shared_data.pair.kappa = (F_FLOAT) 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,7 +159,6 @@ void PairLJSDKCoulLongCuda::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->cudable = 1;
-  //neighbor->style=0; //0=NSQ neighboring
 
   g_ewald = force->kspace->g_ewald;
   cuda->shared_data.pair.g_ewald=g_ewald;

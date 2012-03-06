@@ -50,30 +50,27 @@ static void my_backup_file(const char *filename, const char *extension)
 
 ////////////////////////////////////////////////////////////////////////
 
-// TODO:
-// figure out units for forces, velocities.
-// interface random number generator.
-
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 				       const char *conf_file,
 				       const char *inp_name,
 				       const char *out_name,
-				       const int seed)
+				       const int seed) : _lmp(lmp)
 {
-  _lmp = lmp;
+  if (cvm::debug())
+    log("Info: initializing the colvars proxy object.\n");
+
   _random = new LAMMPS_NS::RanPark(lmp,seed);
 
   first_timestep=true;
   system_force_requested=false;
-
+  previous_step=-1;
   t_target = 0.0;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
-  if (input_prefix_str.rfind(".colvars.state") != std::string::npos) {
+  if (input_prefix_str.rfind(".colvars.state") != std::string::npos)
     input_prefix_str.erase(input_prefix_str.rfind(".colvars.state"),
                             std::string(".colvars.state").size());
-  }
 
   // output prefix is always given
   output_prefix_str = std::string(out_name);
@@ -85,75 +82,40 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     if (restart_prefix_str.rfind(".*") != std::string::npos)
       restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
   }
-    
-  if (cvm::debug())
-    fputs("Info: initializing the colvars proxy object.\n",stderr);
-  
-  // initiate the colvarmodule, this object will
-  // be the communication proxy
-  colvars = new colvarmodule (conf_file, this);
-    
 
-#if 0  
-
-  // get the thermostat temperature
-  if (simparams->rescaleFreq > 0)
-    thermostat_temperature = simparams->rescaleTemp;
-  else if (simparams->reassignFreq > 0)
-    thermostat_temperature = simparams->reassignTemp;
-  else if (simparams->langevinOn)
-    thermostat_temperature = simparams->langevinTemp;
-  else if (simparams->tCoupleOn)
-    thermostat_temperature = simparams->tCoupleTemp;
-  //else if (simparams->loweAndersenOn)
-  //  thermostat_temperature = simparams->loweAndersenTemp;
-  else 
-
-  // take the output prefixes from the namd input
-  output_prefix_str = std::string (simparams->outputFilename);
-  restart_output_prefix_str = std::string (simparams->restartFilename);
-  restart_frequency_s = simparams->restartFrequency;
-
+  // initiate the colvarmodule
+  colvars = new colvarmodule(conf_file,this);
 
   if (cvm::debug()) {
-    cvm::log ("colvars_atoms = "+cvm::to_str (colvars_atoms)+"\n");
-    cvm::log ("colvars_atoms_ncopies = "+cvm::to_str (colvars_atoms_ncopies)+"\n");
-    cvm::log ("positions = "+cvm::to_str (positions)+"\n");
-    cvm::log ("total_forces = "+cvm::to_str (total_forces)+"\n");
-    cvm::log ("applied_forces = "+cvm::to_str (applied_forces)+"\n");
-    cvm::log (cvm::line_marker);
+    log("colvars_atoms = "+cvm::to_str(colvars_atoms)+"\n");
+    log("colvars_atoms_ncopies = "+cvm::to_str(colvars_atoms_ncopies)+"\n");
+    log("positions = "+cvm::to_str(positions)+"\n");
+    log("total_forces = "+cvm::to_str(total_forces)+"\n");
+    log("applied_forces = "+cvm::to_str(applied_forces)+"\n");
+    log(cvm::line_marker);
+    log("Info: done initializing the colvars proxy object.\n");
   }
-
-  // Initialize reduction object to submit restraint energy as MISC
-  reduction = ReductionMgr::Object()->willSubmit(REDUCTIONS_BASIC);
-
-  if (cvm::debug())
-    iout << "Info: done initializing the colvars proxy object.\n" << endi;
-
-#endif
 }
-
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
 
   if (colvars != NULL) {
+    colvars->write_output_files();
     delete colvars;
     colvars = NULL;
   }
 }
 
-#if 0
-// Reimplemented function from GlobalMaster
-void colvarproxy_lammps::calculate()
+// trigger colvars computation 
+void colvarproxy_lammps::compute()
 {
-
   if (first_timestep) {
     first_timestep = false;
   } else {
     // Use the time step number inherited from GlobalMaster
-    if ( step - previous_NAMD_step == 1 ) {
+    if ( _lmp->update->ntimestep - previous_step == 1 ) {
       colvars->it++;
     }
     // Other cases could mean:
@@ -161,19 +123,22 @@ void colvarproxy_lammps::calculate()
     // - beginning of a new run statement
     // then the internal counter should not be incremented
   }
-  previous_NAMD_step = step;
+  previous_step = _lmp->update->ntimestep;
 
   if (cvm::debug()) {
     cvm::log (cvm::line_marker+
-              "colvarproxy_namd, step no. "+cvm::to_str (colvars->it)+"\n"+
+              "colvarproxy_namd, step no. "+cvm::to_str(colvars->it)+"\n"+
               "Updating internal data.\n");
   }
 
+#if 0
   // must delete the forces applied at the previous step: they have
   // already been used and copied to other memory locations
   modifyForcedAtoms().resize (0);
   modifyAppliedForces().resize (0);
+#endif
 
+#if 0
   // prepare the local arrays to contain the sorted copies of the NAMD
   // arrays
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
@@ -181,7 +146,9 @@ void colvarproxy_lammps::calculate()
     total_forces[i] = cvm::rvector (0.0, 0.0, 0.0);
     applied_forces[i] = cvm::rvector (0.0, 0.0, 0.0);
   }
+#endif
 
+#if 0
   // sort the positions array
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     bool found_position = false;
@@ -200,8 +167,9 @@ void colvarproxy_lammps::calculate()
       cvm::fatal_error ("Error: cannot find the position of atom "+
                         cvm::to_str (colvars_atoms[i]+1)+"\n");
   }
+#endif
 
-
+#if 0
   if (system_force_requested && cvm::step_relative() > 0) {
 
     // sort the array of total forces from the previous step (but only
@@ -251,19 +219,17 @@ void colvarproxy_lammps::calculate()
       }
     }
   }
+#endif
 
   // call the collective variable module
   colvars->calc();
+
+#if 0
   // send MISC energy
   reduction->submit();
-
-  // NAMD does not destruct GlobalMaster objects, so we must remember
-  // to write all output files at the end of the run
-  if (step == simparams->N) {
-    colvars->write_output_files();
-  }
-}
 #endif
+
+}
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
 						   cvm::atom_pos const &pos2)

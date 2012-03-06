@@ -27,6 +27,7 @@ class colvarproxy_lammps : public colvarproxy {
   std::string input_prefix_str, output_prefix_str, restart_prefix_str;
   double t_target;
   int  restart_every;
+  int  previous_step;
 
   bool first_timestep;
   bool system_force_requested;
@@ -48,12 +49,16 @@ class colvarproxy_lammps : public colvarproxy {
   colvarproxy_lammps() {};
   colvarproxy_lammps(const colvarproxy_lammps &) {};
 
-  // methods for lammps to push additional info into the proxy
+  // methods for lammps to push data or trigger action in the proxy
  public:
+
+  // update temperature info
   void set_temperature(const double tt) { t_target = tt; };
 
-  // implementation of pure methods from base class
+  // perform colvars computation
+  void compute();
 
+  // implementation of pure methods from base class
  public:
 
   inline cvm::real unit_angstrom() { return _lmp->force->angstrom; };
@@ -65,12 +70,6 @@ class colvarproxy_lammps : public colvarproxy {
   inline std::string output_prefix() { return output_prefix_str; };
   inline std::string restart_output_prefix() { return restart_prefix_str; };
   inline size_t restart_frequency() { return restart_every; };
-
-#if 0
-  /// \brief Reimplements GlobalMaster member function, to be called
-  /// at every step
-  void calculate();
-#endif
 
   void add_energy (cvm::real energy) { /* XXX */ ; };
   void request_system_force (bool yesno) { system_force_requested = yesno; };

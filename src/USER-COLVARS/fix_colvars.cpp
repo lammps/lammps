@@ -24,12 +24,13 @@
 #include "fix_colvars.h"
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
 
 #include "colvarproxy_lammps.h"
 
@@ -300,45 +301,64 @@ struct commdata {
 /***************************************************************
  create class and parse arguments in LAMMPS script. Syntax: 
 
- fix ID group-ID colvars <config_file> [<restart_file>]
+ fix ID group-ID colvars <config_file> [optional flags...]
+
+ optional keyword value pairs:
+
+  input   <input prefix>    (for restarting/continuing, defaults to
+                             NULL, but set to <output prefix> at end)
+  output  <output prefix>   (defaults to 'out')
+  seed    <integer>         (seed for RNG, defaults to '1966')
+  thermo  <fix label>       (label of thermostatting fix)
 
  TODO: add (optional) arguments for RNG seed, temperature compute
  ***************************************************************/
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if ((narg < 4) || (narg > 5))
+  if (narg < 5)
     error->all(FLERR,"Illegal fix colvars command");
 
   me = comm->me;
-  if (me == 0) {
-    if (narg == 4)
-      printf("fix colvars with config '%s' and no restart\n",arg[3]);
-    else 
-      printf("fix colvars with config '%s' and restart '%s'\n",arg[3], arg[4]);
+  
+  conf_file = strdup(arg[3]);
+  rng_seed = 1966;
 
-    // the proxy object is only run on the master rank
-    if (narg == 4)
-      proxy = new colvarproxy_lammps(lmp, arg[3], NULL);
-    else
-      proxy = new colvarproxy_lammps(lmp, arg[3], arg[4]);
+  inp_name = NULL;
+  out_name = NULL;
+  tmp_name = NULL;
+
+  /* parse optional arguments */
+  int argsdone = 4;
+  while (argsdone+1 < narg) {
+    if (0 == strcmp(arg[argsdone], "input")) {
+      inp_name = strdup(arg[argsdone+1]);
+    } else if (0 == strcmp(arg[argsdone], "output")) {
+      out_name = strdup(arg[argsdone+1]);
+    } else if (0 == strcmp(arg[argsdone], "seed")) {
+      rng_seed = atoi(arg[argsdone+1]);
+    } else if (0 == strcmp(arg[argsdone], "thermo")) {
+      tmp_name = strdup(arg[argsdone+1]);
+    } else {
+      error->all(FLERR,"Unknown fix imd parameter");
+    }
+    ++argsdone; ++argsdone;
   }
 
-  restraint_energy = 0.0;
+  if (!out_name) out_name = strdup("colvars.out");
 
-  /* initialize various colvars state variables. */
+  /* initialize various state variables. */
+  thermo_id = -1;
   nlevels_respa = 0;
   maxbuf = 0;
   msglen = 0;
+  num_coords = 0;
+
   msgdata = NULL;
   coord_buf = NULL;
   force_buf = NULL;
   idmap = NULL;
   rev_idmap = NULL;
-
-  bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix imd");
-  num_coords = static_cast<int> (n);
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
@@ -349,22 +369,51 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
  *********************************/
 FixColvars::~FixColvars()
 {
-  delete proxy;
-  inthash_t *hashtable = (inthash_t *)idmap;
-  memory->sfree(coord_buf);
-  memory->sfree(force_buf);
-  inthash_destroy(hashtable);
-  delete hashtable;
-  free(rev_idmap);
-  return;
+  memory->sfree(conf_file);
+  memory->sfree(inp_name);
+  memory->sfree(out_name);
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
+
+void FixColvars::deallocate()
+{
+  if (proxy) {
+    delete proxy;
+
+    inthash_t *hashtable = (inthash_t *)idmap;
+    memory->sfree(coord_buf);
+    memory->sfree(force_buf);
+    inthash_destroy(hashtable);
+    delete hashtable;
+    free(rev_idmap);
+
+    proxy = NULL;
+    idmap = NULL;
+    rev_idmap = NULL;
+    coord_buf = NULL;
+    force_buf = NULL;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixColvars::post_run()
+{
+  deallocate();
+  memory->sfree(inp_name);
+  inp_name = strdup(out_name);
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixColvars::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -384,14 +433,31 @@ void FixColvars::init()
 void FixColvars::setup(int)
 {
 
-  /* nme:    number of atoms in group on this MPI task
-   * nmax:   max number of atoms in group across all MPI tasks
-   * nlocal: all local atoms  */
-  int i,j;
-  int nmax,nme,nlocal;
+  if (me == 0) {
+    proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,rng_seed);
+    if (tmp_name) {
+      thermo_id = modify->find_fix(tmp_name);
+      if (thermo_id < 0) error->one(FLERR,"Could not find thermo fix ID");
+      // XXX: insert code to rip thermostat target temperature from fix.
+      proxy->set_temperature(0.0);
+      // proxy->set_temperature(modify->fix[thermo_id]->extract("t_target"));
+    } else {
+      proxy->set_temperature(0.0);
+    }
+  }
+
+  // nme:    number of atoms in group on this MPI task
+  // nmax:   max number of atoms in group across all MPI tasks
+
+  int i,j,nmax,nme;
   int *mask  = atom->mask;
   int *tag  = atom->tag;
-  nlocal = atom->nlocal;
+
+  bigint n = group->count(igroup);
+  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix colvars");
+  num_coords = static_cast<int> (n);
+
+  const int nlocal = atom->nlocal;
   nme=0;
   for (i=0; i < nlocal; ++i)
     if (mask[i] & groupbit) ++nme;
@@ -469,7 +535,17 @@ void FixColvars::setup(int)
  * Send coodinates and add colvar forces to atoms. */
 void FixColvars::post_force(int vflag)
 {
-
+  // some housekeeping: update status of the proxy as needed.
+  if (me == 0) {
+    if (thermo_id < 0) {
+      proxy->set_temperature(0.0);
+    } else {
+      // XXX: insert code to rip thermostat target temperature from fix.
+      proxy->set_temperature(0.0);
+      // proxy->set_temperature(modify->fix[thermo_id]->extract("t_target"));
+    }
+  }
+  
   int *tag = atom->tag;
   int *type = atom->type;
   double **x = atom->x;

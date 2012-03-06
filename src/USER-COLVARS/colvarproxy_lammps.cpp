@@ -3,6 +3,7 @@
 #include "lammps.h"
 #include "comm.h"
 #include "error.h"
+#include "output.h"
 #include "random_park.h"
 
 #include "colvarmodule.h"
@@ -10,10 +11,44 @@
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <cerrno>
 #include <cstdio>
+#include <cstring>
+
 #include <iostream>
 #include <sstream>
 #include <string>
+
+////////////////////////////////////////////////////////////////////////
+// local helper functions
+
+// safely move filename to filename.extension
+static void my_backup_file(const char *filename, const char *extension)
+{
+  struct stat sbuf;
+  if (stat(filename, &sbuf) == 0) {
+    if ( ! extension ) extension = ".BAK";
+    char *backup = new char[strlen(filename)+strlen(extension)+1];
+    strcpy(backup, filename);
+    strcat(backup, extension);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    remove(backup);
+#endif
+    if ( rename(filename,backup) ) {
+      char *sys_err_msg = strerror(errno);
+      if ( !sys_err_msg ) sys_err_msg = "(unknown error)";
+      fprintf(stderr,"Error renaming file %s to %s: %s\n",
+	      filename, backup, sys_err_msg);
+    }
+    delete [] backup;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
 
 // TODO:
 // figure out units for forces, velocities.
@@ -21,15 +56,36 @@
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 				       const char *conf_file,
-				       const char *rest_file)
+				       const char *inp_name,
+				       const char *out_name,
+				       const int seed)
 {
   _lmp = lmp;
-  _random = new LAMMPS_NS::RanPark(lmp,1966); // FIXME: insert proper seed
-  
+  _random = new LAMMPS_NS::RanPark(lmp,seed);
+
   first_timestep=true;
   system_force_requested=false;
-  thermostat_temperature = 0.0;
 
+  t_target = 0.0;
+
+  // set input restart name and strip the extension, if present
+  input_prefix_str = std::string(inp_name ? inp_name : "");
+  if (input_prefix_str.rfind(".colvars.state") != std::string::npos) {
+    input_prefix_str.erase(input_prefix_str.rfind(".colvars.state"),
+                            std::string(".colvars.state").size());
+  }
+
+  // output prefix is always given
+  output_prefix_str = std::string(out_name);
+  restart_prefix_str = std::string("rest");
+
+  if (_lmp->output->restart_every > 0) {
+    restart_prefix_str = std::string(_lmp->output->restart1);
+    
+    if (restart_prefix_str.rfind(".*") != std::string::npos)
+      restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
+  }
+    
   if (cvm::debug())
     fputs("Info: initializing the colvars proxy object.\n",stderr);
   
@@ -39,12 +95,6 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     
 
 #if 0  
-  input_prefix_str = std::string (input_restart ? input_restart->data : "");
-  if (input_prefix_str.rfind (".colvars.state") != std::string::npos) {
-    // strip the extension, if present
-    input_prefix_str.erase (input_prefix_str.rfind (".colvars.state"),
-                            std::string (".colvars.state").size());
-  }
 
   // get the thermostat temperature
   if (simparams->rescaleFreq > 0)
@@ -226,7 +276,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
 }
 
 cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
-					   cvm::atom_pos const &pos2)
+					     cvm::atom_pos const &pos2)
 {
   double xtmp = pos2.x - pos1.x;
   double ytmp = pos2.y - pos1.y;
@@ -236,18 +286,16 @@ cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
 }
 
 
-inline void colvarproxy_lammps::select_closest_image (cvm::atom_pos &pos,
-						      cvm::atom_pos const &ref_pos)
+inline void colvarproxy_lammps::select_closest_image(cvm::atom_pos &pos,
+						     cvm::atom_pos const &ref)
 {
-#if 0
-  Position const p (pos.x, pos.y, pos.z);
-  Position const rp (ref_pos.x, ref_pos.y, ref_pos.z);
-  ScaledPosition const srp = this->lattice->scale (rp);
-  Position const np = this->lattice->nearest (p, srp);
-  pos.x = np.x;
-  pos.y = np.y;
-  pos.z = np.z;
-#endif
+  double xtmp = pos.x - ref.x;
+  double ytmp = pos.y - ref.y;
+  double ztmp = pos.z - ref.z;
+  _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
+  pos.x = ref.x + xtmp;
+  pos.y = ref.y + ytmp;
+  pos.z = ref.z + ztmp;
 }
 
 void colvarproxy_lammps::log(std::string const &message)
@@ -267,7 +315,7 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
   log(message);
   if (!cvm::debug())
     log ("If this error message is unclear, "
-	 "try recompiling with -DCOLVARS_DEBUG.\n");
+	 "try recompiling the colvars library with -DCOLVARS_DEBUG.\n");
   _lmp->error->one(FLERR,
 		   "Fatal error in the collective variables module.\n");
 }
@@ -275,7 +323,7 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
 void colvarproxy_lammps::exit(std::string const &message)
 {
   log(message);
-  // ::exit(0);
+  log("Request to exit the simulation made.\n");
 }
 
 #if 0
@@ -499,14 +547,12 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
 
 void colvarproxy_lammps::backup_file (char const *filename)
 {
-#if 0
   if (std::string (filename).rfind (std::string (".colvars.state"))
       != std::string::npos) {
-    NAMD_backup_file (filename, ".old");
+    my_backup_file (filename, ".old");
   } else {
-    NAMD_backup_file (filename, ".BAK");
+    my_backup_file (filename, ".BAK");
   }
-#endif
 }
 
 

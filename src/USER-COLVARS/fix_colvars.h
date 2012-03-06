@@ -32,6 +32,7 @@ class colvarproxy_lammps;
 namespace LAMMPS_NS {
 
 class FixColvars : public Fix {
+
  public:
   FixColvars(class LAMMPS *, int, char **);
   ~FixColvars();
@@ -41,29 +42,37 @@ class FixColvars : public Fix {
   void setup(int);
   void post_force(int); 
   void post_force_respa(int, int, int);
-//  void post_run();
+  void post_run();
   double memory_usage();
 
  protected:
+  void deallocate();     // free internal buffers
+
+ protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
+  char *conf_file;     // name of colvars config file
+  char *inp_name;      // name/prefix of colvars restart file
+  char *out_name;      // prefix string for all output files
+  char *tmp_name;      // name of thermostat fix.
+  int   rng_seed;      // seed to initialize random number generator 
+  int   thermo_id;     // id of the thermostat fix
 
-  int    me;             // my MPI rank in this "world".
-  int    num_coords;     // total number of atoms controlled by this fix 
+  int   me;            // my MPI rank in this "world".
+  int   num_coords;    // total number of atoms controlled by this fix
 
-  int    size_one;       // bytes per atom in communication buffer.
-  int    maxbuf;         // size of atom communication buffer.
+  int   size_one;      // bytes per atom in communication buffer.
+  int   maxbuf;        // size of atom communication buffer.
 
-  void  *coord_buf;      // coordinate communication buffer
-  void  *force_buf;      // force data buffer
+  void *coord_buf;     // coordinate communication buffer
+  void *force_buf;     // force data buffer
 
-  void  *idmap;          // hash for mapping atom indices to consistent order.
-  int   *rev_idmap;      // list of the hash keys for reverse mapping.
+  void *idmap;         // hash for mapping atom indices to consistent order.
+  int  *rev_idmap;     // list of the hash keys for reverse mapping.
 
-  int    nlevels_respa;  // flag to determine respa levels.
+  int   nlevels_respa; // flag to determine respa levels.
 
-  int    msglen;
-  char  *msgdata;
-  double restraint_energy;      // restraint energy from colvars
+  int   msglen;
+  char *msgdata;
 };
 
 }

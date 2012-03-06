@@ -24,15 +24,12 @@ class colvarproxy_lammps : public colvarproxy {
   class LAMMPS_NS::LAMMPS *_lmp;
   class LAMMPS_NS::RanPark *_random;
 
-  // XXX
-  double thermostat_temperature;
-  double restraint_energy;
-  
-  std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
-  size_t      restart_frequency_s;
-  size_t      previous_NAMD_step;
-  bool        first_timestep;
-  bool        system_force_requested;
+  std::string input_prefix_str, output_prefix_str, restart_prefix_str;
+  double t_target;
+  int  restart_every;
+
+  bool first_timestep;
+  bool system_force_requested;
 
   std::vector<int>          colvars_atoms;
   std::vector<size_t>       colvars_atoms_ncopies;
@@ -42,7 +39,8 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *, const char *);
+  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
+		      const char *, const char *, const int);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor
@@ -50,18 +48,23 @@ class colvarproxy_lammps : public colvarproxy {
   colvarproxy_lammps() {};
   colvarproxy_lammps(const colvarproxy_lammps &) {};
 
- // implementation of pure methods from base class
+  // methods for lammps to push additional info into the proxy
  public:
+  void set_temperature(const double tt) { t_target = tt; };
+
+  // implementation of pure methods from base class
+
+ public:
+
   inline cvm::real unit_angstrom() { return _lmp->force->angstrom; };
   cvm::real boltzmann() { return _lmp->force->boltz; };
-  cvm::real temperature() { return thermostat_temperature; };
+  cvm::real temperature() { return t_target; };
   cvm::real dt() { return _lmp->update->dt * _lmp->force->femtosecond; };
+
   inline std::string input_prefix() { return input_prefix_str; };
-  inline std::string restart_output_prefix() {
-    return restart_output_prefix_str; 
-  };
   inline std::string output_prefix() { return output_prefix_str; };
-  inline size_t restart_frequency() { return restart_frequency_s; };
+  inline std::string restart_output_prefix() { return restart_prefix_str; };
+  inline size_t restart_frequency() { return restart_every; };
 
 #if 0
   /// \brief Reimplements GlobalMaster member function, to be called
@@ -69,7 +72,7 @@ class colvarproxy_lammps : public colvarproxy {
   void calculate();
 #endif
 
-  void add_energy (cvm::real energy) { restraint_energy = energy; };
+  void add_energy (cvm::real energy) { /* XXX */ ; };
   void request_system_force (bool yesno) { system_force_requested = yesno; };
 
   void log (std::string const &message);
@@ -80,7 +83,6 @@ class colvarproxy_lammps : public colvarproxy {
                                   cvm::atom_pos const &pos2);
   cvm::real position_dist2 (cvm::atom_pos const &pos1,
                             cvm::atom_pos const &pos2);
-
   void select_closest_image (cvm::atom_pos &pos,
                              cvm::atom_pos const &ref_pos);
 
@@ -98,13 +100,8 @@ class colvarproxy_lammps : public colvarproxy {
 
   void backup_file(char const *filename);
 
-  cvm::real rand_gaussian(void) {
-    return _random->gaussian();
-  }
+  cvm::real rand_gaussian(void) { return _random->gaussian(); };
 
-  // custom methods to feed data to the lammps fix
-  inline double get_energy() const { return restraint_energy; };
-  
 };
 
 #endif

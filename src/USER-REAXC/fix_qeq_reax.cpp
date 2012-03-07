@@ -152,7 +152,8 @@ void FixQEqReax::pertype_parameters(char *arg)
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if (chi == NULL || eta == NULL || gamma == NULL)
-      error->all(FLERR,"Fix qeq/reax could not extract params from pair reax/c");
+      error->all(FLERR,
+		 "Fix qeq/reax could not extract params from pair reax/c");
     return;
   }
 

@@ -506,7 +506,6 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
   atom->mass = _lmp->atom->mass[c->type];
 
   return colvars_atoms.size()-1;
-;
 }
 
 // atom member functions, LAMMPS specific implementations
@@ -587,60 +586,49 @@ cvm::atom::atom (cvm::residue_id const &residue,
 cvm::atom::atom (cvm::atom const &a)
   : index (a.index), id (a.id), mass (a.mass)
 {
-#if 0
-  // init_namd_atom() has already been called by a's constructor, no
+  // init_lammps_atom() has already been called by a's constructor, no
   // need to call it again
 
   // need to increment the counter anyway
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
   gm->colvars_atoms_ncopies[this->index] += 1;
-#endif
 }
 
 
 cvm::atom::~atom() 
 {
-#if 0
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
   if (gm->colvars_atoms_ncopies[this->index] > 0)
     gm->colvars_atoms_ncopies[this->index] -= 1;
-#endif
 }
 
 
 void cvm::atom::read_position()
 {
-#if 0
   colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
   this->pos = gm->positions[this->index];
-#endif
 }
 
 
 void cvm::atom::read_velocity()
 {
-#if 0
-  cvm::fatal_error ("Error: NAMD does not have yet a way to communicate "
-                    "atom velocities to the colvars.\n");
-#endif
+  cvm::fatal_error("Error: read_velocity is not yet implemented.\n");
 }
 
 
 void cvm::atom::read_system_force()
 {
-#if 0
   colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
-  this->system_force = gm->total_forces[this->index] - gm->applied_forces[this->index];
-#endif
+  this->system_force = gm->total_forces[this->index]
+    - gm->applied_forces[this->index];
 }
 
 
 void cvm::atom::apply_force (cvm::rvector const &new_force)
 {
-#if 0
   colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
-  gm->modifyForcedAtoms().add (this->id);
-  gm->modifyAppliedForces().add (Vector (new_force.x, new_force.y, new_force.z));
-#endif
+  gm->applied_forces[this->index] = cvm::rvector(new_force.x,
+						 new_force.y,
+						 new_force.z);
 }
 

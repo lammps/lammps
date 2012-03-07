@@ -59,7 +59,7 @@ class FixColvars : public Fix {
   char *out_name;      // prefix string for all output files
   char *tmp_name;      // name of thermostat fix.
   int   rng_seed;      // seed to initialize random number generator 
-  int   thermo_id;     // id of the thermostat fix
+  int   tstat_id;      // id of the thermostat fix
 
   int   me;            // my MPI rank in this "world".
   int   num_coords;    // total number of atoms controlled by this fix

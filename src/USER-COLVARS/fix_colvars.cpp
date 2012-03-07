@@ -304,7 +304,7 @@ using namespace FixConst;
                              NULL, but set to <output prefix> at end)
   output  <output prefix>   (defaults to 'out')
   seed    <integer>         (seed for RNG, defaults to '1966')
-  thermo  <fix label>       (label of thermostatting fix)
+  tstat   <fix label>       (label of thermostatting fix)
 
  TODO: add (optional) arguments for RNG seed, temperature compute
  ***************************************************************/
@@ -338,7 +338,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
       out_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "seed")) {
       rng_seed = atoi(arg[argsdone+1]);
-    } else if (0 == strcmp(arg[argsdone], "thermo")) {
+    } else if (0 == strcmp(arg[argsdone], "tstat")) {
       tmp_name = strdup(arg[argsdone+1]);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
@@ -349,7 +349,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (!out_name) out_name = strdup("out");
 
   /* initialize various state variables. */
-  thermo_id = -1;
+  tstat_id = -1;
   nlevels_respa = 0;
   num_coords = 0;
   coords = forces = oforce = comm_buf = NULL;
@@ -368,6 +368,7 @@ FixColvars::~FixColvars()
   memory->sfree(conf_file);
   memory->sfree(inp_name);
   memory->sfree(out_name);
+  memory->sfree(tmp_name);
   deallocate();
 }
 
@@ -600,10 +601,10 @@ void FixColvars::setup(int)
   if (me == 0) {
     double t_target = 0.0;
     if (tmp_name) {
-      thermo_id = modify->find_fix(tmp_name);
-      if (thermo_id < 0) error->one(FLERR,"Could not find thermo fix ID");
-      // XXX: insert code to rip thermostat target temperature from fix.
-      // t_target = modify->fix[thermo_id]->extract("t_target");
+      tstat_id = modify->find_fix(tmp_name);
+      if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
+      double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+      if (tt) t_target = *tt;
     }
     proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,rng_seed,
                                    t_target,coords,forces,oforce,
@@ -619,15 +620,20 @@ void FixColvars::post_force(int vflag)
 {
   // some housekeeping: update status of the proxy as needed.
   if (me == 0) {
-    if (thermo_id < 0) {
+    if (tstat_id < 0) {
       proxy->set_temperature(0.0);
     } else {
-      // XXX: insert code to rip thermostat target temperature from fix.
-      proxy->set_temperature(0.0);
-      // proxy->set_temperature(modify->fix[thermo_id]->extract("t_target"));
+      int tmp;
+      // get thermostat target temperature from corresponding fix,
+      // if the fix supports extraction.
+      double *tt = (double *) modify->fix[tstat_id]->extract("t_target",tmp);
+      if (tt) 
+        proxy->set_temperature(*tt);
+      else 
+        proxy->set_temperature(0.0);
     }
   }
-  
+
   const int * const mask  = atom->mask;
   const int * const tag = atom->tag;
   const int * const type = atom->type;

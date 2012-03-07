@@ -244,7 +244,6 @@ void colvarproxy_lammps::exit(std::string const &message)
   log("Request to exit the simulation made.\n");
 }
 
-#if 0
 enum e_pdb_field {
   e_pdb_none,
   e_pdb_occ,
@@ -292,7 +291,6 @@ e_pdb_field pdb_field_str2enum (std::string const &pdb_field_str)
 
   return pdb_field;
 }
-#endif
 
 void colvarproxy_lammps::load_coords (char const *pdb_filename,
                                     std::vector<cvm::atom_pos> &pos,
@@ -301,13 +299,10 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
                                     double const pdb_field_value)
 {
 
-  log("load_coords called");
-#if 0
-  if (pdb_field_str.size() == 0 && indices.size() == 0) {
-    cvm::fatal_error ("Bug alert: either PDB field should be defined or list of "
-                      "atom IDs should be available when loading atom coordinates!\n");
-  }
+  cvm::fatal_error ("Reading collective variable coordinates "
+		    "from a PDB file is currently not supported.\n");
 
+#if 0
   e_pdb_field pdb_field_index;
   bool const use_pdb_field = (pdb_field_str.size() > 0);
   if (use_pdb_field) {
@@ -416,7 +411,9 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
                                    std::string const pdb_field_str,
                                    double const pdb_field_value)
 {
-  log("load_atoms called");
+  cvm::fatal_error ("Selecting collective variable atoms "
+		    "from a PDB file is currently not supported.\n");
+
 #if 0
   if (pdb_field_str.size() == 0)
     cvm::fatal_error ("Error: must define which PDB field to use "
@@ -542,43 +539,8 @@ cvm::atom::atom (cvm::residue_id const &residue,
                  std::string const     &atom_name,
                  std::string const     &segment_id)
 {
-#if 0
-  AtomID const aid =
-    (segment_id.size() ? 
-       Node::Object()->molecule->get_atom_from_name (segment_id.c_str(),
-                                                     residue,
-                                                     atom_name.c_str()) :
-     Node::Object()->molecule->get_atom_from_name ("MAIN",
-                                                   residue,
-                                                   atom_name.c_str()));
-    
-
-  if (cvm::debug())
-    cvm::log ("Adding atom \""+
-              atom_name+"\" in residue "+
-              cvm::to_str (residue)+
-              " (index "+cvm::to_str (aid)+
-              ") for collective variables calculation.\n");
-
-  if (aid < 0) {
-    // get_atom_from_name() has returned an error value
-    cvm::fatal_error ("Error: could not find atom \""+
-                      atom_name+"\" in residue "+
-                      cvm::to_str (residue)+
-                      ( (segment_id != "MAIN") ?
-                        (", segment \""+segment_id+"\"") :
-                        ("") )+
-                      "\n");
-  }
-
-  this->index = ((colvarproxy_lammps *) cvm::proxy)->init_namd_atom (aid);
-  if (cvm::debug())
-    cvm::log ("The index of this atom in the colvarproxy_namd arrays is "+
-              cvm::to_str (this->index)+".\n");
-  this->id = aid;
-  this->mass = Node::Object()->molecule->atommass (aid);
-  this->reset_data();
-#endif
+  cvm::fatal_error ("Creating collective variable atoms "
+		    "from a PDB file is currently not supported.\n");
 }
 
 

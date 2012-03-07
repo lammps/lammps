@@ -70,27 +70,25 @@ or blank lines.
 </P>
 <PRE># Table of the potential and its negative derivative  
 </PRE>
-DIH_TABLE1                   (keyword is the first text on line)
+<PRE>DIH_TABLE1                   (keyword is the first text on line)
 N 30 DEGREES                 (N, NOF, DEGREES, RADIANS, CHECKU/F)
                              (blank line)
 1 -168.0 -1.40351172223 -0.0423346818422
 2 -156.0 -1.70447981034 -0.00811786522531
 3 -144.0 -1.62956100432 0.0184129719987
-:   :        :               
-
-<PRE>30 180.0 -0.707106781187 -0.0719306095245 
+...
+30 180.0 -0.707106781187 -0.0719306095245 
 </PRE>
 <P># Example 2: table of the potential. Forces omitted
 </P>
 <P>DIH_TABLE2
 N 30 NOF CHECKU testU.dat CHECKF testF.dat
 </P>
-1 -168.0 -1.40351172223
+<PRE>1 -168.0 -1.40351172223
 2 -156.0 -1.70447981034
 3 -144.0 -1.62956100432
-:   :        
-
-<PRE>30 180.0 -0.707106781187 
+...
+30 180.0 -0.707106781187 
 </PRE>
 <P>A section begins with a non−blank line whose 1st character is not a
 "#"; blank lines or lines starting with "#" can be used as comments

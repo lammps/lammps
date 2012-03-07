@@ -521,6 +521,7 @@ colvarmodule::~colvarmodule()
   }
 
   delete parse;
+  proxy = NULL;
 }  
 
 

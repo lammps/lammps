@@ -38,7 +38,6 @@ class Force : protected Pointers {
                                      // hbar = h/(2*pi)
   double angstrom;                   // 1 angstrom in native units
   double femtosecond;                // 1 femtosecond in native units
-  double kcal;			     // 1 kcal in native units
   double qelectron;                  // 1 electron charge abs() in native units
 
   int newton,newton_pair,newton_bond;   // Newton's 3rd law settings

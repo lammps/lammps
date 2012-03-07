@@ -72,6 +72,7 @@ class colvarproxy_lammps : public colvarproxy {
 
   // methods for lammps to push data or trigger actions in the proxy
  public:
+  void set_temperature(double t) { t_target = t; };
 
   // initialize atom structure
   int init_lammps_atom(const int &, cvm::atom *);

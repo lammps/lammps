@@ -28,11 +28,11 @@ FixStyle(colvars,FixColvars)
 
 // forward declaration
 class colvarproxy_lammps;
+struct commdata;
 
 namespace LAMMPS_NS {
 
 class FixColvars : public Fix {
-  friend class colvarproxy_lammps;
 
  public:
   FixColvars(class LAMMPS *, int, char **);
@@ -63,21 +63,18 @@ class FixColvars : public Fix {
 
   int   me;            // my MPI rank in this "world".
   int   num_coords;    // total number of atoms controlled by this fix
-
+  struct commdata *coords; // coordinates of the atoms
+  struct commdata *forces; // received forces of the atoms
+  struct commdata *oforce; // old total forces of the atoms
+  
+  int   nmax;          // size of atom communication buffer.
   int   size_one;      // bytes per atom in communication buffer.
-  int   maxbuf;        // size of atom communication buffer.
-
-  double *masses;      // masses of the atoms
-  void *coord_buf;     // coordinate communication buffer
-  void *force_buf;     // force data buffer
+  struct commdata *comm_buf; // communication buffer
 
   void *idmap;         // hash for mapping atom indices to consistent order.
   int  *rev_idmap;     // list of the hash keys for reverse mapping.
 
   int   nlevels_respa; // flag to determine respa levels.
-
-  int   msglen;
-  char *msgdata;
 };
 
 }

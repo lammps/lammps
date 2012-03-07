@@ -13,6 +13,11 @@
 #include <string>
 #include <vector>
 
+/* struct for packed data communication of coordinates and forces. */
+struct commdata { 
+  int tag,type; 
+  double x,y,z; 
+};
 
 /// \brief Communication between colvars and LAMMPS 
 /// (implementation of \link colvarproxy \endlink)
@@ -20,15 +25,28 @@ class colvarproxy_lammps : public colvarproxy {
 
   // LAMMPS specific data objects and flags
  protected:
-  /// pointer to a LAMMPS class instance
+
+  // pointers to LAMMPS class instances
   class LAMMPS_NS::LAMMPS *_lmp;
   class LAMMPS_NS::RanPark *_random;
-  class LAMMPS_NS::FixColvars *_fix;
 
-  std::string input_prefix_str, output_prefix_str, restart_prefix_str;
+  // pointers to LAMMPS provided storage
+  struct commdata *_coords;
+  struct commdata *_forces;
+  struct commdata *_oforce;
+
+  // function pointer to lookup function
+  int (*_idlookup)(void *, int);
+  void *_idmap;
+
+  // state of LAMMPS properties
   double t_target;
   int  restart_every;
   int  previous_step;
+
+  std::string input_prefix_str;
+  std::string output_prefix_str;
+  std::string restart_prefix_str;
 
   bool first_timestep;
   bool system_force_requested;
@@ -41,8 +59,10 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, LAMMPS_NS::FixColvars *fix,
-		      const char *, const char *, const char *, const int);
+  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
+		      const char *, const int, const double,
+		      struct commdata *, struct commdata *, struct commdata *,
+		      int (*i)(void *,int), void *);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor
@@ -50,11 +70,11 @@ class colvarproxy_lammps : public colvarproxy {
   colvarproxy_lammps() {};
   colvarproxy_lammps(const colvarproxy_lammps &) {};
 
-  // methods for lammps to push data or trigger action in the proxy
+  // methods for lammps to push data or trigger actions in the proxy
  public:
 
-  // update temperature info
-  void set_temperature(const double tt) { t_target = tt; };
+  // initialize atom structure
+  int init_lammps_atom(const int &, cvm::atom *);
 
   // perform colvars computation
   void compute();
@@ -85,8 +105,6 @@ class colvarproxy_lammps : public colvarproxy {
                             cvm::atom_pos const &pos2);
   void select_closest_image (cvm::atom_pos &pos,
                              cvm::atom_pos const &ref_pos);
-
-  int init_lammps_atom(const int &aid);
 
   void load_atoms(char const *filename,
                   std::vector<cvm::atom> &atoms,

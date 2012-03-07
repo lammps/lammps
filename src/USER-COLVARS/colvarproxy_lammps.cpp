@@ -1,6 +1,7 @@
 
 #include "mpi.h"
 #include "lammps.h"
+#include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "output.h"
@@ -55,12 +56,17 @@ static void my_backup_file(const char *filename, const char *extension)
 ////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
-				       LAMMPS_NS::FixColvars *fix,
 				       const char *conf_file,
 				       const char *inp_name,
 				       const char *out_name,
-				       const int seed) 
-  : _lmp(lmp), _fix(fix)
+				       const int seed,
+				       const double tt,
+				       struct commdata *coords,
+				       struct commdata *forces,
+				       struct commdata *oforce,
+				       int (*i)(void *,int), void *m)
+  : _lmp(lmp),_coords(coords),_forces(forces),_oforce(oforce),
+    _idlookup(i),_idmap(m)
 {
   if (cvm::debug())
     log("Info: initializing the colvars proxy object.\n");
@@ -70,7 +76,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   first_timestep=true;
   system_force_requested=false;
   previous_step=-1;
-  t_target = 0.0;
+  t_target = tt;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -133,108 +139,48 @@ void colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log (cvm::line_marker+
-              "colvarproxy_namd, step no. "+cvm::to_str(colvars->it)+"\n"+
+              "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
               "Updating internal data.\n");
   }
 
-#if 0
-  // must delete the forces applied at the previous step: they have
-  // already been used and copied to other memory locations
-  modifyForcedAtoms().resize (0);
-  modifyAppliedForces().resize (0);
-#endif
-
-#if 0
-  // prepare the local arrays to contain the sorted copies of the NAMD
-  // arrays
+  // transfer coordinates and clear forces
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
-    positions[i] = cvm::rvector (0.0, 0.0, 0.0);
-    total_forces[i] = cvm::rvector (0.0, 0.0, 0.0);
-    applied_forces[i] = cvm::rvector (0.0, 0.0, 0.0);
+    int j = (*_idlookup)(_idmap,colvars_atoms[i]);
+    if (j >=0)
+      positions[i] = cvm::rvector(_coords[j].x,_coords[j].y,_coords[j].z);
   }
-#endif
 
-#if 0
-  // sort the positions array
-  for (size_t i = 0; i < colvars_atoms.size(); i++) {
-    bool found_position = false;
-    AtomIDList::const_iterator a_i = this->getAtomIdBegin();
-    AtomIDList::const_iterator a_e = this->getAtomIdEnd();
-    PositionList::const_iterator p_i = this->getAtomPositionBegin();
-    for ( ; a_i != a_e; ++a_i, ++p_i ) {
-      if ( *a_i == colvars_atoms[i] ) {
-        found_position = true;
-        Position const &namd_pos = *p_i;
-        positions[i] = cvm::rvector (namd_pos.x, namd_pos.y, namd_pos.z);
-        break;
-      }
-    }
-    if (!found_position)
-      cvm::fatal_error ("Error: cannot find the position of atom "+
-                        cvm::to_str (colvars_atoms[i]+1)+"\n");
-  }
-#endif
-
-#if 0
   if (system_force_requested && cvm::step_relative() > 0) {
+    cvm::log (cvm::line_marker+
+              "colvarproxy_lammps, system_force request unsupported.\n");
 
     // sort the array of total forces from the previous step (but only
     // do it if there *is* a previous step!)
-    for (size_t i = 0; i < colvars_atoms.size(); i++) {
-      bool found_total_force = false;
-      //found_total_force = false;
-      AtomIDList::const_iterator a_i = this->getForceIdBegin();
-      AtomIDList::const_iterator a_e = this->getForceIdEnd();
-      PositionList::const_iterator f_i = this->getTotalForce();
-      for ( ; a_i != a_e; ++a_i, ++f_i ) {
-        if ( *a_i == colvars_atoms[i] ) {
-          found_total_force = true;
-          Vector const &namd_force = *f_i;
-          total_forces[i] = cvm::rvector (namd_force.x, namd_force.y, namd_force.z);
-          //           if (cvm::debug()) 
-          //             cvm::log ("Found the total force of atom "+
-          //                       cvm::to_str (colvars_atoms[i]+1)+", which is "+
-          //                       cvm::to_str (total_forces[i])+".\n");
-          break;
-        }
-      }
-      if (!found_total_force)
-        cvm::fatal_error ("Error: system forces were requested, but total force on atom "+
-              cvm::to_str (colvars_atoms[i]+1) + " was not\n"
-              "found. The most probable cause is combination of energy minimization with a\n"
-              "biasing method that requires MD (e.g. ABF). Always run minimization\n"
-              "and ABF separately.");
-    }
-
-    // do the same for applied forces
-    for (size_t i = 0; i < colvars_atoms.size(); i++) {
-      AtomIDList::const_iterator a_i = this->getLastAtomsForcedBegin();
-      AtomIDList::const_iterator a_e = this->getLastAtomsForcedEnd();
-      PositionList::const_iterator f_i = this->getLastForcesBegin();
-      for ( ; a_i != a_e; ++a_i, ++f_i ) {
-        if ( *a_i == colvars_atoms[i] ) {
-          Vector const &namd_force = *f_i;
-          if (cvm::debug())
-            cvm::log ("Found a force applied to atom "+
-                      cvm::to_str (colvars_atoms[i]+1)+": "+
-                      cvm::to_str (cvm::rvector (namd_force.x, namd_force.y, namd_force.z))+
-                      "; current total is "+
-                      cvm::to_str (applied_forces[i])+".\n");
-          applied_forces[i] += cvm::rvector (namd_force.x, namd_force.y, namd_force.z);
-        }
-      }
-    }
-  }
+    struct commdata *o = _oforce;
+    for (size_t i = 0; i < colvars_atoms.size(); i++, o++)
+      total_forces[i] = cvm::rvector (o->x, o->y, o->z);
+    
+#if 0  /* add test for running under minimization */
+    if (!found_total_force)
+      cvm::fatal_error ("Error: system forces were requested,"
+			" but total force on atom "+
+			cvm::to_str (colvars_atoms[i]+1) + " was not\n"
+			"found. The most probable cause is combination "
+			"of energy minimization with a\n"
+			"biasing method that requires MD (e.g. ABF). "
+			"Always run minimization\n"
+			"and ABF separately.");
 #endif
-
+    /* XXX: compute "applied force" and figure out this forces mess here */
+  }
+  
   // call the collective variable module
   colvars->calc();
 
 #if 0
-  // send MISC energy
+  // /* add restraint energy to total energy */
   reduction->submit();
 #endif
-
 }
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
@@ -531,8 +477,12 @@ void colvarproxy_lammps::backup_file (char const *filename)
 }
 
 
-int colvarproxy_lammps::init_lammps_atom (const int &aid)
+int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
 {
+  int idx = (*_idlookup)(_idmap,aid);
+  if (idx < 0)
+    return -1;
+
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
       // this atom id was already recorded
@@ -541,35 +491,47 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid)
     }
   }
 
+  struct commdata *c = _coords + idx;
+  struct commdata *f = _forces + idx;
+  struct commdata *o = _oforce + idx;
+
   // allocate a new slot for this atom
   colvars_atoms_ncopies.push_back (1);
   colvars_atoms.push_back (aid);
-  positions.push_back (cvm::rvector());
-  total_forces.push_back (cvm::rvector());
-  applied_forces.push_back (cvm::rvector());
+  positions.push_back(cvm::rvector(c->x,c->y,c->z));
+  total_forces.push_back (cvm::rvector(o->x,o->y,o->z));
+  applied_forces.push_back (cvm::rvector(f->x,f->y,f->z));
 
-  return (colvars_atoms.size()-1);
+  atom->id = c->tag;
+  atom->mass = _lmp->atom->mass[c->type];
+
+  return colvars_atoms.size()-1;
+;
 }
 
 // atom member functions, LAMMPS specific implementations
 
-cvm::atom::atom (const int &atom_number)
+cvm::atom::atom (const int &id)
 {
 
   if (cvm::debug())
-    cvm::log ("Adding atom "+cvm::to_str(atom_number)+
+    cvm::log ("Adding atom "+cvm::to_str(id)+
               " for collective variables calculation.\n");
 
-  if ( (atom_number <= 0) || !((colvarproxy_lammps *) cvm::proxy)->_fix->has_id(atom_number) ) {
-    cvm::fatal_error ("Error: invalid atom number specified, "+
-                      cvm::to_str (atom_number)+"\n");
-  }
-  this->index = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(atom_number);
+  if (id < 0)
+    cvm::fatal_error ("Error: invalid atom ID specified, "+
+                      cvm::to_str (id)+"\n");
+
+  int idx = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(id,this);
+  if (idx < 0)
+    cvm::fatal_error ("Error: atom ID not in fix colvar group, "+
+		      cvm::to_str (id)+"\n");
+
+  this->index = idx;
   if (cvm::debug())
     cvm::log ("The index of this atom in the colvarproxy_lammps arrays is "+
               cvm::to_str (this->index)+".\n");
-  this->id = atom_number;
-  this->mass = ((colvarproxy_lammps *) cvm::proxy)->_fix->get_mass(atom_number);
+
   this->reset_data();
 }
 

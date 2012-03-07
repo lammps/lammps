@@ -80,24 +80,24 @@ The criterion for matching molecule IDs is how bond swaps performed by
 this fix conserve chain length.  To use this features you must setup
 the molecule IDs for your polymer chains in a certain way, typically
 in the data file, read by the "read_data"_read_data.html comand.
-Consider a system of 6-mer chains.  You have 3 choices.  If the
+Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
-swaps will conserve length.  For a particular momoner there will be
-only one other monomer on another chain which is a potential swap
+swaps will conserve chain length.  For a particular momoner there will
+be only one other monomer on another chain which is a potential swap
 partner.  If the molecule IDs for monomers on each chain are set to
-1,2,3,3,2,1 then swaps will conserve length but swaps will be able to
-occur at either end of a chain.  Thus for a particular monomer there
-will be 2 possible swap partners on another chain.  In this scenario,
-swaps can also occur within a single chain, i.e. the two ends of a
-chain swap with each other.  The third choice is to give all monomers
-on all chains the same molecule ID, e.g. 0.  This will allow a wide
-variety of swaps to occur, but will NOT conserve chain lengths.
+1,2,3,3,2,1 then swaps will conserve chain length but swaps will be
+able to occur at either end of a chain.  Thus for a particular monomer
+there will be 2 possible swap partners on another chain.  In this
+scenario, swaps can also occur within a single chain, i.e. the two
+ends of a chain swap with each other.
 
 IMPORTANT NOTE: If your simulation uses molecule IDs in the usual way,
 where all monomers on a single chain are assigned the same ID
 (different for each chain), then swaps will only occur within the same
-chain and will NOT conserve chain length.  This is probably not what
-you want for this fix.
+chain.  If you assign the same molecule ID to all monomers in all
+chains then inter-chain swaps will occur, but they will not conserve
+chain length.  Neither of these scenarios is probably not what you
+want for this fix.
 
 :line
 

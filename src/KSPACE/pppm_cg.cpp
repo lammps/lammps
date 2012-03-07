@@ -221,7 +221,8 @@ void PPPMCG::compute(int eflag, int vflag)
     int nlocal = atom->nlocal;
 
     if (eflag_atom) {
-      for (i = 0; i < nlocal; i++) {
+      for (int j = 0; j < num_charged; j++) {
+        int i = is_charged[j];
 	eatom[i] *= 0.5;
         eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
 	  (g_ewald*g_ewald*volume);
@@ -230,8 +231,10 @@ void PPPMCG::compute(int eflag, int vflag)
     }
 
     if (vflag_atom) {
-      for (i = 0; i < nlocal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*q[i]*qscale;
+      for (int j = 0; j < num_charged; j++) {
+        int i = is_charged[j];
+        for (int n = 0; n < 6; n++) vatom[i][n] *= 0.5*q[i]*qscale;
+      }
     }
   }
 
@@ -394,6 +397,72 @@ void PPPMCG::fieldforce()
 }
 
 /* ----------------------------------------------------------------------
+ interpolate from grid to get per-atom energy/virial
+ ------------------------------------------------------------------------- */
+
+void PPPMCG::fieldforce_peratom()
+{
+    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
+
+    // loop over my charges, interpolate from nearby grid points
+    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // (dx,dy,dz) = distance to "lower left" grid pt
+    // (mx,my,mz) = global coords of moving stencil pt
+
+    double *q = atom->q;
+    double **x = atom->x;
+    double **f = atom->f;
+
+    for (int j = 0; j < num_charged; j++) {
+        i = is_charged[j];
+
+        nx = part2grid[i][0];
+        ny = part2grid[i][1];
+        nz = part2grid[i][2];
+        dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+        dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+        dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+        compute_rho1d(dx,dy,dz);
+
+        u = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
+        for (n = nlower; n <= nupper; n++) {
+            mz = n+nz;
+            z0 = rho1d[2][n];
+            for (m = nlower; m <= nupper; m++) {
+                my = m+ny;
+                y0 = z0*rho1d[1][m];
+                for (l = nlower; l <= nupper; l++) {
+                    mx = l+nx;
+                    x0 = y0*rho1d[0][l];
+                    if (eflag_atom) u += x0*u_brick[mz][my][mx];
+                    if (vflag_atom) {
+                        v0 += x0*v0_brick[mz][my][mx];
+                        v1 += x0*v1_brick[mz][my][mx];
+                        v2 += x0*v2_brick[mz][my][mx];
+                        v3 += x0*v3_brick[mz][my][mx];
+                        v4 += x0*v4_brick[mz][my][mx];
+                        v5 += x0*v5_brick[mz][my][mx];
+                    }
+                }
+            }
+        }
+
+        if (eflag_atom) eatom[i] += q[i]*u;
+        if (vflag_atom) {
+            vatom[i][0] += v0;
+            vatom[i][1] += v1;
+            vatom[i][2] += v2;
+            vatom[i][3] += v3;
+            vatom[i][4] += v4;
+            vatom[i][5] += v5;
+        }
+    }
+}
+
+/* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if 
    adequate empty space is left between repeating slabs (J. Chem. Phys. 
@@ -424,6 +493,16 @@ void PPPMCG::slabcorr()
   const double qscale = force->qqrd2e * scale;
   
   if (eflag_global) energy += qscale * e_slabcorr;
+
+  //per-atom energy
+
+  if (eflag_atom) {
+    double efact = 2.0*MY_PI*dipole_all/volume;
+    for (int j = 0; j < num_charged; j++) {
+      int i = is_charged[j];
+      eatom[i] += qscale * q[i]*x[i][2]*efact;
+    }
+  }
 
   // add on force corrections
 

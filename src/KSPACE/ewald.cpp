@@ -151,9 +151,12 @@ void Ewald::init()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  if (!gewaldflag)
-    g_ewald = sqrt(-log(accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / 
-                        (2.0*q2))) / cutoff;
+  if (!gewaldflag) {
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0)
+      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
+    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+  }
 
   // setup Ewald coefficients so can print stats
 

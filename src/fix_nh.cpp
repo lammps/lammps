@@ -1561,7 +1561,7 @@ double FixNH::compute_vector(int n)
 
 void FixNH::reset_target(double t_new)
 {
-  t_start = t_stop = t_new;
+  t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1585,6 +1585,19 @@ void FixNH::reset_dt()
   
   if (tstat_flag)
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
+}
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixNH::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

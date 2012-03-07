@@ -112,7 +112,7 @@ void FixTempRescale::end_of_step()
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
-  double t_target = t_start + delta * (t_stop-t_start);
+  t_target = t_start + delta * (t_stop-t_start);
 
   // rescale velocity of appropriate atoms if outside window
   // for BIAS:
@@ -186,7 +186,7 @@ int FixTempRescale::modify_param(int narg, char **arg)
 
 void FixTempRescale::reset_target(double t_new)
 {
-  t_start = t_stop = t_new;
+  t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -195,3 +195,17 @@ double FixTempRescale::compute_scalar()
 {
   return energy;
 }
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixTempRescale::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
+}
+

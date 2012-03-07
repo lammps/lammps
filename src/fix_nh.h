@@ -38,6 +38,7 @@ class FixNH : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
   void reset_dt();
+  virtual void *extract(const char*,int &);
 
  protected:
   int dimension,which;

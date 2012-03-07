@@ -147,6 +147,7 @@ class Fix : protected Pointers {
   virtual void reset_dt() {}
 
   virtual int modify_param(int, char **) {return 0;}
+  virtual void *extract(const char *, int &) {return NULL;}
 
   virtual double memory_usage() {return 0.0;}
 

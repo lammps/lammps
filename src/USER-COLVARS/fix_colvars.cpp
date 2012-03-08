@@ -570,6 +570,13 @@ void FixColvars::setup(int)
 
   // now we are ready to initialize the colvar proxy
   if (me == 0) {
+
+    if (inp_name) {
+      if (strcmp(inp_name,"NULL") == 0)
+        memory->sfree(inp_name);
+        inp_name = NULL;
+    }
+
     double t_target = 0.0;
     if (tmp_name) {
       if (strcmp(tmp_name,"NULL") == 0)

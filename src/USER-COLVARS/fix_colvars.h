@@ -75,6 +75,9 @@ class FixColvars : public Fix {
   int  *rev_idmap;     // list of the hash keys for reverse mapping.
 
   int   nlevels_respa; // flag to determine respa levels.
+
+  static  int instances; // count fix instances, since colvars currently
+                         // only supports one instance at a time
 };
 
 }

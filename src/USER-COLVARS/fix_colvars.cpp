@@ -293,6 +293,9 @@ static void id_sort(int *idmap, int left, int right)
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// initialize static class members
+int FixColvars::instances=0;
+
 /***************************************************************
  create class and parse arguments in LAMMPS script. Syntax: 
 
@@ -319,6 +322,10 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   if (atom->rmass_flag)
     error->all(FLERR,"Cannot use fix colvars for atoms with rmass attribute");
+
+  if (instances)
+    error->all(FLERR,"Only one fix colvars can be active at a time");
+  ++instances;
 
   me = comm->me;
   
@@ -353,6 +360,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   nlevels_respa = 0;
   num_coords = 0;
   coords = forces = oforce = comm_buf = NULL;
+  proxy = NULL;
   idmap = NULL;
   rev_idmap = NULL;
 
@@ -370,6 +378,7 @@ FixColvars::~FixColvars()
   memory->sfree(out_name);
   memory->sfree(tmp_name);
   deallocate();
+  --instances;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -381,7 +390,6 @@ void FixColvars::deallocate()
 
   if (proxy) {
     delete proxy;
-
     inthash_t *hashtable = (inthash_t *)idmap;
     memory->sfree(coords);
     memory->sfree(oforce);
@@ -601,10 +609,14 @@ void FixColvars::setup(int)
   if (me == 0) {
     double t_target = 0.0;
     if (tmp_name) {
-      tstat_id = modify->find_fix(tmp_name);
-      if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-      double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
-      if (tt) t_target = *tt;
+      if (strcmp(tmp_name,"NULL") == 0)
+        tstat_id = -1;
+      else {
+        tstat_id = modify->find_fix(tmp_name);
+        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
+        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+        if (tt) t_target = *tt;
+      }
     }
     proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,rng_seed,
                                    t_target,coords,forces,oforce,

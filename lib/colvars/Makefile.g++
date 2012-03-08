@@ -3,7 +3,7 @@
 # ------ SETTINGS ------
 
 CXX =		g++
-CXXFLAGS =	-O2 -funroll-loops -fno-rtti -fno-exceptions -Wall
+CXXFLAGS =	-O2 -g -funroll-loops -Wall
 ARCHIVE =	ar
 ARCHFLAG =	-rscv
 SHELL =		/bin/sh

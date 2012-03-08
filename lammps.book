@@ -148,6 +148,7 @@ doc/fix_bond_break.html
 doc/fix_bond_create.html
 doc/fix_bond_swap.html
 doc/fix_box_relax.html
+doc/fix_colvars.html
 doc/fix_deform.html
 doc/fix_deposit.html
 doc/fix_drag.html

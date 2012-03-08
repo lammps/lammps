@@ -7,7 +7,7 @@ Sampling and Restraints. This code consists of two parts:
 
 - a portable collective variable module library written and
   maintained by Giacomo Fiorin (ICMS, Temple University,
-  Philadelphia, PA, USA) and Jrome Henin (LISM, CNRS,
+  Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS,
   Marseille, France).
   This code is located in the directory lib/colvars and
   needs to be compiled first.

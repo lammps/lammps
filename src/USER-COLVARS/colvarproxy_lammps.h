@@ -41,6 +41,7 @@ class colvarproxy_lammps : public colvarproxy {
 
   // state of LAMMPS properties
   double t_target;
+  double bias_energy;
   int  restart_every;
   int  previous_step;
 
@@ -73,12 +74,13 @@ class colvarproxy_lammps : public colvarproxy {
   // methods for lammps to push data or trigger actions in the proxy
  public:
   void set_temperature(double t) { t_target = t; };
+  bool need_system_forces() const { return  system_force_requested; };
 
   // initialize atom structure
   int init_lammps_atom(const int &, cvm::atom *);
 
-  // perform colvars computation
-  void compute();
+  // perform colvars computation. returns biasing energy
+  double compute();
 
   // implementation of pure methods from base class
  public:
@@ -93,7 +95,7 @@ class colvarproxy_lammps : public colvarproxy {
   inline std::string restart_output_prefix() { return restart_prefix_str; };
   inline size_t restart_frequency() { return restart_every; };
 
-  void add_energy (cvm::real energy) { /* XXX */ ; };
+  void add_energy (cvm::real energy) { bias_energy = energy; };
   void request_system_force (bool yesno) { system_force_requested = yesno; };
 
   void log (std::string const &message);

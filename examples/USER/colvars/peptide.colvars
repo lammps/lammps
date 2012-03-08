@@ -1,11 +1,13 @@
 # collective variable example: monitor distances
 
 colvarsTrajFrequency 10 # output every 10 steps
+colvarsRestartFrequency 100
 
 colvar {
   name groups_distance
 
   outputSystemForce no
+  outputAppliedForce yes
 
   distance {
     group1 {
@@ -15,6 +17,16 @@ colvar {
       atomNumbers 4 5 6
     }
   }
+}
+
+harmonic {
+  name h_pot
+  colvars groups_distance
+  centers 1.78
+  targetCenters 5.0
+  targetNumSteps 300
+  targetNumStages 0
+  forceConstant 1000.0
 }
 
 

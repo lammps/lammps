@@ -121,15 +121,14 @@ colvarproxy_lammps::~colvarproxy_lammps()
 }
 
 // trigger colvars computation 
-void colvarproxy_lammps::compute()
+double colvarproxy_lammps::compute()
 {
   if (first_timestep) {
     first_timestep = false;
   } else {
-    // Use the time step number inherited from GlobalMaster
-    if ( _lmp->update->ntimestep - previous_step == 1 ) {
+    // Use the time step number inherited from LAMMPS
+    if ( _lmp->update->ntimestep - previous_step == 1 )
       colvars->it++;
-    }
     // Other cases could mean:
     // - run 0
     // - beginning of a new run statement
@@ -151,8 +150,8 @@ void colvarproxy_lammps::compute()
   }
 
   if (system_force_requested && cvm::step_relative() > 0) {
-    cvm::log (cvm::line_marker+
-              "colvarproxy_lammps, system_force request unsupported.\n");
+    log(cvm::line_marker+
+	"colvarproxy_lammps, system_force request unsupported.\n");
 
     // sort the array of total forces from the previous step (but only
     // do it if there *is* a previous step!)
@@ -177,10 +176,17 @@ void colvarproxy_lammps::compute()
   // call the collective variable module
   colvars->calc();
 
-#if 0
-  // /* add restraint energy to total energy */
-  reduction->submit();
-#endif
+  // transfer applied forces to force array.
+  for (size_t i = 0; i < colvars_atoms.size(); i++) {
+    const int tag = colvars_atoms[i];
+    const int j = (*_idlookup)(_idmap,tag);
+    if (j >=0)
+      _forces[j].tag = tag;
+      _forces[j].x = applied_forces[i].x;
+      _forces[j].y = applied_forces[i].y;
+      _forces[j].z = applied_forces[i].z;
+  }
+  return bias_energy;
 }
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
@@ -232,8 +238,9 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
   if (!cvm::debug())
-    log ("If this error message is unclear, "
-	 "try recompiling the colvars library with -DCOLVARS_DEBUG.\n");
+    log ("If this error message is unclear, try recompiling the "
+	 "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
+
   _lmp->error->one(FLERR,
 		   "Fatal error in the collective variables module.\n");
 }
@@ -301,109 +308,6 @@ void colvarproxy_lammps::load_coords (char const *pdb_filename,
 
   cvm::fatal_error ("Reading collective variable coordinates "
 		    "from a PDB file is currently not supported.\n");
-
-#if 0
-  e_pdb_field pdb_field_index;
-  bool const use_pdb_field = (pdb_field_str.size() > 0);
-  if (use_pdb_field) {
-    pdb_field_index = pdb_field_str2enum (pdb_field_str);
-  }
-
-  // next index to be looked up in PDB file (if list is supplied)
-  std::vector<int>::const_iterator current_index = indices.begin();
-
-  PDB *pdb = new PDB (pdb_filename);
-  size_t const pdb_natoms = pdb->num_atoms();
-  
-  if (pos.size() != pdb_natoms) {
-
-    bool const pos_allocated = (pos.size() > 0);
-
-    size_t ipos = 0, ipdb = 0;
-    for ( ; ipdb < pdb_natoms; ipdb++) {
-
-      if (use_pdb_field) {
-        // PDB field mode: skip atoms with wrong value in PDB field
-        double atom_pdb_field_value = 0.0;
-
-        switch (pdb_field_index) {
-        case e_pdb_occ:
-          atom_pdb_field_value = (pdb->atom (ipdb))->occupancy();
-          break;
-        case e_pdb_beta:
-          atom_pdb_field_value = (pdb->atom (ipdb))->temperaturefactor();
-          break;
-        case e_pdb_x:
-          atom_pdb_field_value = (pdb->atom (ipdb))->xcoor();
-          break;
-        case e_pdb_y:
-          atom_pdb_field_value = (pdb->atom (ipdb))->ycoor();
-          break;
-        case e_pdb_z:
-          atom_pdb_field_value = (pdb->atom (ipdb))->zcoor();
-          break;
-        default:
-          break;
-        }
-
-        if ( (pdb_field_value) &&
-             (atom_pdb_field_value != pdb_field_value) ) {
-          continue;
-        } else if (atom_pdb_field_value == 0.0) {
-          continue;
-        }
-
-      } else {
-        // Atom ID mode: use predefined atom IDs from the atom group
-        if (ipdb != *current_index) {
-          // Skip atoms not in the list
-          continue;
-        } else {
-          current_index++;
-        }
-      }
-      
-      if (!pos_allocated) {
-        pos.push_back (cvm::atom_pos (0.0, 0.0, 0.0));
-      } else if (ipos >= pos.size()) {
-        cvm::fatal_error ("Error: the PDB file \""+
-                          std::string (pdb_filename)+
-                          "\" contains coordinates for "
-                          "more atoms than needed.\n");
-      }
-
-      pos[ipos] = cvm::atom_pos ((pdb->atom (ipdb))->xcoor(),
-                                 (pdb->atom (ipdb))->ycoor(),
-                                 (pdb->atom (ipdb))->zcoor());
-      ipos++;
-      if (!use_pdb_field && current_index == indices.end())
-        break;
-    }
-
-    if (ipos < pos.size())
-      cvm::fatal_error ("Error: the PDB file \""+
-                        std::string (pdb_filename)+
-                        "\" contains coordinates for only "+
-                        cvm::to_str (ipos)+
-                        " atoms, but "+cvm::to_str (pos.size())+
-                        " are needed.\n");
-
-    if (current_index != indices.end())
-      cvm::fatal_error ("Error: not all atoms found in PDB file.\n");
-
-  } else {
-
-    // when the PDB contains exactly the number of atoms of the array,
-    // ignore the fields and just read coordinates
-    for (size_t ia = 0; ia < pos.size(); ia++) {
-      pos[ia] = cvm::atom_pos ((pdb->atom (ia))->xcoor(),
-                               (pdb->atom (ia))->ycoor(),
-                               (pdb->atom (ia))->zcoor());
-    }
-  }
-
-  delete pdb;
-#endif
 }
 
 void colvarproxy_lammps::load_atoms (char const *pdb_filename,
@@ -413,55 +317,7 @@ void colvarproxy_lammps::load_atoms (char const *pdb_filename,
 {
   cvm::fatal_error ("Selecting collective variable atoms "
 		    "from a PDB file is currently not supported.\n");
-
-#if 0
-  if (pdb_field_str.size() == 0)
-    cvm::fatal_error ("Error: must define which PDB field to use "
-                      "in order to define atoms from a PDB file.\n");
-
-  PDB *pdb = new PDB (pdb_filename);
-  size_t const pdb_natoms = pdb->num_atoms();
-
-  e_pdb_field pdb_field_index = pdb_field_str2enum (pdb_field_str);
-
-  for (size_t ipdb = 0; ipdb < pdb_natoms; ipdb++) {
-
-    double atom_pdb_field_value = 0.0;
-
-    switch (pdb_field_index) {
-    case e_pdb_occ:
-      atom_pdb_field_value = (pdb->atom (ipdb))->occupancy();
-      break;
-    case e_pdb_beta:
-      atom_pdb_field_value = (pdb->atom (ipdb))->temperaturefactor();
-      break;
-    case e_pdb_x:
-      atom_pdb_field_value = (pdb->atom (ipdb))->xcoor();
-      break;
-    case e_pdb_y:
-      atom_pdb_field_value = (pdb->atom (ipdb))->ycoor();
-      break;
-    case e_pdb_z:
-      atom_pdb_field_value = (pdb->atom (ipdb))->zcoor();
-      break;
-    default:
-      break;
-    }
-
-    if ( (pdb_field_value) &&
-         (atom_pdb_field_value != pdb_field_value) ) {
-      continue;
-    } else if (atom_pdb_field_value == 0.0) {
-      continue;
-    }
-     
-    atoms.push_back (cvm::atom (ipdb+1));
-  }
-
-  delete pdb;
-#endif
 }
-
 
 void colvarproxy_lammps::backup_file (char const *filename)
 {
@@ -472,7 +328,6 @@ void colvarproxy_lammps::backup_file (char const *filename)
     my_backup_file (filename, ".BAK");
   }
 }
-
 
 int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
 {
@@ -571,12 +426,10 @@ void cvm::atom::read_position()
   this->pos = cp->positions[this->index];
 }
 
-
 void cvm::atom::read_velocity()
 {
   cvm::fatal_error("Error: read_velocity is not yet implemented.\n");
 }
-
 
 void cvm::atom::read_system_force()
 {
@@ -584,7 +437,6 @@ void cvm::atom::read_system_force()
   this->system_force = cp->total_forces[this->index]
     - cp->applied_forces[this->index];
 }
-
 
 void cvm::atom::apply_force (cvm::rvector const &new_force)
 {

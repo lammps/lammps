@@ -36,21 +36,20 @@ class FixColvars : public Fix {
 
  public:
   FixColvars(class LAMMPS *, int, char **);
-  ~FixColvars();
+  virtual ~FixColvars();
 
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force(int); 
-  void post_force_respa(int, int, int);
-  void post_run();
-  double memory_usage();
+  virtual int setmask();
+  virtual void init();
+  virtual void setup(int);
+  virtual void post_force(int); 
+  virtual void post_force_respa(int, int, int);
+  virtual void post_run();
+  virtual void end_of_step();
+  virtual double compute_scalar();
+  virtual double memory_usage();
 
  protected:
   void   deallocate();        // free internal buffers
- public:
-  bool   has_id(int) const;   // check if atom id (=tag) is in group
-  double get_mass(int) const; // provide mass of atom
 
  protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
@@ -60,6 +59,7 @@ class FixColvars : public Fix {
   char *tmp_name;      // name of thermostat fix.
   int   rng_seed;      // seed to initialize random number generator 
   int   tstat_id;      // id of the thermostat fix
+  double energy;       // biasing energy of the fix
 
   int   me;            // my MPI rank in this "world".
   int   num_coords;    // total number of atoms controlled by this fix
@@ -74,8 +74,8 @@ class FixColvars : public Fix {
   void *idmap;         // hash for mapping atom indices to consistent order.
   int  *rev_idmap;     // list of the hash keys for reverse mapping.
 
-  int   nlevels_respa; // flag to determine respa levels.
-
+  int nlevels_respa;   // flag to determine respa levels.
+  int store_forces;    // flag to determine whether to store total forces 
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
 };

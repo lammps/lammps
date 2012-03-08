@@ -996,10 +996,10 @@ void PPPM::set_grid()
   if (!gewaldflag) {
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0)
-      error->all(FLERR,"Too large accuracy to estimate G vector");
+      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
     g_ewald = sqrt(-log(g_ewald)) / cutoff;
-  }
- 
+  } 
+
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
   // h = 1/g_ewald is upper bound on h such that h*g_ewald <= 1

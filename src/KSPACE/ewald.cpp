@@ -154,7 +154,7 @@ void Ewald::init()
   if (!gewaldflag) {
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0)
-      error->all(FLERR,"Too large accuracy to estimate G vector");
+      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
     g_ewald = sqrt(-log(g_ewald)) / cutoff;
   }
 

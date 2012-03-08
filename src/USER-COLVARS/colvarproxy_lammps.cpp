@@ -60,23 +60,18 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 				       const char *inp_name,
 				       const char *out_name,
 				       const int seed,
-				       const double tt,
-				       struct commdata *coords,
-				       struct commdata *forces,
-				       struct commdata *oforce,
-				       int (*i)(void *,int), void *m)
-  : _lmp(lmp),_coords(coords),_forces(forces),_oforce(oforce),
-    _idlookup(i),_idmap(m)
+				       const int *typemap) 
+  : _lmp(lmp), _typemap(typemap)
 {
   if (cvm::debug())
-    log("Info: initializing the colvars proxy object.\n");
+    log("Initializing the colvars proxy object.\n");
 
   _random = new LAMMPS_NS::RanPark(lmp,seed);
 
   first_timestep=true;
   system_force_requested=false;
   previous_step=-1;
-  t_target = tt;
+  t_target = 0.0;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -101,12 +96,11 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   if (cvm::debug()) {
     log("colvars_atoms = "+cvm::to_str(colvars_atoms)+"\n");
     log("colvars_atoms_ncopies = "+cvm::to_str(colvars_atoms_ncopies)+"\n");
-    log("positions = "+cvm::to_str(positions)+"\n");
-    log("total_forces = "+cvm::to_str(total_forces)+"\n");
-    log("applied_forces = "+cvm::to_str(applied_forces)+"\n");
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
+  // this is only valid through the constructor.
+  _typemap = NULL;
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
@@ -142,50 +136,9 @@ double colvarproxy_lammps::compute()
               "Updating internal data.\n");
   }
 
-  // transfer coordinates and clear forces
-  for (size_t i = 0; i < colvars_atoms.size(); i++) {
-    int j = (*_idlookup)(_idmap,colvars_atoms[i]);
-    if (j >=0)
-      positions[i] = cvm::rvector(_coords[j].x,_coords[j].y,_coords[j].z);
-  }
-
-  if (system_force_requested && cvm::step_relative() > 0) {
-    log(cvm::line_marker+
-	"colvarproxy_lammps, system_force request unsupported.\n");
-
-    // sort the array of total forces from the previous step (but only
-    // do it if there *is* a previous step!)
-    struct commdata *o = _oforce;
-    for (size_t i = 0; i < colvars_atoms.size(); i++, o++)
-      total_forces[i] = cvm::rvector (o->x, o->y, o->z);
-    
-#if 0  /* add test for running under minimization */
-    if (!found_total_force)
-      cvm::fatal_error ("Error: system forces were requested,"
-			" but total force on atom "+
-			cvm::to_str (colvars_atoms[i]+1) + " was not\n"
-			"found. The most probable cause is combination "
-			"of energy minimization with a\n"
-			"biasing method that requires MD (e.g. ABF). "
-			"Always run minimization\n"
-			"and ABF separately.");
-#endif
-    /* XXX: compute "applied force" and figure out this forces mess here */
-  }
-  
   // call the collective variable module
   colvars->calc();
 
-  // transfer applied forces to force array.
-  for (size_t i = 0; i < colvars_atoms.size(); i++) {
-    const int tag = colvars_atoms[i];
-    const int j = (*_idlookup)(_idmap,tag);
-    if (j >=0)
-      _forces[j].tag = tag;
-      _forces[j].x = applied_forces[i].x;
-      _forces[j].y = applied_forces[i].y;
-      _forces[j].z = applied_forces[i].z;
-  }
   return bias_energy;
 }
 
@@ -331,10 +284,6 @@ void colvarproxy_lammps::backup_file (char const *filename)
 
 int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
 {
-  int idx = (*_idlookup)(_idmap,aid);
-  if (idx < 0)
-    return -1;
-
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
       // this atom id was already recorded
@@ -343,19 +292,16 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
     }
   }
 
-  struct commdata *c = _coords + idx;
-  struct commdata *f = _forces + idx;
-  struct commdata *o = _oforce + idx;
-
   // allocate a new slot for this atom
   colvars_atoms_ncopies.push_back (1);
-  colvars_atoms.push_back (aid);
-  positions.push_back(cvm::rvector(c->x,c->y,c->z));
-  total_forces.push_back (cvm::rvector(o->x,o->y,o->z));
-  applied_forces.push_back (cvm::rvector(f->x,f->y,f->z));
+  colvars_atoms.push_back(aid);
+  struct commdata c;
+  positions.push_back(c);
+  total_forces.push_back(c);
+  applied_forces.push_back(c);
 
-  atom->id = c->tag;
-  atom->mass = _lmp->atom->mass[c->type];
+  atom->id = aid;
+  atom->mass = _lmp->atom->mass[_typemap[aid]];
 
   return colvars_atoms.size()-1;
 }
@@ -423,7 +369,9 @@ cvm::atom::~atom()
 void cvm::atom::read_position()
 {
   colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
-  this->pos = cp->positions[this->index];
+  this->pos.x = cp->positions[this->index].x;
+  this->pos.y = cp->positions[this->index].y;
+  this->pos.z = cp->positions[this->index].z;
 }
 
 void cvm::atom::read_velocity()
@@ -434,15 +382,19 @@ void cvm::atom::read_velocity()
 void cvm::atom::read_system_force()
 {
   colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
-  this->system_force = cp->total_forces[this->index]
-    - cp->applied_forces[this->index];
+  this->system_force.x = cp->total_forces[this->index].x
+    - cp->applied_forces[this->index].x;
+  this->system_force.y = cp->total_forces[this->index].y
+    - cp->applied_forces[this->index].y;
+  this->system_force.z = cp->total_forces[this->index].z
+    - cp->applied_forces[this->index].z;
 }
 
 void cvm::atom::apply_force (cvm::rvector const &new_force)
 {
   colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
-  cp->applied_forces[this->index] = cvm::rvector(new_force.x,
-						 new_force.y,
-						 new_force.z);
+  cp->applied_forces[this->index].x = new_force.x;
+  cp->applied_forces[this->index].y = new_force.y;
+  cp->applied_forces[this->index].z = new_force.z;
 }
 

@@ -31,13 +31,7 @@ class colvarproxy_lammps : public colvarproxy {
   class LAMMPS_NS::RanPark *_random;
 
   // pointers to LAMMPS provided storage
-  struct commdata *_coords;
-  struct commdata *_forces;
-  struct commdata *_oforce;
-
-  // function pointer to lookup function
-  int (*_idlookup)(void *, int);
-  void *_idmap;
+  const int *_typemap;
 
   // state of LAMMPS properties
   double t_target;
@@ -54,16 +48,14 @@ class colvarproxy_lammps : public colvarproxy {
 
   std::vector<int>          colvars_atoms;
   std::vector<size_t>       colvars_atoms_ncopies;
-  std::vector<cvm::rvector> positions;
-  std::vector<cvm::rvector> total_forces;
-  std::vector<cvm::rvector> applied_forces;
+  std::vector<struct commdata> positions;
+  std::vector<struct commdata> total_forces;
+  std::vector<struct commdata> applied_forces;
 
  public:
   friend class cvm::atom;
   colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
-		      const char *, const int, const double,
-		      struct commdata *, struct commdata *, struct commdata *,
-		      int (*i)(void *,int), void *);
+		      const char *, const int, const int *);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor
@@ -71,10 +63,14 @@ class colvarproxy_lammps : public colvarproxy {
   colvarproxy_lammps() {};
   colvarproxy_lammps(const colvarproxy_lammps &) {};
 
-  // methods for lammps to push data or trigger actions in the proxy
+  // methods for lammps to move data or trigger actions in the proxy
  public:
   void set_temperature(double t) { t_target = t; };
   bool need_system_forces() const { return  system_force_requested; };
+  std::vector<int> *             get_tags()   { return &colvars_atoms; };
+  std::vector<struct commdata> * get_coords() { return &positions; };
+  std::vector<struct commdata> * get_forces() { return &applied_forces; };
+  std::vector<struct commdata> * get_oforce() { return &total_forces; };
 
   // initialize atom structure
   int init_lammps_atom(const int &, cvm::atom *);

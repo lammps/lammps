@@ -25,6 +25,7 @@ FixStyle(colvars,FixColvars)
 #define LMP_FIX_COLVARS_H
 
 #include "fix.h"
+#include <vector>
 
 // forward declaration
 class colvarproxy_lammps;
@@ -63,13 +64,15 @@ class FixColvars : public Fix {
 
   int   me;            // my MPI rank in this "world".
   int   num_coords;    // total number of atoms controlled by this fix
-  struct commdata *coords; // coordinates of the atoms
-  struct commdata *forces; // received forces of the atoms
-  struct commdata *oforce; // old total forces of the atoms
+  int   *taglist;      // list of all atom IDs referenced by colvars.
+  std::vector<struct commdata> *coords; // coordinates of colvar atoms
+  std::vector<struct commdata> *forces; // received forces of colvar atoms
+  std::vector<struct commdata> *oforce; // old total forces of colvar atoms
   
   int   nmax;          // size of atom communication buffer.
   int   size_one;      // bytes per atom in communication buffer.
   struct commdata *comm_buf; // communication buffer
+  double *force_buf;   // communication buffer
 
   void *idmap;         // hash for mapping atom indices to consistent order.
   int  *rev_idmap;     // list of the hash keys for reverse mapping.

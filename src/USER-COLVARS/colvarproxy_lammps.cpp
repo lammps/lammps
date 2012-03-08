@@ -552,23 +552,23 @@ cvm::atom::atom (cvm::atom const &a)
   // need to call it again
 
   // need to increment the counter anyway
-  colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
-  gm->colvars_atoms_ncopies[this->index] += 1;
+  colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
+  cp->colvars_atoms_ncopies[this->index] += 1;
 }
 
 
 cvm::atom::~atom() 
 {
-  colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
-  if (gm->colvars_atoms_ncopies[this->index] > 0)
-    gm->colvars_atoms_ncopies[this->index] -= 1;
+  colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
+  if (cp->colvars_atoms_ncopies[this->index] > 0)
+    cp->colvars_atoms_ncopies[this->index] -= 1;
 }
 
 
 void cvm::atom::read_position()
 {
-  colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
-  this->pos = gm->positions[this->index];
+  colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
+  this->pos = cp->positions[this->index];
 }
 
 
@@ -580,16 +580,16 @@ void cvm::atom::read_velocity()
 
 void cvm::atom::read_system_force()
 {
-  colvarproxy_lammps const * const gm = (colvarproxy_lammps *) cvm::proxy;
-  this->system_force = gm->total_forces[this->index]
-    - gm->applied_forces[this->index];
+  colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
+  this->system_force = cp->total_forces[this->index]
+    - cp->applied_forces[this->index];
 }
 
 
 void cvm::atom::apply_force (cvm::rvector const &new_force)
 {
-  colvarproxy_lammps *gm = (colvarproxy_lammps *) cvm::proxy;
-  gm->applied_forces[this->index] = cvm::rvector(new_force.x,
+  colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
+  cp->applied_forces[this->index] = cvm::rvector(new_force.x,
 						 new_force.y,
 						 new_force.z);
 }

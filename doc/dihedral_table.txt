@@ -86,7 +86,7 @@ N 30 NOF CHECKU testU.dat CHECKF testF.dat :pre
 ...
 30 180.0 -0.707106781187 :pre
 
-A section begins with a non−blank line whose 1st character is not a
+A section begins with a non-blank line whose 1st character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections. The first line begins with a keyword which
 identifies the section. The line can contain additional text, but the
@@ -98,8 +98,8 @@ keyword followed by one or more numeric values.
 Following a blank line, the next N lines list the tabulated values. On
 each line, the 1st value is the index from 1 to N, the 2nd value is
 the angle value, the 3rd value is the energy (in energy units), and
-the 4th is −dE/d(phi) also in energy units). The 3rd term is the
-energy of the 3−atom configuration for the specified angle.  The 4th
+the 4th is -dE/d(phi) also in energy units). The 3rd term is the
+energy of the 4-atom configuration for the specified angle.  The 4th
 term (when present) is the negative derivative of the energy with
 respect to the angle (in degrees, or radians depending on whether the
 user selected DEGREES or RADIANS).  Thus the units of the last term

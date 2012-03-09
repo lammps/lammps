@@ -127,7 +127,11 @@ void AtomVecAngleCuda::grow_send(int n,double** buf_send,int flag)  //need to be
 void AtomVecAngleCuda::grow_both(int n)
 {
   if(cuda->finished_setup)
-  cuda->downloadAll();	
+  {
+    cuda->cu_special->upload();
+    cuda->cu_nspecial->upload();
+    cuda->downloadAll();
+  }
   AtomVecAngle::grow(n);
   if(cuda->finished_setup)
   {

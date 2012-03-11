@@ -42,6 +42,7 @@ class FixColvars : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  virtual void min_post_force(int); 
   virtual void post_force(int); 
   virtual void post_force_respa(int, int, int);
   virtual void post_run();

@@ -139,6 +139,15 @@ double colvarproxy_lammps::compute()
   // call the collective variable module
   colvars->calc();
 
+#if 0
+  for (int i=0; i < colvars_atoms.size(); ++i) {
+    fprintf(stderr,"CV: atom %d/%d/%d pos: %g %g %g  for: %g %g %g\n",
+	    colvars_atoms[i], colvars_atoms_ncopies[i],
+	    positions[i].type, positions[i].x, positions[i].y, positions[i].z,
+	    applied_forces[i].x, applied_forces[i].y, applied_forces[i].z);
+  }
+#endif
+
   return bias_energy;
 }
 
@@ -284,6 +293,9 @@ void colvarproxy_lammps::backup_file (char const *filename)
 
 int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
 {
+  atom->id = aid;
+  atom->mass = _lmp->atom->mass[_typemap[aid]];
+
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
       // this atom id was already recorded
@@ -299,9 +311,6 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
   positions.push_back(c);
   total_forces.push_back(c);
   applied_forces.push_back(c);
-
-  atom->id = aid;
-  atom->mass = _lmp->atom->mass[_typemap[aid]];
 
   return colvars_atoms.size()-1;
 }
@@ -321,8 +330,7 @@ cvm::atom::atom (const int &id)
 
   int idx = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(id,this);
   if (idx < 0)
-    cvm::fatal_error ("Error: atom ID not in fix colvar group, "+
-		      cvm::to_str (id)+"\n");
+    cvm::fatal_error ("Error: atom ID , "+cvm::to_str(id)+" does not exist.\n");
 
   this->index = idx;
   if (cvm::debug())

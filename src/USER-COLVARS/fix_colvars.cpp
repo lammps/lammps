@@ -400,6 +400,8 @@ void FixColvars::post_run()
 int FixColvars::setmask()
 {
   int mask = 0;
+  mask |= THERMO_ENERGY;
+  mask |= MIN_POST_FORCE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= POST_RUN;
@@ -408,20 +410,15 @@ int FixColvars::setmask()
 }
 
 /* ---------------------------------------------------------------------- */
+
+// initial setup of colvars run.
+
 void FixColvars::init()
 {
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  return;
-}
 
-/* ---------------------------------------------------------------------- */
-
-// initial setup of colvars run.
-
-void FixColvars::setup(int)
-{
   int i,nme,tmp,ndata;
 
   MPI_Status status;
@@ -431,11 +428,12 @@ void FixColvars::setup(int)
   // the colvar module requires this information to set masses. :-(
 
   int *typemap,*type_buf;
-  int nlocal,nlocal_max,tag_max,max = 0;
+  int nlocal,nlocal_max,tag_max,max;
   const int * const tag  = atom->tag;
   const int * const type = atom->type;
 
   nlocal = atom->nlocal;
+  max=0;
   for (i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&tag_max,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&nlocal,&nlocal_max,1,MPI_INT,MPI_MAX,world);
@@ -444,12 +442,11 @@ void FixColvars::setup(int)
     typemap = new int[tag_max+1];
     memset(typemap,0,sizeof(int)*tag_max);
   }
-
   type_buf = new int[2*nlocal_max];
+
   if (me == 0) {
-    for (i=0; i<nlocal; ++i) {
+    for (i=0; i<nlocal; ++i)
       typemap[tag[i]] = type[i];
-    }
 
     // loop over procs to receive and apply remote data
 
@@ -459,9 +456,8 @@ void FixColvars::setup(int)
       MPI_Wait(&request, &status);
       MPI_Get_count(&status, MPI_INT, &ndata);
 
-      for (int k=0; k<ndata; k+=2) {
+      for (int k=0; k<ndata; k+=2)
         typemap[type_buf[k]] = type_buf[k+1];
-      }
     }
   } else { // me != 0
 
@@ -469,8 +465,9 @@ void FixColvars::setup(int)
 
     nme = 0;
     for (i=0; i<nlocal; ++i) {
-      type_buf[nme++] = tag[i];
-      type_buf[nme++] = type[i];
+      type_buf[nme] = tag[i];
+      type_buf[nme+1] = type[i];
+      nme +=2;
     }
     /* blocking receive to wait until it is our turn to send data. */
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
@@ -604,6 +601,16 @@ void FixColvars::setup(int)
 }
 
 /* ---------------------------------------------------------------------- */
+
+void FixColvars::setup(int vflag)
+{
+  if (strstr(update->integrate_style,"verlet"))
+    post_force(vflag);
+  else
+    post_force_respa(vflag,0,0);
+}
+
+/* ---------------------------------------------------------------------- */
 /* Main colvars handler:
  * Send coodinates and add colvar forces to atoms. */
 void FixColvars::post_force(int vflag)
@@ -652,12 +659,9 @@ void FixColvars::post_force(int vflag)
       const int k = atom->map(taglist[i]);
       if (k< 0) continue;
       
-      const int j = inthash_lookup(idmap, tag[i]);
-      if (j != HASH_FAIL) {
-        cd[j].x = x[k][0];
-        cd[j].y = x[k][1];
-        cd[j].z = x[k][2];
-      }
+      cd[i].x = x[k][0];
+      cd[i].y = x[k][1];
+      cd[i].z = x[k][2];
     }
 
     /* loop over procs to receive remote data */
@@ -729,6 +733,12 @@ void FixColvars::post_force(int vflag)
     f[k][1] += force_buf[3*i+1];
     f[k][2] += force_buf[3*i+2];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+void FixColvars::min_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

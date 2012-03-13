@@ -96,6 +96,8 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   if (cvm::debug()) {
     log("colvars_atoms = "+cvm::to_str(colvars_atoms)+"\n");
     log("colvars_atoms_ncopies = "+cvm::to_str(colvars_atoms_ncopies)+"\n");
+    log("positions = "+cvm::to_str(positions)+"\n");
+    log("applied_forces = "+cvm::to_str(applied_forces)+"\n");
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
@@ -131,9 +133,9 @@ double colvarproxy_lammps::compute()
   previous_step = _lmp->update->ntimestep;
 
   if (cvm::debug()) {
-    cvm::log (cvm::line_marker+
-              "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
-              "Updating internal data.\n");
+    cvm::log(cvm::line_marker+
+	     "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
+	     "Updating internal data.\n");
   }
 
   // call the collective variable module
@@ -158,7 +160,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
   _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
-  return cvm::rvector (xtmp, ytmp, ztmp);
+  return cvm::rvector(xtmp, ytmp, ztmp);
 }
 
 cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
@@ -186,9 +188,9 @@ inline void colvarproxy_lammps::select_closest_image(cvm::atom_pos &pos,
 
 void colvarproxy_lammps::log(std::string const &message)
 {
-  std::istringstream is (message);
+  std::istringstream is(message);
   std::string line;
-  while (std::getline (is, line)) {
+  while (std::getline(is, line)) {
     if (_lmp->screen)
       fprintf(_lmp->screen,"colvars: %s\n",line.c_str());
     if (_lmp->logfile)
@@ -200,7 +202,7 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
   if (!cvm::debug())
-    log ("If this error message is unclear, try recompiling the "
+    log("If this error message is unclear, try recompiling the "
 	 "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
 
   _lmp->error->one(FLERR,
@@ -224,74 +226,74 @@ enum e_pdb_field {
 };
 
 
-e_pdb_field pdb_field_str2enum (std::string const &pdb_field_str)
+e_pdb_field pdb_field_str2enum(std::string const &pdb_field_str)
 {
   e_pdb_field pdb_field = e_pdb_none;
 
-  if (colvarparse::to_lower_cppstr (pdb_field_str) ==
-      colvarparse::to_lower_cppstr ("O")) {
+  if (colvarparse::to_lower_cppstr(pdb_field_str) ==
+      colvarparse::to_lower_cppstr("O")) {
     pdb_field = e_pdb_occ;
   }
 
-  if (colvarparse::to_lower_cppstr (pdb_field_str) ==
-      colvarparse::to_lower_cppstr ("B")) {
+  if (colvarparse::to_lower_cppstr(pdb_field_str) ==
+      colvarparse::to_lower_cppstr("B")) {
     pdb_field = e_pdb_beta;
   }
 
-  if (colvarparse::to_lower_cppstr (pdb_field_str) ==
-      colvarparse::to_lower_cppstr ("X")) {
+  if (colvarparse::to_lower_cppstr(pdb_field_str) ==
+      colvarparse::to_lower_cppstr("X")) {
     pdb_field = e_pdb_x;
   }
   
-  if (colvarparse::to_lower_cppstr (pdb_field_str) ==
-      colvarparse::to_lower_cppstr ("Y")) {
+  if (colvarparse::to_lower_cppstr(pdb_field_str) ==
+      colvarparse::to_lower_cppstr("Y")) {
     pdb_field = e_pdb_y;
   }
 
-  if (colvarparse::to_lower_cppstr (pdb_field_str) ==
-      colvarparse::to_lower_cppstr ("Z")) {
+  if (colvarparse::to_lower_cppstr(pdb_field_str) ==
+      colvarparse::to_lower_cppstr("Z")) {
     pdb_field = e_pdb_z;
   }
 
   if (pdb_field == e_pdb_none) {
-    cvm::fatal_error ("Error: unsupported PDB field, \""+
+    cvm::fatal_error("Error: unsupported PDB field, \""+
                       pdb_field_str+"\".\n");
   }
 
   return pdb_field;
 }
 
-void colvarproxy_lammps::load_coords (char const *pdb_filename,
+void colvarproxy_lammps::load_coords(char const *pdb_filename,
                                     std::vector<cvm::atom_pos> &pos,
                                     const std::vector<int> &indices,
                                     std::string const pdb_field_str,
                                     double const pdb_field_value)
 {
 
-  cvm::fatal_error ("Reading collective variable coordinates "
+  cvm::fatal_error("Reading collective variable coordinates "
 		    "from a PDB file is currently not supported.\n");
 }
 
-void colvarproxy_lammps::load_atoms (char const *pdb_filename,
+void colvarproxy_lammps::load_atoms(char const *pdb_filename,
                                    std::vector<cvm::atom> &atoms,
                                    std::string const pdb_field_str,
                                    double const pdb_field_value)
 {
-  cvm::fatal_error ("Selecting collective variable atoms "
+  cvm::fatal_error("Selecting collective variable atoms "
 		    "from a PDB file is currently not supported.\n");
 }
 
-void colvarproxy_lammps::backup_file (char const *filename)
+void colvarproxy_lammps::backup_file(char const *filename)
 {
-  if (std::string (filename).rfind (std::string (".colvars.state"))
+  if (std::string(filename).rfind(std::string(".colvars.state"))
       != std::string::npos) {
-    my_backup_file (filename, ".old");
+    my_backup_file(filename, ".old");
   } else {
-    my_backup_file (filename, ".BAK");
+    my_backup_file(filename, ".BAK");
   }
 }
 
-int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
+int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
 {
   atom->id = aid;
   atom->mass = _lmp->atom->mass[_typemap[aid]];
@@ -305,9 +307,12 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
   }
 
   // allocate a new slot for this atom
-  colvars_atoms_ncopies.push_back (1);
+  colvars_atoms_ncopies.push_back(1);
   colvars_atoms.push_back(aid);
   struct commdata c;
+  c.tag = aid;
+  c.type = _typemap[aid];
+  c.x = c.y = c.z = 0.0;
   positions.push_back(c);
   total_forces.push_back(c);
   applied_forces.push_back(c);
@@ -317,25 +322,25 @@ int colvarproxy_lammps::init_lammps_atom (const int &aid, cvm::atom *atom)
 
 // atom member functions, LAMMPS specific implementations
 
-cvm::atom::atom (const int &id)
+cvm::atom::atom(const int &id)
 {
 
   if (cvm::debug())
-    cvm::log ("Adding atom "+cvm::to_str(id)+
-              " for collective variables calculation.\n");
+    cvm::log("Adding atom "+cvm::to_str(id)+
+	     " for collective variables calculation.\n");
 
   if (id < 0)
-    cvm::fatal_error ("Error: invalid atom ID specified, "+
-                      cvm::to_str (id)+"\n");
+    cvm::fatal_error("Error: invalid atom ID specified, "+
+		     cvm::to_str(id)+"\n");
 
   int idx = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(id,this);
   if (idx < 0)
-    cvm::fatal_error ("Error: atom ID , "+cvm::to_str(id)+" does not exist.\n");
+    cvm::fatal_error("Error: atom ID , "+cvm::to_str(id)+" does not exist.\n");
 
   this->index = idx;
   if (cvm::debug())
-    cvm::log ("The index of this atom in the colvarproxy_lammps arrays is "+
-              cvm::to_str (this->index)+".\n");
+    cvm::log("The index of this atom in the colvarproxy_lammps arrays is "+
+	     cvm::to_str(this->index)+".\n");
 
   this->reset_data();
 }
@@ -344,18 +349,18 @@ cvm::atom::atom (const int &id)
 /// For AMBER topologies, the segment id is automatically set to
 /// "MAIN" (the segment id assigned by NAMD's AMBER topology parser),
 /// and is therefore optional when an AMBER topology is used
-cvm::atom::atom (cvm::residue_id const &residue,
-                 std::string const     &atom_name,
-                 std::string const     &segment_id)
+cvm::atom::atom(cvm::residue_id const &residue,
+		std::string const     &atom_name,
+		std::string const     &segment_id)
 {
-  cvm::fatal_error ("Creating collective variable atoms "
-		    "from a PDB file is currently not supported.\n");
+  cvm::fatal_error("Creating collective variable atoms "
+		   "from a PDB file is currently not supported.\n");
 }
 
 
 // copy constructor
-cvm::atom::atom (cvm::atom const &a)
-  : index (a.index), id (a.id), mass (a.mass)
+cvm::atom::atom(cvm::atom const &a)
+  : index(a.index), id(a.id), mass(a.mass)
 {
   // init_lammps_atom() has already been called by a's constructor, no
   // need to call it again
@@ -398,7 +403,7 @@ void cvm::atom::read_system_force()
     - cp->applied_forces[this->index].z;
 }
 
-void cvm::atom::apply_force (cvm::rvector const &new_force)
+void cvm::atom::apply_force(cvm::rvector const &new_force)
 {
   colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
   cp->applied_forces[this->index].x = new_force.x;

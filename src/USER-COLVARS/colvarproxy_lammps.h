@@ -12,11 +12,19 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 /* struct for packed data communication of coordinates and forces. */
 struct commdata { 
   int tag,type; 
   double x,y,z; 
+};
+
+inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
+{
+  out << " (" << cd.tag << "/" << cd.type << ": " 
+      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
+  return out;
 };
 
 /// \brief Communication between colvars and LAMMPS 

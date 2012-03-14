@@ -131,7 +131,7 @@ in a time-dependent fashion using equal-style
 variable ramp equal ramp(0,10)
 fix 1 all wall/srd xlo v_ramp :pre
 
-variable linear equal vlinear(0,20)
+variable linear equal vdisplace(0,20)
 fix 1 all wall/srd xlo v_linear :pre
 
 variable wiggle equal swiggle(0.0,5.0,3.0)

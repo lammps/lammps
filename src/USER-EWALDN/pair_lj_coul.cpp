@@ -168,9 +168,9 @@ void *PairLJCoul::extract(const char *id, int &dim)
 {
   char *ids[] = {
     "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
-    "cut_coul", NULL};
+    "cut_coul", "cut_LJ", NULL};
   void *ptrs[] = {
-    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul, NULL};
+    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul, &cut_lj_global, NULL};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);

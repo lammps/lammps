@@ -61,6 +61,8 @@ EwaldN::EwaldN(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   energy_self_peratom = NULL;
   virial_self_peratom = NULL;
   nmax = 0;
+  q2 = 0;
+  b2 = 0;
 }
 
 EwaldN::~EwaldN()
@@ -131,45 +133,75 @@ void EwaldN::init()
       nfunctions += function[k] = 1;
       nsums += n[k];
     }
-  
-  double qsum, qsqsum;
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
+    
+    
+  g_ewald = 0;
+  pair->init();  // so B is defined
+  init_coeffs();
+  init_coeff_sums();  
+    
+  double qsum, qsqsum, bsbsum;
+  qsum = qsqsum = bsbsum = 0.0;
+  if (function[0]) {
+    qsum = sum[0].x;
+    qsqsum = sum[0].x2;
   }
-
-  double qsum_tmp;
-  MPI_Allreduce(&qsum,&qsum_tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = qsum_tmp;
-  MPI_Allreduce(&qsqsum,&qsum_tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = qsum_tmp;
-
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
+  if (function[1]) {
+    bsbsum = sum[1].x2;
+  } 
+  if (function[2]) {
+    bsbsum = sum[2].x2;
+  }    
+    
+    
+  if (qsqsum == 0.0 && bsbsum == 0.0)
+      error->all(FLERR,"Cannot use Ewald/n solver on system with no charge or LJ particles");
   if (fabs(qsum) > SMALL && comm->me == 0) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(FLERR,str);
+      char str[128];
+      sprintf(str,"System is not charge neutral, net charge = %g",qsum);
+      error->warning(FLERR,str);
   }
-
-  // set accuracy (force units) from accuracy_relative or accuracy_absolute
-  
+    
+  //set accuracy (force units) from accuracy_relative or accuracy_absolute
+    
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
-  
+    
   // setup K-space resolution
-
+    
   q2 = qsqsum * force->qqrd2e / force->dielectric;
+  b2 = bsbsum; //Are these units right?
   bigint natoms = atom->natoms;
-  
-  g_ewald = sqrt(-log(accuracy*sqrt(natoms*(*cutoff)*shape_det(domain->h)) / 
-                      (2.0*q2))) / *cutoff;
-
-  if (!comm->me) {					// output results
-    if (screen) fprintf(screen, "  G vector = %g\n", g_ewald);
-    if (logfile) fprintf(logfile, "  G vector = %g\n", g_ewald);
+    
+  if (function[0]) {       //Coulombic
+    g_ewald = accuracy*sqrt(natoms*(*cutoff)*shape_det(domain->h)) / (2.0*q2);
+    if (g_ewald >= 1.0)
+        error->all(FLERR,"KSpace accuracy too large to estimate G vector");
+    g_ewald = sqrt(-log(g_ewald)) / *cutoff;
   }
+  else if (function[1] || function[2]) {    //Only LJ
+
+    double *cutoffLJ = pair ? (double *) pair->extract("cut_LJ",tmp) : NULL;
+    
+    //Try Newton Solver
+    
+    //Use old method to get guess
+    g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoffLJ;
+      
+    double g_ewald_new = NewtonSolve(g_ewald,(*cutoffLJ),natoms,shape_det(domain->h),b2);
+           
+    if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
+    else error->warning(FLERR,"Ewald/n Newton solver failed, using old method to estimate g_ewald");  
+    
+    if (g_ewald >= 1.0)
+        error->all(FLERR,"KSpace accuracy too large to estimate G vector");
+  }
+    
+  if (!comm->me) {					// output results
+      if (screen) fprintf(screen, "  G vector = %g\n", g_ewald);
+      if (logfile) fprintf(logfile, "  G vector = %g\n", g_ewald);
+  }  
+    
     
   deallocate_peratom();
   peratom_allocate_flag = 0;
@@ -186,40 +218,42 @@ void EwaldN::setup()
   memcpy(unit, domain->h_inv, sizeof(shape));		// wave vector units
   shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
-
+    
   //int nbox_old = nbox, nkvec_old = nkvec;
-  if (accuracy>=1) nbox = 0;
-  else {
-    bigint natoms = atom->natoms;
-    double err;
-    double kxmax = 1;
-    double kymax = 1;
-    double kzmax = 1;
-    err = rms(kxmax,domain->h[0],natoms,q2);
-    while (err > accuracy) {
-      kxmax++;
-      err = rms(kxmax,domain->h[0],natoms,q2);
-    }
-    err = rms(kymax,domain->h[1],natoms,q2);
-    while (err > accuracy) {
-      kymax++;
-      err = rms(kymax,domain->h[1],natoms,q2);
-    }
-    err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2);
-    while (err > accuracy) {
-      kzmax++;
-      err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2);
-    } 
-    nbox = MAX(kxmax,kymax);
-    nbox = MAX(nbox,kzmax);
-    double gsqxmx = unit[0]*unit[0]*kxmax*kxmax;
-    double gsqymx = unit[1]*unit[1]*kymax*kymax;
-    double gsqzmx = unit[2]*unit[2]*kzmax*kzmax;
-    gsqmx = MAX(gsqxmx,gsqymx);
-    gsqmx = MAX(gsqmx,gsqzmx);
+  if (accuracy>=1) {
+    nbox = 0;
+    error->all(FLERR,"KSpace accuracy too low"); 
   }
+    
+  bigint natoms = atom->natoms;
+  double err;
+  int kxmax = 1;
+  int kymax = 1;
+  int kzmax = 1;
+  err = rms(kxmax,domain->h[0],natoms,q2,b2);
+  while (err > accuracy) {
+    kxmax++;
+    err = rms(kxmax,domain->h[0],natoms,q2,b2);
+  }
+  err = rms(kymax,domain->h[1],natoms,q2,b2);
+  while (err > accuracy) {
+    kymax++;
+    err = rms(kymax,domain->h[1],natoms,q2,b2);
+  }
+  err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2,b2);
+  while (err > accuracy) {
+    kzmax++;
+    err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2,b2);
+  } 
+  nbox = MAX(kxmax,kymax);
+  nbox = MAX(nbox,kzmax);
+  double gsqxmx = unit[0]*unit[0]*kxmax*kxmax;
+  double gsqymx = unit[1]*unit[1]*kymax*kymax;
+  double gsqzmx = unit[2]*unit[2]*kzmax*kzmax;
+  gsqmx = MAX(gsqxmx,gsqymx);
+  gsqmx = MAX(gsqmx,gsqzmx);
+    
   reallocate();
-  
   coefficients();					// compute coeffs
   init_coeffs();
   init_coeff_sums();
@@ -238,12 +272,27 @@ void EwaldN::setup()
    compute RMS accuracy for a dimension
 ------------------------------------------------------------------------- */
 
-double EwaldN::rms(int km, double prd, bigint natoms, double q2)
-{
-  double value = 2.0*q2*g_ewald/prd * 
+double EwaldN::rms(int km, double prd, bigint natoms, double q2, double b2)
+{  
+  double value = 0.0;
+    
+  //Coulombic 
+    
+  double g2 = g_ewald*g_ewald;
+    
+  value += 2.0*q2*g_ewald/prd * 
     sqrt(1.0/(MY_PI*km*natoms)) * 
-    exp(-MY_PI*MY_PI*km*km/(g_ewald*g_ewald*prd*prd));
-
+    exp(-MY_PI*MY_PI*km*km/(g2*prd*prd));
+    
+  //Lennard-Jones  
+    
+  double g7 = g2*g2*g2*g_ewald;
+    
+  value += 4.0*b2*g7/3.0 * 
+    sqrt(1.0/(MY_PI*natoms)) * 
+    (exp(-MY_PI*MY_PI*km*km/(g2*prd*prd)) *
+    (MY_PI*km/(g_ewald*prd) + 1));
+    
   return value;
 }
 
@@ -1125,4 +1174,48 @@ void EwaldN::compute_slabcorr()
   
   for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
+
+/* ----------------------------------------------------------------------
+  Newton solver used to find g_ewald for LJ systems
+ ------------------------------------------------------------------------- */
+
+double EwaldN::NewtonSolve(double x, double Rc, bigint natoms, double vol, double b2)
+{
+  double dx,tol;
+  int maxit;
+
+  maxit = 10000; //Maximum number of iterations
+  tol = 0.00001; //Convergence tolerance
+        
+  //Begin algorithm
+  
+  for (int i = 0; i < maxit; i++) {
+    dx = f(x,Rc,natoms,vol,b2) / derivf(x,Rc,natoms,vol,b2); 
+    x = x - dx; //Update x
+    if (fabs(dx) < tol) return x;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+ Calculate f(x)
+ ------------------------------------------------------------------------- */
+
+double EwaldN::f(double x, double Rc, bigint natoms, double vol, double b2)
+{
+  double a = Rc*x;
+  double f = (4.0*MY_PI*b2*pow(x,4)/vol/sqrt(natoms)*erfc(a) *
+    (6.0*pow(a,-5.0) + 6.0*pow(a,-3.0) + 3.0/a + a) - accuracy);
+  return f;
+}
+
+/* ----------------------------------------------------------------------
+ Calculate numerical derivative f'(x)
+ ------------------------------------------------------------------------- */
+            
+double EwaldN::derivf(double x, double Rc, bigint natoms, double vol, double b2)
+{  
+  double h = 0.000001;  //Derivative step-size
+  return (f(x + h,Rc,natoms,vol,b2) - f(x,Rc,natoms,vol,b2)) / h;
+}       
 

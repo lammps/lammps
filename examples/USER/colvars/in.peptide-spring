@@ -25,8 +25,8 @@ group		colvar union one two ref
 
 fix		1 all nvt temp 275.0 275.0 100.0 tchain 1
 
-fix		3a one spring couple ref 100.0 AUTO AUTO AUTO 10.0
-fix		3b two spring couple ref 100.0 AUTO AUTO AUTO 10.0
+fix		3a one spring couple ref 100.0 0.0 0.0 0.0 10.0
+fix		3b two spring couple ref 100.0 0.0 0.0 0.0 10.0
 
 fix		2a ref setforce 0.0 0.0 0.0
 

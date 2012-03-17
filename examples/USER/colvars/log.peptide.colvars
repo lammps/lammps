@@ -181,19 +181,19 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.00306008
      100    260.10504   -5292.6891   -6339.1177    1046.4286   -6471.6693    25.361886   0.21986867 
 colvars: Saving collective variables state to "out.colvars.state".
-Loop time of 0.641113 on 8 procs for 100 steps with 2004 atoms
+Loop time of 0.443301 on 8 procs for 100 steps with 2004 atoms
 
- Pair time (%) = 0.290018 (45.2367)
- Bond time (%) = 0.00116482 (0.181688)
-Kspace time (%) = 0.224065 (34.9494)
-Neigh time (%) = 0.04698 (7.32788)
- Comm time (%) = 0.0346973 (5.41205)
-Output time (%) = 0.0084672 (1.3207)
-Modify time (%) = 0.0322374 (5.02834)
-Other time (%) = 0.00348306 (0.543283)
+ Pair time (%) = 0.245459 (55.3708)
+ Bond time (%) = 0.00108373 (0.244468)
+Kspace time (%) = 0.0620093 (13.9881)
+Neigh time (%) = 0.0400429 (9.03288)
+ Comm time (%) = 0.0573151 (12.9292)
+Output time (%) = 0.0120609 (2.7207)
+Modify time (%) = 0.0223317 (5.03759)
+Other time (%) = 0.0029982 (0.676335)
 
-FFT time (% of Kspce) = 0.0132143 (5.89755)
-FFT Gflps 3d (1d only) = 4.14988 9.96458
+FFT time (% of Kspce) = 0.00953376 (15.3747)
+FFT Gflps 3d (1d only) = 5.75198 19.7389
 
 Nlocal:    250.5 ave 263 max 235 min
 Histogram: 1 0 1 1 0 1 2 0 0 2

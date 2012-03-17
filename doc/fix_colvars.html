@@ -56,11 +56,8 @@ examples/USER/colvars.
 input file that contains all input that is independent from the MD
 program in which the colvars library has been integrated.
 </P>
-<P>The <I>group-ID</I> restricts the group of atoms that the colvars module
-would potentiall be operating on. The actual collective variables
-depend on the individual atom IDs. Since the colvars module is not
-parallel and requires collecting all atom coordinates from all MPI
-processes restricting this group will improve efficiency of the fix.
+<P>The <I>group-ID</I> entry is ignored. The collective variable module will
+always apply to the entire system, i.e. use the group <I>all</I>.
 </P>
 <P>The <I>input</I> keyword allows to specify a state file that would contain
 the information required in order to continue a calculation, e.g.
@@ -101,7 +98,8 @@ LAMMPS</A> section for more info.
 </P>
 <P>There can only be one colvars fix active at a time. Since the
 colvars module itself can handle an arbitrary number of collective
-variables, this is not really a deficit.
+variables and always applies to the entire system, this is not
+really a deficit in practice.
 </P>
 <P><B>Related commands:</B>
 <A HREF = "fix_smd.html">fix smd</A>

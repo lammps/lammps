@@ -47,7 +47,7 @@ group		colvar union one two ref
 
 fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
 
-fix		3  one spring couple two 100.0 AUTO AUTO AUTO 10.0
+fix		3  one spring couple two 100.0 0.0 0.0 0.0 10.0
 
 fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
   19 = # of size 2 clusters
@@ -102,19 +102,19 @@ SHAKE stats (type/ave/delta) on step 100
   18 0.957198 2.92453e-05
   31 104.52 0.00239929
      100     260.3562   -5387.2264   -6434.6654     1047.439   -6534.1924     20.24674  0.075048745 
-Loop time of 0.641942 on 8 procs for 100 steps with 2004 atoms
+Loop time of 0.640193 on 8 procs for 100 steps with 2004 atoms
 
- Pair time (%) = 0.328448 (51.1647)
- Bond time (%) = 0.00137267 (0.21383)
-Kspace time (%) = 0.180097 (28.055)
-Neigh time (%) = 0.0574802 (8.95411)
- Comm time (%) = 0.034879 (5.43336)
-Output time (%) = 0.0100908 (1.57191)
-Modify time (%) = 0.0259836 (4.04765)
-Other time (%) = 0.00359118 (0.559424)
+ Pair time (%) = 0.31089 (48.5619)
+ Bond time (%) = 0.0011743 (0.183429)
+Kspace time (%) = 0.189926 (29.667)
+Neigh time (%) = 0.0547351 (8.54979)
+ Comm time (%) = 0.0399291 (6.23704)
+Output time (%) = 0.00922328 (1.4407)
+Modify time (%) = 0.0307897 (4.80945)
+Other time (%) = 0.00352535 (0.55067)
 
-FFT time (% of Kspce) = 0.0145662 (8.08798)
-FFT Gflps 3d (1d only) = 3.76475 9.86415
+FFT time (% of Kspce) = 0.0138712 (7.30346)
+FFT Gflps 3d (1d only) = 3.95337 10.2705
 
 Nlocal:    250.5 ave 263 max 237 min
 Histogram: 1 1 0 0 2 1 0 1 1 1

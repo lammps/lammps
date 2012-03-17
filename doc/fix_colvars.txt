@@ -42,6 +42,9 @@ as part of the "NAMD online documentation"_http://www.ks.uiuc.edu/Research/namd/
 There are example scripts for using this package with LAMMPS in
 examples/USER/colvars.
 
+The implementation of the portable collective variable library is
+also documented in "(Henin)"_#Henin
+
 :line
 
 The only mandatory argument to the fix is the filename to the colvars
@@ -99,3 +102,10 @@ really a deficit in practice.
 [Default:]
 the default options are input = NULL, output = out, seed = 1966,
 and tstat = NULL.
+
+:line
+
+:link(Henin)
+
+[(Henin)] Hénin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6, 35-47 (2010)
+

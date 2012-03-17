@@ -5,17 +5,23 @@ This fix allows to use "collective variables" to implement
 Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
 Sampling and Restraints. This code consists of two parts:
 
-- a portable collective variable module library written and
-  maintained by Giacomo Fiorin (ICMS, Temple University,
+- a portable collective variable module library written
+  and maintained by Giacomo Fiorin (ICMS, Temple University,
   Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS,
   Marseille, France).
+
   This code is located in the directory lib/colvars and
-  needs to be compiled first.
+  needs to be compiled first. More info about this code
+  can be found in the publication:
+  Exploring Multidimensional Free Energy Landscapes Using
+  Time-Dependent Biases on Collective Variables,
+   J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein,
+   J. Chem. Theory Comput., 6, 35-47 (2010).
 
-- the colvars fix and an interface layer, exchanges information
-  between LAMMPS and the collective variable module.
+- the colvars fix and a thin interface layer, which exchanges
+  information between LAMMPS and the collective variable module.
 
-See the doc page of fix colvars for more details.
+See the doc page of fix colvars for more details
 
 There are example scripts for using this package in
 examples/USER/colvars

@@ -22,22 +22,19 @@ the LAMMPS build will likely fail.
 
 -------------------------------------------------------------------------
 
-Collective variable-based calculations in MD
+The following publication describes the principles of
+the implementation of this library:
 
-Giacomo Fiorin, Jerome Henin
+  Exploring Multidimensional Free Energy Landscapes Using 
+  Time-Dependent Biases on Collective Variables, 
+   J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein, 
+   J. Chem. Theory Comput., 6, 35-47 (2010).
 
-Institute for Computational Molecular Science
-Temple University, Philadelphia PA 19122
-
-This is the portable "colvars" module, originally implemented
-into the NAMD MD code, which is an extensible software framework,
+This library is the portable "colvars" module, originally interfaced
+with the NAMD MD code, to provide an extensible software framework,
 that allows enhanced sampling in molecular dynamics simulations.
 The module is written to maximize performance, portability,
 flexibility of usage for the user, and extensibility for the developer.
-
-It is freely available in source and binary forms as part of the
-NAMD molecular dynamics program, and can be linked to other
-software packages such as GROMACS and LAMMPS.
 
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.

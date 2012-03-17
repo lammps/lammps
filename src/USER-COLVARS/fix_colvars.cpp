@@ -697,6 +697,7 @@ void FixColvars::post_force(int vflag)
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
+	comm_buf[nme].tag = tag[k];
 	comm_buf[nme].x = x[k][0];
 	comm_buf[nme].y = x[k][1];
 	comm_buf[nme].z = x[k][2];
@@ -827,6 +828,7 @@ void FixColvars::end_of_step()
       for (i=0; i<num_coords; ++i) {
 	const int k = atom->map(taglist[i]);
 	if ((k >= 0) && (k < nlocal)) {
+	  comm_buf[nme].tag  = tag[k];
 	  comm_buf[nme].x    = f[k][0];
 	  comm_buf[nme].y    = f[k][1];
 	  comm_buf[nme].z    = f[k][2];

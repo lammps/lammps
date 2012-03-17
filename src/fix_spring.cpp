@@ -31,7 +31,7 @@ using namespace FixConst;
 
 #define SMALL 1.0e-10
 
-enum{TETHER,COUPLE};
+enum{NONE=0,TETHER=1<<0,COUPLE=1<<1,AUTO_X=1<<2,AUTO_Y=1<<3,AUTO_Z=1<<4};
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,12 +40,14 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 9) error->all(FLERR,"Illegal fix spring command");
 
+  styleflag = NONE;
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 4;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  xc = yc = zc = 0.0;
 
   group2 = NULL;
 
@@ -80,10 +82,13 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     k_spring = atof(arg[5]);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[6],"NULL") == 0) xflag = 0;
+    else if (strcmp(arg[6],"AUTO") == 0) styleflag |= AUTO_X;
     else xc = atof(arg[6]);
     if (strcmp(arg[7],"NULL") == 0) yflag = 0;
+    else if (strcmp(arg[7],"AUTO") == 0) styleflag |= AUTO_Y;
     else yc = atof(arg[7]);
     if (strcmp(arg[8],"NULL") == 0) zflag = 0;
+    else if (strcmp(arg[8],"AUTO") == 0) styleflag |= AUTO_Z;
     else zc = atof(arg[8]);
     r0 = atof(arg[9]);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
@@ -126,7 +131,7 @@ void FixSpring::init()
   }
 
   masstotal = group->mass(igroup);
-  if (styleflag == COUPLE) masstotal2 = group->mass(igroup2);
+  if (styleflag & COUPLE) masstotal2 = group->mass(igroup2);
   
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -241,6 +246,7 @@ void FixSpring::spring_couple()
   dx = xcm2[0] - xcm[0] - xc;
   dy = xcm2[1] - xcm[1] - yc;
   dz = xcm2[2] - xcm[2] - zc;  
+
   if (!xflag) dx = 0.0;
   if (!yflag) dy = 0.0;
   if (!zflag) dz = 0.0;

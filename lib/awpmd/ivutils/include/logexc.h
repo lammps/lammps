@@ -1,6 +1,7 @@
 # ifndef LOGEXC_H
 # define LOGEXC_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdexcept>

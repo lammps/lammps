@@ -557,6 +557,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   /* Virial Tallying variables */
   int ii;
   real f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  real delij[3], delki[3], delkj[3];
 
   /* Initializations */ 
   nbr_j = &(bonds->select.bond_list[pj]);
@@ -599,7 +600,10 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     if( system->pair_ptr->vflag_atom ) {
       f_scaler = -(coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
       rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
-      system->pair_ptr->v_tally(k, fk_tmp);
+
+      rvec_ScaledSum( delki, 1., system->my_atoms[k].x,-1., system->my_atoms[i].x );
+      system->pair_ptr->ev_tally_xyz(k,i,system->n,1,0.0,0.0,
+	fk_tmp[0],fk_tmp[1],fk_tmp[2],delki[0],delki[1],delki[2]);
     }
   }
  
@@ -645,7 +649,10 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     if( system->pair_ptr->vflag_atom ) {
       f_scaler = -(coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
       rvec_Scale( fk_tmp, -f_scaler, nbr_k->bo_data.dBOp);
-      system->pair_ptr->v_tally(k, fk_tmp);
+
+      rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,-1., system->my_atoms[j].x );
+      system->pair_ptr->ev_tally_xyz(k,j,system->n,1,0.0,0.0,
+	fk_tmp[0],fk_tmp[1],fk_tmp[2],delkj[0],delkj[1],delkj[2]);
     }	
   }
   
@@ -684,6 +691,11 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     rvec_ScaledAdd( fi_tmp, -f_scaler, bo_ij->dln_BOp_pi);
     f_scaler = coef.C1dbopi2 ;
     rvec_ScaledAdd( fi_tmp, -f_scaler, bo_ij->dln_BOp_pi2);
+    rvec_Scale( fi_tmp, 0.5, fi_tmp);
+
+    rvec_ScaledSum( delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x );
+    system->pair_ptr->ev_tally_xyz(i,j,system->n,1,0.0,0.0,
+	fi_tmp[0],fi_tmp[1],fi_tmp[2],delij[0],delij[1],delij[2]);
 
     // forces on j
     f_scaler = -(coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
@@ -694,9 +706,11 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
     rvec_ScaledAdd( fj_tmp, -f_scaler, bo_ij->dln_BOp_pi);
     f_scaler = -coef.C1dbopi2 ;
     rvec_ScaledAdd( fj_tmp, -f_scaler, bo_ij->dln_BOp_pi2);
+    rvec_Scale( fj_tmp, 0.5, fj_tmp);
 
-    system->pair_ptr->v_tally(i, fi_tmp);
-    system->pair_ptr->v_tally(j, fj_tmp);
+    rvec_ScaledSum( delij, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x );
+    system->pair_ptr->ev_tally_xyz(j,i,system->n,1,0.0,0.0,
+	fj_tmp[0],fj_tmp[1],fj_tmp[2],delij[0],delij[1],delij[2]);
 
   }
 }

@@ -83,8 +83,8 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   }
 
   bin.assign (colvars.size(), 0);
-  prev_bin.assign (colvars.size(), 0);
-  prev_force = new cvm::real [colvars.size()];
+  force_bin.assign (colvars.size(), 0);
+  force = new cvm::real [colvars.size()];
 
   // Construct empty grids based on the colvars
   samples   = new colvar_grid_count    (colvars);
@@ -113,7 +113,7 @@ colvarbias_abf::~colvarbias_abf()
     gradients = NULL;
   }
 
-  delete [] prev_force;
+  delete [] force;
 }
 
 
@@ -147,18 +147,18 @@ cvm::real colvarbias_abf::update()
       bin[i] = samples->current_bin_scalar(i);
     }
 
-    if ( update_bias && samples->index_ok (prev_bin) ) {
+    if ( update_bias && samples->index_ok (force_bin) ) {
       // Only if requested and within bounds of the grid...
 
       for (size_t i=0; i<colvars.size(); i++) {	  // get forces (lagging by 1 timestep) from colvars
-        prev_force[i] = colvars[i]->system_force();
+        force[i] = colvars[i]->system_force();
       }
-      gradients->acc_force (prev_bin, prev_force);
+      gradients->acc_force (force_bin, force);
     }
   }
 
   // save bin for next timestep
-  prev_bin = bin;  
+  force_bin = bin;  
 
   // Reset biasing forces from previous timestep
   for (size_t i=0; i<colvars.size(); i++) {

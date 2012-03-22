@@ -48,8 +48,8 @@ private:
 
   // Internal data and methods
 
-  std::vector<int>  bin, prev_bin;
-  gradient_t	    prev_force;
+  std::vector<int>  bin, force_bin;
+  gradient_t	    force;
 
   /// n-dim grid of free energy gradients
   colvar_grid_gradient  *gradients;

@@ -113,7 +113,7 @@ public:
     /// (for extended Lagrangian colvars only)
     task_output_energy,
     /// \brief Compute analytically the "force" arising from the
-    /// largest entropy component (for example, that from the angular
+    /// geometric entropy component (for example, that from the angular
     /// states orthogonal to a distance vector)
     task_Jacobian_force,
     /// \brief Report the Jacobian force as part of the system force

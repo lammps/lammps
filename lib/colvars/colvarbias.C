@@ -128,6 +128,8 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
     starting_force_k = force_k;
     b_chg_force_k = true;
 
+    get_keyval (conf, "targetEquilSteps", target_equil_steps, 0);
+
     get_keyval (conf, "lambdaSchedule", lambda_schedule, lambda_schedule);
     if (lambda_schedule.size()) {
       // There is one more lambda-point than stages
@@ -168,6 +170,58 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
 }
 
 
+void colvarbias::change_configuration(std::string const &conf)
+{
+  cvm::fatal_error ("Error: change_configuration() not implemented.\n");
+}
+
+
+cvm::real colvarbias::energy_difference(std::string const &conf)
+{
+  cvm::fatal_error ("Error: energy_difference() not implemented.\n");
+  return 0.;
+}
+
+
+void colvarbias_harmonic::change_configuration(std::string const &conf)
+{
+  get_keyval (conf, "forceConstant", force_k, force_k);
+  if (get_keyval (conf, "centers", colvar_centers, colvar_centers)) {
+    for (size_t i = 0; i < colvars.size(); i++) {
+      colvar_centers[i].apply_constraints();
+      colvar_centers_raw[i] = colvar_centers[i];
+    }
+  }
+}
+
+
+cvm::real colvarbias_harmonic::energy_difference(std::string const &conf)
+{
+  std::vector<colvarvalue> alt_colvar_centers;
+  cvm::real alt_force_k;
+  cvm::real alt_bias_energy = 0.0;
+
+  get_keyval (conf, "forceConstant", alt_force_k, force_k);
+
+  alt_colvar_centers.resize (colvars.size());
+  for (size_t i = 0; i < colvars.size(); i++) {
+    alt_colvar_centers[i].type (colvars[i]->type());
+  }
+  if (get_keyval (conf, "centers", alt_colvar_centers, colvar_centers)) {
+    for (size_t i = 0; i < colvars.size(); i++) {
+      colvar_centers[i].apply_constraints();
+    }
+  }
+
+  for (size_t i = 0; i < colvars.size(); i++) {
+    alt_bias_energy += 0.5 * alt_force_k / (colvars[i]->width * colvars[i]->width) *
+              colvars[i]->dist2(colvars[i]->value(), alt_colvar_centers[i]);
+  }
+
+  return alt_bias_energy - bias_energy;
+}
+
+
 cvm::real colvarbias_harmonic::update()
 {
   bias_energy = 0.0;
@@ -186,8 +240,8 @@ cvm::real colvarbias_harmonic::update()
     }
     force_k = starting_force_k + (target_force_k - starting_force_k)
               * std::pow (lambda, force_k_exp);
-    cvm::log ("Harmonic restraint, stage " + cvm::to_str(stage) +
-        " : lambda = " + cvm::to_str(lambda));
+    cvm::log ("Harmonic restraint " + this->name + ", stage " +
+        cvm::to_str(stage) + " : lambda = " + cvm::to_str(lambda));
     cvm::log ("Setting force constant to " + cvm::to_str (force_k));
   }
   
@@ -267,14 +321,6 @@ cvm::real colvarbias_harmonic::update()
     cvm::real lambda;
 
     if (target_nstages) {
-      // Square distance for restraint energy calculation
-      // normalized by square colvar width
-      cvm::real dist_sq = 0.0;
-      for (size_t i = 0; i < colvars.size(); i++) {
-        dist_sq += colvars[i]->dist2 (colvars[i]->value(), colvar_centers[i])
-          / (colvars[i]->width * colvars[i]->width);
-      }
-
       // TI calculation: estimate free energy derivative
       // need current lambda
       if (lambda_schedule.size()) {
@@ -282,15 +328,27 @@ cvm::real colvarbias_harmonic::update()
       } else {
         lambda = cvm::real(stage) / cvm::real(target_nstages);
       }
-      restraint_FE += 0.5 * force_k_exp * std::pow(lambda, force_k_exp - 1.0)
-        * (target_force_k - starting_force_k) * dist_sq;
+
+      if (target_equil_steps == 0 || cvm::step_absolute() % target_nsteps >= target_equil_steps) {
+        // Start averaging after equilibration period, if requested
+        
+        // Square distance normalized by square colvar width
+        cvm::real dist_sq = 0.0;
+        for (size_t i = 0; i < colvars.size(); i++) {
+          dist_sq += colvars[i]->dist2 (colvars[i]->value(), colvar_centers[i])
+            / (colvars[i]->width * colvars[i]->width);
+        }
+
+        restraint_FE += 0.5 * force_k_exp * std::pow(lambda, force_k_exp - 1.0)
+          * (target_force_k - starting_force_k) * dist_sq;
+      }
 
       // Finish current stage...
       if (cvm::step_absolute() % target_nsteps == 0 &&
           cvm::step_absolute() > 0) {
 
           cvm::log ("Lambda= " + cvm::to_str (lambda) + " dA/dLambda= "
-              + cvm::to_str (restraint_FE / cvm::real(target_nsteps)));
+              + cvm::to_str (restraint_FE / cvm::real(target_nsteps - target_equil_steps)));
       
         //  ...and move on to the next one
         if (stage < target_nstages) {
@@ -304,8 +362,8 @@ cvm::real colvarbias_harmonic::update()
           }
           force_k = starting_force_k + (target_force_k - starting_force_k)
                     * std::pow (lambda, force_k_exp);
-          cvm::log ("Harmonic restraint, stage " + cvm::to_str(stage) +
-              " : lambda = " + cvm::to_str(lambda));
+          cvm::log ("Harmonic restraint " + this->name + ", stage " +
+              cvm::to_str(stage) + " : lambda = " + cvm::to_str(lambda));
           cvm::log ("Setting force constant to " + cvm::to_str (force_k));
         }
       }

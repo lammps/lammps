@@ -333,7 +333,7 @@ colvar::colvar (std::string const &conf)
       if (ext_gamma != 0.0) {
         enable (task_langevin);
         ext_gamma *= 1.0e-3; // convert from ps-1 to fs-1
-        ext_sigma = sqrt(2.0 * cvm::boltzmann() * temp * ext_gamma * ext_mass / cvm::dt());
+        ext_sigma = std::sqrt(2.0 * cvm::boltzmann() * temp * ext_gamma * ext_mass / cvm::dt());
       }
     }
   }

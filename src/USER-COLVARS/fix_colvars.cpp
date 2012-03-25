@@ -496,7 +496,7 @@ void FixColvars::init()
       }
     }
     proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,
-				   rng_seed,typemap);
+				   rng_seed,t_target,typemap);
     coords = proxy->get_coords();
     forces = proxy->get_forces();
     oforce = proxy->get_oforce();
@@ -621,6 +621,9 @@ void FixColvars::post_force(int vflag)
 {
   // some housekeeping: update status of the proxy as needed.
   if (me == 0) {
+    if (proxy->want_exit())
+      error->one(FLERR,"Run halted on request from colvars module.\n");
+
     if (tstat_id < 0) {
       proxy->set_temperature(0.0);
     } else {
@@ -794,7 +797,7 @@ void FixColvars::end_of_step()
 	const int k = atom->map(taglist[i]);
 	if ((k >= 0) && (k < nlocal)) {
       
-	  const int j = inthash_lookup(idmap, tag[i]);
+	  const int j = inthash_lookup(idmap, tag[k]);
 	  if (j != HASH_FAIL) {
 	    of[j].x = f[k][0];
 	    of[j].y = f[k][1];

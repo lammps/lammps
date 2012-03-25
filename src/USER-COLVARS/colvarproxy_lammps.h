@@ -53,6 +53,7 @@ class colvarproxy_lammps : public colvarproxy {
 
   bool first_timestep;
   bool system_force_requested;
+  bool do_exit;
 
   std::vector<int>          colvars_atoms;
   std::vector<size_t>       colvars_atoms_ncopies;
@@ -63,7 +64,7 @@ class colvarproxy_lammps : public colvarproxy {
  public:
   friend class cvm::atom;
   colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
-		      const char *, const int, const int *);
+		      const char *, const int, const double, const int *);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor
@@ -75,6 +76,7 @@ class colvarproxy_lammps : public colvarproxy {
  public:
   void set_temperature(double t) { t_target = t; };
   bool need_system_forces() const { return  system_force_requested; };
+  bool want_exit() const { return do_exit; };
   std::vector<int> *             get_tags()   { return &colvars_atoms; };
   std::vector<struct commdata> * get_coords() { return &positions; };
   std::vector<struct commdata> * get_forces() { return &applied_forces; };

@@ -60,6 +60,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 				       const char *inp_name,
 				       const char *out_name,
 				       const int seed,
+				       const double temp,
 				       const int *typemap) 
   : _lmp(lmp), _typemap(typemap)
 {
@@ -71,7 +72,8 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   first_timestep=true;
   system_force_requested=false;
   previous_step=-1;
-  t_target = 0.0;
+  t_target=temp;
+  do_exit=false;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -218,6 +220,7 @@ void colvarproxy_lammps::exit(std::string const &message)
 {
   log(message);
   log("Request to exit the simulation made.\n");
+  do_exit=true;
 }
 
 enum e_pdb_field {

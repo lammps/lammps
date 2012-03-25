@@ -46,6 +46,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   t_start = atof(arg[4]);
+  t_target = t_start;
   t_stop = atof(arg[5]);
   t_window = atof(arg[6]);
   fraction = atof(arg[7]);

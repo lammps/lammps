@@ -107,6 +107,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       tstat_flag = 1;
       t_start = atof(arg[iarg+1]);
+      t_target = t_start;
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)

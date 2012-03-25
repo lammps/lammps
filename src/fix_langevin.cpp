@@ -66,6 +66,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr,&arg[3][2]);
   } else {
     t_start = atof(arg[3]);
+    t_target = t_start;
     tstyle = CONSTANT;
   }
 

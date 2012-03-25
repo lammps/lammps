@@ -93,6 +93,11 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   // initiate the colvarmodule
   colvars = new colvarmodule(conf_file,this);
 
+  if (_lmp->update->ntimestep != 0) {
+    cvm::log ("Initializing step number as firstTimestep.\n");
+    colvars->it = colvars->it_restart = _lmp->update->ntimestep;
+  }
+
   if (cvm::debug()) {
     log("colvars_atoms = "+cvm::to_str(colvars_atoms)+"\n");
     log("colvars_atoms_ncopies = "+cvm::to_str(colvars_atoms_ncopies)+"\n");

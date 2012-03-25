@@ -139,8 +139,12 @@ protected:
   /// \brief Dump the free energy surface (.pmf file) every restartFrequency
   bool       dump_fes;
 
-  /// \brief Keep the free energy surface files at different
-  /// iterations, appending a step number to each
+  /// \brief Dump the free energy surface (.pmf file) every restartFrequency
+  /// using only the hills from this replica (only applicable to more than one replica)
+  bool       dump_replica_fes;
+
+  /// \brief Dump the free energy surface files at different
+  /// time steps, appending the step number to each file
   bool       dump_fes_save;
 
   /// \brief Try to read the restart information by allocating new

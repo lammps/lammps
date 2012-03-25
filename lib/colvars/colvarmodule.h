@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2012-03-21"
+#define COLVARS_VERSION "2012-03-23"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -101,6 +101,10 @@ public:
   {
     return it;
   }
+
+  /// If true, get it_restart from the state file; if set to false,
+  /// the MD program is providing it
+  bool it_restart_from_state_file;
 
   /// \brief Finite difference step size (if there is no dynamics, or
   /// if gradients need to be tested independently from the size of

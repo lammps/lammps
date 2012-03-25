@@ -330,7 +330,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
     } else if (0 == strcmp(arg[argsdone], "tstat")) {
       tmp_name = strdup(arg[argsdone+1]);
     } else {
-      error->all(FLERR,"Unknown fix imd parameter");
+      error->all(FLERR,"Unknown fix colvars parameter");
     }
     ++argsdone; ++argsdone;
   }

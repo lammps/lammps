@@ -23,9 +23,10 @@ colvarmodule::colvarmodule (char const  *config_filename,
   cvm::log ("Initializing the collective variables module, version "+
             cvm::to_str(COLVARS_VERSION)+".\n");
 
-  // "it_restart" will be set by the input restart file, if any;
+  // "it_restart" will be set by the input state file, if any;
   // "it" should be updated by the proxy
   it = it_restart = 0;
+  it_restart_from_state_file = true;
 
   // open the configfile
   config_s.open (config_filename);
@@ -139,10 +140,12 @@ std::istream & colvarmodule::read_restart (std::istream &is)
     // read global restart information
     std::string restart_conf;
     if (is >> colvarparse::read_block ("configuration", restart_conf)) {
-      parse->get_keyval (restart_conf, "step",
-                         it_restart, (size_t) 0,
-                         colvarparse::parse_silent);
-      it = it_restart;
+      if (it_restart_from_state_file) {
+        parse->get_keyval (restart_conf, "step",
+                           it_restart, (size_t) 0,
+                           colvarparse::parse_silent);
+        it = it_restart;
+      }
     }
     is.clear();
   }

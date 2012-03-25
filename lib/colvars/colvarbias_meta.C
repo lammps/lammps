@@ -58,9 +58,6 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
     expand_grids = false;
     for (size_t i = 0; i < colvars.size(); i++) {
       if (colvars[i]->expand_boundaries) {
-        if (comm == multiple_replicas)
-          cvm::fatal_error ("Error: expandBoundaries is not supported when "
-                            "using metadynamics with multiple replicas.\n");
         expand_grids = true;
         cvm::log ("Metadynamics bias \""+this->name+"\""+
                   ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
@@ -84,6 +81,7 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
     keep_hills = false;
     dump_fes = false;
     dump_fes_save = false;
+    dump_replica_fes = false;
   }
 
   {
@@ -96,6 +94,18 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
   }
 
   if (comm != single_replica) {
+
+    if (expand_grids)
+      cvm::fatal_error ("Error: expandBoundaries is not supported when "
+                        "using more than one replicas; please allocate "
+                        "wide enough boundaries for each colvar"
+                        "ahead of time.\n");
+
+    if (get_keyval (conf, "dumpPartialFreeEnergyFile", dump_replica_fes, false)) {
+      if (dump_replica_fes && (! dump_fes)) {
+        cvm::log ("Enabling \"dumpFreeEnergyFile\".\n");
+      }
+    }
 
     get_keyval (conf, "replicaID", replica_id, std::string (""));
     if (!replica_id.size())
@@ -118,9 +128,10 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
 
 
     {
+      // TODO: one may want to specify the path manually for intricated filesystems?
       char *pwd = new char[3001];
       if (GETCWD (pwd, 3000) == NULL)
-        cvm::fatal_error ("Error: cannot obtain the path to the current working directory.\n");
+        cvm::fatal_error ("Error: cannot get the path of the current working directory.\n");
       replica_list_file =
         (std::string (pwd)+std::string (PATHSEP)+
          this->name+"."+replica_id+".files.txt");
@@ -134,58 +145,67 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
         (std::string (pwd)+std::string (PATHSEP)+
          cvm::output_prefix+".colvars."+this->name+"."+replica_id+".state");
       delete pwd;
+    }
 
-      // now register this replica
+    // now register this replica
 
-      // first check that it isn't already there
-      bool registered_replica = false;
-      std::ifstream reg_is (replicas_registry_file.c_str());
-      if (reg_is.good()) {  // the file may not be there yet
-        std::string existing_replica ("");
-        std::string existing_replica_file ("");
-        while ((reg_is >> existing_replica) && existing_replica.size() &&
-               (reg_is >> existing_replica_file) && existing_replica_file.size()) {
-          if (existing_replica == replica_id) {
-            // this replica was already registered
-            replica_list_file = existing_replica_file;
-            reg_is.close();
-            registered_replica = true;
-            break;
-          }
+    // first check that it isn't already there
+    bool registered_replica = false;
+    std::ifstream reg_is (replicas_registry_file.c_str());
+    if (reg_is.good()) {  // the file may not be there yet
+      std::string existing_replica ("");
+      std::string existing_replica_file ("");
+      while ((reg_is >> existing_replica) && existing_replica.size() &&
+             (reg_is >> existing_replica_file) && existing_replica_file.size()) {
+        if (existing_replica == replica_id) {
+          // this replica was already registered
+          replica_list_file = existing_replica_file;
+          reg_is.close();
+          registered_replica = true;
+          break;
         }
-        reg_is.close();
       }
+      reg_is.close();
+    }
 
-      // if this replica was not included yet, we should generate a
-      // new record for it
+    // if this replica was not included yet, we should generate a
+    // new record for it: but first, we write this replica's files,
+    // for the others to read
       
-      // but first, write an updated list file; if we're running
-      // without grids, use a growing list of hills files, otherwise just one state file and 
-      std::ofstream list_os (replica_list_file.c_str(), 
-                             (use_grids ? std::ios::trunc : std::ios::app));
-      if (! list_os.good())
-        cvm::fatal_error ("Error: in opening file \""+
-                          replica_list_file+"\" for writing.\n");
-      list_os << "stateFile " << replica_state_file << "\n";
-      list_os << "hillsFile " << replica_hills_file << "\n";
-      list_os.close();
-
-      // and then add a new record to the registry
-      if (! registered_replica) {
-        std::ofstream reg_os (replicas_registry_file.c_str(), std::ios::app);
-        if (! reg_os.good())
-          cvm::fatal_error ("Error: in opening file \""+
-                            replicas_registry_file+"\" for writing.\n");
-        reg_os << replica_id << " " << replica_list_file << "\n";
-        reg_os.close();
-      }
-    }      
-      
+    // open the "hills" buffer file
     replica_hills_os.open (replica_hills_file.c_str());
     if (!replica_hills_os.good())
       cvm::fatal_error ("Error: in opening file \""+
                         replica_hills_file+"\" for writing.\n");
     replica_hills_os.setf (std::ios::scientific, std::ios::floatfield);
+
+    // write the state file (so that there is always one available)
+    write_replica_state_file();
+    // schedule to read the state files of the other replicas
+    for (size_t ir = 0; ir < replicas.size(); ir++) {
+      (replicas[ir])->replica_state_file_in_sync = false;
+    }
+
+    // if we're running without grids, use a growing list of "hills" files
+    // otherwise, just one state file and one "hills" file as buffer
+    std::ofstream list_os (replica_list_file.c_str(), 
+                           (use_grids ? std::ios::trunc : std::ios::app));
+    if (! list_os.good())
+      cvm::fatal_error ("Error: in opening file \""+
+                        replica_list_file+"\" for writing.\n");
+    list_os << "stateFile " << replica_state_file << "\n";
+    list_os << "hillsFile " << replica_hills_file << "\n";
+    list_os.close();
+
+    // finally, if add a new record for this replica to the registry
+    if (! registered_replica) {
+      std::ofstream reg_os (replicas_registry_file.c_str(), std::ios::app);
+      if (! reg_os.good())
+        cvm::fatal_error ("Error: in opening file \""+
+                          replicas_registry_file+"\" for writing.\n");
+      reg_os << replica_id << " " << replica_list_file << "\n";
+      reg_os.close();
+    }
   }
 
   get_keyval (conf, "writeHillsTrajectory", b_hills_traj, false);
@@ -827,7 +847,7 @@ void colvarbias_meta::update_replicas_registry()
       if (!already_loaded) {
         // add this replica to the registry
         cvm::log ("Metadynamics bias \""+this->name+"\""+
-                  ": found a new replica, \""+new_replica+"\".\n");
+                  ": accessing replica \""+new_replica+"\".\n");
         replicas.push_back (new colvarbias_meta());
         (replicas.back())->replica_id = new_replica;
         (replicas.back())->replica_list_file = new_replica_file;
@@ -968,9 +988,9 @@ void colvarbias_meta::read_replica_files()
         } else {
 
           while ((replicas[ir])->read_hill (is)) {
-            if (cvm::debug())
+            //           if (cvm::debug())
               cvm::log ("Metadynamics bias \""+this->name+"\""+
-                        ": found a new hill, created by replica \""+
+                        ": received a hill from replica \""+
                         (replicas[ir])->replica_id+
                         "\" at step "+
                         cvm::to_str (((replicas[ir])->hills.back()).it)+".\n");
@@ -1000,17 +1020,16 @@ void colvarbias_meta::read_replica_files()
       is.close();
     }
 
-    // size_t const n_flush = (replica_update_freq/new_hill_freq + 1);
-    // if ((replicas[ir])->update_status > 3*n_flush) {
-    //   // TODO: suspend the calculation?
-    //   cvm::log ("Warning: in metadynamics bias \""+this->name+"\""+
-    //             ": output files from replica \""+
-    //             (replicas[ir])->replica_id+
-    //             "\" have not been updated in about "+
-    //             cvm::to_str (n_flush*new_hill_freq)+
-    //             " steps.  Please check that its simulation is still running.\n");
-    // }
-
+    size_t const n_flush = (replica_update_freq/new_hill_freq + 1);
+    if ((replicas[ir])->update_status > 3*n_flush) {
+      // TODO: suspend the calculation?
+      cvm::log ("Warning: in metadynamics bias \""+this->name+"\""+
+                ": failet do read completely output files from replica \""+
+                (replicas[ir])->replica_id+
+                "\" after more than "+
+                cvm::to_str (n_flush*new_hill_freq)+
+                " steps.  Please check that that simulation is still running.\n");
+    }
   }
 }
 
@@ -1024,21 +1043,18 @@ std::istream & colvarbias_meta::read_restart (std::istream& is)
 {
   size_t const start_pos = is.tellg();
 
-  if (! has_data)
+  if (comm == single_replica) {
+    // if using a multiple replicas scheme, output messages 
+    // are printed before and after calling this function
     cvm::log ("Restarting metadynamics bias \""+this->name+"\""+
-              ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
               ".\n");
-  else
-    cvm::log ("Rereading the state of metadynamics bias \""+this->name+"\""+
-              ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
-              ".\n");
-
+  }
   std::string key, brace, conf;
   if ( !(is >> key)   || !(key == "metadynamics") ||
        !(is >> brace) || !(brace == "{") ||
        !(is >> colvarparse::read_block ("configuration", conf)) ) {
 
-    if (! has_data)
+    if (comm == single_replica) 
       cvm::log ("Error: in reading restart configuration for metadynamics bias \""+
                 this->name+"\""+
                 ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
@@ -1126,12 +1142,12 @@ std::istream & colvarbias_meta::read_restart (std::istream& is)
           cvm::fatal_error ("Error: couldn't read the free energy grid for metadynamics bias \""+
                             this->name+"\""+
                             ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
-                            "; if grids were not enabled in the previous runs, "
-                            "enable rebinGrids now to regenerate them.\n");
+                            "; if useGrids was off when the state file was written, "
+                            "enable rebinGrids now to regenerate the grids.\n");
         else {
-          cvm::log ("Error: couldn't read the free energy grid for metadynamics bias \""+
-                    this->name+"\""+
-                    ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+"\n");
+          if (comm == single_replica)
+            cvm::log ("Error: couldn't read the free energy grid for metadynamics bias \""+
+                      this->name+"\".\n");
           delete hills_energy;
           delete hills_energy_gradients;
           hills_energy           = hills_energy_backup;
@@ -1164,12 +1180,12 @@ std::istream & colvarbias_meta::read_restart (std::istream& is)
           cvm::fatal_error ("Error: couldn't read the free energy gradients grid for metadynamics bias \""+
                             this->name+"\""+
                             ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
-                            "; if grids were not enabled in the previous runs, "
-                            "enable rebinGrids now to regenerate them.\n");
+                            "; if useGrids was off when the state file was written, "
+                            "enable rebinGrids now to regenerate the grids.\n");
         else {
-          cvm::log ("Error: couldn't read the free energy gradients grid for metadynamics bias \""+
-                    this->name+"\""+
-                    ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+"\n");
+          if (comm == single_replica)
+            cvm::log ("Error: couldn't read the free energy gradients grid for metadynamics bias \""+
+                      this->name+"\".\n");
           delete hills_energy;
           delete hills_energy_gradients;
           hills_energy           = hills_energy_backup;
@@ -1444,29 +1460,54 @@ void colvarbias_meta::write_pmf()
 {
   // allocate a new grid to store the pmf
   colvar_grid_scalar *pmf = new colvar_grid_scalar (colvars);
-  pmf->add_grid (*hills_energy);
-  if (comm != single_replica)
+
+  std::string fes_file_name_prefix (cvm::output_prefix);
+  
+  if ((cvm::n_meta_biases > 1) || (cvm::n_abf_biases > 0)) {
+    // if this is not the only free energy integrator, append
+    // this bias's name, to distinguish it from the output of the other
+    // biases producing a .pmf file
+    // TODO: fix for ABF with updateBias == no
+    fes_file_name_prefix += this->name;
+  }
+
+  if ((comm == single_replica) || (dump_replica_fes)) {
+    // output the PMF from this instance or replica
+    pmf->reset();
+    pmf->add_grid (*hills_energy);
+    cvm::real const max = pmf->maximum_value();
+    pmf->add_constant (-1.0 * max);
+    pmf->multiply_constant (-1.0);
+    if (comm != single_replica)
+      fes_file_name_prefix += (".partial");
+    std::string const fes_file_name (fes_file_name_prefix +
+                                     (dump_fes_save ?
+                                      "."+cvm::to_str (cvm::step_absolute()) : ""));
+    cvm::backup_file (fes_file_name.c_str());
+    std::ofstream fes_os (fes_file_name.c_str());
+    pmf->write_multicol (fes_os);
+    fes_os.close();
+  }
+
+  if (comm != single_replica) {
+    // output the combined PMF from all replicas
+    pmf->reset();
+    pmf->add_grid (*hills_energy);
     for (size_t ir = 0; ir < replicas.size(); ir++) {
       pmf->add_grid (*(replicas[ir]->hills_energy));
     }
-  cvm::real const max = pmf->maximum_value();
-  pmf->add_constant (-1.0 * max);
-  pmf->multiply_constant (-1.0);
-  // if this is the only free energy integrator, the pmf file
-  // name is general, otherwise there is a label with the bias
-  // name TODO: fix for ABF with updateBias == no
-  std::string const fes_file_name =
-    ((cvm::n_meta_biases == 1) && (cvm::n_abf_biases == 0)) ?
-    std::string (cvm::output_prefix+
-                 (dump_fes_save ? "."+cvm::to_str (cvm::step_absolute()) : "")+
-                 ".pmf") :
-    std::string (cvm::output_prefix+"."+this->name+
-                 (dump_fes_save ? "."+cvm::to_str (cvm::step_absolute()) : "")+
-                 ".pmf");
-  cvm::backup_file (fes_file_name.c_str());
-  std::ofstream fes_os (fes_file_name.c_str());
-  pmf->write_multicol (fes_os);
-  fes_os.close();
+    cvm::real const max = pmf->maximum_value();
+    pmf->add_constant (-1.0 * max);
+    pmf->multiply_constant (-1.0);
+    std::string const fes_file_name (fes_file_name_prefix +
+                                     (dump_fes_save ?
+                                      "."+cvm::to_str (cvm::step_absolute()) : ""));
+    cvm::backup_file (fes_file_name.c_str());
+    std::ofstream fes_os (fes_file_name.c_str());
+    pmf->write_multicol (fes_os);
+    fes_os.close();
+  }
+
   delete pmf;
 }
 

@@ -143,6 +143,12 @@ public:
     create (this->nx, T(), this->mult);
   }
 
+  /// \brief Reset data (in case the grid is being reused)
+  void reset (T const &t = T())
+  {
+    data.assign (nt, t);
+  }
+
 
   /// Default constructor
   colvar_grid() : has_data (false)

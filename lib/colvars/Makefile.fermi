@@ -3,7 +3,8 @@
 # ------ SETTINGS ------
 
 CXX =		g++
-CXXFLAGS =	-O2 -g -funroll-loops # -DCOLVARS_DEBUG
+CXXFLAGS =	-O2 -mpc64 -march=native -funroll-loops \
+	-fno-rtti -fno-exceptions  # -DCOLVARS_DEBUG
 ARCHIVE =	ar
 ARCHFLAG =	-rscv
 SHELL =		/bin/sh

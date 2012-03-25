@@ -1,7 +1,8 @@
-This directory contains input files for two ReaxFF
-simulations (RDX and TATB crystals) using a 
-generic hydrocarbon ReaxFF parameter file.
-Input files based on pair_style reax and pair_style
+This directory contains input files for two short ReaxFF
+simulations (RDX and TATB crystals) using the ReaxFF 
+parameterization developed for nitramines. The parameter
+file is the same as that in subdirectory RDX (see below). 
+Input files for both pair_style reax and pair_style
 reax/c are provided.
 
 In addition, each subdirectory 

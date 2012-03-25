@@ -360,7 +360,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   cur_time=time(NULL);
   tmbuf=localtime(&cur_time);
   memset(title_string,' ',81);
-  strftime(title_string,80,"REMARKS Created %d %B,%Y at %R",tmbuf);
+  strftime(title_string,80,"REMARKS Created %d %B,%Y at %H:%M",tmbuf);
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

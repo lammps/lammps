@@ -47,7 +47,8 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   strcpy(group2,arg[3]);
 
   jgroup = group->find(group2);
-  if (jgroup == -1) error->all(FLERR,"Compute group/group group ID does not exist");
+  if (jgroup == -1) 
+    error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
   vector = new double[3];
@@ -80,7 +81,8 @@ void ComputeGroupGroup::init()
   // recheck that group 2 has not been deleted
 
   jgroup = group->find(group2);
-  if (jgroup == -1) error->all(FLERR,"Compute group/group group ID does not exist");
+  if (jgroup == -1) 
+    error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
   // need an occasional half neighbor list

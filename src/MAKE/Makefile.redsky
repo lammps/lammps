@@ -14,11 +14,11 @@ SHELL = /bin/sh
 # these modules are not the default ones, but can be enabled by 
 #   lines like this in your .cshrc or other start-up shell file
 #   or by typing them before you build LAMMPS:
-#     module load mpi/openmpi-1.4.1_oobpr_intel-11.1-f064-c064
+#     module load mpi/openmpi-1.4.3_oobpr_intel-11.1-f064-c064
 #     module load misc/env-openmpi-1.4-oobpr
 #     module load compilers/intel-11.1-f064-c064
 #     module load libraries/intel-mkl-11.1.064
-#     module load libraries/fftw-2.1.5_openmpi-1.4.1_oobpr_intel-11.1-f064-c064
+#     module load libraries/fftw-2.1.5_openmpi-1.4.3_oobpr_intel-11.1-f064-c064
 # these same modules need to be loaded to submit a LAMMPS job,
 #   either interactively or via a batch script
 

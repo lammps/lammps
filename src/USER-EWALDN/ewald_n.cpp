@@ -252,6 +252,7 @@ void EwaldN::setup()
   double gsqzmx = unit[2]*unit[2]*kzmax*kzmax;
   gsqmx = MAX(gsqxmx,gsqymx);
   gsqmx = MAX(gsqmx,gsqzmx);
+  gsqmx *= 1.00001;
     
   reallocate();
   coefficients();					// compute coeffs

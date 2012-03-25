@@ -1,5 +1,4 @@
-# REAX potential for RDX system
-# this run is equivalent to GRASP testreax
+# ReaxFF potential for RDX system
 
 units		real
 
@@ -8,7 +7,7 @@ read_data	data.rdx
 
 #     reax args: hbcut hbnewflag tripflag precision
 
-pair_style	reax 10.0 0 1 1.0e-6
+pair_style	reax 6.0 1 1 1.0e-6
 pair_coeff	* * ffield.reax 1 2 3 4
 
 compute reax all pair reax

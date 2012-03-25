@@ -254,6 +254,7 @@ void Ewald::setup()
   double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
   gsqmx = MAX(gsqxmx,gsqymx);
   gsqmx = MAX(gsqmx,gsqzmx);
+  gsqmx *= 1.00001;
   
   // if size has grown, reallocate k-dependent and nlocal-dependent arrays
 

@@ -1,6 +1,5 @@
-# REAX potential for TATB system
+# ReaxFF potential for TATB system
 # this run is equivalent to reax/in.reax.tatb,
-#    if hbnewflag = 1 in in.reax.tatb
 
 units		real
 

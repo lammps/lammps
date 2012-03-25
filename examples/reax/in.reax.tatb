@@ -1,15 +1,12 @@
-# REAX potential for TATB system
-# this run is equivalent to GRASP testtatb
+# ReaxFF potential for TATB system
 
 units		real
 
 atom_style	charge
 read_data	data.tatb
 
-# N.B. to match reax/c, set hbnewflag = 1
 #     reax args: hbcut hbnewflag tripflag precision
-#pair_style	reax 10.0 1 1 1.0e-6
-pair_style	reax 10.0 0 1 1.0e-6
+pair_style	reax 6.0 1 1 1.0e-6
 pair_coeff	* * ffield.reax 1 2 3 4
 
 compute reax all pair reax

@@ -1,4 +1,4 @@
-# REAX potential for RDX system
+# ReaxFF potential for RDX system
 # this run is equivalent to reax/in.reax.rdx
 
 units		real
@@ -6,7 +6,7 @@ units		real
 atom_style	charge
 read_data	data.rdx
 
-pair_style      reax/c NULL
+pair_style      reax/c control.reax_c.rdx
 pair_coeff      * * ffield.reax 1 2 3 4
 
 compute reax all pair reax/c

@@ -124,7 +124,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica,
   if (my_gpu>=gpu->num_devices())
     return -2;
     
-  #ifndef CUDA_PRX
+  #ifndef CUDA_PROXY
   if (_procs_per_gpu>1 && gpu->sharing_supported(my_gpu)==false)
     return -7;
   #endif
@@ -203,7 +203,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
                   _block_cell_id, _block_nbor_build, threads_per_atom,
-                  _time_device))
+                  _warp_size, _time_device))
     return -3;
   nbor->cell_size(cell_size);
 

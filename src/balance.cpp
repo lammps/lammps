@@ -32,8 +32,6 @@ enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
 enum{EXPAND,CONTRACT};
 
-#define BIG
-
 #define BALANCE_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
@@ -91,6 +89,8 @@ void Balance::command(int narg, char **arg)
   if (comm->me == 0 && screen) fprintf(screen,"Balancing ...\n");
 
   // parse arguments
+
+  if (narg < 1) error->all(FLERR,"Illegal balance command");
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;

@@ -545,13 +545,26 @@ void Cuda::evsetup_eatom_vatom(int eflag_atom,int vflag_atom)
     {
     	if(not cu_eatom) 
     		cu_eatom         = new cCudaData<double, ENERGY_FLOAT, x > (force->pair->eatom, & (shared_data.atom.eatom)         , atom->nmax  );// cu_eatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
+    	if(cu_eatom->get_dim()[0]!=atom->nmax)
+    	{
+    	  //delete cu_eatom;
+        //cu_eatom         = new cCudaData<double, ENERGY_FLOAT, x > (force->pair->eatom, & (shared_data.atom.eatom)         , atom->nmax  );// cu_eatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
+    	  shared_data.atom.update_nmax=2;
+    	}
+
     	cu_eatom->set_host_data(force->pair->eatom); 
-		cu_eatom->memset_device(0);
+		  cu_eatom->memset_device(0);
     }
     if(vflag_atom)
     {	
     	if(not cu_vatom) 
     		cu_vatom         = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)force->pair->vatom, & (shared_data.atom.vatom)         , atom->nmax ,6 );// cu_vatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
+      if(cu_vatom->get_dim()[0]!=atom->nmax)
+      {
+        //delete cu_vatom;
+        //cu_vatom         = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)force->pair->vatom, & (shared_data.atom.vatom)         , atom->nmax ,6 );// cu_vatom->set_buffer(&(copy_buffer),&(copy_buffersize),true);}
+        shared_data.atom.update_nmax=2;
+      }
     	cu_vatom->set_host_data((double*)force->pair->vatom); 
 		  cu_vatom->memset_device(0);
     }

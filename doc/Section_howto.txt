@@ -789,7 +789,7 @@ basis vectors so that they meet this restriction.
 
 For example, assume that the 3 vectors [A],[B],[C] are the edge
 vectors of a general parallelipied, where there is no directional
-requirements [A],[B],[C] other than they are not co-linear and that
+requirements [A],[B],[C] other than they are not co-planar and that
 [C] dotted into ([A] x [B]) be > 0, i.e.  the vectors are ordered to
 satisfy a right-hand rule.  The equivalent LAMMPS [a],[b],[c] vectors
 can be computed as follows where A = |[A]| = scalar length of [A].

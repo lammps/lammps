@@ -352,6 +352,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all(FLERR,"Illegal fix rigid command");
   }
+  t_target = t_start;
 
   // initialize Marsaglia RNG with processor-unique seed
 

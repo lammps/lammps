@@ -151,7 +151,8 @@ class UCL_Device {
   /// Get the number of cores
   inline unsigned cores(const int i) 
     { if (arch(i)<2.0) return _properties[i].multiProcessorCount*8; 
-      else return _properties[i].multiProcessorCount*32; }
+      else if (arch(i)<3.0) return _properties[i].multiProcessorCount*32;
+      else return _properties[i].multiProcessorCount*192; }
   
   /// Get the gigabytes of global memory in the current device
   inline double gigabytes() { return gigabytes(_device); }

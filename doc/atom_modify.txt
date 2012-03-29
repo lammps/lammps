@@ -126,5 +126,4 @@ cutoff will be used to set the bin size.
 :line
 
 :link(Meloni)
-
-[(Meloni)] Meloni and Rasati, J Chem Phys, 126, 121102 (2007).
+[(Meloni)] Meloni, Rosati and Colombo, J Chem Phys, 126, 121102 (2007).

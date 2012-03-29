@@ -37,13 +37,16 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
                        const int gpu_nbor, const int gpu_host, 
                        const bool pre_cut, const int block_cell_2d,
                        const int block_cell_id, const int block_nbor_build,
-                       const int threads_per_atom, const bool time_device) {
+                       const int threads_per_atom, const int warp_size,
+                       const bool time_device) {
   clear();
 
   _threads_per_atom=threads_per_atom;
   _block_cell_2d=block_cell_2d;
   _block_cell_id=block_cell_id;
+  _max_block_nbor_build=block_nbor_build;
   _block_nbor_build=block_nbor_build;
+  _warp_size=warp_size;
   _shared=shared;
   dev=&devi;
   _gpu_nbor=gpu_nbor;
@@ -418,6 +421,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     for (int i=0; i<_ncells; i++)
       mn=std::max(mn,host_cell_counts[i]);
     mn*=8;
+    set_nbor_block_size(mn/2);
+
     resize_max_neighbors<numtyp,acctyp>(mn,success);
     if (!success)
       return;
@@ -497,6 +502,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     mn=host_acc[0];
     for (int i=1; i<nt; i++)
       mn=std::max(mn,host_acc[i]);
+    set_nbor_block_size(mn);
 
     if (mn>_max_nbors) {  
       resize_max_neighbors<numtyp,acctyp>(mn,success);

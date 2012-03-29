@@ -100,12 +100,25 @@
 
 #else
 
+#if (ARCH < 300)
+
 #define THREADS_PER_ATOM 4
 #define THREADS_PER_CHARGE 8
 #define BLOCK_NBOR_BUILD 128
 #define BLOCK_PAIR 128
 #define BLOCK_BIO_PAIR 128
 #define MAX_SHARED_TYPES 11
+
+#else
+
+#define THREADS_PER_ATOM 4
+#define THREADS_PER_CHARGE 8
+#define BLOCK_NBOR_BUILD 128
+#define BLOCK_PAIR 512
+#define BLOCK_BIO_PAIR 512
+#define MAX_SHARED_TYPES 11
+
+#endif
 
 #endif
 

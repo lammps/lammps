@@ -119,6 +119,7 @@ __kernel void calc_neigh_list_cell(__global numtyp4 *x_,
   int ix = BLOCK_ID_X;
   int iy = BLOCK_ID_Y % ncelly;
   int iz = BLOCK_ID_Y / ncelly;
+  int bsx = BLOCK_SIZE_X;
 	  
   int icell = ix + iy*ncellx + iz*ncellx*ncelly;
 
@@ -134,9 +135,9 @@ __kernel void calc_neigh_list_cell(__global numtyp4 *x_,
 
   numtyp4 diff;
   numtyp r2;
-  int cap=ucl_ceil((numtyp)(icell_end - icell_begin)/BLOCK_SIZE_X);
+  int cap=ucl_ceil((numtyp)(icell_end - icell_begin)/bsx);
   for (int ii = 0; ii < cap; ii++) {
-    int i = icell_begin + tid + ii*BLOCK_SIZE_X;
+    int i = icell_begin + tid + ii*bsx;
     int pid_i = nall, pid_j, stride;
     numtyp4 atom_i, atom_j;
     int cnt = 0;    
@@ -173,14 +174,13 @@ __kernel void calc_neigh_list_cell(__global numtyp4 *x_,
           int num_atom_cell = jcell_end - jcell_begin;
 	  
           // load jcell to shared memory
-          int num_iter = ucl_ceil((numtyp)num_atom_cell/BLOCK_NBOR_BUILD);
+          int num_iter = ucl_ceil((numtyp)num_atom_cell/bsx);
 
           for (int k = 0; k < num_iter; k++) {
-            int end_idx = min(BLOCK_NBOR_BUILD, 
-                              num_atom_cell-k*BLOCK_NBOR_BUILD);
+            int end_idx = min(bsx, num_atom_cell-k*bsx);
 	    
             if (tid < end_idx) {
-              pid_j =  cell_particle_id[tid+k*BLOCK_NBOR_BUILD+jcell_begin];
+              pid_j =  cell_particle_id[tid+k*bsx+jcell_begin];
               cell_list_sh[tid] = pid_j;
               atom_j = fetch_pos(pid_j,x_); //[pid_j];
               pos_sh[tid].x = atom_j.x;

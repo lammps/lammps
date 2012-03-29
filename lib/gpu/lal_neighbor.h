@@ -67,7 +67,7 @@ class Neighbor {
             const int gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
             const int block_nbor_build, const int threads_per_atom,
-            const bool time_device);
+            const int warp_size, const bool time_device);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size) { _cell_size=size; }
@@ -237,12 +237,20 @@ class Neighbor {
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
   
-  int _block_cell_2d, _block_cell_id, _block_nbor_build, _ncells;
-  int _threads_per_atom;
-  int _total_atoms;
+  int _block_cell_2d, _block_cell_id, _max_block_nbor_build, _block_nbor_build;
+  int _ncells, _threads_per_atom, _total_atoms;
 
   template <class numtyp, class acctyp>
   inline void resize_max_neighbors(const int maxn, bool &success);
+  
+  int _warp_size;
+  inline void set_nbor_block_size(const int mn) {
+    int desired=mn/(2*_warp_size);
+    desired*=_warp_size;
+    if (desired<_warp_size) desired=_warp_size;
+    else if (desired>_max_block_nbor_build) desired=_max_block_nbor_build;
+    _block_nbor_build=desired;
+  }
 };
 
 }

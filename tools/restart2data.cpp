@@ -2349,10 +2349,9 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if (strcmp(style,"meam") == 0) {
-
-  } else if (strcmp(style,"meam/spline") == 0) {
-
+  } else if ((strcmp(style,"meam") == 0) || 
+	     (strcmp(style,"meam/spline") == 0)) {
+      
   } else if (strcmp(style,"morse") == 0) {
 
     double cut_global = read_double(fp);

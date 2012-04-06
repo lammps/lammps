@@ -54,9 +54,15 @@ exist between a group of 4 bonded atoms.
 
 :line
 
-Here is an alphabetic list of improper styles defined in LAMMPS.  Click on
-the style to display the formula it computes and coefficients
-specified by the associated "improper_coeff"_improper_coeff.html command:
+Here is an alphabetic list of improper styles defined in LAMMPS.
+Click on the style to display the formula it computes and coefficients
+specified by the associated "improper_coeff"_improper_coeff.html
+command.
+
+There are also additional improper styles submitted by users which are
+included in the LAMMPS distribution.  The list of these with links to
+the individual styles are given in the improper section of "this
+page"_Section_commands.html#cmd_5.
 
 "improper_style none"_improper_none.html - turn off improper interactions
 "improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul
@@ -65,11 +71,6 @@ specified by the associated "improper_coeff"_improper_coeff.html command:
 "improper_style cvff"_improper_cvff.html - CVFF improper
 "improper_style harmonic"_improper_harmonic.html - harmonic improper
 "improper_style umbrella"_improper_umbrella.html - DREIDING improper :ul
-
-There are also additional improper styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the improper section of "this
-page"_Section_commands.html#cmd_5.
 
 :line
 

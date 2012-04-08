@@ -1,0 +1,52 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+read_dump command :h3
+
+[Syntax:]
+
+read_dump file timestep :pre
+
+file = name of dump file to read :ul
+timestep = time of dump frame :ul
+
+[Examples:]
+
+read_dump dump.lammpstrj 5000 :pre
+
+[Description:]
+
+Read per-atom data from a dump file to overwrite the current values. This is useful for modifying coordinates, velocities, or image flags
+before a run. The structure of the dump file must be Atom or Custom format and
+contain at least the atom ID. The atom ID, coordinates, velocites, and image flags are
+detected by their corresponding column headers in the "dump"_dump.html command,
+ therefore any of the following headers specify a readable column:
+
+{id} :ul
+{x, y, z, xu, yu, zu, xs, yz, zs, xsu, ysu, zsu} :ul
+{vx, vy, vz} :ul
+{ix, iy, iz} :ul
+
+These headers can occur in any order, and other headers are ignored. The order of atom IDs are not important. All of the readable information from the dump file is used to update the
+system, including the timestep and box size. The dump file can contain more or less
+atoms than the current system; only the atoms present in both places are updated. 
+
+Scaled coordinates are are reconstructed from the box boundaries, and read only if unscaled coordinates are not present. 
+
+:line
+
+[Restrictions:]
+
+The dump file must be in ASCII text.  Gzipped files (detected by a .gz suffix) are not supported.
+
+[Related commands:]
+
+"dump"_dump.html
+
+[Default:] none
+

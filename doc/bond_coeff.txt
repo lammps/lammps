@@ -58,7 +58,12 @@ corresponds to the 1st example above would be listed as
 
 Here is an alphabetic list of bond styles defined in LAMMPS.  Click on
 the style to display the formula it computes and coefficients
-specified by the associated "bond_coeff"_bond_coeff.html command:
+specified by the associated "bond_coeff"_bond_coeff.html command.
+
+Note that here are also additional bond styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the bond section of "this
+page"_Section_commands.html#cmd_5.
 
 "bond_style none"_bond_none.html - turn off bonded interactions
 "bond_style hybrid"_bond_hybrid.html - define multiple styles of bond interactions :ul
@@ -71,11 +76,6 @@ specified by the associated "bond_coeff"_bond_coeff.html command:
 "bond_style nonlinear"_bond_nonlinear.html - nonlinear bond
 "bond_style quartic"_bond_quartic.html - breakable quartic bond
 "bond_style table"_bond_table.html - tabulated by bond length :ul
-
-There are also additional bond styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the bond section of "this
-page"_Section_commands.html#cmd_5.
 
 :line
 

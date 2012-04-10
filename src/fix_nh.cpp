@@ -85,6 +85,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (domain->xz != 0.0) scalexz = 1;
   }
 
+  // Set fixed-point to default = center of cell
+
+  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
+  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
+  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+
   // Used by FixNVTSllod to preserve non-default value  
 
   mtchain_default_flag = 1;
@@ -289,6 +295,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
       else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      fixedpoint[0] = atof(arg[iarg+1]);
+      fixedpoint[1] = atof(arg[iarg+2]);
+      fixedpoint[2] = atof(arg[iarg+3]);
+      iarg += 4;
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");
   }
 
@@ -945,7 +957,7 @@ void FixNH::couple()
 void FixNH::remap()
 {
   int i;
-  double oldlo,oldhi,ctr;
+  double oldlo,oldhi;
   double expfac;
 
   double **x = atom->x;
@@ -1028,29 +1040,26 @@ void FixNH::remap()
   if (p_flag[0]) {
     oldlo = domain->boxlo[0];
     oldhi = domain->boxhi[0];
-    ctr = 0.5 * (oldlo + oldhi);
     expfac = exp(dto*omega_dot[0]);
-    domain->boxlo[0] = (oldlo-ctr)*expfac + ctr;
-    domain->boxhi[0] = (oldhi-ctr)*expfac + ctr;
+    domain->boxlo[0] = (oldlo-fixedpoint[0])*expfac + fixedpoint[0];
+    domain->boxhi[0] = (oldhi-fixedpoint[0])*expfac + fixedpoint[0];
   }
 
   if (p_flag[1]) {
     oldlo = domain->boxlo[1];
     oldhi = domain->boxhi[1];
-    ctr = 0.5 * (oldlo + oldhi);
     expfac = exp(dto*omega_dot[1]);
-    domain->boxlo[1] = (oldlo-ctr)*expfac + ctr;
-    domain->boxhi[1] = (oldhi-ctr)*expfac + ctr;
+    domain->boxlo[1] = (oldlo-fixedpoint[1])*expfac + fixedpoint[1];
+    domain->boxhi[1] = (oldhi-fixedpoint[1])*expfac + fixedpoint[1];
     if (scalexy) h[5] *= expfac;
   }
 
   if (p_flag[2]) {
     oldlo = domain->boxlo[2];
     oldhi = domain->boxhi[2];
-    ctr = 0.5 * (oldlo + oldhi);
     expfac = exp(dto*omega_dot[2]);
-    domain->boxlo[2] = (oldlo-ctr)*expfac + ctr;
-    domain->boxhi[2] = (oldhi-ctr)*expfac + ctr;
+    domain->boxlo[2] = (oldlo-fixedpoint[2])*expfac + fixedpoint[2];
+    domain->boxhi[2] = (oldhi-fixedpoint[2])*expfac + fixedpoint[2];
     if (scalexz) h[4] *= expfac;
     if (scaleyz) h[3] *= expfac;
   }

@@ -110,6 +110,8 @@ class FixNH : public Fix {
   int scalexz;                     // 1 if xz scaled with lz 
   int scalexy;                     // 1 if xy scaled with ly 
 
+  double fixedpoint[3];            // Location of dilation fixed-point
+
   void couple();
   void remap();
   void nhc_temp_integrate();

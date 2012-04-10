@@ -832,6 +832,7 @@ void FixDeform::end_of_step()
   // if yz tilt exceeded, adjust C vector by one B vector
   // if xz tilt exceeded, adjust C vector by one A vector
   // if xy tilt exceeded, adjust B vector by one A vector
+  // check yz first since it may change xz, then xz check comes after
   // flip is performed on next timestep, before reneighboring in pre-exchange()
 
   if (triclinic) {

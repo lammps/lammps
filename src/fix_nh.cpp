@@ -2144,9 +2144,10 @@ void FixNH::nh_omega_dot()
   if yz tilt exceeded, adjust C vector by one B vector
   if xz tilt exceeded, adjust C vector by one A vector
   if xy tilt exceeded, adjust B vector by one A vector
+  check yz first since it may change xz, then xz check comes after
   if any flip occurs, create new box in domain
   remap() puts atoms outside the new box back into the new box
-  image_tilt() adjusts image flags due to box shape change induced by flip
+  image_flip() adjusts image flags due to box shape change induced by flip
   perform irregular on atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 

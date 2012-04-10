@@ -89,6 +89,9 @@ Use {N} in the pair_style command equal to the "N" in the tabulation
 file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
 is not needed.  See discussion below. :l
 
+Make sure that your tabulated forces and tabulated energies are consistent 
+(dE/dr = -F) along the entire range of r values. :l
+
 Use as large an inner cutoff as possible.  This avoids fitting splines
 to very steep parts of the potential. :l,ule
 
@@ -129,6 +132,7 @@ force for individual pair distances.  This means that if you want the
 interpolation tables of length Ntable to match exactly what is in the
 tabulated file (with effectively no preliminary interpolation), you
 should set Ntable = Nfile, and use the "RSQ" or "BITMAP" parameter.
+The internal table abscissa is RSQ (separation distance squared).
 
 All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
 not appear, then the distances in each line of the table are used
@@ -140,6 +144,7 @@ If used, the parameters "R" or "RSQ" are followed by 2 values {rlo}
 and {rhi}.  If specified, the distance associated with each energy and
 force value is computed from these 2 values (at high accuracy), rather
 than using the (low-accuracy) value listed in each line of the table.
+The distance values in the table file are ignored in this case.
 For "R", distances uniformly spaced between {rlo} and {rhi} are
 computed; for "RSQ", squared distances uniformly spaced between
 {rlo*rlo} and {rhi*rhi} are computed.

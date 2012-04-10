@@ -826,7 +826,7 @@ The transformation is given by the following equation:
 <P>If it should happen that
 <B>A</B>, <B>B</B>, and <B>C</B> form a left-handed basis, then it is necessary
 to first apply an inversion in addition to rotation. This can be achieved
-by interchanging two of the vectors or changing the sign of one of them.
+by interchanging two of the basis vectors or changing the sign of one of them.
 </P>
 <P>There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension
@@ -1237,7 +1237,7 @@ discussed below, it can be referenced via the following bracket
 notation, where ID in this case is the ID of a compute.  The leading
 "c_" would be replaced by "f_" for a fix, or "v_" for a variable:
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
 <TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
 <TR><TD >c_ID[I][J] </TD><TD > one element of array 
@@ -1436,7 +1436,7 @@ data and scalar/vector/array data.
 input, that could be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "thermo_style.html">thermo_style custom</A></TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "dump.html">dump custom</A></TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>

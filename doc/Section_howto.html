@@ -769,11 +769,11 @@ See the <A HREF = "dump.html">dump</A> command for more information on XTC files
 </H4>
 <P>By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The <A HREF = "boundary.html">boundary</A> command sets the boundary
-conditions of the box (periodic, non-,periodic, etc).  The orthogonal
+conditions of the box (periodic, non-periodic, etc).  The orthogonal
 box has its "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors
 starting from the origin given by <B>a</B> = (xhi-xlo,0,0); <B>b</B> =
 (0,yhi-ylo,0); <B>c</B> = (0,0,zhi-zlo).  The 6 parameters
-(xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simluation box
+(xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simulation box
 is created, e.g. by the <A HREF = "create_box.html">create_box</A> or
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands.  Additionally, LAMMPS defines box size parameters lx,ly,lz
@@ -781,30 +781,53 @@ where lx = xhi-xlo, and similarly in the y and z dimensions.  The 6
 parameters, as well as lx,ly,lz, can be output via the <A HREF = "thermo_style.html">thermo_style
 custom</A> command.
 </P>
-<P>LAMMPS also allows simulations to be perfored in triclinic
+<P>LAMMPS also allows simulations to be performed in triclinic
 (non-orthogonal) simulation boxes shaped as a parallelepiped with
 triclinic symmetry.  The parallelepiped has its "origin" at
 (xlo,ylo,zlo) and is defined by 3 edge vectors starting from the
 origin given by <B>a</B> = (xhi-xlo,0,0); <B>b</B> = (xy,yhi-ylo,0); <B>c</B> =
-(xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or positive or negative values
+(xz,yz,zhi-zlo).  <I>xy,xz,yz</I> can be 0.0 or positive or negative values
 and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
-transform it into the parallelepiped.  Note that in LAMMPS the
+transform it into the parallelepiped.  In LAMMPS the
 triclinic simulation box edge vectors <B>a</B>, <B>b</B>, and <B>c</B> cannot be
-arbitrary vectors.  As indicated, <B>a</B> must be aligned with the x axis,
-<B>b</B> must be in the xy plane, and <B>c</B> is arbitrary.  However, this is
-not a restriction since it is possible to rotate any set of 3 crystal
-basis vectors so that they meet this restriction.
+arbitrary vectors.  As indicated, <B>a</B> must lie on the positive x axis.
+<B>b</B> must lie in the xy plane, with strictly positive y component. <B>c</B> may 
+have any orientation with strictly positive z component.
+The requirement that <B>a</B>, <B>b</B>, and <B>c</B> have strictly positive x, y,
+and z components, respectively, ensures
+that <B>a</B>, <B>b</B>, and <B>c</B> form a complete right-handed basis.
+These restrictions impose
+no loss of generality, since it is possible to rotate/invert 
+any set of 3 crystal basis vectors so that they conform to the restrictions.
 </P>
 <P>For example, assume that the 3 vectors <B>A</B>,<B>B</B>,<B>C</B> are the edge
-vectors of a general parallelipied, where there is no directional
-requirements <B>A</B>,<B>B</B>,<B>C</B> other than they are not co-planar and that
-<B>C</B> dotted into (<B>A</B> x <B>B</B>) be > 0, i.e.  the vectors are ordered to
-satisfy a right-hand rule.  The equivalent LAMMPS <B>a</B>,<B>b</B>,<B>c</B> vectors
-can be computed as follows where A = |<B>A</B>| = scalar length of <B>A</B>.
+vectors of a general parallelepiped, where there is no restriction
+on <B>A</B>,<B>B</B>,<B>C</B> other than they form a complete right-handed basis i.e.
+<B>A</B> x <B>B</B> . <B>C</B> > 0.
+The equivalent LAMMPS <B>a</B>,<B>b</B>,<B>c</B> are a linear rotation of <B>A</B>, <B>B</B>, and
+<B>C</B> and can be computed as follows:
 </P>
 <CENTER><IMG SRC = "Eqs/transform.jpg">
 </CENTER>
+<P>where A = |<B>A</B>| indicates the scalar length of <B>A</B>. The ^ hat symbol
+indicates the corresponding unit vector. beta and gamma are angles
+between the vectors described below. The same rotation must also
+be applied to atom positions, velocities, and any other vector quantities.
+This can be done by first converting to fractional coordinates in the
+old basis and then converting to distance coordinates in the new basis.
+The transformation is given by the following equation:
+</P>
+<CENTER><IMG SRC = "Eqs/rotate.jpg">
+</CENTER>
+<P>where V is the volume of the box, <B>X</B> is the original vector quantity and 
+<B>x</B> is the vector in the LAMMPS basis.
+</P>
+<P>If it should happen that
+<B>A</B>, <B>B</B>, and <B>C</B> form a left-handed basis, then it is necessary
+to first apply an inversion in addition to rotation. This can be achieved
+by interchanging two of the vectors or changing the sign of one of them.
+</P>
 <P>There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension
 of the tilt (y in xy) if you want to enforce a shift in periodic
@@ -1214,7 +1237,7 @@ discussed below, it can be referenced via the following bracket
 notation, where ID in this case is the ID of a compute.  The leading
 "c_" would be replaced by "f_" for a fix, or "v_" for a variable:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
 <TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
 <TR><TD >c_ID[I][J] </TD><TD > one element of array 
@@ -1413,7 +1436,7 @@ data and scalar/vector/array data.
 input, that could be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR><TD >Command</TD><TD > Input</TD><TD > Output</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "thermo_style.html">thermo_style custom</A></TD><TD > global scalars</TD><TD > screen, log file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "dump.html">dump custom</A></TD><TD > per-atom vectors</TD><TD > dump file</TD><TD ></TD></TR>

@@ -802,22 +802,27 @@ The equivalent LAMMPS [a],[b],[c] are a linear rotation of [A], [B], and
 :c,image(Eqs/transform.jpg)
 
 where A = |[A]| indicates the scalar length of [A]. The ^ hat symbol
-indicates the corresponding unit vector. beta and gamma are angles
-between the vectors described below. The same rotation must also
-be applied to atom positions, velocities, and any other vector quantities.
-This can be done by first converting to fractional coordinates in the
+indicates the corresponding unit vector. {beta} and {gamma} are angles
+between the vectors described below. Note that by construction, 
+[a], [b], and [c] have strictly positive x, y, and z components, respectively.
+If it should happen that
+[A], [B], and [C] form a left-handed basis, then the above equations
+are not valid for [c]. In this case, it is necessary
+to first apply an inversion. This can be achieved
+by interchanging two basis vectors or by changing the sign of one of them.
+
+For consistency, the same rotation/inversion applied to the basis vectors
+must also be applied to atom positions, velocities, 
+and any other vector quantities.
+This can be conveniently achieved by first converting to 
+fractional coordinates in the
 old basis and then converting to distance coordinates in the new basis.
 The transformation is given by the following equation:
 
 :c,image(Eqs/rotate.jpg)
 
-where V is the volume of the box, [X] is the original vector quantity and 
-[x] is the vector in the LAMMPS basis.
-
-If it should happen that
-[A], [B], and [C] form a left-handed basis, then it is necessary
-to first apply an inversion in addition to rotation. This can be achieved
-by interchanging two of the basis vectors or changing the sign of one of them.
+where {V} is the volume of the box, [X] is the original vector quantity and 
+[x] is the vector in the LAMMPS basis. 
 
 There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension

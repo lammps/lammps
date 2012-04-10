@@ -1026,6 +1026,43 @@ void Domain::unmap(double *x, int image, double *y)
 }
 
 /* ----------------------------------------------------------------------
+   adjust image flags due to triclinic box flip
+   flip operation is changing box vectors A,B,C to new A',B',C'
+     A' = A              (A does not change)
+     B' = B + mA         (B shifted by A)
+     C' = C + pB + nA    (C shifted by B and/or A)
+   this requires the image flags change from (a,b,c) to (a',b',c')
+   so that x_unwrap for each atom is same before/after
+     x_unwrap_before = xlocal + aA + bB + cC
+     x_unwrap_after = xlocal + a'A' + b'B' + c'C'
+   this requires:
+     c' = c
+     b' = b - cp
+     a' = a - (b-cp)m - cn = a - b'm - cn
+   in other words, for xy flip, change in x flag depends on current y flag
+   this is b/c the xy flip dramatically changes which tiled image of
+     simulation box an unwrapped point maps to
+------------------------------------------------------------------------- */
+
+void Domain::image_flip(int m, int n, int p)
+{
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) { 
+    int xbox = (image[i] & 1023) - 512;
+    int ybox = (image[i] >> 10 & 1023) - 512;
+    int zbox = (image[i] >> 20) - 512;
+
+    ybox -= p*zbox;
+    xbox -= m*ybox + n*zbox;
+
+    image[i] = ((zbox + 512 & 1023) << 20) |
+      ((ybox + 512 & 1023) << 10) | (xbox + 512 & 1023);
+  }
+}
+
+/* ----------------------------------------------------------------------
    create a lattice
    delete it if style = none
 ------------------------------------------------------------------------- */

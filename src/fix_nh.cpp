@@ -85,7 +85,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (domain->xz != 0.0) scalexz = 1;
   }
 
-  // Set fixed-point to default = center of cell
+  // set fixed-point to default = center of cell
 
   fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
   fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
@@ -116,7 +116,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)
-	error->all(FLERR,"Target temperature for fix nvt/npt/nph cannot be 0.0");
+	error->all(FLERR,
+		   "Target temperature for fix nvt/npt/nph cannot be 0.0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
@@ -2137,12 +2138,16 @@ void FixNH::nh_omega_dot()
 }
 
 /* ----------------------------------------------------------------------
-  if any tilt ratios exceed 0.5, set flip = 1 & compute new tilt_flip values
-  do not flip in x or y if non-periodic
-  when yz flips and xy is non-zero, xz must also change
-  this is to keep the edge vectors of the flipped shape matrix
-    an integer combination of the edge vectors of the unflipped shape matrix
-  perform irregular on atoms in lamda coords to get atoms to new procs
+  if any tilt ratios exceed 0.5, set flip = 1 and compute new tilt values
+  do not flip in x or y if non-periodic (can tilt but not flip)
+    this is b/c the box length would be changed (dramatically) by flip
+  if yz tilt exceeded, adjust C vector by one B vector
+  if xz tilt exceeded, adjust C vector by one A vector
+  if xy tilt exceeded, adjust B vector by one A vector
+  if any flip occurs, create new box in domain
+  remap() puts atoms outside the new box back into the new box
+  image_tilt() adjusts image flags due to box shape change induced by flip
+  perform irregular on atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 
 void FixNH::pre_exchange()
@@ -2156,36 +2161,40 @@ void FixNH::pre_exchange()
   double xtiltmax = (0.5+DELTAFLIP)*xprd;
   double ytiltmax = (0.5+DELTAFLIP)*yprd;
 
-  int flip = 0;
+  int flipxy,flipxz,flipyz;
+  flipxy = flipxz = flipyz = 0;
 
   if (domain->yperiodic) {
     if (domain->yz < -ytiltmax) {
-      flip = 1;
       domain->yz += yprd;
       domain->xz += domain->xy;
+      flipyz = 1;
     } else if (domain->yz >= ytiltmax) {
-      flip = 1;
       domain->yz -= yprd;
       domain->xz -= domain->xy;
+      flipyz = -1;
     }
   }
 
   if (domain->xperiodic) {
     if (domain->xz < -xtiltmax) {
-      flip = 1;
       domain->xz += xprd;
+      flipxz = 1;
     } else if (domain->xz >= xtiltmax) {
-      flip = 1;
       domain->xz -= xprd;
+      flipxz = -1;
     }
     if (domain->xy < -xtiltmax) {
-      flip = 1;
       domain->xy += xprd;
+      flipxy = 1;
     } else if (domain->xy >= xtiltmax) {
-      flip = 1;
       domain->xy -= xprd;
+      flipxy = -1;
     }
   }
+
+  int flip = 0;
+  if (flipxy || flipxz || flipyz) flip = 1;
 
   if (flip) {
     domain->set_global_box();
@@ -2195,7 +2204,8 @@ void FixNH::pre_exchange()
     int *image = atom->image;
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
-    
+    domain->image_flip(flipxy,flipxz,flipyz);
+
     domain->x2lamda(atom->nlocal);
     irregular->migrate_atoms();
     domain->lamda2x(atom->nlocal);

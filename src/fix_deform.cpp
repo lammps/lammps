@@ -635,13 +635,10 @@ void FixDeform::init()
 
 /* ----------------------------------------------------------------------
   box flipped on previous step
-  do not allow box flip in a non-periodic dimension (can tilt but not flip)
-    this is b/c the box length will be changed (dramatically) by flip
-  perform irregular comm to migrate atoms to new procs
   reset box tilts for flipped config and create new box in domain
-  remap to put far-away atoms back into new box
-  perform irregular on atoms in lamda coords to get atoms to new procs
-  force reneighboring on next timestep
+  remap() puts atoms outside the new box back into the new box
+  image_tilt() adjusts image flags due to box shape change induced by flip
+  perform irregular on atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 
 void FixDeform::pre_exchange()
@@ -658,6 +655,7 @@ void FixDeform::pre_exchange()
   int *image = atom->image;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+  domain->image_flip(flipxy,flipxz,flipyz);
 
   domain->x2lamda(atom->nlocal);
   irregular->migrate_atoms();
@@ -828,12 +826,13 @@ void FixDeform::end_of_step()
 
   if (varflag) modify->addstep_compute(update->ntimestep + nevery);
 
-  // if any tilt ratios exceed 0.5, set flip = 1 & compute new tilt_flip values
-  // do not flip in x or y if non-periodic
-  // when yz flips and xy is non-zero, xz must also change
-  // this is to keep the edge vectors of the flipped shape matrix
-  //   an integer combination of the edge vectors of the unflipped shape matrix
-  // flip is performed on next timestep before reneighboring
+  // if any tilt ratios exceed 0.5, set flip = 1 and compute new tilt values
+  // do not flip in x or y if non-periodic (can tilt but not flip)
+  //   this is b/c the box length would be changed (dramatically) by flip
+  // if yz tilt exceeded, adjust C vector by one B vector
+  // if xz tilt exceeded, adjust C vector by one A vector
+  // if xy tilt exceeded, adjust B vector by one A vector
+  // flip is performed on next timestep, before reneighboring in pre-exchange()
 
   if (triclinic) {
     double xprd = set[0].hi_target - set[0].lo_target;
@@ -850,36 +849,40 @@ void FixDeform::end_of_step()
       set[4].tilt_flip = set[4].tilt_target;
       set[5].tilt_flip = set[5].tilt_target;
       
+      flipxy = flipxz = flipyz = 0;
+
       if (domain->yperiodic) {
 	if (set[3].tilt_flip*yprdinv < -0.5) {
 	  set[3].tilt_flip += yprd;
 	  set[4].tilt_flip += set[5].tilt_flip;
-	  flip = 1;
+	  flipyz = 1;
 	} else if (set[3].tilt_flip*yprdinv > 0.5) {
 	  set[3].tilt_flip -= yprd;
 	  set[4].tilt_flip -= set[5].tilt_flip;
-	  flipy = 1;
+	  flipyz = -1;
 	}
       }
       if (domain->xperiodic) {
 	if (set[4].tilt_flip*xprdinv < -0.5) {
 	  set[4].tilt_flip += xprd;
-	  flip = 1;
+	  flipxz = 1;
 	}
 	if (set[4].tilt_flip*xprdinv > 0.5) {
 	  set[4].tilt_flip -= xprd;
-	  flip = 1;
+	  flipxz = -1;
 	}
 	if (set[5].tilt_flip*xprdinv < -0.5) {
 	  set[5].tilt_flip += xprd;
-	  flip = 1;
+	  flipxy = 1;
 	}
 	if (set[5].tilt_flip*xprdinv > 0.5) {
 	  set[5].tilt_flip -= xprd;
-	  flip = 1;
+	  flipxy = -1;
 	}
       }
 
+      flip = 0;
+      if (flipxy || flipxz || flipyz) flip = 1;
       if (flip) next_reneighbor = update->ntimestep + 1;
     }
   }

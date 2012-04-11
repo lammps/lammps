@@ -268,7 +268,14 @@ box.  Note that these coordinates may thus be far outside the box size
 stored with the snapshot.
 
 The {xyz} style writes XYZ files, which is a simple text-based
-coordinate format that many codes can read.
+coordinate format that many codes can read. Specifically it has
+a line with the number of atoms, then a comment line that is
+usually ignored followed by one line per atom with the atom type
+and the x-, y-, and z-coordinate of that atom. You can use the
+"dump_modify element"_dump_modify.html option to change the output
+from using the (numerical) atom type to an element name (or some
+other label). This will help many visualization programs to guess
+bonds and colors.
 
 Note that DCD, XTC, and XYZ formatted files can be read directly by
 "VMD"_http://www.ks.uiuc.edu/Research/vmd (a popular molecular viewing

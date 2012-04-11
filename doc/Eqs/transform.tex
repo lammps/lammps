@@ -1,17 +1,27 @@
 \documentclass[12pt]{article}
 
+\usepackage{amsmath}
+
 \begin{document}
 
 \begin{eqnarray*}
-\vec{a} &=& (a_x,0,0) \\
-\vec{b} &=& (b_x,b_y,0) \\
-\vec{c} &=& (c_x,c_y,c_z) \\
+\begin{pmatrix}
+\mathbf{a}  &
+\mathbf{b}  &
+\mathbf{c} 
+\end{pmatrix}
+& = &
+\begin{pmatrix}
+a_x & b_x & c_x \\
+0 & b_y & c_y \\
+0 & 0 & c_z \\
+\end{pmatrix} \\
 a_x &=& A \\
-b_x &=& (\vec{B} \bullet \vec{A}) \,\, / \,\, A \\
-b_y &=& |\vec{A} \times \vec{B}| \,\, / \,\, A \quad \rm{or} \quad  \sqrt{B^2 - {b_x}^2} \\
-c_x &=& (\vec{C} \bullet \vec{A}) \,\, / \,\, A \\
-c_y &=& [\vec{C} \bullet ((\vec{A} \times \vec{B}) \times \vec{A})] \,\, / \,\, |(\vec{A} \times \vec{B}) \times \vec{A}| \quad \rm{or} \quad \sqrt{C^2 - {c_x}^2 -{c_z}^2} \\
-c_z &=& [\vec{C} \bullet (\vec{A} \times \vec{B})] \,\, / \,\, |\vec{A} \times \vec{B}| \\
+b_x &=& \mathbf{B} \cdot \mathbf{\hat{A}} \quad = \quad B \cos{\gamma} \\
+b_y &=& |\mathbf{\hat{A}} \times \mathbf{B}| \quad = \quad B \sin{\gamma} \quad =  \quad  \sqrt{B^2 - {b_x}^2} \\
+c_x &=& \mathbf{C} \cdot \mathbf{\hat{A}} \quad = \quad C \cos{\beta} \\
+c_y &=& \mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})} \times \mathbf{\hat{A}} \quad = \quad \frac{B C - b_x c_x}{b_y} \\
+c_z &=& |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2} \\
 \end{eqnarray*}
 
 \end{document}

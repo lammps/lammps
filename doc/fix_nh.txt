@@ -40,7 +40,10 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {dilate} value = {all} or {partial}
   {scaleyz} value = {yes} or {no} = scale yz with lz
   {scalexz} value = {yes} or {no} = scale xz with lz
-  {scalexy} value = {yes} or {no} = scale xy with ly :pre
+  {scalexy} value = {yes} or {no} = scale xy with ly
+  {fixedpoint} Values = x, y, z
+    x, y, z = fixed point for barostat volume changes (distance units) :pre
+    
 :ule
 
 [Examples:]
@@ -275,6 +278,16 @@ dimensions. See below for restrictions and default values in different
 situations. In older versions of LAMMPS, scaling of tilt factors was
 not performed. The old behavior can be recovered by setting all three
 scale keywords to {no}.
+
+The {fixedpoint} keyword specifies the fixed point for barostat
+volume changes. By default, it is the center of the box.
+Whatever point is chosen will not move during the simulation.
+For example, if the lower periodic boundaries pass through (0,0,0), 
+and this point is provided to {fixedpoint}, then the lower
+periodic boundaries will remain at (0,0,0), while the upper periodic
+boundaries will move twice as far. In all cases, the particle 
+trajectories are unaffected by the chosen value,
+except for a time-dependent constant translation of positions.
 
 :line
 

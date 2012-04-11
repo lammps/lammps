@@ -620,7 +620,9 @@ void PairTable::compute_table(Table *tb)
       }
     }
 
-    // ep0,epn = dE/dr at inner and at cut
+    // ep0,epn = dh/dg at inner and at cut
+    // h(r) = e(r) and g(r) = r^2
+    // dh/dg = (de/dr) / 2r = -f/2r
 
     double ep0 = - tb->f[0] / (2.0 * sqrt(tb->innersq));
     double epn = - tb->f[tlm1] / (2.0 * tb->cut);

@@ -1482,7 +1482,8 @@ void colvarbias_meta::write_pmf()
       fes_file_name_prefix += (".partial");
     std::string const fes_file_name (fes_file_name_prefix +
                                      (dump_fes_save ?
-                                      "."+cvm::to_str (cvm::step_absolute()) : ""));
+                                      "."+cvm::to_str (cvm::step_absolute()) : "") +
+                                     ".pmf");
     cvm::backup_file (fes_file_name.c_str());
     std::ofstream fes_os (fes_file_name.c_str());
     pmf->write_multicol (fes_os);
@@ -1501,7 +1502,8 @@ void colvarbias_meta::write_pmf()
     pmf->multiply_constant (-1.0);
     std::string const fes_file_name (fes_file_name_prefix +
                                      (dump_fes_save ?
-                                      "."+cvm::to_str (cvm::step_absolute()) : ""));
+                                      "."+cvm::to_str (cvm::step_absolute()) : "") +
+                                     ".pmf");
     cvm::backup_file (fes_file_name.c_str());
     std::ofstream fes_os (fes_file_name.c_str());
     pmf->write_multicol (fes_os);

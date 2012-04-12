@@ -77,8 +77,10 @@ MinLineSearch::~MinLineSearch()
 
 /* ---------------------------------------------------------------------- */
 
-void MinLineSearch::init_style()
+void MinLineSearch::init()
 {
+  Min::init();
+
   if (linestyle == 0) linemin = &MinLineSearch::linemin_backtrack;
   else if (linestyle == 1) linemin = &MinLineSearch::linemin_quadratic;
   else if (linestyle == 2) linemin = &MinLineSearch::linemin_forcezero;

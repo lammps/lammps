@@ -28,6 +28,9 @@ using namespace LAMMPS_NS;
 KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   energy = 0.0;
+  virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
+
+  compute_flag = 1;
   order = 5;
   gridflag = 0;
   gewaldflag = 0;
@@ -51,6 +54,15 @@ KSpace::~KSpace()
 {
   memory->destroy(eatom);
   memory->destroy(vatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KSpace::compute_dummy(int eflag, int vflag)
+{
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = evflag_atom = eflag_global = vflag_global = 
+	 eflag_atom = vflag_atom = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -149,6 +161,12 @@ void KSpace::modify_params(int narg, char **arg)
 	error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
 		       "cause unphysical behavior");
       slabflag = 1;
+    } else if (strcmp(arg[iarg],"compute") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }
 }

@@ -244,6 +244,8 @@ Respa::~Respa()
 
 void Respa::init()
 {
+  Integrate::init();
+
   // warn if no fixes
 
   if (modify->nfix == 0 && comm->me == 0)
@@ -359,17 +361,17 @@ void Respa::setup()
       force->dihedral->compute(eflag,vflag);
     if (level_improper == ilevel && force->improper) 
       force->improper->compute(eflag,vflag);
-    if (level_pair == ilevel && force->pair)
+    if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
-    if (level_inner == ilevel && force->pair)
+    if (level_inner == ilevel && pair_compute_flag)
       force->pair->compute_inner();
-    if (level_middle == ilevel && force->pair)
+    if (level_middle == ilevel && pair_compute_flag)
       force->pair->compute_middle();
-    if (level_outer == ilevel && force->pair)
+    if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
-      force->kspace->compute(eflag,vflag);
+      if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
@@ -423,17 +425,17 @@ void Respa::setup_minimal(int flag)
       force->dihedral->compute(eflag,vflag);
     if (level_improper == ilevel && force->improper) 
       force->improper->compute(eflag,vflag);
-    if (level_pair == ilevel && force->pair)
+    if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
-    if (level_inner == ilevel && force->pair)
+    if (level_inner == ilevel && pair_compute_flag)
       force->pair->compute_inner();
-    if (level_middle == ilevel && force->pair)
+    if (level_middle == ilevel && pair_compute_flag)
       force->pair->compute_middle();
-    if (level_outer == ilevel && force->pair)
+    if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
-      force->kspace->compute(eflag,vflag);
+      if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
@@ -557,23 +559,23 @@ void Respa::recurse(int ilevel)
       force->improper->compute(eflag,vflag);
       timer->stamp(TIME_BOND);
     }
-    if (level_pair == ilevel && force->pair) {
+    if (level_pair == ilevel && pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(TIME_PAIR);
     }
-    if (level_inner == ilevel && force->pair) {
+    if (level_inner == ilevel && pair_compute_flag) {
       force->pair->compute_inner();
       timer->stamp(TIME_PAIR);
     }
-    if (level_middle == ilevel && force->pair) {
+    if (level_middle == ilevel && pair_compute_flag) {
       force->pair->compute_middle();
       timer->stamp(TIME_PAIR);
     }
-    if (level_outer == ilevel && force->pair) {
+    if (level_outer == ilevel && pair_compute_flag) {
       force->pair->compute_outer(eflag,vflag);
       timer->stamp(TIME_PAIR);
     }
-    if (level_kspace == ilevel && force->kspace) {
+    if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
       timer->stamp(TIME_KSPACE);
     }

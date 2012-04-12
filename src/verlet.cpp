@@ -46,6 +46,8 @@ Verlet::Verlet(LAMMPS *lmp, int narg, char **arg) :
 
 void Verlet::init()
 {
+  Integrate::init();
+
   // warn if no fixes
 
   if (modify->nfix == 0 && comm->me == 0)
@@ -118,7 +120,8 @@ void Verlet::setup()
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (force->pair) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
@@ -129,7 +132,8 @@ void Verlet::setup()
 
   if (force->kspace) {
     force->kspace->setup();
-    force->kspace->compute(eflag,vflag);
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -172,7 +176,8 @@ void Verlet::setup_minimal(int flag)
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (force->pair) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
@@ -183,7 +188,8 @@ void Verlet::setup_minimal(int flag)
 
   if (force->kspace) {
     force->kspace->setup();
-    force->kspace->compute(eflag,vflag);
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -256,7 +262,7 @@ void Verlet::run(int n)
 
     timer->stamp();
 
-    if (force->pair) {
+    if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(TIME_PAIR);
     }
@@ -269,7 +275,7 @@ void Verlet::run(int n)
       timer->stamp(TIME_BOND);
     }
 
-    if (force->kspace) {
+    if (kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
       timer->stamp(TIME_KSPACE);
     }

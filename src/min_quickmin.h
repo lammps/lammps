@@ -28,7 +28,7 @@ class MinQuickMin : public Min {
  public:
   MinQuickMin(class LAMMPS *);
   ~MinQuickMin() {}
-  void init_style();
+  void init();
   void setup_style();
   void reset_vectors();
   int iterate(int);

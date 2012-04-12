@@ -104,11 +104,13 @@ MinHFTN::~MinHFTN (void)
 }
 
 /* ----------------------------------------------------------------------
-   Public method init_style
+   Public method init
 ------------------------------------------------------------------------- */
 
-void MinHFTN::init_style()
+void MinHFTN::init()
 {
+  Min::init();
+
   for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++) {
     if (_daExtraGlobal[i] != NULL)
       delete [] _daExtraGlobal[i];

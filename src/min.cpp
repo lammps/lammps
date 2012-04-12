@@ -151,6 +151,13 @@ void Min::init()
   rho_flag = 0;
   if (atom->rho_flag) rho_flag = 1;
 
+  // allow pair and Kspace compute() to be turned off via modify flags
+
+  if (force->pair && force->pair->compute_flag) pair_compute_flag = 1;
+  else pair_compute_flag = 0;
+  if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
+  else kspace_compute_flag = 0;
+
   // orthogonal vs triclinic simulation box
 
   triclinic = domain->triclinic;
@@ -172,10 +179,6 @@ void Min::init()
   neighbor->dist_check = 1;
 
   niter = neval = 0;
-
-  // style-specific initialization
-
-  init_style();
 }
 
 /* ----------------------------------------------------------------------
@@ -250,7 +253,8 @@ void Min::setup()
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (force->pair) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
@@ -261,7 +265,8 @@ void Min::setup()
 
   if (force->kspace) {
     force->kspace->setup();
-    force->kspace->compute(eflag,vflag);
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -321,7 +326,8 @@ void Min::setup_minimal(int flag)
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (force->pair) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
   if (atom->molecular) {
     if (force->bond) force->bond->compute(eflag,vflag);
@@ -332,7 +338,8 @@ void Min::setup_minimal(int flag)
 
   if (force->kspace) {
     force->kspace->setup();
-    force->kspace->compute(eflag,vflag);
+    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+    else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -458,7 +465,7 @@ double Min::energy_force(int resetflag)
 
   timer->stamp();
 
-  if (force->pair) {
+  if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
     timer->stamp(TIME_PAIR);
   }
@@ -471,7 +478,7 @@ double Min::energy_force(int resetflag)
     timer->stamp(TIME_BOND);
   }
 
-  if (force->kspace) {
+  if (kspace_compute_flag) {
     force->kspace->compute(eflag,vflag);
     timer->stamp(TIME_KSPACE);
   }

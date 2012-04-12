@@ -38,7 +38,7 @@ class FixDeform : public Fix {
 
  private:
   int triclinic,scaleflag;
-  int flip,flipx,flipy;
+  int flip,flipxy,flipxz,flipyz;
   double *h_rate,*h_ratelo;
   int varflag;                     // 1 if VARIABLE option is used, 0 if not
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not

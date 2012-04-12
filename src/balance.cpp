@@ -32,7 +32,7 @@ enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
 enum{EXPAND,CONTRACT};
 
-#define BALANCE_DEBUG 1
+//#define BALANCE_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 

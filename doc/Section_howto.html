@@ -811,22 +811,27 @@ The equivalent LAMMPS <B>a</B>,<B>b</B>,<B>c</B> are a linear rotation of <B>A</
 <CENTER><IMG SRC = "Eqs/transform.jpg">
 </CENTER>
 <P>where A = |<B>A</B>| indicates the scalar length of <B>A</B>. The ^ hat symbol
-indicates the corresponding unit vector. beta and gamma are angles
-between the vectors described below. The same rotation must also
-be applied to atom positions, velocities, and any other vector quantities.
-This can be done by first converting to fractional coordinates in the
+indicates the corresponding unit vector. <I>beta</I> and <I>gamma</I> are angles
+between the vectors described below. Note that by construction, 
+<B>a</B>, <B>b</B>, and <B>c</B> have strictly positive x, y, and z components, respectively.
+If it should happen that
+<B>A</B>, <B>B</B>, and <B>C</B> form a left-handed basis, then the above equations
+are not valid for <B>c</B>. In this case, it is necessary
+to first apply an inversion. This can be achieved
+by interchanging two basis vectors or by changing the sign of one of them.
+</P>
+<P>For consistency, the same rotation/inversion appied to the basis vectors
+must also be applied to atom positions, velocities, 
+and any other vector quantities.
+This can be conveniently achieved by first converting to 
+fractional coordinates in the
 old basis and then converting to distance coordinates in the new basis.
 The transformation is given by the following equation:
 </P>
 <CENTER><IMG SRC = "Eqs/rotate.jpg">
 </CENTER>
-<P>where V is the volume of the box, <B>X</B> is the original vector quantity and 
-<B>x</B> is the vector in the LAMMPS basis.
-</P>
-<P>If it should happen that
-<B>A</B>, <B>B</B>, and <B>C</B> form a left-handed basis, then it is necessary
-to first apply an inversion in addition to rotation. This can be achieved
-by interchanging two of the vectors or changing the sign of one of them.
+<P>where <I>V</I> is the volume of the box, <B>X</B> is the original vector quantity and 
+<B>x</B> is the vector in the LAMMPS basis. 
 </P>
 <P>There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension

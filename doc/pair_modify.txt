@@ -13,14 +13,15 @@ pair_modify command :h3
 pair_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {shift} or {mix} or {table} or {tabinner} or {tail} :l
+keyword = {shift} or {mix} or {table} or {tabinner} or {tail} or {compute} :l
   {mix} value = {geometric} or {arithmetic} or {sixthpower}
   {shift} value = {yes} or {no}
   {table} value = N
     2^N = # of values in table
   {tabinner} value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
-  {tail} value = {yes} or {no} :pre
+  {tail} value = {yes} or {no}
+  {compute} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -138,6 +139,15 @@ pair interactions beyond the cutoff, but the energy and pressure
 reported by the simulation include an estimated contribution from
 those interactions. :l,ule
 
+The {compute} keyword allows pairwise computations to be turned off,
+even though a "pair_style"_pair_style.html is defined.  This is not
+useful for running a real simulation, but can be useful for debugging
+purposes or for computing only partial forces that do not include the
+pairwise contribution.  You can also do this by simply not defining a
+"pair_style"_pair_style.html, but a Kspace-compatible pair_style is
+required if you also want to define a
+"kspace_style"_kspace_style.html.  This keyword gives you that option.
+
 [Restrictions:] none
 
 You cannot use {shift} yes with {tail} yes, since those are
@@ -151,7 +161,7 @@ conflicting options.  You cannot use {tail} yes with 2d simulations.
 [Default:]
 
 The option defaults are mix = geometric, shift = no, table = 12,
-tabinner = sqrt(2.0), tail = no.
+tabinner = sqrt(2.0), tail = no, and compute = yes.
 
 Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.

@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>shift</I> or <I>mix</I> or <I>table</I> or <I>tabinner</I> or <I>tail</I> 
+<LI>keyword = <I>shift</I> or <I>mix</I> or <I>table</I> or <I>tabinner</I> or <I>tail</I> or <I>compute</I> 
 
 <PRE>  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
   <I>shift</I> value = <I>yes</I> or <I>no</I>
@@ -25,7 +25,8 @@
     2^N = # of values in table
   <I>tabinner</I> value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
-  <I>tail</I> value = <I>yes</I> or <I>no</I> 
+  <I>tail</I> value = <I>yes</I> or <I>no</I>
+  <I>compute</I> value = <I>yes</I> or <I>no</I> 
 </PRE>
 
 </UL>
@@ -144,6 +145,15 @@ pair interactions beyond the cutoff, but the energy and pressure
 reported by the simulation include an estimated contribution from
 those interactions. 
 </UL>
+<P>The <I>compute</I> keyword allows pairwise computations to be turned off,
+even though a <A HREF = "pair_style.html">pair_style</A> is defined.  This is not
+useful for running a real simulation, but can be useful for debugging
+purposes or for computing only partial forces that do not include the
+pairwise contribution.  You can also do this by simply not defining a
+<A HREF = "pair_style.html">pair_style</A>, but a Kspace-compatible pair_style is
+required if you also want to define a
+<A HREF = "kspace_style.html">kspace_style</A>.  This keyword gives you that option.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P>You cannot use <I>shift</I> yes with <I>tail</I> yes, since those are
@@ -157,7 +167,7 @@ conflicting options.  You cannot use <I>tail</I> yes with 2d simulations.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are mix = geometric, shift = no, table = 12,
-tabinner = sqrt(2.0), tail = no.
+tabinner = sqrt(2.0), tail = no, and compute = yes.
 </P>
 <P>Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.

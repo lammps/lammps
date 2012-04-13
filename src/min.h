@@ -30,7 +30,7 @@ class Min : protected Pointers {
 
   Min(class LAMMPS *);
   virtual ~Min();
-  void init();
+  virtual void init();
   void setup();
   void setup_minimal(int);
   void run(int);
@@ -65,6 +65,9 @@ class Min : protected Pointers {
   int pairflag;
   int torqueflag,erforceflag;
   int e_flag,rho_flag;
+
+  int pair_compute_flag;            // 0 if pair->compute is skipped
+  int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
   int narray;                       // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;  // fix that stores auxiliary data

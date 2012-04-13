@@ -44,8 +44,10 @@ MinFire::MinFire(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinFire::init_style()
+void MinFire::init()
 {
+  Min::init();
+
   dt = update->dt;
 }
 

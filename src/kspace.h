@@ -29,10 +29,15 @@ class KSpace : protected Pointers {
   double g_ewald;
   int nx_pppm,ny_pppm,nz_pppm;
  
+  int compute_flag;               // 0 if skip compute()
+
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();
   void modify_params(int, char **);
   void *extract(const char *);
+  void compute_dummy(int, int);
+
+  // general child-class methods
 
   virtual void init() = 0;
   virtual void setup() = 0;

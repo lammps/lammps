@@ -23,7 +23,8 @@ keyword = {mesh} or {order} or {gewald} or {slab} :l
     rinv = PPPM G-ewald parameter
   {slab} value = volfactor
     volfactor = ratio of the total extended volume used in the
-      2d approximation compared with the volume of the simulation domain :pre
+      2d approximation compared with the volume of the simulation domain
+  {compute} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -95,6 +96,15 @@ must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the {slab}
 option is explained in the paper by "(Yeh)"_#Yeh.
 
+The {compute} keyword allows Kspace computations to be turned off,
+even though a "kspace_style"_kspace_style.html is defined.  This is
+not useful for running a real simulation, but can be useful for
+debugging purposes or for computing only partial forces that do not
+include the Kspace contribution.  You can also do this by simply not
+defining a "kspace_style"_kspace_style.html, but a Kspace-compatible
+"pair_style"_pair_style.html requires a kspace_style to be defined.
+This keyword gives you that option.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -104,7 +114,7 @@ option is explained in the paper by "(Yeh)"_#Yeh.
 [Default:]
 
 The option defaults are mesh = 0 0 0, order = 5, force = -1.0, gewald
-= 0.0, and slab = 1.0.
+= 0.0, slab = 1.0, and compute = yes.
 
 :line
 

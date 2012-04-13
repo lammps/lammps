@@ -28,7 +28,7 @@ class MinFire : public Min {
  public:
   MinFire(class LAMMPS *);
   ~MinFire() {}
-  void init_style();
+  void init();
   void setup_style();
   void reset_vectors();
   int iterate(int);

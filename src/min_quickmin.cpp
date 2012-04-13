@@ -41,8 +41,10 @@ MinQuickMin::MinQuickMin(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void MinQuickMin::init_style()
+void MinQuickMin::init()
 {
+  Min::init();
+
   dt = update->dt;
 }
 

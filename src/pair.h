@@ -72,6 +72,8 @@ class Pair : protected Pointers {
   class NeighList *listmiddle;
   class NeighList *listouter;
 
+  int compute_flag;              // 0 if skip compute()
+
   Pair(class LAMMPS *);
   virtual ~Pair();
 
@@ -84,6 +86,7 @@ class Pair : protected Pointers {
   void write_file(int, char **);
   void init_bitmap(double, double, int, int &, int &, int &, int &);
   virtual void modify_params(int, char **);
+  void compute_dummy(int, int);
 
   // need to be public, so can be called by pair_style reaxc
 

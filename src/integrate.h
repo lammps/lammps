@@ -22,7 +22,7 @@ class Integrate : protected Pointers {
  public:
   Integrate(class LAMMPS *, int, char **);
   virtual ~Integrate();
-  virtual void init() = 0;
+  virtual void init();
   virtual void setup() = 0;
   virtual void setup_minimal(int) = 0;
   virtual void run(int) = 0;
@@ -41,6 +41,9 @@ class Integrate : protected Pointers {
   class Compute **elist_atom;
   class Compute **vlist_global;
   class Compute **vlist_atom;
+
+  int pair_compute_flag;            // 0 if pair->compute is skipped
+  int kspace_compute_flag;          // 0 if kspace->compute is skipped
 
   void ev_setup();
   void ev_set(bigint);

@@ -22,7 +22,7 @@ class MinLineSearch : public Min {
  public:
   MinLineSearch(class LAMMPS *);
   ~MinLineSearch();
-  void init_style();
+  void init();
   void setup_style();
   void reset_vectors();
 

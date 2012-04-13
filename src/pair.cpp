@@ -64,6 +64,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
   // pair_modify settings
 
+  compute_flag = 1;
   offset_flag = 0;
   mix_flag = GEOMETRIC;
   tail_flag = 0;
@@ -125,6 +126,12 @@ void Pair::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) tail_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) tail_flag = 0;
+      else error->all(FLERR,"Illegal pair_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"compute") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
       else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_modify command");
@@ -260,6 +267,14 @@ double Pair::mix_distance(double sig1, double sig2)
   else if (mix_flag == SIXTHPOWER)
     value = pow((0.5 * (pow(sig1,6.0) + pow(sig2,6.0))),1.0/6.0);
   return value;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Pair::compute_dummy(int eflag, int vflag)
+{
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 }
 
 /* ----------------------------------------------------------------------

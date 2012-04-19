@@ -653,19 +653,19 @@ void Domain::minimum_image(double *delta)
 }
 
 /* ----------------------------------------------------------------------
-   find Xj image = periodic image of Xj that is closest to Xi
-   for triclinic, also add/subtract tilt factors in other dims as needed
+   find and return Xj image = periodic image of Xj that is closest to Xi
+   for triclinic, add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::closest_image(const double * const xi, 
-			   const double * const xj,
+void Domain::closest_image(const double * const xi, const double * const xj,
 			   double * const xjimage)
 {
-  double dx,dy,dz;
+  double dx = xj[0] - xi[0];
+  double dy = xj[1] - xi[1];
+  double dz = xj[2] - xi[2];
 
   if (triclinic == 0) {
     if (xperiodic) {
-      dx = xj[0] - xi[0];
       if (dx < 0.0) {
 	while (dx < 0.0) dx += xprd;
 	if (dx > xprd_half) dx -= xprd;
@@ -673,10 +673,8 @@ void Domain::closest_image(const double * const xi,
 	while (dx > 0.0) dx -= xprd;
 	if (dx < -xprd_half) dx += xprd;
       }
-      xjimage[0] = xi[0] + dx;
     }
     if (yperiodic) {
-      dy = xj[1] - xi[1];
       if (dy < 0.0) {
 	while (dy < 0.0) dy += yprd;
 	if (dy > yprd_half) dy -= yprd;
@@ -684,10 +682,8 @@ void Domain::closest_image(const double * const xi,
 	while (dy > 0.0) dy -= yprd;
 	if (dy < -yprd_half) dy += yprd;
       }
-      xjimage[1] = xi[1] + dy;
     }
     if (zperiodic) {
-      dz = xj[2] - xi[2];
       if (dz < 0.0) {
 	while (dz < 0.0) dz += zprd;
 	if (dz > zprd_half) dz -= zprd;
@@ -695,14 +691,9 @@ void Domain::closest_image(const double * const xi,
 	while (dz > 0.0) dz -= zprd;
 	if (dz < -zprd_half) dz += zprd;
       }
-      xjimage[2] = xi[2] + dz;
     }
 
   } else {
-    dx = xj[0] - xi[0];
-    dy = xj[1] - xi[1];
-    dz = xj[2] - xi[2];
-
     if (zperiodic) {
       if (dz < 0.0) {
 	while (dz < 0.0) {
@@ -758,11 +749,11 @@ void Domain::closest_image(const double * const xi,
 	if (dx < -xprd_half) dx += xprd;
       }
     }
-
-    xjimage[0] = xi[0] + dx;
-    xjimage[1] = xi[1] + dy;
-    xjimage[2] = xi[2] + dz;
   }
+
+  xjimage[0] = xi[0] + dx;
+  xjimage[1] = xi[1] + dy;
+  xjimage[2] = xi[2] + dz;
 }
 
 /* ----------------------------------------------------------------------

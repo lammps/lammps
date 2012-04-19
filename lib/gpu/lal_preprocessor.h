@@ -239,7 +239,11 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#if defined(cl_khr_fp64)
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#endif
 
 #endif
 
@@ -267,7 +271,11 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#if defined(cl_khr_fp64)
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#endif
 
 #endif
 

@@ -700,7 +700,7 @@ void PairEffCut::allocate()
 
 void PairEffCut::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3 && narg != 4 && narg != 7) 
+  if (narg != 1 && narg != 3 && narg != 5 && narg != 7) 
     error->all(FLERR,"Illegal pair_style command");
 
   // Defaults ECP parameters for Si
@@ -716,7 +716,7 @@ void PairEffCut::settings(int narg, char **arg)
     cut_global = force->numeric(arg[0]);
     limit_size_flag = force->inumeric(arg[1]);
     flexible_pressure_flag = force->inumeric(arg[2]);
-  } else if (narg == 4) {
+  } else if (narg == 5) {
     cut_global = force->numeric(arg[0]);
     limit_size_flag = 0;
     flexible_pressure_flag = 0;

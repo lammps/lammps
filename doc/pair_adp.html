@@ -112,11 +112,14 @@ phi(r) array are listed for all i,j element pairs in the same format
 as other arrays.  Since these interactions are symmetric (i,j = j,i)
 only phi arrays with i >= j are listed, in the following order: i,j =
 (1,1), (2,1), (2,2), (3,1), (3,2), (3,3), (4,1), ..., (Nelements,
-Nelements).
+Nelements).  The tabulated values for each phi function are listed as
+r*phi (in units of eV-Angstroms), since they are for atom pairs, the
+same as for <A HREF = "pair_eam.html">other EAM files</A>.
 </P>
 <P>After the phi(r) arrays, each of the u(r) arrays are listed in the
 same order with the same assumptions of symmetry.  Directly following
-the u(r), the w(r) arrays are listed.
+the u(r), the w(r) arrays are listed.  Note that phi(r) is the only
+array tabulated with a scaling by r.
 </P>
 <HR>
 

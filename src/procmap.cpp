@@ -165,6 +165,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   std::string node_string = std::string(node_name);
   
   // get number of procs per node
+  // NOTE: could do this without STL map
 
   std::map<std::string,int> name_map;
   std::map<std::string,int>::iterator np;

@@ -155,6 +155,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   // get names of all nodes
 
+  int name_length;
   char node_name[MPI_MAX_PROCESSOR_NAME];
   MPI_Get_processor_name(node_name,&name_length);
   node_name[name_length] = '\0';

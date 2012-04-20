@@ -196,7 +196,9 @@ void ComputeAcklandAtom::compute_peratom()
          }
       }
 
-      // Evaluate all angles <(r_ij,rik) forall n0 particles with: distsq<1.45*r0_sq
+      // Evaluate all angles <(r_ij,rik) forall n0 particles with:
+      // distsq < 1.45*r0_sq
+
       double bond_angle;
       double norm_j, norm_k;
       chi[0] = chi[1] = chi[2] = chi[3] = chi[4] = chi[5] = chi[6] = chi[7] = 0;
@@ -218,24 +220,30 @@ void ComputeAcklandAtom::compute_peratom()
 	  bond_angle = (x_ij*x_ik + y_ij*y_ik + z_ij*z_ik) / (norm_j*norm_k);
 	  
 	  // Histogram for identifying the relevant peaks
-	  if (-1. <= bond_angle && bond_angle < -0.945) { chi[0]++; }
-	  else if (-0.945 <= bond_angle && bond_angle < -0.915) { chi[1]++; }
-	  else if (-0.915 <= bond_angle && bond_angle < -0.755) { chi[2]++; }
-	  else if (-0.755 <= bond_angle && bond_angle < -0.195) { chi[3]++; }
-	  else if (-0.195 <= bond_angle && bond_angle < 0.195) { chi[4]++; }
-	  else if (0.195 <= bond_angle && bond_angle < 0.245) { chi[5]++; }
-	  else if (0.245 <= bond_angle && bond_angle < 0.795) { chi[6]++; }
-	  else if (0.795 <= bond_angle && bond_angle < 1.) { chi[7]++; }
+
+	  if (bond_angle < -0.945) chi[0]++;
+	  else if (bond_angle < -0.915) chi[1]++;
+	  else if (bond_angle < -0.755) chi[2]++;
+	  else if (bond_angle < -0.195) chi[3]++;
+	  else if (bond_angle < 0.195) chi[4]++;
+	  else if (bond_angle < 0.245) chi[5]++;
+	  else if (bond_angle < 0.795) chi[6]++;
+	  else chi[7]++;
 	}
       }
 
       // Deviations from the different lattice structures
-      double delta_bcc = 0.35*chi[4]/(double)(chi[5]+chi[6]-chi[4]),
-             delta_cp = fabs(1.-(double)chi[6]/24.),
-             delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6.))+(double)chi[2])/6.,
-             delta_hcp = (fabs((double)chi[0]-3.)+fabs((double)chi[0]+(double)chi[1]+(double)chi[2]+(double)chi[3]-9.))/12.;
-   
+
+      double delta_bcc = 0.35*chi[4]/(double)(chi[5]+chi[6]-chi[4]);
+      double delta_cp = fabs(1.-(double)chi[6]/24.);
+      double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6.))+
+			       (double)chi[2])/6.0;
+      double delta_hcp = (fabs((double)chi[0]-3.)+
+			  fabs((double)chi[0]+(double)chi[1]+
+			       (double)chi[2]+(double)chi[3]-9.0))/12.0;
+      
       // Identification of the local structure according to the reference
+
       if (chi[0] == 7)       { delta_bcc = 0.; }
       else if (chi[0] == 6)  { delta_fcc = 0.; }
       else if (chi[0] <= 3)  { delta_hcp = 0.; }

@@ -313,15 +313,6 @@ Lattice::~Lattice()
 
 int Lattice::orthogonal()
 {
-  double a = orientx[0]*orienty[0] + orientx[1]*orienty[1] + 
-    orientx[2]*orienty[2];
-  double b = orienty[0]*orientz[0] + orienty[1]*orientz[1] + 
-    orienty[2]*orientz[2];
-  double c = orientx[0]*orientz[0] + orientx[1]*orientz[1] + 
-    orientx[2]*orientz[2];
-
-  printf("ABC %g %g %g\n",a,b,c);
-
   if (orientx[0]*orienty[0] + orientx[1]*orienty[1] + 
       orientx[2]*orienty[2]) return 0;
   if (orienty[0]*orientz[0] + orienty[1]*orientz[1] + 

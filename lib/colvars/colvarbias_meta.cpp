@@ -1468,7 +1468,7 @@ void colvarbias_meta::write_pmf()
     // this bias's name, to distinguish it from the output of the other
     // biases producing a .pmf file
     // TODO: fix for ABF with updateBias == no
-    fes_file_name_prefix += this->name;
+    fes_file_name_prefix += ("."+this->name);
   }
 
   if ((comm == single_replica) || (dump_replica_fes)) {
@@ -1478,9 +1478,8 @@ void colvarbias_meta::write_pmf()
     cvm::real const max = pmf->maximum_value();
     pmf->add_constant (-1.0 * max);
     pmf->multiply_constant (-1.0);
-    if (comm != single_replica)
-      fes_file_name_prefix += (".partial");
     std::string const fes_file_name (fes_file_name_prefix +
+                                     ((comm != single_replica) ? ".partial" : "") +
                                      (dump_fes_save ?
                                       "."+cvm::to_str (cvm::step_absolute()) : "") +
                                      ".pmf");

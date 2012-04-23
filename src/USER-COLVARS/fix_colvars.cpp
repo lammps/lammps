@@ -479,9 +479,10 @@ void FixColvars::init()
   if (me == 0) {
 
     if (inp_name) {
-      if (strcmp(inp_name,"NULL") == 0)
+      if (strcmp(inp_name,"NULL") == 0) {
 	memory->sfree(inp_name);
-      inp_name = NULL;
+	inp_name = NULL;
+      }
     }
 
     double t_target = 0.0;
@@ -495,6 +496,7 @@ void FixColvars::init()
 	if (tt) t_target = *tt;
       }
     }
+
     proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,
 				   rng_seed,t_target,typemap);
     coords = proxy->get_coords();

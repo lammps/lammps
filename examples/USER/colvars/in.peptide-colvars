@@ -39,3 +39,14 @@ thermo		10
 
 
 run		100
+
+run     100
+
+fix 2 all colvars peptide.colvars input out.colvars.state output out2
+
+run     100
+
+fix 2 all colvars peptide.colvars input NULL output out3
+
+run     100
+

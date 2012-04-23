@@ -157,13 +157,15 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   int name_length;
   char node_name[MPI_MAX_PROCESSOR_NAME];
-  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Get_processor_name(node_name,&name_length);
-  MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names,
+  node_name[name_length] = '\0';
+  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
+  MPI_Allgather(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
   std::string node_string = std::string(node_name);
   
   // get number of procs per node
+  // NOTE: could do this without STL map
 
   std::map<std::string,int> name_map;
   std::map<std::string,int>::iterator np;

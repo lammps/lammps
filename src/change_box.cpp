@@ -30,9 +30,9 @@
 
 using namespace LAMMPS_NS;
 
-enum{XYZ,TILT,BOUNDARY,ORTHO,TRICLINIC,SET,REMAP};
-enum{FINAL,DELTA,SCALE};
-enum{X,Y,Z,YZ,XZ,XY};
+enum{XYZ=0,TILT,BOUNDARY,ORTHO,TRICLINIC,SET,REMAP};
+enum{FINAL=0,DELTA,SCALE};
+enum{X=0,Y,Z,YZ,XZ,XY};
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,6 +66,7 @@ void ChangeBox::command(int narg, char **arg)
   int dimension = domain->dimension;
 
   ops = new Operation[narg-1];
+  memset(ops,0,(narg-1)*sizeof(Operation));
   nops = 0;
 
   int index;
@@ -218,9 +219,9 @@ void ChangeBox::command(int narg, char **arg)
       if (ops[i].flavor == FINAL) {
 	domain->boxlo[ops[i].dim] = scale[ops[i].dim]*ops[i].flo;
 	domain->boxhi[ops[i].dim] = scale[ops[i].dim]*ops[i].fhi;
-	if (ops[i].vdim1) 
-	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
+	if (ops[i].vdim1 >= 0)
+	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_global_box();
 	domain->set_local_box();
 	domain->print_box("  ");
@@ -228,9 +229,9 @@ void ChangeBox::command(int narg, char **arg)
       } else if (ops[i].flavor == DELTA) {
 	domain->boxlo[ops[i].dim] += scale[ops[i].dim]*ops[i].dlo;
 	domain->boxhi[ops[i].dim] += scale[ops[i].dim]*ops[i].dhi;
-	if (ops[i].vdim1) 
-	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
+	if (ops[i].vdim1 >= 0)
+	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_global_box();
 	domain->set_local_box();
 	domain->print_box("  ");
@@ -242,7 +243,7 @@ void ChangeBox::command(int narg, char **arg)
 	domain->boxlo[ops[i].dim] = mid + ops[i].scale*delta;
 	delta = domain->boxhi[ops[i].dim] - mid;
 	domain->boxhi[ops[i].dim] = mid + ops[i].scale*delta;
-	if (ops[i].vdim1) 
+	if (ops[i].vdim1 >= 0)
 	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
 	domain->set_global_box();
@@ -423,6 +424,11 @@ void ChangeBox::save_box_state()
 
 void ChangeBox::volume_preserve(int dim1, int dim2, double oldvol)
 {
+  // apply pending changes
+  domain->set_initial_box();
+  domain->set_global_box();
+  domain->set_local_box();
+
   double newvol;
   if (domain->dimension == 2) newvol = domain->xprd * domain->yprd;
   else newvol = domain->xprd * domain->yprd * domain->zprd;

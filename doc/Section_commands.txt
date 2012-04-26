@@ -709,12 +709,12 @@ package"_Section_start.html#start_3.
 "lj/sf"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "reax/c"_pair_reax_c.html,
-"sph/heatconduction"_pair_heatconduction.html,
-"sph/idealgas"_pair_idealgas.html,
-"sph/lj"_pair_lj.html,
-"sph/rhosum"_pair_rhosum.html,
-"sph/taitwater"_pair_taitwater.html,
-"sph/taitwater/morris"_pair_taitwater_morris.html,
+"sph/heatconduction"_pair_sph_heatconduction.html,
+"sph/idealgas"_pair_sph_idealgas.html,
+"sph/lj"_pair_sph_lj.html,
+"sph/rhosum"_pair_sph_rhosum.html,
+"sph/taitwater"_pair_sph_taitwater.html,
+"sph/taitwater/morris"_pair_sph_taitwater_morris.html,
 "tersoff/table"_pair_tersoff.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is

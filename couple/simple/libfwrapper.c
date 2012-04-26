@@ -41,6 +41,15 @@ void lammps_open_(MPI_Fint *comm, int64_t *ptr)
     *ptr = (int64_t) obj;
 }
 
+/* no-MPI version of the wrapper from above. */
+void lammps_open_no_mpi_(int64_t *ptr)
+{
+    void *obj;
+
+    lammps_open_no_mpi(0,NULL,&obj);
+    *ptr = (int64_t) obj;
+}
+
 /* wrapper for shutting down a lammps instance from fortran. */
 
 void lammps_close_(int64_t *ptr)
@@ -49,6 +58,23 @@ void lammps_close_(int64_t *ptr)
     obj = (void *) *ptr;
 
     lammps_close(obj);
+}
+
+/* wrapper for passing an input file to lammps from fortran.
+   since fortran strings are not zero terminated, we have
+   to pass the length explicitly and make a copy that is. */
+void lammps_file_(int64_t *ptr, char *fname, MPI_Fint *len)
+{
+    void *obj;
+    char *cpy;
+
+    obj = (void *) *ptr;
+
+    cpy = (char *)calloc(*len + 1,sizeof(char));
+    memcpy(cpy,fname,*len);
+
+    lammps_file(obj,cpy);
+    free(cpy);
 }
 
 /* wrapper for passing a line input to lammps from fortran.

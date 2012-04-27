@@ -15,12 +15,15 @@
 
 import types
 from ctypes import *
+import os.path
 
 LMPINT = 0
 LMPDOUBLE = 1
 LMPIPTR = 2
 LMPDPTR = 3
 LMPDPTRPTR = 4
+
+LOCATION = os.path.dirname(__file__)
 
 class lammps:
   def __init__(self,args=None):
@@ -29,10 +32,10 @@ class lammps:
     # could provide caller a flag to choose which library to load
     
     try:
-      self.lib = CDLL("_lammps.so")
+      self.lib = CDLL(os.path.join(LOCATION, "_lammps.so"))
     except:
       try:
-        self.lib = CDLL("_lammps_serial.so")
+        self.lib = CDLL(os.path.join(LOCATION, "_lammps_serial.so"))
       except:
         raise OSError,"Could not load LAMMPS dynamic library"
 

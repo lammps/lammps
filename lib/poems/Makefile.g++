@@ -67,7 +67,7 @@ OBJ =   $(SRC:.cpp=.o)
 # ------ SETTINGS ------
 
 CC =	        g++
-CCFLAGS =       -O -g -Wall #-Wno-deprecated
+CCFLAGS =       -O2 -Wall -W -funroll-loops -ffast-math -fexpensive-optimizations -finline-functions -fno-rtti -fno-exceptions -Wall #-Wno-deprecated
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M

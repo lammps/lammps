@@ -221,9 +221,9 @@ void PPPMCuda::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMCuda");
   }
 
-  if (order > MAXORDER) {
+  if (order < 2 || order > MAXORDER) {
     char str[128];
-    sprintf(str,"PPPMCuda order cannot be greater than %d",MAXORDER);
+    sprintf(str,"PPPMCuda order cannot be smaller than 2 or greater than %d",MAXORDER);
     error->all(FLERR,str);
   }
   // free all arrays previously allocated
@@ -302,8 +302,7 @@ void PPPMCuda::init()
 
   int iteration = 0;
 
-  while (order > 0) {
-
+  while (order > 1) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPMCuda order b/c stencil extends "
 		     "beyond neighbor processor");

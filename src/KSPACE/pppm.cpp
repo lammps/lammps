@@ -131,9 +131,9 @@ void PPPM::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  if (order > MAXORDER) {
+  if (order < 2 || order > MAXORDER) {
     char str[128];
-    sprintf(str,"PPPM order cannot be greater than %d",MAXORDER);
+    sprintf(str,"PPPM order cannot be smaller than 2 or greater than %d",MAXORDER);
     error->all(FLERR,str);
   }
 
@@ -149,7 +149,7 @@ void PPPM::init()
 
   if (force->pair == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  int itmp;
+  int itmp=0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
@@ -233,7 +233,7 @@ void PPPM::init()
 
   int iteration = 0;
 
-  while (order > 0) {
+  while (order > 1) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
 		     "beyond neighbor processor");
@@ -1007,11 +1007,11 @@ void PPPM::set_grid()
 
   if (!gridflag) {
     double err;
-    h_x = h_y = h_z = 1/g_ewald;  
+    h_x = h_y = h_z = 1.0/g_ewald;
 
-    nx_pppm = static_cast<int> (xprd/h_x + 1);
-    ny_pppm = static_cast<int> (yprd/h_y + 1);
-    nz_pppm = static_cast<int> (zprd_slab/h_z + 1);
+    nx_pppm = static_cast<int>(xprd/h_x) + 1;
+    ny_pppm = static_cast<int>(yprd/h_y) + 1;
+    nz_pppm = static_cast<int>(zprd_slab/h_z) + 1;
 
     err = rms(h_x,xprd,natoms,q2,acons);
     while (err > accuracy) {
@@ -1043,9 +1043,9 @@ void PPPM::set_grid()
 
   // adjust g_ewald for new grid size
 
-  h_x = xprd/nx_pppm;
-  h_y = yprd/ny_pppm;
-  h_z = zprd_slab/nz_pppm;
+  h_x = xprd/static_cast<double>(nx_pppm);
+  h_y = yprd/static_cast<double>(ny_pppm);
+  h_z = zprd_slab/static_cast<double>(nz_pppm);
 
   if (!gewaldflag) {
     double gew1,gew2,dgew,f,fmid,hmin,rtb;
@@ -1056,7 +1056,7 @@ void PPPM::set_grid()
     f = diffpr(h_x,h_y,h_z,q2,acons);
 
     hmin = MIN(h_x,MIN(h_y,h_z));
-    gew2 = 10/hmin;
+    gew2 = 10.0/hmin;
     g_ewald = gew2;
     fmid = diffpr(h_x,h_y,h_z,q2,acons);
 

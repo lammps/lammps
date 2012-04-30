@@ -20,9 +20,7 @@ DumpStyle(dcd,DumpDCD)
 #ifndef LMP_DUMP_DCD_H
 #define LMP_DUMP_DCD_H
 
-#include "stdio.h"
 #include "dump.h"
-#include "inttypes.h"
 
 namespace LAMMPS_NS {
 

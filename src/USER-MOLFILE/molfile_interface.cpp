@@ -77,11 +77,11 @@ extern "C" {
     len += 1;
     d->searchname = new char[len];
     strcpy(d->searchname, dirname);
-    strcat(d->searchname, "*");
+    strcat(d->searchname, "\\*");
 
     d->h = FindFirstFile(d->searchname, &(d->fd));
     if (d->h == ((HANDLE)(-1))) {
-      delete[] d->searname;
+      delete[] d->searchname;
       delete[] d->name;
       delete d;
       return NULL;
@@ -104,7 +104,7 @@ extern "C" {
     if (d->h != NULL) {
       FindClose(d->h);
     }
-    delete[] d->searname;
+    delete[] d->searchname;
     delete[] d->name;
     delete d;
   }

@@ -17,36 +17,61 @@
 
 #include <cstdio>
 
+#include <mpi.h>
+#include "lammps.h"
+#include "input.h"
+#include "dump_molfile.h"
 #include "molfile_interface.h"
-
-using namespace LAMMPS_NS;
 
 int main(int, char **)
 {
   const char pdir[] = ".";
   const char ptype[] = "xyz";
 
-  MolfileInterface mif;
+  LAMMPS_NS::MolfileInterface mif;
   
-  int rv = mif.find_plugin(pdir,ptype,MolfileInterface::M_WRITE);
+  int rv = mif.find_plugin(pdir,"trr",LAMMPS_NS::MolfileInterface::M_WRITE);
   printf("plugin finder returns: %d\n", rv);
   printf("plugin now: %s\n",mif.get_plugin_name());
   
-  rv = mif.find_plugin(pdir,ptype,MolfileInterface::M_WRITE);
+  rv = mif.find_plugin(pdir,"g96",LAMMPS_NS::MolfileInterface::M_WRITE);
   printf("plugin finder returns: %d\n", rv);
-  if (rv == MolfileInterface::E_MATCH)
+  if (rv == LAMMPS_NS::MolfileInterface::E_MATCH)
     printf("plugin now: %s\n",mif.get_plugin_name());
   else
     printf("plugin still: %s\n",mif.get_plugin_name());
 
   mif.forget_plugin();
-  rv = mif.find_plugin(pdir,ptype,MolfileInterface::M_WRITE);
+  rv = mif.find_plugin(pdir,ptype,LAMMPS_NS::MolfileInterface::M_WRITE);
   printf("plugin finder returns: %d\n", rv);
   printf("plugin now: %s\n",mif.get_plugin_name());
   
-  rv = mif.find_plugin(pdir,ptype,MolfileInterface::M_READ);
+  rv = mif.find_plugin(pdir,ptype,LAMMPS_NS::MolfileInterface::M_READ);
   printf("plugin finder returns: %d\n", rv);
   printf("plugin now: %s\n",mif.get_plugin_name());
+
+  LAMMPS_NS::LAMMPS *lmp;
+  char *argv[] = {"lammps", "-log", "none", "-echo", "screen", NULL };
+  
+  lmp = new LAMMPS_NS::LAMMPS(5,argv,MPI_COMM_WORLD);
+  lmp->input->file("in.test");
+  lmp->input->one("dump xy1 all xyz 50 melt-native.xyz");
+  
+  char *molf1[] = {"mf1", "all", "molfile", "50", "melt1.xyz", "xyz", ".", NULL };
+  LAMMPS_NS::DumpMolfile *dump1 = new LAMMPS_NS::DumpMolfile(lmp,8,molf1);
+  
+  char *molf2[] = {"mf2", "all", "molfile", "50", "melt2-*.xyz", "xyz", ".", NULL };
+  LAMMPS_NS::DumpMolfile *dump2 = new LAMMPS_NS::DumpMolfile(lmp,8,molf2);
+  
+  char *molf3[] = {"mf3", "all", "molfile", "50", "melt3.xyz", "xyz", NULL };
+  LAMMPS_NS::DumpMolfile *dump3 = new LAMMPS_NS::DumpMolfile(lmp,6,molf3);
+  
+  lmp->input->one("run 0");
+
+  delete dump1;
+  delete dump2;
+  delete dump3;
+  delete lmp;
   
   return 0;
   

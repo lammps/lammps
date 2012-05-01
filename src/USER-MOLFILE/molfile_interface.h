@@ -27,7 +27,12 @@ class MolfileInterface
 {
  public:
   // plugin modes.
-  enum {M_NONE=0, M_READ=1<<0, M_WRITE=1<<1};
+  enum {M_NONE=0,
+	M_READ    = 1<<0, M_WRITE   = 1<<1,
+	M_RSTRUCT = 1<<2, M_WSTRUCT = 1<<3,
+	M_RBOND   = 1<<4, M_WBOND   = 1<<5,
+	M_RANGLE  = 1<<6, M_WANGLE  = 1<<7,
+	M_RVOL    = 1<<8, M_WVOL    = 1<<9};
 
   // plugin finder return values.
   enum {E_NONE=0,  //< nothing happened
@@ -61,11 +66,18 @@ class MolfileInterface
   // return formatted string describing plugin
   char *get_plugin_name() const { return _name; };
 
+  // open plugin for writing
+  int open_write(const char *name, const int natoms);
+
   // internal data
  protected:
   void *_plugin; // pointer to plugin struct
   void *_dso;    // handle to DSO
-  int _mode;     // plugin mode of operation
+  void *_rptr;   // pointer to plugin reader handle
+  void *_wptr;   // pointer to plugin writer handle
+  int   _natoms; // number of atoms
+  int   _mode;   // plugin mode of operation
+  char *_type;   // file type to be used
   char *_name;   // plugin formatted name
 };
 

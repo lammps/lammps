@@ -41,7 +41,9 @@ extern "C" {
   // callback function for plugin registration.
   static int plugin_register_cb(void *v, vmdplugin_t *p) 
   {
-    memcpy(v,p,sizeof(molfile_plugin_t));
+    molfile_plugin_t *m = static_cast<molfile_plugin_t *>(v);
+    if (strcmp(m->name, p->name) == 0)
+      memcpy(v,p,sizeof(molfile_plugin_t));
     return 0;
   }
 
@@ -218,7 +220,7 @@ using namespace LAMMPS_NS;
 
 // constructor.
 MolfileInterface::MolfileInterface()
-  : _plugin(0), _dso(0), _mode(M_NONE) 
+  : _plugin(0), _dso(0), _rptr(0), _wptr(0), _natoms(0), _mode(M_NONE) 
 {
   _name = new char[5];
   strcpy(_name,"none");
@@ -307,6 +309,7 @@ int MolfileInterface::find_plugin(const char *plugindir,
 
     // temporarily register plugin, i.e. make copy of plugin struct.
     plugin = new molfile_plugin_t;
+    plugin->name=filetype;
     ((regfunc)rfunc)(plugin, plugin_register_cb);
 
 #if DEBUG
@@ -319,8 +322,9 @@ int MolfileInterface::find_plugin(const char *plugindir,
     // make some checks, if the plugin is suitable
     int use_this_plugin = 1;
 
-    // check if the type matches
-    if (strcmp(plugin->name,filetype))
+    // check if the callback found a matching plugin
+    // and thus overwrote the struct.
+    if (plugin->name == filetype)
       use_this_plugin = 0;
 
     // check if the ABI matches the one used to compile this code
@@ -416,5 +420,20 @@ void MolfileInterface::forget_plugin()
   strcpy(_name,"none");
   _plugin = NULL;
   _dso = NULL;
-  
+  _mode = M_NONE;
 }
+
+// open file for writing
+int MolfileInterface::open_write(const char *name, const int natoms)
+{
+  if (!_plugin || !_dso || !(_mode & M_WRITE))
+    return 1;
+  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+  
+  _wptr = p->open_file_write(name,_type,natoms);
+  if (_wptr == NULL)
+    return 1;
+  
+  return 0;
+}
+

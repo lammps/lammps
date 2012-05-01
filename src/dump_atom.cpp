@@ -145,21 +145,6 @@ void DumpAtom::write_header(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpAtom::count()
-{
-  if (igroup == 0) return atom->nlocal;
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int m = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) m++;
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpAtom::pack(int *ids)
 {
   (this->*pack_choice)(ids);

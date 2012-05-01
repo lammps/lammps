@@ -32,7 +32,6 @@ class DumpXYZ : public Dump {
  private:
   void init_style();
   void write_header(bigint);
-  int count();
   void pack(int *);
   void write_data(int, double *);
   int modify_param(int, char **);

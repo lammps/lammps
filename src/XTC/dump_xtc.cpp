@@ -189,21 +189,6 @@ void DumpXTC::write_header(bigint nbig)
 
 /* ---------------------------------------------------------------------- */
 
-int DumpXTC::count()
-{
-  if (igroup == 0) return atom->nlocal;
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int m = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) m++;
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpXTC::pack(int *ids)
 {
   int m,n;

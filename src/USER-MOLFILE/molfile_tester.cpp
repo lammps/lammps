@@ -23,32 +23,46 @@
 #include "dump_molfile.h"
 #include "molfile_interface.h"
 
+typedef LAMMPS_NS::MolfileInterface MFI;
+
 int main(int, char **)
 {
   const char pdir[] = ".";
   const char ptype[] = "xyz";
 
-  LAMMPS_NS::MolfileInterface mif;
+  MFI mfi1("trr",MFI::M_WRITE);
   
-  int rv = mif.find_plugin(pdir,"trr",LAMMPS_NS::MolfileInterface::M_WRITE);
+  int rv = mfi1.find_plugin(pdir);
   printf("plugin finder returns: %d\n", rv);
-  printf("plugin now: %s\n",mif.get_plugin_name());
+  printf("plugin now: %s\n",mfi1.get_plugin_name());
   
-  rv = mif.find_plugin(pdir,"g96",LAMMPS_NS::MolfileInterface::M_WRITE);
+  rv = mfi1.find_plugin(NULL);
   printf("plugin finder returns: %d\n", rv);
-  if (rv == LAMMPS_NS::MolfileInterface::E_MATCH)
-    printf("plugin now: %s\n",mif.get_plugin_name());
+  if (rv == MFI::E_MATCH)
+    printf("plugin now: %s\n",mfi1.get_plugin_name());
   else
-    printf("plugin still: %s\n",mif.get_plugin_name());
+    printf("plugin still: %s\n",mfi1.get_plugin_name());
 
-  mif.forget_plugin();
-  rv = mif.find_plugin(pdir,ptype,LAMMPS_NS::MolfileInterface::M_WRITE);
+  MFI mfi2("g96",MFI::M_WRITE);
+  rv = mfi2.find_plugin(pdir);
   printf("plugin finder returns: %d\n", rv);
-  printf("plugin now: %s\n",mif.get_plugin_name());
+  printf("plugin now: %s\n",mfi2.get_plugin_name());
+  mfi2.forget_plugin();
+  rv = mfi2.load_plugin("./gromacsplugin.so");
+  printf("plugin finder returns: %d\n", rv);
+  printf("plugin now: %s\n",mfi2.get_plugin_name());
+  mfi2.forget_plugin();
+  rv = mfi2.load_plugin("gromacsplugin.so");
+  printf("plugin finder returns: %d\n", rv);
+  if (rv == MFI::E_MATCH)
+    printf("plugin now: %s\n",mfi2.get_plugin_name());
+  else
+    printf("plugin still: %s\n",mfi2.get_plugin_name());
   
-  rv = mif.find_plugin(pdir,ptype,LAMMPS_NS::MolfileInterface::M_READ);
+  MFI mfi3("cube",MFI::M_READ);
+  rv = mfi3.find_plugin(pdir);
   printf("plugin finder returns: %d\n", rv);
-  printf("plugin now: %s\n",mif.get_plugin_name());
+  printf("plugin now: %s\n",mfi3.get_plugin_name());
 
   LAMMPS_NS::LAMMPS *lmp;
   char *argv[] = {"lammps", "-log", "none", "-echo", "screen", NULL };

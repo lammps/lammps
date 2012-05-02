@@ -52,7 +52,10 @@ extern "C" {
   static int plugin_register_cb(void *v, vmdplugin_t *p) 
   {
     plugin_reginfo_t *r = static_cast<plugin_reginfo_t *>(v);
-    if (strcmp(r->name, p->name) == 0) {
+    // make sure we have the proper plugin type (native reader)
+    // for the desired file type (called "name" at this level)
+    if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
+	&& (strcmp(r->name, p->name) == 0) ) {
       r->p = static_cast<void *>(p);
     }
     return 0;
@@ -230,13 +233,13 @@ extern "C" {
 using namespace LAMMPS_NS;
 
 // constructor.
-MolfileInterface::MolfileInterface()
-  : _plugin(0), _dso(0), _ptr(0), _natoms(0), _mode(M_NONE), _caps(M_NONE)
+MolfileInterface::MolfileInterface(const char *type, const int mode)
+  : _plugin(0), _dso(0), _ptr(0), _natoms(0), _mode(mode), _caps(M_NONE)
 {
   _name = new char[5];
   strcpy(_name,"none");
-  _type = new char[5];
-  strcpy(_type,"none");
+  _type = new char[1+strlen(type)];
+  strcpy(_type,type);
 }
 
 // destructor.
@@ -248,23 +251,18 @@ MolfileInterface::~MolfileInterface()
 }
 
 // register the best matching plugin in a given directory
-int MolfileInterface::find_plugin(const char *pluginpath,
-				  const char *filetype,
-				  const int mode)
+int MolfileInterface::find_plugin(const char *pluginpath)
 {
   dirhandle_t *dir;
   char *filename, *ext, *next, *path, *plugindir;
   int retval = E_NONE;
-
-  // evict current plugin, if the mode changes
-  if ((mode & _caps) == 0)
-    forget_plugin();
 
 #if defined(_WIN32)
 #define MY_PATHSEP ';'
 #else
 #define MY_PATHSEP ':'
 #endif
+  if (pluginpath == NULL) return E_DIR;
   plugindir = path = strdup(pluginpath);
 
   while (plugindir) {
@@ -300,7 +298,7 @@ int MolfileInterface::find_plugin(const char *pluginpath,
       strcat(fullname,filename);
 
       // try to register plugin at file name.
-      int rv = load_plugin(fullname,filetype,mode);
+      int rv = load_plugin(fullname);
       if (rv > retval) retval = rv;
 
       delete[] fullname;
@@ -315,17 +313,12 @@ int MolfileInterface::find_plugin(const char *pluginpath,
 }
 
 // register the best matching plugin in a given directory
-int MolfileInterface::load_plugin(const char *filename,
-				  const char *filetype,
-				  const int mode)
+int MolfileInterface::load_plugin(const char *filename)
 {
   void *dso;
   int len, retval = E_NONE;
 
-  // evict current plugin, if the mode changes
-  if ((_caps != M_NONE) && ((mode & _caps) == 0))
-    forget_plugin();
-
+  // access shared object
   dso = my_dlopen(filename);
   if (dso == NULL)
     return E_FILE;
@@ -350,7 +343,7 @@ int MolfileInterface::load_plugin(const char *filename,
   // check the file type. plugin->name will change if successful.
   plugin_reginfo_t reginfo;
   reginfo.p = NULL;
-  reginfo.name=filetype;
+  reginfo.name=_type;
   ((regfunc)rfunc)(&reginfo, plugin_register_cb);
 
   // make some checks to see if the plugin is suitable or not.
@@ -366,14 +359,14 @@ int MolfileInterface::load_plugin(const char *filename,
     retval = E_ABI;
 
     // check if (basic) reading is supported
-  } else if ((mode & M_READ) &&
+  } else if ((_mode & M_READ) &&
 	     ( (plugin->open_file_read == NULL) ||
 	       (plugin->read_next_timestep  == NULL) ||
 	       (plugin->close_file_read == NULL) )) {
     retval = E_MODE;
 
     // check if (basic) writing is supported
-  } else if ( (mode & M_WRITE) &&
+  } else if ( (_mode & M_WRITE) &&
 	      ( (plugin->open_file_write == NULL) ||
 		(plugin->write_timestep  == NULL) ||
 		(plugin->close_file_write == NULL) )) {
@@ -404,16 +397,12 @@ int MolfileInterface::load_plugin(const char *filename,
     forget_plugin();
 
     delete[] _name;
-    delete[] _type;
     len = 16;
     len += strlen(plugin->prettyname);
     len += strlen(plugin->author);
     _name = new char[len];
     sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
 	    plugin->majorv, plugin->minorv, plugin->author);
-    len = 1 + strlen(plugin->name);
-    _type = new char[len];
-    strcpy(_type,plugin->name);
 
     // determine plugin capabilities
     _caps = M_NONE;
@@ -430,7 +419,6 @@ int MolfileInterface::load_plugin(const char *filename,
 
     _plugin = plugin;
     _dso = dso;
-    _mode = mode;
     return E_MATCH;
   }
 
@@ -457,13 +445,9 @@ void MolfileInterface::forget_plugin()
   _dso = NULL;
 
   delete[] _name;
-  delete[] _type;
     _name = new char[5];
   strcpy(_name,"none");
-  _type = new char[5];
-  strcpy(_type,"none");
 
-  _mode = M_NONE;
   _caps = M_NONE;
 }
 
@@ -495,7 +479,7 @@ int MolfileInterface::close()
 
   if (_mode & M_WRITE) {
     p->close_file_write(_ptr);
-  } else {
+  } else if (_mode & M_READ) {
     p->close_file_read(_ptr);
   }
 

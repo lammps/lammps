@@ -46,12 +46,13 @@ class MolfileInterface
 	E_MATCH    //< plugin matches
   };
 
-  MolfileInterface();
+  MolfileInterface(const char *type, const int mode);
   ~MolfileInterface();
 
   // disallowed default methods
  private:
-  MolfileInterface(const MolfileInterface &){};
+  MolfileInterface() {};
+  MolfileInterface(const MolfileInterface &) {};
   MolfileInterface &operator =(const MolfileInterface &) {return *this;};
 
  public:
@@ -59,10 +60,10 @@ class MolfileInterface
   // is of the right type and supports the desired mode.
   // if a plugin is already registered and a newer version is
   // found, this new version will override the old one.
-  int find_plugin(const char *path, const char *type, const int mode);
+  int find_plugin(const char *path);
 
   // try to register the plugin at given file name
-  int load_plugin(const char *name, const char *type, const int mode);
+  int load_plugin(const char *name);
 
   // deregister the current plugin/DSO and clean up.
   void forget_plugin();
@@ -90,6 +91,7 @@ class MolfileInterface
   void *_plugin; // pointer to plugin struct
   void *_dso;    // handle to DSO
   void *_ptr;    // pointer to plugin data handle
+  void *_info;   // pointer to atomic info data
   char *_type;   // canonical plugin name
   char *_name;   // plugin formatted name
   int   _natoms; // number of atoms

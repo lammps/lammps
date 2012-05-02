@@ -79,14 +79,13 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   memory->create(coords,3*natoms,"dump:coords");
 
   if (me == 0) {
-    mf = new MolfileInterface;
-    char *path = ".";
-    char *type = arg[5];
+    mf = new MolfileInterface(arg[5],MFI::M_WRITE);
 
+    char *path = ".";
     if (narg > 6)
       path=arg[6];
-      
-    if (mf->find_plugin(path,type,MFI::M_WRITE)!= MFI::E_MATCH)
+
+    if (mf->find_plugin(path)!= MFI::E_MATCH)
       error->one(FLERR,"No suitable molfile plugin found");
 
     if (screen)

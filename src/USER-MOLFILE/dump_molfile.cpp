@@ -275,7 +275,7 @@ void DumpMolfile::openfile()
 	sprintf(p2,pad,update->ntimestep,ptr+1);
       }
     }
-    printf("filecurrent=%s\n",filecurrent);
+
     if (mf->open(filecurrent,&natoms))
       error->one(FLERR,"Cannot open dump file");
     delete[] filecurrent;

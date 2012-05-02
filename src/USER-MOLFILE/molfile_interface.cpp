@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdlib.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -38,12 +39,18 @@ extern "C" {
   typedef int (*regfunc)(void *, vmdplugin_register_cb);
   typedef int (*finifunc)(void);
 
+  typedef struct {
+    void *p;
+    const char *name;
+  } plugin_reginfo_t;
+
   // callback function for plugin registration.
   static int plugin_register_cb(void *v, vmdplugin_t *p) 
   {
-    molfile_plugin_t *m = static_cast<molfile_plugin_t *>(v);
-    if (strcmp(m->name, p->name) == 0)
-      memcpy(v,p,sizeof(molfile_plugin_t));
+    plugin_reginfo_t *r = static_cast<plugin_reginfo_t *>(v);
+    if (strcmp(r->name, p->name) == 0) {
+      r->p = static_cast<void *>(p);
+    }
     return 0;
   }
 
@@ -220,195 +227,222 @@ using namespace LAMMPS_NS;
 
 // constructor.
 MolfileInterface::MolfileInterface()
-  : _plugin(0), _dso(0), _rptr(0), _wptr(0), _natoms(0), _mode(M_NONE) 
+  : _plugin(0), _dso(0), _ptr(0), _natoms(0), _mode(M_NONE), _caps(M_NONE)
 {
   _name = new char[5];
   strcpy(_name,"none");
+  _type = new char[5];
+  strcpy(_type,"none");
 }
 
 // destructor.
 MolfileInterface::~MolfileInterface()
 {
   forget_plugin();
-  _mode = M_NONE;
   delete[] _name;
+  delete[] _type;
 }
 
 // register the best matching plugin in a given directory
-int MolfileInterface::find_plugin(const char *plugindir,
+int MolfileInterface::find_plugin(const char *pluginpath,
 				  const char *filetype,
 				  const int mode)
 {
   dirhandle_t *dir;
-  char *filename, *ext;
-  molfile_plugin_t *plugin;
+  char *filename, *ext, *next, *path, *plugindir;
   int retval = E_NONE;
 
   // evict current plugin, if the mode changes
-  if (mode != _mode)
+  if ((mode & _caps) == 0)
     forget_plugin();
 
-  dir = my_opendir(plugindir);
-  if (dir == NULL) return E_NODIR;
-#if DEBUG
-    printf("searching for plugins in directory: %s\n",plugindir);
+#if defined(_WIN32)
+#define MY_PATHSEP ';'
+#else
+#define MY_PATHSEP ':'
 #endif
+  plugindir = path = strdup(pluginpath);
 
-  // search for suitable file names.
-  while(1) {
-    void *dso;
-    char *fullname;
-    int len;
+  while (plugindir) {
+    // check if this a single directory or path.
+    next = strchr(plugindir,MY_PATHSEP);
+    if (next) {
+      *next = NULL;
+      ++next;
+    }
 
-    filename = my_readdir(dir);
-    if (filename == NULL) break;
+    dir = my_opendir(plugindir);
+    if (!dir)
+      retval = (retval > E_DIR) ? retval : E_DIR;
 
-    // only look at .so files
-    ext = strrchr(filename, '.');
-    if (ext == NULL) continue;
-    if (strcasecmp(ext,".so") != 0) continue;
-#if DEBUG
-    printf("next DSO file: %s\n",filename);
-#endif
+    // search for suitable file names and try to inspect them
+    while(dir) {
+      char *fullname;
+      int len;
 
-    // construct full pathname of potential DSO
-    len = dir->dlen;
-    len += strlen(filename);
-    fullname = new char[len];
-    strcpy(fullname,dir->name);
-    strcat(fullname,filename);
+      filename = my_readdir(dir);
+      if (filename == NULL) break;
 
-#if DEBUG
-    printf("trying to dlopen file %s\n",fullname);
-#endif
-    dso = my_dlopen(fullname);
-    if (dso == NULL) {
+      // only look at .so files
+      ext = strrchr(filename, '.');
+      if (ext == NULL) continue;
+      if (strcasecmp(ext,".so") != 0) continue;
+
+      // construct full pathname of potential DSO
+      len = dir->dlen;
+      len += strlen(filename);
+      fullname = new char[len];
+      strcpy(fullname,dir->name);
+      strcat(fullname,filename);
+
+      // try to register plugin at file name.
+      int rv = load_plugin(fullname,filetype,mode);
+      if (rv > retval) retval = rv;
+
       delete[] fullname;
-      continue;
     }
-#if DEBUG
-    printf("dlopen handle: 0x%0x\n",dso);
-#endif
+    if (dir)
+      my_closedir(dir);
 
-    // check for required plugin symbols
-    void *ifunc = my_dlsym(dso,"vmdplugin_init");
-    void *rfunc = my_dlsym(dso,"vmdplugin_register");
-    void *ffunc = my_dlsym(dso,"vmdplugin_fini");
-    if (ifunc == NULL || rfunc == NULL || ffunc == NULL) {
-      delete[] fullname;
-      my_dlclose(dso);
-      continue;
-    }
-
-    // intialize plugin. skip plugin if it fails.
-    if (((initfunc)(ifunc))()) {
-      delete[] fullname;
-      my_dlclose(dso);
-      continue;
-    }
-
-    // temporarily register plugin, i.e. make copy of plugin struct.
-    plugin = new molfile_plugin_t;
-    plugin->name=filetype;
-    ((regfunc)rfunc)(plugin, plugin_register_cb);
-
-#if DEBUG
-    printf("plugin name: %s v%d.%d\n", plugin->name,
-	   plugin->majorv, plugin->minorv);
-    printf("plugin abiversion: %d\n", plugin->abiversion);
-    printf("%s molfile plugin by %s\n", plugin->prettyname, plugin->author);
-#endif
-
-    // make some checks, if the plugin is suitable
-    int use_this_plugin = 1;
-
-    // check if the callback found a matching plugin
-    // and thus overwrote the struct.
-    if (plugin->name == filetype)
-      use_this_plugin = 0;
-
-    // check if the ABI matches the one used to compile this code
-    if (plugin->abiversion != vmdplugin_ABIVERSION) {
-      use_this_plugin = 0;
-      if (retval < E_ABI)
-	retval = E_ABI;
-    }
-
-    // check if (basic) reading is supported
-    if ((mode & M_READ) &&
-	( (plugin->open_file_read == NULL) ||
-	  (plugin->read_next_timestep  == NULL) ||
-	  (plugin->close_file_read == NULL) )) {
-      use_this_plugin = 0;
-      if (retval < E_MODE)
-	retval = E_MODE;
-    }
-
-    // check if (basic) writing is supported
-    if ( (mode & M_WRITE) &&
-	 ( (plugin->open_file_write == NULL) ||
-	   (plugin->write_timestep  == NULL) ||
-	   (plugin->close_file_write == NULL) )) {
-      use_this_plugin = 0;
-      if (retval < E_MODE)
-	retval = E_MODE;
-    }
-
-    // check if we have an updated plugin.
-    if (_dso && _plugin) {
-      molfile_plugin_t *p;
-      p = static_cast<molfile_plugin_t *>(_plugin);
-
-      if (p->majorv > plugin->majorv) {
-	use_this_plugin = 0;
-	if (retval < E_VERSION)
-	  retval = E_VERSION;
-      }
-
-      if ( (p->majorv == plugin->majorv) &&
-	   (p->minorv >= plugin->minorv) ) {
-	use_this_plugin = 0;
-	if (retval < E_VERSION)
-	  retval = E_VERSION;
-      }
-    }
-
-    // store plugin info in class if it qualifies
-    if (use_this_plugin) {
-      forget_plugin();
-
-      len = 16;
-      len += strlen(plugin->prettyname);
-      len += strlen(plugin->author);
-      delete[] _name;
-      _name = new char[len];
-      sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
-	      plugin->majorv, plugin->minorv, plugin->author);
-
-      _plugin = plugin;
-      _dso = dso;
-      _mode = mode;
-      retval = E_MATCH;
-    } else {
-
-      delete plugin;
-      my_dlclose(dso);
-    }
-
-    delete[] fullname;
+    plugindir = next;
   }
-  my_closedir(dir);
+  free(path);
   return retval;
 }
 
-// deregister a plugin
-void MolfileInterface::forget_plugin()
+// register the best matching plugin in a given directory
+int MolfileInterface::load_plugin(const char *filename,
+				  const char *filetype,
+				  const int mode)
 {
-  if (_plugin) {
+  void *dso;
+  int len, retval = E_NONE;
+
+  // evict current plugin, if the mode changes
+  if ((_caps != M_NONE) && ((mode & _caps) == 0))
+    forget_plugin();
+
+  dso = my_dlopen(filename);
+  if (dso == NULL)
+    return E_FILE;
+
+  // check for required plugin symbols
+  void *ifunc = my_dlsym(dso,"vmdplugin_init");
+  void *rfunc = my_dlsym(dso,"vmdplugin_register");
+  void *ffunc = my_dlsym(dso,"vmdplugin_fini");
+  if (ifunc == NULL || rfunc == NULL || ffunc == NULL) {
+    my_dlclose(dso);
+    return E_SYMBOL;
+  }
+
+  // intialize plugin. skip plugin if it fails.
+  if (((initfunc)(ifunc))()) {
+    my_dlclose(dso);
+    return E_SYMBOL;
+  }
+
+  // pre-register plugin.
+  // the callback will be called for each plugin in the DSO and
+  // check the file type. plugin->name will change if successful.
+  plugin_reginfo_t reginfo;
+  reginfo.p = NULL;
+  reginfo.name=filetype;
+  ((regfunc)rfunc)(&reginfo, plugin_register_cb);
+
+  // make some checks to see if the plugin is suitable or not.
+  molfile_plugin_t *plugin = static_cast<molfile_plugin_t *>(reginfo.p);
+
+  // if the callback found a matching plugin and copied the struct,
+  // its name element will point to a different location now.
+  if (plugin == NULL) {
+    retval = E_TYPE;
+
+    // check if the ABI matches the one used to compile this code
+  } else if (plugin->abiversion != vmdplugin_ABIVERSION) {
+    retval = E_ABI;
+
+    // check if (basic) reading is supported
+  } else if ((mode & M_READ) &&
+	     ( (plugin->open_file_read == NULL) ||
+	       (plugin->read_next_timestep  == NULL) ||
+	       (plugin->close_file_read == NULL) )) {
+    retval = E_MODE;
+
+    // check if (basic) writing is supported
+  } else if ( (mode & M_WRITE) &&
+	      ( (plugin->open_file_write == NULL) ||
+		(plugin->write_timestep  == NULL) ||
+		(plugin->close_file_write == NULL) )) {
+    retval = E_MODE;
+
+    // make some additional check, if we
+    // already have a plugin registered.
+    // NOTE: this has to come last.
+  } else if (_dso && _plugin) {
     molfile_plugin_t *p;
     p = static_cast<molfile_plugin_t *>(_plugin);
-    delete p;
+
+    // check if the new plugin is of a newer major version
+    if (p->majorv > plugin->majorv) {
+      retval = E_VERSION;
+
+    // check if the new plugin is of a newer minor version
+    } else if ( (p->majorv == plugin->majorv) &&
+		(p->minorv >= plugin->minorv) ) {
+      retval = E_VERSION;
+    }
   }
+
+  // bingo! this one is a keeper.
+  if (retval == E_NONE) {
+
+    // make sure any existing plugin is wiped out
+    forget_plugin();
+
+    delete[] _name;
+    delete[] _type;
+    len = 16;
+    len += strlen(plugin->prettyname);
+    len += strlen(plugin->author);
+    _name = new char[len];
+    sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
+	    plugin->majorv, plugin->minorv, plugin->author);
+    len = 1 + strlen(plugin->name);
+    _type = new char[len];
+    strcpy(_type,plugin->name);
+
+    // determine plugin capabilities
+    _caps = M_NONE;
+    if (plugin->read_next_timestep)    _caps |= M_READ;
+    if (plugin->write_timestep)        _caps |= M_WRITE;
+    if (plugin->read_structure)        _caps |= M_RSTRUCT;
+    if (plugin->write_structure)       _caps |= M_WSTRUCT;
+    if (plugin->read_bonds)            _caps |= M_RBONDS;
+    if (plugin->write_bonds)           _caps |= M_WBONDS;
+    if (plugin->read_angles)           _caps |= M_RANGLES;
+    if (plugin->write_angles)          _caps |= M_WANGLES;
+    if (plugin->read_volumetric_data)  _caps |= M_RVOL;
+    if (plugin->write_volumetric_data) _caps |= M_WVOL;
+
+    _plugin = plugin;
+    _dso = dso;
+    _mode = mode;
+    return E_MATCH;
+  }
+
+  // better luck next time. clean up and return.
+  my_dlclose(dso);
+  return retval;
+}
+
+// deregister a plugin and close or reset all associated objects.
+void MolfileInterface::forget_plugin()
+{
+  if (_ptr)
+    close();
+
+  if (_plugin)
+    _plugin = NULL;
 
   if (_dso) {
     void *ffunc = my_dlsym(_dso,"vmdplugin_fini");
@@ -416,24 +450,109 @@ void MolfileInterface::forget_plugin()
       ((finifunc)ffunc)();
     my_dlclose(_dso);
   }
-
-  strcpy(_name,"none");
-  _plugin = NULL;
   _dso = NULL;
+
+  delete[] _name;
+  delete[] _type;
+    _name = new char[5];
+  strcpy(_name,"none");
+  _type = new char[5];
+  strcpy(_type,"none");
+
   _mode = M_NONE;
+  _caps = M_NONE;
 }
 
 // open file for writing
-int MolfileInterface::open_write(const char *name, const int natoms)
+int MolfileInterface::open(const char *name, int *natoms)
 {
-  if (!_plugin || !_dso || !(_mode & M_WRITE))
+  if (!_plugin || !_dso || !natoms)
     return 1;
   molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
   
-  _wptr = p->open_file_write(name,_type,natoms);
-  if (_wptr == NULL)
+  if (_mode & M_WRITE)
+    _ptr = p->open_file_write(name,_type,*natoms);
+  else
+    _ptr = p->open_file_read(name,_type,natoms);
+
+  if (_ptr == NULL)
     return 1;
   
   return 0;
 }
 
+// safely close file
+int MolfileInterface::close()
+{
+  if (!_plugin || !_dso || !_ptr)
+    return 1;
+
+  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+
+  if (_mode & M_WRITE) {
+    p->close_file_write(_ptr);
+  } else {
+    p->close_file_read(_ptr);
+  }
+
+  _ptr = NULL;
+  _natoms = 0;
+
+  return 0;
+}
+
+
+// read or write timestep
+int MolfileInterface::timestep(float *coords, float *vels,
+			       float *cell, double *simtime)
+{
+  if (!_plugin || !_dso || !_ptr)
+    return 1;
+
+  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+  molfile_timestep_t *t = new molfile_timestep_t;
+  int rv;
+  
+  if (_mode & M_WRITE) {
+    t->coords = coords;
+    t->velocities = vels;
+    if (cell != NULL) {
+      t->A = cell[0];
+      t->B = cell[1];
+      t->C = cell[2];
+      t->alpha = cell[3];
+      t->beta = cell[4];
+      t->gamma = cell[5];
+    } else {
+      t->A = 0.0;
+      t->B = 0.0;
+      t->C = 0.0;
+      t->alpha = 90.0;
+      t->beta = 90.0;
+      t->gamma = 90.0;
+    }
+
+    if (simtime)
+      t->physical_time = *simtime;
+    else
+      t->physical_time = 0.0;
+
+    rv = p->write_timestep(_ptr,t);
+  } else {
+    t->coords = coords;
+    t->velocities = vels;
+    rv = p->read_next_timestep(_ptr, _natoms, t);
+    if (cell != NULL) {
+      cell[0] = t->A;
+      cell[1] = t->B;
+      cell[2] = t->C;
+      cell[3] = t->alpha;
+      cell[4] = t->beta;
+      cell[5] = t->gamma;
+    }
+    if (simtime)
+      *simtime = t->physical_time;
+  }
+
+  return 0;
+}

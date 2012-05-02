@@ -55,18 +55,40 @@ int main(int, char **)
   
   lmp = new LAMMPS_NS::LAMMPS(5,argv,MPI_COMM_WORLD);
   lmp->input->file("in.test");
-  lmp->input->one("dump xy1 all xyz 50 melt-native.xyz");
+  lmp->input->one("dump xy1 all xyz 50 melt-native1.xyz");
+  lmp->input->one("dump xy2 all xyz 50 melt-native2.xyz");
+  lmp->input->one("dump_modify xy2 element C");
   
-  char *molf1[] = {"mf1", "all", "molfile", "50", "melt1.xyz", "xyz", ".", NULL };
+  char *molf1[] = {"mf1", "all", "molfile", "10", "melt1.dcd", "dcd", ".:.:.", NULL };
   LAMMPS_NS::DumpMolfile *dump1 = new LAMMPS_NS::DumpMolfile(lmp,8,molf1);
-  
-  char *molf2[] = {"mf2", "all", "molfile", "50", "melt2-*.xyz", "xyz", ".", NULL };
+  dump1->init();
+  lmp->input->one("run 10 pre no post no");
+  dump1->write();
+  lmp->input->one("run 10 pre no post no");
+  dump1->write();
+  lmp->input->one("run 10 pre no post no");
+  dump1->write();
+  lmp->input->one("run 10 pre no post no");
+  dump1->write();
+  lmp->input->one("run 10 pre no post no");
+    
+  char *molf2[] = {"mf2", "all", "molfile", "10", "melt2-*.dcd", "dcd", ".", NULL };
   LAMMPS_NS::DumpMolfile *dump2 = new LAMMPS_NS::DumpMolfile(lmp,8,molf2);
+  dump2->write();
+  lmp->input->one("run 10 pre no post no");
+  dump2->write();
+  lmp->input->one("run 10 pre no post no");
+  dump2->write();
+  lmp->input->one("run 10 pre no post no");
+  dump2->write();
+  lmp->input->one("run 10 pre no post no");
+  dump2->write();
+  lmp->input->one("run 10 pre no post no");
+  dump2->write();
   
   char *molf3[] = {"mf3", "all", "molfile", "50", "melt3.xyz", "xyz", NULL };
   LAMMPS_NS::DumpMolfile *dump3 = new LAMMPS_NS::DumpMolfile(lmp,6,molf3);
   
-  lmp->input->one("run 0");
 
   delete dump1;
   delete dump2;

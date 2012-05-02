@@ -4,6 +4,11 @@ CXXFLAGS=-Wall -fno-rtti -fno-exceptions -O2 -g -I../STUBS -I. -I..
 LIBS=-Wl,--start-group ../liblmp_serial.a ../../lib/meam/libmeam.a ../../lib/poems/libpoems.a \
 	../../lib/colvars/libcolvars.a ../STUBS/libmpi.a -Wl,--end-group -lgfortran -ldl
 
+default: molfile_tester.x
+
+clean:
+	rm -vf *.o *.x *~
+
 molfile_tester.x: molfile_tester.o molfile_interface.o dump_molfile.o
 	$(CXX) -o $@ $^ $(LIBS)
 

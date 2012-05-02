@@ -234,7 +234,8 @@ using namespace LAMMPS_NS;
 
 // constructor.
 MolfileInterface::MolfileInterface(const char *type, const int mode)
-  : _plugin(0), _dso(0), _ptr(0), _natoms(0), _mode(mode), _caps(M_NONE)
+  : _plugin(0), _dso(0), _ptr(0), _info(0), _natoms(0),
+    _mode(mode), _caps(M_NONE)
 {
   _name = new char[5];
   strcpy(_name,"none");
@@ -246,6 +247,12 @@ MolfileInterface::MolfileInterface(const char *type, const int mode)
 MolfileInterface::~MolfileInterface()
 {
   forget_plugin();
+
+  if (_info) {
+    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    delete[] a;
+    _info = NULL;
+  }
   delete[] _name;
   delete[] _type;
 }
@@ -417,6 +424,11 @@ int MolfileInterface::load_plugin(const char *filename)
     if (plugin->read_volumetric_data)  _caps |= M_RVOL;
     if (plugin->write_volumetric_data) _caps |= M_WVOL;
 
+    if (_mode & M_WRITE)
+      _mode |= (_caps & M_WSTRUCT);
+    else if (_mode & M_READ)
+      _mode |= (_caps & M_RSTRUCT);
+
     _plugin = plugin;
     _dso = dso;
     return E_MATCH;
@@ -455,7 +467,7 @@ void MolfileInterface::forget_plugin()
 int MolfileInterface::open(const char *name, int *natoms)
 {
   if (!_plugin || !_dso || !natoms)
-    return 1;
+    return E_FILE;
   molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
   
   if (_mode & M_WRITE)
@@ -464,16 +476,24 @@ int MolfileInterface::open(const char *name, int *natoms)
     _ptr = p->open_file_read(name,_type,natoms);
 
   if (_ptr == NULL)
-    return 1;
-  
-  return 0;
+    return E_FILE;
+
+  _natoms = *natoms;
+  // we need to deal with structure information
+  if (_mode & (M_RSTRUCT|M_WSTRUCT)) {
+    molfile_atom_t *a = new molfile_atom_t[_natoms];
+    _info = a;
+    memset(_info,0,_natoms*sizeof(molfile_atom_t));
+  }
+
+  return E_NONE;
 }
 
 // safely close file
 int MolfileInterface::close()
 {
   if (!_plugin || !_dso || !_ptr)
-    return 1;
+    return E_FILE;
 
   molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
 
@@ -483,10 +503,15 @@ int MolfileInterface::close()
     p->close_file_read(_ptr);
   }
 
+  if (_info) {
+    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    delete[] a;
+    _info = NULL;
+  }
   _ptr = NULL;
   _natoms = 0;
 
-  return 0;
+  return E_NONE;
 }
 
 
@@ -526,6 +551,7 @@ int MolfileInterface::timestep(float *coords, float *vels,
       t->physical_time = 0.0;
 
     rv = p->write_timestep(_ptr,t);
+
   } else {
     t->coords = coords;
     t->velocities = vels;
@@ -538,9 +564,127 @@ int MolfileInterface::timestep(float *coords, float *vels,
       cell[4] = t->beta;
       cell[5] = t->gamma;
     }
+
     if (simtime)
       *simtime = t->physical_time;
   }
 
   return 0;
 }
+
+// set/get per type floating point property
+int MolfileInterface::property(int propid, int *types, float *prop)
+{
+  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+    return P_NONE;
+
+  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  char buf[64];
+
+  if (_mode & M_WSTRUCT) {
+
+    for (int i=0; i < _natoms; ++i) {
+      if (propid & P_OCCP)
+	a[i].occupancy  = prop[types[i]];
+      if (propid & P_BFAC)
+	a[i].bfactor    = prop[types[i]];
+      if (propid & P_MASS)
+	a[i].mass       = prop[types[i]];
+      if (propid & P_CHRG)
+	a[i].charge     = prop[types[i]];
+      if (propid & P_RADS)
+	a[i].radius     = prop[types[i]];
+
+      if (propid & (P_NAME|P_TYPE|P_RESN|P_SEGN|P_CHAI)) {
+	sprintf(buf,"%g",prop[types[i]]);
+	buf[15] = 0;
+
+	if (propid & P_NAME)
+	  strcpy(a[i].name,buf);
+	if (propid & P_TYPE)
+	  strcpy(a[i].type,buf);
+
+	buf[7] = 0;
+	if (propid & P_RESN)
+	  strcpy(a[i].resname,buf);
+	if (propid & P_SEGN)
+	  strcpy(a[i].segid,buf);
+
+	buf[1] = 0;
+	if (propid & P_CHAI)
+	  strcpy(a[i].chain,buf);
+      }
+    }
+  } 
+}
+
+
+// set/get per type integer property
+int MolfileInterface::property(int propid, int *types, int *prop) 
+{
+  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+    return P_NONE;
+
+  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  char buf[64];
+  
+  if (_mode & M_WSTRUCT) {
+
+    for (int i=0; i < _natoms; ++i) {
+      if (propid & P_RESI)
+	a[i].resid = prop[types[i]];
+      if (propid & P_ATMN)
+	a[i].atomicnumber = prop[types[i]];
+      if (propid & P_MASS)
+	a[i].mass = prop[types[i]];
+      if (propid & P_CHRG)
+	a[i].charge = prop[types[i]];
+      if (propid & P_RADS)
+	a[i].radius = prop[types[i]];
+
+      if (propid & (P_NAME|P_TYPE|P_RESN|P_SEGN|P_CHAI)) {
+	sprintf(buf,"%d",prop[types[i]]);
+	buf[15] = 0;
+
+	if (propid & P_NAME)
+	  strcpy(a[i].name,buf);
+	if (propid & P_TYPE)
+	  strcpy(a[i].type,buf);
+
+	buf[7] = 0;
+	if (propid & P_RESN)
+	  strcpy(a[i].resname,buf);
+	if (propid & P_SEGN)
+	  strcpy(a[i].segid,buf);
+
+	buf[1] = 0;
+	if (propid & P_CHAI)
+	  strcpy(a[i].chain,buf);
+      }
+    }
+  } 
+}
+
+// set/get per type string property
+int MolfileInterface::property(int propid, int *types, char **prop)
+{
+
+}
+
+// set/get per atom floating point property
+int MolfileInterface::property(int propid, float *prop)
+{
+}
+
+// set/get per atom integer property
+int MolfileInterface::property(int propid, int *prop)
+{
+  
+}
+
+// set/get per atom string property
+int MolfileInterface::property(int propid, char **prop)
+{
+}
+
+

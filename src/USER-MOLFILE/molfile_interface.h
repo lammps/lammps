@@ -32,7 +32,8 @@ class MolfileInterface
 	M_RSTRUCT = 1<<2, M_WSTRUCT = 1<<3,
 	M_RBONDS  = 1<<4, M_WBONDS  = 1<<5,
 	M_RANGLES = 1<<6, M_WANGLES = 1<<7,
-	M_RVOL    = 1<<8, M_WVOL    = 1<<9};
+	M_RVOL    = 1<<8, M_WVOL    = 1<<9,
+	M_LAST };
 
   // plugin finder return values.
   enum {E_NONE=0,  //< nothing happened
@@ -43,7 +44,25 @@ class MolfileInterface
 	E_ABI,     //< plugin ABI does not match
 	E_MODE,    //< plugin does not support desired mode
 	E_VERSION, //< plugin is not newer as the current one
-	E_MATCH    //< plugin matches
+	E_MATCH,   //< plugin matches
+	E_LAST     //< last entry
+  };
+
+  // atom structure properties. deliberately not complete.
+  enum {P_NONE=0,     //< no structure information available
+	P_NAME=1<<0,  //< atom name,    char[16]
+	P_TYPE=1<<1,  //< atom type,    char[16]
+	P_RESN=1<<2,  //< residue name, char[ 8]
+	P_RESI=1<<3,  //< residue index, int
+	P_SEGN=1<<4,  //< segment name, char[ 8]
+	P_CHAI=1<<5,  //< chain id,     char[ 2]
+	P_OCCP=1<<6,  //< occupancy,    float
+	P_BFAC=1<<7,  //< B factor,     float
+	P_MASS=1<<8,  //< atom mass,    float
+	P_CHRG=1<<9,  //< atom charge,  float
+	P_RADS=1<<10, //< atom radius,  float
+	P_ATMN=1<<11, //< atomic number, int
+	P_LAST        //< last entry
   };
 
   MolfileInterface(const char *type, const int mode);
@@ -61,30 +80,45 @@ class MolfileInterface
   // if a plugin is already registered and a newer version is
   // found, this new version will override the old one.
   int find_plugin(const char *path);
-
   // try to register the plugin at given file name
   int load_plugin(const char *name);
-
   // deregister the current plugin/DSO and clean up.
   void forget_plugin();
-
   // return formatted string describing plugin
   char *get_plugin_name() const { return _name; };
-
-  // return canonical plugin name
+  // return canonical plugin name (= file type)
   char *get_plugin_type() const { return _type; };
+
+  // file operations
 
   // open file through plugin
   int open(const char *name, int *natoms);
-
   // read/write timestep
   int timestep(float *coords, float *vels, float *cell, double *simtime);
-
   // close file managed by plugin
   int close();
 
   // inquire on interface status
+
+  // is file i/o active.
   bool is_open() const { return (_ptr != 0); };
+  // return number of atoms in current file. -1 if closed/invalid;
+  bool get_natoms() const { return _natoms; };
+
+  // atom property operations
+
+  // set/get per type floating point property
+  int property(int propid, int *types, float *prop);
+  // set/get per type integer property
+  int property(int propid, int *types, int *prop);
+  // set/get per type string property
+  int property(int propid, int *types, char **prop);
+  // set/get per atom floating point property
+  int property(int propid, float *prop);
+  // set/get per atom integer property
+  int property(int propid, int *prop);
+  // set/get per atom string property
+  int property(int propid, char **prop);
 
   // internal data
  protected:
@@ -97,6 +131,7 @@ class MolfileInterface
   int   _natoms; // number of atoms
   int   _mode;   // plugin mode of operation
   int   _caps;   // plugin capabilities
+  int   _props;  // accumulated/available properties
 };
 
 }

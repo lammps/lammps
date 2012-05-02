@@ -472,7 +472,7 @@ int MolfileInterface::open(const char *name, int *natoms)
   
   if (_mode & M_WRITE)
     _ptr = p->open_file_write(name,_type,*natoms);
-  else
+  else if (_mode & M_READ)
     _ptr = p->open_file_read(name,_type,natoms);
 
   if (_ptr == NULL)

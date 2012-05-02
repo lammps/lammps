@@ -32,6 +32,10 @@
 
 #include "molfile_plugin.h"
 
+#if vmdplugin_ABIVERSION < 16
+#error "unsupported VMD molfile plugin ABI version"
+#endif
+
 #define DEBUG 0
 
 extern "C" {

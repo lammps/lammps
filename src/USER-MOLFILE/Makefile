@@ -7,7 +7,7 @@ LIBS=-Wl,--start-group ../liblmp_serial.a ../../lib/meam/libmeam.a ../../lib/poe
 default: molfile_tester.x
 
 clean:
-	rm -vf *.o *.x *~
+	rm -vf *.o *.x *~ *.xyz *.dcd
 
 molfile_tester.x: molfile_tester.o molfile_interface.o dump_molfile.o
 	$(CXX) -o $@ $^ $(LIBS)

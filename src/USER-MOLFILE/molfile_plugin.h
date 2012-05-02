@@ -107,9 +107,6 @@ typedef struct {
   float charge;       /**< optional charge value                 */
   float radius;       /**< optional radius value                 */
   int atomicnumber;   /**< optional element atomic number        */
-#if vmdplugin_ABIVERSION > 16
-  int atomclass;      /**< optional atom classification flags    */
-#endif
 #if defined(DESRES_CTNUMBER)
   int ctnumber;       /**< mae ct block, 0-based, including meta */
 #endif
@@ -127,27 +124,11 @@ typedef struct {
 #define MOLFILE_ALTLOC        0x0040 /**< Multiple conformations present   */
 #define MOLFILE_ATOMICNUMBER  0x0080 /**< Atomic element number provided   */
 #define MOLFILE_BONDSSPECIAL  0x0100 /**< Only non-standard bonds provided */
-#define MOLFILE_ATOMCLASS     0x0200 /**< Classification of atoms provided */
 #if defined(DESRES_CTNUMBER)
 #define MOLFILE_CTNUMBER      0x0200 /**< ctnumber provided */
 #endif
 #define MOLFILE_BADOPTIONS    0xFFFFFFFF /**< Detect badly behaved plugins */
-/*@}*/
-
-/*@{*/
-/** Atom classification flags */
-#define MOLFILE_ACLASS_NORMAL  0x0000 /**< Normal atom                      */
-#define MOLFILE_ACLASS_HETERO  0x0001 /**< Hetero atom (HETATM in PDB)      */
-#define MOLFILE_ACLASS_QM      0x0002 /**< QM atom (for QM/MM?)             */
-#define MOLFILE_ACLASS_MM      0x0004 /**< QM atom (for QM/MM?)             */
-#define MOLFILE_ACLASS_LINK    0x0008 /**< Link atom (for QM/MM?)           */
-#define MOLFILE_ACLASS_PROTEIN 0x0010 /**< Flag atom in protein             */
-#define MOLFILE_ACLASS_NUCLEIC 0x0020 /**< Flag atom in dna/rna             */
-#define MOLFILE_ACLASS_WATER   0x0040 /**< Flag atom in water               */
-#define MOLFILE_ACLASS_SOLVENT 0x0080 /**< Flag atom in solvent             */
-#define MOLFILE_ACLASS_LIPID   0x0100 /**< Flag atom in lipid               */
-#define MOLFILE_ACLASS_RIGID   0x0200 /**< Flag atom in rigid molecule      */
-#define MOLFILE_ACLASS_FIXED   0x0400 /**< Flag atom kept fixed             */
+                              
 /*@}*/
 
 /*@{*/
@@ -164,10 +145,6 @@ typedef struct molfile_timestep_metadata {
   unsigned int count;                  /**< total # timesteps; -1 if unknown */
   unsigned int avg_bytes_per_timestep; /** bytes per timestep                */
   int has_velocities;                  /**< if timesteps have velocities     */
-#if vmdplugin_ABIVERSION > 16
-  int has_orientations;                /**< if timesteps have orientation quaternions */
-  int has_num_user;                    /**< if timesteps have user fields and how many */
-#endif
 } molfile_timestep_metadata_t;
 #endif
 
@@ -179,11 +156,6 @@ typedef struct {
 #if vmdplugin_ABIVERSION > 10
   float *velocities;    /**< space for velocities of all atoms; same layout */
                         /**< NULL unless has_velocities is set              */
-#if vmdplugin_ABIVERSION > 16
-  float *orientations;  /**< space for orientations of all particles; as quaternions qw,qi,qj,k */
-  float **user;         /**< space for user fields */
-  char  **user_label;   /**< space for user field labels (defaults to user, user2, user3, user4) */
-#endif
 #endif
 
   /*@{*/   

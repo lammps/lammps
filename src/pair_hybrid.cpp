@@ -599,8 +599,11 @@ void PairHybrid::read_restart(FILE *fp)
   if (me == 0) fread(&nstyles,sizeof(int),1,fp);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
+  build_styles();
+
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];
+  multiple = new int[nstyles];
   
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
@@ -614,6 +617,17 @@ void PairHybrid::read_restart(FILE *fp)
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],lmp->suffix,dummy);
     styles[m]->read_restart_settings(fp);
+  }
+
+  // multiple[i] = 1 to N if sub-style used multiple times, else 0
+
+  for (int i = 0; i < nstyles; i++) {
+    int count = 0;
+    for (int j = 0; j < nstyles; j++) {
+      if (strcmp(keywords[j],keywords[i]) == 0) count++;
+      if (j == i) multiple[i] = count;
+    }
+    if (count == 1) multiple[i] = 0;
   }
 }
 

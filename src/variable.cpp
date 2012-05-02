@@ -455,9 +455,9 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    char result[32];
+    char result[64];
     double answer = evaluate(data[ivar][0],NULL);
-    sprintf(result,"%.10g",answer);
+    sprintf(result,"%.20g",answer);
     int n = strlen(result) + 1;
     if (data[ivar][1]) delete [] data[ivar][1];
     data[ivar][1] = new char[n];

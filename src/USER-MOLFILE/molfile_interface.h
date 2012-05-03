@@ -107,16 +107,22 @@ class MolfileInterface
 
   // atom property operations
 
+  // set/get atom floating point property
+  int property(int propid, int idx, float *prop);
   // set/get per type floating point property
   int property(int propid, int *types, float *prop);
-  // set/get per type integer property
-  int property(int propid, int *types, int *prop);
-  // set/get per type string property
-  int property(int propid, int *types, char **prop);
   // set/get per atom floating point property
   int property(int propid, float *prop);
+  // set/get atom integer property
+  int property(int propid, int idx, int *prop);
+  // set/get per type integer property
+  int property(int propid, int *types, int *prop);
   // set/get per atom integer property
   int property(int propid, int *prop);
+  // set/get atom string property
+  int property(int propid, int idx, char *prop);
+  // set/get per type string property
+  int property(int propid, int *types, char **prop);
   // set/get per atom string property
   int property(int propid, char **prop);
 

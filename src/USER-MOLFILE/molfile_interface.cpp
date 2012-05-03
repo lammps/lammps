@@ -683,6 +683,8 @@ int MolfileInterface::structure()
     p->write_structure(_ptr,optflags,a);
   } else if (_mode & M_READ)
     ; // XXX: FIXME
+
+  return 0;
 }
 
 // safely close file

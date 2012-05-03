@@ -35,6 +35,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   gridflag = 0;
   gewaldflag = 0;
   slabflag = 0;
+  differentiation_flag = 0;
   slab_volfactor = 1;
   suffix_flag = Suffix::NONE;
 
@@ -166,6 +167,14 @@ void KSpace::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"diff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"ad") == 0){
+        differentiation_flag = 1;
+      } else if (strcmp(arg[iarg+1],"ik") == 0){
+        differentiation_flag = 0;
+      } else error->all(FLERR, "Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }

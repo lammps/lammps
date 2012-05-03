@@ -93,6 +93,8 @@ class MolfileInterface
 
   // open file through plugin
   int open(const char *name, int *natoms);
+  // read/write structure info
+  int structure();
   // read/write timestep
   int timestep(float *coords, float *vels, float *cell, double *simtime);
   // close file managed by plugin
@@ -100,10 +102,15 @@ class MolfileInterface
 
   // inquire on interface status
 
-  // is file i/o active.
+  // true if file stream is active.
   bool is_open() const { return (_ptr != 0); };
+  // true if file format requires or provides atom properties
+  bool has_props() const { return (_mode & (M_RSTRUCT|M_WSTRUCT)) != 0; };
+
   // return number of atoms in current file. -1 if closed/invalid;
   bool get_natoms() const { return _natoms; };
+  // return property bitmask
+  bool get_props() const { return _props; };
 
   // atom property operations
 
@@ -113,6 +120,12 @@ class MolfileInterface
   int property(int propid, int *types, float *prop);
   // set/get per atom floating point property
   int property(int propid, float *prop);
+  // set/get atom floating point property
+  int property(int propid, int idx, double *prop);
+  // set/get per type floating point property
+  int property(int propid, int *types, double *prop);
+  // set/get per atom floating point property
+  int property(int propid, double *prop);
   // set/get atom integer property
   int property(int propid, int idx, int *prop);
   // set/get per type integer property

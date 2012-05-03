@@ -662,6 +662,29 @@ int MolfileInterface::open(const char *name, int *natoms)
   return E_NONE;
 }
 
+// get of set atom structure information
+int MolfileInterface::structure()
+{
+  if (!_plugin || !_dso)
+    return E_FILE;
+  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+
+  int optflags = MOLFILE_NOOPTIONS;
+
+  if (_mode & M_WSTRUCT) {
+    optflags |= (_props & P_BFAC) ? MOLFILE_BFACTOR : 0;
+    optflags |= (_props & P_OCCP) ? MOLFILE_OCCUPANCY : 0;
+    optflags |= (_props & P_MASS) ? MOLFILE_MASS : 0;
+    optflags |= (_props & P_CHRG) ? MOLFILE_CHARGE : 0;
+    optflags |= (_props & P_RADS) ? MOLFILE_RADIUS : 0;
+    optflags |= (_props & P_ATMN) ? MOLFILE_ATOMICNUMBER : 0;
+  
+    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    p->write_structure(_ptr,optflags,a);
+  } else if (_mode & M_READ)
+    ; // XXX: FIXME
+}
+
 // safely close file
 int MolfileInterface::close()
 {
@@ -765,6 +788,14 @@ static int write_atom_property(molfile_atom_t &a,
   return plist;
 }
 
+// double precision floating point props
+static int write_atom_property(molfile_atom_t &a,
+			       const int propid,
+			       const double prop) 
+{
+  return write_atom_property(a,propid,static_cast<float>(prop));
+}
+
 // integer and derived props
 static int write_atom_property(molfile_atom_t &a,
 			       const int propid,
@@ -828,6 +859,50 @@ int MolfileInterface::property(int propid, int *types, float *prop)
 
 // set/get per atom floating point property
 int MolfileInterface::property(int propid, float *prop)
+{
+  if ((_info == NULL) || (prop == NULL))
+    return P_NONE;
+
+  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+
+  if (_mode & M_WSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      _props |= write_atom_property(a[i], propid, prop[i]);
+  }
+  return _props;
+}
+
+// set/get atom floating point property
+int MolfileInterface::property(int propid, int idx, double *prop)
+{
+  if ((_info == NULL) || (prop == NULL) || (idx < 0) || (idx >= _natoms))
+    return P_NONE;
+
+  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+
+  if (_mode & M_WSTRUCT)
+    return write_atom_property(a[idx], propid, *prop);
+
+  return _props;
+}
+
+// set/get per type floating point property
+int MolfileInterface::property(int propid, int *types, double *prop)
+{
+  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+    return P_NONE;
+
+  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+
+  if (_mode & M_WSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      _props |= write_atom_property(a[i], propid, prop[types[i]]);
+  }
+  return _props;
+}
+
+// set/get per atom floating point property
+int MolfileInterface::property(int propid, double *prop)
 {
   if ((_info == NULL) || (prop == NULL))
     return P_NONE;

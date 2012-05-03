@@ -36,6 +36,7 @@ class DumpMolfile : public Dump {
   int   *types;
   char **typenames;
   int natoms,me,ntotal,ntypes;
+  int need_structure;
   int unwrap_flag;   // 1 if writing unwrapped atom coords, 0 if not
   int velocity_flag; // 1 if writing velocities, 0 if not
   float cell[6];     // cell parameters: A, B, C, alpha, beta, gamma

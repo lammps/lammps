@@ -71,9 +71,9 @@ int main(int, char **)
   lmp->input->file("in.test");
   lmp->input->one("dump xy1 all xyz 50 melt-native1.xyz");
   lmp->input->one("dump xy2 all xyz 50 melt-native2.xyz");
-  lmp->input->one("dump_modify xy2 element C");
+  lmp->input->one("dump_modify xy2 element H");
   
-  char *molf1[] = {"mf1", "all", "molfile", "10", "melt1.dcd", "dcd", ".:.:.", NULL };
+  char *molf1[] = {"mf1", "all", "molfile", "10", "melt1.xyz", "xyz", ".:.:.", NULL };
   LAMMPS_NS::DumpMolfile *dump1 = new LAMMPS_NS::DumpMolfile(lmp,8,molf1);
   dump1->init();
   lmp->input->one("run 10 pre no post no");
@@ -86,8 +86,9 @@ int main(int, char **)
   dump1->write();
   lmp->input->one("run 10 pre no post no");
     
-  char *molf2[] = {"mf2", "all", "molfile", "10", "melt2-*.dcd", "dcd", ".", NULL };
+  char *molf2[] = {"mf2", "all", "molfile", "10", "melt2-*.xyz", "xyz", ".", NULL };
   LAMMPS_NS::DumpMolfile *dump2 = new LAMMPS_NS::DumpMolfile(lmp,8,molf2);
+  dump2->init();
   dump2->write();
   lmp->input->one("run 10 pre no post no");
   dump2->write();
@@ -100,8 +101,21 @@ int main(int, char **)
   lmp->input->one("run 10 pre no post no");
   dump2->write();
   
-  char *molf3[] = {"mf3", "all", "molfile", "50", "melt3.xyz", "xyz", NULL };
+  char *molf3[] = {"mf3", "all", "molfile", "50", "melt3.pdb", "pdb", NULL };
+  char *modf3[] = {"element", "H", NULL }; 
   LAMMPS_NS::DumpMolfile *dump3 = new LAMMPS_NS::DumpMolfile(lmp,6,molf3);
+  dump3->init();
+  dump3->write();
+  lmp->input->one("run 10 pre no post no");
+  dump3->write();
+  lmp->input->one("run 10 pre no post no");
+  dump3->write();
+  lmp->input->one("run 10 pre no post no");
+  dump3->write();
+  lmp->input->one("run 10 pre no post no");
+  dump3->write();
+  lmp->input->one("run 10 pre no post no");
+  dump3->write();
   
 
   delete dump1;

@@ -59,6 +59,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   sort_flag = 1;
   sortcol = 0;
 
+  need_structure = 0;
   unwrap_flag = 0;
   velocity_flag = 0;
   ntotal = 0;
@@ -137,8 +138,7 @@ void DumpMolfile::init_style()
       }
     }
 
-    /* open single file, one time only */
-
+    // open single file, one time only
     if (multifile == 0) openfile();
   }
 }
@@ -247,6 +247,7 @@ void DumpMolfile::openfile()
 
   if (singlefile_opened) return;
   if (multifile == 0) singlefile_opened = 1;
+  need_structure = 1;
 
   if (me == 0) {
 
@@ -354,6 +355,22 @@ void DumpMolfile::write_data(int n, double *mybuf)
 
   if (ntotal == natoms) {
     ntotal = 0;
+  }
+
+  if (need_structure) {
+    mf->property(MFI::P_NAME,types,typenames);
+
+    if (atom->rmass_flag) {
+      mf->property(MFI::P_MASS,atom->rmass);
+    } else { 
+      mf->property(MFI::P_MASS,types,atom->mass);
+    }
+
+    if (atom->q_flag)
+      mf->property(MFI::P_CHRG,atom->q);
+
+    mf->structure();
+    need_structure = 0;
   }
   double simtime = update->ntimestep * update->dt;
   mf->timestep(coords,NULL,cell,&simtime);

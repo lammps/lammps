@@ -1,0 +1,10 @@
+This package provides an C++ interface class to the VMD molfile
+plugins, http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/
+and a set of LAMMPS classes that use this interface.
+
+
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+--------------------------

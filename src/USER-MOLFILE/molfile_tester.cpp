@@ -117,10 +117,26 @@ int main(int, char **)
   lmp->input->one("run 10 pre no post no");
   dump3->write();
   
+  char *molf4[] = {"mf4", "all", "molfile", "50", "melt4.xml", "hoomd", NULL };
+  LAMMPS_NS::DumpMolfile *dump4 = new LAMMPS_NS::DumpMolfile(lmp,6,molf4);
+  dump4->init();
+  dump4->write();
+  lmp->input->one("run 10 pre no post no");
+  dump4->write();
+  lmp->input->one("run 10 pre no post no");
+  dump4->write();
+  lmp->input->one("run 10 pre no post no");
+  dump4->write();
+  lmp->input->one("run 10 pre no post no");
+  dump4->write();
+  lmp->input->one("run 10 pre no post no");
+  dump4->write();
+  
 
   delete dump1;
   delete dump2;
   delete dump3;
+  delete dump4;
   delete lmp;
   
   return 0;

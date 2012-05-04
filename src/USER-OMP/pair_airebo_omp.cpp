@@ -1958,7 +1958,6 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
   sigmin = 0.0;
   sigwid = 0.0;
 
-
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   int *tag = atom->tag;
@@ -2156,20 +2155,20 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
       rljmax = sigcut * rljmin;
       rljmin = sigmin * rljmin;
 
-      if (rij > rljmax){
-         slw = 0.0;
-         dslw = 0.0;}
-      else if (rij > rljmin){
-         drij = rij - rljmin;
-         swidth = rljmax - rljmin;
-         tee = drij / swidth;
-         tee2 = tee*tee;
-         slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
-         dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+      if (rij > rljmax) {
+	slw = 0.0;
+	dslw = 0.0;
+      } else if (rij > rljmin) {
+	drij = rij - rljmin;
+	swidth = rljmax - rljmin;
+	tee = drij / swidth;
+	tee2 = tee*tee;
+	slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
+	dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+      } else {
+	slw = 1.0;
+	dslw = 0.0;
       }
-      else
-         slw = 1.0;
-         dslw = 0.0;
 
       r2inv = 1.0/rijsq;
       r6inv = r2inv*r2inv*r2inv;

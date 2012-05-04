@@ -53,20 +53,30 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   if (binary || compressed || multiproc)
     error->all(FLERR,"Invalid dump molfile filename");
 
-  // default settings
+  // required settings
 
-  size_one = 4;
   sort_flag = 1;
   sortcol = 0;
+
+  // storage for collected information
+
+  size_one = 4;
+  if (atom->q_flag) ++size_one;
+  if (atom->rmass_flag) ++size_one;
+  if (atom->radius_flag) ++size_one;
 
   need_structure = 0;
   unwrap_flag = 0;
   velocity_flag = 0;
+  topology_flag = 0;
   ntotal = 0;
   me = comm->me;
 
+  coords = vels = masses = charges = radiuses = NULL;
+  types = NULL;
   ntypes = atom->ntypes;
   typenames = NULL;
+  
 
   // allocate global array for atom coords
 
@@ -76,10 +86,13 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   if (n < 1) 
     error->all(FLERR,"Not enough atoms for dump molfile");
   natoms = static_cast<int>(n);
-  memory->create(types,natoms,"dump:types");
-  memory->create(coords,3*natoms,"dump:coords");
-
   if (me == 0) {
+    memory->create(types,natoms,"dump:types");
+    memory->create(coords,3*natoms,"dump:coords");
+    if (atom->q_flag) memory->create(charges,natoms,"dump:charges");
+    if (atom->rmass_flag) memory->create(masses,natoms,"dump:masses");
+    if (atom->radius_flag) memory->create(radiuses,natoms,"dump:radiuses");
+
     mf = new MolfileInterface(arg[5],MFI::M_WRITE);
 
     char *path = ".";
@@ -106,6 +119,10 @@ DumpMolfile::~DumpMolfile()
     mf->close();
     memory->destroy(types);
     memory->destroy(coords);
+    memory->destroy(vels);
+    memory->destroy(masses);
+    memory->destroy(charges);
+    memory->destroy(radiuses);
     delete mf;
   }
   

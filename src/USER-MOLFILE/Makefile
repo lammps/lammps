@@ -9,7 +9,7 @@ default: molfile_tester.x
 clean:
 	rm -vf *.o *.x *~ *.xyz *.dcd
 
-molfile_tester.x: molfile_tester.o molfile_interface.o dump_molfile.o
+molfile_tester.x: molfile_tester.o
 	$(CXX) -o $@ $^ $(LIBS)
 
 molfile_tester.o: molfile_tester.cpp molfile_interface.h dump_molfile.h

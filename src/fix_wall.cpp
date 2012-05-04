@@ -178,7 +178,7 @@ int FixWall::setmask()
 
   // FLD implicit needs to invoke wall forces before pair style
 
-  if (fldflag) mask != PRE_FORCE;
+  if (fldflag) mask |= PRE_FORCE;
   else mask |= POST_FORCE;
 
   mask |= THERMO_ENERGY;
@@ -214,9 +214,9 @@ void FixWall::init()
 
 void FixWall::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (strstr(update->integrate_style,"verlet")) {
     if (!fldflag) post_force(vflag);
-  else {
+  } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);

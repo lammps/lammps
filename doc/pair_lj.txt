@@ -40,7 +40,7 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/coul/debye} args = kappa cutoff (cutoff2)
-    kappa = Debye length (inverse distance units)
+    kappa = inverse of the Debye length (inverse distance units)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/coul/long} args = cutoff (cutoff2)
@@ -106,8 +106,8 @@ to the Coulombic term, given by
 
 :c,image(Eqs/pair_debye.jpg)
 
-where kappa is the Debye length.  This potential is another way to
-mimic the screening effect of a polar solvent.
+where kappa is the inverse of the Debye length.  This potential is
+another way to mimic the screening effect of a polar solvent.
 
 Style {lj/cut/coul/long} computes the same Coulombic interactions as
 style {lj/cut/coul/cut} except that an additional damping factor is

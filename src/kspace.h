@@ -46,7 +46,7 @@ class KSpace : protected Pointers {
   virtual double memory_usage() {return 0.0;}
 
  protected:
-  int gridflag,gewaldflag;
+  int gridflag,gewaldflag,differentiation_flag;
   int order;
   int slabflag;
   int suffix_flag;                  // suffix compatibility flag

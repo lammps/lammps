@@ -9,6 +9,12 @@ colvarproxy_lammps.cpp
 colvarproxy_lammps.h
 fix_colvars.cpp
 fix_colvars.h
+dump_molfile.cpp
+dump_molfile.h
+molfile_interface.cpp
+molfile_interface.h
+molfile_plugin.h
+vmdplugin.h
 
 angle_cg_cmm.cpp
 angle_cg_cmm.h

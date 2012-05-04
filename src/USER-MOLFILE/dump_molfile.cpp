@@ -61,9 +61,10 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   // storage for collected information
 
   size_one = 4;
-  if (atom->q_flag) ++size_one;
-  if (atom->rmass_flag) ++size_one;
-  if (atom->radius_flag) ++size_one;
+  if (atom->molecule_flag)  ++size_one;
+  if (atom->q_flag)         ++size_one;
+  if (atom->rmass_flag)     ++size_one;
+  if (atom->radius_flag)    ++size_one;
 
   need_structure = 0;
   unwrap_flag = 0;
@@ -73,7 +74,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   me = comm->me;
 
   coords = vels = masses = charges = radiuses = NULL;
-  types = NULL;
+  types = molids = NULL;
   ntypes = atom->ntypes;
   typenames = NULL;
   
@@ -86,9 +87,11 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   if (n < 1) 
     error->all(FLERR,"Not enough atoms for dump molfile");
   natoms = static_cast<int>(n);
+
   if (me == 0) {
     memory->create(types,natoms,"dump:types");
     memory->create(coords,3*natoms,"dump:coords");
+    if (atom->molecule_flag) memory->create(molids,natoms,"dump:molids");
     if (atom->q_flag) memory->create(charges,natoms,"dump:charges");
     if (atom->rmass_flag) memory->create(masses,natoms,"dump:masses");
     if (atom->radius_flag) memory->create(radiuses,natoms,"dump:radiuses");

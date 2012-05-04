@@ -31,10 +31,12 @@ class DumpMolfile : public Dump {
   virtual void write();
 
  protected:
-  class MolfileInterface *mf;
+  class MolfileInterface *mf; //< handles low-level I/O
+  // per-atom data
   float *coords, *vels, *masses, *charges, *radiuses;
-  int   *types;
+  int   *types, *molids;
   char **typenames;
+
   int natoms,me,ntotal,ntypes;
   int need_structure;
   int unwrap_flag;   // 1 if writing unwrapped atom coords, 0 if not

@@ -758,7 +758,7 @@ void Domain::closest_image(const double * const xi, const double * const xj,
 
 /* ----------------------------------------------------------------------
    remap the point into the periodic box no matter how far away
-   adjust image accordingly
+   adjust 3 image flags encoded in image accordingly
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
    for triclinic, point is converted to lamda coords (0-1) before doing remap
@@ -849,6 +849,7 @@ void Domain::remap(double *x, int &image)
 
 /* ----------------------------------------------------------------------
    remap the point into the periodic box no matter how far away
+   no image flag calculation
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
    for triclinic, point is converted to lamda coords (0-1) before remap

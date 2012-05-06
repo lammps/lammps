@@ -170,11 +170,9 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"diff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"ad") == 0){
-        differentiation_flag = 1;
-      } else if (strcmp(arg[iarg+1],"ik") == 0){
-        differentiation_flag = 0;
-      } else error->all(FLERR, "Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"ad") == 0) differentiation_flag = 1;
+      else if (strcmp(arg[iarg+1],"ik") == 0) differentiation_flag = 0;
+      else error->all(FLERR, "Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }

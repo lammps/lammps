@@ -706,20 +706,20 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       rljmax = sigcut * rljmin;
       rljmin = sigmin * rljmin;
  
-      if (rij > rljmax){
-         slw = 0.0;
-         dslw = 0.0;}
-      else if (rij > rljmin){
-         drij = rij - rljmin;
-         swidth = rljmax - rljmin;
-         tee = drij / swidth;
-         tee2 = pow (tee,2);
-         slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
-         dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+      if (rij > rljmax) {
+	slw = 0.0;
+	dslw = 0.0;
+      } else if (rij > rljmin) {
+	drij = rij - rljmin;
+	swidth = rljmax - rljmin;
+	tee = drij / swidth;
+	tee2 = pow (tee,2);
+	slw = 1.0 - tee2 * (3.0 - 2.0 * tee);
+	dslw = 6.0 * tee * (1.0 - tee) / rij / swidth;
+      } else {
+	slw = 1.0;
+	dslw = 0.0;
       }
-      else
-         slw = 1.0;
-         dslw = 0.0;
 
       r2inv = 1.0/rijsq;
       r6inv = r2inv*r2inv*r2inv;

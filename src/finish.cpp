@@ -573,7 +573,7 @@ void Finish::end(int flag)
 	  fprintf(screen,"\n");
 	}
 	if (logfile) {
-	  fprintf(logfile,"FullNghs: %g ave %g max %g min\n",ave,max,min);
+	  fprintf(logfile,"FullNghs:  %g ave %g max %g min\n",ave,max,min);
 	  fprintf(logfile,"Histogram:");
 	  for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
 	  fprintf(logfile,"\n");

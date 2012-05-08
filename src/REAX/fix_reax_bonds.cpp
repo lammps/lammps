@@ -104,6 +104,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   int nparticles,nparticles_tot,nbuf,nbuf_local,most,j;
   int ii,jn,mbond,numbonds,nsbmax,nsbmax_most;
   int nprocs,nlocal_tmp,itmp;
+  int k,kk,jj,jbufknum;
   double cutof3;
   double *buf;
   MPI_Request irequest;
@@ -114,6 +115,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   nparticles = atom->nlocal;
   nparticles_tot = static_cast<int> (atom->natoms);
  
+  jn = ReaxParams::nat;
   mbond = ReaxParams::mbond;
   FORTRAN(getnsbmax,GETNSBMAX)(&nsbmax);
   FORTRAN(getcutof3,GETCUTOF3)(&cutof3);
@@ -139,35 +141,44 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   nbuf = 1+(2*nsbmax_most+7)*most;
   memory->create(buf,nbuf,"reax/bonds:buf");
  
-  j = 2;
-  jn = ReaxParams::nat;
-  buf[0] = nparticles;
+  j = 0;
+  buf[j++] = nparticles;
   for (int iparticle=0;iparticle<nparticles;iparticle++) {
-    buf[j-1] = atom->tag[iparticle];                   //atom tag
-    buf[j+0] = FORTRAN(cbkia,CBKIA).iag[iparticle];    //atom type
-    buf[j+1] = FORTRAN(cbkia,CBKIA).iag[iparticle+jn]; //no.bonds
-    int k;
-    numbonds = nint(buf[j+1]);
+    buf[j++] = atom->tag[iparticle];                   //atom tag
+    buf[j++] = FORTRAN(cbkia,CBKIA).iag[iparticle];    //atom type
+    jbufknum = j++;
+    numbonds = FORTRAN(cbkia,CBKIA).iag[iparticle+jn];
 
     // connection table based on coarse bond order cutoff (> cutof3)
-    for (k=2;k<2+numbonds;k++) {
-      ii = FORTRAN(cbkia,CBKIA).iag[iparticle+jn*k];
-      buf[j+k] = FORTRAN(cbkc,CBKC).itag[ii-1];
-    }
-    buf[j+k]=FORTRAN(cbkia,CBKIA).iag[iparticle+jn*(mbond+2)]; //molec.id
-    j+=(3+numbonds);
 
-    // bond orders (> cutof3)
+    kk = 0;
     for (k=0;k<numbonds;k++) {
       ii = FORTRAN(cbknubon2,CBKNUBON2).nubon1[iparticle+jn*k];
-      buf[j+k] = FORTRAN(cbkbo,CBKBO).bo[ii-1];
+      if (FORTRAN(cbkbo,CBKBO).bo[ii-1] > cutof3) {
+	kk++;
+	jj = FORTRAN(cbkia,CBKIA).iag[iparticle+jn*(k+2)];
+	buf[j++] = FORTRAN(cbkc,CBKC).itag[jj-1];
+      }
     }
-    // sum of bond orders (abo), no. of lone pairs (vlp), charge (ch)
-    buf[j+k] = FORTRAN(cbkabo,CBKABO).abo[iparticle];
-    buf[j+k+1] = FORTRAN(cbklonpar,CBKLONPAR).vlp[iparticle];
-    //    buf[j+k+2] = FORTRAN(cbkch,CBKCH).ch[iparticle];
-    buf[j+k+2] = atom->q[iparticle];
-    j+=(4+numbonds);
+    buf[jbufknum] = kk; //no.bonds
+    buf[j++]=FORTRAN(cbkia,CBKIA).iag[iparticle+jn*(mbond+2)]; //molec.id
+
+    // bond orders (> cutof3)
+
+    kk = 0;
+    for (k=0;k<numbonds;k++) {
+      ii = FORTRAN(cbknubon2,CBKNUBON2).nubon1[iparticle+jn*k];
+      if (FORTRAN(cbkbo,CBKBO).bo[ii-1] > cutof3) {
+	kk++;
+	buf[j++] = FORTRAN(cbkbo,CBKBO).bo[ii-1];
+      }
+    }
+
+    // atom bond order (abo), no. of lone pairs (vlp), charge (ch)
+
+    buf[j++] = FORTRAN(cbkabo,CBKABO).abo[iparticle];
+    buf[j++] = FORTRAN(cbklonpar,CBKLONPAR).vlp[iparticle];
+    buf[j++] = atom->q[iparticle];
   }
   nbuf_local = j-1;
  
@@ -176,22 +187,24 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
  
   if (me == 0) {
     for (int inode = 0; inode<nprocs; inode++) {
+      j = 0;
       if (inode == 0) {
 	nlocal_tmp = nparticles;
+	j++;
       } else {
 	MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
         MPI_Send(&itmp,0,MPI_INT,inode,0,world);
         MPI_Wait(&irequest,&istatus);
-	nlocal_tmp = nint(buf[0]);
+	nlocal_tmp = nint(buf[j++]);
       }
  
-      j = 2;
       for (int iparticle=0;iparticle<nlocal_tmp;iparticle++) {
+
 	// print atom tag, atom type, no.bonds
 
-	fprintf(fp," %d %d %d",nint(buf[j-1]),nint(buf[j+0]),nint(buf[j+1]));
-	int k;
-	numbonds = nint(buf[j+1]);
+	numbonds = nint(buf[j+2]);
+	fprintf(fp," %d %d %d",nint(buf[j]),nint(buf[j+1]),numbonds);
+	j += 3;
 	if (numbonds > nsbmax_most) {
 	  char str[128];
 	  sprintf(str,"Fix reax/bonds numbonds > nsbmax_most");
@@ -200,20 +213,22 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
 
 	// print connection table
 
-	for (k=2;k<2+numbonds;k++)
-	  fprintf(fp," %d",nint(buf[j+k]));
-	fprintf(fp," %d",nint(buf[j+k]));
-	j+=(3+numbonds);
+	for (k=0;k<numbonds;k++)
+	  fprintf(fp," %d",nint(buf[j++]));
+
+	// print molecule id
+
+	fprintf(fp," %d",nint(buf[j++]));
 
 	// print bond orders
 
 	for (k=0;k<numbonds;k++)
-	  fprintf(fp,"%14.3f",buf[j+k]);
+	  fprintf(fp,"%14.3f",buf[j++]);
 
 	// print sum of bond orders, no. of lone pairs, charge
 
-	fprintf(fp,"%14.3f%14.3f%14.3f\n",buf[j+k],buf[j+k+1],buf[j+k+2]);
-	j+=(4+numbonds);
+	fprintf(fp,"%14.3f%14.3f%14.3f\n",buf[j],buf[j+1],buf[j+2]);
+	j+=3;
       }
     }
 

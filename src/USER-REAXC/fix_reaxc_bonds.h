@@ -23,7 +23,11 @@ FixStyle(reax/c/bonds,FixReaxCBonds)
 #include "stdio.h"
 #include "fix.h"
 #include "pair_reax_c.h"
+#include "reaxc_types.h"
 #include "reaxc_defs.h"
+#include "pointers.h"
+
+#define MAXBOND 24
 
 namespace LAMMPS_NS {
 
@@ -37,16 +41,28 @@ class FixReaxCBonds : public Fix {
   void end_of_step();
 
  private:
-  int me;
-  int nfreq;
+  int me, nprocs, nmax, ntypes, maxsize;
+  int nrepeat, irepeat, repeat, nfreq;
+  int *numneigh, **neighid, **tmpid;
+  double *sbo, *nlp, *avq, **abo, **tmpabo;
   FILE *fp;
 
-  void OutputReaxCBonds(bigint, FILE*);
-  int nint(const double&);
+  void allocate();
+  void Output_ReaxC_Bonds(bigint, FILE *);
+  void GatherBond(reax_system*, reax_list*);
+  void FindBond(reax_system*, reax_list*, int &);
+  void PassBuffer(reax_system*, double *, int &);
+  void RecvBuffer(reax_system*, double *, int, int, int, int);
+  int nint(const double &);
+  double memory_usage();
 
+  bigint nvalid, nextvalid();
+  reax_system *system;
+  reax_list *lists;
   class PairReaxC *reaxc;
-};
+  class NeighList *list;
 
+};
 }
 
 #endif

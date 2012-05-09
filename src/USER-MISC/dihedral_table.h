@@ -51,8 +51,8 @@ class DihedralTable : public Dihedral {
   struct Table {
     int ninput;
     //double phi0;      <-equilibrium angles not supported
-    bool f_unspecified;
-    bool use_degrees;
+    int f_unspecified; // boolean (but MPI does not like type "bool")
+    int use_degrees;   // boolean (but MPI does not like type "bool")
     double *phifile,*efile,*ffile;
     double *e2file,*f2file;
     double delta,invdelta,deltasq6;
@@ -299,8 +299,8 @@ inline double Phi(double const *x1, //array holding x,y,z coords atom 1
 
   //--- Compute the normal to the planes formed by atoms 1,2,3 and 2,3,4 ---
 
-  CrossProduct(vb12, vb23, n123);        // <- n123=vb12 x vb23
-  CrossProduct(vb34, vb23, n234);        // <- n234=vb34 x vb23
+  CrossProduct(vb23, vb12, n123);        // <- n123=vb23 x vb12
+  CrossProduct(vb23, vb34, n234);        // <- n234=vb23 x vb34
 
   Normalize(n123);
   Normalize(n234);

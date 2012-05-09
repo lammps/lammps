@@ -39,6 +39,7 @@ using namespace std;
 #include "dihedral_table.h"
 
 // Additional header files available for numerical debugging:
+//#undef NDEBUG
 //#define DIH_DEBUG_NUM
 //#ifdef DIH_DEBUG_NUM
 //#include "dihedral_table_dbg.h"    //in "supporting_files/debug_numerical/"
@@ -128,8 +129,8 @@ void DihedralTable::compute(int eflag, int vflag)
 
   //  n123 & n234: These two unit vectors are normal to the planes
   //               defined by atoms 1,2,3 and 2,3,4.
-  double n123[g_dim]; //n123=vb12 x vb23 / |vb12 x vb23|  ("x" is cross product)
-  double n234[g_dim]; //n234=vb34 x vb23 / |vb34 x vb23|  ("x" is cross product)
+  double n123[g_dim]; //n123=vb23 x vb12 / |vb23 x vb12|  ("x" is cross product)
+  double n234[g_dim]; //n234=vb23 x vb34 / |vb23 x vb34|  ("x" is cross product)
 
   double proj12on23[g_dim];
   //    proj12on23[d] = (vb23[d]/|vb23|) * DotProduct(vb12,vb23)/|vb12|*|vb23|
@@ -216,8 +217,8 @@ void DihedralTable::compute(int eflag, int vflag)
     if (perp34on23_len != 0.0) inv_perp34on23 = 1.0 / perp34on23_len;
 
     for (int d=0; d < g_dim; ++d) {
-      dphi_dx1[d] =  n123[d] * inv_perp12on23;
-      dphi_dx4[d] =  n234[d] * inv_perp34on23;
+      dphi_dx1[d] = n123[d] * inv_perp12on23;
+      dphi_dx4[d] = n234[d] * inv_perp34on23;
     }
 
     // --- Compute the gradient vectors dphi/dx2 and dphi/dx3: ---
@@ -434,7 +435,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
-  
+
   int me;
   MPI_Comm_rank(world,&me);
   tables = (Table *) 
@@ -602,7 +603,6 @@ void DihedralTable::coeff(int narg, char **arg)
     } // if (checkF_fname && (strlen(checkF_fname) != 0))
   } // if (me == 0)
 
-
   // store ptr to table in tabindex
   int count = 0;
   for (int i = ilo; i <= ihi; i++)
@@ -616,6 +616,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
   if (count == 0) 
     error->all(FLERR,"Illegal dihedral_coeff command");
+
 } //DihedralTable::coeff()
 
 

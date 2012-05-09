@@ -178,7 +178,7 @@ definition of density for each choice of units, e.g. gram/cm^3.
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
-bracketed interger is appended, the Ith column of the per-atom array
+bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and "add them to LAMMPS"_Section_modify.html.
 

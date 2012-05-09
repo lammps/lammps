@@ -55,7 +55,7 @@ If an input begins with "c_", a compute ID must follow which has been
 previously defined in the input script and which generates per-atom
 quantities.  See the individual "compute"_compute.html doc page for
 details.  If no bracketed integer is appended, the vector calculated
-by the compute is used.  If a bracketed interger is appended, the Ith
+by the compute is used.  If a bracketed integer is appended, the Ith
 column of the array calculated by the compute is used.  Users can also
 write code for their own compute styles and "add them to
 LAMMPS"_Section_modify.html.

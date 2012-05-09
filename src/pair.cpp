@@ -781,6 +781,27 @@ void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
 
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
+   called by REAX/C potential, newton_pair is always on
+   fi is magnitude of force on atom i
+------------------------------------------------------------------------- */
+
+void Pair::v_tally(int i, double *fi, double *deli)
+{
+  double v[6];
+  
+  v[0] = 0.5*deli[0]*fi[0];
+  v[1] = 0.5*deli[1]*fi[1];
+  v[2] = 0.5*deli[2]*fi[2];
+  v[3] = 0.5*deli[0]*fi[1];
+  v[4] = 0.5*deli[0]*fi[2];
+  v[5] = 0.5*deli[1]*fi[2];
+
+  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
    called by AIREBO potential, newton_pair is always on
    fpair is magnitude of force on atom I
 ------------------------------------------------------------------------- */

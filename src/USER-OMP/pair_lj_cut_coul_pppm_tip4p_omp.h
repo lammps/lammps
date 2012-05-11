@@ -48,7 +48,7 @@ class PairLJCutCoulPPPMTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
   void find_M_permissive(int, int &, int &, double *);
 
  private:
-  template <const int, const int, const int, const int>
+  template <int, int, int, int>
   void eval(int ifrom, int ito, ThrData * const thr);
 
   class PPPMTIP4PProxy *kspace;

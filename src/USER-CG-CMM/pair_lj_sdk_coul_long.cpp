@@ -227,8 +227,7 @@ void PairLJSDKCoulLong::eval()
 			     - lj4[itype][jtype]) - offset[itype][jtype];
 	  }
 	  forcelj *= factor_lj;
-	  if (EFLAG)
-	    evdwl *= factor_lj;
+	  if (EFLAG) evdwl *= factor_lj;
 	}
 
 	fpair = (forcecoul + forcelj) * r2inv;
@@ -243,8 +242,7 @@ void PairLJSDKCoulLong::eval()
 	}
 
 	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			   evdwl,ecoul,fpair,delx,dely,delz);
-
+			     evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
     f[i][0] += fxtmp;

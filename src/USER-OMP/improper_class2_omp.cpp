@@ -79,7 +79,7 @@ void ImproperClass2OMP::compute(int eflag, int vflag)
   } // end of omp parallel region
 }
 
-template <const int EVFLAG, const int EFLAG, const int NEWTON_BOND>
+template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   int i1,i2,i3,i4,i,j,k,n,type;

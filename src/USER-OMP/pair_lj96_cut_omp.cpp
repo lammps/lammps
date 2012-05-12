@@ -30,6 +30,7 @@ PairLJ96CutOMP::PairLJ96CutOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

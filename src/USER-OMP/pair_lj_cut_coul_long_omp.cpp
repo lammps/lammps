@@ -38,6 +38,7 @@ PairLJCutCoulLongOMP::PairLJCutCoulLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
+  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

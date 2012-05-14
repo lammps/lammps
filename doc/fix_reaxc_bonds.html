@@ -13,10 +13,10 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID style Nevery Nrepeat Nfreq filename 
+<PRE>fix ID group-ID reax/c/bonds Nevery Nrepeat Nfreq filename 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>style = <I>reax/c/bonds</I>
+<LI>reax/c/bonds = style name of this command
 <LI>Nevery = output interval in timesteps
 <LI>Nrepeat = # of times to use input values for calculating averages
 <LI>Nfreq = calculate averages every this many timesteps
@@ -29,7 +29,7 @@
 <P><B>Description:</B>
 </P>
 <P>Write out the bond information computed by the ReaxFF potential
-specified by <A HREF = "pair_reax_c.html">pair_style reax/c</A>. Bond order values
+specified by <A HREF = "pair_reax_c.html">pair_style reax/c</A>.  Bond order values
 are averaged and the bond information is written to <I>filename</I> on
 timesteps that are multiples of <I>Nfreq</I>, including timestep 0.
 </P>
@@ -50,7 +50,7 @@ timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.
 </P>
-<P>The format of the output file should be self-explanatory. When using
+<P>The format of the output file should be self-explanatory.  When using
 the same force field file with <A HREF = "pair_reax.html">pair_style reax</A> and
 <A HREF = "pair_reax_c.html">pair_style reax/c</A>, the following commands generate
 the same bond information:
@@ -75,7 +75,7 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 <P>The fix reax/c/bonds requires that the <A HREF = "pair_reax_c.html">pair_style
 reax/c</A> be invoked.  This fix is part of the
 USER-REAXC package.  It is only enabled if LAMMPS was built with that
-package. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
 for more info.
 </P>
 <P><B>Related commands:</B>

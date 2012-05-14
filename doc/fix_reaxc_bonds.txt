@@ -26,9 +26,9 @@ fix 1 all reax/c/bonds 10 10 100 bonds.reaxc :pre
 [Description:]
 
 Write out the bond information computed by the ReaxFF potential
-specified by "pair_style reax/c"_pair_reax_c.html. Bond order values 
-are averaged and the bond information is written to {filename} 
-on timesteps that are multiples of {Nfreq}, including timestep 0.
+specified by "pair_style reax/c"_pair_reax_c.html. Bond order values
+are averaged and the bond information is written to {filename} on
+timesteps that are multiples of {Nfreq}, including timestep 0.
 
 :line
 
@@ -47,8 +47,8 @@ timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.
 
-The format of the output file should be self-explanatory. When using 
-the same force field file with "pair_style reax"_pair_reax.html and 
+The format of the output file should be self-explanatory. When using
+the same force field file with "pair_style reax"_pair_reax.html and
 "pair_style reax/c"_pair_reax_c.html, the following commands generate
 the same bond information:
 
@@ -69,15 +69,15 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-The fix reax/c/bonds requires that the "pair_style reax/c"_pair_reax_c.html
-be invoked.  This fix is part of the USER-REAXC package.  It is only enabled
-if LAMMPS was built with that package. See the 
-"Making LAMMPS"_Section_start.html#start_3 section for more info.
+The fix reax/c/bonds requires that the "pair_style
+reax/c"_pair_reax_c.html be invoked.  This fix is part of the
+USER-REAXC package.  It is only enabled if LAMMPS was built with that
+package. See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info.
 
 [Related commands:]
 
-"pair_style reax/c"_pair_reax_c.html, "fix reax/bonds"_fix_reax_bonds.html
+"pair_style reax/c"_pair_reax_c.html, "fix
+reax/bonds"_fix_reax_bonds.html
 
-[Default:]
-
-none
+[Default:] none

@@ -348,6 +348,25 @@ void Pair::ev_setup(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   set all flags to zero for energy, virial computation
+------------------------------------------------------------------------- */
+
+void Pair::ev_unset()
+{
+
+  evflag = 0;
+
+  eflag_either = 0;
+  eflag_global = 0;
+  eflag_atom = 0;
+
+  vflag_either = 0;
+  vflag_global = 0;
+  vflag_atom = 0;
+  vflag_fdotr = 0;
+}
+
+/* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
 ------------------------------------------------------------------------- */

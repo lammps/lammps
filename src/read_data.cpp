@@ -374,6 +374,23 @@ void ReadData::header(int flag)
 
     if (strstr(line,"atoms")) sscanf(line,BIGINT_FORMAT,&atom->natoms);
 
+    // need to check for these first, since otherwise
+    // triangles will be matched as "angles".
+
+    else if (strstr(line,"ellipsoids")) {
+      if (!avec_ellipsoid)
+	error->one(FLERR,"No ellipsoids allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&nellipsoids);
+    } else if (strstr(line,"lines")) {
+      if (!avec_line)
+	error->one(FLERR,"No lines allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&nlines);
+    } else if (strstr(line,"triangles")) {
+      if (!avec_tri)
+	error->one(FLERR,"No triangles allowed with this atom style");
+      sscanf(line,BIGINT_FORMAT,&ntris);
+    }
+
     else if (strstr(line,"bonds")) sscanf(line,BIGINT_FORMAT,&atom->nbonds);
     else if (strstr(line,"angles")) sscanf(line,BIGINT_FORMAT,&atom->nangles);
     else if (strstr(line,"dihedrals")) sscanf(line,BIGINT_FORMAT,
@@ -391,20 +408,6 @@ void ReadData::header(int flag)
 
     else if (strstr(line,"extra bond per atom"))
       sscanf(line,"%d",&atom->extra_bond_per_atom);
-
-    else if (strstr(line,"ellipsoids")) {
-      if (!avec_ellipsoid)
-	error->one(FLERR,"No ellipsoids allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nellipsoids);
-    } else if (strstr(line,"lines")) {
-      if (!avec_line)
-	error->one(FLERR,"No lines allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&nlines);
-    } else if (strstr(line,"triangles")) {
-      if (!avec_tri)
-	error->one(FLERR,"No triangles allowed with this atom style");
-      sscanf(line,BIGINT_FORMAT,&ntris);
-    }
 
     else if (strstr(line,"xlo xhi")) 
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);

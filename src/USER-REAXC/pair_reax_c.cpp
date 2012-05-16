@@ -412,7 +412,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = vflag_global = 0;
+  else ev_unset();
 
 /*  if ((eflag_atom || vflag_atom) && firstwarn) {
     firstwarn = 0;

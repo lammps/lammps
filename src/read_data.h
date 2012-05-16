@@ -32,11 +32,10 @@ class ReadData : protected Pointers {
   void command(int, char **);
 
  private:
-  int me;
   char *line,*keyword,*buffer;
   FILE *fp;
-  int narg,maxarg,compressed;
   char **arg;
+  int me,narg,maxarg,compressed;
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;

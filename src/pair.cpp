@@ -349,11 +349,12 @@ void Pair::ev_setup(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    set all flags to zero for energy, virial computation
+   called by some complicated many-body potentials that use individual flags
+   to insure no holdover of flags from previous timestep
 ------------------------------------------------------------------------- */
 
 void Pair::ev_unset()
 {
-
   evflag = 0;
 
   eflag_either = 0;

@@ -208,7 +208,7 @@ class Data {
 
   // atom quantities
 
-  int iatoms,ibonds,iangles,idihedrals,iimpropers;
+  bigint iatoms,ibonds,iangles,idihedrals,iimpropers;
 
   double *mass;
   double *x,*y,*z,*vx,*vy,*vz;
@@ -532,7 +532,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "6 Feb 2012";
+  const char *version = "17 May 2012";
 
   data.triclinic = 0;
 
@@ -873,6 +873,7 @@ int atom(double *buf, Data &data)
 // ---------------------------------------------------------------------
 // read one atom's info from buffer
 // one routine per atom style
+// skip broken bonds, angles, etc
 // ---------------------------------------------------------------------
 
 int atom_angle(double *buf, Data &data, int iatoms)
@@ -897,7 +898,7 @@ int atom_angle(double *buf, Data &data, int iatoms)
   for (int k = 0; k < n; k++) {
     type = static_cast<int> (buf[m++]);
     atom1 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] < atom1 ) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] < atom1))) {
       data.bond_type[data.ibonds] = type;
       data.bond_atom1[data.ibonds] = data.tag[iatoms];
       data.bond_atom2[data.ibonds] = atom1;
@@ -911,12 +912,12 @@ int atom_angle(double *buf, Data &data, int iatoms)
     atom1 = static_cast<int> (buf[m++]);
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.angle_type[data.iangles] = type;
       data.angle_atom1[data.iangles] = atom1;
       data.angle_atom2[data.iangles] = atom2;
       data.angle_atom3[data.iangles] = atom3;
-	  data.iangles++;
+      data.iangles++;
     }
   }
 
@@ -962,7 +963,7 @@ int atom_bond(double *buf, Data &data, int iatoms)
   for (int k = 0; k < n; k++) {
     type = static_cast<int> (buf[m++]);
     atom1 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] < atom1) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] < atom1))) {
       data.bond_type[data.ibonds] = type;
       data.bond_atom1[data.ibonds] = data.tag[iatoms];
       data.bond_atom2[data.ibonds] = atom1;
@@ -1074,7 +1075,7 @@ int atom_full(double *buf, Data &data, int iatoms)
   for (int k = 0; k < n; k++) {
     type = static_cast<int> (buf[m++]);
     atom1 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] < atom1) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] < atom1))) {
       data.bond_type[data.ibonds] = type;
       data.bond_atom1[data.ibonds] = data.tag[iatoms];
       data.bond_atom2[data.ibonds] = atom1;
@@ -1088,7 +1089,7 @@ int atom_full(double *buf, Data &data, int iatoms)
     atom1 = static_cast<int> (buf[m++]);
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.angle_type[data.iangles] = type;
       data.angle_atom1[data.iangles] = atom1;
       data.angle_atom2[data.iangles] = atom2;
@@ -1104,7 +1105,7 @@ int atom_full(double *buf, Data &data, int iatoms)
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
     atom4 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.dihedral_type[data.idihedrals] = type;
       data.dihedral_atom1[data.idihedrals] = atom1;
       data.dihedral_atom2[data.idihedrals] = atom2;
@@ -1121,7 +1122,7 @@ int atom_full(double *buf, Data &data, int iatoms)
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
     atom4 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.improper_type[data.iimpropers] = type;
       data.improper_atom1[data.iimpropers] = atom1;
       data.improper_atom2[data.iimpropers] = atom2;
@@ -1168,7 +1169,7 @@ int atom_molecular(double *buf, Data &data, int iatoms)
   for (int k = 0; k < n; k++) {
     type = static_cast<int> (buf[m++]);
     atom1 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] < atom1) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] < atom1))) {
       data.bond_type[data.ibonds] = type;
       data.bond_atom1[data.ibonds] = data.tag[iatoms];
       data.bond_atom2[data.ibonds] = atom1;
@@ -1182,7 +1183,7 @@ int atom_molecular(double *buf, Data &data, int iatoms)
     atom1 = static_cast<int> (buf[m++]);
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.angle_type[data.iangles] = type;
       data.angle_atom1[data.iangles] = atom1;
       data.angle_atom2[data.iangles] = atom2;
@@ -1198,7 +1199,7 @@ int atom_molecular(double *buf, Data &data, int iatoms)
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
     atom4 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.dihedral_type[data.idihedrals] = type;
       data.dihedral_atom1[data.idihedrals] = atom1;
       data.dihedral_atom2[data.idihedrals] = atom2;
@@ -1215,7 +1216,7 @@ int atom_molecular(double *buf, Data &data, int iatoms)
     atom2 = static_cast<int> (buf[m++]);
     atom3 = static_cast<int> (buf[m++]);
     atom4 = static_cast<int> (buf[m++]);
-    if (data.newton_bond || data.tag[iatoms] == atom2) {
+    if ((type != 0) && (data.newton_bond || (data.tag[iatoms] == atom2))) {
       data.improper_type[data.iimpropers] = type;
       data.improper_atom1[data.iimpropers] = atom1;
       data.improper_atom2[data.iimpropers] = atom2;
@@ -1994,6 +1995,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	     (strcmp(style,"lj/charmm/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/long") == 0)) {
       
     if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
@@ -2007,6 +2009,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul_inner = read_double(fp);
+      double cut_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/charmm/coul/pppm") == 0) {
+      double cut_lj_inner = read_double(fp);
+      double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
@@ -2049,6 +2057,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/class2") == 0) ||
 	   (strcmp(style,"lj/class2/coul/cut") == 0) ||
+	   (strcmp(style,"lj/class2/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/class2/coul/long") == 0)) {
 
     if (strcmp(style,"lj/class2") == 0) {
@@ -2058,6 +2067,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int mix_flag = read_int(fp);
     } else if (strcmp(style,"lj/class2/coul/cut") == 0) {
       m = 1;
+      double cut_lj_global = read_double(fp);
+      double cut_lj_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/class2/coul/pppm") == 0) {
+      m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
@@ -2102,6 +2117,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
+	     (strcmp(style,"lj/cut/coul/pppm") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
 	     (strcmp(style,"lj/coul") == 0)) {
 
@@ -2129,6 +2145,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/long") == 0) {
+      m = 0;
+      double cut_lj_global = read_double(fp);
+      double cut_lj_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+    } else if (strcmp(style,"lj/cut/coul/pppm") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
@@ -3079,10 +3101,20 @@ void Data::stats()
 
   if (nellipsoids) printf("  Nellipsoids = " BIGINT_FORMAT "\n",nellipsoids);
 
-  if (nbonds) printf("  Nbonds = " BIGINT_FORMAT "\n",nbonds);
-  if (nangles) printf("  Nangles = " BIGINT_FORMAT "\n",nangles);
-  if (ndihedrals) printf("  Ndihedrals = " BIGINT_FORMAT "\n",ndihedrals);
-  if (nimpropers) printf("  Nimpropers = " BIGINT_FORMAT "\n",nimpropers);
+  if (ibonds) printf("  Nbonds = " BIGINT_FORMAT "\n",ibonds);
+  if (ibonds != nbonds) 
+    printf("  Skipping " BIGINT_FORMAT " broken bonds\n",nbonds-ibonds);
+  if (iangles) printf("  Nangles = " BIGINT_FORMAT "\n",iangles);
+  if (iangles != nangles) 
+    printf("  Skipping " BIGINT_FORMAT " broken angles\n",nangles-iangles);
+  if (idihedrals) printf("  Ndihedrals = " BIGINT_FORMAT "\n",idihedrals);
+  if (idihedrals != ndihedrals) 
+    printf("  Skipping " BIGINT_FORMAT " broken dihedrals\n",
+	   ndihedrals-idihedrals);
+  if (iimpropers) printf("  Nimpropers = " BIGINT_FORMAT "\n",iimpropers);
+  if (iimpropers != nimpropers) 
+    printf("  Skipping " BIGINT_FORMAT " broken impropers\n",
+	   nimpropers-iimpropers);
 
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);
@@ -3112,10 +3144,10 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
   fprintf(fp,BIGINT_FORMAT " atoms\n",natoms);
   if (nellipsoids) fprintf(fp,BIGINT_FORMAT " ellipsoids\n",nellipsoids);
-  if (nbonds) fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
-  if (nangles) fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
-  if (ndihedrals) fprintf(fp,BIGINT_FORMAT " dihedrals\n",ndihedrals);
-  if (nimpropers) fprintf(fp,BIGINT_FORMAT " impropers\n",nimpropers);
+  if (ibonds) fprintf(fp,BIGINT_FORMAT " bonds\n",ibonds);
+  if (iangles) fprintf(fp,BIGINT_FORMAT " angles\n",iangles);
+  if (idihedrals) fprintf(fp,BIGINT_FORMAT " dihedrals\n",idihedrals);
+  if (iimpropers) fprintf(fp,BIGINT_FORMAT " impropers\n",iimpropers);
 
   fprintf(fp,"\n");
 
@@ -3149,17 +3181,16 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
     fprintf(fp2,"\n");
   }
 
-  // mass to either data file or input file
+  // mass to both data file and input file for convenience
 
   if (mass) {
     if (fp2) {
       fprintf(fp2,"\n");
       for (int i = 1; i <= ntypes; i++) fprintf(fp2,"mass %d %g\n",i,mass[i]);
       fprintf(fp2,"\n");
-    } else {
-      fprintf(fp,"\nMasses\n\n");
-      for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
     }
+    fprintf(fp,"\nMasses\n\n");
+    for (int i = 1; i <= ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
   }
 
   // pair coeffs to data file
@@ -3245,6 +3276,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
@@ -3253,6 +3285,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/class2") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/cut") == 0) ||
+	       (strcmp(pair_style,"lj/class2/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
@@ -3263,6 +3296,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
+	       (strcmp(pair_style,"lj/cut/coul/pppm") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
 	       (strcmp(pair_style,"lj/coul") == 0)) {
       for (int i = 1; i <= ntypes; i++)
@@ -3314,7 +3348,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
   }
 
   // pair coeffs to input file
-  // only supported styles = cg/cmm
+  // only supported styles = lj/sdk and cg/cmm
 
   if (write_coeffs && pair_style && fp2) {
     if ((strcmp(pair_style,"lj/sdk") == 0) ||
@@ -3765,31 +3799,31 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
     }
   }
 
-  if (nbonds) {
+  if (ibonds) {
     fprintf(fp,"\nBonds\n\n");
-    for (bigint i = 0; i < nbonds; i++)
+    for (bigint i = 0; i < ibonds; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d\n",
 	      i+1,bond_type[i],bond_atom1[i],bond_atom2[i]);
   }
 
-  if (nangles) {
+  if (iangles) {
     fprintf(fp,"\nAngles\n\n");
-    for (bigint i = 0; i < nangles; i++)
+    for (bigint i = 0; i < iangles; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d\n",
 	      i+1,angle_type[i],angle_atom1[i],angle_atom2[i],angle_atom3[i]);
   }
 
-  if (ndihedrals) {
+  if (idihedrals) {
     fprintf(fp,"\nDihedrals\n\n");
-    for (bigint i = 0; i < ndihedrals; i++)
+    for (bigint i = 0; i < idihedrals; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,dihedral_type[i],dihedral_atom1[i],dihedral_atom2[i],
 	      dihedral_atom3[i],dihedral_atom4[i]);
   }
 
-  if (nimpropers) {
+  if (iimpropers) {
     fprintf(fp,"\nImpropers\n\n");
-    for (bigint i = 0; i < nimpropers; i++)
+    for (bigint i = 0; i < iimpropers; i++)
       fprintf(fp,BIGINT_FORMAT " %d %d %d %d %d\n",
 	      i+1,improper_type[i],improper_atom1[i],improper_atom2[i],
 	      improper_atom3[i],improper_atom4[i]);

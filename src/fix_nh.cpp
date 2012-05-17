@@ -22,6 +22,7 @@
 #include "math_extra.h"
 #include "atom.h"
 #include "force.h"
+#include "group.h"
 #include "comm.h"
 #include "irregular.h"
 #include "modify.h"
@@ -65,6 +66,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
+  id_dilate = NULL;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -91,7 +93,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
   fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
 
-  // Used by FixNVTSllod to preserve non-default value  
+  // used by FixNVTSllod to preserve non-default value  
 
   mtchain_default_flag = 1;
 
@@ -242,9 +244,18 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"dilate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
-      else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      else {
+	allremap = 0;
+	delete [] id_dilate;
+	int n = strlen(arg[iarg+2]) + 1;
+	id_dilate = new char[n];
+	strcpy(id_dilate,arg[iarg+2]);
+	int idilate = group->find(id_dilate);
+	if (idilate == -1) 
+	  error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist"); 
+      }
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       mtchain = atoi(arg[iarg+1]);
@@ -508,6 +519,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   
 FixNH::~FixNH()
 {
+  delete [] id_dilate;
   delete [] rfix;
 
   delete irregular;
@@ -554,6 +566,15 @@ int FixNH::setmask()
 
 void FixNH::init()
 {
+  // recheck that group_dilate has not been deleted
+
+  if (allremap == 0) {
+    int idilate = group->find(id_dilate);
+    if (idilate == -1) 
+      error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist"); 
+    dilate_group_bit = group->bitmask[idilate];
+  }
+  
   // ensure no conflict with fix deform
 
   if (pstat_flag)
@@ -975,7 +996,7 @@ void FixNH::remap()
   if (allremap) domain->x2lamda(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i] & dilate_group_bit)
 	domain->x2lamda(x[i],x[i]);
   }
 
@@ -1105,9 +1126,12 @@ void FixNH::remap()
 
   // tilt factor to cell length ratio can not exceed TILTMAX in one step
 
-  if (domain->yz < -TILTMAX*domain->yprd || domain->yz > TILTMAX*domain->yprd ||
-      domain->xz < -TILTMAX*domain->xprd || domain->xz > TILTMAX*domain->xprd ||
-      domain->xy < -TILTMAX*domain->xprd || domain->xy > TILTMAX*domain->xprd)
+  if (domain->yz < -TILTMAX*domain->yprd || 
+      domain->yz > TILTMAX*domain->yprd ||
+      domain->xz < -TILTMAX*domain->xprd || 
+      domain->xz > TILTMAX*domain->xprd ||
+      domain->xy < -TILTMAX*domain->xprd || 
+      domain->xy > TILTMAX*domain->xprd)
     error->all(FLERR,"Fix npt/nph has tilted box too far in one step - "
 	       "periodic cell is too far from equilibrium state");
 
@@ -1119,7 +1143,7 @@ void FixNH::remap()
   if (allremap) domain->lamda2x(nlocal);
   else {
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
+      if (mask[i] & dilate_group_bit)
 	domain->lamda2x(x[i],x[i]);
   }
 
@@ -1290,11 +1314,13 @@ int FixNH::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
+    if (icompute < 0) 
+      error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,
+		 "Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Temperature for fix modify is not for group all");
 

@@ -64,7 +64,9 @@ class FixNH : public Fix {
   double pdrag_factor;             // drag factor on barostat
   int kspace_flag;                 // 1 if KSpace invoked, 0 if not
   int nrigid;                      // number of rigid fixes
+  int dilate_group_bit;            // mask for dilation group
   int *rfix;                       // indices of rigid fixes
+  char *id_dilate;                 // group name to dilate
   class Irregular *irregular;      // for migrating atoms after box flips
 
   int nlevels_respa;

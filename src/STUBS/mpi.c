@@ -285,6 +285,7 @@ int MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -306,6 +307,7 @@ int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -325,6 +327,7 @@ int MPI_Scan(void *sendbuf, void *recvbuf, int count,
   else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -346,6 +349,7 @@ int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -367,6 +371,7 @@ int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -387,6 +392,7 @@ int MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
   else if (datatype == MPI_LONG_LONG) n = *recvcounts*sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) n = *recvcounts*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -408,6 +414,7 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -429,6 +436,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
   else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
@@ -450,6 +458,7 @@ int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
   else if (sendtype == MPI_LONG_LONG) n = recvcount*sizeof(uint64_t);
   else if (sendtype == MPI_DOUBLE_INT) n = recvcount*sizeof(double_int);
 
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }

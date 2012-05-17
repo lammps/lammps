@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
  public:
-  int nstyles;                  // # of different sub-styles
+  int nstyles;                  // # of sub-styles
   Pair **styles;                // list of Pair style classes
   char **keywords;              // style name of each Pair style
   int *multiple;                // 0 if style used once, else Mth instance

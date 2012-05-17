@@ -206,7 +206,7 @@ void PairHybrid::settings(int narg, char **arg)
 
   build_styles();
 
-  // allocate list of sub-styles as big as possibly needed
+  // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair*[narg];
   keywords = new char*[narg];
@@ -214,6 +214,7 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style
   // call settings() with set of args that are not pair style names
+  // use known_style() to determine which args these are
 
   int iarg,jarg,dummy;
 
@@ -235,12 +236,12 @@ void PairHybrid::settings(int narg, char **arg)
     nstyles++;
   }
 
-  // free allstyles
+  // free allstyles created by build_styles()
 
   for (int i = 0; i < nallstyles; i++) delete [] allstyles[i];
   delete [] allstyles;
 
-  // multiple[i] = 1 to N if sub-style used multiple times, else 0
+  // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
   for (int i = 0; i < nstyles; i++) {
     int count = 0;
@@ -599,9 +600,12 @@ void PairHybrid::read_restart(FILE *fp)
   if (me == 0) fread(&nstyles,sizeof(int),1,fp);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
+  // allocate list of sub-styles
+
   styles = new Pair*[nstyles];
   keywords = new char*[nstyles];
-  
+  multiple = new int[nstyles];
+
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
@@ -614,6 +618,17 @@ void PairHybrid::read_restart(FILE *fp)
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],lmp->suffix,dummy);
     styles[m]->read_restart_settings(fp);
+  }
+
+  // multiple[i] = 1 to M if sub-style used multiple times, else 0
+
+  for (int i = 0; i < nstyles; i++) {
+    int count = 0;
+    for (int j = 0; j < nstyles; j++) {
+      if (strcmp(keywords[j],keywords[i]) == 0) count++;
+      if (j == i) multiple[i] = count;
+    }
+    if (count == 1) multiple[i] = 0;
   }
 }
 

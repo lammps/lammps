@@ -487,23 +487,23 @@ void NEB::print_status()
 
   if (me_universe == 0) {
     if (universe->uscreen) {
-      fprintf(universe->uscreen,BIGINT_FORMAT " %g %g ",update->ntimestep,
-	      fmaxreplica,fmaxatom);
-      fprintf(universe->uscreen,"%g %g %g ",
+      fprintf(universe->uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
+	      update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(universe->uscreen,"%12.8g %12.8g %12.8g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(universe->uscreen,"%g %g %g ",ebf,ebr,endpt);
+      fprintf(universe->uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++) 
-	fprintf(universe->uscreen,"%g %g ",rdist[i],all[i][0]);
+	fprintf(universe->uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
-      fprintf(universe->ulogfile,BIGINT_FORMAT " %g %g ",update->ntimestep,
-	      fmaxreplica,fmaxatom);
-      fprintf(universe->ulogfile,"%g %g %g ",
+      fprintf(universe->ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
+	      update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(universe->ulogfile,"%12.8g %12.8g %12.8g ",
 	      gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(universe->ulogfile,"%g %g %g ",ebf,ebr,endpt);
+      fprintf(universe->ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
-	fprintf(universe->ulogfile,"%g %g ",rdist[i],all[i][0]);
+	fprintf(universe->ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       fprintf(universe->ulogfile,"\n");
       fflush(universe->ulogfile);
     }

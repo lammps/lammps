@@ -566,7 +566,7 @@ int FixNH::setmask()
 
 void FixNH::init()
 {
-  // recheck that group_dilate has not been deleted
+  // recheck that dilate group has not been deleted
 
   if (allremap == 0) {
     int idilate = group->find(id_dilate);
@@ -972,7 +972,7 @@ void FixNH::couple()
 
 /* ----------------------------------------------------------------------
    change box size
-   remap all atoms or fix group atoms depending on allremap flag
+   remap all atoms or dilate group atoms depending on allremap flag
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 

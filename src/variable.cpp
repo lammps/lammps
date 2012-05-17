@@ -455,9 +455,9 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    char result[32];
+    char result[64];
     double answer = evaluate(data[ivar][0],NULL);
-    sprintf(result,"%.10g",answer);
+    sprintf(result,"%.20g",answer);
     int n = strlen(result) + 1;
     if (data[ivar][1]) delete [] data[ivar][1];
     data[ivar][1] = new char[n];
@@ -1093,7 +1093,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	strcpy(id,&word[2]);
 
 	int ivar = find(id);
-	if (ivar < 0) error->all(FLERR,"Invalid variable name in variable formula");
+	if (ivar < 0) 
+	  error->all(FLERR,"Invalid variable name in variable formula");
 
 	// parse zero or one trailing brackets
 	// point i beyond last bracket
@@ -1129,7 +1130,8 @@ double Variable::evaluate(char *str, Tree **tree)
 	} else if (nbracket == 0 && style[ivar] == ATOM) {
 
 	  if (tree == NULL)
-	    error->all(FLERR,"Atom-style variable in equal-style variable formula");
+	    error->all(FLERR,
+		       "Atom-style variable in equal-style variable formula");
 	  Tree *newtree;
 	  evaluate(data[ivar][0],&newtree);
 	  treestack[ntreestack++] = newtree;
@@ -1183,7 +1185,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else if (str[i] == '[') {
 	  if (domain->box_exist == 0)
-	    error->all(FLERR,"Variable evaluation before simulation box is defined");
+	    error->all(FLERR,
+		       "Variable evaluation before simulation box is defined");
 
 	  ptr = &str[i];
 	  int id = int_between_brackets(ptr);
@@ -1198,7 +1201,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else if (is_atom_vector(word)) {
 	  if (domain->box_exist == 0)
-	    error->all(FLERR,"Variable evaluation before simulation box is defined");
+	    error->all(FLERR,
+		       "Variable evaluation before simulation box is defined");
 
 	  atom_vector(word,tree,treestack,ntreestack);
 
@@ -1222,10 +1226,12 @@ double Variable::evaluate(char *str, Tree **tree)
 
 	} else {
 	  if (domain->box_exist == 0)
-	    error->all(FLERR,"Variable evaluation before simulation box is defined");
+	    error->all(FLERR,
+		       "Variable evaluation before simulation box is defined");
  
 	  int flag = output->thermo->evaluate_keyword(word,&value1);
-	  if (flag) error->all(FLERR,"Invalid thermo keyword in variable formula");
+	  if (flag) 
+	    error->all(FLERR,"Invalid thermo keyword in variable formula");
 	  if (tree) {
 	    Tree *newtree = new Tree();
 	    newtree->type = VALUE;
@@ -1249,7 +1255,8 @@ double Variable::evaluate(char *str, Tree **tree)
       else if (onechar == '/') op = DIVIDE;
       else if (onechar == '^') op = CARAT;
       else if (onechar == '=') {
-	if (str[i+1] != '=') error->all(FLERR,"Invalid syntax in variable formula");
+	if (str[i+1] != '=') 
+	  error->all(FLERR,"Invalid syntax in variable formula");
 	op = EQ;
 	i++;
       } else if (onechar == '!') {
@@ -1270,11 +1277,13 @@ double Variable::evaluate(char *str, Tree **tree)
 	  i++;
 	}
       } else if (onechar == '&') {
-	if (str[i+1] != '&') error->all(FLERR,"Invalid syntax in variable formula");
+	if (str[i+1] != '&') 
+	  error->all(FLERR,"Invalid syntax in variable formula");
 	op = AND;
 	i++;
       } else if (onechar == '|') {
-	if (str[i+1] != '|') error->all(FLERR,"Invalid syntax in variable formula");
+	if (str[i+1] != '|') 
+	  error->all(FLERR,"Invalid syntax in variable formula");
 	op = OR;
 	i++;
       } else op = DONE;
@@ -1324,10 +1333,12 @@ double Variable::evaluate(char *str, Tree **tree)
 	  else if (opprevious == MULTIPLY)
 	    argstack[nargstack++] = value1 * value2;
 	  else if (opprevious == DIVIDE) {
-	    if (value2 == 0.0) error->all(FLERR,"Divide by 0 in variable formula");
+	    if (value2 == 0.0) 
+	      error->all(FLERR,"Divide by 0 in variable formula");
 	    argstack[nargstack++] = value1 / value2;
 	  } else if (opprevious == CARAT) {
-	    if (value2 == 0.0) error->all(FLERR,"Power by 0 in variable formula");
+	    if (value2 == 0.0) 
+	      error->all(FLERR,"Power by 0 in variable formula");
 	    argstack[nargstack++] = pow(value1,value2);
 	  } else if (opprevious == UNARY) {
 	    argstack[nargstack++] = -value2;

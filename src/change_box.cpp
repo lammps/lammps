@@ -218,7 +218,7 @@ void ChangeBox::command(int narg, char **arg)
       if (ops[i].flavor == FINAL) {
 	domain->boxlo[ops[i].dim] = scale[ops[i].dim]*ops[i].flo;
 	domain->boxhi[ops[i].dim] = scale[ops[i].dim]*ops[i].fhi;
-	if (ops[i].vdim1) 
+	if (ops[i].vdim1 >= 0) 
 	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
 	domain->set_global_box();
@@ -228,7 +228,7 @@ void ChangeBox::command(int narg, char **arg)
       } else if (ops[i].flavor == DELTA) {
 	domain->boxlo[ops[i].dim] += scale[ops[i].dim]*ops[i].dlo;
 	domain->boxhi[ops[i].dim] += scale[ops[i].dim]*ops[i].dhi;
-	if (ops[i].vdim1) 
+	if (ops[i].vdim1 >= 0) 
 	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
 	domain->set_global_box();
@@ -242,7 +242,7 @@ void ChangeBox::command(int narg, char **arg)
 	domain->boxlo[ops[i].dim] = mid + ops[i].scale*delta;
 	delta = domain->boxhi[ops[i].dim] - mid;
 	domain->boxhi[ops[i].dim] = mid + ops[i].scale*delta;
-	if (ops[i].vdim1) 
+	if (ops[i].vdim1 >= 0) 
 	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
 	domain->set_initial_box();
 	domain->set_global_box();
@@ -417,15 +417,29 @@ void ChangeBox::save_box_state()
 }
 
 /* ----------------------------------------------------------------------
+   oldvol = box volume before dim3 changed
+   newvol = box volume after dim3 changed
    reset box lengths of dim1/2 to preserve old volume
-   which changed due to change in 3rd dim
 ------------------------------------------------------------------------- */
 
 void ChangeBox::volume_preserve(int dim1, int dim2, double oldvol)
 {
+  // invoke set_initial_box()
+  // in case change by caller to dim3 was invalid or on shrink-wrapped dim
+
+  domain->set_initial_box();
+
+  // calculate newvol using boxlo/hi since xyz prd are not yet reset
+
   double newvol;
-  if (domain->dimension == 2) newvol = domain->xprd * domain->yprd;
-  else newvol = domain->xprd * domain->yprd * domain->zprd;
+  if (domain->dimension == 2) {
+    newvol = domain->boxhi[0] - domain->boxlo[0];
+    newvol *= domain->boxhi[1] - domain->boxlo[1];
+  } else {
+    newvol = domain->boxhi[0] - domain->boxlo[0];
+    newvol *= domain->boxhi[1] - domain->boxlo[1];
+    newvol *= domain->boxhi[2] - domain->boxlo[2];
+  }
 
   double scale = oldvol/newvol;
   double mid,delta;
@@ -439,8 +453,8 @@ void ChangeBox::volume_preserve(int dim1, int dim2, double oldvol)
     delta = domain->boxhi[dim1] - mid;
     domain->boxhi[dim1] = mid + scale*delta;
 
-  // change dim1 and dim2, keeping their relative aspect constant
-  // means both are scaled by sqrt(scale)
+  // change dim1 and dim2, keeping their relative aspect ratio constant
+  // both are scaled by sqrt(scale)
 
   } else {
     mid = 0.5 * (domain->boxlo[dim1] + domain->boxhi[dim1]);

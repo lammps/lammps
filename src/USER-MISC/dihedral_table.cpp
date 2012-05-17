@@ -25,6 +25,7 @@
 #include <iostream>
 #define NDEBUG //(disable assert())
 #include <cassert>
+#include <sstream>
 using namespace std;
 
 #include "atom.h"
@@ -38,6 +39,7 @@ using namespace std;
 #include "dihedral_table.h"
 
 // Additional header files available for numerical debugging:
+//#undef NDEBUG
 //#define DIH_DEBUG_NUM
 //#ifdef DIH_DEBUG_NUM
 //#include "dihedral_table_dbg.h"    //in "supporting_files/debug_numerical/"
@@ -127,8 +129,8 @@ void DihedralTable::compute(int eflag, int vflag)
 
   //  n123 & n234: These two unit vectors are normal to the planes
   //               defined by atoms 1,2,3 and 2,3,4.
-  double n123[g_dim]; //n123=vb12 x vb23 / |vb12 x vb23|  ("x" is cross product)
-  double n234[g_dim]; //n234=vb34 x vb23 / |vb34 x vb23|  ("x" is cross product)
+  double n123[g_dim]; //n123=vb23 x vb12 / |vb23 x vb12|  ("x" is cross product)
+  double n234[g_dim]; //n234=vb23 x vb34 / |vb23 x vb34|  ("x" is cross product)
 
   double proj12on23[g_dim];
   //    proj12on23[d] = (vb23[d]/|vb23|) * DotProduct(vb12,vb23)/|vb12|*|vb23|
@@ -215,8 +217,8 @@ void DihedralTable::compute(int eflag, int vflag)
     if (perp34on23_len != 0.0) inv_perp34on23 = 1.0 / perp34on23_len;
 
     for (int d=0; d < g_dim; ++d) {
-      dphi_dx1[d] =  n123[d] * inv_perp12on23;
-      dphi_dx4[d] =  n234[d] * inv_perp34on23;
+      dphi_dx1[d] = n123[d] * inv_perp12on23;
+      dphi_dx4[d] = n234[d] * inv_perp34on23;
     }
 
     // --- Compute the gradient vectors dphi/dx2 and dphi/dx3: ---
@@ -433,7 +435,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
-  
+
   int me;
   MPI_Comm_rank(world,&me);
   tables = (Table *) 
@@ -457,9 +459,13 @@ void DihedralTable::coeff(int narg, char **arg)
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
     if (tb->phifile[i] >= tb->phifile[i+1]) {
+      stringstream i_str;
+      i_str << i+1;
       string err_msg = 
-        string("Dihedral table values are not increasing (") + 
-        string(arg[2]) + string(").");
+        string("Dihedral table values are not increasing (") +
+	string(arg[2]) + string(", ")+i_str.str()+string("th entry)");
+      if (i==0)
+	err_msg += string("\n(This is probably a mistake with your table format.)\n");
       error->all(FLERR,err_msg.c_str());
     }
   }
@@ -597,7 +603,6 @@ void DihedralTable::coeff(int narg, char **arg)
     } // if (checkF_fname && (strlen(checkF_fname) != 0))
   } // if (me == 0)
 
-
   // store ptr to table in tabindex
   int count = 0;
   for (int i = ilo; i <= ihi; i++)
@@ -611,6 +616,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
   if (count == 0) 
     error->all(FLERR,"Illegal dihedral_coeff command");
+
 } //DihedralTable::coeff()
 
 
@@ -634,7 +640,9 @@ void DihedralTable::read_restart(FILE *fp)
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
   }
-  MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world);
+
+  //MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world); <-looks like a bug. Andrew 2012
+  MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
 
   allocate();
@@ -689,8 +697,11 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   // loop until section found with matching keyword
 
   while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in dihedral table file");
+    if (fgets(line,MAXLINE,fp) == NULL) {
+      string err_msg=string("Did not find keyword \"")
+	+string(keyword)+string("\" in dihedral table file.");
+      error->one(FLERR, err_msg.c_str());
+    }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     if (strstr(line,keyword) == line) break;               // matching keyword
@@ -715,12 +726,40 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   int itmp;
   for (int i = 0; i < tb->ninput; i++) {
     fgets(line,MAXLINE,fp);
-    if (tb->f_unspecified)
-      sscanf(line,"%d %lg %lg",
-             &itmp,&tb->phifile[i],&tb->efile[i]);
-    else
-      sscanf(line,"%d %lg %lg %lg",
-             &itmp,&tb->phifile[i],&tb->efile[i],&tb->ffile[i]);
+    // Skip blank lines and delete text following a '#' character
+    char *pe = strchr(line, '#');
+    if (pe != NULL) *pe = '\0'; //terminate string at '#' character
+    char *pc = line;
+    while ((*pc != '\0') && isspace(*pc))
+      pc++;
+    if (*pc != '\0') { //If line is not a blank line
+      stringstream line_ss(line);
+      if (tb->f_unspecified) {
+        //sscanf(line,"%d %lg %lg",
+        //       &itmp,&tb->phifile[i],&tb->efile[i]);
+	line_ss >> itmp;
+	line_ss >> tb->phifile[i];
+	line_ss >> tb->efile[i];
+      }
+      else {
+        //sscanf(line,"%d %lg %lg %lg",
+        //       &itmp,&tb->phifile[i],&tb->efile[i],&tb->ffile[i]);
+	line_ss >> itmp;
+	line_ss >> tb->phifile[i];
+	line_ss >> tb->efile[i];
+	line_ss >> tb->ffile[i];
+      }
+      if (! line_ss) {
+	stringstream err_msg;
+	err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
+	        << "   (Check to make sure the number of colums is correct.)";
+	if ((! tb->f_unspecified) && (i==0))
+	  err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
+	error->one(FLERR, err_msg.str().c_str());
+      }
+    }
+    else //if it is a blank line, then skip it.
+      i--;
   }
 
   fclose(fp);

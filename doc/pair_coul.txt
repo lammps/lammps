@@ -42,7 +42,7 @@ pair_style coul/long 10.0
 pair_coeff * * :pre
 
 pair_style coul/wolf 0.2 9.0
-pair_coeff * *
+pair_coeff * * :pre
 
 [Description:]
 

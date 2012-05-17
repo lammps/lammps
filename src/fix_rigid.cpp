@@ -711,7 +711,8 @@ void FixRigid::init()
     for (i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
       ibody = body[i];
-      massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
 
       if (eflags[i] & SPHERE) {
 	sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];
@@ -908,7 +909,8 @@ void FixRigid::init()
     for (i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
       ibody = body[i];
-      massone = rmass[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
 
       if (eflags[i] & SPHERE) {
 	sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];

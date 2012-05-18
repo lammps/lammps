@@ -41,11 +41,12 @@ potential energy is the sum of pair, bond, angle, dihedral, improper,
 and kspace (long-range) energy.  If any extra keywords are listed,
 then only those components are summed to compute the potential energy.
 </P>
-<P>The KSpace contribution requires 1 extra FFT each timestep the
+<P>The Kspace contribution requires 1 extra FFT each timestep the
 per-atom energy is calculated, if using the PPPM solver via the
 <A HREF = "kspace_style.html">kspace_style pppm</A> command.  Thus it can increase
 the cost of the PPPM calculation if it is needed on a large fraction
-of the simulation timesteps.
+of the simulation timesteps.  Thie <A HREF = "PDF/kspace.pdf">document</A> describes
+how the long-range per-atom energy calculation is performed.
 </P>
 <P>Various fixes can contribute to the total potential energy of the
 system.  See the doc pages for <A HREF = "fix.html">individual fixes</A> for

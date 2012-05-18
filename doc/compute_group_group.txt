@@ -10,31 +10,68 @@ compute group/group command :h3
 
 [Syntax:]
 
-compute ID group-ID group/group group2-ID :pre
+compute ID group-ID group/group group2-ID keyword value ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-group/group = style name of this compute command
-group2-ID = group ID of second (or same) group :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+group/group = style name of this compute command :l
+group2-ID = group ID of second (or same) group :l
+zero or more keyword/value pairs may be appended :l
+keyword = {pair} or {kspace} :l
+  {pair} value = {yes} or {no}
+  {kspace} value = {yes} or {no} :pre
+:ule
+
 
 [Examples:]
 
 compute 1 lower group/group upper
+compute 1 lower group/group upper kspace yes
 compute mine fluid group/group wall :pre
 
 [Description:]
 
 Define a computation that calculates the total energy and force
 interaction between two groups of atoms: the compute group and the
-specified group2.  The two groups can be the same.  The interaction
-energy is defined as the pairwise energy between all pairs of atoms
-where one atom in the pair is in the first group and the other is in
-the second group.  Likewise, the interaction force calculated by this
-compute is the force on the compute group atoms due to pairwise
+specified group2.  The two groups can be the same.
+
+If the {pair} keyword is set to {yes}, which is the default, then the
+the interaction energy will include a pair component which is defined
+as the pairwise energy between all pairs of atoms where one atom in
+the pair is in the first group and the other is in the second group.
+Likewise, the interaction force calculated by this compute will
+include the force on the compute group atoms due to pairwise
 interactions with atoms in the specified group2.
 
-The energy and force are calculated by looping over a neighbor list of
-pairwise interactions.  Thus it can be inefficient to compute this
-quantity too frequently.
+If the {kspace} keyword is set to {yes}, which is not the default, and
+if a "kspace_style"_kspace_style.html is defined, then the the
+interaction energy will include a Kspace component which is the
+long-range Coulombic energy between all the atoms in the first group
+and all the atoms in the 2nd group.  group.  Likewise, the interaction
+force calculated by this compute will include the force on the compute
+group atoms due to long-range Coulombic interactions with atoms in the
+specified group2.
+
+This compute does not calculate any bond or angle or dihedral or
+improper interactions between atoms in the two groups.
+
+:line
+
+The pairwise contributions to the group-group interactions are
+calculated by looping over a neighbor list.  The Kspace contribution
+to the group-group interactions require essentially the same amount of
+work (FFTs, Ewald summation) as computing long-range forces for the
+entire system.  Thus it can be costly to invoke this compute too
+frequently.
+
+If you desire a breakdown of the interactions into a pairwise and
+Kspace component, simply invoke the compute twice with the appropriate
+yes/no settings for the {pair} and {kspace} keywords.  This is no more
+costly than using a single compute with both keywords set to {yes}.
+The individual contributions can be summed in a
+"variable"_variable.html if desired.
+
+Thie "document"_PDF/kspace.pdf describes how the long-range
+group-group calculations are performed.
 
 [Output info:]
 
@@ -51,18 +88,18 @@ The vector values will be in force "units"_units.html.
 
 [Restrictions:]
 
-Only pairwise interactions, as defined by the
-"pair_style"_pair_style.html command, are included in this
-calculation.  Bond (angle, dihedral, etc) interactions between atoms
-in the two groups are not included.  Long-range interactions due to a
-"kspace_style"_kspace_style.html command are also not included.  Not
-all pair potentials can be evaluated in a pairwise mode as required by
-this compute.  For example, 3-body potentials, such as
-"Tersoff"_pair_tersoff.html and "Stillinger-Weber"_pair_sw.html cannot
-be used.  "EAM"_pair_eam.html potentials for metals only include the
-pair potential portion of the EAM interaction, not the embedding
-term.
+Not all pair styles can be evaluated in a pairwise mode as required by
+this compute.  For example, 3-body and other many-body potentials,
+such as "Tersoff"_pair_tersoff.html and
+"Stillinger-Weber"_pair_sw.html cannot be used.  "EAM"_pair_eam.html
+potentials only include the pair potential portion of the EAM
+interaction when used by this compute, not the embedding term.
+
+Not all Kspace styles support calculation of group/group interactions.
+The {ewald} and {pppm} styles do.
 
 [Related commands:] none
 
-[Default:] none
+[Default:]
+
+The option defaults are pair = yes and kspace = no.

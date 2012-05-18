@@ -1615,6 +1615,7 @@ void *Atom::extract(char *name)
 {
   if (strcmp(name,"id") == 0) return (void *) tag;
   if (strcmp(name,"type") == 0) return (void *) type;
+  if (strcmp(name,"mask") == 0) return (void *) mask;
   if (strcmp(name,"x") == 0) return (void *) x;
   if (strcmp(name,"v") == 0) return (void *) v;
   if (strcmp(name,"f") == 0) return (void *) f;

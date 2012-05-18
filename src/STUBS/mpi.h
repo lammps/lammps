@@ -14,6 +14,8 @@
 #ifndef MPI_STUBS
 #define MPI_STUBS
 
+#include "stdlib.h"
+
 /* use C bindings for MPI interface */
 
 #ifdef __cplusplus
@@ -47,6 +49,8 @@ extern "C" {
 #define MPI_Request int
 #define MPI_Datatype int
 #define MPI_Op int
+
+#define MPI_IN_PLACE NULL
 
 #define MPI_MAX_PROCESSOR_NAME 128
 

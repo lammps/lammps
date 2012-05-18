@@ -374,19 +374,19 @@ void ReadData::header(int flag)
 
     if (strstr(line,"atoms")) sscanf(line,BIGINT_FORMAT,&atom->natoms);
 
-    // need to check for these first, since otherwise
-    // triangles will be matched as "angles".
+    // check for these first
+    // otherwise "triangles" will be matched as "angles"
 
     else if (strstr(line,"ellipsoids")) {
-      if (!avec_ellipsoid)
+      if (!avec_ellipsoid && me == 0)
 	error->one(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
     } else if (strstr(line,"lines")) {
-      if (!avec_line)
+      if (!avec_line && me == 0)
 	error->one(FLERR,"No lines allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nlines);
     } else if (strstr(line,"triangles")) {
-      if (!avec_tri)
+      if (!avec_tri && me == 0)
 	error->one(FLERR,"No triangles allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&ntris);
     }
@@ -428,8 +428,7 @@ void ReadData::header(int flag)
       atom->nangles < 0 || atom->nangles > MAXBIGINT ||
       atom->ndihedrals < 0 || atom->ndihedrals > MAXBIGINT ||
       atom->nimpropers < 0 || atom->nimpropers > MAXBIGINT) {
-    if (flag == 0) error->one(FLERR,"System in data file is too big");
-    else error->one(FLERR,"System in data file is too big");
+    if (me == 0) error->one(FLERR,"System in data file is too big");
   }
 
   // check that exiting string is a valid section keyword
@@ -437,7 +436,7 @@ void ReadData::header(int flag)
   parse_keyword(1,flag);
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS) {
+  if (n == NSECTIONS && me == 0) {
     char str[128];
     sprintf(str,"Unknown identifier in data file: %s",keyword);
     error->one(FLERR,str);
@@ -446,25 +445,25 @@ void ReadData::header(int flag)
   // error check on consistency of header values
 
   if ((atom->nbonds || atom->nbondtypes) && 
-      atom->avec->bonds_allow == 0)
+      atom->avec->bonds_allow == 0 && me == 0)
     error->one(FLERR,"No bonds allowed with this atom style");
   if ((atom->nangles || atom->nangletypes) && 
-      atom->avec->angles_allow == 0)
+      atom->avec->angles_allow == 0 && me == 0)
     error->one(FLERR,"No angles allowed with this atom style");
   if ((atom->ndihedrals || atom->ndihedraltypes) && 
-      atom->avec->dihedrals_allow == 0)
+      atom->avec->dihedrals_allow == 0 && me == 0)
     error->one(FLERR,"No dihedrals allowed with this atom style");
   if ((atom->nimpropers || atom->nimpropertypes) && 
-      atom->avec->impropers_allow == 0)
+      atom->avec->impropers_allow == 0 && me == 0)
     error->one(FLERR,"No impropers allowed with this atom style");
 
-  if (atom->nbonds > 0 && atom->nbondtypes <= 0)
+  if (atom->nbonds > 0 && atom->nbondtypes <= 0 && me == 0)
     error->one(FLERR,"Bonds defined but no bond types");
-  if (atom->nangles > 0 && atom->nangletypes <= 0)
+  if (atom->nangles > 0 && atom->nangletypes <= 0 && me == 0)
     error->one(FLERR,"Angles defined but no angle types");
-  if (atom->ndihedrals > 0 && atom->ndihedraltypes <= 0)
+  if (atom->ndihedrals > 0 && atom->ndihedraltypes <= 0 && me == 0)
     error->one(FLERR,"Dihedrals defined but no dihedral types");
-  if (atom->nimpropers > 0 && atom->nimpropertypes <= 0)
+  if (atom->nimpropers > 0 && atom->nimpropertypes <= 0 && me == 0)
     error->one(FLERR,"Impropers defined but no improper types");
 }
 
@@ -1040,7 +1039,7 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   char *eof;
 
   if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Molecular data file has too many atoms");
+    error->one(FLERR,"Molecular data file has too many atoms");
 
   // customize for new sections
 

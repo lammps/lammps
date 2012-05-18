@@ -37,10 +37,14 @@ class ComputeGroupGroup : public Compute {
   char *group2;
   int jgroup,jgroupbit,othergroupbit;
   double **cutsq;
+  int pairflag,kspaceflag;
   class Pair *pair;
   class NeighList *list;
+  class KSpace *kspace;
 
   void interact();
+  void pair_contribution();
+  void kspace_contribution();
 };
 
 }

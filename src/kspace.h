@@ -25,10 +25,13 @@ class KSpace : protected Pointers {
   double energy;                  // accumulated energy
   double virial[6];               // accumlated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+  double e2group;                 // accumulated group-group energy
+  double f2group[3];              // accumulated group-group force
 
   double g_ewald;
   int nx_pppm,ny_pppm,nz_pppm;
- 
+  int group_group_enable;         // 1 if style supports group/group calculation
+
   int compute_flag;               // 0 if skip compute()
 
   KSpace(class LAMMPS *, int, char **);
@@ -42,6 +45,7 @@ class KSpace : protected Pointers {
   virtual void init() = 0;
   virtual void setup() = 0;
   virtual void compute(int, int) = 0;
+  virtual void compute_group_group(int, int, int) {};
   virtual void timing(int, double &, double &) {}
   virtual double memory_usage() {return 0.0;}
 

@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
+     K-space terms added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -26,6 +27,7 @@
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "group.h"
+#include "kspace.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -35,7 +37,7 @@ using namespace LAMMPS_NS;
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute group/group command");
+  if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
 
   scalar_flag = vector_flag = 1;
   size_vector = 3;
@@ -50,6 +52,28 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   if (jgroup == -1) 
     error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
+
+  pairflag = 1;
+  kspaceflag = 0;
+
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"pair") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute group/group command");
+      if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
+      else error->all(FLERR,"Illegal compute group/group command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"kspace") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute group/group command");
+      if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
+      else error->all(FLERR,"Illegal compute group/group command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute group/group command");
+  }
 
   vector = new double[3];
 }
@@ -66,17 +90,28 @@ ComputeGroupGroup::~ComputeGroupGroup()
 
 void ComputeGroupGroup::init()
 {
-  if (force->pair == NULL)
-    error->all(FLERR,"No pair style defined for compute group/group");
-
   // if non-hybrid, then error if single_enable = 0
   // if hybrid, let hybrid determine if sub-style sets single_enable = 0
 
+  if (pairflag && force->pair == NULL)
+    error->all(FLERR,"No pair style defined for compute group/group");
   if (force->pair_match("hybrid",0) == NULL && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute group/group");
 
-  pair = force->pair;
-  cutsq = force->pair->cutsq;
+  // error if Kspace style does not compute group/group interactions
+
+  if (kspaceflag && force->kspace == NULL)
+    error->all(FLERR,"No Kspace style defined for compute group/group");
+  if (kspaceflag && force->kspace->group_group_enable == 0)
+    error->all(FLERR,"Kspace style does not support compute group/group");
+
+  if (pairflag) {
+    pair = force->pair;
+    cutsq = force->pair->cutsq;
+  } else pair = NULL;
+  
+  if (kspaceflag) kspace = force->kspace;
+  else kspace = NULL;
 
   // recheck that group 2 has not been deleted
 
@@ -87,10 +122,12 @@ void ComputeGroupGroup::init()
 
   // need an occasional half neighbor list
 
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  if (pairflag) {
+    int irequest = neighbor->request((void *) this);
+    neighbor->requests[irequest]->pair = 0;
+    neighbor->requests[irequest]->compute = 1;
+    neighbor->requests[irequest]->occasional = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,7 +143,12 @@ double ComputeGroupGroup::compute_scalar()
 {
   invoked_scalar = invoked_vector = update->ntimestep;
 
-  interact();
+  scalar = 0.0;
+  vector[0] = vector[1] = vector[2] = 0.0;
+
+  if (pairflag) pair_contribution();
+  if (kspaceflag) kspace_contribution();
+
   return scalar;
 }
 
@@ -116,12 +158,16 @@ void ComputeGroupGroup::compute_vector()
 {
   invoked_scalar = invoked_vector = update->ntimestep;
 
-  interact();
+  scalar = 0.0;
+  vector[0] = vector[1] = vector[2] = 0.0;
+
+  if (pairflag) pair_contribution();
+  if (kspaceflag) kspace_contribution();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeGroupGroup::interact()
+void ComputeGroupGroup::pair_contribution()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
@@ -148,7 +194,7 @@ void ComputeGroupGroup::interact()
   // loop over neighbors of my atoms
   // skip if I,J are not in 2 groups
 
-  double one[4],all[4];
+  double one[4];
   one[0] = one[1] = one[2] = one[3] = 0.0;
 
   for (ii = 0; ii < inum; ii++) {
@@ -212,7 +258,28 @@ void ComputeGroupGroup::interact()
     }
   }
 
+  double all[4];
   MPI_Allreduce(one,all,4,MPI_DOUBLE,MPI_SUM,world);
-  scalar = all[0];
-  vector[0] = all[1]; vector[1] = all[2]; vector[2] = all[3];
+  scalar += all[0];
+  vector[0] += all[1]; vector[1] += all[2]; vector[2] += all[3];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeGroupGroup::kspace_contribution()
+{
+  double *vector_kspace = force->kspace->f2group;
+
+  force->kspace->compute_group_group(groupbit,jgroupbit,0); 
+  scalar += force->kspace->e2group;
+  vector[0] += vector_kspace[0];
+  vector[1] += vector_kspace[1];
+  vector[2] += vector_kspace[2];
+  
+  // compute extra B <--> A Kspace interaction so energy matches
+  //   real-space style of compute group-group
+  // add extra Kspace term to energy
+  
+  force->kspace->compute_group_group(groupbit,jgroupbit,1); 
+  scalar += force->kspace->e2group;
 }

@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
-     per-atom energy/virial added by Stan Moore (BYU)
+     per-atom energy/virial, group/group energy/force added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -60,6 +60,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
+  group_group_enable = 1;
+
   accuracy_relative = atof(arg[0]);
 
   nfactors = 3;
@@ -81,6 +83,9 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   fkx = fky = fkz = NULL;
   buf1 = buf2 = buf3 = buf4 = NULL;
 
+  density_A_brick = density_B_brick = NULL;
+  density_A_fft = density_B_fft = NULL;
+
   gf_b = NULL;
   rho1d = rho_coeff = NULL;
 
@@ -100,6 +105,7 @@ PPPM::~PPPM()
   delete [] factors;
   deallocate();
   deallocate_peratom();
+  deallocate_groups();
   memory->destroy(part2grid);
 }
 
@@ -142,6 +148,8 @@ void PPPM::init()
   deallocate();
   deallocate_peratom();
   peratom_allocate_flag = 0;
+  deallocate_groups();
+  group_allocate_flag = 0;
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -2531,5 +2539,331 @@ double PPPM::memory_usage()
     bytes += 2 * nbuf_peratom * sizeof(FFT_SCALAR);
   }
 
+  if (group_allocate_flag) {
+    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += 2 * nfft_both * sizeof(FFT_SCALAR);;
+  }
+
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   group-group interactions
+ ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   compute the PPPM total long-range force and energy for groups A and B
+ ------------------------------------------------------------------------- */
+
+void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
+{
+  if (slabflag) 
+    error->all(FLERR,"Cannot (yet) use K-space slab "
+	       "correction with compute group/group");      
+    
+  int i,j;
+    
+  if (!group_allocate_flag) {
+    allocate_groups();
+    group_allocate_flag = 1;
+  }    
+    
+  e2group = 0; //energy
+  f2group[0] = 0; //force in x-direction
+  f2group[1] = 0; //force in y-direction
+  f2group[2] = 0; //force in z-direction
+    
+  double *q = atom->q;
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+    
+  // convert atoms from box to lamda coords
+    
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
+  }
+       
+  // map my particle charge onto my local 3d density grid
+    
+  make_rho_groups(groupbit_A,groupbit_B,BA_flag);
+    
+  // all procs communicate density values from their ghost cells
+  //   to fully sum contribution in their 3d bricks
+  // remap from 3d decomposition to FFT decomposition
+    
+  // temporarily store and switch pointers so we can
+  //  use brick2fft() for groups A and B (without 
+  //  writing an additional function)
+    
+  FFT_SCALAR ***density_brick_real = density_brick;
+  FFT_SCALAR *density_fft_real = density_fft;   
+    
+  // group A
+    
+  density_brick = density_A_brick;  
+  density_fft = density_A_fft;
+    
+  brick2fft();
+    
+  // group B
+    
+  density_brick = density_B_brick;  
+  density_fft = density_B_fft;
+    
+  brick2fft();
+
+  // switch back pointers
+    
+  density_brick = density_brick_real;
+  density_fft = density_fft_real; 
+   
+  // compute potential gradient on my FFT grid and
+  //   portion of group-group energy/force on this proc's FFT grid
+    
+  poisson_groups(BA_flag);
+         
+  const double qscale = force->qqrd2e * scale;
+    
+  // total group A <--> group B energy
+    
+  double e2group_all;
+  MPI_Allreduce(&e2group,&e2group_all,1,MPI_DOUBLE,MPI_SUM,world);
+  e2group = e2group_all;
+  
+  e2group *= 0.5*volume;
+      
+  // total charge of groups A & B, needed for self-energy correction        
+    
+  double qsum_group = 0.0, qsqsum_group = 0.0;
+    
+  for (int i = 0; i < atom->nlocal; i++) {
+    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B)) {
+      if (BA_flag) continue;
+      qsqsum_group += q[i]*q[i];
+    }
+  }
+    
+  double tmp;
+  MPI_Allreduce(&qsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_group = tmp;
+  
+  // self-energy correction
+    
+  e2group -= g_ewald*qsqsum_group/MY_PIS;
+    
+  // should we include this boundary condition or not?    
+  //  e2group += MY_PI2*qsum_group*qsum_group / (g_ewald*g_ewald*volume);
+    
+  e2group *= qscale;
+    
+  // total group A <--> group B force
+      
+  double f2group_all[3];
+  MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
+    
+  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
+    
+  // convert atoms back from lamda to box coords
+    
+  if (triclinic) domain->lamda2x(atom->nlocal);
+}
+
+/* ----------------------------------------------------------------------
+ allocate group-group memory that depends on # of K-vectors and order 
+ ------------------------------------------------------------------------- */
+
+void PPPM::allocate_groups()
+{  
+  memory->create3d_offset(density_A_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:density_A_brick");
+  memory->create3d_offset(density_B_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+			  nxlo_out,nxhi_out,"pppm:density_B_brick");
+  memory->create(density_A_fft,nfft_both,"pppm:density_A_fft");
+  memory->create(density_B_fft,nfft_both,"pppm:density_B_fft");
+}
+
+/* ----------------------------------------------------------------------
+ deallocate group-group memory that depends on # of K-vectors and order 
+ ------------------------------------------------------------------------- */
+
+void PPPM::deallocate_groups()
+{
+  memory->destroy3d_offset(density_A_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(density_B_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy(density_A_fft);
+  memory->destroy(density_B_fft);
+}
+
+/* ----------------------------------------------------------------------
+ create discretized "density" on section of global grid due to my particles
+ density(x,y,z) = charge "density" at grid points of my 3d brick
+ (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+ in global grid for group-group interactions
+ ------------------------------------------------------------------------- */
+
+void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
+{
+  int l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    
+  // clear 3d density arrays
+    
+  memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+    
+  memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+    
+  // loop over my charges, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+    
+  double *q = atom->q;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+    
+  for (int i = 0; i < nlocal; i++) {
+      
+    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+      if (BA_flag) continue;  
+      
+    if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) { 
+        
+      nx = part2grid[i][0];
+      ny = part2grid[i][1];
+      nz = part2grid[i][2];
+      dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+      dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+      dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+        
+      compute_rho1d(dx,dy,dz);
+        
+      z0 = delvolinv * q[i];
+      for (n = nlower; n <= nupper; n++) {
+        mz = n+nz;
+        y0 = z0*rho1d[2][n];
+        for (m = nlower; m <= nupper; m++) {
+          my = m+ny;
+          x0 = y0*rho1d[1][m];
+          for (l = nlower; l <= nupper; l++) {
+            mx = l+nx;
+                    
+            // group A
+                    
+            if (mask[i] & groupbit_A)
+              density_A_brick[mz][my][mx] += x0*rho1d[0][l];
+               
+            // group B
+                
+            if (mask[i] & groupbit_B)
+              density_B_brick[mz][my][mx] += x0*rho1d[0][l];
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   FFT-based Poisson solver for group-group interactions
+ ------------------------------------------------------------------------- */
+
+void PPPM::poisson_groups(int BA_flag)
+{
+  int i,j,k,n;
+  double eng;
+   
+  // reuse memory (already declared)  
+    
+  FFT_SCALAR *work_A = work1;
+  FFT_SCALAR *work_B = work2;
+    
+  // transform charge density (r -> k) 
+    
+  // group A  
+    
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work_A[n++] = density_A_fft[i];
+    work_A[n++] = ZEROF;
+  }
+    
+  fft1->compute(work_A,work_A,1);
+
+  // group B  
+    
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work_B[n++] = density_B_fft[i];
+    work_B[n++] = ZEROF;
+  }
+    
+  fft1->compute(work_B,work_B,1);
+    
+  // group-group energy and force contribution,
+  //  keep everything in reciprocal space so 
+  //  no inverse FFTs needed
+    
+  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  double s2 = scaleinv*scaleinv;
+     
+  // energy
+    
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    e2group += s2 * greensfn[i] * 
+      (work_A[n]*work_B[n] + work_A[n+1]*work_B[n+1]);     
+    n += 2;
+  }
+    
+  if (BA_flag) return;
+    
+    
+  // multiply by Green's function and s2 
+  //  (only for work_A so it is not squared below)
+    
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work_A[n++] *= s2 * greensfn[i];
+    work_A[n++] *= s2 * greensfn[i];
+  }   
+    
+  double partial_group;
+    
+  // force, x direction
+    
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        f2group[0] += fkx[i] * partial_group;
+        n += 2;
+      }
+       
+  // force, y direction
+    
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        f2group[1] += fky[j] * partial_group;
+        n += 2;
+      }
+      
+  // force, z direction
+   
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        f2group[2] += fkz[k] * partial_group;
+        n += 2;
+      } 
 }

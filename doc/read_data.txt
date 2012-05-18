@@ -10,14 +10,23 @@ read_data command :h3
 
 [Syntax:]
 
-read_data file :pre
+read_data file keyword args ... :pre
 
-file = name of data file to read in :ul
+file = name of data file to read in :ulb,l
+zero or more keyword/arg pairs may be appended :l
+keyword = {fix} :l
+  {fix} args = fix-ID header-string section-string
+    fix-ID = ID of fix to process header lines and sections of data file
+    header-string = header lines containing this string will be passed to fix
+    section-string = section names with this string will be passed to fix :pre
+:ule
+
 
 [Examples:]
 
 read_data data.lj
-read_data ../run7/data.polymer.gz :pre
+read_data ../run7/data.polymer.gz
+read_data data.protein fix mycmap crossterm CMAP :pre
 
 [Description:]
 
@@ -46,6 +55,14 @@ remaining lines of the section contain values.  The number of lines
 depends on the section keyword as described below.  Zero or more blank
 lines can be used between sections.  Sections can appear in any order,
 with a few exceptions as noted below.
+
+If the keyword {fix} is used, it specifies a fix that will be used to
+process portions of the data file.  Any header line containing
+{header-string} and any section with a name containing
+{section-string} will be passed to the fix.  See the "fix
+cmap"_fix_cmap.html command for an example of a fix that operates in
+this manner.  The doc page for the fix defines the syntax of the
+header line(s) and section(s) that it reads from the data file.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header

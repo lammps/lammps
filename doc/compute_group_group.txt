@@ -73,6 +73,8 @@ The individual contributions can be summed in a
 Thie "document"_PDF/kspace.pdf describes how the long-range
 group-group calculations are performed.
 
+:line
+
 [Output info:]
 
 This compute calculates a global scalar (the energy) and a global

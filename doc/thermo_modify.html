@@ -153,11 +153,12 @@ the beginning of a run to determine the next timestep at which a dump
 snapshot will be written out.  On that timestep, the variable will be
 evaluated again to determine the next timestep, etc.  Thus the
 variable should return timestep values.  See the stagger() and
-logfreq() math functions for <A HREF = "variable.html">equal-style variables</A>, as
-examples of useful functions to use in this context.  Other similar
-math functions could easily be added as options for <A HREF = "variable.html">equal-style
-variables</A>.  In addition, thermodynamic output will
-always occur on the first and last timestep of each run.
+logfreq() and stride() math functions for <A HREF = "variable.html">equal-style
+variables</A>, as examples of useful functions to use in
+this context.  Other similar math functions could easily be added as
+options for <A HREF = "variable.html">equal-style variables</A>.  In addition,
+thermodynamic output will always occur on the first and last timestep
+of each run.
 </P>
 <P>For example, the following commands will output thermodynamic info at
 timesteps 0,10,20,30,100,200,300,1000,2000,etc:

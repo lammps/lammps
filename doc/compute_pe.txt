@@ -41,8 +41,7 @@ The Kspace contribution requires 1 extra FFT each timestep the
 per-atom energy is calculated, if using the PPPM solver via the
 "kspace_style pppm"_kspace_style.html command.  Thus it can increase
 the cost of the PPPM calculation if it is needed on a large fraction
-of the simulation timesteps.  Thie "document"_PDF/kspace.pdf describes
-how the long-range per-atom energy calculation is performed.
+of the simulation timesteps.  
 
 Various fixes can contribute to the total potential energy of the
 system.  See the doc pages for "individual fixes"_fix.html for

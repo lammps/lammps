@@ -389,7 +389,13 @@ void Min::run(int n)
       for (int idump = 0; idump < output->ndump; idump++)
 	output->next_dump[idump] = update->ntimestep;
       output->next_dump_any = update->ntimestep;
-      if (output->restart_every) output->next_restart = update->ntimestep;
+      if (output->restart_flag) {
+	output->next_restart = update->ntimestep;
+	if (output->restart_every_single) 
+	  output->next_restart_single = update->ntimestep;
+	if (output->restart_every_double)
+	  output->next_restart_double = update->ntimestep;
+      }
     }
     output->next_thermo = update->ntimestep;
 

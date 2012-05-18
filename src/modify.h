@@ -33,8 +33,6 @@ class Modify : protected Pointers {
   int nfix_restart_global;   // stored fix global info from restart file
   int nfix_restart_peratom;  // stored fix peratom info from restart file
 
-  int allow_early_fix;       // 1 if allow fix creation at start of script
-
   class Fix **fix;           // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 

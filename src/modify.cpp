@@ -30,9 +30,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define DELTA 4
-
-
 #define BIG 1.0e20
+#define NEXCEPT 3       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,8 +68,6 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   nfix_restart_peratom = 0;
   id_restart_peratom = style_restart_peratom = NULL;
   index_restart_peratom = NULL;
-
-  allow_early_fix = 0;
 
   ncompute = maxcompute = 0;
   compute = NULL;
@@ -216,7 +213,8 @@ void Modify::init()
   int checkall;
   MPI_Allreduce(&check,&checkall,1,MPI_INT,MPI_SUM,world);
   if (comm->me == 0 && checkall)
-    error->warning(FLERR,"One or more atoms are time integrated more than once");
+    error->warning(FLERR,
+		   "One or more atoms are time integrated more than once");
 }
 
 /* ----------------------------------------------------------------------
@@ -570,9 +568,23 @@ int Modify::min_reset_ref()
 
 void Modify::add_fix(int narg, char **arg, char *suffix)
 {
-  if (domain->box_exist == 0 && allow_early_fix == 0) 
-    error->all(FLERR,"Fix command before simulation box is defined");
+  const char *exceptions[NEXCEPT] = {"GPU","OMP","cmap"};
+
   if (narg < 3) error->all(FLERR,"Illegal fix command");
+
+  // cannot define fix before box exists unless style is in exception list
+  // don't like this way of checking for exceptions by adding to list,
+  //   but can't think of better way
+  // too late if instantiate fix, then check flag set in fix constructor,
+  // since some fixes access domain settings in their constructor
+
+  if (domain->box_exist == 0) {
+    int m;
+    for (m = 0; m < NEXCEPT; m++)
+      if (strcmp(arg[2],exceptions[m]) == 0) break;
+    if (m == NEXCEPT)
+      error->all(FLERR,"Fix command before simulation box is defined");
+  }
 
   // check group ID
 

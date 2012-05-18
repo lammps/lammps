@@ -150,138 +150,138 @@ void ReadData::command(int narg, char **arg)
       atoms();
       atomflag = 1;
     } else if (strcmp(keyword,"Velocities") == 0) {
-      if (atomflag == 0) error->one(FLERR,"Must read Atoms before Velocities");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Velocities");
       velocities();
 
     } else if (strcmp(keyword,"Ellipsoids") == 0) {
       if (!avec_ellipsoid) 
-	error->one(FLERR,"Invalid data file section: Ellipsoids");
+	error->all(FLERR,"Invalid data file section: Ellipsoids");
       if (atomflag == 0) error->all(FLERR,"Must read Atoms before Ellipsoids");
       bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
     } else if (strcmp(keyword,"Lines") == 0) {
       if (!avec_line) 
-	error->one(FLERR,"Invalid data file section: Lines");
+	error->all(FLERR,"Invalid data file section: Lines");
       if (atomflag == 0) error->all(FLERR,"Must read Atoms before Lines");
       bonus(nlines,(AtomVec *) avec_line,"lines");
     } else if (strcmp(keyword,"Triangles") == 0) {
       if (!avec_tri) 
-	error->one(FLERR,"Invalid data file section: Triangles");
+	error->all(FLERR,"Invalid data file section: Triangles");
       if (atomflag == 0) error->all(FLERR,"Must read Atoms before Triangles");
       bonus(ntris,(AtomVec *) avec_tri,"triangles");
 
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (atom->avec->bonds_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Bonds");
-      if (atomflag == 0) error->one(FLERR,"Must read Atoms before Bonds");
+	error->all(FLERR,"Invalid data file section: Bonds");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bonds");
       bonds();
     } else if (strcmp(keyword,"Angles") == 0) {
       if (atom->avec->angles_allow == 0)
-	error->one(FLERR,"Invalid data file section: Angles");
+	error->all(FLERR,"Invalid data file section: Angles");
       if (atomflag == 0) error->all(FLERR,"Must read Atoms before Angles");
       angles();
     } else if (strcmp(keyword,"Dihedrals") == 0) {
       if (atom->avec->dihedrals_allow == 0)
 	error->all(FLERR,"Invalid data file section: Dihedrals");
-      if (atomflag == 0) error->one(FLERR,"Must read Atoms before Dihedrals");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
       dihedrals();
     } else if (strcmp(keyword,"Impropers") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Impropers");
-      if (atomflag == 0) error->one(FLERR,"Must read Atoms before Impropers");
+	error->all(FLERR,"Invalid data file section: Impropers");
+      if (atomflag == 0) error->all(FLERR,"Must read Atoms before Impropers");
       impropers();
 
     } else if (strcmp(keyword,"Masses") == 0) {
       mass();
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL) 
-	error->one(FLERR,"Must define pair_style before Pair Coeffs");
+	error->all(FLERR,"Must define pair_style before Pair Coeffs");
       paircoeffs();
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Bond Coeffs");
+	error->all(FLERR,"Invalid data file section: Bond Coeffs");
       if (force->bond == NULL) 
-	error->one(FLERR,"Must define bond_style before Bond Coeffs");
+	error->all(FLERR,"Must define bond_style before Bond Coeffs");
       bondcoeffs();
     } else if (strcmp(keyword,"Angle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Angle Coeffs");
+	error->all(FLERR,"Invalid data file section: Angle Coeffs");
       if (force->angle == NULL) 
-	error->one(FLERR,"Must define angle_style before Angle Coeffs");
+	error->all(FLERR,"Must define angle_style before Angle Coeffs");
       anglecoeffs(0);
     } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Dihedral Coeffs");
+	error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,"Must define dihedral_style before Dihedral Coeffs");
+	error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
       dihedralcoeffs(0);
     } else if (strcmp(keyword,"Improper Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->one(FLERR,"Invalid data file section: Improper Coeffs");
+	error->all(FLERR,"Invalid data file section: Improper Coeffs");
       if (force->improper == NULL) 
-	error->one(FLERR,"Must define improper_style before Improper Coeffs");
+	error->all(FLERR,"Must define improper_style before Improper Coeffs");
       impropercoeffs(0);
 
     } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->one(FLERR,"Invalid data file section: BondBond Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond Coeffs");
       if (force->angle == NULL) 
-	error->one(FLERR,"Must define angle_style before BondBond Coeffs");
+	error->all(FLERR,"Must define angle_style before BondBond Coeffs");
       anglecoeffs(1);
     } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0) 
-	error->one(FLERR,"Invalid data file section: BondAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
       if (force->angle == NULL) 
-	error->one(FLERR,"Must define angle_style before BondAngle Coeffs");
+	error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
       anglecoeffs(2);
 
     } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,
+	error->all(FLERR,
 		   "Must define dihedral_style before "
 		   "MiddleBondTorsion Coeffs");
       dihedralcoeffs(1);
     } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,
+	error->all(FLERR,
 		   "Must define dihedral_style before EndBondTorsion Coeffs");
       dihedralcoeffs(2);
     } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: AngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,
+	error->all(FLERR,
 		   "Must define dihedral_style before AngleTorsion Coeffs");
       dihedralcoeffs(3);
     } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,
+	error->all(FLERR,
 		   "Must define dihedral_style before "
 		   "AngleAngleTorsion Coeffs");
       dihedralcoeffs(4);
     } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0) 
-	error->one(FLERR,"Invalid data file section: BondBond13 Coeffs");
+	error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
       if (force->dihedral == NULL) 
-	error->one(FLERR,"Must define dihedral_style before BondBond13 Coeffs");
+	error->all(FLERR,"Must define dihedral_style before BondBond13 Coeffs");
       dihedralcoeffs(5);
 
     } else if (strcmp(keyword,"AngleAngle Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0) 
-	error->one(FLERR,"Invalid data file section: AngleAngle Coeffs");
+	error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
       if (force->improper == NULL) 
-	error->one(FLERR,"Must define improper_style before AngleAngle Coeffs");
+	error->all(FLERR,"Must define improper_style before AngleAngle Coeffs");
       impropercoeffs(1);
 
     } else {
       char str[128];
       sprintf(str,"Unknown identifier in data file: %s",keyword);
-      error->one(FLERR,str);
+      error->all(FLERR,str);
     }
 
     parse_keyword(0,1);
@@ -297,7 +297,7 @@ void ReadData::command(int narg, char **arg)
   // error if natoms > 0 yet no atoms were read
 
   if (atom->natoms > 0 && atomflag == 0) 
-    error->one(FLERR,"No atoms in data file");
+    error->all(FLERR,"No atoms in data file");
 
   // create bond topology now that system is defined
 

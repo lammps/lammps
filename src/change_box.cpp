@@ -221,6 +221,7 @@ void ChangeBox::command(int narg, char **arg)
 	domain->boxhi[ops[i].dim] = scale[ops[i].dim]*ops[i].fhi;
 	if (ops[i].vdim1 >= 0) 
 	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
+	domain->set_initial_box();
 	domain->set_global_box();
 	domain->set_local_box();
 	domain->print_box("  ");
@@ -228,6 +229,9 @@ void ChangeBox::command(int narg, char **arg)
       } else if (ops[i].flavor == DELTA) {
 	domain->boxlo[ops[i].dim] += scale[ops[i].dim]*ops[i].dlo;
 	domain->boxhi[ops[i].dim] += scale[ops[i].dim]*ops[i].dhi;
+	if (ops[i].vdim1 >= 0) 
+	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
+	domain->set_initial_box();
 	domain->set_global_box();
 	domain->set_local_box();
 	domain->print_box("  ");

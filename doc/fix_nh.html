@@ -39,14 +39,20 @@ keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or
     Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
     Pdamp = stress damping parameter (time units)
   <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
-  <I>tchain</I> value = length of thermostat chain (1 = single thermostat)
-  <I>pchain</I> values = length of thermostat chain on barostat (0 = no thermostat)
+  <I>tchain</I> value = N
+    N = length of thermostat chain (1 = single thermostat)
+  <I>pchain</I> values = N
+    N length of thermostat chain on barostat (0 = no thermostat)
   <I>mtk</I> value = <I>yes</I> or <I>no</I> = add in MTK adjustment term or not
-  <I>tloop</I> value = number of sub-cycles to perform on thermostat
-  <I>ploop</I> value = number of sub-cycles to perform on barostat thermostat
+  <I>tloop</I> value = M
+    M = number of sub-cycles to perform on thermostat
+  <I>ploop</I> value = M
+    M = number of sub-cycles to perform on barostat thermostat
   <I>nreset</I> value = reset reference cell every this many timesteps
-  <I>drag</I> value = drag factor added to barostat/thermostat (0.0 = no drag)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I>
+  <I>drag</I> value = Df
+    Df = drag factor added to barostat/thermostat (0.0 = no drag)
+  <I>dilate</I> value = dilate-group-ID
+    dilate-group-ID = only dilate atoms in this group due to barostat volume changes
   <I>scaleyz</I> value = <I>yes</I> or <I>no</I> = scale yz with lz
   <I>scalexz</I> value = <I>yes</I> or <I>no</I> = scale xz with lz
   <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly
@@ -67,20 +73,24 @@ fix 2 ice nph x 1.0 1.0 0.5 y 2.0 2.0 0.5 z 3.0 3.0 0.5 yz 0.1 0.1 0.5 xz 0.2 0.
 <P>These commands perform time integration on Nose-Hoover style
 non-Hamiltonian equations of motion which are designed to generate
 positions and velocities sampled from the canonical (nvt),
-isothermal-isobaric (npt), and isenthalpic (nph) ensembles.  This is
-achieved by adding some dynamic variables which are coupled to the
-particle velocities (thermostatting) and simulation domain dimensions
-(barostatting).  In addition to basic thermostatting and barostatting,
-these fixes can also create a chain of thermostats coupled to the
-particle thermostat, and another chain of thermostats coupled to the
-barostat variables. The barostat can be coupled to the overall box
-volume, or to individual dimensions, including the <I>xy</I>, <I>xz</I> and <I>yz</I>
-tilt dimensions. The external pressure of the barostat can be
-specified as either a scalar pressure (isobaric ensemble) or as
-components of a symmetric stress tensor (constant stress ensemble).
-When used correctly, the time-averaged temperature and stress tensor
-of the particles will match the target values specified by
-Tstart/Tstop and Pstart/Pstop.
+isothermal-isobaric (npt), and isenthalpic (nph) ensembles.  This
+updates the position and velocity for atoms in the group each
+timestep.
+</P>
+<P>The thermostatting and barostatting is achieved by adding some dynamic
+variables which are coupled to the particle velocities
+(thermostatting) and simulation domain dimensions (barostatting).  In
+addition to basic thermostatting and barostatting, these fixes can
+also create a chain of thermostats coupled to the particle thermostat,
+and another chain of thermostats coupled to the barostat
+variables. The barostat can be coupled to the overall box volume, or
+to individual dimensions, including the <I>xy</I>, <I>xz</I> and <I>yz</I> tilt
+dimensions. The external pressure of the barostat can be specified as
+either a scalar pressure (isobaric ensemble) or as components of a
+symmetric stress tensor (constant stress ensemble).  When used
+correctly, the time-averaged temperature and stress tensor of the
+particles will match the target values specified by Tstart/Tstop and
+Pstart/Pstop.
 </P>
 <P>The equations of motion used are those of Shinoda et al. in
 <A HREF = "#Shinoda">(Shinoda)</A>, which combine the hydrostatic equations of
@@ -92,9 +102,9 @@ rRESPA integrators derived by Tuckerman et al. in <A HREF = "#Tuckerman">(Tucker
 </P>
 <HR>
 
-<P>The thermostat for fix styles <I>nvt</I> and <I>npt</I> is specified using the
-<I>temp</I> keyword.  Other thermostat-related keywords are <I>tchain</I>,
-<I>tloop</I> and <I>drag</I>, which are discussed below.
+<P>The thermostat parameters for fix styles <I>nvt</I> and <I>npt</I> is specified
+using the <I>temp</I> keyword.  Other thermostat-related keywords are
+<I>tchain</I>, <I>tloop</I> and <I>drag</I>, which are discussed below.
 </P>
 <P>The thermostat is applied to only the translational degrees of freedom
 for the particles.  The translational degrees of freedom can also have
@@ -117,12 +127,13 @@ very long time to equilibrate.  A good choice for many models is a
 </P>
 <HR>
 
-<P>The barostat for fix styles <I>npt</I> and <I>nph</I> is specified using one or
-more of the <I>iso</I>, <I>aniso</I>, <I>tri</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>xy</I>, <I>xz</I>, <I>yz</I>,
-and <I>couple</I> keywords.  These keywords give you the ability to specify
-all 6 components of an external stress tensor, and to couple various
-of these components together so that the dimensions they represent are
-varied together during a constant-pressure simulation.
+<P>The barostat parameters for fix styles <I>npt</I> and <I>nph</I> is specified
+using one or more of the <I>iso</I>, <I>aniso</I>, <I>tri</I>, <I>x</I>, <I>y</I>, <I>z</I>, <I>xy</I>,
+<I>xz</I>, <I>yz</I>, and <I>couple</I> keywords.  These keywords give you the
+ability to specify all 6 components of an external stress tensor, and
+to couple various of these components together so that the dimensions
+they represent are varied together during a constant-pressure
+simulation.
 </P>
 <P>Other barostat-related keywords are <I>pchain</I>, <I>mtk</I>, <I>ploop</I>,
 <I>nreset</I>, <I>drag</I>, and <I>dilate</I>, which are discussed below.
@@ -164,14 +175,21 @@ take a very long time to equilibrate.  A good choice for many models
 is a <I>Pdamp</I> of around 1000 timesteps.  Note that this is NOT the same
 as 1000 time units for most <A HREF = "units.html">units</A> settings.
 </P>
-<P>Regardless of what atoms are in the fix group, a global pressure or
-stress tensor is computed for all atoms.  Similarly, when the size of
-the simulation box is changed, all atoms are re-scaled to new
-positions, unless the keyword <I>dilate</I> is specified with a value of
-<I>partial</I>, in which case only the atoms in the fix group are
-re-scaled.  The latter can be useful for leaving the coordinates of
-atoms in a solid substrate unchanged and controlling the pressure of a
-surrounding fluid.
+<P>Regardless of what atoms are in the fix group (the only atoms which
+are time integrated), a global pressure or stress tensor is computed
+for all atoms.  Similarly, when the size of the simulation box is
+changed, all atoms are re-scaled to new positions, unless the keyword
+<I>dilate</I> is specified with a <I>dilate-group-ID</I> for a group that
+represents a subset of the atoms.  This can be useful, for example, to
+leave the coordinates of atoms in a solid substrate unchanged and
+controlling the pressure of a surrounding fluid.  This option should
+be used with care, since it can be unphysical to dilate some atoms and
+not others, because it can introduce large, instantaneous
+displacements between a pair of atoms (one dilated, one not) that are
+far from the dilation origin.  Also note that for atoms not in the fix
+group, a separate time integration fix like <A HREF = "fix_nve.html">fix nve</A> or
+<A HREF = "fix_nh.html">fix nvt</A> can be used on them, independent of whether they
+are dilated or not.
 </P>
 <HR>
 
@@ -391,6 +409,27 @@ thermal degrees of freedom, and the bias is added back in.
 </P>
 <HR>
 
+<P>These fixes can be used with either the <I>verlet</I> or <I>respa</I> 
+<A HREF = "run_style.html">integrators</A>. When using one of the barostat fixes
+with <I>respa</I>, LAMMPS uses an integrator constructed
+according to the following factorization of the Liouville propagator
+(for two rRESPA levels):
+</P>
+<CENTER><IMG SRC = "Eqs/fix_nh1.jpg">
+</CENTER>
+<P>This factorization differs somewhat from that of Tuckerman et al., in that
+the barostat is only updated at the outermost rRESPA level, whereas
+Tuckerman's factorization requires splitting the pressure into pieces
+corresponding to the forces computed at each rRESPA level. In theory, the
+latter method will exhibit better numerical stability. In practice,
+because Pdamp is normally chosen to be a large multiple of the 
+outermost rRESPA timestep, the barostat dynamics are not the 
+limiting factor for numerical stability. Both 
+factorizations are time-reversible and can be shown to preserve the phase 
+space measure of the underlying non-Hamiltonian equations of motion.
+</P>
+<HR>
+
 <P>Styles with a <I>cuda</I> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
@@ -490,25 +529,8 @@ how to do this.
 <P>These fixes are not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>
-<P>These fixes can be used with either the <I>verlet</I> or <I>respa</I> 
-<A HREF = "run_style.html">integrators</A>. When using one of the barostat fixes
-with <I>respa</I>, LAMMPS uses an integrator constructed
-according to the following factorization of the Liouville propagator
-(for two rRESPA levels):
-</P>
-<CENTER><IMG SRC = "Eqs/fix_nh1.jpg">
-</CENTER>
-<P>This factorization differs somewhat from that of Tuckerman et al., in that
-the barostat is only updated at the outermost rRESPA level, whereas
-Tuckerman's factorization requires splitting the pressure into pieces
-corresponding to the forces computed at each rRESPA level. In theory, the
-latter method will exhibit better numerical stability. In practice,
-because Pdamp is normally chosen to be a large multiple of the 
-outermost rRESPA timestep, the barostat dynamics are not the 
-limiting factor for numerical stability. Both 
-factorizations are time-reversible and can be shown to preserve the phase 
-space measure of the underlying non-Hamiltonian equations of motion.
-</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P><I>X</I>, <I>y</I>, <I>z</I> cannot be barostatted if the associated dimension is not

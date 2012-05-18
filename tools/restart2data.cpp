@@ -532,7 +532,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "4 May 2012-ICMS";
+  const char *version = "17 May 2012-ICMS";
 
   data.triclinic = 0;
 
@@ -873,6 +873,7 @@ int atom(double *buf, Data &data)
 // ---------------------------------------------------------------------
 // read one atom's info from buffer
 // one routine per atom style
+// skip broken bonds, angles, etc
 // ---------------------------------------------------------------------
 
 int atom_angle(double *buf, Data &data, int iatoms)
@@ -916,7 +917,7 @@ int atom_angle(double *buf, Data &data, int iatoms)
       data.angle_atom1[data.iangles] = atom1;
       data.angle_atom2[data.iangles] = atom2;
       data.angle_atom3[data.iangles] = atom3;
-	  data.iangles++;
+      data.iangles++;
     }
   }
 
@@ -3101,13 +3102,19 @@ void Data::stats()
   if (nellipsoids) printf("  Nellipsoids = " BIGINT_FORMAT "\n",nellipsoids);
 
   if (ibonds) printf("  Nbonds = " BIGINT_FORMAT "\n",ibonds);
-  if (ibonds != nbonds) printf("  Skipping " BIGINT_FORMAT " disabled bonds\n",nbonds-ibonds);
+  if (ibonds != nbonds) 
+    printf("  Skipping " BIGINT_FORMAT " broken bonds\n",nbonds-ibonds);
   if (iangles) printf("  Nangles = " BIGINT_FORMAT "\n",iangles);
-  if (iangles != nangles) printf("  Skipping " BIGINT_FORMAT " disabled angles\n",nangles-iangles);
+  if (iangles != nangles) 
+    printf("  Skipping " BIGINT_FORMAT " broken angles\n",nangles-iangles);
   if (idihedrals) printf("  Ndihedrals = " BIGINT_FORMAT "\n",idihedrals);
-  if (idihedrals != ndihedrals) printf("  Skipping " BIGINT_FORMAT " disabled dihedrals\n",ndihedrals-idihedrals);
+  if (idihedrals != ndihedrals) 
+    printf("  Skipping " BIGINT_FORMAT " broken dihedrals\n",
+	   ndihedrals-idihedrals);
   if (iimpropers) printf("  Nimpropers = " BIGINT_FORMAT "\n",iimpropers);
-  if (iimpropers != nimpropers) printf("  Skipping " BIGINT_FORMAT " disabled impropers\n",nimpropers-iimpropers);
+  if (iimpropers != nimpropers) 
+    printf("  Skipping " BIGINT_FORMAT " broken impropers\n",
+	   nimpropers-iimpropers);
 
   printf("  Unit style = %s\n",unit_style);
   printf("  Atom style = %s\n",atom_style);

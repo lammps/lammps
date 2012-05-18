@@ -174,7 +174,7 @@ void Output::setup(int flag)
 	next_dump[idump] = 
 	  (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
       else {
-	int nextdump = static_cast<int> 
+	bigint nextdump = static_cast<bigint> 
 	  (input->variable->compute_equal(ivar_dump[idump]));
 	if (nextdump <= ntimestep)
 	  error->all(FLERR,"Dump every variable returned a bad timestep");
@@ -254,7 +254,7 @@ void Output::write(bigint ntimestep)
 	last_dump[idump] = ntimestep;
 	if (every_dump[idump]) next_dump[idump] += every_dump[idump];
 	else {
-	  int nextdump = static_cast<int> 
+	  bigint nextdump = static_cast<bigint> 
 	    (input->variable->compute_equal(ivar_dump[idump]));
 	  if (nextdump <= ntimestep)
 	    error->all(FLERR,"Dump every variable returned a bad timestep");

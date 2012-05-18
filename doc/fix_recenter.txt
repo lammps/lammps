@@ -112,4 +112,4 @@ move atoms a large distance.
 
 [Default:]
 
-The option defaults are adjust = fix group-ID, and units = lattice.
+The option defaults are shift = fix group-ID, and units = lattice.

@@ -2671,8 +2671,8 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
 }
 
 /* ----------------------------------------------------------------------
- allocate group-group memory that depends on # of K-vectors and order 
- ------------------------------------------------------------------------- */
+   allocate group-group memory that depends on # of K-vectors and order 
+------------------------------------------------------------------------- */
 
 void PPPM::allocate_groups()
 {  
@@ -2685,8 +2685,8 @@ void PPPM::allocate_groups()
 }
 
 /* ----------------------------------------------------------------------
- deallocate group-group memory that depends on # of K-vectors and order 
- ------------------------------------------------------------------------- */
+   deallocate group-group memory that depends on # of K-vectors and order 
+------------------------------------------------------------------------- */
 
 void PPPM::deallocate_groups()
 {
@@ -2697,11 +2697,11 @@ void PPPM::deallocate_groups()
 }
 
 /* ----------------------------------------------------------------------
- create discretized "density" on section of global grid due to my particles
- density(x,y,z) = charge "density" at grid points of my 3d brick
- (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
- in global grid for group-group interactions
- ------------------------------------------------------------------------- */
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = charge "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid for group-group interactions
+------------------------------------------------------------------------- */
 
 void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 {
@@ -2770,7 +2770,7 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 
 /* ----------------------------------------------------------------------
    FFT-based Poisson solver for group-group interactions
- ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void PPPM::poisson_groups(int BA_flag)
 {

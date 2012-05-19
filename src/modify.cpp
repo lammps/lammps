@@ -573,7 +573,7 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
   if (narg < 3) error->all(FLERR,"Illegal fix command");
 
   // cannot define fix before box exists unless style is in exception list
-  // don't like this way of checking for exceptions by adding to list,
+  // don't like this way of checking for exceptions by adding fixes to list,
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   // since some fixes access domain settings in their constructor

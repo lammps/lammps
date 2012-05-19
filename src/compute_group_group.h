@@ -42,7 +42,6 @@ class ComputeGroupGroup : public Compute {
   class NeighList *list;
   class KSpace *kspace;
 
-  void interact();
   void pair_contribution();
   void kspace_contribution();
 };

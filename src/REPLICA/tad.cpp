@@ -335,9 +335,14 @@ void TAD::command(int narg, char **arg)
       MPI_Bcast(&(update->ntimestep),1,MPI_INT,0,universe->uworld);
     
       int restart_flag = 0;
-      if (output->restart_every && universe->iworld == 0)
-	if (fix_event->event_number % output->restart_every == 0)
+      if (output->restart_flag && universe->iworld == 0) {
+	if (output->restart_every_single && 
+	    fix_event->event_number % output->restart_every_single == 0)
 	  restart_flag = 1;
+	if (output->restart_every_double && 
+	    fix_event->event_number % output->restart_every_double == 0)
+	  restart_flag = 1;
+      }
 
       // full init/setup since are starting after event
 

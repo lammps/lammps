@@ -33,6 +33,8 @@ class Ewald : public KSpace {
   virtual void compute(int, int);
   double memory_usage();
 
+  void compute_group_group(int, int, int);
+
  protected:
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
@@ -47,12 +49,23 @@ class Ewald : public KSpace {
   double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
   double ***cs,***sn;
 
+  // group-group interactions
+
+  int group_allocate_flag;
+  double *sfacrl_A,*sfacim_A,*sfacrl_A_all,*sfacim_A_all;
+  double *sfacrl_B,*sfacim_B,*sfacrl_B_all,*sfacim_B_all;
+
   double rms(int, double, bigint, double);
   virtual void eik_dot_r();
   void coeffs();
   virtual void allocate();
   void deallocate();
   void slabcorr();
+
+  // group-group interactions
+
+  void allocate_groups();
+  void deallocate_groups();
 };
 
 }

@@ -45,6 +45,8 @@ class PPPM : public KSpace {
   virtual void timing(int, double &, double &);
   virtual double memory_usage();
 
+  virtual void compute_group_group(int, int, int);
+
  protected:
   int me,nprocs;
   int nfactors;
@@ -78,6 +80,13 @@ class PPPM : public KSpace {
 
   double *gf_b;
   FFT_SCALAR **rho1d,**rho_coeff;
+
+  // group-group interactions
+
+  int group_allocate_flag;
+  FFT_SCALAR ***density_A_brick,***density_B_brick;
+  FFT_SCALAR *density_A_fft,*density_B_fft;
+
 
   class FFT3d *fft1,*fft2;
   class Remap *remap;
@@ -117,6 +126,13 @@ class PPPM : public KSpace {
   void compute_rho_coeff();
   void slabcorr();
 
+  // group-group interactions
+
+  virtual void allocate_groups();
+  virtual void deallocate_groups();
+  virtual void make_rho_groups(int, int, int);
+  virtual void poisson_groups(int);
+  
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
      of x,y,z = sin(kx*deltax/2), etc

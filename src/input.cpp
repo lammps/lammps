@@ -1199,9 +1199,7 @@ void Input::package()
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "GPU";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->allow_early_fix = 1;
     modify->add_fix(2+narg,fixarg,NULL);
-    modify->allow_early_fix = 0;
     delete [] fixarg;
     force->newton_pair = 0;
 
@@ -1211,9 +1209,7 @@ void Input::package()
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "OMP";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->allow_early_fix = 1;
     modify->add_fix(2+narg,fixarg,NULL);
-    modify->allow_early_fix = 0;
     delete [] fixarg;
 
   } else error->all(FLERR,"Illegal package command");

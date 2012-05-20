@@ -56,7 +56,8 @@ int FixExternal::setmask()
 
 void FixExternal::init()
 {
-  if (callback == NULL) error->all(FLERR,"Fix external callback function not set");
+  if (callback == NULL) 
+    error->all(FLERR,"Fix external callback function not set");
 }
 
 /* ---------------------------------------------------------------------- */

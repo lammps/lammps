@@ -31,6 +31,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   compute_flag = 1;
+  group_group_enable = 0;
+
   order = 5;
   gridflag = 0;
   gewaldflag = 0;

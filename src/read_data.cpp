@@ -25,6 +25,8 @@
 #include "atom_vec_tri.h"
 #include "comm.h"
 #include "update.h"
+#include "modify.h"
+#include "fix.h"
 #include "force.h"
 #include "pair.h"
 #include "domain.h"
@@ -82,12 +84,45 @@ ReadData::~ReadData()
 
 void ReadData::command(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal read_data command");
+  if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
   if (domain->box_exist) 
     error->all(FLERR,"Cannot read_data after simulation box is defined");
   if (domain->dimension == 2 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
+
+  // fixes that process data file info
+
+  nfix = 0;
+  fix_index = NULL;
+  fix_header = NULL;
+  fix_section = NULL;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"fix") == 0) {
+      if (iarg+4 > narg)
+	error->all(FLERR,"Illegal read_data command");
+      memory->grow(fix_index,nfix+1,"read_data:fix_index");
+      fix_header = (char **) 
+	memory->srealloc(fix_header,(nfix+1)*sizeof(char *),
+			 "read_data:fix_header");
+      fix_section = (char **) 
+	memory->srealloc(fix_section,(nfix+1)*sizeof(char *),
+			 "read_data:fix_section");
+      fix_index[nfix] = modify->find_fix(arg[iarg+1]);
+      if (fix_index[nfix] < 0) 
+	error->all(FLERR,"Fix ID for Read_data does not exist");
+      int n = strlen(arg[iarg+2]) + 1;
+      fix_header[nfix] = new char[n];
+      strcpy(fix_header[nfix],arg[iarg+2]);
+      n = strlen(arg[iarg+3]) + 1;
+      fix_section[nfix] = new char[n];
+      strcpy(fix_section[nfix],arg[iarg+3]);
+      nfix++;
+      iarg += 4;
+    } else error->all(FLERR,"Illegal read_data command");
+  }
 
   // scan data file to determine max topology needed per atom 
   // allocate initial topology arrays
@@ -146,6 +181,21 @@ void ReadData::command(int narg, char **arg)
   int atomflag = 0;
 
   while (strlen(keyword)) {
+
+    // allow special fixes first chance to match and process the section
+    // if fix matches, continue to next section
+
+    if (nfix) {
+      for (n = 0; n < nfix; n++)
+	if (strstr(line,fix_section[n])) {
+	  int nlines = modify->fix[fix_index[n]]->read_data_skip_lines(keyword);
+	  fix(n,keyword,nlines);
+	  parse_keyword(0,1);
+	  break;
+	}
+      if (n < nfix) continue;
+    }
+
     if (strcmp(keyword,"Atoms") == 0) {
       atoms();
       atomflag = 1;
@@ -369,6 +419,18 @@ void ReadData::header(int flag)
 
     if (ptr = strchr(line,'#')) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
+
+    // allow special fixes first chance to match and process the line
+    // if fix matches, continue to next header line
+
+    if (nfix) {
+      for (n = 0; n < nfix; n++)
+	if (strstr(line,fix_header[n])) {
+	  modify->fix[fix_index[n]]->read_data_header(line);
+	  break;
+	}
+      if (n < nfix) continue;
+    }
 
     // search line for header keyword and set corresponding variable
 
@@ -1029,6 +1091,38 @@ void ReadData::impropercoeffs(int which)
 }
 
 /* ----------------------------------------------------------------------
+   read fix section, pass lines to fix to process
+   n = index of fix
+------------------------------------------------------------------------- */
+
+void ReadData::fix(int ifix, char *line, int nlines)
+{
+  int i,m,nchunk;
+
+  bigint nread = 0;
+
+  while (nread < nlines) {
+    if (nlines-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = nlines-nread;
+    if (me == 0) {
+      char *eof;
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+	eof = fgets(&buffer[m],MAXLINE,fp);
+	if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+	m += strlen(&buffer[m]);
+      }
+      m++;
+    }
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+
+    modify->fix[ifix]->read_data_section(line,nchunk,buffer);
+    nread += nchunk;
+  }
+}
+
+/* ----------------------------------------------------------------------
    proc 0 scans the data file for topology maximums 
 ------------------------------------------------------------------------- */
 
@@ -1059,6 +1153,23 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
   memory->create(count,cmax,"read_data:count");
 
   while (strlen(keyword)) {
+
+    // allow special fixes first chance to match and process the section
+    // if fix matches, continue to next section
+
+    if (nfix) {
+      for (i = 0; i < nfix; i++) {
+	printf("LINE SECTION %s %s\n",line,fix_section[i]);
+	if (strstr(line,fix_section[i])) {
+	  int n = modify->fix[fix_index[i]]->read_data_skip_lines(keyword);
+	  printf("NLINES SKIP %d\n",n);
+	  skip_lines(n);
+	  parse_keyword(0,0);
+	  break;
+	}
+      }
+      if (i < nfix) continue;
+    }
 
     if (strcmp(keyword,"Masses") == 0) skip_lines(atom->ntypes);
     else if (strcmp(keyword,"Atoms") == 0) skip_lines(natoms);

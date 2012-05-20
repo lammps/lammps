@@ -52,7 +52,8 @@ The KSpace contribution is calculated using the method in
 "(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
 as specified by the "kspace_style pppm"_kspace_style.html command.
 For PPPM, the calcluation requires 1 extra FFT each timestep that
-per-atom stress is calculated.
+per-atom energy is calculated.  Thie "document"_PDF/kspace.pdf
+describes how the long-range per-atom energy calculation is performed.
 
 As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result

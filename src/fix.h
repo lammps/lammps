@@ -148,7 +148,7 @@ class Fix : protected Pointers {
 
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *) {}
-  virtual bigint read_data_skip_lines(char *) {}
+  virtual bigint read_data_skip_lines(char *) {return 0;}
 
   virtual int modify_param(int, char **) {return 0;}
 

@@ -188,7 +188,8 @@ void ReadData::command(int narg, char **arg)
     if (nfix) {
       for (n = 0; n < nfix; n++)
 	if (strstr(line,fix_section[n])) {
-	  int nlines = modify->fix[fix_index[n]]->read_data_skip_lines(keyword);
+	  bigint nlines = 
+	    modify->fix[fix_index[n]]->read_data_skip_lines(keyword);
 	  fix(n,keyword,nlines);
 	  parse_keyword(0,1);
 	  break;
@@ -1095,7 +1096,7 @@ void ReadData::impropercoeffs(int which)
    n = index of fix
 ------------------------------------------------------------------------- */
 
-void ReadData::fix(int ifix, char *line, int nlines)
+void ReadData::fix(int ifix, char *line, bigint nlines)
 {
   int i,m,nchunk;
 

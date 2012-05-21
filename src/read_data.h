@@ -74,7 +74,7 @@ class ReadData : protected Pointers {
   void dihedralcoeffs(int);
   void impropercoeffs(int);
 
-  void fix(int, char *, int);
+  void fix(int, char *, bigint);
 };
 
 }

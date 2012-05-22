@@ -993,6 +993,13 @@ description:
 "harmonic"_improper_harmonic.html,
 "umbrella"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
+These are improper styles contributed by users, which can be used if
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
+
+"cossq"_improper_cossq.html,
+"ring"_improper_ring.html :tb(c=4,ea=c)
+
 These are accelerated improper styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
 package"_Section_accelerate.html.

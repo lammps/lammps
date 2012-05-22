@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_style ring command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_style ring 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_style ring
+improper_coeff 1 8000 70.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>ring</I> improper style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/improper_ring.jpg">
+</CENTER>
+<P>where K is a prefactor, theta is the angle formed by the atoms
+specified by (i,j,k,l) indices and theta0 its equilibrium value.
+</P>
+<P>If the 4 atoms in an improper quadruplet (listed in the data file read
+by the <A HREF = "read_data.html">read_data</A> command) are ordered i,j,k,l then
+theta_<I>ijl</I> is the angle between atoms i,j and l, theta_<I>ijk</I> is the
+angle between atoms i,j and k, theta_<I>kjl</I> is the angle between atoms
+j,k, and l.
+</P>
+<P>The "ring" improper style implements the improper potential introduced
+by Destree et al., in Equation (9) of <A HREF = "#Destree">(Destree)</A>.  This
+potential does not affect small amplitude vibrations but is used in an
+ad-hoc way to prevent the onset of accidentially large amplitude
+fluctuations leading to the occurrence of a planar conformation of the
+three bonds i-j, j-k and j-l, an intermediate conformation toward the
+chiral inversion of a methine carbon.  In the "Impropers" section of
+data file four atoms: i, j, k and l are specified with i,j and l lying
+on the backbone of the chain and k specifying the chirality of j.
+</P>
+<P>The following coefficients must be defined for each improper type via
+the <A HREF = "improper_coeff.html">improper_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>K (energy/radian^2)
+<LI>theta0 (degrees) 
+</UL>
+<P>theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This improper style can only be used if LAMMPS was built with the
+USER-MISC package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_coeff.html">improper_coeff</A>
+</P>
+<A NAME = "Destree"></A>
+
+<P><B>(Destree)</B> M. Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert,
+J Chem Phys, 112, 9632 (2000).
+</P>
+</HTML>

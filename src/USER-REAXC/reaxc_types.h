@@ -527,6 +527,7 @@ typedef struct
   real bg_cut;
   real bo_cut;
   real thb_cut;
+  real thb_cutsq;
 
   int tabulate;
 

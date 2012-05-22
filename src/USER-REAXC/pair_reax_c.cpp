@@ -189,6 +189,7 @@ void PairReaxC::settings(int narg, char **arg)
     control->bond_cut = 5.;
     control->hbond_cut = 7.50;
     control->thb_cut = 0.001;
+    control->thb_cutsq = 0.00001;
    
     out_control->write_steps = 0;
     out_control->traj_method = 0;

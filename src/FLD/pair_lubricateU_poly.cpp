@@ -32,12 +32,6 @@
 #include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_deform.h"
-#include "fix_wall.h"
-#include "input.h"
-#include "variable.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -46,11 +40,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define TOL 1E-3   // tolerance for conjugate gradient
-
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -361,48 +350,6 @@ void PairLubricateUPoly::compute_Fh(double **x)
   
   beta[0][0] = beta[1][0] = beta[1][4] = 0.0;
 
-  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
-  // in the volume fraction as a result of fix deform or moving walls
-
-  double dims[3], wallcoord;
-  if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
-      if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
-      }
-      double vol_T = dims[0]*dims[1]*dims[2];
-      double vol_f = vol_P/vol_T;
-      if (flaglog == 0) {
-	//R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-	//RT0 = 8*MY_PI*mu;
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-      } else {
-	//R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	//RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-      }
-    }
-
-  // end of R0 adjustment code
   // Set force to zero which is the final value after this pair interaction
 
   for (i=0;i<nlocal+nghost;i++)
@@ -426,7 +373,7 @@ void PairLubricateUPoly::compute_Fh(double **x)
     radi = radius[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];   
-    pre[1] = 8.0*(pre[0] = MY_PI*mu*radi)*radi*radi; // BROKEN?? Should be "+"??
+    pre[1] = 8.0*(pre[0] = MY_PI*mu*radi)*radi*radi;
     pre[0] *= 6.0;
     
     // Find the contribution to stress from isotropic RS0
@@ -642,49 +589,6 @@ void PairLubricateUPoly::compute_RU(double **x)
 
   beta[0][0] = beta[1][0] = beta[1][4] = 0.0;
   
- // This section of code adjusts R0/RT0/RS0 if necessary due to changes
-  // in the volume fraction as a result of fix deform or moving walls
-
-  double dims[3], wallcoord;
-  if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
-      if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
-      }
-      double vol_T = dims[0]*dims[1]*dims[2];
-      double vol_f = vol_P/vol_T;
-      if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu;
-	//	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-      } else {
-	R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	//	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-      }
-    }
-
-  // end of R0 adjustment code
-
   // Initialize f to zero
   
   for (i=0;i<nlocal+nghost;i++)
@@ -720,8 +624,7 @@ void PairLubricateUPoly::compute_RU(double **x)
     torque[i][0] += -vxmu2f*RT0*pow(radi,3)*wi[0];
     torque[i][1] += -vxmu2f*RT0*pow(radi,3)*wi[1];
     torque[i][2] += -vxmu2f*RT0*pow(radi,3)*wi[2];   
-
-    if (!flagHI) continue;
+    
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -938,9 +841,7 @@ void PairLubricateUPoly::compute_RE(double **x)
   double a_sq = 0.0;
   double a_sh = 0.0;
   double a_pu = 0.0;
-
-  if (!flagHI) return;
-
+ 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -961,6 +862,7 @@ void PairLubricateUPoly::compute_RE(double **x)
     pre[0] *= 6.0;
     
     // No contribution from isotropic terms due to E    
+    
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       delx = xtmp - x[j][0];
@@ -1122,25 +1024,16 @@ void PairLubricateUPoly::compute_RE(double **x)
 
 void PairLubricateUPoly::settings(int narg, char **arg)
 {
+  double vol_T;
   int itype;
   
-  if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 5) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);
   cut_inner_global = atof(arg[2]);
   cut_global = atof(arg[3]);
   gdot =  atof(arg[4]);
-
-  flagHI = flagVF = 1;
-  if (narg >= 6) flagHI = atoi(arg[5]);
-  if (narg == 7) flagVF = atoi(arg[6]);
-
-  if (flaglog == 1 && flagHI == 0) {
-    error->warning(FLERR,"Cannot include log terms without 1/r terms; "
-		   "setting flagHI to 1");
-    flagHI = 1;
-  } 
 
   // reset cutoffs that have been explicitly set
 
@@ -1166,7 +1059,48 @@ void PairLubricateUPoly::settings(int narg, char **arg)
   Ef[2][1] = 0.0;
   Ef[2][2] = 0.0; 
   
+  // Set the isotropic constants depending on the volume fraction
+  
+  // Find the total volume
 
+  vol_T = domain->xprd*domain->yprd*domain->zprd; 
+  
+  // Assuming monodisperse spheres, find the volume of the particles
+
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+
+  double volP = 0.0;
+  for (int i = 0; i < nlocal; i++)
+    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3);
+  double vol_P;
+  MPI_Allreduce(&volP,&vol_P,1,MPI_DOUBLE,MPI_SUM,world);
+  double vol_f = vol_P/vol_T;
+
+  //DRH volume fraction needs to be defined manually
+  // if excluded volume regions are present
+
+  vol_f=0.5;
+  if (!comm->me) {
+    if(logfile)
+      fprintf(logfile, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
+	  vol_f,vol_P,vol_T);
+    if (screen)
+      fprintf(screen, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
+	  vol_f,vol_P,vol_T);
+  }
+
+  // Set the isotropic constant
+  
+  if (flaglog == 0) {
+    R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+    RT0 = 8*MY_PI*mu;  // Not needed actually
+    RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+  } else {
+    R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+    RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+    RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1193,95 +1127,6 @@ void PairLubricateUPoly::init_style()
   for (int i = 0; i < nlocal; i++)
     if (radius[i] == 0.0) 
       error->one(FLERR,"Pair lubricate/poly requires extended particles");
-  // Set the isotropic constants depending on the volume fraction
-  
-  // Find the total volume
-  // check for fix deform, if exists it must use "remap v"
-  // If box will change volume, set appropriate flag so that volume
-  // and v.f. corrections are re-calculated at every step.
-  //
-  // If available volume is different from box volume
-  // due to walls, set volume appropriately; if walls will
-  // move, set appropriate flag so that volume and v.f. corrections
-  // are re-calculated at every step.
-
-  flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++){
-    if (strcmp(modify->fix[i]->style,"deform") == 0) 
-      flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL){
-      flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->varflag ) {
-	flagwall = 2; // Moving walls exist
-	wallfix = (FixWall *) modify->fix[i];
-      }
-    }
-  }
-  
-
-  // set the isotropic constants depending on the volume fraction
-  // vol_T = total volumeshearing = flagdeform = flagwall = 0;  
-  double vol_T, wallcoord;
-    if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {    
-    double wallhi[3], walllo[3];
-    for (int j = 0; j < 3; j++){
-      wallhi[j] = domain->prd[j];
-      walllo[j] = 0;
-    }    
-    for (int m = 0; m < wallfix->nwall; m++){
-      int dim = wallfix->wallwhich[m] / 2;
-      int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->wallstyle[m] == VARIABLE){
-	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
-	//Since fix->wall->init happens after pair->init_style
-	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-      }
-
-      else wallcoord = wallfix->coord0[m];
-      
-      if (side == 0) walllo[dim] = wallcoord;
-      else wallhi[dim] = wallcoord;
-    }
-    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
-      (wallhi[2] - walllo[2]);
-  }
-  
-  // Assuming monodisperse spheres, find the volume of the particles
-
-  double volP = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3);
-  MPI_Allreduce(&volP,&vol_P,1,MPI_DOUBLE,MPI_SUM,world);
-
-  double vol_f = vol_P/vol_T;
-
-  //DRH volume fraction needs to be defined manually
-  // if excluded volume regions are present
-  //  vol_f=0.5;
-
-  if (!flagVF) vol_f = 0;
-
-  if (!comm->me) {
-    if(logfile)
-      fprintf(logfile, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-	  vol_f,vol_P,vol_T);
-    if (screen)
-      fprintf(screen, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-	  vol_f,vol_P,vol_T);
-  }
-
-  // Set the isotropic constant
-  
-  if (flaglog == 0) {
-    R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-    RT0 = 8*MY_PI*mu;  // Not needed actually
-    RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-  } else {
-    R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-    RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-  }
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;

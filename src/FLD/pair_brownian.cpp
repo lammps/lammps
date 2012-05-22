@@ -29,23 +29,13 @@
 #include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_deform.h"
-#include "fix_wall.h"
-#include "input.h"
-#include "variable.h"
+#include "memory.h"
 #include "random_mars.h"
 #include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,48 +86,7 @@ void PairBrownian::compute(int eflag, int vflag)
   double xl[3],a_sq,a_sh,a_pu,Fbmag;
   double p1[3],p2[3],p3[3];
   int overlaps = 0;
-
-  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
-  // in the volume fraction as a result of fix deform or moving walls
-
-  double dims[3], wallcoord;
-  if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
-      if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	double wallhi[3], walllo[3];
-	for (int j = 0; j < 3; j++){
-	  wallhi[j] = domain->prd[j];
-	  walllo[j] = 0;
-	}    
-	for (int m = 0; m < wallfix->nwall; m++){
-	  int dim = wallfix->wallwhich[m] / 2;
-	  int side = wallfix->wallwhich[m] % 2;
-	  if (wallfix->wallstyle[m] == VARIABLE){
-	    wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	  }	   
-	  else wallcoord = wallfix->coord0[m];	   
-	  if (side == 0) walllo[dim] = wallcoord;
-	  else wallhi[dim] = wallcoord;	   
-	}
-	for (int j = 0; j < 3; j++)
-	  dims[j] = wallhi[j] - walllo[j];
-      }
-      double vol_T = dims[0]*dims[1]*dims[2];
-      double vol_f = vol_P/vol_T;
-      if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3);
-	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-      } else {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-      }
-    }
-
+  
   // scale factor for Brownian moments
 
   prethermostat = sqrt(24.0*force->boltz*t_target/update->dt);
@@ -171,8 +120,6 @@ void PairBrownian::compute(int eflag, int vflag)
       }
     }
     
-    if (!flagHI) continue;
-
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -371,7 +318,7 @@ void PairBrownian::allocate()
 
 void PairBrownian::settings(int narg, char **arg)
 {
-  if (narg < 7 || narg > 9) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);  
@@ -380,17 +327,6 @@ void PairBrownian::settings(int narg, char **arg)
   cut_global = atof(arg[4]); 
   t_target = atof(arg[5]); 
   seed = atoi(arg[6]); 
-
-  flagHI = flagVF = 1;
-
-  if (narg >= 8) flagHI = atoi(arg[7]);
-  if (narg == 9) flagVF = atoi(arg[8]);
-
-  if (flaglog == 1 && flagHI == 0) {
-    error->warning(FLERR,"Cannot include log terms without 1/r terms; "
-		   "setting flagHI to 1");
-    flagHI = 1;
-  } 
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -476,7 +412,7 @@ void PairBrownian::init_style()
 
   // require monodisperse system with same radii for all types
 
-  double radtype;
+  double rad,radtype;
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->radius_consistency(i,radtype))
       error->all(FLERR,"Pair brownian requires monodisperse particles");
@@ -487,66 +423,17 @@ void PairBrownian::init_style()
   
   // set the isotropic constants that depend on the volume fraction
   // vol_T = total volume
-  // check for fix deform, if exists it must use "remap v"
-  // If box will change volume, set appropriate flag so that volume
-  // and v.f. corrections are re-calculated at every step.
-  //
-  // If available volume is different from box volume
-  // due to walls, set volume appropriately; if walls will
-  // move, set appropriate flag so that volume and v.f. corrections
-  // are re-calculated at every step.
 
-  flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++){
-    if (strcmp(modify->fix[i]->style,"deform") == 0) 
-      flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL){
-      flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->varflag ) {
-	flagwall = 2; // Moving walls exist
-	wallfix = (FixWall *) modify->fix[i];
-      }
-    }
-  }
+  double vol_T = domain->xprd*domain->yprd*domain->zprd; 
   
-  // set the isotropic constants depending on the volume fraction
-  // vol_T = total volumeshearing = flagdeform = flagwall = 0;  
-  double vol_T, wallcoord;
-  if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {    
-    double wallhi[3], walllo[3];
-    for (int j = 0; j < 3; j++){
-      wallhi[j] = domain->prd[j];
-      walllo[j] = 0;
-    }    
-    for (int m = 0; m < wallfix->nwall; m++){
-      int dim = wallfix->wallwhich[m] / 2;
-      int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->wallstyle[m] == VARIABLE){
-	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
-	// Since fix->wall->init happens after pair->init_style
-	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-      }
-      
-      else wallcoord = wallfix->coord0[m];
-      
-      if (side == 0) walllo[dim] = wallcoord;
-      else wallhi[dim] = wallcoord;
-    }
-    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
-      (wallhi[2] - walllo[2]);
-  }
-   
   // vol_P = volume of particles, assuming mono-dispersity
   // vol_f = volume fraction
 
-  vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3);
-  
+  double vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3);
   double vol_f = vol_P/vol_T;
   
   // set isotropic constants
-  if (!flagVF) vol_f = 0;
-
+ 
   if (flaglog == 0) {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
     RT0 = 8*MY_PI*mu*pow(rad,3);  // not actually needed
@@ -632,8 +519,6 @@ void PairBrownian::write_restart_settings(FILE *fp)
   fwrite(&seed,sizeof(int),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
-  fwrite(&flagHI,sizeof(int),1,fp);
-  fwrite(&flagVF,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -653,8 +538,6 @@ void PairBrownian::read_restart_settings(FILE *fp)
     fread(&seed, sizeof(int),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
-    fread(&flagHI,sizeof(int),1,fp);
-    fread(&flagVF,sizeof(int),1,fp);
   }
   MPI_Bcast(&mu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&flaglog,1,MPI_INT,0,world);
@@ -665,8 +548,6 @@ void PairBrownian::read_restart_settings(FILE *fp)
   MPI_Bcast(&seed,1,MPI_INT,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&flagHI,1,MPI_INT,0,world);
-  MPI_Bcast(&flagVF,1,MPI_INT,0,world);
 
   // additional setup based on restart parameters
 

@@ -39,12 +39,16 @@ class FixRestrain : public Fix {
 
  private:
   int nlevels_respa;
-  int n_bonds, rstyle;
-  double k_start, k_stop, energy, energy_all;
-  int **atom_id;
-  double *target, *cos_shift, *sin_shift;
+  int nrestrain,maxrestrain;
+  int *rstyle;
+  int **ids;
+  double *kstart,*kstop,*target;
+  double *cos_target,*sin_target;
+  double energy,energy_all;
 
-  void restrain_dihedral();
+  void restrain_bond(int);
+  void restrain_angle(int);
+  void restrain_dihedral(int);
 };
 
 }

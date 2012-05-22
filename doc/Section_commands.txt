@@ -653,6 +653,7 @@ potentials.  Click on the style itself for a full description:
 "hbond/dreiding/lj"_pair_hbond_dreiding.html,
 "hbond/dreiding/morse"_pair_hbond_dreiding.html,
 "kim"_pair_kim.html,
+"lcbop"_pair_lcbop.html,
 "line/lj"_pair_line_lj.html,
 "lj/charmm/coul/charmm"_pair_charmm.html,
 "lj/charmm/coul/charmm/implicit"_pair_charmm.html,

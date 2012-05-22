@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
-     per-atom energy/virial, group/group energy/force added by Stan Moore (BYU)
+     per-atom energy/virial & group/group energy/force added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -137,9 +137,9 @@ void PPPM::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
-  if (order > MAXORDER) {
+  if (order < 2 || order > MAXORDER) {
     char str[128];
-    sprintf(str,"PPPM order cannot be greater than %d",MAXORDER);
+    sprintf(str,"PPPM order cannot be < 2 or > than %d",MAXORDER);
     error->all(FLERR,str);
   }
 
@@ -241,7 +241,7 @@ void PPPM::init()
 
   int iteration = 0;
 
-  while (order > 0) {
+  while (order > 1) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
 		     "beyond neighbor processor");
@@ -1015,12 +1015,12 @@ void PPPM::set_grid()
 
   if (!gridflag) {
     double err;
-    h_x = h_y = h_z = 1/g_ewald;  
+    h_x = h_y = h_z = 1.0/g_ewald;  
 
-    nx_pppm = static_cast<int> (xprd/h_x + 1);
-    ny_pppm = static_cast<int> (yprd/h_y + 1);
-    nz_pppm = static_cast<int> (zprd_slab/h_z + 1);
-
+    nx_pppm = static_cast<int> (xprd/h_x) + 1;
+    ny_pppm = static_cast<int> (yprd/h_y) + 1;
+    nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
+    
     err = rms(h_x,xprd,natoms,q2,acons);
     while (err > accuracy) {
       err = rms(h_x,xprd,natoms,q2,acons);
@@ -1064,7 +1064,7 @@ void PPPM::set_grid()
     f = diffpr(h_x,h_y,h_z,q2,acons);
 
     hmin = MIN(h_x,MIN(h_y,h_z));
-    gew2 = 10/hmin;
+    gew2 = 10.0/hmin;
     g_ewald = gew2;
     fmid = diffpr(h_x,h_y,h_z,q2,acons);
 

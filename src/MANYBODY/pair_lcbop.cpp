@@ -12,10 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Dominik Wójt( Wroclaw University of Technology )
-   Based on pair_airebo by: Ase Henry (MIT)
-   Bugfixes and optimizations to original pair_airebo:
-     Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
+   Contributing author: Dominik Wójt (Wroclaw University of Technology)
+     based on pair_airebo by Ase Henry (MIT)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -148,7 +146,6 @@ void PairLCBOP::coeff(int narg, char **arg)
       map[i-2] = 0;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }
-
 
   // read potential file and initialize fitting splines
 
@@ -531,7 +528,6 @@ void PairLCBOP::FLR(int eflag, int vflag)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    forces for Nij and Mij
 ------------------------------------------------------------------------- */
@@ -570,6 +566,8 @@ void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom ) 
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom ) {
   int atomi = i;
@@ -888,6 +886,8 @@ void PairLCBOP::g_decompose_x( double x, size_t *field_idx, double *offset ) {
   *offset = ( x - gX[i] );
 }
 
+/* ---------------------------------------------------------------------- */
+
 double PairLCBOP::gSpline( double x, double *dgdc ) {
   size_t i;
   double x_n;
@@ -903,6 +903,8 @@ double PairLCBOP::gSpline( double x, double *dgdc ) {
   sum += gC[5][i]*pow_x_n;
   return sum;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairLCBOP::hSpline( double x, double *dhdx ) {
   if( x < -d ) {
@@ -931,6 +933,8 @@ double PairLCBOP::hSpline( double x, double *dhdx ) {
       result += C_6*pow_x;
     return result;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dFN_ij, double *dFN_ji, double *dFN_ij_conj ) {
   size_t N_ij_int         = MIN( static_cast<size_t>( floor( N_ij ) ), 2 ); // 2 is the highest number of field
@@ -963,7 +967,6 @@ double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dF
 
   return result;
 }
-
 
 /* ----------------------------------------------------------------------
    read LCBOP potential file
@@ -1028,7 +1031,6 @@ void PairLCBOP::read_file(char *filename)
       fgets(s,MAXLINE,fp);
       if (s[0] != '#') break;
     }
-
 
     // F_conj spline
 
@@ -1138,7 +1140,6 @@ void PairLCBOP::spline_init() {
     field.f_y_10 =   F_conj_data[N_ij+1][N_ji  ][N_conj_ij][2] - field.f_11 + field.f_10;
     field.f_y_11 = -(F_conj_data[N_ij+1][N_ji+1][N_conj_ij][2] - field.f_11 + field.f_10);
   }
-
 
   //some testing:
   std::ofstream file( "test.txt" );

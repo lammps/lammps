@@ -83,16 +83,20 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 
   // output prefix is always given
   output_prefix_str = std::string(out_name);
+  // not so for restarts
   restart_prefix_str = std::string("rest");
 
-  if (_lmp->output->restart_every > 0) {
+  // try to extract a restart prefix from a potential restart command.
+  if (_lmp->output->restart_every_single > 0) {
     restart_prefix_str = std::string(_lmp->output->restart1);
-    
-    if (restart_prefix_str.rfind(".*") != std::string::npos)
-      restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
+  } else if  (_lmp->output->restart_every_double > 0) {
+    restart_prefix_str = std::string(_lmp->output->restart2a);
   }
+  // trim off unwanted stuff from the restart prefix
+  if (restart_prefix_str.rfind(".*") != std::string::npos)
+    restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
 
-  // initiate the colvarmodule
+  // create the colvarmodule instance
   colvars = new colvarmodule(conf_file,this);
 
   if (_lmp->update->ntimestep != 0) {

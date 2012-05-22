@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Georgios G. Vogiatzis (CoMSE, NTU Athens)
+   Contributing author: Georgios G. Vogiatzis (CoMSE, NTU Athens),
+     gvog@chemeng.ntua.gr
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"

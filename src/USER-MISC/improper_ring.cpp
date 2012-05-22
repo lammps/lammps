@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
-   Contributing author: Georgios G. Vogiatzis (NTU Athens)
+   Contributing author: Georgios G. Vogiatzis (NTU Athens),
+     gvog@chemeng.ntua.gr
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -76,7 +76,6 @@ ImproperRing::~ImproperRing()
 
 void ImproperRing::compute(int eflag, int vflag)
 {
-
    /* Be careful!: "chi" is the equilibrium angle in radians. */
    int i1,i2,i3,i4,n,type;
 

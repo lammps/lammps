@@ -37,6 +37,11 @@ class ReadData : protected Pointers {
   char **arg;
   int me,narg,maxarg,compressed;
 
+  int nfix;           // # of extra fixes that process/store info in data file
+  int *fix_index;
+  char **fix_header;
+  char **fix_section;
+
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
   bigint nlines;
@@ -67,6 +72,8 @@ class ReadData : protected Pointers {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
+
+  void fix(int, char *, bigint);
 };
 
 }

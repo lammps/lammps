@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
      per-atom energy/virial added by German Samolyuk (ORNL), Stan Moore (BYU)
+     group/group energy/force added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -42,6 +43,8 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
+  group_group_enable = 1;
+
   accuracy_relative = atof(arg[0]);
 
   kmax = 0;
@@ -64,6 +67,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 Ewald::~Ewald()
 {
   deallocate();
+  deallocate_groups();
   memory->destroy(ek);
   memory->destroy3d_offset(cs,-kmax_created);
   memory->destroy3d_offset(sn,-kmax_created);
@@ -261,6 +265,7 @@ void Ewald::setup()
   if (kmax > kmax_old) {
     deallocate();
     allocate();
+    group_allocate_flag = 0;
 
     memory->destroy(ek);
     memory->destroy3d_offset(cs,-kmax_created);
@@ -965,4 +970,200 @@ double Ewald::memory_usage()
   bytes += nmax*3 * sizeof(double);
   bytes += 2 * (2*kmax+1)*3*nmax * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   group-group interactions
+ ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   compute the Ewald total long-range force and energy for groups A and B
+ ------------------------------------------------------------------------- */
+
+void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
+{
+  if (slabflag) 
+    error->all(FLERR,"Cannot (yet) use Kspace slab correction "
+	       "with compute group/group");  
+    
+  int i,k;
+
+  if (!group_allocate_flag) {
+    allocate_groups();
+    group_allocate_flag = 1;
+  }    
+    
+  e2group = 0; //energy
+  f2group[0] = 0; //force in x-direction
+  f2group[1] = 0; //force in y-direction
+  f2group[2] = 0; //force in z-direction
+    
+  // partial and total structure factors for groups A and B    
+    
+  for (k = 0; k < kcount; k++) {
+    
+    // group A
+      
+    sfacrl_A[k] = 0;
+    sfacim_A[k] = 0;
+    sfacrl_A_all[k] = 0;
+    sfacim_A_all[k] = 0;
+      
+    // group B  
+      
+    sfacrl_B[k] = 0;
+    sfacim_B[k] = 0;
+    sfacrl_B_all[k] = 0;
+    sfacim_B_all[k] = 0;
+  }
+    
+  double *q = atom->q;
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+    
+  int kx,ky,kz;
+  double cypz,sypz,exprl,expim;
+    
+  // partial structure factors for groups A and B on each processor
+    
+  for (k = 0; k < kcount; k++) {
+    kx = kxvecs[k];
+    ky = kyvecs[k];
+    kz = kzvecs[k];
+        
+    for (i = 0; i < nlocal; i++) {
+        
+      if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+        if (BA_flag) continue;
+        
+      if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {  
+          
+        cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
+        sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
+        exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
+        expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
+        
+        // group A
+        
+        if (mask[i] & groupbit_A) {
+          sfacrl_A[k] += q[i]*exprl;
+          sfacim_A[k] += q[i]*expim;
+        } 
+        
+        // group B
+        
+        if (mask[i] & groupbit_B) {
+          sfacrl_B[k] += q[i]*exprl;
+          sfacim_B[k] += q[i]*expim;
+        }
+      }
+    }
+  }
+    
+  // total structure factor by summing over procs    
+    
+  MPI_Allreduce(sfacrl_A,sfacrl_A_all,kcount,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sfacim_A,sfacim_A_all,kcount,MPI_DOUBLE,MPI_SUM,world);
+    
+  MPI_Allreduce(sfacrl_B,sfacrl_B_all,kcount,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sfacim_B,sfacim_B_all,kcount,MPI_DOUBLE,MPI_SUM,world);
+    
+  const double qscale = force->qqrd2e * scale; 
+  double partial_group;
+    
+
+  // total group A <--> group B energy
+    
+  for (k = 0; k < kcount; k++) {
+    partial_group = sfacrl_A_all[k]*sfacrl_B_all[k] + 
+      sfacim_A_all[k]*sfacim_B_all[k];
+    e2group += ug[k]*partial_group;
+  } 
+    
+  // total charge of groups A & B, needed for self-energy correction        
+    
+  double qsum_group = 0.0, qsqsum_group = 0.0;
+    
+  for (int i = 0; i < atom->nlocal; i++) {
+    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B)) {
+      if (BA_flag) continue;
+      qsqsum_group += q[i]*q[i];
+    }
+
+    //if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B))
+    //  qsum_group += q[i];
+  }
+    
+  double tmp;
+  MPI_Allreduce(&qsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_group = tmp;
+    
+  //MPI_Allreduce(&qsqsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  //qsqsum_group = tmp;    
+    
+  // self-energy correction
+    
+  e2group -= g_ewald*qsqsum_group/MY_PIS;
+                                                   
+  // should we include the boundary condition or not?    
+  //  e2group += MY_PI2*qsum_group*qsum_group / (g_ewald*g_ewald*volume);
+
+  e2group *= qscale;
+    
+    
+  // total group A <--> group B force
+    
+  for (k = 0; k < kcount; k++) {
+    partial_group = sfacim_A_all[k]*sfacrl_B_all[k] - 
+      sfacrl_A_all[k]*sfacim_B_all[k];
+    f2group[0] += eg[k][0]*partial_group;
+    f2group[1] += eg[k][1]*partial_group;
+    f2group[2] += eg[k][2]*partial_group;
+  }
+    
+  f2group[0] *= qscale;
+  f2group[1] *= qscale;
+  f2group[2] *= qscale;
+}
+
+/* ----------------------------------------------------------------------
+   allocate group-group memory that depends on # of K-vectors
+------------------------------------------------------------------------- */
+
+void Ewald::allocate_groups()
+{   
+  // group A
+    
+  sfacrl_A = new double[kmax3d];
+  sfacim_A = new double[kmax3d];
+  sfacrl_A_all = new double[kmax3d];
+  sfacim_A_all = new double[kmax3d];
+    
+  // group B
+    
+  sfacrl_B = new double[kmax3d];
+  sfacim_B = new double[kmax3d];
+  sfacrl_B_all = new double[kmax3d];
+  sfacim_B_all = new double[kmax3d];
+}
+
+/* ----------------------------------------------------------------------
+   deallocate group-group memory that depends on # of K-vectors
+------------------------------------------------------------------------- */
+
+void Ewald::deallocate_groups()
+{
+  // group A
+    
+  delete [] sfacrl_A;
+  delete [] sfacim_A;
+  delete [] sfacrl_A_all;
+  delete [] sfacim_A_all;
+    
+  // group B
+    
+  delete [] sfacrl_B;
+  delete [] sfacim_B;
+  delete [] sfacrl_B_all;
+  delete [] sfacim_B_all;
 }

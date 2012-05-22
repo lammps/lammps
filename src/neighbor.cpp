@@ -262,7 +262,7 @@ void Neighbor::init()
   // don't check if build_once is set
 
   restart_check = 0;
-  if (output->restart_every) restart_check = 1;
+  if (output->restart_flag) restart_check = 1;
 
   delete [] fixchecklist;
   fixchecklist = NULL;

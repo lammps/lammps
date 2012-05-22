@@ -15,6 +15,7 @@ restart N root
 restart N file1 file2 :pre
 
 N = write a restart file every this many timesteps
+N can be a variable (see below)
 root = filename to which timestep # is appended
 file1,file2 = two full filenames, toggle between them when writing file :ul
 
@@ -23,25 +24,36 @@ file1,file2 = two full filenames, toggle between them when writing file :ul
 restart 0
 restart 1000 poly.restart
 restart 1000 restart.*.equil
-restart 10000 poly.%.1 poly.%.2 :pre
+restart 10000 poly.%.1 poly.%.2
+restart v_mystep poly.restart :pre
 
 [Description:]
 
-Write out a binary restart file every so many timesteps as a run
-proceeds.  A value of 0 means do not write out restart files.  Using
-one filename as an argument will create a series of filenames which
-include the timestep in the filename.  Using two filenames will
-produce only 2 restart files.  LAMMPS will toggle between the 2 names
-as it writes successive restart files.
+Write out a binary restart file every so many timesteps, in either or
+both of two modes, as a run proceeds.  A value of 0 means do not write
+out any restart files.  The two modes are as follows.  If one filename
+is specified, a series of filenames will be created which include the
+timestep in the filename.  If two filenames are specified, only 2
+restart files will be created, with those names.  LAMMPS will toggle
+between the 2 names as it writes successive restart files.
+
+Note that you can specify the restart command twice, once with a
+single filename and once with two filenames.  This would allow you,
+for example, to write out archival restart files every 100000 steps
+using a single filenname, and more frequent temporary restart files
+every 1000 steps, using two filenames.  Using restart 0 will turn off
+both modes of output.
 
 Similar to "dump"_dump.html files, the restart filename(s) can contain
-two wild-card characters.  If a "*" appears in the filename, it is
-replaced with the current timestep value.  This is only recognized
-when a single filename is used (not when toggling back and forth).
-Thus, the 3rd example above creates restart files as follows:
-restart.1000.equil, restart.2000.equil, etc.  If a single filename is
-used with no "*", then the timestep value is appended.  E.g. the 2nd
-example above creates restart files as follows: poly.restart.1000,
+two wild-card characters.
+
+If a "*" appears in the single filename, it is replaced with the
+current timestep value.  This is only recognized when a single
+filename is used (not when toggling back and forth).  Thus, the 3rd
+example above creates restart files as follows: restart.1000.equil,
+restart.2000.equil, etc.  If a single filename is used with no "*",
+then the timestep value is appended.  E.g. the 2nd example above
+creates restart files as follows: poly.restart.1000,
 poly.restart.2000, etc.
 
 If a "%" character appears in the restart filename(s), then one file
@@ -55,10 +67,33 @@ of output and subsequent input on parallel machines that support
 parallel I/O.
 
 Restart files are written on timesteps that are a multiple of N but
-not on the first timestep of a run or minimization.  A restart file is
-not written on the last timestep of a run unless it is a multiple of
-N.  A restart file is written on the last timestep of a minimization
-if N > 0 and the minimization converges.
+not on the first timestep of a run or minimization.  You can use the
+"write_restart"_write_restart.html command to write a restart file
+before a run begins.  A restart file is not written on the last
+timestep of a run unless it is a multiple of N.  A restart file is
+written on the last timestep of a minimization if N > 0 and the
+minimization converges.
+
+Instead of a numeric value, N can be specifed as an "equal-style
+variable"_variable.html, which should be specified as v_name, where
+name is the variable name.  In this case, the variable is evaluated at
+the beginning of a run to determine the next timestep at which a
+restart file will be written out.  On that timestep, the variable will
+be evaluated again to determine the next timestep, etc.  Thus the
+variable should return timestep values.  See the stagger() and
+logfreq() and stride() math functions for "equal-style
+variables"_variable.html, as examples of useful functions to use in
+this context.  Other similar math functions could easily be added as
+options for "equal-style variables"_variable.html.
+
+For example, the following commands will write restart files 
+every step from 1100 to 1200, and could be useful for debugging
+a simulation where something goes wrong at step 1163:
+
+variable	s equal stride(1100,1200,1)
+restart		v_s tmp.restart :pre
+
+:line
 
 See the "read_restart"_read_restart.html command for information about
 what is stored in a restart file.

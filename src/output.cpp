@@ -84,10 +84,11 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   ivar_dump = NULL;
   dump = NULL;
 
-  restart = NULL;
-  restart1 = restart2 = NULL;
-  restart_every = 0;
+  restart_flag = restart_flag_single = restart_flag_double = 0;
   last_restart = -1;
+  restart1 = restart2a = restart2b = NULL;
+  var_restart_single = var_restart_double = NULL;
+  restart = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -108,9 +109,12 @@ Output::~Output()
   for (int i = 0; i < ndump; i++) delete dump[i];
   memory->sfree(dump);
 
-  delete restart;
   delete [] restart1;
-  delete [] restart2;
+  delete [] restart2a;
+  delete [] restart2b;
+  delete [] var_restart_single;
+  delete [] var_restart_double;
+  delete restart;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,6 +140,21 @@ void Output::init()
       if (!input->variable->equalstyle(ivar_dump[i]))
 	error->all(FLERR,"Variable for dump every is invalid style");
     }
+
+  if (restart_flag_single && restart_every_single == 0) {
+    ivar_restart_single = input->variable->find(var_restart_single);
+    if (ivar_restart_single < 0)
+      error->all(FLERR,"Variable name for restart does not exist");
+    if (!input->variable->equalstyle(ivar_restart_single))
+      error->all(FLERR,"Variable for restart is invalid style");
+  }
+  if (restart_flag_double && restart_every_double == 0) {
+    ivar_restart_double = input->variable->find(var_restart_double);
+    if (ivar_restart_double < 0)
+      error->all(FLERR,"Variable name for restart does not exist");
+    if (!input->variable->equalstyle(ivar_restart_double))
+      error->all(FLERR,"Variable for restart is invalid style");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -151,7 +170,7 @@ void Output::setup(int flag)
   // perform dump at start of run if current timestep is multiple of every
   //   and last dump was not on this timestep
   // set next_dump to multiple of every
-  // will not write on last step of run unless multiple of every
+  // do not write on last step of run unless multiple of every
   // set next_dump_any to smallest next_dump
   // if no dumps, set next_dump_any to last+1 so will not influence next
   // wrap dumps that invoke computes with clear/add
@@ -189,14 +208,40 @@ void Output::setup(int flag)
     }
   } else next_dump_any = update->laststep + 1;
 
-  // do not write a restart file at start of run
-  // set next_restart to multiple of every
-  // will not write on last step of run unless multiple of every
+  // do not write restart files at start of run
+  // set next_restart values to multiple of every or variable value
+  // do not write on last step of run unless multiple of every
   // if every = 0, set next_restart to last+1 so will not influence next
 
-  if (restart_every && update->restrict_output == 0)
-    next_restart = (ntimestep/restart_every)*restart_every + restart_every;
-  else next_restart = update->laststep + 1;
+  if (restart_flag && update->restrict_output == 0) {
+    if (restart_flag_single) {
+      if (restart_every_single)
+	next_restart_single = 
+	  (ntimestep/restart_every_single)*restart_every_single + 
+	  restart_every_single;
+      else {
+	bigint nextrestart = static_cast<bigint> 
+	  (input->variable->compute_equal(ivar_restart_single));
+	if (nextrestart <= ntimestep)
+	  error->all(FLERR,"Restart variable returned a bad timestep");
+	next_restart_single = nextrestart;
+      }
+    } else next_restart_single = update->laststep + 1;
+    if (restart_flag_double) {
+      if (restart_every_double)
+	next_restart_double = 
+	  (ntimestep/restart_every_double)*restart_every_double + 
+	  restart_every_double;
+      else {
+	bigint nextrestart = static_cast<bigint> 
+	  (input->variable->compute_equal(ivar_restart_double));
+	if (nextrestart <= ntimestep)
+	  error->all(FLERR,"Restart variable returned a bad timestep");
+	next_restart_double = nextrestart;
+      }
+    } else next_restart_double = update->laststep + 1;
+    next_restart = MIN(next_restart_single,next_restart_double);
+  } else next_restart = update->laststep + 1;
 
   // print memory usage unless being called between multiple runs
 
@@ -217,7 +262,7 @@ void Output::setup(int flag)
     next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
     next_thermo = MIN(next_thermo,update->laststep);
   } else if (var_thermo) {
-    next_thermo = static_cast<int> 
+    next_thermo = static_cast<bigint> 
       (input->variable->compute_equal(ivar_thermo));
     if (next_thermo <= ntimestep)
       error->all(FLERR,"Thermo every variable returned a bad timestep");
@@ -244,7 +289,6 @@ void Output::write(bigint ntimestep)
   // download data from GPU if necessary
 
   if (next_dump_any == ntimestep) {
-
     if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
     for (int idump = 0; idump < ndump; idump++) {
@@ -272,10 +316,9 @@ void Output::write(bigint ntimestep)
   // download data from GPU if necessary
 
   if (next_restart == ntimestep && last_restart != ntimestep) {
-
     if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();    
     
-    if (restart_toggle == 0) {
+    if (next_restart_single == ntimestep) {
       char *file = new char[strlen(restart1) + 16];
       char *ptr = strchr(restart1,'*');
       *ptr = '\0';
@@ -283,15 +326,34 @@ void Output::write(bigint ntimestep)
       *ptr = '*';
       restart->write(file);
       delete [] file;
-    } else if (restart_toggle == 1) {
-      restart->write(restart1);
-      restart_toggle = 2;
-    } else if (restart_toggle == 2) {
-      restart->write(restart2);
-      restart_toggle = 1;
+      if (restart_every_single) next_restart_single += restart_every_single;
+      else {
+	bigint nextrestart = static_cast<bigint> 
+	  (input->variable->compute_equal(ivar_restart_single));
+	if (nextrestart <= ntimestep)
+	  error->all(FLERR,"Restart variable returned a bad timestep");
+	next_restart_single = nextrestart;
+      }
+    }
+    if (next_restart_double == ntimestep) {
+      if (restart_toggle == 0) {
+	restart->write(restart2a);
+	restart_toggle = 1;
+      } else {
+	restart->write(restart2b);
+	restart_toggle = 0;
+      }
+      if (restart_every_double) next_restart_double += restart_every_double;
+      else {
+	bigint nextrestart = static_cast<bigint> 
+	  (input->variable->compute_equal(ivar_restart_double));
+	if (nextrestart <= ntimestep)
+	  error->all(FLERR,"Restart variable returned a bad timestep");
+	next_restart_double = nextrestart;
+      }
     }
     last_restart = ntimestep;
-    next_restart += restart_every;
+    next_restart = MIN(next_restart_single,next_restart_double);
   }
 
   // insure next_thermo forces output on last step of run
@@ -303,7 +365,7 @@ void Output::write(bigint ntimestep)
     last_thermo = ntimestep;
     if (thermo_every) next_thermo += thermo_every;
     else if (var_thermo) {
-      next_thermo = static_cast<int> 
+      next_thermo = static_cast<bigint> 
 	(input->variable->compute_equal(ivar_thermo));
       if (next_thermo <= ntimestep)
 	error->all(FLERR,"Thermo every variable returned a bad timestep");
@@ -331,12 +393,13 @@ void Output::write_dump(bigint ntimestep)
 }
 
 /* ----------------------------------------------------------------------
-   force a restart file to be written
+   force restart file(s) to be written
+   called from PRD and TAD
 ------------------------------------------------------------------------- */
 
 void Output::write_restart(bigint ntimestep)
 {
-  if (restart_toggle == 0) {
+  if (restart_flag_single) {
     char *file = new char[strlen(restart1) + 16];
     char *ptr = strchr(restart1,'*');
     *ptr = '\0';
@@ -344,12 +407,16 @@ void Output::write_restart(bigint ntimestep)
     *ptr = '*';
     restart->write(file);
     delete [] file;
-  } else if (restart_toggle == 1) {
-    restart->write(restart1);
-    restart_toggle = 2;
-  } else if (restart_toggle == 2) {
-    restart->write(restart2);
-    restart_toggle = 1;
+  }
+
+  if (restart_flag_double) {
+    if (restart_toggle == 0) {
+      restart->write(restart2a);
+      restart_toggle = 1;
+    } else {
+      restart->write(restart2b);
+      restart_toggle = 0;
+    }
   }
 
   last_restart = ntimestep;
@@ -479,45 +546,79 @@ void Output::create_thermo(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   setup restart capability
+   setup restart capability for single or double output files
    if only one filename and it contains no "*", then append ".*"
 ------------------------------------------------------------------------- */
 
 void Output::create_restart(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal restart command");
+  
+  int every = 0;
+  int varflag = 0;
 
-  if (restart) delete restart;
-  delete [] restart1;
-  delete [] restart2;
-  restart = NULL;
-  restart1 = restart2 = NULL;
-  last_restart = -1;
+  if (strstr(arg[0],"v_") == arg[0]) varflag = 1;
+  else every = atoi(arg[0]);
 
-  restart_every = atoi(arg[0]);
-  if (restart_every == 0) {
+  if (!varflag && every == 0) {
     if (narg != 1) error->all(FLERR,"Illegal restart command");
+
+    restart_flag = restart_flag_single = restart_flag_double = 0;
+    last_restart = -1;
+
+    delete restart;
+    restart = NULL;
+    delete [] restart1;
+    delete [] restart2a;
+    delete [] restart2b;
+    restart1 = restart2a = restart2b = NULL;
+    delete [] var_restart_single;
+    delete [] var_restart_double;
+    var_restart_single = var_restart_double = NULL;
+
     return;
   }
 
-  restart = new WriteRestart(lmp);
-
   if (narg != 2 && narg != 3) error->all(FLERR,"Illegal restart command");
 
-  int n = strlen(arg[1]) + 3;
-  restart1 = new char[n];
-  strcpy(restart1,arg[1]);
-
   if (narg == 2) {
-    restart_toggle = 0;
-    restart2 = NULL;
+    restart_flag = restart_flag_single = 1;
+
+    if (varflag) {
+      delete [] var_restart_single;
+      int n = strlen(&arg[0][2]) + 1;
+      var_restart_single = new char[n];
+      strcpy(var_restart_single,&arg[0][2]);
+      restart_every_single = 0;
+    } else restart_every_single = every;
+
+    int n = strlen(arg[1]) + 3;
+    restart1 = new char[n];
+    strcpy(restart1,arg[1]);
     if (strchr(restart1,'*') == NULL) strcat(restart1,".*");
-  } else if (narg == 3) {
-    restart_toggle = 1;
+  }
+
+  if (narg == 3) {
+    restart_flag = restart_flag_double = 1;
+
+    if (varflag) {
+      delete [] var_restart_double;
+      int n = strlen(&arg[0][2]) + 1;
+      var_restart_double = new char[n];
+      strcpy(var_restart_double,&arg[0][2]);
+      restart_every_double = 0;
+    } else restart_every_double = every;
+
+    restart_toggle = 0;
+    int n = strlen(arg[1]) + 3;
+    restart2a = new char[n];
+    strcpy(restart2a,arg[1]);
     n = strlen(arg[2]) + 1;
-    restart2 = new char[n];
-    strcpy(restart2,arg[2]);
-  } else error->all(FLERR,"Illegal restart command");
+    restart2b = new char[n];
+    strcpy(restart2b,arg[2]);
+  }
+
+  if (restart == NULL) restart = new WriteRestart(lmp);
 }
 
 /* ----------------------------------------------------------------------

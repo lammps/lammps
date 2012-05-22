@@ -55,7 +55,8 @@ these terms is included in the pair energy, not the dihedral energy.
 <A HREF = "#Heyes">(Heyes)</A> for the Ewald method and a related method for PPPM,
 as specified by the <A HREF = "kspace_style.html">kspace_style pppm</A> command.
 For PPPM, the calcluation requires 1 extra FFT each timestep that
-per-atom stress is calculated.
+per-atom energy is calculated.  Thie <A HREF = "PDF/kspace.pdf">document</A>
+describes how the long-range per-atom energy calculation is performed.
 </P>
 <P>As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result

@@ -48,8 +48,9 @@ Values for x,y,z of 0,0,0 unset the option.
 The {order} keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the FFT grid in kspace style pppm.  The
 default for this parameter is 5, which means each charge spans 5 grid
-cells in each dimension.  The larger the value of this parameter, the
-smaller the FFT grid will need to be to achieve the requested
+cells in each dimension.  The minimum allowed setting is 2 and the
+maximum allowed setting is 7.  The larger the value of this parameter,
+the smaller the FFT grid will need to be to achieve the requested
 precision.  Conversely, the smaller the order value, the larger the
 grid will be.  Note that there is an inherent trade-off involved: a
 small grid will lower the cost of FFTs, but a large order parameter

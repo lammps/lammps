@@ -19,15 +19,15 @@ keyword = {bond} or {angle} or {dihedral} :l
   {bond} args = atom1 atom2 Kstart Kstop r0
     atom1,atom2 = IDs of 2 atoms in bond
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-    r0 = target value for bond distance (distance units)
-  {angle} args = atom1 atom2 atom3 Kstart Kstop theta
+    r0 = equilibrium bond distance (distance units)
+  {angle} args = atom1 atom2 atom3 Kstart Kstop theta0
     atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-    theta = target value for angle theta (degrees)
-  {bond} args = atom1 atom2 atom3 atom4 Kstart Kstop phi
+    theta0 = equilibrium angle theta (degrees)
+  {bond} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0
     atom1,atom2,atom3,atom4 = IDs of 4 atoms in dihedral in linear order
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-    phi = target value for dihedral angle phi (degrees) :pre
+    phi0 = equilibrium dihedral angle phi (degrees) :pre
 :ule
 
 [Examples:]
@@ -40,20 +40,22 @@ fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5
 [Description:]
 
 Restrain the motion of the specified sets of atoms by making them part
-of bond or angle or dihedral interaction whose strength can vary over
-time during a simulation.  This is functionally equivalent to creating
-a bond or angle or dihedral for the same atoms in a data file, as
-specified by the "read_data"_read_data.html command, albeit with a
-time-varying pre-factor coefficient.  For the purpose of forcefield
-parameter-fitting or mapping a molecular potential energy surface,
-this fix reduces the hassle and risk associated with modifying data
-files.  In other words, use this fix to temporarily force a molecule
-to adopt a particular conformation.  To create a permanent bond or
-angle or dihedral, you should modify the data file.
+of a bond or angle or dihedral interaction whose strength can vary
+over time during a simulation.  This is functionally equivalent to
+creating a bond or angle or dihedral for the same atoms in a data
+file, as specified by the "read_data"_read_data.html command, albeit
+with a time-varying pre-factor coefficient.  For the purpose of
+forcefield parameter-fitting or mapping a molecular potential energy
+surface, this fix reduces the hassle and risk associated with
+modifying data files.  In other words, use this fix to temporarily
+force a molecule to adopt a particular conformation.  To create a
+permanent bond or angle or dihedral, you should modify the data file.
 
-The first example above applies a restraint to hold the dihedral angle
-formed by atoms 1, 2, 3, and 4 near 120 degrees using a constant
-restraint coefficient.  The second example applies similar restraints
+The group-ID specified by this fix is ignored.
+
+The second example above applies a restraint to hold the dihedral
+angle formed by atoms 1, 2, 3, and 4 near 120 degrees using a constant
+restraint coefficient.  The fourth example applies similar restraints
 to multiple dihedral angles using a restraint coefficient that
 increases from 0.0 to 2000.0 over the course of the run.
 
@@ -67,7 +69,7 @@ self-consistent minimization problem (see below).
 
 In order for a restraint to be effective, the restraint force must
 typically be significantly larger than the forces associated with
-conventional forcefield terms. If the restraint is applied during a
+conventional forcefield terms.  If the restraint is applied during a
 dynamics run (as opposed to during an energy minimization), a large
 restraint coefficient can significantly reduce the stable timestep
 size, especially if the atoms are initially far from the preferred
@@ -77,17 +79,17 @@ works best for a given application.
 For the case of finding a minimum energy structure for a single
 molecule with particular restratins (e.g. for fitting forcefield
 parameters or constructing a potential energy surface), commands such
-as the following might be useful:
+as the following may be useful:
 
 # minimize molecule energy with restraints
 velocity all create 600.0 8675309 mom yes rot yes dist gaussian
 fix NVE all nve
 fix TFIX all langevin 600.0 0.0 100 24601
-fix REST all restrain 0.0 5000.0 dihedral 2 1 3 8 ${angle1} 3 1 2 9 ${angle2}
+fix REST all restrain dihedral 2 1 3 8 0.0 5000.0 ${angle1} dihedral 3 1 2 9 0.0 5000.0 ${angle2}
 fix_modify REST energy yes
 run 10000
 fix TFIX all langevin 0.0 0.0 100 24601
-fix REST all restrain 5000.0 5000.0 dihedral 2 1 3 8 ${angle1} 3 1 2 9 ${angle2}
+fix REST all restrain dihedral 2 1 3 8 5000.0 5000.0 ${angle1} dihedral 3 1 2 9 5000.0 5000.0 ${angle2}
 fix_modify REST energy yes
 run 10000
 # sanity check for convergence
@@ -98,18 +100,56 @@ run 0 :pre
 
 :line
 
+The {bond} keyword applies a bond restraint to the specified atoms
+using the same functional form used by the "bond_style
+harmonic"_bond_harmonic.html command.  The potential associated with
+the restraint is
+
+:c,image(Eqs/bond_harmonic.jpg)
+
+with the following coefficients:
+
+K (energy/distance^2)
+r0 (distance) :ul
+
+K and r0 are specified with the fix.  Note that the usual 1/2 factor
+is included in K.
+
+:line
+
+The {angle} keyword applies an angle restraint to the specified atoms
+using the same functional form used by the "angle_style
+harmonic"_angle_harmonic.html command.  The potential associated with
+the restraint is
+
+:c,image(Eqs/angle_harmonic.jpg)
+
+with the following coefficients:
+
+K (energy/radian^2)
+theta0 (degrees) :ul
+
+K and theta0 are specified with the fix.  Note that the usual 1/2
+factor is included in K.
+
+:line
+
 The {dihedral} keyword applies a dihedral restraint to the specified
-atoms using a simplified form of the function used in "dihedral_style
-charmm"_dihedral_charmm.html. Specifically, the potential associated
-with the restraint is
+atoms using a simplified form of the function used by the
+"dihedral_style charmm"_dihedral_charmm.html command.  The potential
+associated with the restraint is
 
 :c,image(Eqs/dihedral_charmm.jpg)
 
 with the following coefficients:
 
-K (energy) = K (specified above)
+K (energy)
 n = 1
-d (degrees) = 180.0 + target (specified above) :ul
+d (degrees) = phi0 + 180 :ul
+
+K and phi0 are specified with the fix.  Note that the value of n is
+hard-wired to 1.  Also note that the energy will be a minimum when the
+current dihedral angle phi is equal to phi0.
 
 :line
 
@@ -130,18 +170,13 @@ the system (the quantity being minimized), you MUST enable the
 
 This fix computes a global scalar, which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The scalar is the
-potential energy discussed above. The scalar value calculated by this
-fix is "extensive".
+potential energy for all the restraints as discussed above. The scalar
+value calculated by this fix is "extensive".
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
 
-[Restrictions:]
-
-The group-ID specified by this fix is ignored.
-
-Currently, only dihedral restraints are allowed, but modification of
-the code to allow angle and bond restraints would be straightforward.
+[Restrictions:] none
 
 [Related commands:] none
 

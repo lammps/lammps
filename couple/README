@@ -32,5 +32,7 @@ lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 		    coupling to SPPARKS kinetic MC code
 library		    collection of useful inter-code communication routines
 simple		    simple example of driver code calling LAMMPS as library
+fortran             a wrapper on the LAMMPS library API that
+ 		      can be called from Fortran
 
 Each sub-directory has its own README.

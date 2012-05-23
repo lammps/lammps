@@ -1759,7 +1759,7 @@ void PairLubricateU::allocate()
 
 void PairLubricateU::settings(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 5 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);
@@ -1768,13 +1768,17 @@ void PairLubricateU::settings(int narg, char **arg)
   gdot =  atof(arg[4]);
   
   flagHI = flagVF = 1;
-  if (narg >= 6) flagHI = atoi(arg[5]);
-  if (narg == 7) flagVF = atoi(arg[6]);
+  if (narg == 7) {
+    flagHI = atoi(arg[5]);
+    flagVF = atoi(arg[6]);
+  }
 
   if (flaglog == 1 && flagHI == 0) {
-    error->warning(FLERR,"Cannot include log terms without 1/r terms. Setting flagHI to 1.");
+    error->warning(FLERR,"Cannot include log terms without 1/r terms; "
+		   "setting flagHI to 1.");
     flagHI = 1;
   } 
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {

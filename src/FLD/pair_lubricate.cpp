@@ -487,7 +487,7 @@ void PairLubricate::allocate()
 
 void PairLubricate::settings(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 5 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);
@@ -495,11 +495,11 @@ void PairLubricate::settings(int narg, char **arg)
   cut_inner_global = atof(arg[3]);
   cut_global = atof(arg[4]);
 
-  flagVF = flagHI = 1;
-
-  if (narg >= 6) flagHI = atoi(arg[5]);
-  if (narg == 7) flagVF = atoi(arg[6]);
-  
+  flagHI = flagVF = 1;
+  if (narg == 7) {
+    flagHI = atoi(arg[5]);
+    flagVF = atoi(arg[6]);
+  }
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,"Cannot include log terms without 1/r terms; "

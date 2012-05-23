@@ -371,7 +371,7 @@ void PairBrownian::allocate()
 
 void PairBrownian::settings(int narg, char **arg)
 {
-  if (narg < 7 || narg > 9) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 7 && narg != 9) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);  
@@ -382,9 +382,10 @@ void PairBrownian::settings(int narg, char **arg)
   seed = atoi(arg[6]); 
 
   flagHI = flagVF = 1;
-
-  if (narg >= 8) flagHI = atoi(arg[7]);
-  if (narg == 9) flagVF = atoi(arg[8]);
+  if (narg == 9) {
+    flagHI = atoi(arg[7]);
+    flagVF = atoi(arg[8]);
+  }
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,"Cannot include log terms without 1/r terms; "

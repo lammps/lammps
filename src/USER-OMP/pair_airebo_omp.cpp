@@ -982,8 +982,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosjik,(NijC+NijH),itype,&dgdc,&dgdN);
-      Etmp = Etmp+(wik*g*exp(lamdajik));
-      tmp3 = tmp3+(wik*dgdN*exp(lamdajik));
+      Etmp += (wik*g*exp(lamdajik));
+      tmp3 += (wik*dgdN*exp(lamdajik));
       NconjtmpI = NconjtmpI+(kronecker(ktype,0)*wik*Sp(Nki,Nmin,Nmax,dS));
     }
   }
@@ -1072,7 +1072,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	costmp = 0.5*(rij2+rik2-rjk2)/rijmag/rikmag;
 	tspjik = Sp2(costmp,thmin,thmax,dtsjik);
 
-	if (sqrt(1.0 - cos321*cos321) != 0.0) {
+	if (sqrt(1.0 - cos321*cos321) > sqrt(TOL)) {
 	  wik = Sp(rikmag,rcmin[itype][ktype],rcmaxp[itype][ktype],dwik);
 	  REBO_neighs_j = REBO_firstneigh[j];
 	  for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1097,7 +1097,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 	      costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
 	      tspijl = Sp2(costmp,thmin,thmax,dtsijl);
 
-	      if (sqrt(1.0 - cos234*cos234) != 0.0) {
+	      if (sqrt(1.0 - cos234*cos234) > sqrt(TOL)) {
 		wjl = Sp(rjlmag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dS);
 		crosskij[0] = (rij[1]*rik[2]-rij[2]*rik[1]);
 		crosskij[1] = (rij[2]*rik[0]-rij[0]*rik[2]);

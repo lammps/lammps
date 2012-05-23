@@ -22,10 +22,16 @@ style () {
   elif (test ! -e style_$3.h) then
     mv style_$3.tmp style_$3.h
     rm -f Obj_*/$4.d
+    if (test $5) then 
+      rm -f Obj_*/$5.d
+    fi
     rm -f Obj_*/lammps.d
   elif (test "`diff --brief style_$3.h style_$3.tmp`" != "") then
     mv style_$3.tmp style_$3.h
     rm -f Obj_*/$4.d
+    if (test $5) then 
+      rm -f Obj_*/$5.d
+    fi
     rm -f Obj_*/lammps.d
   else
     rm -f style_$3.tmp
@@ -34,6 +40,10 @@ style () {
 
 # create individual style files
 # called by "make machine"
+# col 1 = string to search for
+# col 2 = search in *.h files starting with this name
+# col 3 = prefix of style file
+# col 4 
 
 if (test $1 = "style") then
 
@@ -49,7 +59,7 @@ if (test $1 = "style") then
   style INTEGRATE_CLASS ""          integrate  update
   style KSPACE_CLASS    ""          kspace     force
   style MINIMIZE_CLASS  min_        minimize   update
-  style PAIR_CLASS      pair_       pair       force
+  style PAIR_CLASS      pair_       pair       force      pair_hybrid
   style REGION_CLASS    region_     region     domain
 
 # edit Makefile.lib

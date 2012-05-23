@@ -1023,7 +1023,7 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     
   int kx,ky,kz;
   double cypz,sypz,exprl,expim;
-    
+     
   // partial structure factors for groups A and B on each processor
     
   for (k = 0; k < kcount; k++) {
@@ -1071,45 +1071,16 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   const double qscale = force->qqrd2e * scale; 
   double partial_group;
     
-
   // total group A <--> group B energy
+  // self and boundary correction terms are in compute_group_group.cpp
     
   for (k = 0; k < kcount; k++) {
     partial_group = sfacrl_A_all[k]*sfacrl_B_all[k] + 
       sfacim_A_all[k]*sfacim_B_all[k];
     e2group += ug[k]*partial_group;
   } 
-    
-  // total charge of groups A & B, needed for self-energy correction        
-    
-  double qsum_group = 0.0, qsqsum_group = 0.0;
-    
-  for (int i = 0; i < atom->nlocal; i++) {
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B)) {
-      if (BA_flag) continue;
-      qsqsum_group += q[i]*q[i];
-    }
-
-    //if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B))
-    //  qsum_group += q[i];
-  }
-    
-  double tmp;
-  MPI_Allreduce(&qsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum_group = tmp;
-    
-  //MPI_Allreduce(&qsqsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  //qsqsum_group = tmp;    
-    
-  // self-energy correction
-    
-  e2group -= g_ewald*qsqsum_group/MY_PIS;
-                                                   
-  // should we include the boundary condition or not?    
-  //  e2group += MY_PI2*qsum_group*qsum_group / (g_ewald*g_ewald*volume);
-
+  
   e2group *= qscale;
-    
     
   // total group A <--> group B force
     

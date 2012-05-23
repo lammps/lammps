@@ -15,6 +15,8 @@ if (test $1 = 1) then
   cp fix_imd.cpp ..
   cp fix_smd.cpp ..
   cp fix_spring_pull.cpp ..
+  cp improper_cossq.cpp ..
+  cp improper_ring.cpp ..
   cp pair_cdeam.cpp ..
   cp pair_coul_diel.cpp ..
   cp pair_dipole_sf.cpp ..
@@ -37,6 +39,8 @@ if (test $1 = 1) then
   cp fix_imd.h ..
   cp fix_smd.h ..
   cp fix_spring_pull.h ..
+  cp improper_cossq.h ..
+  cp improper_ring.h ..
   cp pair_cdeam.h ..
   cp pair_coul_diel.h ..
   cp pair_dipole_sf.h ..
@@ -61,6 +65,8 @@ elif (test $1 = 0) then
   rm -f ../fix_imd.cpp
   rm -f ../fix_smd.cpp
   rm -f ../fix_spring_pull.cpp
+  rm -f ../improper_cossq.cpp
+  rm -f ../improper_ring.cpp
   rm -f ../pair_cdeam.cpp
   rm -f ../pair_coul_diel.cpp
   rm -f ../pair_dipole_sf.cpp
@@ -83,6 +89,8 @@ elif (test $1 = 0) then
   rm -f ../fix_imd.h
   rm -f ../fix_smd.h
   rm -f ../fix_spring_pull.h
+  rm -f ../improper_cossq.h
+  rm -f ../improper_ring.h
   rm -f ../pair_cdeam.h
   rm -f ../pair_coul_diel.h
   rm -f ../pair_dipole_sf.h

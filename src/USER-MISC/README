@@ -30,6 +30,8 @@ dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
+improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
+improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
 pair_style edip, Luca Ferraro, luca.ferraro at caspur.it, 15 Sep 11

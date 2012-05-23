@@ -1,4 +1,3 @@
-!
 !  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 !  www.cs.sandia.gov/~sjplimp/lammps.html
 !  Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
@@ -9,7 +8,6 @@
 !  the GNU General Public License.
 !
 !  See the README file in the top-level LAMMPS directory.
-!
 
 ! f_driver = simple example of how an umbrella program
 !            can invoke LAMMPS as a library on some subset of procs
@@ -69,7 +67,8 @@ PROGRAM f_driver
 
   CALL mpi_comm_split(MPI_COMM_WORLD,lammps,0,comm_lammps,ierr)
 
-! open LAMMPS input script on rank zero
+  ! open LAMMPS input script on rank zero
+
   CALL get_command_argument(2,arg)
   OPEN(UNIT=fp, FILE=arg, ACTION='READ', STATUS='OLD', IOSTAT=ierr)
   IF (ierr /= 0) THEN
@@ -126,9 +125,11 @@ PROGRAM f_driver
   END IF
 
   ! free LAMMPS object
+
   IF (lammps == 1) CALL lammps_close(ptr);
 
   ! close down MPI
+
   CALL mpi_finalize(ierr)
 
 END PROGRAM f_driver

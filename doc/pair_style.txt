@@ -127,6 +127,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style gran/hooke/history"_pair_gran.html - granular potential without history effects
 "pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html - DREIDING hydrogen bonding LJ potential
 "pair_style hbond/dreiding/morse"_pair_hbond_dreiding.html - DREIDING hydrogen bonding Morse potential
+"pair_style lcbop"_pair_lcbop.html - long-range bond-order potential (LCBOP)
 "pair_style line/lj"_pair_line_lj.html - LJ potential between line segments
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent

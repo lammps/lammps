@@ -1,0 +1,70 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>improper_style cossq command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>improper_style cossq 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>improper_style cossq
+improper_coeff 1 4.0 0.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>cossq</I> improper style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/improper_cossq.jpg">
+</CENTER>
+<P>where x is the improper angle, x0 is its equilibrium value, and K is a
+prefactor.  
+</P>
+<P>If the 4 atoms in an improper quadruplet (listed in the data file read
+by the <A HREF = "read_data.html">read_data</A> command) are ordered I,J,K,L then X
+is the angle between the plane of I,J,K and the plane of J,K,L.
+Alternatively, you can think of atoms J,K,L as being in a plane, and
+atom I above the plane, and X as a measure of how far out-of-plane I
+is with respect to the other 3 atoms.
+</P>
+<P>Note that defining 4 atoms to interact in this way, does not mean that
+bonds necessarily exist between I-J, J-K, or K-L, as they would in a
+linear dihedral.  Normally, the bonds I-J, I-K, I-L would exist for an
+improper to be defined between the 4 atoms.
+</P>
+<P>The following coefficients must be defined for each improper type via
+the <A HREF = "improper_coeff.html">improper_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>K (energy/radian^2)
+<LI>X0 (degrees) 
+</UL>
+<P>X0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This improper style can only be used if LAMMPS was built with the
+USER-MISC package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "improper_coeff.html">improper_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

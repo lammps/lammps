@@ -1,0 +1,100 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lcbop command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style lcbop 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lcbop
+pair_coeff * * ../potentials/C.lcbop C 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>lcbop</I> pair style computes the long-range bond-order potential
+for carbon (LCBOP) of <A HREF = "#Los">(Los and Fasolino)</A>.  See section II in
+that paper for the analytic equations associated with the potential.
+</P>
+<P>Only a single pair_coeff command is used with the <I>lcbop</I> style which
+specifies an LCBOP potential file with parameters for specific
+elements.  These are mapped to LAMMPS atom types by specifying N
+additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N element names = mapping of LCBOP elements to atom types 
+</UL>
+<P>As an example, if your LAMMPS simulation has 4 atom types and you want
+the 1st 3 to be C you would use the following pair_coeff command:
+</P>
+<PRE>pair_coeff * * C.lcbop C C C NULL 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The first C argument maps LAMMPS atom type 1 to the C element in the
+LCBOP file. If a mapping value is specified as NULL, the mapping is
+not performed.  This can be used when a <I>lcbop</I> potential is used as
+part of the <I>hybrid</I> pair style.  The NULL values are placeholders for
+atom types that will be used with other potentials.
+</P>
+<P>The parameters/coefficients for the LCBOP potential as applied to C
+are listed in the C.lcbop file to agree with the original <A HREF = "#Los">(Los and
+Fasolino)</A> paper.  Thus the parameters are specific to this
+potential and the way it was fit, so modifying the file should be done
+carefully.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+mix, shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This pair styles is part of the MANYBODY package.  It is only enabled
+if LAMMPS was built with that package (which it is by default).  See
+the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P>This pair potential requires the <A HREF = "newton.html">newton</A> setting to be
+"on" for pair interactions.
+</P>
+<P>The C.lcbop potential file provided with LAMMPS (see the potentials
+directory) is parameterized for metal <A HREF = "units.html">units</A>.  You can use
+the LCBOP potential with any LAMMPS units, but you would need to
+create your own LCBOP potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "metal" units.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_airebo.html">pair_airebo</A>, <A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Los"></A>
+
+<P><B>(Los and Fasolino)</B> J. H. Los and A. Fasolino, Phys. Rev. B 68, 024107
+(2003).
+</P>
+</HTML>

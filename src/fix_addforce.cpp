@@ -217,9 +217,16 @@ void FixAddForce::min_setup(int vflag)
 
 void FixAddForce::post_force(int vflag)
 {
+  int xbox,ybox,zbox;
+
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
+  int *image = atom->image;
   int nlocal = atom->nlocal;
 
   // reallocate sforce array if necessary
@@ -237,7 +244,7 @@ void FixAddForce::post_force(int vflag)
   force_flag = 0;
 
   // constant force
-  // potential energy = - x dot f
+  // potential energy = - x dot f in unwrapped coords
 
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
@@ -246,7 +253,12 @@ void FixAddForce::post_force(int vflag)
 	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
 	  continue;
 	
-	foriginal[0] -= xvalue*x[i][0] + yvalue*x[i][1] + zvalue*x[i][2];
+	xbox = (image[i] & 1023) - 512;
+	ybox = (image[i] >> 10 & 1023) - 512;
+	zbox = (image[i] >> 20) - 512;
+	foriginal[0] -= xvalue * (x[i][0]+xbox*xprd) + 
+	  yvalue * (x[i][1]+ybox*yprd) + zvalue * (x[i][2]+zbox*zprd);
+
 	foriginal[1] += f[i][0];
 	foriginal[2] += f[i][1];
 	foriginal[3] += f[i][2];

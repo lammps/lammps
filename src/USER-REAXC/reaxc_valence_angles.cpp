@@ -245,7 +245,7 @@ void Valence_Angles( reax_system *system, control_params *control,
 	  if( (j < system->n) && (BOA_jk > 0.0) && 
               (bo_ij->BO > control->thb_cut) &&  
               (bo_jk->BO > control->thb_cut) &&  
-              (bo_ij->BO * bo_jk->BO > 0.001) ) {
+              (bo_ij->BO * bo_jk->BO > control->thb_cutsq) ) {
 	    r_jk = pbond_jk->d;		      
 	    thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
 	    

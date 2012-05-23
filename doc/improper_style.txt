@@ -59,10 +59,10 @@ Click on the style to display the formula it computes and coefficients
 specified by the associated "improper_coeff"_improper_coeff.html
 command.
 
-There are also additional improper styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the improper section of "this
-page"_Section_commands.html#cmd_5.
+Note that there are also additional improper styles submitted by users
+which are included in the LAMMPS distribution.  The list of these with
+links to the individual styles are given in the improper section of
+"this page"_Section_commands.html#cmd_5.
 
 "improper_style none"_improper_none.html - turn off improper interactions
 "improper_style hybrid"_improper_hybrid.html - define multiple styles of improper interactions :ul

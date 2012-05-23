@@ -105,6 +105,7 @@ E.g. "peptide" refers to the examples/peptide directory.
 <TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
@@ -125,7 +126,12 @@ E.g. "peptide" refers to the examples/peptide directory.
 <P>The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 </P>
-<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and Jon Zimmerman (Sandia).
+<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).
+</P>
+<P>(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).
 </P>
 <P>The "Doc page" column links to either a portion of the
 <A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
@@ -213,6 +219,36 @@ libraries.
 <P>The person who created this package is Ilya Valuev at the JIHT in
 Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
 have questions.
+</P>
+<HR>
+
+<H4>USER-COLVARS package 
+</H4>
+<P>This package implements the "fix colvars" command which can be
+used in a LAMMPS input script.
+</P>
+<P>This fix allows to use "collective variables" to implement
+Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints. This code consists of two parts:
+</P>
+<UL><LI>A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
+<LI>The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. 
+</UL>
+<P>See the doc page of <A HREF = "fix_colvars.html">fix colvars</A> for more details.
+</P>
+<P>There are example scripts for using this package in
+examples/USER/colvars
+</P>
+<P>This is a very new interface that does not yet support all
+features in the module and will see future optimizations
+and improvements. The colvars module library is also available
+in NAMD has been thoroughly used and tested there. Bugs and
+problems are likely due to the interface layers code.
+Thus the current version of this package should be considered
+beta quality.
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
 </P>
 <HR>
 

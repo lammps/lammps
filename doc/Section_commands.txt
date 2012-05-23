@@ -495,6 +495,7 @@ package"_Section_start.html#start_3.
 
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
+"colvars"_fix_colvars.html,
 "imd"_fix_imd.html,
 "langevin/eff"_fix_langevin_eff.html,
 "meso"_fix_meso.html,

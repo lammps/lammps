@@ -97,6 +97,7 @@ USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, 
 USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
+USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
@@ -113,7 +114,12 @@ USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 
-(2) The ATC package was created by Reese Jones, Jeremy Templeton, and Jon Zimmerman (Sandia).
+(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).
+
+(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script
@@ -201,6 +207,36 @@ libraries.
 The person who created this package is Ilya Valuev at the JIHT in
 Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
 have questions.
+
+:line
+
+USER-COLVARS package :h4
+
+This package implements the "fix colvars" command which can be
+used in a LAMMPS input script.
+
+This fix allows to use "collective variables" to implement
+Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints. This code consists of two parts:
+
+A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
+The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. :ul
+
+See the doc page of "fix colvars"_fix_colvars.html for more details.
+
+There are example scripts for using this package in
+examples/USER/colvars
+
+This is a very new interface that does not yet support all
+features in the module and will see future optimizations
+and improvements. The colvars module library is also available
+in NAMD has been thoroughly used and tested there. Bugs and
+problems are likely due to the interface layers code.
+Thus the current version of this package should be considered
+beta quality.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
 
 :line
 

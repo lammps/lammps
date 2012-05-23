@@ -328,15 +328,23 @@ pre-defined color names with new RBG values.
 
 :line
 
-The {element} keyword applies only to the the dump {cfg} and {image}
-styles.  It associates element names (e.g. H, C, Fe) with LAMMPS atom
-types.  See the list of element names at the bottom of this page.  In
-the case of dump {cfg}, it allows the "AtomEye"_atomeye visualization
-package to read the dump file and render atoms with the appropriate
-size and color.  In the case of dump {image}, the output images will
-follow the same "AtomEye"_atomeye convention.  An element name is
-specified for each atom type (1 to Ntype) in the simulation.  The same
-element name can be given to multiple atom types.
+The {element} keyword applies only to the the dump {cfg}, {xyz}, and
+{image} styles.  It associates element names (e.g. H, C, Fe) with
+LAMMPS atom types.  See the list of element names at the bottom of
+this page.
+
+In the case of dump {cfg}, this allows the "AtomEye"_atomeye
+visualization package to read the dump file and render atoms with the
+appropriate size and color.
+
+In the case of dump {image}, the output images will follow the same
+"AtomEye"_atomeye convention.  An element name is specified for each
+atom type (1 to Ntype) in the simulation.  The same element name can
+be given to multiple atom types.
+
+In the case of {xyz} format dumps, there are no restrictions to what
+label can be used as an element name.  Any whitespace separated text
+will be accepted.
 
 :link(atomeye,http://mt.seas.upenn.edu/Archive/Graphics/A)
 

@@ -73,6 +73,7 @@ char Read_Control_File( char *control_file, control_params* control,
   control->bond_cut = 5.0;
   control->bg_cut = 0.3;
   control->thb_cut = 0.001;
+  control->thb_cutsq = 0.00001;
   control->hbond_cut = 0.0;
 
   control->tabulate = 0;
@@ -209,6 +210,10 @@ char Read_Control_File( char *control_file, control_params* control,
     else if( strcmp(tmp[0], "thb_cutoff") == 0 ) { 
       val = atof(tmp[1]);
       control->thb_cut = val;
+    }
+    else if( strcmp(tmp[0], "thb_cutoff_sq") == 0 ) { 
+      val = atof(tmp[1]);
+      control->thb_cutsq = val;
     }
     else if( strcmp(tmp[0], "hbond_cutoff") == 0 ) {
       val = atof( tmp[1] );

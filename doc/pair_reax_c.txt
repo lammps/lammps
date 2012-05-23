@@ -226,6 +226,9 @@ trajectory file rely on this cutoff. (default value = 0.3)
 thb_cutoff: cutoff value for the strength of bonds to be considered in
 three body interactions. (default value = 0.001)
 
+thb_cutoff_sq: cutoff value for the strength of bond order products 
+to be considered in three body interactions. (default value = 0.00001)
+
 write_freq: Frequency of writes into the trajectory file. (default
 value = 0)
 

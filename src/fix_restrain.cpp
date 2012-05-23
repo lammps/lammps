@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Craig Tenney (University of Notre Dame)
+     support for bond and angle restraints by Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -34,67 +35,82 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{DIHEDRAL};
+enum{BOND,ANGLE,DIHEDRAL};
 
 #define TOLERANCE 0.05
+#define SMALL 0.001
+#define DELTA 1
 
 /* ---------------------------------------------------------------------- */
 
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  int iarg = 6;
-  if (narg < iarg) error->all(FLERR,"Illegal fix restrain command");
+  if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
 
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
   time_depend = 1;
 
-  // parse standard arguments
+  // parse args
 
-  int n_atoms;
-  k_start = force->numeric(arg[3]);
-  k_stop = force->numeric(arg[4]);
-  if (strcmp(arg[5], "dihedral") == 0) {
-    rstyle = DIHEDRAL;
-    n_atoms = 4;
-  } else error->all(FLERR,"Illegal fix restrain command");
+  nrestrain = maxrestrain = 0;
+  rstyle = NULL;
+  ids = NULL;
+  kstart = kstop = NULL;
+  target = cos_target = sin_target = NULL;
 
-  n_bonds = (narg - iarg) / (n_atoms + 1);
-  if (narg != iarg + n_bonds * (n_atoms + 1))
-    error->all(FLERR,"Illegal fix restrain command");
-
-  // allocate arrays
-
-  memory->create(atom_id,n_bonds,n_atoms,"restrain:atom_id");
-  memory->create(target,n_bonds,"restrain:taret");
-
-  // grab atom_ids and restraint target values
-
-  int ibond = 0;
+  int iarg = 3;
   while (iarg < narg) {
-    for (int i = 0; i < n_atoms; i++) {
-      atom_id[ibond][i] = force->inumeric(arg[iarg]);
-      iarg++;
+    if (nrestrain == maxrestrain) {
+      maxrestrain += DELTA;
+      memory->grow(rstyle,maxrestrain,"restrain:rstyle");
+      memory->grow(ids,maxrestrain,4,"restrain:ids");
+      memory->grow(kstart,maxrestrain,"restrain:kstart");
+      memory->grow(kstop,maxrestrain,"restrain:kstop");
+      memory->grow(target,maxrestrain,"restrain:target");
+      memory->grow(cos_target,maxrestrain,"restrain:cos_target");
+      memory->grow(sin_target,maxrestrain,"restrain:sin_target");
     }
-    target[ibond] = force->numeric(arg[iarg]);
-    iarg++;
-    ibond++;
-  }
 
-  // special treatment for dihedral restraints
+    if (strcmp(arg[iarg],"bond") == 0) {
+      if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
+      rstyle[nrestrain] = BOND;
+      ids[nrestrain][0] = atoi(arg[iarg+1]);
+      ids[nrestrain][1] = atoi(arg[iarg+2]);
+      kstart[nrestrain] = force->numeric(arg[iarg+3]);
+      kstop[nrestrain] = force->numeric(arg[iarg+4]);
+      target[nrestrain] = force->numeric(arg[iarg+5]);
+      iarg += 6;
+    } else if (strcmp(arg[iarg],"angle") == 0) {
+      if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
+      rstyle[nrestrain] = ANGLE;
+      ids[nrestrain][0] = atoi(arg[iarg+1]);
+      ids[nrestrain][1] = atoi(arg[iarg+2]);
+      ids[nrestrain][2] = atoi(arg[iarg+3]);
+      kstart[nrestrain] = force->numeric(arg[iarg+4]);
+      kstop[nrestrain] = force->numeric(arg[iarg+5]);
+      target[nrestrain] = force->numeric(arg[iarg+6]);
+      target[nrestrain] *= MY_PI / 180.0;
+      iarg += 7;
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
+      rstyle[nrestrain] = DIHEDRAL;
+      ids[nrestrain][0] = atoi(arg[iarg+1]);
+      ids[nrestrain][1] = atoi(arg[iarg+2]);
+      ids[nrestrain][2] = atoi(arg[iarg+3]);
+      ids[nrestrain][3] = atoi(arg[iarg+4]);
+      kstart[nrestrain] = force->numeric(arg[iarg+5]);
+      kstop[nrestrain] = force->numeric(arg[iarg+6]);
+      target[nrestrain] = force->numeric(arg[iarg+7]);
+      target[nrestrain] *= MY_PI / 180.0;
+      cos_target[nrestrain] = cos(target[nrestrain]);
+      sin_target[nrestrain] = sin(target[nrestrain]);
+      iarg += 8;
+    } else error->all(FLERR,"Illegal fix restrain command");
 
-  if (rstyle == DIHEDRAL) {
-    cos_shift = (double *)
-      memory->smalloc(n_bonds * sizeof(double),"restrain:cos_shift");
-    sin_shift = (double *)
-      memory->smalloc(n_bonds * sizeof(double),"restrain:sin_shift");
-    for (ibond = 0; ibond < n_bonds; ibond++) {
-      double my_arg = MY_PI * (180.0 + target[ibond]) / 180.0;
-      cos_shift[ibond] = cos(my_arg);
-      sin_shift[ibond] = sin(my_arg);
-    }
+    nrestrain++;
   }
 
   // require atom map to lookup atom IDs
@@ -107,13 +123,13 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
 
 FixRestrain::~FixRestrain()
 {
-  memory->destroy(atom_id);
+  memory->destroy(rstyle);
+  memory->destroy(ids);
+  memory->destroy(kstart);
+  memory->destroy(kstop);
   memory->destroy(target);
-
-  if (rstyle == DIHEDRAL) {
-    memory->sfree(cos_shift);
-    memory->sfree(sin_shift);
-  }
+  memory->destroy(cos_target);
+  memory->destroy(sin_target);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -161,7 +177,11 @@ void FixRestrain::min_setup(int vflag)
 void FixRestrain::post_force(int vflag)
 {
   energy = 0.0;
-  if (rstyle == DIHEDRAL) restrain_dihedral();
+
+  for (int m = 0; m < nrestrain; m++)
+    if (rstyle[m] == BOND) restrain_bond(m);
+    else if (rstyle[m] == ANGLE) restrain_angle(m);
+    else if (rstyle[m] == DIHEDRAL) restrain_dihedral(m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,13 +199,217 @@ void FixRestrain::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   apply harmonic bond restraints
+---------------------------------------------------------------------- */
+
+void FixRestrain::restrain_bond(int m)
+{
+  int i1,i2;
+  double delx,dely,delz,fbond;
+  double rsq,r,dr,rk;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  double delta = update->ntimestep - update->beginstep;
+  delta /= update->endstep - update->beginstep;
+  double k = kstart[m] + delta * (kstop[m] - kstart[m]);
+
+  i1 = atom->map(ids[m][0]);
+  i2 = atom->map(ids[m][1]);
+
+  // newton_bond on: only processor owning i2 computes restraint
+  // newton_bond off: only processors owning either of i1,i2 computes restraint
+
+  if (newton_bond) {
+    if (i2 == -1 || i2 >= nlocal) return;
+    if (i1 == -1) {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  } else {
+    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
+    if (i1 == -1 || i2 == -1)  {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  }
+  
+  delx = x[i1][0] - x[i2][0];
+  dely = x[i1][1] - x[i2][1];
+  delz = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx,dely,delz);
+  
+  rsq = delx*delx + dely*dely + delz*delz;
+  r = sqrt(rsq);
+  dr = r - target[m];
+  rk = k * dr;
+  
+  // force & energy
+  
+  if (r > 0.0) fbond = -2.0*rk/r;
+  else fbond = 0.0;
+  
+  energy = rk*dr;
+  
+  // apply force to each of 2 atoms
+  
+  if (newton_bond || i1 < nlocal) {
+    f[i1][0] += delx*fbond;
+    f[i1][1] += dely*fbond;
+    f[i1][2] += delz*fbond;
+  }
+  
+  if (newton_bond || i2 < nlocal) {
+    f[i2][0] -= delx*fbond;
+    f[i2][1] -= dely*fbond;
+    f[i2][2] -= delz*fbond;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   apply harmonic angle restraints
+---------------------------------------------------------------------- */
+
+void FixRestrain::restrain_angle(int m)
+{
+  int i1,i2,i3;
+  double delx1,dely1,delz1,delx2,dely2,delz2;
+  double f1[3],f3[3];
+  double dtheta,tk;
+  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  double delta = update->ntimestep - update->beginstep;
+  delta /= update->endstep - update->beginstep;
+  double k = kstart[m] + delta * (kstop[m] - kstart[m]);
+
+  i1 = atom->map(ids[m][0]);
+  i2 = atom->map(ids[m][1]);
+  i3 = atom->map(ids[m][2]);
+
+  // newton_bond on: only processor owning i2 computes restraint
+  // newton_bond off: only processors owning any of i1-i3 computes restraint
+  
+  if (newton_bond) {
+    if (i2 == -1 || i2 >= nlocal) return;
+    if (i1 == -1 || i3 == -1) {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d %d missing on proc %d at step "
+	      BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],ids[m][2],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  } else {
+    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
+	(i3 == -1 || i3 >= nlocal)) return;
+    if (i1 == -1 || i2 == -1 || i3 == -1) {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d %d missing on proc %d at step "
+	      BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],ids[m][2],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
+    }
+  }
+ 
+  // 1st bond
+
+  delx1 = x[i1][0] - x[i2][0];
+  dely1 = x[i1][1] - x[i2][1];
+  delz1 = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx1,dely1,delz1);
+  
+  rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+  r1 = sqrt(rsq1);
+  
+  // 2nd bond
+  
+  delx2 = x[i3][0] - x[i2][0];
+  dely2 = x[i3][1] - x[i2][1];
+  delz2 = x[i3][2] - x[i2][2];
+  domain->minimum_image(delx2,dely2,delz2);
+  
+  rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+  r2 = sqrt(rsq2);
+  
+  // angle (cos and sin)
+  
+  c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
+  
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  
+  s = sqrt(1.0 - c*c);
+  if (s < SMALL) s = SMALL;
+  s = 1.0/s;
+  
+  // force & energy
+  
+  dtheta = acos(c) - target[m];
+  tk = k * dtheta;
+  
+  energy = tk*dtheta;
+  
+  a = -2.0 * tk * s;
+  a11 = a*c / rsq1;
+  a12 = -a / (r1*r2);
+  a22 = a*c / rsq2;
+  
+  f1[0] = a11*delx1 + a12*delx2;
+  f1[1] = a11*dely1 + a12*dely2;
+  f1[2] = a11*delz1 + a12*delz2;
+  f3[0] = a22*delx2 + a12*delx1;
+  f3[1] = a22*dely2 + a12*dely1;
+  f3[2] = a22*delz2 + a12*delz1;
+  
+  // apply force to each of 3 atoms
+  
+  if (newton_bond || i1 < nlocal) {
+    f[i1][0] += f1[0];
+    f[i1][1] += f1[1];
+    f[i1][2] += f1[2];
+  }
+  
+  if (newton_bond || i2 < nlocal) {
+    f[i2][0] -= f1[0] + f3[0];
+    f[i2][1] -= f1[1] + f3[1];
+    f[i2][2] -= f1[2] + f3[2];
+  }
+  
+  if (newton_bond || i3 < nlocal) {
+    f[i3][0] += f3[0];
+    f[i3][1] += f3[1];
+    f[i3][2] += f3[2];
+  }
+}
+
+/* ----------------------------------------------------------------------
    apply dihedral restraints
    adopted from dihedral_charmm
 ---------------------------------------------------------------------- */
 
-void FixRestrain::restrain_dihedral()
+void FixRestrain::restrain_dihedral(int m)
 {
-  int i1,i2,i3,i4,i,m,n;
+  int i1,i2,i3,i4,i,mult;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double f1[3],f2[3],f3[3],f4[3];
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
@@ -200,195 +424,193 @@ void FixRestrain::restrain_dihedral()
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
+  double k = kstart[m] + delta * (kstop[m] - kstart[m]);
 
-  double k_step = k_start + delta * (k_stop - k_start);
+  i1 = atom->map(ids[m][0]);
+  i2 = atom->map(ids[m][1]);
+  i3 = atom->map(ids[m][2]);
+  i4 = atom->map(ids[m][3]);
 
-  for (n = 0; n < n_bonds; n++) {
-    i1 = atom->map(atom_id[n][0]);
-    i2 = atom->map(atom_id[n][1]);
-    i3 = atom->map(atom_id[n][2]);
-    i4 = atom->map(atom_id[n][3]);
+  // newton_bond on: only processor owning i2 computes restraint
+  // newton_bond off: only processors owning any of i1-i4 computes restraint
 
-    // insure exactly one processor computes restraint
-
-    if (newton_bond) {
-      if (i2 == -1 || i2 >= nlocal) continue;
-      if (i1 == -1 || i3 == -1 || i4 == -1) {
-	char str[128];
-	sprintf(str,
-		"Restrain atoms %d %d %d %d missing on proc %d at step " 
-		BIGINT_FORMAT,
-		atom_id[n][0],atom_id[n][1],atom_id[n][2],atom_id[n][3],
-		comm->me,update->ntimestep);
-	error->one(FLERR,str);
-      }
-    } else {
-      if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
-	  (i3 == -1 || i3 >= nlocal) && (i4 == -1 || i3 >= nlocal)) continue;
-      if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1) {
-	char str[128];
-	sprintf(str,
-		"Restrain atoms %d %d %d %d missing on proc %d at step " 
-		BIGINT_FORMAT,
-		atom_id[n][0],atom_id[n][1],atom_id[n][2],atom_id[n][3],
-		comm->me,update->ntimestep);
-	error->one(FLERR,str);
-      }
+  if (newton_bond) {
+    if (i2 == -1 || i2 >= nlocal) return;
+    if (i1 == -1 || i3 == -1 || i4 == -1) {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d %d %d missing on proc %d at step " 
+	      BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],ids[m][2],ids[m][3],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
     }
-
-    // 1st bond
-
-    vb1x = x[i1][0] - x[i2][0];
-    vb1y = x[i1][1] - x[i2][1];
-    vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
-
-    // 2nd bond
-
-    vb2x = x[i3][0] - x[i2][0];
-    vb2y = x[i3][1] - x[i2][1];
-    vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
-
-    vb2xm = -vb2x;
-    vb2ym = -vb2y;
-    vb2zm = -vb2z;
-    domain->minimum_image(vb2xm,vb2ym,vb2zm);
-
-    // 3rd bond
-
-    vb3x = x[i4][0] - x[i3][0];
-    vb3y = x[i4][1] - x[i3][1];
-    vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
-    
-    ax = vb1y*vb2zm - vb1z*vb2ym;
-    ay = vb1z*vb2xm - vb1x*vb2zm;
-    az = vb1x*vb2ym - vb1y*vb2xm;
-    bx = vb3y*vb2zm - vb3z*vb2ym;
-    by = vb3z*vb2xm - vb3x*vb2zm;
-    bz = vb3x*vb2ym - vb3y*vb2xm;
-
-    rasq = ax*ax + ay*ay + az*az;
-    rbsq = bx*bx + by*by + bz*bz;
-    rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-    rg = sqrt(rgsq);
-    
-    rginv = ra2inv = rb2inv = 0.0;
-    if (rg > 0) rginv = 1.0/rg;
-    if (rasq > 0) ra2inv = 1.0/rasq;
-    if (rbsq > 0) rb2inv = 1.0/rbsq;
-    rabinv = sqrt(ra2inv*rb2inv);
-
-    c = (ax*bx + ay*by + az*bz)*rabinv;
-    s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
-
-    // error check
-
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-	char str[128];
-	sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " %d %d %d %d",
-		me,update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
-      }
+  } else {
+    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
+	(i3 == -1 || i3 >= nlocal) && (i4 == -1 || i3 >= nlocal)) return;
+    if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1) {
+      char str[128];
+      sprintf(str,
+	      "Restrain atoms %d %d %d %d missing on proc %d at step " 
+	      BIGINT_FORMAT,
+	      ids[m][0],ids[m][1],ids[m][2],ids[m][3],
+	      comm->me,update->ntimestep);
+      error->one(FLERR,str);
     }
-    
-    if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
-         
-    m = 1;  //multiplicity
-    p = 1.0;
-    df1 = 0.0;
-    
-    for (i = 0; i < m; i++) {
-      ddf1 = p*c - df1*s;
-      df1 = p*s + df1*c;
-      p = ddf1;
+  }
+
+  // 1st bond
+
+  vb1x = x[i1][0] - x[i2][0];
+  vb1y = x[i1][1] - x[i2][1];
+  vb1z = x[i1][2] - x[i2][2];
+  domain->minimum_image(vb1x,vb1y,vb1z);
+  
+  // 2nd bond
+  
+  vb2x = x[i3][0] - x[i2][0];
+  vb2y = x[i3][1] - x[i2][1];
+  vb2z = x[i3][2] - x[i2][2];
+  domain->minimum_image(vb2x,vb2y,vb2z);
+  
+  vb2xm = -vb2x;
+  vb2ym = -vb2y;
+  vb2zm = -vb2z;
+  domain->minimum_image(vb2xm,vb2ym,vb2zm);
+  
+  // 3rd bond
+  
+  vb3x = x[i4][0] - x[i3][0];
+  vb3y = x[i4][1] - x[i3][1];
+  vb3z = x[i4][2] - x[i3][2];
+  domain->minimum_image(vb3x,vb3y,vb3z);
+  
+  ax = vb1y*vb2zm - vb1z*vb2ym;
+  ay = vb1z*vb2xm - vb1x*vb2zm;
+  az = vb1x*vb2ym - vb1y*vb2xm;
+  bx = vb3y*vb2zm - vb3z*vb2ym;
+  by = vb3z*vb2xm - vb3x*vb2zm;
+  bz = vb3x*vb2ym - vb3y*vb2xm;
+  
+  rasq = ax*ax + ay*ay + az*az;
+  rbsq = bx*bx + by*by + bz*bz;
+  rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+  rg = sqrt(rgsq);
+  
+  rginv = ra2inv = rb2inv = 0.0;
+  if (rg > 0) rginv = 1.0/rg;
+  if (rasq > 0) ra2inv = 1.0/rasq;
+  if (rbsq > 0) rb2inv = 1.0/rbsq;
+  rabinv = sqrt(ra2inv*rb2inv);
+  
+  c = (ax*bx + ay*by + az*bz)*rabinv;
+  s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
+  
+  // error check
+  
+  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
+    int me;
+    MPI_Comm_rank(world,&me);
+    if (screen) {
+      char str[128];
+      sprintf(str,"Restrain problem: %d " BIGINT_FORMAT " %d %d %d %d",
+	      me,update->ntimestep,
+	      atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+      error->warning(FLERR,str);
+      fprintf(screen,"  1st atom: %d %g %g %g\n",
+	      me,x[i1][0],x[i1][1],x[i1][2]);
+      fprintf(screen,"  2nd atom: %d %g %g %g\n",
+	      me,x[i2][0],x[i2][1],x[i2][2]);
+      fprintf(screen,"  3rd atom: %d %g %g %g\n",
+	      me,x[i3][0],x[i3][1],x[i3][2]);
+      fprintf(screen,"  4th atom: %d %g %g %g\n",
+	      me,x[i4][0],x[i4][1],x[i4][2]);
     }
-
-    p = p*cos_shift[n] + df1*sin_shift[n];
-    df1 = df1*cos_shift[n] - ddf1*sin_shift[n];
-    df1 *= -m;
-    p += 1.0;
- 
-    energy = k_step * p; 
-       
-    fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
-    hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
-    fga = fg*ra2inv*rginv;
-    hgb = hg*rb2inv*rginv;
-    gaa = -ra2inv*rg;
-    gbb = rb2inv*rg;
-    
-    dtfx = gaa*ax;
-    dtfy = gaa*ay;
-    dtfz = gaa*az;
-    dtgx = fga*ax - hgb*bx;
-    dtgy = fga*ay - hgb*by;
-    dtgz = fga*az - hgb*bz;
-    dthx = gbb*bx;
-    dthy = gbb*by;
-    dthz = gbb*bz;
-    
-    df = -k_step * df1;
- 
-    sx2 = df*dtgx;
-    sy2 = df*dtgy;
-    sz2 = df*dtgz;
-
-    f1[0] = df*dtfx;
-    f1[1] = df*dtfy;
-    f1[2] = df*dtfz;
-
-    f2[0] = sx2 - f1[0];
-    f2[1] = sy2 - f1[1];
-    f2[2] = sz2 - f1[2];
-
-    f4[0] = df*dthx;
-    f4[1] = df*dthy;
-    f4[2] = df*dthz;
-
-    f3[0] = -sx2 - f4[0];
-    f3[1] = -sy2 - f4[1];
-    f3[2] = -sz2 - f4[2];
-
-    // apply force to each of 4 atoms
-
-    if (newton_bond || i1 < nlocal) {
-      f[i1][0] += f1[0];
-      f[i1][1] += f1[1];
-      f[i1][2] += f1[2];
-    }
-
-    if (newton_bond || i2 < nlocal) {
-      f[i2][0] += f2[0];
-      f[i2][1] += f2[1];
-      f[i2][2] += f2[2];
-    }
-
-    if (newton_bond || i3 < nlocal) {
-      f[i3][0] += f3[0];
-      f[i3][1] += f3[1];
-      f[i3][2] += f3[2];
-    }
-
-    if (newton_bond || i4 < nlocal) {
-      f[i4][0] += f4[0];
-      f[i4][1] += f4[1];
-      f[i4][2] += f4[2];
-    }
+  }
+  
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  
+  mult = 1;  // multiplicity
+  p = 1.0;
+  df1 = 0.0;
+  
+  for (i = 0; i < mult; i++) {
+    ddf1 = p*c - df1*s;
+    df1 = p*s + df1*c;
+    p = ddf1;
+  }
+  
+  p = p*cos_target[m] + df1*sin_target[m];
+  df1 = df1*cos_target[m] - ddf1*sin_target[m];
+  df1 *= -mult;
+  p += 1.0;
+  
+  energy = k * p; 
+  
+  fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
+  hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
+  fga = fg*ra2inv*rginv;
+  hgb = hg*rb2inv*rginv;
+  gaa = -ra2inv*rg;
+  gbb = rb2inv*rg;
+  
+  dtfx = gaa*ax;
+  dtfy = gaa*ay;
+  dtfz = gaa*az;
+  dtgx = fga*ax - hgb*bx;
+  dtgy = fga*ay - hgb*by;
+  dtgz = fga*az - hgb*bz;
+  dthx = gbb*bx;
+  dthy = gbb*by;
+  dthz = gbb*bz;
+  
+  df = -k * df1;
+  
+  sx2 = df*dtgx;
+  sy2 = df*dtgy;
+  sz2 = df*dtgz;
+  
+  f1[0] = df*dtfx;
+  f1[1] = df*dtfy;
+  f1[2] = df*dtfz;
+  
+  f2[0] = sx2 - f1[0];
+  f2[1] = sy2 - f1[1];
+  f2[2] = sz2 - f1[2];
+  
+  f4[0] = df*dthx;
+  f4[1] = df*dthy;
+  f4[2] = df*dthz;
+  
+  f3[0] = -sx2 - f4[0];
+  f3[1] = -sy2 - f4[1];
+  f3[2] = -sz2 - f4[2];
+  
+  // apply force to each of 4 atoms
+  
+  if (newton_bond || i1 < nlocal) {
+    f[i1][0] += f1[0];
+    f[i1][1] += f1[1];
+    f[i1][2] += f1[2];
+  }
+  
+  if (newton_bond || i2 < nlocal) {
+    f[i2][0] += f2[0];
+    f[i2][1] += f2[1];
+    f[i2][2] += f2[2];
+  }
+  
+  if (newton_bond || i3 < nlocal) {
+    f[i3][0] += f3[0];
+    f[i3][1] += f3[1];
+    f[i3][2] += f3[2];
+  }
+  
+  if (newton_bond || i4 < nlocal) {
+    f[i4][0] += f4[0];
+    f[i4][1] += f4[1];
+    f[i4][2] += f4[2];
   }
 }
 

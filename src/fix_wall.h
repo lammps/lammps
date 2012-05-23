@@ -35,16 +35,21 @@ class FixWall : public Fix {
 
   virtual void precompute(int) = 0;
   virtual void wall_particle(int, int, double) = 0;
+  
+  int nwall;
+  int wallwhich[6];
+  double coord0[6];
+  int varflag;
+  int wallstyle[6];
+  int varindex[6];
+  char *varstr[6];
+ 
 
  protected:
-  int nwall;
-  int wallwhich[6],wallstyle[6];
-  double coord0[6],epsilon[6],sigma[6],cutoff[6];
-  char *varstr[6];
-  int varindex[6];
-  int eflag,varflag;
+  double epsilon[6],sigma[6],cutoff[6];
   double ewall[7],ewall_all[7];
   double xscale,yscale,zscale;
+  int eflag;
   int nlevels_respa;
   double dt;
   int fldflag;

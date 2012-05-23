@@ -43,7 +43,13 @@ class PairLubricateU : public Pair {
  protected:
   double cut_inner_global,cut_global;
   double mu;
+  double rad;
   int flaglog;
+  int flagdeform, flagwall;
+  int flagVF, flagHI;
+  double vol_P;
+  class FixWall *wallfix;
+
   double gdot,Ef[3][3];
   double **cut_inner,**cut;
   void allocate();

@@ -31,13 +31,24 @@
 #include "domain.h"
 #include "update.h"
 #include "math_const.h"
+#include "modify.h"
+#include "fix.h"
+#include "fix_deform.h"
+#include "fix_wall.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define TOL 1E-4   // tolerance for conjugate gradient
+
+// same as fix_wall.cpp
+
+enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -598,8 +609,53 @@ void PairLubricateU::compute_Fh(double **x)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
-  // Set force to zero which is the final value after this pair interaction
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
 
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	 double wallhi[3], walllo[3];
+	 for (int j = 0; j < 3; j++){
+	   wallhi[j] = domain->prd[j];
+	   walllo[j] = 0;
+	 }    
+	 for (int m = 0; m < wallfix->nwall; m++){
+	   int dim = wallfix->wallwhich[m] / 2;
+	   int side = wallfix->wallwhich[m] % 2;
+	   if (wallfix->wallstyle[m] == VARIABLE){
+	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	   }	   
+	   else wallcoord = wallfix->coord0[m];	   
+	   if (side == 0) walllo[dim] = wallcoord;
+	   else wallhi[dim] = wallcoord;	   
+	 }
+	 for (int j = 0; j < 3; j++)
+	   dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+	//	RT0 = 8*MY_PI*mu*pow(rad,3);
+	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*
+	  (1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	//	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*
+	  (1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
+ 
+  // end of R0 adjustment code
+
+  // Set force to zero which is the final value after this pair interaction
   for (i=0;i<nlocal+nghost;i++)
     for (j=0;j<3;j++) {
       f[i][j] = 0.0;
@@ -637,6 +693,8 @@ void PairLubricateU::compute_Fh(double **x)
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
     wi[2] = omega[i][2];          
+    
+    if (!flagHI) continue;
     
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -790,8 +848,50 @@ void PairLubricateU::compute_RU()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // Initialize f to zero
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
 
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	 double wallhi[3], walllo[3];
+	 for (int j = 0; j < 3; j++){
+	   wallhi[j] = domain->prd[j];
+	   walllo[j] = 0;
+	 }    
+	 for (int m = 0; m < wallfix->nwall; m++){
+	   int dim = wallfix->wallwhich[m] / 2;
+	   int side = wallfix->wallwhich[m] % 2;
+	   if (wallfix->wallstyle[m] == VARIABLE){
+	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	   }	   
+	   else wallcoord = wallfix->coord0[m];	   
+	   if (side == 0) walllo[dim] = wallcoord;
+	   else wallhi[dim] = wallcoord;	   
+	 }
+	 for (int j = 0; j < 3; j++)
+	   dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3);
+	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
+  // end of R0 adjustment code
+
+  // Initialize f to zero
   for (i=0;i<nlocal+nghost;i++)
     for (j=0;j<3;j++) {
       f[i][j] = 0.0;
@@ -824,6 +924,8 @@ void PairLubricateU::compute_RU()
     torque[i][1] += -vxmu2f*RT0*wi[1];
     torque[i][2] += -vxmu2f*RT0*wi[2];   
     
+    if (!flagHI) continue; 
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -1023,8 +1125,50 @@ void PairLubricateU::compute_RU(double **x)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
+
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	 double wallhi[3], walllo[3];
+	 for (int j = 0; j < 3; j++){
+	   wallhi[j] = domain->prd[j];
+	   walllo[j] = 0;
+	 }    
+	 for (int m = 0; m < wallfix->nwall; m++){
+	   int dim = wallfix->wallwhich[m] / 2;
+	   int side = wallfix->wallwhich[m] % 2;
+	   if (wallfix->wallstyle[m] == VARIABLE){
+	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	   }	   
+	   else wallcoord = wallfix->coord0[m];	   
+	   if (side == 0) walllo[dim] = wallcoord;
+	   else wallhi[dim] = wallcoord;	   
+	 }
+	 for (int j = 0; j < 3; j++)
+	   dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3);
+	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
+  // end of R0 adjustment code
+
   // Initialize f to zero
-  
   for (i=0;i<nlocal+nghost;i++)
     for (j=0;j<3;j++) {
       f[i][j] = 0.0;
@@ -1057,6 +1201,8 @@ void PairLubricateU::compute_RU(double **x)
     torque[i][1] += -vxmu2f*RT0*wi[1];
     torque[i][2] += -vxmu2f*RT0*wi[2];   
     
+    if (!flagHI) continue;
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -1260,6 +1406,8 @@ void PairLubricateU::compute_RE()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  if (!flagHI) return;
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -1434,6 +1582,8 @@ void PairLubricateU::compute_RE(double **x)
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
   
+  if (!flagHI) return;
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -1609,14 +1759,22 @@ void PairLubricateU::allocate()
 
 void PairLubricateU::settings(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
   flaglog = atoi(arg[1]);
   cut_inner_global = atof(arg[2]);
   cut_global = atof(arg[3]);
   gdot =  atof(arg[4]);
+  
+  flagHI = flagVF = 1;
+  if (narg >= 6) flagHI = atoi(arg[5]);
+  if (narg == 7) flagVF = atoi(arg[6]);
 
+  if (flaglog == 1 && flagHI == 0) {
+    error->warning(FLERR,"Cannot include log terms without 1/r terms. Setting flagHI to 1.");
+    flagHI = 1;
+  } 
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -1693,43 +1851,90 @@ void PairLubricateU::init_style()
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types
 
-  double rad,radtype;
+  double radi, radtype;
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->radius_consistency(i,radtype))
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
     if (i > 1 && radtype != rad)
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
-    rad = radtype;
+    radi = radtype;
+  }
+  
+  // check for fix deform, if exists it must use "remap v"
+  // If box will change volume, set appropriate flag so that volume
+  // and v.f. corrections are re-calculated at every step.
+  //
+  // If available volume is different from box volume
+  // due to walls, set volume appropriately; if walls will
+  // move, set appropriate flag so that volume and v.f. corrections
+  // are re-calculated at every step.
+
+  flagdeform = flagwall = 0;
+  for (int i = 0; i < modify->nfix; i++){
+    if (strcmp(modify->fix[i]->style,"deform") == 0) 
+      flagdeform = 1;
+    else if (strstr(modify->fix[i]->style,"wall") != NULL){
+      flagwall = 1; // Walls exist
+      if (((FixWall *) modify->fix[i])->varflag ) {
+	flagwall = 2; // Moving walls exist
+	wallfix = (FixWall *) modify->fix[i];
+      }
+    }
   }
   
   // set the isotropic constants depending on the volume fraction
-  // vol_T = total volume
+  // vol_T = total volumeshearing = flagdeform = flagwall = 0;  
+  double vol_T, wallcoord;
+    if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
+  else {    
+    double wallhi[3], walllo[3];
+    for (int j = 0; j < 3; j++){
+      wallhi[j] = domain->prd[j];
+      walllo[j] = 0;
+    }    
+    for (int m = 0; m < wallfix->nwall; m++){
+      int dim = wallfix->wallwhich[m] / 2;
+      int side = wallfix->wallwhich[m] % 2;
+      if (wallfix->wallstyle[m] == VARIABLE){
+	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+	//Since fix->wall->init happens after pair->init_style
+	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+      }
 
-  double vol_T = domain->xprd*domain->yprd*domain->zprd; 
+      else wallcoord = wallfix->coord0[m];
+      
+      if (side == 0) walllo[dim] = wallcoord;
+      else wallhi[dim] = wallcoord;
+    }
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
+      (wallhi[2] - walllo[2]);
+  }
+   
   
   // assuming monodisperse spheres, vol_P = volume of the particles
 
   double tmp = 0.0;
   if (atom->radius) tmp = atom->radius[0];
-  double radi;
-  MPI_Allreduce(&tmp,&radi,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&tmp,&rad,1,MPI_DOUBLE,MPI_MAX,world);
 
-  double vol_P = atom->natoms * (4.0/3.0)*MY_PI*pow(radi,3);
+  vol_P = atom->natoms * (4.0/3.0)*MY_PI*pow(rad,3);
   
   // vol_f = volume fraction
 
   double vol_f = vol_P/vol_T;
   
+  if (!flagVF) vol_f = 0;
+
   // set the isotropic constant
 
   if (flaglog == 0) {
-    R0  = 6*MY_PI*mu*radi*(1.0 + 2.16*vol_f);
-    RT0 = 8*MY_PI*mu*pow(radi,3);  // not actually needed
-    RS0 = 20.0/3.0*MY_PI*mu*pow(radi,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+    R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+    RT0 = 8*MY_PI*mu*pow(rad,3);  // not actually needed
+    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
   } else {
-    R0  = 6*MY_PI*mu*radi*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*pow(radi,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-    RS0 = 20.0/3.0*MY_PI*mu*pow(radi,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+    R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+    RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 }
 
@@ -1806,6 +2011,8 @@ void PairLubricateU::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&flagHI,sizeof(int),1,fp);
+  fwrite(&flagVF,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1822,6 +2029,8 @@ void PairLubricateU::read_restart_settings(FILE *fp)
     fread(&cut_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
+    fread(&flagHI,sizeof(int),1,fp);
+    fread(&flagVF,sizeof(int),1,fp);
   }
   MPI_Bcast(&mu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&flaglog,1,MPI_INT,0,world);
@@ -1829,6 +2038,8 @@ void PairLubricateU::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&flagHI,1,MPI_INT,0,world);
+  MPI_Bcast(&flagVF,1,MPI_INT,0,world);
 }
 
 /*---------------------------------------------------------------------------*/

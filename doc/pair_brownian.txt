@@ -13,7 +13,7 @@ pair_style brownian/poly/omp command :h3
 
 [Syntax:]
 
-pair_style style mu flaglog flagfld cutinner cutoff t_target seed :pre
+pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF :pre
 
 style = {brownian} or {brownian/poly}
 mu = dynamic viscosity (dynamic viscosity units)
@@ -22,11 +22,13 @@ flagfld = 0/1 to include/exclude Fast Lubrication Dynamics effects
 cutinner = inner cutoff distance (distance units)
 cutoff = outer cutoff for interactions (distance units)
 t_target = target temp of the system (temperature units)
-seed = seed for the random number generator (positive integer) :ul 
+seed = seed for the random number generator (positive integer)
+flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
+flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms :ul
 
 [Examples:]
 
-pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius=1)
+pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
 pair_coeff 1 1 2.05 2.8
 pair_coeff * * :pre
 
@@ -48,6 +50,11 @@ For details, refer to either of the lubrication pair styles.
 The {t_target} setting is used to specify the target temperature of
 the system.  The random number {seed} is used to generate random
 numbers for the thermostatting procedure.
+
+The {flagHI} and {flagVF} settings are optional.  Neither should be
+used, or both must be defined.
+
+:line
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -129,4 +136,8 @@ Only spherical particles are allowed for pair_style brownian/poly.
 lubricate"_pair_lubricate.html, "pair_style
 lubricateU"_pair_lubricateU.html
 
-[Default:] none
+[Default:]
+
+The default settings for the optional args are flagHI = 1 and flagVF =
+1.
+

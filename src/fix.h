@@ -151,6 +151,7 @@ class Fix : protected Pointers {
   virtual bigint read_data_skip_lines(char *) {return 0;}
 
   virtual int modify_param(int, char **) {return 0;}
+  virtual void *extract(const char *, int &) {return NULL;}
 
   virtual double memory_usage() {return 0.0;}
 

@@ -132,6 +132,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.0;
+    force->femtosecond = 1.0;
     force->qelectron = 1.0;
 
     dt = 0.005;
@@ -152,6 +153,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0957018663603261;
     force->mvh2r = 1.5339009481951;
     force->angstrom = 1.0;
+    force->femtosecond = 1.0;
     force->qelectron = 1.0;
 
     dt = 1.0;
@@ -172,6 +174,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.0;
+    force->femtosecond = 1.0e-3;
     force->qelectron = 1.0;
 
     dt = 0.001;
@@ -192,6 +195,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.0e-10;
+    force->femtosecond = 1.0e-15;
     force->qelectron = 1.6021765e-19;
 
     dt = 1.0e-8;
@@ -212,6 +216,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.0e-8;
+    force->femtosecond = 1.0e-15;
     force->qelectron = 4.8032044e-10;
 
     dt = 1.0e-8;
@@ -232,6 +237,7 @@ void Update::set_units(const char *style)
     force->hhmrr2e = 0.0;
     force->mvh2r = 0.0;
     force->angstrom = 1.88972612;
+    force->femtosecond = 0.0241888428;
     force->qelectron = 1.0;
 
     dt = 0.001;

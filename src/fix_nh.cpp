@@ -115,6 +115,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       tstat_flag = 1;
       t_start = atof(arg[iarg+1]);
+      t_target = t_start;
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)
@@ -1597,7 +1598,7 @@ double FixNH::compute_vector(int n)
 
 void FixNH::reset_target(double t_new)
 {
-  t_start = t_stop = t_new;
+  t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1621,6 +1622,19 @@ void FixNH::reset_dt()
   
   if (tstat_flag)
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
+}
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixNH::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

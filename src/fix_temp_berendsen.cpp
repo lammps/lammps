@@ -44,6 +44,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   t_start = atof(arg[3]);
+  t_target = t_start;
   t_stop = atof(arg[4]);
   t_period = atof(arg[5]);
 
@@ -113,7 +114,7 @@ void FixTempBerendsen::end_of_step()
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
-  double t_target = t_start + delta * (t_stop-t_start);
+  t_target = t_start + delta * (t_stop-t_start);
 
   // rescale velocities by lamda
   // for BIAS:
@@ -181,7 +182,7 @@ int FixTempBerendsen::modify_param(int narg, char **arg)
 
 void FixTempBerendsen::reset_target(double t_new)
 {
-  t_start = t_stop = t_new;
+  t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,4 +190,18 @@ void FixTempBerendsen::reset_target(double t_new)
 double FixTempBerendsen::compute_scalar()
 {
   return energy;
+}  
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixTempBerendsen::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
 }
+

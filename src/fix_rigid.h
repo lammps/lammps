@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -49,6 +49,7 @@ class FixRigid : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  virtual void *extract(const char*,int &);
   double compute_array(int, int);
 
  protected:
@@ -94,7 +95,7 @@ class FixRigid : public Fix {
   int langflag;             // 0/1 = no/yes Langevin thermostat
 
   int tempflag;             // NVT settings
-  double t_start,t_stop;
+  double t_start,t_stop,t_target;
   double t_period,t_freq;
   int t_chain,t_iter,t_order;
 

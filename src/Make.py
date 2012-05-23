@@ -71,8 +71,9 @@ support = ["Makefile","Make.sh","Makefile.package.empty",
 
 # packages that have external libs with their external lib dir
 
-extlibs = {"USER-ATC": "atc", "USER-AWPMD": "awpmd", "USER-CUDA": "cuda",
-           "GPU": "gpu","MEAM": "meam", "POEMS": "poems", "REAX": "reax"}
+extlibs = {"USER-ATC": "atc", "USER-AWPMD": "awpmd", "USER-COLVARS": "colvars",
+           "USER-CUDA": "cuda","GPU": "gpu","MEAM": "meam", "POEMS": "poems",
+           "REAX": "reax"}
 
 # help messages
 

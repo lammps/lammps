@@ -352,6 +352,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all(FLERR,"Illegal fix rigid command");
   }
+  t_target = t_start;
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -1231,7 +1232,7 @@ void FixRigid::post_force(int vflag)
 
     double delta = update->ntimestep - update->beginstep;
     delta /= update->endstep - update->beginstep;
-    double t_target = t_start + delta * (t_stop-t_start);
+    t_target = t_start + delta * (t_stop-t_start);
     double tsqrt = sqrt(t_target);
 
     double boltz = force->boltz;
@@ -2082,6 +2083,19 @@ double FixRigid::compute_scalar()
 
   t *= tfactor;
   return t;
+}
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixRigid::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

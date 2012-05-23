@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -34,10 +34,11 @@ class FixTempBerendsen : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
   double compute_scalar();
+  virtual void *extract(const char *, int &);
 
  private:
   int which;
-  double t_start,t_stop,t_period;
+  double t_start,t_stop,t_period,t_target;
   double energy;
 
   char *id_temp;

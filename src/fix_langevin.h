@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -39,10 +39,11 @@ class FixLangevin : public Fix {
   int modify_param(int, char **);
   virtual double compute_scalar();
   double memory_usage();
+  virtual void *extract(const char *, int &);
 
  protected:
   int which,tally,zeroflag,oflag,aflag;
-  double t_start,t_stop,t_period;
+  double t_start,t_stop,t_period,t_target;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;
   double tsqrt;

@@ -66,6 +66,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr,&arg[3][2]);
   } else {
     t_start = atof(arg[3]);
+    t_target = t_start;
     tstyle = CONSTANT;
   }
 
@@ -274,7 +275,7 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
 
 void FixLangevin::post_force_no_tally()
 {
-  double gamma1,gamma2,t_target;
+  double gamma1,gamma2;
 
   double **v = atom->v;
   double **f = atom->f;
@@ -461,7 +462,7 @@ void FixLangevin::post_force_no_tally()
 
 void FixLangevin::post_force_tally()
 {
-  double gamma1,gamma2,t_target;
+  double gamma1,gamma2;
 
   // reallocate flangevin if necessary
 
@@ -727,7 +728,7 @@ void FixLangevin::end_of_step()
 
 void FixLangevin::reset_target(double t_new)
 {
-  t_start = t_stop = t_new;
+  t_target = t_start = t_stop = t_new;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -796,6 +797,19 @@ double FixLangevin::compute_scalar()
   double energy_all;	 
   MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);	
   return -energy_all;
+}
+
+/* ----------------------------------------------------------------------
+   extract thermostat properties
+------------------------------------------------------------------------- */
+
+void *FixLangevin::extract(const char *str, int &dim)
+{
+  dim=0;
+  if (strcmp(str,"t_target") == 0) {
+    return &t_target;
+  } 
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

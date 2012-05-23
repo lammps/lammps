@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -49,7 +49,6 @@ class DumpXTC : public Dump {
   int modify_param(int, char **);
   void openfile();
   void write_header(bigint);
-  int count();
   void pack(int *);
   void write_data(int, double *);
   bigint memory_usage();

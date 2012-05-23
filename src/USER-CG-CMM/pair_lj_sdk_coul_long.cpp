@@ -175,12 +175,10 @@ void PairLJSDKCoulLong::eval()
 	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 	    prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (EFLAG)
-	      ecoul = prefactor*erfc;
+	    if (EFLAG) ecoul = prefactor*erfc;
 	    if (factor_coul < 1.0) {
 	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG)
-		ecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
@@ -190,14 +188,12 @@ void PairLJSDKCoulLong::eval()
 	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
 	    table = ftable[itable] + fraction*dftable[itable];
 	    forcecoul = qtmp*q[j] * table;
-	    if (EFLAG)
-	      ecoul = qtmp*q[j] * table;
+	    if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
 	    if (factor_coul < 1.0) {
 	      table = ctable[itable] + fraction*dctable[itable];
 	      prefactor = qtmp*q[j] * table;
 	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG)
-		ecoul -= (1.0-factor_coul)*prefactor;
+	      if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  }
 	}
@@ -231,8 +227,7 @@ void PairLJSDKCoulLong::eval()
 			     - lj4[itype][jtype]) - offset[itype][jtype];
 	  }
 	  forcelj *= factor_lj;
-	  if (EFLAG)
-	    evdwl *= factor_lj;
+	  if (EFLAG) evdwl *= factor_lj;
 	}
 
 	fpair = (forcecoul + forcelj) * r2inv;
@@ -247,8 +242,7 @@ void PairLJSDKCoulLong::eval()
 	}
 
 	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			   evdwl,ecoul,fpair,delx,dely,delz);
-
+			     evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
     f[i][0] += fxtmp;

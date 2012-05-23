@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -20,9 +20,7 @@ DumpStyle(dcd,DumpDCD)
 #ifndef LMP_DUMP_DCD_H
 #define LMP_DUMP_DCD_H
 
-#include "stdio.h"
 #include "dump.h"
-#include "inttypes.h"
 
 namespace LAMMPS_NS {
 
@@ -41,7 +39,6 @@ class DumpDCD : public Dump {
   void init_style();
   void openfile();
   void write_header(bigint);
-  int count();
   void pack(int *);
   void write_data(int, double *);
   int modify_param(int, char **);

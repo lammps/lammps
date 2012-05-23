@@ -25,15 +25,6 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace LJSDKParms;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
-
 /* ---------------------------------------------------------------------- */
 
 PairLJSDKCoulLongOMP::PairLJSDKCoulLongOMP(LAMMPS *lmp) :
@@ -87,91 +78,90 @@ void PairLJSDKCoulLongOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 {
-  int i,ii,j,jj,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
-  double r,rsq,r2inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
-  double fxtmp,fytmp,fztmp;
 
   const int * const ilist = list->ilist;
   const int * const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
+  const int nlocal = atom->nlocal;
 
   // loop over neighbors of my atoms
 
-  for (ii = iifrom; ii < iito; ++ii) {
+  for (int ii = iifrom; ii < iito; ++ii) {
 
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    const int i = ilist[ii];
+    const int itype = type[i];
+    const double qtmp = q[i];
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
+    double fxtmp,fytmp,fztmp;
     fxtmp=fytmp=fztmp=0.0;
 
-    const int itype = type[i];
     const int * const jlist = firstneigh[i];
     const int jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
+    for (int jj = 0; jj < jnum; jj++) {
+      double forcecoul, forcelj, evdwl, ecoul;
       forcecoul = forcelj = evdwl = ecoul = 0.0;
 
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
+      const int sbindex = sbmask(jlist[jj]);
+      const int j = jlist[jj] & NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
+      const double delx = xtmp - x[j][0];
+      const double dely = ytmp - x[j][1];
+      const double delz = ztmp - x[j][2];
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      const int jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+	const double r2inv = 1.0/rsq;
 	const int ljt = lj_type[itype][jtype];
 
 	if (rsq < cut_coulsq) {
 	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
+	    const double A1 =  0.254829592;
+	    const double A2 = -0.284496736;
+	    const double A3 =  1.421413741;
+	    const double A4 = -1.453152027;
+	    const double A5 =  1.061405429;
+	    const double EWALD_F = 1.12837917;
+	    const double INV_EWALD_P = 1.0/0.3275911;
+
+	    const double r = sqrt(rsq);
+	    const double grij = g_ewald * r;
+	    const double expm2 = exp(-grij*grij);
+	    const double t = INV_EWALD_P / (INV_EWALD_P + grij);
+	    const double erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+	    const double prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (EFLAG)
-	      ecoul = prefactor*erfc;
-	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG)
-		ecoul -= (1.0-factor_coul)*prefactor;
+	    if (EFLAG) ecoul = prefactor*erfc;
+	    if (sbindex) {
+	      const double adjust = (1.0-special_coul[sbindex])*prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
 	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
 	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
+	    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+	    const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+	    const double table = ftable[itable] + fraction*dftable[itable];
 	    forcecoul = qtmp*q[j] * table;
-	    if (EFLAG)
-	      ecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG)
-		ecoul -= (1.0-factor_coul)*prefactor;
+	    if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
+	    if (sbindex) {
+	      const double table2 = ctable[itable] + fraction*dctable[itable];
+	      const double prefactor = qtmp*q[j] * table2;
+	      const double adjust = (1.0-special_coul[sbindex])*prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
 	    }
 	  }
 	}
@@ -204,12 +194,16 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
 			     - lj4[itype][jtype]) - offset[itype][jtype];
 	  }
-	  forcelj *= factor_lj;
-	  if (EFLAG)
-	    evdwl *= factor_lj;
+
+	  if (sbindex) {
+	    const double factor_lj = special_lj[sbindex];
+	    forcelj *= factor_lj;
+	    if (EFLAG) evdwl *= factor_lj;
+	  }
+
 	}
 
-	fpair = (forcecoul + forcelj) * r2inv;
+	const double fpair = (forcecoul + forcelj) * r2inv;
 
 	fxtmp += delx*fpair;
 	fytmp += dely*fpair;
@@ -222,7 +216,6 @@ void PairLJSDKCoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 
 	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
 				 evdwl,ecoul,fpair,delx,dely,delz,thr);
-
       }
     }
     f[i][0] += fxtmp;

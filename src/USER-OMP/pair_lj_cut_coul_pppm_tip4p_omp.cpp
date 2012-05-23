@@ -167,7 +167,7 @@ void PairLJCutCoulPPPMTIP4POMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <const int CTABLE, const int EVFLAG, const int EFLAG, const int VFLAG>
+template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
 void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;

@@ -370,7 +370,8 @@ void PairAIREBO::REBO_neigh()
     REBO_numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,
+		 "Neighbor list overflow, boost neigh_modify one or page");
   }
 }
 

@@ -1,0 +1,5 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+colvars_SYSINC = # -DCOLVARS_DEBUG
+colvars_SYSLIB =
+colvars_SYSPATH =

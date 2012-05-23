@@ -1,0 +1,50 @@
+This directory has source files to build a library that LAMMPS
+links against when using the USER-COLVARS package.
+
+When you are done building this library, two files should
+exist in this directory:
+
+libcolvars.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
+
+The latter file will have settings like this (can be omitted if blank):
+
+colvars_SYSINC =
+colvars_SYSLIB =
+colvars_SYSPATH =
+
+SYSINC is for settings needed to compile LAMMPS source files
+SYSLIB is for additional system libraries needed by this package
+SYSPATH is the path(s) to where those libraries are
+
+You must insure these settings are correct for your system, else
+the LAMMPS build will likely fail.
+
+-------------------------------------------------------------------------
+
+The following publication describes the principles of
+the implementation of this library:
+
+  Exploring Multidimensional Free Energy Landscapes Using 
+  Time-Dependent Biases on Collective Variables, 
+   J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein, 
+   J. Chem. Theory Comput., 6, 35-47 (2010).
+
+This library is the portable "colvars" module, originally interfaced
+with the NAMD MD code, to provide an extensible software framework,
+that allows enhanced sampling in molecular dynamics simulations.
+The module is written to maximize performance, portability,
+flexibility of usage for the user, and extensibility for the developer.
+
+This library must be built with a C++ compiler, before LAMMPS is
+built, so LAMMPS can link against it.
+
+--------------
+
+Build the library using one of the provided Makefiles or creating your
+own, specific to your compiler and system.  For example:
+
+make -f Makefile.g++
+
+If the build is successful, you should end up with a libcolvars.a file.
+

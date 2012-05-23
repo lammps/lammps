@@ -1,0 +1,22 @@
+configuration {
+  step          200
+  dt 2.000000e+00
+}
+
+colvar {
+  name one
+  x  1.00127641579482e+01
+}
+
+colvar {
+  name two
+  x  9.62235621950587e+00
+}
+
+harmonic {
+  configuration {
+    name h_pot
+    stage 8103505641670189088
+  }
+}
+

@@ -45,7 +45,7 @@ static void my_backup_file(const char *filename, const char *extension)
 #endif
     if ( rename(filename,backup) ) {
       char *sys_err_msg = strerror(errno);
-      if ( !sys_err_msg ) sys_err_msg = "(unknown error)";
+      if ( !sys_err_msg ) sys_err_msg = (char *) "(unknown error)";
       fprintf(stderr,"Error renaming file %s to %s: %s\n",
 	      filename, backup, sys_err_msg);
     }

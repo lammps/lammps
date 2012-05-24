@@ -33,6 +33,10 @@ class PairLubricateUPoly : public PairLubricateU {
   void init_style();
 
  private:
+  double vol_P;
+  int flagdeform, flagwall, flagVF, flagHI;
+  class FixWall *wallfix;
+
   void iterate(double **, int);
   void compute_RE(double **);
   void compute_RU(double **);

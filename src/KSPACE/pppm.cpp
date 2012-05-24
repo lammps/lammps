@@ -1020,7 +1020,7 @@ void PPPM::set_grid()
     nx_pppm = static_cast<int> (xprd/h_x) + 1;
     ny_pppm = static_cast<int> (yprd/h_y) + 1;
     nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
-    
+
     err = rms(h_x,xprd,natoms,q2,acons);
     while (err > accuracy) {
       err = rms(h_x,xprd,natoms,q2,acons);
@@ -2577,14 +2577,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
     
-  // convert atoms from box to lamda coords
-    
-  if (triclinic == 0) boxlo = domain->boxlo;
-  else {
-    boxlo = domain->boxlo_lamda;
-    domain->x2lamda(atom->nlocal);
-  }
-       
+	
   // map my particle charge onto my local 3d density grid
     
   make_rho_groups(groupbit_A,groupbit_B,BA_flag);
@@ -2627,52 +2620,25 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   const double qscale = force->qqrd2e * scale;
     
   // total group A <--> group B energy
+  // self and boundary correction terms are in compute_group_group.cpp
     
   double e2group_all;
   MPI_Allreduce(&e2group,&e2group_all,1,MPI_DOUBLE,MPI_SUM,world);
   e2group = e2group_all;
   
-  e2group *= 0.5*volume;
-      
-  // total charge of groups A & B, needed for self-energy correction        
-    
-  double qsum_group = 0.0, qsqsum_group = 0.0;
-    
-  for (int i = 0; i < atom->nlocal; i++) {
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B)) {
-      if (BA_flag) continue;
-      qsqsum_group += q[i]*q[i];
-    }
-  }
-    
-  double tmp;
-  MPI_Allreduce(&qsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum_group = tmp;
-  
-  // self-energy correction
-    
-  e2group -= g_ewald*qsqsum_group/MY_PIS;
-    
-  // should we include this boundary condition or not?    
-  //  e2group += MY_PI2*qsum_group*qsum_group / (g_ewald*g_ewald*volume);
-    
-  e2group *= qscale;
+  e2group *= qscale*0.5*volume;
     
   // total group A <--> group B force
       
   double f2group_all[3];
   MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
     
-  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
-    
-  // convert atoms back from lamda to box coords
-    
-  if (triclinic) domain->lamda2x(atom->nlocal);
+  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];   
 }
 
 /* ----------------------------------------------------------------------
-   allocate group-group memory that depends on # of K-vectors and order 
-------------------------------------------------------------------------- */
+ allocate group-group memory that depends on # of K-vectors and order 
+ ------------------------------------------------------------------------- */
 
 void PPPM::allocate_groups()
 {  
@@ -2685,8 +2651,8 @@ void PPPM::allocate_groups()
 }
 
 /* ----------------------------------------------------------------------
-   deallocate group-group memory that depends on # of K-vectors and order 
-------------------------------------------------------------------------- */
+ deallocate group-group memory that depends on # of K-vectors and order 
+ ------------------------------------------------------------------------- */
 
 void PPPM::deallocate_groups()
 {
@@ -2697,11 +2663,11 @@ void PPPM::deallocate_groups()
 }
 
 /* ----------------------------------------------------------------------
-   create discretized "density" on section of global grid due to my particles
-   density(x,y,z) = charge "density" at grid points of my 3d brick
-   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid for group-group interactions
-------------------------------------------------------------------------- */
+ create discretized "density" on section of global grid due to my particles
+ density(x,y,z) = charge "density" at grid points of my 3d brick
+ (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+ in global grid for group-group interactions
+ ------------------------------------------------------------------------- */
 
 void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 {
@@ -2770,7 +2736,7 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 
 /* ----------------------------------------------------------------------
    FFT-based Poisson solver for group-group interactions
-------------------------------------------------------------------------- */
+ ------------------------------------------------------------------------- */
 
 void PPPM::poisson_groups(int BA_flag)
 {

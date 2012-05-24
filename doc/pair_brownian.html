@@ -19,7 +19,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style style mu flaglog flagfld cutinner cutoff t_target seed 
+<PRE>pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF 
 </PRE>
 <UL><LI>style = <I>brownian</I> or <I>brownian/poly</I>
 <LI>mu = dynamic viscosity (dynamic viscosity units)
@@ -28,11 +28,13 @@
 <LI>cutinner = inner cutoff distance (distance units)
 <LI>cutoff = outer cutoff for interactions (distance units)
 <LI>t_target = target temp of the system (temperature units)
-<LI>seed = seed for the random number generator (positive integer) 
+<LI>seed = seed for the random number generator (positive integer)
+<LI>flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
+<LI>flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius=1)
+<PRE>pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
 pair_coeff 1 1 2.05 2.8
 pair_coeff * * 
 </PRE>
@@ -55,6 +57,11 @@ For details, refer to either of the lubrication pair styles.
 the system.  The random number <I>seed</I> is used to generate random
 numbers for the thermostatting procedure.
 </P>
+<P>The <I>flagHI</I> and <I>flagVF</I> settings are optional.  Neither should be
+used, or both must be defined.
+</P>
+<HR>
+
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
 above, or in the data file or restart files read by the
@@ -135,6 +142,9 @@ brownian.
 lubricate</A>, <A HREF = "pair_lubricateU.html">pair_style
 lubricateU</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default settings for the optional args are flagHI = 1 and flagVF =
+1.
 </P>
 </HTML>

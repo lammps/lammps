@@ -114,10 +114,12 @@ USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 
-(2) The ATC package was created by Reese Jones, Jeremy Templeton, and Jon Zimmerman (Sandia).
-(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using the colvars 
-module library written by Giacomo Fiorin (Temple U) and Jerome Henin (LISM, Marseille, France).
- (Sandia).
+(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).
+
+(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script

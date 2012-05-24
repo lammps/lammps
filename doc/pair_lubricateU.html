@@ -15,18 +15,20 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style style mu flaglog cutinner cutoff gdot 
+<PRE>pair_style style mu flaglog cutinner cutoff gdot flagHI flagVF 
 </PRE>
 <UL><LI>style = <I>lubricateU</I> or <I>lubricateU/poly</I>
 <LI>mu = dynamic viscosity (dynamic viscosity units)
 <LI>flaglog = 0/1 log terms in the lubrication approximation on/off
 <LI>cutinner = inner cut off distance (distance units)
 <LI>cutoff = outer cutoff for interactions (distance units)
-<LI>gdot = shear rate (1/time units) 
+<LI>gdot = shear rate (1/time units)
+<LI>flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
+<LI>flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms 
 </UL>
 <P><B>Examples:</B> (all assume radius = 1)
 </P>
-<PRE>pair_style lubricateU 1.5 1 2.01 2.5 0.01
+<PRE>pair_style lubricateU 1.5 1 2.01 2.5 0.01 1 1
 pair_coeff 1 1 2.05 2.8
 pair_coeff * * 
 </PRE>
@@ -44,16 +46,22 @@ Melrose)</A>
 </CENTER>
 <P>which represents the dissipation W between two nearby particles due to
 their relative velocities in the presence of a background solvent with
-viscosity mu.  Note that this is dynamic viscosity which has units of
+viscosity <I>mu</I>.  Note that this is dynamic viscosity which has units of
 mass/distance/time, not kinematic viscosity.
 </P>
-<P>The Asq (squeeze) term is the strongest and is always included.  It
-scales as 1/gap where gap is the separation between the surfaces of
-the 2 particles.  The Ash (shear) and Apu (pump) terms are only
-include if <I>flaglog</I> is set to 1.  Thy are the next strongest
-interactions, and the only other singular interaction, and scale as
-log(gap).  The Atw (twist) term is currently not included.  It is
-typically a very small contribution to the lubrication forces.
+<P>The Asq (squeeze) term is the strongest and is included as long as
+<I>flagHI</I> is set to 1 (default). It scales as 1/gap where gap is the
+separation between the surfaces of the 2 particles. The Ash (shear)
+and Apu (pump) terms are only included if <I>flaglog</I> is set to 1. They
+are the next strongest interactions, and the only other singular
+interaction, and scale as log(gap). Note that <I>flaglog</I> = 1 and
+<I>flagHI</I> = 0 is invalid, and will result in a warning message, after
+which <I>flagHI</I> will be set to 1. The Atw (twist) term is currently not
+included. It is typically a very small contribution to the lubrication
+forces.
+</P>
+<P>The <I>flagHI</I> and <I>flagVF</I> settings are optional.  Neither should be
+used, or both must be defined.
 </P>
 <P><I>Cutinner</I> sets the minimum center-to-center separation that will be
 used in calculations irrespective of the actual separation.  <I>Cutoff</I>
@@ -68,11 +76,12 @@ solved to balance the forces and torques is
 <CENTER><IMG SRC = "Eqs/fld2.jpg">
 </CENTER>
 <P>where U represents the velocities and angular velocities of the
-particles, U<I>infty</I> represents the velocities and the angular
-velocities of the undisturbed fluid, and E<I>infty</I> represents the rate
-of strain tensor of the undisturbed fluid flow with viscosity mu.
-Again, note that this is dynamic viscosity which has units of
-mass/distance/time, not kinematic viscosity.
+particles, U^<I>infty</I> represents the velocities and the angular
+velocities of the undisturbed fluid, and E^<I>infty</I> represents the rate
+of strain tensor of the undisturbed fluid flow with viscosity
+<I>mu</I>. Again, note that this is dynamic viscosity which has units of
+mass/distance/time, not kinematic viscosity.  Volume fraction
+corrections to R_FU are included if <I>flagVF</I> is set to 1 (default).
 </P>
 <P>F<I>rest</I> represents the forces and torques due to all other types of
 interactions, e.g. Brownian, electrostatic etc.  Note that this
@@ -104,14 +113,28 @@ reset by the time integration fix.
 </P>
 <P>If the suspension is sheared via the <A HREF = "fix_deform.html">fix deform</A>
 command then the pair style uses the shear rate to adjust the
-hydrodynamic interactions accordingly.
+hydrodynamic interactions accordingly. Volume changes due to fix
+deform are accounted for when computing the volume fraction
+corrections to R_FU.
+</P>
+<P>When computing the volume fraction corrections to R_FU, the presence
+of walls (whether moving or stationary) will affect the volume
+fraction available to colloidal particles. This is currently accounted
+for with the following types of walls: <A HREF = "fix_wall.html">wall/lj93</A>,
+<A HREF = "fix_wall.html">wall/lj126</A>, <A HREF = "fix_wall.html">wall/colloid</A>, and
+"wall/harmonic_fix_wall.html".  For these wall styles, the correct
+volume fraction will be used when walls do not coincide with the box
+boundary, as well as when walls move and thereby cause a change in the
+volume fraction. To use these wall styles with pair_style <I>lubricateU</I>
+or <I>lubricateU/poly</I>, the <I>fld yes</I> option must be specified in the
+fix wall command.
 </P>
 <P>Since lubrication forces are dissipative, it is usually desirable to
-thermostat the system at a constant temperature.  If Brownian motion
+thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
-<A HREF = "pair_brownian.html">pair_style brownian</A> command.  These pair styles
-and the <I>brownian</I> style should use consistent parameters for <I>mu</I>,
-<I>flaglog</I>, <I>flagfld = 1</I>, <I>cutinner</I>, and <I>cutoff</I>.
+<A HREF = "pair_brownian.html">pair_style brownian</A> command. These pair styles
+and the brownian style should use consistent parameters for <I>mu</I>,
+<I>flaglog</I>, <I>flagfld</I>, <I>cutinner</I>, <I>cutoff</I>, <I>flagHI</I> and <I>flagVF</I>.
 </P>
 <HR>
 
@@ -166,8 +189,8 @@ LAMMPS</A> section for more info.
 forces/torques on the particles have been already been computed when
 it is invoked.  This requires this style to be defined as the last of
 the pair styles, and that no fixes apply additional constraint forces.
-One exception is the <A HREF = "fix_wall.html">fix wall/colloid</A> command, which
-has an "fld" option to apply its wall forces correctly.
+One exception is the <A HREF = "fix_wall.html">fix wall/colloid</A> commands, which
+has an "fld" option to apply their wall forces correctly.
 </P>
 <P>Only spherical monodisperse particles are allowed for pair_style
 lubricateU.
@@ -184,7 +207,10 @@ deform</A> with the same rate of shear (erate).
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricate.html">pair_style
 lubricate</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default settings for the optional args are flagHI = 1 and flagVF =
+1.
 </P>
 <HR>
 

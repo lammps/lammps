@@ -32,8 +32,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   sort_flag = 1;
   sortcol = 0;
 
-  if (format_default)
-    delete[] format_default;
+  if (format_default) delete [] format_default;
 
   char *str = (char *) "%s %g %g %g";
   int n = strlen(str) + 1;
@@ -54,7 +53,6 @@ DumpXYZ::~DumpXYZ()
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
       delete [] typenames[i];
-
     delete [] typenames;
     typenames = NULL;
   }
@@ -74,13 +72,12 @@ void DumpXYZ::init_style()
   strcpy(format,str);
   strcat(format,"\n");
 
-  /* initialize typenames array to be 
-     backward compatible by default */
+  // initialize typenames array to be backward compatible by default
+  // a 32-bit int can be maximally 10 digits plus sign
 
   if (typenames == NULL) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
-      /* a 32-bit int can be maximally 10 digits plus sign */
       typenames[itype] = new char[12];
       sprintf(typenames[itype],"%d",itype);
     }

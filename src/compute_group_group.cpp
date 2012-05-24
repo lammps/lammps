@@ -341,7 +341,6 @@ void ComputeGroupGroup::kspace_correction()
   int groupbit_B = jgroupbit;
     
   for (int i = 0; i < atom->nlocal; i++) {
-    if (mask[i] & groupbit_A) fprintf(screen,"i = %d\n",i);
     if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
       qsqsum_group += q[i]*q[i];
     if (mask[i] & groupbit_A) qsum_A += q[i];

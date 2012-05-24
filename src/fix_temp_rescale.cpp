@@ -139,7 +139,7 @@ void FixTempRescale::end_of_step()
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
 
-  // set current t_target and t_sqrt
+  // set current t_target
   // if variable temp, evaluate variable, wrap with clear/add
 
   if (tstyle == CONSTANT)

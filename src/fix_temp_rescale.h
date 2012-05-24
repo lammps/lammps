@@ -40,6 +40,8 @@ class FixTempRescale : public Fix {
   int which;
   double t_start,t_stop,t_window,t_target;
   double fraction,energy,efactor;
+  int tstyle,tvar;
+  char *tstr;
 
   char *id_temp;
   class Compute *temperature;

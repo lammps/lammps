@@ -46,13 +46,21 @@ If the {kspace} keyword is set to {yes}, which is not the default, and
 if a "kspace_style"_kspace_style.html is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
-atoms in the 2nd group.  group.  Likewise, the interaction force
-calculated by this compute will include the force on the compute group
-atoms due to long-range Coulombic interactions with atoms in the
-specified group2.
+atoms in the 2nd group.  Likewise, the interaction force calculated by
+this compute will include the force on the compute group atoms due to
+long-range Coulombic interactions with atoms in the specified group2.
 
-If the {boundary} keyword is set to {yes}, and {kspace} contributions
-are included, then ...
+Normally the long-range Coulombic energy converges only when the net
+charge of the unit cell is zero.  However, one can assume the net
+charge of the system is neutralized by a uniform background plasma,
+and a correction to the system energy can be applied to reduce
+artifacts. For more information see "(Bogusz)"_#Bogusz.  If the
+{boundary} keyword is set to {yes}, which is the default, and {kspace}
+contributions are included, then this energy correction term will be
+added to the total group-group energy.  This correction term does not
+affect the force calculation and will be zero if one or both of the
+groups are charge neutral.  This energy correction term is the same as
+that included in the regular Ewald and PPPM routines.
 
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
@@ -73,7 +81,7 @@ costly than using a single compute with both keywords set to {yes}.
 The individual contributions can be summed in a
 "variable"_variable.html if desired.
 
-Thie "document"_PDF/kspace.pdf describes how the long-range
+This "document"_PDF/kspace.pdf describes how the long-range
 group-group calculations are performed.
 
 :line
@@ -108,3 +116,8 @@ The {ewald} and {pppm} styles do.
 [Default:]
 
 The option defaults are pair = yes, kspace = no, and boundary = yes.
+
+:line
+
+:link(Bogusz)
+Bogusz et al, J Chem Phys, 108, 7070 (1998)

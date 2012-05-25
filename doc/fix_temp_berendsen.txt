@@ -13,10 +13,11 @@ fix temp/berendsen/cuda command :h3
 
 fix ID group-ID temp/berendsen Tstart Tstop Tdamp :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-temp/berendsen = style name of this fix command
-Tstart,Tstop = desired temperature at start/end of run
-Tdamp = temperature damping parameter (time units) :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+temp/berendsen = style name of this fix command :l
+Tstart,Tstop = desired temperature at start/end of run :l
+  Tstart can be a variable (see below) :pre
+Tdamp = temperature damping parameter (time units) :l,ule
 
 [Examples:]
 
@@ -41,6 +42,17 @@ time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 "units"_units.html command).
+
+{Tstart} can be specified as an equal-style "variable"_variable.html.
+In this case, the {Tstop} setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
 
 IMPORTANT NOTE: Unlike the "fix nvt"_fix_nh.html command which
 performs Nose/Hoover thermostatting AND time integration, this fix

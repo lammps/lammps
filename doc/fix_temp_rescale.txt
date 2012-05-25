@@ -14,12 +14,13 @@ fix temp/rescale/limit/cuda command :h3
 
 fix ID group-ID temp/rescale N Tstart Tstop window fraction :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-temp/rescale = style name of this fix command
-N = perform rescaling every N steps 
-Tstart,Tstop = desired temperature at start/end of run (temperature units)
-window = only rescale if temperature is outside this window (temperature units)
-fraction = rescale to target temperature by this fraction :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+temp/rescale = style name of this fix command :l
+N = perform rescaling every N steps  :l
+Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
+  Tstart can be a variable (see below) :pre
+window = only rescale if temperature is outside this window (temperature units) :l
+fraction = rescale to target temperature by this fraction :l,ule
 
 [Examples:]
 
@@ -42,6 +43,17 @@ before thermostatting takes place; see the description below.
 Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the {Tstart} and {Tstop} temperatures at the
 beginning and end of the run.
+
+{Tstart} can be specified as an equal-style "variable"_variable.html.
+In this case, the {Tstop} setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
 
 Rescaling is only performed if the difference between the current and
 desired temperatures is greater than the {window} value.  The amount

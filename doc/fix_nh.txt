@@ -83,13 +83,13 @@ correctly, the time-averaged temperature and stress tensor of the
 particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.
 
-The equations of motion used are those of Shinoda et al. in
+The equations of motion used are those of Shinoda et al in
 "(Shinoda)"_#Shinoda, which combine the hydrostatic equations of
 Martyna, Tobias and Klein in "(Martyna)"_#Martyna with the strain
 energy proposed by Parrinello and Rahman in
-"(Parrinello)"_#Parrinello.  The time integration schemes closely 
-follow the time-reversible measure-preserving Verlet and 
-rRESPA integrators derived by Tuckerman et al. in "(Tuckerman)"_#Tuckerman. 
+"(Parrinello)"_#Parrinello.  The time integration schemes closely
+follow the time-reversible measure-preserving Verlet and rRESPA
+integrators derived by Tuckerman et al. in "(Tuckerman)"_#Tuckerman.
 
 :line
 

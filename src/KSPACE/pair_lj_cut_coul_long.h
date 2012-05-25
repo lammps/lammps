@@ -33,7 +33,7 @@ class PairLJCutCoulLong : public Pair {
   void coeff(int, char **);
   virtual void init_style();
   void init_list(int, class NeighList *);
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);

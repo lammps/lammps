@@ -40,6 +40,8 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
   double alpha;                // geometric constraint parameter for TIP4P
 
   void find_M(int, int &, int &, double *);
+
+  //int count;
 };
 
 }

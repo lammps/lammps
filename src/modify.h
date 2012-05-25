@@ -88,6 +88,7 @@ class Modify : protected Pointers {
   void modify_compute(int, char **);
   void delete_compute(const char *);
   int find_compute(const char *);
+
   void clearstep_compute();
   void addstep_compute(bigint);
   void addstep_compute_all(bigint);

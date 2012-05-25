@@ -233,10 +233,12 @@ doc/group.html
 doc/if.html
 doc/improper_class2.html
 doc/improper_coeff.html
+doc/improper_cossq.html
 doc/improper_cvff.html
 doc/improper_harmonic.html
 doc/improper_hybrid.html
 doc/improper_none.html
+doc/improper_ring.html
 doc/improper_style.html
 doc/improper_umbrella.html
 doc/include.html
@@ -287,6 +289,7 @@ doc/pair_gromacs.html
 doc/pair_hbond_dreiding.html
 doc/pair_hybrid.html
 doc/pair_kim.html
+doc/pair_lcbop.html
 doc/pair_lj.html
 doc/pair_line_lj.html
 doc/pair_lj96.html

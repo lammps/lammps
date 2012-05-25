@@ -335,15 +335,23 @@ pre-defined color names with new RBG values.
 </P>
 <HR>
 
-<P>The <I>element</I> keyword applies only to the the dump <I>cfg</I> and <I>image</I>
-styles.  It associates element names (e.g. H, C, Fe) with LAMMPS atom
-types.  See the list of element names at the bottom of this page.  In
-the case of dump <I>cfg</I>, it allows the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualization
-package to read the dump file and render atoms with the appropriate
-size and color.  In the case of dump <I>image</I>, the output images will
-follow the same <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> convention.  An element name is
-specified for each atom type (1 to Ntype) in the simulation.  The same
-element name can be given to multiple atom types.
+<P>The <I>element</I> keyword applies only to the the dump <I>cfg</I>, <I>xyz</I>, and
+<I>image</I> styles.  It associates element names (e.g. H, C, Fe) with
+LAMMPS atom types.  See the list of element names at the bottom of
+this page.
+</P>
+<P>In the case of dump <I>cfg</I>, this allows the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
+visualization package to read the dump file and render atoms with the
+appropriate size and color.
+</P>
+<P>In the case of dump <I>image</I>, the output images will follow the same
+<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> convention.  An element name is specified for each
+atom type (1 to Ntype) in the simulation.  The same element name can
+be given to multiple atom types.
+</P>
+<P>In the case of <I>xyz</I> format dumps, there are no restrictions to what
+label can be used as an element name.  Any whitespace separated text
+will be accepted.
 </P>
 
 

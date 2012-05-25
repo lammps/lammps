@@ -30,13 +30,23 @@
 #include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
-#include "memory.h"
+#include "modify.h"
+#include "fix.h"
+#include "fix_deform.h"
+#include "fix_wall.h"
+#include "input.h"
+#include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+// same as fix_wall.cpp
+
+enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,6 +82,47 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   double xl[3],a_sq,a_sh,a_pu,Fbmag;
   double p1[3],p2[3],p3[3];
   
+
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
+
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	double wallhi[3], walllo[3];
+	for (j = 0; j < 3; j++){
+	  wallhi[j] = domain->prd[j];
+	  walllo[j] = 0;
+	}    
+	for (int m = 0; m < wallfix->nwall; m++){
+	  int dim = wallfix->wallwhich[m] / 2;
+	  int side = wallfix->wallwhich[m] % 2;
+	  if (wallfix->wallstyle[m] == VARIABLE){
+	    wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	  }	   
+	  else wallcoord = wallfix->coord0[m];	   
+	  if (side == 0) walllo[dim] = wallcoord;
+	  else wallhi[dim] = wallcoord;	   
+	}
+	for (j = 0; j < 3; j++)
+	  dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3);
+	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
   // scale factor for Brownian moments
 
   prethermostat = sqrt(24.0*force->boltz*t_target/update->dt);
@@ -81,6 +132,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -108,6 +160,8 @@ void PairBrownianPoly::compute(int eflag, int vflag)
       }
     }
     
+    if (!flagHI) continue;
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -297,20 +351,44 @@ void PairBrownianPoly::init_style()
   
   // set the isotropic constants that depend on the volume fraction
   // vol_T = total volume
+  double vol_T, wallcoord;
+  if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
+  else {    
+    double wallhi[3], walllo[3];
+    for (int j = 0; j < 3; j++){
+      wallhi[j] = domain->prd[j];
+      walllo[j] = 0;
+    }    
+    for (int m = 0; m < wallfix->nwall; m++){
+      int dim = wallfix->wallwhich[m] / 2;
+      int side = wallfix->wallwhich[m] % 2;
+      if (wallfix->wallstyle[m] == VARIABLE){
+	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+	// Since fix->wall->init happens after pair->init_style
+	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+      }
+      
+      else wallcoord = wallfix->coord0[m];
+      
+      if (side == 0) walllo[dim] = wallcoord;
+      else wallhi[dim] = wallcoord;
+    }
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
+      (wallhi[2] - walllo[2]);
+  }
 
-  double vol_T = domain->xprd*domain->yprd*domain->zprd; 
   
   // vol_P = volume of particles, assuming mono-dispersity
   // vol_f = volume fraction
 
   double volP = 0.0;
-
   for (int i = 0; i < nlocal; i++)
-    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3);
-  double vol_P;
+    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3); 
   MPI_Allreduce(&volP,&vol_P,1,MPI_DOUBLE,MPI_SUM,world);
+
   double vol_f = vol_P/vol_T;
 
+  if (!flagVF) vol_f = 0;
   // set isotropic constants
  
   if (flaglog == 0) {

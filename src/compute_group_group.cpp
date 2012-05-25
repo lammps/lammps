@@ -29,8 +29,15 @@
 #include "group.h"
 #include "kspace.h"
 #include "error.h"
+#include "math.h"
+#include "comm.h"
+#include "domain.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
+
+#define SMALL 0.00001
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +62,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
 
   pairflag = 1;
   kspaceflag = 0;
+  boundaryflag = 1;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -68,8 +76,15 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
+      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
+      else error->all(FLERR,"Illegal compute group/group command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"boundary") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal compute group/group command");
+      if (strcmp(arg[iarg+1],"yes") == 0) boundaryflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) boundaryflag  = 0;
       else error->all(FLERR,"Illegal compute group/group command");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute group/group command");
@@ -112,7 +127,19 @@ void ComputeGroupGroup::init()
   
   if (kspaceflag) kspace = force->kspace;
   else kspace = NULL;
-
+  
+  // compute Kspace correction terms
+  
+  if (kspaceflag) {
+    kspace_correction();
+    if (fabs(e_correction) > SMALL && comm->me == 0) {
+      char str[128];
+      sprintf(str,"Both groups in compute group/group have a net charge; "
+	      "the Kspace boundary correction to energy will be non-zero");
+      error->warning(FLERR,str);
+    }
+  }
+  
   // recheck that group 2 has not been deleted
 
   jgroup = group->find(group2);
@@ -282,4 +309,85 @@ void ComputeGroupGroup::kspace_contribution()
   
   force->kspace->compute_group_group(groupbit,jgroupbit,1); 
   scalar += force->kspace->e2group;
+  
+  // self energy correction term
+    
+  scalar -= e_self;
+  
+  // k=0 boundary correction term
+
+  if (boundaryflag) {
+    double xprd = domain->xprd;
+    double yprd = domain->yprd;
+    double zprd = domain->zprd;
+    double volume = xprd*yprd*zprd;
+    scalar -= e_correction/volume;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeGroupGroup::kspace_correction()
+{
+
+  // total charge of groups A & B, needed for correction term        
+    
+  double qsqsum_group,qsum_A,qsum_B;
+  qsqsum_group = qsum_A = qsum_B = 0.0;
+  
+  double *q = atom->q;
+  int *mask = atom->mask;
+  int groupbit_A = groupbit;
+  int groupbit_B = jgroupbit;
+    
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (mask[i] & groupbit_A) fprintf(screen,"i = %d\n",i);
+    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+      qsqsum_group += q[i]*q[i];
+    if (mask[i] & groupbit_A) qsum_A += q[i];
+    if (mask[i] & groupbit_B) qsum_B += q[i];
+  }
+    
+  double tmp;
+  MPI_Allreduce(&qsqsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsqsum_group = tmp;
+  
+  MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_A = tmp;
+  
+  MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_B = tmp;
+  
+  double g_ewald = force->kspace->g_ewald;
+  
+  double scale = 1.0;
+  const double qscale = force->qqrd2e * scale;
+  
+  // self-energy correction
+    
+  e_self = qscale * g_ewald*qsqsum_group/MY_PIS;
+  e_correction = qsum_A*qsum_B;
+  
+  // Extra BA terms
+  
+  qsum_A = qsum_B = 0.0;
+  
+  for (int i = 0; i < atom->nlocal; i++) {
+    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
+  	  continue;
+	
+	if (mask[i] & groupbit_A) qsum_A += q[i];
+    if (mask[i] & groupbit_B) qsum_B += q[i];
+  }
+  
+  MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_A = tmp;
+  
+  MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_B = tmp;
+    
+  // k=0 energy correction term (still need to divide by volume above)
+  
+  e_correction += qsum_A*qsum_B;
+  e_correction *= qscale * MY_PI2 / (g_ewald*g_ewald); 
 }

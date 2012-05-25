@@ -16,11 +16,11 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 group/group = style name of this compute command :l
 group2-ID = group ID of second (or same) group :l
 zero or more keyword/value pairs may be appended :l
-keyword = {pair} or {kspace} :l
+keyword = {pair} or {kspace} or {boundary} :l
   {pair} value = {yes} or {no}
-  {kspace} value = {yes} or {no} :pre
+  {kspace} value = {yes} or {no}
+  {boundary} value = {yes} or {no} :pre
 :ule
-
 
 [Examples:]
 
@@ -43,13 +43,16 @@ include the force on the compute group atoms due to pairwise
 interactions with atoms in the specified group2.
 
 If the {kspace} keyword is set to {yes}, which is not the default, and
-if a "kspace_style"_kspace_style.html is defined, then the the
-interaction energy will include a Kspace component which is the
-long-range Coulombic energy between all the atoms in the first group
-and all the atoms in the 2nd group.  group.  Likewise, the interaction
-force calculated by this compute will include the force on the compute
-group atoms due to long-range Coulombic interactions with atoms in the
+if a "kspace_style"_kspace_style.html is defined, then the interaction
+energy will include a Kspace component which is the long-range
+Coulombic energy between all the atoms in the first group and all the
+atoms in the 2nd group.  group.  Likewise, the interaction force
+calculated by this compute will include the force on the compute group
+atoms due to long-range Coulombic interactions with atoms in the
 specified group2.
+
+If the {boundary} keyword is set to {yes}, and {kspace} contributions
+are included, then ...
 
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
@@ -104,4 +107,4 @@ The {ewald} and {pppm} styles do.
 
 [Default:]
 
-The option defaults are pair = yes and kspace = no.
+The option defaults are pair = yes, kspace = no, and boundary = yes.

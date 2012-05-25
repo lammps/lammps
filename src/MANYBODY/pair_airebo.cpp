@@ -370,7 +370,8 @@ void PairAIREBO::REBO_neigh()
     REBO_numneigh[i] = n;
     npnt += n;
     if (npnt >= pgsize)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one or page");
+      error->one(FLERR,
+		 "Neighbor list overflow, boost neigh_modify one or page");
   }
 }
 
@@ -2852,7 +2853,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
 	  if (vflag_atom) v_tally2(atomi,atomk,-tmp2,rik);
 
-	  if (fabs(dNki)  >TOL) {
+	  if (fabs(dNki) > TOL) {
 	    REBO_neighs_k = REBO_firstneigh[atomk];
 	    for (n = 0; n < REBO_numneigh[atomk]; n++) {
 	      atomn = REBO_neighs_k[n];

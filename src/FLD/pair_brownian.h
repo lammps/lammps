@@ -42,6 +42,12 @@ class PairBrownian : public Pair {
   double cut_inner_global,cut_global;
   double t_target,mu;
   int flaglog,flagfld;
+  int flagHI, flagVF;
+  int flagdeform, flagwall;
+  double vol_P;
+  double rad;
+  class FixWall *wallfix;
+
   int seed;
   double **cut_inner,**cut;
   double R0,RT0;

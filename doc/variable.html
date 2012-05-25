@@ -443,12 +443,12 @@ will generate the sequence of output timesteps:
 </P>
 <PRE>1000,1100,1200, ... ,1900,2000 
 </PRE>
-<P>The vdisplace(x,y) function takes 2 arguments: x = coord0 and y =
-velocity, and uses the elapsed time to change the coordinate value by
-a linear displacement due to the applied velocity over the course of a
-run, according to this formula:
+<P>The vdisplace(x,y) function takes 2 arguments: x = value0 and y =
+velocity, and uses the elapsed time to change the value by a linear
+displacement due to the applied velocity over the course of a run,
+according to this formula:
 </P>
-<PRE>value = coord0 + velocity*(timestep-startstep)*dt 
+<PRE>value = value0 + velocity*(timestep-startstep)*dt 
 </PRE>
 <P>where dt = the timestep size.
 </P>
@@ -459,13 +459,12 @@ the <I>start</I> keyword of the <A HREF = "run.html">run</A> command.  See the
 timestep-startstep.
 </P>
 <P>The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
-x = coord0, y = amplitude, z = period.  They use the elapsed time to
-oscillate the coordinate value by a sin() or cos() function over the
-course of a run, according to one of these formulas, where
-omega = 2 PI / period:
+x = value0, y = amplitude, z = period.  They use the elapsed time to
+oscillate the value by a sin() or cos() function over the course of a
+run, according to one of these formulas, where omega = 2 PI / period:
 </P>
-<PRE>value = coord0 + Amplitude * sin(omega*(timestep-startstep)*dt)
-value = coord0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt)) 
+<PRE>value = value0 + Amplitude * sin(omega*(timestep-startstep)*dt)
+value = value0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt)) 
 </PRE>
 <P>where dt = the timestep size.
 </P>

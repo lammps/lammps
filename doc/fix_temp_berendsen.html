@@ -17,9 +17,14 @@
 </P>
 <PRE>fix ID group-ID temp/berendsen Tstart Tstop Tdamp 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>temp/berendsen = style name of this fix command
-<LI>Tstart,Tstop = desired temperature at start/end of run
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>temp/berendsen = style name of this fix command 
+
+<LI>Tstart,Tstop = desired temperature at start/end of run 
+
+<PRE>  Tstart can be a variable (see below) 
+</PRE>
 <LI>Tdamp = temperature damping parameter (time units) 
 </UL>
 <P><B>Examples:</B>
@@ -45,6 +50,17 @@ time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 <A HREF = "units.html">units</A> command).
+</P>
+<P><I>Tstart</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
+In this case, the <I>Tstop</I> setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
 performs Nose/Hoover thermostatting AND time integration, this fix

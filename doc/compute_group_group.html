@@ -55,13 +55,21 @@ interactions with atoms in the specified group2.
 if a <A HREF = "kspace_style.html">kspace_style</A> is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
-atoms in the 2nd group.  group.  Likewise, the interaction force
-calculated by this compute will include the force on the compute group
-atoms due to long-range Coulombic interactions with atoms in the
-specified group2.
+atoms in the 2nd group.  Likewise, the interaction force calculated by
+this compute will include the force on the compute group atoms due to
+long-range Coulombic interactions with atoms in the specified group2.
 </P>
-<P>If the <I>boundary</I> keyword is set to <I>yes</I>, and <I>kspace</I> contributions
-are included, then ...
+<P>Normally the long-range Coulombic energy converges only when the net
+charge of the unit cell is zero.  However, one can assume the net
+charge of the system is neutralized by a uniform background plasma,
+and a correction to the system energy can be applied to reduce
+artifacts. For more information see <A HREF = "#Bogusz">(Bogusz)</A>.  If the
+<I>boundary</I> keyword is set to <I>yes</I>, which is the default, and <I>kspace</I>
+contributions are included, then this energy correction term will be
+added to the total group-group energy.  This correction term does not
+affect the force calculation and will be zero if one or both of the
+groups are charge neutral.  This energy correction term is the same as
+that included in the regular Ewald and PPPM routines.
 </P>
 <P>This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
@@ -82,7 +90,7 @@ costly than using a single compute with both keywords set to <I>yes</I>.
 The individual contributions can be summed in a
 <A HREF = "variable.html">variable</A> if desired.
 </P>
-<P>Thie <A HREF = "PDF/kspace.pdf">document</A> describes how the long-range
+<P>This <A HREF = "PDF/kspace.pdf">document</A> describes how the long-range
 group-group calculations are performed.
 </P>
 <HR>
@@ -117,5 +125,11 @@ The <I>ewald</I> and <I>pppm</I> styles do.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are pair = yes, kspace = no, and boundary = yes.
+</P>
+<HR>
+
+<A NAME = "Bogusz"></A>
+
+<P>Bogusz et al, J Chem Phys, 108, 7070 (1998)
 </P>
 </HTML>

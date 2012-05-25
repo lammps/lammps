@@ -19,11 +19,18 @@
 </P>
 <PRE>fix ID group-ID temp/rescale N Tstart Tstop window fraction 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>temp/rescale = style name of this fix command
-<LI>N = perform rescaling every N steps 
-<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units)
-<LI>window = only rescale if temperature is outside this window (temperature units)
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>temp/rescale = style name of this fix command 
+
+<LI>N = perform rescaling every N steps  
+
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
+
+<PRE>  Tstart can be a variable (see below) 
+</PRE>
+<LI>window = only rescale if temperature is outside this window (temperature units) 
+
 <LI>fraction = rescale to target temperature by this fraction 
 </UL>
 <P><B>Examples:</B>
@@ -47,6 +54,17 @@ before thermostatting takes place; see the description below.
 <P>Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the <I>Tstart</I> and <I>Tstop</I> temperatures at the
 beginning and end of the run.
+</P>
+<P><I>Tstart</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
+In this case, the <I>Tstop</I> setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
 </P>
 <P>Rescaling is only performed if the difference between the current and
 desired temperatures is greater than the <I>window</I> value.  The amount

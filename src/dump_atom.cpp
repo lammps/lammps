@@ -59,17 +59,7 @@ void DumpAtom::init_style()
 
   // setup boundary string
 
-  int m = 0;
-  for (int idim = 0; idim < 3; idim++) {
-    for (int iside = 0; iside < 2; iside++) {
-      if (domain->boundary[idim][iside] == 0) boundstr[m++] = 'p';
-      else if (domain->boundary[idim][iside] == 1) boundstr[m++] = 'f';
-      else if (domain->boundary[idim][iside] == 2) boundstr[m++] = 's';
-      else if (domain->boundary[idim][iside] == 3) boundstr[m++] = 'm';
-    }
-    boundstr[m++] = ' ';
-  }
-  boundstr[8] = '\0';
+  domain->boundary_string(boundstr);
 
   // setup column string
 

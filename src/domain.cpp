@@ -1223,6 +1223,26 @@ void Domain::print_box(const char *str)
 }
 
 /* ----------------------------------------------------------------------
+   format boundary string for output
+   assume str is 9 chars or more in length
+------------------------------------------------------------------------- */
+
+void Domain::boundary_string(char *str)
+{
+  int m = 0;
+  for (int idim = 0; idim < 3; idim++) {
+    for (int iside = 0; iside < 2; iside++) {
+      if (boundary[idim][iside] == 0) str[m++] = 'p';
+      else if (boundary[idim][iside] == 1) str[m++] = 'f';
+      else if (boundary[idim][iside] == 2) str[m++] = 's';
+      else if (boundary[idim][iside] == 3) str[m++] = 'm';
+    }
+    str[m++] = ' ';
+  }
+  str[8] = '\0';
+}
+
+/* ----------------------------------------------------------------------
    convert triclinic 0-1 lamda coords to box coords for all N atoms
    x = H lamda + x0;
 ------------------------------------------------------------------------- */

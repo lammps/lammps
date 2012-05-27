@@ -18,15 +18,28 @@
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
+#include "input.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
+#include "variable.h"
 #include "random_mars.h"
+#include "fix_wall.h"
+#include "fix_deform.h"
 #include "math_const.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+// same as fix_deform.cpp
+
+enum{NO_REMAP,X_REMAP,V_REMAP};
+
+
+// same as fix_wall.cpp
+
+enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,6 +66,51 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
+
+
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
+
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (int j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	 double wallhi[3], walllo[3];
+	 for (int j = 0; j < 3; j++){
+	   wallhi[j] = domain->prd[j];
+	   walllo[j] = 0;
+	 }    
+	 for (int m = 0; m < wallfix->nwall; m++){
+	   int dim = wallfix->wallwhich[m] / 2;
+	   int side = wallfix->wallwhich[m] % 2;
+	   if (wallfix->wallstyle[m] == VARIABLE){
+	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	   }	   
+	   else wallcoord = wallfix->coord0[m];	   
+	   if (side == 0) walllo[dim] = wallcoord;
+	   else wallhi[dim] = wallcoord;	   
+	 }
+	 for (int j = 0; j < 3; j++)
+	   dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+	RT0 = 8*MY_PI*mu;
+	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
+  // end of R0 adjustment code  
+
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -166,7 +224,14 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
     // no need to do this if not shearing since comm->ghost_velocity is set
 
     sync_threads();
-    comm->forward_comm_pair(this);
+
+    // MPI communication only on master thread
+#if defined(_OPENMP)
+#pragma omp master
+#endif
+    { comm->forward_comm_pair(this); }
+
+    sync_threads();
   }
 
   // loop over neighbors of my atoms
@@ -207,6 +272,8 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
     }
 
+    if (!flagHI) continue;
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -222,7 +289,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         r = sqrt(rsq);  
   
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
-	
+
 	wj[0] = omega[j][0];
 	wj[1] = omega[j][1];
 	wj[2] = omega[j][2];              

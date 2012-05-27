@@ -381,7 +381,8 @@ void Lattice::setup_transform()
     primitive[0][1]*primitive[1][0]*primitive[2][2] -
     primitive[0][2]*primitive[1][1]*primitive[2][0];
 
-  if (determinant == 0.0) error->all(FLERR,"Degenerate lattice primitive vectors");
+  if (determinant == 0.0) 
+    error->all(FLERR,"Degenerate lattice primitive vectors");
 
   priminv[0][0] = (primitive[1][1]*primitive[2][2] - 
 		   primitive[1][2]*primitive[2][1]) / determinant;

@@ -361,6 +361,9 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       }
     }
   }
+
+  //if (comm->me == 0 && update->ntimestep == update->laststep) 
+  //  printf("Count %ld %d\n",update->ntimestep,count);
 }
 
 /* ----------------------------------------------------------------------
@@ -397,6 +400,8 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 
 void PairLJCutCoulLongTIP4P::init_style()
 {
+  //count = 0;
+
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 
@@ -505,6 +510,8 @@ void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
   xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
   xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+
+  //count++;
 }
 
 /* ---------------------------------------------------------------------- */

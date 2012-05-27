@@ -360,13 +360,17 @@ void Update::reset_timestep(int narg, char **arg)
 
   for (int i = 0; i < output->ndump; i++)
     if (output->last_dump[i] >= 0)
-      error->all(FLERR,"Cannot reset timestep with dump file already written to");
+      error->all(FLERR,
+		 "Cannot reset timestep with dump file already written to");
+
   if (output->restart && output->last_restart >= 0)
-    error->all(FLERR,"Cannot reset timestep with restart file already written");
+    error->all(FLERR,
+	       "Cannot reset timestep with restart file already written");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
-      error->all(FLERR,"Cannot reset timestep with a time-dependent fix defined");
+      error->all(FLERR,
+		 "Cannot reset timestep with a time-dependent fix defined");
 
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())

@@ -461,7 +461,8 @@ void PairLJCutCoulLong::compute_outer(int eflag, int vflag)
 	        rsw = (r - cut_in_off)/cut_in_diff; 
 	        forcecoul += prefactor*rsw*rsw*(3.0 - 2.0*rsw);
 	        if (factor_coul < 1.0) 
-		  forcecoul -= (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
+		  forcecoul -= 
+		    (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
 	      } else {
 	        forcecoul += prefactor;
 	        if (factor_coul < 1.0)
@@ -615,7 +616,8 @@ void PairLJCutCoulLong::settings(int narg, char **arg)
 
 void PairLJCutCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

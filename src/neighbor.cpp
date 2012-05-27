@@ -1606,7 +1606,8 @@ void Neighbor::modify_params(int narg, char **arg)
 	error->all(FLERR,"Invalid group ID in neigh_modify command");
       if (includegroup && (atom->firstgroupname == NULL ||
 			    strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-	error->all(FLERR,"Neigh_modify include group != atom_modify first group");
+	error->all(FLERR,
+		   "Neigh_modify include group != atom_modify first group");
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");

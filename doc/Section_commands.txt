@@ -1006,8 +1006,10 @@ built with the "appropriate accelerated
 package"_Section_accelerate.html.
 
 "class2/omp"_improper_class2.html,
+"cossq/omp"_improper_cossq.html,
 "cvff/omp"_improper_cvff.html,
 "harmonic/omp"_improper_harmonic.html,
+"ring/omp"_improper_ring.html,
 "umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)
 
 :line

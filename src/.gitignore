@@ -325,6 +325,10 @@ improper_class2.cpp
 improper_class2.h
 improper_class2_omp.cpp
 improper_class2_omp.h
+improper_cossq.cpp
+improper_cossq.h
+improper_cossq_omp.cpp
+improper_cossq_omp.h
 improper_cvff.cpp
 improper_cvff.h
 improper_cvff_omp.cpp
@@ -335,6 +339,10 @@ improper_harmonic_omp.cpp
 improper_harmonic_omp.h
 improper_hybrid.cpp
 improper_hybrid.h
+improper_ring.cpp
+improper_ring.h
+improper_ring_omp.cpp
+improper_ring_omp.h
 improper_umbrella.cpp
 improper_umbrella.h
 improper_umbrella_omp.cpp
@@ -516,6 +524,8 @@ pair_hbond_dreiding_morse.cpp
 pair_hbond_dreiding_morse.h
 pair_hbond_dreiding_morse_omp.cpp
 pair_hbond_dreiding_morse_omp.h
+pair_lcbop.cpp
+pair_lcbop.h
 pair_line_lj.cpp
 pair_line_lj.h
 pair_line_lj_omp.cpp

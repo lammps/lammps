@@ -16,11 +16,16 @@
 #include "pair_brownian_poly_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
+#include "input.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
+#include "variable.h"
 #include "random_mars.h"
+#include "fix_wall.h"
+
 #include "math_const.h"
 
 #include "suffix.h"
@@ -28,6 +33,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define EPSILON 1.0e-10
+
+// same as fix_wall.cpp
+
+enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,6 +72,48 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
+
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
+
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+	for (int j = 0; j < 3; j++)
+	  dims[j] = domain->prd[j];      
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+	double wallhi[3], walllo[3];
+	for (int j = 0; j < 3; j++){
+	  wallhi[j] = domain->prd[j];
+	  walllo[j] = 0;
+	}    
+	for (int m = 0; m < wallfix->nwall; m++){
+	  int dim = wallfix->wallwhich[m] / 2;
+	  int side = wallfix->wallwhich[m] % 2;
+	  if (wallfix->wallstyle[m] == VARIABLE){
+	    wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+	  }	   
+	  else wallcoord = wallfix->coord0[m];	   
+	  if (side == 0) walllo[dim] = wallcoord;
+	  else wallhi[dim] = wallcoord;	   
+	}
+	for (int j = 0; j < 3; j++)
+	  dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3);
+	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
 
   if (!random_thr)
     random_thr = new RanMars*[nthreads];
@@ -149,9 +200,9 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
     // FLD contribution to force and torque due to isotropic terms
 
     if (flagfld) {
-      f[i][0] += prethermostat*sqrt(R0)*(rng.uniform()-0.5);
-      f[i][1] += prethermostat*sqrt(R0)*(rng.uniform()-0.5);
-      f[i][2] += prethermostat*sqrt(R0)*(rng.uniform()-0.5);
+      f[i][0] += prethermostat*sqrt(R0*radi)*(rng.uniform()-0.5);
+      f[i][1] += prethermostat*sqrt(R0*radi)*(rng.uniform()-0.5);
+      f[i][2] += prethermostat*sqrt(R0*radi)*(rng.uniform()-0.5);
       if (FLAGLOG) {
 	const double rad3 = radi*radi*radi;
 	torque[i][0] += prethermostat*sqrt(RT0*rad3)*(rng.uniform()-0.5);
@@ -160,6 +211,8 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
     }
     
+    if (!flagHI) continue;
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -312,7 +365,9 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         
         }
 
-        if (EVFLAG) ev_tally_xyz(i,j,nlocal,/* newton_pair */ 0,
+	// set j = nlocal so that only I gets tallied
+
+        if (EVFLAG) ev_tally_xyz(i,nlocal,nlocal,/* newton_pair */ 0,
 				 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }

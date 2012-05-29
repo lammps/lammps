@@ -234,7 +234,7 @@ void BondTable::read_restart(FILE *fp)
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
   }
-  MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
 
   allocate();

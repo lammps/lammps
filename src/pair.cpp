@@ -37,7 +37,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 enum{RLINEAR,RSQ,BMP};
 
 /* ---------------------------------------------------------------------- */

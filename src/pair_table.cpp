@@ -29,9 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define R   1
-#define RSQ 2
-#define BMP 3
+enum{NONE,RLINEAR,RSQ,BMP};
 
 #define MAXLINE 1024
 
@@ -385,7 +383,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     fgets(line,MAXLINE,fp);
     sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
 
-    if (tb->rflag == R)
+    if (tb->rflag == RLINEAR)
       rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
     else if (tb->rflag == RSQ) {
       rtmp = tb->rlo*tb->rlo + 
@@ -477,7 +475,7 @@ void PairTable::spline_table(Table *tb)
 void PairTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
-  tb->rflag = 0;
+  tb->rflag = NONE;
   tb->fpflag = 0;
   
   char *word = strtok(line," \t\n\r\f");
@@ -487,7 +485,7 @@ void PairTable::param_extract(Table *tb, char *line)
       tb->ninput = atoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
 	       strcmp(word,"BITMAP") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = R;
+      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
       word = strtok(NULL," \t\n\r\f");

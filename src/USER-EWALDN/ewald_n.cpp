@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Pieter J. in 't Veld (SNL)
+   Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -40,7 +40,7 @@ using namespace MathConst;
 #define KSPACE_ORDER	"Unsupported order in kspace_style ewald/n for"
 #define KSPACE_MIX	"Unsupported mixing rule in kspace_style ewald/n for"
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};         // same as in pair.cpp
+enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 //#define DEBUG
 

@@ -38,7 +38,7 @@
 using namespace LAMMPS_NS;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
-enum{R,RSQ,BMP};
+enum{RLINEAR,RSQ,BMP};
 
 /* ---------------------------------------------------------------------- */
 
@@ -1031,7 +1031,7 @@ void Pair::write_file(int narg, char **arg)
   int n = atoi(arg[2]);
 
   int style;
-  if (strcmp(arg[3],"r") == 0) style = R;
+  if (strcmp(arg[3],"r") == 0) style = RLINEAR;
   else if (strcmp(arg[3],"rsq") == 0) style = RSQ;
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
@@ -1052,7 +1052,7 @@ void Pair::write_file(int narg, char **arg)
     if (fp == NULL) error->one(FLERR,"Cannot open pair_write file");
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
 	    force->pair_style,itype,jtype);
-    if (style == R) 
+    if (style == RLINEAR) 
       fprintf(fp,"\n%s\nN %d R %g %g\n\n",arg[7],n,inner,outer);
     if (style == RSQ) 
       fprintf(fp,"\n%s\nN %d RSQ %g %g\n\n",arg[7],n,inner,outer);
@@ -1102,7 +1102,7 @@ void Pair::write_file(int narg, char **arg)
   union_int_float_t rsq_lookup;
 
   for (int i = 0; i < n; i++) {
-    if (style == R) {
+    if (style == RLINEAR) {
       r = inner + (outer-inner) * i/(n-1);
       rsq = r*r;
     } else if (style == RSQ) {
@@ -1148,7 +1148,8 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   if (ntablebits > sizeof(float)*CHAR_BIT) 
     error->all(FLERR,"Too many total bits for bitmapped lookup table");
           
-  if (inner >= outer) error->warning(FLERR,"Table inner cutoff >= outer cutoff");
+  if (inner >= outer) 
+    error->warning(FLERR,"Table inner cutoff >= outer cutoff");
     
   int nlowermin = 1;
   while (!((pow(double(2),nlowermin) <= inner*inner) && 

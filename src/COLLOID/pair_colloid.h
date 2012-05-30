@@ -38,9 +38,9 @@ class PairColloid : public Pair {
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
+ protected:
   enum {SMALL_SMALL,SMALL_LARGE,LARGE_LARGE};
 
- protected:
   double cut_global;
   double **cut;
   double **a12,**d1,**d2,**diameter,**a1,**a2,**offset;

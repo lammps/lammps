@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Lattice : protected Pointers {
  public:
-  int style;                           // enum list of NONE,SC,FCC,etc
+  int style;                           // NONE,SC,FCC,etc
   double xlattice,ylattice,zlattice;   // lattice scale factors in 3 dims
   double a1[3],a2[3],a3[3];            // edge vectors of unit cell
   int nbasis;                          // # of basis atoms in unit cell

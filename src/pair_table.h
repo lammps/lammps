@@ -41,8 +41,9 @@ class PairTable : public Pair {
   void *extract(const char *, int &);
 
  protected:
+  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+
   int tabstyle,tablength;
-  enum {LOOKUP=0, LINEAR=1, SPLINE=2, BITMAP=3};
   struct Table {
     int ninput,rflag,fpflag,match,ntablebits;
     int nshiftbits,nmask;

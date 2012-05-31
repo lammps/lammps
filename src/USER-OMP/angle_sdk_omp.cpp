@@ -140,6 +140,8 @@ void AngleSDKOMP::eval(int nfrom, int nto, ThrData * const thr)
     // so this has to be done here and not in the
     // general non-bonded code.
 
+    f13 = e13 = delx3 = dely3 = delz3 = 0.0;
+
     if (repflag) {
       
       delx3 = x[i1][0] - x[i3][0];
@@ -151,9 +153,6 @@ void AngleSDKOMP::eval(int nfrom, int nto, ThrData * const thr)
       const int type1 = atom->type[i1];
       const int type3 = atom->type[i3];
       
-      f13=0.0;
-      e13=0.0;
-    
       if (rsq3 < rminsq[type1][type3]) {
 	const int ljt = lj_type[type1][type3];
 	const double r2inv = 1.0/rsq3;
@@ -224,10 +223,11 @@ void AngleSDKOMP::eval(int nfrom, int nto, ThrData * const thr)
       f[i3][2] += f3[2] - f13*delz3;
     }
 
-    if (EVFLAG) ev_tally_thr(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
-			     delx1,dely1,delz1,delx2,dely2,delz2,thr);
-    if (EVFLAG) ev_tally13_thr(this,i1,i3,nlocal,NEWTON_BOND,
-			       e13,f13,delx3,dely3,delz3,thr);
-
+    if (EVFLAG) {
+      ev_tally_thr(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
+		   delx1,dely1,delz1,delx2,dely2,delz2,thr);
+      if (repflag) ev_tally13_thr(this,i1,i3,nlocal,NEWTON_BOND,
+				  e13,f13,delx3,dely3,delz3,thr);
+    }
   }
 }

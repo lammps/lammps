@@ -104,10 +104,10 @@ void AngleCosineShift::compute(int eflag, int vflag)
     if (s < SMALL) s = SMALL;
     
     // force & energy
-    if (eflag) eangle = -k[type]-kcos*c-ksin*s;  
-
     kcos=kcost[type];
     ksin=ksint[type];
+    if (eflag) eangle = -k[type]-kcos*c-ksin*s;  
+
     cps = c/s;          // NOTE absorbed one c
 
     a11 = (-kcos +ksin*cps )*c/ rsq1;

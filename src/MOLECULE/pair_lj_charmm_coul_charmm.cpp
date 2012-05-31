@@ -30,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.cpp
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)

@@ -76,7 +76,7 @@ void PairYukawaColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
-  double rsq,r,rinv,r2inv,screening,forceyukawa,factor;
+  double rsq,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -120,7 +120,6 @@ void PairYukawaColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
 	r = sqrt(rsq);
 	rinv = 1.0/r;
 	screening = exp(-kappa*(r-(radi+radj)));

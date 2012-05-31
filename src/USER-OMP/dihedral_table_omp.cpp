@@ -82,8 +82,7 @@ void DihedralTableOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-  
-  int i1,i2,i3,i4,i,m,n,type;
+  int i1,i2,i3,i4,n,type;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
 
   const double * const * const x = atom->x;
@@ -133,8 +132,8 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
 
   //  n123 & n234: These two unit vectors are normal to the planes
   //               defined by atoms 1,2,3 and 2,3,4.
-  double n123[g_dim]; //n123=vb12 x vb23 / |vb12 x vb23|  ("x" is cross product)
-  double n234[g_dim]; //n234=vb34 x vb23 / |vb34 x vb23|  ("x" is cross product)
+  double n123[g_dim]; //n123=vb23 x vb12 / |vb23 x vb12|  ("x" is cross product)
+  double n234[g_dim]; //n234=vb23 x vb34 / |vb23 x vb34|  ("x" is cross product)
 
   double proj12on23[g_dim];
   //    proj12on23[d] = (vb23[d]/|vb23|) * DotProduct(vb12,vb23)/|vb12|*|vb23|

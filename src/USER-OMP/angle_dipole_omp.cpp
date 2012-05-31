@@ -83,7 +83,7 @@ void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
   int iRef,iDip,iDummy,n,type;
   double delx,dely,delz;
   double eangle,tangle;
-  double r,dr,cosGamma,deltaGamma,kdg,rmu;
+  double r,cosGamma,deltaGamma,kdg,rmu;
 
   const double * const * const x = atom->x;   // position vector
   const double * const * const mu = atom->mu; // point-dipole components and moment magnitude

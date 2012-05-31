@@ -197,9 +197,9 @@ void FixOMP::init()
   int check_hybrid;
   last_pair_hybrid = NULL;
   last_omp_style = NULL;
-  char *last_omp_name = NULL;
-  char *last_hybrid_name = NULL;
-  char *last_force_name = NULL;
+  const char *last_omp_name = NULL;
+  const char *last_hybrid_name = NULL;
+  const char *last_force_name = NULL;
 
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
@@ -211,7 +211,7 @@ void FixOMP::init()
          (strcmp(force->name ## _style,"hybrid/overlay") == 0) )	\
       check_hybrid=1;							\
     if (force->name->suffix_flag & Suffix::OMP) {			\
-      last_force_name = #name;						\
+      last_force_name = (const char *) #name;				\
       last_omp_name = force->name ## _style;				\
       last_omp_style = (void *) force->name;				\
     }									\
@@ -222,7 +222,7 @@ void FixOMP::init()
     Class ## Hybrid *style = (Class ## Hybrid *) force->name;		\
     for (int i=0; i < style->nstyles; i++) {				\
       if (style->styles[i]->suffix_flag & Suffix::OMP) {		\
-	last_force_name = #name;					\
+	last_force_name = (const char *) #name;				\
 	last_omp_name = style->keywords[i];				\
 	last_omp_style = style->styles[i];				\
       }									\

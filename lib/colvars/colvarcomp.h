@@ -1223,7 +1223,7 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   inline cvm::real colvar::TYPE::dist2 (colvarvalue const &x1,          \
                                         colvarvalue const &x2) const    \
   {                                                                     \
-    const cvs::real tmp = x1.real_value - x2.real_value;                \
+    const cvm::real tmp = x1.real_value - x2.real_value;                \
     return tmp*tmp;                                                     \
   }                                                                     \
                                                                         \

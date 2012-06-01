@@ -36,7 +36,7 @@ class Fix : protected Pointers {
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
   int time_integrate;            // 1 if fix performs time integration, 0 if no
-  int time_depend;               // 1 if fix is timestep dependent, 0 if not
+  int time_depend;               // 1 if requires continuous timestepping
   int create_attribute;          // 1 if fix stores attributes that need
                                  //      setting when a new atom is created
   int restart_pbc;               // 1 if fix moves atoms (except integrate)

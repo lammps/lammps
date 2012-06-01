@@ -211,8 +211,8 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    r = sqrt(rsq);
 	    dr = r - pm->r0;
 	    dexp = exp(-pm->alpha * dr);
-	    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,pm->ap);
-	    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1)*s;
+	    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
+	    force_angle = pm->ap * eng_morse * pow(c,(double)pm->ap-1.0)*s;
 
 	    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
 	    if (rsq > pm->cut_innersq) {
@@ -226,7 +226,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    }
 
 	    if (EFLAG) {
-	      evdwl = eng_morse * pow(c,params[m].ap);
+	      evdwl = eng_morse * pow(c,(double)params[m].ap);
 	      evdwl *= factor_hb;
 	    }
 

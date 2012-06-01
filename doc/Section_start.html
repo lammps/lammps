@@ -489,26 +489,18 @@ parallel pre-built Windows exeutable.  See the <A HREF = "#start_6">Running
 LAMMPS</A> section for instructions for running these
 executables on a Windows box.
 </P>
-<P>If the pre-built executable doesn't have the options you want, then
-you can build LAMMPS from its source files on a Windows box.  One way
-to do this is install and use cygwin to build LAMMPS with a standard
-Linus make, just as you would on any Linux box; see
+<P>The pre-built executables are built with a subset of the available
+pacakges; see the download page for the list.  If you want
+a Windows version with specific packages included and excluded,
+you can build it yourself.
+</P>
+<P>One way to do this is install and use cygwin to build LAMMPS with a
+standard Linus make, just as you would on any Linux box; see
 src/MAKE/Makefile.cygwin.
 </P>
-<P>There is a also a src/WINDOWS directory that contains project files
-for Microsoft Visual Studio 2005, which should also work with later
-versions of VS.  That directory contains a README.txt file which
-provides instructions for building LAMMPS from source code using
-Visual Studio that are hopefully easy to follow for Windows and VS
-users.
-</P>
-<P>Four VS project options are provided.  The first includes the default
-packages (MANYBODY, MOLECULE, and KSPACE).  The second includes all
-standard packages (except GPU, MEAM, and REAX which are not yet
-included because they require NVIDIA or Fortran compilation).  The
-third includes all standard packages (with the exceptions) and some
-user packages.  The included user packages are USER-EFF, USER-CG-CMM,
-and USER-REAXC.  The fourth project includes the USER-AWPMD package.
+<P>The other way to do this is using Visual Studio and project files.
+See the src/WINDOWS directory and its README.txt file for instructions
+on both a basic build and a customized build with pacakges you select.
 </P>
 <HR>
 

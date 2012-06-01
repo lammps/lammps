@@ -60,7 +60,7 @@ void Calculate_dCos_Theta( rvec dvec_ji, real d_ji, rvec dvec_jk, real d_jk,
   real sqr_d_ji = SQR(d_ji);
   real sqr_d_jk = SQR(d_jk);
   real inv_dists = 1.0 / (d_ji * d_jk);
-  real inv_dists3 = pow( inv_dists, 3 );
+  real inv_dists3 = pow( inv_dists, 3.0 );
   real dot_dvecs = Dot( dvec_ji, dvec_jk, 3 );
   real Cdot_inv3 = dot_dvecs * inv_dists3;
 

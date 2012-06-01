@@ -79,7 +79,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 		       (2.0*MY_PI*gas_mass*force->mvv2e*
 			force->boltz*reservoir_temperature));
   sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
-  zz = exp(beta*chemical_potential)/(pow(lambda,3));
+  zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
 
   // set defaults
 

@@ -214,13 +214,14 @@ void PairLubricatePoly::compute(int eflag, int vflag)
     if (flagfld) {
       f[i][0] -= vxmu2f*R0*radi*v[i][0];
       f[i][1] -= vxmu2f*R0*radi*v[i][1];
-      f[i][2] -= vxmu2f*R0*radi*v[i][2];    
-      torque[i][0] -= vxmu2f*RT0*pow(radi,3)*wi[0];
-      torque[i][1] -= vxmu2f*RT0*pow(radi,3)*wi[1];
-      torque[i][2] -= vxmu2f*RT0*pow(radi,3)*wi[2];   
+      f[i][2] -= vxmu2f*R0*radi*v[i][2];
+      const double radi3 = radi*radi*radi;    
+      torque[i][0] -= vxmu2f*RT0*radi3*wi[0];
+      torque[i][1] -= vxmu2f*RT0*radi3*wi[1];
+      torque[i][2] -= vxmu2f*RT0*radi3*wi[2];   
     
       if (shearing && vflag_either) {
-	vRS0 = -vxmu2f * RS0*pow(radi,3);
+	vRS0 = -vxmu2f * RS0*radi3;
 	v_tally_tensor(i,i,nlocal,newton_pair,
 		       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
 		       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
@@ -304,21 +305,21 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
         if (flaglog) {
           a_sq = beta0*beta0/beta1/beta1/h_sep + 
-	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3)*log(1.0/h_sep);
+	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
           a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 * 
-		   pow(beta0,3)+pow(beta0,4))/21.0/pow(beta1,4) * 
+		   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) * 
 	    h_sep*log(1.0/h_sep);
           a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3) * 
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) * 
 	    log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3) + 
-		       16.0*pow(beta0,4))/375.0/pow(beta1,4) * 
+          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) + 
+		       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) * 
 	    h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
           a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
           a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 * 
-		   pow(beta0,3))/250.0/pow(beta1,3)*h_sep*log(1.0/h_sep);
-          a_pu *= 8.0*MY_PI*mu*pow(radi,3);
+		   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+          a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
   
         // relative velocity at the point of closest approach
@@ -527,7 +528,7 @@ void PairLubricatePoly::init_style()
 
   double volP = 0.0;
   for (int i = 0; i < nlocal; i++)
-    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3);
+    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3.0);
   MPI_Allreduce(&volP,&vol_P,1,MPI_DOUBLE,MPI_SUM,world);
 
   double vol_f = vol_P/vol_T;

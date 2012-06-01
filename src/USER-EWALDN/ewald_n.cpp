@@ -1205,7 +1205,7 @@ double EwaldN::NewtonSolve(double x, double Rc, bigint natoms, double vol, doubl
 double EwaldN::f(double x, double Rc, bigint natoms, double vol, double b2)
 {
   double a = Rc*x;
-  double f = (4.0*MY_PI*b2*pow(x,4)/vol/sqrt(natoms)*erfc(a) *
+  double f = (4.0*MY_PI*b2*pow(x,4.0)/vol/sqrt((double)natoms)*erfc(a) *
     (6.0*pow(a,-5.0) + 6.0*pow(a,-3.0) + 3.0/a + a) - accuracy);
   return f;
 }

@@ -338,12 +338,11 @@ void FixQEqReax::init_taper()
   else if (swb < 5 && comm->me == 0)
     error->warning(FLERR,"Fix qeq/reax has very low Taper radius cutoff");
 
-  d7 = pow( swb - swa, 7 );
+  d7 = pow( swb - swa, 7.0 );
   swa2 = SQR( swa );
   swa3 = CUBE( swa );
   swb2 = SQR( swb );
   swb3 = CUBE( swb );
-
   Tap[7] =  20.0 / d7;
   Tap[6] = -70.0 * (swa + swb) / d7;
   Tap[5] =  84.0 * (swa2 + 3.0*swa*swb + swb2) / d7;

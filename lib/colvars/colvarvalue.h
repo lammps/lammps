@@ -636,13 +636,17 @@ inline cvm::real colvarvalue::dist2 (colvarvalue const &x2) const
     colvarvalue::check_types (*this, x2);
 
   switch (this->value_type) {
-  case colvarvalue::type_scalar:
-    return std::pow (this->real_value - x2.real_value, int (2));
+  case colvarvalue::type_scalar: {
+    const cvm::real tmp = this->real_value - x2.real_value;
+    return tmp*tmp;
+  }
   case colvarvalue::type_vector:
     return (this->rvector_value - x2.rvector_value).norm2();
-  case colvarvalue::type_unitvector:
+  case colvarvalue::type_unitvector: {
     // angle between (*this) and x2 is the distance
-    return std::pow (std::acos (this->rvector_value * x2.rvector_value), int (2));
+    const cvm::real tmp = std::acos (this->rvector_value * x2.rvector_value);
+    return tmp*tmp;
+  }
   case colvarvalue::type_quaternion:
     // angle between (*this) and x2 is the distance, the quaternion
     // object has it implemented internally

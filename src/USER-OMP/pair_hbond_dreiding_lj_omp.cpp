@@ -212,9 +212,9 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    r2inv = 1.0/rsq;
 	    r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
 	    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
-	      pow(c,pm->ap);
+	      pow(c,(double)pm->ap);
 	    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
-	      pow(c,pm->ap-1)*s;
+	      pow(c,pm->ap-1.0)*s;
 
 	    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
 	    if (rsq > pm->cut_innersq) {
@@ -228,7 +228,7 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    }
 
 	    if (EFLAG) {
-	      evdwl = eng_lj * pow(c,pm->ap);
+	      evdwl = eng_lj * pow(c,(double)pm->ap);
 	      evdwl *= factor_hb;
 	    }
 

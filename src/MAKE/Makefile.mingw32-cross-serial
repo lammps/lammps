@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 LINK =		i686-pc-mingw32-g++
 LINKFLAGS =	-O 
 LIB =         -lwsock32  # -lwsock32 is needed for USER-IMD which uses tcp/ip sockets.
-ARCHIVE =	ar
+ARCHIVE =	i686-pc-mingw32-ar
 ARFLAGS =	-rcsv
 SIZE =		i686-pc-mingw32-size
 
@@ -34,9 +34,9 @@ LMP_INC = -DLAMMPS_XDR # -DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =  -I../STUBS 
-MPI_PATH = 
-MPI_LIB = mpi.o	
+MPI_INC =       -I../STUBS
+MPI_PATH =
+MPI_LIB =	../STUBS/libmpi.a
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -45,7 +45,7 @@ MPI_LIB = mpi.o
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =   -DFFT_NONE #-DFFT_SINGLE
+FFT_INC =   -DFFT_NONE -DFFT_SINGLE
 FFT_PATH = 
 FFT_LIB =	#-lfftw
 
@@ -78,7 +78,7 @@ $(EXE):	$(EXE).exe ../MAKE/mingw_cross.nsis
 	(cd ..; zip -0 lammps-icms-win.zip lammps-icms-win.exe)
 	touch $(EXE)
 
-$(EXE).exe: $(OBJ) mpi.o
+$(EXE).exe: $(OBJ) ../STUBS/libmpi.a
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE).exe
 	$(SIZE) $(EXE).exe
 
@@ -96,9 +96,6 @@ lib:	$(OBJ)
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
 # Individual dependencies
-
-mpi.o:  ../STUBS/mpi.c ../STUBS/mpi.h
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
 
 DEPENDS = $(OBJ:.o=.d)
 sinclude $(DEPENDS)

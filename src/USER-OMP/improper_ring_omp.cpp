@@ -172,7 +172,7 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
       /* Append the current angle to the sum of angle differences. */
       angle_summer += (bend_angle[icomb] - chi[type]);
     } 
-    if (EFLAG) eimproper = (1.0/6.0) *k[type] * pow(angle_summer,6); 
+    if (EFLAG) eimproper = (1.0/6.0) *k[type] * pow(angle_summer,6.0); 
     /*
       printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);   
       // printf("The coordinates of the first: %f, %f, %f.\n", x[i1][0], x[i1][1], x[i1][2]);
@@ -186,7 +186,7 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     /* Force calculation acting on all atoms. 
        Calculate the derivatives of the potential. */
-    angfac = k[type] * pow(angle_summer,5);
+    angfac = k[type] * pow(angle_summer,5.0);
 
     f1[0] = 0.0; f1[1] = 0.0; f1[2] = 0.0;
     f3[0] = 0.0; f3[1] = 0.0; f3[2] = 0.0;

@@ -152,11 +152,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // set time_depend and varflag if any wall positions are variable
+  // set varflag if any wall positions are variable
 
   varflag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) time_depend = varflag = 1;
+    if (wallstyle[m] == VARIABLE) varflag = 1;
 
   eflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;

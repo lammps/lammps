@@ -51,7 +51,6 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  time_depend = 1;
 
   // parse args
 

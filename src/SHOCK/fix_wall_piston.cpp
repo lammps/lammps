@@ -38,7 +38,6 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   force_reneighbor = 1;
   next_reneighbor = -1;
   box_change = 1;
-  time_depend = 1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 
@@ -54,19 +53,25 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   rampNL5flag = 0;
   x0 = y0 = z0 = vx = vy = vz = 0.0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
-  int iarg = 0;
-  iarg = 3;
+
+  int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"xlo") == 0) { error->all(FLERR,"Fix wall/piston command only available at zlo");
-    } else if (strcmp(arg[iarg],"ylo") == 0) { error->all(FLERR,"Fix wall/piston command only available at zlo");
-    } else if (strcmp(arg[iarg],"zlo") == 0) {
+    if (strcmp(arg[iarg],"xlo") == 0)
+      error->all(FLERR,"Fix wall/piston command only available at zlo");
+    else if (strcmp(arg[iarg],"ylo") == 0)
+      error->all(FLERR,"Fix wall/piston command only available at zlo");
+    else if (strcmp(arg[iarg],"zlo") == 0) {
       zloflag = 1;
       iarg++;
-      if (domain->boundary[2][0] != 2) error->all(FLERR,"Must shrink-wrap piston boundary");
-    } else if (strcmp(arg[iarg],"xhi") == 0) { error->all(FLERR,"Fix wall/piston command only available at zlo");
-    } else if (strcmp(arg[iarg],"yhi") == 0) { error->all(FLERR,"Fix wall/piston command only available at zlo");
-    } else if (strcmp(arg[iarg],"zhi") == 0) { error->all(FLERR,"Fix wall/piston command only available at zlo");
-    } else if (strcmp(arg[iarg],"vel") == 0) {
+      if (domain->boundary[2][0] != 2) 
+	error->all(FLERR,"Must shrink-wrap piston boundary");
+    } else if (strcmp(arg[iarg],"xhi") == 0)
+      error->all(FLERR,"Fix wall/piston command only available at zlo");
+    else if (strcmp(arg[iarg],"yhi") == 0)
+      error->all(FLERR,"Fix wall/piston command only available at zlo");
+    else if (strcmp(arg[iarg],"zhi") == 0)
+      error->all(FLERR,"Fix wall/piston command only available at zlo");
+    else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/piston command");
       vx = atof(arg[iarg+1]);
       vy = atof(arg[iarg+2]);
@@ -124,7 +129,8 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix wall/piston command");
   }
 
-  if (vx < 0.0 || vy < 0.0 || vz < 0.0) error->all(FLERR,"Illegal fix wall/piston velocity");
+  if (vx < 0.0 || vy < 0.0 || vz < 0.0) 
+    error->all(FLERR,"Illegal fix wall/piston velocity");
   if ((xloflag || xhiflag) && domain->xperiodic)
     error->all(FLERR,"Cannot use wall in periodic dimension");
   if ((yloflag || yhiflag) && domain->yperiodic)
@@ -153,7 +159,8 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   z0 *= zscale;
   roughdist *= zscale;
 
-  if (rampflag || rampNL1flag || rampNL2flag || rampNL3flag || rampNL4flag || rampNL5flag) {
+  if (rampflag || rampNL1flag || rampNL2flag || rampNL3flag || 
+      rampNL4flag || rampNL5flag) {
     maxvx = vx;
     maxvy = vy;
     maxvz = vz;
@@ -165,9 +172,9 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
 int FixWallPiston::setmask()
 {
   int mask = 0;
+  mask |= INITIAL_INTEGRATE;
   mask |= POST_INTEGRATE;
   mask |= POST_INTEGRATE_RESPA;
-  mask |= INITIAL_INTEGRATE;
   return mask;
 }
 
@@ -209,20 +216,26 @@ void FixWallPiston::post_integrate()
     angfreq = MY_2PI / (0.5 * tott);
 
     if (zloflag) {
-      zlo = z0 + paccelz * (0.5*tt + 1.0/(angfreq*angfreq) - 1.0/(angfreq*angfreq)*cos(angfreq*t));
+      zlo = z0 + paccelz * (0.5*tt + 1.0/(angfreq*angfreq) - 
+			    1.0/(angfreq*angfreq)*cos(angfreq*t));
       vz =  paccelz * (t + 1.0/angfreq*sin(angfreq*t));
     }
-    else { error->all(FLERR,"NL ramp in wall/piston only implemented in zlo for now"); }
+    else error->all(FLERR,
+		    "NL ramp in wall/piston only implemented in zlo for now");
   }
   else if (rampNL2flag) {
     paccelz = maxvz / tott;
     angfreq = 3.0*MY_2PI / tott;
 
     if (zloflag) {
-      zlo = z0 + paccelz * (0.5*tt + 4.0/(3.0*angfreq*angfreq)*(1.0-cos(angfreq*t)) + 1.0/(6.0*angfreq*angfreq)*(1.0-cos(2.0*angfreq*t)));
-      vz =  paccelz * (t + 4.0/(3.0*angfreq)*sin(angfreq*t) + 1.0/(3.0*angfreq)*sin(2.0*angfreq*t));
+      zlo = z0 + paccelz * (0.5*tt + 4.0/(3.0*angfreq*angfreq)*
+			    (1.0-cos(angfreq*t)) + 
+			    1.0/(6.0*angfreq*angfreq)*(1.0-cos(2.0*angfreq*t)));
+      vz =  paccelz * (t + 4.0/(3.0*angfreq)*sin(angfreq*t) + 
+		       1.0/(3.0*angfreq)*sin(2.0*angfreq*t));
     }
-    else { error->all(FLERR,"NL ramp in wall/piston only implemented in zlo for now"); }
+    else error->all(FLERR,
+		    "NL ramp in wall/piston only implemented in zlo for now");
   }
   else if (rampNL3flag) {
     paccelz = maxvz / tott;
@@ -231,7 +244,8 @@ void FixWallPiston::post_integrate()
       zlo = z0 + paccelz*tott*tott/2.5 * (t2p5 );
       vz =  paccelz * tott * (t1p5 );
     }
-    else { error->all(FLERR,"NL ramp in wall/piston only implemented in zlo for now"); }
+    else error->all(FLERR,
+		    "NL ramp in wall/piston only implemented in zlo for now");
   }
   else if (rampNL4flag) {
     paccelz = maxvz / tott;
@@ -240,7 +254,8 @@ void FixWallPiston::post_integrate()
       zlo = z0 + paccelz/tott/3.0 * (ttt);
       vz =  paccelz / tott * (tt);
     }
-    else { error->all(FLERR,"NL ramp in wall/piston only implemented in zlo for now"); }
+    else error->all(FLERR,
+		    "NL ramp in wall/piston only implemented in zlo for now");
   }
   else if (rampNL5flag) {
     paccelz = maxvz / tott;
@@ -249,7 +264,8 @@ void FixWallPiston::post_integrate()
       zlo = z0 + paccelz/tott/tott/4.0 * (tttt);
       vz =  paccelz / tott / tott * (ttt);
     }
-    else { error->all(FLERR,"NL ramp in wall/piston only implemented in zlo for now"); }
+    else error->all(FLERR,
+		    "NL ramp in wall/piston only implemented in zlo for now");
   }
   else {
     if (zloflag) { zlo = z0 + vz * t; }
@@ -273,8 +289,10 @@ void FixWallPiston::post_integrate()
     if (mask[i] & groupbit) {
       roughoff = 0.0;
       if (roughflag) {
-        roughoff += roughdist*fabs((x[i][0] - domain->boxlo[0])/(domain->boxhi[0]-domain->boxlo[0])-0.5);
-        roughoff += roughdist*fabs((x[i][1] - domain->boxlo[1])/(domain->boxhi[1]-domain->boxlo[1])-0.5);
+        roughoff += roughdist*fabs((x[i][0] - domain->boxlo[0])/
+				   (domain->boxhi[0]-domain->boxlo[0])-0.5);
+        roughoff += roughdist*fabs((x[i][1] - domain->boxlo[1])/
+				   (domain->boxhi[1]-domain->boxlo[1])-0.5);
       }
       if (zloflag && x[i][2] < zlo - roughoff) {
 	x[i][2] = 2.0 * (zlo - roughoff) - x[i][2];
@@ -326,5 +344,4 @@ void FixWallPiston::post_integrate()
       }
     }
   }
-
 }

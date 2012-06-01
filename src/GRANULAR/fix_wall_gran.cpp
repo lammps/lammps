@@ -49,6 +49,10 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
+  // set time_depend so that history will be preserved correctly
+  // across multiple runs via laststep setting in granular pair styles
+  // same as fix shear/history
+
   restart_peratom = 1;
   create_attribute = 1;
   time_depend = 1;
@@ -150,7 +154,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
     error->all(FLERR,"Cannot use wall in periodic dimension");
 
-  if (wiggle && wshear) error->all(FLERR,"Cannot wiggle and shear fix wall/gran");
+  if (wiggle && wshear) 
+    error->all(FLERR,"Cannot wiggle and shear fix wall/gran");
   if (wiggle && wallstyle == ZCYLINDER && axis != 2)
     error->all(FLERR,"Invalid wiggle direction for fix wall/gran");
   if (wshear && wallstyle == XPLANE && axis == 0)

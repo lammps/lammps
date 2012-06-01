@@ -216,9 +216,7 @@ int FixAppendAtoms::setmask()
 
 void FixAppendAtoms::initial_integrate(int vflag)
 {
-  if (update->ntimestep % freq == 0) {
-    next_reneighbor = update->ntimestep;
-  }
+  if (update->ntimestep % freq == 0) next_reneighbor = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -434,7 +434,7 @@ void PairLubricateUPoly::compute_Fh(double **x)
     // need to set delx  and fy only
 
     fx = 0.0; delx = radi;
-    fy = vxmu2f*RS0*pow(radi,3)*gdot/2.0/radi; dely = 0.0;
+    fy = vxmu2f*RS0*pow(radi,3.0)*gdot/2.0/radi; dely = 0.0;
     fz = 0.0; delz = 0.0;
     if (evflag)
       ev_tally_xyz(i,i,nlocal,newton_pair,0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
@@ -717,9 +717,10 @@ void PairLubricateUPoly::compute_RU(double **x)
     f[i][1] += -vxmu2f*R0*radi*v[i][1];
     f[i][2] += -vxmu2f*R0*radi*v[i][2];    
     
-    torque[i][0] += -vxmu2f*RT0*pow(radi,3)*wi[0];
-    torque[i][1] += -vxmu2f*RT0*pow(radi,3)*wi[1];
-    torque[i][2] += -vxmu2f*RT0*pow(radi,3)*wi[2];   
+    const double radi3 = radi*radi*radi;
+    torque[i][0] += -vxmu2f*RT0*radi3*wi[0];
+    torque[i][1] += -vxmu2f*RT0*radi3*wi[1];
+    torque[i][2] += -vxmu2f*RT0*radi3*wi[2];   
 
     if (!flagHI) continue;
 
@@ -1251,7 +1252,7 @@ void PairLubricateUPoly::init_style()
 
   double volP = 0.0;
   for (int i = 0; i < nlocal; i++)
-    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3);
+    volP += (4.0/3.0)*MY_PI*pow(atom->radius[i],3.0);
   MPI_Allreduce(&volP,&vol_P,1,MPI_DOUBLE,MPI_SUM,world);
 
   double vol_f = vol_P/vol_T;

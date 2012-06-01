@@ -267,12 +267,13 @@ void PPPMOMP::setup()
 	    numerator = form*MY_4PI/sqk;
 	    denominator = gf_denom(snx,sny,snz);  
 	    sum1 = 0.0;
+	    const double dorder = static_cast<double>(order);
 	    for (nx = -nbx; nx <= nbx; nx++) {
 	      qx = fkxk + unitkx*nx_pppm*nx;
 	      sx = exp(qx*qx/gew2);
 	      wx = 1.0;
 	      argx = 0.5*qx*xprd/nx_pppm;
-	      if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+	      if (argx != 0.0) wx = pow(sin(argx)/argx,dorder);
 	      wx *=wx;
 
 	      for (ny = -nby; ny <= nby; ny++) {
@@ -280,7 +281,7 @@ void PPPMOMP::setup()
 		sy = exp(qy*qy/gew2);
 		wy = 1.0;
 		argy = 0.5*qy*yprd/ny_pppm;
-		if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+		if (argy != 0.0) wy = pow(sin(argy)/argy,dorder);
 		wy *= wy;
 
 		for (nz = -nbz; nz <= nbz; nz++) {
@@ -288,7 +289,7 @@ void PPPMOMP::setup()
 		  sz = exp(qz*qz/gew2);
 		  wz = 1.0;
 		  argz = 0.5*qz*zprd_slab/nz_pppm;
-		  if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+		  if (argz != 0.0) wz = pow(sin(argz)/argz,dorder);
 		  wz *= wz;
 
 		  dot1 = fkxk*qx + fkyl*qy + fkzm*qz;

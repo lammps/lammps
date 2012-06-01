@@ -129,11 +129,11 @@ void PairBrownian::compute(int eflag, int vflag)
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3);
+	RT0 = 8*MY_PI*mu*pow(rad,3.0);
 	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
 	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -208,7 +208,7 @@ void PairBrownian::compute(int eflag, int vflag)
         if (flaglog) {
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3)*(3.0/160.0*log(1.0/h_sep));
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
          
@@ -541,7 +541,7 @@ void PairBrownian::init_style()
   // vol_P = volume of particles, assuming mono-dispersity
   // vol_f = volume fraction
 
-  vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3);
+  vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3.0);
   
   double vol_f = vol_P/vol_T;
   
@@ -550,10 +550,10 @@ void PairBrownian::init_style()
 
   if (flaglog == 0) {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3);  // not actually needed
+    RT0 = 8*MY_PI*mu*pow(rad,3.0);  // not actually needed
   } else {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);     
+    RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);     
   }
 }
 
@@ -717,7 +717,7 @@ void PairBrownian::set_3_orthogonal_vectors(double p1[3],
       
   // normalize p2
 
-  norm = sqrt(pow(p2[0],2) + pow(p2[1],2) + pow(p2[2],2));
+  norm = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
               
   p2[0] = p2[0]/norm;
   p2[1] = p2[1]/norm;

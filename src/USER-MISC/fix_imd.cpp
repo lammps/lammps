@@ -47,6 +47,16 @@ negotiate an appropriate license for such distribution."
    Justin Gullingsrud, and James Phillips, (TCBG, Beckman Institute, UIUC)
 ------------------------------------------------------------------------- */
 
+#include "fix_imd.h"
+#include "atom.h"
+#include "comm.h"
+#include "update.h"
+#include "respa.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "memory.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,16 +77,6 @@ negotiate an appropriate license for such distribution."
 #endif
 
 #include <errno.h>
-
-#include "fix_imd.h"
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
-#include "error.h"
-#include "group.h"
-#include "memory.h"
 
 /* re-usable integer hash table code with static linkage. */
 

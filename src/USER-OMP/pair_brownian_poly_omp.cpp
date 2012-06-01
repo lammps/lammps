@@ -105,11 +105,11 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3);
+	RT0 = 8*MY_PI*mu*pow(rad,3.0);
 	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
 	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -250,20 +250,20 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (FLAGLOG) {
           a_sq = beta0*beta0/beta1/beta1/h_sep + 
-	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3)*log(1.0/h_sep);
-          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0*pow(beta0,3) + 
-		   pow(beta0,4))/21.0/pow(beta1,4)*h_sep*log(1.0/h_sep);
+	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
+          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0*pow(beta0,3.0) + 
+		   pow(beta0,4.0))/21.0/pow(beta1,4.0)*h_sep*log(1.0/h_sep);
           a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3) * 
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) * 
 	    log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3) + 
-		       16.0*pow(beta0,4))/375.0/pow(beta1,4) * 
+          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) + 
+		       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) * 
 	    h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
           a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
           a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 * 
-		   pow(beta0,3))/250.0/pow(beta1,3)*h_sep*log(1.0/h_sep);
-          a_pu *= 8.0*MY_PI*mu*pow(radi,3);
+		   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+          a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
 
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
          

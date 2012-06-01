@@ -909,7 +909,7 @@ double PairLCBOP::gSpline( double x, double *dgdc ) {
 double PairLCBOP::hSpline( double x, double *dhdx ) {
   if( x < -d ) {
       double z = kappa*( x+d );
-      double y = pow(z, 10);
+      double y = pow(z, 10.0);
       double w = pow( 1+y, -0.1 );
       *dhdx = kappa*L*w/(1+y);
       return L*( 1 + z*w );

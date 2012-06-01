@@ -24,10 +24,6 @@
 inline double pow(int i, int j){
   return pow((double)i,(double) j);
 }
-
-inline double pow(double i, int j){
-  return pow(i,(double) j);
-}
 #else
 inline double pow(int i, int j){
   return pow((double)i,j);

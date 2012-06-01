@@ -699,7 +699,7 @@ void PairREAX::taper_setup()
   double swb2,swa2,swb3,swa3,d1,d7;
 
   d1=swb-swa;
-  d7=pow(d1,7);
+  d7=pow(d1,7.0);
   swa2=swa*swa;
   swa3=swa2*swa;
   swb2=swb*swb;

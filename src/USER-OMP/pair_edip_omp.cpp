@@ -23,6 +23,13 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
+#define GRIDDENSITY 8000
+#define GRIDSTART 0.1
+
+// max number of interaction per atom for f(Z) environment potential
+
+#define leadDimInteractionList 64
+
 /* ---------------------------------------------------------------------- */
 
 PairEDIPOMP::PairEDIPOMP(LAMMPS *lmp) :

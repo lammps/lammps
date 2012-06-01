@@ -24,6 +24,16 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
+#define GRIDSTART 0.1
+#define GRIDDENSITY_FCUTOFF 5000
+#define GRIDDENSITY_EXP 12000
+#define GRIDDENSITY_GTETA 12000
+#define GRIDDENSITY_BIJ 7500
+
+// max number of interaction per atom for environment potential
+
+#define leadingDimensionInteractionList 64
+
 /* ---------------------------------------------------------------------- */
 
 PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :

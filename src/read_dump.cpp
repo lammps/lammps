@@ -15,6 +15,7 @@
    Contributing author: Timothy Sirk (U Vermont)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"

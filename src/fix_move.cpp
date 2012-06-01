@@ -50,7 +50,6 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 3;
   peratom_freq = 1;
   time_integrate = 1;
-  time_depend = 1;
   create_attribute = 1;
 
   // parse args
@@ -177,9 +176,11 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     if (mstyle == WIGGLE && azflag && az != 0.0)
       error->all(FLERR,"Fix move cannot set wiggle z motion for 2d problem");
     if (mstyle == ROTATE && (axis[0] != 0.0 || axis[1] != 0.0))
-      error->all(FLERR,"Fix move cannot rotate aroung non z-axis for 2d problem");
+      error->all(FLERR,
+		 "Fix move cannot rotate aroung non z-axis for 2d problem");
     if (mstyle == VARIABLE && (zvarstr || vzvarstr))
-      error->all(FLERR,"Fix move cannot define z or vz variable for 2d problem");
+      error->all(FLERR,
+		 "Fix move cannot define z or vz variable for 2d problem");
   }
 
   if (atom->angmom_flag && comm->me == 0)
@@ -310,42 +311,48 @@ void FixMove::init()
   if (mstyle == VARIABLE) {
     if (xvarstr) {
       xvar = input->variable->find(xvarstr);
-      if (xvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (xvar < 0) error->all(FLERR,
+			       "Variable name for fix move does not exist");
       if (input->variable->equalstyle(xvar)) xvarstyle = EQUAL;
       else if (input->variable->atomstyle(xvar)) xvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
     if (yvarstr) {
       yvar = input->variable->find(yvarstr);
-      if (yvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (yvar < 0) error->all(FLERR,
+			       "Variable name for fix move does not exist");
       if (input->variable->equalstyle(yvar)) yvarstyle = EQUAL;
       else if (input->variable->atomstyle(yvar)) yvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
     if (zvarstr) {
       zvar = input->variable->find(zvarstr);
-      if (zvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (zvar < 0) error->all(FLERR,
+			       "Variable name for fix move does not exist");
       if (input->variable->equalstyle(zvar)) zvarstyle = EQUAL;
       else if (input->variable->atomstyle(zvar)) zvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
     if (vxvarstr) {
       vxvar = input->variable->find(vxvarstr);
-      if (vxvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (vxvar < 0) error->all(FLERR,
+				"Variable name for fix move does not exist");
       if (input->variable->equalstyle(vxvar)) vxvarstyle = EQUAL;
       else if (input->variable->atomstyle(vxvar)) vxvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
     if (vyvarstr) {
       vyvar = input->variable->find(vyvarstr);
-      if (vyvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (vyvar < 0) error->all(FLERR,
+				"Variable name for fix move does not exist");
       if (input->variable->equalstyle(vyvar)) vyvarstyle = EQUAL;
       else if (input->variable->atomstyle(vyvar)) vyvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
     if (vzvarstr) {
       vzvar = input->variable->find(vzvarstr);
-      if (vzvar < 0) error->all(FLERR,"Variable name for fix move does not exist");
+      if (vzvar < 0) error->all(FLERR,
+				"Variable name for fix move does not exist");
       if (input->variable->equalstyle(vzvar)) vzvarstyle = EQUAL;
       else if (input->variable->atomstyle(vzvar)) vzvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");

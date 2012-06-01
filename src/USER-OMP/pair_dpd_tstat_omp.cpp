@@ -106,12 +106,10 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairDPDTstatOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
   double rsq,r,rinv,dot,wd,randnum,factor_dpd;
   int *ilist,*jlist,*numneigh,**firstneigh;
-
-  evdwl = 0.0;
 
   const double * const * const x = atom->x;
   const double * const * const v = atom->v;

@@ -139,6 +139,8 @@ class Pair : protected Pointers {
   virtual void min_x_set(int) {}
 
  protected:
+  enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
+
   int allocated;               // 0/1 = whether arrays are allocated
   int suffix_flag;             // suffix compatibility flag
 

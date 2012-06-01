@@ -106,8 +106,9 @@ void Error::one(const char *file, int line, const char *str)
   if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",
 		      me,str,file,line);
   if (universe->nworlds > 1)
-    fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
-	    universe->me,str,file,line);
+    if (universe->uscreen)
+      fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
+	      universe->me,str,file,line);
   MPI_Abort(world,1);
 }
 

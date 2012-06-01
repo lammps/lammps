@@ -85,13 +85,14 @@ void AngleCosineShiftOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
-  double eangle,f1[3],f3[3];
-  double rsq1,rsq2,r1,r2,c,s,cps,kcos,ksin,a11,a12,a22;
+  double f1[3],f3[3];
+  double rsq1,rsq2,r1,r2,c,s,cps,a11,a12,a22;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const int * const * const anglelist = neighbor->anglelist;
   const int nlocal = atom->nlocal;
+  double eangle = 0.0;
 
   for (n = nfrom; n < nto; n++) {
     i1 = anglelist[n][0];
@@ -130,10 +131,10 @@ void AngleCosineShiftOMP::eval(int nfrom, int nto, ThrData * const thr)
     if (s < SMALL) s = SMALL;
     
     // force & energy
+    const double kcos=kcost[type];
+    const double ksin=ksint[type];
     if (EFLAG) eangle = -k[type]-kcos*c-ksin*s;  
 
-    kcos=kcost[type];
-    ksin=ksint[type];
     cps = c/s;          // NOTE absorbed one c
 
     a11 = (-kcos +ksin*cps )*c/ rsq1;

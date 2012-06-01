@@ -78,7 +78,7 @@ void PairCoulWolfOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double rsq,forcecoul,factor_coul;
   double prefactor;
@@ -117,7 +117,6 @@ void PairCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
@@ -135,7 +134,6 @@ void PairCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
       if (rsq < cut_coulsq) {
 	r = sqrt(rsq);

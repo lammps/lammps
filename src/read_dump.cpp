@@ -202,7 +202,7 @@ void ReadDump::findFrame(int ttime)
 {
 
     // loop until section found with matching keyword
-    char* keyword="TIMESTEP";
+    const char *keyword= (const char *)"TIMESTEP";
     long int offset=0;
 
     while (1)
@@ -239,7 +239,7 @@ void ReadDump::findFrame(int ttime)
 
 void ReadDump::skip_lines(int n)
 {
-    char *eof;
+    char *eof=NULL;
     for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 }

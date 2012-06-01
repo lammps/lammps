@@ -567,7 +567,7 @@ void PairCombOMP::Short_neigh_thr()
 #pragma omp parallel default(none)
 #endif
   {
-    int nj,npntj,*neighptrj,itype,jtype;
+    int nj,npntj,*neighptrj;
     int iparam_ij,*ilist,*jlist,*numneigh,**firstneigh;
     int jnum,i,j,ii,jj;
     double xtmp,ytmp,ztmp,rsq,delrj[3];
@@ -597,7 +597,6 @@ void PairCombOMP::Short_neigh_thr()
     if (iifrom < inum) {
       for (ii = iifrom; ii < iito; ii++) {
 	i = ilist[ii];
-	itype = type[i];
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -621,7 +620,6 @@ void PairCombOMP::Short_neigh_thr()
 	for (jj = 0; jj < jnum; jj++) {
 	  j = jlist[jj];
 	  j &= NEIGHMASK;
-	  jtype = type[j];
 
 	  delrj[0] = xtmp - x[j][0];
 	  delrj[1] = ytmp - x[j][1];

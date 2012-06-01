@@ -121,6 +121,8 @@ void AngleSDK::compute(int eflag, int vflag)
     // so this has to be done here and not in the
     // general non-bonded code.
 
+    f13 = e13 = delx3 = dely3 = delz3 = 0.0;
+
     if (repflag) {
       
       delx3 = x[i1][0] - x[i3][0];
@@ -208,7 +210,8 @@ void AngleSDK::compute(int eflag, int vflag)
     if (evflag) {
       ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
 			 delx1,dely1,delz1,delx2,dely2,delz2);
-      ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);
+      if (repflag)
+	ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);
     }
   }
 }

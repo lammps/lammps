@@ -641,7 +641,6 @@ void DihedralTable::read_restart(FILE *fp)
     fread(&tablength,sizeof(int),1,fp);
   }
 
-  //MPI_Bcast(&tabstyle,1,MPI_DOUBLE,0,world); <-looks like a bug. Andrew 2012
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
 

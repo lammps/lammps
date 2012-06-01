@@ -124,7 +124,7 @@ void FixNVTSllodEff::nh_v_temp()
       temperature->restore_bias(i,v[i]);
       if (fabs(spin[i])==1)
         ervel[i] = ervel[i]*factor_eta -
-          dthalf*sqrt(pow(vdelu[0],2)+pow(vdelu[1],2)+pow(vdelu[2],2));
+          dthalf*sqrt(vdelu[0]*vdelu[0]+vdelu[1]*vdelu[1]+vdelu[2]*vdelu[2]);
     }
   }
 }

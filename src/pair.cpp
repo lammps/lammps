@@ -1151,19 +1151,19 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
     error->warning(FLERR,"Table inner cutoff >= outer cutoff");
     
   int nlowermin = 1;
-  while (!((pow(double(2),nlowermin) <= inner*inner) && 
-           (pow(double(2),nlowermin+1) > inner*inner))) {
-    if (pow(double(2),nlowermin) <= inner*inner) nlowermin++;
+  while (!((pow(double(2),(double)nlowermin) <= inner*inner) && 
+           (pow(double(2),(double)nlowermin+1.0) > inner*inner))) {
+    if (pow(double(2),(double)nlowermin) <= inner*inner) nlowermin++;
     else nlowermin--;
   }
 
   int nexpbits = 0;
-  double required_range = outer*outer / pow(double(2),nlowermin);
+  double required_range = outer*outer / pow(double(2),(double)nlowermin);
   double available_range = 2.0;
   
   while (available_range < required_range) {
     nexpbits++;
-    available_range = pow(double(2),pow(double(2),nexpbits));
+    available_range = pow(double(2),pow(double(2),(double)nexpbits));
   }
      
   int nmantbits = ntablebits - nexpbits;

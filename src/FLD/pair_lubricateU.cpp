@@ -642,12 +642,12 @@ void PairLubricateU::compute_Fh(double **x)
       if (flaglog == 0) {
 	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
 	//	RT0 = 8*MY_PI*mu*pow(rad,3);
-	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*
+	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
 	  (1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
 	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
 	//	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*
+	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
 	  (1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -880,11 +880,11 @@ void PairLubricateU::compute_RU()
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3);
+	RT0 = 8*MY_PI*mu*pow(rad,3.0);
 	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
 	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -989,7 +989,7 @@ void PairLubricateU::compute_RU()
         if (flaglog) {
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3)*(3.0/160.0*log(1.0/h_sep));
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
   
@@ -1157,11 +1157,11 @@ void PairLubricateU::compute_RU(double **x)
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3);
+	RT0 = 8*MY_PI*mu*pow(rad,3.0);
 	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
 	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
 	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -1266,7 +1266,7 @@ void PairLubricateU::compute_RU(double **x)
         if (flaglog) {
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3)*(3.0/160.0*log(1.0/h_sep));
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
         
@@ -1467,7 +1467,7 @@ void PairLubricateU::compute_RE()
 
         if (flaglog) {
           a_sh = 6*MY_PI*mu*radi*(1.0/6.0*log(1/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3)*(3.0/160.0*log(1.0/h_sep));          
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         }
          
         // Relative velocity at the point of closest approach due to Ef only
@@ -1648,7 +1648,7 @@ void PairLubricateU::compute_RE(double **x)
         
         if (flaglog) {
           a_sh = 6*MY_PI*mu*radi*(1.0/6.0*log(1/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3)*(3.0/160.0*log(1.0/h_sep));          
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         }
         
         // Relative velocity at the point of closest approach due to Ef only
@@ -1921,7 +1921,7 @@ void PairLubricateU::init_style()
   if (atom->radius) tmp = atom->radius[0];
   MPI_Allreduce(&tmp,&rad,1,MPI_DOUBLE,MPI_MAX,world);
 
-  vol_P = atom->natoms * (4.0/3.0)*MY_PI*pow(rad,3);
+  vol_P = atom->natoms * (4.0/3.0)*MY_PI*pow(rad,3.0);
   
   // vol_f = volume fraction
 
@@ -1933,12 +1933,12 @@ void PairLubricateU::init_style()
 
   if (flaglog == 0) {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3);  // not actually needed
-    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+    RT0 = 8*MY_PI*mu*pow(rad,3.0);  // not actually needed
+    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
   } else {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+    RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+    RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 }
 

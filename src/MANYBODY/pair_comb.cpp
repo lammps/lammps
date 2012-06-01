@@ -790,7 +790,7 @@ void PairComb::setup()
     params[m].Qo1 = (params[m].QU1+params[m].QL1)/2.0; // (A22)
     params[m].dQ1 = (params[m].QU1-params[m].QL1)/2.0; // (A21)
     params[m].aB1 = 1.0 / 
-      (1.0-pow(fabs(params[m].Qo1/params[m].dQ1),10)); // (A20)
+      (1.0-pow(fabs(params[m].Qo1/params[m].dQ1),10.0)); // (A20)
     params[m].bB1 = pow(fabs(params[m].aB1),0.1)/params[m].dQ1; // (A19)
     params[m].nD1 = log(params[m].DU1/(params[m].DU1-params[m].DL1))/
 		    log(params[m].QU1/(params[m].QU1-params[m].QL1));
@@ -800,7 +800,7 @@ void PairComb::setup()
     params[m].Qo2 = (params[m].QU2+params[m].QL2)/2.0; // (A22)
     params[m].dQ2 = (params[m].QU2-params[m].QL2)/2.0; // (A21)
     params[m].aB2 = 1.0 / 
-      (1.0-pow(fabs(params[m].Qo2/params[m].dQ2),10)); // (A20)
+      (1.0-pow(fabs(params[m].Qo2/params[m].dQ2),10.0)); // (A20)
     params[m].bB2 = pow(fabs(params[m].aB2),0.1)/params[m].dQ2; // (A19)
     params[m].nD2 = log(params[m].DU2/(params[m].DU2-params[m].DL2))/
 		    log(params[m].QU2/(params[m].QU2-params[m].QL2));
@@ -1148,8 +1148,8 @@ double PairComb::self(Param *param, double qi, double selfpot)
 
  self_tmp = qi*(s1+qi*(s2+selfpot+qi*(s3+qi*(s4+qi*qi*s5))));
 
- if (qi < qmin) self_tmp += cmin * pow((qi-qmin),4);
- if (qi > qmax) self_tmp += cmax * pow((qi-qmax),4);
+ if (qi < qmin) self_tmp += cmin * pow((qi-qmin),4.0);
+ if (qi > qmax) self_tmp += cmax * pow((qi-qmax),4.0);
  
  return self_tmp;
 }
@@ -1167,9 +1167,9 @@ double PairComb::comb_fa(double r, Param *param, double iq, double jq)
   Di = param->DU1 + pow(fabs(param->bD1*(param->QU1-qi)),param->nD1);
   Dj = param->DU2 + pow(fabs(param->bD2*(param->QU2-qj)),param->nD2);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10)));
+       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10)));
+       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
   if (Bsi > 0.0 && Bsj > 0.0) bigB = sqrt(Bsi*Bsj)*param->romigb; 
   else bigB = 0.0;
 
@@ -1189,9 +1189,9 @@ double PairComb::comb_fa_d(double r, Param *param, double iq, double jq)
   Di = param->DU1 + pow(fabs(param->bD1*(param->QU1-qi)),param->nD1);
   Dj = param->DU2 + pow(fabs(param->bD2*(param->QU2-qj)),param->nD2);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10)));
+       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10)));
+       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
   if (Bsi > 0.0 && Bsj > 0.0) bigB = sqrt(Bsi*Bsj)*param->romigb;
   else bigB = 0.0;
 
@@ -1206,7 +1206,7 @@ double PairComb::comb_bij(double zeta, Param *param)
   double tmp = param->beta * zeta;
   if (tmp > param->c1) return 1.0/sqrt(tmp);
   if (tmp > param->c2)
-    return (1.0 - pow(tmp,-param->powern) / (2.0*param->powern))/sqrt(tmp);
+    return (1.0 - pow(tmp,-1.0*param->powern) / (2.0*param->powern))/sqrt(tmp);
   if (tmp < param->c4) return 1.0;
   if (tmp < param->c3)
     return 1.0 - pow(tmp,param->powern)/(2.0*param->powern);
@@ -1786,14 +1786,14 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
    // sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
    // qi,self_d);
    // error->warning(FLERR,str,0);
-   self_d += 4.0 * cmin * pow((qi-qmin),3);
+   self_d += 4.0 * cmin * pow((qi-qmin),3.0);
  }
  if (qi > qmax) {
    // char str[128];
    // sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
    //	   qi,self_d);
    // error->warning(FLERR,str,0);
-   self_d += 4.0 * cmax * pow((qi-qmax),3);
+   self_d += 4.0 * cmax * pow((qi-qmax),3.0);
  }
 
  return self_d;
@@ -1896,9 +1896,9 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   Asi = param->biga1 * exp(param->lam11*Di);
   Asj = param->biga2 * exp(param->lam12*Dj);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-    (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10)));
+    (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-    (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10)));
+    (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
   
   QUchi = (param->QU1-qi)*param->bD1;
   QUchj = (param->QU2-qj)*param->bD2;

@@ -105,7 +105,7 @@ void PairBeck::compute(int eflag, int vflag)
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
         term1 = aaij*aaij + rsq;
-        term2 = 1.0/pow(term1,5);
+        term2 = 1.0/pow(term1,5.0);
         term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
         term4 = alphaij + r5*betaij;
         term5 = alphaij + 6.0*r5*betaij; 
@@ -125,7 +125,7 @@ void PairBeck::compute(int eflag, int vflag)
 	}
 	
 	if (eflag) {
-          term6 = 1.0/pow(term1,3);
+          term6 = 1.0/pow(term1,3.0);
           term1inv = 1.0/term1;
           evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
           evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
@@ -344,7 +344,7 @@ double PairBeck::single(int i, int j, int itype, int jtype,
   alphaij = alpha[itype][jtype];
   betaij = beta[itype][jtype];
   term1 = aaij*aaij + rsq;
-  term2 = 1.0/pow(term1,5);
+  term2 = 1.0/pow(term1,5.0);
   term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
   term4 = alphaij + r5*betaij;
   term5 = alphaij + 6.0*r5*betaij;
@@ -353,7 +353,7 @@ double PairBeck::single(int i, int j, int itype, int jtype,
   force_beck -= BB[itype][jtype]*r*term2*term3;
   fforce = factor_lj*force_beck*rinv;
 
-  term6 = 1.0/pow(term1,3);
+  term6 = 1.0/pow(term1,3.0);
   term1inv = 1.0/term1;
   phi_beck = AA[itype][jtype]*exp(-1.0*r*term4);
   phi_beck -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);

@@ -169,9 +169,9 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 	    r2inv = 1.0/rsq;
 	    r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
 	    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
-	      pow(c,pm->ap);
+	      pow(c,(double)pm->ap);
 	    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
-	      pow(c,pm->ap-1)*s;
+	      pow(c,(double)pm->ap-1.0)*s;
 
 	    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
 	    if (rsq > pm->cut_innersq) {
@@ -185,7 +185,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 	    }
 
 	    if (eflag) {
-	      evdwl = eng_lj * pow(c,pm->ap);
+	      evdwl = eng_lj * pow(c,(double)pm->ap);
 	      evdwl *= factor_hb;
 	      ehbond += evdwl;
 	    }
@@ -510,9 +510,9 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     r2inv = 1.0/rsq;
     r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
     force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
-      pow(c,pm->ap);
+      pow(c,(double)pm->ap);
     force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
-      pow(c,pm->ap-1)*s;
+      pow(c,(double)pm->ap-1.0)*s;
 
     // only lj part for now
 
@@ -527,8 +527,8 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
       eng_lj *= switch1;
     }
 
-    fforce += force_kernel*pow(c,pm->ap) + eng_lj*force_angle;
-    eng += eng_lj * pow(c,pm->ap) * factor_hb;
+    fforce += force_kernel*pow(c,(double)pm->ap) + eng_lj*force_angle;
+    eng += eng_lj * pow(c,(double)pm->ap) * factor_hb;
   }
 
   return eng;

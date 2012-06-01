@@ -139,8 +139,8 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	    r = sqrt(rsq);
 	    dr = r - pm->r0;
 	    dexp = exp(-pm->alpha * dr);
-	    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,pm->ap);
-	    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1)*s;
+	    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
+	    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1.0)*s;
 
 	    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
 	    if (rsq > pm->cut_innersq) {
@@ -154,7 +154,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 	    }
    
 	    if (eflag) {
-	      evdwl = eng_morse * pow(c,params[m].ap);
+	      evdwl = eng_morse * pow(c,(double)params[m].ap);
 	      evdwl *= factor_hb;
 	      ehbond += evdwl;
 	    }
@@ -415,8 +415,8 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     r = sqrt(rsq);
     dr = r - pm->r0;
     dexp = exp(-pm->alpha * dr);
-    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,pm->ap);
-    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1)*s;
+    force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
+    force_angle = pm->ap * eng_morse * pow(c,pm->ap-1.0)*s;
 
     eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
     if (rsq > pm->cut_innersq) {
@@ -429,8 +429,8 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
       eng_morse *= switch1;
     }
    
-    eng += eng_morse * pow(c,params[m].ap)* factor_hb;
-    fforce += force_kernel*pow(c,pm->ap) + eng_morse*force_angle;
+    eng += eng_morse * pow(c,(double)params[m].ap)* factor_hb;
+    fforce += force_kernel*pow(c,(double)pm->ap) + eng_morse*force_angle;
   }
 
   return eng;

@@ -273,7 +273,7 @@ void ImproperUmbrella::coeff(int narg, char **arg)
     kw[i] = k_one;
     w0[i] = w_one/180.0 * MY_PI;
     if (w_one == 0) C[i] = 1.0;
-    else C[i] = kw[i]/(pow(sin(w0[i]),2));
+    else C[i] = kw[i]/(pow(sin(w0[i]),2.0));
     setflag[i] = 1;
     count++;
   }

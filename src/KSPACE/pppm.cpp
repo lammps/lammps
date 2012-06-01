@@ -157,7 +157,7 @@ void PPPM::init()
 
   if (force->pair == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  int itmp;
+  int itmp=0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
@@ -648,24 +648,25 @@ void PPPM::setup()
 	  numerator = form*12.5663706/sqk;
 	  denominator = gf_denom(snx2,sny2,snz2);  
 	  sum1 = 0.0;
+          const double dorder = static_cast<double>(order);
 	  for (nx = -nbx; nx <= nbx; nx++) {
 	    qx = unitkx*(kper+nx_pppm*nx);
 	    sx = exp(-0.25*pow(qx/g_ewald,2.0));
 	    wx = 1.0;
 	    argx = 0.5*qx*xprd/nx_pppm;
-	    if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+	    if (argx != 0.0) wx = pow(sin(argx)/argx,dorder);
 	    for (ny = -nby; ny <= nby; ny++) {
 	      qy = unitky*(lper+ny_pppm*ny);
 	      sy = exp(-0.25*pow(qy/g_ewald,2.0));
 	      wy = 1.0;
 	      argy = 0.5*qy*yprd/ny_pppm;
-	      if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+	      if (argy != 0.0) wy = pow(sin(argy)/argy,dorder);
 	      for (nz = -nbz; nz <= nbz; nz++) {
 		qz = unitkz*(mper+nz_pppm*nz);
 		sz = exp(-0.25*pow(qz/g_ewald,2.0));
 		wz = 1.0;
 		argz = 0.5*qz*zprd_slab/nz_pppm;
-		if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+		if (argz != 0.0) wz = pow(sin(argz)/argz,dorder);
 
 		dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
 		dot2 = qx*qx+qy*qy+qz*qz;
@@ -1051,9 +1052,9 @@ void PPPM::set_grid()
 
   // adjust g_ewald for new grid size
 
-  h_x = xprd/nx_pppm;
-  h_y = yprd/ny_pppm;
-  h_z = zprd_slab/nz_pppm;
+  h_x = xprd/static_cast<double>(nx_pppm);
+  h_y = yprd/static_cast<double>(ny_pppm);
+  h_z = zprd_slab/static_cast<double>(nz_pppm);
 
   if (!gewaldflag) {
     double gew1,gew2,dgew,f,fmid,hmin,rtb;
@@ -1157,7 +1158,7 @@ double PPPM::rms(double h, double prd, bigint natoms,
   double sum = 0.0;
   for (int m = 0; m < order; m++) 
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
-  double value = q2 * pow(h*g_ewald,order) *
+  double value = q2 * pow(h*g_ewald,(double)order) *
     sqrt(g_ewald*prd*sqrt(2.0*MY_PI)*sum/natoms) / (prd*prd);
   return value;
 }

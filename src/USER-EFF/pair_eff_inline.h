@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  http://lammps.sandia.gov, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
@@ -485,7 +485,7 @@ inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc,
           (ssq + PAULI_CORE_C)) / (ssq + PAULI_CORE_C);
 
   dEdre2 = 2 * PAULI_CORE_A * PAULI_CORE_B * re2 * rcsq * exp(-PAULI_CORE_B * rcsq /
-          (ssq + PAULI_CORE_C)) / pow((PAULI_CORE_C + ssq),2);
+          (ssq + PAULI_CORE_C)) / ((PAULI_CORE_C + ssq)*(PAULI_CORE_C + ssq));
 
   *epauli += E;
   *frc -= dEdrc;

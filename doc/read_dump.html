@@ -1,0 +1,240 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>read_dump command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>read_dump file Nstep field1 field2 ... keyword values ... 
+</PRE>
+<UL><LI>file = name of dump file to read 
+
+<LI>Nstep = snapshot timestep to read from file 
+
+<LI>one or more fields may be appended 
+
+<PRE>field = <I>x</I> or <I>y</I> or <I>z</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>ix</I> or <I>iy</I> or <I>iz</I>
+  <I>x</I>,<I>y</I>,<I>z</I> = atom coordinates
+  <I>vx</I>,<I>vy</I>,<I>vz</I> = velocity components
+  <I>ix</I>,<I>iy</I>,<I>iz</I> = image flags in each dimension 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>box</I> or <I>replace</I> or <I>purge</I> or <I>trim</I> or <I>add</I> or <I>label</I> or <I>scaled</I> or <I>format</I> 
+
+<PRE>  <I>box</I> value = <I>yes</I> or <I>no</I> = replace simulation box with dump box
+  <I>replace</I> value = <I>yes</I> or <I>no</I> = overwrite atoms with dump atoms
+  <I>purge</I> value = <I>yes</I> or <I>no</I> = delete all atoms before adding dump atoms
+  <I>trim</I> value = <I>yes</I> or <I>no</I> = trim atoms not in dump snapshot
+  <I>add</I> value = <I>yes</I> or <I>no</I> = add new dump atoms to system
+  <I>label</I> value = field column
+    field = one of the listed fields or <I>id</I> or <I>type</I>
+    column = label on corresponding column in dump file
+  <I>scaled</I> value = <I>yes</I> or <I>no</I> = coords in dump file are scaled/unscaled
+  <I>format</I> value = <I>native</I> = format of dump file 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>read_dump dump.file 5000 x y z
+read_dump dump.file 5000 x y vx vy trim yes
+read_dump ../run7/dump.file.gz 10000 x y z box yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Read atom information from a dump file to overwrite the current atom
+coordinates, and optionally the atom velocities and image flags and
+the simluation box dimensions.  This is useful for restarting a run
+from a particular snapshot in a dump file.  See the
+<A HREF = "read_restart.html">read_restart</A> and <A HREF = "read_data.html">read_data</A>
+commands and the <A HREF = "Section_tools.html#restart">restart2data</A> tool for
+alternative methods to do this.
+</P>
+<P>Note that a simulation box must already be defined before using the
+read_dump command.  This can be done by the
+<A HREF = "create_box.html">create_box</A>, <A HREF = "read_data.html">read_data</A>, or
+<A HREF = "read_restart.html">read_restart</A> commands.  The read_dump command can
+reset the simulation box dimensions, as explained below.
+</P>
+<P>Also note that reading per-atom information from a dump snapshot is
+limited to the atom coordinates, velocities and image flags, as
+explained below.  Other atom properties, which may be necessary to run
+a valid simulation, such as atom charge, or bond topology information
+for a molecular system, are not read from (or even contained in) dump
+files.  Thus this auxiliary information should be defined in the usual
+way, e.g. in a data file read in by a <A HREF = "read_data.html">read_data</A>
+command, before using the read_dump command, or by the <A HREF = "set.html">set</A>
+command, after the dump snapshot is read.
+</P>
+<HR>
+
+<P>The dump file must be in native LAMMPS format, meaning it was written
+with a "dump atom".html or <A HREF = "dump.html">dump custom</A> command.  Support
+for other dump file formats may be added in the future.  These will be
+added as options to the <I>format</I> keyword.
+</P>
+<P>If the filename ends with ".gz", the dump file is read in gzipped
+format.  You cannot (yet) read a dump file that was written in binary
+format with a ".bin" suffix, or to multiple files via the "%" option
+in the dump file name.  See the <A HREF = "dump.html">dump</A> command for details.
+</P>
+<P>The dump file is scanned for a snapshot with a time stamp that matches
+the specified <I>Nstep</I>.  The dimensions of the simulation box for that
+snapshot are also read; see the <I>box</I> keyword discussion below.  An
+error is generated if the snapshot is for a triclinic box and the
+current simulation box is orthogonal or vice versa.  A warning will be
+generated if the snapshot box boundary conditions (periodic,
+shrink-wrapped, etc) do not match the current simulation boundary
+conditions, but the boundary condition information in the snapshot is
+otherwise ignored.  See the "boundary" command for more details.
+</P>
+<P>Per-atom information from the dump file snapshot is then read in,
+corresponding to the specified <I>fields</I> listed in the read_dump
+command.  It is an error to specify a z-dimension field (<I>z</I>, <I>vz</I>,
+<I>iz</I>) for a 2d simulation.
+</P>
+<P>For dump files in native LAMMPS format, each column of per-atom data
+has a text label which is listed in the file.  A matching label for
+each field must appear, e.g. the label "vy" for the field <I>vy</I>.  For
+the <I>x</I>, <I>y</I>, <I>z</I> fields any of the following labels are considered a
+match:
+</P>
+<PRE>x, xs, xu, xsu for field <I>x</I>
+y, ys, yu, ysu for field <I>y</I>
+z, zs, zu, zsu for field <I>z</I> 
+</PRE>
+<P>The meaning of xs (scaled), xu (unwrapped), and xsu (scaled and
+unwrapped) is explained on the <A HREF = "dump.html">dump</A> command doc page.
+These labels are searched for in the list of column labels in the dump
+file, in order, until a match is found.
+</P>
+<P>The dump file must also contain atom IDs, with a column label of "id".
+</P>
+<P>If a column label in the dump file is not a match to a specified
+field, the <I>label</I> keyword can be used to specify which column label
+to associate with that field.  An example is if a time-averaged
+coordinate is written to the dump file via the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command.  The column will then have a
+label corresponding to the fix-ID rather than "x" or "xs".  The
+<I>label</I> keyword can also be used to specify new column labels for
+fields <I>id</I> and <I>type</I>.  Information for atom types is needed from the
+dump file shapshot when the <I>add</I> keyword is used; see the discussion
+below.
+</P>
+<HR>
+
+<P>Information from the dump file snapshot is used to overwrite or
+replace properties of the current system.  There are various options
+for how this is done, determined by the specified fields and optional
+keywords.
+</P>
+<P>The timestep of the snapshot becomes the current timestep for the
+simulation.  See the <A HREF = "reset_timestep.html">reset_timestep</A> command if
+you wish to change this after the dump snapshot is read.
+</P>
+<P>If the <I>box</I> keyword is specified with a <I>yes</I> value, then the current
+simulation box dimensions are replaced by the dump snapshot box
+dimensions.  If the <I>box</I> keyword is specified with a <I>no</I> value, the
+current simulatoin box is unchanged.
+</P>
+<P>If the <I>purge</I> keyword is specified with a <I>yes</I> value, then all
+current atoms in the system are deleted before any of the operations
+invoked by the <I>replace</I>, <I>trim</I>, or <I>add</I> keywords take place.
+</P>
+<P>If the <I>replace</I> keyword is specified with a <I>yes</I> value, then atoms
+with IDs that are in both the current system and the dump snapshot
+have their properties overwritten by field values.  If the <I>replace</I>
+keyword is specified with a <I>no</I> value, atoms with IDs that are in
+both the current system and the dump snapshot are not modified.
+</P>
+<P>If the <I>trim</I> keyword is specified with a <I>yes</I> value, then atoms with
+IDs that are in the current system but not in the dump snapshot are
+deleted.  These atoms are unaffected if the <I>trim</I> keyword is
+specified with a <I>no</I> value.
+</P>
+<P>If the <I>add</I> keyword is specified with a <I>yes</I> value, then atoms with
+IDs that are in the dump snapshot, but not in the current system are
+added to the system.  These dump atoms ignored if the <I>add</I> keyword is
+specified with a <I>no</I> value.
+</P>
+<P>Note that atoms added via the <I>add</I> keyword will have only the
+attributes read from the dump file due to the <I>field</I> arguments.  If
+<I>x</I> or <I>y</I> or <I>z</I> is not specified as a field, a value of 0.0 is used
+for added atoms.  Added atoms must have an atom type, so this per-atom
+attribute must also appear in the dump file snapshot, with a column
+label of "type".  Any other attributes (e.g. charge or particle
+diameter for spherical particles) will be set to default values, the
+same as if the <A HREF = "create_atoms.html">create_atoms</A> command were used.
+</P>
+<P>Note that atom IDs are not preserved for new dump snapshot atoms added
+via the <I>add</I> keyword.  The procedure for assigning new atom IDS to
+added atoms is the same as is described for the
+<A HREF = "create_atoms.html">create_atoms</A> command.
+</P>
+<HR>
+
+<P>Atom coordinates read from the dump file are converted into absolute,
+unscaled coordinates, relative to the box dimensions of the snapshot.
+These coordinates may then be assigned to an existing or new atom in
+the current simulation.  The coordinates will be remapped to the
+simulation box, whether it is the original box or the dump snapshot
+box.  If periodic boundary conditiona apply, this means the atom will
+be remapped back into the box if necessary.  If shrink-wrap boundary
+conditions apply, the new coordinates may change the current box
+dimensions.  If fixed boundary conditions apply, the atom will be lost
+if it is outside the simulation box.
+</P>
+<P>The 3 xyz image flags for an atom in the dump file are set to values
+in the dump file if the <I>ix</I>, <I>iy</I>, <I>iz</I> fields are specified.  If not
+specified, the image flags for replaced atoms are not changed and
+image flags for new atoms are set to default values.  The remapping
+procedure described in the previous paragraph can change images flags
+for all atoms (old and new) if periodic boundary conditions are
+applied to remap an atom back into the simulation box.  Note that
+inconsistent image flag values can result if you use image flag fields
+from the dump file but do not also use the dump file box parameters.
+</P>
+<P>LAMMPS knows how to compute absolute, unscaled coordinates for the
+snapshot column labels discussed above, e.g. <I>x</I>, <I>xs</I>, <I>xu</I>, <I>xsu</I>.
+If another column label is assigned to the <I>x</I> or <I>y</I> or <I>z</I> field via
+the <I>label</I> keyword, e.g. for coordinates output by the <A HREF = "fix_ave_atom.html">fix
+ave/atom</A> command, then LAMMPS needs to know whether
+the coordinate information in the dump file is scaled or unscaled.
+This can be set via the <I>scaled</I> keyword.  The value of the <I>scaled</I>
+keyword is ignored for field <I>x</I> or <I>y</I> or <I>z</I> if the <I>label</I> keyword
+is not used to assign a column label to that field.
+</P>
+<P>The scaled vs unscaled setting must be consistent for any of the <I>x</I>,
+<I>y</I>, <I>z</I> fields that are specified.  If the dump file coordinates are
+scaled and the simulation box is triclinic, then all 3 of the <I>x</I>,
+<I>y</I>, <I>z</I> fields must be specified, since they are all needed to
+generate absolute, unscaled coordinates.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To read gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
+LAMMPS</A> section of the documentation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are box = yes, replace = yes, purge = no, trim =
+no, add = no, scaled = no, and format = native.
+</P>
+</HTML>

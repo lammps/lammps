@@ -1,0 +1,228 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+read_dump command :h3
+
+[Syntax:]
+
+read_dump file Nstep field1 field2 ... keyword values ... :pre
+
+file = name of dump file to read :ulb,l
+Nstep = snapshot timestep to read from file :l
+one or more fields may be appended :l
+field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {ix} or {iy} or {iz}
+  {x},{y},{z} = atom coordinates
+  {vx},{vy},{vz} = velocity components
+  {ix},{iy},{iz} = image flags in each dimension :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {format} :l
+  {box} value = {yes} or {no} = replace simulation box with dump box
+  {replace} value = {yes} or {no} = overwrite atoms with dump atoms
+  {purge} value = {yes} or {no} = delete all atoms before adding dump atoms
+  {trim} value = {yes} or {no} = trim atoms not in dump snapshot
+  {add} value = {yes} or {no} = add new dump atoms to system
+  {label} value = field column
+    field = one of the listed fields or {id} or {type}
+    column = label on corresponding column in dump file
+  {scaled} value = {yes} or {no} = coords in dump file are scaled/unscaled
+  {format} value = {native} = format of dump file :pre
+:ule
+
+[Examples:]
+
+read_dump dump.file 5000 x y z
+read_dump dump.file 5000 x y vx vy trim yes
+read_dump ../run7/dump.file.gz 10000 x y z box yes :pre
+
+[Description:]
+
+Read atom information from a dump file to overwrite the current atom
+coordinates, and optionally the atom velocities and image flags and
+the simluation box dimensions.  This is useful for restarting a run
+from a particular snapshot in a dump file.  See the
+"read_restart"_read_restart.html and "read_data"_read_data.html
+commands and the "restart2data"_Section_tools.html#restart tool for
+alternative methods to do this.
+
+Note that a simulation box must already be defined before using the
+read_dump command.  This can be done by the
+"create_box"_create_box.html, "read_data"_read_data.html, or
+"read_restart"_read_restart.html commands.  The read_dump command can
+reset the simulation box dimensions, as explained below.
+
+Also note that reading per-atom information from a dump snapshot is
+limited to the atom coordinates, velocities and image flags, as
+explained below.  Other atom properties, which may be necessary to run
+a valid simulation, such as atom charge, or bond topology information
+for a molecular system, are not read from (or even contained in) dump
+files.  Thus this auxiliary information should be defined in the usual
+way, e.g. in a data file read in by a "read_data"_read_data.html
+command, before using the read_dump command, or by the "set"_set.html
+command, after the dump snapshot is read.
+
+:line
+
+The dump file must be in native LAMMPS format, meaning it was written
+with a "dump atom".html or "dump custom"_dump.html command.  Support
+for other dump file formats may be added in the future.  These will be
+added as options to the {format} keyword.
+
+If the filename ends with ".gz", the dump file is read in gzipped
+format.  You cannot (yet) read a dump file that was written in binary
+format with a ".bin" suffix, or to multiple files via the "%" option
+in the dump file name.  See the "dump"_dump.html command for details.
+
+The dump file is scanned for a snapshot with a time stamp that matches
+the specified {Nstep}.  The dimensions of the simulation box for that
+snapshot are also read; see the {box} keyword discussion below.  An
+error is generated if the snapshot is for a triclinic box and the
+current simulation box is orthogonal or vice versa.  A warning will be
+generated if the snapshot box boundary conditions (periodic,
+shrink-wrapped, etc) do not match the current simulation boundary
+conditions, but the boundary condition information in the snapshot is
+otherwise ignored.  See the "boundary" command for more details.
+
+Per-atom information from the dump file snapshot is then read in,
+corresponding to the specified {fields} listed in the read_dump
+command.  It is an error to specify a z-dimension field ({z}, {vz},
+{iz}) for a 2d simulation.
+
+For dump files in native LAMMPS format, each column of per-atom data
+has a text label which is listed in the file.  A matching label for
+each field must appear, e.g. the label "vy" for the field {vy}.  For
+the {x}, {y}, {z} fields any of the following labels are considered a
+match:
+
+x, xs, xu, xsu for field {x}
+y, ys, yu, ysu for field {y}
+z, zs, zu, zsu for field {z} :pre
+
+The meaning of xs (scaled), xu (unwrapped), and xsu (scaled and
+unwrapped) is explained on the "dump"_dump.html command doc page.
+These labels are searched for in the list of column labels in the dump
+file, in order, until a match is found.
+
+The dump file must also contain atom IDs, with a column label of "id".
+
+If a column label in the dump file is not a match to a specified
+field, the {label} keyword can be used to specify which column label
+to associate with that field.  An example is if a time-averaged
+coordinate is written to the dump file via the "fix
+ave/atom"_fix_ave_atom.html command.  The column will then have a
+label corresponding to the fix-ID rather than "x" or "xs".  The
+{label} keyword can also be used to specify new column labels for
+fields {id} and {type}.  Information for atom types is needed from the
+dump file shapshot when the {add} keyword is used; see the discussion
+below.
+
+:line
+
+Information from the dump file snapshot is used to overwrite or
+replace properties of the current system.  There are various options
+for how this is done, determined by the specified fields and optional
+keywords.
+
+The timestep of the snapshot becomes the current timestep for the
+simulation.  See the "reset_timestep"_reset_timestep.html command if
+you wish to change this after the dump snapshot is read.
+
+If the {box} keyword is specified with a {yes} value, then the current
+simulation box dimensions are replaced by the dump snapshot box
+dimensions.  If the {box} keyword is specified with a {no} value, the
+current simulatoin box is unchanged.
+
+If the {purge} keyword is specified with a {yes} value, then all
+current atoms in the system are deleted before any of the operations
+invoked by the {replace}, {trim}, or {add} keywords take place.
+
+If the {replace} keyword is specified with a {yes} value, then atoms
+with IDs that are in both the current system and the dump snapshot
+have their properties overwritten by field values.  If the {replace}
+keyword is specified with a {no} value, atoms with IDs that are in
+both the current system and the dump snapshot are not modified.
+
+If the {trim} keyword is specified with a {yes} value, then atoms with
+IDs that are in the current system but not in the dump snapshot are
+deleted.  These atoms are unaffected if the {trim} keyword is
+specified with a {no} value.
+
+If the {add} keyword is specified with a {yes} value, then atoms with
+IDs that are in the dump snapshot, but not in the current system are
+added to the system.  These dump atoms ignored if the {add} keyword is
+specified with a {no} value.
+
+Note that atoms added via the {add} keyword will have only the
+attributes read from the dump file due to the {field} arguments.  If
+{x} or {y} or {z} is not specified as a field, a value of 0.0 is used
+for added atoms.  Added atoms must have an atom type, so this per-atom
+attribute must also appear in the dump file snapshot, with a column
+label of "type".  Any other attributes (e.g. charge or particle
+diameter for spherical particles) will be set to default values, the
+same as if the "create_atoms"_create_atoms.html command were used.
+
+Note that atom IDs are not preserved for new dump snapshot atoms added
+via the {add} keyword.  The procedure for assigning new atom IDS to
+added atoms is the same as is described for the
+"create_atoms"_create_atoms.html command.
+
+:line
+
+Atom coordinates read from the dump file are converted into absolute,
+unscaled coordinates, relative to the box dimensions of the snapshot.
+These coordinates may then be assigned to an existing or new atom in
+the current simulation.  The coordinates will be remapped to the
+simulation box, whether it is the original box or the dump snapshot
+box.  If periodic boundary conditiona apply, this means the atom will
+be remapped back into the box if necessary.  If shrink-wrap boundary
+conditions apply, the new coordinates may change the current box
+dimensions.  If fixed boundary conditions apply, the atom will be lost
+if it is outside the simulation box.
+
+The 3 xyz image flags for an atom in the dump file are set to values
+in the dump file if the {ix}, {iy}, {iz} fields are specified.  If not
+specified, the image flags for replaced atoms are not changed and
+image flags for new atoms are set to default values.  The remapping
+procedure described in the previous paragraph can change images flags
+for all atoms (old and new) if periodic boundary conditions are
+applied to remap an atom back into the simulation box.  Note that
+inconsistent image flag values can result if you use image flag fields
+from the dump file but do not also use the dump file box parameters.
+
+LAMMPS knows how to compute absolute, unscaled coordinates for the
+snapshot column labels discussed above, e.g. {x}, {xs}, {xu}, {xsu}.
+If another column label is assigned to the {x} or {y} or {z} field via
+the {label} keyword, e.g. for coordinates output by the "fix
+ave/atom"_fix_ave_atom.html command, then LAMMPS needs to know whether
+the coordinate information in the dump file is scaled or unscaled.
+This can be set via the {scaled} keyword.  The value of the {scaled}
+keyword is ignored for field {x} or {y} or {z} if the {label} keyword
+is not used to assign a column label to that field.
+
+The scaled vs unscaled setting must be consistent for any of the {x},
+{y}, {z} fields that are specified.  If the dump file coordinates are
+scaled and the simulation box is triclinic, then all 3 of the {x},
+{y}, {z} fields must be specified, since they are all needed to
+generate absolute, unscaled coordinates.
+
+:line
+
+[Restrictions:]
+
+To read gzipped dump files, you must compile LAMMPS with the
+-DLAMMPS_GZIP option - see the "Making
+LAMMPS"_Section_start.html#start_2 section of the documentation.
+
+[Related commands:]
+
+"dump"_dump.html, "read_data"_read_data.html,
+"read_restart"_read_restart.html
+
+[Default:]
+
+The option defaults are box = yes, replace = yes, purge = no, trim =
+no, add = no, scaled = no, and format = native.

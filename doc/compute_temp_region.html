@@ -73,11 +73,13 @@ fixes can operate on a geometric region of atoms, as defined by this
 compute.
 </P>
 <P>Unlike other compute styles that calculate temperature, this compute
-does NOT currently subtract out degrees-of-freedom due to fixes that
-constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
-<A HREF = "fix_rigid.html">fix rigid</A>.  If needed the subtracted
-degrees-of-freedom can be altered using the <I>extra</I> option of the
-<A HREF = "compute_modify.html">compute_modify</A> command.
+does not subtract out degrees-of-freedom due to fixes that constrain
+molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and <A HREF = "fix_rigid.html">fix
+rigid</A>.  This is because those degrees of freedom
+(e.g. a constrained bond) can straddle the region boundary, and hence
+the concept is somewhat ill-defined.  If needed the number of
+subtracted degrees-of-freedom can be set explicitly using the <I>extra</I>
+option of the <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
 <P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
 a discussion of different ways to compute temperature and perform

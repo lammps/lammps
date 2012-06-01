@@ -133,7 +133,7 @@ output, "geometric regions"_region.html, etc.
 
 [Related commands:]
 
-"read_data"_read_data.html, "write_restart"_write_restart.html,
-"restart"_restart.html
+"read_data"_read_data.html, "read_dump"_read_dump.html,
+"write_restart"_write_restart.html, "restart"_restart.html
 
 [Default:] none

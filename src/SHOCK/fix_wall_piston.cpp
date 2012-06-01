@@ -208,8 +208,9 @@ void FixWallPiston::post_integrate()
     paccelx = maxvx / tott;
     paccely = maxvy / tott;
     paccelz = maxvz / tott;
-
-    if (zloflag) { zlo = z0 + 0.5 * paccelz * tt; vz =  paccelz * t; }
+    if (zloflag) {
+      zlo = z0 + 0.5 * paccelz * tt; vz =  paccelz * t;
+    }
   }
   else if (rampNL1flag) {
     paccelz = maxvz / tott;

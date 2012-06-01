@@ -13,6 +13,8 @@ atc           atomistic-to-continuum methods, USER-ATC package
                 from Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia)
 awpmd         antisymmetrized wave packet molecular dynamics, AWPMD package
                 from Ilya Valuev (JIHT RAS)
+colvars	      collective variable module (Metadynamics, ABF and more)
+                from Giacomo Fiorin and Jerome Henin (ICMS, Temple U)
 cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      graphical processor (GPU) routines, GPU package

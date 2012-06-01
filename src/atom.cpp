@@ -402,7 +402,8 @@ void Atom::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"hash") == 0) map_style = 2;
       else error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist) 
-	error->all(FLERR,"Atom_modify map command after simulation box is defined");
+	error->all(FLERR,
+		   "Atom_modify map command after simulation box is defined");
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
@@ -670,7 +671,7 @@ int Atom::map_find_hash(int global)
 /* ----------------------------------------------------------------------
    add unique tags to any atoms with tag = 0
    new tags are grouped by proc and start after max current tag
-   called after creating new atoms 
+   called after creating new atoms
 ------------------------------------------------------------------------- */
 
 void Atom::tag_extend()
@@ -1051,7 +1052,8 @@ void Atom::data_dihedrals(int n, char *buf)
 	atom4 <= 0 || atom4 > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
     if (itype <= 0 || itype > ndihedraltypes)
-      error->one(FLERR,"Invalid dihedral type in Dihedrals section of data file");
+      error->one(FLERR,
+		 "Invalid dihedral type in Dihedrals section of data file");
     if ((m = map(atom2)) >= 0) {
       dihedral_type[m][num_dihedral[m]] = itype;
       dihedral_atom1[m][num_dihedral[m]] = atom1;
@@ -1110,7 +1112,8 @@ void Atom::data_impropers(int n, char *buf)
 	atom4 <= 0 || atom4 > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Impropers section of data file");
     if (itype <= 0 || itype > nimpropertypes)
-      error->one(FLERR,"Invalid improper type in Impropers section of data file");
+      error->one(FLERR,
+		 "Invalid improper type in Impropers section of data file");
     if ((m = map(atom2)) >= 0) {
       improper_type[m][num_improper[m]] = itype;
       improper_atom1[m][num_improper[m]] = atom1;
@@ -1177,7 +1180,8 @@ void Atom::set_mass(const char *str)
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
   if (n != 2) error->all(FLERR,"Invalid mass line in data file");
 
-  if (itype < 1 || itype > ntypes) error->all(FLERR,"Invalid type for mass set");
+  if (itype < 1 || itype > ntypes) 
+    error->all(FLERR,"Invalid type for mass set");
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
@@ -1193,7 +1197,8 @@ void Atom::set_mass(const char *str)
 void Atom::set_mass(int itype, double value)
 {
   if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
-  if (itype < 1 || itype > ntypes) error->all(FLERR,"Invalid type for mass set");
+  if (itype < 1 || itype > ntypes) 
+    error->all(FLERR,"Invalid type for mass set");
 
   mass[itype] = value;
   mass_setflag[itype] = 1;

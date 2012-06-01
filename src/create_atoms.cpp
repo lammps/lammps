@@ -28,8 +28,8 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG      1.0e30
-#define EPSILON  1.0e-6
+#define BIG 1.0e30
+#define EPSILON 1.0e-6
 
 enum{BOX,REGION,SINGLE,RANDOM};
 
@@ -192,7 +192,6 @@ void CreateAtoms::command(int narg, char **arg)
   // reset simulation now that more atoms are defined
   // add tags for newly created atoms if possible
   // if global map exists, reset it
-  // if a molecular system, set nspecial to 0 for new atoms
 
   if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
   if (atom->natoms <= MAXTAGINT) atom->tag_extend();
@@ -202,14 +201,18 @@ void CreateAtoms::command(int narg, char **arg)
     atom->map_init();
     atom->map_set();
   }
-  if (atom->molecular) {
-    int **nspecial = atom->nspecial;
-    for (int i = nlocal_previous; i < atom->nlocal; i++) {
-      nspecial[i][0] = 0;
-      nspecial[i][1] = 0;
-      nspecial[i][2] = 0;
-    }
-  }
+
+  // if a molecular system, set nspecial to 0 for new atoms
+  // NOTE: 31May12, don't think this is needed, avec->create_atom() does it
+
+  //if (atom->molecular) {
+  //  int **nspecial = atom->nspecial;
+  //  for (int i = nlocal_previous; i < atom->nlocal; i++) {
+  //    nspecial[i][0] = 0;
+  //    nspecial[i][1] = 0;
+  //    nspecial[i][2] = 0;
+  //  }
+  //}
 }
 
 /* ----------------------------------------------------------------------

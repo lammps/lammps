@@ -181,7 +181,7 @@ void DihedralHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
          
     m = multiplicity[type];
     p = 1.0;
-    df1 = 0.0;
+    ddf1 = df1 = 0.0;
     
     for (i = 0; i < m; i++) {
       ddf1 = p*c - df1*s;

@@ -54,9 +54,6 @@ class PairEDIP : public Pair {
   
   // grids
 
-  static const int GRIDDENSITY = 8000;
-  static const double GRIDSTART = 0.1;
-
   double *cutoffFunction;
   double *cutoffFunctionDerived;
   double *pow2B;
@@ -97,10 +94,6 @@ class PairEDIP : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
-
-  // max number of interaction per atom for f(Z) environment potential
-
-  static const int leadDimInteractionList = 64;
 
   void allocate();
   void allocatePreLoops(void);

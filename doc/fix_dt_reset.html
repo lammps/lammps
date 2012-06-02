@@ -72,21 +72,21 @@ are relevant to this fix.
 <P>This fix computes a global scalar and a global vector of length 2,
 which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The scalar is the current
-timestep size.  The first element of the vector stores the cumulative
-simulation time (in time units).  The second element of the vector
-stores the last timestep on which the timestep was reset to a new
-value.  The scalar and vector values calculated by this fix are
-"intensive".
+timestep size.
+</P>
+<P>The first element of the vector stores the cumulative simulation time
+(in time units).  The cumulative time is zeroed when the fix is
+created and continuously accrues thereafter.
+</P>
+<P>The second element of the vector stores the last timestep on which the
+timestep was reset to a new value.  The scalar and vector values
+calculated by this fix are "intensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
 minimization</A>.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>The cumulative time is zeroed when the fix is created and continuously
-accrues thereafter.  Using the <A HREF = "reset_timestep.html">reset_timestep</A>
-command while this fix is defined will mess up the time accumulation.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>

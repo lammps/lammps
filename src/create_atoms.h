@@ -35,6 +35,9 @@ class CreateAtoms : protected Pointers {
   double xone[3];
   int remapflag;
 
+  int triclinic;
+  double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
+
   void add_single();
   void add_random();
   void add_lattice();

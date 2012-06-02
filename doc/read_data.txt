@@ -731,6 +731,7 @@ LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 [Related commands:]
 
-"read_restart"_read_restart.html, "create_atoms"_create_atoms.html
+"read_dump"_read_dump.html, "read_restart"_read_restart.html,
+"create_atoms"_create_atoms.html
 
 [Default:] none

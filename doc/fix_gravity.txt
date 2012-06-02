@@ -17,26 +17,26 @@ fix ID group gravity style magnitude args :pre
 ID, group are documented in "fix"_fix.html command :ulb,l
 gravity = style name of this fix command :l
 magnitude = size of acceleration (force/mass units) :l
+magnitude can be a variable (see below) :l
 style = {chute} or {spherical} or {gradient} or {vector} :l
   {chute} args = angle
     angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
+    angle can be a variable (see below)
   {spherical} args = phi theta
     phi = azimuthal angle from +x axis (in degrees)
     theta = angle from +z or +y axis in 3d/2d (in degrees)
-  {gradient} args = phi theta phi_grad theta_grad
-    phi = azimuthal angle from +x axis (in degrees)
-    theta = angle from +z or +y axis in 3d/2d (in degrees)
-    phi_grad = rate of change of angle phi (full rotations per time unit)
-    theta_grad = rate of change of angle theta (full rotations per time unit)
+    phi or theta can be a variable (see below)
   {vector} args = x y z
-    x y z = vector direction to apply the acceleration :pre
+    x y z = vector direction to apply the acceleration
+    x or y or z can be a variable (see below) :pre
 :ule
 
 [Examples:]
 
 fix 1 all gravity 1.0 chute 24.0
+fix 1 all gravity v_increase chute 24.0
 fix 1 all gravity 1.0 spherical 0.0 -180.0
-fix 1 all gravity 1.0 gradient 0.0 -180.0 0.0 0.1
+fix 1 all gravity 10.0 spherical v_phi v_theta
 fix 1 all gravity 100.0 vector 1 1 0 :pre
 
 [Description:]
@@ -55,29 +55,36 @@ For granular systems (LJ units) this is typically 1.0.  See the
 "units"_units.html command for details.
 
 Style {chute} is typically used for simulations of chute flow where
-the specified angle is the chute angle, with flow occurring in the +x
+the specified {angle} is the chute angle, with flow occurring in the +x
 direction.  For 3d systems, the tilt is away from the z axis; for 2d
 systems, the tilt is away from the y axis.
 
 Style {spherical} allows an arbitrary 3d direction to be specified for
-the acceleration vector.  Phi and theta are defined in the usual
+the acceleration vector.  {Phi} and {theta} are defined in the usual
 spherical coordinates.  Thus for acceleration acting in the -z
-direction, theta would be 180.0 (or -180.0).  Theta = 90.0 and phi =
--90.0 would mean acceleration acts in the -y direction.  For 2d
-systems, {phi} is ignored and {theta} is an angle in the xy plane
-where theta = 0.0 is the y-axis.
-
-Style {gradient} is the same as style {spherical} except that the
-direction of the acceleration vector is time dependent.  The units of
-the gradient arguments are in full rotations per time unit.  E.g. a
-timestep of 0.001 and a gradient of 0.1 means the acceleration vector
-would rotate thru 360 degrees every 10,000 timesteps.  For the
-time-dependent case, the initial direction of the acceleration vector
-is set to phi,theta when the fix is specified and evolves thereafter.
-For 2d systems, {phi} and {phi_grad} are ignored.
+direction, {theta} would be 180.0 (or -180.0).  {Theta} = 90.0 and
+{phi} = -90.0 would mean acceleration acts in the -y direction.  For
+2d systems, {phi} is ignored and {theta} is an angle in the xy plane
+where {theta} = 0.0 is the y-axis.
 
 Style {vector} imposes an acceleration in the vector direction given
-by (x,y,z).  For 2d systems, the z component is ignored.
+by (x,y,z).  Only the direction of the vector is important; it's
+length is ignored.  For 2d systems, the {z} component is ignored.
+
+Any of the quantities {magnitude}, {angle}, {phi}, {theta}, {x}, {y},
+{z} which define the gravitational magnitude and direction, can be
+specified as an equal-style "variable"_variable.html.  If the value is
+a variable, it should be specified as v_name, where name is the
+variable name.  In this case, the variable will be evaluated each
+timestep, and its value used to determine the quantity.  You should
+insure that the variable calculates a result in the approriate units,
+e.g. force/mass or degrees.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent gravitational
+field.
 
 :line
 

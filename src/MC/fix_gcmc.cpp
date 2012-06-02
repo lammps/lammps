@@ -68,7 +68,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   if (nexchanges < 0) error->all(FLERR,"Illegal fix GCMC command");
   if (nmcmoves < 0) error->all(FLERR,"Illegal fix GCMC command");
   if (seed <= 0) error->all(FLERR,"Illegal fix GCMC command");
-  if (reservoir_temperature < 0.0) error->all(FLERR,"Illegal fix GCMC command");  
+  if (reservoir_temperature < 0.0) 
+    error->all(FLERR,"Illegal fix GCMC command");  
   if (displace < 0.0) error->all(FLERR,"Illegal fix GCMC command"); 
 
   // compute beta, lambda, sigma, and the zz factor
@@ -175,13 +176,16 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->warning(FLERR,"Fix GCMC may delete atom with non-zero molecule ID");
+      error->warning(FLERR,
+		     "Fix GCMC may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
-      error->all(FLERR,"Fix GCMC molecule command requires atom attribute molecule");
+      error->all(FLERR,
+		 "Fix GCMC molecule command requires atom attribute molecule");
       
-  if (molflag != 0) error->all(FLERR,"Fix GCMC molecule feature does not yet work"); 
+  if (molflag != 0) 
+    error->all(FLERR,"Fix GCMC molecule feature does not yet work"); 
   
   if (force->pair->single_enable == 0) 
     error->all(FLERR,"Fix GCMC incompatible with given pair_style");
@@ -303,7 +307,6 @@ void FixGCMC::attempt_move()
     nmove_successes += 1.0;  
     comm->borders(); 
   }
-  
 }
 
 /* ----------------------------------------------------------------------

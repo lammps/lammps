@@ -29,6 +29,7 @@ class FixGravity : public Fix {
 
  public:
   FixGravity(class LAMMPS *, int, char **);
+  ~FixGravity();
   int setmask();
   void init();
   void setup(int);
@@ -38,8 +39,8 @@ class FixGravity : public Fix {
 
  protected:
   int style;
-  double magnitude,dt;
-  double phi,theta,phigrad,thetagrad;
+  double magnitude;
+  double vert,phi,theta;
   double xdir,ydir,zdir;
   double xgrav,ygrav,zgrav,xacc,yacc,zacc;
   double degree2rad;
@@ -47,6 +48,13 @@ class FixGravity : public Fix {
   int time_origin;
   int eflag;
   double egrav,egrav_all;
+
+  int varflag;
+  int mstyle,vstyle,pstyle,tstyle,xstyle,ystyle,zstyle;
+  int mvar,vvar,pvar,tvar,xvar,yvar,zvar;
+  char *mstr,*vstr,*pstr,*tstr,*xstr,*ystr,*zstr;
+
+  void set_acceleration();
 };
 
 }

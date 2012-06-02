@@ -156,11 +156,11 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
   if (dimflag[0] + dimflag[1] + dimflag[2] > 1) overlap = 1;
   else overlap = 0;
 
-  // set time_depend and varflag if any wall positions are variable
+  // set varflag if any wall positions are variable
 
   varflag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) time_depend = varflag = 1;
+    if (wallstyle[m] == VARIABLE) varflag = 1;
   laststep = -1;
 }
 

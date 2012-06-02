@@ -41,7 +41,9 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix dt/reset command");
 
-  time_depend = 1;
+  // set time_depend, else elapsed time accumulation can be messed up
+
+  time_depend = 1;   
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 2;

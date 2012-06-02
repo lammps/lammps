@@ -23,13 +23,17 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "input.h"
+#include "modify.h"
 #include "respa.h"
+#include "variable.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
+enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,26 +44,20 @@ FixGravityOMP::FixGravityOMP(LAMMPS *lmp, int narg, char **arg) :
 
 void FixGravityOMP::post_force(int vflag)
 {
-  // update direction of gravity vector if gradient style
+  // update gravity due to variables
 
-  if (style == GRADIENT) {
-    if (domain->dimension == 3) {
-      double phi_current = degree2rad * 
-	(phi + (update->ntimestep - time_origin)*dt*phigrad*360.0);
-      double theta_current = degree2rad * 
-	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
-      xgrav = sin(theta_current) * cos(phi_current);
-      ygrav = sin(theta_current) * sin(phi_current);
-      zgrav = cos(theta_current);
-    } else {
-      double theta_current = degree2rad * 
-	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
-      xgrav = sin(theta_current);
-      ygrav = cos(theta_current);
-    }
-    xacc = magnitude*xgrav;
-    yacc = magnitude*ygrav;
-    zacc = magnitude*zgrav;
+  if (varflag != CONSTANT) {
+    modify->clearstep_compute();
+    if (mstyle == EQUAL) magnitude = input->variable->compute_equal(mvar);
+    if (vstyle == EQUAL) magnitude = input->variable->compute_equal(vvar);
+    if (pstyle == EQUAL) magnitude = input->variable->compute_equal(pvar);
+    if (tstyle == EQUAL) magnitude = input->variable->compute_equal(tvar);
+    if (xstyle == EQUAL) magnitude = input->variable->compute_equal(xvar);
+    if (ystyle == EQUAL) magnitude = input->variable->compute_equal(yvar);
+    if (zstyle == EQUAL) magnitude = input->variable->compute_equal(zvar);
+    modify->addstep_compute(update->ntimestep + 1);
+
+    set_acceleration();
   }
 
   const double * const * const x = atom->x;
@@ -73,7 +71,7 @@ void FixGravityOMP::post_force(int vflag)
   const double yacc_thr = yacc;
   const double zacc_thr = zacc;
   double massone;
-  
+
   int i;
   eflag = 0;
   double grav = 0.0;

@@ -40,6 +40,16 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define DELTA 4
 
+#define GRIDSTART 0.1
+#define GRIDDENSITY_FCUTOFF 5000
+#define GRIDDENSITY_EXP 12000
+#define GRIDDENSITY_GTETA 12000
+#define GRIDDENSITY_BIJ 7500
+
+// max number of interaction per atom for environment potential
+
+#define leadingDimensionInteractionList 64
+
 /* ---------------------------------------------------------------------- */
 
 PairTersoffTable::PairTersoffTable(LAMMPS *lmp) : Pair(lmp)

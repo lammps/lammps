@@ -25,54 +25,60 @@ CommandStyle(read_dump,ReadDump)
 #include "stdio.h"
 #include "pointers.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-class ReadDump : protected Pointers
-{
-
-public:
-
-    ReadDump(class LAMMPS *);
-    ~ReadDump();
-    void command(int, char **);
-    void setup(bool); // bool for rerun
-    void clearAtom();
-    void findFrame(int); // which frame
-    void getHeader();
-    void packFrame(bool);  // bool to close file
-    void commBuffInfo();
-    void sendCoord(int);
-    int updateCoord();
-    void migrateAtoms();
-    void updateImages();
-
-    // file methods
-    void open(char *);
-    void skip_lines(int);
-
-    int me,ndatoms,ratoms,nchunk,last,exist,bstride,time;
-    bool fileclose,quiet,clear;
+class ReadDump : protected Pointers {
+ public:
+  ReadDump(class LAMMPS *);
+  ~ReadDump() {}
+  void command(int, char **);
 
 private:
+  int me,nprocs;
+  FILE *fp;
+  int dimension;
+  int triclinic;
 
-    char *line,*keyword;
-    FILE *fp;
-    int narg,maxarg,compressed;
-    char **arg;
-    double **buf;
-    double *xbuffer;
-    double *boxsize;
-    int hndx[10];
-    int header[10];
-    double scale[3];
-    int* imagebuf;
+  bigint nstep;            // timestep to find in dump file
+  int boxflag;             // use dump file box params
+  int replaceflag,addflag; // flags for processing dump snapshot atoms
+  int trimflag,purgeflag;
+  int scaledflag;          // user setting for coordinate scaling
+  int scaled;              // actual setting for coordinate scaling
+  int format;              // style of dump file
+  int compressed;          // flag for dump file compression
 
+  int nfield;              // # of fields to extract from dump file
+  int *fieldtype;          // type of each field = X,VY,IZ,etc
+  char **fieldlabel;       // user specified label for field
+  double **fields;         // per-atom field values
 
+  double box[3][3];         // dump file box parameters
+  double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
+  double xprd,yprd,zprd;
+
+  bigint nsnapatoms;        // # of atoms in dump file shapshot
+
+  int npurge,nreplace,ntrim,nadd;     // stats on processed atoms
+  int addproc;                        // proc that should add next atom
+  int yindex,zindex;                  // field index for Y,Z coords
+
+  int *uflag;               // set to 1 if snapshot atom matches owned atom
+  int *ucflag,*ucflag_all;  // set to 1 if snapshot chunk atom was processed
+
+  class ReadDumpNative *reader;     // class that reads native dump file
+
+  void process_atoms(int);
+  void delete_atoms(int *);
+
+  double xfield(int, int);
+  double yfield(int, int);
+  double zfield(int, int);
+
+  void open(char *);
 };
 
 }
 
 #endif
 #endif
-

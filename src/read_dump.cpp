@@ -9,166 +9,640 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
-   Contributed by Timothy Sirk
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Timothy Sirk (U Vermont)
+------------------------------------------------------------------------- */
+
+#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"
 #include "read_dump.h"
+#include "read_dump_native.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "update.h"
 #include "domain.h"
+#include "comm.h"
+#include "irregular.h"
 #include "error.h"
 #include "memory.h"
-#include "irregular.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXATOM 2000   //max atoms for one comm
-#define MAXLINE 1024    //max char in a line
+#define CHUNK 1024
+#define EPSILON 1.0e-6
 
-#define XYZ  1
-#define XYZV 2
-#define XYZI 4
+enum{ID,TYPE,X,Y,Z,VX,VY,VZ,IX,IY,IZ};
+enum{UNSET,UNSCALED,SCALED};
+enum{NATIVE};
 
 /* ---------------------------------------------------------------------- */
 
 ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
 {
-    line = new char[MAXLINE];
-    keyword = new char[MAXLINE];
-    narg = maxarg = 0;
-    arg = NULL;
-    boxsize= new double[9]; // orth or tri
-}
-
-/* ---------------------------------------------------------------------- */
-
-ReadDump::~ReadDump()
-{
-    delete [] line;
-    delete [] keyword;
-    delete [] boxsize;
-    if(me==0) memory->destroy(buf);
+  MPI_Comm_rank(world,&me);
+  MPI_Comm_size(world,&nprocs);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ReadDump::command(int narg, char **arg)
 {
-    int ttime, assigned=0;
-    if (narg != 2) error->all(FLERR,"Illegal read_dump command");
+  if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
-    // set some basic output info
-    // important for use with rerun
-    setup(false);
+  nstep = ATOBIGINT(arg[1]);
 
-    // clear old per-atom properties
-    if(clear) clearAtom();
+  // per-field vectors
 
-    // read a frame for given time
-    // pack whole frame into buffer
-    // optionally close file
-    if (me == 0)
-    {
-        open(arg[0]);
-        // set target step
-        ttime=atoi(arg[1]);
-        // read until requested step
-        findFrame(ttime);
-        // check header and load the frame
-        getHeader();
-        packFrame(true);
+  int firstfield = 2;
+  fieldtype = new int[narg];
+  fieldlabel = new char*[narg];
+
+  // scan ahead to see if "add yes" keyword/value is used
+  // requires extra "type" field from from dump file
+  // add id and type fields as needed
+
+  int iarg;
+  for (iarg = firstfield; iarg < narg; iarg++)
+    if (strcmp(arg[iarg],"add") == 0)
+      if (iarg < narg-1 && strcmp(arg[iarg+1],"yes") == 0) break;
+
+  nfield = 0;
+  fieldtype[nfield++] = ID;
+  if (iarg < narg) fieldtype[nfield++] = TYPE;
+
+  // parse fields
+
+  iarg = firstfield;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"x") == 0) fieldtype[nfield++] = X;
+    else if (strcmp(arg[iarg],"y") == 0) fieldtype[nfield++] = Y;
+    else if (strcmp(arg[iarg],"z") == 0) fieldtype[nfield++] = Z;
+    else if (strcmp(arg[iarg],"vx") == 0) fieldtype[nfield++] = VX;
+    else if (strcmp(arg[iarg],"vy") == 0) fieldtype[nfield++] = VY;
+    else if (strcmp(arg[iarg],"vz") == 0) fieldtype[nfield++] = VZ;
+    else if (strcmp(arg[iarg],"ix") == 0) fieldtype[nfield++] = IX;
+    else if (strcmp(arg[iarg],"iy") == 0) fieldtype[nfield++] = IY;
+    else if (strcmp(arg[iarg],"iz") == 0) fieldtype[nfield++] = IZ;
+    else break;
+    iarg++;
+  }
+
+  dimension = domain->dimension;
+  triclinic = domain->triclinic;
+
+  if (fieldtype[nfield-1] == ID || fieldtype[nfield-1] == TYPE)
+    error->all(FLERR,"Illegal read_dump command");
+
+  if (dimension == 2) {
+    for (int i = 0; i < nfield; i++)
+      if (fieldtype[i] == Z || fieldtype[i] == VZ || fieldtype[i] == IZ)
+	error->all(FLERR,"Illegal read_dump command");
+  }
+
+  for (int i = 0; i < nfield; i++)
+    for (int j = i+1; j < nfield; j++)
+      if (fieldtype[i] == fieldtype[j])
+	error->all(FLERR,"Duplicate fields in read_dump command");
+
+  // parse optional args
+
+  boxflag = 1;
+  replaceflag = 1;
+  purgeflag = 0;
+  trimflag = 0;
+  addflag = 0;
+  for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
+  scaledflag = UNSCALED;
+  format = NATIVE;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"box") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) boxflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) boxflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"replace") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) replaceflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) replaceflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"purge") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) purgeflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) purgeflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"trim") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) trimflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) trimflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"add") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) addflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) addflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"label") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal read_dump command");
+      int i;
+      for (i = 0; i < nfield; i++)
+	if (strcmp(arg[firstfield+i],arg[iarg+1]) == 0) break;
+      if (i == nfield) error->all(FLERR,"Illegal read_dump command");
+      fieldlabel[i] = arg[iarg+2];
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"scaled") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scaledflag = SCALED;
+      else if (strcmp(arg[iarg+1],"no") == 0) scaledflag = UNSCALED;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"native") == 0) format = NATIVE;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal read_dump command");
+  }
+
+  if (purgeflag && (replaceflag || trimflag))
+    error->all(FLERR,"If read_dump purges it cannot replace or trim");
+
+  // allocate snapshot field buffer
+
+  memory->create(fields,CHUNK,nfield,"read_dump:fields");
+
+  // create reader class
+  // could make this a parent class and customize with other readers
+
+  if (format == NATIVE) reader = new ReadDumpNative(lmp);
+
+  // proc 0 opens dump file and scans to correct snapshot
+  // after scan these values are set, so Bcast them:
+  // nsnapatoms, box[3][3], scaled
+  // NOTE: fieldlabel is just ptrs to input args in read_dump command
+  //       will not persist if want to use labels in rerun() command
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"Scanning dump file ...\n");
+    open(arg[0]);
+    reader->init(fp);
+    reader->scan(nstep,nfield,fieldtype,fieldlabel,scaledflag,
+		 nsnapatoms,box,scaled);
+  }
+
+  MPI_Bcast(&nsnapatoms,1,MPI_LMP_BIGINT,0,world);
+  MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,world);
+  MPI_Bcast(&scaled,1,MPI_INT,0,world);
+
+  // for scaled coords and triclinic box:
+  // yindex,zindex = index of Y and Z fields
+  // already known to exist because checked in scan()
+  // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
+
+  if (scaled == SCALED && triclinic) {
+    for (int i = 0; i < nfield; i++) {
+      if (fieldtype[i] == Y) yindex = i;
+      if (fieldtype[i] == Z) zindex = i;
+    }
+  }
+
+  // make local copy of snapshot box params
+
+  xlo = box[0][0];
+  xhi = box[0][1];
+  ylo = box[1][0];
+  yhi = box[1][1];
+  zlo = box[2][0];
+  zhi = box[2][1];
+  xprd = xhi - xlo;
+  yprd = yhi - ylo;
+  zprd = zhi - zlo;
+  if (triclinic) {
+    xy = box[0][2];
+    xz = box[1][2];
+    yz = box[2][2];
+  }
+
+  // reset timestep to nstep
+
+  char *tstr[1];
+  char str[32];
+  sprintf(str,BIGINT_FORMAT,nstep);
+  tstr[0] = str;
+  update->reset_timestep(1,tstr);
+
+  // reset simulation box from snapshot box parameters if requested
+  // do it now, so if adding atoms, procs will have correct sub-domains
+  // call domain->reset_box() later,
+  //   since can't shrink wrap until atom coords change and atoms are added
+
+  if (boxflag) {
+    domain->boxlo[0] = xlo;
+    domain->boxhi[0] = xhi;
+    domain->boxlo[1] = ylo;
+    domain->boxhi[1] = yhi;
+    if (dimension == 3) {
+      domain->boxlo[2] = zlo;
+      domain->boxhi[2] = zhi;
+    }
+    if (triclinic) {
+      domain->xy = xy;
+      if (dimension == 3) {
+	domain->xz = xz;
+	domain->yz = yz;
+      }
     }
 
-    // communication to size buffer, etc
-    commBuffInfo();
+    domain->set_initial_box();
+    domain->set_global_box();
+    comm->set_proc_grid();
+    domain->set_local_box();
+  }
 
-    // broadcast dump in chunks
-    // ratoms = remaining atoms to send
-    // nchunk = atoms to send this time
+  // read in the snapshot
 
-    while(ratoms>0)
-    {
-        nchunk=MIN(ratoms,MAXATOM);
+  if (me == 0)
+    if (screen) fprintf(screen,"Reading snapshot from dump file ...\n");
 
-        // nchunk to all procs
-        MPI_Bcast(&nchunk,1,MPI_INT,0,world);
-        // let procs find owned atoms
-        // pass in how many atoms already sent
-        sendCoord(ndatoms-ratoms);
-        // copy in new data to owned atoms
-        // keep track of how many atoms assigned
-        assigned += updateCoord();
-        ratoms=ratoms-MAXATOM;
+  // counters
+
+  bigint natoms_prev = atom->natoms;
+  npurge = nreplace = ntrim = nadd = 0;
+
+  // if purgeflag set, delete all current atoms
+
+  if (purgeflag) {
+    if (atom->map_style) atom->map_clear();
+    npurge = atom->nlocal;
+    atom->nlocal = atom->nghost = 0;
+    atom->natoms = 0;
+  }
+
+  // to match existing atoms to dump atoms:
+  // must build map if not a molecular system
+
+  int mapflag = 0;
+  if (atom->map_style == 0) {
+    mapflag = 1;
+    atom->map_style = 1;
+    atom->map_init();
+    atom->map_set();
+  }
+
+  // uflag[i] = 1 for each owned atom appearing in dump
+  // ucflag = similar flag for each chunk atom, used in process_atoms()
+
+  int nlocal = atom->nlocal;
+  memory->create(uflag,nlocal,"read_dump:uflag");
+  for (int i = 0; i < nlocal; i++) uflag[i] = 0;
+  memory->create(ucflag,CHUNK,"read_dump:ucflag");
+  memory->create(ucflag_all,CHUNK,"read_dump:ucflag");
+  
+  // read, broadcast, and process atoms from snapshot in chunks
+
+  addproc = -1;
+
+  int nchunk;
+  bigint nread = 0;
+  while (nread < nsnapatoms) {
+    nchunk = MIN(nsnapatoms-nread,CHUNK);
+    if (me == 0) reader->read(nchunk,fields);
+    MPI_Bcast(&fields[0][0],nchunk*nfield,MPI_DOUBLE,0,world);
+    process_atoms(nchunk);
+    nread += nchunk;
+  }
+
+  // if addflag set, add tags to new atoms if possible
+
+  if (addflag) {
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+      error->all(FLERR,"Too many total atoms");
+    if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
+    if (atom->natoms <= MAXTAGINT) atom->tag_extend();
+  }
+
+  // if trimflag set, delete atoms not replaced by snapshot atoms
+
+  if (trimflag) {
+    delete_atoms(uflag);
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
+  // delete atom map if created it above
+  // else reinitialize map for current atoms
+  // do this before migrating atoms to new procs via Irregular
+
+  if (mapflag) {
+    atom->map_delete();
+    atom->map_style = 0;
+  } else {
+    atom->nghost = 0;
+    atom->map_init();
+    atom->map_set();
+  }
+
+  // close dump file
+
+  if (me == 0) {
+    if (compressed) pclose(fp);
+    else fclose(fp);
+  }
+
+  // move atoms back inside simulation box and to new processors
+  // use remap() instead of pbc() in case atoms moved a long distance
+  // adjust image flags of all atoms (old and new) based on current box
+  // use irregular() in case atoms moved a long distance
+
+  double **x = atom->x;
+  int *image = atom->image;
+  nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  domain->reset_box();
+  Irregular *irregular = new Irregular(lmp);
+  irregular->migrate_atoms();
+  delete irregular;
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
+  domain->print_box("  ");
+
+  // clean up
+
+  delete reader;
+  delete [] fieldtype;
+  delete [] fieldlabel;
+  memory->destroy(fields);
+  memory->destroy(uflag);
+  memory->destroy(ucflag);
+  memory->destroy(ucflag_all);
+
+  // print out stats
+
+  bigint npurge_all,nreplace_all,ntrim_all,nadd_all;
+
+  bigint tmp;
+  tmp = npurge;
+  MPI_Allreduce(&tmp,&npurge_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  tmp = nreplace;
+  MPI_Allreduce(&tmp,&nreplace_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  tmp = ntrim;
+  MPI_Allreduce(&tmp,&ntrim_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  tmp = nadd;
+  MPI_Allreduce(&tmp,&nadd_all,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"  " BIGINT_FORMAT " atoms before read\n",natoms_prev);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms in snapshot\n",nsnapatoms);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms purged\n",npurge_all);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms replaced\n",nreplace_all);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms trimmed\n",ntrim_all);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms added\n",nadd_all);
+      fprintf(screen,"  " BIGINT_FORMAT " atoms after read\n",atom->natoms);
+    }
+    if (logfile) {
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms before read\n",natoms_prev);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms in snapshot\n",nsnapatoms);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms purged\n",npurge_all);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms replaced\n",nreplace_all);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms trimmed\n",ntrim_all);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms added\n",nadd_all);
+      fprintf(logfile,"  " BIGINT_FORMAT " atoms after read\n",atom->natoms);
+    }
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   process each of N atoms in chunk read from dump file
+   if in replace mode and atom ID matches current atom,
+     overwrite atom info with fields from dump file
+   if in add mode and atom ID does not match any current atom,
+     create new atom with dump file field values,
+     and assign to a proc in round-robin manner
+   use round-robin method, b/c atom coords may not be inside simulation box
+------------------------------------------------------------------------- */
+
+void ReadDump::process_atoms(int n)
+{
+  int i,m,ifield,itype;
+  int xbox,ybox,zbox;
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < n; i++) {
+    ucflag[i] = 0;
+
+    // map() call is invalid if purged all atoms
+    // setting m = -1 forces new atom not to match
+
+    if (!purgeflag) m = atom->map(static_cast<int> (fields[i][0]));
+    else m = -1;
+    if (m < 0 || m >= nlocal) continue;
+
+    ucflag[i] = 1;
+    uflag[m] = 1;
+
+    if (replaceflag) {
+      nreplace++;
+
+      // current image flags
+      
+      xbox = (image[m] & 1023) - 512;
+      ybox = (image[m] >> 10 & 1023) - 512;
+      zbox = (image[m] >> 20) - 512;
+    
+      // overwrite atom attributes with field info
+      // start from field 1 since 0 = id, 1 will be skipped if type
+      
+      for (ifield = 1; ifield < nfield; ifield++) {
+	switch (fieldtype[ifield]) {
+	case X:
+	  x[m][0] = xfield(i,ifield);
+	  break;
+	case Y:
+	  x[m][1] = yfield(i,ifield);
+	  break;
+	case Z:
+	  x[m][2] = zfield(i,ifield);
+	  break;
+	case VX:
+	  v[m][0] = fields[i][ifield];
+	  break;
+	case VY:
+	  v[m][1] = fields[i][ifield];
+	  break;
+	case VZ:
+	  v[m][2] = fields[i][ifield];
+	  break;
+	case IX:
+	  xbox = static_cast<int> (fields[i][ifield]);
+	  break;
+	case IY:
+	  ybox = static_cast<int> (fields[i][ifield]);
+	  break;
+	case IZ:
+	  zbox = static_cast<int> (fields[i][ifield]);
+	  break;
+	}
+      }
+      
+      // replace image flag in case changed by ix,iy,iz fields
+      
+      image[m] = (xbox << 20) | (ybox << 10) | zbox;
+    }
+  }
+
+  // create any atoms in chunk that no processor owned
+  // add atoms in round-robin sequence on processors
+  // cannot do it geometrically b/c dump coords may not be in simulation box
+
+  if (!addflag) return;
+
+  MPI_Allreduce(ucflag,ucflag_all,n,MPI_INT,MPI_SUM,world);
+
+  double lamda[3],one[3];
+  double *coord;
+
+  for (i = 0; i < n; i++) {
+    if (ucflag_all[i]) continue;
+
+    // each processor adds every Pth atom
+
+    addproc++;
+    if (addproc == nprocs) addproc = 0;
+    if (addproc != me) continue;
+
+    // create type and coord fields from dump file
+    // coord = 0.0 unless corresponding dump file field was specified
+
+    one[0] = one[1] = one[2] = 0.0;
+    for (ifield = 1; ifield < nfield; ifield++) {
+      switch (fieldtype[ifield]) {
+      case TYPE:
+	itype = static_cast<int> (fields[i][ifield]);
+	break;
+      case X:
+	one[0] = xfield(i,ifield);
+	break;
+      case Y:
+	one[1] = yfield(i,ifield);
+	break;
+      case Z:
+	one[2] = zfield(i,ifield);
+	break;
+      }
     }
 
-    // move atoms back inside simulation box and to new processors
-    migrateAtoms();
+    // create the atom on proc that owns it
+    // reset v,image ptrs in case they are reallocated
 
+    atom->avec->create_atom(itype,one);
+    nadd++;
+    
+    v = atom->v;
+    image = atom->image;
+    m = atom->nlocal;
 
-    // summarize
-    int ntotal=0;
-    char str[128];
-    MPI_Allreduce(&assigned,&ntotal,1,MPI_INT,MPI_SUM,world);
-    sprintf(str,"Assigned %d of %d atoms from dump", ntotal,ndatoms);
-    if(me==0) error->message(FLERR,str);
+    // set atom attributes from other dump file fields
+    // xyzbox = 512 is default value set by create_atom()
 
-    // update the image flags
-    // don't bother to chunk
-    if ((exist & XYZI) == XYZI){
-       updateImages();
-       memory->destroy(imagebuf);    
+    xbox = ybox = zbox = 512;
+
+    for (ifield = 1; ifield < nfield; ifield++) {
+      switch (fieldtype[ifield]) {
+      case VX:
+	v[m][0] = fields[i][ifield];
+	break;
+      case VY:
+	v[m][1] = fields[i][ifield];
+	break;
+      case VZ:
+	v[m][2] = fields[i][ifield];
+	break;
+      case IX:
+	xbox = static_cast<int> (fields[i][ifield]);
+	break;
+      case IY:
+	ybox = static_cast<int> (fields[i][ifield]);
+	break;
+      case IZ:
+	zbox = static_cast<int> (fields[i][ifield]);
+	break;
+      }
+
+      // replace image flag in case changed by ix,iy,iz fields
+      
+      image[m] = (xbox << 20) | (ybox << 10) | zbox;
     }
-
+  }
 }
 
 /* ----------------------------------------------------------------------
-settings for read_dump
+   delete atoms not flagged as replaced by dump atoms
 ------------------------------------------------------------------------- */
 
-void ReadDump::setup(bool rerun)
+void ReadDump::delete_atoms(int *uflag)
 {
-    MPI_Comm_rank(world,&me);
+  AtomVec *avec = atom->avec;
+  int nlocal = atom->nlocal;
 
-    // binary existance flags, add more as needed
-    // unset later if not present
-    exist = XYZ | XYZV | XYZI;
+  int i = 0;
+  while (i < nlocal) {
+    if (uflag[i] == 0) {
+      avec->copy(nlocal-1,i,1);
+      uflag[i] = uflag[nlocal-1];
+      nlocal--;
+      ntrim++;
+    } else i++;
+  }
 
-    //set flags for default and rerun
-    if(rerun)
-    {
-        quiet=true; // not verbose
-        fileclose=false; // leave dump file open
-        clear=true; // clear per-atom properties before update
-    }
-    else
-    {
-        quiet=false;
-        fileclose=true;
-        clear=false;
-    }
+  atom->nlocal = nlocal;
 }
 
 /* ----------------------------------------------------------------------
-   clear arrays
+   convert XYZ fields in dump file into absolute, unscaled coordinates
+   depends on scaled vs unscaled and triclinic vs orthogonal
+   does not depend on wrapped vs unwrapped
 ------------------------------------------------------------------------- */
 
-void ReadDump::clearAtom()
+double ReadDump::xfield(int i, int j)
 {
-    // per atom info to clear
-
-    double **v = atom->v;
-    for (int i = 0; i < atom->nlocal+atom->nghost; i++)
-    {
-        v[i][0] = 0.0;
-        v[i][1] = 0.0;
-        v[i][2] = 0.0;
-    }
+  if (scaled == UNSCALED) return fields[i][j];
+  else if (!triclinic) return fields[i][j]*xprd + xlo;
+  else if (dimension == 2) 
+    return xprd*fields[i][j] + xy*fields[i][yindex] + xlo;
+  return xprd*fields[i][j] + xy*fields[i][yindex] + xz*fields[i][zindex] + xlo;
 }
 
+double ReadDump::yfield(int i, int j)
+{
+  if (scaled == UNSCALED) return fields[i][j];
+  else if (!triclinic) return fields[i][j]*yprd + ylo;
+  else if (dimension == 2) return yprd*fields[i][j] + ylo;
+  return yprd*fields[i][j] + yz*fields[i][zindex] + ylo;
+}
+
+double ReadDump::zfield(int i, int j)
+{
+  if (scaled == UNSCALED) return fields[i][j];
+  return fields[i][j]*zprd + zlo;
+}
 
 /* ----------------------------------------------------------------------
    proc 0 opens dump file
@@ -177,499 +651,23 @@ void ReadDump::clearAtom()
 
 void ReadDump::open(char *file)
 {
-    compressed = 0;
-    char *suffix = file + strlen(file) - 3;
-    if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-    if (!compressed) fp = fopen(file,"r");
-    else
-    {
-        error->one(FLERR,"Cannot open gzipped file");
-    }
-
-    if (fp == NULL)
-    {
-        char str[128];
-        sprintf(str,"Cannot open file %s",file);
-        error->one(FLERR,str);
-    }
-}
-
-/* ----------------------------------------------------------------------
-   find right frame
-------------------------------------------------------------------------- */
-
-void ReadDump::findFrame(int ttime)
-{
-
-    // loop until section found with matching keyword
-    const char *keyword= (const char *)"TIMESTEP";
-    long int offset=0;
-
-    while (1)
-    {
-
-        if (fgets(line,MAXLINE,fp) == NULL) error->one(FLERR,"Unexpected end of file");
-        if (!strstr(line,keyword)) error->one(FLERR,"Bad dump format");
-
-        // found TIMESTEP
-        time=atoi(fgets(line,MAXLINE,fp));
-        line=fgets(line,MAXLINE,fp);
-
-        // position for NUMBER OF ATOMS
-        offset=ftell(fp);
-
-        line=fgets(line,MAXLINE,fp);
-        ndatoms=atoi(line);
-
-        if(time==ttime) break;
-
-        // no match, drop remaining header and atoms
-        skip_lines(5);
-        skip_lines(ndatoms);
-    }
-
-    // found frame
-    // reset file position to top of frame
-    fseek(fp, offset, SEEK_SET);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads N lines from file
-------------------------------------------------------------------------- */
-
-void ReadDump::skip_lines(int n)
-{
-    char *eof=NULL;
-    for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
-}
-
-/* ----------------------------------------------------------------------
-   read header
-------------------------------------------------------------------------- */
-
-void ReadDump::getHeader()
-{
-    bstride=1; // buffer stride must be at least 1
-    int count=0,xs=1;
-
-    // get num dump atoms
-    line=fgets(line,MAXLINE,fp);
-    ndatoms=atoi(line);
-
-    if (ndatoms != atom->natoms && !quiet)
-        error->warning(FLERR,"Different Natoms in dump snapshot");
-
-    fgets(line,MAXLINE,fp);
-    if (!strstr(line,"ITEM: BOX BOUNDS")) error->one(FLERR,"No box bounds"); // format check
-
-    //box sizes
-    if (domain->triclinic == 0)
-    {
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf",&boxsize[0],&boxsize[1]); // xlo xhi
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf",&boxsize[3],&boxsize[4]);
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf",&boxsize[6],&boxsize[7]);
-    }
-    else
-    {
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf %lf",&boxsize[0],&boxsize[1],&boxsize[2]);     // xlo xhi xy
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf %lf",&boxsize[3],&boxsize[4],&boxsize[5]);
-        fgets(line,MAXLINE,fp);
-        sscanf (line,"%lf %lf %lf",&boxsize[6],&boxsize[7],&boxsize[8]);
-    }
-
-    // tokenize custom headers, can be any order
-    // record position of x,v,etc in dump header
-
-    fgets(line,MAXLINE,fp);
-    if (!strstr(line,"ATOMS")) error->one(FLERR,"Misplaced or Missing ATOMS section");
-
-    // position header, offset by two for zero index
-    int nheader=-2;
-    for (int i=0; i<10; i++) header[i]=-1;
-    char *pch = strtok(line," \n");
-
-    while (pch != NULL)
-    {
-
-        // fields to read
-        if(!strcmp(pch,"id")) header[0]=nheader;
-        if(!strcmp(pch,"x"))  header[1]=nheader;
-        if(!strcmp(pch,"y"))  header[2]=nheader;
-        if(!strcmp(pch,"z"))  header[3]=nheader;
-        if(!strcmp(pch,"xu")) header[1]=nheader;
-        if(!strcmp(pch,"yu")) header[2]=nheader;
-        if(!strcmp(pch,"zu")) header[3]=nheader;
-        if(!strcmp(pch,"vx")) header[4]=nheader;
-        if(!strcmp(pch,"vy")) header[5]=nheader;
-        if(!strcmp(pch,"vz")) header[6]=nheader;
-        if(!strcmp(pch,"ix")) header[7]=nheader;
-        if(!strcmp(pch,"iy")) header[8]=nheader;
-        if(!strcmp(pch,"iz")) header[9]=nheader;
-
-        // scaled coordinates
-        if(!strcmp(pch,"xs") || !strcmp(pch,"xsu"))
-        {
-            header[1]=nheader;
-            xs=xs<<1;
-        }
-        if(!strcmp(pch,"ys") || !strcmp(pch,"ysu"))
-        {
-            header[2]=nheader;
-            xs=xs<<1;
-        }
-        if(!strcmp(pch,"zs") || !strcmp(pch,"zsu"))
-        {
-            header[3]=nheader;
-            xs=xs<<1;
-        }
-
-        pch = strtok(NULL, " \n");
-        nheader++;
-    }
-
-    // error if no id, warn for others
-
-    // check for id (required)
-    if(header[0]<0)
-    {
-        error->one(FLERR,"Missing ID in dump header");
-    }
-
-    // check for coordinates (optional)
-    for(int i=1; i<4; i++)
-        if(header[i]<0)
-        {
-            if(!quiet) error->warning(FLERR,"Missing coordinates in dump header");
-            exist=exist^XYZ;
-            break;
-        }
-
-    // check for velocities (optional)
-    for(int i=4; i<7; i++)
-        if(header[i]<0)
-        {
-            if(!quiet) error->warning(FLERR,"No velocities in dump header");
-            exist=exist^XYZV;
-            break;
-        }
-
-    // check for image flags (optional)
-    for(int i=7; i<10; i++)
-        if(header[i]<0)
-        {
-            if(!quiet) error->warning(FLERR,"No image flags in dump header");
-            exist=exist^XYZI;
-            break;
-        }
-
-    // map headers position to buffer position
-    // must have at least the ID
-
-    hndx[0]=count++;
-
-    if ((exist & XYZ) == XYZ)
-    {
-        if(!quiet) error->message(FLERR,"Reading coordinates");
-        bstride=bstride+3;
-        hndx[1]=count++;
-        hndx[2]=count++;
-        hndx[3]=count++;
-
-        // check scale coordinates
-        // all xs,ys,zs must be present
-        if (xs==8)
-        {
-            scale[0]=boxsize[1]-boxsize[0];
-            scale[1]=boxsize[4]-boxsize[3];
-            scale[2]=boxsize[7]-boxsize[6];
-            if(!quiet) error->message(FLERR,"Found scaled coordinates");
-        }
-        else scale[0]=scale[1]=scale[2]=1;
-    }
-
-    if ((exist & XYZV) == XYZV)
-    {
-        if(!quiet) error->message(FLERR,"Reading velocities");
-        bstride=bstride+3;
-        hndx[4]=count++;
-        hndx[5]=count++;
-        hndx[6]=count++;
-    }
-
-    if ((exist & XYZI) == XYZI)
-    {
-        if(!quiet) error->message(FLERR,"Reading image flags");
-        hndx[7]=count++;
-        hndx[8]=count++;
-        hndx[9]=count++;
-    }
-}
-
-/* ----------------------------------------------------------------------
-   read header
-------------------------------------------------------------------------- */
-
-void ReadDump::packFrame(bool fileclose)
-{
-    char *pch;
-    double tmp;
-    int nheader;
-
-    //allocate
-    memory->create(buf,ndatoms,bstride,"command:buf");
-
-    // pack entire frame into a buffer
-
-    if((exist & XYZI) == XYZI)
-    {
-        memory->create(imagebuf,4*ndatoms,"command:imagebuf");
-    }
-
-
-    for(int i=0; i<ndatoms; i++)
-    {
-        fgets(line,MAXLINE,fp);
-        pch = strtok(line, " ");
-        nheader=0;
-
-        while (pch != NULL)
-        {
-            tmp=atof(pch);
-
-            if(nheader==header[0])
-            {
-                buf[i][hndx[0]]=tmp; // id
-                if((exist & XYZI) == XYZI) imagebuf[i*4]=(int)tmp; // id for images (optional)
-            }
-
-            if((exist & XYZ) == XYZ)
-            {
-                if(nheader==header[1])  buf[i][hndx[1]]=tmp*scale[0];
-                if(nheader==header[2])  buf[i][hndx[2]]=tmp*scale[1];
-                if(nheader==header[3])  buf[i][hndx[3]]=tmp*scale[2];
-            }
-
-            if((exist & XYZV) == XYZV)
-            {
-                if(nheader==header[4])  buf[i][hndx[4]]=tmp;
-                if(nheader==header[5])  buf[i][hndx[5]]=tmp;
-                if(nheader==header[6])  buf[i][hndx[6]]=tmp;
-            }
-
-            if((exist & XYZI) == XYZI)
-            {
-
-                // save image flags into seperate array
-                // can't compress to binary yet b/c ix iy iz can be in any order
-
-                if(nheader==header[7])  imagebuf[i*4+1]=(int)tmp;
-                if(nheader==header[8])  imagebuf[i*4+2]=(int)tmp;
-                if(nheader==header[9])  imagebuf[i*4+3]=(int)tmp;
-            }
-
-            nheader++;
-            pch = strtok (NULL, " ");
-        }
-    }
-
-    if(fileclose) fclose(fp);
-}
-
-/* ----------------------------------------------------------------------
-Communicate some info about this frame
-------------------------------------------------------------------------- */
-
-void ReadDump::commBuffInfo()
-{
-
-    // total number of atoms
-    MPI_Bcast(&ndatoms,1,MPI_INT,0,world);
-    // remaining atoms to comm
-    // begin with all atoms
-    ratoms=ndatoms;
-
-    // width of buffer
-    MPI_Bcast(&bstride,1,MPI_INT,0,world);
-
-    // update time
-    MPI_Bcast(&time,1,MPI_INT,0,world);
-    update->ntimestep=(bigint)time;
-
-    // existance bitflags
-    MPI_Bcast(&exist,1,MPI_INT,0,world);
-
-    // box size
-    MPI_Bcast(boxsize,9,MPI_DOUBLE,0,world);
-}
-
-
-/* ----------------------------------------------------------------------
-broadcast all the dump atom info from a buffer. Could improve by
-sending just sending one message to each proc that contains owned atoms
-or just have each proc read the file?
-------------------------------------------------------------------------- */
-
-void ReadDump::sendCoord(int last)
-{
-
-    if (domain->triclinic == 0)
-    {
-        domain->boxlo[0]=boxsize[0];
-        domain->boxhi[0]=boxsize[1];
-        domain->boxlo[1]=boxsize[3];
-        domain->boxhi[1]=boxsize[4];
-        domain->boxlo[2]=boxsize[6];
-        domain->boxhi[2]=boxsize[7];
-    }
-    else
-    {
-        domain->boxlo[0]=boxsize[0];
-        domain->boxhi[0]=boxsize[1];
-        domain->xy=boxsize[2];
-        domain->boxlo[1]=boxsize[3];
-        domain->boxhi[1]=boxsize[4];
-        domain->xy=boxsize[5];
-        domain->boxlo[2]=boxsize[6];
-        domain->boxhi[2]=boxsize[7];
-        domain->xy=boxsize[8];
-    }
-
-    int bsize=nchunk*bstride;
-    xbuffer = new double[bsize];
-
-    //fill buffer on proc 0
-
-    if(me==0)
-    {
-        int z=0;
-        for(int y=0; y<nchunk; y++)
-        {
-            for(int j=0; j<bstride; j++)
-                xbuffer[z+j]=buf[y+last][j];
-            z=z+bstride;
-        }
-    }
-
-    MPI_Bcast(xbuffer,bsize,MPI_DOUBLE,0,world);
-}
-
-/* ----------------------------------------------------------------------
-update atoms using dump info
-------------------------------------------------------------------------- */
-
-int ReadDump::updateCoord()
-{
-    double** x=atom->x;
-    double** v=atom->v;
-    int nlocal=atom->nlocal;
-    int assigned=0;
-    int j=0;
-    int id=0,gid=0;
-
-    // customize with more per-atom data
-    // nchunk atoms per comm
-
-    // need a global->local map
-    // make an array if no mapping exists
-
-    if(atom->map_style==0)
-    {
-        atom->map_style=1;
-        atom->map_init();
-        atom->map_set();
-    }
-
-    for(int n=0; n<nchunk; n++)
-    {
-        j=n*bstride;
-        gid=(int)xbuffer[j++];
-        id=atom->map( gid );
-
-        if(id >= 0 && id < nlocal)
-        {
-            // add more fields as needed
-            if((exist & XYZ) == XYZ)
-            {
-                x[id][0]=xbuffer[j++];
-                x[id][1]=xbuffer[j++];
-                x[id][2]=xbuffer[j++];
-            }
-
-            if((exist & XYZV) == XYZV)
-            {
-                v[id][0]=xbuffer[j++];
-                v[id][1]=xbuffer[j++];
-                v[id][2]=xbuffer[j++];
-            }
-
-            assigned++;
-        }
-    }
-
-    delete [] xbuffer;
-
-    // return the number of atoms updated
-    return assigned;
-}
-
-/* ----------------------------------------------------------------------
-  move atoms back inside simulation box and to new processors
-  use remap() instead of pbc() in case atoms moved a long distance
-  use irregular() in case atoms moved a long distance
-------------------------------------------------------------------------- */
-
-void ReadDump::migrateAtoms()
-{
-    double **x = atom->x;
-    int nlocal = atom->nlocal;
-
-    // convert coord if tric box
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
-
-    // reset box and remap before communicating
-    // remap will modify image flags
-    domain->reset_box();
-    for (int i = 0; i < nlocal; i++) domain->remap(x[i],atom->image[i]);
-
-    // irregular comm
-    Irregular *irregular = new Irregular(lmp);
-    irregular->migrate_atoms();
-    delete irregular;
-
-    // convert coord if tric box
-    if (domain->triclinic) domain->lamda2x(atom->nlocal);
-}
-
-
-/* ----------------------------------------------------------------------
-update the atoms image flags. must be done after remap.
-------------------------------------------------------------------------- */
-
-void ReadDump::updateImages()
-{
-    int gid, lid; // global and local id
-
-    // allocate for images, except on proc 0
-    if(me != 0)  memory->create(imagebuf,4*ndatoms,"command:imagebuf");
-
-    MPI_Bcast(imagebuf,ndatoms*4,MPI_INT,0,world);
-
-    for(int i=0; i<ndatoms; i++)
-    {
-
-        gid=(int)imagebuf[i*4];
-        lid=atom->map(gid);
-
-        if(lid >= 0 && lid < atom->nlocal)
-        {
-            atom->image[lid] = ((imagebuf[i*4+3] + 512 & 1023) << 20) | ((imagebuf[i*4+2] + 512 & 1023)  << 10) | (imagebuf[i*4+1]+ 512 & 1023);
-        }
-    }
-
+  compressed = 0;
+  char *suffix = file + strlen(file) - 3;
+  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
+  if (!compressed) fp = fopen(file,"r");
+  else {
+#ifdef LAMMPS_GZIP
+    char gunzip[128];
+    sprintf(gunzip,"gunzip -c %s",file);
+    fp = popen(gunzip,"r");
+#else
+    error->one(FLERR,"Cannot open gzipped file");
+#endif
+  }
+
+  if (fp == NULL) {
+    char str[128];
+    sprintf(str,"Cannot open file %s",file);
+    error->one(FLERR,str);
+  }
 }

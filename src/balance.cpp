@@ -489,7 +489,7 @@ int Balance::dynamic_once()
 #endif
       }
       imbfactor = imbalance_splits(max);
-      if (comm->me == 0) printf("AAA %d %d %g\n",irepeat,i,imbfactor);
+      //if (comm->me == 0) printf("AAA %d %d %g\n",irepeat,i,imbfactor);
       if (imbfactor <= thresh) break;
     }
     if (i < nops) break;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -84,14 +84,14 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   zhi = domain->regions[iregion]->extent_zhi;
 
   if (domain->triclinic == 0) {
-    if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] || 
-	ylo < domain->boxlo[1] || yhi > domain->boxhi[1] || 
-	zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
+    if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] ||
+        ylo < domain->boxlo[1] || yhi > domain->boxhi[1] ||
+        zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all(FLERR,"Deposition region extends outside simulation box");
   } else {
-    if (xlo < domain->boxlo_bound[0] || xhi > domain->boxhi_bound[0] || 
-	ylo < domain->boxlo_bound[1] || yhi > domain->boxhi_bound[1] || 
-	zlo < domain->boxlo_bound[2] || zhi > domain->boxhi_bound[2])
+    if (xlo < domain->boxlo_bound[0] || xhi > domain->boxhi_bound[0] ||
+        ylo < domain->boxlo_bound[1] || yhi > domain->boxhi_bound[1] ||
+        zlo < domain->boxlo_bound[2] || zhi > domain->boxhi_bound[2])
       error->all(FLERR,"Deposition region extends outside simulation box");
   }
 
@@ -167,7 +167,7 @@ void FixDeposit::init()
   // set index and check validity of region
 
   iregion = domain->find_region(idregion);
-  if (iregion == -1) 
+  if (iregion == -1)
     error->all(FLERR,"Region ID for fix deposit does not exist");
 }
 
@@ -235,34 +235,34 @@ void FixDeposit::pre_exchange()
       double max,maxall,delx,dely,delz,rsq;
 
       if (domain->dimension == 2) {
-	dim = 1;
-	max = domain->boxlo[1];
+        dim = 1;
+        max = domain->boxlo[1];
       } else {
-	dim = 2;
-	max = domain->boxlo[2];
+        dim = 2;
+        max = domain->boxlo[2];
       }
 
       double **x = atom->x;
       int nlocal = atom->nlocal;
       for (i = 0; i < nlocal; i++) {
-	if (localflag) {
-	  delx = coord[0] - x[i][0];
-	  dely = coord[1] - x[i][1];
-	  delz = 0.0;
-	  domain->minimum_image(delx,dely,delz);
-	  if (domain->dimension == 2) rsq = delx*delx;
-	  else rsq = delx*delx + dely*dely;
-	  if (rsq > deltasq) continue;
-	}
-	if (x[i][dim] > max) max = x[i][dim];
+        if (localflag) {
+          delx = coord[0] - x[i][0];
+          dely = coord[1] - x[i][1];
+          delz = 0.0;
+          domain->minimum_image(delx,dely,delz);
+          if (domain->dimension == 2) rsq = delx*delx;
+          else rsq = delx*delx + dely*dely;
+          if (rsq > deltasq) continue;
+        }
+        if (x[i][dim] > max) max = x[i][dim];
       }
 
       MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
       if (domain->dimension == 2)
-	coord[1] = maxall + lo + random->uniform()*(hi-lo);
+        coord[1] = maxall + lo + random->uniform()*(hi-lo);
       else
-	coord[2] = maxall + lo + random->uniform()*(hi-lo);
-    }      
+        coord[2] = maxall + lo + random->uniform()*(hi-lo);
+    }
 
     // now have final coord
     // if distance to any atom is less than near, try again
@@ -297,10 +297,10 @@ void FixDeposit::pre_exchange()
       delz = tz - coord[2];
       double rsq = delx*delx + dely*dely + delz*delz;
       if (rsq > 0.0) {
-	double rinv = sqrt(1.0/rsq);
-	vxtmp = delx*rinv*vel;
-	vytmp = dely*rinv*vel;
-	vztmp = delz*rinv*vel;
+        double rinv = sqrt(1.0/rsq);
+        vxtmp = delx*rinv*vel;
+        vytmp = dely*rinv*vel;
+        vztmp = delz*rinv*vel;
       }
     }
 
@@ -308,7 +308,7 @@ void FixDeposit::pre_exchange()
     // if so, add to my list via create_atom()
     // initialize info about the atoms
     // set group mask to "all" plus fix group
-    
+
     if (domain->triclinic) {
       domain->x2lamda(coord,lamda);
       newcoord = lamda;
@@ -316,15 +316,15 @@ void FixDeposit::pre_exchange()
 
     flag = 0;
     if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
-	newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
-	newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
+        newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
+        newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
     else if (domain->dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
-	     comm->myloc[2] == comm->procgrid[2]-1 &&
-	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
-	     newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+             comm->myloc[2] == comm->procgrid[2]-1 &&
+             newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+             newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
     else if (domain->dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
-	     comm->myloc[1] == comm->procgrid[1]-1 &&
-	     newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+             comm->myloc[1] == comm->procgrid[1]-1 &&
+             newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 
     if (flag) {
       atom->avec->create_atom(ntype,coord);
@@ -335,7 +335,7 @@ void FixDeposit::pre_exchange()
       atom->v[m][1] = vytmp;
       atom->v[m][2] = vztmp;
       for (j = 0; j < nfix; j++)
-	if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+        if (fix[j]->create_attribute) fix[j]->set_arrays(m);
     }
     MPI_Allreduce(&flag,&success,1,MPI_INT,MPI_MAX,world);
     break;
@@ -356,9 +356,9 @@ void FixDeposit::pre_exchange()
     if (atom->tag_enable) {
       atom->tag_extend();
       if (atom->map_style) {
-	atom->nghost = 0;
-	atom->map_init();
-	atom->map_set();
+        atom->nghost = 0;
+        atom->map_init();
+        atom->map_set();
       }
     }
   }
@@ -372,7 +372,7 @@ void FixDeposit::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of input line 
+   parse optional parameters at end of input line
 ------------------------------------------------------------------------- */
 
 void FixDeposit::options(int narg, char **arg)
@@ -385,7 +385,7 @@ void FixDeposit::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all(FLERR,"Region ID for fix deposit does not exist");
+        error->all(FLERR,"Region ID for fix deposit does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -451,7 +451,7 @@ void FixDeposit::options(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixDeposit::write_restart(FILE *fp)
@@ -471,7 +471,7 @@ void FixDeposit::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixDeposit::restart(char *buf)

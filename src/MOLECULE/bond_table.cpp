@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,7 +35,7 @@ enum{LINEAR,SPLINE};
 
 /* ---------------------------------------------------------------------- */
 
-BondTable::BondTable(LAMMPS *lmp) : Bond(lmp) 
+BondTable::BondTable(LAMMPS *lmp) : Bond(lmp)
 {
   ntables = 0;
   tables = NULL;
@@ -127,7 +127,7 @@ void BondTable::allocate()
 
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void BondTable::settings(int narg, char **arg)
@@ -167,10 +167,10 @@ void BondTable::coeff(int narg, char **arg)
 
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
-  
+
   int me;
   MPI_Comm_rank(world,&me);
-  tables = (Table *) 
+  tables = (Table *)
     memory->srealloc(tables,(ntables+1)*sizeof(Table),"bond:tables");
   Table *tb = &tables[ntables];
   null_table(tb);
@@ -269,7 +269,7 @@ void BondTable::free_table(Table *tb)
   memory->destroy(tb->ffile);
   memory->destroy(tb->e2file);
   memory->destroy(tb->f2file);
-  
+
   memory->destroy(tb->r);
   memory->destroy(tb->e);
   memory->destroy(tb->de);
@@ -348,7 +348,7 @@ void BondTable::spline_table(Table *tb)
 
   if (tb->fpflag == 0) {
     tb->fplo = (tb->ffile[1] - tb->ffile[0]) / (tb->rfile[1] - tb->rfile[0]);
-    tb->fphi = (tb->ffile[tb->ninput-1] - tb->ffile[tb->ninput-2]) / 
+    tb->fphi = (tb->ffile[tb->ninput-1] - tb->ffile[tb->ninput-2]) /
       (tb->rfile[tb->ninput-1] - tb->rfile[tb->ninput-2]);
   }
 
@@ -370,7 +370,7 @@ void BondTable::compute_table(Table *tb)
   tb->delta = (tb->hi - tb->lo)/ tlm1;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
-  
+
   // N-1 evenly spaced bins in r from min to max
   // r,e,f = value at lower edge of bin
   // de,df values = delta values of e,f
@@ -391,15 +391,15 @@ void BondTable::compute_table(Table *tb)
     tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,a);
     tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,a);
   }
-        
+
   for (int i = 0; i < tlm1; i++) {
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
-     
+
   double ep0 = - tb->f[0];
   double epn = - tb->f[tlm1];
-  spline(tb->r,tb->e,tablength,ep0,epn,tb->e2);  
+  spline(tb->r,tb->e,tablength,ep0,epn,tb->e2);
   spline(tb->r,tb->f,tablength,tb->fplo,tb->fphi,tb->f2);
 }
 
@@ -414,7 +414,7 @@ void BondTable::param_extract(Table *tb, char *line)
   tb->ninput = 0;
   tb->fpflag = 0;
   tb->r0 = 0.0;
-  
+
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
@@ -474,7 +474,7 @@ void BondTable::bcast_table(Table *tb)
 ------------------------------------------------------------------------- */
 
 void BondTable::spline(double *x, double *y, int n,
-		       double yp1, double ypn, double *y2)
+                       double yp1, double ypn, double *y2)
 {
   int i,k;
   double p,qn,sig,un;
@@ -520,7 +520,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] + 
+  y = a*ya[klo] + b*ya[khi] +
     ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
   return y;
 }
@@ -547,16 +547,16 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   } else if (tabstyle == SPLINE) {
     itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
-    
+
     b = (x - tb->r[itable]) * tb->invdelta;
     a = 1.0 - b;
-    u = a * tb->e[itable] + b * tb->e[itable+1] + 
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
+    u = a * tb->e[itable] + b * tb->e[itable+1] +
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
       tb->deltasq6;
-    f = a * tb->f[itable] + b * tb->f[itable+1] + 
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+    f = a * tb->f[itable] + b * tb->f[itable+1] +
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
       tb->deltasq6;
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -572,7 +572,7 @@ void BondTable::u_lookup(int type, double x, double &u)
   Table *tb = &tables[tabindex[type]];
   x = MAX(x,tb->lo);
   x = MIN(x,tb->hi);
-  
+
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
@@ -580,11 +580,11 @@ void BondTable::u_lookup(int type, double x, double &u)
   } else if (tabstyle == SPLINE) {
     itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
     fraction = (x - tb->r[itable]) * tb->invdelta;
-    
+
     b = (x - tb->r[itable]) * tb->invdelta;
     a = 1.0 - b;
-    u = a * tb->e[itable] + b * tb->e[itable+1] + 
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
+    u = a * tb->e[itable] + b * tb->e[itable+1] +
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
       tb->deltasq6;
-  } 
+  }
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -71,7 +71,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   int dampflag = atoi(arg[8]);
   if (dampflag == 0) gammat = 0.0;
 
-  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 || 
+  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
       xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
     error->all(FLERR,"Illegal fix wall/gran command");
 
@@ -116,7 +116,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     cylradius = atof(arg[iarg+1]);
     iarg += 2;
   }
-  
+
   // check for trailing keyword/values
 
   wiggle = 0;
@@ -154,7 +154,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
     error->all(FLERR,"Cannot use wall in periodic dimension");
 
-  if (wiggle && wshear) 
+  if (wiggle && wshear)
     error->all(FLERR,"Cannot wiggle and shear fix wall/gran");
   if (wiggle && wallstyle == ZCYLINDER && axis != 2)
     error->all(FLERR,"Invalid wiggle direction for fix wall/gran");
@@ -298,53 +298,53 @@ void FixWallGran::post_force(int vflag)
       dx = dy = dz = 0.0;
 
       if (wallstyle == XPLANE) {
-	del1 = x[i][0] - wlo;
-	del2 = whi - x[i][0];
-	if (del1 < del2) dx = del1;
-	else dx = -del2;
+        del1 = x[i][0] - wlo;
+        del2 = whi - x[i][0];
+        if (del1 < del2) dx = del1;
+        else dx = -del2;
       } else if (wallstyle == YPLANE) {
-	del1 = x[i][1] - wlo;
-	del2 = whi - x[i][1];
-	if (del1 < del2) dy = del1;
-	else dy = -del2;
+        del1 = x[i][1] - wlo;
+        del2 = whi - x[i][1];
+        if (del1 < del2) dy = del1;
+        else dy = -del2;
       } else if (wallstyle == ZPLANE) {
-	del1 = x[i][2] - wlo;
-	del2 = whi - x[i][2];
-	if (del1 < del2) dz = del1;
-	else dz = -del2;
+        del1 = x[i][2] - wlo;
+        del2 = whi - x[i][2];
+        if (del1 < del2) dz = del1;
+        else dz = -del2;
       } else if (wallstyle == ZCYLINDER) {
         delxy = sqrt(x[i][0]*x[i][0] + x[i][1]*x[i][1]);
-	delr = cylradius - delxy;
-	if (delr > radius[i]) dz = cylradius;
-	else {
-	  dx = -delr/delxy * x[i][0];
-	  dy = -delr/delxy * x[i][1];
-	  if (wshear && axis != 2) {
-	    vwall[0] = vshear * x[i][1]/delxy;
-	    vwall[1] = -vshear * x[i][0]/delxy;
-	    vwall[2] = 0.0;
-	  }
-	}
+        delr = cylradius - delxy;
+        if (delr > radius[i]) dz = cylradius;
+        else {
+          dx = -delr/delxy * x[i][0];
+          dy = -delr/delxy * x[i][1];
+          if (wshear && axis != 2) {
+            vwall[0] = vshear * x[i][1]/delxy;
+            vwall[1] = -vshear * x[i][0]/delxy;
+            vwall[2] = 0.0;
+          }
+        }
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq > radius[i]*radius[i]) {
-	if (pairstyle != HOOKE) {
-	  shear[i][0] = 0.0;
-	  shear[i][1] = 0.0;
-	  shear[i][2] = 0.0;
-	}
+        if (pairstyle != HOOKE) {
+          shear[i][0] = 0.0;
+          shear[i][1] = 0.0;
+          shear[i][2] = 0.0;
+        }
       } else {
-	if (pairstyle == HOOKE)
-	  hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-		radius[i],rmass[i]);
-	else if (pairstyle == HOOKE_HISTORY)
-	  hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-			radius[i],rmass[i],shear[i]);
-	else if (pairstyle == HERTZ_HISTORY)
-	  hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-			radius[i],rmass[i],shear[i]);
+        if (pairstyle == HOOKE)
+          hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                radius[i],rmass[i]);
+        else if (pairstyle == HOOKE_HISTORY)
+          hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                        radius[i],rmass[i],shear[i]);
+        else if (pairstyle == HERTZ_HISTORY)
+          hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                        radius[i],rmass[i],shear[i]);
       }
     }
   }
@@ -362,9 +362,9 @@ void FixWallGran::post_force_respa(int vflag, int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
-			double *vwall, double *v,
-			double *f, double *omega, double *torque,
-			double radius, double mass)
+                        double *vwall, double *v,
+                        double *f, double *omega, double *torque,
+                        double radius, double mass)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,meff,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -447,9 +447,9 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 /* ---------------------------------------------------------------------- */
 
 void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
-				double *vwall, double *v,
-				double *f, double *omega, double *torque,
-				double radius, double mass, double *shear)
+                                double *vwall, double *v,
+                                double *f, double *omega, double *torque,
+                                double radius, double mass, double *shear)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,meff,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -531,12 +531,12 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   if (fs > fn) {
     if (shrmag != 0.0) {
-      shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) - 
-	meff*gammat*vtr1/kt;
+      shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
+        meff*gammat*vtr1/kt;
       shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
-	meff*gammat*vtr2/kt;
+        meff*gammat*vtr2/kt;
       shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
-	meff*gammat*vtr3/kt;
+        meff*gammat*vtr3/kt;
       fs1 *= fn/fs ;
       fs2 *= fn/fs;
       fs3 *= fn/fs;
@@ -564,9 +564,9 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 /* ---------------------------------------------------------------------- */
 
 void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
-				double *vwall, double *v,
-				double *f, double *omega, double *torque,
-				double radius, double mass, double *shear)
+                                double *vwall, double *v,
+                                double *f, double *omega, double *torque,
+                                double radius, double mass, double *shear)
 {
   double r,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3,meff,damp,ccel,vtr1,vtr2,vtr3,vrel;
@@ -650,12 +650,12 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
 
   if (fs > fn) {
     if (shrmag != 0.0) {
-      shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) - 
-	meff*gammat*vtr1/kt;
+      shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
+        meff*gammat*vtr1/kt;
       shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
-	meff*gammat*vtr2/kt;
+        meff*gammat*vtr2/kt;
       shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
-	meff*gammat*vtr3/kt;
+        meff*gammat*vtr3/kt;
       fs1 *= fn/fs ;
       fs2 *= fn/fs;
       fs3 *= fn/fs;
@@ -681,7 +681,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixWallGran::memory_usage()
@@ -693,7 +693,7 @@ double FixWallGran::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   allocate local atom-based arrays 
+   allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixWallGran::grow_arrays(int nmax)
@@ -702,7 +702,7 @@ void FixWallGran::grow_arrays(int nmax)
 }
 
 /* ----------------------------------------------------------------------
-   copy values within local atom-based arrays 
+   copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixWallGran::copy_arrays(int i, int j)
@@ -722,7 +722,7 @@ void FixWallGran::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   pack values in local atom-based arrays for exchange with another proc 
+   pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 
 int FixWallGran::pack_exchange(int i, double *buf)
@@ -734,7 +734,7 @@ int FixWallGran::pack_exchange(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack values into local atom-based arrays after exchange 
+   unpack values into local atom-based arrays after exchange
 ------------------------------------------------------------------------- */
 
 int FixWallGran::unpack_exchange(int nlocal, double *buf)
@@ -746,7 +746,7 @@ int FixWallGran::unpack_exchange(int nlocal, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack values in local atom-based arrays for restart file 
+   pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
 int FixWallGran::pack_restart(int i, double *buf)
@@ -760,7 +760,7 @@ int FixWallGran::pack_restart(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack values from atom->extra array to restart the fix 
+   unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
 void FixWallGran::unpack_restart(int nlocal, int nth)
@@ -779,7 +779,7 @@ void FixWallGran::unpack_restart(int nlocal, int nth)
 }
 
 /* ----------------------------------------------------------------------
-   maxsize of any atom's restart data 
+   maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
 int FixWallGran::maxsize_restart()
@@ -788,7 +788,7 @@ int FixWallGran::maxsize_restart()
 }
 
 /* ----------------------------------------------------------------------
-   size of atom nlocal's restart data 
+   size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
 int FixWallGran::size_restart(int nlocal)

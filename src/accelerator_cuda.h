@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -41,7 +41,7 @@ class Cuda {
  public:
   int cuda_exists;
   int oncpu;
-  
+
   Cuda(class LAMMPS *) {cuda_exists = 0;}
   ~Cuda() {}
   void accelerator(int, char **) {}
@@ -73,7 +73,7 @@ class ModifyCuda : public Modify {
  ModifyCuda(class LAMMPS *lmp) : Modify(lmp) {}
   ~ModifyCuda() {}
 };
- 
+
 class VerletCuda : public Verlet {
  public:
  VerletCuda(class LAMMPS *lmp, int narg, char **arg) : Verlet(lmp,narg,arg) {}

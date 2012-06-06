@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -44,12 +44,12 @@ void ChangeBox::command(int narg, char **arg)
 {
   int i;
 
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"Change_box command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal change_box command");
-  if (modify->nfix_restart_peratom) 
+  if (modify->nfix_restart_peratom)
     error->all(FLERR,"Cannot change_box after "
-	       "reading restart file with per-atom info");
+               "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Changing box ...\n");
 
@@ -72,7 +72,7 @@ void ChangeBox::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0 || strcmp(arg[iarg],"y") == 0 ||
-	strcmp(arg[iarg],"z") == 0) {
+        strcmp(arg[iarg],"z") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal change_box command");
       ops[nops].style = XYZ;
       if (strcmp(arg[iarg],"x") == 0) ops[nops].dim = X;
@@ -80,45 +80,45 @@ void ChangeBox::command(int narg, char **arg)
       else if (strcmp(arg[iarg],"z") == 0) ops[nops].dim = Z;
 
       if (dimension == 2 && ops[nops].dim == Z)
-	error->all(FLERR,"Cannot change_box in z dimension for 2d simulation");
+        error->all(FLERR,"Cannot change_box in z dimension for 2d simulation");
 
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
-	ops[nops].flavor = FINAL;
-	ops[nops].flo = atof(arg[iarg+2]);
-	ops[nops].fhi = atof(arg[iarg+3]);
-	ops[nops].vdim1 = ops[nops].vdim2 = -1;
-	nops++;
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
+        ops[nops].flavor = FINAL;
+        ops[nops].flo = atof(arg[iarg+2]);
+        ops[nops].fhi = atof(arg[iarg+3]);
+        ops[nops].vdim1 = ops[nops].vdim2 = -1;
+        nops++;
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
-	ops[nops].flavor = DELTA;
-	ops[nops].dlo = atof(arg[iarg+2]);
-	ops[nops].dhi = atof(arg[iarg+3]);
-	ops[nops].vdim1 = ops[nops].vdim2 = -1;
-	nops++;
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
+        ops[nops].flavor = DELTA;
+        ops[nops].dlo = atof(arg[iarg+2]);
+        ops[nops].dhi = atof(arg[iarg+3]);
+        ops[nops].vdim1 = ops[nops].vdim2 = -1;
+        nops++;
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
-	ops[nops].flavor = SCALE;
-	ops[nops].scale = atof(arg[iarg+2]);
-	ops[nops].vdim1 = ops[nops].vdim2 = -1;
-	nops++;
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
+        ops[nops].flavor = SCALE;
+        ops[nops].scale = atof(arg[iarg+2]);
+        ops[nops].vdim1 = ops[nops].vdim2 = -1;
+        nops++;
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
-	if (nops == 0 || ops[nops-1].style != XYZ || 
-	    ops[nops].dim == ops[nops-1].dim)
-	  error->all(FLERR,"Change_box volume used incorrectly");
-	if (ops[nops-1].vdim2 >= 0)
-	  error->all(FLERR,"Change_box volume used incorrectly");
-	else if (ops[nops-1].vdim1 >= 0) ops[nops-1].vdim2 = ops[nops].dim;
-	else ops[nops-1].vdim1 = ops[nops].dim;
-	iarg += 2;
+        if (nops == 0 || ops[nops-1].style != XYZ ||
+            ops[nops].dim == ops[nops-1].dim)
+          error->all(FLERR,"Change_box volume used incorrectly");
+        if (ops[nops-1].vdim2 >= 0)
+          error->all(FLERR,"Change_box volume used incorrectly");
+        else if (ops[nops-1].vdim1 >= 0) ops[nops-1].vdim2 = ops[nops].dim;
+        else ops[nops-1].vdim1 = ops[nops].dim;
+        iarg += 2;
 
       } else error->all(FLERR,"Illegal change_box command");
 
     } else if (strcmp(arg[iarg],"xy") == 0 || strcmp(arg[iarg],"xz") == 0 ||
-	strcmp(arg[iarg],"yz") == 0) {
+        strcmp(arg[iarg],"yz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal change_box command");
       ops[nops].style = TILT;
       if (strcmp(arg[iarg],"xy") == 0) ops[nops].dim = XY;
@@ -126,20 +126,20 @@ void ChangeBox::command(int narg, char **arg)
       else if (strcmp(arg[iarg],"yz") == 0) ops[nops].dim = YZ;
 
       if (dimension == 2 && (ops[nops].dim == XZ || ops[nops].dim == YZ))
-	error->all(FLERR,"Cannot change_box in xz or yz for 2d simulation");
+        error->all(FLERR,"Cannot change_box in xz or yz for 2d simulation");
 
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
-	ops[nops].flavor = FINAL;
-	ops[nops].ftilt = atof(arg[iarg+2]);
-	nops++;
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
+        ops[nops].flavor = FINAL;
+        ops[nops].ftilt = atof(arg[iarg+2]);
+        nops++;
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
-	ops[nops].flavor = DELTA;
-	ops[nops].dtilt = atof(arg[iarg+2]);
-	nops++;
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
+        ops[nops].flavor = DELTA;
+        ops[nops].dtilt = atof(arg[iarg+2]);
+        nops++;
+        iarg += 3;
       } else error->all(FLERR,"Illegal change_box command");
 
     } else if (strcmp(arg[iarg],"boundary") == 0) {
@@ -216,85 +216,85 @@ void ChangeBox::command(int narg, char **arg)
       else volume = domain->xprd * domain->yprd * domain->zprd;
 
       if (ops[i].flavor == FINAL) {
-	domain->boxlo[ops[i].dim] = scale[ops[i].dim]*ops[i].flo;
-	domain->boxhi[ops[i].dim] = scale[ops[i].dim]*ops[i].fhi;
-	if (ops[i].vdim1 >= 0) 
-	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
-	domain->set_initial_box();
-	domain->set_global_box();
-	domain->set_local_box();
-	domain->print_box("  ");
+        domain->boxlo[ops[i].dim] = scale[ops[i].dim]*ops[i].flo;
+        domain->boxhi[ops[i].dim] = scale[ops[i].dim]*ops[i].fhi;
+        if (ops[i].vdim1 >= 0)
+          volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
+        domain->set_initial_box();
+        domain->set_global_box();
+        domain->set_local_box();
+        domain->print_box("  ");
 
       } else if (ops[i].flavor == DELTA) {
-	domain->boxlo[ops[i].dim] += scale[ops[i].dim]*ops[i].dlo;
-	domain->boxhi[ops[i].dim] += scale[ops[i].dim]*ops[i].dhi;
-	if (ops[i].vdim1 >= 0) 
-	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
-	domain->set_initial_box();
-	domain->set_global_box();
-	domain->set_local_box();
-	domain->print_box("  ");
+        domain->boxlo[ops[i].dim] += scale[ops[i].dim]*ops[i].dlo;
+        domain->boxhi[ops[i].dim] += scale[ops[i].dim]*ops[i].dhi;
+        if (ops[i].vdim1 >= 0)
+          volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
+        domain->set_initial_box();
+        domain->set_global_box();
+        domain->set_local_box();
+        domain->print_box("  ");
 
       } else if (ops[i].flavor == SCALE) {
-	double mid = 0.5 * 
-	  (domain->boxlo[ops[i].dim] + domain->boxhi[ops[i].dim]);
-	double delta = domain->boxlo[ops[i].dim] - mid;
-	domain->boxlo[ops[i].dim] = mid + ops[i].scale*delta;
-	delta = domain->boxhi[ops[i].dim] - mid;
-	domain->boxhi[ops[i].dim] = mid + ops[i].scale*delta;
-	if (ops[i].vdim1 >= 0) 
-	  volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
-	domain->set_initial_box();
-	domain->set_global_box();
-	domain->set_local_box();
-	domain->print_box("  ");
+        double mid = 0.5 *
+          (domain->boxlo[ops[i].dim] + domain->boxhi[ops[i].dim]);
+        double delta = domain->boxlo[ops[i].dim] - mid;
+        domain->boxlo[ops[i].dim] = mid + ops[i].scale*delta;
+        delta = domain->boxhi[ops[i].dim] - mid;
+        domain->boxhi[ops[i].dim] = mid + ops[i].scale*delta;
+        if (ops[i].vdim1 >= 0)
+          volume_preserve(ops[i].vdim1,ops[i].vdim2,volume);
+        domain->set_initial_box();
+        domain->set_global_box();
+        domain->set_local_box();
+        domain->print_box("  ");
       }
 
     } else if (ops[i].style == TILT) {
       if (domain->triclinic == 0)
-	error->all(FLERR,"Cannot change box tilt factors for orthogonal box");
-      
+        error->all(FLERR,"Cannot change box tilt factors for orthogonal box");
+
       if (ops[i].flavor == FINAL) {
-	if (ops[i].dim == XY) domain->xy = scale[X]*ops[i].ftilt;
-	else if (ops[i].dim == XZ) domain->xz = scale[X]*ops[i].ftilt;
-	else if (ops[i].dim == YZ) domain->yz = scale[Y]*ops[i].ftilt;
-	domain->set_initial_box();
-	domain->set_global_box();
-	domain->set_local_box();
-	domain->print_box("  ");
+        if (ops[i].dim == XY) domain->xy = scale[X]*ops[i].ftilt;
+        else if (ops[i].dim == XZ) domain->xz = scale[X]*ops[i].ftilt;
+        else if (ops[i].dim == YZ) domain->yz = scale[Y]*ops[i].ftilt;
+        domain->set_initial_box();
+        domain->set_global_box();
+        domain->set_local_box();
+        domain->print_box("  ");
 
       } else if (ops[i].flavor == DELTA) {
-	if (ops[i].dim == XY) domain->xy += scale[X]*ops[i].dtilt;
-	else if (ops[i].dim == XZ) domain->xz += scale[X]*ops[i].dtilt;
-	else if (ops[i].dim == YZ) domain->yz += scale[Y]*ops[i].dtilt;
-	domain->set_initial_box();
-	domain->set_global_box();
-	domain->set_local_box();
-	domain->print_box("  ");
+        if (ops[i].dim == XY) domain->xy += scale[X]*ops[i].dtilt;
+        else if (ops[i].dim == XZ) domain->xz += scale[X]*ops[i].dtilt;
+        else if (ops[i].dim == YZ) domain->yz += scale[Y]*ops[i].dtilt;
+        domain->set_initial_box();
+        domain->set_global_box();
+        domain->set_local_box();
+        domain->print_box("  ");
       }
 
     } else if (ops[i].style == BOUNDARY) {
       domain->set_boundary(3,&arg[ops[i].boundindex],1);
       if (domain->dimension == 2 && domain->zperiodic == 0)
-	error->all(FLERR,
-		   "Cannot change box z boundary to "
-		   "nonperiodic for a 2d simulation");
+        error->all(FLERR,
+                   "Cannot change box z boundary to "
+                   "nonperiodic for a 2d simulation");
       domain->set_initial_box();
       domain->set_global_box();
       domain->set_local_box();
-      
+
     } else if (ops[i].style == ORTHO) {
       if (domain->xy != 0.0 || domain->yz != 0.0 || domain->xz != 0.0)
-	error->all(FLERR,
-		   "Cannot change box to orthogonal when tilt is non-zero");
+        error->all(FLERR,
+                   "Cannot change box to orthogonal when tilt is non-zero");
       if (output->ndump)
-	error->all(FLERR,
-		   "Cannot change box ortho/triclinic with dumps defined");
+        error->all(FLERR,
+                   "Cannot change box ortho/triclinic with dumps defined");
       for (int i = 0; i < modify->nfix; i++)
-	if (modify->fix[i]->no_change_box)
-	  error->all(FLERR,
-		     "Cannot change box ortho/triclinic with "
-		     "certain fixes defined");
+        if (modify->fix[i]->no_change_box)
+          error->all(FLERR,
+                     "Cannot change box ortho/triclinic with "
+                     "certain fixes defined");
       domain->triclinic = 0;
       domain->set_initial_box();
       domain->set_global_box();
@@ -303,13 +303,13 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[i].style == TRICLINIC) {
       if (output->ndump)
-	error->all(FLERR,
-		   "Cannot change box ortho/triclinic with dumps defined");
+        error->all(FLERR,
+                   "Cannot change box ortho/triclinic with dumps defined");
       for (int i = 0; i < modify->nfix; i++)
-	if (modify->fix[i]->no_change_box)
-	  error->all(FLERR,
-		     "Cannot change box ortho/triclinic with "
-		     "certain fixes defined");
+        if (modify->fix[i]->no_change_box)
+          error->all(FLERR,
+                     "Cannot change box ortho/triclinic with "
+                     "certain fixes defined");
       domain->triclinic = 1;
       domain->set_lamda_box();
       domain->set_initial_box();
@@ -329,14 +329,14 @@ void ChangeBox::command(int narg, char **arg)
       double **x = atom->x;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;
-      
+
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  domain->x2lamda(x[i],x[i],boxlo,h_inv);
-      
+        if (mask[i] & groupbit)
+          domain->x2lamda(x[i],x[i],boxlo,h_inv);
+
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit)
-	  domain->lamda2x(x[i],x[i]);
+        if (mask[i] & groupbit)
+          domain->lamda2x(x[i],x[i]);
 
       save_box_state();
     }
@@ -374,8 +374,8 @@ void ChangeBox::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0) {
     char str[128];
-    sprintf(str,"Lost atoms via change_box: original " BIGINT_FORMAT 
-	    " current " BIGINT_FORMAT,atom->natoms,natoms);
+    sprintf(str,"Lost atoms via change_box: original " BIGINT_FORMAT
+            " current " BIGINT_FORMAT,atom->natoms,natoms);
     error->warning(FLERR,str);
   }
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -151,7 +151,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       vzvarstr = new char[n];
       strcpy(vzvarstr,&arg[9][2]);
     } else error->all(FLERR,"Illegal fix move command");
-    
+
   } else error->all(FLERR,"Illegal fix move command");
 
   // optional args
@@ -177,10 +177,10 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix move cannot set wiggle z motion for 2d problem");
     if (mstyle == ROTATE && (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,
-		 "Fix move cannot rotate aroung non z-axis for 2d problem");
+                 "Fix move cannot rotate aroung non z-axis for 2d problem");
     if (mstyle == VARIABLE && (zvarstr || vzvarstr))
       error->all(FLERR,
-		 "Fix move cannot define z or vz variable for 2d problem");
+                 "Fix move cannot define z or vz variable for 2d problem");
   }
 
   if (atom->angmom_flag && comm->me == 0)
@@ -190,7 +190,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling and apply scaling factors to velocity & amplitude
 
-  if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) && 
+  if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) &&
       scaleflag) {
     if (domain->lattice == NULL)
       error->all(FLERR,"Use of fix move with undefined lattice");
@@ -226,7 +226,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   if (mstyle == ROTATE) {
     double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-    if (len == 0.0) 
+    if (len == 0.0)
       error->all(FLERR,"Fix move cannot have 0 length rotation vector");
     runit[0] = axis[0]/len;
     runit[1] = axis[1]/len;
@@ -236,7 +236,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // set omega_flag if particles store omega
 
   omega_flag = atom->omega_flag;
- 
+
   // perform initial allocation of atom-based array
   // register with Atom class
 
@@ -268,7 +268,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 FixMove::~FixMove()
 {
   // unregister callbacks to this fix from Atom class
- 
+
   atom->delete_callback(id,0);
   atom->delete_callback(id,1);
 
@@ -312,7 +312,7 @@ void FixMove::init()
     if (xvarstr) {
       xvar = input->variable->find(xvarstr);
       if (xvar < 0) error->all(FLERR,
-			       "Variable name for fix move does not exist");
+                               "Variable name for fix move does not exist");
       if (input->variable->equalstyle(xvar)) xvarstyle = EQUAL;
       else if (input->variable->atomstyle(xvar)) xvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -320,7 +320,7 @@ void FixMove::init()
     if (yvarstr) {
       yvar = input->variable->find(yvarstr);
       if (yvar < 0) error->all(FLERR,
-			       "Variable name for fix move does not exist");
+                               "Variable name for fix move does not exist");
       if (input->variable->equalstyle(yvar)) yvarstyle = EQUAL;
       else if (input->variable->atomstyle(yvar)) yvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -328,7 +328,7 @@ void FixMove::init()
     if (zvarstr) {
       zvar = input->variable->find(zvarstr);
       if (zvar < 0) error->all(FLERR,
-			       "Variable name for fix move does not exist");
+                               "Variable name for fix move does not exist");
       if (input->variable->equalstyle(zvar)) zvarstyle = EQUAL;
       else if (input->variable->atomstyle(zvar)) zvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -336,7 +336,7 @@ void FixMove::init()
     if (vxvarstr) {
       vxvar = input->variable->find(vxvarstr);
       if (vxvar < 0) error->all(FLERR,
-				"Variable name for fix move does not exist");
+                                "Variable name for fix move does not exist");
       if (input->variable->equalstyle(vxvar)) vxvarstyle = EQUAL;
       else if (input->variable->atomstyle(vxvar)) vxvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -344,7 +344,7 @@ void FixMove::init()
     if (vyvarstr) {
       vyvar = input->variable->find(vyvarstr);
       if (vyvar < 0) error->all(FLERR,
-				"Variable name for fix move does not exist");
+                                "Variable name for fix move does not exist");
       if (input->variable->equalstyle(vyvar)) vyvarstyle = EQUAL;
       else if (input->variable->atomstyle(vyvar)) vyvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -352,7 +352,7 @@ void FixMove::init()
     if (vzvarstr) {
       vzvar = input->variable->find(vzvarstr);
       if (vzvar < 0) error->all(FLERR,
-				"Variable name for fix move does not exist");
+                                "Variable name for fix move does not exist");
       if (input->variable->equalstyle(vzvar)) vzvarstyle = EQUAL;
       else if (input->variable->atomstyle(vzvar)) vzvarstyle = ATOM;
       else error->all(FLERR,"Variable for fix move is invalid style");
@@ -398,50 +398,50 @@ void FixMove::initial_integrate(int vflag)
   if (mstyle == LINEAR) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	xold[0] = x[i][0];
-	xold[1] = x[i][1];
-	xold[2] = x[i][2];
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
 
-	if (vxflag) {
-	  v[i][0] = vx;
-	  x[i][0] = xoriginal[i][0] + vx*delta;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  x[i][0] += dtv * v[i][0];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][0] += dtfm * f[i][0];
-	  x[i][0] += dtv * v[i][0];
-	}
+        if (vxflag) {
+          v[i][0] = vx;
+          x[i][0] = xoriginal[i][0] + vx*delta;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        }
 
-	if (vyflag) {
-	  v[i][1] = vy;
-	  x[i][1] = xoriginal[i][1] + vy*delta;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][1] += dtfm * f[i][1];
-	  x[i][1] += dtv * v[i][1];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][1] += dtfm * f[i][1];
-	  x[i][1] += dtv * v[i][1];
-	}
+        if (vyflag) {
+          v[i][1] = vy;
+          x[i][1] = xoriginal[i][1] + vy*delta;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        }
 
-	if (vzflag) {
-	  v[i][2] = vz;
-	  x[i][2] = xoriginal[i][2] + vz*delta;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][2] += dtv * v[i][2];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][2] += dtv * v[i][2];
-	}
+        if (vzflag) {
+          v[i][2] = vz;
+          x[i][2] = xoriginal[i][2] + vz*delta;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        }
 
-	domain->remap_near(x[i],xold);
+        domain->remap_near(x[i],xold);
       }
     }
 
@@ -454,50 +454,50 @@ void FixMove::initial_integrate(int vflag)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	xold[0] = x[i][0];
-	xold[1] = x[i][1];
-	xold[2] = x[i][2];
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
 
-	if (axflag) {
-	  v[i][0] = ax*omega_rotate*cosine;
-	  x[i][0] = xoriginal[i][0] + ax*sine;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	  x[i][0] += dtv * v[i][0];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][0] += dtfm * f[i][0];
-	  x[i][0] += dtv * v[i][0];
-	}
+        if (axflag) {
+          v[i][0] = ax*omega_rotate*cosine;
+          x[i][0] = xoriginal[i][0] + ax*sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        }
 
-	if (ayflag) {
-	  v[i][1] = ay*omega_rotate*cosine;
-	  x[i][1] = xoriginal[i][1] + ay*sine;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][1] += dtfm * f[i][1];
-	  x[i][1] += dtv * v[i][1];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][1] += dtfm * f[i][1];
-	  x[i][1] += dtv * v[i][1];
-	}
+        if (ayflag) {
+          v[i][1] = ay*omega_rotate*cosine;
+          x[i][1] = xoriginal[i][1] + ay*sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        }
 
-	if (azflag) {
-	  v[i][2] = az*omega_rotate*cosine;
-	  x[i][2] = xoriginal[i][2] + az*sine;
-	} else if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][2] += dtv * v[i][2];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][2] += dtfm * f[i][2];
-	  x[i][2] += dtv * v[i][2];
-	}
+        if (azflag) {
+          v[i][2] = az*omega_rotate*cosine;
+          x[i][2] = xoriginal[i][2] + az*sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        }
 
-	domain->remap_near(x[i],xold);
+        domain->remap_near(x[i],xold);
       }
     }
 
@@ -522,40 +522,40 @@ void FixMove::initial_integrate(int vflag)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	xold[0] = x[i][0];
-	xold[1] = x[i][1];
-	xold[2] = x[i][2];
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
 
-	d[0] = xoriginal[i][0] - point[0];
-	d[1] = xoriginal[i][1] - point[1];
-	d[2] = xoriginal[i][2] - point[2];
-	ddotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2]; 
-	c[0] = ddotr*runit[0];
-	c[1] = ddotr*runit[1];
-	c[2] = ddotr*runit[2];
-	a[0] = d[0] - c[0];
-	a[1] = d[1] - c[1];
-	a[2] = d[2] - c[2];
-	b[0] = runit[1]*a[2] - runit[2]*a[1];
-	b[1] = runit[2]*a[0] - runit[0]*a[2];
-	b[2] = runit[0]*a[1] - runit[1]*a[0];
-	disp[0] = a[0]*cosine  + b[0]*sine;
-	disp[1] = a[1]*cosine  + b[1]*sine;
-	disp[2] = a[2]*cosine  + b[2]*sine;
+        d[0] = xoriginal[i][0] - point[0];
+        d[1] = xoriginal[i][1] - point[1];
+        d[2] = xoriginal[i][2] - point[2];
+        ddotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
+        c[0] = ddotr*runit[0];
+        c[1] = ddotr*runit[1];
+        c[2] = ddotr*runit[2];
+        a[0] = d[0] - c[0];
+        a[1] = d[1] - c[1];
+        a[2] = d[2] - c[2];
+        b[0] = runit[1]*a[2] - runit[2]*a[1];
+        b[1] = runit[2]*a[0] - runit[0]*a[2];
+        b[2] = runit[0]*a[1] - runit[1]*a[0];
+        disp[0] = a[0]*cosine  + b[0]*sine;
+        disp[1] = a[1]*cosine  + b[1]*sine;
+        disp[2] = a[2]*cosine  + b[2]*sine;
 
-	x[i][0] = point[0] + c[0] + disp[0];
-	x[i][1] = point[1] + c[1] + disp[1];
-	x[i][2] = point[2] + c[2] + disp[2];
-	v[i][0] = omega_rotate * (runit[1]*disp[2] - runit[2]*disp[1]);
-	v[i][1] = omega_rotate * (runit[2]*disp[0] - runit[0]*disp[2]);
-	v[i][2] = omega_rotate * (runit[0]*disp[1] - runit[1]*disp[0]);
-	if (omega_flag) {
-	  omega[i][0] = omega_rotate*runit[0];
-	  omega[i][1] = omega_rotate*runit[1];
-	  omega[i][2] = omega_rotate*runit[2];
-	}
+        x[i][0] = point[0] + c[0] + disp[0];
+        x[i][1] = point[1] + c[1] + disp[1];
+        x[i][2] = point[2] + c[2] + disp[2];
+        v[i][0] = omega_rotate * (runit[1]*disp[2] - runit[2]*disp[1]);
+        v[i][1] = omega_rotate * (runit[2]*disp[0] - runit[0]*disp[2]);
+        v[i][2] = omega_rotate * (runit[0]*disp[1] - runit[1]*disp[0]);
+        if (omega_flag) {
+          omega[i][0] = omega_rotate*runit[0];
+          omega[i][1] = omega_rotate*runit[1];
+          omega[i][2] = omega_rotate*runit[2];
+        }
 
-	domain->remap_near(x[i],xold);
+        domain->remap_near(x[i],xold);
       }
     }
 
@@ -568,12 +568,12 @@ void FixMove::initial_integrate(int vflag)
     if ((displaceflag || velocityflag) && nlocal > maxatom) {
       maxatom = atom->nmax;
       if (displaceflag) {
-	memory->destroy(displace);
-	memory->create(displace,maxatom,3,"move:displace");
+        memory->destroy(displace);
+        memory->create(displace,maxatom,3,"move:displace");
       }
       if (velocityflag) {
-	memory->destroy(velocity);
-	memory->create(velocity,maxatom,3,"move:velocity");
+        memory->destroy(velocity);
+        memory->create(velocity,maxatom,3,"move:velocity");
       }
     }
 
@@ -584,32 +584,32 @@ void FixMove::initial_integrate(int vflag)
     if (xvarstr) {
       if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
       else if (displace)
-	input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
+        input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
     }
     if (yvarstr) {
       if (yvarstyle == EQUAL) dy = input->variable->compute_equal(yvar);
       else if (displace)
-	input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
+        input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
     }
     if (zvarstr) {
       if (zvarstyle == EQUAL) dz = input->variable->compute_equal(zvar);
       else if (displace)
-	input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
+        input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
     }
     if (vxvarstr) {
       if (vxvarstyle == EQUAL) vx = input->variable->compute_equal(vxvar);
       else if (velocity)
-	input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
+        input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
     }
     if (vyvarstr) {
       if (vyvarstyle == EQUAL) vy = input->variable->compute_equal(vyvar);
       else if (velocity)
-	input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
+        input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
     }
     if (vzvarstr) {
       if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
       else if (velocity)
-	input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
+        input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
     }
 
     modify->addstep_compute(update->ntimestep + 1);
@@ -618,101 +618,101 @@ void FixMove::initial_integrate(int vflag)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	xold[0] = x[i][0];
-	xold[1] = x[i][1];
-	xold[2] = x[i][2];
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
 
-	if (xvarstr && vxvarstr) {
-	  if (vxvarstyle == EQUAL) v[i][0] = vx;
-	  else v[i][0] = velocity[i][0];
-	  if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
-	  else x[i][0] = xoriginal[i][0] + displace[i][0];
-	} else if (xvarstr) {
-	  if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
-	  else x[i][0] = xoriginal[i][0] + displace[i][0];
-	} else if (vxvarstr) {
-	  if (vxvarstyle == EQUAL) v[i][0] = vx;
-	  else v[i][0] = velocity[i][0];
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    x[i][0] += dtv * v[i][0];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    x[i][0] += dtv * v[i][0];
-	  }
-	} else {
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    v[i][0] += dtfm * f[i][0];
-	    x[i][0] += dtv * v[i][0];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    v[i][0] += dtfm * f[i][0];
-	    x[i][0] += dtv * v[i][0];
-	  }
-	}
+        if (xvarstr && vxvarstr) {
+          if (vxvarstyle == EQUAL) v[i][0] = vx;
+          else v[i][0] = velocity[i][0];
+          if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
+          else x[i][0] = xoriginal[i][0] + displace[i][0];
+        } else if (xvarstr) {
+          if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
+          else x[i][0] = xoriginal[i][0] + displace[i][0];
+        } else if (vxvarstr) {
+          if (vxvarstyle == EQUAL) v[i][0] = vx;
+          else v[i][0] = velocity[i][0];
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            x[i][0] += dtv * v[i][0];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            x[i][0] += dtv * v[i][0];
+          }
+        } else {
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            v[i][0] += dtfm * f[i][0];
+            x[i][0] += dtv * v[i][0];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            v[i][0] += dtfm * f[i][0];
+            x[i][0] += dtv * v[i][0];
+          }
+        }
 
-	if (yvarstr && vyvarstr) {
-	  if (vyvarstyle == EQUAL) v[i][1] = vy;
-	  else v[i][1] = velocity[i][1];
-	  if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
-	  else x[i][1] = xoriginal[i][1] + displace[i][1];
-	} else if (yvarstr) {
-	  if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
-	  else x[i][1] = xoriginal[i][1] + displace[i][1];
-	} else if (vyvarstr) {
-	  if (vyvarstyle == EQUAL) v[i][1] = vy;
-	  else v[i][1] = velocity[i][1];
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    x[i][1] += dtv * v[i][1];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    x[i][1] += dtv * v[i][1];
-	  }
-	} else {
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    v[i][1] += dtfm * f[i][1];
-	    x[i][1] += dtv * v[i][1];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    v[i][1] += dtfm * f[i][1];
-	    x[i][1] += dtv * v[i][1];
-	  }
-	}
+        if (yvarstr && vyvarstr) {
+          if (vyvarstyle == EQUAL) v[i][1] = vy;
+          else v[i][1] = velocity[i][1];
+          if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
+          else x[i][1] = xoriginal[i][1] + displace[i][1];
+        } else if (yvarstr) {
+          if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
+          else x[i][1] = xoriginal[i][1] + displace[i][1];
+        } else if (vyvarstr) {
+          if (vyvarstyle == EQUAL) v[i][1] = vy;
+          else v[i][1] = velocity[i][1];
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            x[i][1] += dtv * v[i][1];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            x[i][1] += dtv * v[i][1];
+          }
+        } else {
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            v[i][1] += dtfm * f[i][1];
+            x[i][1] += dtv * v[i][1];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            v[i][1] += dtfm * f[i][1];
+            x[i][1] += dtv * v[i][1];
+          }
+        }
 
-	if (zvarstr && vzvarstr) {
-	  if (vzvarstyle == EQUAL) v[i][2] = vz;
-	  else v[i][2] = velocity[i][2];
-	  if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
-	  else x[i][2] = xoriginal[i][2] + displace[i][2];
-	} else if (zvarstr) {
-	  if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
-	  else x[i][2] = xoriginal[i][2] + displace[i][2];
-	} else if (vzvarstr) {
-	  if (vzvarstyle == EQUAL) v[i][2] = vz;
-	  else v[i][2] = velocity[i][2];
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    x[i][2] += dtv * v[i][2];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    x[i][2] += dtv * v[i][2];
-	  }
-	} else {
-	  if (rmass) {
-	    dtfm = dtf / rmass[i];
-	    v[i][2] += dtfm * f[i][2];
-	    x[i][2] += dtv * v[i][2];
-	  } else {
-	    dtfm = dtf / mass[type[i]];
-	    v[i][2] += dtfm * f[i][2];
-	    x[i][2] += dtv * v[i][2];
-	  }
-	}
+        if (zvarstr && vzvarstr) {
+          if (vzvarstyle == EQUAL) v[i][2] = vz;
+          else v[i][2] = velocity[i][2];
+          if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
+          else x[i][2] = xoriginal[i][2] + displace[i][2];
+        } else if (zvarstr) {
+          if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
+          else x[i][2] = xoriginal[i][2] + displace[i][2];
+        } else if (vzvarstr) {
+          if (vzvarstyle == EQUAL) v[i][2] = vz;
+          else v[i][2] = velocity[i][2];
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            x[i][2] += dtv * v[i][2];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            x[i][2] += dtv * v[i][2];
+          }
+        } else {
+          if (rmass) {
+            dtfm = dtf / rmass[i];
+            v[i][2] += dtfm * f[i][2];
+            x[i][2] += dtv * v[i][2];
+          } else {
+            dtfm = dtf / mass[type[i]];
+            v[i][2] += dtfm * f[i][2];
+            x[i][2] += dtv * v[i][2];
+          }
+        }
 
-	domain->remap_near(x[i],xold);
+        domain->remap_near(x[i],xold);
       }
     }
   }
@@ -755,31 +755,31 @@ void FixMove::final_integrate()
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (xflag)
-	if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][0] += dtfm * f[i][0];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][0] += dtfm * f[i][0];
-	}
-      
+        if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][0] += dtfm * f[i][0];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+        }
+
       if (yflag)
-	if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][1] += dtfm * f[i][1];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][1] += dtfm * f[i][1];
-	}
-      
+        if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][1] += dtfm * f[i][1];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][1] += dtfm * f[i][1];
+        }
+
       if (zflag)
-	if (rmass) {
-	  dtfm = dtf / rmass[i];
-	  v[i][2] += dtfm * f[i][2];
-	} else {
-	  dtfm = dtf / mass[type[i]];
-	  v[i][2] += dtfm * f[i][2];
-	}
+        if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][2] += dtfm * f[i][2];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][2] += dtfm * f[i][2];
+        }
     }
   }
 }
@@ -814,7 +814,7 @@ double FixMove::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixMove::write_restart(FILE *fp)
@@ -831,7 +831,7 @@ void FixMove::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixMove::restart(char *buf)
@@ -917,7 +917,7 @@ void FixMove::set_arrays(int i)
     c[0] = ddotr*runit[0];
     c[1] = ddotr*runit[1];
     c[2] = ddotr*runit[2];
-    
+
     a[0] = d[0] - c[0];
     a[1] = d[1] - c[1];
     a[2] = d[2] - c[2];
@@ -927,7 +927,7 @@ void FixMove::set_arrays(int i)
     disp[0] = a[0]*cosine  + b[0]*sine;
     disp[1] = a[1]*cosine  + b[1]*sine;
     disp[2] = a[2]*cosine  + b[2]*sine;
-    
+
     xoriginal[i][0] = point[0] + c[0] + disp[0];
     xoriginal[i][1] = point[1] + c[1] + disp[1];
     xoriginal[i][2] = point[2] + c[2] + disp[2];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -92,12 +92,12 @@ void PairTriLJ::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // grow discrete list if necessary and initialize
 
   if (nall > nmax) {
@@ -130,259 +130,259 @@ void PairTriLJ::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq >= cutsq[itype][jtype]) continue;
-      
+
       // tri/tri interactions = NxN particles
       // c1,c2,c3 = corner pts of triangle I or J
-      
+
       evdwl = 0.0;
       if (tri[i] >= 0 && tri[j] >= 0) {
-	if (dnum[i] == 0) {
-	  MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
-	  MathExtra::matvec(p,bonus[tri[i]].c1,dc1);
-	  MathExtra::matvec(p,bonus[tri[i]].c2,dc2);
-	  MathExtra::matvec(p,bonus[tri[i]].c3,dc3);
-	  dfirst[i] = ndiscrete;
-	  discretize(i,sigma[itype][itype],dc1,dc2,dc3);
-	  dnum[i] = ndiscrete - dfirst[i];
-	}
-	npi = dnum[i];
-	ifirst = dfirst[i];
+        if (dnum[i] == 0) {
+          MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+          MathExtra::matvec(p,bonus[tri[i]].c1,dc1);
+          MathExtra::matvec(p,bonus[tri[i]].c2,dc2);
+          MathExtra::matvec(p,bonus[tri[i]].c3,dc3);
+          dfirst[i] = ndiscrete;
+          discretize(i,sigma[itype][itype],dc1,dc2,dc3);
+          dnum[i] = ndiscrete - dfirst[i];
+        }
+        npi = dnum[i];
+        ifirst = dfirst[i];
 
-	if (dnum[j] == 0) {
-	  MathExtra::quat_to_mat(bonus[tri[j]].quat,p);
-	  MathExtra::matvec(p,bonus[tri[j]].c1,dc1);
-	  MathExtra::matvec(p,bonus[tri[j]].c2,dc2);
-	  MathExtra::matvec(p,bonus[tri[j]].c3,dc3);
-	  dfirst[j] = ndiscrete;
-	  discretize(j,sigma[jtype][jtype],dc1,dc2,dc3);
-	  dnum[j] = ndiscrete - dfirst[j];
-	}
-	npj = dnum[j];
-	jfirst = dfirst[j];
+        if (dnum[j] == 0) {
+          MathExtra::quat_to_mat(bonus[tri[j]].quat,p);
+          MathExtra::matvec(p,bonus[tri[j]].c1,dc1);
+          MathExtra::matvec(p,bonus[tri[j]].c2,dc2);
+          MathExtra::matvec(p,bonus[tri[j]].c3,dc3);
+          dfirst[j] = ndiscrete;
+          discretize(j,sigma[jtype][jtype],dc1,dc2,dc3);
+          dnum[j] = ndiscrete - dfirst[j];
+        }
+        npj = dnum[j];
+        jfirst = dfirst[j];
 
-	for (ni = 0; ni < npi; ni++) {
-	  dxi = discrete[ifirst+ni].dx;
-	  dyi = discrete[ifirst+ni].dy;
-	  dzi = discrete[ifirst+ni].dz;
+        for (ni = 0; ni < npi; ni++) {
+          dxi = discrete[ifirst+ni].dx;
+          dyi = discrete[ifirst+ni].dy;
+          dzi = discrete[ifirst+ni].dz;
 
-	  for (nj = 0; nj < npj; nj++) {
-	    dxj = discrete[jfirst+nj].dx;
-	    dyj = discrete[jfirst+nj].dy;
-	    dzj = discrete[jfirst+nj].dz;
+          for (nj = 0; nj < npj; nj++) {
+            dxj = discrete[jfirst+nj].dx;
+            dyj = discrete[jfirst+nj].dy;
+            dzj = discrete[jfirst+nj].dz;
 
-	    xi[0] = x[i][0] + dxi;
-	    xi[1] = x[i][1] + dyi;
-	    xi[2] = x[i][2] + dzi;
-	    xj[0] = x[j][0] + dxj;
-	    xj[1] = x[j][1] + dyj;
-	    xj[2] = x[j][2] + dzj;
+            xi[0] = x[i][0] + dxi;
+            xi[1] = x[i][1] + dyi;
+            xi[2] = x[i][2] + dzi;
+            xj[0] = x[j][0] + dxj;
+            xj[1] = x[j][1] + dyj;
+            xj[2] = x[j][2] + dzj;
 
-	    delx = xi[0] - xj[0];
-	    dely = xi[1] - xj[1];
-	    delz = xi[2] - xj[2];
-	    rsq = delx*delx + dely*dely + delz*delz;
- 
-	    sig = 0.5 * (discrete[ifirst+ni].sigma+discrete[jfirst+nj].sigma);
-	    sig3 = sig*sig*sig;
-	    term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	    term1 = 2.0 * term2 * sig3*sig3;
-	    r2inv = 1.0/rsq;
-	    r6inv = r2inv*r2inv*r2inv;
-	    forcelj = r6inv * (term1*r6inv - term2);
-	    fpair = forcelj*r2inv;
-	    
-	    if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+            delx = xi[0] - xj[0];
+            dely = xi[1] - xj[1];
+            delz = xi[2] - xj[2];
+            rsq = delx*delx + dely*dely + delz*delz;
 
-	    fi[0] = delx*fpair;
-	    fi[1] = dely*fpair;
-	    fi[2] = delz*fpair;
-	    f[i][0] += fi[0];
-	    f[i][1] += fi[1];
-	    f[i][2] += fi[2];
-	    ti[0] = dyi*fi[2] - dzi*fi[1];
-	    ti[1] = dzi*fi[0] - dxi*fi[2];
-	    ti[2] = dxi*fi[1] - dyi*fi[0];
-	    torque[i][0] += ti[0];
-	    torque[i][1] += ti[1];
-	    torque[i][2] += ti[2];
+            sig = 0.5 * (discrete[ifirst+ni].sigma+discrete[jfirst+nj].sigma);
+            sig3 = sig*sig*sig;
+            term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+            term1 = 2.0 * term2 * sig3*sig3;
+            r2inv = 1.0/rsq;
+            r6inv = r2inv*r2inv*r2inv;
+            forcelj = r6inv * (term1*r6inv - term2);
+            fpair = forcelj*r2inv;
 
-	    if (newton_pair || j < nlocal) {
-	      fj[0] = -delx*fpair;
-	      fj[1] = -dely*fpair;
-	      fj[2] = -delz*fpair;
-	      f[j][0] += fj[0];
-	      f[j][1] += fj[1];
-	      f[j][2] += fj[2];
-	      tj[0] = dyj*fj[2] - dzj*fj[1];
-	      tj[1] = dzj*fj[0] - dxj*fj[2];
-	      tj[2] = dxj*fj[1] - dyj*fj[0];
-	      torque[j][0] += tj[0];
-	      torque[j][1] += tj[1];
-	      torque[j][2] += tj[2];
-	    }
-	  }
-	}
+            if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+
+            fi[0] = delx*fpair;
+            fi[1] = dely*fpair;
+            fi[2] = delz*fpair;
+            f[i][0] += fi[0];
+            f[i][1] += fi[1];
+            f[i][2] += fi[2];
+            ti[0] = dyi*fi[2] - dzi*fi[1];
+            ti[1] = dzi*fi[0] - dxi*fi[2];
+            ti[2] = dxi*fi[1] - dyi*fi[0];
+            torque[i][0] += ti[0];
+            torque[i][1] += ti[1];
+            torque[i][2] += ti[2];
+
+            if (newton_pair || j < nlocal) {
+              fj[0] = -delx*fpair;
+              fj[1] = -dely*fpair;
+              fj[2] = -delz*fpair;
+              f[j][0] += fj[0];
+              f[j][1] += fj[1];
+              f[j][2] += fj[2];
+              tj[0] = dyj*fj[2] - dzj*fj[1];
+              tj[1] = dzj*fj[0] - dxj*fj[2];
+              tj[2] = dxj*fj[1] - dyj*fj[0];
+              torque[j][0] += tj[0];
+              torque[j][1] += tj[1];
+              torque[j][2] += tj[2];
+            }
+          }
+        }
 
       // tri/particle interaction = Nx1 particles
       // c1,c2,c3 = corner pts of triangle I
 
       } else if (tri[i] >= 0) {
 
-	if (dnum[i] == 0) {
-	  MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
-	  MathExtra::matvec(p,bonus[tri[i]].c1,dc1);
-	  MathExtra::matvec(p,bonus[tri[i]].c2,dc2);
-	  MathExtra::matvec(p,bonus[tri[i]].c3,dc3);
-	  dfirst[i] = ndiscrete;
-	  discretize(i,sigma[itype][itype],dc1,dc2,dc3);
-	  dnum[i] = ndiscrete - dfirst[i];
-	}
-	npi = dnum[i];
-	ifirst = dfirst[i];
+        if (dnum[i] == 0) {
+          MathExtra::quat_to_mat(bonus[tri[i]].quat,p);
+          MathExtra::matvec(p,bonus[tri[i]].c1,dc1);
+          MathExtra::matvec(p,bonus[tri[i]].c2,dc2);
+          MathExtra::matvec(p,bonus[tri[i]].c3,dc3);
+          dfirst[i] = ndiscrete;
+          discretize(i,sigma[itype][itype],dc1,dc2,dc3);
+          dnum[i] = ndiscrete - dfirst[i];
+        }
+        npi = dnum[i];
+        ifirst = dfirst[i];
 
-	for (ni = 0; ni < npi; ni++) {
-	  dxi = discrete[ifirst+ni].dx;
-	  dyi = discrete[ifirst+ni].dy;
-	  dzi = discrete[ifirst+ni].dz;
+        for (ni = 0; ni < npi; ni++) {
+          dxi = discrete[ifirst+ni].dx;
+          dyi = discrete[ifirst+ni].dy;
+          dzi = discrete[ifirst+ni].dz;
 
-	  xi[0] = x[i][0] + dxi;
-	  xi[1] = x[i][1] + dyi;
-	  xi[2] = x[i][2] + dzi;
-	  xj[0] = x[j][0];
-	  xj[1] = x[j][1];
-	  xj[2] = x[j][2];
+          xi[0] = x[i][0] + dxi;
+          xi[1] = x[i][1] + dyi;
+          xi[2] = x[i][2] + dzi;
+          xj[0] = x[j][0];
+          xj[1] = x[j][1];
+          xj[2] = x[j][2];
 
-	  delx = xi[0] - xj[0];
-	  dely = xi[1] - xj[1];
-	  delz = xi[2] - xj[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          delx = xi[0] - xj[0];
+          dely = xi[1] - xj[1];
+          delz = xi[2] - xj[2];
+          rsq = delx*delx + dely*dely + delz*delz;
 
-	  sig = 0.5 * (discrete[ifirst+ni].sigma+sigma[jtype][jtype]);
-	  sig3 = sig*sig*sig;
-	  term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	  term1 = 2.0 * term2 * sig3*sig3;
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (term1*r6inv - term2);
-	  fpair = forcelj*r2inv;
-	  
-	  if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+          sig = 0.5 * (discrete[ifirst+ni].sigma+sigma[jtype][jtype]);
+          sig3 = sig*sig*sig;
+          term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+          term1 = 2.0 * term2 * sig3*sig3;
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (term1*r6inv - term2);
+          fpair = forcelj*r2inv;
 
-	  fi[0] = delx*fpair;
-	  fi[1] = dely*fpair;
-	  fi[2] = delz*fpair;
-	  f[i][0] += fi[0];
-	  f[i][1] += fi[1];
-	  f[i][2] += fi[2];
-	  ti[0] = dyi*fi[2] - dzi*fi[1];
-	  ti[1] = dzi*fi[0] - dxi*fi[2];
-	  ti[2] = dxi*fi[1] - dyi*fi[0];
-	  torque[i][2] += ti[0];
-	  torque[i][1] += ti[1];
-	  torque[i][2] += ti[2];
-	  
-	  if (newton_pair || j < nlocal) {
-	    fj[0] = -delx*fpair;
-	    fj[1] = -dely*fpair;
-	    fj[2] = -delz*fpair;
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	    f[j][2] += fj[2];
-	  }
-	}
+          if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+
+          fi[0] = delx*fpair;
+          fi[1] = dely*fpair;
+          fi[2] = delz*fpair;
+          f[i][0] += fi[0];
+          f[i][1] += fi[1];
+          f[i][2] += fi[2];
+          ti[0] = dyi*fi[2] - dzi*fi[1];
+          ti[1] = dzi*fi[0] - dxi*fi[2];
+          ti[2] = dxi*fi[1] - dyi*fi[0];
+          torque[i][2] += ti[0];
+          torque[i][1] += ti[1];
+          torque[i][2] += ti[2];
+
+          if (newton_pair || j < nlocal) {
+            fj[0] = -delx*fpair;
+            fj[1] = -dely*fpair;
+            fj[2] = -delz*fpair;
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+            f[j][2] += fj[2];
+          }
+        }
 
       // particle/tri interaction = Nx1 particles
       // c1,c2,c3 = corner pts of triangle J
 
       } else if (tri[j] >= 0) {
-	if (dnum[j] == 0) {
-	  MathExtra::quat_to_mat(bonus[tri[j]].quat,p);
-	  MathExtra::matvec(p,bonus[tri[j]].c1,dc1);
-	  MathExtra::matvec(p,bonus[tri[j]].c2,dc2);
-	  MathExtra::matvec(p,bonus[tri[j]].c3,dc3);
-	  dfirst[j] = ndiscrete;
-	  discretize(j,sigma[jtype][jtype],dc1,dc2,dc3);
-	  dnum[j] = ndiscrete - dfirst[j];
-	}
-	npj = dnum[j];
-	jfirst = dfirst[j];
+        if (dnum[j] == 0) {
+          MathExtra::quat_to_mat(bonus[tri[j]].quat,p);
+          MathExtra::matvec(p,bonus[tri[j]].c1,dc1);
+          MathExtra::matvec(p,bonus[tri[j]].c2,dc2);
+          MathExtra::matvec(p,bonus[tri[j]].c3,dc3);
+          dfirst[j] = ndiscrete;
+          discretize(j,sigma[jtype][jtype],dc1,dc2,dc3);
+          dnum[j] = ndiscrete - dfirst[j];
+        }
+        npj = dnum[j];
+        jfirst = dfirst[j];
 
-	for (nj = 0; nj < npj; nj++) {
-	  dxj = discrete[jfirst+nj].dx;
-	  dyj = discrete[jfirst+nj].dy;
-	  dzj = discrete[jfirst+nj].dz;
+        for (nj = 0; nj < npj; nj++) {
+          dxj = discrete[jfirst+nj].dx;
+          dyj = discrete[jfirst+nj].dy;
+          dzj = discrete[jfirst+nj].dz;
 
-	  xi[0] = x[i][0];
-	  xi[1] = x[i][1];
-	  xi[2] = x[i][2];
-	  xj[0] = x[j][0] + dxj;
-	  xj[1] = x[j][1] + dyj;
-	  xj[2] = x[j][2] + dzj;
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xi[2] = x[i][2];
+          xj[0] = x[j][0] + dxj;
+          xj[1] = x[j][1] + dyj;
+          xj[2] = x[j][2] + dzj;
 
-	  delx = xi[0] - xj[0];
-	  dely = xi[1] - xj[1];
-	  delz = xi[2] - xj[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          delx = xi[0] - xj[0];
+          dely = xi[1] - xj[1];
+          delz = xi[2] - xj[2];
+          rsq = delx*delx + dely*dely + delz*delz;
 
-	  sig = 0.5 * (sigma[itype][itype]+discrete[jfirst+nj].sigma);
-	  sig3 = sig*sig*sig;
-	  term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	  term1 = 2.0 * term2 * sig3*sig3;
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (term1*r6inv - term2);
-	  fpair = forcelj*r2inv;
-	  
-	  if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+          sig = 0.5 * (sigma[itype][itype]+discrete[jfirst+nj].sigma);
+          sig3 = sig*sig*sig;
+          term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+          term1 = 2.0 * term2 * sig3*sig3;
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (term1*r6inv - term2);
+          fpair = forcelj*r2inv;
 
-	  fi[0] = delx*fpair;
-	  fi[1] = dely*fpair;
-	  fi[2] = delz*fpair;
-	  f[i][0] += fi[0];
-	  f[i][1] += fi[1];
-	  f[i][2] += fi[2];
-	  
-	  if (newton_pair || j < nlocal) {
-	    fj[0] = -delx*fpair;
-	    fj[1] = -dely*fpair;
-	    fj[2] = -delz*fpair;
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	    f[j][2] += fj[2];
-	    tj[0] = dyj*fj[2] - dzj*fj[1];
-	    tj[1] = dzj*fj[0] - dxj*fj[2];
-	    tj[2] = dxj*fj[1] - dyj*fj[0];
-	    torque[j][0] += tj[0];
-	    torque[j][1] += tj[1];
-	    torque[j][2] += tj[2];
-	  }
-	}
+          if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+
+          fi[0] = delx*fpair;
+          fi[1] = dely*fpair;
+          fi[2] = delz*fpair;
+          f[i][0] += fi[0];
+          f[i][1] += fi[1];
+          f[i][2] += fi[2];
+
+          if (newton_pair || j < nlocal) {
+            fj[0] = -delx*fpair;
+            fj[1] = -dely*fpair;
+            fj[2] = -delz*fpair;
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+            f[j][2] += fj[2];
+            tj[0] = dyj*fj[2] - dzj*fj[1];
+            tj[1] = dzj*fj[0] - dxj*fj[2];
+            tj[2] = dxj*fj[1] - dyj*fj[0];
+            torque[j][0] += tj[0];
+            torque[j][1] += tj[1];
+            torque[j][2] += tj[2];
+          }
+        }
 
       // particle/particle interaction = 1x1 particles
 
       } else {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        fpair = forcelj*r2inv;
 
-	if (eflag)
-	  evdwl += r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+        if (eflag)
+          evdwl += r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 
@@ -390,7 +390,7 @@ void PairTriLJ::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairTriLJ::allocate()
@@ -415,7 +415,7 @@ void PairTriLJ::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairTriLJ::settings(int narg, char **arg)
@@ -430,7 +430,7 @@ void PairTriLJ::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -440,7 +440,7 @@ void PairTriLJ::settings(int narg, char **arg)
 
 void PairTriLJ::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -476,7 +476,7 @@ double PairTriLJ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
@@ -504,7 +504,7 @@ double PairTriLJ::init_one(int i, int j)
 ------------------------------------------------------------------------- */
 
 void PairTriLJ::discretize(int i, double sigma,
-			  double *c1, double *c2, double *c3)
+                          double *c1, double *c2, double *c3)
 {
   double c1c2[3],c2c3[3],c1c3[3];
 
@@ -529,7 +529,7 @@ void PairTriLJ::discretize(int i, double sigma,
     if (ndiscrete == dmax) {
       dmax += DELTA;
       discrete = (Discrete *)
-	memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
+        memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
     }
     discrete[ndiscrete].dx = centroid[0];
     discrete[ndiscrete].dy = centroid[1];
@@ -582,7 +582,7 @@ void PairTriLJ::discretize(int i, double sigma,
 
 /*
 void PairTriLJ::discretize(int i, double sigma,
-			  double *c1, double *c2, double *c3)
+                          double *c1, double *c2, double *c3)
 {
   double centroid[3],dc1[3],dc2[3],dc3[3];
 
@@ -605,7 +605,7 @@ void PairTriLJ::discretize(int i, double sigma,
     if (ndiscrete == dmax) {
       dmax += DELTA;
       discrete = (Discrete *)
-	memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
+        memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
     }
     discrete[ndiscrete].dx = centroid[0];
     discrete[ndiscrete].dy = centroid[1];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -46,8 +46,8 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 ------------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
-	 int n2steps_in, int nevery_in, double *buf_init, double *buf_final) 
-  : Pointers(lmp) 
+         int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
+  : Pointers(lmp)
 {
   double delx,dely,delz;
 
@@ -100,11 +100,11 @@ NEB::~NEB()
 
 void NEB::command(int narg, char **arg)
 {
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"NEB command before simulation box is defined");
 
   if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
-  
+
   etol = atof(arg[0]);
   ftol = atof(arg[1]);
   n1steps = atoi(arg[2]);
@@ -135,7 +135,7 @@ void NEB::command(int narg, char **arg)
     error->all(FLERR,"Can only use NEB with 1-processor replicas");
   if (atom->sortfreq > 0)
     error->all(FLERR,"Cannot use NEB with atom_modify sort enabled");
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Cannot use NEB unless atom map exists");
 
   // read in file of final state atom coords and reset my coords
@@ -186,7 +186,7 @@ void NEB::run()
 
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up regular NEB ...\n");
-  
+
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + n1steps;
   update->nsteps = n1steps;
@@ -195,21 +195,21 @@ void NEB::run()
     error->all(FLERR,"Too many timesteps for NEB");
 
   update->minimize->setup();
-  
+
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-	      "GradV0 GradV1 GradVc "
-	      "EBF EBR RDT "
-	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-	      "GradV0 GradV1 GradVc "
-	      "EBF EBR RDT "
-	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
-  
+
   // perform regular NEB for n1steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
   // break induced if converged
@@ -217,13 +217,13 @@ void NEB::run()
 
   timer->init();
   timer->barrier_start(TIME_LOOP);
-  
+
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
     print_status();
     if (update->minimize->stop_condition) break;
   }
-	
+
   timer->barrier_stop(TIME_LOOP);
 
   update->minimize->cleanup();
@@ -254,7 +254,7 @@ void NEB::run()
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Climbing replica = %d\n",top+1);
   }
-  
+
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + n2steps;
   update->nsteps = n2steps;
@@ -269,22 +269,22 @@ void NEB::run()
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,"Step MaxReplicaForce MaxAtomForce "
-	      "GradV0 GradV1 GradVc "
-	      "EBF EBR RDT "
-	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,"Step MaxReplicaForce MaxAtomForce "
-	      "GradV0 GradV1 GradVc "
-	      "EBF EBR RDT "
-	      "RD1 PE1 RD2 PE2 ... RDN PEN\n");
+              "GradV0 GradV1 GradVc "
+              "EBF EBR RDT "
+              "RD1 PE1 RD2 PE2 ... RDN PEN\n");
   }
   print_status();
-  
+
   // perform climbing NEB for n2steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
   // break induced if converged
   // damped dynamic min styles insure all replicas converge together
-  
+
   timer->init();
   timer->barrier_start(TIME_LOOP);
 
@@ -293,7 +293,7 @@ void NEB::run()
     print_status();
     if (update->minimize->stop_condition) break;
   }
-	
+
   timer->barrier_stop(TIME_LOOP);
 
   update->minimize->cleanup();
@@ -337,9 +337,9 @@ void NEB::readfile(char *file)
     if (me_universe == 0) {
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
-	ptr = fgets(&buffer[m],MAXLINE,fp);
-	if (ptr == NULL) break;
-	m += strlen(&buffer[m]);
+        ptr = fgets(&buffer[m],MAXLINE,fp);
+        if (ptr == NULL) break;
+        m += strlen(&buffer[m]);
       }
       if (ptr == NULL) eof = 1;
       buffer[m++] = '\n';
@@ -356,8 +356,8 @@ void NEB::readfile(char *file)
       *next = '\0';
 
       if (firstline) {
-	if (atom->count_words(bufptr) == 4) firstline = 0;
-	else error->all(FLERR,"Incorrect format in NEB coordinate file");
+        if (atom->count_words(bufptr) == 4) firstline = 0;
+        else error->all(FLERR,"Incorrect format in NEB coordinate file");
       }
 
       sscanf(bufptr,"%d %lg %lg %lg",&tag,&xx,&yy,&zz);
@@ -372,14 +372,14 @@ void NEB::readfile(char *file)
 
       m = atom->map(tag);
       if (m >= 0 && m < nlocal) {
-	delx = xx - x[m][0];
-	dely = yy - x[m][1];
-	delz = zz - x[m][2];
-	domain->minimum_image(delx,dely,delz);
-	x[m][0] += fraction*delx;
-	x[m][1] += fraction*dely;
-	x[m][2] += fraction*delz;
-	ncount++;
+        delx = xx - x[m][0];
+        dely = yy - x[m][1];
+        delz = zz - x[m][2];
+        domain->minimum_image(delx,dely,delz);
+        x[m][0] += fraction*delx;
+        x[m][1] += fraction*dely;
+        x[m][2] += fraction*delz;
+        ncount++;
       }
 
       bufptr = next + 1;
@@ -476,8 +476,8 @@ void NEB::print_status()
     int top = 0;
     for (int m = 1; m < nreplica; m++)
       if (vmax < all[m][0]) {
-	vmax = all[m][0];
-	top = m;
+        vmax = all[m][0];
+        top = m;
       }
     irep = top;
     gradvnormc = all[irep][3];
@@ -488,22 +488,22 @@ void NEB::print_status()
   if (me_universe == 0) {
     if (universe->uscreen) {
       fprintf(universe->uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
-	      update->ntimestep,fmaxreplica,fmaxatom);
+              update->ntimestep,fmaxreplica,fmaxatom);
       fprintf(universe->uscreen,"%12.8g %12.8g %12.8g ",
-	      gradvnorm0,gradvnorm1,gradvnormc);
+              gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(universe->uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
-      for (int i = 0; i < nreplica; i++) 
-	fprintf(universe->uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
+      for (int i = 0; i < nreplica; i++)
+        fprintf(universe->uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
       fprintf(universe->ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
-	      update->ntimestep,fmaxreplica,fmaxatom);
+              update->ntimestep,fmaxreplica,fmaxatom);
       fprintf(universe->ulogfile,"%12.8g %12.8g %12.8g ",
-	      gradvnorm0,gradvnorm1,gradvnormc);
+              gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(universe->ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
-	fprintf(universe->ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
+        fprintf(universe->ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
       fprintf(universe->ulogfile,"\n");
       fflush(universe->ulogfile);
     }

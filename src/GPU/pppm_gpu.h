@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,10 +45,10 @@ class PPPMGPU : public PPPM {
   virtual void fillbrick();
   virtual void poisson();
 
-  double poisson_time;  
+  double poisson_time;
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
-				 FFT_SCALAR *, int);
+                                 FFT_SCALAR *, int);
   void destroy_3d_offset(FFT_SCALAR ***, int, int);
 };
 

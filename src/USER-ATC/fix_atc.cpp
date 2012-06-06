@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -33,7 +33,7 @@
 #include "comm.h"
 #include "error.h"
 
-using namespace LAMMPS_NS; 
+using namespace LAMMPS_NS;
 using namespace FixConst;
 
 // main page of doxygen documentation
@@ -53,7 +53,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // Set LAMMPS pointer on LammpsInterface
   ATC::LammpsInterface::instance()->set_lammps(lmp);
 
-  /*! \page man_fix_atc fix atc command 
+  /*! \page man_fix_atc fix atc command
     \section syntax
     fix AtC transfer <type> <parameter_file>
     - type\n
@@ -71,10 +71,10 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     fix do Verlet integration and the Hardy/post-processing does not.
     After instantiating this fix, several other fix_modify commands will be
     needed to set up the problem, e.g. define the finite element mesh and
-    prescribe initial and boundary conditions. 
+    prescribe initial and boundary conditions.
 
     The following coupling example is typical, but non-exhaustive:\n
- 
+
 <TT>
      # ... commands to create and initialize the MD system \n
 
@@ -122,7 +122,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
      run             1000 \n
 </TT>
 
-    Note coupling and post-processing can be combined in the same simulations 
+    Note coupling and post-processing can be combined in the same simulations
     using separate fixes.
     \n
     For detailed exposition of the theory and algorithms please see:\n
@@ -131,21 +131,21 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.
     - Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ,
       <VAR> Calculation of stress in atomistic simulation </VAR>
-      Special Issue of Modelling and Simulation in Materials Science and 
+      Special Issue of Modelling and Simulation in Materials Science and
       Engineering (2004), 12:S319
 
     Please refer to the standard
-    finite element (FE) texts, e.g. T.J.R Hughes <VAR> The finite element 
+    finite element (FE) texts, e.g. T.J.R Hughes <VAR> The finite element
     method </VAR>, Dover 2003, for the basics of FE simulation.
 
     \section restrictions
-    Thermal and two_temperature (coupling) types use a Verlet time-integration 
+    Thermal and two_temperature (coupling) types use a Verlet time-integration
     algorithm.
-    The hardy type does not contain its own time-integrator and must be used 
+    The hardy type does not contain its own time-integrator and must be used
     with a separate fix that does contain one, e.g. nve, nvt, etc.
 
-    Currently, 
-    - the coupling is restricted to thermal physics 
+    Currently,
+    - the coupling is restricted to thermal physics
     - the FE computations are done in serial on each processor.
 
     \section related
@@ -197,7 +197,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     - \ref man_atom_element_map
     - \ref man_neighbor_reset_frequency
 
-    Note: a set of example input files with the attendant material files are 
+    Note: a set of example input files with the attendant material files are
     included with this package
     \section default
     none
@@ -212,34 +212,34 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // Postprocessing
   try {
-    if (strcmp(arg[3],"hardy")==0) 
+    if (strcmp(arg[3],"hardy")==0)
     {
       if (narg < 5) {
         if (me==0) printf("Constructing ATC transfer (hardy)\n");
         atcTransfer_ = new ATC::ATC_TransferHardy(groupName);
-      } 
-      else { 
+      }
+      else {
         if (me==0) printf("Constructing ATC transfer (hardy) with parameter file %s\n",arg[4]);
         std::string matParamFile = arg[4];
         atcTransfer_ = new ATC::ATC_TransferHardy(groupName,matParamFile);
       }
     }
     // PhysicsTypes
-    else if (strcmp(arg[3],"thermal")==0) 
+    else if (strcmp(arg[3],"thermal")==0)
     {
       std::string matParamFile = arg[4];
       if (me==0) printf("Constructing ATC transfer (thermal) with parameter file %s\n",arg[4]);
       atcTransfer_ = new ATC::ATC_TransferThermal(groupName,matParamFile);
       lmp->atom->add_callback(0); // NOTE what is this?
     }
-    else if (strcmp(arg[3],"two_temperature")==0) 
+    else if (strcmp(arg[3],"two_temperature")==0)
     {
       std::string matParamFile = arg[4];
       if (me==0) printf("Constructing ATC transfer (two_temperature) with parameter file %s\n",arg[4]);
       atcTransfer_ = new ATC::ATC_TransferThermal(groupName,matParamFile,
                          ATC::TWO_TEMPERATURE);
     }
-    else 
+    else
     {
       lmp->error->all(FLERR,"Unknown physics type in ATC");
     }
@@ -293,7 +293,7 @@ int FixATC::setmask()
 
 int FixATC::modify_param(int narg, char** arg)
 {
-  bool match; 
+  bool match;
 
   // pass on to transfer layer
   try {
@@ -406,15 +406,15 @@ void FixATC::unpack_restart(int nlocal, int nth){
 /* ----------------------------------------------------------------------
    maxsize of any atom's restart data
    ------------------------------------------------------------------------- */
- 
+
 int FixATC::maxsize_restart(){
   return 0;
 }
- 
+
 /* ----------------------------------------------------------------------
    size of atom nlocal's restart data
    ------------------------------------------------------------------------- */
- 
+
 int FixATC::size_restart(int nlocal){
   return 0;
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -79,7 +79,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"INF") == 0) vtarget = BIG;
       else vtarget = atof(arg[iarg+1]);
       if (vtarget <= 0.0)
-	error->all(FLERR,"Fix viscosity vtarget value must be positive");
+        error->all(FLERR,"Fix viscosity vtarget value must be positive");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix viscosity command");
   }
@@ -192,37 +192,37 @@ void FixViscosity::end_of_step()
       else if (coord >= boxhi && periodicity) coord -= prd;
 
       if (coord >= slablo_lo && coord < slablo_hi) {
-	if (v[i][vdim] < 0.0) continue;
-	delta = fabs(v[i][vdim] - vtarget);
-	if (npositive < nswap || delta < pos_delta[nswap-1]) {
-	  for (insert = npositive-1; insert >= 0; insert--)
-	    if (delta > pos_delta[insert]) break;
-	  insert++;
-	  for (m = npositive-1; m >= insert; m--) {
-	    pos_delta[m+1] = pos_delta[m];
-	    pos_index[m+1] = pos_index[m];
-	  }
-	  pos_delta[insert] = delta;
-	  pos_index[insert] = i;
-	  if (npositive < nswap) npositive++;
-	}
+        if (v[i][vdim] < 0.0) continue;
+        delta = fabs(v[i][vdim] - vtarget);
+        if (npositive < nswap || delta < pos_delta[nswap-1]) {
+          for (insert = npositive-1; insert >= 0; insert--)
+            if (delta > pos_delta[insert]) break;
+          insert++;
+          for (m = npositive-1; m >= insert; m--) {
+            pos_delta[m+1] = pos_delta[m];
+            pos_index[m+1] = pos_index[m];
+          }
+          pos_delta[insert] = delta;
+          pos_index[insert] = i;
+          if (npositive < nswap) npositive++;
+        }
       }
 
       if (coord >= slabhi_lo && coord < slabhi_hi) {
-	if (v[i][vdim] > 0.0) continue;
-	delta = fabs(v[i][vdim] + vtarget);
-	if (nnegative < nswap || delta < neg_delta[nswap-1]) {
-	  for (insert = nnegative-1; insert >= 0; insert--)
-	    if (delta > neg_delta[insert]) break;
-	  insert++;
-	  for (m = nnegative-1; m >= insert; m--) {
-	    neg_delta[m+1] = neg_delta[m];
-	    neg_index[m+1] = neg_index[m];
-	  }
-	  neg_delta[insert] = delta;
-	  neg_index[insert] = i;
-	  if (nnegative < nswap) nnegative++;
-	}
+        if (v[i][vdim] > 0.0) continue;
+        delta = fabs(v[i][vdim] + vtarget);
+        if (nnegative < nswap || delta < neg_delta[nswap-1]) {
+          for (insert = nnegative-1; insert >= 0; insert--)
+            if (delta > neg_delta[insert]) break;
+          insert++;
+          for (m = nnegative-1; m >= insert; m--) {
+            neg_delta[m+1] = neg_delta[m];
+            neg_index[m+1] = neg_index[m];
+          }
+          neg_delta[insert] = delta;
+          neg_index[insert] = i;
+          if (nnegative < nswap) nnegative++;
+        }
       }
     }
 
@@ -249,7 +249,7 @@ void FixViscosity::end_of_step()
     else mine[0].value = BIG;
     if (inegative < nnegative) mine[1].value = neg_delta[inegative];
     else mine[1].value = BIG;
-    
+
     MPI_Allreduce(mine,all,2,MPI_DOUBLE_INT,MPI_MINLOC,world);
 
     if (all[0].value == BIG || all[1].value == BIG) continue;
@@ -267,14 +267,14 @@ void FixViscosity::end_of_step()
       v[ineg][vdim] = 2.0 * vcm - sbuf[0];
       v[ipos][vdim] = 2.0 * vcm - rbuf[0];
       pswap += rbuf[1] * (vcm - rbuf[0]) - sbuf[1] * (vcm - sbuf[0]);
-      
+
     } else if (me == all[0].proc) {
       ipos = pos_index[ipositive++];
       sbuf[0] = v[ipos][vdim];
       if (rmass) sbuf[1] = rmass[ipos];
       else sbuf[1] = mass[type[ipos]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
-		   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
+                   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
       vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
       v[ipos][vdim] = 2.0 * vcm - sbuf[0];
       pswap += sbuf[1] * (vcm - sbuf[0]);
@@ -285,7 +285,7 @@ void FixViscosity::end_of_step()
       if (rmass) sbuf[1] = rmass[ineg];
       else sbuf[1] = mass[type[ineg]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
-		   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
+                   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
       vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
       v[ineg][vdim] = 2.0 * vcm - sbuf[0];
       pswap -= sbuf[1] * (vcm - sbuf[0]);

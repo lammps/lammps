@@ -60,11 +60,11 @@ void PairSoftOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -121,26 +121,26 @@ void PairSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	arg = MY_PI/cut[itype][jtype];
-	if (r > SMALL) fpair = factor_lj * prefactor[itype][jtype] * 
-		       sin(arg*r) * arg/r;
-	else fpair = 0.0;
+        r = sqrt(rsq);
+        arg = MY_PI/cut[itype][jtype];
+        if (r > SMALL) fpair = factor_lj * prefactor[itype][jtype] *
+                       sin(arg*r) * arg/r;
+        else fpair = 0.0;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG)
-	  evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg*r));
+        if (EFLAG)
+          evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg*r));
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

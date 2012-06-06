@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -62,7 +62,7 @@ class DihedralTable : public Dihedral {
   int ntables;
   Table *tables;
   int *tabindex;
-  
+
   void allocate();
   void null_table(Table *);
   void free_table(Table *);
@@ -78,7 +78,7 @@ class DihedralTable : public Dihedral {
   // --------------------------------------------
 
   // -----------------------------------------------------------
-  //   uf_lookup() 
+  //   uf_lookup()
   //   quickly calculate the potential u and force f at angle x,
   //   using the internal tables tb->e and tb->f (evenly spaced)
   // -----------------------------------------------------------
@@ -97,24 +97,24 @@ class DihedralTable : public Dihedral {
 
     switch(tabstyle) {
       case LINEAR:
-	u = tb->e[i] + b * tb->de[i];
-	f = tb->f[i] + b * tb->df[i]; //<--works even if tb->f_unspecified==true
-	break;
+        u = tb->e[i] + b * tb->de[i];
+        f = tb->f[i] + b * tb->df[i]; //<--works even if tb->f_unspecified==true
+        break;
       case SPLINE:
-	a = 1.0 - b;
-	u = a * tb->e[i] + b * tb->e[ip1] + 
-	  ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) * 
-	  tb->deltasq6;
-	if (tb->f_unspecified)
-	  //Formula below taken from equation3.3.5 of "numerical recipes in c"
-	  //"f"=-derivative of e with respect to x (or "phi" in this case)
-	  f = (tb->e[i]-tb->e[ip1])*tb->invdelta +
-	    ((3.0*a*a-1.0)*tb->e2[i]+(1.0-3.0*b*b)*tb->e2[ip1])*tb->delta/6.0;
-	else
-	  f = a * tb->f[i] + b * tb->f[ip1] + 
-	    ((a*a*a-a)*tb->f2[i] + (b*b*b-b)*tb->f2[ip1]) * 
-	    tb->deltasq6;
-	break;
+        a = 1.0 - b;
+        u = a * tb->e[i] + b * tb->e[ip1] +
+          ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) *
+          tb->deltasq6;
+        if (tb->f_unspecified)
+          //Formula below taken from equation3.3.5 of "numerical recipes in c"
+          //"f"=-derivative of e with respect to x (or "phi" in this case)
+          f = (tb->e[i]-tb->e[ip1])*tb->invdelta +
+            ((3.0*a*a-1.0)*tb->e2[i]+(1.0-3.0*b*b)*tb->e2[ip1])*tb->delta/6.0;
+        else
+          f = a * tb->f[i] + b * tb->f[ip1] +
+            ((a*a*a-a)*tb->f2[i] + (b*b*b-b)*tb->f2[ip1]) *
+            tb->deltasq6;
+        break;
     } // switch(tabstyle)
   } // uf_lookup()
 
@@ -143,10 +143,10 @@ class DihedralTable : public Dihedral {
     }
     else if (tabstyle == SPLINE) {
       double a = 1.0 - b;
-      u = a * tb->e[i] + b * tb->e[ip1] + 
-        ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) * 
+      u = a * tb->e[i] + b * tb->e[ip1] +
+        ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) *
         tb->deltasq6;
-    } 
+    }
   } // u_lookup()
 
 
@@ -171,8 +171,8 @@ class DihedralTable : public Dihedral {
 
 
 // ------------------------------------------------------------------------
-// The following auxiliary functions were left out of the 
-// DihedralTable class either because they require template parameters, 
+// The following auxiliary functions were left out of the
+// DihedralTable class either because they require template parameters,
 // or because they have nothing to do with dihedral angles.
 // ------------------------------------------------------------------------
 
@@ -184,37 +184,37 @@ static const double TWOPI = 6.2831853071795862;
 // Determine the array of "y2" parameters of a cyclic spline from its control
 // points at positions x[] and y[]. (spline() must be invoked before splint())
 // The x[] positions should be sorted in order and not exceed period.
-void    cyc_spline(double const *xa, double const *ya, int n, 
+void    cyc_spline(double const *xa, double const *ya, int n,
                    double period, double *y2a);
 
 // Evaluate a cyclic spline at position x with n control points at xa[], ya[],
 // (The y2a array must be calculated using cyc_spline() above in advance.)
 // x (and all the xa[] positions) should lie in the range from 0 to period.
 // (Typically period = 2*PI, but this is optional.)
-double  cyc_splint(double const *xa, double const *ya, double const *y2a, 
+double  cyc_splint(double const *xa, double const *ya, double const *y2a,
                    int n, double period, double x);
 
 // Evaluate the deriviative of a cyclic spline at position x:
-double cyc_splintD(double const *xa, double const *ya, double const *y2a, 
+double cyc_splintD(double const *xa, double const *ya, double const *y2a,
                    int n, double period, double x);
 
 // -----------------------------------------------------------
 // ----  some simple vector operations are defined below. ----
 // -----------------------------------------------------------
 
-//  --- g_dim ---   As elsewhere in the LAMMPS code, coordinates here are 
+//  --- g_dim ---   As elsewhere in the LAMMPS code, coordinates here are
 // represented as entries in an array, not as named variables "x" "y" "z".
-// (I like this style.)  In this spirit, the vector operations here are 
-// defined for vectors of arbitrary size.  For this to work, the number 
+// (I like this style.)  In this spirit, the vector operations here are
+// defined for vectors of arbitrary size.  For this to work, the number
 // of dimensions, "g_dim", must be known at compile time:
 const int g_dim = 3;
-// In LAMMPS at least, this constant is always 3, and is only used inside 
+// In LAMMPS at least, this constant is always 3, and is only used inside
 // the dihedral code here.  (It should not conflict with 2-D simulations.)
 // Note: Compiler optimizations should eliminate any performance overhead
 //       associated with loops like "for (int i=0; i<g_dim; i++)"
 // If having a constant named "g_dim" is confusing people, I suppose
-// we can replace it with "3".  Note: the supplemental file 
-// "nd/dihedral_table_nd_mod.h" shows how to generalize the dihedral 
+// we can replace it with "3".  Note: the supplemental file
+// "nd/dihedral_table_nd_mod.h" shows how to generalize the dihedral
 // code in higher dimensions.
 
 template<class _Real>
@@ -229,7 +229,7 @@ DotProduct(_Real const *A, _Real const *B)
 
 // Normalize() divides the components of the vector "v" by it's length.
 // Normalize() silently ignores divide-by-zero errors but does not
-// crash.  (If "v" has length 0, then we replace v with the unit vector in 
+// crash.  (If "v" has length 0, then we replace v with the unit vector in
 // an arbitrary direction,(1,0,...).)
 // It returns the length of v (useful for checking if the operation succeeded).
 template<class _Real>
@@ -240,19 +240,19 @@ Normalize(_Real *v)
   if (length != 0.0)
   {
     _Real one_over_length = 1.0 / length;
-    for (int d=0; d < g_dim; ++d) 
+    for (int d=0; d < g_dim; ++d)
       v[d] *= one_over_length;
   }
   else {
     v[0] = 1.0;
-    for (int d=1; d < g_dim; ++d) 
+    for (int d=1; d < g_dim; ++d)
       v[d] = 0.0;
   }
   return length;
 }
 
 
-// CrossProduct(A,B,dest) computes the cross-product (A x B) 
+// CrossProduct(A,B,dest) computes the cross-product (A x B)
 // and stores the result in "dest".
 template<class _Real>
 inline void
@@ -272,7 +272,7 @@ inline double Phi(double const *x1, //array holding x,y,z coords atom 1
                   double const *x2, // :       :      :      :        2
                   double const *x3, // :       :      :      :        3
                   double const *x4, // :       :      :      :        4
-		  Domain *domain, //<-periodic boundary information
+                  Domain *domain, //<-periodic boundary information
                   // The following arrays are of doubles with g_dim elements.
                   // (g_dim is a constant known at compile time, usually 3).
                   // Their contents is calculated by this function.

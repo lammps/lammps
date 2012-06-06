@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -49,7 +49,7 @@ class Neighbor : protected Pointers {
   int old_nrequest;                // re-creation of pairwise neighbor lists
   int old_triclinic;
   class NeighRequest **old_requests;
-  
+
   int nlist;                       // pairwise neighbor lists
   class NeighList **lists;
 
@@ -76,7 +76,7 @@ class Neighbor : protected Pointers {
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
-  
+
  protected:
   int me,nprocs;
 
@@ -129,7 +129,7 @@ class Neighbor : protected Pointers {
   double (*corners)[3];            // ptr to 8 corners of triclinic box
 
   double inner[2],middle[2];       // rRESPA cutoffs for extra lists
-  double cut_inner_sq;		   // outer cutoff for inner neighbor list
+  double cut_inner_sq;                   // outer cutoff for inner neighbor list
   double cut_middle_sq;            // outer cutoff for middle neighbor list
   double cut_middle_inside_sq;     // inner cutoff for middle neighbor list
 
@@ -165,8 +165,8 @@ class Neighbor : protected Pointers {
   int coord2bin(double *);              // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
 
-  int exclusion(int, int, int, 
-		int, int *, int *) const;  // test for pair exclusion
+  int exclusion(int, int, int,
+                int, int *, int *) const;  // test for pair exclusion
 
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
@@ -269,27 +269,27 @@ class Neighbor : protected Pointers {
   // if it is and special flag is 2 (otherwise), return 1,2,3
   //   for which level of neighbor it is (and which coeff it maps to)
 
-  inline int find_special(const int *list, const int *nspecial, 
-			  const int tag) const {
+  inline int find_special(const int *list, const int *nspecial,
+                          const int tag) const {
     const int n1 = nspecial[0];
     const int n2 = nspecial[1];
     const int n3 = nspecial[2];
 
     for (int i = 0; i < n3; i++) {
       if (list[i] == tag) {
-	if (i < n1) {
-	  if (special_flag[1] == 0) return -1;
-	  else if (special_flag[1] == 1) return 0;
-	  else return 1;
-	} else if (i < n2) {
-	  if (special_flag[2] == 0) return -1;
-	  else if (special_flag[2] == 1) return 0;
-	  else return 2;
-	} else {
-	  if (special_flag[3] == 0) return -1;
-	  else if (special_flag[3] == 1) return 0;
-	  else return 3;
-	}
+        if (i < n1) {
+          if (special_flag[1] == 0) return -1;
+          else if (special_flag[1] == 1) return 0;
+          else return 1;
+        } else if (i < n2) {
+          if (special_flag[2] == 0) return -1;
+          else if (special_flag[2] == 1) return 0;
+          else return 2;
+        } else {
+          if (special_flag[3] == 0) return -1;
+          else if (special_flag[3] == 1) return 0;
+          else return 3;
+        }
       }
     }
     return 0;

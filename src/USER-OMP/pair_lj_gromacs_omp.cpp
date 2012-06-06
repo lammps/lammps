@@ -56,11 +56,11 @@ void PairLJGromacsOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -118,39 +118,39 @@ void PairLJGromacsOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
         if (rsq > cut_inner_sq[itype][jtype]) {
-          r = sqrt(rsq); 
-	  t = r - cut_inner[itype][jtype];
-	  fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
-	  forcelj += fswitch;
+          r = sqrt(rsq);
+          t = r - cut_inner[itype][jtype];
+          fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
+          forcelj += fswitch;
         }
 
-	fpair = factor_lj*forcelj*r2inv;
+        fpair = factor_lj*forcelj*r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG) {
-	  evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]); 
-	  evdwl += ljsw5[itype][jtype];
+        if (EFLAG) {
+          evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+          evdwl += ljsw5[itype][jtype];
           if (rsq > cut_inner_sq[itype][jtype]) {
             eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
             evdwl += eswitch;
           }
-	  evdwl *= factor_lj;
-	}
+          evdwl *= factor_lj;
+        }
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

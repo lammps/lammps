@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -55,7 +55,7 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
 FixEvent::~FixEvent()
 {
   // unregister callbacks to this fix from Atom class
- 
+
   atom->delete_callback(id,0);
 
   // delete locally stored array
@@ -84,7 +84,7 @@ void FixEvent::store_event()
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) 
+  for (int i = 0; i < nlocal; i++)
     domain->unmap(x[i],image[i],xevent[i]);
 
 }
@@ -248,7 +248,7 @@ int FixEvent::unpack_exchange(int nlocal, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixEvent::write_restart(FILE *fp)
@@ -256,7 +256,7 @@ void FixEvent::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixEvent::restart(char *buf)

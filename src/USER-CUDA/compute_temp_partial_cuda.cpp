@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -55,7 +55,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   cuda = lmp->cuda;
@@ -70,7 +70,7 @@ ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg
   extvector = 1;
   tempflag = 1;
   tempbias = 1;
-  
+
   xflag = atoi(arg[3]);
   yflag = atoi(arg[4]);
   zflag = atoi(arg[5]);
@@ -85,7 +85,7 @@ ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg
   cu_t_scalar = 0;
   cu_vbiasall=NULL;
   cudable=true;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,8 +135,8 @@ double ComputeTempPartialCuda::compute_scalar()
 {
   if(cuda->begin_setup)
   {
-  	if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);    
-  	if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);    
+          if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
+          if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
     invoked_scalar = update->ntimestep;
     Cuda_ComputeTempPartialCuda_Scalar(&cuda->shared_data,groupbit,(ENERGY_FLOAT*) cu_t_scalar->dev_data(),xflag,yflag,zflag);
     cu_t_scalar->download();
@@ -157,31 +157,31 @@ double ComputeTempPartialCuda::compute_scalar()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + zflag*v[i][2]*v[i][2]) * rmass[i];
+        t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + zflag*v[i][2]*v[i][2]) * rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + zflag*v[i][2]*v[i][2]) * 
-	  mass[type[i]];
+        t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + zflag*v[i][2]*v[i][2]) *
+          mass[type[i]];
   }
   t_scalar=t;
   }
-  
+
   MPI_Allreduce(&t_scalar,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
   scalar *= tfactor;
-  if(scalar>1e15) 
+  if(scalar>1e15)
   {
-  	cuda->cu_v->download();
-  	cuda->cu_x->download();
-  	cuda->cu_type->download();
+          cuda->cu_v->download();
+          cuda->cu_x->download();
+          cuda->cu_type->download();
     double **v = atom->v;
     double **x = atom->x;
-    printf("Out of v-range atoms:  \n"); 
-  	for(int i=0;i<atom->nlocal;i++) 
-  	if((v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2])>1e5) 
-  	printf("%i %i // %lf %lf %lf // %lf %lf %lf\n",atom->tag[i],atom->type[i],x[i][0], x[i][1], x[i][2],v[i][0], v[i][1], v[i][2]);
-  	error->all(FLERR,"Temperature out of range. Simulations will be abortet.\n");
+    printf("Out of v-range atoms:  \n");
+          for(int i=0;i<atom->nlocal;i++)
+          if((v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2])>1e5)
+          printf("%i %i // %lf %lf %lf // %lf %lf %lf\n",atom->tag[i],atom->type[i],x[i][0], x[i][1], x[i][2],v[i][0], v[i][1], v[i][2]);
+          error->all(FLERR,"Temperature out of range. Simulations will be abortet.\n");
   }
   return scalar;
 }
@@ -193,8 +193,8 @@ void ComputeTempPartialCuda::compute_vector()
   int i;
   if(cuda->begin_setup)
   {
-  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);    
-  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);    
+  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
+  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
 
   invoked_vector = update->ntimestep;
 
@@ -203,7 +203,7 @@ void ComputeTempPartialCuda::compute_vector()
   }
   else
   {
- 
+
   invoked_vector = update->ntimestep;
 
   double **v = atom->v;
@@ -227,7 +227,7 @@ void ComputeTempPartialCuda::compute_vector()
       t[4] += massone * xflag*zflag*v[i][0]*v[i][2];
       t[5] += massone * yflag*zflag*v[i][1]*v[i][2];
     }
-  
+
   for (i = 0; i < 6; i++) t_vector[i]=t[i];
   }
   MPI_Allreduce(t_vector,vector,6,MPI_DOUBLE,MPI_SUM,world);
@@ -268,34 +268,34 @@ void ComputeTempPartialCuda::remove_bias_all()
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
-	delete cu_vbiasall;
-	cu_vbiasall = new cCudaData<double, V_FLOAT, yx> ((double*)vbiasall, atom->nmax, 3);
+        delete cu_vbiasall;
+        cu_vbiasall = new cCudaData<double, V_FLOAT, yx> ((double*)vbiasall, atom->nmax, 3);
   }
   if(cuda->begin_setup)
   {
-  		Cuda_ComputeTempPartialCuda_RemoveBiasAll(&cuda->shared_data,groupbit,xflag,yflag,zflag,cu_vbiasall->dev_data());
+                  Cuda_ComputeTempPartialCuda_RemoveBiasAll(&cuda->shared_data,groupbit,xflag,yflag,zflag,cu_vbiasall->dev_data());
   }
   else
   {
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][0] = v[i][0];
-	v[i][0] = 0.0;
+        vbiasall[i][0] = v[i][0];
+        v[i][0] = 0.0;
       }
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][1] = v[i][1];
-	v[i][1] = 0.0;
+        vbiasall[i][1] = v[i][1];
+        v[i][1] = 0.0;
       }
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][2] = v[i][2];
-	v[i][2] = 0.0;
+        vbiasall[i][2] = v[i][2];
+        v[i][2] = 0.0;
       }
   }
   }
@@ -325,7 +325,7 @@ void ComputeTempPartialCuda::restore_bias_all()
   int nlocal = atom->nlocal;
   if(cuda->begin_setup)
   {
-  		Cuda_ComputeTempPartialCuda_RestoreBiasAll(&cuda->shared_data,groupbit,xflag,yflag,zflag,cu_vbiasall->dev_data());
+                  Cuda_ComputeTempPartialCuda_RestoreBiasAll(&cuda->shared_data,groupbit,xflag,yflag,zflag,cu_vbiasall->dev_data());
   }
   else
   {
@@ -333,17 +333,17 @@ void ComputeTempPartialCuda::restore_bias_all()
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][0] += vbiasall[i][0];
+        v[i][0] += vbiasall[i][0];
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][1] += vbiasall[i][1];
+        v[i][1] += vbiasall[i][1];
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][2] += vbiasall[i][2];
+        v[i][2] += vbiasall[i][2];
   }
   }
 }

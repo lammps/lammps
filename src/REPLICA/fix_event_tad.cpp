@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -58,7 +58,7 @@ void FixEventTAD::store_event_tad(bigint ntimestep)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixEventTAD::write_restart(FILE *fp)
@@ -78,7 +78,7 @@ void FixEventTAD::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixEventTAD::restart(char *buf)
@@ -91,5 +91,3 @@ void FixEventTAD::restart(char *buf)
   tlo = list[n++];
   ebarrier = list[n++];
 }
-
-

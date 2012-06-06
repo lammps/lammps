@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) : 
+ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
@@ -67,7 +67,7 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
   if (modify->compute[istress]->pressatomflag == 0)
     error->all(FLERR,
-	       "Compute heat/flux compute ID does not compute stress/atom");
+               "Compute heat/flux compute ID does not compute stress/atom");
 
   vector = new double[6];
 }
@@ -75,7 +75,7 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeHeatFlux::~ComputeHeatFlux()
-{ 
+{
   delete [] id_ke;
   delete [] id_pe;
   delete [] id_stress;
@@ -106,7 +106,7 @@ void ComputeHeatFlux::compute_vector()
   invoked_vector = update->ntimestep;
 
   // invoke 3 computes if they haven't been already
-  
+
   if (!(c_ke->invoked_flag & INVOKED_PERATOM)) {
     c_ke->compute_peratom();
     c_ke->invoked_flag |= INVOKED_PERATOM;
@@ -137,20 +137,20 @@ void ComputeHeatFlux::compute_vector()
   double jv[3] = {0.0,0.0,0.0};
   double eng;
 
-  for (int i = 0; i < nlocal; i++) { 
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       eng = pe[i] + ke[i];
-      jc[0] += eng*v[i][0]; 
+      jc[0] += eng*v[i][0];
       jc[1] += eng*v[i][1];
       jc[2] += eng*v[i][2];
-      jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] + 
-	stress[i][4]*v[i][2];
-      jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] + 
-	stress[i][5]*v[i][2];
-      jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] + 
-	stress[i][2]*v[i][2];
+      jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
+        stress[i][4]*v[i][2];
+      jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
+        stress[i][5]*v[i][2];
+      jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
+        stress[i][2]*v[i][2];
     }
-  } 
+  }
 
   // convert jv from stress*volume to energy units via nktv2p factor
 
@@ -162,7 +162,7 @@ void ComputeHeatFlux::compute_vector()
   // sum across all procs
   // 1st 3 terms are total heat flux
   // 2nd 3 terms are just conductive portion
-  
+
   double data[6] = {jc[0]+jv[0],jc[1]+jv[1],jc[2]+jv[2],jc[0],jc[1],jc[2]};
   MPI_Allreduce(data,vector,6,MPI_DOUBLE,MPI_SUM,world);
 }

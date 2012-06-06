@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -94,8 +94,8 @@ void PairTersoffZBLCuda::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -116,8 +116,8 @@ void PairTersoffZBLCuda::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -156,7 +156,7 @@ void PairTersoffZBLCuda::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -186,18 +186,18 @@ void PairTersoffZBLCuda::read_file(char *file)
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-	params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
-	params[nparams].d < 0.0 || params[nparams].powern < 0.0 || 
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
-	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 ||
-	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-	params[nparams].powerm - params[nparams].powermint != 0.0 ||
+        params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 ||
+        params[nparams].d < 0.0 || params[nparams].powern < 0.0 ||
+        params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
+        params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
+        params[nparams].bigd < 0.0 ||
+        params[nparams].bigd > params[nparams].bigr ||
+        params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+        params[nparams].powerm - params[nparams].powermint != 0.0 ||
         (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
-	params[nparams].gamma < 0.0 ||
-	params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
-	params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
+        params[nparams].gamma < 0.0 ||
+        params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
+        params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
       error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;

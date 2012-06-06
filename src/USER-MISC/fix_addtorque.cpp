@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -75,7 +75,7 @@ FixAddTorque::FixAddTorque(LAMMPS *lmp, int narg, char **arg) :
     zvalue = atof(arg[5]);
     zstyle = CONSTANT;
   }
-  
+
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 }
@@ -167,7 +167,7 @@ void FixAddTorque::post_force(int vflag)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
   double mvv2e = force->mvv2e;
-  
+
   int xbox,ybox,zbox;
   double dx,dy,dz,vx,vy,vz,fx,fy,fz,massone,omegadotr;
   double xprd = domain->xprd;
@@ -180,7 +180,7 @@ void FixAddTorque::post_force(int vflag)
   // foriginal[123] = torque on atoms before extra force added
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
   force_flag = 0;
-  
+
   if (varflag == EQUAL) {
     // variable torque, wrap with clear/add
     modify->clearstep_compute();
@@ -189,7 +189,7 @@ void FixAddTorque::post_force(int vflag)
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
     modify->addstep_compute(update->ntimestep + 1);
   }
-  
+
   atom->check_mass();
   double masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
@@ -214,12 +214,12 @@ void FixAddTorque::post_force(int vflag)
       tlocal[2] += massone * omegadotr * (dx*omega[1] - dy*omega[0]);
     }
   MPI_Allreduce(tlocal,itorque,3,MPI_DOUBLE,MPI_SUM,world);
-  
+
   tcm[0] = xvalue - mvv2e*itorque[0];
   tcm[1] = yvalue - mvv2e*itorque[1];
   tcm[2] = zvalue - mvv2e*itorque[2];
   group->omega(tcm,inertia,domegadt);
-  
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       xbox = (image[i] & 1023) - 512;
@@ -236,7 +236,7 @@ void FixAddTorque::post_force(int vflag)
       fx = massone * (dz*domegadt[1]-dy*domegadt[2] + vz*omega[1]-vy*omega[2]);
       fy = massone * (dx*domegadt[2]-dz*domegadt[0] + vx*omega[2]-vz*omega[0]);
       fz = massone * (dy*domegadt[0]-dx*domegadt[1] + vy*omega[0]-vx*omega[1]);
-      
+
       // potential energy = - x dot f
       foriginal[0] -= fx*x[i][0] + fy*x[i][1] + fz*x[i][2];
       foriginal[1] += dy*f[i][2] - dz*f[i][1];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -38,7 +38,7 @@ FixNVEAsphereNoforce::FixNVEAsphereNoforce(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!atom->ellipsoid_flag) 
+  if (!atom->ellipsoid_flag)
     error->all(FLERR,"Fix nve/asphere/noforce requires atom style ellipsoid");
 }
 
@@ -59,7 +59,7 @@ void FixNVEAsphereNoforce::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one(FLERR,"Fix nve/asphere/noforce requires extended particles");
+        error->one(FLERR,"Fix nve/asphere/noforce requires extended particles");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,15 +94,15 @@ void FixNVEAsphereNoforce::initial_integrate(int vflag)
 
       shape = bonus[ellipsoid[i]].shape;
       quat = bonus[ellipsoid[i]].quat;
-	
+
       inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
       inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
       inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
-      
+
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration
       // returns new normalized quaternion
-      
+
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
       MathExtra::richardson(quat,angmom[i],omega,inertia,dtq);
     }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,7 +45,7 @@ enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
 /* ----------------------------------------------------------------------
-   NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion 
+   NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
 FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
@@ -76,7 +76,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   deviatoric_flag = 0;
   nreset_h0 = 0;
 
-  // Used by FixNVTSllod to preserve non-default value  
+  // Used by FixNVTSllod to preserve non-default value
 
   mtchain_default_flag = 1;
 
@@ -103,7 +103,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)
-	error->all(FLERR,"Target T for fix nvt/npt/nph cannot be 0.0");
+        error->all(FLERR,"Target T for fix nvt/npt/nph cannot be 0.0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
@@ -114,10 +114,10 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = NONE;
@@ -126,8 +126,8 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"tri") == 0) {
@@ -142,12 +142,12 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[3] = p_period[4] = p_period[5] = atof(arg[iarg+3]);
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
-	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	p_flag[2] = 0;
-	p_start[3] = p_stop[3] = p_period[3] = 0.0;
-	p_flag[3] = 0;
-	p_start[4] = p_stop[4] = p_period[4] = 0.0;
-	p_flag[4] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
+        p_start[3] = p_stop[3] = p_period[3] = 0.0;
+        p_flag[3] = 0;
+        p_start[4] = p_stop[4] = p_period[4] = 0.0;
+        p_flag[4] = 0;
       }
       iarg += 4;
 
@@ -158,7 +158,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[0] = atof(arg[iarg+3]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       p_start[1] = atof(arg[iarg+1]);
@@ -166,7 +166,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[1] = atof(arg[iarg+3]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       p_start[2] = atof(arg[iarg+1]);
@@ -174,9 +174,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[2] = atof(arg[iarg+3]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -185,9 +185,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[3] = atof(arg[iarg+3]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       p_start[4] = atof(arg[iarg+1]);
@@ -195,9 +195,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[4] = atof(arg[iarg+3]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
+        error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       p_start[5] = atof(arg[iarg+1]);
@@ -205,7 +205,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       p_period[5] = atof(arg[iarg+3]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
-      iarg += 4; 
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -293,38 +293,38 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (p_flag[5] && domain->yperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension");
 
-  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
+  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
     error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
-	       "fix nvt/npt/nph with non-triclinic box");
+               "fix nvt/npt/nph with non-triclinic box");
 
   if (pcouple == XYZ && dimension == 3 &&
-      (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 
-       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] || 
+      (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
+       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
   if (pcouple == XYZ && dimension == 2 &&
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == XY && 
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+  if (pcouple == XY &&
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == YZ && 
+  if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
-  if (pcouple == XZ && 
+  if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix nvt/npt/nph pressure settings");
 
-  if ((tstat_flag && t_period <= 0.0) || 
-      (p_flag[0] && p_period[0] <= 0.0) || 
-      (p_flag[1] && p_period[1] <= 0.0) || 
+  if ((tstat_flag && t_period <= 0.0) ||
+      (p_flag[0] && p_period[0] <= 0.0) ||
+      (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0) ||
-      (p_flag[3] && p_period[3] <= 0.0) || 
-      (p_flag[4] && p_period[4] <= 0.0) || 
+      (p_flag[3] && p_period[3] <= 0.0) ||
+      (p_flag[4] && p_period[4] <= 0.0) ||
       (p_flag[5] && p_period[5] <= 0.0))
     error->all(FLERR,"Fix nvt/npt/nph damping parameters must be > 0.0");
 
@@ -393,7 +393,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (pstyle == ISO) size_vector += 2*2*1;
     else if (pstyle == ANISO) size_vector += 2*2*3;
     else if (pstyle == TRICLINIC) size_vector += 2*2*6;
-    
+
     if (mpchain) {
       int ich;
       etap = new double[mpchain];
@@ -404,8 +404,8 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       etap_dot[mpchain] = 0.0;
       etap_dotdot = new double[mpchain];
       for (ich = 0; ich < mpchain; ich++) {
-	etap[ich] = etap_dot[ich] = 
-	  etap_dotdot[ich] = 0.0;
+        etap[ich] = etap_dot[ich] =
+          etap_dotdot[ich] = 0.0;
       }
       etap_mass = new double[mpchain];
       size_vector += 2*2*mpchain;
@@ -422,9 +422,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   vol0 = t0 = 0.0;
 }
-  
+
 /* ---------------------------------------------------------------------- */
-  
+
 FixNHCuda::~FixNHCuda()
 {
   delete [] rfix;
@@ -475,18 +475,18 @@ void FixNHCuda::init()
   if (pstat_flag)
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-	int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-	if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
-	    (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) || 
-	    (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-	  error->all(FLERR,"Cannot use fix npt and fix deform on "
-		     "same component of stress tensor");
+        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+            (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
+            (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
+          error->all(FLERR,"Cannot use fix npt and fix deform on "
+                     "same component of stress tensor");
       }
 
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix nvt/nph/npt does not exist");
   temperature = modify->compute[icompute];
 
@@ -524,7 +524,7 @@ void FixNHCuda::init()
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
 
   // tally the number of dimensions that are barostatted
-  // also compute the initial volume and reference cell  
+  // also compute the initial volume and reference cell
   // set initial volume and reference cell, if not already done
 
   if (pstat_flag) {
@@ -571,11 +571,11 @@ void FixNHCuda::init()
   triggerneighsq= cuda->shared_data.atom.triggerneighsq;
   cuda->neighbor_decide_by_integrator=1;
   Cuda_FixNHCuda_Init(&cuda->shared_data,dtv,dtf);
-  
+
 }
 
 /* ----------------------------------------------------------------------
-   compute T,P before integrator starts 
+   compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
 void FixNHCuda::setup(int vflag)
@@ -588,7 +588,7 @@ void FixNHCuda::setup(int vflag)
 
   // t_target is used by compute_scalar(), even for NPH
 
-  if (tstat_flag) t_target = t_start;                      
+  if (tstat_flag) t_target = t_start;
   else if (pstat_flag) {
 
     // t0 = initial value for piston mass and energy conservation
@@ -600,8 +600,8 @@ void FixNHCuda::setup(int vflag)
     if (t0 == 0.0) {
       t0 = temperature->compute_scalar();
       if (t0 == 0.0) {
-	if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
-	else t0 = 300.0;
+        if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
+        else t0 = 300.0;
       }
     }
     t_target = t0;
@@ -625,7 +625,7 @@ void FixNHCuda::setup(int vflag)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
     for (int ich = 1; ich < mtchain; ich++) {
       eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
-			 boltz*t_target) / eta_mass[ich];
+                         boltz*t_target) / eta_mass[ich];
     }
   }
 
@@ -635,11 +635,11 @@ void FixNHCuda::setup(int vflag)
 
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
-	omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+        omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
 
     if (pstyle == TRICLINIC) {
       for (int i = 3; i < 6; i++)
-	if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
+        if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
     }
 
   // initial forces on barostat thermostat variables
@@ -647,11 +647,11 @@ void FixNHCuda::setup(int vflag)
     if (mpchain) {
       etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
       for (int ich = 1; ich < mpchain; ich++)
-	etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
+        etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
       for (int ich = 1; ich < mpchain; ich++)
-	etap_dotdot[ich] = 
-	  (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
-	   boltz*t_target) / etap_mass[ich];
+        etap_dotdot[ich] =
+          (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
+           boltz*t_target) / etap_mass[ich];
     }
 
     // compute appropriately coupled elements of mvv_current
@@ -661,17 +661,17 @@ void FixNHCuda::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   1st half of Verlet update 
+   1st half of Verlet update
 ------------------------------------------------------------------------- */
 
 void FixNHCuda::initial_integrate(int vflag)
 {
   if(!temperature->cudable) cuda->downloadAll();
 
-  if(triggerneighsq!=cuda->shared_data.atom.triggerneighsq) 
+  if(triggerneighsq!=cuda->shared_data.atom.triggerneighsq)
   {
-	triggerneighsq= cuda->shared_data.atom.triggerneighsq;
-	Cuda_FixNHCuda_Init(&cuda->shared_data,dtv,dtf);
+        triggerneighsq= cuda->shared_data.atom.triggerneighsq;
+        Cuda_FixNHCuda_Init(&cuda->shared_data,dtv,dtf);
   }
 
   // update eta_press_dot
@@ -713,8 +713,8 @@ void FixNHCuda::initial_integrate(int vflag)
       compute_press_target();
       nh_omega_dot();
       factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
-  	  factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
-  	  factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
+            factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
+            factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
       Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(&cuda->shared_data, groupbit, factor,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal,(pstyle == TRICLINIC)?1:0);
     }
     else
@@ -722,28 +722,28 @@ void FixNHCuda::initial_integrate(int vflag)
   }
   else if(which==BIAS)
   {
-  	if(pstat_flag)
-  	{
+          if(pstat_flag)
+          {
       compute_press_target();
       nh_omega_dot();
-  	  factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
-  	  factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
-  	  factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
-  	  if(!temperature->cudable) 
-  	  {
-  	  	nh_v_press();
-  	  	cuda->cu_v->upload();
-  	  }
-  	  else
-  	  {
-   	    int groupbit_org=temperature->groupbit;
-   	    temperature->groupbit=groupbit;	
-  	    temperature->remove_bias_all();
+            factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
+            factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
+            factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
+            if(!temperature->cudable)
+            {
+                    nh_v_press();
+                    cuda->cu_v->upload();
+            }
+            else
+            {
+               int groupbit_org=temperature->groupbit;
+               temperature->groupbit=groupbit;
+              temperature->remove_bias_all();
         Cuda_FixNHCuda_nh_v_press(&cuda->shared_data, groupbit, factor,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal,(pstyle == TRICLINIC)?1:0);
-  	    temperature->restore_bias_all();
-    	temperature->groupbit=groupbit_org;
-  	  }
-  	}
+              temperature->restore_bias_all();
+            temperature->groupbit=groupbit_org;
+            }
+          }
     Cuda_FixNHCuda_nve_v(&cuda->shared_data,groupbit,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
   }
 
@@ -763,7 +763,7 @@ void FixNHCuda::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   2nd half of Verlet update 
+   2nd half of Verlet update
 ------------------------------------------------------------------------- */
 
 void FixNHCuda::final_integrate()
@@ -786,33 +786,33 @@ void FixNHCuda::final_integrate()
   else if(which==BIAS)
   {
     Cuda_FixNHCuda_nve_v(&cuda->shared_data,groupbit,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
-    	
-  	if(pstat_flag)
-  	{
+
+          if(pstat_flag)
+          {
       factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
       factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
       factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
-  	  if(!temperature->cudable) 
-  	  {
-  	  	cuda->cu_v->download();
-  	  	nh_v_press();
-  	  	cuda->cu_v->upload();
-  	  }
-  	  else
-  	  {
-    	int groupbit_org=temperature->groupbit;
-    	temperature->groupbit=groupbit;
- 	    temperature->remove_bias_all();
+            if(!temperature->cudable)
+            {
+                    cuda->cu_v->download();
+                    nh_v_press();
+                    cuda->cu_v->upload();
+            }
+            else
+            {
+            int groupbit_org=temperature->groupbit;
+            temperature->groupbit=groupbit;
+             temperature->remove_bias_all();
         Cuda_FixNHCuda_nh_v_press(&cuda->shared_data, groupbit, factor,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal,(pstyle == TRICLINIC)?1:0);
-  	    temperature->restore_bias_all();
-    	temperature->groupbit=groupbit_org;
-  	  }
-  	}
+              temperature->restore_bias_all();
+            temperature->groupbit=groupbit_org;
+            }
+          }
   }
   // compute new T,P
   // compute appropriately coupled elements of mvv_current
 
-  if(!temperature->cudable)	cuda->cu_v->download();
+  if(!temperature->cudable)        cuda->cu_v->download();
   t_current = temperature->compute_scalar();
   if (pstat_flag) {
     if (pstyle == ISO) double tmp = pressure->compute_scalar();
@@ -849,7 +849,7 @@ void FixNHCuda::initial_integrate_respa(int vflag, int ilevel, int iloop)
   if (ilevel == nlevels_respa-1) {
 
     // update eta_press_dot
-    
+
     if (pstat_flag && mpchain) nhc_press_integrate();
 
     // update eta_dot
@@ -860,7 +860,7 @@ void FixNHCuda::initial_integrate_respa(int vflag, int ilevel, int iloop)
       t_target = t_start + delta * (t_stop-t_start);
       eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
       for (int ich = 1; ich < mtchain; ich++)
-	eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
+        eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
       nhc_temp_integrate();
     }
 
@@ -870,17 +870,17 @@ void FixNHCuda::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
     if (pstat_flag) {
       if (pstyle == ISO) {
-	temperature->compute_scalar();
-	double tmp = pressure->compute_scalar();
+        temperature->compute_scalar();
+        double tmp = pressure->compute_scalar();
       } else {
-       	temperature->compute_vector();
-	pressure->compute_vector();
+               temperature->compute_vector();
+        pressure->compute_vector();
       }
       couple();
       pressure->addstep(update->ntimestep+1);
       if (mtk_flag) couple_ke();
     }
-    
+
     if (pstat_flag) {
       compute_press_target();
       nh_omega_dot();
@@ -900,10 +900,10 @@ void FixNHCuda::initial_integrate_respa(int vflag, int ilevel, int iloop)
     if (pstat_flag) remap();
   }
 
-  // if barostat, redo KSpace coeffs at outermost level, 
+  // if barostat, redo KSpace coeffs at outermost level,
   // since volume has changed
 
-  if (ilevel == nlevels_respa-1 && kspace_flag && pstat_flag) 
+  if (ilevel == nlevels_respa-1 && kspace_flag && pstat_flag)
     force->kspace->setup();
 }
 
@@ -951,9 +951,9 @@ void FixNHCuda::couple()
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];
   }
-  
-  // switch order from xy-xz-yz to Voigt 
-  
+
+  // switch order from xy-xz-yz to Voigt
+
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
     p_current[4] = tensor[4];
@@ -967,7 +967,7 @@ void FixNHCuda::couple_ke()
 {
   double *tensor = temperature->vector;
   if (pstyle == ISO)
-    mvv_current[0] = mvv_current[1] = mvv_current[2] = 
+    mvv_current[0] = mvv_current[1] = mvv_current[2] =
       tdof * boltz * t_current/dimension;
   else if (pcouple == XYZ) {
     double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
@@ -1016,7 +1016,7 @@ void FixNHCuda::remap()
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->x2lamda(x[i],x[i]);
+        domain->x2lamda(x[i],x[i]);
   }
 
   if (nrigid)
@@ -1026,16 +1026,16 @@ void FixNHCuda::remap()
   // reset global and local box to new size/shape
 
   // This operation corresponds to applying the
-  // translate and scale operations 
+  // translate and scale operations
   // corresponding to the solution of the following ODE:
   //
   // h_dot = omega_dot * h
   //
   // where h_dot, omega_dot and h are all upper-triangular
-  // 3x3 tensors. In Voigt notation, the elements of the 
+  // 3x3 tensors. In Voigt notation, the elements of the
   // RHS product tensor are:
   // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
-  // 
+  //
   // Ordering of operations preserves time symmetry.
 
   double dto2 = dto/2.0;
@@ -1045,19 +1045,19 @@ void FixNHCuda::remap()
   if (pstyle == TRICLINIC) {
 
     h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]);
     h[4] *= exp(dto8*omega_dot[0]);
 
     h[3] *= exp(dto4*omega_dot[1]);
-    h[3] += dto2*(omega_dot[3]*h[2]); 
+    h[3] += dto2*(omega_dot[3]*h[2]);
     h[3] *= exp(dto4*omega_dot[1]);
 
     h[5] *= exp(dto4*omega_dot[0]);
-    h[5] += dto2*(omega_dot[5]*h[1]); 
+    h[5] += dto2*(omega_dot[5]*h[1]);
     h[5] *= exp(dto4*omega_dot[0]);
 
     h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]);
     h[4] *= exp(dto8*omega_dot[0]);
 
   }
@@ -1075,19 +1075,19 @@ void FixNHCuda::remap()
   if (pstyle == TRICLINIC) {
 
     h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]);
     h[4] *= exp(dto8*omega_dot[0]);
 
     h[3] *= exp(dto4*omega_dot[1]);
-    h[3] += dto2*(omega_dot[3]*h[2]); 
+    h[3] += dto2*(omega_dot[3]*h[2]);
     h[3] *= exp(dto4*omega_dot[1]);
 
     h[5] *= exp(dto4*omega_dot[0]);
-    h[5] += dto2*(omega_dot[5]*h[1]); 
+    h[5] += dto2*(omega_dot[5]*h[1]);
     h[5] *= exp(dto4*omega_dot[0]);
 
     h[4] *= exp(dto8*omega_dot[0]);
-    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]); 
+    h[4] += dto4*(omega_dot[5]*h[3]+omega_dot[4]*h[2]);
     h[4] *= exp(dto8*omega_dot[0]);
 
     domain->yz = h[3];
@@ -1095,10 +1095,10 @@ void FixNHCuda::remap()
     domain->xy = h[5];
 
     if (domain->yz < -0.5*domain->yprd || domain->yz > 0.5*domain->yprd ||
-	domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
-	domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
+        domain->xz < -0.5*domain->xprd || domain->xz > 0.5*domain->xprd ||
+        domain->xy < -0.5*domain->xprd || domain->xy > 0.5*domain->xprd)
       error->all(FLERR,"Fix npt/nph has tilted box too far - "
-		 "box flips are not yet implemented");
+                 "box flips are not yet implemented");
   }
 
   domain->set_global_box();
@@ -1110,7 +1110,7 @@ void FixNHCuda::remap()
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->lamda2x(x[i],x[i]);
+        domain->lamda2x(x[i],x[i]);
   }
 
   if (nrigid)
@@ -1119,7 +1119,7 @@ void FixNHCuda::remap()
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixNHCuda::write_restart(FILE *fp)
@@ -1163,9 +1163,9 @@ void FixNHCuda::write_restart(FILE *fp)
     list[n++] = mpchain;
     if (mpchain) {
       for (int ich = 0; ich < mpchain; ich++)
-	list[n++] = etap[ich];
+        list[n++] = etap[ich];
       for (int ich = 0; ich < mpchain; ich++)
-	list[n++] = etap_dot[ich];
+        list[n++] = etap_dot[ich];
     }
 
     list[n++] = deviatoric_flag;
@@ -1189,7 +1189,7 @@ void FixNHCuda::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixNHCuda::restart(char *buf)
@@ -1201,9 +1201,9 @@ void FixNHCuda::restart(char *buf)
     int m = static_cast<int> (list[n++]);
     if (tstat_flag && m == mtchain) {
       for (int ich = 0; ich < mtchain; ich++)
-	eta[ich] = list[n++];
+        eta[ich] = list[n++];
       for (int ich = 0; ich < mtchain; ich++)
-	eta_dot[ich] = list[n++];
+        eta_dot[ich] = list[n++];
     } else n += 2*m;
   }
   flag = static_cast<int> (list[n++]);
@@ -1225,9 +1225,9 @@ void FixNHCuda::restart(char *buf)
     int m = static_cast<int> (list[n++]);
     if (pstat_flag && m == mpchain) {
       for (int ich = 0; ich < mpchain; ich++)
-	etap[ich] = list[n++];
+        etap[ich] = list[n++];
       for (int ich = 0; ich < mpchain; ich++)
-	etap_dot[ich] = list[n++];
+        etap_dot[ich] = list[n++];
     } else n+=2*m;
     flag = static_cast<int> (list[n++]);
     if (flag) {
@@ -1269,8 +1269,8 @@ int FixNHCuda::modify_param(int narg, char **arg)
 
     if (pstat_flag) {
       icompute = modify->find_compute(id_press);
-      if (icompute < 0) 
-	error->all(FLERR,"Pressure ID for fix modify does not exist");
+      if (icompute < 0)
+        error->all(FLERR,"Pressure ID for fix modify does not exist");
       modify->compute[icompute]->reset_extra_compute_fix(id_temp);
     }
 
@@ -1323,7 +1323,7 @@ double FixNHCuda::compute_scalar()
   //       M = mtchain
   //       p_eta_k = Q_k*eta_dot[k-1]
   //       Q_1 = L*k*T/t_freq^2
-  //       Q_k = k*T/t_freq^2, k > 1 
+  //       Q_k = k*T/t_freq^2, k > 1
 
   if (tstat_flag) {
     energy += lkt * eta[0] + 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
@@ -1339,16 +1339,16 @@ double FixNHCuda::compute_scalar()
   //       W = N*k*T/p_freq^2
   //       sum is over barostatted dimensions
 
-  if (pstat_flag) { 
+  if (pstat_flag) {
     for (i = 0; i < 3; i++)
       if (p_flag[i])
-	energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +
-	  p_hydro*(volume-vol0) / (pdim*nktv2p);
+        energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i] +
+          p_hydro*(volume-vol0) / (pdim*nktv2p);
 
     if (pstyle == TRICLINIC) {
       for (i = 3; i < 6; i++)
-	if (p_flag[i])
-	  energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i]; 
+        if (p_flag[i])
+          energy += 0.5*omega_dot[i]*omega_dot[i]*omega_mass[i];
     }
 
     // extra contributions from thermostat chain for barostat
@@ -1356,8 +1356,8 @@ double FixNHCuda::compute_scalar()
     if (mpchain) {
       energy += lkt_press * etap[0] + 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
       for (ich = 1; ich < mpchain; ich++)
-	energy += kt * etap[ich] + 
-	  0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+        energy += kt * etap[ich] +
+          0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
     }
 
     // extra contribution from strain energy
@@ -1383,7 +1383,7 @@ double FixNHCuda::compute_vector(int n)
 {
   int ilen;
 
-  if (tstat_flag) { 
+  if (tstat_flag) {
     ilen = mtchain;
     if (n < ilen) return eta[n];
     n -= ilen;
@@ -1392,7 +1392,7 @@ double FixNHCuda::compute_vector(int n)
     n -= ilen;
   }
 
-  if (pstat_flag) { 
+  if (pstat_flag) {
     if (pstyle == ISO) {
       ilen = 1;
       if (n < ilen) return omega[n];
@@ -1406,7 +1406,7 @@ double FixNHCuda::compute_vector(int n)
       if (n < ilen) return omega[n];
       n -= ilen;
     }
-    
+
     if (pstyle == ISO) {
       ilen = 1;
       if (n < ilen) return omega_dot[n];
@@ -1420,7 +1420,7 @@ double FixNHCuda::compute_vector(int n)
       if (n < ilen) return omega_dot[n];
       n -= ilen;
     }
-    
+
     if (mpchain) {
       ilen = mpchain;
       if (n < ilen) return etap[n];
@@ -1440,88 +1440,88 @@ double FixNHCuda::compute_vector(int n)
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
   else volume = domain->xprd * domain->yprd;
 
-  if (tstat_flag) { 
+  if (tstat_flag) {
     ilen = mtchain;
-    if (n < ilen) { 
+    if (n < ilen) {
       ich = n;
       if (ich == 0)
-	return lkt * eta[0];
+        return lkt * eta[0];
       else
-	return kt * eta[ich];
+        return kt * eta[ich];
     }
     n -= ilen;
     ilen = mtchain;
     if (n < ilen) {
       ich = n;
       if (ich == 0)
-	return 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
+        return 0.5*eta_mass[0]*eta_dot[0]*eta_dot[0];
       else
-	return 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
+        return 0.5*eta_mass[ich]*eta_dot[ich]*eta_dot[ich];
     }
     n -= ilen;
   }
 
-  if (pstat_flag) { 
+  if (pstat_flag) {
     if (pstyle == ISO) {
       ilen = 1;
-      if (n < ilen) 
-	return p_hydro*(volume-vol0) / nktv2p;
+      if (n < ilen)
+        return p_hydro*(volume-vol0) / nktv2p;
       n -= ilen;
     } else if (pstyle == ANISO) {
       ilen = 3;
-      if (n < ilen) 
-	if (p_flag[n])
-	  return p_hydro*(volume-vol0) / (pdim*nktv2p);
-	else
-	  return 0.0;
+      if (n < ilen)
+        if (p_flag[n])
+          return p_hydro*(volume-vol0) / (pdim*nktv2p);
+        else
+          return 0.0;
       n -= ilen;
     } else {
       ilen = 6;
       if (n < ilen)
-	if (n > 2) return 0.0;
-	else if (p_flag[n])
-	  return p_hydro*(volume-vol0) / (pdim*nktv2p);
-	else
-	  return 0.0;
+        if (n > 2) return 0.0;
+        else if (p_flag[n])
+          return p_hydro*(volume-vol0) / (pdim*nktv2p);
+        else
+          return 0.0;
       n -= ilen;
     }
-    
+
     if (pstyle == ISO) {
       ilen = 1;
-      if (n < ilen) 
-	return pdim*0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+      if (n < ilen)
+        return pdim*0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
       n -= ilen;
     } else if (pstyle == ANISO) {
       ilen = 3;
-      if (n < ilen) 
-	if (p_flag[n])
-	  return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
-	else return 0.0;
+      if (n < ilen)
+        if (p_flag[n])
+          return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+        else return 0.0;
       n -= ilen;
     } else {
       ilen = 6;
       if (n < ilen)
-	if (p_flag[n])
-	  return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
-	else return 0.0;
+        if (p_flag[n])
+          return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
+        else return 0.0;
       n -= ilen;
     }
-    
+
     if (mpchain) {
       ilen = mpchain;
       if (n < ilen) {
-	ich = n;
-	if (ich == 0) return lkt_press * etap[0];
-	else return kt * etap[ich];
+        ich = n;
+        if (ich == 0) return lkt_press * etap[0];
+        else return kt * etap[ich];
       }
       n -= ilen;
       ilen = mpchain;
       if (n < ilen) {
-	ich = n;
-	if (ich == 0)
-	  return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
-	else
-	  return 0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+        ich = n;
+        if (ich == 0)
+          return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
+        else
+          return 0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
       }
       n -= ilen;
     }
@@ -1529,7 +1529,7 @@ double FixNHCuda::compute_vector(int n)
     if (deviatoric_flag) {
       ilen = 1;
       if (n < ilen)
-	return compute_strain_energy();
+        return compute_strain_energy();
       n -= ilen;
     }
   }
@@ -1549,10 +1549,10 @@ void FixNHCuda::reset_dt()
   dto = dthalf;
 
   // If using respa, then remap is performed in innermost level
-  
+
   if (strcmp(update->integrate_style,"respa") == 0)
     dto = 0.5*step_respa[0];
-  
+
   p_freq_max = 0.0;
   if (pstat_flag) {
     p_freq_max = MAX(p_freq[0],p_freq[1]);
@@ -1598,48 +1598,48 @@ void FixNHCuda::nhc_temp_integrate()
     eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
     eta_dot[0] *= tdrag_factor;
     eta_dot[0] *= expfac;
-    
+
     factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
-	if(which==NOBIAS)
-	Cuda_FixNHCuda_nh_v_temp(&cuda->shared_data,groupbit,factor_eta,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
+        if(which==NOBIAS)
+        Cuda_FixNHCuda_nh_v_temp(&cuda->shared_data,groupbit,factor_eta,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
     else if(which==BIAS)
     {
-    	if(!temperature->cudable)
-    	{
-    		cuda->downloadAll();
-			nh_v_temp();
-			cuda->cu_v->upload();
-    	}
-    	else
-    	{
-    	   int groupbit_org=temperature->groupbit;
-    	   temperature->groupbit=groupbit;
-    	   temperature->remove_bias_all();
-			Cuda_FixNHCuda_nh_v_temp(&cuda->shared_data,groupbit,factor_eta,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
-    	   temperature->restore_bias_all();
-    	   temperature->groupbit=groupbit_org;
-    	}
-    		
+            if(!temperature->cudable)
+            {
+                    cuda->downloadAll();
+                        nh_v_temp();
+                        cuda->cu_v->upload();
+            }
+            else
+            {
+               int groupbit_org=temperature->groupbit;
+               temperature->groupbit=groupbit;
+               temperature->remove_bias_all();
+                        Cuda_FixNHCuda_nh_v_temp(&cuda->shared_data,groupbit,factor_eta,(igroup == atom->firstgroup)?atom->nfirst:atom->nlocal);
+               temperature->restore_bias_all();
+               temperature->groupbit=groupbit_org;
+            }
+
     }
     // rescale temperature due to velocity scaling
-    // should not be necessary to explicitly recompute the temperature 
+    // should not be necessary to explicitly recompute the temperature
 
     t_current *= factor_eta*factor_eta;
     kecurrent = tdof * boltz * t_current;
     eta_dotdot[0] = (kecurrent - lkt)/eta_mass[0];
-    
+
     for (ich = 0; ich < mtchain; ich++)
       eta[ich] += ncfac*dthalf*eta_dot[ich];
-    
+
     eta_dot[0] *= expfac;
     eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
     eta_dot[0] *= expfac;
-    
+
     for (ich = 1; ich < mtchain; ich++) {
       expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
       eta_dot[ich] *= expfac;
-      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] 
-			 - boltz * t_target)/eta_mass[ich];
+      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1]
+                         - boltz * t_target)/eta_mass[ich];
       eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
       eta_dot[ich] *= expfac;
     }
@@ -1663,7 +1663,7 @@ void FixNHCuda::nhc_press_integrate()
     if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
 
   if (pstyle == TRICLINIC) {
-    for (i = 3; i < 6; i++) 
+    for (i = 3; i < 6; i++)
       if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
   }
 
@@ -1679,46 +1679,46 @@ void FixNHCuda::nhc_press_integrate()
       etap_dot[ich] *= pdrag_factor;
       etap_dot[ich] *= expfac;
     }
-    
+
     expfac = exp(-ncfac*dt8*etap_dot[1]);
     etap_dot[0] *= expfac;
     etap_dot[0] += etap_dotdot[0] * ncfac*dt4;
     etap_dot[0] *= pdrag_factor;
     etap_dot[0] *= expfac;
-    
+
     for (ich = 0; ich < mpchain; ich++)
       etap[ich] += ncfac*dthalf*etap_dot[ich];
-    
+
     factor_etap = exp(-ncfac*dthalf*etap_dot[0]);
     for (i = 0; i < 3; i++)
       if (p_flag[i]) omega_dot[i] *= factor_etap;
-    
+
     if (pstyle == TRICLINIC) {
       for (i = 3; i < 6; i++)
-	if (p_flag[i]) omega_dot[i] *= factor_etap;
+        if (p_flag[i]) omega_dot[i] *= factor_etap;
     }
-    
+
     kecurrent = 0.0;
     for (i = 0; i < 3; i++)
       if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
-    
+
     if (pstyle == TRICLINIC) {
-      for (i = 3; i < 6; i++) 
-	if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
+      for (i = 3; i < 6; i++)
+        if (p_flag[i]) kecurrent += omega_mass[i]*omega_dot[i]*omega_dot[i];
     }
-    
+
     etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
-    
+
     etap_dot[0] *= expfac;
     etap_dot[0] += etap_dotdot[0] * ncfac*dt4;
     etap_dot[0] *= expfac;
-    
+
     for (ich = 1; ich < mpchain; ich++) {
       expfac = exp(-ncfac*dt8*etap_dot[ich+1]);
       etap_dot[ich] *= expfac;
-      etap_dotdot[ich] = 
-	(etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] - boltz*t_target) / 
-	etap_mass[ich];
+      etap_dotdot[ich] =
+        (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] - boltz*t_target) /
+        etap_mass[ich];
       etap_dot[ich] += etap_dotdot[ich] * ncfac*dt4;
       etap_dot[ich] *= expfac;
     }
@@ -1744,33 +1744,33 @@ void FixNHCuda::nh_v_press()
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	v[i][0] *= factor[0];
-	v[i][1] *= factor[1];
-	v[i][2] *= factor[2];
-	if (pstyle == TRICLINIC) {
-	  v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
-	  v[i][1] += -dthalf*v[i][2]*omega_dot[3];
-	}
-	v[i][0] *= factor[0];
-	v[i][1] *= factor[1];
-	v[i][2] *= factor[2];
+        v[i][0] *= factor[0];
+        v[i][1] *= factor[1];
+        v[i][2] *= factor[2];
+        if (pstyle == TRICLINIC) {
+          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+        }
+        v[i][0] *= factor[0];
+        v[i][1] *= factor[1];
+        v[i][2] *= factor[2];
       }
     }
   } else if (which == BIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	v[i][0] *= factor[0];
-	v[i][1] *= factor[1];
-	v[i][2] *= factor[2];
-	if (pstyle == TRICLINIC) {
-	  v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
-	  v[i][1] += -dthalf*v[i][2]*omega_dot[3];
-	}
-	v[i][0] *= factor[0];
-	v[i][1] *= factor[1];
-	v[i][2] *= factor[2];
-	temperature->restore_bias(i,v[i]);
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= factor[0];
+        v[i][1] *= factor[1];
+        v[i][2] *= factor[2];
+        if (pstyle == TRICLINIC) {
+          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+        }
+        v[i][0] *= factor[0];
+        v[i][1] *= factor[1];
+        v[i][2] *= factor[2];
+        temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -1795,19 +1795,19 @@ void FixNHCuda::nve_v()
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+        dtfm = dtf / rmass[i];
+        v[i][0] += dtfm*f[i][0];
+        v[i][1] += dtfm*f[i][1];
+        v[i][2] += dtfm*f[i][2];
       }
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm*f[i][0];
-	v[i][1] += dtfm*f[i][1];
-	v[i][2] += dtfm*f[i][2];
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm*f[i][0];
+        v[i][1] += dtfm*f[i][1];
+        v[i][2] += dtfm*f[i][2];
       }
     }
   }
@@ -1850,24 +1850,24 @@ void FixNHCuda::nh_v_temp()
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	v[i][0] *= factor_eta;
-	v[i][1] *= factor_eta;
-	v[i][2] *= factor_eta;
+        v[i][0] *= factor_eta;
+        v[i][1] *= factor_eta;
+        v[i][2] *= factor_eta;
       }
     }
   } else if (which == BIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	v[i][0] *= factor_eta;
-	v[i][1] *= factor_eta;
-	v[i][2] *= factor_eta;
-	temperature->restore_bias(i,v[i]);
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= factor_eta;
+        v[i][1] *= factor_eta;
+        v[i][2] *= factor_eta;
+        temperature->restore_bias(i,v[i]);
       }
     }
   }
 }
-  
+
 /* ----------------------------------------------------------------------
    compute sigma tensor
    needed whenever p_target or h0_inv changes
@@ -1875,7 +1875,7 @@ void FixNHCuda::nh_v_temp()
 
 void FixNHCuda::compute_sigma()
 {
-  // if nreset_h0 > 0, reset vol0 and h0_inv 
+  // if nreset_h0 > 0, reset vol0 and h0_inv
   // every nreset_h0 timesteps
 
   if (nreset_h0 > 0) {
@@ -1894,37 +1894,37 @@ void FixNHCuda::compute_sigma()
 
   // generate upper-triangular half of
   // sigma = vol0*h0inv*(p_target-p_hydro)*h0inv^t
-  // units of sigma are are PV/L^2 e.g. atm.A 
+  // units of sigma are are PV/L^2 e.g. atm.A
   //
   // [ 0 5 4 ]   [ 0 5 4 ] [ 0 5 4 ] [ 0 - - ]
   // [ 5 1 3 ] = [ - 1 3 ] [ 5 1 3 ] [ 5 1 - ]
   // [ 4 3 2 ]   [ - - 2 ] [ 4 3 2 ] [ 4 3 2 ]
 
-  sigma[0] = 
+  sigma[0] =
     vol0*(h0_inv[0]*((p_target[0]-p_hydro)*h0_inv[0] +
-		     p_target[5]*h0_inv[5]+p_target[4]*h0_inv[4]) +
-	  h0_inv[5]*(p_target[5]*h0_inv[0] +
-		     (p_target[1]-p_hydro)*h0_inv[5]+p_target[3]*h0_inv[4]) +
-	  h0_inv[4]*(p_target[4]*h0_inv[0]+p_target[3]*h0_inv[5] +
-		     (p_target[2]-p_hydro)*h0_inv[4]));
-  sigma[1] = 
+                     p_target[5]*h0_inv[5]+p_target[4]*h0_inv[4]) +
+          h0_inv[5]*(p_target[5]*h0_inv[0] +
+                     (p_target[1]-p_hydro)*h0_inv[5]+p_target[3]*h0_inv[4]) +
+          h0_inv[4]*(p_target[4]*h0_inv[0]+p_target[3]*h0_inv[5] +
+                     (p_target[2]-p_hydro)*h0_inv[4]));
+  sigma[1] =
     vol0*(h0_inv[1]*((p_target[1]-p_hydro)*h0_inv[1] +
-		     p_target[3]*h0_inv[3]) +
-	  h0_inv[3]*(p_target[3]*h0_inv[1] + 
-		     (p_target[2]-p_hydro)*h0_inv[3]));
-  sigma[2] = 
+                     p_target[3]*h0_inv[3]) +
+          h0_inv[3]*(p_target[3]*h0_inv[1] +
+                     (p_target[2]-p_hydro)*h0_inv[3]));
+  sigma[2] =
     vol0*(h0_inv[2]*((p_target[2]-p_hydro)*h0_inv[2]));
-  sigma[3] = 
+  sigma[3] =
     vol0*(h0_inv[1]*(p_target[3]*h0_inv[2]) +
-	  h0_inv[3]*((p_target[2]-p_hydro)*h0_inv[2]));
-  sigma[4] = 
+          h0_inv[3]*((p_target[2]-p_hydro)*h0_inv[2]));
+  sigma[4] =
     vol0*(h0_inv[0]*(p_target[4]*h0_inv[2]) +
-	  h0_inv[5]*(p_target[3]*h0_inv[2]) +
-	  h0_inv[4]*((p_target[2]-p_hydro)*h0_inv[2]));
-  sigma[5] = 
+          h0_inv[5]*(p_target[3]*h0_inv[2]) +
+          h0_inv[4]*((p_target[2]-p_hydro)*h0_inv[2]));
+  sigma[5] =
     vol0*(h0_inv[0]*(p_target[5]*h0_inv[1]+p_target[4]*h0_inv[3]) +
-	  h0_inv[5]*((p_target[1]-p_hydro)*h0_inv[1]+p_target[3]*h0_inv[3]) +
-	  h0_inv[4]*(p_target[3]*h0_inv[1]+(p_target[2]-p_hydro)*h0_inv[3]));
+          h0_inv[5]*((p_target[1]-p_hydro)*h0_inv[1]+p_target[3]*h0_inv[3]) +
+          h0_inv[4]*(p_target[3]*h0_inv[1]+(p_target[2]-p_hydro)*h0_inv[3]));
 }
 
 /* ----------------------------------------------------------------------
@@ -1933,20 +1933,20 @@ void FixNHCuda::compute_sigma()
 
 double FixNHCuda::compute_strain_energy()
 {
-  // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units 
+  // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units
 
   double* h = domain->h;
   double d0,d1,d2;
 
-  d0 = 
+  d0 =
     sigma[0]*(h[0]*h[0]+h[5]*h[5]+h[4]*h[4]) +
     sigma[5]*(          h[1]*h[5]+h[3]*h[4]) +
     sigma[4]*(                    h[2]*h[4]);
-  d1 = 
+  d1 =
     sigma[5]*(          h[5]*h[1]+h[4]*h[3]) +
     sigma[1]*(          h[1]*h[1]+h[3]*h[3]) +
     sigma[3]*(                    h[2]*h[3]);
-  d2 = 
+  d2 =
     sigma[4]*(                    h[4]*h[2]) +
     sigma[3]*(                    h[3]*h[2]) +
     sigma[2]*(                    h[2]*h[2]);
@@ -1962,30 +1962,30 @@ double FixNHCuda::compute_strain_energy()
 void FixNHCuda::compute_deviatoric()
 {
   // generate upper-triangular part of h*sigma*h^t
-  // units of fdev are are PV, e.g. atm*A^3 
+  // units of fdev are are PV, e.g. atm*A^3
   // [ 0 5 4 ]   [ 0 5 4 ] [ 0 5 4 ] [ 0 - - ]
   // [ 5 1 3 ] = [ - 1 3 ] [ 5 1 3 ] [ 5 1 - ]
   // [ 4 3 2 ]   [ - - 2 ] [ 4 3 2 ] [ 4 3 2 ]
-  
+
   double* h = domain->h;
-   
-  fdev[0] = 
+
+  fdev[0] =
     h[0]*(sigma[0]*h[0]+sigma[5]*h[5]+sigma[4]*h[4]) +
     h[5]*(sigma[5]*h[0]+sigma[1]*h[5]+sigma[3]*h[4]) +
     h[4]*(sigma[4]*h[0]+sigma[3]*h[5]+sigma[2]*h[4]);
-  fdev[1] = 
+  fdev[1] =
     h[1]*(              sigma[1]*h[1]+sigma[3]*h[3]) +
     h[3]*(              sigma[3]*h[1]+sigma[2]*h[3]);
-  fdev[2] = 
+  fdev[2] =
     h[2]*(                            sigma[2]*h[2]);
-  fdev[3] = 
+  fdev[3] =
     h[1]*(                            sigma[3]*h[2]) +
     h[3]*(                            sigma[2]*h[2]);
-  fdev[4] = 
+  fdev[4] =
     h[0]*(                            sigma[4]*h[2]) +
     h[5]*(                            sigma[3]*h[2]) +
     h[4]*(                            sigma[2]*h[2]);
-  fdev[5] = 
+  fdev[5] =
     h[0]*(              sigma[5]*h[1]+sigma[4]*h[3]) +
     h[5]*(              sigma[1]*h[1]+sigma[3]*h[3]) +
     h[4]*(              sigma[3]*h[1]+sigma[2]*h[3]);
@@ -2001,7 +2001,7 @@ void FixNHCuda::compute_press_target()
   if (update->endstep > update->beginstep)
     delta /= update->endstep - update->beginstep;
   else delta = 0.0;
-      
+
   p_hydro = 0.0;
   for (int i = 0; i < 3; i++)
     if (p_flag[i]) {
@@ -2034,21 +2034,21 @@ void FixNHCuda::nh_omega_dot()
 
   mtk_term1 = 0.0;
   if (mtk_flag)
-    if (pstyle == ISO) { 
+    if (pstyle == ISO) {
       mtk_term1 = tdof * boltz * t_current;
       mtk_term1 /= pdim * atom->natoms;
     } else {
       double *mvv_current = temperature->vector;
       for (int i = 0; i < 3; i++)
-	if (p_flag[i])
-	  mtk_term1 += mvv_current[i];
+        if (p_flag[i])
+          mtk_term1 += mvv_current[i];
       mtk_term1 /= pdim * atom->natoms;
     }
-  
+
   for (int i = 0; i < 3; i++)
     if (p_flag[i]) {
       f_omega = (p_current[i]-p_hydro)*volume /
-	(omega_mass[i] * nktv2p) + mtk_term1 / omega_mass[i];
+        (omega_mass[i] * nktv2p) + mtk_term1 / omega_mass[i];
       if (deviatoric_flag) f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
       omega_dot[i] += f_omega*dthalf;
       omega_dot[i] *= pdrag_factor;
@@ -2058,20 +2058,19 @@ void FixNHCuda::nh_omega_dot()
   if (mtk_flag) {
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
-	mtk_term2 += omega_dot[i];
+        mtk_term2 += omega_dot[i];
     mtk_term2 /= pdim * atom->natoms;
   }
 
   if (pstyle == TRICLINIC) {
     for (int i = 3; i < 6; i++) {
       if (p_flag[i]) {
-	f_omega = p_current[i]*volume/(omega_mass[i] * nktv2p);
-	if (deviatoric_flag) 
-	  f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
-	omega_dot[i] += f_omega*dthalf;
-	omega_dot[i] *= pdrag_factor;
+        f_omega = p_current[i]*volume/(omega_mass[i] * nktv2p);
+        if (deviatoric_flag)
+          f_omega -= fdev[i]/(omega_mass[i] * nktv2p);
+        omega_dot[i] += f_omega*dthalf;
+        omega_dot[i] *= pdrag_factor;
       }
-    } 
+    }
   }
 }
-

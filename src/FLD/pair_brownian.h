@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -28,7 +28,7 @@ class PairBrownian : public Pair {
  public:
   PairBrownian(class LAMMPS *);
   virtual ~PairBrownian();
-  virtual void compute(int, int); 
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   virtual double init_one(int, int);
@@ -36,7 +36,7 @@ class PairBrownian : public Pair {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *); 
+  void read_restart_settings(FILE *);
 
  protected:
   double cut_inner_global,cut_global;

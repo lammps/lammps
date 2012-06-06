@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,8 +35,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp), 
-					    b_alpha(45.0/56.0),
+PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
+                                            b_alpha(45.0/56.0),
                                             cr60(pow(60.0,1.0/3.0))
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
@@ -103,7 +103,7 @@ void PairRESquared::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -133,7 +133,7 @@ void PairRESquared::compute(int eflag, int vflag)
       // compute if less than cutoff
 
       if (rsq < cutsq[itype][jtype]) {
-	fforce[0] = fforce[1] = fforce[2] = 0.0;
+        fforce[0] = fforce[1] = fforce[2] = 0.0;
 
         switch (form[itype][jtype]) {
 
@@ -197,9 +197,9 @@ void PairRESquared::compute(int eflag, int vflag)
 
         if (eflag) evdwl = factor_lj*one_eng;
 
-	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-				 evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				 -r12[0],-r12[1],-r12[2]);
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+                                 evdwl,0.0,fforce[0],fforce[1],fforce[2],
+                                 -r12[0],-r12[1],-r12[2]);
       }
     }
   }
@@ -250,7 +250,7 @@ void PairRESquared::settings(int narg, char **arg)
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[0]);
-  
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -283,7 +283,7 @@ void PairRESquared::coeff(int narg, char **arg)
   double eja_one = force->numeric(arg[7]);
   double ejb_one = force->numeric(arg[8]);
   double ejc_one = force->numeric(arg[9]);
-  
+
   double cut_one = cut_global;
   if (narg == 11) cut_one = force->numeric(arg[10]);
 
@@ -348,12 +348,12 @@ double PairRESquared::init_one(int i, int j)
     error->all(FLERR,"Pair resquared epsilon a,b,c coeffs are not all set");
 
   int ishape = 0;
-  if (shape1[i][0] != 0.0 && shape1[i][1] != 0.0 && shape1[i][2] != 0.0) 
+  if (shape1[i][0] != 0.0 && shape1[i][1] != 0.0 && shape1[i][2] != 0.0)
     ishape = 1;
   int jshape = 0;
-  if (shape1[j][0] != 0.0 && shape1[j][1] != 0.0 && shape1[j][2] != 0.0) 
+  if (shape1[j][0] != 0.0 && shape1[j][1] != 0.0 && shape1[j][2] != 0.0)
     jshape = 1;
-  
+
   if (ishape == 0 && jshape == 0) {
     form[i][j] = SPHERE_SPHERE;
     form[j][i] = SPHERE_SPHERE;
@@ -384,12 +384,12 @@ double PairRESquared::init_one(int i, int j)
     sigma[i][j] = sigma[j][i];
     cut[i][j] = cut[j][i];
   }
-  
+
   lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
-     
+
   if (offset_flag) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
@@ -513,7 +513,7 @@ void PairRESquared::precompute_i(const int i,RE2Vars &ws)
     MathExtra::plus3(ws.lAsa[i],ws.lAtwo[i],ws.lAsa[i]);
   }
 }
-                                      
+
 /* ----------------------------------------------------------------------
    Compute the derivative of the determinant of m, using m and the
    derivative of m (m2)
@@ -545,7 +545,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
                                          double *rtor)
 {
   int *type = atom->type;
-    
+
   // pair computations for energy, force, torque
 
   double z1[3],z2[3];        // A1*rhat  # don't need to store
@@ -568,7 +568,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   double sigh;               // sigma/h12
   double tprod;              // eta*chi*sigh
   double Ua,Ur;              // attractive/repulsive parts of potential
-    
+
   // pair computations for force, torque
 
   double sec;                          // sigma*eta*chi
@@ -593,7 +593,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   double ddH;                          // derivative of det(H12)
   double deta,dchi,dh12;               // derivatives of eta,chi,h12
   double dUr,dUa;                      // derivatives of Ua,Ur
-      
+
   // pair computations for torque
 
   double fwae[3];        // -fourw'*aTe
@@ -715,7 +715,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
-  
+
   stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
           1.0/(shape1[type[i]][1]*cr60+h12)+
           1.0/(shape1[type[i]][2]*cr60+h12)+
@@ -725,7 +725,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
-  
+
   for (int i=0; i<3; i++) {
     u[0] = -rhat[i]*rhat[0];
     u[1] = -rhat[i]*rhat[1];
@@ -757,7 +757,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     dUr = pbsr*(eta*dchi+deta*chi)-dh12*dspr;
     fforce[i]=dUr*Ur+dUa*Ua;
   }
-    
+
   // torque on i
 
   MathExtra::vecmat(fourw,wi.aTe,fwae);
@@ -787,7 +787,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     dUr = pbsr*(eta*dchi + deta*chi)-dh12*dspr;
     ttor[i] = -(dUa*Ua+dUr*Ur);
   }
-  
+
   // torque on j
 
   if (!(force->newton_pair || j < atom->nlocal))
@@ -829,12 +829,12 @@ double PairRESquared::resquared_analytic(const int i, const int j,
 ------------------------------------------------------------------------- */
 
 double PairRESquared::resquared_lj(const int i, const int j,
-                                   const RE2Vars &wi, const double *r, 
-                                   const double rsq, double *fforce, 
+                                   const RE2Vars &wi, const double *r,
+                                   const double rsq, double *fforce,
                                    double *ttor, bool calc_torque)
 {
   int *type = atom->type;
-    
+
   // pair computations for energy, force, torque
 
   double rnorm;              // L2 norm of r
@@ -847,7 +847,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   double sigh;               // sigma/h12
   double tprod;              // chi*sigh
   double Ua,Ur;              // attractive/repulsive parts of potential
-    
+
   // pair computations for force, torque
 
   double sec;                          // sigma*chi
@@ -863,7 +863,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   double dchi,dh12;                    // derivatives of chi,h12
   double dUr,dUa;                      // derivatives of Ua,Ur
   double h12p3;                        // h12^3
-      
+
   // pair computations for torque
 
   double fwae[3];        // -fourw'*aTe
@@ -943,7 +943,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   hsec = h12+3.0*sec;
   dspu = 1.0/h12-1.0/hsec+stemp;
   pbsu = 3.0*sigma[type[i]][type[j]]/hsec;
-  
+
   stemp = 1.0/(shape1[type[i]][0]*cr60+h12)+
           1.0/(shape1[type[i]][1]*cr60+h12)+
           1.0/(shape1[type[i]][2]*cr60+h12)+
@@ -951,7 +951,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
   hsec = h12+b_alpha*sec;
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
-  
+
   for (int i=0; i<3; i++) {
     u[0] = -rhat[i]*rhat[0];
     u[1] = -rhat[i]*rhat[1];
@@ -966,7 +966,7 @@ double PairRESquared::resquared_lj(const int i, const int j,
     dUr = pbsr*dchi-dh12*dspr;
     fforce[i]=dUr*Ur+dUa*Ua;
   }
-    
+
   // torque on i
 
   if (calc_torque) {

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -181,19 +181,19 @@ void DihedralClass2::compute(int eflag, int vflag)
     costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
     costh13 = c0;
     costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
-          
+
     // cos and sin of 2 angles and final c
 
     sin2 = MAX(1.0 - costh12*costh12,0.0);
     sc1 = sqrt(sin2);
     if (sc1 < SMALL) sc1 = SMALL;
     sc1 = 1.0/sc1;
-          
+
     sin2 = MAX(1.0 - costh23*costh23,0.0);
     sc2 = sqrt(sin2);
     if (sc2 < SMALL) sc2 = SMALL;
     sc2 = 1.0/sc2;
-          
+
     s1 = sc1 * sc1;
     s2 = sc2 * sc2;
     s12 = sc1 * sc2;
@@ -205,19 +205,19 @@ void DihedralClass2::compute(int eflag, int vflag)
       int me;
       MPI_Comm_rank(world,&me);
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
-		me,update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
+                me,update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
 
@@ -235,7 +235,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     a12 = r12c1 * (costh12*c*s1 + costh23*s12);
     a13 = rb1*rb3*s12;
     a23 = r12c2 * (-costh23*c*s2 - costh12*s12);
-          
+
     sx1  = a11*vb1x + a12*vb2x + a13*vb3x;
     sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
     sx12 = a13*vb1x + a23*vb2x + a33*vb3x;
@@ -263,18 +263,18 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	dphidr[i][j] = -dcosphidr[i][j] / sinphi;
+        dphidr[i][j] = -dcosphidr[i][j] / sinphi;
 
     // energy
 
     dphi1 = phi - phi1[type];
     dphi2 = 2.0*phi - phi2[type];
     dphi3 = 3.0*phi - phi3[type];
-    
+
     if (eflag) edihedral = k1[type]*(1.0 - cos(dphi1)) +
-		 k2[type]*(1.0 - cos(dphi2)) +
-		 k3[type]*(1.0 - cos(dphi3));
-    
+                 k2[type]*(1.0 - cos(dphi2)) +
+                 k3[type]*(1.0 - cos(dphi3));
+
     de_dihedral = k1[type]*sin(dphi1) + 2.0*k2[type]*sin(dphi2) +
       3.0*k3[type]*sin(dphi3);
 
@@ -282,18 +282,18 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] = de_dihedral*dphidr[i][j];
+        fabcd[i][j] = de_dihedral*dphidr[i][j];
 
     // set up d(bond)/d(r) array
     // dbonddr(i,j,k) = bond i, atom j, coordinate k
 
     for (i = 0; i < 3; i++)
       for (j = 0; j < 4; j++)
-	for (k = 0; k < 3; k++)
-	  dbonddr[i][j][k] = 0.0;
-    
+        for (k = 0; k < 3; k++)
+          dbonddr[i][j][k] = 0.0;
+
     // bond1
-    
+
     dbonddr[0][0][0] = vb1x / r1;
     dbonddr[0][0][1] = vb1y / r1;
     dbonddr[0][0][2] = vb1z / r1;
@@ -311,7 +311,7 @@ void DihedralClass2::compute(int eflag, int vflag)
     dbonddr[1][2][2] = -vb2z / r2;
 
     // bond3
-    
+
     dbonddr[2][2][0] = vb3x / r3;
     dbonddr[2][2][1] = vb3y / r3;
     dbonddr[2][2][2] = vb3z / r3;
@@ -324,71 +324,71 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 2; i++)
       for (j = 0; j < 4; j++)
-	for (k = 0; k < 3; k++)
-	  dthetadr[i][j][k] = 0.0;
-    
+        for (k = 0; k < 3; k++)
+          dthetadr[i][j][k] = 0.0;
+
     t1 = costh12 / r1mag2;
     t2 = costh23 / r2mag2;
     t3 = costh12 / r2mag2;
     t4 = costh23 / r3mag2;
-    
+
     // angle12
-    
+
     dthetadr[0][0][0] = sc1 * ((t1 * vb1x) - (vb2x * r12c1));
     dthetadr[0][0][1] = sc1 * ((t1 * vb1y) - (vb2y * r12c1));
     dthetadr[0][0][2] = sc1 * ((t1 * vb1z) - (vb2z * r12c1));
-    
+
     dthetadr[0][1][0] = sc1 * ((-t1 * vb1x) + (vb2x * r12c1) +
-			       (-t3 * vb2x) + (vb1x * r12c1));
+                               (-t3 * vb2x) + (vb1x * r12c1));
     dthetadr[0][1][1] = sc1 * ((-t1 * vb1y) + (vb2y * r12c1) +
-			       (-t3 * vb2y) + (vb1y * r12c1));
+                               (-t3 * vb2y) + (vb1y * r12c1));
     dthetadr[0][1][2] = sc1 * ((-t1 * vb1z) + (vb2z * r12c1) +
-			       (-t3 * vb2z) + (vb1z * r12c1));
-    
-    dthetadr[0][2][0] = sc1 * ((t3 * vb2x) - (vb1x * r12c1)); 
+                               (-t3 * vb2z) + (vb1z * r12c1));
+
+    dthetadr[0][2][0] = sc1 * ((t3 * vb2x) - (vb1x * r12c1));
     dthetadr[0][2][1] = sc1 * ((t3 * vb2y) - (vb1y * r12c1));
     dthetadr[0][2][2] = sc1 * ((t3 * vb2z) - (vb1z * r12c1));
-    
+
     // angle23
-    
+
     dthetadr[1][1][0] = sc2 * ((t2 * vb2x) + (vb3x * r12c2));
     dthetadr[1][1][1] = sc2 * ((t2 * vb2y) + (vb3y * r12c2));
     dthetadr[1][1][2] = sc2 * ((t2 * vb2z) + (vb3z * r12c2));
-    
+
     dthetadr[1][2][0] = sc2 * ((-t2 * vb2x) - (vb3x * r12c2) +
-			       (t4 * vb3x) + (vb2x * r12c2));
+                               (t4 * vb3x) + (vb2x * r12c2));
     dthetadr[1][2][1] = sc2 * ((-t2 * vb2y) - (vb3y * r12c2) +
-			       (t4 * vb3y) + (vb2y * r12c2));
+                               (t4 * vb3y) + (vb2y * r12c2));
     dthetadr[1][2][2] = sc2 * ((-t2 * vb2z) - (vb3z * r12c2) +
-			       (t4 * vb3z) + (vb2z * r12c2));
-    
+                               (t4 * vb3z) + (vb2z * r12c2));
+
     dthetadr[1][3][0] = -sc2 * ((t4 * vb3x) + (vb2x * r12c2));
     dthetadr[1][3][1] = -sc2 * ((t4 * vb3y) + (vb2y * r12c2));
     dthetadr[1][3][2] = -sc2 * ((t4 * vb3z) + (vb2z * r12c2));
-    
+
     // mid-bond/torsion coupling
     // energy on bond2 (middle bond)
-    
+
     cos2phi = cos(2.0*phi);
     cos3phi = cos(3.0*phi);
-    
+
     bt1 = mbt_f1[type] * cosphi;
     bt2 = mbt_f2[type] * cos2phi;
     bt3 = mbt_f3[type] * cos3phi;
     sumbte = bt1 + bt2 + bt3;
     db = r2 - mbt_r0[type];
     if (eflag) edihedral += db * sumbte;
-    
+
     // force on bond2
-    
+
     bt1 = -mbt_f1[type] * sinphi;
     bt2 = -2.0 * mbt_f2[type] * sin(2.0*phi);
     bt3 = -3.0 * mbt_f3[type] * sin(3.0*phi);
     sumbtf = bt1 + bt2 + bt3;
-    
+
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[1][i][j];
+        fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[1][i][j];
 
     // end-bond/torsion coupling
     // energy on bond1 (first bond)
@@ -410,7 +410,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= db*sumbtf*dphidr[i][j] + sumbte*dbonddr[0][i][j];
+        fabcd[i][j] -= db*sumbtf*dphidr[i][j] + sumbte*dbonddr[0][i][j];
 
     // end-bond/torsion coupling
     // energy on bond3 (last bond)
@@ -432,7 +432,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[2][i][j];
+        fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[2][i][j];
 
     // angle/torsion coupling
     // energy on angle1
@@ -454,7 +454,7 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= da*sumbtf*dphidr[i][j] + sumbte*dthetadr[0][i][j];
+        fabcd[i][j] -= da*sumbtf*dphidr[i][j] + sumbte*dthetadr[0][i][j];
 
     // energy on angle2
 
@@ -475,20 +475,20 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += da*sumbtf*dphidr[i][j] + sumbte*dthetadr[1][i][j];
+        fabcd[i][j] += da*sumbtf*dphidr[i][j] + sumbte*dthetadr[1][i][j];
 
     // angle/angle/torsion coupling
 
     da1 = acos(costh12) - aat_theta0_1[type];
     da2 = acos(costh23) - aat_theta0_2[type];
-          
+
     if (eflag) edihedral += aat_k[type]*da1*da2*cosphi;
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= aat_k[type] * 
-	  (cosphi * (da2*dthetadr[0][i][j] - da1*dthetadr[1][i][j]) +
-	   sinphi * da1*da2*dphidr[i][j]);
+        fabcd[i][j] -= aat_k[type] *
+          (cosphi * (da2*dthetadr[0][i][j] - da1*dthetadr[1][i][j]) +
+           sinphi * da1*da2*dphidr[i][j]);
 
     // bond1/bond3 coupling
 
@@ -502,7 +502,7 @@ void DihedralClass2::compute(int eflag, int vflag)
       tk2 = -bb13t_k[type] * dr2 / r1;
 
       if (eflag) edihedral += bb13t_k[type]*dr1*dr2;
-        
+
       fabcd[0][0] += tk2 * vb1x;
       fabcd[0][1] += tk2 * vb1y;
       fabcd[0][2] += tk2 * vb1z;
@@ -510,7 +510,7 @@ void DihedralClass2::compute(int eflag, int vflag)
       fabcd[1][0] -= tk2 * vb1x;
       fabcd[1][1] -= tk2 * vb1y;
       fabcd[1][2] -= tk2 * vb1z;
-        
+
       fabcd[2][0] -= tk1 * vb3x;
       fabcd[2][1] -= tk1 * vb3y;
       fabcd[2][2] -= tk1 * vb3z;
@@ -548,8 +548,8 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,
-	       fabcd[0],fabcd[2],fabcd[3],
-	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+               fabcd[0],fabcd[2],fabcd[3],
+               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 
@@ -608,7 +608,7 @@ void DihedralClass2::allocate()
   memory->create(setflag_aat,n+1,"dihedral:setflag_aat");
   memory->create(setflag_bb13t,n+1,"dihedral:setflag_bb13t");
   for (int i = 1; i <= n; i++)
-    setflag[i] = setflag_d[i] = setflag_mbt[i] = setflag_ebt[i] = 
+    setflag[i] = setflag_d[i] = setflag_mbt[i] = setflag_ebt[i] =
       setflag_at[i] = setflag_aat[i] = setflag_bb13t[i] = 0;
 }
 
@@ -639,7 +639,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double f2_one = force->numeric(arg[3]);
     double f3_one = force->numeric(arg[4]);
     double r0_one = force->numeric(arg[5]);
-    
+
     for (int i = ilo; i <= ihi; i++) {
       mbt_f1[i] = f1_one;
       mbt_f2[i] = f2_one;
@@ -660,7 +660,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double f3_2_one = force->numeric(arg[7]);
     double r0_1_one = force->numeric(arg[8]);
     double r0_2_one = force->numeric(arg[9]);
-    
+
     for (int i = ilo; i <= ihi; i++) {
       ebt_f1_1[i] = f1_1_one;
       ebt_f2_1[i] = f2_1_one;
@@ -687,7 +687,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double theta0_2_one = force->numeric(arg[9]);
 
     // convert theta0's from degrees to radians
-    
+
     for (int i = ilo; i <= ihi; i++) {
       at_f1_1[i] = f1_1_one;
       at_f2_1[i] = f2_1_one;
@@ -709,7 +709,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double theta0_2_one = force->numeric(arg[4]);
 
     // convert theta0's from degrees to radians
-    
+
     for (int i = ilo; i <= ihi; i++) {
       aat_k[i] = k_one;
       aat_theta0_1[i] = theta0_1_one/180.0 * MY_PI;
@@ -724,7 +724,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double k_one = force->numeric(arg[2]);
     double r10_one = force->numeric(arg[3]);
     double r30_one = force->numeric(arg[4]);
-    
+
     for (int i = ilo; i <= ihi; i++) {
       bb13t_k[i] = k_one;
       bb13t_r10[i] = r10_one;
@@ -742,7 +742,7 @@ void DihedralClass2::coeff(int narg, char **arg)
     double phi2_one = force->numeric(arg[4]);
     double k3_one = force->numeric(arg[5]);
     double phi3_one = force->numeric(arg[6]);
-    
+
     // convert phi's from degrees to radians
 
     for (int i = ilo; i <= ihi; i++) {
@@ -761,12 +761,12 @@ void DihedralClass2::coeff(int narg, char **arg)
 
   for (int i = ilo; i <= ihi; i++)
     if (setflag_d[i] == 1 && setflag_mbt[i] == 1 && setflag_ebt[i] == 1 &&
-	setflag_at[i] == 1 && setflag_aat[i] == 1 && setflag_bb13t[i] == 1)
+        setflag_at[i] == 1 && setflag_aat[i] == 1 && setflag_bb13t[i] == 1)
       setflag[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void DihedralClass2::write_restart(FILE *fp)
@@ -813,7 +813,7 @@ void DihedralClass2::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void DihedralClass2::read_restart(FILE *fp)

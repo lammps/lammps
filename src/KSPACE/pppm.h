@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -121,8 +121,8 @@ class PPPM : public KSpace {
   virtual void fieldforce();
   virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
-		     const FFT_SCALAR &);
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
+                     const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr();
 
@@ -132,7 +132,7 @@ class PPPM : public KSpace {
   virtual void deallocate_groups();
   virtual void make_rho_groups(int, int, int);
   virtual void poisson_groups(int);
-  
+
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
      of x,y,z = sin(kx*deltax/2), etc
@@ -142,11 +142,11 @@ class PPPM : public KSpace {
            j=-inf               l=0
 
           = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
-   gf_b = denominator expansion coeffs 
+   gf_b = denominator expansion coeffs
 ------------------------------------------------------------------------- */
 
-  inline double gf_denom(const double &x, const double &y, 
-			 const double &z) const {
+  inline double gf_denom(const double &x, const double &y,
+                         const double &z) const {
     double sx,sy,sz;
     sz = sy = sx = 0.0;
     for (int l = order-1; l >= 0; l--) {
@@ -242,7 +242,7 @@ E: PPPM order has been reduced to 0
 
 LAMMPS has attempted to reduce the PPPM order to enable the simulation
 to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM by reducing the tolerance size, thus inducing a 
+accuracy of PPPM by reducing the tolerance size, thus inducing a
 larger PPPM grid.
 
 E: Cannot compute PPPM G

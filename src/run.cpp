@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ void Run::command(int narg, char **arg)
   int nevery = 0;
   int ncommands = 0;
   int first,last;
-    
+
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"upto") == 0) {
@@ -101,7 +101,7 @@ void Run::command(int narg, char **arg)
   }
 
   // set nsteps as integer, using upto value if specified
-  
+
   int nsteps;
   if (!uptoflag) {
     if (nsteps_input < 0 || nsteps_input > MAXSMALLINT)
@@ -195,7 +195,7 @@ void Run::command(int narg, char **arg)
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
       if (update->laststep < 0 || update->laststep > MAXBIGINT)
-	error->all(FLERR,"Too many timesteps");
+        error->all(FLERR,"Too many timesteps");
 
       if (startflag) update->beginstep = start;
       else update->beginstep = update->firststep;
@@ -203,8 +203,8 @@ void Run::command(int narg, char **arg)
       else update->endstep = update->laststep;
 
       if (preflag || iter == 0) {
-	lmp->init();
-	update->integrate->setup();
+        lmp->init();
+        update->integrate->setup();
       } else output->setup(0);
 
       timer->init();
@@ -222,9 +222,9 @@ void Run::command(int narg, char **arg)
       // since a command may invoke computes via variables
 
       if (ncommands) {
-	modify->clearstep_compute();
-	for (int i = 0; i < ncommands; i++) input->one(commands[i]);
-	modify->addstep_compute(update->ntimestep + nevery);
+        modify->clearstep_compute();
+        for (int i = 0; i < ncommands; i++) input->one(commands[i]);
+        modify->addstep_compute(update->ntimestep + nevery);
       }
 
       nleft -= nsteps;

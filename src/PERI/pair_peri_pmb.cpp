@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -134,7 +134,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
- 
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -145,7 +145,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (periodic) domain->minimum_image(delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
- 
+
       r = sqrt(rsq);
 
       // short-range interaction distance based on initial particle position
@@ -160,8 +160,8 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (r < d_ij) {
         dr = r - d_ij;
 
-        rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
-	  (dr / cut[itype][jtype]);
+        rk = (15.0 * kspring[itype][jtype] * vfrac[j]) *
+          (dr / cut[itype][jtype]);
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
 
@@ -175,7 +175,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
       }
     }
   }
@@ -234,8 +234,8 @@ void PairPeriPMB::compute(int eflag, int vflag)
       // scale vfrac[j] if particle j near the horizon
 
       if ((fabs(r0[i][jj] - delta)) <= half_lc)
-        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
-	  (1.0 + ((delta - half_lc)/(2*half_lc) ) );
+        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
+          (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
       stretch = dr / r0[i][jj];
@@ -247,7 +247,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
 
-      // since I-J is double counted, set newton off & use 1/2 factor and I,I 
+      // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
       if (eflag) evdwl = 0.5*rk*dr;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
@@ -268,7 +268,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
   }
 
   // store new s0
-  for (i = 0; i < nlocal; i++) s0[i] = s0_new[i]; 
+  for (i = 0; i < nlocal; i++) s0[i] = s0_new[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -359,13 +359,13 @@ void PairPeriPMB::init_style()
   // error checks
 
   if (!atom->peri_flag) error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice == NULL)
     error->all(FLERR,"Pair peri requires a lattice be defined");
-  if (domain->lattice->xlattice != domain->lattice->ylattice || 
-      domain->lattice->xlattice != domain->lattice->zlattice || 
+  if (domain->lattice->xlattice != domain->lattice->ylattice ||
+      domain->lattice->xlattice != domain->lattice->zlattice ||
       domain->lattice->ylattice != domain->lattice->zlattice)
     error->all(FLERR,"Pair peri lattice is not identical in x, y, and z");
 
@@ -401,10 +401,10 @@ void PairPeriPMB::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&kspring[i][j],sizeof(double),1,fp);
-	fwrite(&s00[i][j],sizeof(double),1,fp);
-	fwrite(&alpha[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&kspring[i][j],sizeof(double),1,fp);
+        fwrite(&s00[i][j],sizeof(double),1,fp);
+        fwrite(&alpha[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -424,16 +424,16 @@ void PairPeriPMB::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&kspring[i][j],sizeof(double),1,fp);
-	  fread(&s00[i][j],sizeof(double),1,fp);
-	  fread(&alpha[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&kspring[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&s00[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&kspring[i][j],sizeof(double),1,fp);
+          fread(&s00[i][j],sizeof(double),1,fp);
+          fread(&alpha[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&kspring[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&s00[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -441,8 +441,8 @@ void PairPeriPMB::read_restart(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
-			   double factor_coul, double factor_lj,
-			   double &fforce)
+                           double factor_coul, double factor_lj,
+                           double &fforce)
 {
   double delx0,dely0,delz0,rsq0;
   double d_ij,r,dr,rk,vfrac_scale;
@@ -471,12 +471,12 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
 
   if (r < d_ij) {
     dr = r - d_ij;
-    rk = (15.0 * kspring[itype][jtype] * vfrac[j]) * 
+    rk = (15.0 * kspring[itype][jtype] * vfrac[j]) *
       (dr / sqrt(cutsq[itype][jtype]));
     if (r > 0.0) fforce += -(rk/r);
     energy += 0.5*rk*dr;
   }
-  
+
   int jnum = npartner[i];
   for (int jj = 0; jj < jnum; jj++) {
     if (partner[i][jj] == 0) continue;
@@ -485,11 +485,11 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
       dr = r - r0[i][jj];
       if (fabs(dr) < 2.2204e-016) dr = 0.0;
       if ( (fabs(r0[i][jj] - sqrt(cutsq[itype][jtype]))) <= half_lc)
-	vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
-	  (1.0 + ((sqrt(cutsq[itype][jtype]) - half_lc)/(2*half_lc)));
+        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
+          (1.0 + ((sqrt(cutsq[itype][jtype]) - half_lc)/(2*half_lc)));
       else vfrac_scale = 1.0;
-      rk = (kspring[itype][jtype] * vfrac[j] * vfrac_scale) * 
-	(dr / r0[i][jj]);
+      rk = (kspring[itype][jtype] * vfrac[j] * vfrac_scale) *
+        (dr / r0[i][jj]);
       if (r > 0.0) fforce += -(rk/r);
       energy += 0.5*rk*dr;
     }
@@ -499,7 +499,7 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double PairPeriPMB::memory_usage()

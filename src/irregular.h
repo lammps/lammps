@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -36,7 +36,7 @@ class Irregular : protected Pointers {
   double *xsplit,*ysplit,*zsplit;   // ptrs to comm
   int *procgrid;                    // ptr to comm
   int ***grid2proc;                 // ptr to comm
-  double *boxlo;                    // ptr to domain 
+  double *boxlo;                    // ptr to domain
   double *prd;                      // ptr to domain
 
   int maxsend,maxrecv;              // size of buffers in # of doubles

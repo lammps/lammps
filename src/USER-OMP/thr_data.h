@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ class ThrData {
   // setup and erase per atom arrays
   void init_adp(int, double *, double **, double **); // ADP (+ EAM)
   void init_cdeam(int, double *, double *, double *); // CDEAM (+ EAM)
-  void init_eam(int, double *);                       // EAM 
+  void init_eam(int, double *);                       // EAM
   void init_eim(int, double *, double *);             // EIM (+ EAM)
 
   void init_pppm(void *r1d) { _rho1d = r1d; };
@@ -76,7 +76,7 @@ class ThrData {
   double virial_bond[6];  // virial contribution from bonds
   double virial_angle[6]; // virial contribution from angles
   double virial_dihed[6]; // virial contribution from dihedrals
-  double virial_imprp[6]; // virial contribution from impropers 
+  double virial_imprp[6]; // virial contribution from impropers
   double virial_kspce[6]; // virial contribution from kspace
   double *eatom_pair;
   double *eatom_bond;

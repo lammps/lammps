@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -40,12 +40,12 @@ void DisplaceAtoms::command(int narg, char **arg)
 {
   int i;
 
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"Displace_atoms command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal displace_atoms command");
-  if (modify->nfix_restart_peratom) 
+  if (modify->nfix_restart_peratom)
     error->all(FLERR,"Cannot displace_atoms after "
-	       "reading restart file with per-atom info");
+               "reading restart file with per-atom info");
 
   if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
 
@@ -98,15 +98,15 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	x[i][0] += delx;
-	x[i][1] += dely;
-	x[i][2] += delz;
+        x[i][0] += delx;
+        x[i][1] += dely;
+        x[i][2] += delz;
       }
     }
   }
 
   // move atoms in ramped fashion
-    
+
   if (style == RAMP) {
 
     int d_dim;
@@ -153,18 +153,18 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
-	fraction = MAX(fraction,0.0);
-	fraction = MIN(fraction,1.0);
-	dramp = d_lo + fraction*(d_hi - d_lo);
-	x[i][d_dim] += dramp;
+        fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+        fraction = MAX(fraction,0.0);
+        fraction = MIN(fraction,1.0);
+        dramp = d_lo + fraction*(d_hi - d_lo);
+        x[i][d_dim] += dramp;
       }
     }
   }
 
   // move atoms randomly
   // makes atom result independent of what proc owns it via random->reset()
-    
+
   if (style == RANDOM) {
     RanPark *random = new RanPark(lmp,1);
 
@@ -180,10 +180,10 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	random->reset(seed,x[i]);
-	x[i][0] += dx * 2.0*(random->uniform()-0.5);
-	x[i][1] += dy * 2.0*(random->uniform()-0.5);
-	x[i][2] += dz * 2.0*(random->uniform()-0.5);
+        random->reset(seed,x[i]);
+        x[i][0] += dx * 2.0*(random->uniform()-0.5);
+        x[i][1] += dy * 2.0*(random->uniform()-0.5);
+        x[i][2] += dz * 2.0*(random->uniform()-0.5);
       }
     }
 
@@ -213,14 +213,14 @@ void DisplaceAtoms::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0) {
     char str[128];
-    sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT 
-	    " current " BIGINT_FORMAT,atom->natoms,natoms);
+    sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT
+            " current " BIGINT_FORMAT,atom->natoms,natoms);
     error->warning(FLERR,str);
   }
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of displace_atoms input line 
+   parse optional parameters at end of displace_atoms input line
 ------------------------------------------------------------------------- */
 
 void DisplaceAtoms::options(int narg, char **arg)

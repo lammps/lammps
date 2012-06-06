@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -90,19 +90,19 @@ void DihedralTable::compute(int eflag, int vflag)
   // The dihedral angle "phi" is the angle between n123 and n234
   // the planes defined by atoms i1,i2,i3, and i2,i3,i4.
   //
-  // Definitions of vectors: vb12, vb23, vb34, perp12on23 
+  // Definitions of vectors: vb12, vb23, vb34, perp12on23
   //                         proj12on23, perp43on32, proj43on32
   //
   //  Note: The positions of the 4 atoms are labeled x[i1], x[i2], x[i3], x[i4]
   //        (which are also vectors)
   //
-  //             proj12on23                          proj34on23          
-  //             --------->                         ----------->         
-  //                           .                                         
-  //                          .                                          
-  //                         .                                  
-  //                  x[i2] .                       x[i3]                 
-  //    .                __@----------vb23-------->@ . . . .           . 
+  //             proj12on23                          proj34on23
+  //             --------->                         ----------->
+  //                           .
+  //                          .
+  //                         .
+  //                  x[i2] .                       x[i3]
+  //    .                __@----------vb23-------->@ . . . .           .
   //   /|\                /|                        \                  |
   //    |                /                           \                 |
   //    |               /                             \                |
@@ -115,9 +115,9 @@ void DihedralTable::compute(int eflag, int vflag)
   //    |        /                                           \         |
   //            @                                             \        |
   //                                                          _\|     \|/
-  //         x[i1]                                              @     
-  //                                                           
-  //                                                           x[i4]   
+  //         x[i1]                                              @
+  //
+  //                                                           x[i4]
   //
 
   double vb12[g_dim]; // displacement vector from atom i1 towards atom i2
@@ -159,11 +159,11 @@ void DihedralTable::compute(int eflag, int vflag)
     //
 
     // Phi() calculates the dihedral angle.
-    // This function also calculates the vectors: 
+    // This function also calculates the vectors:
     // vb12, vb23, vb34, n123, and n234, which we will need later.
 
 
-    double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain, 
+    double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain,
                      vb12, vb23, vb34, n123, n234);
 
 
@@ -171,7 +171,7 @@ void DihedralTable::compute(int eflag, int vflag)
     //
     // Gradient variables:
     //
-    // dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4 are the gradients of phi with 
+    // dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4 are the gradients of phi with
     // respect to the atomic positions of atoms i1, i2, i3, i4, respectively.
     // As an example, consider dphi_dx1.  The d'th element is:
     double dphi_dx1[g_dim]; //                 d phi
@@ -223,8 +223,8 @@ void DihedralTable::compute(int eflag, int vflag)
 
     // --- Compute the gradient vectors dphi/dx2 and dphi/dx3: ---
     //
-    // This is more tricky because atoms 2 and 3 are shared by both planes 
-    // 123 and 234 (the angle between which defines "phi").  Moving either 
+    // This is more tricky because atoms 2 and 3 are shared by both planes
+    // 123 and 234 (the angle between which defines "phi").  Moving either
     // one of these atoms effects both the 123 and 234 planes
     // Both the 123 and 234 planes intersect with the plane perpendicular to the
     // central bond axis (vb23).  The two lines where these intersections occur
@@ -257,9 +257,9 @@ void DihedralTable::compute(int eflag, int vflag)
 
     for (int d=0; d < g_dim; ++d) {
       // Recall that the n123 and n234 plane normal vectors are proportional to
-      // the dphi/dx1 and dphi/dx2 gradients vectors 
+      // the dphi/dx1 and dphi/dx2 gradients vectors
       // It turns out we can save slightly more CPU cycles by expressing
-      // dphi/dx2 and dphi/dx3 as linear combinations of dphi/dx1 and dphi/dx2 
+      // dphi/dx2 and dphi/dx3 as linear combinations of dphi/dx1 and dphi/dx2
       // which we computed already (instead of n123 & n234).
       dphi_dx2[d] = dphi123_dx2_coef*dphi_dx1[d] + dphi234_dx2_coef*dphi_dx4[d];
       dphi_dx3[d] = dphi123_dx3_coef*dphi_dx1[d] + dphi234_dx3_coef*dphi_dx4[d];
@@ -274,7 +274,7 @@ void DihedralTable::compute(int eflag, int vflag)
     cerr << "  -- testing gradient for dihedral (n="<<n<<") for atoms ("
          << i1 << "," << i2 << "," << i3 << "," << i4 << ") --" << endl;
 
-    PrintGradientComparison(*this, dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4, 
+    PrintGradientComparison(*this, dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4,
                             domain, x[i1], x[i2], x[i3], x[i4]);
 
     for (int d=0; d < g_dim; ++d) {
@@ -365,7 +365,7 @@ double DihedralTable::single(int type, int i1, int i2, int i3, int i4)
 
   double **x = atom->x;
 
-  double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain, 
+  double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain,
                    vb12, vb23, vb34, n123, n234);
 
   double u;
@@ -392,7 +392,7 @@ void DihedralTable::allocate()
 
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void DihedralTable::settings(int narg, char **arg)
@@ -404,7 +404,7 @@ void DihedralTable::settings(int narg, char **arg)
   else error->all(FLERR,"Unknown table style in dihedral style table");
 
   tablength = force->inumeric(arg[1]);
-  if (tablength < 3) 
+  if (tablength < 3)
     error->all(FLERR,"Illegal number of dihedral table entries");
   // delete old tables, since cannot just change settings
 
@@ -438,7 +438,7 @@ void DihedralTable::coeff(int narg, char **arg)
 
   int me;
   MPI_Comm_rank(world,&me);
-  tables = (Table *) 
+  tables = (Table *)
     memory->srealloc(tables,(ntables+1)*sizeof(Table), "dihedral:tables");
   Table *tb = &tables[ntables];
   null_table(tb);
@@ -461,11 +461,11 @@ void DihedralTable::coeff(int narg, char **arg)
     if (tb->phifile[i] >= tb->phifile[i+1]) {
       stringstream i_str;
       i_str << i+1;
-      string err_msg = 
+      string err_msg =
         string("Dihedral table values are not increasing (") +
-	string(arg[2]) + string(", ")+i_str.str()+string("th entry)");
+        string(arg[2]) + string(", ")+i_str.str()+string("th entry)");
       if (i==0)
-	err_msg += string("\n(This is probably a mistake with your table format.)\n");
+        err_msg += string("\n(This is probably a mistake with your table format.)\n");
       error->all(FLERR,err_msg.c_str());
     }
   }
@@ -477,7 +477,7 @@ void DihedralTable::coeff(int narg, char **arg)
     if ((phihi - philo) >= 360) {
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 360 degrees (")
-	+string(arg[2]) + string(").");
+        +string(arg[2]) + string(").");
       error->all(FLERR,err_msg.c_str());
     }
   }
@@ -485,7 +485,7 @@ void DihedralTable::coeff(int narg, char **arg)
     if ((phihi - philo) >= TWOPI) {
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
-	+ string(arg[2]) + string(").");
+        + string(arg[2]) + string(").");
       error->all(FLERR,err_msg.c_str());
     }
   }
@@ -505,13 +505,13 @@ void DihedralTable::coeff(int narg, char **arg)
   // We also want the angles to be sorted in increasing order.
   // This messy code fixes these problems with the user's data:
   {
-    double *phifile_tmp = new double [tb->ninput];  //temporary arrays 
+    double *phifile_tmp = new double [tb->ninput];  //temporary arrays
     double *ffile_tmp = new double [tb->ninput];  //used for sorting
     double *efile_tmp = new double [tb->ninput];
 
     // After re-imaging, does the range of angles cross the 0 or 2*PI boundary?
     // If so, find the discontinuity:
-    int i_discontinuity = tb->ninput; 
+    int i_discontinuity = tb->ninput;
     for (int i=0; i < tb->ninput; i++) {
       double phi   = tb->phifile[i];
       // Add a multiple of 2*PI to phi until it lies in the range [0, 2*PI).
@@ -576,27 +576,27 @@ void DihedralTable::coeff(int narg, char **arg)
         double phi = i*TWOPI/tablength;
         double f;
         if ((tabstyle == SPLINE) && (tb->f_unspecified)) {
-          double dU_dphi = 
+          double dU_dphi =
             // (If the user did not specify the forces now, AND the user
-	    //  selected the "spline" option, (as opposed to "linear")
-	    //  THEN the tb->f array is uninitialized, so there's 
-	    //  no point to print out the contents of the tb->f[] array. 
-	    //  Instead, later on, we will calculate the force using the 
-	    //  -cyc_splintD() routine to calculate the derivative of the
-	    //  energy spline, using the energy data (tb->e[]).
+            //  selected the "spline" option, (as opposed to "linear")
+            //  THEN the tb->f array is uninitialized, so there's
+            //  no point to print out the contents of the tb->f[] array.
+            //  Instead, later on, we will calculate the force using the
+            //  -cyc_splintD() routine to calculate the derivative of the
+            //  energy spline, using the energy data (tb->e[]).
             //  To be nice and report something, I do the same thing here.)
             cyc_splintD(tb->phi, tb->e, tb->e2, tablength, TWOPI,phi);
           f = -dU_dphi;
         }
         else
-	  // Otherwise we calculated the tb->f[] array.  Report its contents.
+          // Otherwise we calculated the tb->f[] array.  Report its contents.
           f = tb->f[i];
         if (tb->use_degrees) {
           phi *= 180.0/PI;
-	  // If the user wants degree angle units, we should convert our 
-	  // internal force tables (in energy/radians) to (energy/degrees)
-	  f *= PI/180.0;
-	}
+          // If the user wants degree angle units, we should convert our
+          // internal force tables (in energy/radians) to (energy/degrees)
+          f *= PI/180.0;
+        }
         checkF_file << phi << " " << f << "\n";
       }
       checkF_file.close();
@@ -614,7 +614,7 @@ void DihedralTable::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0) 
+  if (count == 0)
     error->all(FLERR,"Illegal dihedral_coeff command");
 
 } //DihedralTable::coeff()
@@ -667,7 +667,7 @@ void DihedralTable::free_table(Table *tb)
   memory->destroy(tb->ffile);
   memory->destroy(tb->e2file);
   memory->destroy(tb->f2file);
-  
+
   memory->destroy(tb->phi);
   memory->destroy(tb->e);
   memory->destroy(tb->de);
@@ -698,7 +698,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL) {
       string err_msg=string("Did not find keyword \"")
-	+string(keyword)+string("\" in dihedral table file.");
+        +string(keyword)+string("\" in dihedral table file.");
       error->one(FLERR, err_msg.c_str());
     }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
@@ -736,25 +736,25 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
       if (tb->f_unspecified) {
         //sscanf(line,"%d %lg %lg",
         //       &itmp,&tb->phifile[i],&tb->efile[i]);
-	line_ss >> itmp;
-	line_ss >> tb->phifile[i];
-	line_ss >> tb->efile[i];
+        line_ss >> itmp;
+        line_ss >> tb->phifile[i];
+        line_ss >> tb->efile[i];
       }
       else {
         //sscanf(line,"%d %lg %lg %lg",
         //       &itmp,&tb->phifile[i],&tb->efile[i],&tb->ffile[i]);
-	line_ss >> itmp;
-	line_ss >> tb->phifile[i];
-	line_ss >> tb->efile[i];
-	line_ss >> tb->ffile[i];
+        line_ss >> itmp;
+        line_ss >> tb->phifile[i];
+        line_ss >> tb->efile[i];
+        line_ss >> tb->ffile[i];
       }
       if (! line_ss) {
-	stringstream err_msg;
-	err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
-	        << "   (Check to make sure the number of colums is correct.)";
-	if ((! tb->f_unspecified) && (i==0))
-	  err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
-	error->one(FLERR, err_msg.str().c_str());
+        stringstream err_msg;
+        err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
+                << "   (Check to make sure the number of colums is correct.)";
+        if ((! tb->f_unspecified) && (i==0))
+          err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
+        error->one(FLERR, err_msg.str().c_str());
       }
     }
     else //if it is a blank line, then skip it.
@@ -766,7 +766,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
 /* ----------------------------------------------------------------------
    build spline representation of e,f over entire range of read-in table
-   this function sets these values in e2file,f2file.  
+   this function sets these values in e2file,f2file.
    I also perform a crude check for force & energy consistency.
 ------------------------------------------------------------------------- */
 
@@ -781,7 +781,7 @@ void DihedralTable::spline_table(Table *tb)
     cyc_spline(tb->phifile, tb->ffile, tb->ninput, TWOPI, tb->f2file);
   }
 
-  // CHECK to help make sure the user calculated forces in a way 
+  // CHECK to help make sure the user calculated forces in a way
   // which is grossly numerically consistent with the energy table.
   //  --------------------------------------------------
   //             This is an ugly piece of code
@@ -790,7 +790,7 @@ void DihedralTable::spline_table(Table *tb)
     int num_disagreements = 0;
     for (int i=0; i<tb->ninput; i++) {
 
-      // Calculate what the force should be at the control points 
+      // Calculate what the force should be at the control points
       // by using linear interpolation of the derivatives of the energy:
 
       double phi_i = tb->phifile[i];
@@ -802,14 +802,14 @@ void DihedralTable::spline_table(Table *tb)
         im1 += tb->ninput;
         phi_im1 = tb->phifile[im1] - TWOPI;
       }
-      else 
+      else
         phi_im1 = tb->phifile[im1];
       int ip1 = i+1;
       if (ip1 >= tb->ninput) {
         ip1 -= tb->ninput;
         phi_ip1 = tb->phifile[ip1] + TWOPI;
       }
-      else 
+      else
         phi_ip1 = tb->phifile[ip1];
 
       // Now calculate the midpoints above and below phi_i = tb->phifile[i]
@@ -817,16 +817,16 @@ void DihedralTable::spline_table(Table *tb)
       double phi_hi= 0.5*(phi_i + phi_ip1); //midpoint between phi_i and phi_ip1
 
       // Use a linear approximation to the derivative at these two midpoints
-      double dU_dphi_lo = 
+      double dU_dphi_lo =
         (tb->efile[i] - tb->efile[im1])
-        / 
-	(phi_i - phi_im1);
-      double dU_dphi_hi = 
+        /
+        (phi_i - phi_im1);
+      double dU_dphi_hi =
         (tb->efile[ip1] - tb->efile[i])
-        / 
-	(phi_ip1 - phi_i);
+        /
+        (phi_ip1 - phi_i);
 
-      // Now calculate the derivative at position 
+      // Now calculate the derivative at position
       // phi_i (=tb->phifile[i]) using linear interpolation
 
       double a = (phi_i - phi_lo) / (phi_hi - phi_lo);
@@ -842,7 +842,7 @@ void DihedralTable::spline_table(Table *tb)
       // anything important.  It does not have to be perfect.
       // We are only checking for stupid user errors here.
 
-      if ((f != 0.0) && 
+      if ((f != 0.0) &&
           (tb->ffile[i] != 0.0) &&
           ((f/tb->ffile[i] < 0.5) || (f/tb->ffile[i] > 2.0))) {
         num_disagreements++;
@@ -883,7 +883,7 @@ void DihedralTable::compute_table(Table *tb)
   memory->create(tb->e2,tablength,"dihedral:e2");
   memory->create(tb->f2,tablength,"dihedral:f2");
 
-  // Use cubic spline interpolation to calculate the entries in the 
+  // Use cubic spline interpolation to calculate the entries in the
   // internal table. (This is true regardless...even if tabstyle!=SPLINE.)
   for (int i = 0; i < tablength; i++) {
     double phi = i*tb->delta;
@@ -965,7 +965,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
     //else if (strcmp(word,"EQ") == 0) {
     //  word = strtok(NULL," \t\n\r\f");
     //  tb->theta0 = atof(word);
-    //} 
+    //}
     else {
       string err_msg("Invalid keyword in dihedral angle table parameters");
       err_msg += string(" (") + string(word) + string(")");
@@ -974,7 +974,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
     word = strtok(NULL," \t\n\r\f");
   }
 
-  if (tb->ninput == 0) 
+  if (tb->ninput == 0)
     error->one(FLERR,"Dihedral table parameters did not set N");
 
 } // DihedralTable::param_extract()
@@ -1010,7 +1010,7 @@ void DihedralTable::bcast_table(Table *tb)
   //MPI_Bcast(&tb->theta0,1,MPI_DOUBLE,0,world);
 }
 
- 
+
 namespace LAMMPS_NS {
 namespace DIHEDRAL_TABLE_NS {
 
@@ -1042,7 +1042,7 @@ enum { //GSL status return codes.
 };
 
 
-int 
+int
 solve_cyc_tridiag(
   const double diag[], size_t d_stride,
   const double offdiag[], size_t o_stride,
@@ -1068,7 +1068,7 @@ solve_cyc_tridiag(
 
       /* factor */
 
-      if (N == 1) 
+      if (N == 1)
         {
           x[0] = b[0] / diag[0];
           return GSL_SUCCESS;
@@ -1157,15 +1157,15 @@ solve_cyc_tridiag(
    spline and splint routines modified from Numerical Recipes
 ------------------------------------------------------------------------- */
 
-void cyc_spline(double const *xa, 
-                double const *ya, 
+void cyc_spline(double const *xa,
+                double const *ya,
                 int n,
-                double period, 
+                double period,
                 double *y2a)
 {
 
-  double *diag    = new double[n];   
-  double *offdiag = new double[n];   
+  double *diag    = new double[n];
+  double *offdiag = new double[n];
   double *rhs     = new double[n];
   double xa_im1, xa_ip1;
 
@@ -1175,7 +1175,7 @@ void cyc_spline(double const *xa,
 
   for(int i=0; i < n; i++) {
 
-    // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of 
+    // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
     // periodic boundary conditions.  We handle that now.
     int im1 = i-1;
     if (im1<0) {
@@ -1195,7 +1195,7 @@ void cyc_spline(double const *xa,
 
     // Recall that we want to find the y2a[] parameters (there are n of them).
     // To solve for them, we have a linear equation with n unknowns
-    // (in the cyclic case that is).  For details, the non-cyclic case is 
+    // (in the cyclic case that is).  For details, the non-cyclic case is
     // explained in equation 3.3.7 in Numerical Recipes in C, p. 115.
     diag[i]    = (xa_ip1 - xa_im1) / 3.0;
     offdiag[i] = (xa_ip1 - xa[i]) / 6.0;
@@ -1207,10 +1207,10 @@ void cyc_spline(double const *xa,
   // thousands of rows and columns).  However because this matix happens
   // to be tridiagonal (and cyclic), we can use the following cheap method:
   solve_cyc_tridiag(diag, 1,
-		    offdiag, 1,
-		    rhs, 1,
-		    y2a, 1,
-		    n);
+                    offdiag, 1,
+                    rhs, 1,
+                    y2a, 1,
+                    n);
 
   delete [] diag;
   delete [] offdiag;
@@ -1224,14 +1224,14 @@ void cyc_spline(double const *xa,
 
 // cyc_splint(): Evaluates a spline at position x, with n control
 //           points located at xa[], ya[], and with parameters y2a[]
-//           The xa[] must be monotonically increasing and their 
-//           range should not exceed period (ie xa[n-1] < xa[0] + period).  
+//           The xa[] must be monotonically increasing and their
+//           range should not exceed period (ie xa[n-1] < xa[0] + period).
 //           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
 //           "period" is typically 2*PI.
-double cyc_splint(double const *xa, 
-                  double const *ya, 
-                  double const *y2a, 
-                  int n, 
+double cyc_splint(double const *xa,
+                  double const *ya,
+                  double const *y2a,
+                  int n,
                   double period,
                   double x)
 {
@@ -1260,7 +1260,7 @@ double cyc_splint(double const *xa,
   double h = xhi-xlo;
   double a = (xhi-x) / h;
   double b = (x-xlo) / h;
-  double y = a*ya[klo] + b*ya[khi] + 
+  double y = a*ya[klo] + b*ya[khi] +
     ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
 
   return y;
@@ -1269,16 +1269,16 @@ double cyc_splint(double const *xa,
 
 
 
-// cyc_splintD(): Evaluate the deriviative of a cyclic spline at position x, 
+// cyc_splintD(): Evaluate the deriviative of a cyclic spline at position x,
 //           with n control points at xa[], ya[], with parameters y2a[].
-//           The xa[] must be monotonically increasing and their 
-//           range should not exceed period (ie xa[n-1] < xa[0] + period).  
+//           The xa[] must be monotonically increasing and their
+//           range should not exceed period (ie xa[n-1] < xa[0] + period).
 //           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
 //           "period" is typically 2*PI.
-double cyc_splintD(double const *xa, 
-                   double const *ya, 
-                   double const *y2a, 
-                   int n, 
+double cyc_splintD(double const *xa,
+                   double const *ya,
+                   double const *y2a,
+                   int n,
                    double period,
                    double x)
 {
@@ -1313,7 +1313,7 @@ double cyc_splintD(double const *xa,
   // Formula below taken from equation 3.3.5 of "numerical recipes in c"
   // "yD" = the derivative of y
   double yD = g/h - ( (3.0*a*a-1.0)*y2a[klo] - (3.0*b*b-1.0)*y2a[khi] ) * h/6.0;
-  // For rerefence: y = a*ylo + b*yhi + 
+  // For rerefence: y = a*ylo + b*yhi +
   //                  ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
 
   return yD;

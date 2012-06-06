@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -66,7 +66,7 @@ void PairYukawa::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -90,30 +90,30 @@ void PairYukawa::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	screening = exp(-kappa*r);
-	forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        screening = exp(-kappa*r);
+        forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
-	fpair = factor*forceyukawa * r2inv;
+        fpair = factor*forceyukawa * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-	  evdwl *= factor;
-	}
+        if (eflag) {
+          evdwl = a[itype][jtype] * screening * rinv - offset[itype][jtype];
+          evdwl *= factor;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -122,7 +122,7 @@ void PairYukawa::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairYukawa::allocate()
@@ -144,7 +144,7 @@ void PairYukawa::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairYukawa::settings(int narg, char **arg)
@@ -160,7 +160,7 @@ void PairYukawa::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -170,7 +170,7 @@ void PairYukawa::settings(int narg, char **arg)
 
 void PairYukawa::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) 
+  if (narg < 3 || narg > 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -231,8 +231,8 @@ void PairYukawa::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -254,12 +254,12 @@ void PairYukawa::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&a[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&a[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -297,8 +297,8 @@ void PairYukawa::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairYukawa::single(int i, int j, int itype, int jtype, double rsq,
-			  double factor_coul, double factor_lj,
-			  double &fforce)
+                          double factor_coul, double factor_lj,
+                          double &fforce)
 {
   double r2inv,r,rinv,screening,forceyukawa,phi;
 

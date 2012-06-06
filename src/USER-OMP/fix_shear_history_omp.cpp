@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,7 +69,7 @@ void FixShearHistoryOMP::pre_exchange()
     const int gmax = gfrom + gdelta;
     const int gto = (gmax > nall) ? nall : gmax;
 
-    
+
     int i,j,ii,jj,m,inum,jnum;
     int *ilist,*jlist,*numneigh,**firstneigh;
     int *touch,**firsttouch;
@@ -99,45 +99,45 @@ void FixShearHistoryOMP::pre_exchange()
       touch = firsttouch[i];
 
       for (jj = 0; jj < jnum; jj++) {
-	if (touch[jj]) {
-	  j = jlist[jj];
-	  j &= NEIGHMASK;
-	  shear = &allshear[3*jj];
-	  
-	  if ((i >= lfrom) && (i < lto)) {
-	    if (npartner[i] < MAXTOUCH) {
-	      m = npartner[i];
-	      partner[i][m] = tag[j];
-	      shearpartner[i][m][0] = shear[0];
-	      shearpartner[i][m][1] = shear[1];
-	      shearpartner[i][m][2] = shear[2];
-	    }
-	    npartner[i]++;
-	  }
+        if (touch[jj]) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          shear = &allshear[3*jj];
 
-	  if ((j >= lfrom) && (j < lto)) {
-	    if (npartner[j] < MAXTOUCH) {
-	      m = npartner[j];
-	      partner[j][m] = tag[i];
-	      shearpartner[j][m][0] = -shear[0];
-	      shearpartner[j][m][1] = -shear[1];
-	      shearpartner[j][m][2] = -shear[2];
-	    }
-	    npartner[j]++;
-	  }
-	  
-	  if ((j >= gfrom) && (j < gto)) {
-	    npartner[j]++;
-	  }
-	}
+          if ((i >= lfrom) && (i < lto)) {
+            if (npartner[i] < MAXTOUCH) {
+              m = npartner[i];
+              partner[i][m] = tag[j];
+              shearpartner[i][m][0] = shear[0];
+              shearpartner[i][m][1] = shear[1];
+              shearpartner[i][m][2] = shear[2];
+            }
+            npartner[i]++;
+          }
+
+          if ((j >= lfrom) && (j < lto)) {
+            if (npartner[j] < MAXTOUCH) {
+              m = npartner[j];
+              partner[j][m] = tag[i];
+              shearpartner[j][m][0] = -shear[0];
+              shearpartner[j][m][1] = -shear[1];
+              shearpartner[j][m][2] = -shear[2];
+            }
+            npartner[j]++;
+          }
+
+          if ((j >= gfrom) && (j < gto)) {
+            npartner[j]++;
+          }
+        }
       }
     }
-  
+
     // test for too many touching neighbors
     int myflag = 0;
     for (i = lfrom; i < lto; i++)
       if (npartner[i] >= MAXTOUCH) myflag = 1;
-  
+
     if (myflag)
 #if defined(_OPENMP)
 #pragma omp atomic

@@ -39,7 +39,7 @@ PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatOMP::~PairDPDTstatOMP() 
+PairDPDTstatOMP::~PairDPDTstatOMP()
 {
   if (random_thr) {
     for (int i=1; i < comm->nthreads; ++i)
@@ -64,7 +64,7 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
 
   if (!random_thr)
     random_thr = new RanMars*[nthreads];
-  
+
   // to ensure full compatibility with the serial DPD style
   // we use is random number generator instance for thread 0
   random_thr[0] = random;
@@ -82,16 +82,16 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
     if (random_thr && tid > 0)
-      random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me 
-				    + comm->nprocs*tid);
+      random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
+                                    + comm->nprocs*tid);
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -130,7 +130,7 @@ void PairDPDTstatOMP::eval(int iifrom, int iito, ThrData * const thr)
     double boltz = force->boltz;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
-	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
+        sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
   }
 
   ilist = list->ilist;
@@ -165,34 +165,34 @@ void PairDPDTstatOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-	rinv = 1.0/r;
-	delvx = vxtmp - v[j][0];
-	delvy = vytmp - v[j][1];
-	delvz = vztmp - v[j][2];
-	dot = delx*delvx + dely*delvy + delz*delvz;
-	wd = 1.0 - r/cut[itype][jtype];
-	randnum = rng.gaussian();
+        r = sqrt(rsq);
+        if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+        rinv = 1.0/r;
+        delvx = vxtmp - v[j][0];
+        delvy = vytmp - v[j][1];
+        delvz = vztmp - v[j][2];
+        dot = delx*delvx + dely*delvy + delz*delvz;
+        wd = 1.0 - r/cut[itype][jtype];
+        randnum = rng.gaussian();
 
-	// drag force = -gamma * wd^2 * (delx dot delv) / r
-	// random force = sigma * wd * rnd * dtinvsqrt;
+        // drag force = -gamma * wd^2 * (delx dot delv) / r
+        // random force = sigma * wd * rnd * dtinvsqrt;
 
-	fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
-	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fpair *= factor_dpd*rinv;	
+        fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
+        fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+        fpair *= factor_dpd*rinv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 0.0,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 0.0,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

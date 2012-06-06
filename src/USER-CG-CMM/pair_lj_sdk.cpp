@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -68,7 +68,7 @@ PairLJSDK::~PairLJSDK()
     memory->destroy(rminsq);
     memory->destroy(emin);
 
-    allocated = 0;   
+    allocated = 0;
   }
 }
 
@@ -94,7 +94,7 @@ void PairLJSDK::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-} 
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -145,50 +145,50 @@ void PairLJSDK::eval()
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	const int ljt = lj_type[itype][jtype];
+        r2inv = 1.0/rsq;
+        const int ljt = lj_type[itype][jtype];
 
-	if (ljt == LJ12_4) {
-	  const double r4inv=r2inv*r2inv;
-	  forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
-			   - lj2[itype][jtype]);
+        if (ljt == LJ12_4) {
+          const double r4inv=r2inv*r2inv;
+          forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                           - lj2[itype][jtype]);
 
-	  if (EFLAG)
-	    evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
-			   - lj4[itype][jtype]) - offset[itype][jtype];
-	  
-	} else if (ljt == LJ9_6) {
-	  const double r3inv = r2inv*sqrt(r2inv);
-	  const double r6inv = r3inv*r3inv;
-	  forcelj = r6inv*(lj1[itype][jtype]*r3inv
-			   - lj2[itype][jtype]);
-	  if (EFLAG)
-	    evdwl = r6inv*(lj3[itype][jtype]*r3inv
-			   - lj4[itype][jtype]) - offset[itype][jtype];
+          if (EFLAG)
+            evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                           - lj4[itype][jtype]) - offset[itype][jtype];
 
-	} else if (ljt == LJ12_6) {
-	  const double r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv*(lj1[itype][jtype]*r6inv
-			  - lj2[itype][jtype]);
-	  if (EFLAG)
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv
-			   - lj4[itype][jtype]) - offset[itype][jtype];
-	} else continue;
+        } else if (ljt == LJ9_6) {
+          const double r3inv = r2inv*sqrt(r2inv);
+          const double r6inv = r3inv*r3inv;
+          forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                           - lj2[itype][jtype]);
+          if (EFLAG)
+            evdwl = r6inv*(lj3[itype][jtype]*r3inv
+                           - lj4[itype][jtype]) - offset[itype][jtype];
 
-	fpair = factor_lj*forcelj*r2inv;
+        } else if (ljt == LJ12_6) {
+          const double r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                          - lj2[itype][jtype]);
+          if (EFLAG)
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv
+                           - lj4[itype][jtype]) - offset[itype][jtype];
+        } else continue;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fpair = factor_lj*forcelj*r2inv;
 
-	if (EFLAG) evdwl *= factor_lj;
-	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (EFLAG) evdwl *= factor_lj;
+        if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
     f[i][0] += fxtmp;
@@ -248,7 +248,7 @@ void PairLJSDK::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -298,13 +298,13 @@ double PairLJSDK::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
     error->all(FLERR,"No mixing support for lj/sdk. "
-	       "Coefficients for all pairs need to be set explicitly.");
+               "Coefficients for all pairs need to be set explicitly.");
 
   const int ljt = lj_type[i][j];
 
   if (ljt == LJ_NOT_SET)
     error->all(FLERR,"unrecognized LJ parameter flag");
-  
+
   lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
   lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
   lj3[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
@@ -329,12 +329,12 @@ double PairLJSDK::init_one(int i, int j)
   const double eps = epsilon[i][j];
   const double sig = sigma[i][j];
   const double rmin = sig*exp(1.0/(lj_pow1[ljt]-lj_pow2[ljt])
-			      *log(lj_pow1[ljt]/lj_pow2[ljt]) );
+                              *log(lj_pow1[ljt]/lj_pow2[ljt]) );
   rminsq[j][i] = rminsq[i][j] = rmin*rmin;
 
   const double ratio = sig/rmin;
   const double emin_one = lj_prefact[ljt] * eps * (pow(ratio,lj_pow1[ljt])
-						   - pow(ratio,lj_pow2[ljt]));
+                                                   - pow(ratio,lj_pow2[ljt]));
   emin[j][i] = emin[i][j] = emin_one;
 
   // compute I,J contribution to long-range tail correction
@@ -347,7 +347,7 @@ double PairLJSDK::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLJSDK::write_restart(FILE *fp)
@@ -360,9 +360,9 @@ void PairLJSDK::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         fwrite(&lj_type[i][j],sizeof(int),1,fp);
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -383,16 +383,16 @@ void PairLJSDK::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&lj_type[i][j],sizeof(int),1,fp);
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&lj_type[i][j],sizeof(int),1,fp);
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -428,23 +428,23 @@ void PairLJSDK::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJSDK::single(int, int, int itype, int jtype, double rsq,
-			 double, double factor_lj, double &fforce)
+                         double, double factor_lj, double &fforce)
 {
 
   if (rsq < cutsq[itype][jtype]) {
-      
+
     const int ljt = lj_type[itype][jtype];
     const double ljpow1 = lj_pow1[ljt];
     const double ljpow2 = lj_pow2[ljt];
     const double ljpref = lj_prefact[ljt];
-        
+
     const double ratio = sigma[itype][jtype]/sqrt(rsq);
     const double eps = epsilon[itype][jtype];
 
-    fforce = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1) 
-			  - ljpow2*pow(ratio,ljpow2))/rsq;
+    fforce = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
+                          - ljpow2*pow(ratio,ljpow2))/rsq;
     return factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-			- offset[itype][jtype]);
+                        - offset[itype][jtype]);
 
   } else fforce=0.0;
 
@@ -476,9 +476,9 @@ double PairLJSDK::memory_usage()
   int n = atom->ntypes;
 
   // setflag/lj_type
-  bytes += 2 * (n+1)*(n+1)*sizeof(int); 
+  bytes += 2 * (n+1)*(n+1)*sizeof(int);
   // cut/cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4/rminsq/emin
-  bytes += 11 * (n+1)*(n+1)*sizeof(double); 
+  bytes += 11 * (n+1)*(n+1)*sizeof(double);
 
   return bytes;
 }

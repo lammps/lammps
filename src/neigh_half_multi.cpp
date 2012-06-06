@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -92,23 +92,23 @@ void Neighbor::half_multi_no_newton(NeighList *list)
     ns = nstencil_multi[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
-	if (j <= i) continue;
-	jtype = type[j];
-	if (cutsq[jtype] < distsq[k]) continue;
+        if (j <= i) continue;
+        jtype = type[j];
+        if (cutsq[jtype] < distsq[k]) continue;
 
-	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
 
-	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) {
-	    which = find_special(special[i],nspecial[i],tag[j]);
-	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	  } else neighptr[n++] = j;
-	}
+        if (rsq <= cutneighsq[itype][jtype]) {
+          if (molecular) {
+            which = find_special(special[i],nspecial[i],tag[j]);
+            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          } else neighptr[n++] = j;
+        }
       }
     }
 
@@ -189,11 +189,11 @@ void Neighbor::half_multi_newton(NeighList *list)
 
     for (j = bins[i]; j >= 0; j = bins[j]) {
       if (j >= nlocal) {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp) {
-	  if (x[j][1] < ytmp) continue;
-	  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	}
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp) {
+          if (x[j][1] < ytmp) continue;
+          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
       }
 
       jtype = type[j];
@@ -205,10 +205,10 @@ void Neighbor::half_multi_newton(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-	if (molecular) {
-	  which = find_special(special[i],nspecial[i],tag[j]);
-	  if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	} else neighptr[n++] = j;
+        if (molecular) {
+          which = find_special(special[i],nspecial[i],tag[j]);
+          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+        } else neighptr[n++] = j;
       }
     }
 
@@ -222,22 +222,22 @@ void Neighbor::half_multi_newton(NeighList *list)
     ns = nstencil_multi[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
-	jtype = type[j];
-	if (cutsq[jtype] < distsq[k]) continue;
+        jtype = type[j];
+        if (cutsq[jtype] < distsq[k]) continue;
 
-	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
 
-	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) {
-	    which = find_special(special[i],nspecial[i],tag[j]);
-	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	  } else neighptr[n++] = j;
-	}
+        if (rsq <= cutneighsq[itype][jtype]) {
+          if (molecular) {
+            which = find_special(special[i],nspecial[i],tag[j]);
+            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          } else neighptr[n++] = j;
+        }
       }
     }
 
@@ -327,30 +327,30 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
     ns = nstencil_multi[itype];
     for (k = 0; k < ns; k++) {
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
-	jtype = type[j];
-	if (cutsq[jtype] < distsq[k]) continue;
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp) {
-	  if (x[j][1] < ytmp) continue;
-	  if (x[j][1] == ytmp) {
-	    if (x[j][0] < xtmp) continue;
-	    if (x[j][0] == xtmp && j <= i) continue;
-	  }
-	}
+        jtype = type[j];
+        if (cutsq[jtype] < distsq[k]) continue;
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp) {
+          if (x[j][1] < ytmp) continue;
+          if (x[j][1] == ytmp) {
+            if (x[j][0] < xtmp) continue;
+            if (x[j][0] == xtmp && j <= i) continue;
+          }
+        }
 
-	if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
 
-	if (rsq <= cutneighsq[itype][jtype]) {
-	  if (molecular) {
-	    which = find_special(special[i],nspecial[i],tag[j]);
-	    if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
-	  } else neighptr[n++] = j;
-	}
+        if (rsq <= cutneighsq[itype][jtype]) {
+          if (molecular) {
+            which = find_special(special[i],nspecial[i],tag[j]);
+            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          } else neighptr[n++] = j;
+        }
       }
     }
 

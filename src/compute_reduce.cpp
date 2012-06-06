@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -112,9 +112,9 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = F;
       argindex[nvalues++] = 2;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 || 
-	       strncmp(arg[iarg],"f_",2) == 0 || 
-	       strncmp(arg[iarg],"v_",2) == 0) {
+    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
+               strncmp(arg[iarg],"f_",2) == 0 ||
+               strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
@@ -125,10 +125,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Illegal compute reduce command");
-	argindex[nvalues] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Illegal compute reduce command");
+        argindex[nvalues] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[nvalues] = 0;
 
       n = strlen(suffix) + 1;
@@ -151,14 +151,14 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
-	error->all(FLERR,"Compute reduce replace requires min or max mode");
+        error->all(FLERR,"Compute reduce replace requires min or max mode");
       int col1 = atoi(arg[iarg+1]) - 1;
       int col2 = atoi(arg[iarg+2]) - 1;
       if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
-	error->all(FLERR,"Illegal compute reduce command");
-      if (col1 == col2)	error->all(FLERR,"Illegal compute reduce command");
+        error->all(FLERR,"Illegal compute reduce command");
+      if (col1 == col2)        error->all(FLERR,"Illegal compute reduce command");
       if (replace[col1] >= 0 || replace[col2] >= 0)
-	error->all(FLERR,"Invalid replace values in compute reduce"); 
+        error->all(FLERR,"Invalid replace values in compute reduce");
       replace[col1] = col2;
       iarg += 3;
     } else error->all(FLERR,"Illegal compute reduce command");
@@ -183,69 +183,69 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     else if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute reduce does not exist");
+        error->all(FLERR,"Compute ID for compute reduce does not exist");
       if (modify->compute[icompute]->peratom_flag) {
-	flavor[i] = PERATOM;
-	if (argindex[i] == 0 && 
-	    modify->compute[icompute]->size_peratom_cols != 0)
-	  error->all(FLERR,"Compute reduce compute does not "
-		     "calculate a per-atom vector");
-	if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	  error->all(FLERR,"Compute reduce compute does not "
-		     "calculate a per-atom array");
-	if (argindex[i] && 
-	    argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	  error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
+        flavor[i] = PERATOM;
+        if (argindex[i] == 0 &&
+            modify->compute[icompute]->size_peratom_cols != 0)
+          error->all(FLERR,"Compute reduce compute does not "
+                     "calculate a per-atom vector");
+        if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+          error->all(FLERR,"Compute reduce compute does not "
+                     "calculate a per-atom array");
+        if (argindex[i] &&
+            argindex[i] > modify->compute[icompute]->size_peratom_cols)
+          error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
       } else if (modify->compute[icompute]->local_flag) {
-	flavor[i] = LOCAL;
-	if (argindex[i] == 0 && 
-	    modify->compute[icompute]->size_local_cols != 0)
-	  error->all(FLERR,"Compute reduce compute does not "
-		     "calculate a local vector");
-	if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
-	  error->all(FLERR,"Compute reduce compute does not "
-		     "calculate a local array");
-	if (argindex[i] && 
-	    argindex[i] > modify->compute[icompute]->size_local_cols)
-	  error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
+        flavor[i] = LOCAL;
+        if (argindex[i] == 0 &&
+            modify->compute[icompute]->size_local_cols != 0)
+          error->all(FLERR,"Compute reduce compute does not "
+                     "calculate a local vector");
+        if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
+          error->all(FLERR,"Compute reduce compute does not "
+                     "calculate a local array");
+        if (argindex[i] &&
+            argindex[i] > modify->compute[icompute]->size_local_cols)
+          error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
       } else error->all(FLERR,"Compute reduce compute calculates global values");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for compute reduce does not exist");
+        error->all(FLERR,"Fix ID for compute reduce does not exist");
       if (modify->fix[ifix]->peratom_flag) {
-	flavor[i] = PERATOM;
-	if (argindex[i] == 0 && 
-	    modify->fix[ifix]->size_peratom_cols != 0)
-	  error->all(FLERR,"Compute reduce fix does not "
-		     "calculate a per-atom vector");
-	if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	  error->all(FLERR,"Compute reduce fix does not "
-		     "calculate a per-atom array");
-	if (argindex[i] && 
-	    argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	  error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
+        flavor[i] = PERATOM;
+        if (argindex[i] == 0 &&
+            modify->fix[ifix]->size_peratom_cols != 0)
+          error->all(FLERR,"Compute reduce fix does not "
+                     "calculate a per-atom vector");
+        if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+          error->all(FLERR,"Compute reduce fix does not "
+                     "calculate a per-atom array");
+        if (argindex[i] &&
+            argindex[i] > modify->fix[ifix]->size_peratom_cols)
+          error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
       } else if (modify->fix[ifix]->local_flag) {
-	flavor[i] = LOCAL;
-	if (argindex[i] == 0 && 
-	    modify->fix[ifix]->size_local_cols != 0)
-	  error->all(FLERR,"Compute reduce fix does not "
-		     "calculate a local vector");
-	if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
-	  error->all(FLERR,"Compute reduce fix does not "
-		     "calculate a local array");
-	if (argindex[i] && 
-	    argindex[i] > modify->fix[ifix]->size_local_cols)
-	  error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
+        flavor[i] = LOCAL;
+        if (argindex[i] == 0 &&
+            modify->fix[ifix]->size_local_cols != 0)
+          error->all(FLERR,"Compute reduce fix does not "
+                     "calculate a local vector");
+        if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
+          error->all(FLERR,"Compute reduce fix does not "
+                     "calculate a local array");
+        if (argindex[i] &&
+            argindex[i] > modify->fix[ifix]->size_local_cols)
+          error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
       } else error->all(FLERR,"Compute reduce fix calculates global values");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for compute reduce does not exist");
+        error->all(FLERR,"Variable name for compute reduce does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Compute reduce variable is not atom-style variable");
+        error->all(FLERR,"Compute reduce variable is not atom-style variable");
       flavor[i] = PERATOM;
     }
   }
@@ -304,19 +304,19 @@ void ComputeReduce::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute reduce does not exist");
+        error->all(FLERR,"Compute ID for compute reduce does not exist");
       value2index[m] = icompute;
-      
+
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0) 
-	error->all(FLERR,"Fix ID for compute reduce does not exist");
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for compute reduce does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
-      if (ivariable < 0) 
-	error->all(FLERR,"Variable name for compute reduce does not exist");
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute reduce does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -373,45 +373,45 @@ void ComputeReduce::compute_vector()
   } else if (mode == MINN) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
+        MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
-	if (replace[m] < 0) {
-	  pairme.value = onevec[m];
-	  pairme.proc = me;
-	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
-	  vector[m] = pairall.value;
-	  owner[m] = pairall.proc;
-	}
+        if (replace[m] < 0) {
+          pairme.value = onevec[m];
+          pairme.proc = me;
+          MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
+          vector[m] = pairall.value;
+          owner[m] = pairall.proc;
+        }
       for (int m = 0; m < nvalues; m++)
-	if (replace[m] >= 0) {
-	  if (me == owner[replace[m]])
-	    vector[m] = compute_one(m,indices[replace[m]]);
-	  MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
-	}
+        if (replace[m] >= 0) {
+          if (me == owner[replace[m]])
+            vector[m] = compute_one(m,indices[replace[m]]);
+          MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+        }
     }
 
   } else if (mode == MAXX) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-	MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
+        MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
-	if (replace[m] < 0) {
-	  pairme.value = onevec[m];
-	  pairme.proc = me;
-	  MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
-	  vector[m] = pairall.value;
-	  owner[m] = pairall.proc;
-	}
+        if (replace[m] < 0) {
+          pairme.value = onevec[m];
+          pairme.proc = me;
+          MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
+          vector[m] = pairall.value;
+          owner[m] = pairall.proc;
+        }
       for (int m = 0; m < nvalues; m++)
-	if (replace[m] >= 0) {
-	  if (me == owner[replace[m]])
-	    vector[m] = compute_one(m,indices[replace[m]]);
-	  MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
-	}
+        if (replace[m] >= 0) {
+          if (me == owner[replace[m]])
+            vector[m] = compute_one(m,indices[replace[m]]);
+          MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+        }
     }
 
   } else if (mode == AVE) {
@@ -457,70 +457,70 @@ double ComputeReduce::compute_one(int m, int flag)
     double **x = atom->x;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,x[i][aidx],i);
+        if (mask[i] & groupbit) combine(one,x[i][aidx],i);
     } else one = x[flag][aidx];
   } else if (which[m] == V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,v[i][aidx],i);
+        if (mask[i] & groupbit) combine(one,v[i][aidx],i);
     } else one = v[flag][aidx];
   } else if (which[m] == F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,f[i][aidx],i);
+        if (mask[i] & groupbit) combine(one,f[i][aidx],i);
     } else one = f[flag][aidx];
-    
+
   // invoke compute if not previously invoked
 
   } else if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[vidx];
-    
+
     if (flavor[m] == PERATOM) {
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-	compute->compute_peratom();
-	compute->invoked_flag |= INVOKED_PERATOM;
+        compute->compute_peratom();
+        compute->invoked_flag |= INVOKED_PERATOM;
       }
 
       if (aidx == 0) {
-	double *comp_vec = compute->vector_atom;
-	int n = nlocal;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit) combine(one,comp_vec[i],i);
-	} else one = comp_vec[flag];
+        double *comp_vec = compute->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,comp_vec[i],i);
+        } else one = comp_vec[flag];
       } else {
-	double **carray_atom = compute->array_atom;
-	int n = nlocal;
-	int aidxm1 = aidx - 1;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit) combine(one,carray_atom[i][aidxm1],i);
-	} else one = carray_atom[flag][aidxm1];
+        double **carray_atom = compute->array_atom;
+        int n = nlocal;
+        int aidxm1 = aidx - 1;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,carray_atom[i][aidxm1],i);
+        } else one = carray_atom[flag][aidxm1];
       }
 
     } else if (flavor[m] == LOCAL) {
       if (!(compute->invoked_flag & INVOKED_LOCAL)) {
-	compute->compute_local();
-	compute->invoked_flag |= INVOKED_LOCAL;
+        compute->compute_local();
+        compute->invoked_flag |= INVOKED_LOCAL;
       }
 
       if (aidx == 0) {
-	double *comp_vec = compute->vector_local;
-	int n = compute->size_local_rows;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,comp_vec[i],i);
-	else one = comp_vec[flag];
+        double *comp_vec = compute->vector_local;
+        int n = compute->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,comp_vec[i],i);
+        else one = comp_vec[flag];
       } else {
-	double **carray_local = compute->array_local;
-	int n = compute->size_local_rows;
-	int aidxm1 = aidx - 1;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,carray_local[i][aidxm1],i);
-	else one = carray_local[flag][aidxm1];
+        double **carray_local = compute->array_local;
+        int n = compute->size_local_rows;
+        int aidxm1 = aidx - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,carray_local[i][aidxm1],i);
+        else one = carray_local[flag][aidxm1];
       }
     }
 
@@ -533,40 +533,40 @@ double ComputeReduce::compute_one(int m, int flag)
 
     if (flavor[m] == PERATOM) {
       if (aidx == 0) {
-	double *fix_vector = fix->vector_atom;
-	int n = nlocal;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit) combine(one,fix_vector[i],i);
-	} else one = fix_vector[flag];
+        double *fix_vector = fix->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,fix_vector[i],i);
+        } else one = fix_vector[flag];
       } else {
-	double **fix_array = fix->array_atom;
-	int aidxm1 = aidx - 1;
-	if (flag < 0) {
-	  for (i = 0; i < nlocal; i++)
-	    if (mask[i] & groupbit) combine(one,fix_array[i][aidxm1],i);
-	} else one = fix_array[flag][aidxm1];
+        double **fix_array = fix->array_atom;
+        int aidxm1 = aidx - 1;
+        if (flag < 0) {
+          for (i = 0; i < nlocal; i++)
+            if (mask[i] & groupbit) combine(one,fix_array[i][aidxm1],i);
+        } else one = fix_array[flag][aidxm1];
       }
 
     } else if (flavor[m] == LOCAL) {
       if (aidx == 0) {
-	double *fix_vector = fix->vector_local;
-	int n = fix->size_local_rows;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix_vector[i],i);
-	else one = fix_vector[flag];
+        double *fix_vector = fix->vector_local;
+        int n = fix->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_vector[i],i);
+        else one = fix_vector[flag];
       } else {
-	double **fix_array = fix->array_local;
-	int n = fix->size_local_rows;
-	int aidxm1 = aidx - 1;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix_array[i][aidxm1],i);
-	else one = fix_array[flag][aidxm1];
+        double **fix_array = fix->array_local;
+        int n = fix->size_local_rows;
+        int aidxm1 = aidx - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_array[i][aidxm1],i);
+        else one = fix_array[flag][aidxm1];
       }
     }
-    
+
   // evaluate atom-style variable
 
   } else if (which[m] == VARIABLE) {
@@ -579,7 +579,7 @@ double ComputeReduce::compute_one(int m, int flag)
     input->variable->compute_atom(vidx,igroup,varatom,1,0);
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) combine(one,varatom[i],i);
+        if (mask[i] & groupbit) combine(one,varatom[i],i);
     } else one = varatom[flag];
   }
 

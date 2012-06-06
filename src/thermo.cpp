@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -248,7 +248,7 @@ void Thermo::init()
   int ivariable;
   for (i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) 
+    if (ivariable < 0)
       error->all(FLERR,"Could not find thermo variable name");
     variables[i] = ivariable;
   }
@@ -271,7 +271,7 @@ void Thermo::header()
   for (int i = 0; i < nfield; i++)
     loc += sprintf(&line[loc],"%s ",keyword[i]);
   sprintf(&line[loc],"\n");
-  
+
   if (me == 0) {
     if (screen) fprintf(screen,line);
     if (logfile) fprintf(logfile,line);
@@ -299,18 +299,18 @@ void Thermo::compute(int flag)
   for (i = 0; i < ncompute; i++)
     if (compute_which[i] == SCALAR) {
       if (!(computes[i]->invoked_flag & INVOKED_SCALAR)) {
-	computes[i]->compute_scalar();
-	computes[i]->invoked_flag |= INVOKED_SCALAR;
+        computes[i]->compute_scalar();
+        computes[i]->invoked_flag |= INVOKED_SCALAR;
       }
     } else if (compute_which[i] == VECTOR) {
       if (!(computes[i]->invoked_flag & INVOKED_VECTOR)) {
-	computes[i]->compute_vector();
-	computes[i]->invoked_flag |= INVOKED_VECTOR;
+        computes[i]->compute_vector();
+        computes[i]->invoked_flag |= INVOKED_VECTOR;
       }
     } else if (compute_which[i] == ARRAY) {
       if (!(computes[i]->invoked_flag & INVOKED_ARRAY)) {
-	computes[i]->compute_array();
-	computes[i]->invoked_flag |= INVOKED_ARRAY;
+        computes[i]->compute_array();
+        computes[i]->invoked_flag |= INVOKED_ARRAY;
       }
     }
 
@@ -330,7 +330,7 @@ void Thermo::compute(int flag)
     (this->*vfunc[ifield])();
     if (vtype[ifield] == FLOAT)
       loc += sprintf(&line[loc],format[ifield],dvalue);
-    else if (vtype[ifield] == INT) 
+    else if (vtype[ifield] == INT)
       loc += sprintf(&line[loc],format[ifield],ivalue);
     else if (vtype[ifield] == BIGINT) {
       loc += sprintf(&line[loc],format[ifield],bivalue);
@@ -362,7 +362,7 @@ bigint Thermo::lost_check()
   bigint ntotal;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0 || ntotal > MAXBIGINT) 
+  if (ntotal < 0 || ntotal > MAXBIGINT)
     error->all(FLERR,"Too many total atoms");
   if (ntotal == atom->natoms) return ntotal;
 
@@ -380,8 +380,8 @@ bigint Thermo::lost_check()
   if (lostflag == ERROR) {
     char str[64];
     sprintf(str,
-	    "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-	    atom->natoms,ntotal);
+            "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+            atom->natoms,ntotal);
     error->all(FLERR,str);
   }
 
@@ -389,8 +389,8 @@ bigint Thermo::lost_check()
 
   char str[64];
   sprintf(str,
-	  "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
-	  atom->natoms,ntotal);
+          "Lost atoms: original " BIGINT_FORMAT " current " BIGINT_FORMAT,
+          atom->natoms,ntotal);
   if (me == 0) error->warning(FLERR,str,0);
 
   // reset total atom count
@@ -415,10 +415,10 @@ void Thermo::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	delete [] output->var_thermo;
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	output->var_thermo = new char[n];
-	strcpy(output->var_thermo,&arg[iarg+1][2]);
+        delete [] output->var_thermo;
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        output->var_thermo = new char[n];
+        strcpy(output->var_thermo,&arg[iarg+1][2]);
       } else error->all(FLERR,"Illegal thermo_modify command");
       output->thermo_every = 0;
       iarg += 2;
@@ -431,28 +431,28 @@ void Thermo::modify_params(int narg, char **arg)
       strcpy(id_compute[index_temp],arg[iarg+1]);
 
       int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) 
-	error->all(FLERR,"Could not find thermo_modify temperature ID");
+      if (icompute < 0)
+        error->all(FLERR,"Could not find thermo_modify temperature ID");
       temperature = modify->compute[icompute];
 
       if (temperature->tempflag == 0)
-	error->all(FLERR,"Thermo_modify temperature ID does not "
-		   "compute temperature");
+        error->all(FLERR,"Thermo_modify temperature ID does not "
+                   "compute temperature");
       if (temperature->igroup != 0 && comm->me == 0)
-	error->warning(FLERR,
-		       "Temperature for thermo pressure is not for group all");
+        error->warning(FLERR,
+                       "Temperature for thermo pressure is not for group all");
 
       // reset id_temp of pressure to new temperature ID
       // either pressure currently being used by thermo or "thermo_press"
 
       if (index_press_scalar >= 0) {
-	icompute = modify->find_compute(id_compute[index_press_scalar]);
-	if (icompute < 0) error->all(FLERR,
-				     "Pressure ID for thermo does not exist");
+        icompute = modify->find_compute(id_compute[index_press_scalar]);
+        if (icompute < 0) error->all(FLERR,
+                                     "Pressure ID for thermo does not exist");
       } else if (index_press_vector >= 0) {
-	icompute = modify->find_compute(id_compute[index_press_vector]);
-	if (icompute < 0) error->all(FLERR,
-				     "Pressure ID for thermo does not exist");
+        icompute = modify->find_compute(id_compute[index_press_vector]);
+        if (icompute < 0) error->all(FLERR,
+                                     "Pressure ID for thermo does not exist");
       } else icompute = modify->find_compute((char *) "thermo_press");
 
       modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
@@ -462,28 +462,28 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"press") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (index_press_scalar < 0 && index_press_vector < 0)
-	error->all(FLERR,"Thermo style does not use press");
+        error->all(FLERR,"Thermo style does not use press");
 
       if (index_press_scalar >= 0) {
-	delete [] id_compute[index_press_scalar];
-	int n = strlen(arg[iarg+1]) + 1;
-	id_compute[index_press_scalar] = new char[n];
-	strcpy(id_compute[index_press_scalar],arg[iarg+1]);
+        delete [] id_compute[index_press_scalar];
+        int n = strlen(arg[iarg+1]) + 1;
+        id_compute[index_press_scalar] = new char[n];
+        strcpy(id_compute[index_press_scalar],arg[iarg+1]);
       }
       if (index_press_vector >= 0) {
-	delete [] id_compute[index_press_vector];
-	int n = strlen(arg[iarg+1]) + 1;
-	id_compute[index_press_vector] = new char[n];
-	strcpy(id_compute[index_press_vector],arg[iarg+1]);
+        delete [] id_compute[index_press_vector];
+        int n = strlen(arg[iarg+1]) + 1;
+        id_compute[index_press_vector] = new char[n];
+        strcpy(id_compute[index_press_vector],arg[iarg+1]);
       }
 
       int icompute = modify->find_compute(arg[iarg+1]);
       if (icompute < 0) error->all(FLERR,
-				   "Could not find thermo_modify pressure ID");
+                                   "Could not find thermo_modify pressure ID");
       pressure = modify->compute[icompute];
 
       if (pressure->pressflag == 0)
-	error->all(FLERR,"Thermo_modify pressure ID does not compute pressure");
+        error->all(FLERR,"Thermo_modify pressure ID does not compute pressure");
 
       iarg += 2;
 
@@ -520,34 +520,34 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (strcmp(arg[iarg+1],"int") == 0) {
-	if (format_int_user) delete [] format_int_user;
-	int n = strlen(arg[iarg+2]) + 1;
-	format_int_user = new char[n];
-	strcpy(format_int_user,arg[iarg+2]);
-	if (format_bigint_user) delete [] format_bigint_user;
-	n = strlen(format_int_user) + 3;
-	format_bigint_user = new char[n];
-	char *ptr = strchr(format_int_user,'d');
-	if (ptr == NULL) 
-	  error->all(FLERR,
-		     "Thermo_modify int format does not contain d character");
-	*ptr = '\0';
-	sprintf(format_bigint_user,"%s%s%s",format_int_user,
-		BIGINT_FORMAT,ptr+1);
-	*ptr = 'd';
+        if (format_int_user) delete [] format_int_user;
+        int n = strlen(arg[iarg+2]) + 1;
+        format_int_user = new char[n];
+        strcpy(format_int_user,arg[iarg+2]);
+        if (format_bigint_user) delete [] format_bigint_user;
+        n = strlen(format_int_user) + 3;
+        format_bigint_user = new char[n];
+        char *ptr = strchr(format_int_user,'d');
+        if (ptr == NULL)
+          error->all(FLERR,
+                     "Thermo_modify int format does not contain d character");
+        *ptr = '\0';
+        sprintf(format_bigint_user,"%s%s%s",format_int_user,
+                BIGINT_FORMAT,ptr+1);
+        *ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
-	if (format_float_user) delete [] format_float_user;
-	int n = strlen(arg[iarg+2]) + 1;
-	format_float_user = new char[n];
-	strcpy(format_float_user,arg[iarg+2]);
+        if (format_float_user) delete [] format_float_user;
+        int n = strlen(arg[iarg+2]) + 1;
+        format_float_user = new char[n];
+        strcpy(format_float_user,arg[iarg+2]);
       } else {
-	int i = atoi(arg[iarg+1]) - 1;
-	if (i < 0 || i >= nfield_initial)
-	  error->all(FLERR,"Illegal thermo_modify command");
-	if (format_user[i]) delete [] format_user[i];
-	int n = strlen(arg[iarg+2]) + 1;
-	format_user[i] = new char[n];
-	strcpy(format_user[i],arg[iarg+2]);
+        int i = atoi(arg[iarg+1]) - 1;
+        if (i < 0 || i >= nfield_initial)
+          error->all(FLERR,"Illegal thermo_modify command");
+        if (format_user[i]) delete [] format_user[i];
+        int n = strlen(arg[iarg+2]) + 1;
+        format_user[i] = new char[n];
+        strcpy(format_user[i],arg[iarg+2]);
       }
       iarg += 3;
 
@@ -745,16 +745,16 @@ void Thermo::parse_fields(char *str)
       addfield("Yz",&Thermo::compute_yz,FLOAT);
 
     } else if (strcmp(word,"xlat") == 0) {
-      if (domain->lattice == NULL) 
-	error->all(FLERR,"Thermo keyword requires lattice be defined");
+      if (domain->lattice == NULL)
+        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Xlat",&Thermo::compute_xlat,FLOAT);
     } else if (strcmp(word,"ylat") == 0) {
-      if (domain->lattice == NULL) 
-	error->all(FLERR,"Thermo keyword requires lattice be defined");
+      if (domain->lattice == NULL)
+        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Ylat",&Thermo::compute_ylat,FLOAT);
     } else if (strcmp(word,"zlat") == 0) {
-      if (domain->lattice == NULL) 
-	error->all(FLERR,"Thermo keyword requires lattice be defined");
+      if (domain->lattice == NULL)
+        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Zlat",&Thermo::compute_zlat,FLOAT);
 
     } else if (strcmp(word,"pxx") == 0) {
@@ -799,7 +799,7 @@ void Thermo::parse_fields(char *str)
     // copy = at most 8 chars of ID to pass to addfield
 
     } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
-	       (strncmp(word,"v_",2) == 0)) {
+               (strncmp(word,"v_",2) == 0)) {
 
       int n = strlen(word);
       char *id = new char[n];
@@ -814,74 +814,74 @@ void Thermo::parse_fields(char *str)
       char *ptr = strchr(id,'[');
       if (ptr == NULL) argindex1[nfield] = 0;
       else {
-	*ptr = '\0';
-	argindex1[nfield] = input->variable->int_between_brackets(ptr);
-	ptr++;
-	if (*ptr == '[') {
-	  argindex2[nfield] = input->variable->int_between_brackets(ptr);
-	  ptr++;
-	} else argindex2[nfield] = 0;
+        *ptr = '\0';
+        argindex1[nfield] = input->variable->int_between_brackets(ptr);
+        ptr++;
+        if (*ptr == '[') {
+          argindex2[nfield] = input->variable->int_between_brackets(ptr);
+          ptr++;
+        } else argindex2[nfield] = 0;
       }
 
       if (word[0] == 'c') {
-	n = modify->find_compute(id);
-	if (n < 0) error->all(FLERR,"Could not find thermo custom compute ID");
-	if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
-	  error->all(FLERR,"Thermo compute does not compute scalar");
-	if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-	  if (modify->compute[n]->vector_flag == 0)
-	    error->all(FLERR,"Thermo compute does not compute vector");
-	  if (argindex1[nfield] > modify->compute[n]->size_vector)
-	    error->all(FLERR,"Thermo compute vector is accessed out-of-range");
-	}
-	if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-	  if (modify->compute[n]->array_flag == 0)
-	    error->all(FLERR,"Thermo compute does not compute array");
-	  if (argindex1[nfield] > modify->compute[n]->size_array_rows ||
-	      argindex2[nfield] > modify->compute[n]->size_array_cols)
-	    error->all(FLERR,"Thermo compute array is accessed out-of-range");
-	}
+        n = modify->find_compute(id);
+        if (n < 0) error->all(FLERR,"Could not find thermo custom compute ID");
+        if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
+          error->all(FLERR,"Thermo compute does not compute scalar");
+        if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
+          if (modify->compute[n]->vector_flag == 0)
+            error->all(FLERR,"Thermo compute does not compute vector");
+          if (argindex1[nfield] > modify->compute[n]->size_vector)
+            error->all(FLERR,"Thermo compute vector is accessed out-of-range");
+        }
+        if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
+          if (modify->compute[n]->array_flag == 0)
+            error->all(FLERR,"Thermo compute does not compute array");
+          if (argindex1[nfield] > modify->compute[n]->size_array_rows ||
+              argindex2[nfield] > modify->compute[n]->size_array_cols)
+            error->all(FLERR,"Thermo compute array is accessed out-of-range");
+        }
 
-	if (argindex1[nfield] == 0)
-	  field2index[nfield] = add_compute(id,SCALAR);
-	else if (argindex2[nfield] == 0)
-	  field2index[nfield] = add_compute(id,VECTOR);
-	else 
-	  field2index[nfield] = add_compute(id,ARRAY);
-	addfield(copy,&Thermo::compute_compute,FLOAT);
+        if (argindex1[nfield] == 0)
+          field2index[nfield] = add_compute(id,SCALAR);
+        else if (argindex2[nfield] == 0)
+          field2index[nfield] = add_compute(id,VECTOR);
+        else
+          field2index[nfield] = add_compute(id,ARRAY);
+        addfield(copy,&Thermo::compute_compute,FLOAT);
 
       } else if (word[0] == 'f') {
-	n = modify->find_fix(id);
-	if (n < 0) error->all(FLERR,"Could not find thermo custom fix ID");
-	if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
-	  error->all(FLERR,"Thermo fix does not compute scalar");
-	if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-	  if (modify->fix[n]->vector_flag == 0)
-	    error->all(FLERR,"Thermo fix does not compute vector");
-	  if (argindex1[nfield] > modify->fix[n]->size_vector)
-	    error->all(FLERR,"Thermo fix vector is accessed out-of-range");
-	}
-	if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-	  if (modify->fix[n]->array_flag == 0)
-	    error->all(FLERR,"Thermo fix does not compute array");
-	  if (argindex1[nfield] > modify->fix[n]->size_array_rows ||
-	      argindex2[nfield] > modify->fix[n]->size_array_cols)
-	    error->all(FLERR,"Thermo fix array is accessed out-of-range");
-	}
+        n = modify->find_fix(id);
+        if (n < 0) error->all(FLERR,"Could not find thermo custom fix ID");
+        if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
+          error->all(FLERR,"Thermo fix does not compute scalar");
+        if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
+          if (modify->fix[n]->vector_flag == 0)
+            error->all(FLERR,"Thermo fix does not compute vector");
+          if (argindex1[nfield] > modify->fix[n]->size_vector)
+            error->all(FLERR,"Thermo fix vector is accessed out-of-range");
+        }
+        if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
+          if (modify->fix[n]->array_flag == 0)
+            error->all(FLERR,"Thermo fix does not compute array");
+          if (argindex1[nfield] > modify->fix[n]->size_array_rows ||
+              argindex2[nfield] > modify->fix[n]->size_array_cols)
+            error->all(FLERR,"Thermo fix array is accessed out-of-range");
+        }
 
-	field2index[nfield] = add_fix(id);
-	addfield(copy,&Thermo::compute_fix,FLOAT);
+        field2index[nfield] = add_fix(id);
+        addfield(copy,&Thermo::compute_fix,FLOAT);
 
       } else if (word[0] == 'v') {
-	n = input->variable->find(id);
-	if (n < 0) error->all(FLERR,"Could not find thermo custom variable name");
-	if (input->variable->equalstyle(n) == 0)
-	  error->all(FLERR,"Thermo custom variable is not equal-style variable");
-	if (argindex1[nfield]) 
-	  error->all(FLERR,"Thermo custom variable cannot be indexed");
+        n = input->variable->find(id);
+        if (n < 0) error->all(FLERR,"Could not find thermo custom variable name");
+        if (input->variable->equalstyle(n) == 0)
+          error->all(FLERR,"Thermo custom variable is not equal-style variable");
+        if (argindex1[nfield])
+          error->all(FLERR,"Thermo custom variable cannot be indexed");
 
-	field2index[nfield] = add_variable(id);
-	addfield(copy,&Thermo::compute_variable,FLOAT);
+        field2index[nfield] = add_variable(id);
+        addfield(copy,&Thermo::compute_variable,FLOAT);
       }
 
       delete [] id;
@@ -914,8 +914,8 @@ int Thermo::add_compute(const char *id, int which)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
-    if ((strcmp(id,id_compute[icompute]) == 0) && 
-	which == compute_which[icompute]) break;
+    if ((strcmp(id,id_compute[icompute]) == 0) &&
+        which == compute_which[icompute]) break;
   if (icompute < ncompute) return icompute;
 
   int n = strlen(id) + 1;
@@ -967,7 +967,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   // if inbetween runs and needed compute is not current, error
   // if in middle of run and needed compute is not current, invoke it
   // for keywords that use pe indirectly (evdwl, ebond, etc):
-  //   check if energy was tallied on this timestep and set pe->invoked_flag 
+  //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()
 
   if (strcmp(word,"step") == 0) {
@@ -975,13 +975,13 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     dvalue = bivalue;
 
   } else if (strcmp(word,"elapsed") == 0) {
-    if (update->whichflag == 0) 
+    if (update->whichflag == 0)
       error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (strcmp(word,"elaplong") == 0) {
-    if (update->whichflag == 0) 
+    if (update->whichflag == 0)
       error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
@@ -990,17 +990,17 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_dt();
 
   } else if (strcmp(word,"cpu") == 0) {
-    if (update->whichflag == 0) 
+    if (update->whichflag == 0)
       error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_cpu();
 
   } else if (strcmp(word,"tpcpu") == 0) {
-    if (update->whichflag == 0) 
+    if (update->whichflag == 0)
       error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_tpcpu();
 
   } else if (strcmp(word,"spcpu") == 0) {
-    if (update->whichflag == 0) 
+    if (update->whichflag == 0)
       error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_spcpu();
 
@@ -1011,25 +1011,25 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"temp") == 0) {
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init temp");	  
+                 "thermo to use/init temp");
     if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
       temperature->compute_scalar();
       temperature->invoked_flag |= INVOKED_SCALAR;
     }
     compute_temp();
-    
+
   } else if (strcmp(word,"press") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
       pressure->compute_scalar();
       pressure->invoked_flag |= INVOKED_SCALAR;
@@ -1041,8 +1041,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
@@ -1052,11 +1052,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"ke") == 0) {
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init temp");
+                 "thermo to use/init temp");
     if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
       temperature->compute_scalar();
       temperature->invoked_flag |= INVOKED_SCALAR;
@@ -1068,19 +1068,19 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init temp");
+                 "thermo to use/init temp");
     if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
       temperature->compute_scalar();
       temperature->invoked_flag |= INVOKED_SCALAR;
@@ -1092,30 +1092,30 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pe->invoked_flag & INVOKED_SCALAR)) {
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init temp");
+                 "thermo to use/init temp");
     if (update->whichflag == 0) {
       if (temperature->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
       temperature->compute_scalar();
       temperature->invoked_flag |= INVOKED_SCALAR;
     }
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_scalar != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
       pressure->compute_scalar();
       pressure->invoked_flag |= INVOKED_SCALAR;
@@ -1219,26 +1219,26 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"yz") == 0) compute_yz();
 
   else if (strcmp(word,"xlat") == 0) {
-    if (domain->lattice == NULL) 
+    if (domain->lattice == NULL)
       error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
     compute_xlat();
   } else if (strcmp(word,"ylat") == 0) {
-    if (domain->lattice == NULL) 
+    if (domain->lattice == NULL)
       error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
-    compute_ylat(); 
+    compute_ylat();
   } else if (strcmp(word,"zlat") == 0) {
-    if (domain->lattice == NULL) 
+    if (domain->lattice == NULL)
       error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
     compute_zlat();
 
   } else if (strcmp(word,"pxx") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1248,11 +1248,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pyy") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1262,11 +1262,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pzz") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1276,11 +1276,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pxy") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1290,11 +1290,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pxz") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1304,11 +1304,11 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"pyz") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
-		 "thermo to use/init press");
+                 "thermo to use/init press");
     if (update->whichflag == 0) {
       if (pressure->invoked_vector != update->ntimestep)
-	error->all(FLERR,"Compute used in variable thermo keyword between runs "
-		   "is not current");
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
     } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
       pressure->compute_vector();
       pressure->invoked_flag |= INVOKED_VECTOR;
@@ -1900,7 +1900,7 @@ void Thermo::compute_cellalpha()
     double cosalpha = (h[5]*h[4]+h[1]*h[3])/
       sqrt((h[1]*h[1]+h[5]*h[5])*(h[2]*h[2]+h[3]*h[3]+h[4]*h[4]));
     dvalue = acos(cosalpha)*180.0/MY_PI;
-  }    
+  }
 }
 
 /* ---------------------------------------------------------------------- */

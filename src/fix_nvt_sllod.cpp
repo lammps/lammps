@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -55,7 +55,7 @@ FixNVTSllod::FixNVTSllod(LAMMPS *lmp, int narg, char **arg) :
   id_temp = new char[n];
   strcpy(id_temp,id);
   strcat(id_temp,"_temp");
-  
+
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = group->names[igroup];
@@ -84,8 +84,8 @@ void FixNVTSllod::init()
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
-	error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
-		   "remap option");
+        error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
+                   "remap option");
       break;
     }
   if (i == modify->nfix)

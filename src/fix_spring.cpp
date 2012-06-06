@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -71,10 +71,10 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     group2 = new char[n];
     strcpy(group2,arg[4]);
     igroup2 = group->find(arg[4]);
-    if (igroup2 == -1) 
-      error->all(FLERR,"Fix spring couple group ID does not exist"); 
-    if (igroup2 == igroup) 
-      error->all(FLERR,"Two groups cannot be the same in fix spring couple"); 
+    if (igroup2 == -1)
+      error->all(FLERR,"Fix spring couple group ID does not exist");
+    if (igroup2 == igroup)
+      error->all(FLERR,"Two groups cannot be the same in fix spring couple");
     group2bit = group->bitmask[igroup2];
 
     k_spring = atof(arg[5]);
@@ -120,14 +120,14 @@ void FixSpring::init()
 
   if (group2) {
     igroup2 = group->find(group2);
-    if (igroup2 == -1) 
-      error->all(FLERR,"Fix spring couple group ID does not exist"); 
+    if (igroup2 == -1)
+      error->all(FLERR,"Fix spring couple group ID does not exist");
     group2bit = group->bitmask[igroup2];
   }
 
   masstotal = group->mass(igroup);
   if (styleflag == COUPLE) masstotal2 = group->mass(igroup2);
-  
+
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
@@ -168,9 +168,9 @@ void FixSpring::spring_tether()
   group->xcm(igroup,masstotal,xcm);
 
   // fx,fy,fz = components of k * (r-r0) / masstotal
-  
+
   double dx,dy,dz,fx,fy,fz,r,dr;
-  
+
   dx = xcm[0] - xc;
   dy = xcm[1] - yc;
   dz = xcm[2] - zc;
@@ -188,7 +188,7 @@ void FixSpring::spring_tether()
   ftotal[1] = -fy;
   ftotal[2] = -fz;
   ftotal[3] = sqrt(fx*fx + fy*fy + fz*fz);
-  if (dr < 0.0) ftotal[3] = -ftotal[3]; 
+  if (dr < 0.0) ftotal[3] = -ftotal[3];
   espring = 0.5*k_spring * dr*dr;
 
   fx /= masstotal;
@@ -203,24 +203,24 @@ void FixSpring::spring_tether()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
-  
+
   double massone;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	f[i][0] -= fx*massone;
-	f[i][1] -= fy*massone;
-	f[i][2] -= fz*massone;
+        massone = rmass[i];
+        f[i][0] -= fx*massone;
+        f[i][1] -= fy*massone;
+        f[i][2] -= fz*massone;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	f[i][0] -= fx*massone;
-	f[i][1] -= fy*massone;
-	f[i][2] -= fz*massone;
+        massone = mass[type[i]];
+        f[i][0] -= fx*massone;
+        f[i][1] -= fy*massone;
+        f[i][2] -= fz*massone;
       }
   }
 }
@@ -232,22 +232,22 @@ void FixSpring::spring_couple()
   double xcm[3],xcm2[3];
   group->xcm(igroup,masstotal,xcm);
   group->xcm(igroup2,masstotal2,xcm2);
-  
+
   // fx,fy,fz = components of k * (r-r0) / masstotal
   // fx2,fy2,fz2 = components of k * (r-r0) / masstotal2
-  
+
   double dx,dy,dz,fx,fy,fz,fx2,fy2,fz2,r,dr;
-  
+
   dx = xcm2[0] - xcm[0] - xc;
   dy = xcm2[1] - xcm[1] - yc;
-  dz = xcm2[2] - xcm[2] - zc;  
+  dz = xcm2[2] - xcm[2] - zc;
   if (!xflag) dx = 0.0;
   if (!yflag) dy = 0.0;
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
   r = MAX(r,SMALL);
   dr = r - r0;
-  
+
   fx = k_spring*dx*dr/r;
   fy = k_spring*dy*dr/r;
   fz = k_spring*dz*dr/r;
@@ -255,7 +255,7 @@ void FixSpring::spring_couple()
   ftotal[1] = fy;
   ftotal[2] = fz;
   ftotal[3] = sqrt(fx*fx + fy*fy + fz*fz);
-  if (dr < 0.0) ftotal[3] = -ftotal[3]; 
+  if (dr < 0.0) ftotal[3] = -ftotal[3];
   espring = 0.5*k_spring * dr*dr;
 
   fx2 = fx/masstotal2;
@@ -278,33 +278,33 @@ void FixSpring::spring_couple()
   double massone;
 
   if (rmass) {
-    for (int i = 0; i < nlocal; i++) {         
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	f[i][0] += fx*massone;
-	f[i][1] += fy*massone;
-	f[i][2] += fz*massone;
+        massone = rmass[i];
+        f[i][0] += fx*massone;
+        f[i][1] += fy*massone;
+        f[i][2] += fz*massone;
       }
       if (mask[i] & group2bit) {
-	massone = rmass[i];
-	f[i][0] -= fx2*massone;
-	f[i][1] -= fy2*massone;
-	f[i][2] -= fz2*massone;
+        massone = rmass[i];
+        f[i][0] -= fx2*massone;
+        f[i][1] -= fy2*massone;
+        f[i][2] -= fz2*massone;
       }
     }
   } else {
-    for (int i = 0; i < nlocal; i++) {         
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	f[i][0] += fx*massone;
-	f[i][1] += fy*massone;
-	f[i][2] += fz*massone;
+        massone = mass[type[i]];
+        f[i][0] += fx*massone;
+        f[i][1] += fy*massone;
+        f[i][2] += fz*massone;
       }
       if (mask[i] & group2bit) {
-	massone = mass[type[i]];
-	f[i][0] -= fx2*massone;
-	f[i][1] -= fy2*massone;
-	f[i][2] -= fz2*massone;
+        massone = mass[type[i]];
+        f[i][0] -= fx2*massone;
+        f[i][1] -= fy2*massone;
+        f[i][2] -= fz2*massone;
       }
     }
   }

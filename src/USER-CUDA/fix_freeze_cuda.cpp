@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -79,7 +79,7 @@ int FixFreezeCuda::setmask()
 void FixFreezeCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,3);    
+  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,3);
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) count++;
@@ -91,14 +91,14 @@ void FixFreezeCuda::init()
 void FixFreezeCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixFreezeCuda::setup\n"); )
-	
+
   if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixFreezeCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();
     post_force(vflag);
     cuda->cu_f->download();
-    
+
   }
 
   MYDBG( printf("# CUDA: FixFreezeCuda::setup done\n"); )

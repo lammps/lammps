@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -43,7 +43,7 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
       int itype = atoi(arg[iarg+1]);
       double scale = atof(arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
-	error->all(FLERR,"Illegal fix viscous command");
+        error->all(FLERR,"Illegal fix viscous command");
       gamma[itype] = gamma_one * scale;
       iarg += 3;
     } else error->all(FLERR,"Illegal fix viscous command");
@@ -109,7 +109,7 @@ void FixViscous::post_force(int vflag)
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  
+
   double drag;
 
   for (int i = 0; i < nlocal; i++)
@@ -134,4 +134,3 @@ void FixViscous::min_post_force(int vflag)
 {
   post_force(vflag);
 }
-

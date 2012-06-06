@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -62,7 +62,7 @@ class FixPOEMS : public Fix  {
   int *natom2body;         // # of bodies each atom is part of
   int **atom2body;         // list of bodies each atom is part of
   double **displace;       // atom displace in body coords for 1st body it's in
-  
+
   // rigid body properties
   // only nrigid double counts joint atoms as being in multiple bodies
   // other quantities only count a joint atom as being in 1st body
@@ -104,7 +104,7 @@ class FixPOEMS : public Fix  {
   int jacobi(double **, double *, double **);
   void rotate(double **, int, int, int, int, double, double);
   void omega_from_mq(double *, double *, double *, double *,
-		     double *, double *);
+                     double *, double *);
   void set_v();
   void set_xv();
 };

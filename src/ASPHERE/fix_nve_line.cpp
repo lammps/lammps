@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -155,7 +155,7 @@ void FixNVELine::final_integrate()
       dtfm = dtf / rmass[i];
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
-      
+
       length = bonus[line[i]].length;
       dtirotate = dtfrotate / (length*length*rmass[i]);
       omega[i][2] += dtirotate * torque[i][2];

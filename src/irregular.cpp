@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -121,16 +121,16 @@ void Irregular::migrate_atoms()
   int i = 0;
   while (i < nlocal) {
     if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
-	x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
-	x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
+        x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
+        x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
       proclist[nsendatom] = coord2proc(x[i]);
       if (proclist[nsendatom] != me) {
-	if (nsend > maxsend) grow_send(nsend,1);
-	sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
-	nsend += sizes[nsendatom];
-	nsendatom++;
-	avec->copy(nlocal-1,i,1);
-	nlocal--;
+        if (nsend > maxsend) grow_send(nsend,1);
+        sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
+        nsend += sizes[nsendatom];
+        nsendatom++;
+        avec->copy(nlocal-1,i,1);
+        nlocal--;
       } else i++;
     } else i++;
   }
@@ -285,7 +285,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
 
   delete [] count;
   delete [] list;
-    
+
   // initialize plan
 
   aplan->nsend = nsend;
@@ -322,7 +322,7 @@ void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
   offset = 0;
   for (int irecv = 0; irecv < aplan->nrecv; irecv++) {
     MPI_Irecv(&recvbuf[offset],aplan->length_recv[irecv],MPI_DOUBLE,
-	      aplan->proc_recv[irecv],0,world,&aplan->request[irecv]);
+              aplan->proc_recv[irecv],0,world,&aplan->request[irecv]);
     offset += aplan->length_recv[irecv];
   }
 
@@ -345,12 +345,12 @@ void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
     for (i = 0; i < num_send; i++) {
       m = index_send[n++];
       memcpy(&buf[offset],&sendbuf[aplan->offset_send[m]],
-	     sizes[m]*sizeof(double));
+             sizes[m]*sizeof(double));
       offset += sizes[m];
     }
     MPI_Send(buf,aplan->length_send[isend],MPI_DOUBLE,
-	     aplan->proc_send[isend],0,world);
-  }       
+             aplan->proc_send[isend],0,world);
+  }
 
   // free temporary send buffer
 
@@ -507,7 +507,7 @@ int Irregular::create_data(int n, int *proclist)
 
   delete [] count;
   delete [] list;
-    
+
   // initialize plan and return it
 
   dplan->nsend = nsend;
@@ -544,7 +544,7 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
   offset = dplan->num_self*nbytes;
   for (int irecv = 0; irecv < dplan->nrecv; irecv++) {
     MPI_Irecv(&recvbuf[offset],dplan->num_recv[irecv]*nbytes,MPI_CHAR,
-	      dplan->proc_recv[irecv],0,world,&dplan->request[irecv]);
+              dplan->proc_recv[irecv],0,world,&dplan->request[irecv]);
     offset += dplan->num_recv[irecv]*nbytes;
   }
 
@@ -568,8 +568,8 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
       memcpy(&buf[i*nbytes],&sendbuf[m*nbytes],nbytes);
     }
     MPI_Send(buf,dplan->num_send[isend]*nbytes,MPI_CHAR,
-	     dplan->proc_send[isend],0,world);
-  }       
+             dplan->proc_send[isend],0,world);
+  }
 
   // free temporary send buffer
 
@@ -622,8 +622,8 @@ int Irregular::coord2proc(double *x)
   if (uniform) {
     if (triclinic == 0) {
       loc[0] = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
-      loc[1] = static_cast<int>	(procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
-      loc[2] = static_cast<int>	(procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
+      loc[1] = static_cast<int>        (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
+      loc[2] = static_cast<int>        (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
     } else {
       loc[0] = static_cast<int> (procgrid[0] * x[0]);
       loc[1] = static_cast<int> (procgrid[1] * x[1]);
@@ -683,7 +683,7 @@ int Irregular::binary(double value, int n, double *vec)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA 
+   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
@@ -700,7 +700,7 @@ void Irregular::grow_send(int n, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   free/malloc the size of the recv buffer as needed with BUFFACTOR 
+   free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void Irregular::grow_recv(int n)

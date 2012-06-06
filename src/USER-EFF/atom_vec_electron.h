@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -23,7 +23,7 @@ AtomStyle(electron,AtomVecElectron)
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
-  
+
 class AtomVecElectron : public AtomVec {
  public:
   AtomVecElectron(class LAMMPS *, int, char **);
@@ -58,14 +58,14 @@ class AtomVecElectron : public AtomVec {
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
   bigint memory_usage();
-  
+
  private:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   int *spin;
-  double *q,*eradius,*ervel,*erforce;	
+  double *q,*eradius,*ervel,*erforce;
 };
- 
+
 }
 
 #endif

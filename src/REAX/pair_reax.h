@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -40,10 +40,10 @@ class PairREAX : public Pair {
   void unpack_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  
+
  private:
   double cutmax;
-  double rcutvsq,rcutbsq; 
+  double rcutvsq,rcutbsq;
   int iprune,ihb,ihbnew,itripstaball;
   double hbcut,swb;
   double swa;
@@ -83,11 +83,11 @@ class PairREAX : public Pair {
 
   void compute_charge(double &);
   void sparse_product(const int &, const int &, const int &, double[],
-		      int[], int[], double[], double[]);
-  void cg_solve(const int &, const int &, double[], int[], 
-		       int[], double[], double[]);
+                      int[], int[], double[], double[]);
+  void cg_solve(const int &, const int &, double[], int[],
+                       int[], double[], double[]);
   void charge_reax(const int &, const int &, double[],
-		   double[], int[], int[], double[]);
+                   double[], int[], int[], double[]);
 };
 
 }

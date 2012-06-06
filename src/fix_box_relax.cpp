@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,9 +59,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   deviatoric_flag = 0;
   nreset_h0 = 0;
 
-  p_target[0] = p_target[1] = p_target[2] = 
+  p_target[0] = p_target[1] = p_target[2] =
     p_target[3] = p_target[4] = p_target[5] = 0.0;
-  p_flag[0] = p_flag[1] = p_flag[2] = 
+  p_flag[0] = p_flag[1] = p_flag[2] =
     p_flag[3] = p_flag[4] = p_flag[5] = 0;
 
   // process keywords
@@ -77,18 +77,18 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_target[2] = 0.0;
-	p_flag[2] = 0;
+        p_target[2] = 0.0;
+        p_flag[2] = 0;
       }
-      iarg += 2; 
+      iarg += 2;
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_target[2] = 0.0;
-	p_flag[2] = 0;
+        p_target[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"tri") == 0) {
@@ -99,8 +99,8 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[3] = p_target[4] = p_target[5] = 0.0;
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
-	p_target[2] = p_target[3] = p_target[4] = 0.0;
-	p_flag[2] = p_flag[3] = p_flag[4] = 0;
+        p_target[2] = p_target[3] = p_target[4] = 0.0;
+        p_flag[2] = p_flag[3] = p_flag[4] = 0;
       }
       iarg += 2;
 
@@ -109,44 +109,44 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[0] = atof(arg[iarg+1]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[1] = atof(arg[iarg+1]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[2] = atof(arg[iarg+1]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
+        error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[3] = atof(arg[iarg+1]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
+        error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[4] = atof(arg[iarg+1]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
+        error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       p_target[5] = atof(arg[iarg+1]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
-      iarg += 2; 
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
@@ -211,17 +211,17 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
   if (p_flag[3] && domain->zperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
+               "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[4] && domain->zperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
+               "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix box/relax on a 2nd non-periodic dimension");
+               "Cannot use fix box/relax on a 2nd non-periodic dimension");
 
-  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5])) 
+  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
     error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
-	       "fix box/relax with non-triclinic box");
+               "fix box/relax with non-triclinic box");
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_target[0] != p_target[1] || p_target[0] != p_target[2]))
@@ -319,12 +319,12 @@ void FixBoxRelax::init()
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix box/relax does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_press);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Pressure ID for fix box/relax does not exist");
   pressure = modify->compute[icompute];
 
@@ -415,11 +415,11 @@ double FixBoxRelax::min_energy(double *fextra)
     if (pstyle == TRICLINIC) {
       fextra[3] = fextra[4] = fextra[5] = 0.0;
       if (p_flag[3])
-	fextra[3] = pv2e*p_current[3]*scaley*yprdinit*scalex*xprdinit*yprdinit;
-      if (p_flag[4]) 
-	fextra[4] = pv2e*p_current[4]*scalex*xprdinit*scaley*yprdinit*xprdinit;
-      if (p_flag[5]) 
-	fextra[5] = pv2e*p_current[5]*scalex*xprdinit*scalez*zprdinit*xprdinit;
+        fextra[3] = pv2e*p_current[3]*scaley*yprdinit*scalex*xprdinit*yprdinit;
+      if (p_flag[4])
+        fextra[4] = pv2e*p_current[4]*scalex*xprdinit*scaley*yprdinit*xprdinit;
+      if (p_flag[5])
+        fextra[5] = pv2e*p_current[5]*scalex*xprdinit*scalez*zprdinit*xprdinit;
     }
 
     if (deviatoric_flag) {
@@ -428,9 +428,9 @@ double FixBoxRelax::min_energy(double *fextra)
       if (p_flag[1]) fextra[1] -= fdev[1]*yprdinit;
       if (p_flag[2]) fextra[2] -= fdev[2]*zprdinit;
       if (pstyle == TRICLINIC) {
-	if (p_flag[3]) fextra[3] -= fdev[3]*yprdinit;
-	if (p_flag[4]) fextra[4] -= fdev[4]*xprdinit;
-	if (p_flag[5]) fextra[5] -= fdev[5]*xprdinit;
+        if (p_flag[3]) fextra[3] -= fdev[3]*yprdinit;
+        if (p_flag[4]) fextra[4] -= fdev[4]*xprdinit;
+        if (p_flag[5]) fextra[5] -= fdev[5]*xprdinit;
       }
 
       eng += compute_strain_energy();
@@ -586,7 +586,7 @@ void FixBoxRelax::remap()
 {
   int i,n;
   double ctr;
-  
+
   // ctr = geometric center of box in a dimension
   // rescale simulation box from linesearch starting point
   // scale atom coords for all atoms or only for fix group atoms
@@ -601,7 +601,7 @@ void FixBoxRelax::remap()
   else {
     for (i = 0; i < n; i++)
       if (mask[i] & groupbit)
-	domain->x2lamda(x[i],x[i]);
+        domain->x2lamda(x[i],x[i]);
   }
 
   if (nrigid)
@@ -618,7 +618,7 @@ void FixBoxRelax::remap()
       domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0-ctr)*ds[i]/s0[i];
       domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0-ctr)*ds[i]/s0[i];
       if (domain->boxlo[i] >= domain->boxhi[i])
-	error->all(FLERR,"Fix box/relax generated negative box length");
+        error->all(FLERR,"Fix box/relax generated negative box length");
     }
 
   if (pstyle == TRICLINIC) {
@@ -636,7 +636,7 @@ void FixBoxRelax::remap()
   else {
     for (i = 0; i < n; i++)
       if (mask[i] & groupbit)
-	domain->lamda2x(x[i],x[i]);
+        domain->lamda2x(x[i],x[i]);
   }
 
   if (nrigid)
@@ -673,8 +673,8 @@ void FixBoxRelax::couple()
     p_current[2] = tensor[2];
   }
 
-  // switch order from xy-xz-yz to Voigt 
-  
+  // switch order from xy-xz-yz to Voigt
+
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
     p_current[4] = tensor[4];
@@ -698,20 +698,20 @@ int FixBoxRelax::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
       error->all(FLERR,
-		 "Fix_modify temperature ID does not compute temperature");
+                 "Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Temperature for fix modify is not for group all");
 
     // reset id_temp of pressure to new temperature ID
-    
+
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Pressure ID for fix modify does not exist");
     modify->compute[icompute]->reset_extra_compute_fix(id_temp);
 
@@ -769,7 +769,7 @@ void FixBoxRelax::compute_sigma()
   h0_inv[3] = domain->h_inv[3];
   h0_inv[4] = domain->h_inv[4];
   h0_inv[5] = domain->h_inv[5];
-  
+
   htmp[0][0] = h0[0];
   htmp[1][1] = h0[1];
   htmp[2][2] = h0[2];
@@ -835,26 +835,26 @@ void FixBoxRelax::compute_sigma()
 
 double FixBoxRelax::compute_strain_energy()
 {
-  // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units 
+  // compute strain energy = 0.5*Tr(sigma*h*h^t) in energy units
 
   double* h = domain->h;
   double d0,d1,d2;
 
   if (dimension == 3) {
-    d0 = 
+    d0 =
       sigma[0]*(h[0]*h[0]+h[5]*h[5]+h[4]*h[4]) +
       sigma[5]*(          h[1]*h[5]+h[3]*h[4]) +
       sigma[4]*(                    h[2]*h[4]);
-    d1 = 
+    d1 =
       sigma[5]*(          h[5]*h[1]+h[4]*h[3]) +
       sigma[1]*(          h[1]*h[1]+h[3]*h[3]) +
       sigma[3]*(                    h[2]*h[3]);
-    d2 = 
+    d2 =
       sigma[4]*(                    h[4]*h[2]) +
       sigma[3]*(                    h[3]*h[2]) +
       sigma[2]*(                    h[2]*h[2]);
   } else {
-    d0 = sigma[0]*(h[0]*h[0]+h[5]*h[5]) + sigma[5]*h[1]*h[5];    
+    d0 = sigma[0]*(h[0]*h[0]+h[5]*h[5]) + sigma[5]*h[1]*h[5];
     d1 = sigma[5]*h[5]*h[1] + sigma[1]*h[1]*h[1];
     d2 = 0.0;
   }
@@ -870,7 +870,7 @@ double FixBoxRelax::compute_strain_energy()
 void FixBoxRelax::compute_deviatoric()
 {
   double* h = domain->h;
-    
+
   // [ 0 5 4 ]   [ 0 5 4 ] [ 0 5 4 ]
   // [ 5 1 3 ] = [ - 1 3 ] [ 5 1 3 ]
   // [ 4 3 2 ]   [ - - 2 ] [ 4 3 2 ]

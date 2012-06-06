@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -43,7 +43,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 
   // set time_depend, else elapsed time accumulation can be messed up
 
-  time_depend = 1;   
+  time_depend = 1;
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 2;
@@ -116,9 +116,9 @@ void FixDtReset::init()
 
   for (int i = 0; i < output->ndump; i++)
     if ((strcmp(output->dump[i]->style,"dcd") == 0 ||
-	strcmp(output->dump[i]->style,"xtc") == 0) && comm->me == 0)
+        strcmp(output->dump[i]->style,"xtc") == 0) && comm->me == 0)
       error->warning(FLERR,
-		     "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
+                     "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
 
   ftm2v = force->ftm2v;
   dt = update->dt;
@@ -183,7 +183,7 @@ void FixDtReset::end_of_step()
 
   if (minbound) dt = MAX(dt,tmin);
   if (maxbound) dt = MIN(dt,tmax);
-  
+
   // if timestep didn't change, just return
   // else reset update->dt and other classes that depend on it
   // rRESPA, pair style, fixes

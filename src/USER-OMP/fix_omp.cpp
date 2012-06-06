@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -92,9 +92,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
     comm->nthreads = nthreads;
     if (comm->me == 0) {
       if (screen)
-	fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+        fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
       if (logfile)
-	fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+        fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
     }
   }
 
@@ -108,11 +108,11 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
 
     if (comm->me == 0) {
       const char * const mode = _neighbor ? "OpenMP capable" : "serial";
-      
+
       if (screen)
-	fprintf(screen,"  using %s neighbor list subroutines\n", mode);
+        fprintf(screen,"  using %s neighbor list subroutines\n", mode);
       if (logfile)
-	fprintf(logfile,"  using %s neighbor list subroutines\n", mode);
+        fprintf(logfile,"  using %s neighbor list subroutines\n", mode);
     }
   }
 
@@ -121,23 +121,23 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
     if (strcmp(arg[5],"neigh/half") == 0)
       _newton = true;
     else if (strcmp(arg[5],"neigh/full") == 0)
-	_newton = false;
+        _newton = false;
     else
       error->all(FLERR,"Illegal fix OMP command");
 
     if (comm->me == 0) {
       const char * const mode = _newton ? "half" : "full";
-      
+
       if (screen)
-	fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
+        fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
       if (logfile)
-	fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
+        fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
     }
   }
 #endif
 
   // allocate list for per thread accumulator manager class instances
-  // and then have each thread create an instance of this class to 
+  // and then have each thread create an instance of this class to
   // encourage the OS to use storage that is "close" to each thread's CPU.
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
@@ -204,29 +204,29 @@ void FixOMP::init()
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
 
-#define CheckStyleForOMP(name)						\
-  check_hybrid = 0;							\
-  if (force->name) {							\
-    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||		\
-         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )	\
-      check_hybrid=1;							\
-    if (force->name->suffix_flag & Suffix::OMP) {			\
-      last_force_name = (const char *) #name;				\
-      last_omp_name = force->name ## _style;				\
-      last_omp_style = (void *) force->name;				\
-    }									\
+#define CheckStyleForOMP(name)                                                \
+  check_hybrid = 0;                                                        \
+  if (force->name) {                                                        \
+    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||                \
+         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )        \
+      check_hybrid=1;                                                        \
+    if (force->name->suffix_flag & Suffix::OMP) {                        \
+      last_force_name = (const char *) #name;                                \
+      last_omp_name = force->name ## _style;                                \
+      last_omp_style = (void *) force->name;                                \
+    }                                                                        \
   }
 
-#define CheckHybridForOMP(name,Class)					\
-  if (check_hybrid) {							\
-    Class ## Hybrid *style = (Class ## Hybrid *) force->name;		\
-    for (int i=0; i < style->nstyles; i++) {				\
-      if (style->styles[i]->suffix_flag & Suffix::OMP) {		\
-	last_force_name = (const char *) #name;				\
-	last_omp_name = style->keywords[i];				\
-	last_omp_style = style->styles[i];				\
-      }									\
-    }									\
+#define CheckHybridForOMP(name,Class)                                        \
+  if (check_hybrid) {                                                        \
+    Class ## Hybrid *style = (Class ## Hybrid *) force->name;                \
+    for (int i=0; i < style->nstyles; i++) {                                \
+      if (style->styles[i]->suffix_flag & Suffix::OMP) {                \
+        last_force_name = (const char *) #name;                                \
+        last_omp_name = style->keywords[i];                                \
+        last_omp_style = style->styles[i];                                \
+      }                                                                        \
+    }                                                                        \
   }
 
   CheckStyleForOMP(pair);
@@ -258,22 +258,22 @@ void FixOMP::init()
   if (comm->me == 0) {
     if (last_omp_style) {
       if (last_pair_hybrid) {
-	if (screen)
-	  fprintf(screen,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
-	if (logfile)
-	  fprintf(logfile,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
+        if (screen)
+          fprintf(screen,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
+        if (logfile)
+          fprintf(logfile,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
       }
       if (screen)
-	fprintf(screen,"Last active /omp style is %s_style %s\n",
-		last_force_name, last_omp_name);
+        fprintf(screen,"Last active /omp style is %s_style %s\n",
+                last_force_name, last_omp_name);
       if (logfile)
-	fprintf(logfile,"Last active /omp style is %s_style %s\n",
-		last_force_name, last_omp_name);
+        fprintf(logfile,"Last active /omp style is %s_style %s\n",
+                last_force_name, last_omp_name);
     } else {
       if (screen)
-	fprintf(screen,"No /omp style for force computation currently active\n");
+        fprintf(screen,"No /omp style for force computation currently active\n");
       if (logfile)
-	fprintf(screen,"No /omp style for force computation currently active\n");
+        fprintf(screen,"No /omp style for force computation currently active\n");
     }
   }
 }
@@ -325,6 +325,6 @@ double FixOMP::memory_usage()
 {
   double bytes = comm->nthreads * (sizeof(ThrData *) + sizeof(ThrData));
   bytes += comm->nthreads * thr[0]->memory_usage();
-  
+
   return bytes;
 }

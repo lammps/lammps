@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -37,24 +37,24 @@ namespace LAMMPS_NS {
 
 class FixNVECuda : public Fix
 {
-	public:
-		FixNVECuda(class LAMMPS *, int, char **);
-		int setmask();
-		virtual void init();
-		virtual void initial_integrate(int);
-		virtual void final_integrate();
-		void initial_integrate_respa(int, int, int);
-		void final_integrate_respa(int, int);
-		void reset_dt();
-	
-		X_FLOAT triggerneighsq;
-		
-	protected:
-		class Cuda *cuda;
-		double dtv, dtf;
-		double *step_respa;
-		int mass_require;
-		
+        public:
+                FixNVECuda(class LAMMPS *, int, char **);
+                int setmask();
+                virtual void init();
+                virtual void initial_integrate(int);
+                virtual void final_integrate();
+                void initial_integrate_respa(int, int, int);
+                void final_integrate_respa(int, int);
+                void reset_dt();
+
+                X_FLOAT triggerneighsq;
+
+        protected:
+                class Cuda *cuda;
+                double dtv, dtf;
+                double *step_respa;
+                int mass_require;
+
 };
 
 }

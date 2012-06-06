@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -46,11 +46,11 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
 {
   // error checks on partitions
 
-  if (universe->nworlds != 2) 
+  if (universe->nworlds != 2)
     error->universe_all(FLERR,"Verlet/split requires 2 partitions");
   if (universe->procs_per_world[0] % universe->procs_per_world[1])
     error->universe_all(FLERR,"Verlet/split requires Rspace partition "
-			"size be multiple of Kspace partition size");
+                        "size be multiple of Kspace partition size");
 
   // master = 1 for Rspace procs, 0 for Kspace procs
 
@@ -72,18 +72,18 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
 
   int ***kspace_grid2proc;
   memory->create(kspace_grid2proc,kspace_procgrid[0],
-		 kspace_procgrid[1],kspace_procgrid[2],
-		 "verlet/split:kspace_grid2proc");
+                 kspace_procgrid[1],kspace_procgrid[2],
+                 "verlet/split:kspace_grid2proc");
 
   if (universe->me == universe->root_proc[1]) {
     for (int i = 0; i < comm->procgrid[0]; i++)
       for (int j = 0; j < comm->procgrid[1]; j++)
-	for (int k = 0; k < comm->procgrid[2]; k++)
-	  kspace_grid2proc[i][j][k] = comm->grid2proc[i][j][k];
+        for (int k = 0; k < comm->procgrid[2]; k++)
+          kspace_grid2proc[i][j][k] = comm->grid2proc[i][j][k];
   }
   MPI_Bcast(&kspace_grid2proc[0][0][0],
-	    kspace_procgrid[0]*kspace_procgrid[1]*kspace_procgrid[2],MPI_INT,
-	    universe->root_proc[1],universe->uworld);
+            kspace_procgrid[0]*kspace_procgrid[1]*kspace_procgrid[2],MPI_INT,
+            universe->root_proc[1],universe->uworld);
 
   // Rspace partition must be multiple of Kspace partition in each dim
   // so atoms of one Kspace proc coincide with atoms of several Rspace procs
@@ -95,8 +95,8 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
     if (comm->procgrid[2] % kspace_procgrid[2]) flag = 1;
     if (flag)
       error->one(FLERR,
-		 "Verlet/split requires Rspace partition layout be "
-		 "multiple of Kspace partition layout in each dim");
+                 "Verlet/split requires Rspace partition layout be "
+                 "multiple of Kspace partition layout in each dim");
   }
 
   // block = 1 Kspace proc with set of Rspace procs it overlays
@@ -133,45 +133,45 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
   if (universe->me == 0) {
     if (universe->uscreen) {
       fprintf(universe->uscreen,
-	      "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
+              "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
       int m = 0;
       for (int i = 0; i < universe->nprocs/(ratio+1); i++) {
-	fprintf(universe->uscreen,"  block %d:",i);
-	int kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->uscreen," %d",bmapall[m+j]);
-	fprintf(universe->uscreen," %d",kspace_proc);
-	kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++) {
-	  if (j == 1) fprintf(universe->uscreen," (");
-	  else fprintf(universe->uscreen," ");
-	  fprintf(universe->uscreen,"%d",
-		  universe->uni2orig[bmapall[m+j]]);
-	}
-	fprintf(universe->uscreen," %d)\n",universe->uni2orig[kspace_proc]);
-	m += ratio + 1;
+        fprintf(universe->uscreen,"  block %d:",i);
+        int kspace_proc = bmapall[m];
+        for (int j = 1; j <= ratio; j++)
+          fprintf(universe->uscreen," %d",bmapall[m+j]);
+        fprintf(universe->uscreen," %d",kspace_proc);
+        kspace_proc = bmapall[m];
+        for (int j = 1; j <= ratio; j++) {
+          if (j == 1) fprintf(universe->uscreen," (");
+          else fprintf(universe->uscreen," ");
+          fprintf(universe->uscreen,"%d",
+                  universe->uni2orig[bmapall[m+j]]);
+        }
+        fprintf(universe->uscreen," %d)\n",universe->uni2orig[kspace_proc]);
+        m += ratio + 1;
       }
     }
     if (universe->ulogfile) {
       fprintf(universe->ulogfile,
-	      "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
+              "Per-block Rspace/Kspace proc IDs (original proc IDs):\n");
       int m = 0;
       for (int i = 0; i < universe->nprocs/(ratio+1); i++) {
-	fprintf(universe->ulogfile,"  block %d:",i);
-	int kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++)
-	  fprintf(universe->ulogfile," %d",bmapall[m+j]);
+        fprintf(universe->ulogfile,"  block %d:",i);
+        int kspace_proc = bmapall[m];
+        for (int j = 1; j <= ratio; j++)
+          fprintf(universe->ulogfile," %d",bmapall[m+j]);
 
-	fprintf(universe->ulogfile," %d",kspace_proc);
-	kspace_proc = bmapall[m];
-	for (int j = 1; j <= ratio; j++) {
-	  if (j == 1) fprintf(universe->ulogfile," (");
-	  else fprintf(universe->ulogfile," ");
-	  fprintf(universe->ulogfile,"%d",
-		  universe->uni2orig[bmapall[m+j]]);
-	}
-	fprintf(universe->ulogfile," %d)\n",universe->uni2orig[kspace_proc]);
-	m += ratio + 1;
+        fprintf(universe->ulogfile," %d",kspace_proc);
+        kspace_proc = bmapall[m];
+        for (int j = 1; j <= ratio; j++) {
+          if (j == 1) fprintf(universe->ulogfile," (");
+          else fprintf(universe->ulogfile," ");
+          fprintf(universe->ulogfile,"%d",
+                  universe->uni2orig[bmapall[m+j]]);
+        }
+        fprintf(universe->ulogfile," %d)\n",universe->uni2orig[kspace_proc]);
+        m += ratio + 1;
       }
     }
   }
@@ -213,7 +213,7 @@ VerletSplit::~VerletSplit()
 
 void VerletSplit::init()
 {
-  if (!force->kspace && comm->me == 0) 
+  if (!force->kspace && comm->me == 0)
     error->warning(FLERR,"No Kspace calculation with verlet/split");
 
   if (force->kspace_match("tip4p",0)) tip4p_flag = 1;
@@ -290,7 +290,7 @@ void VerletSplit::run(int n)
     ev_set(ntimestep);
 
     // initial time integration
- 
+
     if (master) {
       modify->initial_integrate(vflag);
       if (n_post_integrate) modify->post_integrate();
@@ -303,36 +303,36 @@ void VerletSplit::run(int n)
 
     if (master) {
       if (nflag == 0) {
-	timer->stamp();
-	comm->forward_comm();
-	timer->stamp(TIME_COMM);
+        timer->stamp();
+        comm->forward_comm();
+        timer->stamp(TIME_COMM);
       } else {
-	if (n_pre_exchange) modify->pre_exchange();
-	if (triclinic) domain->x2lamda(atom->nlocal);
-	domain->pbc();
-	if (domain->box_change) {
-	  domain->reset_box();
-	  comm->setup();
-	  if (neighbor->style) neighbor->setup_bins();
-	}
-	timer->stamp();
-	comm->exchange();
-	if (sortflag && ntimestep >= atom->nextsort) atom->sort();
-	comm->borders();
-	if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-	timer->stamp(TIME_COMM);
-	if (n_pre_neighbor) modify->pre_neighbor();
-	neighbor->build();
-	timer->stamp(TIME_NEIGHBOR);
+        if (n_pre_exchange) modify->pre_exchange();
+        if (triclinic) domain->x2lamda(atom->nlocal);
+        domain->pbc();
+        if (domain->box_change) {
+          domain->reset_box();
+          comm->setup();
+          if (neighbor->style) neighbor->setup_bins();
+        }
+        timer->stamp();
+        comm->exchange();
+        if (sortflag && ntimestep >= atom->nextsort) atom->sort();
+        comm->borders();
+        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+        timer->stamp(TIME_COMM);
+        if (n_pre_neighbor) modify->pre_neighbor();
+        neighbor->build();
+        timer->stamp(TIME_NEIGHBOR);
       }
     }
-    
+
     // if reneighboring occurred, re-setup Rspace <-> Kspace comm params
     // comm Rspace atom coords to Kspace procs
 
     if (nflag) rk_setup();
     r2k_comm();
-  
+
     // force computations
 
     force_clear();
@@ -345,7 +345,7 @@ void VerletSplit::run(int n)
         force->pair->compute(eflag,vflag);
         timer->stamp(TIME_PAIR);
       }
-      
+
       if (atom->molecular) {
         if (force->bond) force->bond->compute(eflag,vflag);
         if (force->angle) force->angle->compute(eflag,vflag);
@@ -355,8 +355,8 @@ void VerletSplit::run(int n)
       }
 
       if (force->newton) {
-	comm->reverse_comm();
-	timer->stamp(TIME_COMM);
+        comm->reverse_comm();
+        timer->stamp(TIME_COMM);
       }
 
     } else {
@@ -369,8 +369,8 @@ void VerletSplit::run(int n)
       // TIP4P PPPM puts forces on ghost atoms, so must reverse_comm()
 
       if (tip4p_flag && force->newton) {
-	comm->reverse_comm();
-	timer->stamp(TIME_COMM);
+        comm->reverse_comm();
+        timer->stamp(TIME_COMM);
       }
     }
 
@@ -387,9 +387,9 @@ void VerletSplit::run(int n)
       if (n_end_of_step) modify->end_of_step();
 
       if (ntimestep == output->next) {
-	timer->stamp();
-	output->write(ntimestep);
-	timer->stamp(TIME_OUTPUT);
+        timer->stamp();
+        output->write(ntimestep);
+        timer->stamp(TIME_OUTPUT);
       }
     }
   }
@@ -424,7 +424,7 @@ void VerletSplit::rk_setup()
   // set Kspace nlocal to sum of Rspace nlocals
   // insure Kspace atom arrays are large enough
 
-  if (!master) { 
+  if (!master) {
     qsize[0] = qdisp[0] = xsize[0] = xdisp[0] = 0;
     for (int i = 1; i <= ratio; i++) {
       qdisp[i] = qdisp[i-1]+qsize[i-1];
@@ -436,7 +436,7 @@ void VerletSplit::rk_setup()
     while (atom->nmax <= atom->nlocal) atom->avec->grow(0);
     atom->nghost = 0;
   }
-  
+
   // one-time gather of Rspace atom charges to Kspace proc
 
   MPI_Gatherv(atom->q,n,MPI_DOUBLE,atom->q,qsize,qdisp,MPI_DOUBLE,0,block);
@@ -477,7 +477,7 @@ void VerletSplit::r2k_comm()
   int n = 0;
   if (master) n = atom->nlocal;
   MPI_Gatherv(atom->x[0],n*3,MPI_DOUBLE,atom->x[0],xsize,xdisp,
-	      MPI_DOUBLE,0,block);
+              MPI_DOUBLE,0,block);
 
   // send eflag,vflag from Rspace to Kspace
 
@@ -527,8 +527,8 @@ void VerletSplit::k2r_comm()
   int n = 0;
   if (master) n = atom->nlocal;
   MPI_Scatterv(atom->f[0],xsize,xdisp,MPI_DOUBLE,
-	       f_kspace[0],n*3,MPI_DOUBLE,0,block);
-  
+               f_kspace[0],n*3,MPI_DOUBLE,0,block);
+
   if (master) {
     double **f = atom->f;
     int nlocal = atom->nlocal;

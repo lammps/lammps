@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -81,7 +81,7 @@ void PairLJClass2CoulCut::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -107,43 +107,43 @@ void PairLJClass2CoulCut::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+        r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
-	else forcecoul = 0.0;
+        if (rsq < cut_coulsq[itype][jtype])
+          forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+        else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  rinv = sqrt(r2inv);
-	  r3inv = r2inv*rinv;
-	  r6inv = r3inv*r3inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	} else forcelj = 0.0;
+        if (rsq < cut_ljsq[itype][jtype]) {
+          rinv = sqrt(r2inv);
+          r3inv = r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        } else forcelj = 0.0;
 
-	fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
-	  else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq[itype][jtype])
+            ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
+          else ecoul = 0.0;
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -152,7 +152,7 @@ void PairLJClass2CoulCut::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJClass2CoulCut::allocate()
@@ -181,7 +181,7 @@ void PairLJClass2CoulCut::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJClass2CoulCut::settings(int narg, char **arg)
@@ -198,10 +198,10 @@ void PairLJClass2CoulCut::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) {
-	  cut_lj[i][j] = cut_lj_global;
-	  cut_coul[i][j] = cut_coul_global;
-	}
+        if (setflag[i][j]) {
+          cut_lj[i][j] = cut_lj_global;
+          cut_coul[i][j] = cut_coul_global;
+        }
   }
 }
 
@@ -264,9 +264,9 @@ double PairLJClass2CoulCut::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
     epsilon[i][j] = 2.0 * sqrt(epsilon[i][i]*epsilon[j][j]) *
-      pow(sigma[i][i],3.0) * pow(sigma[j][j],3.0) / 
+      pow(sigma[i][i],3.0) * pow(sigma[j][j],3.0) /
       (pow(sigma[i][i],6.0) + pow(sigma[j][j],6.0));
-    sigma[i][j] = 
+    sigma[i][j] =
       pow((0.5 * (pow(sigma[i][i],6.0) + pow(sigma[j][j],6.0))),1.0/6.0);
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
     cut_coul[i][j] = mix_distance(cut_coul[i][i],cut_coul[j][j]);
@@ -308,22 +308,22 @@ double PairLJClass2CoulCut::init_one(int i, int j)
       if (type[k] == j) count[1] += 1.0;
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-        
+
     double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
     double sig6 = sig3*sig3;
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     etail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (sig3 - 3.0*rc3) / (3.0*rc6);
-    ptail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
+    ptail_ij = 2.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
       sig6 * (sig3 - 2.0*rc3) / rc6;
-  } 
+  }
 
   return cut;
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLJClass2CoulCut::write_restart(FILE *fp)
@@ -335,10 +335,10 @@ void PairLJClass2CoulCut::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
-	fwrite(&cut_coul[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&cut_coul[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -359,16 +359,16 @@ void PairLJClass2CoulCut::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
-	  fread(&cut_coul[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_coul[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          fread(&cut_coul[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_coul[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -406,9 +406,9 @@ void PairLJClass2CoulCut::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJClass2CoulCut::single(int i, int j, int itype, int jtype,
-				   double rsq,
-				   double factor_coul, double factor_lj,
-				   double &fforce)
+                                   double rsq,
+                                   double factor_coul, double factor_lj,
+                                   double &fforce)
 {
   double r2inv,rinv,r3inv,r6inv,forcecoul,forcelj,phicoul,philj;
 

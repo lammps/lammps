@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -56,7 +56,7 @@ void PairCoulDebye::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -81,26 +81,26 @@ void PairCoulDebye::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	screening = exp(-kappa*r);
-	forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
-	fpair = factor_coul*forcecoul * r2inv;
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        screening = exp(-kappa*r);
+        forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
+        fpair = factor_coul*forcecoul * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
+        if (eflag) ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -125,7 +125,7 @@ void PairCoulDebye::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -162,8 +162,8 @@ void PairCoulDebye::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCoulDebye::single(int i, int j, int itype, int jtype,
-			   double rsq, double factor_coul, double factor_lj,
-			   double &fforce)
+                           double rsq, double factor_coul, double factor_lj,
+                           double &fforce)
 {
   double r2inv,r,rinv,forcecoul,phicoul,screening;
 

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -114,28 +114,28 @@ int MinQuickMin::iterate(int maxiter)
     if (vdotfall < 0.0) {
       last_negative = ntimestep;
       for (int i = 0; i < nlocal; i++)
-	v[i][0] = v[i][1] = v[i][2] = 0.0;
+        v[i][0] = v[i][1] = v[i][2] = 0.0;
 
     } else {
       fdotf = 0.0;
       for (int i = 0; i < nlocal; i++)
-	fdotf += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
+        fdotf += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
       MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,world);
 
       // sum fdotf over replicas, if necessary
       // this communicator would be invalid for multiprocess replicas
 
       if (update->multireplica == 1) {
-	fdotf = fdotfall;
-	MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+        fdotf = fdotfall;
+        MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
 
       if (fdotfall == 0.0) scale = 0.0;
       else scale = vdotfall/fdotfall;
       for (int i = 0; i < nlocal; i++) {
-	v[i][0] = scale * f[i][0];
-	v[i][1] = scale * f[i][1];
-	v[i][2] = scale * f[i][2];
+        v[i][0] = scale * f[i][0];
+        v[i][1] = scale * f[i][1];
+        v[i][2] = scale * f[i][2];
       }
     }
 
@@ -165,29 +165,29 @@ int MinQuickMin::iterate(int maxiter)
     // Euler integration step
 
     double **x = atom->x;
-    
+
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
-	dtfm = dtv / rmass[i];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtv / rmass[i];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
       }
     } else {
       for (int i = 0; i < nlocal; i++) {
-	dtfm = dtv / mass[type[i]];
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtv / mass[type[i]];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
       }
     }
-    
+
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;
@@ -198,16 +198,16 @@ int MinQuickMin::iterate(int maxiter)
 
     if (update->etol > 0.0 && ntimestep-last_negative > DELAYSTEP) {
       if (update->multireplica == 0) {
-	if (fabs(ecurrent-eprevious) < 
-	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
-	  return ETOL;
+        if (fabs(ecurrent-eprevious) <
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+          return ETOL;
       } else {
-	if (fabs(ecurrent-eprevious) < 
-	    update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
-	  flag = 0;
-	else flag = 1;
-	MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-	if (flagall == 0) return ETOL;
+        if (fabs(ecurrent-eprevious) <
+            update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+          flag = 0;
+        else flag = 1;
+        MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+        if (flagall == 0) return ETOL;
       }
     }
 
@@ -217,12 +217,12 @@ int MinQuickMin::iterate(int maxiter)
     if (update->ftol > 0.0) {
       fdotf = fnorm_sqr();
       if (update->multireplica == 0) {
-	if (fdotf < update->ftol*update->ftol) return FTOL;
+        if (fdotf < update->ftol*update->ftol) return FTOL;
       } else {
-	if (fdotf < update->ftol*update->ftol) flag = 0;
-	else flag = 1;
-	MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
-	if (flagall == 0) return FTOL;
+        if (fdotf < update->ftol*update->ftol) flag = 0;
+        else flag = 1;
+        MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,universe->uworld);
+        if (flagall == 0) return FTOL;
       }
     }
 
@@ -234,6 +234,6 @@ int MinQuickMin::iterate(int maxiter)
       timer->stamp(TIME_OUTPUT);
     }
   }
-  
+
   return MAXITER;
 }

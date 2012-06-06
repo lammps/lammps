@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -19,7 +19,7 @@
 #include "pair_cg_cmm.h"
 
 using namespace LAMMPS_NS;
- 
+
 /* ---------------------------------------------------------------------- */
 
 PairCGCMM::PairCGCMM(LAMMPS *lmp) : PairCMMCommon(lmp)
@@ -39,9 +39,9 @@ PairCGCMM::~PairCGCMM()
 
 /* ---------------------------------------------------------------------- *
  * the real compute work is done in the PairCMMCommon::eval_XXX<>() templates
- * in the common PairCG class. Through using templates we can have one 
- * implementation for all CG varieties _and_ gain speed through having 
- * the compiler optimize away conditionals within the innerloops that 
+ * in the common PairCG class. Through using templates we can have one
+ * implementation for all CG varieties _and_ gain speed through having
+ * the compiler optimize away conditionals within the innerloops that
  * can be predetermined outside the loop through instantiation of the
  * different combination of template flags.
  * ---------------------------------------------------------------------- */
@@ -150,7 +150,7 @@ void PairCGCMM::compute_outer(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCGCMM::write_restart(FILE *fp) 
+void PairCGCMM::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
   PairCMMCommon::write_restart(fp);
@@ -168,7 +168,7 @@ void PairCGCMM::read_restart(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCGCMM::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, double &fforce)
+                       double factor_coul, double factor_lj, double &fforce)
 {
   return eval_single(CG_COUL_NONE,i,j,itype,jtype,rsq,factor_coul,factor_lj,fforce);
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -67,7 +67,7 @@ class FixBoxRelax : public Fix {
   int *rfix;
 
   double sigma[6];                 // scaled target stress
-  double utsigma[3];               // weighting for upper-tri elements 
+  double utsigma[3];               // weighting for upper-tri elements
                                    // of modified sigma
   int sigmamod_flag;               // 1 if modified sigma to be used
   double fdev[6];                  // Deviatoric force on cell

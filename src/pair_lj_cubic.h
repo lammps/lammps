@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,14 +50,14 @@ class PairLJCubic : public Pair {
 namespace PairLJCubicConstants {
 
   // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
-  
+
   static const double RT6TWO = 1.1224621;  // 2^1/6
   static const double SS = 1.1086834;      // inflection point (13/7)^1/6
   static const double PHIS = -0.7869823;   // energy at s
   static const double DPHIDS = 2.6899009;  // gradient at s
   static const double A3 = 27.93357;       // cubic coefficient
   static const double SM = 1.5475375;      // cubic cutoff = s*67/48
-  
+
 }
 
 }

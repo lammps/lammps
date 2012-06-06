@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -137,26 +137,26 @@ void FixTempRescaleEff::end_of_step()
     if (which == NOBIAS) {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  v[i][0] *= factor;
-	  v[i][1] *= factor;
-	  v[i][2] *= factor;
-          if (abs(spin[i])==1) 
+        if (mask[i] & groupbit) {
+          v[i][0] *= factor;
+          v[i][1] *= factor;
+          v[i][2] *= factor;
+          if (abs(spin[i])==1)
             ervel[i] *= factor;
-	}
+        }
       }
     } else {
       energy += (t_current-t_target) * efactor;
       for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  temperature->remove_bias(i,v[i]);
-	  v[i][0] *= factor;
-	  v[i][1] *= factor;
-	  v[i][2] *= factor;
+        if (mask[i] & groupbit) {
+          temperature->remove_bias(i,v[i]);
+          v[i][0] *= factor;
+          v[i][1] *= factor;
+          v[i][2] *= factor;
           if (abs(spin[i])==1)
-            ervel[i] *= factor;          
-	  temperature->restore_bias(i,v[i]);
-	}
+            ervel[i] *= factor;
+          temperature->restore_bias(i,v[i]);
+        }
       }
     }
 
@@ -204,4 +204,3 @@ double FixTempRescaleEff::compute_scalar()
 {
   return energy;
 }
- 

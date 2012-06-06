@@ -311,4 +311,3 @@ void PairSPHRhoSum::unpack_comm(int n, int first, double *buf) {
   for (i = first; i < last; i++)
     rho[i] = buf[m++];
 }
-

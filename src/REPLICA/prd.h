@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ class PRD : protected Pointers {
   double **xall;
 
   int ncoincident;
-  
+
   class RanPark *random_select;
   class RanMars *random_dephase;
   class Compute *compute_event;
@@ -137,7 +137,7 @@ which is enabled by default, via the atom_modify command.
 
 E: Too many iterations
 
-You must use a number of iterations that fit in a 32-bit integer 
+You must use a number of iterations that fit in a 32-bit integer
 for minimization.
 
 */

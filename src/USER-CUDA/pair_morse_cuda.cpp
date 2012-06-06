@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,9 +69,9 @@ PairMorseCuda::PairMorseCuda(LAMMPS *lmp) : PairMorse(lmp)
    if(cuda == NULL)
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-	allocated2 = false;
-	cuda->shared_data.pair.cudable_force = 1;
-	cuda->setSystemParams();
+        allocated2 = false;
+        cuda->shared_data.pair.cudable_force = 1;
+        cuda->setSystemParams();
 }
 
 /* ----------------------------------------------------------------------
@@ -80,67 +80,67 @@ PairMorseCuda::PairMorseCuda(LAMMPS *lmp) : PairMorse(lmp)
 
 void PairMorseCuda::allocate()
 {
-	if(! allocated) PairMorse::allocate();
-	if(! allocated2)
-	{
-		allocated2 = true;
-		cuda->shared_data.pair.cut     = cut;
-		cuda->shared_data.pair.coeff1  = r0;
-		cuda->shared_data.pair.coeff2  = alpha;
-		cuda->shared_data.pair.coeff3  = morse1;
-		cuda->shared_data.pair.coeff4  = d0;
-		cuda->shared_data.pair.offset  = offset;
-		cuda->shared_data.pair.special_lj  = force->special_lj;
-	}
+        if(! allocated) PairMorse::allocate();
+        if(! allocated2)
+        {
+                allocated2 = true;
+                cuda->shared_data.pair.cut     = cut;
+                cuda->shared_data.pair.coeff1  = r0;
+                cuda->shared_data.pair.coeff2  = alpha;
+                cuda->shared_data.pair.coeff3  = morse1;
+                cuda->shared_data.pair.coeff4  = d0;
+                cuda->shared_data.pair.offset  = offset;
+                cuda->shared_data.pair.special_lj  = force->special_lj;
+        }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairMorseCuda::compute(int eflag, int vflag)
 {
-	if (eflag || vflag) ev_setup(eflag,vflag);
-	if(eflag) cuda->cu_eng_vdwl->upload();
-	if(vflag) cuda->cu_virial->upload();
-	
-	Cuda_PairMorseCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+        if (eflag || vflag) ev_setup(eflag,vflag);
+        if(eflag) cuda->cu_eng_vdwl->upload();
+        if(vflag) cuda->cu_virial->upload();
+
+        Cuda_PairMorseCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {
-	  if(eflag) cuda->cu_eng_vdwl->download();
-	  if(vflag) cuda->cu_virial->download();
+          if(eflag) cuda->cu_eng_vdwl->download();
+          if(vflag) cuda->cu_virial->download();
     }
-	
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairMorseCuda::settings(int narg, char **arg)
 {
-	PairMorse::settings(narg, arg);
-	cuda->shared_data.pair.cut_global = (F_FLOAT) cut_global;
+        PairMorse::settings(narg, arg);
+        cuda->shared_data.pair.cut_global = (F_FLOAT) cut_global;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairMorseCuda::coeff(int narg, char **arg)
 {
-	PairMorse::coeff(narg, arg);
-	allocate();
+        PairMorse::coeff(narg, arg);
+        allocate();
 }
 
 void PairMorseCuda::init_style()
 {
-	MYDBG(printf("# CUDA PairMorseCuda::init_style start\n"); )
+        MYDBG(printf("# CUDA PairMorseCuda::init_style start\n"); )
   // request regular or rRESPA neighbor lists
 
   int irequest;
- 
+
   if (update->whichflag == 0 && strstr(update->integrate_style,"respa")) {
 
-  } 
-  else 
+  }
+  else
   {
-  	irequest = neighbor->request(this);
+          irequest = neighbor->request(this);
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->cudable = 1;
@@ -153,27 +153,25 @@ void PairMorseCuda::init_style()
 
 void PairMorseCuda::init_list(int id, NeighList *ptr)
 {
-	MYDBG(printf("# CUDA PairMorseCuda::init_list\n");)
-	PairMorse::init_list(id, ptr);
-	#ifndef CUDA_USE_BINNING
-	// right now we can only handle verlet (id 0), not respa
-	if(id == 0) cuda_neigh_list = cuda->registerNeighborList(ptr);
-	// see Neighbor::init() for details on lammps lists' logic
-	#endif
-	MYDBG(printf("# CUDA PairMorseCuda::init_list end\n");)
+        MYDBG(printf("# CUDA PairMorseCuda::init_list\n");)
+        PairMorse::init_list(id, ptr);
+        #ifndef CUDA_USE_BINNING
+        // right now we can only handle verlet (id 0), not respa
+        if(id == 0) cuda_neigh_list = cuda->registerNeighborList(ptr);
+        // see Neighbor::init() for details on lammps lists' logic
+        #endif
+        MYDBG(printf("# CUDA PairMorseCuda::init_list end\n");)
 }
 
 void PairMorseCuda::ev_setup(int eflag, int vflag)
 {
-	int maxeatomold=maxeatom;
-	PairMorse::ev_setup(eflag,vflag);
+        int maxeatomold=maxeatom;
+        PairMorse::ev_setup(eflag,vflag);
 
-  if (eflag_atom && atom->nmax > maxeatomold) 
-	{delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
+  if (eflag_atom && atom->nmax > maxeatomold)
+        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
 
-  if (vflag_atom && atom->nmax > maxeatomold) 
-	{delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
-	
+  if (vflag_atom && atom->nmax > maxeatomold)
+        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
+
 }
-
-

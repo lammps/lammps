@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -63,11 +63,11 @@ Temper::~Temper()
 
 void Temper::command(int narg, char **arg)
 {
-  if (universe->nworlds == 1) 
+  if (universe->nworlds == 1)
     error->all(FLERR,"Must have more than one processor partition to temper");
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"Temper command before simulation box is defined");
-  if (narg != 6 && narg != 7) 
+  if (narg != 6 && narg != 7)
     error->universe_all(FLERR,"Illegal temper command");
 
   int nsteps = atoi(arg[0]);
@@ -76,7 +76,7 @@ void Temper::command(int narg, char **arg)
 
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
-  if (whichfix == modify->nfix) 
+  if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
   seed_swap = atoi(arg[4]);
@@ -87,10 +87,10 @@ void Temper::command(int narg, char **arg)
 
   // swap frequency must evenly divide total # of timesteps
 
-  if (nevery == 0) 
+  if (nevery == 0)
     error->universe_all(FLERR,"Invalid frequency in temper command");
   nswaps = nsteps/nevery;
-  if (nswaps*nevery != nsteps) 
+  if (nswaps*nevery != nsteps)
     error->universe_all(FLERR,"Non integer # of swaps in temper command");
 
   // fix style must be appropriate for temperature control
@@ -146,7 +146,7 @@ void Temper::command(int narg, char **arg)
   // world2root[i] = global proc that is root proc of world i
 
   world2root = new int[nworlds];
-  if (me == 0) 
+  if (me == 0)
     MPI_Allgather(&me_universe,1,MPI_INT,world2root,1,MPI_INT,roots);
   MPI_Bcast(world2root,nworlds,MPI_INT,0,world);
 
@@ -183,7 +183,7 @@ void Temper::command(int narg, char **arg)
   double pe,pe_partner,boltz_factor,new_temp;
   MPI_Status status;
 
-  if (me_universe == 0 && universe->uscreen) 
+  if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
 
   update->integrate->setup();
@@ -192,13 +192,13 @@ void Temper::command(int narg, char **arg)
     if (universe->uscreen) {
       fprintf(universe->uscreen,"Step");
       for (int i = 0; i < nworlds; i++)
-	fprintf(universe->uscreen," T%d",i);
+        fprintf(universe->uscreen," T%d",i);
       fprintf(universe->uscreen,"\n");
     }
     if (universe->ulogfile) {
       fprintf(universe->ulogfile,"Step");
       for (int i = 0; i < nworlds; i++)
-	fprintf(universe->ulogfile," T%d",i);
+        fprintf(universe->ulogfile," T%d",i);
       fprintf(universe->ulogfile,"\n");
     }
     print_status();
@@ -208,11 +208,11 @@ void Temper::command(int narg, char **arg)
   timer->barrier_start(TIME_LOOP);
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
-	
+
     // run for nevery timesteps
 
     update->integrate->run(nevery);
-	
+
     // compute PE
     // notify compute it will be called at next swap
 
@@ -251,29 +251,29 @@ void Temper::command(int narg, char **arg)
 
     swap = 0;
     if (partner != -1) {
-      if (me_universe > partner) 
-	MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
+      if (me_universe > partner)
+        MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
       else
-	MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,&status);
+        MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,&status);
 
       if (me_universe < partner) {
-	boltz_factor = (pe - pe_partner) * 
-	  (1.0/(boltz*set_temp[my_set_temp]) - 
-	   1.0/(boltz*set_temp[partner_set_temp]));
-	if (boltz_factor >= 0.0) swap = 1;
-	else if (ranboltz->uniform() < exp(boltz_factor)) swap = 1;
+        boltz_factor = (pe - pe_partner) *
+          (1.0/(boltz*set_temp[my_set_temp]) -
+           1.0/(boltz*set_temp[partner_set_temp]));
+        if (boltz_factor >= 0.0) swap = 1;
+        else if (ranboltz->uniform() < exp(boltz_factor)) swap = 1;
       }
 
-      if (me_universe < partner) 
-	MPI_Send(&swap,1,MPI_INT,partner,0,universe->uworld);
+      if (me_universe < partner)
+        MPI_Send(&swap,1,MPI_INT,partner,0,universe->uworld);
       else
-	MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,&status);
+        MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,&status);
 
 #ifdef TEMPER_DEBUG
       if (me_universe < partner)
-	printf("SWAP %d & %d: yes = %d,Ts = %d %d, PEs = %g %g, Bz = %g %g\n",
-	       me_universe,partner,swap,my_set_temp,partner_set_temp,
-	       pe,pe_partner,boltz_factor,exp(boltz_factor));
+        printf("SWAP %d & %d: yes = %d,Ts = %d %d, PEs = %g %g, Bz = %g %g\n",
+               me_universe,partner,swap,my_set_temp,partner_set_temp,
+               pe,pe_partner,boltz_factor,exp(boltz_factor));
 #endif
 
     }
@@ -285,7 +285,7 @@ void Temper::command(int narg, char **arg)
     // rescale kinetic energy via velocities if move is accepted
 
     if (swap) scale_velocities(partner_set_temp,my_set_temp);
-	
+
     // if my world swapped, all procs in world reset temp target of Fix
 
     if (swap) {
@@ -348,7 +348,7 @@ void Temper::print_status()
 {
   if (universe->uscreen) {
     fprintf(universe->uscreen,BIGINT_FORMAT,update->ntimestep);
-    for (int i = 0; i < nworlds; i++) 
+    for (int i = 0; i < nworlds; i++)
       fprintf(universe->uscreen," %d",world2temp[i]);
     fprintf(universe->uscreen,"\n");
   }

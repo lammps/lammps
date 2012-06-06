@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -90,7 +90,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -116,50 +116,50 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
 
-	if (rsq < cut_coulsq) {
-	  grij = g_ewald * r;
-	  expm2 = exp(-grij*grij);
-	  t = 1.0 / (1.0 + EWALD_P*grij);
-	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	  prefactor = qqrd2e * qtmp*q[j]/r;
-	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else forcecoul = 0.0;
+        if (rsq < cut_coulsq) {
+          grij = g_ewald * r;
+          expm2 = exp(-grij*grij);
+          t = 1.0 / (1.0 + EWALD_P*grij);
+          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          prefactor = qqrd2e * qtmp*q[j]/r;
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  rexp = exp(-r*rhoinv[itype][jtype]);
-	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-	} else forcebuck = 0.0;
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          rexp = exp(-r*rhoinv[itype][jtype]);
+          forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
+        } else forcebuck = 0.0;
 
-	fpair = (forcecoul + factor_lj*forcebuck) * r2inv;
+        fpair = (forcecoul + factor_lj*forcebuck) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = prefactor*erfc;
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            ecoul = prefactor*erfc;
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -212,7 +212,7 @@ void PairBuckCoulLong::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -266,7 +266,7 @@ double PairBuckCoulLong::init_one(int i, int j)
   rhoinv[i][j] = 1.0/rho[i][j];
   buck1[i][j] = a[i][j]/rho[i][j];
   buck2[i][j] = 6.0*c[i][j];
-     
+
   if (offset_flag) {
     double rexp = exp(-cut_lj[i][j]/rho[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut_lj[i][j],6.0);
@@ -280,8 +280,8 @@ double PairBuckCoulLong::init_one(int i, int j)
   buck2[j][i] = buck2[i][j];
   offset[j][i] = offset[i][j];
 
-  // compute I,J contribution to long-range tail correction 
-  // count total # of atoms of type I and J via Allreduce 
+  // compute I,J contribution to long-range tail correction
+  // count total # of atoms of type I and J via Allreduce
 
   if (tail_flag) {
     int *type = atom->type;
@@ -302,13 +302,13 @@ double PairBuckCoulLong::init_one(int i, int j)
     double rc2 = rc*rc;
     double rc3 = rc2*rc;
     etail_ij = 2.0*MY_PI*all[0]*all[1]*
-      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
+      (a[i][j]*exp(-rc/rho1)*rho1*(rc2 + 2.0*rho1*rc + 2.0*rho2) -
        c[i][j]/(3.0*rc3));
     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1]*
       (-a[i][j]*exp(-rc/rho1)*
        (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 2.0*c[i][j]/rc3);
   }
-  
+
   return cut;
 }
 
@@ -345,10 +345,10 @@ void PairBuckCoulLong::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a[i][j],sizeof(double),1,fp);
-	fwrite(&rho[i][j],sizeof(double),1,fp);
-	fwrite(&c[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j],sizeof(double),1,fp);
+        fwrite(&rho[i][j],sizeof(double),1,fp);
+        fwrite(&c[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -370,16 +370,16 @@ void PairBuckCoulLong::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&a[i][j],sizeof(double),1,fp);
-	  fread(&rho[i][j],sizeof(double),1,fp);
-	  fread(&c[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&a[i][j],sizeof(double),1,fp);
+          fread(&rho[i][j],sizeof(double),1,fp);
+          fread(&c[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -417,9 +417,9 @@ void PairBuckCoulLong::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairBuckCoulLong::single(int i, int j, int itype, int jtype,
-				double rsq, 
-				double factor_coul, double factor_lj,
-				double &fforce)
+                                double rsq,
+                                double factor_coul, double factor_lj,
+                                double &fforce)
 {
   double r2inv,r6inv,r,rexp,grij,expm2,t,erfc,prefactor;
   double forcecoul,forcebuck,phicoul,phibuck;
@@ -442,7 +442,7 @@ double PairBuckCoulLong::single(int i, int j, int itype, int jtype,
     forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
   } else forcebuck = 0.0;
   fforce = (forcecoul + factor_lj*forcebuck) * r2inv;
-  
+
   double eng = 0.0;
   if (rsq < cut_coulsq) {
     phicoul = prefactor*erfc;

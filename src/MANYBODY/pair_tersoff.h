@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -48,7 +48,7 @@ class PairTersoff : public Pair {
     double Z_i,Z_j;
     double ZBLcut,ZBLexpscale;
   };
-  
+
   Param *params;                // parameter set for an I-J-K interaction
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters
@@ -63,10 +63,10 @@ class PairTersoff : public Pair {
   void setup();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
-  virtual void force_zeta(Param *, double, double, double &, 
-			  double &, int, double &);
+  virtual void force_zeta(Param *, double, double, double &,
+                          double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
-		  double *, double *, double *);
+                  double *, double *, double *);
 
   double ters_fc(double, Param *);
   double ters_fc_d(double, Param *);
@@ -76,14 +76,14 @@ class PairTersoff : public Pair {
   double ters_bij_d(double, Param *);
 
   void ters_zetaterm_d(double, double *, double, double *, double,
-			       double *, double *, double *, Param *);
+                               double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
-		  double *, double *, double *);
+                  double *, double *, double *);
 
   // inlined functions for efficiency
 
-  inline double ters_gijk(const double costheta, 
-			  const Param * const param) const {
+  inline double ters_gijk(const double costheta,
+                          const Param * const param) const {
     const double ters_c = param->c * param->c;
     const double ters_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -91,8 +91,8 @@ class PairTersoff : public Pair {
     return param->gamma*(1.0 + ters_c/ters_d - ters_c / (ters_d + hcth*hcth));
   }
 
-  inline double ters_gijk_d(const double costheta, 
-			    const Param * const param) const {
+  inline double ters_gijk_d(const double costheta,
+                            const Param * const param) const {
     const double ters_c = param->c * param->c;
     const double ters_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -105,18 +105,18 @@ class PairTersoff : public Pair {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
 
-  inline void vec3_add(const double x[3], const double y[3], 
-		       double * const z) const {
+  inline void vec3_add(const double x[3], const double y[3],
+                       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
 
   inline void vec3_scale(const double k, const double x[3],
-			 double y[3]) const {
+                         double y[3]) const {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
 
-  inline void vec3_scaleadd(const double k, const double x[3], 
-			    const double y[3], double * const z) const {
+  inline void vec3_scaleadd(const double k, const double x[3],
+                            const double y[3], double * const z) const {
     z[0] = k*x[0]+y[0];
     z[1] = k*x[1]+y[1];
     z[2] = k*x[2]+y[2];

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -97,9 +97,9 @@ class PairDSMC : public Pair {
     v3[1] = v2[1] - v1[1];
     v3[2] = v2[2] - v1[2];
   }
-  
+
   inline double dot3d(const double *v1, const double *v2) {
-    return( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] ); 
+    return( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] );
   }
 };
 

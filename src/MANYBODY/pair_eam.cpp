@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -154,7 +154,7 @@ void PairEAM::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // zero out density
 
   if (newton_pair) {
@@ -184,18 +184,18 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-	jtype = type[j];
-	p = sqrt(rsq)*rdr + 1.0;
-	m = static_cast<int> (p);
-	m = MIN(m,nr-1);
-	p -= m;
-	p = MIN(p,1.0);
-	coeff = rhor_spline[type2rhor[jtype][itype]][m];
-	rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	if (newton_pair || j < nlocal) {
-	  coeff = rhor_spline[type2rhor[itype][jtype]][m];
-	  rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	}
+        jtype = type[j];
+        p = sqrt(rsq)*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        if (newton_pair || j < nlocal) {
+          coeff = rhor_spline[type2rhor[itype][jtype]][m];
+          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        }
       }
     }
   }
@@ -250,50 +250,50 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-	jtype = type[j];
-	r = sqrt(rsq);
-	p = r*rdr + 1.0;
-	m = static_cast<int> (p);
-	m = MIN(m,nr-1);
-	p -= m;
-	p = MIN(p,1.0);
+        jtype = type[j];
+        r = sqrt(rsq);
+        p = r*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
 
-	// rhoip = derivative of (density at atom j due to atom i)
-	// rhojp = derivative of (density at atom i due to atom j)
-	// phi = pair potential energy
-	// phip = phi'
-	// z2 = phi * r
-	// z2p = (phi * r)' = (phi' r) + phi
-	// psip needs both fp[i] and fp[j] terms since r_ij appears in two
-	//   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
-	//   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+        // rhoip = derivative of (density at atom j due to atom i)
+        // rhojp = derivative of (density at atom i due to atom j)
+        // phi = pair potential energy
+        // phip = phi'
+        // z2 = phi * r
+        // z2p = (phi * r)' = (phi' r) + phi
+        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
+        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
+        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
 
-	coeff = rhor_spline[type2rhor[itype][jtype]][m];
-	rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
-	coeff = rhor_spline[type2rhor[jtype][itype]][m];
-	rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
-	coeff = z2r_spline[type2z2r[itype][jtype]][m];
-	z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-	z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        coeff = rhor_spline[type2rhor[itype][jtype]][m];
+        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = z2r_spline[type2z2r[itype][jtype]][m];
+        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
-	recip = 1.0/r;
-	phi = z2*recip;
-	phip = z2p*recip - phi*recip;
-	psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	fpair = -psip*recip;
+        recip = 1.0/r;
+        phi = z2*recip;
+        phip = z2p*recip - phi*recip;
+        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+        fpair = -psip*recip;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) evdwl = phi;
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (eflag) evdwl = phi;
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -360,7 +360,7 @@ void PairEAM::coeff(int narg, char **arg)
 
   if (ifuncfl == nfuncfl) {
     nfuncfl++;
-    funcfl = (Funcfl *) 
+    funcfl = (Funcfl *)
       memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
     int n = strlen(arg[2]) + 1;
@@ -375,10 +375,10 @@ void PairEAM::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       if (i == j) {
-	setflag[i][i] = 1;
-	map[i] = ifuncfl;
-	atom->set_mass(i,funcfl[ifuncfl].mass);
-	count++;
+        setflag[i][i] = 1;
+        map[i] = ifuncfl;
+        atom->set_mass(i,funcfl[ifuncfl].mass);
+        count++;
       }
     }
   }
@@ -450,7 +450,7 @@ void PairEAM::read_file(char *filename)
     sscanf(line,"%d %lg",&tmp,&file->mass);
     fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg %d %lg %lg",
-	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
   MPI_Bcast(&file->mass,1,MPI_DOUBLE,0,world);
@@ -518,7 +518,7 @@ void PairEAM::file2array()
 
   // allocate frho arrays
   // nfrho = # of funcfl files + 1 for zero array
-  
+
   nfrho = nfuncfl + 1;
   memory->destroy(frho);
   memory->create(frho,nfrho,nrho+1,"pair:frho");
@@ -526,7 +526,7 @@ void PairEAM::file2array()
   // interpolate each file's frho to a single grid and cutoff
 
   double r,p,cof1,cof2,cof3,cof4;
-  
+
   n = 0;
   for (i = 0; i < nfuncfl; i++) {
     Funcfl *file = &funcfl[i];
@@ -542,8 +542,8 @@ void PairEAM::file2array()
       cof2 = 0.5*(p*p-1.0)*(p-2.0);
       cof3 = -0.5*p*(p+1.0)*(p-2.0);
       cof4 = sixth*p*(p*p-1.0);
-      frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] + 
-	cof3*file->frho[k+1] + cof4*file->frho[k+2];
+      frho[n][m] = cof1*file->frho[k-1] + cof2*file->frho[k] +
+        cof3*file->frho[k+1] + cof4*file->frho[k+2];
     }
     n++;
   }
@@ -590,7 +590,7 @@ void PairEAM::file2array()
       cof3 = -0.5*p*(p+1.0)*(p-2.0);
       cof4 = sixth*p*(p*p-1.0);
       rhor[n][m] = cof1*file->rhor[k-1] + cof2*file->rhor[k] +
-	cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
+        cof3*file->rhor[k+1] + cof4*file->rhor[k+2];
     }
     n++;
   }
@@ -626,35 +626,35 @@ void PairEAM::file2array()
       Funcfl *jfile = &funcfl[j];
 
       for (m = 1; m <= nr; m++) {
-	r = (m-1)*dr;
+        r = (m-1)*dr;
 
-	p = r/ifile->dr + 1.0;
-	k = static_cast<int> (p);
-	k = MIN(k,ifile->nr-2);
-	k = MAX(k,2);
-	p -= k;
-	p = MIN(p,2.0);
-	cof1 = -sixth*p*(p-1.0)*(p-2.0);
-	cof2 = 0.5*(p*p-1.0)*(p-2.0);
-	cof3 = -0.5*p*(p+1.0)*(p-2.0);
-	cof4 = sixth*p*(p*p-1.0);
-	zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
-	  cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
+        p = r/ifile->dr + 1.0;
+        k = static_cast<int> (p);
+        k = MIN(k,ifile->nr-2);
+        k = MAX(k,2);
+        p -= k;
+        p = MIN(p,2.0);
+        cof1 = -sixth*p*(p-1.0)*(p-2.0);
+        cof2 = 0.5*(p*p-1.0)*(p-2.0);
+        cof3 = -0.5*p*(p+1.0)*(p-2.0);
+        cof4 = sixth*p*(p*p-1.0);
+        zri = cof1*ifile->zr[k-1] + cof2*ifile->zr[k] +
+          cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
 
-	p = r/jfile->dr + 1.0;
-	k = static_cast<int> (p);
-	k = MIN(k,jfile->nr-2);
-	k = MAX(k,2);
-	p -= k;
-	p = MIN(p,2.0);
-	cof1 = -sixth*p*(p-1.0)*(p-2.0);
-	cof2 = 0.5*(p*p-1.0)*(p-2.0);
-	cof3 = -0.5*p*(p+1.0)*(p-2.0);
-	cof4 = sixth*p*(p*p-1.0);
-	zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
-	  cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
+        p = r/jfile->dr + 1.0;
+        k = static_cast<int> (p);
+        k = MIN(k,jfile->nr-2);
+        k = MAX(k,2);
+        p -= k;
+        p = MIN(p,2.0);
+        cof1 = -sixth*p*(p-1.0)*(p-2.0);
+        cof2 = 0.5*(p*p-1.0)*(p-2.0);
+        cof3 = -0.5*p*(p+1.0)*(p-2.0);
+        cof4 = sixth*p*(p*p-1.0);
+        zrj = cof1*jfile->zr[k-1] + cof2*jfile->zr[k] +
+          cof3*jfile->zr[k+1] + cof4*jfile->zr[k+2];
 
-	z2r[n][m] = 27.2*0.529 * zri*zrj;
+        z2r[n][m] = 27.2*0.529 * zri*zrj;
       }
       n++;
     }
@@ -674,12 +674,12 @@ void PairEAM::file2array()
       irow = map[i];
       icol = map[j];
       if (irow == -1 || icol == -1) {
-	type2z2r[i][j] = 0;
-	continue;
+        type2z2r[i][j] = 0;
+        continue;
       }
       if (irow < icol) {
-	irow = map[j];
-	icol = map[i];
+        irow = map[j];
+        icol = map[i];
       }
       n = 0;
       for (m = 0; m < irow; m++) n += m + 1;
@@ -724,21 +724,21 @@ void PairEAM::interpolate(int n, double delta, double *f, double **spline)
   spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
   spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
   spline[n][5] = spline[n][6] - spline[n-1][6];
-  
+
   for (int m = 3; m <= n-2; m++)
-    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) + 
-		    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
-  
+    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) +
+                    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
+
   for (int m = 1; m <= n-1; m++) {
-    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) - 
+    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) -
       2.0*spline[m][5] - spline[m+1][5];
-    spline[m][3] = spline[m][5] + spline[m+1][5] - 
+    spline[m][3] = spline[m][5] + spline[m+1][5] -
       2.0*(spline[m+1][6]-spline[m][6]);
   }
-  
+
   spline[n][4] = 0.0;
   spline[n][3] = 0.0;
-  
+
   for (int m = 1; m <= n; m++) {
     spline[m][2] = spline[m][5]/delta;
     spline[m][1] = 2.0*spline[m][4]/delta;
@@ -769,8 +769,8 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
-		       double rsq, double factor_coul, double factor_lj,
-		       double &fforce)
+                       double rsq, double factor_coul, double factor_lj,
+                       double &fforce)
 {
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
@@ -782,7 +782,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   m = MIN(m,nr-1);
   p -= m;
   p = MIN(p,1.0);
-  
+
   coeff = rhor_spline[type2rhor[itype][jtype]][m];
   rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
   coeff = rhor_spline[type2rhor[jtype][itype]][m];
@@ -851,7 +851,7 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double PairEAM::memory_usage()

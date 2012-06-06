@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -58,7 +58,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -82,32 +82,32 @@ void PairYukawaColloid::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
       radj = radius[j];
-    
+
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	screening = exp(-kappa*(r-(radi+radj)));
-	forceyukawa = a[itype][jtype] * screening;
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        screening = exp(-kappa*(r-(radi+radj)));
+        forceyukawa = a[itype][jtype] * screening;
 
-	fpair = factor*forceyukawa * rinv;
+        fpair = factor*forceyukawa * rinv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
-	  evdwl *= factor;
-	}
+        if (eflag) {
+          evdwl = a[itype][jtype]/kappa * screening - offset[itype][jtype];
+          evdwl *= factor;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -123,7 +123,7 @@ void PairYukawaColloid::init_style()
 {
   if (!atom->sphere_flag)
     error->all(FLERR,"Pair yukawa/colloid requires atom style sphere");
-  
+
   neighbor->request(this);
 
   // require that atom radii are identical within each type
@@ -131,7 +131,7 @@ void PairYukawaColloid::init_style()
   for (int i = 1; i <= atom->ntypes; i++)
     if (!atom->radius_consistency(i,rad[i]))
       error->all(FLERR,"Pair yukawa/colloid requires atoms with same type "
-		 "have same radius");
+                 "have same radius");
 }
 
 /* ----------------------------------------------------------------------
@@ -159,12 +159,12 @@ double PairYukawaColloid::init_one(int i, int j)
 /* ---------------------------------------------------------------------- */
 
 double PairYukawaColloid::single(int i, int j, int itype, int jtype,
-				 double rsq,
-				 double factor_coul, double factor_lj,
-				 double &fforce)
+                                 double rsq,
+                                 double factor_coul, double factor_lj,
+                                 double &fforce)
 {
   double r2inv,r,rinv,screening,forceyukawa,phi;
-  
+
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
   rinv = 1.0/r;
@@ -172,6 +172,6 @@ double PairYukawaColloid::single(int i, int j, int itype, int jtype,
   forceyukawa = a[itype][jtype] * screening;
   fforce = factor_lj*forceyukawa * rinv;
 
-  phi = a[itype][jtype]/kappa * screening  - offset[itype][jtype]; 
+  phi = a[itype][jtype]/kappa * screening  - offset[itype][jtype];
   return factor_lj*phi;
 }

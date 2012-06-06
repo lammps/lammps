@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -81,7 +81,7 @@ void FixWallGranOMP::post_force(int vflag)
   int i;
 #if defined(_OPENMP)
 #pragma omp parallel for private(i) default(none) firstprivate(vwall,wlo,whi)
-#endif  
+#endif
   for (i = 0; i < nlocal; i++) {
 
     if (mask[i] & groupbit) {
@@ -90,53 +90,53 @@ void FixWallGranOMP::post_force(int vflag)
       dx = dy = dz = 0.0;
 
       if (wallstyle == XPLANE) {
-	del1 = x[i][0] - wlo;
-	del2 = whi - x[i][0];
-	if (del1 < del2) dx = del1;
-	else dx = -del2;
+        del1 = x[i][0] - wlo;
+        del2 = whi - x[i][0];
+        if (del1 < del2) dx = del1;
+        else dx = -del2;
       } else if (wallstyle == YPLANE) {
-	del1 = x[i][1] - wlo;
-	del2 = whi - x[i][1];
-	if (del1 < del2) dy = del1;
-	else dy = -del2;
+        del1 = x[i][1] - wlo;
+        del2 = whi - x[i][1];
+        if (del1 < del2) dy = del1;
+        else dy = -del2;
       } else if (wallstyle == ZPLANE) {
-	del1 = x[i][2] - wlo;
-	del2 = whi - x[i][2];
-	if (del1 < del2) dz = del1;
-	else dz = -del2;
+        del1 = x[i][2] - wlo;
+        del2 = whi - x[i][2];
+        if (del1 < del2) dz = del1;
+        else dz = -del2;
       } else if (wallstyle == ZCYLINDER) {
         delxy = sqrt(x[i][0]*x[i][0] + x[i][1]*x[i][1]);
-	delr = cylradius - delxy;
-	if (delr > radius[i]) dz = cylradius;
-	else {
-	  dx = -delr/delxy * x[i][0];
-	  dy = -delr/delxy * x[i][1];
-	  if (wshear && axis != 2) {
-	    vwall[0] = vshear * x[i][1]/delxy;
-	    vwall[1] = -vshear * x[i][0]/delxy;
-	    vwall[2] = 0.0;
-	  }
-	}
+        delr = cylradius - delxy;
+        if (delr > radius[i]) dz = cylradius;
+        else {
+          dx = -delr/delxy * x[i][0];
+          dy = -delr/delxy * x[i][1];
+          if (wshear && axis != 2) {
+            vwall[0] = vshear * x[i][1]/delxy;
+            vwall[1] = -vshear * x[i][0]/delxy;
+            vwall[2] = 0.0;
+          }
+        }
       }
 
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq > radius[i]*radius[i]) {
-	if (pairstyle != HOOKE) {
-	  shear[i][0] = 0.0;
-	  shear[i][1] = 0.0;
-	  shear[i][2] = 0.0;
-	}
+        if (pairstyle != HOOKE) {
+          shear[i][0] = 0.0;
+          shear[i][1] = 0.0;
+          shear[i][2] = 0.0;
+        }
       } else {
-	if (pairstyle == HOOKE)
-	  hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-		radius[i],rmass[i]);
-	else if (pairstyle == HOOKE_HISTORY)
-	  hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-			radius[i],rmass[i],shear[i]);
-	else if (pairstyle == HERTZ_HISTORY)
-	  hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-			radius[i],rmass[i],shear[i]);
+        if (pairstyle == HOOKE)
+          hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                radius[i],rmass[i]);
+        else if (pairstyle == HOOKE_HISTORY)
+          hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                        radius[i],rmass[i],shear[i]);
+        else if (pairstyle == HERTZ_HISTORY)
+          hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
+                        radius[i],rmass[i],shear[i]);
       }
     }
   }
@@ -150,4 +150,3 @@ void FixWallGranOMP::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
-

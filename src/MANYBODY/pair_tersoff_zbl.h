@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -30,16 +30,16 @@ class PairTersoffZBL : public PairTersoff {
   ~PairTersoffZBL() {}
 
  private:
-  double global_a_0;		// Bohr radius for Coulomb repulsion
-  double global_epsilon_0;	// permittivity of vacuum for Coulomb repulsion
-  double global_e;		// proton charge (negative of electron charge)
+  double global_a_0;                // Bohr radius for Coulomb repulsion
+  double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
+  double global_e;                // proton charge (negative of electron charge)
 
   void read_file(char *);
   void repulsive(Param *, double, double &, int, double &);
 
   double ters_fa(double, Param *);
   double ters_fa_d(double, Param *);
-	
+
   double F_fermi(double, Param *);
   double F_fermi_d(double, Param *);
 };

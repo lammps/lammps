@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -48,7 +48,7 @@ void Reset_Atoms( reax_system* system, control_params *control )
     for( i = 0; i < system->n; ++i ) {
       atom = &(system->my_atoms[i]);
       if( system->reax_param.sbp[ atom->type ].p_hbond == 1 )
-	atom->Hindex = system->numH++;
+        atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
 }
@@ -86,7 +86,7 @@ void Reset_Pressures( simulation_data *data )
 {
   data->flex_bar.P_scalar = 0;
   rtensor_MakeZero( data->flex_bar.P );
-  
+
   data->iso_bar.P = 0;
   rvec_MakeZero( data->int_press );
   rvec_MakeZero( data->my_ext_press );
@@ -156,11 +156,11 @@ void Reset_Grid( grid *g )
   int i, j, k;
 
   for( i = 0; i < g->ncells[0]; i++ )
-    for( j = 0; j < g->ncells[1]; j++ ) 
+    for( j = 0; j < g->ncells[1]; j++ )
       for( k = 0; k < g->ncells[2]; k++ ) {
-	g->cells[i][j][k].top = 0;
-	g->cells[i][j][k].str = 0;
-	g->cells[i][j][k].end = 0;
+        g->cells[i][j][k].top = 0;
+        g->cells[i][j][k].str = 0;
+        g->cells[i][j][k].end = 0;
       }
 }
 
@@ -175,8 +175,8 @@ void Reset_Out_Buffers( mpi_out_data *out_buf, int n )
 
 
 void Reset_Neighbor_Lists( reax_system *system, control_params *control,
-			   storage *workspace, reax_list **lists, 
-			   MPI_Comm comm )
+                           storage *workspace, reax_list **lists,
+                           MPI_Comm comm )
 {
   int i, total_bonds, Hindex, total_hbonds;
   reax_list *bonds, *hbonds;
@@ -197,10 +197,10 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     if( total_bonds >= bonds->num_intrs * DANGER_ZONE ) {
       workspace->realloc.bonds = 1;
       if( total_bonds >= bonds->num_intrs ) {
-	fprintf(stderr, 
-		"p%d: not enough space for bonds! total=%d allocated=%d\n", 
-		system->my_rank, total_bonds, bonds->num_intrs );
-	MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        fprintf(stderr,
+                "p%d: not enough space for bonds! total=%d allocated=%d\n",
+                system->my_rank, total_bonds, bonds->num_intrs );
+        MPI_Abort( comm, INSUFFICIENT_MEMORY );
       }
     }
   }
@@ -209,28 +209,28 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
   //   system->my_rank, hbonds->n, hbonds->num_intrs, workspace->num_H );
   // MPI_Barrier( comm );
   /* hbonds list */
-  if( control->hbond_cut > 0 && system->numH > 0 ) { 
+  if( control->hbond_cut > 0 && system->numH > 0 ) {
     hbonds = (*lists) + HBONDS;
     total_hbonds = 0;
-    
+
     /* reset start-end indexes */
     for( i = 0; i < system->n; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
       if( Hindex > -1 ) {
-	Set_Start_Index( Hindex, total_hbonds, hbonds );
-	Set_End_Index( Hindex, total_hbonds, hbonds );
-	total_hbonds += system->my_atoms[i].num_hbonds;
+        Set_Start_Index( Hindex, total_hbonds, hbonds );
+        Set_End_Index( Hindex, total_hbonds, hbonds );
+        total_hbonds += system->my_atoms[i].num_hbonds;
       }
     }
-    
+
     /* is reallocation needed? */
     if( total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/ ) {
       workspace->realloc.hbonds = 1;
       if( total_hbonds >= hbonds->num_intrs ) {
-	fprintf(stderr, 
-		"p%d: not enough space for hbonds! total=%d allocated=%d\n", 
-		system->my_rank, total_hbonds, hbonds->num_intrs );
-	MPI_Abort( comm, INSUFFICIENT_MEMORY );
+        fprintf(stderr,
+                "p%d: not enough space for hbonds! total=%d allocated=%d\n",
+                system->my_rank, total_hbonds, hbonds->num_intrs );
+        MPI_Abort( comm, INSUFFICIENT_MEMORY );
       }
     }
   }
@@ -240,20 +240,19 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
 
 
 void Reset( reax_system *system, control_params *control, simulation_data *data,
-	    storage *workspace, reax_list **lists, MPI_Comm comm )
+            storage *workspace, reax_list **lists, MPI_Comm comm )
 {
   Reset_Atoms( system, control );
-  
+
   Reset_Simulation_Data( data, control->virial );
 
-  Reset_Workspace( system, workspace );  
+  Reset_Workspace( system, workspace );
 
   Reset_Neighbor_Lists( system, control, workspace, lists, comm );
 
-#if defined(DEBUG_FOCUS) 
+#if defined(DEBUG_FOCUS)
   fprintf( stderr, "p%d @ step%d: reset done\n", system->my_rank, data->step );
   MPI_Barrier( comm );
 #endif
 
 }
-

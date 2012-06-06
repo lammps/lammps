@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ class FixAveSpatial : public Fix {
 
   int dim[3],originflag[3],nlayers[3];
   double origin[3],delta[3];
-  double offset[3],invdelta[3]; 
+  double offset[3],invdelta[3];
 
   int maxvar;
   double *varatom;

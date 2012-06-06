@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,7 +59,7 @@ class PairReaxC : public Pair {
   double cutmax;
   int *map;
   class FixReaxC *fix_reax;
-  
+
   double *chi,*eta,*gamma;
   int qeqflag;
   int setup_flag;
@@ -74,7 +74,7 @@ class PairReaxC : public Pair {
   void read_reax_forces();
   void setup();
 };
-  
+
 }
 
 #endif

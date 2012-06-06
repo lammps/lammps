@@ -56,11 +56,11 @@ void PairLJSmoothOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -118,43 +118,43 @@ void PairLJSmoothOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	if (rsq < cut_inner_sq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-	} else {
-	  r = sqrt(rsq); 
-	  t = r - cut_inner[itype][jtype];
-	  tsq = t*t;
-	  fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
-	    ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t; 
-	  forcelj = fskin*r;
-	}
-        
-	fpair = factor_lj*forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        if (rsq < cut_inner_sq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+        } else {
+          r = sqrt(rsq);
+          t = r - cut_inner[itype][jtype];
+          tsq = t*t;
+          fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
+            ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
+          forcelj = fskin*r;
+        }
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fpair = factor_lj*forcelj*r2inv;
 
-	if (EFLAG) {
-	  if (rsq < cut_inner_sq[itype][jtype])
-	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - 
-			     lj4[itype][jtype]) - offset[itype][jtype];
-	  else
-	    evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
-	      ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
-	      ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EFLAG) {
+          if (rsq < cut_inner_sq[itype][jtype])
+            evdwl = r6inv * (lj3[itype][jtype]*r6inv -
+                             lj4[itype][jtype]) - offset[itype][jtype];
+          else
+            evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
+              ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
+              ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
+
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,14 +35,14 @@ class ComputeRDF : public Compute {
 
  private:
   int first;
-  int nbin;			 // # of rdf bins
-  int npairs;            	 // # of rdf pairs
-  double delr,delrinv;		 // bin width and its inverse
-  int ***rdfpair;              	 // map 2 type pair to rdf pair for each histo
+  int nbin;                         // # of rdf bins
+  int npairs;                     // # of rdf pairs
+  double delr,delrinv;                 // bin width and its inverse
+  int ***rdfpair;                       // map 2 type pair to rdf pair for each histo
   int **nrdfpair;                // # of histograms for each type pair
   int *ilo,*ihi,*jlo,*jhi;
-  double **hist;	         // histogram bins
-  double **histall;	         // summed histogram bins across all procs
+  double **hist;                 // histogram bins
+  double **histall;                 // summed histogram bins across all procs
 
   int *typecount;
   int *icount,*jcount;

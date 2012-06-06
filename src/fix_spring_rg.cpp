@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -108,12 +108,12 @@ void FixSpringRG::post_force(int vflag)
   int *image = atom->image;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
-  
+
   double massfrac;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-   
+
   int xbox,ybox,zbox;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

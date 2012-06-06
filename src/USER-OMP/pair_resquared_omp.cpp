@@ -58,11 +58,11 @@ void PairRESquaredOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -126,7 +126,7 @@ void PairRESquaredOMP::eval(int iifrom, int iito, ThrData * const thr)
       // compute if less than cutoff
 
       if (rsq < cutsq[itype][jtype]) {
-	fforce[0] = fforce[1] = fforce[2] = 0.0;
+        fforce[0] = fforce[1] = fforce[2] = 0.0;
 
         switch (form[itype][jtype]) {
 
@@ -178,9 +178,9 @@ void PairRESquaredOMP::eval(int iifrom, int iito, ThrData * const thr)
         fforce[0] *= factor_lj;
         fforce[1] *= factor_lj;
         fforce[2] *= factor_lj;
-	fxtmp += fforce[0];
-	fytmp += fforce[1];
-	fztmp += fforce[2];
+        fxtmp += fforce[0];
+        fytmp += fforce[1];
+        fztmp += fforce[2];
 
         if (NEWTON_PAIR || j < nlocal) {
           f[j][0] -= fforce[0];
@@ -190,9 +190,9 @@ void PairRESquaredOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) evdwl = factor_lj*one_eng;
 
-	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
-				     evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				     -r12[0],-r12[1],-r12[2],thr);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                     evdwl,0.0,fforce[0],fforce[1],fforce[2],
+                                     -r12[0],-r12[1],-r12[2],thr);
       }
     }
     f[i][0] += fxtmp;

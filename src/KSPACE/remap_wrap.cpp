@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -20,16 +20,16 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Remap::Remap(LAMMPS *lmp, MPI_Comm comm,
-	     int in_ilo, int in_ihi, int in_jlo, int in_jhi,
-	     int in_klo, int in_khi,
-	     int out_ilo, int out_ihi, int out_jlo, int out_jhi,
-	     int out_klo, int out_khi,
-	     int nqty, int permute, int memory, int precision) : Pointers(lmp)
+             int in_ilo, int in_ihi, int in_jlo, int in_jhi,
+             int in_klo, int in_khi,
+             int out_ilo, int out_ihi, int out_jlo, int out_jhi,
+             int out_klo, int out_khi,
+             int nqty, int permute, int memory, int precision) : Pointers(lmp)
 {
   plan = remap_3d_create_plan(comm,
-			      in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-			      out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-			      nqty,permute,memory,precision);
+                              in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+                              out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
+                              nqty,permute,memory,precision);
   if (plan == NULL) error->one(FLERR,"Could not create 3d remap plan");
 }
 

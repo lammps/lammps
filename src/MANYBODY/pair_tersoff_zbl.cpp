@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -93,8 +93,8 @@ void PairTersoffZBL::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -115,8 +115,8 @@ void PairTersoffZBL::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -155,7 +155,7 @@ void PairTersoffZBL::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -185,18 +185,18 @@ void PairTersoffZBL::read_file(char *file)
     params[nparams].powermint = int(params[nparams].powerm);
 
     if (
-	params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 || 
-	params[nparams].d < 0.0 || params[nparams].powern < 0.0 || 
-	params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 || 
-	params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-	params[nparams].bigd < 0.0 ||
-	params[nparams].bigd > params[nparams].bigr ||
-	params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-	params[nparams].powerm - params[nparams].powermint != 0.0 ||
+        params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 ||
+        params[nparams].d < 0.0 || params[nparams].powern < 0.0 ||
+        params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
+        params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
+        params[nparams].bigd < 0.0 ||
+        params[nparams].bigd > params[nparams].bigr ||
+        params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+        params[nparams].powerm - params[nparams].powermint != 0.0 ||
         (params[nparams].powermint != 3 && params[nparams].powermint != 1) ||
-	params[nparams].gamma < 0.0 ||
-	params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
-	params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
+        params[nparams].gamma < 0.0 ||
+        params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
+        params[nparams].ZBLcut < 0.0 || params[nparams].ZBLexpscale < 0.0)
       error->all(FLERR,"Illegal Tersoff parameter");
 
     nparams++;
@@ -208,7 +208,7 @@ void PairTersoffZBL::read_file(char *file)
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffZBL::repulsive(Param *param, double rsq, double &fforce,
-			       int eflag, double &eng)
+                               int eflag, double &eng)
 {
   double r,tmp_fc,tmp_fc_d,tmp_exp;
 
@@ -220,29 +220,29 @@ void PairTersoffZBL::repulsive(Param *param, double rsq, double &fforce,
   tmp_exp = exp(-param->lam1 * r);
   double fforce_ters = param->biga * tmp_exp * (tmp_fc_d - tmp_fc*param->lam1);
   double eng_ters = tmp_fc * param->biga * tmp_exp;
-	
+
   // ZBL repulsive portion
 
   double esq = pow(global_e,2.0);
-  double a_ij = (0.8854*global_a_0) / 
+  double a_ij = (0.8854*global_a_0) /
     (pow(param->Z_i,0.23) + pow(param->Z_j,0.23));
   double premult = (param->Z_i * param->Z_j * esq)/(4.0*MY_PI*global_epsilon_0);
   double r_ov_a = r/a_ij;
-  double phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) + 
+  double phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) +
     0.2802*exp(-0.4029*r_ov_a) + 0.02817*exp(-0.2016*r_ov_a);
-  double dphi = (1.0/a_ij) * (-3.2*0.1818*exp(-3.2*r_ov_a) - 
-			      0.9423*0.5099*exp(-0.9423*r_ov_a) - 
-			      0.4029*0.2802*exp(-0.4029*r_ov_a) - 
-			      0.2016*0.02817*exp(-0.2016*r_ov_a));
+  double dphi = (1.0/a_ij) * (-3.2*0.1818*exp(-3.2*r_ov_a) -
+                              0.9423*0.5099*exp(-0.9423*r_ov_a) -
+                              0.4029*0.2802*exp(-0.4029*r_ov_a) -
+                              0.2016*0.02817*exp(-0.2016*r_ov_a));
   double fforce_ZBL = premult*-phi/rsq + premult*dphi/r;
   double eng_ZBL = premult*(1.0/r)*phi;
-  
+
   // combine two parts with smoothing by Fermi-like function
 
-  fforce = -(-F_fermi_d(r,param) * eng_ZBL + 
-	     (1.0 - F_fermi(r,param))*fforce_ZBL + 
-	     F_fermi_d(r,param)*eng_ters + F_fermi(r,param)*fforce_ters) / r;
-  
+  fforce = -(-F_fermi_d(r,param) * eng_ZBL +
+             (1.0 - F_fermi(r,param))*fforce_ZBL +
+             F_fermi_d(r,param)*eng_ters + F_fermi(r,param)*fforce_ters) / r;
+
   if (eflag)
     eng = (1.0 - F_fermi(r,param))*eng_ZBL + F_fermi(r,param)*eng_ters;
 }
@@ -252,9 +252,9 @@ void PairTersoffZBL::repulsive(Param *param, double rsq, double &fforce,
 double PairTersoffZBL::ters_fa(double r, Param *param)
 {
   if (r > param->bigr + param->bigd) return 0.0;
-  return -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param) * 
+  return -param->bigb * exp(-param->lam2 * r) * ters_fc(r,param) *
     F_fermi(r,param);
-}   
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -262,8 +262,8 @@ double PairTersoffZBL::ters_fa_d(double r, Param *param)
 {
   if (r > param->bigr + param->bigd) return 0.0;
   return param->bigb * exp(-param->lam2 * r) *
-    (param->lam2 * ters_fc(r,param) * F_fermi(r,param) - 
-     ters_fc_d(r,param) * F_fermi(r,param) - ters_fc(r,param) * 
+    (param->lam2 * ters_fc(r,param) * F_fermi(r,param) -
+     ters_fc_d(r,param) * F_fermi(r,param) - ters_fc(r,param) *
      F_fermi_d(r,param));
 }
 
@@ -282,6 +282,6 @@ double PairTersoffZBL::F_fermi(double r, Param *param)
 
 double PairTersoffZBL::F_fermi_d(double r, Param *param)
 {
-  return param->ZBLexpscale*exp(-param->ZBLexpscale*(r-param->ZBLcut)) / 
+  return param->ZBLexpscale*exp(-param->ZBLexpscale*(r-param->ZBLcut)) /
     pow(1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)),2.0);
 }

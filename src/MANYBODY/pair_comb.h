@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -57,7 +57,7 @@ class PairComb : public Pair {
     int ielement,jelement,kelement;
     int powermint;
   };
-  
+
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -80,16 +80,16 @@ class PairComb : public Pair {
   void allocate();
   virtual void read_file(char *);
   void setup();
-  virtual void repulsive(Param *, double, double &, int, 
-			 double &, double, double);
+  virtual void repulsive(Param *, double, double &, int,
+                         double &, double, double);
   double zeta(Param *, double, double, double *, double *);
-  void force_zeta(Param *, int, int, int, double, double, double, double, 
-		  double &, double &, double &);
+  void force_zeta(Param *, int, int, int, double, double, double, double,
+                  double &, double &, double &);
   void attractive(Param *, double, double, double, double *, double *,
-		  double *, double *, double *);
+                  double *, double *, double *);
   double elp(Param *, double, double, double *, double *);
-  void flp(Param *, double, double, double *, double *, double *, 
-	   double *, double *);
+  void flp(Param *, double, double, double *, double *, double *,
+           double *, double *);
   double comb_fc(double, Param *);
   double comb_fc_d(double, Param *);
   double comb_fc2(double);
@@ -101,8 +101,8 @@ class PairComb : public Pair {
   double comb_bij(double, Param *);
   double comb_bij_d(double, Param *);
 
-  inline double comb_gijk(const double costheta, 
-			  const Param * const param) const {
+  inline double comb_gijk(const double costheta,
+                          const Param * const param) const {
     const double comb_c = param->c * param->c;
     const double comb_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -110,8 +110,8 @@ class PairComb : public Pair {
     return param->gamma*(1.0 + comb_c/comb_d - comb_c / (comb_d + hcth*hcth));
   }
 
-  inline double comb_gijk_d(const double costheta, 
-			    const Param * const param) const {
+  inline double comb_gijk_d(const double costheta,
+                            const Param * const param) const {
     const double comb_c = param->c * param->c;
     const double comb_d = param->d * param->d;
     const double hcth = param->h - costheta;
@@ -121,22 +121,22 @@ class PairComb : public Pair {
   }
 
   void comb_zetaterm_d(double, double *, double, double *, double,
-			       double *, double *, double *, Param *);
+                               double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
-		  double *, double *, double *);
+                  double *, double *, double *);
   double self(Param *, double, double);
   void sm_table();
   void potal_calc(double &, double &, double &);
-  void tri_point(double, int &, int &, int &, double &, double &, 
-		 double &, int &);
+  void tri_point(double, int &, int &, int &, double &, double &,
+                 double &, int &);
   void direct(int,int,int,int,double,double,double,double,double,double,
-	double,double,double,double &,double &);
+        double,double,double,double &,double &);
   void field(Param *,double,double,double,double &,double &);
   double qfo_self(Param *, double, double);
   void qfo_short(Param *, int, int, double, double, double,
-		  double &, double &);
-  void qfo_direct (int, int, int, int, double, double, double, double, 
-	double, double &);
+                  double &, double &);
+  void qfo_direct (int, int, int, int, double, double, double, double,
+        double, double &);
   void qfo_field(Param *, double,double ,double ,double &, double &);
   void qsolve(double *);
   void Over_cor(Param *, double, int, double &, double &);
@@ -150,7 +150,7 @@ class PairComb : public Pair {
   void add_pages(int howmany=1);
   void Short_neigh();
   int maxpage, pgsize, oneatom, **pages;
-  int *sht_num, **sht_first;	// short-range neighbor list
+  int *sht_num, **sht_first;        // short-range neighbor list
   double cutmin;
 
   // vector functions, inline for efficiency
@@ -159,18 +159,18 @@ class PairComb : public Pair {
     return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
   }
 
-  inline void vec3_add(const double x[3], const double y[3], 
-		       double * const z) const {
+  inline void vec3_add(const double x[3], const double y[3],
+                       double * const z) const {
     z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
   }
 
   inline void vec3_scale(const double k, const double x[3],
-			 double y[3]) const {
+                         double y[3]) const {
     y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
   }
 
-  inline void vec3_scaleadd(const double k, const double x[3], 
-			    const double y[3], double * const z) const {
+  inline void vec3_scaleadd(const double k, const double x[3],
+                            const double y[3], double * const z) const {
     z[0] = k*x[0]+y[0];
     z[1] = k*x[1]+y[1];
     z[2] = k*x[2]+y[2];

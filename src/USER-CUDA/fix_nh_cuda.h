@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -76,13 +76,13 @@ class FixNHCuda : public Fix {
   double *eta_dotdot;
   double *eta_mass;
   int mtchain;                     // length of chain
-                                   
+
   double *etap;                    // chain thermostat for barostat
   double *etap_dot;
   double *etap_dotdot;
   double *etap_mass;
   int mpchain;                     // length of chain
-                                   
+
   int mtk_flag;                    // 0 if using Hoover barostat
   double mtk_term1,mtk_term2;
   int mtchain_default_flag;
@@ -117,7 +117,7 @@ class FixNHCuda : public Fix {
   double compute_strain_energy();
   void compute_press_target();
   void nh_omega_dot();
-  
+
   X_FLOAT triggerneighsq;
 };
 

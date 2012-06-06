@@ -58,11 +58,11 @@ void PairGayBerneOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -134,81 +134,81 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsq[itype][jtype]) {
 
-	switch (form[itype][jtype]) {
-	case SPHERE_SPHERE:
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  forcelj *= -r2inv;
-	  if (EFLAG) 
-	    one_eng = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	  fforce[0] = r12[0]*forcelj;
-	  fforce[1] = r12[1]*forcelj;
-	  fforce[2] = r12[2]*forcelj;
-	  ttor[0] = ttor[1] = ttor[2] = 0.0;
-	  rtor[0] = rtor[1] = rtor[2] = 0.0;
-	  break;
+        switch (form[itype][jtype]) {
+        case SPHERE_SPHERE:
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          forcelj *= -r2inv;
+          if (EFLAG)
+            one_eng = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+              offset[itype][jtype];
+          fforce[0] = r12[0]*forcelj;
+          fforce[1] = r12[1]*forcelj;
+          fforce[2] = r12[2]*forcelj;
+          ttor[0] = ttor[1] = ttor[2] = 0.0;
+          rtor[0] = rtor[1] = rtor[2] = 0.0;
+          break;
 
         case SPHERE_ELLIPSE:
-	  jquat = bonus[ellipsoid[j]].quat;
-	  MathExtra::quat_to_mat_trans(jquat,a2);
-	  MathExtra::diag_times3(well[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape2[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,g2);
-	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
-	  ttor[0] = ttor[1] = ttor[2] = 0.0;
-	  break;
+          jquat = bonus[ellipsoid[j]].quat;
+          MathExtra::quat_to_mat_trans(jquat,a2);
+          MathExtra::diag_times3(well[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,b2);
+          MathExtra::diag_times3(shape2[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,g2);
+          one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+          ttor[0] = ttor[1] = ttor[2] = 0.0;
+          break;
 
         case ELLIPSE_SPHERE:
-	  one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
-	  rtor[0] = rtor[1] = rtor[2] = 0.0;
-	  break;
+          one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
+          rtor[0] = rtor[1] = rtor[2] = 0.0;
+          break;
 
-	default:
-	  jquat = bonus[ellipsoid[j]].quat;
-	  MathExtra::quat_to_mat_trans(jquat,a2);
-	  MathExtra::diag_times3(well[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape2[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,g2);
-	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
-				      fforce,ttor,rtor);
-	  break;
-	}
+        default:
+          jquat = bonus[ellipsoid[j]].quat;
+          MathExtra::quat_to_mat_trans(jquat,a2);
+          MathExtra::diag_times3(well[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,b2);
+          MathExtra::diag_times3(shape2[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,g2);
+          one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
+                                      fforce,ttor,rtor);
+          break;
+        }
 
         fforce[0] *= factor_lj;
-	fforce[1] *= factor_lj;
-	fforce[2] *= factor_lj;
+        fforce[1] *= factor_lj;
+        fforce[2] *= factor_lj;
         ttor[0] *= factor_lj;
-	ttor[1] *= factor_lj;
-	ttor[2] *= factor_lj;
+        ttor[1] *= factor_lj;
+        ttor[2] *= factor_lj;
 
         fxtmp += fforce[0];
-	fytmp += fforce[1];
-	fztmp += fforce[2];
+        fytmp += fforce[1];
+        fztmp += fforce[2];
         t1tmp += ttor[0];
-	t2tmp += ttor[1];
-	t3tmp += ttor[2];
+        t2tmp += ttor[1];
+        t3tmp += ttor[2];
 
         if (NEWTON_PAIR || j < nlocal) {
           rtor[0] *= factor_lj;
-	  rtor[1] *= factor_lj;
-	  rtor[2] *= factor_lj;
+          rtor[1] *= factor_lj;
+          rtor[2] *= factor_lj;
           f[j][0] -= fforce[0];
-	  f[j][1] -= fforce[1];
-	  f[j][2] -= fforce[2];
+          f[j][1] -= fforce[1];
+          f[j][2] -= fforce[2];
           tor[j][0] += rtor[0];
-	  tor[j][1] += rtor[1];
-	  tor[j][2] += rtor[2];
+          tor[j][1] += rtor[1];
+          tor[j][2] += rtor[2];
         }
 
         if (EFLAG) evdwl = factor_lj*one_eng;
 
-	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
-				     evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				     -r12[0],-r12[1],-r12[2],thr);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                     evdwl,0.0,fforce[0],fforce[1],fforce[2],
+                                     -r12[0],-r12[1],-r12[2],thr);
       }
     }
     f[i][0] += fxtmp;

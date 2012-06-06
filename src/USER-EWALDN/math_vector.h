@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,80 +21,80 @@
 #include "math.h"
 #include "string.h"
 
-#define VECTOR_NULL	{0, 0, 0}
-#define SHAPE_NULL	{0, 0, 0, 0, 0, 0}
-#define FORM_NULL	{0, 0, 0, 0, 0, 0}
-#define MATRIX_NULL	{VECTOR_NULL, VECTOR_NULL, VECTOR_NULL}
-#define VECTOR4_NULL	{0, 0, 0, 0}
-#define QUATERNION_NULL	{0, 0, 0, 0}
-#define FORM4_NULL	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define VECTOR_NULL        {0, 0, 0}
+#define SHAPE_NULL        {0, 0, 0, 0, 0, 0}
+#define FORM_NULL        {0, 0, 0, 0, 0, 0}
+#define MATRIX_NULL        {VECTOR_NULL, VECTOR_NULL, VECTOR_NULL}
+#define VECTOR4_NULL        {0, 0, 0, 0}
+#define QUATERNION_NULL        {0, 0, 0, 0}
+#define FORM4_NULL        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 #define FZERO 1e-15
 #define fzero(x) (((x)>-FZERO) && ((x)<FZERO))
 
 namespace LAMMPS_NS {
 
-typedef double vector[3];		// 0:x  1:y  2:z
+typedef double vector[3];                // 0:x  1:y  2:z
 typedef int lvector[3];
-typedef double shape[6];		// 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
-typedef int lshape[6];			// xy=0  xz=0  yz=0;
-typedef double form[6];			// 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
-typedef int lform[6];			// xy=yx xz=zx yz=zy;
-typedef vector matrix[3];		// 00:xx 11:yy 22:zz 21:zy 20:zx 10:yx
+typedef double shape[6];                // 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
+typedef int lshape[6];                        // xy=0  xz=0  yz=0;
+typedef double form[6];                        // 0:xx 1:yy 2:zz 3:zy 4:zx 5:yx
+typedef int lform[6];                        // xy=yx xz=zx yz=zy;
+typedef vector matrix[3];                // 00:xx 11:yy 22:zz 21:zy 20:zx 10:yx
 typedef lvector lmatrix[3];
-typedef double vector4[4];		// 4D vector
-typedef double form4[10];		// 0:00 1:11 2:22 3:33 4:32
-					// 5:31 6:30 7:21 8:20 9:10
-					// 01=10 02=20 03=30 etc
-typedef double quaternion[4];		// quaternion
+typedef double vector4[4];                // 4D vector
+typedef double form4[10];                // 0:00 1:11 2:22 3:33 4:32
+                                        // 5:31 6:30 7:21 8:20 9:10
+                                        // 01=10 02=20 03=30 etc
+typedef double quaternion[4];                // quaternion
 
 // vector operators
 
-inline double vec_dot(vector &a, vector &b) {			// a.b
+inline double vec_dot(vector &a, vector &b) {                        // a.b
   return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
 
 inline void vec_null(vector &dest) {
   memset(dest, 0, sizeof(vector)); }
 
-inline void vec_neg(vector &dest) {				// -a
+inline void vec_neg(vector &dest) {                                // -a
   dest[0] = -dest[0];
   dest[1] = -dest[1];
   dest[2] = -dest[2]; }
 
-inline void vec_norm(vector &dest) { 				// a/|a|
-  register double f = sqrt(vec_dot(dest, dest)); 
-  dest[0] /= f; 
-  dest[1] /= f; 
+inline void vec_norm(vector &dest) {                                 // a/|a|
+  register double f = sqrt(vec_dot(dest, dest));
+  dest[0] /= f;
+  dest[1] /= f;
   dest[2] /= f; }
 
-inline void vec_add(vector &dest, vector &src) {		// a+b
+inline void vec_add(vector &dest, vector &src) {                // a+b
   dest[0] += src[0];
   dest[1] += src[1];
   dest[2] += src[2]; }
 
-inline void vec_subtr(vector &dest, vector &src) {		// a-b
+inline void vec_subtr(vector &dest, vector &src) {                // a-b
   dest[0] -= src[0];
   dest[1] -= src[1];
   dest[2] -= src[2]; }
 
-inline void vec_mult(vector &dest, vector &src) {		// a*b
+inline void vec_mult(vector &dest, vector &src) {                // a*b
   dest[0] *= src[0];
   dest[1] *= src[1];
   dest[2] *= src[2]; }
 
-inline void vec_div(vector &dest, vector &src) {		// a/b
+inline void vec_div(vector &dest, vector &src) {                // a/b
   dest[0] /= src[0];
   dest[1] /= src[1];
   dest[2] /= src[2]; }
 
-inline void vec_cross(vector &dest, vector &src) {		// a x b
+inline void vec_cross(vector &dest, vector &src) {                // a x b
   vector t = {
     dest[1]*src[2]-dest[2]*src[1],
     dest[2]*src[0]-dest[0]*src[2],
     dest[0]*src[1]-dest[1]*src[0]};
   memcpy(dest, t, sizeof(vector)); }
 
-inline void vec_scalar_mult(vector &dest, double f) {		// f*a
+inline void vec_scalar_mult(vector &dest, double f) {                // f*a
   dest[0] *= f;
   dest[1] *= f;
   dest[2] *= f; }
@@ -121,27 +121,27 @@ inline void shape_unit(shape &dest) {
   memset(dest, 0, sizeof(shape));
   dest[0] = dest[1] = dest[2] = 1.0; }
 
-inline void shape_add(shape &dest, shape &src) {		// h_a+h_b
+inline void shape_add(shape &dest, shape &src) {                // h_a+h_b
   dest[0] += src[0]; dest[1] += src[1]; dest[2] += src[2];
   dest[3] += src[3]; dest[4] += src[4]; dest[5] += src[5]; }
 
-inline void shape_subtr(shape &dest, shape &src) {		// h_a-h_b
+inline void shape_subtr(shape &dest, shape &src) {                // h_a-h_b
   dest[0] -= src[0]; dest[1] -= src[1]; dest[2] -= src[2];
   dest[3] -= src[3]; dest[4] -= src[4]; dest[5] -= src[5]; }
 
-inline void shape_inv(shape &h_inv, shape &h) {			// h^-1
+inline void shape_inv(shape &h_inv, shape &h) {                        // h^-1
   h_inv[0] = 1.0/h[0]; h_inv[1] = 1.0/h[1]; h_inv[2] = 1.0/h[2];
   h_inv[3] = -h[3]/(h[1]*h[2]);
   h_inv[4] = (h[3]*h[5]-h[1]*h[4])/(h[0]*h[1]*h[2]);
-  h_inv[5] = -h[5]/(h[0]*h[1]); } 
+  h_inv[5] = -h[5]/(h[0]*h[1]); }
 
-inline void shape_dot(shape &dest, shape &src) {		// h_a.h_b
+inline void shape_dot(shape &dest, shape &src) {                // h_a.h_b
   dest[3] = dest[1]*src[3]+dest[3]*src[2];
   dest[4] = dest[0]*src[4]+dest[5]*src[3]+dest[4]*src[2];
   dest[5] = dest[0]*src[5]+dest[5]*src[1];
   dest[0] *= src[0]; dest[1] *= src[1]; dest[2] *= src[2]; }
 
-inline void shape_scalar_mult(shape &dest, double f) {		// f*h
+inline void shape_scalar_mult(shape &dest, double f) {                // f*h
   dest[0] *= f; dest[1] *= f; dest[2] *= f;
   dest[3] *= f; dest[4] *= f; dest[5] *= f; }
 
@@ -155,7 +155,7 @@ inline void vec_shape_dot(vector &dest, shape &h, vector &src) {// a.h
   dest[1] = h[5]*src[0]+h[1]*src[1];
   dest[0] = h[0]*src[0]; }
 
-inline void shape_to_matrix(matrix &dest, shape &h) {		// m = h
+inline void shape_to_matrix(matrix &dest, shape &h) {                // m = h
   dest[0][0] = h[0]; dest[1][0] = h[5]; dest[2][0] = h[4];
   dest[0][1] =  0.0; dest[1][1] = h[1]; dest[2][1] = h[3];
   dest[0][2] =  0.0; dest[1][2] =  0.0; dest[2][2] = h[2]; }
@@ -170,10 +170,10 @@ inline void lshape_to_shape(shape &dest, lshape &src) {
 
 // form operators
 
-inline double form_det(form &m) {				// |m|
+inline double form_det(form &m) {                                // |m|
   return m[0]*(m[1]*m[2]-m[3]*m[3])+
     m[4]*(2.0*m[3]*m[5]-m[1]*m[4])-m[2]*m[5]*m[5]; }
-    
+
 inline void form_null(form &dest) {
   memset(dest, 0, sizeof(form)); }
 
@@ -181,15 +181,15 @@ inline void form_unit(form &dest) {
   memset(dest, 0, sizeof(form));
   dest[0] = dest[1] = dest[2] = 1.0; }
 
-inline void form_add(form &dest, form &src) {			// m_a+m_b
+inline void form_add(form &dest, form &src) {                        // m_a+m_b
   dest[0] += src[0]; dest[1] += src[1]; dest[2] += src[2];
   dest[3] += src[3]; dest[4] += src[4]; dest[5] += src[5]; }
 
-inline void form_subtr(shape &dest, form &src) {		// m_a-m_b
+inline void form_subtr(shape &dest, form &src) {                // m_a-m_b
   dest[0] -= src[0]; dest[1] -= src[1]; dest[2] -= src[2];
   dest[3] -= src[3]; dest[4] -= src[4]; dest[5] -= src[5]; }
 
-inline int form_inv(form &m_inv, form &m) {			// m^-1
+inline int form_inv(form &m_inv, form &m) {                        // m^-1
   register double det = form_det(m);
   if (fzero(det)) return 0;
   m_inv[0] = (m[1]*m[2]-m[3]*m[3])/det;
@@ -200,7 +200,7 @@ inline int form_inv(form &m_inv, form &m) {			// m^-1
   m_inv[5] = (m[3]*m[4]-m[2]*m[5])/det;
   return 1; }
 
-inline void form_dot(form &dest, form &src) {			// m_a.m_b
+inline void form_dot(form &dest, form &src) {                        // m_a.m_b
   form m;
   memcpy(m, dest, sizeof(form));
   dest[0] = m[0]*src[0]+m[4]*src[4]+m[5]*src[5];
@@ -210,7 +210,7 @@ inline void form_dot(form &dest, form &src) {			// m_a.m_b
   dest[4] = m[4]*src[2]+m[5]*src[3]+m[0]*src[4];
   dest[5] = m[5]*src[1]+m[4]*src[3]+m[0]*src[5]; }
 
-inline void form_vec_dot(vector &dest, form &m) {		// m.a
+inline void form_vec_dot(vector &dest, form &m) {                // m.a
   vector a;
   memcpy(a, dest, sizeof(vector));
   dest[0] = m[0]*a[0]+m[5]*a[1]+m[4]*a[2];
@@ -227,12 +227,12 @@ inline void lform_to_form(form &dest, lform &src) {
 
 // matrix operators
 
-inline double matrix_det(matrix &m) {				// |m|
+inline double matrix_det(matrix &m) {                                // |m|
   vector axb;
   memcpy(&axb, m[0], sizeof(vector));
   vec_cross(axb, m[1]);
   return vec_dot(axb, m[2]); }
-  
+
 inline void matrix_null(matrix &dest) {
   memset(dest, 0, sizeof(dest)); }
 
@@ -240,19 +240,19 @@ inline void matrix_unit(matrix &dest) {
   memset(dest, 0, sizeof(dest));
   dest[0][0] = dest[1][1] = dest[2][2] = 1.0; }
 
-inline void matrix_scalar_mult(matrix &dest, double f) {	// f*m
+inline void matrix_scalar_mult(matrix &dest, double f) {        // f*m
   vec_scalar_mult(dest[0], f);
   vec_scalar_mult(dest[1], f);
   vec_scalar_mult(dest[2], f); }
 
-inline void matrix_trans(matrix &dest) {			// m^t
+inline void matrix_trans(matrix &dest) {                        // m^t
   double f = dest[0][1]; dest[0][1] = dest[1][0]; dest[1][0] = f;
   f = dest[0][2]; dest[0][2] = dest[2][0]; dest[2][0] = f;
   f = dest[1][2]; dest[1][2] = dest[2][1]; dest[2][1] = f; }
 
-inline int matrix_inv(matrix &dest, matrix &src) {		// m^-1
+inline int matrix_inv(matrix &dest, matrix &src) {                // m^-1
   double f = matrix_det(src);
-  if (fzero(f)) return 0;				// singular matrix
+  if (fzero(f)) return 0;                                // singular matrix
   memcpy(dest[0], src[1], sizeof(vector));
   memcpy(dest[1], src[2], sizeof(vector));
   memcpy(dest[2], src[0], sizeof(vector));
@@ -262,16 +262,16 @@ inline int matrix_inv(matrix &dest, matrix &src) {		// m^-1
   matrix_scalar_mult(dest, 1.0/f);
   matrix_trans(dest);
   return 0; }
-  
+
 inline void matrix_vec_dot(vector &dest, vector &src, matrix &m) { // m.a
   dest[0] = m[0][0]*src[0]+m[1][0]*src[1]+m[2][0]*src[2];
   dest[1] = m[0][1]*src[0]+m[1][1]*src[1]+m[2][1]*src[2];
   dest[2] = m[0][2]*src[0]+m[1][2]*src[1]+m[2][2]*src[2]; }
 
-inline void matrix_to_shape(shape &dest, matrix &src) {		// h = m
+inline void matrix_to_shape(shape &dest, matrix &src) {                // h = m
   dest[0] = src[0][0]; dest[1] = src[1][1]; dest[2] = src[2][2];
   dest[3] = src[2][1]; dest[4] = src[2][0]; dest[5] = src[1][0]; }
-  
+
 inline void matrix_to_lmatrix(lmatrix &dest, matrix &src) {
   vec_to_lvec(dest[0], src[0]);
   vec_to_lvec(dest[1], src[1]);
@@ -284,20 +284,20 @@ inline void lmatrix_to_matrix(matrix &dest, lmatrix &src) {
 
 // quaternion operators
 
-inline double quat_dot(quaternion &p, quaternion &q) {		// p.q
+inline double quat_dot(quaternion &p, quaternion &q) {                // p.q
   return p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3];
 }
 
-inline void quat_norm(quaternion &q) {				// q = q/|q|
+inline void quat_norm(quaternion &q) {                                // q = q/|q|
   double f = sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
   q[0] /= f; q[1] /= f; q[2] /= f; q[3] /= f;
 }
 
-inline void quat_conj(quaternion &q) {				// q = conj(q)
+inline void quat_conj(quaternion &q) {                                // q = conj(q)
   q[1] = -q[1]; q[2] = -q[2]; q[3] = -q[3];
 }
 
-inline void quat_mult(quaternion &dest, quaternion &src) {	// dest *= src
+inline void quat_mult(quaternion &dest, quaternion &src) {        // dest *= src
   quaternion q;
   memcpy(q, dest, sizeof(quaternion));
   dest[0] =  src[0]*q[3]+src[1]*q[2]-src[2]*q[1]+src[3]*q[0];
@@ -306,7 +306,7 @@ inline void quat_mult(quaternion &dest, quaternion &src) {	// dest *= src
   dest[3] = -src[0]*q[0]-src[1]*q[1]-src[2]*q[2]+src[3]*q[3];
 }
 
-inline void quat_div(quaternion &dest, quaternion &src) {	// dest /= src
+inline void quat_div(quaternion &dest, quaternion &src) {        // dest /= src
   quaternion q;
   memcpy(q, dest, sizeof(quaternion));
   dest[0] =  src[0]*q[3]-src[1]*q[2]+src[2]*q[1]-src[3]*q[0];
@@ -314,16 +314,16 @@ inline void quat_div(quaternion &dest, quaternion &src) {	// dest /= src
   dest[2] =  src[0]*q[1]+src[1]*q[0]-src[2]*q[3]-src[3]*q[2];
   dest[3] = -src[0]*q[0]+src[1]*q[1]+src[2]*q[2]-src[3]*q[3];
 }
-							// dest = q*src*conj(q)
+                                                        // dest = q*src*conj(q)
 inline void quat_vec_rot(vector &dest, vector &src, quaternion &q) {
   quaternion aa={q[0]*q[0], q[1]*q[1], q[2]*q[2], q[3]*q[3]};
   form ab={q[0]*q[1], q[0]*q[2], q[0]*q[3], q[1]*q[2], q[1]*q[3], q[2]*q[3]};
   dest[0] = (aa[0]+aa[1]-aa[2]-aa[3])*src[0]+
-	    ((ab[3]-ab[2])*src[1]+(ab[1]+ab[4])*src[2])*2.0;
+            ((ab[3]-ab[2])*src[1]+(ab[1]+ab[4])*src[2])*2.0;
   dest[1] = (aa[0]-aa[1]+aa[2]-aa[3])*src[1]+
-	    ((ab[2]+ab[3])*src[0]+(ab[5]-ab[0])*src[2])*2.0;
+            ((ab[2]+ab[3])*src[0]+(ab[5]-ab[0])*src[2])*2.0;
   dest[2] = (aa[0]-aa[1]-aa[2]+aa[3])*src[2]+
-	    ((ab[4]-ab[1])*src[0]+(ab[0]+ab[5])*src[1])*2.0;
+            ((ab[4]-ab[1])*src[0]+(ab[0]+ab[5])*src[1])*2.0;
 }
 
 // vector4 operators
@@ -334,7 +334,7 @@ inline void vec4_null(vector4 &dest) {
 
 inline double vec4_dot(vector4 &a, vector4 &b) {
   return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]; }
-  
+
 // form operators
 
 inline void form4_null(form4 &dest) {
@@ -351,8 +351,8 @@ inline double form4_det(form4 &m) {
       m[5]*(2.0*m[4]*m[7]-m[2]*m[5])-m[3]*m[7]*m[7])+f*f+
     -m[1]*(m[2]*m[6]*m[6]+m[8]*(m[3]*m[8]-2.0*m[4]*m[6]))+
     m[9]*(
-	2.0*(m[2]*m[5]*m[6]+m[3]*m[7]*m[8]-m[4]*(m[6]*m[7]+m[5]*m[8]))+
-	m[9]*(m[4]*m[4]-m[2]*m[3])); }
+        2.0*(m[2]*m[5]*m[6]+m[3]*m[7]*m[8]-m[4]*(m[6]*m[7]+m[5]*m[8]))+
+        m[9]*(m[4]*m[4]-m[2]*m[3])); }
 
 inline int form4_inv(form4 &m_inv, form4 &m) {
   register double det = form4_det(m);
@@ -394,10 +394,10 @@ inline int regress2(vector &eqn, int order, double *x, double *y, int n) {
   vector xty = VECTOR_NULL;
   double xn, xi, yi;
   int i;
- 
+
   vec_null(eqn);
   xtx[0] = n;
-  if ((order = order%2)<0) order = -order;		// max: quad regress
+  if ((order = order%2)<0) order = -order;                // max: quad regress
   if (order<1) xtx[1] = 1.0;
   if (order<2) xtx[2] = 1.0;
   for (i=0; i<n; ++i) {
@@ -420,10 +420,10 @@ inline int regress3(vector4 &eqn, int order, double *x, double *y, int n) {
   vector4 xty = VECTOR4_NULL;
   double xn, xi, yi;
   int i;
- 
+
   vec4_null(eqn);
   xtx[0] = n;
-  if ((order = order%3)<0) order = -order;		// max: cubic regress
+  if ((order = order%3)<0) order = -order;                // max: cubic regress
   if (order<1) xtx[1] = 1.0;
   if (order<2) xtx[2] = 1.0;
   if (order<3) xtx[3] = 1.0;

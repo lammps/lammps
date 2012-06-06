@@ -15,7 +15,7 @@
 #include "stdlib.h"
 #include "read_dump_native.h"
 #include "atom.h"
-#include "domain.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -29,9 +29,6 @@ enum{UNSET,UNSCALED,SCALED};
 
 ReadDumpNative::ReadDumpNative(LAMMPS *lmp) : Pointers(lmp)
 {
-  dimension = domain->dimension;
-  triclinic = domain->triclinic;
-
   line = new char[MAXLINE];
   words = NULL;
   fieldindex = NULL;
@@ -43,117 +40,132 @@ ReadDumpNative::~ReadDumpNative()
 {
   delete [] line;
   delete [] words;
-  delete [] fieldindex;
+  memory->destroy(fieldindex);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   set file ptr
+   caller opens/closes dump files
+------------------------------------------------------------------------- */
 
-void ReadDumpNative::init(FILE *fpcaller)
+void ReadDumpNative::file(FILE *fpcaller)
 {
   fp = fpcaller;
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 scans dump file until reaching snapshot with timestamp = Nstep
-   extract natoms and box bounds from snapshot
-   set fieldindex for specified fields and overall scaled setting
-   error check on current vs new box and fields
-   NOTE: error checking should maybe be moved to parent
+   read and return time stamp from dump file
+   if first read reaches end-of-file, return 1 so caller can open next file
+   only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpNative::scan(bigint nstep, 
-			  int nfield_caller, int *fieldtype, 
-			  char **fieldlabel, int scaledflag,
-			  bigint &natoms, double box[3][3], int &scaled)
+int ReadDumpNative::read_time(bigint &ntimestep)
 {
-  int nchunk,triclinic_snap,s_index,u_index,su_index;
-  bigint ntimestep,nremain;
-  char *bc,*names;
+  char *eof = fgets(line,MAXLINE,fp);
+  if (eof == NULL) return 1;
 
-  nfield = nfield_caller;
-
+  if (strstr(line,"ITEM: TIMESTEP") != line)
+    error->one(FLERR,"Dump file is incorrectly formatted");
   read_lines(1);
+  sscanf(line,BIGINT_FORMAT,&ntimestep);
 
-  while (1) {
-    if (strstr(line,"ITEM: TIMESTEP") != line)
-      error->one(FLERR,"Incorrectly formatted dump file");
-    read_lines(1);
-    sscanf(line,BIGINT_FORMAT,&ntimestep);
+  return 0;
+}
 
-    if (ntimestep > nstep)
-      error->one(FLERR,"Dump file does not contain requested snapshot");
+/* ----------------------------------------------------------------------
+   skip snapshot from timestamp onward
+   only called by proc 0
+------------------------------------------------------------------------- */
 
-    read_lines(2);
-    sscanf(line,BIGINT_FORMAT,&natoms);
+void ReadDumpNative::skip()
+{
+  read_lines(2);
+  bigint natoms;
+  sscanf(line,BIGINT_FORMAT,&natoms);
 
-    // skip snapshot
-    // invoke read_lines() in chunks no larger than MAXSMALLINT
+  read_lines(5);
 
-    if (ntimestep < nstep) {
-      read_lines(5);
+  // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-      nremain = natoms;
-      while (nremain) {
-	nchunk = MIN(nremain,MAXSMALLINT);
-	read_lines(nchunk);
-	nremain -= nchunk;
-      }
-
-      read_lines(1);
-    } else break;
+  int nchunk;
+  bigint nremain = natoms;
+  while (nremain) {
+    nchunk = MIN(nremain,MAXSMALLINT);
+    read_lines(nchunk);
+    nremain -= nchunk;
   }
+}
 
-  // found correct snapshot
-  // read box size and boundary conditions
+/* ----------------------------------------------------------------------
+   read remaining header info:
+     return natoms
+     box bounds, triclinic (inferred), fieldflag (1 if any fields not found),
+     xyz flag = UNSET (not a requested field), SCALED, UNSCALED
+   if fieldflag set:
+     match Nfield fields to per-atom column labels
+     allocate and set fieldindex = which column each field maps to
+     fieldtype = X,VX,IZ etc
+     fieldlabel = user-specified label or NULL if use fieldtype default
+   xyz flag = scaledflag if has fieldlabel name, else set by x,xs,xu,xsu
+   only called by proc 0
+------------------------------------------------------------------------- */
 
-  triclinic_snap = 0;
+bigint ReadDumpNative::read_header(double box[3][3], int &triclinic,
+                                   int fieldinfo, int nfield,
+                                   int *fieldtype, char **fieldlabel,
+                                   int scaledflag, int &fieldflag,
+                                   int &xflag, int &yflag, int &zflag)
+{
+  bigint natoms;
+  read_lines(2);
+  sscanf(line,BIGINT_FORMAT,&natoms);
+
+  triclinic = 0;
   box[0][2] = box[1][2] = box[2][2] = 0.0;
   read_lines(1);
-  bc = &line[strlen("ITEM: BOX BOUNDS ")];
-  if (bc[0] == 'x') {
-    triclinic_snap = 1;
-    bc = &bc[9];
-  }
-  
-  char boundstr[9];
-  domain->boundary_string(boundstr);
-  if (strstr(bc,boundstr) != bc) 
-    error->warning(FLERR,"Read_dump boundary flags do not match simulation");
-  
+  if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
+
   read_lines(1);
-  if (!triclinic_snap) sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
+  if (!triclinic) sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
   else sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
   read_lines(1);
-  if (!triclinic_snap) sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
+  if (!triclinic) sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
   else sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
   read_lines(1);
-  if (!triclinic_snap) sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
+  if (!triclinic) sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
   else sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
-  
-  // read ITEM: ATOMS line
-  // labels = column labels
-  
+
   read_lines(1);
-  names = &line[strlen("ITEM: ATOMS ")];
-  
-  nwords = atom->count_words(names);
+
+  // if no field info requested, just return
+
+  if (!fieldinfo) return natoms;
+
+  // exatract column labels and match to requested fields
+
+  char *labelline = &line[strlen("ITEM: ATOMS ")];
+
+  nwords = atom->count_words(labelline);
   char **labels = new char*[nwords];
-  labels[0] = strtok(names," \t\n\r\f");
-  if (labels[0] == NULL) 
-    error->one(FLERR,"Incorrect atom format in dump file");
+  labels[0] = strtok(labelline," \t\n\r\f");
+  if (labels[0] == NULL) return 1;
   for (int m = 1; m < nwords; m++) {
     labels[m] = strtok(NULL," \t\n\r\f");
-    if (labels[m] == NULL) 
-      error->one(FLERR,"Incorrect atom format in dump file");
+    if (labels[m] == NULL) return 1;
   }
-  
-  // match each field with column
-  
-  fieldindex = new int[nfield];
-  int xflag = UNSET;
-  int yflag = UNSET;
-  int zflag = UNSET;
-  
+
+  // match each field with a column of per-atom data
+  // if fieldlabel set, match with explicit column
+  // else infer one or more column matches from fieldtype
+  // xyz flag set by scaledflag (if fieldlabel set) or column label
+
+  memory->create(fieldindex,nfield,"read_dump:fieldindex");
+
+  int s_index,u_index,su_index;
+  xflag = UNSET;
+  yflag = UNSET;
+  zflag = UNSET;
+
   for (int i = 0; i < nfield; i++) {
     if (fieldlabel[i]) {
       fieldindex[i] = find_label(fieldlabel[i],nwords,labels);
@@ -161,81 +173,81 @@ void ReadDumpNative::scan(bigint nstep,
       else if (fieldtype[i] == Y) yflag = scaledflag;
       else if (fieldtype[i] == Z) zflag = scaledflag;
     }
-    
+
     else if (fieldtype[i] == ID)
       fieldindex[i] = find_label("id",nwords,labels);
     else if (fieldtype[i] == TYPE)
       fieldindex[i] = find_label("type",nwords,labels);
-    
+
     else if (fieldtype[i] == X) {
       fieldindex[i] = find_label("x",nwords,labels);
       xflag = UNSCALED;
       if (fieldindex[i] < 0) {
-	fieldindex[i] = nwords;
-	s_index = find_label("xs",nwords,labels);
-	u_index = find_label("xu",nwords,labels);
-	su_index = find_label("xsu",nwords,labels);
-	if (s_index >= 0 && s_index < fieldindex[i]) {
-	  fieldindex[i] = s_index;
-	  xflag = SCALED;
-	}
-	if (u_index >= 0 && u_index < fieldindex[i]) {
-	  fieldindex[i] = u_index;
-	  xflag = UNSCALED;
-	}
-	if (su_index >= 0 && su_index < fieldindex[i]) {
-	  fieldindex[i] = su_index;
-	  xflag = SCALED;
-	}
+        fieldindex[i] = nwords;
+        s_index = find_label("xs",nwords,labels);
+        u_index = find_label("xu",nwords,labels);
+        su_index = find_label("xsu",nwords,labels);
+        if (s_index >= 0 && s_index < fieldindex[i]) {
+          fieldindex[i] = s_index;
+          xflag = SCALED;
+        }
+        if (u_index >= 0 && u_index < fieldindex[i]) {
+          fieldindex[i] = u_index;
+          xflag = UNSCALED;
+        }
+        if (su_index >= 0 && su_index < fieldindex[i]) {
+          fieldindex[i] = su_index;
+          xflag = SCALED;
+        }
       }
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
-      
+
     } else if (fieldtype[i] == Y) {
       fieldindex[i] = find_label("y",nwords,labels);
       yflag = UNSCALED;
       if (fieldindex[i] < 0) {
-	fieldindex[i] = nwords;
-	s_index = find_label("ys",nwords,labels);
-	u_index = find_label("yu",nwords,labels);
-	su_index = find_label("ysu",nwords,labels);
-	if (s_index >= 0 && s_index < fieldindex[i]) {
-	  fieldindex[i] = s_index;
-	  yflag = SCALED;
-	}
-	if (u_index >= 0 && u_index < fieldindex[i]) {
-	  fieldindex[i] = u_index;
-	  yflag = UNSCALED;
-	}
-	if (su_index >= 0 && su_index < fieldindex[i]) {
-	  fieldindex[i] = su_index;
-	  yflag = SCALED;
-	}
+        fieldindex[i] = nwords;
+        s_index = find_label("ys",nwords,labels);
+        u_index = find_label("yu",nwords,labels);
+        su_index = find_label("ysu",nwords,labels);
+        if (s_index >= 0 && s_index < fieldindex[i]) {
+          fieldindex[i] = s_index;
+          yflag = SCALED;
+        }
+        if (u_index >= 0 && u_index < fieldindex[i]) {
+          fieldindex[i] = u_index;
+          yflag = UNSCALED;
+        }
+        if (su_index >= 0 && su_index < fieldindex[i]) {
+          fieldindex[i] = su_index;
+          yflag = SCALED;
+        }
       }
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
-      
+
     } else if (fieldtype[i] == Z) {
       fieldindex[i] = find_label("z",nwords,labels);
       zflag = UNSCALED;
       if (fieldindex[i] < 0) {
-	fieldindex[i] = nwords;
-	s_index = find_label("zs",nwords,labels);
-	u_index = find_label("zu",nwords,labels);
-	su_index = find_label("zsu",nwords,labels);
-	if (s_index >= 0 && s_index < fieldindex[i]) {
-	  fieldindex[i] = s_index;
-	  zflag = SCALED;
-	}
-	if (u_index >= 0 && u_index < fieldindex[i]) {
-	  fieldindex[i] = u_index;
-	  zflag = UNSCALED;
-	}
-	if (su_index >= 0 && su_index < fieldindex[i]) {
-	  fieldindex[i] = su_index;
-	  zflag = SCALED;
-	}
+        fieldindex[i] = nwords;
+        s_index = find_label("zs",nwords,labels);
+        u_index = find_label("zu",nwords,labels);
+        su_index = find_label("zsu",nwords,labels);
+        if (s_index >= 0 && s_index < fieldindex[i]) {
+          fieldindex[i] = s_index;
+          zflag = SCALED;
+        }
+        if (u_index >= 0 && u_index < fieldindex[i]) {
+          fieldindex[i] = u_index;
+          zflag = UNSCALED;
+        }
+        if (su_index >= 0 && su_index < fieldindex[i]) {
+          fieldindex[i] = su_index;
+          zflag = SCALED;
+        }
       }
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
-      
+
     } else if (fieldtype[i] == VX)
       fieldindex[i] = find_label("vx",nwords,labels);
     else if (fieldtype[i] == VY)
@@ -249,52 +261,30 @@ void ReadDumpNative::scan(bigint nstep,
     else if (fieldtype[i] == IZ)
       fieldindex[i] = find_label("iz",nwords,labels);
   }
-  
-  // error checks
-  
-  if ((triclinic_snap && !triclinic) || 
-      (!triclinic_snap && triclinic))
-    error->one(FLERR,"Read_dump triclinic setting does not match simulation");
-  
-  for (int i = 0; i < nfield; i++)
-    if (fieldindex[i] < 0) 
-      error->one(FLERR,"Read_dump field not found in dump file");
-  
-  // set overall scaling of coordinates
-  // error if x,y,z scaling is not the same
-  
-  scaled = MAX(xflag,yflag);
-  scaled = MAX(zflag,scaled);
-  if ((xflag != UNSET && xflag != scaled) ||
-      (yflag != UNSET && yflag != scaled) ||
-      (zflag != UNSET && zflag != scaled))
-    error->one(FLERR,"Read_dump x,y,z fields do not have consistent scaling");
-  
-  // scaled, triclinic coords require all 3 x,y,z fields to perform unscaling
-  
-  if (scaled == SCALED && triclinic) {
-    int flag = 0;
-    if (xflag != scaled) flag = 1;
-    if (yflag != scaled) flag = 1;
-    if (dimension == 3 && zflag != scaled) flag = 1;
-    if (flag)
-      error->one(FLERR,"All read_dump x,y,z fields must be specified for "
-		 "scaled, triclinic coords");
-  }
-  
+
   delete [] labels;
-  
-  // create vector of word ptrs for future parsing of per-atom lines
-  
+
+  // set fieldflag = 1 if any unfound fields
+
+  fieldflag = 0;
+  for (int i = 0; i < nfield; i++)
+    if (fieldindex[i] < 0) fieldflag = 1;
+
+  // create internal vector of word ptrs for future parsing of per-atom lines
+
   words = new char*[nwords];
+
+  return natoms;
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads N atom lines from dump file
+   read N atom lines from dump file
    stores appropriate values in fields array
+   return 0 if success, 1 if error
+   only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpNative::read(int n, double **fields)
+void ReadDumpNative::read_atoms(int n, int nfield, double **fields)
 {
   int i,m;
   char *eof;
@@ -329,13 +319,15 @@ int ReadDumpNative::find_label(const char *label, int n, char **labels)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads N lines from file
+   read N lines from dump file
    only last one is saved in line
+   return NULL if end-of-file error, else non-NULL
+   only called by proc 0
 ------------------------------------------------------------------------- */
 
 void ReadDumpNative::read_lines(int n)
 {
   char *eof;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+  if (eof == NULL) error->all(FLERR,"Unexpected end of dump file");
 }

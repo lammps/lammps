@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -40,7 +40,7 @@ class NeighRequest : protected Pointers {
   int gran;              // 1 if granular list
   int granhistory;       // 1 if granular history list
 
-  int respainner;        // 1 if a rRESPA inner list        
+  int respainner;        // 1 if a rRESPA inner list
   int respamiddle;       // 1 if a rRESPA middle list
   int respaouter;        // 1 if a rRESPA outer list
 

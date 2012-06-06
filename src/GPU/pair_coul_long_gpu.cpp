@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -47,36 +47,36 @@
 // External functions from cuda library for atom decomposition
 
 int cl_gpu_init(const int nlocal, const int nall, const int max_nbors,
-		const int maxspecial, const double cell_size, int &gpu_mode,
-		FILE *screen, double host_cut_coulsq, double *host_special_coul, 
-		const double qqrd2e, const double g_ewald);
+                const int maxspecial, const double cell_size, int &gpu_mode,
+                FILE *screen, double host_cut_coulsq, double *host_special_coul,
+                const double qqrd2e, const double g_ewald);
 void cl_gpu_clear();
 int ** cl_gpu_compute_n(const int ago, const int inum,
-			const int nall, double **host_x, int *host_type, 
-			double *sublo, double *subhi, int *tag, 
-			int **nspecial, int **special, const bool eflag,
-			const bool vflag, const bool eatom, const bool vatom,
-			int &host_start, int **ilist, int **jnum,
-			const double cpu_time, bool &success, double *host_q,
-			double *boxlo, double *prd);
+                        const int nall, double **host_x, int *host_type,
+                        double *sublo, double *subhi, int *tag,
+                        int **nspecial, int **special, const bool eflag,
+                        const bool vflag, const bool eatom, const bool vatom,
+                        int &host_start, int **ilist, int **jnum,
+                        const double cpu_time, bool &success, double *host_q,
+                        double *boxlo, double *prd);
 void cl_gpu_compute(const int ago, const int inum, const int nall,
-		    double **host_x, int *host_type, int *ilist, int *numj,
-		    int **firstneigh, const bool eflag, const bool vflag,
-		    const bool eatom, const bool vatom, int &host_start,
-		    const double cpu_time, bool &success, double *host_q,
-		    const int nlocal, double *boxlo, double *prd);
+                    double **host_x, int *host_type, int *ilist, int *numj,
+                    int **firstneigh, const bool eflag, const bool vflag,
+                    const bool eatom, const bool vatom, int &host_start,
+                    const double cpu_time, bool &success, double *host_q,
+                    const int nlocal, double *boxlo, double *prd);
 double cl_gpu_bytes();
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) : 
+PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) :
   PairCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -94,30 +94,30 @@ void PairCoulLongGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;    
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = cl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				  atom->type, domain->sublo, domain->subhi,
-				  atom->tag, atom->nspecial, atom->special,
-				  eflag, vflag, eflag_atom, vflag_atom,
-				  host_start, &ilist, &numneigh, cpu_time,
-				  success, atom->q, domain->boxlo,
-				  domain->prd);
+                                  atom->type, domain->sublo, domain->subhi,
+                                  atom->tag, atom->nspecial, atom->special,
+                                  eflag, vflag, eflag_atom, vflag_atom,
+                                  host_start, &ilist, &numneigh, cpu_time,
+                                  success, atom->q, domain->boxlo,
+                                  domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     cl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		   ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		   vflag_atom, host_start, cpu_time, success, atom->q,
-		   atom->nlocal, domain->boxlo, domain->prd);
+                   ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+                   vflag_atom, host_start, cpu_time, success, atom->q,
+                   atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -139,7 +139,7 @@ void PairCoulLongGPU::init_style()
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/long/gpu requires atom attribute q");
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -160,9 +160,9 @@ void PairCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = cl_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, 300, 
-			    maxspecial, cell_size, gpu_mode, screen, cut_coulsq,
-			    force->special_coul, force->qqrd2e, g_ewald);
+  int success = cl_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, 300,
+                            maxspecial, cell_size, gpu_mode, screen, cut_coulsq,
+                            force->special_coul, force->qqrd2e, g_ewald);
 
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -184,8 +184,8 @@ double PairCoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
-				  int vflag, int *ilist, int *numneigh,
-				  int **firstneigh)
+                                  int vflag, int *ilist, int *numneigh,
+                                  int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -230,49 +230,49 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
       r2inv = 1.0/rsq;
 
       if (rsq < cut_coulsq) {
-	if (!ncoultablebits || rsq <= tabinnersq) {
-	  r = sqrt(rsq);
-	  grij = g_ewald * r;
-	  expm2 = exp(-grij*grij);
-	  t = 1.0 / (1.0 + EWALD_P*grij);
-	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	  prefactor = qqrd2e * qtmp*q[j]/r;
-	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else {
-	  union_int_float_t rsq_lookup;
-	  rsq_lookup.f = rsq;
-	  itable = rsq_lookup.i & ncoulmask;
-	  itable >>= ncoulshiftbits;
-	  fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	  table = ftable[itable] + fraction*dftable[itable];
-	  forcecoul = qtmp*q[j] * table;
-	  if (factor_coul < 1.0) {
-	    table = ctable[itable] + fraction*dctable[itable];
-	    prefactor = qtmp*q[j] * table;
-	    forcecoul -= (1.0-factor_coul)*prefactor;
-	  }
-	}
+        if (!ncoultablebits || rsq <= tabinnersq) {
+          r = sqrt(rsq);
+          grij = g_ewald * r;
+          expm2 = exp(-grij*grij);
+          t = 1.0 / (1.0 + EWALD_P*grij);
+          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          prefactor = qqrd2e * qtmp*q[j]/r;
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        } else {
+          union_int_float_t rsq_lookup;
+          rsq_lookup.f = rsq;
+          itable = rsq_lookup.i & ncoulmask;
+          itable >>= ncoulshiftbits;
+          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          table = ftable[itable] + fraction*dftable[itable];
+          forcecoul = qtmp*q[j] * table;
+          if (factor_coul < 1.0) {
+            table = ctable[itable] + fraction*dctable[itable];
+            prefactor = qtmp*q[j] * table;
+            forcecoul -= (1.0-factor_coul)*prefactor;
+          }
+        }
 
-	fpair = forcecoul * r2inv;
+        fpair = forcecoul * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    if (!ncoultablebits || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
+        }
 
-	if (evflag) ev_tally_full(i,0.0,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally_full(i,0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -22,33 +22,33 @@ PairStyle(meam,PairMEAM)
 
 extern "C" {
   void meam_setup_global_(int *, int *, double *, int *, double *, double *,
-			 double *, double *, double *, double *, double *,
-			 double *, double *, double *, double *, double *,
-			 double *, double *, int *);
+                         double *, double *, double *, double *, double *,
+                         double *, double *, double *, double *, double *,
+                         double *, double *, int *);
   void meam_setup_param_(int *, double *, int *, int *, int *);
   void meam_setup_done_(double *);
 
   void meam_dens_init_(int *, int *, int *, int *, int *,
-		       double *, int *, int *, int *, int *,
-		       double *, double *, double *, double *,
-		       double *, double *,
-		       double *, double *, double *, double *, double *,
+                       double *, int *, int *, int *, int *,
+                       double *, double *, double *, double *,
+                       double *, double *,
+                       double *, double *, double *, double *, double *,
                        int *);
-  
+
   void meam_dens_final_(int *, int *, int *, int *, int *, double *, double *,
-			int *, int *, int *,
-			double *, double *, double *, double *, 
-			double *, double *, double *,
-			double *, double *, double *, double *, 
-			double *, double *, 
-			double *, double *, double *, double *, int *);
- 
+                        int *, int *, int *,
+                        double *, double *, double *, double *,
+                        double *, double *, double *,
+                        double *, double *, double *, double *,
+                        double *, double *,
+                        double *, double *, double *, double *, int *);
+
   void meam_force_(int *, int *, int *, int *, int *, int *,
-		   double *, double *, int *, int *, int *, 
-		   double *, int *, int *, int *, int *, double *, double *,
-		   double *, double *, double *, double *, double *, double *,
-		   double *, double *, double *, double *, double *, double *,
-		   double *, double *, double *, double *, double *, double *, int *);
+                   double *, double *, int *, int *, int *,
+                   double *, int *, int *, int *, int *, double *, double *,
+                   double *, double *, double *, double *, double *, double *,
+                   double *, double *, double *, double *, double *, double *,
+                   double *, double *, double *, double *, double *, double *, int *);
 
   void meam_cleanup_();
 }

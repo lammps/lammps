@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -177,19 +177,19 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
     if (type == 0) {
       if (!compute->scalar_flag) return NULL;
       if (compute->invoked_scalar != lmp->update->ntimestep)
-	compute->compute_scalar();
+        compute->compute_scalar();
       return (void *) &compute->scalar;
     }
     if (type == 1) {
       if (!compute->vector_flag) return NULL;
       if (compute->invoked_vector != lmp->update->ntimestep)
-	compute->compute_vector();
+        compute->compute_vector();
       return (void *) compute->vector;
     }
     if (type == 2) {
       if (!compute->array_flag) return NULL;
       if (compute->invoked_array != lmp->update->ntimestep)
-	compute->compute_array();
+        compute->compute_array();
       return (void *) compute->array;
     }
   }
@@ -198,12 +198,12 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
     if (!compute->peratom_flag) return NULL;
     if (type == 1) {
       if (compute->invoked_peratom != lmp->update->ntimestep)
-	compute->compute_peratom();
+        compute->compute_peratom();
       return (void *) compute->vector_atom;
     }
     if (type == 2) {
       if (compute->invoked_peratom != lmp->update->ntimestep)
-	compute->compute_peratom();
+        compute->compute_peratom();
       return (void *) compute->array_atom;
     }
   }
@@ -212,12 +212,12 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
     if (!compute->local_flag) return NULL;
     if (type == 1) {
       if (compute->invoked_local != lmp->update->ntimestep)
-	compute->compute_local();
+        compute->compute_local();
       return (void *) compute->vector_local;
     }
     if (type == 2) {
       if (compute->invoked_local != lmp->update->ntimestep)
-	compute->compute_local();
+        compute->compute_local();
       return (void *) compute->array_local;
     }
   }
@@ -234,7 +234,7 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
    for global data, returns a pointer to a memory location
      which is allocated by this function
      which the caller can cast to a (double *) which points to the value
-   for per-atom or local data, returns a pointer to the 
+   for per-atom or local data, returns a pointer to the
      fix's internal data structure for the entity
      which the caller can cast to the proper data type
    returns a NULL if id is not recognized or style/type not supported
@@ -249,7 +249,7 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
 ------------------------------------------------------------------------- */
 
 void *lammps_extract_fix(void *ptr, char *id, int style, int type,
-			 int i, int j)
+                         int i, int j)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -298,7 +298,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
    for equal-style variable, returns a pointer to a memory location
      which is allocated by this function
      which the caller can cast to a (double *) which points to the value
-   for atom-style variable, returns a pointer to the 
+   for atom-style variable, returns a pointer to the
      vector of per-atom values on each processor,
      which the caller can cast to the proper data type
    returns a NULL if name is not recognized or not equal-style or atom-style

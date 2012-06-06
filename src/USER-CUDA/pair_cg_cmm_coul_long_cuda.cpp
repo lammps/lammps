@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -70,10 +70,10 @@ PairCGCMMCoulLongCuda::PairCGCMMCoulLongCuda(LAMMPS *lmp) : PairCGCMMCoulLong(lm
    if(cuda == NULL)
         error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 
-	allocated2 = false;
-	cg_type_double = NULL;
-	cuda->shared_data.pair.cudable_force = 1;
-	cuda->setSystemParams();
+        allocated2 = false;
+        cg_type_double = NULL;
+        cuda->shared_data.pair.cudable_force = 1;
+        cuda->setSystemParams();
 }
 
 /* ----------------------------------------------------------------------
@@ -82,27 +82,27 @@ PairCGCMMCoulLongCuda::PairCGCMMCoulLongCuda(LAMMPS *lmp) : PairCGCMMCoulLong(lm
 
 void PairCGCMMCoulLongCuda::allocate()
 {
-	if(! allocated) PairCGCMMCoulLong::allocate();
-	int n = atom->ntypes;
-	if(! allocated2)
-	{
-		allocated2 = true;
-		
-  
-  		memory->create(cg_type_double,n+1,n+1,"paircg:cgtypedouble");
-  		
-		cuda->shared_data.pair.cut     = cut_lj;
-		cuda->shared_data.pair.cut_coul= cut_coul;
-		cuda->shared_data.pair.coeff1  = lj1;
-		cuda->shared_data.pair.coeff2  = lj2;
-		cuda->shared_data.pair.coeff3  = lj3;
-		cuda->shared_data.pair.coeff4  = lj4;
-		cuda->shared_data.pair.coeff5  = cg_type_double;
-		cuda->shared_data.pair.offset  = offset;
-		cuda->shared_data.pair.special_lj  = force->special_lj;
-		cuda->shared_data.pair.special_coul  = force->special_coul;
-	}
-  	for (int i = 1; i <= n; i++) {
+        if(! allocated) PairCGCMMCoulLong::allocate();
+        int n = atom->ntypes;
+        if(! allocated2)
+        {
+                allocated2 = true;
+
+
+                  memory->create(cg_type_double,n+1,n+1,"paircg:cgtypedouble");
+
+                cuda->shared_data.pair.cut     = cut_lj;
+                cuda->shared_data.pair.cut_coul= cut_coul;
+                cuda->shared_data.pair.coeff1  = lj1;
+                cuda->shared_data.pair.coeff2  = lj2;
+                cuda->shared_data.pair.coeff3  = lj3;
+                cuda->shared_data.pair.coeff4  = lj4;
+                cuda->shared_data.pair.coeff5  = cg_type_double;
+                cuda->shared_data.pair.offset  = offset;
+                cuda->shared_data.pair.special_lj  = force->special_lj;
+                cuda->shared_data.pair.special_coul  = force->special_coul;
+        }
+          for (int i = 1; i <= n; i++) {
       for (int j = i; j <= n; j++) {
         cg_type_double[i][j] = cg_type[i][j];
         cg_type_double[j][i] = cg_type[i][j];
@@ -114,53 +114,53 @@ void PairCGCMMCoulLongCuda::allocate()
 
 void PairCGCMMCoulLongCuda::compute(int eflag, int vflag)
 {
-	if (eflag || vflag) ev_setup(eflag,vflag);
-	if(eflag) cuda->cu_eng_vdwl->upload();
-	if(eflag) cuda->cu_eng_coul->upload();
-	if(vflag) cuda->cu_virial->upload();
+        if (eflag || vflag) ev_setup(eflag,vflag);
+        if(eflag) cuda->cu_eng_vdwl->upload();
+        if(eflag) cuda->cu_eng_coul->upload();
+        if(vflag) cuda->cu_virial->upload();
 
-	Cuda_PairCGCMMCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
+        Cuda_PairCGCMMCoulLongCuda(& cuda->shared_data, & cuda_neigh_list->sneighlist, eflag, vflag, eflag_atom, vflag_atom);
 
     if(not cuda->shared_data.pair.collect_forces_later)
     {
-	  if(eflag) cuda->cu_eng_vdwl->download();
-	  if(eflag) cuda->cu_eng_coul->download();
-	  if(vflag) cuda->cu_virial->download();
+          if(eflag) cuda->cu_eng_vdwl->download();
+          if(eflag) cuda->cu_eng_coul->download();
+          if(vflag) cuda->cu_virial->download();
     }
-	
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairCGCMMCoulLongCuda::settings(int narg, char **arg)
 {
-	PairCGCMMCoulLong::settings(narg, arg);
-	cuda->shared_data.pair.cut_global = (F_FLOAT) cut_lj_global;
-	cuda->shared_data.pair.cut_coul_global = (F_FLOAT) cut_coul_global;
-	cuda->shared_data.pair.kappa = (F_FLOAT) kappa;
+        PairCGCMMCoulLong::settings(narg, arg);
+        cuda->shared_data.pair.cut_global = (F_FLOAT) cut_lj_global;
+        cuda->shared_data.pair.cut_coul_global = (F_FLOAT) cut_coul_global;
+        cuda->shared_data.pair.kappa = (F_FLOAT) kappa;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairCGCMMCoulLongCuda::coeff(int narg, char **arg)
 {
-	PairCGCMMCoulLong::coeff(narg, arg);
-	allocate();
+        PairCGCMMCoulLong::coeff(narg, arg);
+        allocate();
 }
 
 void PairCGCMMCoulLongCuda::init_style()
 {
-	MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_style start\n"); )
+        MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_style start\n"); )
   // request regular or rRESPA neighbor lists
 
   int irequest;
- 
+
   if (update->whichflag == 0 && strstr(update->integrate_style,"respa")) {
 
-  } 
-  else 
+  }
+  else
   {
-  	irequest = neighbor->request(this);
+          irequest = neighbor->request(this);
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->cudable = 1;
@@ -177,27 +177,25 @@ void PairCGCMMCoulLongCuda::init_style()
 
 void PairCGCMMCoulLongCuda::init_list(int id, NeighList *ptr)
 {
-	MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_list\n");)
-	PairCGCMMCoulLong::init_list(id, ptr);
-	#ifndef CUDA_USE_BINNING
-	// right now we can only handle verlet (id 0), not respa
-	if(id == 0) cuda_neigh_list = cuda->registerNeighborList(ptr);
-	// see Neighbor::init() for details on lammps lists' logic
-	#endif
-	MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_list end\n");)
+        MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_list\n");)
+        PairCGCMMCoulLong::init_list(id, ptr);
+        #ifndef CUDA_USE_BINNING
+        // right now we can only handle verlet (id 0), not respa
+        if(id == 0) cuda_neigh_list = cuda->registerNeighborList(ptr);
+        // see Neighbor::init() for details on lammps lists' logic
+        #endif
+        MYDBG(printf("# CUDA PairCGCMMCoulLongCuda::init_list end\n");)
 }
 
 void PairCGCMMCoulLongCuda::ev_setup(int eflag, int vflag)
 {
-	int maxeatomold=maxeatom;
-	PairCGCMMCoulLong::ev_setup(eflag,vflag);
+        int maxeatomold=maxeatom;
+        PairCGCMMCoulLong::ev_setup(eflag,vflag);
 
-  if (eflag_atom && atom->nmax > maxeatomold) 
-	{delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
+  if (eflag_atom && atom->nmax > maxeatomold)
+        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
 
-  if (vflag_atom && atom->nmax > maxeatomold) 
-	{delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
-	
+  if (vflag_atom && atom->nmax > maxeatomold)
+        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
+
 }
-
-

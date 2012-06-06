@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -57,7 +57,7 @@ enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
 
 /* ----------------------------------------------------------------------
-   setup MPI and allocate buffer space 
+   setup MPI and allocate buffer space
 ------------------------------------------------------------------------- */
 
 Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
@@ -162,11 +162,11 @@ void Comm::set_proc_grid()
     MPI_Status status;
     if (me == 0) {
       MPI_Recv(other_procgrid,3,MPI_INT,
-	       universe->root_proc[recv_from_partition],0,
-	       universe->uworld,&status);
+               universe->root_proc[recv_from_partition],0,
+               universe->uworld,&status);
       MPI_Recv(other_coregrid,3,MPI_INT,
-	       universe->root_proc[recv_from_partition],0,
-	       universe->uworld,&status);
+               universe->root_proc[recv_from_partition],0,
+               universe->uworld,&status);
     }
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
     MPI_Bcast(other_coregrid,3,MPI_INT,0,world);
@@ -181,12 +181,12 @@ void Comm::set_proc_grid()
 
   if (gridflag == ONELEVEL) {
     pmap->onelevel_grid(nprocs,user_procgrid,procgrid,
-			otherflag,other_style,other_procgrid,other_coregrid);
+                        otherflag,other_style,other_procgrid,other_coregrid);
 
   } else if (gridflag == TWOLEVEL) {
     pmap->twolevel_grid(nprocs,user_procgrid,procgrid,
-			ncores,user_coregrid,coregrid,
-			otherflag,other_style,other_procgrid,other_coregrid);
+                        ncores,user_coregrid,coregrid,
+                        otherflag,other_style,other_procgrid,other_coregrid);
 
   } else if (gridflag == NUMA) {
     pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
@@ -207,7 +207,7 @@ void Comm::set_proc_grid()
 
   if (grid2proc) memory->destroy(grid2proc);
   memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
-		 "comm:grid2proc");
+                 "comm:grid2proc");
 
   // map processor IDs to 3d processor grid
   // produces myloc, procneigh, grid2proc
@@ -227,7 +227,7 @@ void Comm::set_proc_grid()
       pmap->cart_map(1,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
     else if (mapflag == XYZ)
       pmap->xyz_map(xyz,procgrid,ncores,coregrid,myloc,procneigh,grid2proc);
-    
+
   } else if (gridflag == NUMA) {
     pmap->numa_map(0,coregrid,myloc,procneigh,grid2proc);
 
@@ -240,17 +240,17 @@ void Comm::set_proc_grid()
   if (me == 0) {
     if (screen) {
       fprintf(screen,"  %d by %d by %d MPI processor grid\n",
-	      procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL) 
-	fprintf(screen,"  %d by %d by %d core grid within node\n",
-		coregrid[0],coregrid[1],coregrid[2]);
+              procgrid[0],procgrid[1],procgrid[2]);
+      if (gridflag == NUMA || gridflag == TWOLEVEL)
+        fprintf(screen,"  %d by %d by %d core grid within node\n",
+                coregrid[0],coregrid[1],coregrid[2]);
     }
     if (logfile) {
       fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
-	      procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL) 
-	fprintf(logfile,"  %d by %d by %d core grid within node\n",
-		coregrid[0],coregrid[1],coregrid[2]);
+              procgrid[0],procgrid[1],procgrid[2]);
+      if (gridflag == NUMA || gridflag == TWOLEVEL)
+        fprintf(logfile,"  %d by %d by %d core grid within node\n",
+                coregrid[0],coregrid[1],coregrid[2]);
     }
   }
 
@@ -288,11 +288,11 @@ void Comm::set_proc_grid()
   if (send_to_partition >= 0) {
     if (me == 0) {
       MPI_Send(procgrid,3,MPI_INT,
-	       universe->root_proc[send_to_partition],0,
-	       universe->uworld);
+               universe->root_proc[send_to_partition],0,
+               universe->uworld);
       MPI_Send(coregrid,3,MPI_INT,
-	       universe->root_proc[send_to_partition],0,
-	       universe->uworld);
+               universe->root_proc[send_to_partition],0,
+               universe->uworld);
     }
   }
 }
@@ -383,7 +383,7 @@ void Comm::setup()
   int i;
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
-  
+
   double cut = MAX(neighbor->cutneighmax,cutghostuser);
 
   if (triclinic == 0) {
@@ -395,8 +395,8 @@ void Comm::setup()
     if (style == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++)
-	cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] = 
-	  cuttype[i];
+        cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] =
+          cuttype[i];
     }
 
   } else {
@@ -415,9 +415,9 @@ void Comm::setup()
     if (style == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-	cutghostmulti[i][0] = cuttype[i] * length0;
-	cutghostmulti[i][1] = cuttype[i] * length1;
-	cutghostmulti[i][2] = cuttype[i] * length2;
+        cutghostmulti[i][0] = cuttype[i] * length0;
+        cutghostmulti[i][1] = cuttype[i] * length1;
+        cutghostmulti[i][2] = cuttype[i] * length2;
       }
     }
   }
@@ -460,8 +460,8 @@ void Comm::setup()
       right = myloc[0] + 1;
       if (right == procgrid[0]) right = 0;
       sendneed[0][1] = MIN(maxneed[0],right);
-    } else recvneed[0][0] = recvneed[0][1] = 
-	     sendneed[0][0] = sendneed[0][1] = maxneed[0];
+    } else recvneed[0][0] = recvneed[0][1] =
+             sendneed[0][0] = sendneed[0][1] = maxneed[0];
 
     if (!periodicity[1]) {
       recvneed[1][0] = MIN(maxneed[1],myloc[1]);
@@ -472,8 +472,8 @@ void Comm::setup()
       right = myloc[1] + 1;
       if (right == procgrid[1]) right = 0;
       sendneed[1][1] = MIN(maxneed[1],right);
-    } else recvneed[1][0] = recvneed[1][1] = 
-	     sendneed[1][0] = sendneed[1][1] = maxneed[1];
+    } else recvneed[1][0] = recvneed[1][1] =
+             sendneed[1][0] = sendneed[1][1] = maxneed[1];
 
     if (!periodicity[2]) {
       recvneed[2][0] = MIN(maxneed[2],myloc[2]);
@@ -484,8 +484,8 @@ void Comm::setup()
       right = myloc[2] + 1;
       if (right == procgrid[2]) right = 0;
       sendneed[2][1] = MIN(maxneed[2],right);
-    } else recvneed[2][0] = recvneed[2][1] = 
-	     sendneed[2][0] = sendneed[2][1] = maxneed[2];
+    } else recvneed[2][0] = recvneed[2][1] =
+             sendneed[2][0] = sendneed[2][1] = maxneed[2];
 
   } else {
     recvneed[0][0] = updown(0,0,myloc[0],prd[0],periodicity[0],xsplit);
@@ -506,7 +506,7 @@ void Comm::setup()
     if (right == procgrid[1]) right = 0;
     sendneed[1][1] = updown(1,0,right,prd[1],periodicity[1],ysplit);
 
-    if (domain->dimension == 3) { 
+    if (domain->dimension == 3) {
       recvneed[2][0] = updown(2,0,myloc[2],prd[2],periodicity[2],zsplit);
       recvneed[2][1] = updown(2,1,myloc[2],prd[2],periodicity[2],zsplit);
       left = myloc[2] - 1;
@@ -515,8 +515,8 @@ void Comm::setup()
       right = myloc[2] + 1;
       if (right == procgrid[2]) right = 0;
       sendneed[2][1] = updown(2,0,right,prd[2],periodicity[2],zsplit);
-    } else recvneed[2][0] = recvneed[2][1] = 
-	     sendneed[2][0] = sendneed[2][1] = 0;
+    } else recvneed[2][0] = recvneed[2][1] =
+             sendneed[2][0] = sendneed[2][1] = 0;
 
     int all[6];
     MPI_Allreduce(&recvneed[0][0],all,6,MPI_INT,MPI_MAX,world);
@@ -554,55 +554,55 @@ void Comm::setup()
     for (ineed = 0; ineed < 2*maxneed[dim]; ineed++) {
       pbc_flag[iswap] = 0;
       pbc[iswap][0] = pbc[iswap][1] = pbc[iswap][2] =
-	pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
-      
+        pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
+
       if (ineed % 2 == 0) {
-	sendproc[iswap] = procneigh[dim][0];
-	recvproc[iswap] = procneigh[dim][1];
-	if (style == SINGLE) {
-	  if (ineed < 2) slablo[iswap] = -BIG;
-	  else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-	  slabhi[iswap] = sublo[dim] + cutghost[dim];
-	} else {
-	  for (i = 1; i <= ntypes; i++) {
-	    if (ineed < 2) multilo[iswap][i] = -BIG;
-	    else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
-	    multihi[iswap][i] = sublo[dim] + cutghostmulti[i][dim];
-	  }
-	}
-	if (myloc[dim] == 0) {
-	  pbc_flag[iswap] = 1;
-	  pbc[iswap][dim] = 1;
-	  if (triclinic) {
-	    if (dim == 1) pbc[iswap][5] = 1;
-	    else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = 1;
-	  }
-	}
-	
+        sendproc[iswap] = procneigh[dim][0];
+        recvproc[iswap] = procneigh[dim][1];
+        if (style == SINGLE) {
+          if (ineed < 2) slablo[iswap] = -BIG;
+          else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+          slabhi[iswap] = sublo[dim] + cutghost[dim];
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            if (ineed < 2) multilo[iswap][i] = -BIG;
+            else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+            multihi[iswap][i] = sublo[dim] + cutghostmulti[i][dim];
+          }
+        }
+        if (myloc[dim] == 0) {
+          pbc_flag[iswap] = 1;
+          pbc[iswap][dim] = 1;
+          if (triclinic) {
+            if (dim == 1) pbc[iswap][5] = 1;
+            else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = 1;
+          }
+        }
+
       } else {
-	sendproc[iswap] = procneigh[dim][1];
-	recvproc[iswap] = procneigh[dim][0];
-	if (style == SINGLE) {
-	  slablo[iswap] = subhi[dim] - cutghost[dim];
-	  if (ineed < 2) slabhi[iswap] = BIG;
-	  else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-	} else {
-	  for (i = 1; i <= ntypes; i++) {
-	    multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
-	    if (ineed < 2) multihi[iswap][i] = BIG;
-	    else multihi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
-	  }
-	}
-	if (myloc[dim] == procgrid[dim]-1) {
-	  pbc_flag[iswap] = 1;
-	  pbc[iswap][dim] = -1;
-	  if (triclinic) {
-	    if (dim == 1) pbc[iswap][5] = -1;
-	    else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = -1;
-	  }
-	}
+        sendproc[iswap] = procneigh[dim][1];
+        recvproc[iswap] = procneigh[dim][0];
+        if (style == SINGLE) {
+          slablo[iswap] = subhi[dim] - cutghost[dim];
+          if (ineed < 2) slabhi[iswap] = BIG;
+          else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
+            if (ineed < 2) multihi[iswap][i] = BIG;
+            else multihi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+          }
+        }
+        if (myloc[dim] == procgrid[dim]-1) {
+          pbc_flag[iswap] = 1;
+          pbc[iswap][dim] = -1;
+          if (triclinic) {
+            if (dim == 1) pbc[iswap][5] = -1;
+            else if (dim == 2) pbc[iswap][4] = pbc[iswap][3] = -1;
+          }
+        }
       }
-      
+
       iswap++;
     }
   }
@@ -617,8 +617,8 @@ void Comm::setup()
    return how many procs away are needed to encompass cutghost away from loc
 ------------------------------------------------------------------------- */
 
-int Comm::updown(int dim, int dir, int loc, 
-		 double prd, int periodicity, double *split)
+int Comm::updown(int dim, int dir, int loc,
+                 double prd, int periodicity, double *split)
 {
   int index,count;
   double frac,delta;
@@ -630,8 +630,8 @@ int Comm::updown(int dim, int dir, int loc,
     count = 0;
     while (delta < frac) {
       if (index < 0) {
-	if (!periodicity) break;
-	index = procgrid[dim] - 1;
+        if (!periodicity) break;
+        index = procgrid[dim] - 1;
       }
       count++;
       delta += split[index+1] - split[index];
@@ -645,8 +645,8 @@ int Comm::updown(int dim, int dir, int loc,
     count = 0;
     while (delta < frac) {
       if (index >= procgrid[dim]) {
-	if (!periodicity) break;
-	index = 0;
+        if (!periodicity) break;
+        index = 0;
       }
       count++;
       delta += split[index+1] - split[index];
@@ -655,7 +655,7 @@ int Comm::updown(int dim, int dir, int loc,
   }
 
   return count;
-}  
+}
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep
@@ -678,59 +678,59 @@ void Comm::forward_comm(int dummy)
   for (int iswap = 0; iswap < nswap; iswap++) {
     if (sendproc[iswap] != me) {
       if (comm_x_only) {
-	if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
-	else buf = NULL;
-	if (size_forward_recv[iswap])
-	  MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
-		    recvproc[iswap],0,world,&request);
-	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
+        else buf = NULL;
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
       } else if (ghost_velocity) {
-	if (size_forward_recv[iswap])
-	  MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		    recvproc[iswap],0,world,&request);
-	n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-				buf_send,pbc_flag[iswap],pbc[iswap]);
-	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
-	avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
       } else {
-	if (size_forward_recv[iswap])
-	  MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		    recvproc[iswap],0,world,&request);
-	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
-	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     } else {
       if (comm_x_only) {
-	if (sendnum[iswap])
-	  n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			      x[firstrecv[iswap]],pbc_flag[iswap],
-			      pbc[iswap]);
+        if (sendnum[iswap])
+          n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                              x[firstrecv[iswap]],pbc_flag[iswap],
+                              pbc[iswap]);
       } else if (ghost_velocity) {
-	n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-				buf_send,pbc_flag[iswap],pbc[iswap]);
-	avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
+        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
       } else {
-	n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   reverse communication of forces on atoms every timestep 
+   reverse communication of forces on atoms every timestep
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
-      
+
 void Comm::reverse_comm()
 {
   int n;
@@ -747,33 +747,33 @@ void Comm::reverse_comm()
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
       if (comm_f_only) {
-	if (size_reverse_recv[iswap])
-	  MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-		    sendproc[iswap],0,world,&request);
-	if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
-	else buf = NULL;
-	if (size_reverse_send[iswap])
-	  MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
-		   recvproc[iswap],0,world);
-	if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_reverse_recv[iswap])
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+                    sendproc[iswap],0,world,&request);
+        if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
+        else buf = NULL;
+        if (size_reverse_send[iswap])
+          MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
+                   recvproc[iswap],0,world);
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
       } else {
-	if (size_reverse_recv[iswap])
-	  MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-		    sendproc[iswap],0,world,&request);
-	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-	if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_reverse_recv[iswap])
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+                    sendproc[iswap],0,world,&request);
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
       }
       avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
 
     } else {
       if (comm_f_only) {
-	if (sendnum[iswap])
-	    avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
-				f[firstrecv[iswap]]);
+        if (sendnum[iswap])
+            avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
+                                f[firstrecv[iswap]]);
       } else {
-	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
       }
     }
   }
@@ -801,7 +801,7 @@ void Comm::exchange()
   AtomVec *avec = atom->avec;
 
   // clear global->local map for owned and ghost atoms
-  // b/c atoms migrate to new procs in exchange() and 
+  // b/c atoms migrate to new procs in exchange() and
   // new ghosts are created in borders()
   // map_set() is done at end of borders()
 
@@ -832,10 +832,10 @@ void Comm::exchange()
 
     while (i < nlocal) {
       if (x[i][dim] < lo || x[i][dim] >= hi) {
-	if (nsend > maxsend) grow_send(nsend,1);
-	nsend += avec->pack_exchange(i,&buf_send[nsend]);
-	avec->copy(nlocal-1,i,1);
-	nlocal--;
+        if (nsend > maxsend) grow_send(nsend,1);
+        nsend += avec->pack_exchange(i,&buf_send[nsend]);
+        avec->copy(nlocal-1,i,1);
+        nlocal--;
       } else i++;
     }
     atom->nlocal = nlocal;
@@ -851,27 +851,27 @@ void Comm::exchange()
 
     } else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-		   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
-	MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-		     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
-	nrecv += nrecv2;
+        MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+        nrecv += nrecv2;
       }
       if (nrecv > maxrecv) grow_recv(nrecv);
-      
+
       MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
-		world,&request);
+                world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
       MPI_Wait(&request,&status);
-      
+
       if (procgrid[dim] > 2) {
-	MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
-		  world,&request);
-	MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-	MPI_Wait(&request,&status);
+        MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
+                  world,&request);
+        MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
+        MPI_Wait(&request,&status);
       }
-      
+
       buf = buf_recv;
     }
 
@@ -934,16 +934,16 @@ void Comm::borders()
 
       x = atom->x;
       if (style == SINGLE) {
-	lo = slablo[iswap];
-	hi = slabhi[iswap];
+        lo = slablo[iswap];
+        hi = slabhi[iswap];
       } else {
-	type = atom->type;
-	mlo = multilo[iswap];
-	mhi = multihi[iswap];
+        type = atom->type;
+        mlo = multilo[iswap];
+        mhi = multihi[iswap];
       }
       if (ineed % 2 == 0) {
-	nfirst = nlast;
-	nlast = atom->nlocal + atom->nghost;
+        nfirst = nlast;
+        nlast = atom->nlocal + atom->nghost;
       }
 
       nsend = 0;
@@ -961,92 +961,92 @@ void Comm::borders()
       // on these sends, break loop in two: owned (in group) and ghost
 
       if (sendflag) {
-	if (!bordergroup || ineed >= 2) {
-	  if (style == SINGLE) {
-	    for (i = nfirst; i < nlast; i++)
-	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	  } else {
-	    for (i = nfirst; i < nlast; i++) {
-	      itype = type[i];
-	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	    }
-	  }
-	  
-	} else {
-	  if (style == SINGLE) {
-	    ngroup = atom->nfirst;
-	    for (i = 0; i < ngroup; i++)
-	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	    for (i = atom->nlocal; i < nlast; i++)
-	      if (x[i][dim] >= lo && x[i][dim] <= hi) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	  } else {
-	    ngroup = atom->nfirst;
-	    for (i = 0; i < ngroup; i++) {
-	      itype = type[i];
-	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	    }
-	    for (i = atom->nlocal; i < nlast; i++) {
-	      itype = type[i];
-	      if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-		if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-		sendlist[iswap][nsend++] = i;
-	      }
-	    }
-	  }
-	}
+        if (!bordergroup || ineed >= 2) {
+          if (style == SINGLE) {
+            for (i = nfirst; i < nlast; i++)
+              if (x[i][dim] >= lo && x[i][dim] <= hi) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+          } else {
+            for (i = nfirst; i < nlast; i++) {
+              itype = type[i];
+              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+          }
+
+        } else {
+          if (style == SINGLE) {
+            ngroup = atom->nfirst;
+            for (i = 0; i < ngroup; i++)
+              if (x[i][dim] >= lo && x[i][dim] <= hi) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            for (i = atom->nlocal; i < nlast; i++)
+              if (x[i][dim] >= lo && x[i][dim] <= hi) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+          } else {
+            ngroup = atom->nfirst;
+            for (i = 0; i < ngroup; i++) {
+              itype = type[i];
+              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+            for (i = atom->nlocal; i < nlast; i++) {
+              itype = type[i];
+              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+          }
+        }
       }
 
       // pack up list of border atoms
 
       if (nsend*size_border > maxsend)
-	grow_send(nsend*size_border,0);
+        grow_send(nsend*size_border,0);
       if (ghost_velocity)
-	n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
-				  pbc_flag[iswap],pbc[iswap]);
+        n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
+                                  pbc_flag[iswap],pbc[iswap]);
       else
-	n = avec->pack_border(nsend,sendlist[iswap],buf_send,
-			      pbc_flag[iswap],pbc[iswap]);
-      
+        n = avec->pack_border(nsend,sendlist[iswap],buf_send,
+                              pbc_flag[iswap],pbc[iswap]);
+
       // swap atoms with other proc
       // no MPI calls except SendRecv if nsend/nrecv = 0
       // put incoming ghosts at end of my atom arrays
       // if swapping with self, simply copy, no messages
 
       if (sendproc[iswap] != me) {
-	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
-	if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
-			     recvproc[iswap],0,world,&request);
-	if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	if (nrecv) MPI_Wait(&request,&status);
-	buf = buf_recv;
+        MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+        if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
+        if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
+                             recvproc[iswap],0,world,&request);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        if (nrecv) MPI_Wait(&request,&status);
+        buf = buf_recv;
       } else {
-	nrecv = nsend;
-	buf = buf_send;
+        nrecv = nsend;
+        buf = buf_send;
       }
 
       // unpack buffer
 
       if (ghost_velocity)
-	avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       else
-	avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
 
       // set all pointers & counters
 
@@ -1091,17 +1091,17 @@ void Comm::forward_comm_pair(Pair *pair)
     // pack buffer
 
     n = pair->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flag[iswap],pbc[iswap]);
+                        buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		  world,&request);
+        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+                  world,&request);
       if (sendnum[iswap])
-	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1129,15 +1129,15 @@ void Comm::reverse_comm_pair(Pair *pair)
 
     n = pair->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
 
-    // exchange with another proc 
+    // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (sendnum[iswap]) 
-	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		  world,&request);
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
       if (recvnum[iswap])
-	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+        MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1164,17 +1164,17 @@ void Comm::forward_comm_fix(Fix *fix)
     // pack buffer
 
     n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-		       buf_send,pbc_flag[iswap],pbc[iswap]);
+                       buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (recvnum[iswap]) 
-	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		  world,&request);
-      if (sendnum[iswap]) 
-	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap])
+        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+                  world,&request);
+      if (sendnum[iswap])
+        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1202,15 +1202,15 @@ void Comm::reverse_comm_fix(Fix *fix)
 
     n = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
 
-    // exchange with another proc 
+    // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (sendnum[iswap]) 
-	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		  world,&request);
-      if (recvnum[iswap]) 
-	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1237,17 +1237,17 @@ void Comm::forward_comm_compute(Compute *compute)
     // pack buffer
 
     n = compute->pack_comm(sendnum[iswap],sendlist[iswap],
-			   buf_send,pbc_flag[iswap],pbc[iswap]);
+                           buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (recvnum[iswap]) 
-	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		  world,&request);
-      if (sendnum[iswap]) 
-	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap])
+        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+                  world,&request);
+      if (sendnum[iswap])
+        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1275,15 +1275,15 @@ void Comm::reverse_comm_compute(Compute *compute)
 
     n = compute->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
 
-    // exchange with another proc 
+    // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (sendnum[iswap]) 
-	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		  world,&request);
-      if (recvnum[iswap]) 
-	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1310,17 +1310,17 @@ void Comm::forward_comm_dump(Dump *dump)
     // pack buffer
 
     n = dump->pack_comm(sendnum[iswap],sendlist[iswap],
-			buf_send,pbc_flag[iswap],pbc[iswap]);
+                        buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (recvnum[iswap]) 
-	MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		  world,&request);
-      if (sendnum[iswap]) 
-	MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap])
+        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+                  world,&request);
+      if (sendnum[iswap])
+        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1348,15 +1348,15 @@ void Comm::reverse_comm_dump(Dump *dump)
 
     n = dump->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
 
-    // exchange with another proc 
+    // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      if (sendnum[iswap]) 
-	MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-		  world,&request);
-      if (recvnum[iswap]) 
-	MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1368,7 +1368,7 @@ void Comm::reverse_comm_dump(Dump *dump)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA 
+   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
@@ -1385,7 +1385,7 @@ void Comm::grow_send(int n, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   free/malloc the size of the recv buffer as needed with BUFFACTOR 
+   free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void Comm::grow_recv(int n)
@@ -1396,7 +1396,7 @@ void Comm::grow_recv(int n)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the iswap sendlist as needed with BUFFACTOR 
+   realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void Comm::grow_list(int iswap, int n)
@@ -1406,7 +1406,7 @@ void Comm::grow_list(int iswap, int n)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the buffers needed for swaps 
+   realloc the buffers needed for swaps
 ------------------------------------------------------------------------- */
 
 void Comm::grow_swap(int n)
@@ -1429,7 +1429,7 @@ void Comm::grow_swap(int n)
 }
 
 /* ----------------------------------------------------------------------
-   allocation of swap info 
+   allocation of swap info
 ------------------------------------------------------------------------- */
 
 void Comm::allocate_swap(int n)
@@ -1459,7 +1459,7 @@ void Comm::allocate_multi(int n)
 }
 
 /* ----------------------------------------------------------------------
-   free memory for swaps 
+   free memory for swaps
 ------------------------------------------------------------------------- */
 
 void Comm::free_swap()
@@ -1507,16 +1507,16 @@ void Comm::set(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
-	error->all(FLERR,"Invalid group in communicate command");
-      if (bordergroup && (atom->firstgroupname == NULL || 
-			  strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-	error->all(FLERR,"Communicate group != atom_modify first group");
+        error->all(FLERR,"Invalid group in communicate command");
+      if (bordergroup && (atom->firstgroupname == NULL ||
+                          strcmp(arg[iarg+1],atom->firstgroupname) != 0))
+        error->all(FLERR,"Communicate group != atom_modify first group");
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
       cutghostuser = atof(arg[iarg+1]);
-      if (cutghostuser < 0.0) 
-	error->all(FLERR,"Invalid cutoff in communicate command");
+      if (cutghostuser < 0.0)
+        error->all(FLERR,"Invalid cutoff in communicate command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
@@ -1544,7 +1544,7 @@ void Comm::set_processors(int narg, char **arg)
   if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
   else user_procgrid[2] = atoi(arg[2]);
 
-  if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0) 
+  if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0)
     error->all(FLERR,"Illegal processors command");
 
   int p = user_procgrid[0]*user_procgrid[1]*user_procgrid[2];
@@ -1557,36 +1557,36 @@ void Comm::set_processors(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
 
       if (strcmp(arg[iarg+1],"onelevel") == 0) {
-	gridflag = ONELEVEL;
-	
+        gridflag = ONELEVEL;
+
       } else if (strcmp(arg[iarg+1],"twolevel") == 0) {
-	if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
-	gridflag = TWOLEVEL;
-	
-	ncores = atoi(arg[iarg+2]);
-	if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
-	else user_coregrid[0] = atoi(arg[iarg+3]);
-	if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
-	else user_coregrid[1] = atoi(arg[iarg+4]);
-	if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
-	else user_coregrid[2] = atoi(arg[iarg+5]);
-	
-	if (ncores <= 0 || user_coregrid[0] < 0 || 
-	    user_coregrid[1] < 0 || user_coregrid[2] < 0) 
-	  error->all(FLERR,"Illegal processors command");
-	iarg += 4;
-	
+        if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
+        gridflag = TWOLEVEL;
+
+        ncores = atoi(arg[iarg+2]);
+        if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
+        else user_coregrid[0] = atoi(arg[iarg+3]);
+        if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
+        else user_coregrid[1] = atoi(arg[iarg+4]);
+        if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
+        else user_coregrid[2] = atoi(arg[iarg+5]);
+
+        if (ncores <= 0 || user_coregrid[0] < 0 ||
+            user_coregrid[1] < 0 || user_coregrid[2] < 0)
+          error->all(FLERR,"Illegal processors command");
+        iarg += 4;
+
       } else if (strcmp(arg[iarg+1],"numa") == 0) {
-	gridflag = NUMA;
-	
+        gridflag = NUMA;
+
       } else if (strcmp(arg[iarg],"custom") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
-	gridflag = CUSTOM;
-	delete [] customfile;
-	int n = strlen(arg[iarg+2]) + 1;
-	customfile = new char[n];
-	strcpy(customfile,arg[iarg+2]);
-	iarg += 1;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
+        gridflag = CUSTOM;
+        delete [] customfile;
+        int n = strlen(arg[iarg+2]) + 1;
+        customfile = new char[n];
+        strcpy(customfile,arg[iarg+2]);
+        iarg += 1;
 
       } else error->all(FLERR,"Illegal processors command");
       iarg += 2;
@@ -1596,49 +1596,49 @@ void Comm::set_processors(int narg, char **arg)
       if (strcmp(arg[iarg+1],"cart") == 0) mapflag = CART;
       else if (strcmp(arg[iarg+1],"cart/reorder") == 0) mapflag = CARTREORDER;
       else if (strcmp(arg[iarg+1],"xyz") == 0 ||
-	       strcmp(arg[iarg+1],"xzy") == 0 ||
-	       strcmp(arg[iarg+1],"yxz") == 0 ||
-	       strcmp(arg[iarg+1],"yzx") == 0 ||
-	       strcmp(arg[iarg+1],"zxy") == 0 ||
-	       strcmp(arg[iarg+1],"zyx") == 0) {
-	mapflag = XYZ;
-	strcpy(xyz,arg[iarg+1]);
+               strcmp(arg[iarg+1],"xzy") == 0 ||
+               strcmp(arg[iarg+1],"yxz") == 0 ||
+               strcmp(arg[iarg+1],"yzx") == 0 ||
+               strcmp(arg[iarg+1],"zxy") == 0 ||
+               strcmp(arg[iarg+1],"zyx") == 0) {
+        mapflag = XYZ;
+        strcpy(xyz,arg[iarg+1]);
       } else error->all(FLERR,"Illegal processors command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"part") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal processors command");
       if (universe->nworlds == 1)
-	error->all(FLERR,
-		   "Cannot use processors part command "
-		   "without using partitions");
+        error->all(FLERR,
+                   "Cannot use processors part command "
+                   "without using partitions");
       int isend = atoi(arg[iarg+1]);
       int irecv = atoi(arg[iarg+2]);
       if (isend < 1 || isend > universe->nworlds ||
-	  irecv < 1 || irecv > universe->nworlds || isend == irecv)
-	error->all(FLERR,"Invalid partitions in processors part command");
+          irecv < 1 || irecv > universe->nworlds || isend == irecv)
+        error->all(FLERR,"Invalid partitions in processors part command");
       if (isend-1 == universe->iworld) {
-	if (send_to_partition >= 0)
-	  error->all(FLERR,
-		     "Sending partition in processors part command "
-		     "is already a sender");
-	send_to_partition = irecv-1;
+        if (send_to_partition >= 0)
+          error->all(FLERR,
+                     "Sending partition in processors part command "
+                     "is already a sender");
+        send_to_partition = irecv-1;
       }
       if (irecv-1 == universe->iworld) {
-	if (recv_from_partition >= 0)
-	  error->all(FLERR,
-		     "Receiving partition in processors part command "
-		     "is already a receiver");
-	recv_from_partition = isend-1;
+        if (recv_from_partition >= 0)
+          error->all(FLERR,
+                     "Receiving partition in processors part command "
+                     "is already a receiver");
+        recv_from_partition = isend-1;
       }
 
       // only receiver has otherflag dependency
 
       if (strcmp(arg[iarg+3],"multiple") == 0) {
-	if (universe->iworld == irecv-1) {
-	  otherflag = 1;
-	  other_style = MULTIPLE;
-	}
+        if (universe->iworld == irecv-1) {
+          otherflag = 1;
+          other_style = MULTIPLE;
+        }
       } else error->all(FLERR,"Illegal processors command");
       iarg += 4;
 
@@ -1659,17 +1659,17 @@ void Comm::set_processors(int narg, char **arg)
     error->all(FLERR,"Processors grid numa and map style are incompatible");
   if (otherflag && (gridflag == NUMA || gridflag == CUSTOM))
     error->all(FLERR,
-	       "Processors part option and grid style are incompatible");
+               "Processors part option and grid style are incompatible");
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory 
+   return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
 bigint Comm::memory_usage()
 {
   bigint bytes = 0;
-  for (int i = 0; i < nswap; i++) 
+  for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
   bytes += memory->usage(buf_send,maxsend+BUFEXTRA);
   bytes += memory->usage(buf_recv,maxrecv);

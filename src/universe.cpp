@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -78,9 +78,9 @@ void Universe::reorder(char *style, char *arg)
 
   if (strcmp(style,"nth") == 0) {
     int n = atoi(arg);
-    if (n <= 0) 
+    if (n <= 0)
       error->universe_all(FLERR,"Invalid -reorder N value");
-    if (nprocs % n) 
+    if (nprocs % n)
       error->universe_all(FLERR,"Nprocs not a multiple of N for -reorder");
     for (int i = 0; i < nprocs; i++) {
       if (i < (n-1)*nprocs/n) uni2orig[i] = i/(n-1) * n + (i % (n-1));
@@ -97,12 +97,12 @@ void Universe::reorder(char *style, char *arg)
 
       char *ptr;
       if (!fgets(line,MAXLINE,fp))
-	error->one(FLERR,"Unexpected end of -reorder file");
+        error->one(FLERR,"Unexpected end of -reorder file");
       while (1) {
-	if (ptr = strchr(line,'#')) *ptr = '\0';
-	if (strspn(line," \t\n\r") != strlen(line)) break;
-	if (!fgets(line,MAXLINE,fp))
-	  error->one(FLERR,"Unexpected end of -reorder file");
+        if (ptr = strchr(line,'#')) *ptr = '\0';
+        if (strspn(line," \t\n\r") != strlen(line)) break;
+        if (!fgets(line,MAXLINE,fp))
+          error->one(FLERR,"Unexpected end of -reorder file");
       }
 
       // read nprocs lines
@@ -111,24 +111,24 @@ void Universe::reorder(char *style, char *arg)
       int me_orig,me_new;
       sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
-	  me_new < 0 || me_new >= nprocs)
-	error->one(FLERR,"Invalid entry in -reorder file");
+          me_new < 0 || me_new >= nprocs)
+        error->one(FLERR,"Invalid entry in -reorder file");
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
-	if (!fgets(line,MAXLINE,fp))
-	  error->one(FLERR,"Unexpected end of -reorder file");
-	sscanf(line,"%d %d",&me_orig,&me_new);
-	if (me_orig < 0 || me_orig >= nprocs ||
-	    me_new < 0 || me_new >= nprocs)
-	  error->one(FLERR,"Invalid entry in -reorder file");
-	uni2orig[me_new] = me_orig;
+        if (!fgets(line,MAXLINE,fp))
+          error->one(FLERR,"Unexpected end of -reorder file");
+        sscanf(line,"%d %d",&me_orig,&me_new);
+        if (me_orig < 0 || me_orig >= nprocs ||
+            me_new < 0 || me_new >= nprocs)
+          error->one(FLERR,"Invalid entry in -reorder file");
+        uni2orig[me_new] = me_orig;
       }
       fclose(fp);
     }
 
     // bcast uni2org from proc 0 to all other universe procs
-    
+
     MPI_Bcast(uni2orig,nprocs,MPI_INT,0,uorig);
 
   } else error->universe_all(FLERR,"Invalid command-line argument");

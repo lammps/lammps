@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -76,7 +76,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
+  if (!avec)
     error->all(FLERR,"Compute temp/asphere requires atom style ellipsoid");
 }
 
@@ -101,7 +101,7 @@ void ComputeTempAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one(FLERR,"Compute temp/asphere requires extended particles");
+        error->one(FLERR,"Compute temp/asphere requires extended particles");
 
   if (tempbias) {
     int i = modify->find_compute(id_bias);
@@ -154,7 +154,7 @@ void ComputeTempAsphere::dof_compute()
     int count = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (tbias->dof_remove(i)) count++;
+        if (tbias->dof_remove(i)) count++;
     int count_all;
     MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
     dof -= nper*count_all;
@@ -187,7 +187,7 @@ double ComputeTempAsphere::compute_scalar()
   double *shape,*quat;
   double wbody[3],inertia[3];
   double rot[3][3];
-  
+
   // sum translational and rotational energy for each particle
   // no point particles since divide by inertia
 
@@ -196,52 +196,52 @@ double ComputeTempAsphere::compute_scalar()
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
 
-	// principal moments of inertia
+        // principal moments of inertia
 
-	shape = bonus[ellipsoid[i]].shape;
-	quat = bonus[ellipsoid[i]].quat;
+        shape = bonus[ellipsoid[i]].shape;
+        quat = bonus[ellipsoid[i]].quat;
 
-	inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-	inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-	inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
 
-	// wbody = angular velocity in body frame
-      
-	MathExtra::quat_to_mat(quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	t += inertia[0]*wbody[0]*wbody[0] +
-	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        t += inertia[0]*wbody[0]*wbody[0] +
+          inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
       }
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-	// principal moments of inertia
+        // principal moments of inertia
 
-	shape = bonus[ellipsoid[i]].shape;
-	quat = bonus[ellipsoid[i]].quat;
+        shape = bonus[ellipsoid[i]].shape;
+        quat = bonus[ellipsoid[i]].quat;
 
-	inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-	inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-	inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
 
-	// wbody = angular velocity in body frame
-      
-	MathExtra::quat_to_mat(quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	t += inertia[0]*wbody[0]*wbody[0] +
-	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        t += inertia[0]*wbody[0]*wbody[0] +
+          inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
       }
   }
 
@@ -287,71 +287,71 @@ void ComputeTempAsphere::compute_vector()
   if (mode == ALL) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	t[0] += massone * v[i][0]*v[i][0];
-	t[1] += massone * v[i][1]*v[i][1];
-	t[2] += massone * v[i][2]*v[i][2];
-	t[3] += massone * v[i][0]*v[i][1];
-	t[4] += massone * v[i][0]*v[i][2];
-	t[5] += massone * v[i][1]*v[i][2];
-	
-	// principal moments of inertia
+        massone = rmass[i];
+        t[0] += massone * v[i][0]*v[i][0];
+        t[1] += massone * v[i][1]*v[i][1];
+        t[2] += massone * v[i][2]*v[i][2];
+        t[3] += massone * v[i][0]*v[i][1];
+        t[4] += massone * v[i][0]*v[i][2];
+        t[5] += massone * v[i][1]*v[i][2];
 
-	shape = bonus[ellipsoid[i]].shape;
-	quat = bonus[ellipsoid[i]].quat;
+        // principal moments of inertia
 
-	inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	
-	// wbody = angular velocity in body frame
-	
-	MathExtra::quat_to_mat(quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	// rotational kinetic energy
-	
-	t[0] += inertia[0]*wbody[0]*wbody[0];
-	t[1] += inertia[1]*wbody[1]*wbody[1];
-	t[2] += inertia[2]*wbody[2]*wbody[2];
-	t[3] += inertia[0]*wbody[0]*wbody[1];
-	t[4] += inertia[1]*wbody[0]*wbody[2];
-	t[5] += inertia[2]*wbody[1]*wbody[2];
+        shape = bonus[ellipsoid[i]].shape;
+        quat = bonus[ellipsoid[i]].quat;
+
+        inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
+        inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
+        inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        // rotational kinetic energy
+
+        t[0] += inertia[0]*wbody[0]*wbody[0];
+        t[1] += inertia[1]*wbody[1]*wbody[1];
+        t[2] += inertia[2]*wbody[2]*wbody[2];
+        t[3] += inertia[0]*wbody[0]*wbody[1];
+        t[4] += inertia[1]*wbody[0]*wbody[2];
+        t[5] += inertia[2]*wbody[1]*wbody[2];
       }
 
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	
-	// principal moments of inertia
 
-	shape = bonus[ellipsoid[i]].shape;
-	quat = bonus[ellipsoid[i]].quat;
-	massone = rmass[i];
+        // principal moments of inertia
 
-	inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-	inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-	inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
-	
-	// wbody = angular velocity in body frame
-	
-	MathExtra::quat_to_mat(quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	// rotational kinetic energy
-	
-	t[0] += inertia[0]*wbody[0]*wbody[0];
-	t[1] += inertia[1]*wbody[1]*wbody[1];
-	t[2] += inertia[2]*wbody[2]*wbody[2];
-	t[3] += inertia[0]*wbody[0]*wbody[1];
-	t[4] += inertia[1]*wbody[0]*wbody[2];
-	t[5] += inertia[2]*wbody[1]*wbody[2];
+        shape = bonus[ellipsoid[i]].shape;
+        quat = bonus[ellipsoid[i]].quat;
+        massone = rmass[i];
+
+        inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
+        inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
+        inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        // rotational kinetic energy
+
+        t[0] += inertia[0]*wbody[0]*wbody[0];
+        t[1] += inertia[1]*wbody[1]*wbody[1];
+        t[2] += inertia[2]*wbody[2]*wbody[2];
+        t[3] += inertia[0]*wbody[0]*wbody[1];
+        t[4] += inertia[1]*wbody[0]*wbody[2];
+        t[5] += inertia[2]*wbody[1]*wbody[2];
       }
   }
 

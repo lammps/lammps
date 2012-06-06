@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -79,7 +79,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
   cu_list = NULL;
   cu_bond_distance = NULL;
   cu_angle_distance = NULL;
-  cu_virial = new cCudaData<double 	  , ENERGY_FLOAT , xx >(virial,6);
+  cu_virial = new cCudaData<double           , ENERGY_FLOAT , xx >(virial,6);
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
@@ -123,20 +123,20 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (mode == 'b') {
       int i = atoi(arg[next]);
-      if (i < 1 || i > atom->nbondtypes) 
-	error->all(FLERR,"Invalid bond type index for fix shake");
+      if (i < 1 || i > atom->nbondtypes)
+        error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
       int i = atoi(arg[next]);
-      if (i < 1 || i > atom->nangletypes) 
-	error->all(FLERR,"Invalid angle type index for fix shake");
+      if (i < 1 || i > atom->nangletypes)
+        error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
       int i = atoi(arg[next]);
-      if (i < 1 || i > atom->ntypes) 
-	error->all(FLERR,"Invalid atom type index for fix shake");
+      if (i < 1 || i > atom->ntypes)
+        error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
@@ -156,7 +156,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
 
   cu_bond_distance = new cCudaData<double, X_FLOAT, xx> (bond_distance, atom->nbondtypes+1);
   cu_angle_distance = new cCudaData<double, X_FLOAT, xx> (angle_distance, atom->nangletypes+1);
-  
+
   // allocate statistics arrays
 
   if (output_every) {
@@ -191,11 +191,11 @@ FixShakeCuda::FixShakeCuda(LAMMPS *lmp, int narg, char **arg) :
   maxlist = 0;
   list = NULL;
   Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  	cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  	cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	max_iter,tolerance);
-  
-  
+          cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+          cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+        max_iter,tolerance);
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,7 +300,7 @@ int FixShakeCuda::setmask()
 
 /* ----------------------------------------------------------------------
    set bond and angle distances
-   this init must happen after force->bond and force->angle inits 
+   this init must happen after force->bond and force->angle inits
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::init()
@@ -330,7 +330,7 @@ void FixShakeCuda::init()
   if (i < modify->nfix) {
     for (int j = i; j < modify->nfix; j++)
       if (strcmp(modify->fix[j]->style,"shake") == 0)
-	error->all(FLERR,"Shake fix must come before NPT/NPH fix");
+        error->all(FLERR,"Shake fix must come before NPT/NPH fix");
   }
 
   // if rRESPA, find associated fix that must exist
@@ -349,7 +349,7 @@ void FixShakeCuda::init()
 
   if (force->bond == NULL)
     error->all(FLERR,"Bond potential must be defined for SHAKE");
-  for (i = 1; i <= atom->nbondtypes; i++) 
+  for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
 
   // set equilibrium angle distances
@@ -365,7 +365,7 @@ void FixShakeCuda::init()
     // extract bond types for the 2 bonds in the cluster
     // bond types must be same in all clusters of this angle type,
     //   else set error flag
-    
+
     flag = 0;
     bond1_type = bond2_type = 0;
     for (m = 0; m < nlocal; m++) {
@@ -374,46 +374,46 @@ void FixShakeCuda::init()
       type1 = MIN(shake_type[m][0],shake_type[m][1]);
       type2 = MAX(shake_type[m][0],shake_type[m][1]);
       if (bond1_type > 0) {
-	if (type1 != bond1_type || type2 != bond2_type) {
-	  flag = 1;
-	  break;
-	}
+        if (type1 != bond1_type || type2 != bond2_type) {
+          flag = 1;
+          break;
+        }
       }
       bond1_type = type1;
       bond2_type = type2;
     }
 
     // error check for any bond types that are not the same
-    
+
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
     if (flag_all) error->all(FLERR,"Shake angles have different bond types");
-    
+
     // insure all procs have bond types
-    
+
     MPI_Allreduce(&bond1_type,&flag_all,1,MPI_INT,MPI_MAX,world);
     bond1_type = flag_all;
     MPI_Allreduce(&bond2_type,&flag_all,1,MPI_INT,MPI_MAX,world);
     bond2_type = flag_all;
-    
+
     // if bond types are 0, no SHAKE angles of this type exist
     // just skip this angle
-    
+
     if (bond1_type == 0) {
       angle_distance[i] = 0.0;
       continue;
     }
 
     // compute the angle distance as a function of 2 bond distances
-    
+
     angle = force->angle->equilibrium_angle(i);
-    rsq = 2.0*bond_distance[bond1_type]*bond_distance[bond2_type] * 
+    rsq = 2.0*bond_distance[bond1_type]*bond_distance[bond2_type] *
       (1.0-cos(angle));
     angle_distance[i] = sqrt(rsq);
   }
 }
 
 /* ----------------------------------------------------------------------
-   SHAKE as pre-integrator constraint 
+   SHAKE as pre-integrator constraint
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::setup(int vflag)
@@ -447,15 +447,15 @@ void FixShakeCuda::setup(int vflag)
     dtf_inner = step_respa[0] * force->ftm2v;
   }
   Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  	cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  	cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	max_iter,tolerance);
+          cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+          cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+        max_iter,tolerance);
 }
 
 /* ----------------------------------------------------------------------
    build list of SHAKE clusters to constrain
    if one or more atoms in cluster are on this proc,
-     this proc lists the cluster exactly once 
+     this proc lists the cluster exactly once
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::pre_neighbor()
@@ -479,7 +479,7 @@ void FixShakeCuda::pre_neighbor()
     maxlist = nlocal;
     memory->destroy(list);
     memory->create(list,maxlist,"shake:list");
-    delete cu_list; cu_list = new cCudaData<int 	  , int	    , xx >(list,maxlist);
+    delete cu_list; cu_list = new cCudaData<int           , int            , xx >(list,maxlist);
   }
 
   // build list of SHAKE clusters I compute
@@ -488,53 +488,53 @@ void FixShakeCuda::pre_neighbor()
   int count2=0,count3=0,count4=0,count3a=0;
   for (int i = 0; i < nlocal; i++)
     if (shake_flag[i]) {
-    	if(shake_flag[i] == 2) count2++;
-    	if(shake_flag[i] == 3) count3++;
-    	if(shake_flag[i] == 4) count4++;
-    	if(shake_flag[i] == 1) count3a++;
-    	
+            if(shake_flag[i] == 2) count2++;
+            if(shake_flag[i] == 3) count3++;
+            if(shake_flag[i] == 4) count4++;
+            if(shake_flag[i] == 1) count3a++;
+
       if (shake_flag[i] == 2) {
-	atom1 = atom->map(shake_atom[i][0]);
-	atom2 = atom->map(shake_atom[i][1]);
-	if (atom1 == -1 || atom2 == -1) {
-	  char str[128];
-	  sprintf(str,
-		  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-		  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-	  error->one(FLERR,str);
-	}
-	if (i <= atom1 && i <= atom2) list[nlist++] = i;
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        if (atom1 == -1 || atom2 == -1) {
+          char str[128];
+          sprintf(str,
+                  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+                  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
-	atom1 = atom->map(shake_atom[i][0]);
-	atom2 = atom->map(shake_atom[i][1]);
-	atom3 = atom->map(shake_atom[i][2]);
-	if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-	  char str[128];
-	  sprintf(str,
-		  "Shake atoms %d %d %d missing on proc %d at step " 
-		  BIGINT_FORMAT,
-		  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
-		  me,update->ntimestep);
-	  error->one(FLERR,str);
-	}
-	if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        atom3 = atom->map(shake_atom[i][2]);
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
+          char str[128];
+          sprintf(str,
+                  "Shake atoms %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
-	atom1 = atom->map(shake_atom[i][0]);
-	atom2 = atom->map(shake_atom[i][1]);
-	atom3 = atom->map(shake_atom[i][2]);
-	atom4 = atom->map(shake_atom[i][3]);
-	if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-	  char str[128];
-	  sprintf(str,
-		  "Shake atoms %d %d %d %d missing on proc %d at step " 
-		  BIGINT_FORMAT,
-		  shake_atom[i][0],shake_atom[i][1],
-		  shake_atom[i][2],shake_atom[i][3],
-		  me,update->ntimestep);
-	  error->one(FLERR,str);
-	}
-	if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) 
-	  list[nlist++] = i;
+        atom1 = atom->map(shake_atom[i][0]);
+        atom2 = atom->map(shake_atom[i][1]);
+        atom3 = atom->map(shake_atom[i][2]);
+        atom4 = atom->map(shake_atom[i][3]);
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
+          char str[128];
+          sprintf(str,
+                  "Shake atoms %d %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  shake_atom[i][0],shake_atom[i][1],
+                  shake_atom[i][2],shake_atom[i][3],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
+          list[nlist++] = i;
       }
     }
     count2/=2;
@@ -553,7 +553,7 @@ void FixShakeCuda::pre_neighbor()
         int tmp = list[k]; list[k]=list[l]; list[l]=tmp;
       }
     }
-    
+
     for(int k = count2,l = count3; k < count3; k++)
     {
       if(shake_flag[list[k]]!=3)
@@ -563,7 +563,7 @@ void FixShakeCuda::pre_neighbor()
         int tmp = list[k]; list[k]=list[l]; list[l]=tmp;
       }
     }
-    
+
     for(int k = count3,l = count4; k < count4; k++)
     {
       if(shake_flag[list[k]]!=4)
@@ -573,42 +573,42 @@ void FixShakeCuda::pre_neighbor()
         int tmp = list[k]; list[k]=list[l]; list[l]=tmp;
       }
     }
-  	cu_list->upload();
-  	cu_bond_distance->upload();
-  	cu_angle_distance->upload();
-  	cu_shake_flag->upload();
-  	cu_shake_atom->upload();
-  	cu_shake_type->upload();
-  	
+          cu_list->upload();
+          cu_bond_distance->upload();
+          cu_angle_distance->upload();
+          cu_shake_flag->upload();
+          cu_shake_atom->upload();
+          cu_shake_type->upload();
+
     neighbor_step=true;
 }
 
 /* ----------------------------------------------------------------------
-   compute the force adjustment for SHAKE constraint 
+   compute the force adjustment for SHAKE constraint
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::post_force(int vflag)
 {
-	timespec starttime;
-	timespec endtime;
+        timespec starttime;
+        timespec endtime;
 
 
-	if(cuda->finished_setup && neighbor_step)
-	{
+        if(cuda->finished_setup && neighbor_step)
+        {
  Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  	cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  	cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	max_iter,tolerance);
-	
-	}
-		
-	if(not cuda->finished_setup)
-	cuda->downloadAll();
-  if (update->ntimestep == next_output) 
+          cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+          cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+        max_iter,tolerance);
+
+        }
+
+        if(not cuda->finished_setup)
+        cuda->downloadAll();
+  if (update->ntimestep == next_output)
   {
-  	if(cuda->finished_setup) 
-  	cuda->cu_x->download();
-  	stats();
+          if(cuda->finished_setup)
+          cuda->cu_x->download();
+          stats();
   }
 
   // xshake = unconstrained move with current v,f
@@ -616,15 +616,15 @@ void FixShakeCuda::post_force(int vflag)
   unconstrained_update();
 
   // communicate results if necessary
-  
+
   //if(cuda->finished_setup) cu_xshake->download();
 
-  if (nprocs > 1) 
+  if (nprocs > 1)
   {
-  //if(cuda->finished_setup) 
+  //if(cuda->finished_setup)
   //cu_xshake->download();
-  	comm->forward_comm_fix(this);
-  //if(cuda->finished_setup) 
+          comm->forward_comm_fix(this);
+  //if(cuda->finished_setup)
   //cu_xshake->upload();
   }
   // virial setup
@@ -634,36 +634,36 @@ void FixShakeCuda::post_force(int vflag)
 
   // loop over clusters
 
-	clock_gettime(CLOCK_REALTIME,&starttime);
+        clock_gettime(CLOCK_REALTIME,&starttime);
   if(cuda->finished_setup)
   {
-  	cu_virial->upload();
-  	if(vflag_atom) cuda->cu_vatom->upload();
-  	
-  	Cuda_FixShakeCuda_Shake(&cuda->shared_data,vflag,vflag_atom,(int*)cu_list->dev_data(),nlist);
-  	cu_virial->download();
-    if(vflag_atom) cuda->cu_vatom->download();  	
-  	
+          cu_virial->upload();
+          if(vflag_atom) cuda->cu_vatom->upload();
+
+          Cuda_FixShakeCuda_Shake(&cuda->shared_data,vflag,vflag_atom,(int*)cu_list->dev_data(),nlist);
+          cu_virial->download();
+    if(vflag_atom) cuda->cu_vatom->download();
+
   }
   else
   for (int i = 0; i < nlist; i++) {
     int m = list[i];
-    if (shake_flag[m] == 2) shake2(m); 
-    else if (shake_flag[m] == 3) shake3(m); 
-    else if (shake_flag[m] == 4) shake4(m); 
-    else shake3angle(m); 
+    if (shake_flag[m] == 2) shake2(m);
+    else if (shake_flag[m] == 3) shake3(m);
+    else if (shake_flag[m] == 4) shake4(m);
+    else shake3angle(m);
   }
   if((not cuda->finished_setup))  cuda->cu_f->upload();
-	clock_gettime(CLOCK_REALTIME,&endtime);
-	if(cuda->finished_setup)
-	time_postforce+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
-	else
-	time_postforce=0.0;
-	//printf("Postforce time: %lf\n",time_postforce);
+        clock_gettime(CLOCK_REALTIME,&endtime);
+        if(cuda->finished_setup)
+        time_postforce+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
+        else
+        time_postforce=0.0;
+        //printf("Postforce time: %lf\n",time_postforce);
 }
 
 /* ----------------------------------------------------------------------
-   count # of degrees-of-freedom removed by SHAKE for atoms in igroup 
+   count # of degrees-of-freedom removed by SHAKE for atoms in igroup
 ------------------------------------------------------------------------- */
 
 int FixShakeCuda::dof(int igroup)
@@ -698,7 +698,7 @@ int FixShakeCuda::dof(int igroup)
    only include atoms in fix group and those bonds/angles specified in input
    test whether all clusters are valid
    set shake_flag, shake_atom, shake_type values
-   set bond,angle types negative so will be ignored in neighbor lists 
+   set bond,angle types negative so will be ignored in neighbor lists
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::find_clusters()
@@ -728,7 +728,7 @@ void FixShakeCuda::find_clusters()
   // setup ring of procs
 
   int next = me + 1;
-  int prev = me -1; 
+  int prev = me -1;
   if (next == nprocs) next = 0;
   if (prev < 0) prev = nprocs - 1;
 
@@ -795,19 +795,19 @@ void FixShakeCuda::find_clusters()
 
       m = atom->map(partner_tag[i][j]);
       if (m >= 0 && m < nlocal) {
-	partner_mask[i][j] = mask[m];
-	partner_type[i][j] = type[m];
-	if (nmass) {
-	  if (rmass) massone = rmass[m];
-	  else massone = mass[type[m]];
-	  partner_massflag[i][j] = masscheck(massone);
-	}
-	n = bondfind(i,tag[i],partner_tag[i][j]);
-	if (n >= 0) partner_bondtype[i][j] = bond_type[i][n];
-	else {
-	  n = bondfind(m,tag[i],partner_tag[i][j]);
-	  if (n >= 0) partner_bondtype[i][j] = bond_type[m][n];
-	}
+        partner_mask[i][j] = mask[m];
+        partner_type[i][j] = type[m];
+        if (nmass) {
+          if (rmass) massone = rmass[m];
+          else massone = mass[type[m]];
+          partner_massflag[i][j] = masscheck(massone);
+        }
+        n = bondfind(i,tag[i],partner_tag[i][j]);
+        if (n >= 0) partner_bondtype[i][j] = bond_type[i][n];
+        else {
+          n = bondfind(m,tag[i],partner_tag[i][j]);
+          if (n >= 0) partner_bondtype[i][j] = bond_type[m][n];
+        }
       } else nbuf += nper;
     }
   }
@@ -824,15 +824,15 @@ void FixShakeCuda::find_clusters()
     for (j = 0; j < npartner[i]; j++) {
       m = atom->map(partner_tag[i][j]);
       if (m < 0 || m >= nlocal) {
-	buf[size] = tag[i];
-	buf[size+1] = partner_tag[i][j];
-	buf[size+2] = 0;
-	buf[size+3] = 0;
-	buf[size+4] = 0;
-	n = bondfind(i,tag[i],partner_tag[i][j]);
-	if (n >= 0) buf[size+5] = bond_type[i][n];
-	else buf[size+5] = 0;
-	size += nper;
+        buf[size] = tag[i];
+        buf[size+1] = partner_tag[i][j];
+        buf[size+2] = 0;
+        buf[size+3] = 0;
+        buf[size+4] = 0;
+        n = bondfind(i,tag[i],partner_tag[i][j]);
+        if (n >= 0) buf[size+5] = bond_type[i][n];
+        else buf[size+5] = 0;
+        size += nper;
       }
     }
   }
@@ -849,17 +849,17 @@ void FixShakeCuda::find_clusters()
     while (i < size) {
       m = atom->map(buf[i+1]);
       if (m >= 0 && m < nlocal) {
-	buf[i+2] = mask[m];
-	buf[i+3] = type[m];
-	if (nmass) {
-	  if (rmass) massone = rmass[m];
-	  else massone = mass[type[m]];
-	  buf[i+4] = masscheck(massone);
-	}
-	if (buf[i+5] == 0) {
-	  n = bondfind(m,buf[i],buf[i+1]);
-	  if (n >= 0) buf[i+5] = bond_type[m][n];
-	}
+        buf[i+2] = mask[m];
+        buf[i+3] = type[m];
+        if (nmass) {
+          if (rmass) massone = rmass[m];
+          else massone = mass[type[m]];
+          buf[i+4] = masscheck(massone);
+        }
+        if (buf[i+5] == 0) {
+          n = bondfind(m,buf[i],buf[i+1]);
+          if (n >= 0) buf[i+5] = bond_type[m][n];
+        }
       }
       i += nper;
     }
@@ -932,29 +932,29 @@ void FixShakeCuda::find_clusters()
       if (partner_bondtype[i][j] <= 0) continue;
 
       if (bond_flag[partner_bondtype[i][j]]) {
-	partner_shake[i][j] = 1;
-	nshake[i]++;
-	continue;
+        partner_shake[i][j] = 1;
+        nshake[i]++;
+        continue;
       }
       if (type_flag[type[i]] || type_flag[partner_type[i][j]]) {
-	partner_shake[i][j] = 1;
-	nshake[i]++;
-	continue;
+        partner_shake[i][j] = 1;
+        nshake[i]++;
+        continue;
       }
       if (nmass) {
-	if (partner_massflag[i][j]) {
-	  partner_shake[i][j] = 1;
-	  nshake[i]++;
-	  continue;
-	} else {
-	  if (rmass) massone = rmass[i];
-	  else massone = mass[type[i]];
-	  if (masscheck(massone)) {
-	    partner_shake[i][j] = 1;
-	    nshake[i]++;
-	    continue;
-	  }
-	}
+        if (partner_massflag[i][j]) {
+          partner_shake[i][j] = 1;
+          nshake[i]++;
+          continue;
+        } else {
+          if (rmass) massone = rmass[i];
+          else massone = mass[type[i]];
+          if (masscheck(massone)) {
+            partner_shake[i][j] = 1;
+            nshake[i]++;
+            continue;
+          }
+        }
       }
     }
   }
@@ -977,7 +977,7 @@ void FixShakeCuda::find_clusters()
       else nbuf += 3;
     }
   }
-  
+
   MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
 
   buf = new int[nbufmax];
@@ -990,9 +990,9 @@ void FixShakeCuda::find_clusters()
     for (j = 0; j < npartner[i]; j++) {
       m = atom->map(partner_tag[i][j]);
       if (m < 0 || m >= nlocal) {
-	buf[size] = tag[i];
-	buf[size+1] = partner_tag[i][j];
-	size += 3;
+        buf[size] = tag[i];
+        buf[size+1] = partner_tag[i][j];
+        size += 3;
       }
     }
   }
@@ -1055,7 +1055,7 @@ void FixShakeCuda::find_clusters()
   // -----------------------------------------------------
   // set SHAKE arrays that are stored with atoms & add angle constraints
   // zero shake arrays for all owned atoms
-  // if I am central atom set shake_flag & shake_atom & shake_type 
+  // if I am central atom set shake_flag & shake_atom & shake_type
   // for 2-atom clusters, I am central atom if my atom ID < partner ID
   // for 3-atom clusters, test for angle constraint
   //   angle will be stored by this atom if it exists
@@ -1082,12 +1082,12 @@ void FixShakeCuda::find_clusters()
 
     if (nshake[i] == 1) {
       for (j = 0; j < npartner[i]; j++)
-	if (partner_shake[i][j]) break;
+        if (partner_shake[i][j]) break;
       if (partner_nshake[i][j] == 1 && tag[i] < partner_tag[i][j]) {
-	shake_flag[i] = 2;
-	shake_atom[i][0] = tag[i];
-	shake_atom[i][1] = partner_tag[i][j];
-	shake_type[i][0] = partner_bondtype[i][j];
+        shake_flag[i] = 2;
+        shake_atom[i][0] = tag[i];
+        shake_atom[i][1] = partner_tag[i][j];
+        shake_type[i][0] = partner_bondtype[i][j];
       }
     }
 
@@ -1095,12 +1095,12 @@ void FixShakeCuda::find_clusters()
       shake_flag[i] = 1;
       shake_atom[i][0] = tag[i];
       for (j = 0; j < npartner[i]; j++)
-	if (partner_shake[i][j]) {
-	  m = shake_flag[i];
-	  shake_atom[i][m] = partner_tag[i][j];
-	  shake_type[i][m-1] = partner_bondtype[i][j];
-	  shake_flag[i]++;
-	}
+        if (partner_shake[i][j]) {
+          m = shake_flag[i];
+          shake_atom[i][m] = partner_tag[i][j];
+          shake_type[i][m-1] = partner_bondtype[i][j];
+          shake_flag[i]++;
+        }
     }
 
     if (nshake[i] == 2) {
@@ -1108,8 +1108,8 @@ void FixShakeCuda::find_clusters()
       if (n < 0) continue;
       if (angle_type[i][n] < 0) continue;
       if (angle_flag[angle_type[i][n]]) {
-	shake_flag[i] = 1;
-	shake_type[i][2] = angle_type[i][n];
+        shake_flag[i] = 1;
+        shake_type[i][2] = angle_type[i][n];
       }
     }
   }
@@ -1131,14 +1131,14 @@ void FixShakeCuda::find_clusters()
       if (partner_shake[i][j] == 0) continue;
       m = atom->map(partner_tag[i][j]);
       if (m >= 0 && m < nlocal) {
-	shake_flag[m] = shake_flag[i];
-	shake_atom[m][0] = shake_atom[i][0];
-	shake_atom[m][1] = shake_atom[i][1];
-	shake_atom[m][2] = shake_atom[i][2];
-	shake_atom[m][3] = shake_atom[i][3];
-	shake_type[m][0] = shake_type[i][0];
-	shake_type[m][1] = shake_type[i][1];
-	shake_type[m][2] = shake_type[i][2];
+        shake_flag[m] = shake_flag[i];
+        shake_atom[m][0] = shake_atom[i][0];
+        shake_atom[m][1] = shake_atom[i][1];
+        shake_atom[m][2] = shake_atom[i][2];
+        shake_atom[m][3] = shake_atom[i][3];
+        shake_type[m][0] = shake_type[i][0];
+        shake_type[m][1] = shake_type[i][1];
+        shake_type[m][2] = shake_type[i][2];
       } else nbuf += 9;
     }
   }
@@ -1157,16 +1157,16 @@ void FixShakeCuda::find_clusters()
       if (partner_shake[i][j] == 0) continue;
       m = atom->map(partner_tag[i][j]);
       if (m < 0 || m >= nlocal) {
-	buf[size] = partner_tag[i][j];
-	buf[size+1] = shake_flag[i];
-	buf[size+2] = shake_atom[i][0];
-	buf[size+3] = shake_atom[i][1];
-	buf[size+4] = shake_atom[i][2];
-	buf[size+5] = shake_atom[i][3];
-	buf[size+6] = shake_type[i][0];
-	buf[size+7] = shake_type[i][1];
-	buf[size+8] = shake_type[i][2];
-	size += 9;
+        buf[size] = partner_tag[i][j];
+        buf[size+1] = shake_flag[i];
+        buf[size+2] = shake_atom[i][0];
+        buf[size+3] = shake_atom[i][1];
+        buf[size+4] = shake_atom[i][2];
+        buf[size+5] = shake_atom[i][3];
+        buf[size+6] = shake_type[i][0];
+        buf[size+7] = shake_type[i][1];
+        buf[size+8] = shake_type[i][2];
+        size += 9;
       }
     }
   }
@@ -1181,14 +1181,14 @@ void FixShakeCuda::find_clusters()
     while (i < size) {
       m = atom->map(buf[i]);
       if (m >= 0 && m < nlocal) {
-	shake_flag[m] = buf[i+1];
-	shake_atom[m][0] = buf[i+2];
-	shake_atom[m][1] = buf[i+3];
-	shake_atom[m][2] = buf[i+4];
-	shake_atom[m][3] = buf[i+5];
-	shake_type[m][0] = buf[i+6];
-	shake_type[m][1] = buf[i+7];
-	shake_type[m][2] = buf[i+8];
+        shake_flag[m] = buf[i+1];
+        shake_atom[m][0] = buf[i+2];
+        shake_atom[m][1] = buf[i+3];
+        shake_atom[m][2] = buf[i+4];
+        shake_atom[m][3] = buf[i+5];
+        shake_type[m][0] = buf[i+6];
+        shake_type[m][1] = buf[i+7];
+        shake_type[m][2] = buf[i+8];
       }
       i += 9;
     }
@@ -1262,11 +1262,11 @@ void FixShakeCuda::find_clusters()
     else if (shake_flag[i] == 3) count3++;
     else if (shake_flag[i] == 4) count4++;
   }
-  
+
   for(int i=0;i<nlocal;i++)
   {
   }
-  
+
 
   int tmp;
   tmp = count1;
@@ -1296,23 +1296,23 @@ void FixShakeCuda::find_clusters()
   cu_shake_atom->upload();
   cu_shake_type->upload();
   Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  		cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  		cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	    max_iter,tolerance);
-  
+                  cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+                  cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+            max_iter,tolerance);
+
 }
 
 void FixShakeCuda::swap_clusters(int i, int j)
 {
-	int tmp;
-	tmp = shake_flag[i]; shake_flag[i] = shake_flag[j]; shake_flag[j] = tmp;
-	tmp = shake_atom[i][0]; shake_atom[i][0] = shake_atom[j][0]; shake_atom[j][0] = tmp;
-	tmp = shake_atom[i][1]; shake_atom[i][1] = shake_atom[j][1]; shake_atom[j][1] = tmp;
-	tmp = shake_atom[i][2]; shake_atom[i][2] = shake_atom[j][2]; shake_atom[j][2] = tmp;
-	tmp = shake_atom[i][3]; shake_atom[i][3] = shake_atom[j][3]; shake_atom[j][3] = tmp;
-	tmp = shake_type[i][0]; shake_type[i][0] = shake_type[j][0]; shake_type[j][0] = tmp;
-	tmp = shake_type[i][1]; shake_type[i][1] = shake_type[j][1]; shake_type[j][1] = tmp;
-	tmp = shake_type[i][2]; shake_type[i][2] = shake_type[j][2]; shake_type[j][2] = tmp;
+        int tmp;
+        tmp = shake_flag[i]; shake_flag[i] = shake_flag[j]; shake_flag[j] = tmp;
+        tmp = shake_atom[i][0]; shake_atom[i][0] = shake_atom[j][0]; shake_atom[j][0] = tmp;
+        tmp = shake_atom[i][1]; shake_atom[i][1] = shake_atom[j][1]; shake_atom[j][1] = tmp;
+        tmp = shake_atom[i][2]; shake_atom[i][2] = shake_atom[j][2]; shake_atom[j][2] = tmp;
+        tmp = shake_atom[i][3]; shake_atom[i][3] = shake_atom[j][3]; shake_atom[j][3] = tmp;
+        tmp = shake_type[i][0]; shake_type[i][0] = shake_type[j][0]; shake_type[j][0] = tmp;
+        tmp = shake_type[i][1]; shake_type[i][1] = shake_type[j][1]; shake_type[j][1] = tmp;
+        tmp = shake_type[i][2]; shake_type[i][2] = shake_type[j][2]; shake_type[j][2] = tmp;
 }
 
 /* ----------------------------------------------------------------------
@@ -1330,7 +1330,7 @@ int FixShakeCuda::masscheck(double massone)
 /* ----------------------------------------------------------------------
    update the unconstrained position of each atom
    only for SHAKE clusters, else set to 0.0
-   assumes NVE update, seems to be accurate enough for NVT,NPT,NPH as well 
+   assumes NVE update, seems to be accurate enough for NVT,NPT,NPH as well
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::unconstrained_update()
@@ -1340,25 +1340,25 @@ void FixShakeCuda::unconstrained_update()
     Cuda_FixShakeCuda_UnconstrainedUpdate(&cuda->shared_data);
     return;
   }
-  
+
   double dtfmsq;
-  
+
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (shake_flag[i]) {
-	dtfmsq = dtfsq / rmass[i];
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+        dtfmsq = dtfsq / rmass[i];
+        xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+        xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+        xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
       } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (shake_flag[i]) {
-	dtfmsq = dtfsq / mass[type[i]];
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+        dtfmsq = dtfsq / mass[type[i]];
+        xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+        xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+        xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
       } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
     }
   }
@@ -1378,7 +1378,7 @@ void FixShakeCuda::shake2(int m)
   int i0 = atom->map(shake_atom[m][0]);
   int i1 = atom->map(shake_atom[m][1]);
   double bond1 = bond_distance[shake_type[m][0]];
-   
+
   // r01 = distance vec between atoms, with PBC
 
   double r01[3];
@@ -1401,7 +1401,7 @@ void FixShakeCuda::shake2(int m)
   double s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
 
   // a,b,c = coeffs in quadratic equation for lamda
-  
+
   if (rmass) {
     invmass0 = 1.0/rmass[i0];
     invmass1 = 1.0/rmass[i1];
@@ -1540,7 +1540,7 @@ void FixShakeCuda::shake3(int m)
   double determ = a11*a22 - a12*a21;
   if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
-  
+
   double a11inv = a22*determinv;
   double a12inv = -a12*determinv;
   double a21inv = -a21*determinv;
@@ -1568,14 +1568,14 @@ void FixShakeCuda::shake3(int m)
   double quad1,quad2,b1,b2,lamda01_new,lamda02_new;
 
   while (!done && niter < max_iter) {
-    quad1 = quad1_0101 * lamda01*lamda01 + quad1_0202 * lamda02*lamda02 + 
+    quad1 = quad1_0101 * lamda01*lamda01 + quad1_0202 * lamda02*lamda02 +
       quad1_0102 * lamda01*lamda02;
-    quad2 = quad2_0101 * lamda01*lamda01 + quad2_0202 * lamda02*lamda02 + 
+    quad2 = quad2_0101 * lamda01*lamda01 + quad2_0202 * lamda02*lamda02 +
       quad2_0102 * lamda01*lamda02;
-        
+
     b1 = bond1*bond1 - s01sq - quad1;
     b2 = bond2*bond2 - s02sq - quad2;
-        
+
     lamda01_new = a11inv*b1 + a12inv*b2;
     lamda02_new = a21inv*b1 + a22inv*b2;
 
@@ -1727,14 +1727,14 @@ void FixShakeCuda::shake4(int m)
     (s03[0]*r02[0] + s03[1]*r02[1] + s03[2]*r02[2]);
   double a33 = 2.0 * (invmass0+invmass3) *
     (s03[0]*r03[0] + s03[1]*r03[1] + s03[2]*r03[2]);
-  
+
   // inverse of matrix;
 
   double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
   if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
-  
+
   double a11inv = determinv * (a22*a33 - a23*a32);
   double a12inv = -determinv * (a12*a33 - a13*a32);
   double a13inv = determinv * (a12*a23 - a13*a22);
@@ -1783,23 +1783,23 @@ void FixShakeCuda::shake4(int m)
   double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda03_new;
 
   while (!done && niter < max_iter) {
-    quad1 = quad1_0101 * lamda01*lamda01 + 
+    quad1 = quad1_0101 * lamda01*lamda01 +
       quad1_0202 * lamda02*lamda02 +
-      quad1_0303 * lamda03*lamda03 + 
+      quad1_0303 * lamda03*lamda03 +
       quad1_0102 * lamda01*lamda02 +
       quad1_0103 * lamda01*lamda03 +
       quad1_0203 * lamda02*lamda03;
 
-    quad2 = quad2_0101 * lamda01*lamda01 + 
+    quad2 = quad2_0101 * lamda01*lamda01 +
       quad2_0202 * lamda02*lamda02 +
-      quad2_0303 * lamda03*lamda03 + 
+      quad2_0303 * lamda03*lamda03 +
       quad2_0102 * lamda01*lamda02 +
       quad2_0103 * lamda01*lamda03 +
       quad2_0203 * lamda02*lamda03;
 
-    quad3 = quad3_0101 * lamda01*lamda01 + 
+    quad3 = quad3_0101 * lamda01*lamda01 +
       quad3_0202 * lamda02*lamda02 +
-      quad3_0303 * lamda03*lamda03 + 
+      quad3_0303 * lamda03*lamda03 +
       quad3_0102 * lamda01*lamda02 +
       quad3_0103 * lamda01*lamda03 +
       quad3_0203 * lamda02*lamda03;
@@ -1807,7 +1807,7 @@ void FixShakeCuda::shake4(int m)
     b1 = bond1*bond1 - s01sq - quad1;
     b2 = bond2*bond2 - s02sq - quad2;
     b3 = bond3*bond3 - s03sq - quad3;
-        
+
     lamda01_new = a11inv*b1 + a12inv*b2 + a13inv*b3;
     lamda02_new = a21inv*b1 + a22inv*b2 + a23inv*b3;
     lamda03_new = a31inv*b1 + a32inv*b2 + a33inv*b3;
@@ -1975,7 +1975,7 @@ void FixShakeCuda::shake3angle(int m)
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
   if (determ == 0.0) error->one(FLERR,"Shake determinant = 0.0");
   double determinv = 1.0/determ;
-  
+
   double a11inv = determinv * (a22*a33 - a23*a32);
   double a12inv = -determinv * (a12*a33 - a13*a32);
   double a13inv = determinv * (a12*a23 - a13*a22);
@@ -2024,23 +2024,23 @@ void FixShakeCuda::shake3angle(int m)
   double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda12_new;
 
   while (!done && niter < max_iter) {
-    quad1 = quad1_0101 * lamda01*lamda01 + 
+    quad1 = quad1_0101 * lamda01*lamda01 +
       quad1_0202 * lamda02*lamda02 +
-      quad1_1212 * lamda12*lamda12 + 
+      quad1_1212 * lamda12*lamda12 +
       quad1_0102 * lamda01*lamda02 +
       quad1_0112 * lamda01*lamda12 +
       quad1_0212 * lamda02*lamda12;
 
-    quad2 = quad2_0101 * lamda01*lamda01 + 
+    quad2 = quad2_0101 * lamda01*lamda01 +
       quad2_0202 * lamda02*lamda02 +
-      quad2_1212 * lamda12*lamda12 + 
+      quad2_1212 * lamda12*lamda12 +
       quad2_0102 * lamda01*lamda02 +
       quad2_0112 * lamda01*lamda12 +
       quad2_0212 * lamda02*lamda12;
-      
-    quad3 = quad3_0101 * lamda01*lamda01 + 
+
+    quad3 = quad3_0101 * lamda01*lamda01 +
       quad3_0202 * lamda02*lamda02 +
-      quad3_1212 * lamda12*lamda12 + 
+      quad3_1212 * lamda12*lamda12 +
       quad3_0102 * lamda01*lamda02 +
       quad3_0112 * lamda01*lamda12 +
       quad3_0212 * lamda02*lamda12;
@@ -2048,7 +2048,7 @@ void FixShakeCuda::shake3angle(int m)
     b1 = bond1*bond1 - s01sq - quad1;
     b2 = bond2*bond2 - s02sq - quad2;
     b3 = bond12*bond12 - s12sq - quad3;
-        
+
     lamda01_new = a11inv*b1 + a12inv*b2 + a13inv*b3;
     lamda02_new = a21inv*b1 + a22inv*b2 + a23inv*b3;
     lamda12_new = a31inv*b1 + a32inv*b2 + a33inv*b3;
@@ -2106,7 +2106,7 @@ void FixShakeCuda::shake3angle(int m)
 }
 
 /* ----------------------------------------------------------------------
-   print-out bond & angle statistics 
+   print-out bond & angle statistics
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::stats()
@@ -2152,7 +2152,7 @@ void FixShakeCuda::stats()
       delz = x[iatom][2] - x[jatom][2];
       domain->minimum_image(delx,dely,delz);
       r = sqrt(delx*delx + dely*dely + delz*delz);
-      
+
       m = shake_type[i][j-1];
       b_count[m]++;
       b_ave[m] += r;
@@ -2212,29 +2212,29 @@ void FixShakeCuda::stats()
   if (me == 0) {
     if (screen) {
       fprintf(screen,
-	      "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-	      update->ntimestep);
-      for (i = 1; i < nb; i++) 
-	if (b_count_all[i])
-	  fprintf(screen,"  %d %g %g\n",i,
-		  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
-      for (i = 1; i < na; i++) 
-	if (a_count_all[i])
-	  fprintf(screen,"  %d %g %g\n",i,
-		  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
+              update->ntimestep);
+      for (i = 1; i < nb; i++)
+        if (b_count_all[i])
+          fprintf(screen,"  %d %g %g\n",i,
+                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
+      for (i = 1; i < na; i++)
+        if (a_count_all[i])
+          fprintf(screen,"  %d %g %g\n",i,
+                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
     }
     if (logfile) {
       fprintf(logfile,
-	      "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-	      update->ntimestep);
-      for (i = 0; i < nb; i++) 
-	if (b_count_all[i])
-	  fprintf(logfile,"  %d %g %g\n",i,
-		  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
-      for (i = 0; i < na; i++) 
-	if (a_count_all[i])
-	  fprintf(logfile,"  %d %g %g\n",i,
-		  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
+              update->ntimestep);
+      for (i = 0; i < nb; i++)
+        if (b_count_all[i])
+          fprintf(logfile,"  %d %g %g\n",i,
+                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
+      for (i = 0; i < na; i++)
+        if (a_count_all[i])
+          fprintf(logfile,"  %d %g %g\n",i,
+                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
     }
   }
 
@@ -2286,7 +2286,7 @@ int FixShakeCuda::anglefind(int i, int n1, int n2)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixShakeCuda::memory_usage()
@@ -2301,7 +2301,7 @@ double FixShakeCuda::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   allocate local atom-based arrays 
+   allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::grow_arrays(int nmax)
@@ -2321,13 +2321,13 @@ void FixShakeCuda::grow_arrays(int nmax)
   cu_shake_type->upload();
   if(cu_bond_distance)
   Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  	cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  	cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	max_iter,tolerance);
+          cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+          cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+        max_iter,tolerance);
 }
 
 /* ----------------------------------------------------------------------
-   copy values within local atom-based arrays 
+   copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixShakeCuda::copy_arrays(int i, int j)
@@ -2371,7 +2371,7 @@ void FixShakeCuda::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   pack values in local atom-based arrays for exchange with another proc 
+   pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 
 int FixShakeCuda::pack_exchange(int i, double *buf)
@@ -2409,7 +2409,7 @@ int FixShakeCuda::pack_exchange(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack values in local atom-based arrays from exchange with another proc 
+   unpack values in local atom-based arrays from exchange with another proc
 ------------------------------------------------------------------------- */
 
 int FixShakeCuda::unpack_exchange(int nlocal, double *buf)
@@ -2461,7 +2461,7 @@ void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
   // except last loop iteration of inner levels
 
   if (ilevel < nlevels_respa-1 && iloop == loop_respa[ilevel]-1) return;
-  
+
   // xshake = atom coords after next x update in innermost loop
   // depends on rRESPA level
   // for levels > 0 this includes more than one velocity update
@@ -2477,34 +2477,34 @@ void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (shake_flag[i]) {
-	invmass = 1.0 / rmass[i];
-	dtfmsq = dtfsq * invmass;
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-	for (jlevel = 0; jlevel < ilevel; jlevel++) {
-	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
-	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
-	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
-	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
-	}
+        invmass = 1.0 / rmass[i];
+        dtfmsq = dtfsq * invmass;
+        xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+        xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+        xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+        for (jlevel = 0; jlevel < ilevel; jlevel++) {
+          dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+          xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+          xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+          xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+        }
       } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
     }
 
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (shake_flag[i]) {
-	invmass = 1.0 / mass[type[i]];
-	dtfmsq = dtfsq * invmass;
-	xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
-	xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
-	xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
-	for (jlevel = 0; jlevel < ilevel; jlevel++) {
-	  dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
-	  xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
-	  xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
-	  xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
-	}
+        invmass = 1.0 / mass[type[i]];
+        dtfmsq = dtfsq * invmass;
+        xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+        xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+        xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+        for (jlevel = 0; jlevel < ilevel; jlevel++) {
+          dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+          xshake[i][0] += dtfmsq*f_level[i][jlevel][0];
+          xshake[i][1] += dtfmsq*f_level[i][jlevel][1];
+          xshake[i][2] += dtfmsq*f_level[i][jlevel][2];
+        }
       } else xshake[i][2] = xshake[i][1] = xshake[i][0] = 0.0;
     }
   }
@@ -2537,18 +2537,18 @@ int FixShakeCuda::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pb
 {
   if(cuda->finished_setup)
   {
-  	 int iswap=*list;
-  	 if(iswap<0) 
-  	 {
-  	 	iswap=-iswap-1;
-  	 	int first= ((int*) buf)[0];
-  	 	Cuda_FixShakeCuda_PackComm_Self(&cuda->shared_data,n,iswap,first,pbc,pbc_flag);
-  	 }
-  	 else
+           int iswap=*list;
+           if(iswap<0)
+           {
+                   iswap=-iswap-1;
+                   int first= ((int*) buf)[0];
+                   Cuda_FixShakeCuda_PackComm_Self(&cuda->shared_data,n,iswap,first,pbc,pbc_flag);
+           }
+           else
      Cuda_FixShakeCuda_PackComm(&cuda->shared_data,n,iswap,(void*) buf,pbc,pbc_flag);
      return 3;
   }
-  
+
   int i,j,m;
   double dx,dy,dz;
 
@@ -2589,7 +2589,7 @@ void FixShakeCuda::unpack_comm(int n, int first, double *buf)
      Cuda_FixShakeCuda_UnpackComm(&cuda->shared_data,n,first,(void*)buf);
      return;
   }
-  
+
   int i,m,last;
 
   m = 0;
@@ -2615,7 +2615,7 @@ void FixShakeCuda::reset_dt()
   }
   if(cu_shake_atom)
   Cuda_FixShakeCuda_Init(&cuda->shared_data,dtv, dtfsq,
-  	cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
-  	cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
-	max_iter,tolerance);
+          cu_shake_flag->dev_data(),cu_shake_atom->dev_data(),cu_shake_type->dev_data(), cu_xshake->dev_data(),
+          cu_bond_distance->dev_data(),cu_angle_distance->dev_data(),cu_virial->dev_data(),
+        max_iter,tolerance);
 }

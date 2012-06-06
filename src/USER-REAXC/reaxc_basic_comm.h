@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -37,8 +37,8 @@ void Dist(reax_system*, mpi_datatypes*, void*, MPI_Datatype, int, dist_packer);
 void real_unpacker( void*, void*, mpi_out_data* );
 void rvec_unpacker( void*, void*, mpi_out_data* );
 void rvec2_unpacker( void*, void*, mpi_out_data* );
-void Coll( reax_system*, mpi_datatypes*, void*, MPI_Datatype, 
-	   int, coll_unpacker );
+void Coll( reax_system*, mpi_datatypes*, void*, MPI_Datatype,
+           int, coll_unpacker );
 
 real Parallel_Norm( real*, int, MPI_Comm );
 real Parallel_Dot( real*, real*, int, MPI_Comm );

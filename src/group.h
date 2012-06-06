@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -109,7 +109,7 @@ Self-explanatory.
 
 E: Too many groups
 
-The maximum number of atom groups (including the "all" group) is 
+The maximum number of atom groups (including the "all" group) is
 given by MAX_GROUP in group.cpp and is 32.
 
 E: Group region ID does not exist

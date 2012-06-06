@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -30,7 +30,7 @@ ComputeMesoTAtom::ComputeMesoTAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Number of arguments for compute meso_t/atom command != 3");
   if ((atom->e_flag != 1) || (atom->cv_flag != 1))
-  	error->all(FLERR,"compute meso_e/atom command requires atom_style with both energy and heat capacity (e.g. meso)");
+          error->all(FLERR,"compute meso_e/atom command requires atom_style with both energy and heat capacity (e.g. meso)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -80,12 +80,12 @@ void ComputeMesoTAtom::compute_peratom()
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-      	if (cv[i] > 0.0) {
-      		tvector[i] = e[i] / cv[i];
-      	}
+              if (cv[i] > 0.0) {
+                      tvector[i] = e[i] / cv[i];
+              }
       }
       else {
-      	tvector[i] = 0.0;
+              tvector[i] = 0.0;
       }
     }
 }

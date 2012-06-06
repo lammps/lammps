@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -72,17 +72,17 @@ ComputeCNAAtom::~ComputeCNAAtom()
 
 void ComputeCNAAtom::init()
 {
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute cna/atom requires a pair style be defined");
-  if (sqrt(cutsq) > force->pair->cutforce) 
+  if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,"Compute cna/atom cutoff is longer than pairwise cutoff");
 
   // cannot use neighbor->cutneighmax b/c neighbor has not yet been init
 
-  if (2.0*sqrt(cutsq) > force->pair->cutforce + neighbor->skin && 
+  if (2.0*sqrt(cutsq) > force->pair->cutforce + neighbor->skin &&
       comm->me == 0)
     error->warning(FLERR,"Compute cna/atom cutoff may be too large to find "
-		   "ghost atom neighbors");
+                   "ghost atom neighbors");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
@@ -148,7 +148,7 @@ void ComputeCNAAtom::compute_peratom()
   // nearest[] = atom indices of nearest neighbors, up to MAXNEAR
   // do this for all atoms, not just compute group
   // since CNA calculation requires neighbors of neighbors
-  
+
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -172,11 +172,11 @@ void ComputeCNAAtom::compute_peratom()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
-	if (n < MAXNEAR) nearest[i][n++] = j;
-	else {
-	  nerror++;
-	  break;
-	}
+        if (n < MAXNEAR) nearest[i][n++] = j;
+        else {
+          nerror++;
+          break;
+        }
       }
     }
     nnearest[i] = n;
@@ -224,52 +224,52 @@ void ComputeCNAAtom::compute_peratom()
       // in latter case, must exclude J from I's neighbor list
 
       if (j < nlocal) {
-	firstflag = 1;
-	ncommon = 0;
-	for (inear = 0; inear < nnearest[i]; inear++)
-	  for (jnear = 0; jnear < nnearest[j]; jnear++)
-	    if (nearest[i][inear] == nearest[j][jnear]) {
-	      if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
-	      else if (firstflag) {
-		nerror++;
-		firstflag = 0;
-	      }
-	    }
+        firstflag = 1;
+        ncommon = 0;
+        for (inear = 0; inear < nnearest[i]; inear++)
+          for (jnear = 0; jnear < nnearest[j]; jnear++)
+            if (nearest[i][inear] == nearest[j][jnear]) {
+              if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
+              else if (firstflag) {
+                nerror++;
+                firstflag = 0;
+              }
+            }
 
       } else {
-	xtmp = x[j][0];
-	ytmp = x[j][1];
-	ztmp = x[j][2];
-	jlist = firstneigh[i];
-	jnum = numneigh[i];
-	
-	n = 0;
-	for (kk = 0; kk < jnum; kk++) {
-	  k = jlist[kk];
-	  k &= NEIGHMASK;
-	  if (k == j) continue;
+        xtmp = x[j][0];
+        ytmp = x[j][1];
+        ztmp = x[j][2];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
 
-	  delx = xtmp - x[k][0];
-	  dely = ytmp - x[k][1];
-	  delz = ztmp - x[k][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  if (rsq < cutsq) {
-	    if (n < MAXNEAR) onenearest[n++] = k;
-	    else break;
-	  }
-	}
+        n = 0;
+        for (kk = 0; kk < jnum; kk++) {
+          k = jlist[kk];
+          k &= NEIGHMASK;
+          if (k == j) continue;
 
-	firstflag = 1;
-	ncommon = 0;
-	for (inear = 0; inear < nnearest[i]; inear++)
-	  for (jnear = 0; jnear < n; jnear++)
-	    if (nearest[i][inear] == onenearest[jnear]) {
-	      if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
-	      else if (firstflag) {
-		nerror++;
-		firstflag = 0;
-	      }
-	    }
+          delx = xtmp - x[k][0];
+          dely = ytmp - x[k][1];
+          delz = ztmp - x[k][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq) {
+            if (n < MAXNEAR) onenearest[n++] = k;
+            else break;
+          }
+        }
+
+        firstflag = 1;
+        ncommon = 0;
+        for (inear = 0; inear < nnearest[i]; inear++)
+          for (jnear = 0; jnear < n; jnear++)
+            if (nearest[i][inear] == onenearest[jnear]) {
+              if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
+              else if (firstflag) {
+                nerror++;
+                firstflag = 0;
+              }
+            }
       }
 
       cna[m][NCOMMON] = ncommon;
@@ -282,22 +282,22 @@ void ComputeCNAAtom::compute_peratom()
 
       nbonds = 0;
       for (jj = 0; jj < ncommon; jj++) {
-	j = common[jj];
-	xtmp = x[j][0];
-	ytmp = x[j][1];
-	ztmp = x[j][2];
-	for (kk = jj+1; kk < ncommon; kk++) {
-	  k = common[kk];
-	  delx = xtmp - x[k][0];
-	  dely = ytmp - x[k][1];
-	  delz = ztmp - x[k][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  if (rsq < cutsq) {
-	    nbonds++;
-	    bonds[jj]++;
-	    bonds[kk]++;
-	  }
-	}
+        j = common[jj];
+        xtmp = x[j][0];
+        ytmp = x[j][1];
+        ztmp = x[j][2];
+        for (kk = jj+1; kk < ncommon; kk++) {
+          k = common[kk];
+          delx = xtmp - x[k][0];
+          dely = ytmp - x[k][1];
+          delz = ztmp - x[k][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq) {
+            nbonds++;
+            bonds[jj]++;
+            bonds[kk]++;
+          }
+        }
       }
 
       cna[m][NBOND] = nbonds;
@@ -305,9 +305,9 @@ void ComputeCNAAtom::compute_peratom()
       maxbonds = 0;
       minbonds = MAXCOMMON;
       for (n = 0; n < ncommon; n++) {
-	maxbonds = MAX(bonds[n],maxbonds);
-	minbonds = MIN(bonds[n],minbonds);
-      }      
+        maxbonds = MAX(bonds[n],maxbonds);
+        minbonds = MIN(bonds[n],minbonds);
+      }
       cna[m][MAXBOND] = maxbonds;
       cna[m][MINBOND] = minbonds;
     }
@@ -319,26 +319,26 @@ void ComputeCNAAtom::compute_peratom()
 
     if (nnearest[i] == 12) {
       for (inear = 0; inear < 12; inear++) {
-	cj = cna[inear][NCOMMON];
-	ck = cna[inear][NBOND];
-	cl = cna[inear][MAXBOND];
-	cm = cna[inear][MINBOND];
-	if (cj == 4 && ck == 2 && cl == 1 && cm == 1) nfcc++;
-	else if (cj == 4 && ck == 2 && cl == 2 && cm == 0) nhcp++;
-	else if (cj == 5 && ck == 5 && cl == 2 && cm == 2) nico++;
+        cj = cna[inear][NCOMMON];
+        ck = cna[inear][NBOND];
+        cl = cna[inear][MAXBOND];
+        cm = cna[inear][MINBOND];
+        if (cj == 4 && ck == 2 && cl == 1 && cm == 1) nfcc++;
+        else if (cj == 4 && ck == 2 && cl == 2 && cm == 0) nhcp++;
+        else if (cj == 5 && ck == 5 && cl == 2 && cm == 2) nico++;
       }
       if (nfcc == 12) pattern[i] = FCC;
       else if (nfcc == 6 && nhcp == 6) pattern[i] = HCP;
       else if (nico == 12) pattern[i] = ICOS;
-      
+
     } else if (nnearest[i] == 14) {
       for (inear = 0; inear < 14; inear++) {
-	cj = cna[inear][NCOMMON];
-	ck = cna[inear][NBOND];
-	cl = cna[inear][MAXBOND];
-	cm = cna[inear][MINBOND];
-	if (cj == 4 && ck == 4 && cl == 2 && cm == 2) nbcc4++;
-	else if (cj == 6 && ck == 6 && cl == 2 && cm == 2) nbcc6++;
+        cj = cna[inear][NCOMMON];
+        ck = cna[inear][NBOND];
+        cl = cna[inear][MAXBOND];
+        cm = cna[inear][MINBOND];
+        if (cj == 4 && ck == 4 && cl == 2 && cm == 2) nbcc4++;
+        else if (cj == 6 && ck == 6 && cl == 2 && cm == 2) nbcc6++;
       }
       if (nbcc4 == 6 && nbcc6 == 8) pattern[i] = BCC;
     }

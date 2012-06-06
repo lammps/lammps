@@ -8,15 +8,15 @@
 /* This file is needed for systems, that do not provide XDR support
  * in their system libraries. It was written for windows, but will
  * most probably work on other platforms too. better make sure you
- * test that the xtc files produced are ok before using it. 
+ * test that the xtc files produced are ok before using it.
  *
- * It is also needed on BG/L and Cray XT3/XT4 as we don't have 
+ * It is also needed on BG/L and Cray XT3/XT4 as we don't have
  * XDR support in the lightweight kernel runtimes either.
  *
- * This file contains the definitions for Sun External Data 
+ * This file contains the definitions for Sun External Data
  * Representation (XDR) headers and routines.
  *
- * Although the rest of LAMPPS is GPL, you can copy and use the XDR 
+ * Although the rest of LAMPPS is GPL, you can copy and use the XDR
  * routines in any way you want as long as you obey Sun's license:
  *
  * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
@@ -45,7 +45,7 @@
  * Sun Microsystems, Inc.
  * 2550 Garcia Avenue
  * Mountain View, California  94043
- */ 
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,10 +62,10 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
   int i;
   char *px=(char *)&x;
   char *py=(char *)&y;
-  
+
   for(i=0;i<4;i++)
     py[i]=px[3-i];
-  
+
   return y;
 }
 
@@ -132,11 +132,11 @@ xdr_int (XDR *xdrs, int *ip)
 
     case XDR_DECODE:
       if (!xdr_getint32 (xdrs, &l))
-	  {
-	    return FALSE;
-	  }
+          {
+            return FALSE;
+          }
       *ip = (int) l;
-	  
+
     case XDR_FREE:
       return TRUE;
   }
@@ -160,11 +160,11 @@ xdr_u_int (XDR *xdrs, unsigned int *up)
 
     case XDR_DECODE:
       if (!xdr_getuint32 (xdrs, &l))
-	  {
-	    return FALSE;
-	  }
+          {
+            return FALSE;
+          }
       *up = (unsigned int) l;
-	  
+
     case XDR_FREE:
       return TRUE;
   }
@@ -190,9 +190,9 @@ xdr_short (XDR *xdrs, short *sp)
 
     case XDR_DECODE:
       if (!xdr_getint32 (xdrs, &l))
-	{
-	  return FALSE;
-	}
+        {
+          return FALSE;
+        }
       *sp = (short) l;
       return TRUE;
 
@@ -219,10 +219,10 @@ xdr_u_short (XDR *xdrs, unsigned short *usp)
 
     case XDR_DECODE:
       if (!xdr_getuint32 (xdrs, &l))
-	{
-	  return FALSE;
-	}
-	  *usp = (unsigned short) l;
+        {
+          return FALSE;
+        }
+          *usp = (unsigned short) l;
       return TRUE;
 
     case XDR_FREE:
@@ -272,8 +272,8 @@ xdr_u_char (XDR *xdrs, unsigned char *cp)
 bool_t
 xdr_bool (XDR *xdrs, int *bp)
 {
-#define XDR_FALSE	((xdr_int32_t) 0)
-#define XDR_TRUE	((xdr_int32_t) 1)
+#define XDR_FALSE        ((xdr_int32_t) 0)
+#define XDR_TRUE        ((xdr_int32_t) 1)
 
   xdr_int32_t lb;
 
@@ -285,9 +285,9 @@ xdr_bool (XDR *xdrs, int *bp)
 
     case XDR_DECODE:
       if (!xdr_getint32 (xdrs, &lb))
-	{
-	  return FALSE;
-	}
+        {
+          return FALSE;
+        }
       *bp = (lb == XDR_FALSE) ? FALSE : TRUE;
       return TRUE;
 
@@ -329,20 +329,20 @@ xdr_opaque (XDR *xdrs, char *cp, unsigned int cnt)
     {
     case XDR_DECODE:
       if (!xdr_getbytes (xdrs, cp, cnt))
-	{
-	  return FALSE;
-	}
+        {
+          return FALSE;
+        }
       if (rndup == 0)
-	return TRUE;
+        return TRUE;
       return xdr_getbytes (xdrs, (char *)crud, rndup);
 
     case XDR_ENCODE:
       if (!xdr_putbytes (xdrs, cp, cnt))
-	{
-	  return FALSE;
-	}
+        {
+          return FALSE;
+        }
       if (rndup == 0)
-	return TRUE;
+        return TRUE;
       return xdr_putbytes (xdrs, xdr_zero, rndup);
 
     case XDR_FREE:
@@ -363,7 +363,7 @@ xdr_opaque (XDR *xdrs, char *cp, unsigned int cnt)
 bool_t
 xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
 {
-  char *sp = *cpp;	/* sp is the actual string pointer */
+  char *sp = *cpp;        /* sp is the actual string pointer */
   unsigned int size = 0;
   unsigned int nodesize = 0;
 
@@ -374,19 +374,19 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
     {
     case XDR_FREE:
       if (sp == NULL)
-	{
-	  return TRUE;		/* already free */
-	}
+        {
+          return TRUE;                /* already free */
+        }
       /* fall through... */
     case XDR_ENCODE:
       if (sp == NULL)
-	    return FALSE;
+            return FALSE;
       size = strlen (sp);
       break;
     case XDR_DECODE:
       break;
     }
-  
+
   if (!xdr_u_int (xdrs, &size))
     {
       return FALSE;
@@ -404,16 +404,16 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
     {
     case XDR_DECODE:
       if (nodesize == 0)
-	{
-	  return TRUE;
-	}
+        {
+          return TRUE;
+        }
       if (sp == NULL)
-	*cpp = sp = (char *) malloc (nodesize);
+        *cpp = sp = (char *) malloc (nodesize);
       if (sp == NULL)
-	{
-	  (void) fputs ("xdr_string: out of memory\n", stderr);
-	  return FALSE;
-	}
+        {
+          (void) fputs ("xdr_string: out of memory\n", stderr);
+          return FALSE;
+        }
       sp[size] = 0;
       /* fall into ... */
 
@@ -435,28 +435,28 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
 bool_t
 xdr_float(XDR *xdrs, float *fp)
 {
-	xdr_int32_t tmp;
-	
-	switch (xdrs->x_op) {
+        xdr_int32_t tmp;
 
-	case XDR_ENCODE:
-		tmp = *(xdr_int32_t *)fp;
-   	    return (xdr_putint32(xdrs, &tmp));
+        switch (xdrs->x_op) {
 
-		break;
+        case XDR_ENCODE:
+                tmp = *(xdr_int32_t *)fp;
+               return (xdr_putint32(xdrs, &tmp));
 
-	case XDR_DECODE:
-			if (xdr_getint32(xdrs, &tmp)) {
-				*(xdr_int32_t *)fp = tmp;
-				return (TRUE);
-			}
+                break;
 
-		break;
+        case XDR_DECODE:
+                        if (xdr_getint32(xdrs, &tmp)) {
+                                *(xdr_int32_t *)fp = tmp;
+                                return (TRUE);
+                        }
 
-	case XDR_FREE:
-		return (TRUE);
-	}
-	return (FALSE);
+                break;
+
+        case XDR_FREE:
+                return (TRUE);
+        }
+        return (FALSE);
 }
 
 
@@ -475,53 +475,53 @@ xdr_double(XDR *xdrs, double *dp)
   if(LSW<0) {
     double x=0.987654321; /* Just a number */
 
-    /* Possible representations in IEEE double precision: 
+    /* Possible representations in IEEE double precision:
      * (S=small endian, B=big endian)
-     * 
+     *
      * Byte order, Word order, Hex
-     *     S           S       b8 56 0e 3c dd 9a ef 3f    
+     *     S           S       b8 56 0e 3c dd 9a ef 3f
      *     B           S       3c 0e 56 b8 3f ef 9a dd
      *     S           B       dd 9a ef 3f b8 56 0e 3c
      *     B           B       3f ef 9a dd 3c 0e 56 b8
-     */ 
-    
+     */
+
     unsigned char ix = *((char *)&x);
-    
+
     if(ix==0xdd || ix==0x3f)
       LSW=1;  /* Big endian word order */
     else if(ix==0xb8 || ix==0x3c)
       LSW=0;  /* Small endian word order */
     else { /* Catch strange errors */
       printf("Error when detecting floating-point word order.\n"
-	     "Do you have a non-IEEE system?\n"
-	     "If possible, use the XDR libraries provided with your system,\n"
-	     "instead of the Gromacs fallback XDR source.\n");
+             "Do you have a non-IEEE system?\n"
+             "If possible, use the XDR libraries provided with your system,\n"
+             "instead of the Gromacs fallback XDR source.\n");
       exit(0);
     }
-  }  
-  
+  }
+
   switch (xdrs->x_op) {
-    
+
   case XDR_ENCODE:
     ip = (int *)dp;
     tmp[0] = ip[!LSW];
     tmp[1] = ip[LSW];
     return (xdr_putint32(xdrs, tmp) &&
- 	      xdr_putint32(xdrs, tmp+1));
- 
+               xdr_putint32(xdrs, tmp+1));
+
     break;
-    
+
   case XDR_DECODE:
     ip = (int *)dp;
     if (xdr_getint32(xdrs, tmp+!LSW) &&
- 	  xdr_getint32(xdrs, tmp+LSW)) {
-	ip[0] = tmp[0];
-	ip[1] = tmp[1];
-	return (TRUE);
+           xdr_getint32(xdrs, tmp+LSW)) {
+        ip[0] = tmp[0];
+        ip[1] = tmp[1];
+        return (TRUE);
     }
 
     break;
-    
+
   case XDR_FREE:
     return (TRUE);
   }
@@ -542,10 +542,10 @@ xdr_double(XDR *xdrs, double *dp)
  * > xdr_elem: routine to XDR each element
  */
 bool_t
-xdr_vector (XDR *xdrs, char *basep, unsigned int nelem, 
+xdr_vector (XDR *xdrs, char *basep, unsigned int nelem,
             unsigned int elemsize, xdrproc_t xdr_elem)
 {
-#define LASTUNSIGNED	((unsigned int)0-1)
+#define LASTUNSIGNED        ((unsigned int)0-1)
   unsigned int i;
   char *elptr;
 
@@ -553,9 +553,9 @@ xdr_vector (XDR *xdrs, char *basep, unsigned int nelem,
   for (i = 0; i < nelem; i++)
     {
       if (!(*xdr_elem) (xdrs, elptr, LASTUNSIGNED))
-	{
-	  return FALSE;
-	}
+        {
+          return FALSE;
+        }
       elptr += elemsize;
     }
   return TRUE;
@@ -580,16 +580,16 @@ static bool_t xdrstdio_putuint32 (XDR *, xdr_uint32_t *);
  */
 static const struct xdr_ops xdrstdio_ops =
 {
-  xdrstdio_getbytes,       	/* deserialize counted bytes */
-  xdrstdio_putbytes,     	/* serialize counted bytes */
-  xdrstdio_getpos,		/* get offset in the stream */
-  xdrstdio_setpos,		/* set offset in the stream */
-  xdrstdio_inline,		/* prime stream for inline macros */
-  xdrstdio_destroy,		/* destroy stream */
-  xdrstdio_getint32,	/* deserialize a int */
-  xdrstdio_putint32,	/* serialize a int */
-  xdrstdio_getuint32,	/* deserialize a int */
-  xdrstdio_putuint32		/* serialize a int */
+  xdrstdio_getbytes,               /* deserialize counted bytes */
+  xdrstdio_putbytes,             /* serialize counted bytes */
+  xdrstdio_getpos,                /* get offset in the stream */
+  xdrstdio_setpos,                /* set offset in the stream */
+  xdrstdio_inline,                /* prime stream for inline macros */
+  xdrstdio_destroy,                /* destroy stream */
+  xdrstdio_getint32,        /* deserialize a int */
+  xdrstdio_putint32,        /* serialize a int */
+  xdrstdio_getuint32,        /* deserialize a int */
+  xdrstdio_putuint32                /* serialize a int */
 };
 
 /*
@@ -625,7 +625,7 @@ static bool_t
 xdrstdio_getbytes (XDR *xdrs, char *addr, unsigned int len)
 {
   if ((len != 0) && (fread (addr, (int) len, 1,
-			    (FILE *) xdrs->x_private) != 1))
+                            (FILE *) xdrs->x_private) != 1))
     return FALSE;
   return TRUE;
 }
@@ -634,7 +634,7 @@ static bool_t
 xdrstdio_putbytes (XDR *xdrs, char *addr, unsigned int len)
 {
   if ((len != 0) && (fwrite (addr, (int) len, 1,
-			     (FILE *) xdrs->x_private) != 1))
+                             (FILE *) xdrs->x_private) != 1))
     return FALSE;
   return TRUE;
 }
@@ -691,30 +691,30 @@ xdrstdio_putint32 (XDR *xdrs, xdr_int32_t *ip)
 static bool_t
 xdrstdio_getuint32 (XDR *xdrs, xdr_uint32_t *ip)
 {
-	xdr_uint32_t mycopy;
-	
-	if (fread ((char *) &mycopy, 4, 1, (FILE *) xdrs->x_private) != 1)
-		return FALSE;
-	*ip = xdr_ntohl (mycopy);
-	return TRUE;
+        xdr_uint32_t mycopy;
+
+        if (fread ((char *) &mycopy, 4, 1, (FILE *) xdrs->x_private) != 1)
+                return FALSE;
+        *ip = xdr_ntohl (mycopy);
+        return TRUE;
 }
 
 static bool_t
 xdrstdio_putuint32 (XDR *xdrs, xdr_uint32_t *ip)
 {
-	xdr_uint32_t mycopy = xdr_htonl (*ip);
-	
-	ip = &mycopy;
-	if (fwrite ((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1)
-		return FALSE;
-	return TRUE;
+        xdr_uint32_t mycopy = xdr_htonl (*ip);
+
+        ip = &mycopy;
+        if (fwrite ((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1)
+                return FALSE;
+        return TRUE;
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#else 
+#else
 /* satisfy compilers that do not like to compile empty files. */
 static void i_am_a_dummy_subroutine(void) {
   return;

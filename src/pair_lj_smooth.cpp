@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -67,7 +67,7 @@ void PairLJSmooth::compute(int eflag, int vflag)
   double rsq,r2inv,r6inv,forcelj,factor_lj;
   double r,t,tsq,fskin;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -78,12 +78,12 @@ void PairLJSmooth::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -105,45 +105,45 @@ void PairLJSmooth::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
-      if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	if (rsq < cut_inner_sq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-	} else {
-	  r = sqrt(rsq); 
-	  t = r - cut_inner[itype][jtype];
-	  tsq = t*t;
-	  fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
-	    ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t; 
-	  forcelj = fskin*r;
-	}
-        
-	fpair = factor_lj*forcelj*r2inv;
-        
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
-	
-	if (eflag) {
-	  if (rsq < cut_inner_sq[itype][jtype])
-	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - 
-			     lj4[itype][jtype]) - offset[itype][jtype];
-	  else
-	    evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
-	      ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
-	      ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+      if (rsq < cutsq[itype][jtype]) {
+        r2inv = 1.0/rsq;
+        if (rsq < cut_inner_sq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+        } else {
+          r = sqrt(rsq);
+          t = r - cut_inner[itype][jtype];
+          tsq = t*t;
+          fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
+            ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
+          forcelj = fskin*r;
+        }
+
+        fpair = factor_lj*forcelj*r2inv;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) {
+          if (rsq < cut_inner_sq[itype][jtype])
+            evdwl = r6inv * (lj3[itype][jtype]*r6inv -
+                             lj4[itype][jtype]) - offset[itype][jtype];
+          else
+            evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
+              ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
+              ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -152,7 +152,7 @@ void PairLJSmooth::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJSmooth::allocate()
@@ -185,7 +185,7 @@ void PairLJSmooth::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJSmooth::settings(int narg, char **arg)
@@ -204,10 +204,10 @@ void PairLJSmooth::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) {
-	  cut_inner[i][j] = cut_inner_global;
-	  cut[i][j] = cut_global;
-	}
+        if (setflag[i][j]) {
+          cut_inner[i][j] = cut_inner_global;
+          cut[i][j] = cut_global;
+        }
   }
 }
 
@@ -227,7 +227,7 @@ void PairLJSmooth::coeff(int narg, char **arg)
 
   double epsilon_one = force->numeric(arg[2]);
   double sigma_one = force->numeric(arg[3]);
-  
+
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 6) {
@@ -261,7 +261,7 @@ double PairLJSmooth::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
@@ -286,7 +286,7 @@ double PairLJSmooth::init_one(int i, int j)
     ljsw4[i][j] = -1.0/(3.0*tsq) * (ljsw2[i][j] + 2.0*ljsw3[i][j]*t);
     if (offset_flag)
       offset[i][j] = ljsw0[i][j] - ljsw1[i][j]*t - ljsw2[i][j]*tsq/2.0 -
-	ljsw3[i][j]*tsq*t/3.0 - ljsw4[i][j]*tsq*tsq/4.0;
+        ljsw3[i][j]*tsq*t/3.0 - ljsw4[i][j]*tsq*tsq/4.0;
     else offset[i][j] = 0.0;
   } else {
     ljsw0[i][j] = 0.0;
@@ -299,7 +299,7 @@ double PairLJSmooth::init_one(int i, int j)
       offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
     else offset[i][j] = 0.0;
   }
-              
+
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
   lj1[j][i] = lj1[i][j];
@@ -317,7 +317,7 @@ double PairLJSmooth::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLJSmooth::write_restart(FILE *fp)
@@ -329,10 +329,10 @@ void PairLJSmooth::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut_inner[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut_inner[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -353,16 +353,16 @@ void PairLJSmooth::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut_inner[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut_inner[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -401,8 +401,8 @@ void PairLJSmooth::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJSmooth::single(int i, int j, int itype, int jtype, double rsq,
-			    double factor_coul, double factor_lj,
-			    double &fforce)
+                            double factor_coul, double factor_lj,
+                            double &fforce)
 {
   double r2inv,r6inv,forcelj,philj,r,t,tsq,fskin;
 
@@ -411,15 +411,15 @@ double PairLJSmooth::single(int i, int j, int itype, int jtype, double rsq,
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
   } else {
-    r = sqrt(rsq); 
+    r = sqrt(rsq);
     t = r - cut_inner[itype][jtype];
     tsq = t*t;
-    fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t + 
-      ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t; 
+    fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
+      ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
     forcelj = fskin*r;
   }
   fforce = factor_lj*forcelj*r2inv;
-    
+
   if (rsq < cut_inner_sq[itype][jtype])
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
       offset[itype][jtype];

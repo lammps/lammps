@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,10 +32,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (!atom->electron_flag) 
+  if (!atom->electron_flag)
     error->all(FLERR,"Compute temp/region/eff requires atom style electron");
 
   if (narg != 4) error->all(FLERR,"Illegal compute temp/region/eff command");
@@ -46,14 +46,14 @@ ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[3]);
-  
+
   scalar_flag = vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
   extvector = 1;
   tempflag = 1;
   tempbias = 1;
-  
+
   maxbias = 0;
   vbiasall = NULL;
   vector = new double[6];
@@ -62,7 +62,7 @@ ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRegionEff::~ComputeTempRegionEff()
-{ 
+{
   delete [] idregion;
   memory->destroy(vbiasall);
   delete [] vector;
@@ -115,7 +115,7 @@ double ComputeTempRegionEff::compute_scalar()
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
         count++;
-        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
         if (fabs(spin[i])==1) {
           t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
@@ -130,7 +130,7 @@ double ComputeTempRegionEff::compute_scalar()
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
- 
+
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
@@ -166,7 +166,7 @@ void ComputeTempRegionEff::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      massone = mass[type[i]]; 
+      massone = mass[type[i]];
 
       t[0] += massone * v[i][0]*v[i][0];
       t[1] += massone * v[i][1]*v[i][1];
@@ -174,7 +174,7 @@ void ComputeTempRegionEff::compute_vector()
       t[3] += massone * v[i][0]*v[i][1];
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
-                
+
       if (fabs(spin[i])==1) {
         t[0] += mefactor * massone * ervel[i]*ervel[i];
         t[1] += mefactor * massone * ervel[i]*ervel[i];
@@ -190,7 +190,7 @@ void ComputeTempRegionEff::compute_vector()
    remove velocity bias from atom I to leave thermal velocity
    NOTE: the following commands do not bias the radial electron velocities
 ------------------------------------------------------------------------- */
-  
+
 void ComputeTempRegionEff::remove_bias(int i, double *v)
 {
   double *x = atom->x[i];
@@ -201,13 +201,13 @@ void ComputeTempRegionEff::remove_bias(int i, double *v)
     vbias[1] = v[1];
     vbias[2] = v[2];
     v[0] = v[1] = v[2] = 0.0;
-  }     
+  }
 }
 
 /* ----------------------------------------------------------------------
    remove velocity bias from all atoms to leave thermal velocity
 ------------------------------------------------------------------------- */
-  
+
 void ComputeTempRegionEff::remove_bias_all()
 {
   double **x = atom->x;
@@ -219,10 +219,10 @@ void ComputeTempRegionEff::remove_bias_all()
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
-  } 
+  }
 
   Region *region = domain->regions[iregion];
-  
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (region->match(x[i][0],x[i][1],x[i][2]))
@@ -274,4 +274,3 @@ double ComputeTempRegionEff::memory_usage()
   double bytes = maxbias * sizeof(double);
   return bytes;
 }
-

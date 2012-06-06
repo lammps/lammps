@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -109,7 +109,7 @@ class Comm : protected Pointers {
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
   int maxforward,maxreverse;        // max # of datums in forward/reverse comm
- 
+
   int updown(int, int, int, double, int, double *);
                                             // compare cutoff to procs
   virtual void grow_send(int,int);          // reallocate send buffer

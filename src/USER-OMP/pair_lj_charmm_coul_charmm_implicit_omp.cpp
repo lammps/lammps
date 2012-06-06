@@ -56,11 +56,11 @@ void PairLJCharmmCoulCharmmImplicitOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -127,70 +127,70 @@ void PairLJCharmmCoulCharmmImplicitOMP::eval(int iifrom, int iito, ThrData * con
       jtype = type[j];
 
       if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
+        r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq) {
-	  forcecoul = 2.0 * qqrd2e * qtmp*q[j]*r2inv;
-	  if (rsq > cut_coul_innersq) {
-	    switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
-	      (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) * invdenom_coul;
-	    switch2 = 12.0*rsq * (cut_coulsq-rsq) * 
-	      (rsq-cut_coul_innersq) * invdenom_coul;
-	    forcecoul *= switch1 + switch2;
-	  }
-	  forcecoul *= factor_coul;
-	} else forcecoul = 0.0;
+        if (rsq < cut_coulsq) {
+          forcecoul = 2.0 * qqrd2e * qtmp*q[j]*r2inv;
+          if (rsq > cut_coul_innersq) {
+            switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
+              (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) * invdenom_coul;
+            switch2 = 12.0*rsq * (cut_coulsq-rsq) *
+              (rsq-cut_coul_innersq) * invdenom_coul;
+            forcecoul *= switch1 + switch2;
+          }
+          forcecoul *= factor_coul;
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (rsq > cut_lj_innersq) {
-	    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-	      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * invdenom_lj;
-	    switch2 = 12.0*rsq * (cut_ljsq-rsq) * 
-	      (rsq-cut_lj_innersq) * invdenom_lj;
-	    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    forcelj = forcelj*switch1 + philj*switch2;
-	  }
-	  forcelj *= factor_lj;
-	} else forcelj = 0.0;
+        if (rsq < cut_ljsq) {
+          r6inv = r2inv*r2inv*r2inv;
+          jtype = type[j];
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          if (rsq > cut_lj_innersq) {
+            switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * invdenom_lj;
+            switch2 = 12.0*rsq * (cut_ljsq-rsq) *
+              (rsq-cut_lj_innersq) * invdenom_lj;
+            philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+            forcelj = forcelj*switch1 + philj*switch2;
+          }
+          forcelj *= factor_lj;
+        } else forcelj = 0.0;
 
-	fpair = (forcecoul + forcelj) * r2inv;
+        fpair = (forcecoul + forcelj) * r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = qqrd2e * qtmp*q[j]*r2inv;
-	    if (rsq > cut_coul_innersq) {
-	      switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
-		(cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) *
-		invdenom_coul;
-	      ecoul *= switch1;
-	    }
-	    ecoul *= factor_coul;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-	    if (rsq > cut_lj_innersq) {
-	      switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-		(cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * invdenom_lj;
-	      evdwl *= switch1;
-	    }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
-	
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,ecoul,fpair,delx,dely,delz,thr);
+        if (EFLAG) {
+          if (rsq < cut_coulsq) {
+            ecoul = qqrd2e * qtmp*q[j]*r2inv;
+            if (rsq > cut_coul_innersq) {
+              switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
+                (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) *
+                invdenom_coul;
+              ecoul *= switch1;
+            }
+            ecoul *= factor_coul;
+          } else ecoul = 0.0;
+          if (rsq < cut_ljsq) {
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+            if (rsq > cut_lj_innersq) {
+              switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * invdenom_lj;
+              evdwl *= switch1;
+            }
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
+
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

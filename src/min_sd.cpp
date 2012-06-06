@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,8 +73,8 @@ int MinSD::iterate(int maxiter)
 
     // energy tolerance criterion
 
-    if (fabs(ecurrent-eprevious) < 
-	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+    if (fabs(ecurrent-eprevious) <
+        update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
       return ETOL;
 
     // force tolerance criterion
@@ -87,10 +87,10 @@ int MinSD::iterate(int maxiter)
     for (i = 0; i < nvec; i++) h[i] = fvec[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	fatom = fextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) hatom[i] = fatom[i];
+        fatom = fextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) hatom[i] = fatom[i];
       }
     if (nextra_global)
       for (i = 0; i < nextra_global; i++) hextra[i] = fextra[i];
@@ -103,6 +103,6 @@ int MinSD::iterate(int maxiter)
       timer->stamp(TIME_OUTPUT);
     }
   }
-  
+
   return MAXITER;
 }

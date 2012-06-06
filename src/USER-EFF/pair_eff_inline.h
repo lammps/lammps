@@ -2,12 +2,12 @@
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  http://lammps.sandia.gov, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
- 
+
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
- certain rights in this software.  This software is distributed under 
+ certain rights in this software.  This software is distributed under
  the GNU General Public License.
- 
+
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
@@ -194,7 +194,7 @@ inline double ipoly1(double x)
   /* First derivative P'(x) in the range x < 2 */
   int i;
   double b0, b1, b2;
-  
+
   b1 = 0.0; b0 = 0.0; x *= 2;
   for (i = DERF_TERMS; i >= 0; i--)
     {
@@ -228,11 +228,11 @@ inline double ipoly01(double x)
 inline double ierfoverx1(double x, double *df)
 {
   // Computes Erf(x)/x and its first derivative
-  
+
   double t, f;
   double x2;                                   // x squared
   double exp_term, recip_x;
-  
+
   if (x < 2.0)
     {
       /* erf(x) = x * y(t)     */
@@ -261,7 +261,7 @@ inline void KinElec(double radius, double *eke, double *frc)
 {
   *eke += 1.5 / (radius * radius);
   *frc += 3.0 / (radius * radius * radius);
-}        
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -273,28 +273,28 @@ inline void ElecNucNuc(double q, double rc, double *ecoul, double *frc)
 
 /* ---------------------------------------------------------------------- */
 
-inline void ElecNucElec(double q, double rc, double re1, 
-			double *ecoul, double *frc, double *fre1)
+inline void ElecNucElec(double q, double rc, double re1,
+                        double *ecoul, double *frc, double *fre1)
 {
   double a, arc;
   double coeff_a;
-  
+
   /* sqrt(2) */
   coeff_a = 1.4142135623730951;
-  
+
   /* E = -Z/r Erf(a r / re) */
   /* constants: sqrt(2), 2 / sqrt(pi) */
   a = coeff_a / re1;
   arc = a * rc;
-  
+
   /* Interaction between nuclear point charge and Gaussian electron */
   double E, dEdr, dEdr1, f, df;
-  
+
   f = ierfoverx1(arc, &df);
   dEdr = q * a * a * df;
   dEdr1 = -q * (a / re1) * (f + arc * df);
   E = -q * a * f;
-  
+
   *ecoul += E;
   *frc += dEdr;
   *fre1 += dEdr1;
@@ -302,40 +302,40 @@ inline void ElecNucElec(double q, double rc, double re1,
 
 /* ---------------------------------------------------------------------- */
 
-inline void ElecElecElec(double rc, double re1, double re2, 
-			 double *ecoul, double *frc, double *fre1, 
-			 double *fre2)
+inline void ElecElecElec(double rc, double re1, double re2,
+                         double *ecoul, double *frc, double *fre1,
+                         double *fre2)
 {
   double a, arc, re, fre;
   double coeff_a;
-  
+
   /* sqrt(2) */
   coeff_a = 1.4142135623730951;
-  
+
   re = sqrt(re1 * re1 + re2 * re2);
-  
+
   double ratio;
   ratio = rc / re;
-  
+
   /* constants: sqrt(2), 2 / sqrt(pi) */
   a = coeff_a / re;
   arc = a * rc;
-  
+
   /* V_elecelec = E * F                              */
   /* where E = -Z/r Erf(a r / re)                    */
   /*       F = (1 - (b s + c s^2) exp(-d s^2))       */
   /* and s = r / re                                  */
-  
+
   double E, dEdr, dEdr1, dEdr2, f, df;
-  
+
   f = ierfoverx1(arc, &df);
   dEdr = -a * a * df;
   fre = a * (f + arc * df) / (re * re);
   dEdr1 = fre * re1;
   dEdr2 = fre * re2;
-  
+
   E = a * f;
-  
+
   *ecoul += E;
   *frc += dEdr;
   *fre1 += dEdr1;
@@ -355,7 +355,7 @@ inline void ElecCoreNuc(double q, double rc, double re1, double *ecoul, double *
   arc = a * rc;
 
   f = ierfoverx1(arc, &df);
-  dEdr = -q * a * a * df; 
+  dEdr = -q * a * a * df;
   E = q * a * f;
 
   *ecoul += E;
@@ -364,7 +364,7 @@ inline void ElecCoreNuc(double q, double rc, double re1, double *ecoul, double *
 
 /* ---------------------------------------------------------------------- */
 
-inline void ElecCoreCore(double q, double rc, double re1, double re2, 
+inline void ElecCoreCore(double q, double rc, double re1, double re2,
   double *ecoul, double *frc)
 {
   double a, arc, re;
@@ -376,7 +376,7 @@ inline void ElecCoreCore(double q, double rc, double re1, double re2,
   re = sqrt(re1 * re1 + re2 * re2);
   a = coeff_a / re;
   arc = a * rc;
- 
+
   f = ierfoverx1(arc, &df);
   dEdr = -q * a * a * df;
   fre = q * a * (f + arc * df) / (re * re);
@@ -388,7 +388,7 @@ inline void ElecCoreCore(double q, double rc, double re1, double re2,
 
 /* ---------------------------------------------------------------------- */
 
-inline void ElecCoreElec(double q, double rc, double re1, double re2, 
+inline void ElecCoreElec(double q, double rc, double re1, double re2,
         double *ecoul, double *frc, double *fre2)
 {
   double a,arc, re;
@@ -401,7 +401,7 @@ inline void ElecCoreElec(double q, double rc, double re1, double re2,
   /*
   re1: core size
   re2: electron size
-  re3: size of the core, obtained from the electron density function rho(r) of core 
+  re3: size of the core, obtained from the electron density function rho(r) of core
   e.g. rho(r) = a1*exp(-((r)/b1)^2), a1 =157.9, b1 = 0.1441 -> re3 = 0.1441 for Si4+
   */
 
@@ -423,45 +423,45 @@ inline void ElecCoreElec(double q, double rc, double re1, double re2,
 
 /* ---------------------------------------------------------------------- */
 
-inline void PauliElecElec(int samespin, double rc, 
-			  double re1, double re2, double *epauli, 
-			  double *frc, double *fre1, double *fre2)
+inline void PauliElecElec(int samespin, double rc,
+                          double re1, double re2, double *epauli,
+                          double *frc, double *fre1, double *fre2)
 {
   double ree, rem;
   double S, t1, t2, tt;
   double dSdr1, dSdr2, dSdr;
   double dTdr1, dTdr2, dTdr;
   double O, dOdS, ratio;
-  
+
   re1 *= PAULI_RE; re2 *= PAULI_RE; rc *= PAULI_RC;
   ree = re1 * re1 + re2 * re2;
   rem = re1 * re1 - re2 * re2;
-  
-  S = (2.82842712474619 / pow((re2 / re1 + re1 / re2), 1.5)) * 
+
+  S = (2.82842712474619 / pow((re2 / re1 + re1 / re2), 1.5)) *
     exp(-rc * rc / ree);
-  
+
   t1 =  1.5 * (1 / (re1 * re1) + 1 / (re2 * re2));
   t2 =  2.0 * (3 * ree - 2 * rc * rc) / (ree * ree);
   tt = t1 - t2;
-  
+
   dSdr1 = (-1.5 / re1) * (rem / ree) + 2 * re1 * rc * rc / (ree * ree);
   dSdr2 = (1.5 / re2) * (rem / ree) + 2 * re2 * rc * rc / (ree * ree);
   dSdr  = -2 * rc / ree;
-  dTdr1 = -3 / (re1 * re1 * re1) - 12 * re1 / (ree * ree) + 8 * re1 * 
+  dTdr1 = -3 / (re1 * re1 * re1) - 12 * re1 / (ree * ree) + 8 * re1 *
     (-2 * rc * rc + 3 * ree) / (ree * ree * ree);
-  dTdr2 = -3 / (re2 * re2 * re2) - 12 * re2 / (ree * ree) + 8 * re2 * 
+  dTdr2 = -3 / (re2 * re2 * re2) - 12 * re2 / (ree * ree) + 8 * re2 *
     (-2 * rc * rc + 3 * ree) / (ree * ree * ree);
   dTdr  = 8 * rc / (ree * ree);
-  
+
   if (samespin == 1) {
     O = S * S / (1.0 - S * S) + (1 - PAULI_RHO) * S * S / (1.0 + S * S);
-    dOdS = 2 * S / ((1.0 - S * S) * (1.0 - S * S)) + 
+    dOdS = 2 * S / ((1.0 - S * S) * (1.0 - S * S)) +
       (1 - PAULI_RHO) * 2 * S / ((1.0 + S * S) * (1.0 + S * S));
   } else {
     O = -PAULI_RHO * S * S / (1.0 + S * S);
     dOdS = -PAULI_RHO * 2 * S / ((1.0 + S * S) * (1.0 + S * S));
   }
-  
+
   ratio = tt * dOdS * S;
   *fre1 -= PAULI_RE * (dTdr1 * O + ratio * dSdr1);
   *fre2 -= PAULI_RE * (dTdr2 * O + ratio * dSdr2);
@@ -471,16 +471,16 @@ inline void PauliElecElec(int samespin, double rc,
 
 /* ---------------------------------------------------------------------- */
 
-inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc, 
+inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc,
        double *fre2, double PAULI_CORE_A, double PAULI_CORE_B, double PAULI_CORE_C)
 {
   double E, dEdrc, dEdre2, rcsq, ssq;
-  
+
   rcsq = rc * rc;
   ssq = re2 * re2;
 
   E = PAULI_CORE_A * exp((-PAULI_CORE_B * rcsq) / (ssq + PAULI_CORE_C));
-  
+
   dEdrc = -2 * PAULI_CORE_A * PAULI_CORE_B * rc * exp(-PAULI_CORE_B * rcsq /
           (ssq + PAULI_CORE_C)) / (ssq + PAULI_CORE_C);
 
@@ -494,8 +494,8 @@ inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc,
 
 /* ---------------------------------------------------------------------- */
 
-inline void RForce(double dx, double dy, double dz, 
-		   double rc, double force, double *fx, double *fy, double *fz)
+inline void RForce(double dx, double dy, double dz,
+                   double rc, double force, double *fx, double *fy, double *fz)
 {
   force /= rc;
   *fx = force * dx;
@@ -505,25 +505,25 @@ inline void RForce(double dx, double dy, double dz,
 
 /* ---------------------------------------------------------------------- */
 
-inline void SmallRForce(double dx, double dy, double dz, 
-			double rc, double force, 
-			double *fx, double *fy, double *fz)
+inline void SmallRForce(double dx, double dy, double dz,
+                        double rc, double force,
+                        double *fx, double *fy, double *fz)
 {
   /* Handles case where rc is small to avoid division by zero */
-  
+
   if (rc > 0.000001){
     force /= rc;
     *fx = force * dx; *fy = force * dy; *fz = force * dz;
   } else {
-    if (dx != 0) *fx = force / sqrt(1 + (dy * dy + dz * dz) / (dx * dx)); 
+    if (dx != 0) *fx = force / sqrt(1 + (dy * dy + dz * dz) / (dx * dx));
     else *fx = 0.0;
-    if (dy != 0) *fy = force / sqrt(1 + (dx * dx + dz * dz) / (dy * dy)); 
+    if (dy != 0) *fy = force / sqrt(1 + (dx * dx + dz * dz) / (dy * dy));
     else *fy = 0.0;
-    if (dz != 0) *fz = force / sqrt(1 + (dx * dx + dy * dy) / (dz * dz)); 
+    if (dz != 0) *fz = force / sqrt(1 + (dx * dx + dy * dy) / (dz * dz));
     else *fz = 0.0;
-    //		if (dx < 0) *fx = -*fx;
-    //		if (dy < 0) *fy = -*fy;
-    //		if (dz < 0) *fz = -*fz;
+    //                if (dx < 0) *fx = -*fx;
+    //                if (dy < 0) *fy = -*fy;
+    //                if (dz < 0) *fz = -*fz;
   }
 }
 
@@ -533,7 +533,7 @@ inline double cutoff(double x)
 {
   /*  cubic: return x * x * (2.0 * x - 3.0) + 1.0; */
   /*  quintic: return -6 * pow(x, 5) + 15 * pow(x, 4) - 10 * pow(x, 3) + 1; */
-  
+
   /* Seventh order spline */
   //      return 20 * pow(x, 7) - 70 * pow(x, 6) + 84 * pow(x, 5) - 35 * pow(x, 4) + 1;
   return (((20 * x - 70) * x + 84) * x - 35) * x * x * x * x + 1;
@@ -545,7 +545,7 @@ inline double dcutoff(double x)
 {
   /*  cubic: return (6.0 * x * x - 6.0 * x); */
   /*  quintic: return -30 * pow(x, 4) + 60 * pow(x, 3) - 30 * pow(x, 2); */
-  
+
   /* Seventh order spline */
   //      return 140 * pow(x, 6) - 420 * pow(x, 5) + 420 * pow(x, 4) - 140 * pow(x, 3);
   return (((140 * x - 420) * x + 420) * x - 140) * x * x * x;

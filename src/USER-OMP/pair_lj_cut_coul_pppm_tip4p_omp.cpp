@@ -46,7 +46,7 @@ PairLJCutCoulPPPMTIP4POMP::PairLJCutCoulPPPMTIP4POMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   nproxy=1;
-  
+
   kspace = NULL;
 
   // for caching m-shift corrected positions
@@ -138,25 +138,25 @@ void PairLJCutCoulPPPMTIP4POMP::compute(int eflag, int vflag)
       kspace->compute_proxy(eflag,vflag);
     } else {
       if (!ncoultablebits) {
-	if (evflag) {
-	  if (eflag) {
-	    if (vflag) eval<1,1,1,1>(ifrom, ito, thr);
-	    else eval<1,1,1,0>(ifrom, ito, thr);
-	  } else {
-	    if (vflag) eval<1,1,0,1>(ifrom, ito, thr);
-	    else eval<1,1,0,0>(ifrom, ito, thr);
-	  }
-	} else eval<1,0,0,0>(ifrom, ito, thr);
+        if (evflag) {
+          if (eflag) {
+            if (vflag) eval<1,1,1,1>(ifrom, ito, thr);
+            else eval<1,1,1,0>(ifrom, ito, thr);
+          } else {
+            if (vflag) eval<1,1,0,1>(ifrom, ito, thr);
+            else eval<1,1,0,0>(ifrom, ito, thr);
+          }
+        } else eval<1,0,0,0>(ifrom, ito, thr);
       } else {
-	if (evflag) {
-	  if (eflag) {
-	    if (vflag) eval<0,1,1,1>(ifrom, ito, thr);
-	    else eval<0,1,1,0>(ifrom, ito, thr);
-	  } else {
-	    if (vflag) eval<0,1,0,1>(ifrom, ito, thr);
-	    else eval<0,1,0,0>(ifrom, ito, thr);
-	  }
-	} else eval<0,0,0,0>(ifrom, ito, thr);
+        if (evflag) {
+          if (eflag) {
+            if (vflag) eval<0,1,1,1>(ifrom, ito, thr);
+            else eval<0,1,1,0>(ifrom, ito, thr);
+          } else {
+            if (vflag) eval<0,1,0,1>(ifrom, ito, thr);
+            else eval<0,1,0,0>(ifrom, ito, thr);
+          }
+        } else eval<0,0,0,0>(ifrom, ito, thr);
       }
     }
 
@@ -236,26 +236,26 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
       // LJ interaction based on true rsq
 
       if (rsq < cut_ljsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	forcelj *= factor_lj * r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        forcelj *= factor_lj * r2inv;
 
-	fxtmp += delx*forcelj;
-	fytmp += dely*forcelj;
-	fztmp += delz*forcelj;
-	f[j][0] -= delx*forcelj;
-	f[j][1] -= dely*forcelj;
-	f[j][2] -= delz*forcelj;
+        fxtmp += delx*forcelj;
+        fytmp += dely*forcelj;
+        fztmp += delz*forcelj;
+        f[j][0] -= delx*forcelj;
+        f[j][1] -= dely*forcelj;
+        f[j][2] -= delz*forcelj;
 
-	if (EFLAG) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	} else evdwl = 0.0;
+        if (EFLAG) {
+          evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        } else evdwl = 0.0;
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal, /* newton_pair = */ 1,
-				 evdwl,0.0,forcelj,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal, /* newton_pair = */ 1,
+                                 evdwl,0.0,forcelj,delx,dely,delz,thr);
       }
 
       // adjust rsq and delxyz for off-site O charge(s),
@@ -263,213 +263,213 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cut_coulsqplus) {
 
-	if (itype == typeO || jtype == typeO) {
-	  x2 = mpos[j];
-	  jH1 = h1idx[j];
-	  jH2 = h2idx[j];
+        if (itype == typeO || jtype == typeO) {
+          x2 = mpos[j];
+          jH1 = h1idx[j];
+          jH2 = h2idx[j];
 
-	  if (check_error_thr((jtype == typeO  && ( jH1 < 0 || jH2 < 0 )),
-			      tid, FLERR,"TIP4P hydrogen is missing"))
-	    return;
+          if (check_error_thr((jtype == typeO  && ( jH1 < 0 || jH2 < 0 )),
+                              tid, FLERR,"TIP4P hydrogen is missing"))
+            return;
 
-	  delx = x1[0] - x2[0];
-	  dely = x1[1] - x2[1];
-	  delz = x1[2] - x2[2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	}
+          delx = x1[0] - x2[0];
+          dely = x1[1] - x2[1];
+          delz = x1[2] - x2[2];
+          rsq = delx*delx + dely*dely + delz*delz;
+        }
 
-	// Coulombic interaction based on modified rsq
+        // Coulombic interaction based on modified rsq
 
-	if (rsq < cut_coulsq) {
-	  r2inv = 1 / rsq;
-	  if (CTABLE || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor; 
-	    }
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
+        if (rsq < cut_coulsq) {
+          r2inv = 1 / rsq;
+          if (CTABLE || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (factor_coul < 1.0) {
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
 
-	  cforce = forcecoul * r2inv;
+          cforce = forcecoul * r2inv;
 
-	  // if i,j are not O atoms, force is applied directly
-	  // if i or j are O atoms, force is on fictitious atom & partitioned
-	  // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-	  // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-	  // preserves total force and torque on water molecule
-	  // virial = sum(r x F) where each water's atoms are near xi and xj
-	  // vlist stores 2,4,6 atoms whose forces contribute to virial
+          // if i,j are not O atoms, force is applied directly
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-	  n = 0;
+          n = 0;
 
-	  if (itype != typeO) {
-	    fxtmp += delx * cforce;
-	    fytmp += dely * cforce;
-	    fztmp += delz * cforce;
+          if (itype != typeO) {
+            fxtmp += delx * cforce;
+            fytmp += dely * cforce;
+            fztmp += delz * cforce;
 
-	    if (VFLAG) {
-	      v[0] = x[i][0] * delx * cforce;
-	      v[1] = x[i][1] * dely * cforce;
-	      v[2] = x[i][2] * delz * cforce;
-	      v[3] = x[i][0] * dely * cforce;
-	      v[4] = x[i][0] * delz * cforce;
-	      v[5] = x[i][1] * delz * cforce;
-	      vlist[n++] = i;
-	    }
+            if (VFLAG) {
+              v[0] = x[i][0] * delx * cforce;
+              v[1] = x[i][1] * dely * cforce;
+              v[2] = x[i][2] * delz * cforce;
+              v[3] = x[i][0] * dely * cforce;
+              v[4] = x[i][0] * delz * cforce;
+              v[5] = x[i][1] * delz * cforce;
+              vlist[n++] = i;
+            }
 
-	  } else {
+          } else {
 
-	    fdx = delx*cforce;
-	    fdy = dely*cforce;
-	    fdz = delz*cforce;
+            fdx = delx*cforce;
+            fdy = dely*cforce;
+            fdz = delz*cforce;
 
-	    delxOM = x[i][0] - x1[0];
-	    delyOM = x[i][1] - x1[1];
-	    delzOM = x[i][2] - x1[2];
+            delxOM = x[i][0] - x1[0];
+            delyOM = x[i][1] - x1[1];
+            delzOM = x[i][2] - x1[2];
 
-	    ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-	      (qdist*qdist);
+            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
+              (qdist*qdist);
 
-	    f1x = alpha * (fdx - ddotf * delxOM);
-	    f1y = alpha * (fdy - ddotf * delyOM);
-	    f1z = alpha * (fdz - ddotf * delzOM);
+            f1x = alpha * (fdx - ddotf * delxOM);
+            f1y = alpha * (fdy - ddotf * delyOM);
+            f1z = alpha * (fdz - ddotf * delzOM);
 
-	    fOx = fdx - f1x;
-	    fOy = fdy - f1y;
-	    fOz = fdz - f1z;
+            fOx = fdx - f1x;
+            fOy = fdy - f1y;
+            fOz = fdz - f1z;
 
-	    fHx = 0.5 * f1x;
-	    fHy = 0.5 * f1y;
-	    fHz = 0.5 * f1z;
+            fHx = 0.5 * f1x;
+            fHy = 0.5 * f1y;
+            fHz = 0.5 * f1z;
 
-	    fxtmp += fOx;
-	    fytmp += fOy;
-	    fztmp += fOz;
+            fxtmp += fOx;
+            fytmp += fOy;
+            fztmp += fOz;
 
-	    f[iH1][0] += fHx;
-	    f[iH1][1] += fHy;
-	    f[iH1][2] += fHz;
+            f[iH1][0] += fHx;
+            f[iH1][1] += fHy;
+            f[iH1][2] += fHz;
 
-	    f[iH2][0] += fHx;
-	    f[iH2][1] += fHy;
-	    f[iH2][2] += fHz;
+            f[iH2][0] += fHx;
+            f[iH2][1] += fHy;
+            f[iH2][2] += fHz;
 
-	    if (VFLAG) {
-	      domain->closest_image(x[i],x[iH1],xH1);
-	      domain->closest_image(x[i],x[iH2],xH2);
+            if (VFLAG) {
+              domain->closest_image(x[i],x[iH1],xH1);
+              domain->closest_image(x[i],x[iH2],xH2);
 
-	      v[0] = x[i][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
-	      v[1] = x[i][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
-	      v[2] = x[i][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
-	      v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
-	      v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
-	      v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] = x[i][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] = x[i][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] = x[i][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
 
-	      vlist[n++] = i;
-	      vlist[n++] = iH1;
-	      vlist[n++] = iH2;
-	    }
-	  }
+              vlist[n++] = i;
+              vlist[n++] = iH1;
+              vlist[n++] = iH2;
+            }
+          }
 
-	  if (jtype != typeO) {
-	    f[j][0] -= delx * cforce;
-	    f[j][1] -= dely * cforce;
-	    f[j][2] -= delz * cforce;
+          if (jtype != typeO) {
+            f[j][0] -= delx * cforce;
+            f[j][1] -= dely * cforce;
+            f[j][2] -= delz * cforce;
 
-	    if (VFLAG) {
-	      v[0] -= x[j][0] * delx * cforce;
-	      v[1] -= x[j][1] * dely * cforce;
-	      v[2] -= x[j][2] * delz * cforce;
-	      v[3] -= x[j][0] * dely * cforce;
-	      v[4] -= x[j][0] * delz * cforce;
-	      v[5] -= x[j][1] * delz * cforce;
-	      vlist[n++] = j;
-	    }
+            if (VFLAG) {
+              v[0] -= x[j][0] * delx * cforce;
+              v[1] -= x[j][1] * dely * cforce;
+              v[2] -= x[j][2] * delz * cforce;
+              v[3] -= x[j][0] * dely * cforce;
+              v[4] -= x[j][0] * delz * cforce;
+              v[5] -= x[j][1] * delz * cforce;
+              vlist[n++] = j;
+            }
 
-	  } else {
+          } else {
 
-	    fdx = -delx*cforce;
-	    fdy = -dely*cforce;
-	    fdz = -delz*cforce;
+            fdx = -delx*cforce;
+            fdy = -dely*cforce;
+            fdz = -delz*cforce;
 
-	    delxOM = x[j][0] - x2[0];
-	    delyOM = x[j][1] - x2[1];
-	    delzOM = x[j][2] - x2[2];
+            delxOM = x[j][0] - x2[0];
+            delyOM = x[j][1] - x2[1];
+            delzOM = x[j][2] - x2[2];
 
-	    ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-	      (qdist*qdist);
+            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
+              (qdist*qdist);
 
-	    f1x = alpha * (fdx - ddotf * delxOM);
-	    f1y = alpha * (fdy - ddotf * delyOM);
-	    f1z = alpha * (fdz - ddotf * delzOM);
+            f1x = alpha * (fdx - ddotf * delxOM);
+            f1y = alpha * (fdy - ddotf * delyOM);
+            f1z = alpha * (fdz - ddotf * delzOM);
 
-	    fOx = fdx - f1x;
-	    fOy = fdy - f1y;
-	    fOz = fdz - f1z;
+            fOx = fdx - f1x;
+            fOy = fdy - f1y;
+            fOz = fdz - f1z;
 
-	    fHx = 0.5 * f1x;
-	    fHy = 0.5 * f1y;
-	    fHz = 0.5 * f1z;
+            fHx = 0.5 * f1x;
+            fHy = 0.5 * f1y;
+            fHz = 0.5 * f1z;
 
-	    f[j][0] += fOx;
-	    f[j][1] += fOy;
-	    f[j][2] += fOz;
+            f[j][0] += fOx;
+            f[j][1] += fOy;
+            f[j][2] += fOz;
 
-	    f[jH1][0] += fHx;
-	    f[jH1][1] += fHy;
-	    f[jH1][2] += fHz;
+            f[jH1][0] += fHx;
+            f[jH1][1] += fHy;
+            f[jH1][2] += fHz;
 
-	    f[jH2][0] += fHx;
-	    f[jH2][1] += fHy;
-	    f[jH2][2] += fHz;
+            f[jH2][0] += fHx;
+            f[jH2][1] += fHy;
+            f[jH2][2] += fHz;
 
-	    if (VFLAG) {
-	      domain->closest_image(x[j],x[jH1],xH1);
-	      domain->closest_image(x[j],x[jH2],xH2);
+            if (VFLAG) {
+              domain->closest_image(x[j],x[jH1],xH1);
+              domain->closest_image(x[j],x[jH2],xH2);
 
-	      v[0] += x[j][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
-	      v[1] += x[j][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
-	      v[2] += x[j][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
-	      v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
-	      v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
-	      v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] += x[j][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] += x[j][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] += x[j][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
 
-	      vlist[n++] = j;
-	      vlist[n++] = jH1;
-	      vlist[n++] = jH2;
-	    }
-	  }
+              vlist[n++] = j;
+              vlist[n++] = jH1;
+              vlist[n++] = jH2;
+            }
+          }
 
-	  if (EFLAG) {
-	    if (CTABLE || rsq <= tabinnersq)
-	      ecoul = prefactor*erfc;
-	    else {
-	      table = etable[itable] + fraction*detable[itable];
-	      ecoul = qtmp*q[j] * table;
-	    }
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
+          if (EFLAG) {
+            if (CTABLE || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
 
-	  if (EVFLAG) ev_tally_list_thr(this,n,vlist,ecoul,v,thr);
-	}
+          if (EVFLAG) ev_tally_list_thr(this,n,vlist,ecoul,v,thr);
+        }
       }
     }
     f[i][0] += fxtmp;

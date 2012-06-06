@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -43,7 +43,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
 
   double displace_dist = atof(arg[3]);
-  if (displace_dist <= 0.0) 
+  if (displace_dist <= 0.0)
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
@@ -70,11 +70,11 @@ void ComputeEventDisplace::init()
   if (id_event != NULL) {
     int ifix = modify->find_fix(id_event);
     if (ifix < 0) error->all(FLERR,
-			     "Could not find compute event/displace fix ID");
+                             "Could not find compute event/displace fix ID");
     fix_event = (FixEvent*) modify->fix[ifix];
-    
+
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
-	strcmp(fix_event->style,"EVENT/TAD") != 0)
+        strcmp(fix_event->style,"EVENT/TAD") != 0)
       error->all(FLERR,"Compute event/displace has invalid fix event assigned");
   }
 
@@ -109,12 +109,12 @@ double ComputeEventDisplace::compute_scalar()
   if (triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + xbox*xprd - xevent[i][0];
-	dy = x[i][1] + ybox*yprd - xevent[i][1];
-	dz = x[i][2] + zbox*zprd - xevent[i][2];
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        dx = x[i][0] + xbox*xprd - xevent[i][0];
+        dy = x[i][1] + ybox*yprd - xevent[i][1];
+        dz = x[i][2] + zbox*zprd - xevent[i][2];
         rsq = dx*dx + dy*dy + dz*dz;
         if (rsq >= displace_distsq) {
           event = 1.0;
@@ -124,12 +124,12 @@ double ComputeEventDisplace::compute_scalar()
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xevent[i][0];
-	dy = x[i][1] + h[1]*ybox + h[3]*zbox - xevent[i][1];
-	dz = x[i][2] + h[2]*zbox - xevent[i][2];
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xevent[i][0];
+        dy = x[i][1] + h[1]*ybox + h[3]*zbox - xevent[i][1];
+        dz = x[i][2] + h[2]*zbox - xevent[i][2];
         rsq = dx*dx + dy*dy + dz*dz;
         if (rsq >= displace_distsq) {
           event = 1.0;

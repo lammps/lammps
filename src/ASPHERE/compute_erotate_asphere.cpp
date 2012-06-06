@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -41,9 +41,9 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
-  if (!avec_ellipsoid && !avec_line && !avec_tri) 
+  if (!avec_ellipsoid && !avec_line && !avec_tri)
     error->all(FLERR,"Compute erotate/asphere requires "
-	       "atom style ellipsoid or line or tri");
+               "atom style ellipsoid or line or tri");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,7 +67,7 @@ void ComputeERotateAsphere::init()
       if (line && line[i] >= 0) flag = 1;
       if (tri && tri[i] >= 0) flag = 1;
       if (!flag)
-	error->one(FLERR,"Compute erotate/asphere requires extended particles");
+        error->one(FLERR,"Compute erotate/asphere requires extended particles");
     }
 
   pfactor = 0.5 * force->mvv2e;
@@ -106,53 +106,53 @@ double ComputeERotateAsphere::compute_scalar()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (ellipsoid && ellipsoid[i] >= 0) {
-	shape = ebonus[ellipsoid[i]].shape;
-	quat = ebonus[ellipsoid[i]].quat;
+        shape = ebonus[ellipsoid[i]].shape;
+        quat = ebonus[ellipsoid[i]].quat;
 
-	// principal moments of inertia
-	
-	inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-	inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-	inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
-	
-	// wbody = angular velocity in body frame
-	
-	MathExtra::quat_to_mat(quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	erotate += inertia[0]*wbody[0]*wbody[0] +
-	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+        // principal moments of inertia
+
+        inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+        inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+        inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        erotate += inertia[0]*wbody[0]*wbody[0] +
+          inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
 
       } else if (line && line[i] >= 0) {
-	length = lbonus[line[i]].length;
+        length = lbonus[line[i]].length;
 
-	erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		    omega[i][2]*omega[i][2]) * length*length*rmass[i] / 12.0;
+        erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
+                    omega[i][2]*omega[i][2]) * length*length*rmass[i] / 12.0;
 
       } else if (tri && tri[i] >= 0) {
 
-	// principal moments of inertia
+        // principal moments of inertia
 
-	inertia[0] = tbonus[tri[i]].inertia[0];
-	inertia[1] = tbonus[tri[i]].inertia[1];
-	inertia[2] = tbonus[tri[i]].inertia[2];
+        inertia[0] = tbonus[tri[i]].inertia[0];
+        inertia[1] = tbonus[tri[i]].inertia[1];
+        inertia[2] = tbonus[tri[i]].inertia[2];
 
-	// wbody = angular velocity in body frame
-	
-	MathExtra::quat_to_mat(tbonus[tri[i]].quat,rot);
-	MathExtra::transpose_matvec(rot,angmom[i],wbody);
-	wbody[0] /= inertia[0];
-	wbody[1] /= inertia[1];
-	wbody[2] /= inertia[2];
-	
-	erotate += inertia[0]*wbody[0]*wbody[0] +
-	  inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
+        // wbody = angular velocity in body frame
+
+        MathExtra::quat_to_mat(tbonus[tri[i]].quat,rot);
+        MathExtra::transpose_matvec(rot,angmom[i],wbody);
+        wbody[0] /= inertia[0];
+        wbody[1] /= inertia[1];
+        wbody[2] /= inertia[2];
+
+        erotate += inertia[0]*wbody[0]*wbody[0] +
+          inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
       }
     }
-  
+
   MPI_Allreduce(&erotate,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   scalar *= pfactor;
   return scalar;

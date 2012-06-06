@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -116,7 +116,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
     tn = 1.0;
     tn_1 = 1.0;
     tn_2 = 0.0;
-    un = 1.0; 
+    un = 1.0;
     un_1 = 2.0;
     un_2 = 0.0;
 
@@ -147,7 +147,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-        
+
     f1[0] = a11*delx1 + a12*delx2;
     f1[1] = a11*dely1 + a12*dely2;
     f1[2] = a11*delz1 + a12*delz2;
@@ -176,7 +176,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+                         delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 
@@ -232,7 +232,7 @@ double AngleCosinePeriodic::equilibrium_angle(int i)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void AngleCosinePeriodic::write_restart(FILE *fp)
@@ -243,7 +243,7 @@ void AngleCosinePeriodic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void AngleCosinePeriodic::read_restart(FILE *fp)
@@ -273,7 +273,7 @@ double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)
   double delz1 = x[i1][2] - x[i2][2];
   domain->minimum_image(delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
-  
+
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];

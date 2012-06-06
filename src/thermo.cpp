@@ -273,8 +273,8 @@ void Thermo::header()
   sprintf(&line[loc],"\n");
 
   if (me == 0) {
-    if (screen) fprintf(screen,line);
-    if (logfile) fprintf(logfile,line);
+    if (screen) fprintf(screen,"%s",line);
+    if (logfile) fprintf(logfile,"%s",line);
   }
 }
 
@@ -343,9 +343,9 @@ void Thermo::compute(int flag)
   // print line to screen and logfile
 
   if (me == 0) {
-    if (screen) fprintf(screen,line);
+    if (screen) fprintf(screen,"%s",line);
     if (logfile) {
-      fprintf(logfile,line);
+      fprintf(logfile,"%s",line);
       if (flushflag) fflush(logfile);
     }
   }

@@ -134,10 +134,10 @@ void FixPrint::end_of_step()
   modify->addstep_compute(update->ntimestep + nevery);
 
   if (me == 0) {
-    if (screenflag && screen) fprintf(screen,copy);
-    if (screenflag && logfile) fprintf(logfile,copy);
+    if (screenflag && screen) fprintf(screen,"%s",copy);
+    if (screenflag && logfile) fprintf(logfile,"%s",copy);
     if (fp) {
-      fprintf(fp,copy);
+      fprintf(fp,"%s",copy);
       fflush(fp);
     }
   }

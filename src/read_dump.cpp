@@ -456,7 +456,8 @@ void ReadDump::atoms()
 
     domain->set_initial_box();
     domain->set_global_box();
-    comm->set_proc_grid();
+    // would be OK to do this, except it prints out info
+    //comm->set_proc_grid();
     domain->set_local_box();
   }
 

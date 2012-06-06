@@ -167,7 +167,7 @@ void Run::command(int narg, char **arg)
     if (preflag || update->first_update == 0) {
       lmp->init();
       update->integrate->setup();
-    } else output->setup(0);
+    } else output->setup(1,0);
 
     timer->init();
     timer->barrier_start(TIME_LOOP);
@@ -205,7 +205,7 @@ void Run::command(int narg, char **arg)
       if (preflag || iter == 0) {
         lmp->init();
         update->integrate->setup();
-      } else output->setup(0);
+      } else output->setup(1,0);
 
       timer->init();
       timer->barrier_start(TIME_LOOP);

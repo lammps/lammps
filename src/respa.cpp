@@ -379,7 +379,7 @@ void Respa::setup()
 
   modify->setup(vflag);
   sum_flevel_f();
-  output->setup(1);
+  output->setup(1,1);
   update->setupflag = 0;
 }
 

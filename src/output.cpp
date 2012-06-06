@@ -161,9 +161,11 @@ void Output::init()
    perform output for setup of run/min
    do dump first, so memory_usage will include dump allocation
    do thermo last, so will print after memory_usage
+   headflag = 0/1 for printing out header line
+   memflag = 0/1 for printing out memory usage
 ------------------------------------------------------------------------- */
 
-void Output::setup(int flag)
+void Output::setup(int headflag, int memflag)
 {
   bigint ntimestep = update->ntimestep;
 
@@ -245,16 +247,16 @@ void Output::setup(int flag)
 
   // print memory usage unless being called between multiple runs
 
-  if (flag) memory_usage();
+  if (memflag) memory_usage();
 
-  // always do thermo with header at start of run
+  // always do thermo with header at start of run unless called via rerun
   // set next_thermo to multiple of every or last step of run (if smaller)
   // if every = 0, set next_thermo to last step of run
   // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
 
-  thermo->header();
+  if (headflag) thermo->header();
   thermo->compute(0);
   last_thermo = ntimestep;
 

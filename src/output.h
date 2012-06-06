@@ -60,7 +60,7 @@ class Output : protected Pointers {
   Output(class LAMMPS *);
   ~Output();
   void init();
-  void setup(int);                   // initial output before run/min
+  void setup(int,int);               // initial output before run/min
   void write(bigint);                // output for current timestep
   void write_dump(bigint);           // force output of dump snapshots
   void write_restart(bigint);        // force output of a restart file

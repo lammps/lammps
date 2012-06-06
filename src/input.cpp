@@ -507,7 +507,7 @@ int Input::execute_command()
 #define COMMAND_CLASS
 #define CommandStyle(key,Class)         \
   else if (strcmp(command,#key) == 0) { \
-    Class key(lmp);                        \
+    Class key(lmp);                     \
     key.command(narg,arg);              \
     return 0;                           \
   }

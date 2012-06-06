@@ -55,7 +55,8 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix heat command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) error->all(FLERR,"Region ID for fix heat does not exist");
+      if (iregion == -1) 
+	error->all(FLERR,"Region ID for fix heat does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -90,12 +91,14 @@ void FixHeat::init()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR,"Region ID for fix heat does not exist");
+    if (iregion == -1) 
+      error->all(FLERR,"Region ID for fix heat does not exist");
   }
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0) error->all(FLERR,"Fix heat group has no atoms");
+  if (group->count(igroup) == 0) 
+    error->all(FLERR,"Fix heat group has no atoms");
   masstotal = group->mass(igroup);
 }
 

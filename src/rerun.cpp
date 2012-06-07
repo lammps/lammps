@@ -57,9 +57,10 @@ void Rerun::command(int narg, char **arg)
   if (nfile == 0 || nfile == narg) error->all(FLERR,"Illegal rerun command");
 
   // parse optional args up until "dump"
+  // user MAXBIGINT -1 so Output can add 1 to it and still be a big int
 
   bigint first = 0;
-  bigint last = MAXBIGINT;
+  bigint last = MAXBIGINT - 1;
   int nevery = 0;
   int nskip = 1;
   int startflag = 0;
@@ -151,9 +152,11 @@ void Rerun::command(int narg, char **arg)
 
     modify->addstep_compute_all(ntimestep);
     update->integrate->setup_minimal(1);
-    output->setup(firstflag,firstflag);
+    modify->end_of_step();
+    if (firstflag) output->setup(firstflag,firstflag);
+    else if (output->next) output->write(ntimestep);
+
     firstflag = 0;
-  
     ntimestep = rd->next(ntimestep,last,nevery,nskip);
     if (ntimestep < 0) break;
   }

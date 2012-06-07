@@ -35,6 +35,7 @@ class FixAveSpatial : public Fix {
   void end_of_step();
   double compute_array(int,int);
   double memory_usage();
+  void reset_timestep(bigint);
 
  private:
   int me,nvalues;

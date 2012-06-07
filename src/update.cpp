@@ -356,9 +356,8 @@ void Update::reset_timestep(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    reset timestep
-   do not allow dump files or a restart to be defined
+   trigger reset of timestep for output and fixes that require it
    do not allow any timestep-dependent fixes to be defined
-   do not allow any dynamic regions to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
    reset invoked flags of computes,
      so nothing will think they are current between runs
@@ -367,23 +366,18 @@ void Update::reset_timestep(int narg, char **arg)
 
 void Update::reset_timestep(bigint newstep)
 {
-  for (int i = 0; i < output->ndump; i++)
-    if (output->last_dump[i] >= 0)
-      error->all(FLERR,
-                 "Cannot reset timestep with dump file already written to");
+  ntimestep = newstep;
+  if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
+  if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
 
-  if (output->restart && output->last_restart >= 0)
-    error->all(FLERR,
-               "Cannot reset timestep with restart file already written");
+  output->reset_timestep(ntimestep);
 
-  for (int i = 0; i < modify->nfix; i++)
+  for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i]->time_depend)
       error->all(FLERR,
                  "Cannot reset timestep with a time-dependent fix defined");
-
-  for (int i = 0; i < domain->nregion; i++)
-    if (domain->regions[i]->dynamic_check())
-      error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
+    modify->fix[i]->reset_timestep(newstep);
+  }
 
   eflag_global = vflag_global = -1;
 
@@ -398,9 +392,11 @@ void Update::reset_timestep(bigint newstep)
   for (int i = 0; i < modify->ncompute; i++)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
 
-  ntimestep = newstep;
-  if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
-  if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
+  // NOTE: 7Jun12, adding rerun command, don't think this is required
+
+  //for (int i = 0; i < domain->nregion; i++)
+  //  if (domain->regions[i]->dynamic_check())
+  //    error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
 }
 
 /* ----------------------------------------------------------------------

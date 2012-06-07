@@ -60,7 +60,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   size_array_cols = 3;
   extarray = 0;
-  time_depend = 1;
 
   lo = atof(arg[6]);
   hi = atof(arg[7]);
@@ -990,4 +989,11 @@ bigint FixAveHisto::nextvalid()
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveHisto::reset_timestep(bigint ntimestep)
+{
+  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/histo missed timestep");
 }

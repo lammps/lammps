@@ -39,6 +39,7 @@ class FixAveAtom : public Fix {
   void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+  void reset_timestep(bigint);
 
  private:
   int nvalues;

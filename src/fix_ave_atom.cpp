@@ -38,8 +38,6 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
-  time_depend = 1;
-
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   peratom_freq = atoi(arg[5]);
@@ -446,4 +444,11 @@ bigint FixAveAtom::nextvalid()
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveAtom::reset_timestep(bigint ntimestep)
+{
+  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/atom missed timestep");
 }

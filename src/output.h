@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -60,7 +60,7 @@ class Output : protected Pointers {
   Output(class LAMMPS *);
   ~Output();
   void init();
-  void setup(int);                   // initial output before run/min
+  void setup(int,int);               // initial output before run/min
   void write(bigint);                // output for current timestep
   void write_dump(bigint);           // force output of dump snapshots
   void write_restart(bigint);        // force output of a restart file

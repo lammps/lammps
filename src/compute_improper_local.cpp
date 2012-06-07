@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,7 +73,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 
 void ComputeImproperLocal::init()
 {
-  if (force->improper == NULL) 
+  if (force->improper == NULL)
     error->all(FLERR,"No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
@@ -145,52 +145,52 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
       if (flag) {
 
-	// chi calculation from improper style harmonic
+        // chi calculation from improper style harmonic
 
-	if (cflag >= 0) {
-	  vb1x = x[atom1][0] - x[atom2][0];
-	  vb1y = x[atom1][1] - x[atom2][1];
-	  vb1z = x[atom1][2] - x[atom2][2];
-	  domain->minimum_image(vb1x,vb1y,vb1z);
+        if (cflag >= 0) {
+          vb1x = x[atom1][0] - x[atom2][0];
+          vb1y = x[atom1][1] - x[atom2][1];
+          vb1z = x[atom1][2] - x[atom2][2];
+          domain->minimum_image(vb1x,vb1y,vb1z);
 
-	  vb2x = x[atom3][0] - x[atom2][0];
-	  vb2y = x[atom3][1] - x[atom2][1];
-	  vb2z = x[atom3][2] - x[atom2][2];
-	  domain->minimum_image(vb2x,vb2y,vb2z);
+          vb2x = x[atom3][0] - x[atom2][0];
+          vb2y = x[atom3][1] - x[atom2][1];
+          vb2z = x[atom3][2] - x[atom2][2];
+          domain->minimum_image(vb2x,vb2y,vb2z);
 
-	  vb3x = x[atom4][0] - x[atom3][0];
-	  vb3y = x[atom4][1] - x[atom3][1];
-	  vb3z = x[atom4][2] - x[atom3][2];
-	  domain->minimum_image(vb3x,vb3y,vb3z);
+          vb3x = x[atom4][0] - x[atom3][0];
+          vb3y = x[atom4][1] - x[atom3][1];
+          vb3z = x[atom4][2] - x[atom3][2];
+          domain->minimum_image(vb3x,vb3y,vb3z);
 
-	  ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-	  ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-	  ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
-        
-	  r1 = sqrt(ss1);
-	  r2 = sqrt(ss2);
-	  r3 = sqrt(ss3);
-        
-	  c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
-	  c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
-	  c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
+          ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+          ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+          ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
 
-	  s1 = 1.0 - c1*c1;
-	  if (s1 < SMALL) s1 = SMALL;
-	  s1 = 1.0 / s1;
+          r1 = sqrt(ss1);
+          r2 = sqrt(ss2);
+          r3 = sqrt(ss3);
 
-	  s2 = 1.0 - c2*c2;
-	  if (s2 < SMALL) s2 = SMALL;
-	  s2 = 1.0 / s2;
+          c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
+          c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
+          c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
 
-	  s12 = sqrt(s1*s2);
-	  c = (c1*c2 + c0) * s12;
+          s1 = 1.0 - c1*c1;
+          if (s1 < SMALL) s1 = SMALL;
+          s1 = 1.0 / s1;
 
-	  if (c > 1.0) c = 1.0;
-	  if (c < -1.0) c = -1.0;
-	  cbuf[n] = 180.0*acos(c)/MY_PI;
-	}
-	n += nvalues;
+          s2 = 1.0 - c2*c2;
+          if (s2 < SMALL) s2 = SMALL;
+          s2 = 1.0 / s2;
+
+          s12 = sqrt(s1*s2);
+          c = (c1*c2 + c0) * s12;
+
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+          cbuf[n] = 180.0*acos(c)/MY_PI;
+        }
+        n += nvalues;
       }
 
       m++;

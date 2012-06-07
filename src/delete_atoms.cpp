@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -38,7 +38,7 @@ DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
 
 void DeleteAtoms::command(int narg, char **arg)
 {
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"Delete_atoms command before simulation box is defined");
   if (narg < 1) error->all(FLERR,"Illegal delete_atoms command");
   if (atom->tag_enable == 0)
@@ -101,12 +101,12 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndelete = natoms_previous - atom->natoms;
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"Deleted " BIGINT_FORMAT 
-			" atoms, new total = " BIGINT_FORMAT "\n",
-			ndelete,atom->natoms);
-    if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT 
-			 " atoms, new total = " BIGINT_FORMAT "\n",
-			 ndelete,atom->natoms);
+    if (screen) fprintf(screen,"Deleted " BIGINT_FORMAT
+                        " atoms, new total = " BIGINT_FORMAT "\n",
+                        ndelete,atom->natoms);
+    if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT
+                         " atoms, new total = " BIGINT_FORMAT "\n",
+                         ndelete,atom->natoms);
   }
 }
 
@@ -124,7 +124,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
-  
+
   int nlocal = atom->nlocal;
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
@@ -143,13 +143,13 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
-  
+
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
   options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
-  
+
   int nlocal = atom->nlocal;
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
@@ -170,7 +170,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 void DeleteAtoms::delete_overlap(int narg, char **arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
-    
+
   // read args
 
   double cut = atof(arg[1]);
@@ -199,7 +199,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-  
+
   lmp->init();
 
   // error check on cutoff
@@ -207,7 +207,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   if (force->pair == NULL)
     error->all(FLERR,"Delete_atoms requires a pair style be defined");
-  if (cut > neighbor->cutneighmax) 
+  if (cut > neighbor->cutneighmax)
     error->all(FLERR,"Delete_atoms cutoff > neighbor cutoff");
 
   // setup domain, communication and neighboring
@@ -228,7 +228,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // allocate and initialize deletion list
   // must be after exchange potentially changes nlocal
-  
+
   int nlocal = atom->nlocal;
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
@@ -298,9 +298,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       //   test on tags of I,J insures that only I or J is deleted
 
       if (j < nlocal) {
-	if (dlist[j]) continue;
+        if (dlist[j]) continue;
       } else if ((mask[i] & group2bit) && (mask[j] & group1bit)) {
-	if (tag[i] > tag[j]) continue;
+        if (tag[i] > tag[j]) continue;
       }
 
       dlist[i] = 1;
@@ -310,7 +310,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   create porosity by deleting atoms in a specified region 
+   create porosity by deleting atoms in a specified region
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
@@ -327,7 +327,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   RanMars *random = new RanMars(lmp,seed + comm->me);
 
   // allocate and initialize deletion list
- 
+
   int nlocal = atom->nlocal;
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;

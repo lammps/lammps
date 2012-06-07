@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -38,7 +38,7 @@ PairCMMCommon::PairCMMCommon(class LAMMPS *lmp) : Pair(lmp)
   allocated_coul = 0;
   kappa = 0.0;
   respa_enable = 0;
-  single_enable = 0; 
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- *
@@ -73,7 +73,7 @@ void PairCMMCommon::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-  
+
   memory->create(setflag,n+1,n+1,"paircg:setflag");
   memory->create(cg_type,n+1,n+1,"paircg:cg_type");
   for (int i = 1; i <= n; i++) {
@@ -87,7 +87,7 @@ void PairCMMCommon::allocate()
   memory->create(cutsq,n+1,n+1,"paircg:cutsq");
   memory->create(epsilon,n+1,n+1,"paircg:epsilon");
   memory->create(sigma,n+1,n+1,"paircg:sigma");
-  memory->create(offset,n+1,n+1,"paircg:offset"); 
+  memory->create(offset,n+1,n+1,"paircg:offset");
 
   memory->create(lj1,n+1,n+1,"paircg:lj1");
   memory->create(lj2,n+1,n+1,"paircg:lj2");
@@ -96,7 +96,7 @@ void PairCMMCommon::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 // arguments to the pair_style command (global version)
@@ -109,7 +109,7 @@ void PairCMMCommon::settings(int narg, char **arg)
   if (narg == 1) cut_coul_global = cut_lj_global;
   else cut_coul_global = force->numeric(arg[1]);
   cut_coulsq_global = cut_coul_global*cut_coul_global;
-  
+
   // exponential coulomb screening (optional)
   if (narg == 3) kappa = force->numeric(arg[2]);
   if (fabs(kappa) < SMALL) kappa=0.0;
@@ -147,7 +147,7 @@ void PairCMMCommon::coeff(int narg, char **arg)
 
   int cg_type_one=find_cg_type(arg[2]);
   if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
-  
+
   double epsilon_one = force->numeric(arg[3]);
   double sigma_one = force->numeric(arg[4]);
 
@@ -248,7 +248,7 @@ double PairCMMCommon::init_one(int i, int j)
 
   if (cgt == CG_NOT_SET)
     error->all(FLERR,"unrecognized LJ parameter flag");
-  
+
   lj1[i][j] = cg_prefact[cgt] * cg_pow1[cgt] * epsilon[i][j] * pow(sigma[i][j],cg_pow1[cgt]);
   lj2[i][j] = cg_prefact[cgt] * cg_pow2[cgt] * epsilon[i][j] * pow(sigma[i][j],cg_pow2[cgt]);
   lj3[i][j] = cg_prefact[cgt] * epsilon[i][j] * pow(sigma[i][j],cg_pow1[cgt]);
@@ -270,7 +270,7 @@ double PairCMMCommon::init_one(int i, int j)
       offset[i][j] = cg_prefact[cgt] * epsilon[i][j] * (pow(ratio,cg_pow1[cgt]) - pow(ratio,cg_pow2[cgt]));
     } else offset[i][j] = 0.0;
   }
-  
+
   // make sure data is stored symmetrically
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
@@ -279,7 +279,7 @@ double PairCMMCommon::init_one(int i, int j)
   offset[j][i] = offset[i][j];
   cg_type[j][i] = cg_type[i][j];
   cut[j][i] = mycut;
-  
+
   if (allocated_coul) {
     cut_lj[j][i]=cut_lj[i][j];
     cut_ljsq[j][i]=cut_ljsq[i][j];
@@ -303,24 +303,24 @@ double PairCMMCommon::init_one(int i, int j)
       if (type[k] == j) count[1] += 1.0;
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-        
+
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
     double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (sig6 - 3.0*rc6) / (9.0*rc9); 
-    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9); 
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (sig6 - 3.0*rc6) / (9.0*rc9);
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
 #endif
-  } 
+  }
 
   return mycut;
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairCMMCommon::write_restart(FILE *fp)
@@ -419,41 +419,41 @@ void PairCMMCommon::read_restart_settings(FILE *fp)
 double PairCMMCommon::memory_usage()
 {
   double bytes=Pair::memory_usage();
-  
+
   int n = atom->ntypes;
 
   // setflag/cg_type
-  bytes += (n+1)*(n+1)*sizeof(int)*2; 
+  bytes += (n+1)*(n+1)*sizeof(int)*2;
   // cut/cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4
-  bytes += (n+1)*(n+1)*sizeof(double)*9; 
-  
+  bytes += (n+1)*(n+1)*sizeof(double)*9;
+
   return bytes;
 }
 
 /* ------------------------------------------------------------------------ */
 
-double PairCMMCommon::eval_single(int coul_type, int i, int j, int itype, int jtype, 
-                           double rsq, double factor_coul, double factor_lj, 
+double PairCMMCommon::eval_single(int coul_type, int i, int j, int itype, int jtype,
+                           double rsq, double factor_coul, double factor_lj,
                            double &fforce)
 {
   double lj_force, lj_erg, coul_force, coul_erg;
   lj_force=lj_erg=coul_force=coul_erg=0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-      
+
     const int cgt = cg_type[itype][jtype];
     const double cgpow1 = cg_pow1[cgt];
     const double cgpow2 = cg_pow2[cgt];
     const double cgpref = cg_prefact[cgt];
-        
+
     const double ratio = sigma[itype][jtype]/sqrt(rsq);
     const double eps = epsilon[itype][jtype];
 
-    lj_force = cgpref*eps * (cgpow1*pow(ratio,cgpow1) 
+    lj_force = cgpref*eps * (cgpow1*pow(ratio,cgpow1)
                             - cgpow2*pow(ratio,cgpow2))/rsq;
     lj_erg = cgpref*eps * (pow(ratio,cgpow1) - pow(ratio,cgpow2));
   }
-  
+
   if (rsq < cut_coul[itype][jtype]) {
     if(coul_type == CG_COUL_LONG) {
       error->all(FLERR,"single energy computation with long-range coulomb not supported by CG potentials.");

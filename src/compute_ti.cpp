@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,9 +34,9 @@ enum{PAIR,TAIL,KSPACE};
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) : 
-  Compute(lmp, narg, arg) 
-{ 
+ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
+  Compute(lmp, narg, arg)
+{
   if (narg < 4) error->all(FLERR,"Illegal compute ti command");
 
   peflag = 1;
@@ -58,7 +58,7 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
   pstyle = new char*[nterms];
 
   for (int m = 0; m < nterms; m++) pstyle[m] = NULL;
-    
+
   // parse keywords
 
   nterms = 0;
@@ -121,7 +121,7 @@ void ComputeTI::init()
     if (ivar1[m] < 0 || ivar2 < 0)
       error->all(FLERR,"Variable name for compute ti does not exist");
     if (!input->variable->equalstyle(ivar1[m]) ||
-	!input->variable->equalstyle(ivar2[m]))
+        !input->variable->equalstyle(ivar2[m]))
       error->all(FLERR,"Variable for compute ti is invalid style");
 
     if (which[m] == PAIR) {
@@ -129,13 +129,13 @@ void ComputeTI::init()
       if (pptr[m] == NULL) error->all(FLERR,"Compute ti pair style does not exist");
 
     } else if (which[m] == TAIL) {
-      if (force->pair == NULL || force->pair->tail_flag == 0) 
-	error->all(FLERR,"Compute ti tail when pair style does not "
-		   "compute tail corrections");
+      if (force->pair == NULL || force->pair->tail_flag == 0)
+        error->all(FLERR,"Compute ti tail when pair style does not "
+                   "compute tail corrections");
 
     } else if (which[m] == KSPACE) {
-      if (force->kspace == NULL) 
-	error->all(FLERR,"Compute ti kspace style does not exist");
+      if (force->kspace == NULL)
+        error->all(FLERR,"Compute ti kspace style does not exist");
     }
   }
 }

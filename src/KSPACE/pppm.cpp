@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -97,7 +97,7 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 }
 
 /* ----------------------------------------------------------------------
-   free all memory 
+   free all memory
 ------------------------------------------------------------------------- */
 
 PPPM::~PPPM()
@@ -110,7 +110,7 @@ PPPM::~PPPM()
 }
 
 /* ----------------------------------------------------------------------
-   called once before run 
+   called once before run
 ------------------------------------------------------------------------- */
 
 void PPPM::init()
@@ -125,15 +125,15 @@ void PPPM::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
   if (domain->dimension == 2) error->all(FLERR,
-					 "Cannot use PPPM with 2d simulation");
+                                         "Cannot use PPPM with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
   if (slabflag == 1) {
-    if (domain->xperiodic != 1 || domain->yperiodic != 1 || 
-	domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
+    if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
+        domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
@@ -187,11 +187,11 @@ void PPPM::init()
 
     if (force->angle == NULL || force->bond == NULL)
       error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
-    if (typeA < 1 || typeA > atom->nangletypes || 
-	force->angle->setflag[typeA] == 0)
+    if (typeA < 1 || typeA > atom->nangletypes ||
+        force->angle->setflag[typeA] == 0)
       error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
-    if (typeB < 1 || typeB > atom->nbondtypes || 
-	force->bond->setflag[typeB] == 0)
+    if (typeB < 1 || typeB > atom->nbondtypes ||
+        force->bond->setflag[typeB] == 0)
       error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
@@ -231,10 +231,10 @@ void PPPM::init()
   }
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
-  
+
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
-  
+
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
   // if grid stencil extends beyond neighbor proc, reduce order and try again
@@ -244,7 +244,7 @@ void PPPM::init()
   while (order > 1) {
     if (iteration && me == 0)
       error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
-		     "beyond neighbor processor");
+                     "beyond neighbor processor");
     iteration++;
 
     set_grid();
@@ -263,9 +263,9 @@ void PPPM::init()
     nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_pppm);
     nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_pppm) - 1;
 
-    nzlo_in = static_cast<int> 
+    nzlo_in = static_cast<int>
       (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
-    nzhi_in = static_cast<int> 
+    nzhi_in = static_cast<int>
       (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
 
     // nlower,nupper = stencil size for mapping particles to PPPM grid
@@ -320,27 +320,27 @@ void PPPM::init()
       dist[1] = cuthalf/domain->prd[1];
       dist[2] = cuthalf/domain->prd[2];
     }
-    
+
     int nlo,nhi;
-    
-    nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * 
-			    nx_pppm/xprd + shift) - OFFSET;
-    nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * 
-			    nx_pppm/xprd + shift) - OFFSET;
+
+    nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
+                            nx_pppm/xprd + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
+                            nx_pppm/xprd + shift) - OFFSET;
     nxlo_out = nlo + nlower;
     nxhi_out = nhi + nupper;
 
-    nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * 
-			    ny_pppm/yprd + shift) - OFFSET;
-    nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * 
-			    ny_pppm/yprd + shift) - OFFSET;
+    nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
+                            ny_pppm/yprd + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
+                            ny_pppm/yprd + shift) - OFFSET;
     nylo_out = nlo + nlower;
     nyhi_out = nhi + nupper;
 
-    nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * 
-			    nz_pppm/zprd_slab + shift) - OFFSET;
-    nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * 
-			    nz_pppm/zprd_slab + shift) - OFFSET;
+    nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
+                            nz_pppm/zprd_slab + shift) - OFFSET;
+    nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
+                            nz_pppm/zprd_slab + shift) - OFFSET;
     nzlo_out = nlo + nlower;
     nzhi_out = nhi + nupper;
 
@@ -355,7 +355,7 @@ void PPPM::init()
       nzhi_in = nz_pppm - 1;
       nzhi_out = nz_pppm - 1;
     }
-  
+
     // nlo_ghost,nhi_ghost = # of planes I will recv from 6 directions
     //   that overlay domain I own
     // proc in that direction tells me via sendrecv()
@@ -367,43 +367,43 @@ void PPPM::init()
     nplanes = nxlo_in - nxlo_out;
     if (comm->procneigh[0][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
-		   &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,
-		   world,&status);
+                   &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,
+                   world,&status);
     else nxhi_ghost = nplanes;
 
     nplanes = nxhi_out - nxhi_in;
     if (comm->procneigh[0][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
-		   &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],
-		   0,world,&status);
+                   &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],
+                   0,world,&status);
     else nxlo_ghost = nplanes;
 
     nplanes = nylo_in - nylo_out;
     if (comm->procneigh[1][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
-		   &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,
-		   world,&status);
+                   &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,
+                   world,&status);
     else nyhi_ghost = nplanes;
 
     nplanes = nyhi_out - nyhi_in;
     if (comm->procneigh[1][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
-		   &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,
-		   world,&status);
+                   &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,
+                   world,&status);
     else nylo_ghost = nplanes;
 
     nplanes = nzlo_in - nzlo_out;
     if (comm->procneigh[2][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
-		   &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,
-		   world,&status);
+                   &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,
+                   world,&status);
     else nzhi_ghost = nplanes;
 
     nplanes = nzhi_out - nzhi_in;
     if (comm->procneigh[2][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
-		   &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,
-		   world,&status);
+                   &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,
+                   world,&status);
     else nzlo_ghost = nplanes;
 
     // test that ghost overlap is not bigger than my sub-domain
@@ -510,9 +510,9 @@ void PPPM::init()
 
   if (me == 0) {
     if (screen) fprintf(screen,"  brick FFT buffer size/proc = %d %d %d\n",
-			ngrid_max,nfft_both_max,nbuf_max);
+                        ngrid_max,nfft_both_max,nbuf_max);
     if (logfile) fprintf(logfile,"  brick FFT buffer size/proc = %d %d %d\n",
-			 ngrid_max,nfft_both_max,nbuf_max);
+                         ngrid_max,nfft_both_max,nbuf_max);
   }
 
   // allocate K-space dependent memory
@@ -528,7 +528,7 @@ void PPPM::init()
 }
 
 /* ----------------------------------------------------------------------
-   adjust PPPM coeffs, called initially and whenever volume has changed 
+   adjust PPPM coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
 
 void PPPM::setup()
@@ -548,7 +548,7 @@ void PPPM::setup()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
   volume = xprd * yprd * zprd_slab;
-    
+
   delxinv = nx_pppm/xprd;
   delyinv = ny_pppm/yprd;
   delzinv = nz_pppm/zprd_slab;
@@ -586,24 +586,24 @@ void PPPM::setup()
   for (k = nzlo_fft; k <= nzhi_fft; k++) {
     for (j = nylo_fft; j <= nyhi_fft; j++) {
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	sqk = fkx[i]*fkx[i] + fky[j]*fky[j] + fkz[k]*fkz[k];
-	if (sqk == 0.0) {
-	  vg[n][0] = 0.0;
-	  vg[n][1] = 0.0;
-	  vg[n][2] = 0.0;
-	  vg[n][3] = 0.0;
-	  vg[n][4] = 0.0;
-	  vg[n][5] = 0.0;
-	} else {
-	  vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
-	  vg[n][0] = 1.0 + vterm*fkx[i]*fkx[i];
-	  vg[n][1] = 1.0 + vterm*fky[j]*fky[j];
-	  vg[n][2] = 1.0 + vterm*fkz[k]*fkz[k];
-	  vg[n][3] = vterm*fkx[i]*fky[j];
-	  vg[n][4] = vterm*fkx[i]*fkz[k];
-	  vg[n][5] = vterm*fky[j]*fkz[k];
-	}
-	n++;
+        sqk = fkx[i]*fkx[i] + fky[j]*fky[j] + fkz[k]*fkz[k];
+        if (sqk == 0.0) {
+          vg[n][0] = 0.0;
+          vg[n][1] = 0.0;
+          vg[n][2] = 0.0;
+          vg[n][3] = 0.0;
+          vg[n][4] = 0.0;
+          vg[n][5] = 0.0;
+        } else {
+          vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+          vg[n][0] = 1.0 + vterm*fkx[i]*fkx[i];
+          vg[n][1] = 1.0 + vterm*fky[j]*fky[j];
+          vg[n][2] = 1.0 + vterm*fkz[k]*fkz[k];
+          vg[n][3] = vterm*fkx[i]*fky[j];
+          vg[n][4] = vterm*fkx[i]*fkz[k];
+          vg[n][5] = vterm*fky[j]*fkz[k];
+        }
+        n++;
       }
     }
   }
@@ -616,12 +616,12 @@ void PPPM::setup()
   double sum1,dot1,dot2;
   double numerator,denominator;
 
-  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) * 
-			      pow(-log(EPS_HOC),0.25));
-  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) * 
-			      pow(-log(EPS_HOC),0.25));
-  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) * 
-			      pow(-log(EPS_HOC),0.25));
+  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) *
+                              pow(-log(EPS_HOC),0.25));
+  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) *
+                              pow(-log(EPS_HOC),0.25));
+  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) *
+                              pow(-log(EPS_HOC),0.25));
 
   double form = 1.0;
 
@@ -637,52 +637,52 @@ void PPPM::setup()
       sny2 = sny*sny;
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
-	kper = k - nx_pppm*(2*k/nx_pppm);
-	snx = sin(0.5*unitkx*kper*xprd/nx_pppm);
-	snx2 = snx*snx;
-      
-	sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) + 
-	  pow(unitkz*mper,2.0);
+        kper = k - nx_pppm*(2*k/nx_pppm);
+        snx = sin(0.5*unitkx*kper*xprd/nx_pppm);
+        snx2 = snx*snx;
 
-	if (sqk != 0.0) {
-	  numerator = form*12.5663706/sqk;
-	  denominator = gf_denom(snx2,sny2,snz2);  
-	  sum1 = 0.0;
+        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
+          pow(unitkz*mper,2.0);
+
+        if (sqk != 0.0) {
+          numerator = form*12.5663706/sqk;
+          denominator = gf_denom(snx2,sny2,snz2);
+          sum1 = 0.0;
           const double dorder = static_cast<double>(order);
-	  for (nx = -nbx; nx <= nbx; nx++) {
-	    qx = unitkx*(kper+nx_pppm*nx);
-	    sx = exp(-0.25*pow(qx/g_ewald,2.0));
-	    wx = 1.0;
-	    argx = 0.5*qx*xprd/nx_pppm;
-	    if (argx != 0.0) wx = pow(sin(argx)/argx,dorder);
-	    for (ny = -nby; ny <= nby; ny++) {
-	      qy = unitky*(lper+ny_pppm*ny);
-	      sy = exp(-0.25*pow(qy/g_ewald,2.0));
-	      wy = 1.0;
-	      argy = 0.5*qy*yprd/ny_pppm;
-	      if (argy != 0.0) wy = pow(sin(argy)/argy,dorder);
-	      for (nz = -nbz; nz <= nbz; nz++) {
-		qz = unitkz*(mper+nz_pppm*nz);
-		sz = exp(-0.25*pow(qz/g_ewald,2.0));
-		wz = 1.0;
-		argz = 0.5*qz*zprd_slab/nz_pppm;
-		if (argz != 0.0) wz = pow(sin(argz)/argz,dorder);
+          for (nx = -nbx; nx <= nbx; nx++) {
+            qx = unitkx*(kper+nx_pppm*nx);
+            sx = exp(-0.25*pow(qx/g_ewald,2.0));
+            wx = 1.0;
+            argx = 0.5*qx*xprd/nx_pppm;
+            if (argx != 0.0) wx = pow(sin(argx)/argx,dorder);
+            for (ny = -nby; ny <= nby; ny++) {
+              qy = unitky*(lper+ny_pppm*ny);
+              sy = exp(-0.25*pow(qy/g_ewald,2.0));
+              wy = 1.0;
+              argy = 0.5*qy*yprd/ny_pppm;
+              if (argy != 0.0) wy = pow(sin(argy)/argy,dorder);
+              for (nz = -nbz; nz <= nbz; nz++) {
+                qz = unitkz*(mper+nz_pppm*nz);
+                sz = exp(-0.25*pow(qz/g_ewald,2.0));
+                wz = 1.0;
+                argz = 0.5*qz*zprd_slab/nz_pppm;
+                if (argz != 0.0) wz = pow(sin(argz)/argz,dorder);
 
-		dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
-		dot2 = qx*qx+qy*qy+qz*qz;
-		sum1 += (dot1/dot2) * sx*sy*sz * pow(wx*wy*wz,2.0);
-	      }
-	    }
-	  }
-	  greensfn[n++] = numerator*sum1/denominator;
-	} else greensfn[n++] = 0.0;
+                dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
+                dot2 = qx*qx+qy*qy+qz*qz;
+                sum1 += (dot1/dot2) * sx*sy*sz * pow(wx*wy*wz,2.0);
+              }
+            }
+          }
+          greensfn[n++] = numerator*sum1/denominator;
+        } else greensfn[n++] = 0.0;
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   compute the PPPM long-range force, energy, virial 
+   compute the PPPM long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
 void PPPM::compute(int eflag, int vflag)
@@ -693,8 +693,8 @@ void PPPM::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global = 
-	 eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
@@ -702,7 +702,7 @@ void PPPM::compute(int eflag, int vflag)
   }
 
   // convert atoms from box to lamda coords
-  
+
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
@@ -761,7 +761,7 @@ void PPPM::compute(int eflag, int vflag)
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
-   
+
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
@@ -785,9 +785,9 @@ void PPPM::compute(int eflag, int vflag)
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
-	eatom[i] *= 0.5;
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
-	  (g_ewald*g_ewald*volume);
+        eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+          (g_ewald*g_ewald*volume);
         eatom[i] *= qscale;
       }
     }
@@ -803,24 +803,24 @@ void PPPM::compute(int eflag, int vflag)
   if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
-  
+
   if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
-   allocate memory that depends on # of K-vectors and order 
+   allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPM::allocate()
 {
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:density_brick");
+                          nxlo_out,nxhi_out,"pppm:density_brick");
   memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:vdx_brick");
+                          nxlo_out,nxhi_out,"pppm:vdx_brick");
   memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:vdy_brick");
+                          nxlo_out,nxhi_out,"pppm:vdy_brick");
   memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:vdz_brick");
+                          nxlo_out,nxhi_out,"pppm:vdz_brick");
 
   memory->create(density_fft,nfft_both,"pppm:density_fft");
   memory->create(greensfn,nfft_both,"pppm:greensfn");
@@ -849,49 +849,49 @@ void PPPM::allocate()
   int tmp;
 
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   0,0,&tmp);
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   0,0,&tmp);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		   0,0,&tmp);
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   0,0,&tmp);
 
   remap = new Remap(lmp,world,
-		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		    1,0,0,FFT_PRECISION);
+                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                    1,0,0,FFT_PRECISION);
 }
 
 /* ----------------------------------------------------------------------
-   allocate per-atom memory that depends on # of K-vectors and order 
+   allocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPM::allocate_peratom()
-{  
+{
   memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:u_brick");
-  
+                          nxlo_out,nxhi_out,"pppm:u_brick");
+
   memory->create3d_offset(v0_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v0_brick");
+                          nxlo_out,nxhi_out,"pppm:v0_brick");
   memory->create3d_offset(v1_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v1_brick");
+                          nxlo_out,nxhi_out,"pppm:v1_brick");
   memory->create3d_offset(v2_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v2_brick");
+                          nxlo_out,nxhi_out,"pppm:v2_brick");
   memory->create3d_offset(v3_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v3_brick");
+                          nxlo_out,nxhi_out,"pppm:v3_brick");
   memory->create3d_offset(v4_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v4_brick");
+                          nxlo_out,nxhi_out,"pppm:v4_brick");
   memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:v5_brick");
+                          nxlo_out,nxhi_out,"pppm:v5_brick");
 
   memory->create(buf3,nbuf_peratom,"pppm:buf3");
   memory->create(buf4,nbuf_peratom,"pppm:buf4");
 }
 
 /* ----------------------------------------------------------------------
-   deallocate memory that depends on # of K-vectors and order 
+   deallocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPM::deallocate()
@@ -924,13 +924,13 @@ void PPPM::deallocate()
 }
 
 /* ----------------------------------------------------------------------
-   deallocate per-atom memory that depends on # of K-vectors and order 
+   deallocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPM::deallocate_peratom()
 {
   memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
-    
+
   memory->destroy3d_offset(v0_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(v1_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(v2_brick,nzlo_out,nylo_out,nxlo_out);
@@ -939,11 +939,11 @@ void PPPM::deallocate_peratom()
   memory->destroy3d_offset(v5_brick,nzlo_out,nylo_out,nxlo_out);
 
   memory->destroy(buf3);
-  memory->destroy(buf4); 
+  memory->destroy(buf4);
 }
 
 /* ----------------------------------------------------------------------
-   set size of FFT grid (nx,ny,nz_pppm) and g_ewald 
+   set size of FFT grid (nx,ny,nz_pppm) and g_ewald
 ------------------------------------------------------------------------- */
 
 void PPPM::set_grid()
@@ -993,7 +993,7 @@ void PPPM::set_grid()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   double zprd_slab = zprd*slab_volfactor;
-  
+
   // make initial g_ewald estimate
   // based on desired accuracy and real space cutoff
   // fluid-occupied volume used to estimate real-space error
@@ -1007,7 +1007,7 @@ void PPPM::set_grid()
     if (g_ewald >= 1.0)
       error->all(FLERR,"KSpace accuracy too large to estimate G vector");
     g_ewald = sqrt(-log(g_ewald)) / cutoff;
-  } 
+  }
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
@@ -1016,7 +1016,7 @@ void PPPM::set_grid()
 
   if (!gridflag) {
     double err;
-    h_x = h_y = h_z = 1.0/g_ewald;  
+    h_x = h_y = h_z = 1.0/g_ewald;
 
     nx_pppm = static_cast<int> (xprd/h_x) + 1;
     ny_pppm = static_cast<int> (yprd/h_y) + 1;
@@ -1075,7 +1075,7 @@ void PPPM::set_grid()
     while (fabs(dgew) > SMALL && fmid != 0.0) {
       dgew *= 0.5;
       g_ewald = rtb + dgew;
-      fmid = diffpr(h_x,h_y,h_z,q2,acons);      
+      fmid = diffpr(h_x,h_y,h_z,q2,acons);
       if (fmid <= 0.0) rtb = g_ewald;
       ncount++;
       if (ncount > LARGE) error->all(FLERR,"Cannot compute PPPM G");
@@ -1088,7 +1088,7 @@ void PPPM::set_grid()
   double lpry = rms(h_y,yprd,natoms,q2,acons);
   double lprz = rms(h_z,zprd_slab,natoms,q2,acons);
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
+  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
 
   // free local memory
@@ -1108,9 +1108,9 @@ void PPPM::set_grid()
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-	      MAX(lpr,spr));
+              MAX(lpr,spr));
       fprintf(screen,"  estimated relative force accuracy = %g\n",
-	      MAX(lpr,spr)/two_charge_force);
+              MAX(lpr,spr)/two_charge_force);
       fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
@@ -1118,9 +1118,9 @@ void PPPM::set_grid()
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-	      MAX(lpr,spr));
+              MAX(lpr,spr));
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
-	      MAX(lpr,spr)/two_charge_force);
+              MAX(lpr,spr)/two_charge_force);
       fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }
   }
@@ -1128,7 +1128,7 @@ void PPPM::set_grid()
 
 /* ----------------------------------------------------------------------
    check if all factors of n are in list of factors
-   return 1 if yes, 0 if no 
+   return 1 if yes, 0 if no
 ------------------------------------------------------------------------- */
 
 int PPPM::factorable(int n)
@@ -1138,8 +1138,8 @@ int PPPM::factorable(int n)
   while (n > 1) {
     for (i = 0; i < nfactors; i++) {
       if (n % factors[i] == 0) {
-	n /= factors[i];
-	break;
+        n /= factors[i];
+        break;
       }
     }
     if (i == nfactors) return 0;
@@ -1153,10 +1153,10 @@ int PPPM::factorable(int n)
 ------------------------------------------------------------------------- */
 
 double PPPM::rms(double h, double prd, bigint natoms,
-		 double q2, double **acons)
+                 double q2, double **acons)
 {
   double sum = 0.0;
-  for (int m = 0; m < order; m++) 
+  for (int m = 0; m < order; m++)
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,(double)order) *
     sqrt(g_ewald*prd*sqrt(2.0*MY_PI)*sum/natoms) / (prd*prd);
@@ -1167,8 +1167,8 @@ double PPPM::rms(double h, double prd, bigint natoms,
    compute difference in real-space and KSpace RMS accuracy
 ------------------------------------------------------------------------- */
 
-double PPPM::diffpr(double h_x, double h_y, double h_z, double q2, 
-		    double **acons)
+double PPPM::diffpr(double h_x, double h_y, double h_z, double q2,
+                    double **acons)
 {
   double lprx,lpry,lprz,kspace_prec,real_prec;
   double xprd = domain->xprd;
@@ -1180,25 +1180,25 @@ double PPPM::diffpr(double h_x, double h_y, double h_z, double q2,
   lpry = rms(h_y,yprd,natoms,q2,acons);
   lprz = rms(h_z,zprd*slab_volfactor,natoms,q2,acons);
   kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) / 
+  real_prec = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
    sqrt(static_cast<double>(natoms)*cutoff*xprd*yprd*zprd);
   double value = kspace_prec - real_prec;
   return value;
 }
 
 /* ----------------------------------------------------------------------
-   pre-compute Green's function denominator expansion coeffs, Gamma(2n) 
+   pre-compute Green's function denominator expansion coeffs, Gamma(2n)
 ------------------------------------------------------------------------- */
 
 void PPPM::compute_gf_denom()
 {
   int k,l,m;
-  
+
   for (l = 1; l < order; l++) gf_b[l] = 0.0;
   gf_b[0] = 1.0;
-  
+
   for (m = 1; m < order; m++) {
-    for (l = m; l > 0; l--) 
+    for (l = m; l > 0; l--)
       gf_b[l] = 4.0 * (gf_b[l]*(l-m)*(l-m-0.5)-gf_b[l-1]*(l-m-1)*(l-m-1));
     gf_b[0] = 4.0 * (gf_b[0]*(l-m)*(l-m-0.5));
   }
@@ -1210,7 +1210,7 @@ void PPPM::compute_gf_denom()
 }
 
 /* ----------------------------------------------------------------------
-   ghost-swap to accumulate full density in brick decomposition 
+   ghost-swap to accumulate full density in brick decomposition
    remap density from 3d brick decomposition to FFT decomposition
 ------------------------------------------------------------------------- */
 
@@ -1228,7 +1228,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in+1; ix <= nxhi_out; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1242,7 +1242,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -x processor
   // pass data to self or -x processor
@@ -1252,7 +1252,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix < nxlo_in; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1266,7 +1266,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for +y processor
   // pass data to self or +y processor
@@ -1276,7 +1276,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1290,7 +1290,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -y processor
   // pass data to self or -y processor
@@ -1300,7 +1300,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1314,7 +1314,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for +z processor
   // pass data to self or +z processor
@@ -1324,7 +1324,7 @@ void PPPM::brick2fft()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1338,7 +1338,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -z processor
   // pass data to self or -z processor
@@ -1348,7 +1348,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick[iz][iy][ix];
+        buf1[n++] = density_brick[iz][iy][ix];
 
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -1362,7 +1362,7 @@ void PPPM::brick2fft()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick[iz][iy][ix] += buf2[n++];
+        density_brick[iz][iy][ix] += buf2[n++];
 
   // remap from 3d brick decomposition to FFT decomposition
   // copy grabs inner portion of density from 3d brick
@@ -1373,7 +1373,7 @@ void PPPM::brick2fft()
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_fft[n++] = density_brick[iz][iy][ix];
+        density_fft[n++] = density_brick[iz][iy][ix];
 
   remap->perform(density_fft,density_fft,work1);
 }
@@ -1396,9 +1396,9 @@ void PPPM::fillbrick()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[2][1] == me)
@@ -1413,9 +1413,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 
   // pack my real cells for -z processor
@@ -1426,9 +1426,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[2][0] == me)
@@ -1443,9 +1443,9 @@ void PPPM::fillbrick()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 
   // pack my real cells for +y processor
@@ -1456,9 +1456,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[1][1] == me)
@@ -1473,9 +1473,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 
   // pack my real cells for -y processor
@@ -1486,9 +1486,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[1][0] == me)
@@ -1503,9 +1503,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 
   // pack my real cells for +x processor
@@ -1516,9 +1516,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[0][1] == me)
@@ -1533,9 +1533,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix < nxlo_in; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 
   // pack my real cells for -x processor
@@ -1546,9 +1546,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++) {
-	buf1[n++] = vdx_brick[iz][iy][ix];
-	buf1[n++] = vdy_brick[iz][iy][ix];
-	buf1[n++] = vdz_brick[iz][iy][ix];
+        buf1[n++] = vdx_brick[iz][iy][ix];
+        buf1[n++] = vdy_brick[iz][iy][ix];
+        buf1[n++] = vdz_brick[iz][iy][ix];
       }
 
   if (comm->procneigh[0][0] == me)
@@ -1563,9 +1563,9 @@ void PPPM::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in+1; ix <= nxhi_out; ix++) {
-	vdx_brick[iz][iy][ix] = buf2[n++];
-	vdy_brick[iz][iy][ix] = buf2[n++];
-	vdz_brick[iz][iy][ix] = buf2[n++];
+        vdx_brick[iz][iy][ix] = buf2[n++];
+        vdy_brick[iz][iy][ix] = buf2[n++];
+        vdz_brick[iz][iy][ix] = buf2[n++];
       }
 }
 
@@ -1587,22 +1587,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[2][0],0,world,&request);
+              comm->procneigh[2][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1611,15 +1611,15 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 
   // pack my real cells for -z processor
@@ -1630,22 +1630,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[2][1],0,world,&request);
+              comm->procneigh[2][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1654,15 +1654,15 @@ void PPPM::fillbrick_peratom()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 
   // pack my real cells for +y processor
@@ -1673,22 +1673,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[1][0],0,world,&request);
+              comm->procneigh[1][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1697,15 +1697,15 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 
   // pack my real cells for -y processor
@@ -1716,22 +1716,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[1][1],0,world,&request);
+              comm->procneigh[1][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1740,15 +1740,15 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 
   // pack my real cells for +x processor
@@ -1759,22 +1759,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[0][0],0,world,&request);
+              comm->procneigh[0][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1783,15 +1783,15 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix < nxlo_in; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 
   // pack my real cells for -x processor
@@ -1802,22 +1802,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++) {
-	if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
-	if (vflag_atom) {
-	  buf3[n++] = v0_brick[iz][iy][ix];
-	  buf3[n++] = v1_brick[iz][iy][ix];
-	  buf3[n++] = v2_brick[iz][iy][ix];
-	  buf3[n++] = v3_brick[iz][iy][ix];
-	  buf3[n++] = v4_brick[iz][iy][ix];
-	  buf3[n++] = v5_brick[iz][iy][ix];
-	}
+        if (eflag_atom) buf3[n++] = u_brick[iz][iy][ix];
+        if (vflag_atom) {
+          buf3[n++] = v0_brick[iz][iy][ix];
+          buf3[n++] = v1_brick[iz][iy][ix];
+          buf3[n++] = v2_brick[iz][iy][ix];
+          buf3[n++] = v3_brick[iz][iy][ix];
+          buf3[n++] = v4_brick[iz][iy][ix];
+          buf3[n++] = v5_brick[iz][iy][ix];
+        }
       }
 
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf4[i] = buf3[i];
   else {
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
-	      comm->procneigh[0][1],0,world,&request);
+              comm->procneigh[0][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
     MPI_Wait(&request,&status);
   }
@@ -1826,22 +1826,22 @@ void PPPM::fillbrick_peratom()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in+1; ix <= nxhi_out; ix++) {
-	if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
-	if (vflag_atom) {
-	  v0_brick[iz][iy][ix] = buf4[n++];
-	  v1_brick[iz][iy][ix] = buf4[n++];
-	  v2_brick[iz][iy][ix] = buf4[n++];
-	  v3_brick[iz][iy][ix] = buf4[n++];
-	  v4_brick[iz][iy][ix] = buf4[n++];
-	  v5_brick[iz][iy][ix] = buf4[n++];
-	}
+        if (eflag_atom) u_brick[iz][iy][ix] = buf4[n++];
+        if (vflag_atom) {
+          v0_brick[iz][iy][ix] = buf4[n++];
+          v1_brick[iz][iy][ix] = buf4[n++];
+          v2_brick[iz][iy][ix] = buf4[n++];
+          v3_brick[iz][iy][ix] = buf4[n++];
+          v4_brick[iz][iy][ix] = buf4[n++];
+          v5_brick[iz][iy][ix] = buf4[n++];
+        }
       }
 }
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
+   store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
 void PPPM::particle_map()
@@ -1853,7 +1853,7 @@ void PPPM::particle_map()
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
-    
+
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
@@ -1869,8 +1869,8 @@ void PPPM::particle_map()
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out)
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out)
       flag = 1;
   }
 
@@ -1881,7 +1881,7 @@ void PPPM::particle_map()
    create discretized "density" on section of global grid due to my particles
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
+   in global grid
 ------------------------------------------------------------------------- */
 
 void PPPM::make_rho()
@@ -1892,7 +1892,7 @@ void PPPM::make_rho()
   // clear 3d density array
 
   memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
-	 ngrid*sizeof(FFT_SCALAR));
+         ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1919,19 +1919,19 @@ void PPPM::make_rho()
       mz = n+nz;
       y0 = z0*rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	x0 = y0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  density_brick[mz][my][mx] += x0*rho1d[0][l];
-	}
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   FFT-based Poisson solver 
+   FFT-based Poisson solver
 ------------------------------------------------------------------------- */
 
 void PPPM::poisson()
@@ -1939,14 +1939,14 @@ void PPPM::poisson()
   int i,j,k,n;
   double eng;
 
-  // transform charge density (r -> k) 
+  // transform charge density (r -> k)
 
   n = 0;
   for (i = 0; i < nfft; i++) {
     work1[n++] = density_fft[i];
     work1[n++] = ZEROF;
   }
- 
+
   fft1->compute(work1,work1,1);
 
   // global energy and virial contribution
@@ -1958,17 +1958,17 @@ void PPPM::poisson()
     if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft; i++) {
-	eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-	for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-	if (eflag_global) energy += eng;
-	n += 2;
+        eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
+        if (eflag_global) energy += eng;
+        n += 2;
       }
     } else {
       n = 0;
       for (i = 0; i < nfft; i++) {
-	energy += 
-	  s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-	n += 2;
+        energy +=
+          s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        n += 2;
       }
     }
   }
@@ -1996,9 +1996,9 @@ void PPPM::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fkx[i]*work1[n+1];
-	work2[n+1] = -fkx[i]*work1[n];
-	n += 2;
+        work2[n] = fkx[i]*work1[n+1];
+        work2[n+1] = -fkx[i]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -2007,8 +2007,8 @@ void PPPM::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdx_brick[k][j][i] = work2[n];
-	n += 2;
+        vdx_brick[k][j][i] = work2[n];
+        n += 2;
       }
 
   // y direction gradient
@@ -2017,9 +2017,9 @@ void PPPM::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fky[j]*work1[n+1];
-	work2[n+1] = -fky[j]*work1[n];
-	n += 2;
+        work2[n] = fky[j]*work1[n+1];
+        work2[n+1] = -fky[j]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -2028,8 +2028,8 @@ void PPPM::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdy_brick[k][j][i] = work2[n];
-	n += 2;
+        vdy_brick[k][j][i] = work2[n];
+        n += 2;
       }
 
   // z direction gradient
@@ -2038,9 +2038,9 @@ void PPPM::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fkz[k]*work1[n+1];
-	work2[n+1] = -fkz[k]*work1[n];
-	n += 2;
+        work2[n] = fkz[k]*work1[n+1];
+        work2[n+1] = -fkz[k]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -2049,8 +2049,8 @@ void PPPM::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	vdz_brick[k][j][i] = work2[n];
-	n += 2;
+        vdz_brick[k][j][i] = work2[n];
+        n += 2;
       }
 }
 
@@ -2063,7 +2063,7 @@ void PPPM::poisson_peratom()
   int i,j,k,n;
 
   // energy
-    
+
   if (eflag_atom) {
     n = 0;
     for (i = 0; i < nfft; i++) {
@@ -2071,127 +2071,127 @@ void PPPM::poisson_peratom()
       work2[n+1] = work1[n+1];
       n += 2;
     }
-    
-    fft2->compute(work2,work2,-1); 
-    
+
+    fft2->compute(work2,work2,-1);
+
     n = 0;
     for (k = nzlo_in; k <= nzhi_in; k++)
       for (j = nylo_in; j <= nyhi_in; j++)
         for (i = nxlo_in; i <= nxhi_in; i++) {
-	  u_brick[k][j][i] = work2[n];
-	  n += 2;
+          u_brick[k][j][i] = work2[n];
+          n += 2;
         }
   }
-   
+
   // 6 components of virial in v0 thru v5
 
   if (!vflag_atom) return;
-	 
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][0];
     work2[n+1] = work1[n+1]*vg[i][0];
     n += 2;
   }
-    
-  fft2->compute(work2,work2,-1); 
-    
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v0_brick[k][j][i] = work2[n];
-	n += 2;
+        v0_brick[k][j][i] = work2[n];
+        n += 2;
       }
-  
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][1];
     work2[n+1] = work1[n+1]*vg[i][1];
     n += 2;
   }
-  
-  fft2->compute(work2,work2,-1); 
-  
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v1_brick[k][j][i] = work2[n];
-	n += 2;
+        v1_brick[k][j][i] = work2[n];
+        n += 2;
       }
-  
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][2];
     work2[n+1] = work1[n+1]*vg[i][2];
     n += 2;
   }
-    
-  fft2->compute(work2,work2,-1); 
-  
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v2_brick[k][j][i] = work2[n];
-	n += 2;
+        v2_brick[k][j][i] = work2[n];
+        n += 2;
       }
-  
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][3];
     work2[n+1] = work1[n+1]*vg[i][3];
     n += 2;
   }
-  
-  fft2->compute(work2,work2,-1); 
-  
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v3_brick[k][j][i] = work2[n];
-	n += 2;
+        v3_brick[k][j][i] = work2[n];
+        n += 2;
       }
-   
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][4];
     work2[n+1] = work1[n+1]*vg[i][4];
     n += 2;
   }
-  
-  fft2->compute(work2,work2,-1); 
-  
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v4_brick[k][j][i] = work2[n];
-	n += 2;
+        v4_brick[k][j][i] = work2[n];
+        n += 2;
       }
-  
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work2[n] = work1[n]*vg[i][5];
     work2[n+1] = work1[n+1]*vg[i][5];
     n += 2;
   }
-    
-  fft2->compute(work2,work2,-1); 
-    
+
+  fft2->compute(work2,work2,-1);
+
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in; i <= nxhi_in; i++) {
-	v5_brick[k][j][i] = work2[n];
-	n += 2;
+        v5_brick[k][j][i] = work2[n];
+        n += 2;
       }
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPM::fieldforce()
@@ -2227,15 +2227,15 @@ void PPPM::fieldforce()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  ekx -= x0*vdx_brick[mz][my][mx];
-	  eky -= x0*vdy_brick[mz][my][mx];
-	  ekz -= x0*vdz_brick[mz][my][mx];
-	}
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          ekx -= x0*vdx_brick[mz][my][mx];
+          eky -= x0*vdy_brick[mz][my][mx];
+          ekz -= x0*vdz_brick[mz][my][mx];
+        }
       }
     }
 
@@ -2284,21 +2284,21 @@ void PPPM::fieldforce_peratom()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  if (eflag_atom) u += x0*u_brick[mz][my][mx];	
-	  if (vflag_atom) {
-	    v0 += x0*v0_brick[mz][my][mx];
-	    v1 += x0*v1_brick[mz][my][mx];
-	    v2 += x0*v2_brick[mz][my][mx];
-	    v3 += x0*v3_brick[mz][my][mx];
-	    v4 += x0*v4_brick[mz][my][mx];
-	    v5 += x0*v5_brick[mz][my][mx];
-	  }
-	}
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          if (eflag_atom) u += x0*u_brick[mz][my][mx];
+          if (vflag_atom) {
+            v0 += x0*v0_brick[mz][my][mx];
+            v1 += x0*v1_brick[mz][my][mx];
+            v2 += x0*v2_brick[mz][my][mx];
+            v3 += x0*v3_brick[mz][my][mx];
+            v4 += x0*v4_brick[mz][my][mx];
+            v5 += x0*v5_brick[mz][my][mx];
+          }
+        }
       }
     }
 
@@ -2315,7 +2315,7 @@ void PPPM::fieldforce_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   map nprocs to NX by NY grid as PX by PY procs - return optimal px,py 
+   map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
 ------------------------------------------------------------------------- */
 
 void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
@@ -2339,13 +2339,13 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf || 
-	  (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
-	bestsurf = surf;
-	bestboxx = boxx;
-	bestboxy = boxy;
-	*px = ipx;
-	*py = ipy;
+      if (surf < bestsurf ||
+          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+        bestsurf = surf;
+        bestboxx = boxx;
+        bestboxy = boxy;
+        *px = ipx;
+        *py = ipy;
       }
     }
     ipx++;
@@ -2354,11 +2354,11 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 
 /* ----------------------------------------------------------------------
    charge assignment into rho1d
-   dx,dy,dz = distance of particle from "lower left" grid point 
+   dx,dy,dz = distance of particle from "lower left" grid point
 ------------------------------------------------------------------------- */
 
 void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
-			 const FFT_SCALAR &dz)
+                         const FFT_SCALAR &dz)
 {
   int k,l;
   FFT_SCALAR r1,r2,r3;
@@ -2393,7 +2393,7 @@ void PPPM::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
              |  0                       otherwise
               ---
   a coeffients are packed into the array rho_coeff to eliminate zeros
-  rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k) 
+  rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k)
 ------------------------------------------------------------------------- */
 
 void PPPM::compute_rho_coeff()
@@ -2404,22 +2404,22 @@ void PPPM::compute_rho_coeff()
   FFT_SCALAR **a;
   memory->create2d_offset(a,order,-order,order,"pppm:a");
 
-  for (k = -order; k <= order; k++) 
+  for (k = -order; k <= order; k++)
     for (l = 0; l < order; l++)
       a[l][k] = 0.0;
-        
+
   a[0][0] = 1.0;
   for (j = 1; j < order; j++) {
     for (k = -j; k <= j; k += 2) {
       s = 0.0;
       for (l = 0; l < j; l++) {
-	a[l+1][k] = (a[l][k+1]-a[l][k-1]) / (l+1);
+        a[l+1][k] = (a[l][k+1]-a[l][k-1]) / (l+1);
 #ifdef FFT_SINGLE
-	s += powf(0.5,(float) l+1) *
-	  (a[l][k-1] + powf(-1.0,(float) l) * a[l][k+1]) / (l+1);
+        s += powf(0.5,(float) l+1) *
+          (a[l][k-1] + powf(-1.0,(float) l) * a[l][k+1]) / (l+1);
 #else
-	s += pow(0.5,(double) l+1) * 
-	  (a[l][k-1] + pow(-1.0,(double) l) * a[l][k+1]) / (l+1);
+        s += pow(0.5,(double) l+1) *
+          (a[l][k-1] + pow(-1.0,(double) l) * a[l][k+1]) / (l+1);
 #endif
       }
       a[0][k] = s;
@@ -2438,9 +2438,9 @@ void PPPM::compute_rho_coeff()
 
 /* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
-   periodically repeating slabs.  Yields good approximation to 2D Ewald if 
-   adequate empty space is left between repeating slabs (J. Chem. Phys. 
-   111, 3155).  Slabs defined here to be parallel to the xy plane. 
+   periodically repeating slabs.  Yields good approximation to 2D Ewald if
+   adequate empty space is left between repeating slabs (J. Chem. Phys.
+   111, 3155).  Slabs defined here to be parallel to the xy plane.
 ------------------------------------------------------------------------- */
 
 void PPPM::slabcorr()
@@ -2453,29 +2453,29 @@ void PPPM::slabcorr()
 
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
-  
+
   // sum local contributions to get global dipole moment
 
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // compute corrections
-  
+
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
-  
+
   if (eflag_global) energy += qscale * e_slabcorr;
 
   // per-atom energy
-    
+
   if (eflag_atom) {
-    double efact = 2.0*MY_PI*dipole_all/volume; 
+    double efact = 2.0*MY_PI*dipole_all/volume;
     for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
   }
 
   // add on force corrections
 
-  double ffact = -4.0*MY_PI*dipole_all/volume; 
+  double ffact = -4.0*MY_PI*dipole_all/volume;
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
@@ -2521,13 +2521,13 @@ void PPPM::timing(int n, double &time3d, double &time1d)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local arrays 
+   memory usage of local arrays
 ------------------------------------------------------------------------- */
 
 double PPPM::memory_usage()
 {
   double bytes = nmax*3 * sizeof(double);
-  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
+  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += 4 * nbrick * sizeof(FFT_SCALAR);
   bytes += 6 * nfft_both * sizeof(double);
@@ -2558,101 +2558,101 @@ double PPPM::memory_usage()
 
 void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
 {
-  if (slabflag) 
+  if (slabflag)
     error->all(FLERR,"Cannot (yet) use K-space slab "
-	       "correction with compute group/group");      
-    
+               "correction with compute group/group");
+
   int i,j;
-    
+
   if (!group_allocate_flag) {
     allocate_groups();
     group_allocate_flag = 1;
-  }    
-    
+  }
+
   e2group = 0; //energy
   f2group[0] = 0; //force in x-direction
   f2group[1] = 0; //force in y-direction
   f2group[2] = 0; //force in z-direction
-    
+
   double *q = atom->q;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-    
-	
+
+
   // map my particle charge onto my local 3d density grid
-    
+
   make_rho_groups(groupbit_A,groupbit_B,BA_flag);
-    
+
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
-    
+
   // temporarily store and switch pointers so we can
-  //  use brick2fft() for groups A and B (without 
+  //  use brick2fft() for groups A and B (without
   //  writing an additional function)
-    
+
   FFT_SCALAR ***density_brick_real = density_brick;
-  FFT_SCALAR *density_fft_real = density_fft;   
-    
+  FFT_SCALAR *density_fft_real = density_fft;
+
   // group A
-    
-  density_brick = density_A_brick;  
+
+  density_brick = density_A_brick;
   density_fft = density_A_fft;
-    
+
   brick2fft();
-    
+
   // group B
-    
-  density_brick = density_B_brick;  
+
+  density_brick = density_B_brick;
   density_fft = density_B_fft;
-    
+
   brick2fft();
 
   // switch back pointers
-    
+
   density_brick = density_brick_real;
-  density_fft = density_fft_real; 
-   
+  density_fft = density_fft_real;
+
   // compute potential gradient on my FFT grid and
   //   portion of group-group energy/force on this proc's FFT grid
-    
+
   poisson_groups(BA_flag);
-         
+
   const double qscale = force->qqrd2e * scale;
-    
+
   // total group A <--> group B energy
   // self and boundary correction terms are in compute_group_group.cpp
-    
+
   double e2group_all;
   MPI_Allreduce(&e2group,&e2group_all,1,MPI_DOUBLE,MPI_SUM,world);
   e2group = e2group_all;
-  
+
   e2group *= qscale*0.5*volume;
-    
+
   // total group A <--> group B force
-      
+
   double f2group_all[3];
   MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
-    
-  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];   
+
+  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
 }
 
 /* ----------------------------------------------------------------------
- allocate group-group memory that depends on # of K-vectors and order 
+ allocate group-group memory that depends on # of K-vectors and order
  ------------------------------------------------------------------------- */
 
 void PPPM::allocate_groups()
-{  
+{
   memory->create3d_offset(density_A_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:density_A_brick");
+                          nxlo_out,nxhi_out,"pppm:density_A_brick");
   memory->create3d_offset(density_B_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			  nxlo_out,nxhi_out,"pppm:density_B_brick");
+                          nxlo_out,nxhi_out,"pppm:density_B_brick");
   memory->create(density_A_fft,nfft_both,"pppm:density_A_fft");
   memory->create(density_B_fft,nfft_both,"pppm:density_B_fft");
 }
 
 /* ----------------------------------------------------------------------
- deallocate group-group memory that depends on # of K-vectors and order 
+ deallocate group-group memory that depends on # of K-vectors and order
  ------------------------------------------------------------------------- */
 
 void PPPM::deallocate_groups()
@@ -2674,41 +2674,41 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 {
   int l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
-    
+
   // clear 3d density arrays
-    
+
   memset(&(density_A_brick[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
-    
+
   memset(&(density_B_brick[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
-    
+
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
-    
+
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-    
+
   for (int i = 0; i < nlocal; i++) {
-      
+
     if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
-      if (BA_flag) continue;  
-      
-    if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) { 
-        
+      if (BA_flag) continue;
+
+    if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
+
       nx = part2grid[i][0];
       ny = part2grid[i][1];
       nz = part2grid[i][2];
       dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
       dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
       dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
-        
+
       compute_rho1d(dx,dy,dz);
-        
+
       z0 = delvolinv * q[i];
       for (n = nlower; n <= nupper; n++) {
         mz = n+nz;
@@ -2718,14 +2718,14 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
           x0 = y0*rho1d[1][m];
           for (l = nlower; l <= nupper; l++) {
             mx = l+nx;
-                    
+
             // group A
-                    
+
             if (mask[i] & groupbit_A)
               density_A_brick[mz][my][mx] += x0*rho1d[0][l];
-               
+
             // group B
-                
+
             if (mask[i] & groupbit_B)
               density_B_brick[mz][my][mx] += x0*rho1d[0][l];
           }
@@ -2743,66 +2743,66 @@ void PPPM::poisson_groups(int BA_flag)
 {
   int i,j,k,n;
   double eng;
-   
-  // reuse memory (already declared)  
-    
+
+  // reuse memory (already declared)
+
   FFT_SCALAR *work_A = work1;
   FFT_SCALAR *work_B = work2;
-    
-  // transform charge density (r -> k) 
-    
-  // group A  
-    
+
+  // transform charge density (r -> k)
+
+  // group A
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work_A[n++] = density_A_fft[i];
     work_A[n++] = ZEROF;
   }
-    
+
   fft1->compute(work_A,work_A,1);
 
-  // group B  
-    
+  // group B
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work_B[n++] = density_B_fft[i];
     work_B[n++] = ZEROF;
   }
-    
+
   fft1->compute(work_B,work_B,1);
-    
+
   // group-group energy and force contribution,
-  //  keep everything in reciprocal space so 
+  //  keep everything in reciprocal space so
   //  no inverse FFTs needed
-    
+
   double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
   double s2 = scaleinv*scaleinv;
-     
+
   // energy
-    
+
   n = 0;
   for (i = 0; i < nfft; i++) {
-    e2group += s2 * greensfn[i] * 
-      (work_A[n]*work_B[n] + work_A[n+1]*work_B[n+1]);     
+    e2group += s2 * greensfn[i] *
+      (work_A[n]*work_B[n] + work_A[n+1]*work_B[n+1]);
     n += 2;
   }
-    
+
   if (BA_flag) return;
-    
-    
-  // multiply by Green's function and s2 
+
+
+  // multiply by Green's function and s2
   //  (only for work_A so it is not squared below)
-    
+
   n = 0;
   for (i = 0; i < nfft; i++) {
     work_A[n++] *= s2 * greensfn[i];
     work_A[n++] *= s2 * greensfn[i];
-  }   
-    
+  }
+
   double partial_group;
-    
+
   // force, x direction
-    
+
   n = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
@@ -2811,9 +2811,9 @@ void PPPM::poisson_groups(int BA_flag)
         f2group[0] += fkx[i] * partial_group;
         n += 2;
       }
-       
+
   // force, y direction
-    
+
   n = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
@@ -2822,9 +2822,9 @@ void PPPM::poisson_groups(int BA_flag)
         f2group[1] += fky[j] * partial_group;
         n += 2;
       }
-      
+
   // force, z direction
-   
+
   n = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
@@ -2832,5 +2832,5 @@ void PPPM::poisson_groups(int BA_flag)
         partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
         f2group[2] += fkz[k] * partial_group;
         n += 2;
-      } 
+      }
 }

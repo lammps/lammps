@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,7 +73,7 @@ void Improper::ev_setup(int eflag, int vflag)
   vflag_either = vflag;
   vflag_global = vflag % 4;
   vflag_atom = vflag / 4;
-  
+
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {
@@ -114,15 +114,15 @@ void Improper::ev_setup(int eflag, int vflag)
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
-	  = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
+          = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
 ------------------------------------------------------------------------- */
 
 void Improper::ev_tally(int i1, int i2, int i3, int i4,
-			int nlocal, int newton_bond,
-			double eimproper, double *f1, double *f3, double *f4,
-			double vb1x, double vb1y, double vb1z,
-			double vb2x, double vb2y, double vb2z,
-			double vb3x, double vb3y, double vb3z)
+                        int nlocal, int newton_bond,
+                        double eimproper, double *f1, double *f3, double *f4,
+                        double vb1x, double vb1y, double vb1z,
+                        double vb2x, double vb2y, double vb2z,
+                        double vb3x, double vb3y, double vb3z)
 {
   double eimproperquarter,v[6];
 
@@ -130,11 +130,11 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
     if (eflag_global) {
       if (newton_bond) energy += eimproper;
       else {
-	eimproperquarter = 0.25*eimproper;
-	if (i1 < nlocal) energy += eimproperquarter;
-	if (i2 < nlocal) energy += eimproperquarter;
-	if (i3 < nlocal) energy += eimproperquarter;
-	if (i4 < nlocal) energy += eimproperquarter;
+        eimproperquarter = 0.25*eimproper;
+        if (i1 < nlocal) energy += eimproperquarter;
+        if (i2 < nlocal) energy += eimproperquarter;
+        if (i3 < nlocal) energy += eimproperquarter;
+        if (i4 < nlocal) energy += eimproperquarter;
       }
     }
     if (eflag_atom) {
@@ -156,80 +156,80 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
 
     if (vflag_global) {
       if (newton_bond) {
-	virial[0] += v[0];
-	virial[1] += v[1];
-	virial[2] += v[2];
-	virial[3] += v[3];
-	virial[4] += v[4];
-	virial[5] += v[5];
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
       } else {
-	if (i1 < nlocal) {
-	  virial[0] += 0.25*v[0];
-	  virial[1] += 0.25*v[1];
-	  virial[2] += 0.25*v[2];
-	  virial[3] += 0.25*v[3];
-	  virial[4] += 0.25*v[4];
-	  virial[5] += 0.25*v[5];
-	}
-	if (i2 < nlocal) {
-	  virial[0] += 0.25*v[0];
-	  virial[1] += 0.25*v[1];
-	  virial[2] += 0.25*v[2];
-	  virial[3] += 0.25*v[3];
-	  virial[4] += 0.25*v[4];
-	  virial[5] += 0.25*v[5];
-	}
-	if (i3 < nlocal) {
-	  virial[0] += 0.25*v[0];
-	  virial[1] += 0.25*v[1];
-	  virial[2] += 0.25*v[2];
-	  virial[3] += 0.25*v[3];
-	  virial[4] += 0.25*v[4];
-	  virial[5] += 0.25*v[5];
-	}
-	if (i4 < nlocal) {
-	  virial[0] += 0.25*v[0];
-	  virial[1] += 0.25*v[1];
-	  virial[2] += 0.25*v[2];
-	  virial[3] += 0.25*v[3];
-	  virial[4] += 0.25*v[4];
-	  virial[5] += 0.25*v[5];
-	}
+        if (i1 < nlocal) {
+          virial[0] += 0.25*v[0];
+          virial[1] += 0.25*v[1];
+          virial[2] += 0.25*v[2];
+          virial[3] += 0.25*v[3];
+          virial[4] += 0.25*v[4];
+          virial[5] += 0.25*v[5];
+        }
+        if (i2 < nlocal) {
+          virial[0] += 0.25*v[0];
+          virial[1] += 0.25*v[1];
+          virial[2] += 0.25*v[2];
+          virial[3] += 0.25*v[3];
+          virial[4] += 0.25*v[4];
+          virial[5] += 0.25*v[5];
+        }
+        if (i3 < nlocal) {
+          virial[0] += 0.25*v[0];
+          virial[1] += 0.25*v[1];
+          virial[2] += 0.25*v[2];
+          virial[3] += 0.25*v[3];
+          virial[4] += 0.25*v[4];
+          virial[5] += 0.25*v[5];
+        }
+        if (i4 < nlocal) {
+          virial[0] += 0.25*v[0];
+          virial[1] += 0.25*v[1];
+          virial[2] += 0.25*v[2];
+          virial[3] += 0.25*v[3];
+          virial[4] += 0.25*v[4];
+          virial[5] += 0.25*v[5];
+        }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-	vatom[i1][0] += 0.25*v[0];
-	vatom[i1][1] += 0.25*v[1];
-	vatom[i1][2] += 0.25*v[2];
-	vatom[i1][3] += 0.25*v[3];
-	vatom[i1][4] += 0.25*v[4];
-	vatom[i1][5] += 0.25*v[5];
+        vatom[i1][0] += 0.25*v[0];
+        vatom[i1][1] += 0.25*v[1];
+        vatom[i1][2] += 0.25*v[2];
+        vatom[i1][3] += 0.25*v[3];
+        vatom[i1][4] += 0.25*v[4];
+        vatom[i1][5] += 0.25*v[5];
       }
       if (newton_bond || i2 < nlocal) {
-	vatom[i2][0] += 0.25*v[0];
-	vatom[i2][1] += 0.25*v[1];
-	vatom[i2][2] += 0.25*v[2];
-	vatom[i2][3] += 0.25*v[3];
-	vatom[i2][4] += 0.25*v[4];
-	vatom[i2][5] += 0.25*v[5];
+        vatom[i2][0] += 0.25*v[0];
+        vatom[i2][1] += 0.25*v[1];
+        vatom[i2][2] += 0.25*v[2];
+        vatom[i2][3] += 0.25*v[3];
+        vatom[i2][4] += 0.25*v[4];
+        vatom[i2][5] += 0.25*v[5];
       }
       if (newton_bond || i3 < nlocal) {
-	vatom[i3][0] += 0.25*v[0];
-	vatom[i3][1] += 0.25*v[1];
-	vatom[i3][2] += 0.25*v[2];
-	vatom[i3][3] += 0.25*v[3];
-	vatom[i3][4] += 0.25*v[4];
-	vatom[i3][5] += 0.25*v[5];
+        vatom[i3][0] += 0.25*v[0];
+        vatom[i3][1] += 0.25*v[1];
+        vatom[i3][2] += 0.25*v[2];
+        vatom[i3][3] += 0.25*v[3];
+        vatom[i3][4] += 0.25*v[4];
+        vatom[i3][5] += 0.25*v[5];
       }
       if (newton_bond || i4 < nlocal) {
-	vatom[i4][0] += 0.25*v[0];
-	vatom[i4][1] += 0.25*v[1];
-	vatom[i4][2] += 0.25*v[2];
-	vatom[i4][3] += 0.25*v[3];
-	vatom[i4][4] += 0.25*v[4];
-	vatom[i4][5] += 0.25*v[5];
+        vatom[i4][0] += 0.25*v[0];
+        vatom[i4][1] += 0.25*v[1];
+        vatom[i4][2] += 0.25*v[2];
+        vatom[i4][3] += 0.25*v[3];
+        vatom[i4][4] += 0.25*v[4];
+        vatom[i4][5] += 0.25*v[5];
       }
     }
   }

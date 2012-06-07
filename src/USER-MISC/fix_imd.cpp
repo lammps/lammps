@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,37 +13,37 @@
 
 /* ----------------------------------------------------------------------
    The FixIMD class contains code from VMD and NAMD which is copyrighted
-   by the Board of Trustees of the University of Illinois and is free to 
+   by the Board of Trustees of the University of Illinois and is free to
    use with LAMMPS according to point 2 of the UIUC license (10% clause):
 
-" Licensee may, at its own expense, create and freely distribute 
-complimentary works that interoperate with the Software, directing others to 
-the TCBG server to license and obtain the Software itself. Licensee may, at 
-its own expense, modify the Software to make derivative works.  Except as 
-explicitly provided below, this License shall apply to any derivative work 
-as it does to the original Software distributed by Illinois.  Any derivative 
-work should be clearly marked and renamed to notify users that it is a 
-modified version and not the original Software distributed by Illinois.  
-Licensee agrees to reproduce the copyright notice and other proprietary 
-markings on any derivative work and to include in the documentation of such 
+" Licensee may, at its own expense, create and freely distribute
+complimentary works that interoperate with the Software, directing others to
+the TCBG server to license and obtain the Software itself. Licensee may, at
+its own expense, modify the Software to make derivative works.  Except as
+explicitly provided below, this License shall apply to any derivative work
+as it does to the original Software distributed by Illinois.  Any derivative
+work should be clearly marked and renamed to notify users that it is a
+modified version and not the original Software distributed by Illinois.
+Licensee agrees to reproduce the copyright notice and other proprietary
+markings on any derivative work and to include in the documentation of such
 work the acknowledgement:
 
- "This software includes code developed by the Theoretical and Computational 
-  Biophysics Group in the Beckman Institute for Advanced Science and 
+ "This software includes code developed by the Theoretical and Computational
+  Biophysics Group in the Beckman Institute for Advanced Science and
   Technology at the University of Illinois at Urbana-Champaign."
 
-Licensee may redistribute without restriction works with up to 1/2 of their 
-non-comment source code derived from at most 1/10 of the non-comment source 
-code developed by Illinois and contained in the Software, provided that the 
-above directions for notice and acknowledgement are observed.  Any other 
-distribution of the Software or any derivative work requires a separate 
-license with Illinois.  Licensee may contact Illinois (vmd@ks.uiuc.edu) to 
+Licensee may redistribute without restriction works with up to 1/2 of their
+non-comment source code derived from at most 1/10 of the non-comment source
+code developed by Illinois and contained in the Software, provided that the
+above directions for notice and acknowledgement are observed.  Any other
+distribution of the Software or any derivative work requires a separate
+license with Illinois.  Licensee may contact Illinois (vmd@ks.uiuc.edu) to
 negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
    Contributing author:  Axel Kohlmeyer (TempleU)
-   IMD API, hash, and socket code written by: John E. Stone, 
+   IMD API, hash, and socket code written by: John E. Stone,
    Justin Gullingsrud, and James Phillips, (TCBG, Beckman Institute, UIUC)
 ------------------------------------------------------------------------- */
 
@@ -124,7 +124,7 @@ static int inthash(const inthash_t *tptr, int key) {
   hashvalue = (((key*1103515249)>>tptr->downshift) & tptr->mask);
   if (hashvalue < 0) {
     hashvalue = 0;
-  }    
+  }
 
   return hashvalue;
 }
@@ -224,15 +224,15 @@ int *inthash_keys(inthash_t *tptr) {
 
   int *keys;
   inthash_node_t *node;
-  
+
   keys = (int *)calloc(tptr->entries, sizeof(int));
-  
+
   for (int i=0; i < tptr->size; ++i) {
     for (node=tptr->bucket[i]; node != NULL; node=node->next) {
       keys[node->data] = node->key;
     }
   }
-  
+
   return keys;
 }
 
@@ -271,7 +271,7 @@ int inthash_insert(inthash_t *tptr, int key, int data) {
 
 /*
  * inthash_destroy() - Delete the entire table, and all remaining entries.
- * 
+ *
  */
 void inthash_destroy(inthash_t *tptr) {
   inthash_node_t *node, *last;
@@ -279,12 +279,12 @@ void inthash_destroy(inthash_t *tptr) {
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
-    while (node != NULL) { 
-      last = node;   
+    while (node != NULL) {
+      last = node;
       node = node->next;
       free(last);
     }
-  }     
+  }
 
   /* free the entire array of buckets */
   if (tptr->bucket != NULL) {
@@ -432,22 +432,22 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* struct for packed data communication of coordinates and forces. */
-struct commdata { 
-  int tag; 
-  float x,y,z; 
+struct commdata {
+  int tag;
+  float x,y,z;
 };
 
 /***************************************************************
- * create class and parse arguments in LAMMPS script. Syntax: 
- * fix ID group-ID imd <imd_trate> <imd_port> [unwrap (on|off)] [fscale <imd_fscale>] 
+ * create class and parse arguments in LAMMPS script. Syntax:
+ * fix ID group-ID imd <imd_trate> <imd_port> [unwrap (on|off)] [fscale <imd_fscale>]
  ***************************************************************/
 FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) 
+  if (narg < 4)
     error->all(FLERR,"Illegal fix imd command");
 
-  imd_port = atoi(arg[3]); 
+  imd_port = atoi(arg[3]);
   if (imd_port < 1024)
     error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
@@ -457,18 +457,18 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   connect_msg = 1;
   imd_fscale = 1.0;
   imd_trate = 1;
-  
+
   /* parse optional arguments */
   int argsdone = 4;
   while (argsdone+1 < narg) {
     if (0 == strcmp(arg[argsdone], "unwrap")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {  
+      if (0 == strcmp(arg[argsdone+1], "on")) {
         unwrap_flag = 1;
       } else {
         unwrap_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "nowait")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {  
+      if (0 == strcmp(arg[argsdone+1], "on")) {
         nowait_flag = 1;
       } else {
         nowait_flag = 0;
@@ -507,7 +507,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   comm_buf = NULL;
   idmap = NULL;
   rev_idmap = NULL;
-  
+
   if (me == 0) {
     /* set up incoming socket on MPI rank 0. */
     imdsock_init();
@@ -524,7 +524,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
     error->all(FLERR,"LAMMPS Terminated on error in IMD.");
-    
+
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
 
@@ -618,7 +618,7 @@ int FixIMD::reconnect()
   /* set up IMD communication, but only if needed. */
   imd_inactive = 0;
   imd_terminate = 0;
-  
+
   if (me == 0) {
     if (clientsock) return 1;
     if (screen && connect_msg)
@@ -626,7 +626,7 @@ int FixIMD::reconnect()
         fprintf(screen,"Listening for IMD connection on port %d. Transfer rate %d.\n",imd_port, imd_trate);
       else
         fprintf(screen,"Waiting for IMD connection on port %d. Transfer rate %d.\n",imd_port, imd_trate);
-    
+
     connect_msg = 0;
     clientsock = NULL;
     if (nowait_flag) {
@@ -644,7 +644,7 @@ int FixIMD::reconnect()
       } while (retval <= 0);
       clientsock = imdsock_accept(localsock);
     }
-    
+
     if (!imd_inactive && !clientsock) {
       if (screen)
         fprintf(screen, "IMD socket accept error. Dropping connection.\n");
@@ -677,7 +677,7 @@ int FixIMD::reconnect()
 }
 
 /* ---------------------------------------------------------------------- */
-/* wait for IMD client (e.g. VMD) to respond, initialize communication 
+/* wait for IMD client (e.g. VMD) to respond, initialize communication
  * buffers and collect tag/id maps. */
 void FixIMD::setup(int)
 {
@@ -709,7 +709,7 @@ void FixIMD::setup(int)
   inthash_t *hashtable=new inthash_t;
   inthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
-  
+
   MPI_Status status;
   MPI_Request request;
   int tmp, ndata;
@@ -718,14 +718,14 @@ void FixIMD::setup(int)
   if (me == 0) {
     int *taglist = new int[num_coords];
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
-    
+
     for (i=0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
         taglist[numtag] = tag[i];
         ++numtag;
       }
     }
-    
+
     /* loop over procs to receive remote data */
     for (i=1; i < comm->nprocs; ++i) {
       MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
@@ -740,7 +740,7 @@ void FixIMD::setup(int)
       }
     }
 
-    /* sort list of tags by value to have consistently the 
+    /* sort list of tags by value to have consistently the
      * same list when running in parallel and build hash table. */
     id_sort(taglist, 0, num_coords-1);
     for (i=0; i < num_coords; ++i) {
@@ -748,7 +748,7 @@ void FixIMD::setup(int)
     }
     delete[] taglist;
 
-    /* generate reverse index-to-tag map for communicating 
+    /* generate reverse index-to-tag map for communicating
      * IMD forces back to the proper atoms */
     rev_idmap=inthash_keys(hashtable);
   } else {
@@ -763,7 +763,7 @@ void FixIMD::setup(int)
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
-  
+
   return;
 }
 
@@ -834,7 +834,7 @@ void FixIMD::post_force(int vflag)
     while ((imdsock_selread(clientsock, 0) > 0) || imd_paused) {
       /* if something requested to turn off IMD while paused get out */
       if (imd_inactive) break;
-      
+
       int32 length;
       int msg = imd_recv_header(clientsock, &length);
 
@@ -881,7 +881,7 @@ void FixIMD::post_force(int vflag)
         case IMD_PAUSE:
           /* pause the running simulation. wait for second IMD_PAUSE to continue. */
           if (imd_paused) {
-            if (screen) 
+            if (screen)
               fprintf(screen, "Continuing run on IMD client request.\n");
             imd_paused = 0;
           } else {
@@ -893,9 +893,9 @@ void FixIMD::post_force(int vflag)
 
         case IMD_TRATE:
           /* change the IMD transmission data rate */
-          if (length > 0) 
+          if (length > 0)
             imd_trate = length;
-          if (screen) 
+          if (screen)
             fprintf(screen, "IMD client requested change of transfer rate. Now it is %d.\n", imd_trate);
           break;
 
@@ -904,7 +904,7 @@ void FixIMD::post_force(int vflag)
           imd_recv_energies(clientsock, &dummy_energies);
           break;
         }
-            
+
         case IMD_FCOORDS: {
           float *dummy_coords = new float[3*length];
           imd_recv_fcoords(clientsock, length, dummy_coords);
@@ -924,7 +924,7 @@ void FixIMD::post_force(int vflag)
           }
           imd_forces = length;
           buf = static_cast<struct commdata *>(force_buf);
-          
+
           /* compare data to hash table */
           for (int ii=0; ii < length; ++ii) {
             buf[ii].tag = rev_idmap[imd_tags[ii]];
@@ -936,7 +936,7 @@ void FixIMD::post_force(int vflag)
           delete[] imd_fdat;
           break;
         }
-            
+
         default:
           if (screen)
             fprintf(screen, "Unhandled incoming IMD message #%d. length=%d\n", msg, length);
@@ -944,11 +944,11 @@ void FixIMD::post_force(int vflag)
       }
     }
   }
-  
+
   /* update all tasks with current settings. */
   int old_imd_forces = imd_forces;
   MPI_Bcast(&imd_trate, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);  
+  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
   MPI_Bcast(&imd_forces, 1, MPI_INT, 0, world);
   MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
   if (imd_terminate)
@@ -958,7 +958,7 @@ void FixIMD::post_force(int vflag)
     /* check if we need to readjust the forces comm buffer on the receiving nodes. */
     if (me != 0) {
       if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
-        if (force_buf != NULL) 
+        if (force_buf != NULL)
           memory->sfree(force_buf);
         force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
       }
@@ -971,16 +971,16 @@ void FixIMD::post_force(int vflag)
    * at the expense of a more jumpy display. Rather than using
    * end_of_step() we do everything here in one go.
    *
-   * If we don't communicate, only check if we have forces 
+   * If we don't communicate, only check if we have forces
    * stored away and apply them. */
   if (update->ntimestep % imd_trate) {
     if (imd_forces > 0) {
       double **f = atom->f;
       buf = static_cast<struct commdata *>(force_buf);
 
-      /* XXX. this is in principle O(N**2) == not good. 
-       * however we assume for now that the number of atoms 
-       * that we manipulate via IMD will be small compared 
+      /* XXX. this is in principle O(N**2) == not good.
+       * however we assume for now that the number of atoms
+       * that we manipulate via IMD will be small compared
        * to the total system size, so we don't hurt too much. */
       for (int j=0; j < imd_forces; ++j) {
         for (int i=0; i < nlocal; ++i) {
@@ -996,7 +996,7 @@ void FixIMD::post_force(int vflag)
     }
     return;
   }
-  
+
   /* check and potentially grow local communication buffers. */
   int i, k, nmax, nme=0;
   for (i=0; i < nlocal; ++i)
@@ -1013,7 +1013,7 @@ void FixIMD::post_force(int vflag)
   MPI_Request request;
   int tmp, ndata;
   buf = static_cast<struct commdata *>(comm_buf);
-  
+
   if (me == 0) {
     /* collect data into new array. we bypass the IMD API to save
      * us one extra copy of the data. */
@@ -1072,7 +1072,7 @@ void FixIMD::post_force(int vflag)
       MPI_Wait(&request, &status);
       MPI_Get_count(&status, MPI_BYTE, &ndata);
       ndata /= size_one;
-      
+
       for (k=0; k<ndata; ++k) {
         const int j = 3*inthash_lookup((inthash_t *)idmap, buf[k].tag);
         if (j != HASH_FAIL) {
@@ -1169,12 +1169,12 @@ double FixIMD::memory_usage(void)
 /***************************************************************************/
 
 /* NOTE: the following code is the based on the example implementation
- * of the IMD protocol API from VMD and NAMD. The UIUC license allows 
+ * of the IMD protocol API from VMD and NAMD. The UIUC license allows
  * to re-use up to 10% of a project's code to be used in other software */
 
 /***************************************************************************
  * DESCRIPTION:
- *   Socket interface, abstracts machine dependent APIs/routines. 
+ *   Socket interface, abstracts machine dependent APIs/routines.
  ***************************************************************************/
 
 int imdsock_init(void) {
@@ -1190,7 +1190,7 @@ int imdsock_init(void) {
   }
 
   return rc;
-#else   
+#else
   return 0;
 #endif
 }
@@ -1201,7 +1201,7 @@ void * imdsock_create(void) {
 
   s = (imdsocket *) malloc(sizeof(imdsocket));
   if (s != NULL)
-    memset(s, 0, sizeof(imdsocket)); 
+    memset(s, 0, sizeof(imdsocket));
 
   if ((s->sd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
     printf("Failed to open socket.");
@@ -1214,7 +1214,7 @@ void * imdsock_create(void) {
 
 int imdsock_bind(void * v, int port) {
   imdsocket *s = (imdsocket *) v;
-  memset(&(s->addr), 0, sizeof(s->addr)); 
+  memset(&(s->addr), 0, sizeof(s->addr));
   s->addr.sin_family = PF_INET;
   s->addr.sin_port = htons(port);
 
@@ -1296,7 +1296,7 @@ void imdsock_destroy(void * v) {
 #else
   close(s->sd);
 #endif
-  free(s);  
+  free(s);
 }
 
 int imdsock_selread(void *v, int sec) {
@@ -1304,9 +1304,9 @@ int imdsock_selread(void *v, int sec) {
   fd_set rfd;
   struct timeval tv;
   int rc;
- 
+
   if (v == NULL) return 0;
-  
+
   FD_ZERO(&rfd);
   FD_SET(s->sd, &rfd);
   memset((void *)&tv, 0, sizeof(struct timeval));
@@ -1317,13 +1317,13 @@ int imdsock_selread(void *v, int sec) {
   return rc;
 
 }
-  
+
 int imdsock_selwrite(void *v, int sec) {
   imdsocket *s = (imdsocket *)v;
   fd_set wfd;
   struct timeval tv;
   int rc;
- 
+
   if (v == NULL) return 0;
 
   FD_ZERO(&wfd);
@@ -1394,7 +1394,7 @@ static void swap_header(IMDheader *header) {
 static int32 imd_readn(void *s, char *ptr, int32 n) {
   int32 nleft;
   int32 nread;
- 
+
   nleft = n;
   while (nleft > 0) {
     if ((nread = imdsock_read(s, ptr, nleft)) < 0) {
@@ -1449,7 +1449,7 @@ IMDType imd_recv_header(void *s, int32 *length) {
     return IMD_IOERROR;
   swap_header(&header);
   *length = header.length;
-  return IMDType(header.type); 
+  return IMDType(header.type);
 }
 
 int imd_recv_mdcomm(void *s, int32 n, int32 *indices, float *forces) {
@@ -1474,4 +1474,3 @@ int imd_recv_fcoords(void *s, int32 n, float *coords) {
 // fill-column: 76
 // indent-tabs-mode: nil
 // End:
-

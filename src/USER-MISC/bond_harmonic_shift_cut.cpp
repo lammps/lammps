@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -75,9 +75,9 @@ void BondHarmonicShiftCut::compute(int eflag, int vflag)
 
     rsq = delx*delx + dely*dely + delz*delz;
     r = sqrt(rsq);
-    
+
     if (r>r1[type]) continue;
-    
+
     dr = r - r0[type];
     rk = k[type] * dr;
 
@@ -149,7 +149,7 @@ void BondHarmonicShiftCut::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return an equilbrium bond length 
+   return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
 double BondHarmonicShiftCut::equilibrium_distance(int i)
@@ -158,7 +158,7 @@ double BondHarmonicShiftCut::equilibrium_distance(int i)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void BondHarmonicShiftCut::write_restart(FILE *fp)
@@ -169,7 +169,7 @@ void BondHarmonicShiftCut::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void BondHarmonicShiftCut::read_restart(FILE *fp)
@@ -184,7 +184,7 @@ void BondHarmonicShiftCut::read_restart(FILE *fp)
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r1[1],atom->nbondtypes,MPI_DOUBLE,0,world);
-  
+
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
 
@@ -192,10 +192,10 @@ void BondHarmonicShiftCut::read_restart(FILE *fp)
 
 double BondHarmonicShiftCut::single(int type, double rsq, int i, int j)
 {
-  double r = sqrt(rsq);  
-  
+  double r = sqrt(rsq);
+
   if (r>r1[type]) return 0;
-  
+
   double dr = r - r0[type];
   double dr2=r0[type]-r1[type];
   return k[type]*(dr*dr - dr2*dr2);

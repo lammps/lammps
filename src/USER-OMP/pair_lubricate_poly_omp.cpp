@@ -52,7 +52,7 @@ PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricatePolyOMP::~PairLubricatePolyOMP() 
+PairLubricatePolyOMP::~PairLubricatePolyOMP()
 {}
 
 /* ---------------------------------------------------------------------- */
@@ -75,41 +75,41 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (int j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (int j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++){
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++){
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->wallstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu;
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu;
+        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
-  // end of R0 adjustment code  
+  // end of R0 adjustment code
 
 
 #if defined(_OPENMP)
@@ -124,23 +124,23 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
 
     if (flaglog) {
       if (shearing) {
-	if (evflag)
-	  eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (evflag)
+          eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (evflag)
-	  eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (evflag)
+          eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
-    } else { 
+    } else {
       if (shearing) {
-	if (evflag)
-	  eval<0,1,1>(ifrom, ito, thr);
-	else eval<0,1,0>(ifrom, ito, thr);
+        if (evflag)
+          eval<0,1,1>(ifrom, ito, thr);
+        else eval<0,1,0>(ifrom, ito, thr);
       } else {
-	if (evflag)
-	  eval<0,0,1>(ifrom, ito, thr);
-	else eval<0,0,0>(ifrom, ito, thr);
+        if (evflag)
+          eval<0,0,1>(ifrom, ito, thr);
+        else eval<0,0,0>(ifrom, ito, thr);
       }
     }
 
@@ -155,7 +155,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,beta0,beta1,radi,radj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wt1,wt2,wt3,wdotn;  
+  double vt1,vt2,vt3,wt1,wt2,wt3,wdotn;
   double vRS0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],jl[3];
   double a_sq,a_sh,a_pu;
@@ -198,8 +198,8 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       itype = type[i];
       radi = radius[i];
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       v[i][0] -= vstream[0];
@@ -215,7 +215,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     Ef[0][0] = h_rate[0]/domain->xprd;
     Ef[1][1] = h_rate[1]/domain->yprd;
-    Ef[2][2] = h_rate[2]/domain->zprd; 
+    Ef[2][2] = h_rate[2]/domain->zprd;
     Ef[0][1] = Ef[1][0] = 0.5 * h_rate[5]/domain->yprd;
     Ef[0][2] = Ef[2][0] = 0.5 * h_rate[4]/domain->zprd;
     Ef[1][2] = Ef[2][1] = 0.5 * h_rate[3]/domain->zprd;
@@ -245,13 +245,13 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
     radi = radius[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     // angular velocity
 
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
-    wi[2] = omega[i][2];          
-     
+    wi[2] = omega[i][2];
+
     // FLD contribution to force and torque due to isotropic terms
     // FLD contribution to stress from isotropic RS0
 
@@ -262,13 +262,13 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       const double rad3 = radi*radi*radi;
       torque[i][0] -= vxmu2f*RT0*rad3*wi[0];
       torque[i][1] -= vxmu2f*RT0*rad3*wi[1];
-      torque[i][2] -= vxmu2f*RT0*rad3*wi[2];   
-    
+      torque[i][2] -= vxmu2f*RT0*rad3*wi[2];
+
       if (SHEARING && vflag_either) {
-	vRS0 = -vxmu2f * RS0*rad3;
-	v_tally_tensor(i,i,nlocal,/* newton_pair */ 0,
-		       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
-		       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
+        vRS0 = -vxmu2f * RS0*rad3;
+        v_tally_tensor(i,i,nlocal,/* newton_pair */ 0,
+                       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
+                       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
       }
     }
 
@@ -286,13 +286,13 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       radj = atom->radius[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-  
+        r = sqrt(rsq);
+
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
 
-	wj[0] = omega[j][0];
-	wj[1] = omega[j][1];
-	wj[2] = omega[j][2];              
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
 
         // xl = point of closest approach on particle i from its center
 
@@ -302,7 +302,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         jl[0] = -delx/r*radj;
         jl[1] = -dely/r*radj;
         jl[2] = -delz/r*radj;
-  
+
         // velocity at the point of closest approach on both particles
         // v = v + omega_cross_xl - Ef.xl
 
@@ -310,71 +310,71 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1])
                         - (Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
-        
+
         vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2])
                         - (Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
-        
+
         vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0])
                         - (Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
-  
+
         // particle j
 
         vj[0] = v[j][0] - (wj[1]*jl[2] - wj[2]*jl[1])
                         + (Ef[0][0]*jl[0] + Ef[0][1]*jl[1] + Ef[0][2]*jl[2]);
-        
+
         vj[1] = v[j][1] - (wj[2]*jl[0] - wj[0]*jl[2])
                         + (Ef[1][0]*jl[0] + Ef[1][1]*jl[1] + Ef[1][2]*jl[2]);
-        
+
         vj[2] = v[j][2] - (wj[0]*jl[1] - wj[1]*jl[0])
                         + (Ef[2][0]*jl[0] + Ef[2][1]*jl[1] + Ef[2][2]*jl[2]);
-        
+
         // scalar resistances XA and YA
 
         h_sep = r - radi-radj;
-        
+
         // check for overlaps
 
         if (h_sep < 0.0) overlaps++;
-        
+
         // if less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - radi-radj;          
-        
+          h_sep = cut_inner[itype][jtype] - radi-radj;
+
         // scale h_sep by radi
 
         h_sep = h_sep/radi;
         beta0 = radj/radi;
         beta1 = 1.0 + beta0;
-  
+
         // scalar resistances
 
         if (FLAGLOG) {
-          a_sq = beta0*beta0/beta1/beta1/h_sep + 
-	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
-          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 * 
-		   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) * 
-	    h_sep*log(1.0/h_sep);
+          a_sq = beta0*beta0/beta1/beta1/h_sep +
+            (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
+          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 *
+                   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) *
+            h_sep*log(1.0/h_sep);
           a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) * 
-	    log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) + 
-		       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) * 
-	    h_sep*log(1.0/h_sep);
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) *
+            log(1.0/h_sep);
+          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) +
+                       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
+            h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
           a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 * 
-		   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
+                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
           a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
-  
+
         // relative velocity at the point of closest approach
-	// includes fluid velocity
+        // includes fluid velocity
 
         vr1 = vi[0] - vj[0];
         vr2 = vi[1] - vj[1];
         vr3 = vi[2] - vj[2];
-        
+
         // normal component (vr.n)n
 
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
@@ -399,7 +399,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (FLAGLOG) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
 
         // scale forces for appropriate units
@@ -407,48 +407,48 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         fx *= vxmu2f;
         fy *= vxmu2f;
         fz *= vxmu2f;
-        
+
         // add to total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         // torque due to this force
 
         if (FLAGLOG) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-    
+          tz = xl[0]*fy - xl[1]*fx;
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
+          torque[i][2] -= vxmu2f*tz;
 
           // torque due to a_pu
 
-          wdotn = ((wi[0]-wj[0])*delx + (wi[1]-wj[1])*dely + 
-		   (wi[2]-wj[2])*delz)/r;
+          wdotn = ((wi[0]-wj[0])*delx + (wi[1]-wj[1])*dely +
+                   (wi[2]-wj[2])*delz)/r;
           wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
           wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
           wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
-          
+
           tx = a_pu*wt1;
           ty = a_pu*wt2;
           tz = a_pu*wt3;
-          
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
+          torque[i][2] -= vxmu2f*tz;
 
-        }        
+        }
 
         if (EVFLAG) ev_tally_xyz(i,nlocal,nlocal, /* newton_pair */ 0,
-				 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
   }
-  
+
   // restore streaming component of velocity, omega, angmom
 
   if (SHEARING) {
@@ -459,10 +459,10 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       i = ilist[ii];
       itype = type[i];
       radi = radius[i];
-      
+
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       v[i][0] += vstream[0];

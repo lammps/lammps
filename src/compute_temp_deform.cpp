@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -76,10 +76,10 @@ void ComputeTempDeform::init()
 
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP && 
-	  comm->me == 0)
-	error->warning(FLERR,"Using compute temp/deform with inconsistent "
-		       "fix deform remap option");
+      if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
+          comm->me == 0)
+        error->warning(FLERR,"Using compute temp/deform with inconsistent "
+                       "fix deform remap option");
       break;
     }
   if (i == modify->nfix && comm->me == 0)
@@ -125,19 +125,19 @@ double ComputeTempDeform::compute_scalar()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       vthermal[0] = v[i][0] - vstream[0];
       vthermal[1] = v[i][1] - vstream[1];
       vthermal[2] = v[i][2] - vstream[2];
       if (rmass)
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * rmass[i];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * rmass[i];
       else
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * mass[type[i]];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * mass[type[i]];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -171,8 +171,8 @@ void ComputeTempDeform::compute_vector()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       vthermal[0] = v[i][0] - vstream[0];
@@ -202,9 +202,9 @@ void ComputeTempDeform::remove_bias(int i, double *v)
   double lamda[3];
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
-    
+
   domain->x2lamda(atom->x[i],lamda);
-  vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
+  vbias[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
     h_rate[4]*lamda[2] + h_ratelo[0];
   vbias[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
   vbias[2] = h_rate[2]*lamda[2] + h_ratelo[2];
@@ -236,8 +236,8 @@ void ComputeTempDeform::remove_bias_all()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       domain->x2lamda(atom->x[i],lamda);
-      vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vbiasall[i][0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vbiasall[i][1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vbiasall[i][2] = h_rate[2]*lamda[2] + h_ratelo[2];
       v[i][0] -= vbiasall[i][0];

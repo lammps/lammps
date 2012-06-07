@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -37,7 +37,7 @@ ComputeERotateSphere::ComputeERotateSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (!atom->sphere_flag) 
+  if (!atom->sphere_flag)
     error->all(FLERR,"Compute erotate/sphere requires atom style sphere");
 }
 
@@ -64,10 +64,10 @@ double ComputeERotateSphere::compute_scalar()
   // point particles will not contribute due to radius = 0
 
   double erotate = 0.0;
-  for (int i = 0; i < nlocal; i++) 
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
-		  omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
+      erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
+                  omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
 
   MPI_Allreduce(&erotate,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   scalar *= pfactor;

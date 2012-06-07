@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,7 +34,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldOMP::EwaldOMP(LAMMPS *lmp, int narg, char **arg) 
+EwaldOMP::EwaldOMP(LAMMPS *lmp, int narg, char **arg)
   : Ewald(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
   suffix_flag |= Suffix::OMP;
@@ -54,7 +54,7 @@ void EwaldOMP::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   compute the Ewald long-range force, energy, virial 
+   compute the Ewald long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
 void EwaldOMP::compute(int eflag, int vflag)
@@ -123,22 +123,22 @@ void EwaldOMP::compute(int eflag, int vflag)
       kz = kzvecs[k];
 
       for (i = ifrom; i < ito; i++) {
-	cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
-	sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
-	exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
-	expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
-	partial = expim*sfacrl_all[k] - exprl*sfacim_all[k];
-	ek[i][0] += partial*eg[k][0];
-	ek[i][1] += partial*eg[k][1];
-	ek[i][2] += partial*eg[k][2];
+        cypz = cs[ky][1][i]*cs[kz][2][i] - sn[ky][1][i]*sn[kz][2][i];
+        sypz = sn[ky][1][i]*cs[kz][2][i] + cs[ky][1][i]*sn[kz][2][i];
+        exprl = cs[kx][0][i]*cypz - sn[kx][0][i]*sypz;
+        expim = sn[kx][0][i]*cypz + cs[kx][0][i]*sypz;
+        partial = expim*sfacrl_all[k] - exprl*sfacim_all[k];
+        ek[i][0] += partial*eg[k][0];
+        ek[i][1] += partial*eg[k][1];
+        ek[i][2] += partial*eg[k][2];
 
-	if (evflag_atom) {
-	  const double partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
-	  if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
-	  if (vflag_atom)
-	    for (j = 0; j < 6; j++)
-	      vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
-	}
+        if (evflag_atom) {
+          const double partial_peratom = exprl*sfacrl_all[k] + expim*sfacim_all[k];
+          if (eflag_atom) eatom[i] += q[i]*ug[k]*partial_peratom;
+          if (vflag_atom)
+            for (j = 0; j < 6; j++)
+              vatom[i][j] += ug[k]*vg[k][j]*partial_peratom;
+        }
       }
     }
 
@@ -150,7 +150,7 @@ void EwaldOMP::compute(int eflag, int vflag)
       f[i][1] += fac*ek[i][1];
       f[i][2] += fac*ek[i][2];
     }
- 
+
     // global energy
 
     if (eflag_global) {
@@ -158,8 +158,8 @@ void EwaldOMP::compute(int eflag, int vflag)
 #pragma omp for private(k)
 #endif
       for (k = 0; k < kcount; k++)
-	eng_tmp += ug[k] * (sfacrl_all[k]*sfacrl_all[k] + 
-			    sfacim_all[k]*sfacim_all[k]);
+        eng_tmp += ug[k] * (sfacrl_all[k]*sfacrl_all[k] +
+                            sfacim_all[k]*sfacim_all[k]);
     }
 
     // global virial
@@ -169,13 +169,13 @@ void EwaldOMP::compute(int eflag, int vflag)
 #pragma omp for private(k)
 #endif
       for (k = 0; k < kcount; k++) {
-	double uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
-	v0 += uk*vg[k][0];
-	v1 += uk*vg[k][1];
-	v2 += uk*vg[k][2];
-	v3 += uk*vg[k][3];
-	v4 += uk*vg[k][4];
-	v5 += uk*vg[k][5];
+        double uk = ug[k] * (sfacrl_all[k]*sfacrl_all[k] + sfacim_all[k]*sfacim_all[k]);
+        v0 += uk*vg[k][0];
+        v1 += uk*vg[k][1];
+        v2 += uk*vg[k][2];
+        v3 += uk*vg[k][3];
+        v4 += uk*vg[k][4];
+        v5 += uk*vg[k][5];
       }
     }
 
@@ -184,16 +184,16 @@ void EwaldOMP::compute(int eflag, int vflag)
 
     if (evflag_atom) {
       if (eflag_atom) {
-	for (i = ifrom; i < ito; i++) {
-	  eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
-	    (g_ewald*g_ewald*volume);
-	  eatom[i] *= qscale;
-	}
+        for (i = ifrom; i < ito; i++) {
+          eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+            (g_ewald*g_ewald*volume);
+          eatom[i] *= qscale;
+        }
       }
 
       if (vflag_atom)
-	for (i = ifrom; i < ito; i++)
-	  for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
+        for (i = ifrom; i < ito; i++)
+          for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
     }
 
     reduce_thr(this, eflag,vflag,thr);
@@ -233,9 +233,9 @@ void EwaldOMP::eik_dot_r()
     int i,ifrom,ito,k,l,m,n,ic,tid;
     double cstr1,sstr1,cstr2,sstr2,cstr3,sstr3,cstr4,sstr4;
     double sqk,clpm,slpm;
-    
+
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
-    
+
     double * const sfacrl_thr = sfacrl + tid*kmax3d;
     double * const sfacim_thr = sfacim + tid*kmax3d;
 
@@ -246,42 +246,42 @@ void EwaldOMP::eik_dot_r()
     for (ic = 0; ic < 3; ic++) {
       sqk = unitk[ic]*unitk[ic];
       if (sqk <= gsqmx) {
-	cstr1 = 0.0;
-	sstr1 = 0.0;
-	for (i = ifrom; i < ito; i++) {
-	  cs[0][ic][i] = 1.0;
-	  sn[0][ic][i] = 0.0;
-	  cs[1][ic][i] = cos(unitk[ic]*x[i][ic]);
-	  sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
-	  cs[-1][ic][i] = cs[1][ic][i];
-	  sn[-1][ic][i] = -sn[1][ic][i];
-	  cstr1 += q[i]*cs[1][ic][i];
-	  sstr1 += q[i]*sn[1][ic][i];
-	}
-	sfacrl_thr[n] = cstr1;
-	sfacim_thr[n++] = sstr1;
+        cstr1 = 0.0;
+        sstr1 = 0.0;
+        for (i = ifrom; i < ito; i++) {
+          cs[0][ic][i] = 1.0;
+          sn[0][ic][i] = 0.0;
+          cs[1][ic][i] = cos(unitk[ic]*x[i][ic]);
+          sn[1][ic][i] = sin(unitk[ic]*x[i][ic]);
+          cs[-1][ic][i] = cs[1][ic][i];
+          sn[-1][ic][i] = -sn[1][ic][i];
+          cstr1 += q[i]*cs[1][ic][i];
+          sstr1 += q[i]*sn[1][ic][i];
+        }
+        sfacrl_thr[n] = cstr1;
+        sfacim_thr[n++] = sstr1;
       }
     }
 
     for (m = 2; m <= kmax; m++) {
       for (ic = 0; ic < 3; ic++) {
-	sqk = m*unitk[ic] * m*unitk[ic];
-	if (sqk <= gsqmx) {
-	  cstr1 = 0.0;
-	  sstr1 = 0.0;
-	  for (i = ifrom; i < ito; i++) {
-	    cs[m][ic][i] = cs[m-1][ic][i]*cs[1][ic][i] - 
-	      sn[m-1][ic][i]*sn[1][ic][i];
-	    sn[m][ic][i] = sn[m-1][ic][i]*cs[1][ic][i] + 
-	      cs[m-1][ic][i]*sn[1][ic][i];
-	    cs[-m][ic][i] = cs[m][ic][i];
-	    sn[-m][ic][i] = -sn[m][ic][i];
-	    cstr1 += q[i]*cs[m][ic][i];
-	    sstr1 += q[i]*sn[m][ic][i];
-	  }
-	  sfacrl_thr[n] = cstr1;
-	  sfacim_thr[n++] = sstr1;
-	}
+        sqk = m*unitk[ic] * m*unitk[ic];
+        if (sqk <= gsqmx) {
+          cstr1 = 0.0;
+          sstr1 = 0.0;
+          for (i = ifrom; i < ito; i++) {
+            cs[m][ic][i] = cs[m-1][ic][i]*cs[1][ic][i] -
+              sn[m-1][ic][i]*sn[1][ic][i];
+            sn[m][ic][i] = sn[m-1][ic][i]*cs[1][ic][i] +
+              cs[m-1][ic][i]*sn[1][ic][i];
+            cs[-m][ic][i] = cs[m][ic][i];
+            sn[-m][ic][i] = -sn[m][ic][i];
+            cstr1 += q[i]*cs[m][ic][i];
+            sstr1 += q[i]*sn[m][ic][i];
+          }
+          sfacrl_thr[n] = cstr1;
+          sfacim_thr[n++] = sstr1;
+        }
       }
     }
 
@@ -289,23 +289,23 @@ void EwaldOMP::eik_dot_r()
 
     for (k = 1; k <= kxmax; k++) {
       for (l = 1; l <= kymax; l++) {
-	sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]);
-	if (sqk <= gsqmx) {
-	  cstr1 = 0.0;
-	  sstr1 = 0.0;
-	  cstr2 = 0.0;
-	  sstr2 = 0.0;
-	  for (i = ifrom; i < ito; i++) {
-	    cstr1 += q[i]*(cs[k][0][i]*cs[l][1][i] - sn[k][0][i]*sn[l][1][i]);
-	    sstr1 += q[i]*(sn[k][0][i]*cs[l][1][i] + cs[k][0][i]*sn[l][1][i]);
-	    cstr2 += q[i]*(cs[k][0][i]*cs[l][1][i] + sn[k][0][i]*sn[l][1][i]);
-	    sstr2 += q[i]*(sn[k][0][i]*cs[l][1][i] - cs[k][0][i]*sn[l][1][i]);
-	  }
-	  sfacrl_thr[n] = cstr1;
-	  sfacim_thr[n++] = sstr1;
-	  sfacrl_thr[n] = cstr2;
-	  sfacim_thr[n++] = sstr2;
-	}
+        sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]);
+        if (sqk <= gsqmx) {
+          cstr1 = 0.0;
+          sstr1 = 0.0;
+          cstr2 = 0.0;
+          sstr2 = 0.0;
+          for (i = ifrom; i < ito; i++) {
+            cstr1 += q[i]*(cs[k][0][i]*cs[l][1][i] - sn[k][0][i]*sn[l][1][i]);
+            sstr1 += q[i]*(sn[k][0][i]*cs[l][1][i] + cs[k][0][i]*sn[l][1][i]);
+            cstr2 += q[i]*(cs[k][0][i]*cs[l][1][i] + sn[k][0][i]*sn[l][1][i]);
+            sstr2 += q[i]*(sn[k][0][i]*cs[l][1][i] - cs[k][0][i]*sn[l][1][i]);
+          }
+          sfacrl_thr[n] = cstr1;
+          sfacim_thr[n++] = sstr1;
+          sfacrl_thr[n] = cstr2;
+          sfacim_thr[n++] = sstr2;
+        }
       }
     }
 
@@ -313,23 +313,23 @@ void EwaldOMP::eik_dot_r()
 
     for (l = 1; l <= kymax; l++) {
       for (m = 1; m <= kzmax; m++) {
-	sqk = (l*unitk[1] * l*unitk[1]) + (m*unitk[2] * m*unitk[2]);
-	if (sqk <= gsqmx) {
-	  cstr1 = 0.0;
-	  sstr1 = 0.0;
-	  cstr2 = 0.0;
-	  sstr2 = 0.0;
-	  for (i = ifrom; i < ito; i++) {
-	    cstr1 += q[i]*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
-	    sstr1 += q[i]*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
-	    cstr2 += q[i]*(cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i]);
-	    sstr2 += q[i]*(sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i]);
-	  }
-	  sfacrl_thr[n] = cstr1;
-	  sfacim_thr[n++] = sstr1;
-	  sfacrl_thr[n] = cstr2;
-	  sfacim_thr[n++] = sstr2;
-	}
+        sqk = (l*unitk[1] * l*unitk[1]) + (m*unitk[2] * m*unitk[2]);
+        if (sqk <= gsqmx) {
+          cstr1 = 0.0;
+          sstr1 = 0.0;
+          cstr2 = 0.0;
+          sstr2 = 0.0;
+          for (i = ifrom; i < ito; i++) {
+            cstr1 += q[i]*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
+            sstr1 += q[i]*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
+            cstr2 += q[i]*(cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i]);
+            sstr2 += q[i]*(sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i]);
+          }
+          sfacrl_thr[n] = cstr1;
+          sfacim_thr[n++] = sstr1;
+          sfacrl_thr[n] = cstr2;
+          sfacim_thr[n++] = sstr2;
+        }
       }
     }
 
@@ -337,23 +337,23 @@ void EwaldOMP::eik_dot_r()
 
     for (k = 1; k <= kxmax; k++) {
       for (m = 1; m <= kzmax; m++) {
-	sqk = (k*unitk[0] * k*unitk[0]) + (m*unitk[2] * m*unitk[2]);
-	if (sqk <= gsqmx) {
-	  cstr1 = 0.0;
-	  sstr1 = 0.0;
-	  cstr2 = 0.0;
-	  sstr2 = 0.0;
-	  for (i = ifrom; i < ito; i++) {
-	    cstr1 += q[i]*(cs[k][0][i]*cs[m][2][i] - sn[k][0][i]*sn[m][2][i]);
-	    sstr1 += q[i]*(sn[k][0][i]*cs[m][2][i] + cs[k][0][i]*sn[m][2][i]);
-	    cstr2 += q[i]*(cs[k][0][i]*cs[m][2][i] + sn[k][0][i]*sn[m][2][i]);
-	    sstr2 += q[i]*(sn[k][0][i]*cs[m][2][i] - cs[k][0][i]*sn[m][2][i]);
-	  }
-	  sfacrl_thr[n] = cstr1;
-	  sfacim_thr[n++] = sstr1;
-	  sfacrl_thr[n] = cstr2;
-	  sfacim_thr[n++] = sstr2;
-	}
+        sqk = (k*unitk[0] * k*unitk[0]) + (m*unitk[2] * m*unitk[2]);
+        if (sqk <= gsqmx) {
+          cstr1 = 0.0;
+          sstr1 = 0.0;
+          cstr2 = 0.0;
+          sstr2 = 0.0;
+          for (i = ifrom; i < ito; i++) {
+            cstr1 += q[i]*(cs[k][0][i]*cs[m][2][i] - sn[k][0][i]*sn[m][2][i]);
+            sstr1 += q[i]*(sn[k][0][i]*cs[m][2][i] + cs[k][0][i]*sn[m][2][i]);
+            cstr2 += q[i]*(cs[k][0][i]*cs[m][2][i] + sn[k][0][i]*sn[m][2][i]);
+            sstr2 += q[i]*(sn[k][0][i]*cs[m][2][i] - cs[k][0][i]*sn[m][2][i]);
+          }
+          sfacrl_thr[n] = cstr1;
+          sfacim_thr[n++] = sstr1;
+          sfacrl_thr[n] = cstr2;
+          sfacim_thr[n++] = sstr2;
+        }
       }
     }
 
@@ -361,49 +361,49 @@ void EwaldOMP::eik_dot_r()
 
     for (k = 1; k <= kxmax; k++) {
       for (l = 1; l <= kymax; l++) {
-	for (m = 1; m <= kzmax; m++) {
-	  sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]) +
-	    (m*unitk[2] * m*unitk[2]);
-	  if (sqk <= gsqmx) {
-	    cstr1 = 0.0;
-	    sstr1 = 0.0;
-	    cstr2 = 0.0;
-	    sstr2 = 0.0;
-	    cstr3 = 0.0;
-	    sstr3 = 0.0;
-	    cstr4 = 0.0;
-	    sstr4 = 0.0;
-	    for (i = ifrom; i < ito; i++) {
-	      clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
-	      slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-	      cstr1 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	      sstr1 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
-	    
-	      clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
-	      slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
-	      cstr2 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	      sstr2 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
-	    
-	      clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
-	      slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-	      cstr3 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	      sstr3 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
-	    
-	      clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
-	      slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
-	      cstr4 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
-	      sstr4 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
-	    }
-	    sfacrl_thr[n] = cstr1;
-	    sfacim_thr[n++] = sstr1;
-	    sfacrl_thr[n] = cstr2;
-	    sfacim_thr[n++] = sstr2;
-	    sfacrl_thr[n] = cstr3;
-	    sfacim_thr[n++] = sstr3;
-	    sfacrl_thr[n] = cstr4;
-	    sfacim_thr[n++] = sstr4;
-	  }
-	}
+        for (m = 1; m <= kzmax; m++) {
+          sqk = (k*unitk[0] * k*unitk[0]) + (l*unitk[1] * l*unitk[1]) +
+            (m*unitk[2] * m*unitk[2]);
+          if (sqk <= gsqmx) {
+            cstr1 = 0.0;
+            sstr1 = 0.0;
+            cstr2 = 0.0;
+            sstr2 = 0.0;
+            cstr3 = 0.0;
+            sstr3 = 0.0;
+            cstr4 = 0.0;
+            sstr4 = 0.0;
+            for (i = ifrom; i < ito; i++) {
+              clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
+              slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
+              cstr1 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+              sstr1 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+
+              clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
+              slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
+              cstr2 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+              sstr2 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+
+              clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
+              slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
+              cstr3 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+              sstr3 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+
+              clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
+              slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
+              cstr4 += q[i]*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
+              sstr4 += q[i]*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
+            }
+            sfacrl_thr[n] = cstr1;
+            sfacim_thr[n++] = sstr1;
+            sfacrl_thr[n] = cstr2;
+            sfacim_thr[n++] = sstr2;
+            sfacrl_thr[n] = cstr3;
+            sfacim_thr[n++] = sstr3;
+            sfacrl_thr[n] = cstr4;
+            sfacim_thr[n++] = sstr4;
+          }
+        }
       }
     }
 

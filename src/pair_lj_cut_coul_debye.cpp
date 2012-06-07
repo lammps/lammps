@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -80,44 +80,44 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+        r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq[itype][jtype]) {
-	  r = sqrt(rsq);
-	  rinv = 1.0/r;
-	  screening = exp(-kappa*r);
-	  forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
-	} else forcecoul = 0.0;
+        if (rsq < cut_coulsq[itype][jtype]) {
+          r = sqrt(rsq);
+          rinv = 1.0/r;
+          screening = exp(-kappa*r);
+          forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	} else forcelj = 0.0;
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        } else forcelj = 0.0;
 
-	fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
-	  else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq[itype][jtype])
+            ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
+          else ecoul = 0.0;
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -126,7 +126,7 @@ void PairLJCutCoulDebye::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJCutCoulDebye::settings(int narg, char **arg)
@@ -144,10 +144,10 @@ void PairLJCutCoulDebye::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j] == 1) {
-	  cut_lj[i][j] = cut_lj_global;
-	  cut_coul[i][j] = cut_coul_global;
-	}
+        if (setflag[i][j] == 1) {
+          cut_lj[i][j] = cut_lj_global;
+          cut_coul[i][j] = cut_coul_global;
+        }
   }
 }
 
@@ -187,9 +187,9 @@ void PairLJCutCoulDebye::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJCutCoulDebye::single(int i, int j, int itype, int jtype,
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  double &fforce)
+                                  double rsq,
+                                  double factor_coul, double factor_lj,
+                                  double &fforce)
 {
   double r2inv,r6inv,r,rinv,screening,forcecoul,forcelj,phicoul,philj;
 

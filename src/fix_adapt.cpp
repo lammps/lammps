@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -84,13 +84,13 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       adapt[nadapt].pparam = new char[n];
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
       force->bounds(arg[iarg+3],atom->ntypes,
-		    adapt[nadapt].ilo,adapt[nadapt].ihi);
+                    adapt[nadapt].ilo,adapt[nadapt].ihi);
       force->bounds(arg[iarg+4],atom->ntypes,
-		    adapt[nadapt].jlo,adapt[nadapt].jhi);
+                    adapt[nadapt].jlo,adapt[nadapt].jhi);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-	n = strlen(&arg[iarg+5][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
+        n = strlen(&arg[iarg+5][2]) + 1;
+        adapt[nadapt].var = new char[n];
+        strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
@@ -98,9 +98,9 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        adapt[nadapt].var = new char[n];
+        strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
@@ -108,13 +108,13 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0) {
-	adapt[nadapt].aparam = DIAMETER;
-	diamflag = 1;
+        adapt[nadapt].aparam = DIAMETER;
+        diamflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-	int n = strlen(&arg[iarg+2][2]) + 1;
-	adapt[nadapt].var = new char[n];
-	strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
+        int n = strlen(&arg[iarg+2][2]) + 1;
+        adapt[nadapt].var = new char[n];
+        strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
@@ -205,28 +205,28 @@ void FixAdapt::init()
       ad->pdim = 2;
       if (ad->pdim == 0) ad->scalar = (double *) ptr;
       if (ad->pdim == 2) ad->array = (double **) ptr;
-      
+
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
       if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
-			    strcmp(force->pair_style,"hybrid/overlay") == 0)) {
-	PairHybrid *pair = (PairHybrid *) force->pair;
-	for (i = ad->ilo; i <= ad->ihi; i++)
-	  for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-	    if (!pair->check_ijtype(i,j,ad->pstyle))
-	      error->all(FLERR,"Fix adapt type pair range is not valid for "
-			 "pair hybrid sub-style");
+                            strcmp(force->pair_style,"hybrid/overlay") == 0)) {
+        PairHybrid *pair = (PairHybrid *) force->pair;
+        for (i = ad->ilo; i <= ad->ihi; i++)
+          for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+            if (!pair->check_ijtype(i,j,ad->pstyle))
+              error->all(FLERR,"Fix adapt type pair range is not valid for "
+                         "pair hybrid sub-style");
       }
 
     } else if (ad->which == KSPACE) {
-      if (force->kspace == NULL) 
-	error->all(FLERR,"Fix adapt kspace style does not exist");
+      if (force->kspace == NULL)
+        error->all(FLERR,"Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
     } else if (ad->which == ATOM) {
       if (ad->aparam == DIAMETER) {
-	if (!atom->radius_flag)
-	  error->all(FLERR,"Fix adapt requires atom attribute diameter");
+        if (!atom->radius_flag)
+          error->all(FLERR,"Fix adapt requires atom attribute diameter");
       }
     }
   }
@@ -237,8 +237,8 @@ void FixAdapt::init()
     Adapt *ad = &adapt[m];
     if (ad->which == PAIR && ad->pdim == 2) {
       for (i = ad->ilo; i <= ad->ihi; i++)
-	for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-	  ad->array_orig[i][j] = ad->array[i][j];
+        for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+          ad->array_orig[i][j] = ad->array[i][j];
     }
   }
 }
@@ -281,22 +281,22 @@ void FixAdapt::change_settings()
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
     double value = input->variable->compute_equal(ad->ivar);
-    
+
     // set global scalar or type pair array values
 
     if (ad->which == PAIR) {
       if (ad->pdim == 0) {
-	if (scaleflag) *ad->scalar = value * ad->scalar_orig;
-	else *ad->scalar = value;
+        if (scaleflag) *ad->scalar = value * ad->scalar_orig;
+        else *ad->scalar = value;
       } else if (ad->pdim == 2) {
-	if (scaleflag)
-	  for (i = ad->ilo; i <= ad->ihi; i++)
-	    for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-	      ad->array[i][j] = value*ad->array_orig[i][j];
-	else
-	  for (i = ad->ilo; i <= ad->ihi; i++)
-	    for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-	      ad->array[i][j] = value;
+        if (scaleflag)
+          for (i = ad->ilo; i <= ad->ihi; i++)
+            for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+              ad->array[i][j] = value*ad->array_orig[i][j];
+        else
+          for (i = ad->ilo; i <= ad->ihi; i++)
+            for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+              ad->array[i][j] = value;
       }
 
     // set kspace scale factor
@@ -310,29 +310,29 @@ void FixAdapt::change_settings()
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
-	int mflag = 0;
-	if (atom->rmass_flag) mflag = 1;
-	double density;
+        int mflag = 0;
+        if (atom->rmass_flag) mflag = 1;
+        double density;
 
-	double *radius = atom->radius;
-	double *rmass = atom->rmass;
-	int *mask = atom->mask;
-	int nlocal = atom->nlocal;
+        double *radius = atom->radius;
+        double *rmass = atom->rmass;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
 
-	if (mflag == 0) {
-	  for (i = 0; i < nlocal; i++)
-	    if (mask[i] & groupbit)
-	      radius[i] = 0.5*value;
-	} else {
-	  for (i = 0; i < nlocal; i++)
-	    if (mask[i] & groupbit) {
-	      density = rmass[i] / (4.0*MY_PI/3.0 * 
-				    radius[i]*radius[i]*radius[i]);
-	      radius[i] = 0.5*value;
-	      rmass[i] = 4.0*MY_PI/3.0 * 
-		radius[i]*radius[i]*radius[i] * density;
-	    }
-	}
+        if (mflag == 0) {
+          for (i = 0; i < nlocal; i++)
+            if (mask[i] & groupbit)
+              radius[i] = 0.5*value;
+        } else {
+          for (i = 0; i < nlocal; i++)
+            if (mask[i] & groupbit) {
+              density = rmass[i] / (4.0*MY_PI/3.0 *
+                                    radius[i]*radius[i]*radius[i]);
+              radius[i] = 0.5*value;
+              rmass[i] = 4.0*MY_PI/3.0 *
+                radius[i]*radius[i]*radius[i] * density;
+            }
+        }
       }
     }
   }
@@ -357,9 +357,9 @@ void FixAdapt::restore_settings()
     if (ad->which == PAIR) {
       if (ad->pdim == 0) *ad->scalar = ad->scalar_orig;
       else if (ad->pdim == 2) {
-	for (int i = ad->ilo; i <= ad->ihi; i++)
-	  for (int j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-	    ad->array[i][j] = ad->array_orig[i][j];
+        for (int i = ad->ilo; i <= ad->ihi; i++)
+          for (int j = MAX(ad->jlo,i); j <= ad->jhi; j++)
+            ad->array[i][j] = ad->array_orig[i][j];
       }
 
     } else if (ad->which == KSPACE) {

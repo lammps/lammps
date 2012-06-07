@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -29,14 +29,14 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) : 
+FixWallColloid::FixWallColloid(LAMMPS *lmp, int narg, char **arg) :
   FixWall(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallColloid::init()
 {
-  if (!atom->sphere_flag) 
+  if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/colloid requires atom style sphere");
 
   // insure all particles in group are extended particles
@@ -101,8 +101,8 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       if (delta >= cutoff[m]) continue;
       rad = radius[i];
       if (rad >= delta) {
-	onflag = 1;
-	continue;
+        onflag = 1;
+        continue;
       }
 
       new_coeff2 = coeff2[m]*rad*rad*rad;
@@ -116,9 +116,9 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       r4inv = r2inv*r2inv;
       r8inv = r4inv*r4inv;
       fwall = side * (coeff1[m]*(rad8*rad + 27.0*rad4*rad2*rad*pow(delta,2.0)
-				 + 63.0*rad4*rad*pow(delta,4.0)
-				 + 21.0*rad2*rad*pow(delta,6.0))*r8inv - 
-		      new_coeff2*r2inv);
+                                 + 63.0*rad4*rad*pow(delta,4.0)
+                                 + 21.0*rad2*rad*pow(delta,6.0))*r8inv -
+                      new_coeff2*r2inv);
       f[i][dim] -= fwall;
 
       r2 = rad - delta;
@@ -131,9 +131,9 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       r4inv3 = r2inv3*r2inv3;
       r6inv3 = r4inv3*r2inv3;
       ewall[0] += coeff3[m]*((-3.5*diam+delta)*r4inv2*r2inv2*rinv2
-			     + (3.5*diam+delta)*r4inv3*r2inv3*rinv3) -
-	coeff4[m]*((diam*delta-r2*r3*(log(-r2)-log(r3)))*
-		   (-rinv2)*rinv3);
+                             + (3.5*diam+delta)*r4inv3*r2inv3*rinv3) -
+        coeff4[m]*((diam*delta-r2*r3*(log(-r2)-log(r3)))*
+                   (-rinv2)*rinv3);
 
       // offset depends on particle size
 
@@ -147,9 +147,9 @@ void FixWallColloid::wall_particle(int m, int which, double coord)
       r4inv3 = r2inv3*r2inv3;
       r6inv3 = r4inv3*r2inv3;
       eoffset = coeff3[m]*((-3.5*diam+cutoff[m])*r4inv2*r2inv2*rinv2
-			   + (3.5*diam+cutoff[m])*r4inv3*r2inv3*rinv3) -
-	coeff4[m]*((diam*cutoff[m]-r2*r3*(log(-r2)-log(r3)))*
-		   (-rinv2)*rinv3);
+                           + (3.5*diam+cutoff[m])*r4inv3*r2inv3*rinv3) -
+        coeff4[m]*((diam*cutoff[m]-r2*r3*(log(-r2)-log(r3)))*
+                   (-rinv2)*rinv3);
       ewall[0] -= eoffset;
 
       ewall[m+1] += fwall;

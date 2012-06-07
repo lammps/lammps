@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -76,7 +76,7 @@ void ImproperCossq::compute(int eflag, int vflag)
 
    for (n = 0; n < nimproperlist; n++) {
       /* Ask the improper list for the atom types. */
-      i1 = improperlist[n][0]; 
+      i1 = improperlist[n][0];
       i2 = improperlist[n][1];
       i3 = improperlist[n][2];
       i4 = improperlist[n][3];
@@ -105,9 +105,9 @@ void ImproperCossq::compute(int eflag, int vflag)
       rlk = sqrt(rlksq);
 
       cosphi = (vb3x*vb1x + vb3y*vb1y + vb3z*vb1z)/(rji * rlk);
-     
-      /* Check that cos(phi) is in the correct limits. */     
-      if (cosphi > 1.0 + TOLERANCE || cosphi < (-1.0 - TOLERANCE)) 
+
+      /* Check that cos(phi) is in the correct limits. */
+      if (cosphi > 1.0 + TOLERANCE || cosphi < (-1.0 - TOLERANCE))
       {
          int me;
          MPI_Comm_rank(world,&me);
@@ -123,19 +123,19 @@ void ImproperCossq::compute(int eflag, int vflag)
             }
       }
 
-      
+
       /* Apply corrections to round-off errors. */
       if (cosphi > 1.0)  cosphi -= SMALL;
       if (cosphi < -1.0) cosphi += SMALL;
-      
+
       /* Calculate the angle: */
       double torangle = acos(cosphi);
       cosphi = cos(torangle - chi[type]);
 
       if (eflag) eimproper = 0.5 * k[type] * cosphi * cosphi;
-     
+
       /*
-      printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);   
+      printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);
       printf("The ji vector: %f, %f, %f.\nThe lk vector: %f, %f, %f.\n", vb1x,vb1y,vb1z,vb3x,vb3y,vb3z);
       printf("The cosine of the angle: %-1.16e.\n", cosphi);
       printf("The energy of the improper: %-1.16e with prefactor %-1.16e.\n", eimproper, 0.5*k[type]);
@@ -147,7 +147,7 @@ void ImproperCossq::compute(int eflag, int vflag)
       cjiji = rjisq;
       clklk = rlksq;
       /*CLKJI = RXLK * RXJI + RYLK * RYJI + RZLK * RZJI */
-      clkji = vb3x*vb1x + vb3y*vb1y + vb3z*vb1z; 
+      clkji = vb3x*vb1x + vb3y*vb1y + vb3z*vb1z;
 
       /*CFACT1 = CLKLK * CJIJI
         CFACT1 = SQRT(CFACT1)
@@ -171,7 +171,7 @@ void ImproperCossq::compute(int eflag, int vflag)
       f2[0] = - f1[0];
       f2[1] = - f1[1];
       f2[2] = - f1[2];
-      
+
       /*FKX = CFACT2 * RXLK - RXJI
         FKY = CFACT2 * RYLK - RYJI
         FKZ = CFACT2 * RZLK - RZJI*/
@@ -190,7 +190,7 @@ void ImproperCossq::compute(int eflag, int vflag)
         FIY = FIY * CFACT1
         FIZ = FIZ * CFACT1*/
       f1[0] *= cfact1;
-      f1[1] *= cfact1; 
+      f1[1] *= cfact1;
       f1[2] *= cfact1;
 
       /*FJX = FJX * CFACT1
@@ -203,15 +203,15 @@ void ImproperCossq::compute(int eflag, int vflag)
       /*FKX = FKX * CFACT1
         FKY = FKY * CFACT1
         FKZ = FKZ * CFACT1*/
-      f3[0] *= cfact1; 
-      f3[1] *= cfact1; 
+      f3[0] *= cfact1;
+      f3[1] *= cfact1;
       f3[2] *= cfact1;
 
       /*FLX = FLX * CFACT1
         FLY = FLY * CFACT1
         FLZ = FLZ * CFACT1*/
       f4[0] *= cfact1;
-      f4[1] *= cfact1; 
+      f4[1] *= cfact1;
       f4[2] *= cfact1;
 
       /* Apply force to each of 4 atoms */
@@ -241,7 +241,7 @@ void ImproperCossq::compute(int eflag, int vflag)
 
       if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
-	       -vb1x,-vb1y,-vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+               -vb1x,-vb1y,-vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
    }
 }
 
@@ -265,7 +265,7 @@ void ImproperCossq::allocate()
 
 void ImproperCossq::coeff(int narg, char **arg)
 {
-   /* Check whether there exist sufficient number of arguments. 
+   /* Check whether there exist sufficient number of arguments.
       0: type of improper to be applied to
       1: energetic constant
       2: equilibrium angle in degrees */
@@ -290,7 +290,7 @@ void ImproperCossq::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 void ImproperCossq::write_restart(FILE *fp)
 {
@@ -299,7 +299,7 @@ void ImproperCossq::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 void ImproperCossq::read_restart(FILE *fp)
 {

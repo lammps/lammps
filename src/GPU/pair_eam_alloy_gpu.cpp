@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -96,9 +96,9 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   for (i = 1; i <= n; i++) {
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
-	count++;
+        setflag[i][j] = 1;
+        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        count++;
       }
     }
   }
@@ -147,7 +147,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
     error->all(FLERR,"Incorrect element names in EAM potential file");
-  
+
   char **words = new char*[file->nelements+1];
   nwords = 0;
   strtok(line," \t\n\r\f");
@@ -164,7 +164,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   if (me == 0) {
     fgets(line,MAXLINE,fptr);
     sscanf(line,"%d %lg %d %lg %lg",
-	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
   MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
@@ -177,7 +177,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
   memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
   memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
-		 "pair:z2r");
+                 "pair:z2r");
 
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
@@ -226,7 +226,7 @@ void PairEAMAlloyGPU::file2array()
 
   // allocate frho arrays
   // nfrho = # of setfl elements + 1 for zero array
-  
+
   nfrho = setfl->nelements + 1;
   memory->destroy(frho);
   memory->create(frho,nfrho,nrho+1,"pair:frho");
@@ -307,12 +307,12 @@ void PairEAMAlloyGPU::file2array()
       irow = map[i];
       icol = map[j];
       if (irow == -1 || icol == -1) {
-	type2z2r[i][j] = 0;
-	continue;
+        type2z2r[i][j] = 0;
+        continue;
       }
       if (irow < icol) {
-	irow = map[j];
-	icol = map[i];
+        irow = map[j];
+        icol = map[i];
       }
       n = 0;
       for (m = 0; m < irow; m++) n += m + 1;

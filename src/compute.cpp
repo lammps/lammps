@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,7 +45,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   for (int i = 0; i < n-1; i++)
     if (!isalnum(id[i]) && id[i] != '_')
       error->all(FLERR,
-		 "Compute ID must be alphanumeric or underscore characters");
+                 "Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
@@ -77,7 +77,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   dynamic = 0;
 
   // setup list of timesteps
-  
+
   ntime = maxtime = 0;
   tlist = NULL;
 
@@ -139,7 +139,7 @@ void Compute::reset_extra_dof()
 void Compute::reset_extra_compute_fix(const char *)
 {
   error->all(FLERR,
-	     "Compute does not allow an extra compute or fix to be reset");
+             "Compute does not allow an extra compute or fix to be reset");
 }
 
 /* ----------------------------------------------------------------------
@@ -206,7 +206,7 @@ void Compute::clearstep()
    set molmap to NULL if molecule IDs include all in range from 1 to Ncount
    else: molecule IDs range from idlo to idhi
          set molmap to vector of length idhi-idlo+1
-	 molmap[id-idlo] = index from 0 to Ncount-1
+         molmap[id-idlo] = index from 0 to Ncount-1
          return idlo and idhi
 ------------------------------------------------------------------------- */
 
@@ -238,7 +238,7 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && comm->me == 0)
     error->warning(FLERR,"Atom with molecule ID = 0 included in "
-		   "compute molecule group");
+                   "compute molecule group");
 
   MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
   MPI_Allreduce(&hi,&idhi,1,MPI_INT,MPI_MAX,world);

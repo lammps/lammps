@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -63,7 +63,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) 
+  if (t_period <= 0.0)
     error->all(FLERR,"Fix temp/berendsen period must be > 0.0");
 
   // create a new compute temp style
@@ -115,7 +115,7 @@ void FixTempBerendsen::init()
 
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) 
+    if (tvar < 0)
       error->all(FLERR,"Variable name for fix temp/berendsen does not exist");
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
     else error->all(FLERR,"Variable for fix temp/berendsen is invalid style");
@@ -137,7 +137,7 @@ void FixTempBerendsen::end_of_step()
   double t_current = temperature->compute_scalar();
   if (t_current == 0.0)
     error->all(FLERR,
-	       "Computed temperature for fix temp/berendsen cannot be 0.0");
+               "Computed temperature for fix temp/berendsen cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -152,7 +152,7 @@ void FixTempBerendsen::end_of_step()
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
       error->one(FLERR,
-		 "Fix temp/berendsen variable returned negative temperature");
+                 "Fix temp/berendsen variable returned negative temperature");
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -172,19 +172,19 @@ void FixTempBerendsen::end_of_step()
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	v[i][0] *= lamda;
-	v[i][1] *= lamda;
-	v[i][2] *= lamda;
+        v[i][0] *= lamda;
+        v[i][1] *= lamda;
+        v[i][2] *= lamda;
       }
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	temperature->remove_bias(i,v[i]);
-	v[i][0] *= lamda;
-	v[i][1] *= lamda;
-	v[i][2] *= lamda;
-	temperature->restore_bias(i,v[i]);
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= lamda;
+        v[i][1] *= lamda;
+        v[i][2] *= lamda;
+        temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -206,13 +206,13 @@ int FixTempBerendsen::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
       error->all(FLERR,
-		 "Fix_modify temperature ID does not compute temperature");
+                 "Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
@@ -232,7 +232,7 @@ void FixTempBerendsen::reset_target(double t_new)
 double FixTempBerendsen::compute_scalar()
 {
   return energy;
-}  
+}
 
 /* ----------------------------------------------------------------------
    extract thermostat properties
@@ -243,6 +243,6 @@ void *FixTempBerendsen::extract(const char *str, int &dim)
   dim=0;
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
-  } 
+  }
   return NULL;
 }

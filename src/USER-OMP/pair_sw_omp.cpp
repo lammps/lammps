@@ -56,9 +56,9 @@ void PairSWOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	eval<1,1>(ifrom, ito, thr);
+        eval<1,1>(ifrom, ito, thr);
       } else {
-	eval<1,0>(ifrom, ito, thr);
+        eval<1,0>(ifrom, ito, thr);
       }
     } else eval<0,0>(ifrom, ito, thr);
 
@@ -113,13 +113,13 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtag = tag[j];
 
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       jtype = map[type[j]];
@@ -142,7 +142,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[j][2] -= delz*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-			       evdwl,0.0,fpair,delx,dely,delz,thr);
+                               evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
     jnumm1 = jnum - 1;
@@ -162,32 +162,32 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       fjxtmp = fjytmp = fjztmp = 0.0;
 
       for (kk = jj+1; kk < jnum; kk++) {
-	k = jlist[kk];
-	k &= NEIGHMASK;
-	ktype = map[type[k]];
-	ikparam = elem2param[itype][ktype][ktype];
-	ijkparam = elem2param[itype][jtype][ktype];
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        ikparam = elem2param[itype][ktype][ktype];
+        ijkparam = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[ikparam].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if (rsq2 > params[ikparam].cutsq) continue;
 
-	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-		  rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
+        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
+                  rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
 
-	fxtmp -= fj[0] + fk[0];
-	fytmp -= fj[1] + fk[1];
-	fztmp -= fj[2] + fk[2];
-	fjxtmp += fj[0];
-	fjytmp += fj[1];
-	fjztmp += fj[2];
-	f[k][0] += fk[0];
-	f[k][1] += fk[1];
-	f[k][2] += fk[2];
+        fxtmp -= fj[0] + fk[0];
+        fytmp -= fj[1] + fk[1];
+        fztmp -= fj[2] + fk[2];
+        fjxtmp += fj[0];
+        fjytmp += fj[1];
+        fjztmp += fj[2];
+        f[k][0] += fk[0];
+        f[k][1] += fk[1];
+        f[k][2] += fk[2];
 
-	if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,thr);
+        if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,thr);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

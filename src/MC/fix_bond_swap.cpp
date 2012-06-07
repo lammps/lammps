@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -115,7 +115,7 @@ void FixBondSwap::init()
     error->all(FLERR,"Must use atom style with molecule IDs with fix bond/swap");
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix bond/swap does not exist");
   temperature = modify->compute[icompute];
 
@@ -257,141 +257,141 @@ void FixBondSwap::pre_neighbor()
       // all 4 old and new bonds must have length < cutoff
 
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
-	inext = atom->map(bond_atom[i][ibond]);
-	if (inext >= nlocal || inext < 0) continue;
-	ibondtype = bond_type[i][ibond];
+        inext = atom->map(bond_atom[i][ibond]);
+        if (inext >= nlocal || inext < 0) continue;
+        ibondtype = bond_type[i][ibond];
 
-	for (jbond = 0; jbond < num_bond[j]; jbond++) {
-	  jnext = atom->map(bond_atom[j][jbond]);
-	  if (jnext >= nlocal || jnext < 0) continue;
-	  jbondtype = bond_type[j][jbond];
+        for (jbond = 0; jbond < num_bond[j]; jbond++) {
+          jnext = atom->map(bond_atom[j][jbond]);
+          if (jnext >= nlocal || jnext < 0) continue;
+          jbondtype = bond_type[j][jbond];
 
-	  if (molecule[inext] != molecule[jnext]) continue;
-	  if (inext == jnext || inext == j) continue;
-	  if (dist_rsq(i,inext) >= cutsq) continue;
-	  if (dist_rsq(j,jnext) >= cutsq) continue;
-	  if (dist_rsq(i,jnext) >= cutsq) continue;
-	  if (dist_rsq(j,inext) >= cutsq) continue;
+          if (molecule[inext] != molecule[jnext]) continue;
+          if (inext == jnext || inext == j) continue;
+          if (dist_rsq(i,inext) >= cutsq) continue;
+          if (dist_rsq(j,jnext) >= cutsq) continue;
+          if (dist_rsq(i,jnext) >= cutsq) continue;
+          if (dist_rsq(j,inext) >= cutsq) continue;
 
-	  // if angles are enabled:
-	  // find other atoms i,inext,j,jnext are in angles with
-	  //   and angletypes: i/j angletype, i/j nextangletype
-	  // use num_angle for this, not special list, so also find angletypes
-	  // 4 atoms consecutively along 1st chain: iprev,i,inext,ilast
-	  // 4 atoms consecutively along 2nd chain: jprev,j,jnext,jlast
-	  // prev or last atom can be non-existent at end of chain
-	  //   set prev/last = -1 in this case
-	  // if newton bond = 0, then angles are stored by all 4 atoms
-	  //   so require that iprev,ilast,jprev,jlast be owned by this proc
-	  //   so all copies of angles can be updated if a swap takes place
+          // if angles are enabled:
+          // find other atoms i,inext,j,jnext are in angles with
+          //   and angletypes: i/j angletype, i/j nextangletype
+          // use num_angle for this, not special list, so also find angletypes
+          // 4 atoms consecutively along 1st chain: iprev,i,inext,ilast
+          // 4 atoms consecutively along 2nd chain: jprev,j,jnext,jlast
+          // prev or last atom can be non-existent at end of chain
+          //   set prev/last = -1 in this case
+          // if newton bond = 0, then angles are stored by all 4 atoms
+          //   so require that iprev,ilast,jprev,jlast be owned by this proc
+          //   so all copies of angles can be updated if a swap takes place
 
-	  if (angleflag) {
-	    itag = tag[i];
-	    inexttag = tag[inext];
-	    jtag = tag[j];
-	    jnexttag = tag[jnext];
+          if (angleflag) {
+            itag = tag[i];
+            inexttag = tag[inext];
+            jtag = tag[j];
+            jnexttag = tag[jnext];
 
-	    iprev = -1;
-	    for (iangle = 0; iangle < num_angle[i]; iangle++) {
-	      i1 = angle_atom1[i][iangle];
-	      i2 = angle_atom2[i][iangle];
-	      i3 = angle_atom3[i][iangle];
-	      if (i2 == itag && i3 == inexttag) iprev = atom->map(i1);
-	      else if (i1 == inexttag && i2 == itag) iprev = atom->map(i3);
-	      if (iprev >= 0) {
-		iangletype = angle_type[i][iangle];
-		break;
-	      }
-	    }
-	    if (!newton_bond && iprev >= nlocal) continue;
+            iprev = -1;
+            for (iangle = 0; iangle < num_angle[i]; iangle++) {
+              i1 = angle_atom1[i][iangle];
+              i2 = angle_atom2[i][iangle];
+              i3 = angle_atom3[i][iangle];
+              if (i2 == itag && i3 == inexttag) iprev = atom->map(i1);
+              else if (i1 == inexttag && i2 == itag) iprev = atom->map(i3);
+              if (iprev >= 0) {
+                iangletype = angle_type[i][iangle];
+                break;
+              }
+            }
+            if (!newton_bond && iprev >= nlocal) continue;
 
-	    ilast = -1;
-	    for (iangle = 0; iangle < num_angle[inext]; iangle++) {
-	      i1 = angle_atom1[inext][iangle];
-	      i2 = angle_atom2[inext][iangle];
-	      i3 = angle_atom3[inext][iangle];
-	      if (i1 == itag && i2 == inexttag) ilast = atom->map(i3);
-	      else if (i2 == inexttag && i3 == itag) ilast = atom->map(i1);
-	      if (ilast >= 0) {
-		inextangletype = angle_type[inext][iangle];
-		break;
-	      }
-	    }
-	    if (!newton_bond && ilast >= nlocal) continue;
+            ilast = -1;
+            for (iangle = 0; iangle < num_angle[inext]; iangle++) {
+              i1 = angle_atom1[inext][iangle];
+              i2 = angle_atom2[inext][iangle];
+              i3 = angle_atom3[inext][iangle];
+              if (i1 == itag && i2 == inexttag) ilast = atom->map(i3);
+              else if (i2 == inexttag && i3 == itag) ilast = atom->map(i1);
+              if (ilast >= 0) {
+                inextangletype = angle_type[inext][iangle];
+                break;
+              }
+            }
+            if (!newton_bond && ilast >= nlocal) continue;
 
-	    jprev = -1;
-	    for (jangle = 0; jangle < num_angle[j]; jangle++) {
-	      j1 = angle_atom1[j][jangle];
-	      j2 = angle_atom2[j][jangle];
-	      j3 = angle_atom3[j][jangle];
-	      if (j2 == jtag && j3 == jnexttag) jprev = atom->map(j1);
-	      else if (j1 == jnexttag && j2 == jtag) jprev = atom->map(j3);
-	      if (jprev >= 0) {
-		jangletype = angle_type[j][jangle];
-		break;
-	      }
-	    }
-	    if (!newton_bond && jprev >= nlocal) continue;
+            jprev = -1;
+            for (jangle = 0; jangle < num_angle[j]; jangle++) {
+              j1 = angle_atom1[j][jangle];
+              j2 = angle_atom2[j][jangle];
+              j3 = angle_atom3[j][jangle];
+              if (j2 == jtag && j3 == jnexttag) jprev = atom->map(j1);
+              else if (j1 == jnexttag && j2 == jtag) jprev = atom->map(j3);
+              if (jprev >= 0) {
+                jangletype = angle_type[j][jangle];
+                break;
+              }
+            }
+            if (!newton_bond && jprev >= nlocal) continue;
 
-	    jlast = -1;
-	    for (jangle = 0; jangle < num_angle[jnext]; jangle++) {
-	      j1 = angle_atom1[jnext][jangle];
-	      j2 = angle_atom2[jnext][jangle];
-	      j3 = angle_atom3[jnext][jangle];
-	      if (j1 == jtag && j2 == jnexttag) jlast = atom->map(j3);
-	      else if (j2 == jnexttag && j3 == jtag) jlast = atom->map(j1);
-	      if (jlast >= 0) {
-		jnextangletype = angle_type[jnext][jangle];
-		break;
-	      }
-	    }
-	    if (!newton_bond && jlast >= nlocal) continue;
-	  }
+            jlast = -1;
+            for (jangle = 0; jangle < num_angle[jnext]; jangle++) {
+              j1 = angle_atom1[jnext][jangle];
+              j2 = angle_atom2[jnext][jangle];
+              j3 = angle_atom3[jnext][jangle];
+              if (j1 == jtag && j2 == jnexttag) jlast = atom->map(j3);
+              else if (j2 == jnexttag && j3 == jtag) jlast = atom->map(j1);
+              if (jlast >= 0) {
+                jnextangletype = angle_type[jnext][jangle];
+                break;
+              }
+            }
+            if (!newton_bond && jlast >= nlocal) continue;
+          }
 
-	  // valid foursome found between 2 chains:
-	  //   chains = iprev-i-inext-ilast and jprev-j-jnext-jlast
-	  //   prev or last values are -1 if do not exist due to end of chain
-	  //   OK to call angle_eng with -1 atom, since just return 0.0
-	  // current energy of foursome =
-	  //   E_nb(i,j) + E_nb(i,jnext) + E_nb(inext,j) + E_nb(inext,jnext) +
-	  //   E_bond(i,inext) + E_bond(j,jnext) + 
-	  //   E_angle(iprev,i,inext) + E_angle(i,inext,ilast) +
-	  //   E_angle(jprev,j,jnext) + E_angle(j,jnext,jlast)
-	  // new energy of foursome with swapped bonds =
-	  //   E_nb(i,j) + E_nb(i,inext) + E_nb(j,jnext) + E_nb(inext,jnext) +
-	  //   E_bond(i,jnext) + E_bond(j,inext) + 
-	  //   E_angle(iprev,i,jnext) + E_angle(i,jnext,jlast) +
-	  //   E_angle(jprev,j,inext) + E_angle(j,inext,ilast)
-	  // energy delta = add/subtract differing terms between 2 formulas
+          // valid foursome found between 2 chains:
+          //   chains = iprev-i-inext-ilast and jprev-j-jnext-jlast
+          //   prev or last values are -1 if do not exist due to end of chain
+          //   OK to call angle_eng with -1 atom, since just return 0.0
+          // current energy of foursome =
+          //   E_nb(i,j) + E_nb(i,jnext) + E_nb(inext,j) + E_nb(inext,jnext) +
+          //   E_bond(i,inext) + E_bond(j,jnext) +
+          //   E_angle(iprev,i,inext) + E_angle(i,inext,ilast) +
+          //   E_angle(jprev,j,jnext) + E_angle(j,jnext,jlast)
+          // new energy of foursome with swapped bonds =
+          //   E_nb(i,j) + E_nb(i,inext) + E_nb(j,jnext) + E_nb(inext,jnext) +
+          //   E_bond(i,jnext) + E_bond(j,inext) +
+          //   E_angle(iprev,i,jnext) + E_angle(i,jnext,jlast) +
+          //   E_angle(jprev,j,inext) + E_angle(j,inext,ilast)
+          // energy delta = add/subtract differing terms between 2 formulas
 
-	  foursome++;
+          foursome++;
 
-	  delta = pair_eng(i,inext) + pair_eng(j,jnext) -
-	    pair_eng(i,jnext) - pair_eng(inext,j);
-	  delta += bond_eng(ibondtype,i,jnext) + bond_eng(jbondtype,j,inext) -
-	    bond_eng(ibondtype,i,inext) - bond_eng(jbondtype,j,jnext);
-	  if (angleflag)
-	    delta += angle_eng(iangletype,iprev,i,jnext) + 
-	      angle_eng(jnextangletype,i,jnext,jlast) +
-	      angle_eng(jangletype,jprev,j,inext) +
-	      angle_eng(inextangletype,j,inext,ilast) -
-	      angle_eng(iangletype,iprev,i,inext) - 
-	      angle_eng(inextangletype,i,inext,ilast) -
-	      angle_eng(jangletype,jprev,j,jnext) -
-	      angle_eng(jnextangletype,j,jnext,jlast);
+          delta = pair_eng(i,inext) + pair_eng(j,jnext) -
+            pair_eng(i,jnext) - pair_eng(inext,j);
+          delta += bond_eng(ibondtype,i,jnext) + bond_eng(jbondtype,j,inext) -
+            bond_eng(ibondtype,i,inext) - bond_eng(jbondtype,j,jnext);
+          if (angleflag)
+            delta += angle_eng(iangletype,iprev,i,jnext) +
+              angle_eng(jnextangletype,i,jnext,jlast) +
+              angle_eng(jangletype,jprev,j,inext) +
+              angle_eng(inextangletype,j,inext,ilast) -
+              angle_eng(iangletype,iprev,i,inext) -
+              angle_eng(inextangletype,i,inext,ilast) -
+              angle_eng(jangletype,jprev,j,jnext) -
+              angle_eng(jnextangletype,j,jnext,jlast);
 
-	  // if delta <= 0, accept swap
-	  // if delta > 0, compute Boltzmann factor with current temperature
-	  //   only accept if greater than random value
-	  // whether accept or not, exit test loop
+          // if delta <= 0, accept swap
+          // if delta > 0, compute Boltzmann factor with current temperature
+          //   only accept if greater than random value
+          // whether accept or not, exit test loop
 
-	  if (delta < 0.0) accept = 1;
-	  else {
-	    factor = exp(-delta/force->boltz/t_current);
-	    if (random->uniform() < factor) accept = 1;
-	  }
-	  goto done;
-	}
+          if (delta < 0.0) accept = 1;
+          else {
+            factor = exp(-delta/force->boltz/t_current);
+            if (random->uniform() < factor) accept = 1;
+          }
+          goto done;
+        }
       }
     }
   }
@@ -399,7 +399,7 @@ void FixBondSwap::pre_neighbor()
  done:
   if (!accept) return;
   naccept++;
-  
+
   // change bond partners of affected atoms
   // on atom i: bond i-inext changes to i-jnext
   // on atom j: bond j-jnext changes to j-inext
@@ -533,7 +533,7 @@ void FixBondSwap::pre_neighbor()
       angle_atom3[jnext][jangle] = iprevtag;
     } else if (j1 == jtag && j2 == jnexttag && j3 == jlasttag)
       angle_atom1[jnext][jangle] = itag;
-    else if (j1 == jlasttag && j2 == jnexttag && j3 == jtag) 
+    else if (j1 == jlasttag && j2 == jnexttag && j3 == jtag)
       angle_atom3[jnext][jangle] = itag;
   }
 
@@ -551,7 +551,7 @@ void FixBondSwap::pre_neighbor()
     i1 = angle_atom1[iprev][iangle];
     i2 = angle_atom2[iprev][iangle];
     i3 = angle_atom3[iprev][iangle];
-              
+
     if (i1 == iprevtag && i2 == itag && i3 == inexttag)
       angle_atom3[iprev][iangle] = jnexttag;
     else if (i1 == inexttag && i2 == itag && i3 == iprevtag)
@@ -562,7 +562,7 @@ void FixBondSwap::pre_neighbor()
     j1 = angle_atom1[jprev][jangle];
     j2 = angle_atom2[jprev][jangle];
     j3 = angle_atom3[jprev][jangle];
-    
+
     if (j1 == jprevtag && j2 == jtag && j3 == jnexttag)
       angle_atom3[jprev][jangle] = inexttag;
     else if (j1 == jnexttag && j2 == jtag && j3 == jprevtag)
@@ -573,7 +573,7 @@ void FixBondSwap::pre_neighbor()
     i1 = angle_atom1[ilast][iangle];
     i2 = angle_atom2[ilast][iangle];
     i3 = angle_atom3[ilast][iangle];
-    
+
     if (i1 == itag && i2 == inexttag && i3 == ilasttag)
       angle_atom1[ilast][iangle] = jtag;
     else if (i1 == ilasttag && i2 == inexttag && i3 == itag)
@@ -584,7 +584,7 @@ void FixBondSwap::pre_neighbor()
     j1 = angle_atom1[jlast][jangle];
     j2 = angle_atom2[jlast][jangle];
     j3 = angle_atom3[jlast][jangle];
-    
+
     if (j1 == jtag && j2 == jnexttag && j3 == jlasttag)
       angle_atom1[jlast][jangle] = itag;
     else if (j1 == jlasttag && j2 == jnexttag && j3 == jtag)

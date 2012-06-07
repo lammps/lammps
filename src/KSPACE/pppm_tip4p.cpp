@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -55,7 +55,7 @@ void PPPMTIP4P::init()
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
+   store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4P::particle_map()
@@ -70,7 +70,7 @@ void PPPMTIP4P::particle_map()
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -89,8 +89,8 @@ void PPPMTIP4P::particle_map()
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
   }
 
   int flag_all;
@@ -102,7 +102,7 @@ void PPPMTIP4P::particle_map()
    create discretized "density" on section of global grid due to my particles
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
+   in global grid
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4P::make_rho()
@@ -121,14 +121,14 @@ void PPPMTIP4P::make_rho()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  int *type = atom->type; 
+  int *type = atom->type;
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -146,19 +146,19 @@ void PPPMTIP4P::make_rho()
       mz = n+nz;
       y0 = z0*rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	x0 = y0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  density_brick[mz][my][mx] += x0*rho1d[0][l];
-	}
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4P::fieldforce()
@@ -187,7 +187,7 @@ void PPPMTIP4P::fieldforce()
 
   for (i = 0; i < nlocal; i++) {
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
       xi = xM;
     } else xi = x[i];
 
@@ -205,15 +205,15 @@ void PPPMTIP4P::fieldforce()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  ekx -= x0*vdx_brick[mz][my][mx];
-	  eky -= x0*vdy_brick[mz][my][mx];
-	  ekz -= x0*vdz_brick[mz][my][mx];
-	}
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          ekx -= x0*vdx_brick[mz][my][mx];
+          eky -= x0*vdy_brick[mz][my][mx];
+          ekz -= x0*vdz_brick[mz][my][mx];
+        }
       }
     }
 
@@ -234,7 +234,7 @@ void PPPMTIP4P::fieldforce()
       rOMx = xM[0] - x[i][0];
       rOMy = xM[1] - x[i][1];
       rOMz = xM[2] - x[i][2];
-  
+
       ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
 
       f1x = ddotf * rOMx;
@@ -271,7 +271,7 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
-  double **x = atom->x; 
+  double **x = atom->x;
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];

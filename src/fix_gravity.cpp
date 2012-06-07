@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -167,57 +167,57 @@ void FixGravity::init()
 
   if (mstr) {
     mvar = input->variable->find(mstr);
-    if (mvar < 0) 
+    if (mvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(mvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (vstr) {
     vvar = input->variable->find(vstr);
-    if (vvar < 0) 
+    if (vvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(vvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (pstr) {
     pvar = input->variable->find(pstr);
-    if (pvar < 0) 
+    if (pvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(pvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) 
+    if (tvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(tvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) 
+    if (xvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(xvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) 
+    if (yvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(yvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) 
+    if (zvar < 0)
       error->all(FLERR,"Variable name for fix gravity does not exist");
     if (!input->variable->equalstyle(zvar))
       error->all(FLERR,"Variable for fix gravity is invalid style");
   }
 
   varflag = CONSTANT;
-  if (mstyle != CONSTANT || vstyle != CONSTANT || pstyle != CONSTANT || 
-      tstyle != CONSTANT || xstyle != CONSTANT || ystyle != CONSTANT || 
+  if (mstyle != CONSTANT || vstyle != CONSTANT || pstyle != CONSTANT ||
+      tstyle != CONSTANT || xstyle != CONSTANT || ystyle != CONSTANT ||
       zstyle != CONSTANT) varflag = EQUAL;
 
   // set gravity components once and for all
@@ -273,20 +273,20 @@ void FixGravity::post_force(int vflag)
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	f[i][0] += massone*xacc;
-	f[i][1] += massone*yacc;
-	f[i][2] += massone*zacc;
-	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
+        massone = rmass[i];
+        f[i][0] += massone*xacc;
+        f[i][1] += massone*yacc;
+        f[i][2] += massone*zacc;
+        egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	f[i][0] += massone*xacc;
-	f[i][1] += massone*yacc;
-	f[i][2] += massone*zacc;
-	egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
+        massone = mass[type[i]];
+        f[i][0] += massone*xacc;
+        f[i][1] += massone*yacc;
+        f[i][2] += massone*zacc;
+        egrav -= massone * (xacc*x[i][0] + yacc*x[i][1] + zacc*x[i][2]);
       }
   }
 }

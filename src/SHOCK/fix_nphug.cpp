@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,7 +59,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   // check pressure settings
 
   if (p_start[0] != p_stop[0] ||
-      p_start[1] != p_stop[1] ||  
+      p_start[1] != p_stop[1] ||
       p_start[2] != p_stop[2])
     error->all(FLERR,"Pstart and Pstop must have the same value");
 
@@ -78,22 +78,22 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 
     // anisotropic hydrostatic compression
 
-    if (p_start[0] == p_start[1] &&  
-	p_start[0] == p_start[2] )
+    if (p_start[0] == p_start[1] &&
+        p_start[0] == p_start[2] )
       uniaxial = 0;
 
     // uniaxial compression
 
-    else if (p_flag[0] == 1 && p_flag[1] == 0 
-	&& p_flag[2] == 0) {
+    else if (p_flag[0] == 1 && p_flag[1] == 0
+        && p_flag[2] == 0) {
       uniaxial = 1;
       idir = 0;
-    } else if (p_flag[0] == 0 && p_flag[1] == 1 
-	   && p_flag[2] == 0) {
+    } else if (p_flag[0] == 0 && p_flag[1] == 1
+           && p_flag[2] == 0) {
       uniaxial = 1;
       idir = 1;
-    } else if (p_flag[0] == 0 && p_flag[1] == 0 
-	       && p_flag[2] == 1) {
+    } else if (p_flag[0] == 0 && p_flag[1] == 0
+               && p_flag[2] == 1) {
       uniaxial = 1;
       idir = 2;
 
@@ -103,11 +103,11 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (pstyle == TRICLINIC) {
 
-    if (p_start[0] == p_start[1] &&  
-	p_start[0] == p_start[2] &&
-	p_start[3] == 0.0 &&  
-	p_start[4] == 0.0 &&  
-	p_start[5] == 0.0 )
+    if (p_start[0] == p_start[1] &&
+        p_start[0] == p_start[2] &&
+        p_start[3] == 0.0 &&
+        p_start[4] == 0.0 &&
+        p_start[5] == 0.0 )
       uniaxial = 0;
 
     else error->all(FLERR,"For triclinic deformation, specified target stress must be hydrostatic");
@@ -127,7 +127,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   id_temp = new char[n];
   strcpy(id_temp,id);
   strcat(id_temp,"_temp");
-  
+
   char **newarg = new char*[3];
   newarg[0] = id_temp;
   newarg[1] = (char *) "all";
@@ -145,7 +145,7 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   id_press = new char[n];
   strcpy(id_press,id);
   strcat(id_press,"_press");
-  
+
   newarg = new char*[4];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";
@@ -195,14 +195,14 @@ void FixNPHug::init()
   // set pe ptr
 
   int icompute = modify->find_compute(id_pe);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Potential energy ID for fix nvt/nph/npt does not exist");
   pe = modify->compute[icompute];
 }
 
 
 /* ----------------------------------------------------------------------
-   compute initial state before integrator starts 
+   compute initial state before integrator starts
 ------------------------------------------------------------------------- */
 
 void FixNPHug::setup(int vflag)
@@ -212,7 +212,7 @@ void FixNPHug::setup(int vflag)
   if ( v0_set == 0 ) {
     v0 = compute_vol();
     v0_set = 1;
-  } 
+  }
 
   if ( p0_set == 0 ) {
     p0_set = 1;
@@ -270,7 +270,7 @@ double FixNPHug::compute_vol()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the deviation of the current point 
+   Computes the deviation of the current point
    from the Hugoniot in temperature units.
 ------------------------------------------------------------------------- */
 
@@ -278,21 +278,21 @@ double FixNPHug::compute_hugoniot()
 {
   double v,e,p;
   double dhugo;
-  
+
   e = compute_etotal();
-  
+
   temperature->compute_vector();
 
 
   if (uniaxial == 1) {
     pressure->compute_vector();
     p = pressure->vector[idir];
-  } else 
+  } else
     p = pressure->compute_scalar();
-  
+
   v = compute_vol();
-  
-  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) / 
+
+  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) /
     force->nktv2p + e0 - e;
 
   dhugo /= tdof * boltz;
@@ -308,24 +308,24 @@ double FixNPHug::compute_us()
 {
   double v,p;
   double eps,us;
-  
+
   temperature->compute_vector();
 
   if (uniaxial == 1) {
     pressure->compute_vector();
     p = pressure->vector[idir];
-  } else 
+  } else
     p = pressure->compute_scalar();
-  
+
   v = compute_vol();
-  
+
   // Us^2 = (p-p0)/(rho0*eps)
 
   eps = 1.0 - v/v0;
   if (eps < 1.0e-10) us = 0.0;
-  else if (p < p0) us = 0.0; 
+  else if (p < p0) us = 0.0;
   else us = sqrt((p-p0)/(rho0*eps));
-  
+
   return us;
 }
 
@@ -337,7 +337,7 @@ double FixNPHug::compute_up()
 {
   double v;
   double eps,us,up;
-  
+
   v = compute_vol();
   us = compute_us();
 
@@ -380,7 +380,7 @@ double FixNPHug::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   pack restart data 
+   pack restart data
 ------------------------------------------------------------------------- */
 
 int FixNPHug::pack_restart_data(double *list)
@@ -414,7 +414,7 @@ int FixNPHug::size_restart_global()
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixNPHug::restart(char *buf)

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -63,11 +63,11 @@ class FixShakeCuda : public Fix {
   int *type_flag;                        // constrain bonds to these types
   double *mass_list;                     // constrain bonds to these masses
   int nmass;                             // # of masses in mass_list
-  bool neighbor_step;					 // was neighboring done in this step -> need to run the Cuda_FixShake_Init
+  bool neighbor_step;                                         // was neighboring done in this step -> need to run the Cuda_FixShake_Init
 
   double *bond_distance,*angle_distance; // constraint distances
-  cCudaData<double 	  , X_FLOAT , xx >* cu_bond_distance;
-  cCudaData<double 	  , X_FLOAT , xx >* cu_angle_distance;
+  cCudaData<double           , X_FLOAT , xx >* cu_bond_distance;
+  cCudaData<double           , X_FLOAT , xx >* cu_angle_distance;
 
   int ifix_respa;                        // rRESPA fix needed by SHAKE
   int nlevels_respa;                     // copies of needed rRESPA variables
@@ -85,17 +85,17 @@ class FixShakeCuda : public Fix {
   int **shake_atom;                      // global IDs of atoms in cluster
                                          // central atom is 1st
                                          // lowest global ID is 1st for size 2
-                                            
+
   int **shake_type;                      // bondtype of each bond in cluster
                                          // for angle cluster, 3rd value
                                          //   is angletype
   double **xshake;                       // unconstrained atom coords
-  cCudaData<int 	  , int	    , xx >* cu_shake_flag;
-  cCudaData<int 	  , int	    , yx >* cu_shake_atom;
-  cCudaData<int 	  , int	    , yx >* cu_shake_type;
-  cCudaData<double 	  , X_FLOAT , xy >* cu_xshake;
-  cCudaData<int 	  , int	    , xx >* cu_list;
-  cCudaData<double 	  , ENERGY_FLOAT , xx >* cu_virial;
+  cCudaData<int           , int            , xx >* cu_shake_flag;
+  cCudaData<int           , int            , yx >* cu_shake_atom;
+  cCudaData<int           , int            , yx >* cu_shake_type;
+  cCudaData<double           , X_FLOAT , xy >* cu_xshake;
+  cCudaData<int           , int            , xx >* cu_list;
+  cCudaData<double           , ENERGY_FLOAT , xx >* cu_virial;
   int* countoccur;
 
   int vflag;                            // virial flag

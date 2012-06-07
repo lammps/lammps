@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -85,7 +85,7 @@ PairEIM::~PairEIM()
 
   for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  
+
   deallocate_setfl();
 
   delete [] negativity;
@@ -134,7 +134,7 @@ void PairEIM::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // zero out density
 
   if (newton_pair) {
@@ -172,17 +172,17 @@ void PairEIM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq[itype][jtype]) {
-	p = sqrt(rsq)*rdr + 1.0;
-	m = static_cast<int> (p);
-	m = MIN(m,nr-1);
-	p -= m;
-	p = MIN(p,1.0);
-	coeff = Fij_spline[type2Fij[itype][jtype]][m];
-	rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	if (newton_pair || j < nlocal) {
-	  coeff = Fij_spline[type2Fij[jtype][itype]][m];
-	  rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-	}
+        p = sqrt(rsq)*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+        coeff = Fij_spline[type2Fij[itype][jtype]][m];
+        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        if (newton_pair || j < nlocal) {
+          coeff = Fij_spline[type2Fij[jtype][itype]][m];
+          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        }
       }
     }
   }
@@ -201,17 +201,17 @@ void PairEIM::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
- 
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
- 
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
- 
+
       if (rsq < cutforcesq[itype][jtype]) {
         p = sqrt(rsq)*rdr + 1.0;
         m = static_cast<int> (p);
@@ -221,8 +221,8 @@ void PairEIM::compute(int eflag, int vflag)
         coeff = Gij_spline[type2Gij[itype][jtype]][m];
         fp[i] += rho[j]*(((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6]);
         if (newton_pair || j < nlocal) {
-          fp[j] += rho[i]*(((coeff[3]*p + coeff[4])*p + coeff[5])*p + 
-			   coeff[6]);
+          fp[j] += rho[i]*(((coeff[3]*p + coeff[4])*p + coeff[5])*p +
+                           coeff[6]);
         }
       }
     }
@@ -373,7 +373,7 @@ void PairEIM::coeff(int narg, char **arg)
   nelements = narg - 3 - atom->ntypes;
   if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   elements = new char*[nelements];
-  
+
   for (i = 0; i < nelements; i++) {
     n = strlen(arg[i+2]) + 1;
     elements[i] = new char[n];
@@ -412,9 +412,9 @@ void PairEIM::coeff(int narg, char **arg)
   for (i = 1; i <= n; i++)
     for (j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
-	count++;
+        setflag[i][j] = 1;
+        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -497,7 +497,7 @@ void PairEIM::read_file(char *filename)
   for (int i = 0; i < nelements; i++) {
     if (me == 0)
       if (!grabsingle(fptr,i))
-	error->one(FLERR,"Could not grab element entry from EIM potential file");
+        error->one(FLERR,"Could not grab element entry from EIM potential file");
     MPI_Bcast(&setfl->ielement[i],1,MPI_INT,0,world);
     MPI_Bcast(&setfl->mass[i],1,MPI_DOUBLE,0,world);
     MPI_Bcast(&setfl->negativity[i],1,MPI_DOUBLE,0,world);
@@ -515,7 +515,7 @@ void PairEIM::read_file(char *filename)
       else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
       if (me == 0)
         if (grabpair(fptr,i,j) == 0)
-	  error->one(FLERR,"Could not grab pair entry from EIM potential file");
+          error->one(FLERR,"Could not grab pair entry from EIM potential file");
       MPI_Bcast(&setfl->rcutphiA[ij],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setfl->rcutphiR[ij],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setfl->Eb[ij],1,MPI_DOUBLE,0,world);
@@ -556,21 +556,21 @@ void PairEIM::read_file(char *filename)
           ij = nelements*(i+1) - (i+1)*(i+2)/2 + j;
         }
         setfl->cuts[i][j] = setfl->rcutphiA[ij];
-        if (setfl->cuts[i][j] < setfl->rcutphiR[ij]) 
-	  setfl->cuts[i][j] = setfl->rcutphiR[ij];
-        if (setfl->cuts[i][j] < setfl->rcutq[ij]) 
-	  setfl->cuts[i][j] = setfl->rcutq[ij];
-        if (setfl->cuts[i][j] < setfl->rcutsigma[ij]) 
-	  setfl->cuts[i][j] = setfl->rcutsigma[ij];
+        if (setfl->cuts[i][j] < setfl->rcutphiR[ij])
+          setfl->cuts[i][j] = setfl->rcutphiR[ij];
+        if (setfl->cuts[i][j] < setfl->rcutq[ij])
+          setfl->cuts[i][j] = setfl->rcutq[ij];
+        if (setfl->cuts[i][j] < setfl->rcutsigma[ij])
+          setfl->cuts[i][j] = setfl->rcutsigma[ij];
       }
     }
   }
-  
+
   memory->create(setfl->Fij,nelements,nelements,setfl->nr+1,"pair:Fij");
   memory->create(setfl->Gij,nelements,nelements,setfl->nr+1,"pair:Gij");
   memory->create(setfl->phiij,nelements,nelements,setfl->nr+1,"pair:phiij");
 
-  for (int i = 0; i < nelements; i++)  
+  for (int i = 0; i < nelements; i++)
     for (int j = 0; j < nelements; j++) {
       for (int k = 0; k < setfl->nr; k++) {
         if (i > j) {
@@ -701,11 +701,11 @@ void PairEIM::file2array()
     }
 
   // add extra Fij of zeroes for non-EIM types to point to (pair hybrid)
- 
+
   for (m = 1; m <= nr; m++) Fij[nFij-1][m] = 0.0;
- 
+
   // type2Fij[i][j] = which Fij array (0 to nFij-1) each type pair maps to
-  // setfl of Fij arrays 
+  // setfl of Fij arrays
   // value = n = sum over rows of matrix until reach irow,icol
   // if atom type doesn't point to element (non-EIM atom in pair hybrid)
   // then map it to last Fij array of zeroes
@@ -793,7 +793,7 @@ void PairEIM::file2array()
 
   for (m = 1; m <= nr; m++) phiij[nphiij-1][m] = 0.0;
 
-  // type2phiij[i][j] = which phiij array (0 to nphiij-1) 
+  // type2phiij[i][j] = which phiij array (0 to nphiij-1)
   //                    each type pair maps to
   // setfl of phiij arrays only fill lower triangular Nelement matrix
   // value = n = sum over rows of lower-triangular matrix until reach irow,icol
@@ -847,8 +847,8 @@ void PairEIM::array2spline()
 
 /* ---------------------------------------------------------------------- */
 
-void PairEIM::interpolate(int n, double delta, double *f, 
-			  double **spline, double origin)
+void PairEIM::interpolate(int n, double delta, double *f,
+                          double **spline, double origin)
 {
   for (int m = 1; m <= n; m++) spline[m][6] = f[m];
 
@@ -856,21 +856,21 @@ void PairEIM::interpolate(int n, double delta, double *f,
   spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
   spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
   spline[n][5] = 0.0;
-  
+
   for (int m = 3; m <= n-2; m++)
-    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) + 
-		    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
-  
+    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) +
+                    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
+
   for (int m = 1; m <= n-1; m++) {
-    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) - 
+    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) -
       2.0*spline[m][5] - spline[m+1][5];
-    spline[m][3] = spline[m][5] + spline[m+1][5] - 
+    spline[m][3] = spline[m][5] + spline[m+1][5] -
       2.0*(spline[m+1][6]-spline[m][6]);
   }
-  
+
   spline[n][4] = 0.0;
   spline[n][3] = 0.0;
-  
+
   for (int m = 1; m <= n; m++) {
     spline[m][2] = spline[m][5]/delta;
     spline[m][1] = 2.0*spline[m][4]/delta;
@@ -992,7 +992,7 @@ double PairEIM::funccutoff(double rp, double rc, double r)
 {
   double rbig = setfl->rbig;
   double rsmall = setfl->rsmall;
-  
+
   double a = (rsmall-rbig)/(rc-rp)*(r-rp)+rbig;
   a = erfc(a);
   double b = erfc(rbig);
@@ -1013,9 +1013,9 @@ double PairEIM::funcphi(int i, int j, double r)
   else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
   if (r < 0.2) r = 0.2;
   if (setfl->tp[ij] == 1) {
-    double a = setfl->Eb[ij]*setfl->alpha[ij] / 
+    double a = setfl->Eb[ij]*setfl->alpha[ij] /
       (setfl->beta[ij]-setfl->alpha[ij]);
-    double b = setfl->Eb[ij]*setfl->beta[ij] / 
+    double b = setfl->Eb[ij]*setfl->beta[ij] /
       (setfl->beta[ij]-setfl->alpha[ij]);
     if (r < setfl->rcutphiA[ij]) {
       value -= a*exp(-setfl->beta[ij]*(r/setfl->r0[ij]-1.0))*
@@ -1085,7 +1085,7 @@ double PairEIM::funccoul(int i, int j, double r)
 int PairEIM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int i,j,m;
- 
+
   m = 0;
   if (rhofp == 1) {
     for (i = 0; i < n; i++) {
@@ -1107,7 +1107,7 @@ int PairEIM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 void PairEIM::unpack_comm(int n, int first, double *buf)
 {
   int i,m,last;
- 
+
   m = 0;
   last = first + n;
   if (rhofp == 1) {
@@ -1148,7 +1148,7 @@ void PairEIM::unpack_reverse_comm(int n, int *list, double *buf)
       rho[j] += buf[m++];
     }
   }
-  if (rhofp == 2) { 
+  if (rhofp == 2) {
     for (i = 0; i < n; i++) {
       j = list[i];
       fp[j] += buf[m++];
@@ -1157,7 +1157,7 @@ void PairEIM::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double PairEIM::memory_usage()

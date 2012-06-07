@@ -57,11 +57,11 @@ void PairLJCharmmCoulLongOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -122,88 +122,88 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       const int jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	const double r2inv = 1.0/rsq;
+        const double r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    const double A1 =  0.254829592;
-	    const double A2 = -0.284496736;
-	    const double A3 =  1.421413741;
-	    const double A4 = -1.453152027;
-	    const double A5 =  1.061405429;
-	    const double EWALD_F = 1.12837917;
-	    const double INV_EWALD_P = 1.0/0.3275911;
+        if (rsq < cut_coulsq) {
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            const double A1 =  0.254829592;
+            const double A2 = -0.284496736;
+            const double A3 =  1.421413741;
+            const double A4 = -1.453152027;
+            const double A5 =  1.061405429;
+            const double EWALD_F = 1.12837917;
+            const double INV_EWALD_P = 1.0/0.3275911;
 
-	    const double r = sqrt(rsq);
-	    const double grij = g_ewald * r;
-	    const double expm2 = exp(-grij*grij);
-	    const double t = INV_EWALD_P / (INV_EWALD_P + grij);
-	    const double erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    const double prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (EFLAG) ecoul = prefactor*erfc;
-	    if (sbindex) {
-	      const double adjust = (1.0-special_coul[sbindex])*prefactor;
-	      forcecoul -= adjust;
-	      if (EFLAG) ecoul -= adjust;
-	    }
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-	    const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    const double table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
-	    if (sbindex) {
-	      const double table2 = ctable[itable] + fraction*dctable[itable];
-	      const double prefactor = qtmp*q[j] * table2;
-	      const double adjust = (1.0-special_coul[sbindex])*prefactor;
-	      forcecoul -= adjust;
-	      if (EFLAG) ecoul -= adjust;
-	    }
-	  }
-	}
+            const double r = sqrt(rsq);
+            const double grij = g_ewald * r;
+            const double expm2 = exp(-grij*grij);
+            const double t = INV_EWALD_P / (INV_EWALD_P + grij);
+            const double erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            const double prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (EFLAG) ecoul = prefactor*erfc;
+            if (sbindex) {
+              const double adjust = (1.0-special_coul[sbindex])*prefactor;
+              forcecoul -= adjust;
+              if (EFLAG) ecoul -= adjust;
+            }
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+            const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            const double table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
+            if (sbindex) {
+              const double table2 = ctable[itable] + fraction*dctable[itable];
+              const double prefactor = qtmp*q[j] * table2;
+              const double adjust = (1.0-special_coul[sbindex])*prefactor;
+              forcecoul -= adjust;
+              if (EFLAG) ecoul -= adjust;
+            }
+          }
+        }
 
-	if (rsq < cut_ljsq) {
-	  const double r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  if (EFLAG) evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+        if (rsq < cut_ljsq) {
+          const double r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          if (EFLAG) evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
-	  if (rsq > cut_lj_innersq) {
-	    const double drsq = cut_ljsq - rsq;
-	    const double cut2 = (rsq - cut_lj_innersq) * drsq;
-	    const double switch1 = drsq * (drsq*drsq + 3.0*cut2) * inv_denom_lj;
-	    const double switch2 = 12.0*rsq * cut2 * inv_denom_lj;
-	    if (EFLAG) {
-	      forcelj = forcelj*switch1 + evdwl*switch2;
-	      evdwl *= switch1;
-	    } else {
-	      const double philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	      forcelj =  forcelj*switch1 + philj*switch2;
-	    }
-	  }
+          if (rsq > cut_lj_innersq) {
+            const double drsq = cut_ljsq - rsq;
+            const double cut2 = (rsq - cut_lj_innersq) * drsq;
+            const double switch1 = drsq * (drsq*drsq + 3.0*cut2) * inv_denom_lj;
+            const double switch2 = 12.0*rsq * cut2 * inv_denom_lj;
+            if (EFLAG) {
+              forcelj = forcelj*switch1 + evdwl*switch2;
+              evdwl *= switch1;
+            } else {
+              const double philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+              forcelj =  forcelj*switch1 + philj*switch2;
+            }
+          }
 
-	  if (sbindex) {
-	    const double factor_lj = special_lj[sbindex];
-	    forcelj *= factor_lj;
-	    if (EFLAG) evdwl *= factor_lj;
-	  }
+          if (sbindex) {
+            const double factor_lj = special_lj[sbindex];
+            forcelj *= factor_lj;
+            if (EFLAG) evdwl *= factor_lj;
+          }
 
-	}
-	const double fpair = (forcecoul + forcelj) * r2inv;
+        }
+        const double fpair = (forcecoul + forcelj) * r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,ecoul,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

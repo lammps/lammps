@@ -65,7 +65,7 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
     if (evflag)
       if (shearupdate) eval<1,1>(ifrom, ito, thr);
       else eval<1,0>(ifrom, ito, thr);
-    else 
+    else
       if (shearupdate) eval<0,1>(ifrom, ito, thr);
       else eval<0,0>(ifrom, ito, thr);
 
@@ -139,7 +139,7 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq >= radsum*radsum) {
 
-	// unset non-touching neighbors
+        // unset non-touching neighbors
 
         touch[jj] = 0;
         myshear[0] = 0.0;
@@ -147,133 +147,133 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
         myshear[2] = 0.0;
 
       } else {
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	rsqinv = 1.0/rsq;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        rsqinv = 1.0/rsq;
 
-	// relative translational velocity
+        // relative translational velocity
 
-	vr1 = v[i][0] - v[j][0];
-	vr2 = v[i][1] - v[j][1];
-	vr3 = v[i][2] - v[j][2];
+        vr1 = v[i][0] - v[j][0];
+        vr2 = v[i][1] - v[j][1];
+        vr3 = v[i][2] - v[j][2];
 
-	// normal component
+        // normal component
 
-	vnnr = vr1*delx + vr2*dely + vr3*delz;
-	vn1 = delx*vnnr * rsqinv;
-	vn2 = dely*vnnr * rsqinv;
-	vn3 = delz*vnnr * rsqinv;
+        vnnr = vr1*delx + vr2*dely + vr3*delz;
+        vn1 = delx*vnnr * rsqinv;
+        vn2 = dely*vnnr * rsqinv;
+        vn3 = delz*vnnr * rsqinv;
 
-	// tangential component
+        // tangential component
 
-	vt1 = vr1 - vn1;
-	vt2 = vr2 - vn2;
-	vt3 = vr3 - vn3;
+        vt1 = vr1 - vn1;
+        vt2 = vr2 - vn2;
+        vt3 = vr3 - vn3;
 
-	// relative rotational velocity
+        // relative rotational velocity
 
-	wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
-	wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
-	wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
+        wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
+        wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
+        wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-	// normal forces = Hookian contact + normal velocity damping
+        // normal forces = Hookian contact + normal velocity damping
 
-	if (rmass) {
-	  meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	  if (mask[i] & freeze_group_bit) meff = rmass[j];
-	  if (mask[j] & freeze_group_bit) meff = rmass[i];
-	} else {
-	  jtype = type[j];
-	  meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
-	  if (mask[i] & freeze_group_bit) meff = mass[jtype];
-	  if (mask[j] & freeze_group_bit) meff = mass[itype];
-	}
+        if (rmass) {
+          meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+          if (mask[i] & freeze_group_bit) meff = rmass[j];
+          if (mask[j] & freeze_group_bit) meff = rmass[i];
+        } else {
+          jtype = type[j];
+          meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
+          if (mask[i] & freeze_group_bit) meff = mass[jtype];
+          if (mask[j] & freeze_group_bit) meff = mass[itype];
+        }
 
-	damp = meff*gamman*vnnr*rsqinv;
-	ccel = kn*(radsum-r)*rinv - damp;
+        damp = meff*gamman*vnnr*rsqinv;
+        ccel = kn*(radsum-r)*rinv - damp;
 
-	// relative velocities
+        // relative velocities
 
-	vtr1 = vt1 - (delz*wr2-dely*wr3);
-	vtr2 = vt2 - (delx*wr3-delz*wr1);
-	vtr3 = vt3 - (dely*wr1-delx*wr2);
-	vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-	vrel = sqrt(vrel);
+        vtr1 = vt1 - (delz*wr2-dely*wr3);
+        vtr2 = vt2 - (delx*wr3-delz*wr1);
+        vtr3 = vt3 - (dely*wr1-delx*wr2);
+        vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+        vrel = sqrt(vrel);
 
-	// shear history effects
+        // shear history effects
 
-	touch[jj] = 1;
-	memcpy(myshear,allshear + 3*jj, 3*sizeof(double));
+        touch[jj] = 1;
+        memcpy(myshear,allshear + 3*jj, 3*sizeof(double));
 
-	if (SHEARUPDATE) {
-	  myshear[0] += vtr1*dt;
-	  myshear[1] += vtr2*dt;
-	  myshear[2] += vtr3*dt;
-	}
+        if (SHEARUPDATE) {
+          myshear[0] += vtr1*dt;
+          myshear[1] += vtr2*dt;
+          myshear[2] += vtr3*dt;
+        }
         shrmag = sqrt(myshear[0]*myshear[0] + myshear[1]*myshear[1] +
-		      myshear[2]*myshear[2]);
+                      myshear[2]*myshear[2]);
 
-	// rotate shear displacements
+        // rotate shear displacements
 
-	rsht = myshear[0]*delx + myshear[1]*dely + myshear[2]*delz;
-	rsht *= rsqinv;
-	if (SHEARUPDATE) {
-	  myshear[0] -= rsht*delx;
-	  myshear[1] -= rsht*dely;
-	  myshear[2] -= rsht*delz;
-	}
+        rsht = myshear[0]*delx + myshear[1]*dely + myshear[2]*delz;
+        rsht *= rsqinv;
+        if (SHEARUPDATE) {
+          myshear[0] -= rsht*delx;
+          myshear[1] -= rsht*dely;
+          myshear[2] -= rsht*delz;
+        }
 
-	// tangential forces = shear + tangential velocity damping
+        // tangential forces = shear + tangential velocity damping
 
-	fs1 = - (kt*myshear[0] + meff*gammat*vtr1);
-	fs2 = - (kt*myshear[1] + meff*gammat*vtr2);
-	fs3 = - (kt*myshear[2] + meff*gammat*vtr3);
+        fs1 = - (kt*myshear[0] + meff*gammat*vtr1);
+        fs2 = - (kt*myshear[1] + meff*gammat*vtr2);
+        fs3 = - (kt*myshear[2] + meff*gammat*vtr3);
 
-	// rescale frictional displacements and forces if needed
+        // rescale frictional displacements and forces if needed
 
-	fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-	fn = xmu * fabs(ccel*r);
+        fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+        fn = xmu * fabs(ccel*r);
 
-	if (fs > fn) {
-	  if (shrmag != 0.0) {
-	    const double fnfs = fn/fs;
-	    const double mgkt = meff*gammat/kt;
-	    myshear[0] = fnfs * (myshear[0] + mgkt*vtr1) - mgkt*vtr1;
-	    myshear[1] = fnfs * (myshear[1] + mgkt*vtr2) - mgkt*vtr2;
-	    myshear[2] = fnfs * (myshear[2] + mgkt*vtr3) - mgkt*vtr3;
-	    fs1 *= fnfs;
-	    fs2 *= fnfs;
-	    fs3 *= fnfs;
-	  } else fs1 = fs2 = fs3 = 0.0;
-	}
+        if (fs > fn) {
+          if (shrmag != 0.0) {
+            const double fnfs = fn/fs;
+            const double mgkt = meff*gammat/kt;
+            myshear[0] = fnfs * (myshear[0] + mgkt*vtr1) - mgkt*vtr1;
+            myshear[1] = fnfs * (myshear[1] + mgkt*vtr2) - mgkt*vtr2;
+            myshear[2] = fnfs * (myshear[2] + mgkt*vtr3) - mgkt*vtr3;
+            fs1 *= fnfs;
+            fs2 *= fnfs;
+            fs3 *= fnfs;
+          } else fs1 = fs2 = fs3 = 0.0;
+        }
 
-	// forces & torques
+        // forces & torques
 
-	fx = delx*ccel + fs1;
-	fy = dely*ccel + fs2;
-	fz = delz*ccel + fs3;
-	fxtmp  += fx;
-	fytmp  += fy;
-	fztmp  += fz;
+        fx = delx*ccel + fs1;
+        fy = dely*ccel + fs2;
+        fz = delz*ccel + fs3;
+        fxtmp  += fx;
+        fytmp  += fy;
+        fztmp  += fz;
 
-	tor1 = rinv * (dely*fs3 - delz*fs2);
-	tor2 = rinv * (delz*fs1 - delx*fs3);
-	tor3 = rinv * (delx*fs2 - dely*fs1);
-	t1tmp -= radi*tor1;
-	t2tmp -= radi*tor2;
-	t3tmp -= radi*tor3;
+        tor1 = rinv * (dely*fs3 - delz*fs2);
+        tor2 = rinv * (delz*fs1 - delx*fs3);
+        tor3 = rinv * (delx*fs2 - dely*fs1);
+        t1tmp -= radi*tor1;
+        t2tmp -= radi*tor2;
+        t3tmp -= radi*tor3;
 
-	if (j < nlocal) {
-	  f[j][0] -= fx;
-	  f[j][1] -= fy;
-	  f[j][2] -= fz;
-	  torque[j][0] -= radj*tor1;
-	  torque[j][1] -= radj*tor2;
-	  torque[j][2] -= radj*tor3;
-	}
+        if (j < nlocal) {
+          f[j][0] -= fx;
+          f[j][1] -= fy;
+          f[j][2] -= fz;
+          torque[j][0] -= radj*tor1;
+          torque[j][1] -= radj*tor2;
+          torque[j][2] -= radj*tor3;
+        }
 
-	if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,/* newton_pair */ 0,
-				     0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,/* newton_pair */ 0,
+                                     0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
 
       }
       memcpy(allshear + 3*jj, myshear, 3*sizeof(double));

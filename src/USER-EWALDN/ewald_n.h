@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -25,10 +25,10 @@ KSpaceStyle(ewald/n,EwaldN)
 
 namespace LAMMPS_NS {
 
-#define EWALD_NORDER	6
-#define EWALD_NFUNCS	4
-#define EWALD_MAX_NSUMS	10
-#define EWALD_NSUMS	{1, 1, 7, 1}
+#define EWALD_NORDER        6
+#define EWALD_NFUNCS        4
+#define EWALD_MAX_NSUMS        10
+#define EWALD_NSUMS        {1, 1, 7, 1}
 
 typedef struct cvector { complex x, y, z; } cvector;
 typedef struct hvector { double x, y, z; } hvector;
@@ -64,7 +64,7 @@ class EwaldN : public KSpace {
   double mumurd2e, dielectric, *B, volume;
   struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
   complex *cek_local, *cek_global;
- 
+
   double rms(int, double, bigint, double, double);
   void reallocate();
   void allocate_peratom();

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -47,7 +47,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 
   rho_stop = atof(arg[3]);
   nfileevery = atoi(arg[5]);
-  if (rho_stop < 0 || nfileevery < 0) 
+  if (rho_stop < 0 || nfileevery < 0)
     error->all(FLERR,"Illegal fix tmd command");
   if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");
 
@@ -63,7 +63,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 
   // make sure an atom map exists before reading in target coordinates
 
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Cannot use fix TMD unless atom map exists");
 
   // read from arg[4] and store coordinates of final target in xf
@@ -77,12 +77,12 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
     if (me == 0) {
       fp = fopen(arg[6],"w");
       if (fp == NULL) {
-	char str[128];
-	sprintf(str,"Cannot open fix tmd file %s",arg[6]);
-	error->one(FLERR,str);
+        char str[128];
+        sprintf(str,"Cannot open fix tmd file %s",arg[6]);
+        error->one(FLERR,str);
       }
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
-	      "gamma_forward lambda work_lambda work_analytical");
+              "gamma_forward lambda work_lambda work_analytical");
     }
   }
 
@@ -236,7 +236,7 @@ void FixTMD::initial_integrate(int vflag)
   b = 2.0*abetotal[1]/masstotal;
   e = abetotal[2]/masstotal;
   c = e - rho_old*rho_old;
-  d = b*b - 4*a*c;  
+  d = b*b - 4*a*c;
 
   if (d < 0) d = 0;
   if (b >= 0) gamma_max = (-b - sqrt(d))/(2*a);
@@ -245,7 +245,7 @@ void FixTMD::initial_integrate(int vflag)
   if (a == 0.0) gamma_back = 0;
 
   c = e - rho_target*rho_target;
-  d = b*b - 4*a*c;  
+  d = b*b - 4*a*c;
   if (d < 0) d = 0;
   if (b >= 0) gamma_max = (-b - sqrt(d))/(2*a);
   else        gamma_max = (-b + sqrt(d))/(2*a);
@@ -280,16 +280,16 @@ void FixTMD::initial_integrate(int vflag)
 
   // stat write of mean constraint force based on previous time step constraint
 
-  if (nfileevery && me == 0) {   
-    work_analytical += 
+  if (nfileevery && me == 0) {
+    work_analytical +=
       (-frtotal - kttotal/dtv/dtf)*(rho_target - rho_old)/rho_old;
     lambda = gamma_back*rho_old*masstotal/dtv/dtf;
     work_lambda += lambda*(rho_target - rho_old);
-    if (!(update->ntimestep % nfileevery) && 
-	(previous_stat != update->ntimestep)) {
+    if (!(update->ntimestep % nfileevery) &&
+        (previous_stat != update->ntimestep)) {
       fprintf(fp,
-	      BIGINT_FORMAT " %g %g %g %g %g %g %g\n",
-	      update->ntimestep,rho_target,rho_old,
+              BIGINT_FORMAT " %g %g %g %g %g %g %g\n",
+              update->ntimestep,rho_target,rho_old,
               gamma_back,gamma_forward,lambda,work_lambda,work_analytical);
       fflush(fp);
       previous_stat = update->ntimestep;
@@ -428,9 +428,9 @@ void FixTMD::readfile(char *file)
     if (me == 0) {
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
-	ptr = fgets(&buffer[m],MAXLINE,fp);
-	if (ptr == NULL) break;
-	m += strlen(&buffer[m]);
+        ptr = fgets(&buffer[m],MAXLINE,fp);
+        if (ptr == NULL) break;
+        m += strlen(&buffer[m]);
       }
       if (ptr == NULL) eof = 1;
       buffer[m++] = '\n';
@@ -447,54 +447,54 @@ void FixTMD::readfile(char *file)
       *next = '\0';
 
       if (firstline) {
-	if (strstr(bufptr,"xlo xhi")) {
-	  double lo,hi;
-	  sscanf(bufptr,"%lg %lg",&lo,&hi);
-	  xprd = hi - lo;
-	  bufptr = next + 1;
-	  continue;
-	} else if (strstr(bufptr,"ylo yhi")) {
-	  double lo,hi;
-	  sscanf(bufptr,"%lg %lg",&lo,&hi);
-	  yprd = hi - lo;
-	  bufptr = next + 1;
-	  continue;
-	} else if (strstr(bufptr,"zlo zhi")) {
-	  double lo,hi;
-	  sscanf(bufptr,"%lg %lg",&lo,&hi);
-	  zprd = hi - lo;
-	  bufptr = next + 1;
-	  continue;
-	} else if (atom->count_words(bufptr) == 4) {
-	  if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0) 
-	    error->all(FLERR,"Incorrect format in TMD target file");
-	  imageflag = 0;
-	  firstline = 0;
-	} else if (atom->count_words(bufptr) == 7) {
-	  if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0) 
-	    error->all(FLERR,"Incorrect format in TMD target file");
-	  imageflag = 1;
-	  firstline = 0;
-	} else error->all(FLERR,"Incorrect format in TMD target file");
+        if (strstr(bufptr,"xlo xhi")) {
+          double lo,hi;
+          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          xprd = hi - lo;
+          bufptr = next + 1;
+          continue;
+        } else if (strstr(bufptr,"ylo yhi")) {
+          double lo,hi;
+          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          yprd = hi - lo;
+          bufptr = next + 1;
+          continue;
+        } else if (strstr(bufptr,"zlo zhi")) {
+          double lo,hi;
+          sscanf(bufptr,"%lg %lg",&lo,&hi);
+          zprd = hi - lo;
+          bufptr = next + 1;
+          continue;
+        } else if (atom->count_words(bufptr) == 4) {
+          if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0)
+            error->all(FLERR,"Incorrect format in TMD target file");
+          imageflag = 0;
+          firstline = 0;
+        } else if (atom->count_words(bufptr) == 7) {
+          if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0)
+            error->all(FLERR,"Incorrect format in TMD target file");
+          imageflag = 1;
+          firstline = 0;
+        } else error->all(FLERR,"Incorrect format in TMD target file");
       }
 
       if (imageflag)
-	sscanf(bufptr,"%d %lg %lg %lg %d %d %d",&tag,&x,&y,&z,&ix,&iy,&iz);
+        sscanf(bufptr,"%d %lg %lg %lg %d %d %d",&tag,&x,&y,&z,&ix,&iy,&iz);
       else
-	sscanf(bufptr,"%d %lg %lg %lg",&tag,&x,&y,&z);
+        sscanf(bufptr,"%d %lg %lg %lg",&tag,&x,&y,&z);
 
       m = atom->map(tag);
       if (m >= 0 && m < nlocal && mask[m] & groupbit) {
-	if (imageflag) {
-	  xf[m][0] = x + ix*xprd;
-	  xf[m][1] = y + iy*yprd;
-	  xf[m][2] = z + iz*zprd;
-	} else {
-	  xf[m][0] = x;
-	  xf[m][1] = y;
-	  xf[m][2] = z;
-	}
-	ncount++;
+        if (imageflag) {
+          xf[m][0] = x + ix*xprd;
+          xf[m][1] = y + iy*yprd;
+          xf[m][2] = z + iz*zprd;
+        } else {
+          xf[m][0] = x;
+          xf[m][1] = y;
+          xf[m][2] = z;
+        }
+        ncount++;
       }
 
       bufptr = next + 1;

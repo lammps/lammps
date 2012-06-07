@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -65,15 +65,15 @@ using namespace MathConst;
 #endif
 
 FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
-			       const int order, const int nxlo_out, 
-			       const int nylo_out, const int nzlo_out,
-			       const int nxhi_out, const int nyhi_out,
-			       const int nzhi_out, FFT_SCALAR **rho_coeff,
-			       FFT_SCALAR **_vd_brick, 
-			       const double slab_volfactor,
-			       const int nx_pppm, const int ny_pppm,
-			       const int nz_pppm, const bool split, 
-			       int &success);
+                               const int order, const int nxlo_out,
+                               const int nylo_out, const int nzlo_out,
+                               const int nxhi_out, const int nyhi_out,
+                               const int nzhi_out, FFT_SCALAR **rho_coeff,
+                               FFT_SCALAR **_vd_brick,
+                               const double slab_volfactor,
+                               const int nx_pppm, const int ny_pppm,
+                               const int nz_pppm, const bool split,
+                               int &success);
 void PPPM_GPU_API(clear)(const double poisson_time);
 int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
@@ -93,11 +93,11 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   kspace_split = false;
   im_real_space = false;
 
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
-   free all memory 
+   free all memory
 ------------------------------------------------------------------------- */
 
 PPPMGPU::~PPPMGPU()
@@ -106,13 +106,13 @@ PPPMGPU::~PPPMGPU()
 }
 
 /* ----------------------------------------------------------------------
-   called once before run 
+   called once before run
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::init()
 {
   PPPM::init();
-  
+
   if (strcmp(update->integrate_style,"verlet/split") == 0)
     kspace_split=true;
 
@@ -130,25 +130,25 @@ void PPPMGPU::init()
   int success;
   FFT_SCALAR *data, *h_brick;
   h_brick = PPPM_GPU_API(init)(atom->nlocal, atom->nlocal+atom->nghost, screen,
-			       order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
-			       nyhi_out, nzhi_out, rho_coeff, &data, 
-			       slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
-			       kspace_split,success);
+                               order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
+                               nyhi_out, nzhi_out, rho_coeff, &data,
+                               slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
+                               kspace_split,success);
 
   GPU_EXTRA::check_flag(success,error,world);
 
   density_brick_gpu =
     create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:density_brick_gpu",h_brick,1);
+                     nxlo_out,nxhi_out,"pppm:density_brick_gpu",h_brick,1);
   vd_brick =
     create_3d_offset(nzlo_out,nzhi_out,nylo_out,nyhi_out,
-		     nxlo_out,nxhi_out,"pppm:vd_brick",data,4);
+                     nxlo_out,nxhi_out,"pppm:vd_brick",data,4);
 
   poisson_time=0;
 }
 
 /* ----------------------------------------------------------------------
-   compute the PPPMGPU long-range force, energy, virial 
+   compute the PPPMGPU long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::compute(int eflag, int vflag)
@@ -167,10 +167,10 @@ void PPPMGPU::compute(int eflag, int vflag)
   }
 
   bool success = true;
-  int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal + 
-			     atom->nghost, atom->x, atom->type, success,
-			     atom->q, domain->boxlo, delxinv, delyinv,
-			     delzinv);
+  int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal +
+                             atom->nghost, atom->x, atom->type, success,
+                             atom->q, domain->boxlo, delxinv, delyinv,
+                             delzinv);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
   if (flag != 0)
@@ -189,7 +189,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   int i,j;
 
   // convert atoms from box to lamda coords
-  
+
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
@@ -207,7 +207,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
-  
+
   poisson();
 
   // all procs communicate E-field values to fill ghost cells
@@ -232,9 +232,9 @@ void PPPMGPU::compute(int eflag, int vflag)
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
-	eatom[i] *= 0.5;
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
-	  (g_ewald*g_ewald*volume);
+        eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+          (g_ewald*g_ewald*volume);
         eatom[i] *= qscale;
       }
     }
@@ -251,7 +251,7 @@ void PPPMGPU::compute(int eflag, int vflag)
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
-   
+
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
@@ -271,14 +271,14 @@ void PPPMGPU::compute(int eflag, int vflag)
   if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
-  
+
   if (triclinic) domain->lamda2x(atom->nlocal);
 
   if (kspace_split) PPPM_GPU_API(forces)(atom->f);
 }
 
 /* ----------------------------------------------------------------------
-   allocate memory that depends on # of K-vectors and order 
+   allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::allocate()
@@ -310,23 +310,23 @@ void PPPMGPU::allocate()
   int tmp;
 
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   0,0,&tmp);
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   0,0,&tmp);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		   0,0,&tmp);
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   0,0,&tmp);
 
   remap = new Remap(lmp,world,
-		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		    1,0,0,FFT_PRECISION);
+                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                    1,0,0,FFT_PRECISION);
 }
 
 /* ----------------------------------------------------------------------
-   deallocate memory that depends on # of K-vectors and order 
+   deallocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::deallocate()
@@ -358,7 +358,7 @@ void PPPMGPU::deallocate()
 
 
 /* ----------------------------------------------------------------------
-   ghost-swap to accumulate full density in brick decomposition 
+   ghost-swap to accumulate full density in brick decomposition
    remap density from 3d brick decomposition to FFT decomposition
 ------------------------------------------------------------------------- */
 
@@ -376,7 +376,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in+1; ix <= nxhi_out; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[0][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -390,7 +390,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix < nxlo_in+nxlo_ghost; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -x processor
   // pass data to self or -x processor
@@ -400,7 +400,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix < nxlo_in; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[0][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -414,7 +414,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxhi_in-nxhi_ghost+1; ix <= nxhi_in; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for +y processor
   // pass data to self or +y processor
@@ -424,7 +424,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[1][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -438,7 +438,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -y processor
   // pass data to self or -y processor
@@ -448,7 +448,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[1][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -462,7 +462,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for +z processor
   // pass data to self or +z processor
@@ -472,7 +472,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[2][1] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -486,7 +486,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // pack my ghosts for -z processor
   // pass data to self or -z processor
@@ -496,7 +496,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf1[n++] = density_brick_gpu[iz][iy][ix];
+        buf1[n++] = density_brick_gpu[iz][iy][ix];
 
   if (comm->procneigh[2][0] == me)
     for (i = 0; i < n; i++) buf2[i] = buf1[i];
@@ -510,7 +510,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_brick_gpu[iz][iy][ix] += buf2[n++];
+        density_brick_gpu[iz][iy][ix] += buf2[n++];
 
   // remap from 3d brick decomposition to FFT decomposition
   // copy grabs inner portion of density from 3d brick
@@ -521,7 +521,7 @@ void PPPMGPU::brick2fft()
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	density_fft[n++] = density_brick_gpu[iz][iy][ix];
+        density_fft[n++] = density_brick_gpu[iz][iy][ix];
 
   remap->perform(density_fft,density_fft,work1);
 }
@@ -546,9 +546,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzhi_in-nzhi_ghost+1; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[2][1] == me)
@@ -563,9 +563,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz < nzlo_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -z processor
@@ -576,9 +576,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_in; iz < nzlo_in+nzlo_ghost; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[2][0] == me)
@@ -593,9 +593,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzhi_in+1; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for +y processor
@@ -606,9 +606,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in-nyhi_ghost+1; iy <= nyhi_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[1][1] == me)
@@ -623,9 +623,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy < nylo_in; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -y processor
@@ -636,9 +636,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_in; iy < nylo_in+nylo_ghost; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[1][0] == me)
@@ -653,9 +653,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nyhi_in+1; iy <= nyhi_out; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for +x processor
@@ -667,9 +667,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[0][1] == me)
@@ -686,9 +686,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 
   // pack my real cells for -x processor
@@ -701,9 +701,9 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	buf1[n++] = vd_brick[iz][iy][ix];
-	buf1[n++] = vd_brick[iz][iy][ix+1];
-	buf1[n++] = vd_brick[iz][iy][ix+2];
+        buf1[n++] = vd_brick[iz][iy][ix];
+        buf1[n++] = vd_brick[iz][iy][ix+1];
+        buf1[n++] = vd_brick[iz][iy][ix+2];
       }
 
   if (comm->procneigh[0][0] == me)
@@ -720,14 +720,14 @@ void PPPMGPU::fillbrick()
   for (iz = nzlo_out; iz <= nzhi_out; iz++)
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = x_lo; ix < x_hi; ix+=4) {
-	vd_brick[iz][iy][ix] = buf2[n++];
-	vd_brick[iz][iy][ix+1] = buf2[n++];
-	vd_brick[iz][iy][ix+2] = buf2[n++];
+        vd_brick[iz][iy][ix] = buf2[n++];
+        vd_brick[iz][iy][ix+1] = buf2[n++];
+        vd_brick[iz][iy][ix+2] = buf2[n++];
       }
 }
 
 /* ----------------------------------------------------------------------
-   FFT-based Poisson solver 
+   FFT-based Poisson solver
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::poisson()
@@ -735,14 +735,14 @@ void PPPMGPU::poisson()
   int i,j,k,n;
   double eng;
 
-  // transform charge density (r -> k) 
+  // transform charge density (r -> k)
 
   n = 0;
   for (i = 0; i < nfft; i++) {
     work1[n++] = density_fft[i];
     work1[n++] = ZEROF;
   }
- 
+
   fft1->compute(work1,work1,1);
 
   // if requested, compute energy and virial contribution
@@ -754,17 +754,17 @@ void PPPMGPU::poisson()
     if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft; i++) {
-	eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-	for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-	if (eflag_global) energy += eng;
-	n += 2;
+        eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
+        if (eflag_global) energy += eng;
+        n += 2;
       }
     } else {
       n = 0;
       for (i = 0; i < nfft; i++) {
-	energy += 
-	  s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-	n += 2;
+        energy +=
+          s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        n += 2;
       }
     }
   }
@@ -792,9 +792,9 @@ void PPPMGPU::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fkx[i]*work1[n+1];
-	work2[n+1] = -fkx[i]*work1[n];
-	n += 2;
+        work2[n] = fkx[i]*work1[n+1];
+        work2[n+1] = -fkx[i]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -804,8 +804,8 @@ void PPPMGPU::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in * 4; i < x_hi; i+=4) {
-	vd_brick[k][j][i] = work2[n];
-	n += 2;
+        vd_brick[k][j][i] = work2[n];
+        n += 2;
       }
 
   // y direction gradient
@@ -814,9 +814,9 @@ void PPPMGPU::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fky[j]*work1[n+1];
-	work2[n+1] = -fky[j]*work1[n];
-	n += 2;
+        work2[n] = fky[j]*work1[n+1];
+        work2[n+1] = -fky[j]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -825,8 +825,8 @@ void PPPMGPU::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in * 4 + 1; i < x_hi; i+=4) {
-	vd_brick[k][j][i] = work2[n];
-	n += 2;
+        vd_brick[k][j][i] = work2[n];
+        n += 2;
       }
 
   // z direction gradient
@@ -835,9 +835,9 @@ void PPPMGPU::poisson()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-	work2[n] = fkz[k]*work1[n+1];
-	work2[n+1] = -fkz[k]*work1[n];
-	n += 2;
+        work2[n] = fkz[k]*work1[n+1];
+        work2[n+1] = -fkz[k]*work1[n];
+        n += 2;
       }
 
   fft2->compute(work2,work2,-1);
@@ -846,8 +846,8 @@ void PPPMGPU::poisson()
   for (k = nzlo_in; k <= nzhi_in; k++)
     for (j = nylo_in; j <= nyhi_in; j++)
       for (i = nxlo_in * 4 + 2; i < x_hi; i+=4) {
-	vd_brick[k][j][i] = work2[n];
-	n += 2;
+        vd_brick[k][j][i] = work2[n];
+        n += 2;
       }
 }
 
@@ -856,8 +856,8 @@ void PPPMGPU::poisson()
 ------------------------------------------------------------------------- */
 
 FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
-				     int n3lo, int n3hi, const char *name,
-				     FFT_SCALAR *data, int vec_length)
+                                     int n3lo, int n3hi, const char *name,
+                                     FFT_SCALAR *data, int vec_length)
 {
   int i,j;
   int n1 = n1hi - n1lo + 1;
@@ -888,7 +888,7 @@ FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::destroy_3d_offset(FFT_SCALAR ***array, int n1_offset,
-				 int n2_offset)
+                                 int n2_offset)
 {
   if (array == NULL) return;
   memory->sfree(&array[n1_offset][n2_offset]);
@@ -897,13 +897,13 @@ void PPPMGPU::destroy_3d_offset(FFT_SCALAR ***array, int n1_offset,
 
 
 /* ----------------------------------------------------------------------
-   memory usage of local arrays 
+   memory usage of local arrays
 ------------------------------------------------------------------------- */
 
 double PPPMGPU::memory_usage()
 {
   double bytes = nmax*3 * sizeof(double);
-  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
+  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += 4 * nbrick * sizeof(FFT_SCALAR);
   bytes += 6 * nfft_both * sizeof(double);
@@ -933,11 +933,11 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d) {
 }
 
 /* ----------------------------------------------------------------------
-   adjust PPPM coeffs, called initially and whenever volume has changed 
+   adjust PPPM coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::setup()
 {
   if (im_real_space) return;
   PPPM::setup();
-} 
+}

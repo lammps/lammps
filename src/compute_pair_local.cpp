@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -58,7 +58,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     else if (arg[iarg][0] == 'p') {
       int n = atoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR,
-			     "Invalid keyword in compute pair/local command");
+                             "Invalid keyword in compute pair/local command");
       pstyle[nvalues] = PN;
       pindex[nvalues++] = n-1;
     } else error->all(FLERR,"Invalid keyword in compute pair/local command");
@@ -89,7 +89,7 @@ ComputePairLocal::~ComputePairLocal()
 
 void ComputePairLocal::init()
 {
-  if (singleflag && force->pair == NULL) 
+  if (singleflag && force->pair == NULL)
     error->all(FLERR,"No pair style is defined for compute pair/local");
   if (singleflag && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pair/local");
@@ -97,7 +97,7 @@ void ComputePairLocal::init()
   for (int i = 0; i < nvalues; i++)
     if (pstyle[i] == PN && pindex[i] >= force->pair->single_extra)
       error->all(FLERR,"Pair style does not have extra field"
-		 " requested by compute pair/local");
+                 " requested by compute pair/local");
 
   // need an occasional half neighbor list
 
@@ -195,39 +195,39 @@ int ComputePairLocal::compute_pairs(int flag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
       if (rsq >= cutsq[itype][jtype]) continue;
-	
+
       if (flag) {
-	if (singleflag)
-	  eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+        if (singleflag)
+          eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
-	if (nvalues == 1) ptr = &vector[m];
-	else ptr = array[m];
+        if (nvalues == 1) ptr = &vector[m];
+        else ptr = array[m];
 
-	for (n = 0; n < nvalues; n++) {
-	  switch (pstyle[n]) {
-	  case DIST:
-	    ptr[n] = sqrt(rsq);
-	    break;
-	  case ENG:
-	    ptr[n] = eng;
-	    break;
-	  case FORCE:
-	    ptr[n] = sqrt(rsq)*fpair;
-	    break;
-	  case FX:
-	    ptr[n] = delx*fpair;
-	    break;
-	  case FY:
-	    ptr[n] = dely*fpair;
-	    break;
-	  case FZ:
-	    ptr[n] = delz*fpair;
-	    break;
-	  case PN:
-	    ptr[n] = pair->svector[pindex[n]];
-	    break;
-	  }
-	}
+        for (n = 0; n < nvalues; n++) {
+          switch (pstyle[n]) {
+          case DIST:
+            ptr[n] = sqrt(rsq);
+            break;
+          case ENG:
+            ptr[n] = eng;
+            break;
+          case FORCE:
+            ptr[n] = sqrt(rsq)*fpair;
+            break;
+          case FX:
+            ptr[n] = delx*fpair;
+            break;
+          case FY:
+            ptr[n] = dely*fpair;
+            break;
+          case FZ:
+            ptr[n] = delz*fpair;
+            break;
+          case PN:
+            ptr[n] = pair->svector[pindex[n]];
+            break;
+          }
+        }
       }
 
       m++;

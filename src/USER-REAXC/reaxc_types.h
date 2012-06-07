@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -52,12 +52,12 @@
 //#define MIDPOINT_BOUNDARIES
 
 #define REAX_MAX_STR            1024
-#define REAX_MAX_NBRS           6    
+#define REAX_MAX_NBRS           6
 #define REAX_MAX_3BODY_PARAM    5
 #define REAX_MAX_4BODY_PARAM    5
 #define REAX_MAX_ATOM_TYPES     25
 #define REAX_MAX_MOLECULE_SIZE  20
-#define MAX_BOND    		20  // same as reaxc_defs.h
+#define MAX_BOND                    20  // same as reaxc_defs.h
 
 /********************** TYPE DEFINITIONS ********************/
 typedef int  ivec[3];
@@ -87,12 +87,12 @@ typedef struct
   int  type;
   int  num_bonds;
   int  num_hbonds;
-  //int  pad;  // pad to 8-byte address boundary   
+  //int  pad;  // pad to 8-byte address boundary
   char name[8];
-  rvec x;     // position 
-  rvec v;     // velocity 
-  rvec f_old; // old force 
-  rvec4 s, t;  // for calculating q 
+  rvec x;     // position
+  rvec v;     // velocity
+  rvec f_old; // old force
+  rvec4 s, t;  // for calculating q
 } mpi_atom;
 
 
@@ -102,9 +102,9 @@ typedef struct
   int  imprt_id;
   int  type;
   int  num_bonds;
-  int  num_hbonds;  
+  int  num_hbonds;
   //int  pad;
-  rvec x;     // position 
+  rvec x;     // position
 } boundary_atom;
 
 
@@ -157,7 +157,7 @@ typedef struct
 
 
 /* Global params mapping */
-/* 
+/*
 l[0]  = p_boc1
 l[1]  = p_boc2
 l[2]  = p_coa2
@@ -200,7 +200,7 @@ l[38] = p_coa3
 */
 
 typedef struct
-{      
+{
   int n_global;
   real* l;
   int vdw_type;
@@ -222,7 +222,7 @@ typedef struct
   real r_pi;
   real valency_e;
   real nlp_opt;
-  
+
   /* Line two in field file */
   real alpha;
   real gamma_w;
@@ -238,7 +238,7 @@ typedef struct
   real b_o_131;
   real b_o_132;
   real b_o_133;
-  
+
   /* Line four in the field file */
   real p_ovun2;
   real p_val3;
@@ -353,24 +353,24 @@ typedef struct
   int  type;
   char name[8];
 
-  rvec x; // position 
-  rvec v; // velocity 
-  rvec f; // force    
+  rvec x; // position
+  rvec v; // velocity
+  rvec f; // force
   rvec f_old;
 
-  real q; // charge   
-  rvec4 s; // they take part in 
-  rvec4 t; // computing q 
+  real q; // charge
+  rvec4 s; // they take part in
+  rvec4 t; // computing q
 
   int Hindex;
   int num_bonds;
   int num_hbonds;
   int renumber;
 
-  int numbonds;  		// true number of bonds around atoms
-  int nbr_id[MAX_BOND];  	// ids of neighbors around atoms
-  double nbr_bo[MAX_BOND];  	// BO values of bond between i and nbr
-  double sum_bo, no_lp;   	// sum of BO values and no. of lone pairs
+  int numbonds;                  // true number of bonds around atoms
+  int nbr_id[MAX_BOND];          // ids of neighbors around atoms
+  double nbr_bo[MAX_BOND];          // BO values of bond between i and nbr
+  double sum_bo, no_lp;           // sum of BO values and no. of lone pairs
 } reax_atom;
 
 
@@ -379,7 +379,7 @@ typedef struct
 {
   real V;
   rvec min, max, box_norms;
-  
+
   rtensor box, box_inv;
   rtensor trans, trans_inv;
   rtensor g;
@@ -403,7 +403,7 @@ struct grid_cell
   ivec* nbrs_x;
   rvec* nbrs_cp;
 };
-  
+
 typedef struct grid_cell grid_cell;
 
 
@@ -412,7 +412,7 @@ typedef struct
   int  total, max_atoms, max_nbrs;
   ivec ncells;
   rvec cell_len;
-  rvec inv_len; 
+  rvec inv_len;
 
   ivec bond_span;
   ivec nonb_span;
@@ -501,10 +501,10 @@ typedef struct
   ivec procs_by_dim;
   /* ensemble values:
      0 : NVE
-     1 : bNVT (Berendsen) 
+     1 : bNVT (Berendsen)
      2 : nhNVT (Nose-Hoover)
      3 : sNPT (Parrinello-Rehman-Nose-Hoover) semiisotropic
-     4 : iNPT (Parrinello-Rehman-Nose-Hoover) isotropic 
+     4 : iNPT (Parrinello-Rehman-Nose-Hoover) isotropic
      5 : NPT  (Parrinello-Rehman-Nose-Hoover) Anisotropic*/
   int  ensemble;
   int  nsteps;
@@ -516,7 +516,7 @@ typedef struct
   int  remove_CoM_vel;
   int  random_vel;
   int  reposition_atoms;
-  
+
   int  reneighbor;
   real vlist_cut;
   real bond_cut;
@@ -534,14 +534,14 @@ typedef struct
   int qeq_freq;
   real q_err;
   int refactor;
-  real droptol;  
+  real droptol;
 
   real T_init, T_final, T;
   real Tau_T;
   int  T_mode;
   real T_rate, T_freq;
-  
-  int  virial;  
+
+  int  virial;
   rvec P, Tau_P, Tau_PT;
   int  press_mode;
   real compressibility;
@@ -587,7 +587,7 @@ typedef struct
 {
   rtensor P;
   real P_scalar;
-  
+
   real eps;
   real v_eps;
   real v_eps_old;
@@ -622,22 +622,22 @@ typedef struct
 typedef struct
 {
   real e_tot;
-  real e_kin;                      // Total kinetic energy 
+  real e_kin;                      // Total kinetic energy
   real e_pot;
 
-  real e_bond;                     // Total bond energy 
-  real e_ov;                       // Total over coordination 
-  real e_un;                       // Total under coordination energy 
-  real e_lp;                       // Total under coordination energy 
-  real e_ang;                      // Total valance angle energy 
-  real e_pen;                      // Total penalty energy 
-  real e_coa;                      // Total three body conjgation energy 
-  real e_hb;                       // Total Hydrogen bond energy 
-  real e_tor;                      // Total torsional energy 
-  real e_con;                      // Total four body conjugation energy  
-  real e_vdW;                      // Total van der Waals energy 
-  real e_ele;                      // Total electrostatics energy 
-  real e_pol;                      // Polarization energy 
+  real e_bond;                     // Total bond energy
+  real e_ov;                       // Total over coordination
+  real e_un;                       // Total under coordination energy
+  real e_lp;                       // Total under coordination energy
+  real e_ang;                      // Total valance angle energy
+  real e_pen;                      // Total penalty energy
+  real e_coa;                      // Total three body conjgation energy
+  real e_hb;                       // Total Hydrogen bond energy
+  real e_tor;                      // Total torsional energy
+  real e_con;                      // Total four body conjugation energy
+  real e_vdW;                      // Total van der Waals energy
+  real e_ele;                      // Total electrostatics energy
+  real e_pol;                      // Polarization energy
 } energy_data;
 
 typedef struct
@@ -646,27 +646,27 @@ typedef struct
   int  prev_steps;
   real time;
 
-  real M;			   // Total Mass 
-  real inv_M;                      // 1 / Total Mass 
+  real M;                           // Total Mass
+  real inv_M;                      // 1 / Total Mass
 
-  rvec xcm;                        // Center of mass 
-  rvec vcm;                        // Center of mass velocity 
-  rvec fcm;                        // Center of mass force 
-  rvec amcm;                       // Angular momentum of CoM 
-  rvec avcm;                       // Angular velocity of CoM 
-  real etran_cm;                   // Translational kinetic energy of CoM 
-  real erot_cm;                    // Rotational kinetic energy of CoM 
+  rvec xcm;                        // Center of mass
+  rvec vcm;                        // Center of mass velocity
+  rvec fcm;                        // Center of mass force
+  rvec amcm;                       // Angular momentum of CoM
+  rvec avcm;                       // Angular velocity of CoM
+  real etran_cm;                   // Translational kinetic energy of CoM
+  real erot_cm;                    // Rotational kinetic energy of CoM
 
-  rtensor kinetic;                 // Kinetic energy tensor 
-  rtensor virial;                  // Hydrodynamic virial 
+  rtensor kinetic;                 // Kinetic energy tensor
+  rtensor virial;                  // Hydrodynamic virial
 
   energy_data my_en;
   energy_data sys_en;
 
-  real               N_f;          //Number of degrees of freedom 
+  real               N_f;          //Number of degrees of freedom
   rvec               t_scale;
   rtensor            p_scale;
-  thermostat         therm;        // Used in Nose_Hoover method 
+  thermostat         therm;        // Used in Nose_Hoover method
   isotropic_barostat iso_bar;
   flexible_barostat  flex_bar;
   real               inv_W;
@@ -677,13 +677,13 @@ typedef struct
   rvec ext_press;
   rvec tot_press;
 
-  reax_timing timing;  
+  reax_timing timing;
 } simulation_data;
 
 
 typedef struct{
   int thb;
-  int pthb; // pointer to the third body on the central atom's nbrlist 
+  int pthb; // pointer to the third body on the central atom's nbrlist
   real theta, cos_theta;
   rvec dcos_di, dcos_dj, dcos_dk;
 } three_body_interaction_data;
@@ -748,7 +748,7 @@ typedef struct {
 } sparse_matrix;
 
 
-typedef struct { 
+typedef struct {
   int num_far;
   int H, Htop;
   int hbonds, num_hbonds;
@@ -782,7 +782,7 @@ typedef struct
   real *Hdia_inv, *b_s, *b_t, *b_prc, *b_prm, *s, *t;
   real *droptol;
   rvec2 *b, *x;
-  
+
   /* GMRES storage */
   real *y, *z, *g;
   real *hc, *hs;
@@ -796,16 +796,16 @@ typedef struct
   /* storage for analysis */
   int  *mark, *old_mark;
   rvec *x_old;
-  
+
   /* storage space for bond restrictions */
   int  *restricted;
-  int **restricted_list;  
+  int **restricted_list;
 
   /* integrator */
   rvec *v_const;
 
   /* force calculations */
-  real *CdDelta;  // coefficient of dDelta 
+  real *CdDelta;  // coefficient of dDelta
   rvec *f;
 #ifdef TEST_FORCES
   rvec *f_ele;
@@ -822,7 +822,7 @@ typedef struct
   rvec *f_tor;
   rvec *f_con;
   rvec *f_tot;
-  rvec *dDelta;   // calculated on the fly in bond_orders.c together with bo' 
+  rvec *dDelta;   // calculated on the fly in bond_orders.c together with bo'
 
   int  *rcounts;
   int  *displs;
@@ -940,7 +940,7 @@ typedef struct
   int atom_count;
   int atom_list[REAX_MAX_MOLECULE_SIZE];
   int mtypes[REAX_MAX_ATOM_TYPES];
-} molecule; 
+} molecule;
 
 
 typedef struct
@@ -975,20 +975,20 @@ typedef struct
 extern LR_lookup_table **LR;
 
 /* function pointer defs */
-typedef void (*evolve_function)(reax_system*, control_params*, 
-				simulation_data*, storage*, reax_list**, 
-				output_controls*, mpi_datatypes* );
+typedef void (*evolve_function)(reax_system*, control_params*,
+                                simulation_data*, storage*, reax_list**,
+                                output_controls*, mpi_datatypes* );
 #if defined(PURE_REAX)
 evolve_function  Evolve;
 #endif
 
-typedef void (*interaction_function) (reax_system*, control_params*, 
-				      simulation_data*, storage*, 
-				      reax_list**, output_controls*);
+typedef void (*interaction_function) (reax_system*, control_params*,
+                                      simulation_data*, storage*,
+                                      reax_list**, output_controls*);
 
-typedef void (*print_interaction)(reax_system*, control_params*, 
-				  simulation_data*, storage*, 
-				  reax_list**, output_controls*);
+typedef void (*print_interaction)(reax_system*, control_params*,
+                                  simulation_data*, storage*,
+                                  reax_list**, output_controls*);
 
 typedef real (*lookup_function)(real);
 

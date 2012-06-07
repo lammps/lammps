@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -42,8 +42,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   accuracy_absolute = -1.0;
-  two_charge_force = force->qqr2e * 
-    (force->qelectron * force->qelectron) / 
+  two_charge_force = force->qqr2e *
+    (force->qelectron * force->qelectron) /
     (force->angstrom * force->angstrom);
 
   maxeatom = maxvatom = 0;
@@ -64,8 +64,8 @@ KSpace::~KSpace()
 void KSpace::compute_dummy(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global = 
-	 eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -86,7 +86,7 @@ void KSpace::ev_setup(int eflag, int vflag)
   vflag_either = vflag;
   vflag_global = vflag % 4;
   vflag_atom = vflag / 4;
-  
+
   if (eflag_atom || vflag_atom) evflag_atom = 1;
   else evflag_atom = 0;
 
@@ -125,7 +125,7 @@ void KSpace::ev_setup(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   modify parameters of the KSpace style 
+   modify parameters of the KSpace style
 ------------------------------------------------------------------------- */
 
 void KSpace::modify_params(int narg, char **arg)
@@ -159,10 +159,10 @@ void KSpace::modify_params(int narg, char **arg)
       slab_volfactor = atof(arg[iarg+1]);
       iarg += 2;
       if (slab_volfactor <= 1.0)
-	error->all(FLERR,"Bad kspace_modify slab parameter");
-      if (slab_volfactor < 2.0 && comm->me == 0) 
-	error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
-		       "cause unphysical behavior");
+        error->all(FLERR,"Bad kspace_modify slab parameter");
+      if (slab_volfactor < 2.0 && comm->me == 0)
+        error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
+                       "cause unphysical behavior");
       slabflag = 1;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

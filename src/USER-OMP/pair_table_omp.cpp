@@ -57,11 +57,11 @@ void PairTableOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -80,7 +80,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   double rsq,factor_lj,fraction,value,a,b;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
-  
+
   union_int_float_t rsq_lookup;
   int tlm1 = tablength - 1;
 
@@ -123,75 +123,75 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	tb = &tables[tabindex[itype][jtype]];
+        tb = &tables[tabindex[itype][jtype]];
 
-	if (check_error_thr((rsq < tb->innersq),tid,
-			    FLERR,"Pair distance < table inner cutoff"))
-	  return;
- 
-	if (tabstyle == LOOKUP) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+        if (check_error_thr((rsq < tb->innersq),tid,
+                            FLERR,"Pair distance < table inner cutoff"))
+          return;
 
-	  if (check_error_thr((itable >= tlm1),tid,
-			      FLERR,"Pair distance > table outer cutoff"))
-	    return;
+        if (tabstyle == LOOKUP) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 
-	  fpair = factor_lj * tb->f[itable];
-	} else if (tabstyle == LINEAR) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+          if (check_error_thr((itable >= tlm1),tid,
+                              FLERR,"Pair distance > table outer cutoff"))
+            return;
 
-	  if (check_error_thr((itable >= tlm1),tid,
-			      FLERR,"Pair distance > table outer cutoff"))
-	    return;
+          fpair = factor_lj * tb->f[itable];
+        } else if (tabstyle == LINEAR) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 
-	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	} else if (tabstyle == SPLINE) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+          if (check_error_thr((itable >= tlm1),tid,
+                              FLERR,"Pair distance > table outer cutoff"))
+            return;
 
-	  if (check_error_thr((itable >= tlm1),tid,
-			      FLERR,"Pair distance > table outer cutoff"))
-	    return;
+          fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+          value = tb->f[itable] + fraction*tb->df[itable];
+          fpair = factor_lj * value;
+        } else if (tabstyle == SPLINE) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 
-	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  a = 1.0 - b;
-	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
-	    ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+          if (check_error_thr((itable >= tlm1),tid,
+                              FLERR,"Pair distance > table outer cutoff"))
+            return;
+
+          b = (rsq - tb->rsq[itable]) * tb->invdelta;
+          a = 1.0 - b;
+          value = a * tb->f[itable] + b * tb->f[itable+1] +
+            ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
             tb->deltasq6;
-	  fpair = factor_lj * value;
-	} else {
-	  rsq_lookup.f = rsq;
-	  itable = rsq_lookup.i & tb->nmask;
-	  itable >>= tb->nshiftbits;
-	  fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	}
+          fpair = factor_lj * value;
+        } else {
+          rsq_lookup.f = rsq;
+          itable = rsq_lookup.i & tb->nmask;
+          itable >>= tb->nshiftbits;
+          fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+          value = tb->f[itable] + fraction*tb->df[itable];
+          fpair = factor_lj * value;
+        }
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG) {
-	  if (tabstyle == LOOKUP)
-	    evdwl = tb->e[itable];
-	  else if (tabstyle == LINEAR || tabstyle == BITMAP)
-	    evdwl = tb->e[itable] + fraction*tb->de[itable];
-	  else
-	    evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
-	      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
-	      tb->deltasq6;
-	  evdwl *= factor_lj;
-	}
+        if (EFLAG) {
+          if (tabstyle == LOOKUP)
+            evdwl = tb->e[itable];
+          else if (tabstyle == LINEAR || tabstyle == BITMAP)
+            evdwl = tb->e[itable] + fraction*tb->de[itable];
+          else
+            evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
+              ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
+              tb->deltasq6;
+          evdwl *= factor_lj;
+        }
 
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
 

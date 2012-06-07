@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -102,21 +102,21 @@ void FixWallRegion::init()
   // insure all particles in group are extended particles
 
   if (style == COLLOID) {
-    if (!atom->sphere_flag) 
+    if (!atom->sphere_flag)
       error->all(FLERR,"Fix wall/region colloid requires atom style sphere");
 
     double *radius = atom->radius;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    
+
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (radius[i] == 0.0) flag = 1;
-    
+        if (radius[i] == 0.0) flag = 1;
+
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall) 
+    if (flagall)
       error->all(FLERR,"Fix wall/region colloid requires extended particles");
   }
 
@@ -196,12 +196,12 @@ void FixWallRegion::post_force(int vflag)
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
-  
+
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) {
-	onflag = 1;
-	continue;
+        onflag = 1;
+        continue;
       }
       if (style == COLLOID) tooclose = radius[i];
       else tooclose = 0.0;
@@ -209,31 +209,31 @@ void FixWallRegion::post_force(int vflag)
       n = region->surface(x[i][0],x[i][1],x[i][2],cutoff);
 
       for (m = 0; m < n; m++) {
-	if (region->contact[m].r <= tooclose) {
-	  onflag = 1;
-	  continue;
-	} else rinv = 1.0/region->contact[m].r;
+        if (region->contact[m].r <= tooclose) {
+          onflag = 1;
+          continue;
+        } else rinv = 1.0/region->contact[m].r;
 
-	if (style == LJ93) lj93(region->contact[m].r);
-	else if (style == LJ126) lj126(region->contact[m].r);
-	else if (style == COLLOID) colloid(region->contact[m].r,radius[i]);
-	else harmonic(region->contact[m].r);
+        if (style == LJ93) lj93(region->contact[m].r);
+        else if (style == LJ126) lj126(region->contact[m].r);
+        else if (style == COLLOID) colloid(region->contact[m].r,radius[i]);
+        else harmonic(region->contact[m].r);
 
-	ewall[0] += eng;
-	fx = fwall * region->contact[m].delx * rinv;
-	fy = fwall * region->contact[m].dely * rinv;
-	fz = fwall * region->contact[m].delz * rinv;
-	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
-	ewall[1] -= fx;
-	ewall[2] -= fy;
-	ewall[3] -= fz;
+        ewall[0] += eng;
+        fx = fwall * region->contact[m].delx * rinv;
+        fy = fwall * region->contact[m].dely * rinv;
+        fz = fwall * region->contact[m].delz * rinv;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+        ewall[1] -= fx;
+        ewall[2] -= fy;
+        ewall[3] -= fz;
       }
     }
 
   if (onflag) error->one(FLERR,"Particle on or inside surface of region "
-			 "used in fix wall/region");
+                         "used in fix wall/region");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -328,8 +328,8 @@ void FixWallRegion::colloid(double r, double rad)
   double r4inv = r2inv*r2inv;
   double r8inv = r4inv*r4inv;
   fwall = coeff1*(rad8*rad + 27.0*rad4*rad2*rad*pow(r,2.0)
-		  + 63.0*rad4*rad*pow(r,4.0)
-		  + 21.0*rad2*rad*pow(r,6.0))*r8inv - new_coeff2*r2inv;
+                  + 63.0*rad4*rad*pow(r,4.0)
+                  + 21.0*rad2*rad*pow(r,6.0))*r8inv - new_coeff2*r2inv;
 
   double r2 = 0.5*diam - r;
   double rinv2 = 1.0/r2;
@@ -340,9 +340,9 @@ void FixWallRegion::colloid(double r, double rad)
   double r2inv3 = rinv3*rinv3;
   double r4inv3 = r2inv3*r2inv3;
   eng = coeff3*((-3.5*diam+r)*r4inv2*r2inv2*rinv2
-		+ (3.5*diam+r)*r4inv3*r2inv3*rinv3) -
+                + (3.5*diam+r)*r4inv3*r2inv3*rinv3) -
     coeff4*((-diam*r+r2*r3*(log(-r2)-log(r3)))*
-	    (-rinv2)*rinv3) - offset;
+            (-rinv2)*rinv3) - offset;
 }
 
 /* ----------------------------------------------------------------------

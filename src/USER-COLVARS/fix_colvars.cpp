@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -78,7 +78,7 @@ static int inthash(const inthash_t *tptr, int key) {
   hashvalue = (((key*1103515249)>>tptr->downshift) & tptr->mask);
   if (hashvalue < 0) {
     hashvalue = 0;
-  }    
+  }
 
   return hashvalue;
 }
@@ -205,7 +205,7 @@ int inthash_insert(inthash_t *tptr, int key, int data) {
 
 /*
  * inthash_destroy() - Delete the entire table, and all remaining entries.
- * 
+ *
  */
 void inthash_destroy(inthash_t *tptr) {
   inthash_node_t *node, *last;
@@ -213,12 +213,12 @@ void inthash_destroy(inthash_t *tptr) {
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
-    while (node != NULL) { 
-      last = node;   
+    while (node != NULL) {
+      last = node;
       node = node->next;
       free(last);
     }
-  }     
+  }
 
   /* free the entire array of buckets */
   if (tptr->bucket != NULL) {
@@ -274,7 +274,7 @@ using namespace FixConst;
 int FixColvars::instances=0;
 
 /***************************************************************
- create class and parse arguments in LAMMPS script. Syntax: 
+ create class and parse arguments in LAMMPS script. Syntax:
 
  fix ID group-ID colvars <config_file> [optional flags...]
 
@@ -310,7 +310,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   me = comm->me;
-  
+
   conf_file = strdup(arg[3]);
   rng_seed = 1966;
 
@@ -457,7 +457,7 @@ void FixColvars::init()
       MPI_Get_count(&status, MPI_INT, &ndata);
 
       for (int k=0; k<ndata; k+=2)
-	typemap[type_buf[k]] = type_buf[k+1];
+        typemap[type_buf[k]] = type_buf[k+1];
     }
   } else { // me != 0
 
@@ -480,25 +480,25 @@ void FixColvars::init()
 
     if (inp_name) {
       if (strcmp(inp_name,"NULL") == 0) {
-	memory->sfree(inp_name);
-	inp_name = NULL;
+        memory->sfree(inp_name);
+        inp_name = NULL;
       }
     }
 
     double t_target = 0.0;
     if (tmp_name) {
       if (strcmp(tmp_name,"NULL") == 0)
-	tstat_id = -1;
+        tstat_id = -1;
       else {
-	tstat_id = modify->find_fix(tmp_name);
-	if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-	double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
-	if (tt) t_target = *tt;
+        tstat_id = modify->find_fix(tmp_name);
+        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
+        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+        if (tt) t_target = *tt;
       }
     }
 
     proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,
-				   rng_seed,t_target,typemap);
+                                   rng_seed,t_target,typemap);
     coords = proxy->get_coords();
     forces = proxy->get_forces();
     oforce = proxy->get_oforce();
@@ -549,12 +549,12 @@ void FixColvars::init()
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-	of[i].tag  = cd[i].tag  = tag[k];
-	of[i].type = cd[i].type = type[k];
-	cd[i].x = x[k][0];
-	cd[i].y = x[k][1];
-	cd[i].z = x[k][2];
-	of[i].x = of[i].y = of[i].z = 0.0;
+        of[i].tag  = cd[i].tag  = tag[k];
+        of[i].type = cd[i].type = type[k];
+        cd[i].x = x[k][0];
+        cd[i].y = x[k][1];
+        cd[i].z = x[k][2];
+        of[i].x = of[i].y = of[i].z = 0.0;
       }
     }
 
@@ -569,15 +569,15 @@ void FixColvars::init()
       ndata /= size_one;
 
       for (int k=0; k<ndata; ++k) {
-	const int j = inthash_lookup(idmap, comm_buf[k].tag);
-	if (j != HASH_FAIL) {
-	  of[j].tag  = cd[j].tag  = comm_buf[k].tag;
-	  of[j].type = cd[j].type = comm_buf[k].type;
-	  cd[j].x = comm_buf[k].x;
-	  cd[j].y = comm_buf[k].y;
-	  cd[j].z = comm_buf[k].z;
-	  of[j].x = of[j].y = of[j].z = 0.0;
-	}
+        const int j = inthash_lookup(idmap, comm_buf[k].tag);
+        if (j != HASH_FAIL) {
+          of[j].tag  = cd[j].tag  = comm_buf[k].tag;
+          of[j].type = cd[j].type = comm_buf[k].type;
+          cd[j].x = comm_buf[k].x;
+          cd[j].y = comm_buf[k].y;
+          cd[j].z = comm_buf[k].z;
+          of[j].x = of[j].y = of[j].z = 0.0;
+        }
       }
     }
   } else { // me != 0
@@ -588,12 +588,12 @@ void FixColvars::init()
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-	comm_buf[nme].tag  = tag[k];
-	comm_buf[nme].type = type[k];
-	comm_buf[nme].x    = x[k][0];
-	comm_buf[nme].y    = x[k][1];
-	comm_buf[nme].z    = x[k][2];
-	++nme;
+        comm_buf[nme].tag  = tag[k];
+        comm_buf[nme].type = type[k];
+        comm_buf[nme].x    = x[k][0];
+        comm_buf[nme].y    = x[k][1];
+        comm_buf[nme].z    = x[k][2];
+        ++nme;
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
@@ -633,10 +633,10 @@ void FixColvars::post_force(int vflag)
       // get thermostat target temperature from corresponding fix,
       // if the fix supports extraction.
       double *tt = (double *) modify->fix[tstat_id]->extract("t_target",tmp);
-      if (tt) 
-	proxy->set_temperature(*tt);
-      else 
-	proxy->set_temperature(0.0);
+      if (tt)
+        proxy->set_temperature(*tt);
+      else
+        proxy->set_temperature(0.0);
     }
   }
 
@@ -671,9 +671,9 @@ void FixColvars::post_force(int vflag)
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-	cd[i].x = x[k][0];
-	cd[i].y = x[k][1];
-	cd[i].z = x[k][2];
+        cd[i].x = x[k][0];
+        cd[i].y = x[k][1];
+        cd[i].z = x[k][2];
       }
     }
 
@@ -687,12 +687,12 @@ void FixColvars::post_force(int vflag)
       ndata /= size_one;
 
       for (int k=0; k<ndata; ++k) {
-	const int j = inthash_lookup(idmap, comm_buf[k].tag);
-	if (j != HASH_FAIL) {
-	  cd[j].x = comm_buf[k].x;
-	  cd[j].y = comm_buf[k].y;
-	  cd[j].z = comm_buf[k].z;
-	}
+        const int j = inthash_lookup(idmap, comm_buf[k].tag);
+        if (j != HASH_FAIL) {
+          cd[j].x = comm_buf[k].x;
+          cd[j].y = comm_buf[k].y;
+          cd[j].z = comm_buf[k].z;
+        }
       }
     }
 
@@ -702,11 +702,11 @@ void FixColvars::post_force(int vflag)
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-	comm_buf[nme].tag = tag[k];
-	comm_buf[nme].x = x[k][0];
-	comm_buf[nme].y = x[k][1];
-	comm_buf[nme].z = x[k][2];
-	++nme;
+        comm_buf[nme].tag = tag[k];
+        comm_buf[nme].x = x[k][0];
+        comm_buf[nme].y = x[k][1];
+        comm_buf[nme].z = x[k][2];
+        ++nme;
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
@@ -724,7 +724,7 @@ void FixColvars::post_force(int vflag)
 
   // broadcast store_forces flag and energy data to all processors
   MPI_Bcast(&energy, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&store_forces, 1, MPI_INT, 0, world);  
+  MPI_Bcast(&store_forces, 1, MPI_INT, 0, world);
 
   // broadcast and apply biasing forces
 
@@ -738,7 +738,7 @@ void FixColvars::post_force(int vflag)
     }
   }
   MPI_Bcast(force_buf, 3*num_coords, MPI_DOUBLE, 0, world);
-  
+
   for (int i=0; i < num_coords; ++i) {
     const int k = atom->map(taglist[i]);
     if ((k >= 0) && (k < nlocal)) {
@@ -767,7 +767,7 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int iloop)
 void FixColvars::end_of_step()
 {
   if (store_forces) {
-    
+
     const int * const tag = atom->tag;
     double * const * const f = atom->f;
     const int nlocal = atom->nlocal;
@@ -777,7 +777,7 @@ void FixColvars::end_of_step()
     for (i=0; i < num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal))
-	++nme;
+        ++nme;
     }
 
     MPI_Allreduce(&nme,&nmax_new,1,MPI_INT,MPI_MAX,world);
@@ -789,56 +789,56 @@ void FixColvars::end_of_step()
     MPI_Status status;
     MPI_Request request;
     int tmp, ndata;
-  
+
     if (me == 0) {
 
       // store old force data
       std::vector<struct commdata> &of = *oforce;
 
       for (i=0; i<num_coords; ++i) {
-	const int k = atom->map(taglist[i]);
-	if ((k >= 0) && (k < nlocal)) {
-      
-	  const int j = inthash_lookup(idmap, tag[k]);
-	  if (j != HASH_FAIL) {
-	    of[j].x = f[k][0];
-	    of[j].y = f[k][1];
-	    of[j].z = f[k][2];
-	  }
-	}
+        const int k = atom->map(taglist[i]);
+        if ((k >= 0) && (k < nlocal)) {
+
+          const int j = inthash_lookup(idmap, tag[k]);
+          if (j != HASH_FAIL) {
+            of[j].x = f[k][0];
+            of[j].y = f[k][1];
+            of[j].z = f[k][2];
+          }
+        }
       }
 
       /* loop over procs to receive remote data */
       for (i=1; i < comm->nprocs; ++i) {
-	int maxbuf = nmax*size_one;
-	MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
-	MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-	MPI_Wait(&request, &status);
-	MPI_Get_count(&status, MPI_BYTE, &ndata);
-	ndata /= size_one;
+        int maxbuf = nmax*size_one;
+        MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
+        MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
+        MPI_Wait(&request, &status);
+        MPI_Get_count(&status, MPI_BYTE, &ndata);
+        ndata /= size_one;
 
-	for (int k=0; k<ndata; ++k) {
-	  const int j = inthash_lookup(idmap, comm_buf[k].tag);
-	  if (j != HASH_FAIL) {
-	    of[j].x = comm_buf[k].x;
-	    of[j].y = comm_buf[k].y;
-	    of[j].z = comm_buf[k].z;
-	  }
-	}
+        for (int k=0; k<ndata; ++k) {
+          const int j = inthash_lookup(idmap, comm_buf[k].tag);
+          if (j != HASH_FAIL) {
+            of[j].x = comm_buf[k].x;
+            of[j].y = comm_buf[k].y;
+            of[j].z = comm_buf[k].z;
+          }
+        }
       }
 
     } else { // me != 0
       /* copy total force data into communication buffer */
       nme = 0;
       for (i=0; i<num_coords; ++i) {
-	const int k = atom->map(taglist[i]);
-	if ((k >= 0) && (k < nlocal)) {
-	  comm_buf[nme].tag  = tag[k];
-	  comm_buf[nme].x    = f[k][0];
-	  comm_buf[nme].y    = f[k][1];
-	  comm_buf[nme].z    = f[k][2];
-	  ++nme;
-	}
+        const int k = atom->map(taglist[i]);
+        if ((k >= 0) && (k < nlocal)) {
+          comm_buf[nme].tag  = tag[k];
+          comm_buf[nme].x    = f[k][0];
+          comm_buf[nme].y    = f[k][1];
+          comm_buf[nme].z    = f[k][2];
+          ++nme;
+        }
       }
       /* blocking receive to wait until it is our turn to send data. */
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);

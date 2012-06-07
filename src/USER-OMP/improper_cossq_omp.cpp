@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -64,11 +64,11 @@ void ImproperCossqOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
@@ -125,43 +125,43 @@ void ImproperCossqOMP::eval(int nfrom, int nto, ThrData * const thr)
     rlk = sqrt(rlksq);
 
     cosphi = (vb3x*vb1x + vb3y*vb1y + vb3z*vb1z)/(rji * rlk);
-     
-    /* Check that cos(phi) is in the correct limits. */     
+
+    /* Check that cos(phi) is in the correct limits. */
     if (cosphi > 1.0 + TOLERANCE || cosphi < (-1.0 - TOLERANCE)) {
       int me = comm->me;
 
       if (screen) {
-	char str[128];
-	sprintf(str,"Improper problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
-		me,thr->get_tid(),update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,"Improper problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
+                me,thr->get_tid(),update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
 
-      
+
       /* Apply corrections to round-off errors. */
       if (cosphi > 1.0)  cosphi -= SMALL;
       if (cosphi < -1.0) cosphi += SMALL;
-      
+
       /* Calculate the angle: */
       double torangle = acos(cosphi);
       cosphi = cos(torangle - chi[type]);
 
       if (EFLAG) eimproper = 0.5 * k[type] * cosphi * cosphi;
-     
+
       /*
-	printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);   
-	printf("The ji vector: %f, %f, %f.\nThe lk vector: %f, %f, %f.\n", vb1x,vb1y,vb1z,vb3x,vb3y,vb3z);
-	printf("The cosine of the angle: %-1.16e.\n", cosphi);
-	printf("The energy of the improper: %-1.16e with prefactor %-1.16e.\n", eimproper, 0.5*k[type]);
+        printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);
+        printf("The ji vector: %f, %f, %f.\nThe lk vector: %f, %f, %f.\n", vb1x,vb1y,vb1z,vb3x,vb3y,vb3z);
+        printf("The cosine of the angle: %-1.16e.\n", cosphi);
+        printf("The energy of the improper: %-1.16e with prefactor %-1.16e.\n", eimproper, 0.5*k[type]);
       */
 
       /* Work out forces. */
@@ -170,11 +170,11 @@ void ImproperCossqOMP::eval(int nfrom, int nto, ThrData * const thr)
       cjiji = rjisq;
       clklk = rlksq;
       /*CLKJI = RXLK * RXJI + RYLK * RYJI + RZLK * RZJI */
-      clkji = vb3x*vb1x + vb3y*vb1y + vb3z*vb1z; 
+      clkji = vb3x*vb1x + vb3y*vb1y + vb3z*vb1z;
 
       /*CFACT1 = CLKLK * CJIJI
-	CFACT1 = SQRT(CFACT1)
-	CFACT1 = ANGFAC / CFACT1*/
+        CFACT1 = SQRT(CFACT1)
+        CFACT1 = ANGFAC / CFACT1*/
       cfact1 = angfac / sqrt(clklk * cjiji);
       /*CFACT2 = CLKJI / CLKLK*/
       cfact2 = clkji / clklk;
@@ -182,90 +182,89 @@ void ImproperCossqOMP::eval(int nfrom, int nto, ThrData * const thr)
       cfact3 = clkji / cjiji;
 
       /*FIX = -RXLK + CFACT3 * RXJI
-	FIY = -RYLK + CFACT3 * RYJI
-	FIZ = -RZLK + CFACT3 * RZJI*/
+        FIY = -RYLK + CFACT3 * RYJI
+        FIZ = -RZLK + CFACT3 * RZJI*/
       f1[0] = - vb3x + cfact3 * vb1x;
       f1[1] = - vb3y + cfact3 * vb1y;
       f1[2] = - vb3z + cfact3 * vb1z;
 
       /*FJX = -FIX
-	FJY = -FIY
-	FJZ = -FIZ*/
+        FJY = -FIY
+        FJZ = -FIZ*/
       f2[0] = - f1[0];
       f2[1] = - f1[1];
       f2[2] = - f1[2];
-      
+
       /*FKX = CFACT2 * RXLK - RXJI
-	FKY = CFACT2 * RYLK - RYJI
-	FKZ = CFACT2 * RZLK - RZJI*/
+        FKY = CFACT2 * RYLK - RYJI
+        FKZ = CFACT2 * RZLK - RZJI*/
       f3[0] = cfact2 * vb3x - vb1x;
       f3[1] = cfact2 * vb3y - vb1y;
       f3[2] = cfact2 * vb3z - vb1z;
 
       /*FLX = -FKX
-	FLY = -FKY
-	FLZ = -FKZ*/
+        FLY = -FKY
+        FLZ = -FKZ*/
       f4[0] = - f3[0];
       f4[1] = - f3[1];
       f4[2] = - f3[2];
 
       /*FIX = FIX * CFACT1
-	FIY = FIY * CFACT1
-	FIZ = FIZ * CFACT1*/
+        FIY = FIY * CFACT1
+        FIZ = FIZ * CFACT1*/
       f1[0] *= cfact1;
-      f1[1] *= cfact1; 
+      f1[1] *= cfact1;
       f1[2] *= cfact1;
 
       /*FJX = FJX * CFACT1
-	FJY = FJY * CFACT1
-	FJZ = FJZ * CFACT1*/
+        FJY = FJY * CFACT1
+        FJZ = FJZ * CFACT1*/
       f2[0] *= cfact1;
       f2[1] *= cfact1;
       f2[2] *= cfact1;
 
       /*FKX = FKX * CFACT1
-	FKY = FKY * CFACT1
-	FKZ = FKZ * CFACT1*/
-      f3[0] *= cfact1; 
-      f3[1] *= cfact1; 
+        FKY = FKY * CFACT1
+        FKZ = FKZ * CFACT1*/
+      f3[0] *= cfact1;
+      f3[1] *= cfact1;
       f3[2] *= cfact1;
 
       /*FLX = FLX * CFACT1
-	FLY = FLY * CFACT1
-	FLZ = FLZ * CFACT1*/
+        FLY = FLY * CFACT1
+        FLZ = FLZ * CFACT1*/
       f4[0] *= cfact1;
-      f4[1] *= cfact1; 
+      f4[1] *= cfact1;
       f4[2] *= cfact1;
 
       /* Apply force to each of 4 atoms */
       if (NEWTON_BOND || i1 < nlocal) {
-	f[i1][0] += f1[0];
-	f[i1][1] += f1[1];
-	f[i1][2] += f1[2];
+        f[i1][0] += f1[0];
+        f[i1][1] += f1[1];
+        f[i1][2] += f1[2];
       }
 
       if (NEWTON_BOND || i2 < nlocal) {
-	f[i2][0] += f2[0];
-	f[i2][1] += f2[1];
-	f[i2][2] += f2[2];
+        f[i2][0] += f2[0];
+        f[i2][1] += f2[1];
+        f[i2][2] += f2[2];
       }
 
       if (NEWTON_BOND || i3 < nlocal) {
-	f[i3][0] += f3[0];
-	f[i3][1] += f3[1];
-	f[i3][2] += f3[2];
+        f[i3][0] += f3[0];
+        f[i3][1] += f3[1];
+        f[i3][2] += f3[2];
       }
 
       if (NEWTON_BOND || i4 < nlocal) {
-	f[i4][0] += f4[0];
-	f[i4][1] += f4[1];
-	f[i4][2] += f4[2];
+        f[i4][0] += f4[0];
+        f[i4][1] += f4[1];
+        f[i4][2] += f4[2];
       }
 
       if (EVFLAG)
-	ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
-		     -vb1x,-vb1y,-vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+        ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
+                     -vb1x,-vb1y,-vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
     }
   }
 }
-

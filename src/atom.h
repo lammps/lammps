@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -94,7 +94,7 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
 
-  // extra peratom info in restart file destined for fix & diag 
+  // extra peratom info in restart file destined for fix & diag
 
   double **extra;
 
@@ -173,7 +173,7 @@ class Atom : protected Pointers {
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency
-  
+
   inline int map(int global) {
     if (map_style == 1) return map_array[global];
     else return map_find_hash(global);

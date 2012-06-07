@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -104,37 +104,37 @@ void PairBrownian::compute(int eflag, int vflag)
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	double wallhi[3], walllo[3];
-	for (int j = 0; j < 3; j++){
-	  wallhi[j] = domain->prd[j];
-	  walllo[j] = 0;
-	}    
-	for (int m = 0; m < wallfix->nwall; m++){
-	  int dim = wallfix->wallwhich[m] / 2;
-	  int side = wallfix->wallwhich[m] % 2;
-	  if (wallfix->wallstyle[m] == VARIABLE){
-	    wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	  }	   
-	  else wallcoord = wallfix->coord0[m];	   
-	  if (side == 0) walllo[dim] = wallcoord;
-	  else wallhi[dim] = wallcoord;	   
-	}
-	for (int j = 0; j < 3; j++)
-	  dims[j] = wallhi[j] - walllo[j];
+        double wallhi[3], walllo[3];
+        for (int j = 0; j < 3; j++){
+          wallhi[j] = domain->prd[j];
+          walllo[j] = 0;
+        }
+        for (int m = 0; m < wallfix->nwall; m++){
+          int dim = wallfix->wallwhich[m] / 2;
+          int side = wallfix->wallwhich[m] % 2;
+          if (wallfix->wallstyle[m] == VARIABLE){
+            wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+          }
+          else wallcoord = wallfix->coord0[m];
+          if (side == 0) walllo[dim] = wallcoord;
+          else wallhi[dim] = wallcoord;
+        }
+        for (int j = 0; j < 3; j++)
+          dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0);
-	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0);
+        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	//RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
@@ -156,8 +156,8 @@ void PairBrownian::compute(int eflag, int vflag)
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];       
-    
+    jnum = numneigh[i];
+
     // FLD contribution to force and torque due to isotropic terms
 
     if (flagfld) {
@@ -165,12 +165,12 @@ void PairBrownian::compute(int eflag, int vflag)
       f[i][1] += prethermostat*sqrt(R0)*(random->uniform()-0.5);
       f[i][2] += prethermostat*sqrt(R0)*(random->uniform()-0.5);
       if (flaglog) {
-	torque[i][0] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
-	torque[i][1] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
-	torque[i][2] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
+        torque[i][0] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
+        torque[i][1] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
+        torque[i][2] += prethermostat*sqrt(RT0)*(random->uniform()-0.5);
       }
     }
-    
+
     if (!flagHI) continue;
 
     for (jj = 0; jj < jnum; jj++) {
@@ -184,25 +184,25 @@ void PairBrownian::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);      
-          
+        r = sqrt(rsq);
+
         // scalar resistances a_sq and a_sh
 
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
 
         if (h_sep < 0.0) overlaps++;
-        
+
         // if less than minimum gap, use minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // scale h_sep by radi
 
         h_sep = h_sep/radi;
-  
+
         // scalar resistances
 
         if (flaglog) {
@@ -211,70 +211,70 @@ void PairBrownian::compute(int eflag, int vflag)
           a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
-         
+
         // generate the Pairwise Brownian Force: a_sq
 
         Fbmag = prethermostat*sqrt(a_sq);
-        
+
         // generate a random number
 
         randr = random->uniform()-0.5;
-          
+
         // contribution due to Brownian motion
 
         fx = Fbmag*randr*delx/r;
         fy = Fbmag*randr*dely/r;
         fz = Fbmag*randr*delz/r;
-        
+
         // add terms due to a_sh
 
         if (flaglog) {
 
           // generate two orthogonal vectors to the line of centers
 
-          p1[0] = delx/r; p1[1] = dely/r; p1[2] = delz/r;                    
+          p1[0] = delx/r; p1[1] = dely/r; p1[2] = delz/r;
           set_3_orthogonal_vectors(p1,p2,p3);
-          
+
           // magnitude
 
-          Fbmag = prethermostat*sqrt(a_sh);          
-          
+          Fbmag = prethermostat*sqrt(a_sh);
+
           // force in each of the two directions
 
           randr = random->uniform()-0.5;
           fx += Fbmag*randr*p2[0];
           fy += Fbmag*randr*p2[1];
           fz += Fbmag*randr*p2[2];
-          
+
           randr = random->uniform()-0.5;
           fx += Fbmag*randr*p3[0];
           fy += Fbmag*randr*p3[1];
-          fz += Fbmag*randr*p3[2];          
-        }       
-        
+          fz += Fbmag*randr*p3[2];
+        }
+
         // scale forces to appropriate units
 
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         // sum to total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;   
+        f[i][2] -= fz;
 
-	if (newton_pair || j < nlocal) {
-	  //randr = random->uniform()-0.5;
-	  //fx = Fbmag*randr*delx/r;
-	  //fy = Fbmag*randr*dely/r;
-	  //fz = Fbmag*randr*delz/r;
+        if (newton_pair || j < nlocal) {
+          //randr = random->uniform()-0.5;
+          //fx = Fbmag*randr*delx/r;
+          //fy = Fbmag*randr*dely/r;
+          //fz = Fbmag*randr*delz/r;
 
-	  f[j][0] += fx;
-	  f[j][1] += fy;
-	  f[j][2] += fz;  
-	}
-        
+          f[j][0] += fx;
+          f[j][1] += fy;
+          f[j][2] += fz;
+        }
+
         // torque due to the Brownian Force
 
         if (flaglog) {
@@ -284,56 +284,56 @@ void PairBrownian::compute(int eflag, int vflag)
           xl[0] = -delx/r*radi;
           xl[1] = -dely/r*radi;
           xl[2] = -delz/r*radi;
-          
+
           // torque = xl_cross_F
 
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;              
-        
+          tz = xl[0]*fy - xl[1]*fx;
+
           // torque is same on both particles
 
           torque[i][0] -= tx;
           torque[i][1] -= ty;
-          torque[i][2] -= tz;          
-        
-	  if (newton_pair || j < nlocal) {
-	    torque[j][0] -= tx;
-	    torque[j][1] -= ty;
-	    torque[j][2] -= tz;       
-	  }
+          torque[i][2] -= tz;
+
+          if (newton_pair || j < nlocal) {
+            torque[j][0] -= tx;
+            torque[j][1] -= ty;
+            torque[j][2] -= tz;
+          }
 
           // torque due to a_pu
 
-          Fbmag = prethermostat*sqrt(a_pu);         
-          
+          Fbmag = prethermostat*sqrt(a_pu);
+
           // force in each direction
 
           randr = random->uniform()-0.5;
           tx = Fbmag*randr*p2[0];
           ty = Fbmag*randr*p2[1];
           tz = Fbmag*randr*p2[2];
-          
+
           randr = random->uniform()-0.5;
           tx += Fbmag*randr*p3[0];
           ty += Fbmag*randr*p3[1];
-          tz += Fbmag*randr*p3[2];    
-          
+          tz += Fbmag*randr*p3[2];
+
           // torque has opposite sign on two particles
 
           torque[i][0] -= tx;
           torque[i][1] -= ty;
-          torque[i][2] -= tz;          
-        
-	  if (newton_pair || j < nlocal) {
-	    torque[j][0] += tx;
-	    torque[j][1] += ty;
-	    torque[j][2] += tz;  
-	  }     
+          torque[i][2] -= tz;
+
+          if (newton_pair || j < nlocal) {
+            torque[j][0] += tx;
+            torque[j][1] += ty;
+            torque[j][2] += tz;
+          }
         }
 
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-				 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
   }
@@ -346,7 +346,7 @@ void PairBrownian::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairBrownian::allocate()
@@ -366,7 +366,7 @@ void PairBrownian::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairBrownian::settings(int narg, char **arg)
@@ -374,12 +374,12 @@ void PairBrownian::settings(int narg, char **arg)
   if (narg != 7 && narg != 9) error->all(FLERR,"Illegal pair_style command");
 
   mu = atof(arg[0]);
-  flaglog = atoi(arg[1]);  
-  flagfld = atoi(arg[2]);  
-  cut_inner_global = atof(arg[3]); 
-  cut_global = atof(arg[4]); 
-  t_target = atof(arg[5]); 
-  seed = atoi(arg[6]); 
+  flaglog = atoi(arg[1]);
+  flagfld = atoi(arg[2]);
+  cut_inner_global = atof(arg[3]);
+  cut_global = atof(arg[4]);
+  t_target = atof(arg[5]);
+  seed = atoi(arg[6]);
 
   flagHI = flagVF = 1;
   if (narg == 9) {
@@ -389,9 +389,9 @@ void PairBrownian::settings(int narg, char **arg)
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,"Cannot include log terms without 1/r terms; "
-		   "setting flagHI to 1");
+                   "setting flagHI to 1");
     flagHI = 1;
-  } 
+  }
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -427,7 +427,7 @@ void PairBrownian::coeff(int narg, char **arg)
 
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
-  
+
   if (narg == 4) {
     cut_inner_one = atof(arg[2]);
     cut_one = atof(arg[3]);
@@ -459,8 +459,8 @@ void PairBrownian::init_style()
 
   if (force->newton_pair == 0 && comm->me == 0)
     error->warning(FLERR,
-		   "Pair brownian needs newton pair on for "
-		   "momentum conservation");
+                   "Pair brownian needs newton pair on for "
+                   "momentum conservation");
 
   int irequest = neighbor->request(this);
 
@@ -472,7 +472,7 @@ void PairBrownian::init_style()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (radius[i] == 0.0) 
+    if (radius[i] == 0.0)
       error->one(FLERR,"Pair brownian requires extended particles");
 
   // require monodisperse system with same radii for all types
@@ -485,7 +485,7 @@ void PairBrownian::init_style()
       error->all(FLERR,"Pair brownian requires monodisperse particles");
     rad = radtype;
   }
-  
+
   // set the isotropic constants that depend on the volume fraction
   // vol_T = total volume
   // check for fix deform, if exists it must use "remap v"
@@ -499,52 +499,52 @@ void PairBrownian::init_style()
 
   flagdeform = flagwall = 0;
   for (int i = 0; i < modify->nfix; i++){
-    if (strcmp(modify->fix[i]->style,"deform") == 0) 
+    if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != NULL){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->varflag ) {
-	flagwall = 2; // Moving walls exist
-	wallfix = (FixWall *) modify->fix[i];
+        flagwall = 2; // Moving walls exist
+        wallfix = (FixWall *) modify->fix[i];
       }
     }
   }
-  
+
   // set the isotropic constants depending on the volume fraction
-  // vol_T = total volumeshearing = flagdeform = flagwall = 0;  
+  // vol_T = total volumeshearing = flagdeform = flagwall = 0;
   double vol_T, wallcoord;
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {    
+  else {
     double wallhi[3], walllo[3];
     for (int j = 0; j < 3; j++){
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
-    }    
+    }
     for (int m = 0; m < wallfix->nwall; m++){
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
       if (wallfix->wallstyle[m] == VARIABLE){
-	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
-	// Since fix->wall->init happens after pair->init_style
-	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+        wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+        // Since fix->wall->init happens after pair->init_style
+        wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
       }
-      
+
       else wallcoord = wallfix->coord0[m];
-      
+
       if (side == 0) walllo[dim] = wallcoord;
       else wallhi[dim] = wallcoord;
     }
-    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
       (wallhi[2] - walllo[2]);
   }
-   
+
   // vol_P = volume of particles, assuming mono-dispersity
   // vol_f = volume fraction
 
   vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3.0);
-  
+
   double vol_f = vol_P/vol_T;
-  
+
   // set isotropic constants
   if (!flagVF) vol_f = 0;
 
@@ -553,7 +553,7 @@ void PairBrownian::init_style()
     RT0 = 8*MY_PI*mu*pow(rad,3.0);  // not actually needed
   } else {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);     
+    RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
   }
 }
 
@@ -574,7 +574,7 @@ double PairBrownian::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairBrownian::write_restart(FILE *fp)
@@ -586,8 +586,8 @@ void PairBrownian::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&cut_inner[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut_inner[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -608,12 +608,12 @@ void PairBrownian::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&cut_inner[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&cut_inner[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -678,11 +678,11 @@ void PairBrownian::read_restart_settings(FILE *fp)
 /* ----------------------------------------------------------------------*/
 
 void PairBrownian::set_3_orthogonal_vectors(double p1[3],
-					    double p2[3], double p3[3])
+                                            double p2[3], double p3[3])
 {
   double norm;
   int ix,iy,iz;
-  
+
   // find the index of maximum magnitude and store it in iz
 
   if (fabs(p1[0]) > fabs(p1[1])) {
@@ -694,7 +694,7 @@ void PairBrownian::set_3_orthogonal_vectors(double p1[3],
     ix=2;
     iy=0;
   }
-    
+
   if (iz==0) {
     if (fabs(p1[0]) < fabs(p1[2])) {
       iz = 2;
@@ -708,24 +708,24 @@ void PairBrownian::set_3_orthogonal_vectors(double p1[3],
       iy = 1;
     }
   }
-    
+
   // set p2 arbitrarily such that it's orthogonal to p1
 
   p2[ix]=1.0;
-  p2[iy]=1.0; 
+  p2[iy]=1.0;
   p2[iz] = -(p1[ix]*p2[ix] + p1[iy]*p2[iy])/p1[iz];
-      
+
   // normalize p2
 
   norm = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2]);
-              
+
   p2[0] = p2[0]/norm;
   p2[1] = p2[1]/norm;
   p2[2] = p2[2]/norm;
-      
+
   // Set p3 by taking the cross product p3=p2xp1
 
   p3[0] = p1[1]*p2[2] - p1[2]*p2[1];
   p3[1] = p1[2]*p2[0] - p1[0]*p2[2];
-  p3[2] = p1[0]*p2[1] - p1[1]*p2[0]; 
+  p3[2] = p1[0]*p2[1] - p1[1]*p2[0];
 }

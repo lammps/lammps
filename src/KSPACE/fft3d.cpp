@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -14,8 +14,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Jim Shepherd (GA Tech) added SGI SCSL support
                          Axel Kohlmeyer (Temple U) added support for
-			 FFTW3, KISSFFT, Dfti/MKL, and ACML.
-			 Phil Blood (PSC) added single precision FFT.
+                         FFTW3, KISSFFT, Dfti/MKL, and ACML.
+                         Phil Blood (PSC) added single precision FFT.
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -42,9 +42,9 @@
    my subsection must not overlap with any other proc's subsection,
      i.e. the union of all proc's input (or output) subsections must
      exactly tile the global Nfast x Nmid x Nslow data set
-   when called from C, all subsection indices are 
+   when called from C, all subsection indices are
      C-style from 0 to N-1 where N = Nfast or Nmid or Nslow
-   when called from F77, all subsection indices are 
+   when called from F77, all subsection indices are
      F77-style from 1 to N where N = Nfast or Nmid or Nslow
    a proc can own 0 elements on input or output
      by specifying hi index < lo index
@@ -53,7 +53,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Perform 3d FFT 
+   Perform 3d FFT
 
    Arguments:
    in           starting address of input data on this proc
@@ -69,7 +69,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
   FFT_SCALAR norm, *out_ptr;
   FFT_DATA *data,*copy;
 
-  // system specific constants 
+  // system specific constants
 
 #if defined(FFT_SCSL)
   int isys = 0;
@@ -91,19 +91,19 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #endif
 
   // pre-remap to prepare for 1st FFTs if needed
-  // copy = loc for remap result 
+  // copy = loc for remap result
 
   if (plan->pre_plan) {
     if (plan->pre_target == 0) copy = out;
     else copy = plan->copy;
     remap_3d((FFT_SCALAR *) in, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-	     plan->pre_plan);
+             plan->pre_plan);
     data = copy;
   }
   else
     data = in;
 
-  // 1d FFTs along fast axis 
+  // 1d FFTs along fast axis
 
   total = plan->total1;
   length = plan->length1;
@@ -114,7 +114,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_SCSL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(flag,length,scalef,&data[offset],&data[offset],plan->coeff1,
-	   plan->work1,&isys);
+           plan->work1,&isys);
 #elif defined(FFT_ACML)
   num=total/length;
   FFT_1D(&flag,&num,&length,data,plan->coeff1,&info);
@@ -136,7 +136,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_T3E)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff1,
-	   plan->work1,&isys);
+           plan->work1,&isys);
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_fast_forward,total/length,data,1,length,NULL,0,0);
@@ -158,15 +158,15 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #endif
 
   // 1st mid-remap to prepare for 2nd FFTs
-  // copy = loc for remap result 
+  // copy = loc for remap result
 
   if (plan->mid1_target == 0) copy = out;
   else copy = plan->copy;
   remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-	   plan->mid1_plan);
+           plan->mid1_plan);
   data = copy;
 
-  // 1d FFTs along mid axis 
+  // 1d FFTs along mid axis
 
   total = plan->total2;
   length = plan->length2;
@@ -177,7 +177,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_SCSL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(flag,length,scalef,&data[offset],&data[offset],plan->coeff2,
-	   plan->work2,&isys);
+           plan->work2,&isys);
 #elif defined(FFT_ACML)
   num=total/length;
   FFT_1D(&flag,&num,&length,data,plan->coeff2,&info);
@@ -199,7 +199,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_T3E)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff2,
-	   plan->work2,&isys);
+           plan->work2,&isys);
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_mid_forward,total/length,data,1,length,NULL,0,0);
@@ -221,15 +221,15 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs
-  // copy = loc for remap result 
+  // copy = loc for remap result
 
   if (plan->mid2_target == 0) copy = out;
   else copy = plan->copy;
   remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) copy, (FFT_SCALAR *) plan->scratch,
-	   plan->mid2_plan);
+           plan->mid2_plan);
   data = copy;
 
-  // 1d FFTs along slow axis 
+  // 1d FFTs along slow axis
 
   total = plan->total3;
   length = plan->length3;
@@ -240,7 +240,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_SCSL)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(flag,length,scalef,&data[offset],&data[offset],plan->coeff3,
-	   plan->work3,&isys);
+           plan->work3,&isys);
 #elif defined(FFT_ACML)
   num=total/length;
   FFT_1D(&flag,&num,&length,data,plan->coeff3,&info);
@@ -262,7 +262,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_T3E)
   for (offset = 0; offset < total; offset += length)
     FFT_1D(&flag,&length,&scalef,&data[offset],&data[offset],plan->coeff3,
-	   plan->work3,&isys);
+           plan->work3,&isys);
 #elif defined(FFT_FFTW2)
   if (flag == -1)
     fftw(plan->plan_slow_forward,total/length,data,1,length,NULL,0,0);
@@ -284,13 +284,13 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 #endif
 
   // post-remap to put data in output format if needed
-  // destination is always out 
+  // destination is always out
 
   if (plan->post_plan)
     remap_3d((FFT_SCALAR *) data, (FFT_SCALAR *) out, (FFT_SCALAR *) plan->scratch,
-	     plan->post_plan);
+             plan->post_plan);
 
-  // scaling if required 
+  // scaling if required
 #if !defined(FFT_T3E) && !defined(FFT_ACML)
   if (flag == 1 && plan->scaled) {
     norm = plan->norm;
@@ -330,7 +330,7 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 }
 
 /* ----------------------------------------------------------------------
-   Create plan for performing a 3d FFT 
+   Create plan for performing a 3d FFT
 
    Arguments:
    comm                 MPI communicator for the P procs which own the data
@@ -344,8 +344,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
    scaled               0 = no scaling of result, 1 = scaling
    permute              permutation in storage order of indices on output
                           0 = no permutation
-			  1 = permute once = mid->fast, slow->mid, fast->slow
-			  2 = permute twice = slow->fast, fast->mid, mid->slow
+                          1 = permute once = mid->fast, slow->mid, fast->slow
+                          2 = permute twice = slow->fast, fast->mid, mid->slow
    nbuf                 returns size of internal storage buffers used by FFT
 ------------------------------------------------------------------------- */
 
@@ -367,7 +367,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   int np1,np2,ip1,ip2;
   int list[50];
 
-  // system specific variables 
+  // system specific variables
 
 #ifdef FFT_SCSL
   FFT_DATA dummy_d[5];
@@ -384,25 +384,25 @@ struct fft_plan_3d *fft_3d_create_plan(
   double scalef;
 #endif
 
-  // query MPI info 
+  // query MPI info
 
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  // compute division of procs in 2 dimensions not on-processor 
+  // compute division of procs in 2 dimensions not on-processor
 
   bifactor(nprocs,&np1,&np2);
   ip1 = me % np1;
   ip2 = me/np1;
 
-  // allocate memory for plan data struct 
+  // allocate memory for plan data struct
 
   plan = (struct fft_plan_3d *) malloc(sizeof(struct fft_plan_3d));
   if (plan == NULL) return NULL;
 
   // remap from initial distribution to layout needed for 1st set of 1d FFTs
   // not needed if all procs own entire fast axis initially
-  // first indices = distribution after 1st set of FFTs 
+  // first indices = distribution after 1st set of FFTs
 
   if (in_ilo == 0 && in_ihi == nfast-1)
     flag = 0;
@@ -429,19 +429,19 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_khi = (ip2+1)*nslow/np2 - 1;
     plan->pre_plan =
       remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-			   first_ilo,first_ihi,first_jlo,first_jhi,
-			   first_klo,first_khi,2,0,0,FFT_PRECISION);
+                           first_ilo,first_ihi,first_jlo,first_jhi,
+                           first_klo,first_khi,2,0,0,FFT_PRECISION);
     if (plan->pre_plan == NULL) return NULL;
   }
 
-  // 1d FFTs along fast axis 
+  // 1d FFTs along fast axis
 
   plan->length1 = nfast;
   plan->total1 = nfast * (first_jhi-first_jlo+1) * (first_khi-first_klo+1);
 
   // remap from 1st to 2nd FFT
   // choose which axis is split over np1 vs np2 to minimize communication
-  // second indices = distribution after 2nd set of FFTs 
+  // second indices = distribution after 2nd set of FFTs
 
   second_ilo = ip1*nfast/np1;
   second_ihi = (ip1+1)*nfast/np1 - 1;
@@ -451,13 +451,13 @@ struct fft_plan_3d *fft_3d_create_plan(
   second_khi = (ip2+1)*nslow/np2 - 1;
   plan->mid1_plan =
       remap_3d_create_plan(comm,
-			   first_ilo,first_ihi,first_jlo,first_jhi,
-			   first_klo,first_khi,
-			   second_ilo,second_ihi,second_jlo,second_jhi,
-			   second_klo,second_khi,2,1,0,FFT_PRECISION);
+                           first_ilo,first_ihi,first_jlo,first_jhi,
+                           first_klo,first_khi,
+                           second_ilo,second_ihi,second_jlo,second_jhi,
+                           second_klo,second_khi,2,1,0,FFT_PRECISION);
   if (plan->mid1_plan == NULL) return NULL;
 
-  // 1d FFTs along mid axis 
+  // 1d FFTs along mid axis
 
   plan->length2 = nmid;
   plan->total2 = (second_ihi-second_ilo+1) * nmid * (second_khi-second_klo+1);
@@ -465,7 +465,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   // remap from 2nd to 3rd FFT
   // if final distribution is permute=2 with all procs owning entire slow axis
   //   then this remapping goes directly to final distribution
-  //  third indices = distribution after 3rd set of FFTs 
+  //  third indices = distribution after 3rd set of FFTs
 
   if (permute == 2 && out_klo == 0 && out_khi == nslow-1)
     flag = 0;
@@ -490,22 +490,22 @@ struct fft_plan_3d *fft_3d_create_plan(
     third_klo = 0;
     third_khi = nslow - 1;
   }
-  
+
   plan->mid2_plan =
     remap_3d_create_plan(comm,
-			 second_jlo,second_jhi,second_klo,second_khi,
-			 second_ilo,second_ihi,
-			 third_jlo,third_jhi,third_klo,third_khi,
-			 third_ilo,third_ihi,2,1,0,FFT_PRECISION);
+                         second_jlo,second_jhi,second_klo,second_khi,
+                         second_ilo,second_ihi,
+                         third_jlo,third_jhi,third_klo,third_khi,
+                         third_ilo,third_ihi,2,1,0,FFT_PRECISION);
   if (plan->mid2_plan == NULL) return NULL;
 
-  // 1d FFTs along slow axis 
+  // 1d FFTs along slow axis
 
   plan->length3 = nslow;
   plan->total3 = (third_ihi-third_ilo+1) * (third_jhi-third_jlo+1) * nslow;
 
   // remap from 3rd FFT to final distribution
-  //  not needed if permute = 2 and third indices = out indices on all procs 
+  //  not needed if permute = 2 and third indices = out indices on all procs
 
   if (permute == 2 &&
       out_ilo == third_ilo && out_ihi == third_ihi &&
@@ -522,10 +522,10 @@ struct fft_plan_3d *fft_3d_create_plan(
   else {
     plan->post_plan =
       remap_3d_create_plan(comm,
-			   third_klo,third_khi,third_ilo,third_ihi,
-			   third_jlo,third_jhi,
-			   out_klo,out_khi,out_ilo,out_ihi,
-			   out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION);
+                           third_klo,third_khi,third_ilo,third_ihi,
+                           third_jlo,third_jhi,
+                           out_klo,out_khi,out_ilo,out_ihi,
+                           out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION);
     if (plan->post_plan == NULL) return NULL;
   }
 
@@ -536,14 +536,14 @@ struct fft_plan_3d *fft_3d_create_plan(
   // scratch_size = amount needed internally for remap scratch space
   // for each remap:
   //   out space used for result if big enough, else require copy buffer
-  //   accumulate largest required remap scratch space 
+  //   accumulate largest required remap scratch space
 
   out_size = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) * (out_khi-out_klo+1);
-  first_size = (first_ihi-first_ilo+1) * (first_jhi-first_jlo+1) * 
+  first_size = (first_ihi-first_ilo+1) * (first_jhi-first_jlo+1) *
     (first_khi-first_klo+1);
-  second_size = (second_ihi-second_ilo+1) * (second_jhi-second_jlo+1) * 
+  second_size = (second_ihi-second_ilo+1) * (second_jhi-second_jlo+1) *
     (second_khi-second_klo+1);
-  third_size = (third_ihi-third_ilo+1) * (third_jhi-third_jlo+1) * 
+  third_size = (third_ihi-third_ilo+1) * (third_jhi-third_jlo+1) *
     (third_khi-third_klo+1);
 
   copy_size = 0;
@@ -596,8 +596,8 @@ struct fft_plan_3d *fft_3d_create_plan(
   }
   else plan->scratch = NULL;
 
-  // system specific pre-computation of 1d FFT coeffs 
-  // and scaling normalization 
+  // system specific pre-computation of 1d FFT coeffs
+  // and scaling normalization
 
 #if defined(FFT_SGI)
 
@@ -612,7 +612,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   FFT_1D_INIT(nmid,plan->coeff2);
   FFT_1D_INIT(nslow,plan->coeff3);
 
-  if (scaled == 0) 
+  if (scaled == 0)
     plan->scaled = 0;
   else {
     plan->scaled = 1;
@@ -627,14 +627,14 @@ struct fft_plan_3d *fft_3d_create_plan(
   plan->coeff2 = (FFT_PREC *) malloc((2*nmid+30)*sizeof(FFT_PREC));
   plan->coeff3 = (FFT_PREC *) malloc((2*nslow+30)*sizeof(FFT_PREC));
 
-  if (plan->coeff1 == NULL || plan->coeff2 == NULL || 
+  if (plan->coeff1 == NULL || plan->coeff2 == NULL ||
       plan->coeff3 == NULL) return NULL;
 
   plan->work1 = (FFT_PREC *) malloc((2*nfast)*sizeof(FFT_PREC));
   plan->work2 = (FFT_PREC *) malloc((2*nmid)*sizeof(FFT_PREC));
   plan->work3 = (FFT_PREC *) malloc((2*nslow)*sizeof(FFT_PREC));
 
-  if (plan->work1 == NULL || plan->work2 == NULL || 
+  if (plan->work1 == NULL || plan->work2 == NULL ||
       plan->work3 == NULL) return NULL;
 
   isign = 0;
@@ -645,7 +645,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   FFT_1D_INIT(isign,nmid,scalef,dummy_d,dummy_d,plan->coeff2,dummy_p,&isys);
   FFT_1D_INIT(isign,nslow,scalef,dummy_d,dummy_d,plan->coeff3,dummy_p,&isys);
 
-  if (scaled == 0) 
+  if (scaled == 0)
     plan->scaled = 0;
   else {
     plan->scaled = 1;
@@ -711,7 +711,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   plan->coeff2 = (FFT_DATA *) malloc((3*nmid/2+1)*sizeof(FFT_DATA));
   plan->coeff3 = (FFT_DATA *) malloc((3*nslow/2+1)*sizeof(FFT_DATA));
 
-  if (plan->coeff1 == NULL || plan->coeff2 == NULL || 
+  if (plan->coeff1 == NULL || plan->coeff2 == NULL ||
       plan->coeff3 == NULL) return NULL;
 
   flag = 0;
@@ -776,14 +776,14 @@ struct fft_plan_3d *fft_3d_create_plan(
   plan->coeff2 = (double *) malloc((12*nmid)*sizeof(double));
   plan->coeff3 = (double *) malloc((12*nslow)*sizeof(double));
 
-  if (plan->coeff1 == NULL || plan->coeff2 == NULL || 
+  if (plan->coeff1 == NULL || plan->coeff2 == NULL ||
       plan->coeff3 == NULL) return NULL;
 
   plan->work1 = (double *) malloc((8*nfast)*sizeof(double));
   plan->work2 = (double *) malloc((8*nmid)*sizeof(double));
   plan->work3 = (double *) malloc((8*nslow)*sizeof(double));
 
-  if (plan->work1 == NULL || plan->work2 == NULL || 
+  if (plan->work1 == NULL || plan->work2 == NULL ||
       plan->work3 == NULL) return NULL;
 
   isign = 0;
@@ -794,7 +794,7 @@ struct fft_plan_3d *fft_3d_create_plan(
   FFT_1D_INIT(&isign,&nmid,&scalef,dummy,dummy,plan->coeff2,dummy,&isys);
   FFT_1D_INIT(&isign,&nslow,&scalef,dummy,dummy,plan->coeff3,dummy,&isys);
 
-  if (scaled == 0) 
+  if (scaled == 0)
     plan->scaled = 0;
   else {
     plan->scaled = 1;
@@ -805,9 +805,9 @@ struct fft_plan_3d *fft_3d_create_plan(
 
 #elif defined(FFT_FFTW2)
 
-  plan->plan_fast_forward = 
+  plan->plan_fast_forward =
     fftw_create_plan(nfast,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-  plan->plan_fast_backward = 
+  plan->plan_fast_backward =
     fftw_create_plan(nfast,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
 
   if (nmid == nfast) {
@@ -815,9 +815,9 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->plan_mid_backward = plan->plan_fast_backward;
   }
   else {
-    plan->plan_mid_forward = 
+    plan->plan_mid_forward =
       fftw_create_plan(nmid,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-    plan->plan_mid_backward = 
+    plan->plan_mid_backward =
       fftw_create_plan(nmid,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
   }
 
@@ -830,9 +830,9 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->plan_slow_backward = plan->plan_mid_backward;
   }
   else {
-    plan->plan_slow_forward = 
+    plan->plan_slow_forward =
       fftw_create_plan(nslow,FFTW_FORWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
-    plan->plan_slow_backward = 
+    plan->plan_slow_backward =
       fftw_create_plan(nslow,FFTW_BACKWARD,FFTW_ESTIMATE | FFTW_IN_PLACE);
   }
 
@@ -846,36 +846,36 @@ struct fft_plan_3d *fft_3d_create_plan(
   }
 
 #elif defined(FFT_FFTW3)
-  plan->plan_fast_forward = 
+  plan->plan_fast_forward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-			    NULL,&nfast,1,plan->length1,
-			    NULL,&nfast,1,plan->length1,
-			    FFTW_FORWARD,FFTW_ESTIMATE);
-  plan->plan_fast_backward = 
+                            NULL,&nfast,1,plan->length1,
+                            NULL,&nfast,1,plan->length1,
+                            FFTW_FORWARD,FFTW_ESTIMATE);
+  plan->plan_fast_backward =
     FFTW_API(plan_many_dft)(1, &nfast,plan->total1/plan->length1,
-			    NULL,&nfast,1,plan->length1,
-			    NULL,&nfast,1,plan->length1,
-			    FFTW_BACKWARD,FFTW_ESTIMATE);
-  plan->plan_mid_forward = 
+                            NULL,&nfast,1,plan->length1,
+                            NULL,&nfast,1,plan->length1,
+                            FFTW_BACKWARD,FFTW_ESTIMATE);
+  plan->plan_mid_forward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-			    NULL,&nmid,1,plan->length2,
-			    NULL,&nmid,1,plan->length2,
-			    FFTW_FORWARD,FFTW_ESTIMATE);
-  plan->plan_mid_backward = 
+                            NULL,&nmid,1,plan->length2,
+                            NULL,&nmid,1,plan->length2,
+                            FFTW_FORWARD,FFTW_ESTIMATE);
+  plan->plan_mid_backward =
     FFTW_API(plan_many_dft)(1, &nmid,plan->total2/plan->length2,
-			    NULL,&nmid,1,plan->length2,
-			    NULL,&nmid,1,plan->length2,
-			    FFTW_BACKWARD,FFTW_ESTIMATE);
-  plan->plan_slow_forward = 
+                            NULL,&nmid,1,plan->length2,
+                            NULL,&nmid,1,plan->length2,
+                            FFTW_BACKWARD,FFTW_ESTIMATE);
+  plan->plan_slow_forward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-			    NULL,&nslow,1,plan->length3,
-			    NULL,&nslow,1,plan->length3,
-			    FFTW_FORWARD,FFTW_ESTIMATE);
-  plan->plan_slow_backward = 
+                            NULL,&nslow,1,plan->length3,
+                            NULL,&nslow,1,plan->length3,
+                            FFTW_FORWARD,FFTW_ESTIMATE);
+  plan->plan_slow_backward =
     FFTW_API(plan_many_dft)(1, &nslow,plan->total3/plan->length3,
-			    NULL,&nslow,1,plan->length3,
-			    NULL,&nslow,1,plan->length3,
-			    FFTW_BACKWARD,FFTW_ESTIMATE);
+                            NULL,&nslow,1,plan->length3,
+                            NULL,&nslow,1,plan->length3,
+                            FFTW_BACKWARD,FFTW_ESTIMATE);
 
   if (scaled == 0)
     plan->scaled = 0;
@@ -926,7 +926,7 @@ struct fft_plan_3d *fft_3d_create_plan(
 }
 
 /* ----------------------------------------------------------------------
-   Destroy a 3d fft plan 
+   Destroy a 3d fft plan
 ------------------------------------------------------------------------- */
 
 void fft_3d_destroy_plan(struct fft_plan_3d *plan)
@@ -1052,7 +1052,7 @@ void factor(int n, int *num, int *list)
 }
 
 /* ----------------------------------------------------------------------
-   divide n into 2 factors of as equal size as possible 
+   divide n into 2 factors of as equal size as possible
 ------------------------------------------------------------------------- */
 
 void bifactor(int n, int *factor1, int *factor2)
@@ -1087,7 +1087,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   int i,total,length,offset,num;
   FFT_SCALAR norm, *data_ptr;
 
-  // system specific constants 
+  // system specific constants
 
 #ifdef FFT_SCSL
   int isys = 0;
@@ -1139,13 +1139,13 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_SCSL)
   for (offset = 0; offset < total1; offset += length1)
     FFT_1D(flag,length1,scalef,&data[offset],&data[offset],plan->coeff1,
-	   plan->work1,&isys);
+           plan->work1,&isys);
   for (offset = 0; offset < total2; offset += length2)
     FFT_1D(flag,length2,scalef,&data[offset],&data[offset],plan->coeff2,
-	   plan->work2,&isys);
+           plan->work2,&isys);
   for (offset = 0; offset < total3; offset += length3)
     FFT_1D(flag,length3,scalef,&data[offset],&data[offset],plan->coeff3,
-	   plan->work3,&isys);
+           plan->work3,&isys);
 #elif defined(FFT_ACML)
   int info=0;
   num=total1/length1;
@@ -1190,13 +1190,13 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
 #elif defined(FFT_T3E)
   for (offset = 0; offset < total1; offset += length1)
     FFT_1D(&flag,&length1,&scalef,&data[offset],&data[offset],plan->coeff1,
-	   plan->work1,&isys);
+           plan->work1,&isys);
   for (offset = 0; offset < total2; offset += length2)
     FFT_1D(&flag,&length2,&scalef,&data[offset],&data[offset],plan->coeff2,
-	   plan->work2,&isys);
+           plan->work2,&isys);
   for (offset = 0; offset < total3; offset += length3)
     FFT_1D(&flag,&length3,&scalef,&data[offset],&data[offset],plan->coeff3,
-	   plan->work3,&isys);
+           plan->work3,&isys);
 #elif defined(FFT_FFTW2)
   if (flag == -1) {
     fftw(plan->plan_fast_forward,total1/length1,data,1,0,NULL,0,0);
@@ -1242,7 +1242,7 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
   }
 #endif
 
-  // scaling if required 
+  // scaling if required
   // limit num to size of data
 
 #ifndef FFT_T3E

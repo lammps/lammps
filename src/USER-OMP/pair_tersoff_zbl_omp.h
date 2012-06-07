@@ -29,9 +29,9 @@ class PairTersoffZBLOMP : public PairTersoffOMP {
   virtual ~PairTersoffZBLOMP() {}
 
  protected:
-  double global_a_0;		// Bohr radius for Coulomb repulsion
-  double global_epsilon_0;	// permittivity of vacuum for Coulomb repulsion
-  double global_e;		// proton charge (negative of electron charge)
+  double global_a_0;                // Bohr radius for Coulomb repulsion
+  double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
+  double global_e;                // proton charge (negative of electron charge)
 
   virtual void read_file(char *);
   virtual void repulsive(Param *, double, double &, int, double &);

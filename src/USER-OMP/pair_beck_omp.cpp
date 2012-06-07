@@ -56,11 +56,11 @@ void PairBeckOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -121,7 +121,7 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-        r5 = rsq*rsq*r; 
+        r5 = rsq*rsq*r;
         aaij = aa[itype][jtype];
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
@@ -129,31 +129,31 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
         term2 = 1.0/pow(term1,5.0);
         term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
         term4 = alphaij + r5*betaij;
-        term5 = alphaij + 6.0*r5*betaij; 
+        term5 = alphaij + 6.0*r5*betaij;
         rinv  = 1.0/r;
-	force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
-        force_beck -= BB[itype][jtype]*r*term2*term3; 
- 
-	fpair = factor_lj*force_beck*rinv;
-        
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
+        force_beck -= BB[itype][jtype]*r*term2*term3;
 
-	if (EFLAG) {
+        fpair = factor_lj*force_beck*rinv;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (EFLAG) {
           term6 = 1.0/pow(term1,3.0);
           term1inv = 1.0/term1;
           evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
           evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
-	}
+        }
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

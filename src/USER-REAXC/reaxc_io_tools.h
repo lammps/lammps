@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -29,10 +29,10 @@
 
 #include "reaxc_types.h"
 
-int Init_Output_Files( reax_system*, control_params*, 
-		       output_controls*, mpi_datatypes*, char* );
-int Close_Output_Files( reax_system*, control_params*,  
-			output_controls*, mpi_datatypes* );
+int Init_Output_Files( reax_system*, control_params*,
+                       output_controls*, mpi_datatypes*, char* );
+int Close_Output_Files( reax_system*, control_params*,
+                        output_controls*, mpi_datatypes* );
 
 void  Print_Box( simulation_box*, char*, FILE* );
 
@@ -54,63 +54,63 @@ void  Print_Charges( reax_system* );
 void  Print_Bonds( reax_system*, reax_list*, char* );
 void  Print_Bond_List2( reax_system*, reax_list*, char* );
 void  Print_Total_Force( reax_system*, simulation_data*, storage* );
-void  Output_Results( reax_system*, control_params*, simulation_data*, 
-		      reax_list**, output_controls*, mpi_datatypes* );
-void  fixbond( reax_system*, control_params*, simulation_data*, 
-		      reax_list**, output_controls*, mpi_datatypes* );
-void  fixspecies( reax_system*, control_params*, simulation_data*, 
-		      reax_list**, output_controls*, mpi_datatypes* );
+void  Output_Results( reax_system*, control_params*, simulation_data*,
+                      reax_list**, output_controls*, mpi_datatypes* );
+void  fixbond( reax_system*, control_params*, simulation_data*,
+                      reax_list**, output_controls*, mpi_datatypes* );
+void  fixspecies( reax_system*, control_params*, simulation_data*,
+                      reax_list**, output_controls*, mpi_datatypes* );
 
-#if defined(DEBUG_FOCUS) || defined(TEST_FORCES) || defined(TEST_ENERGY) 
+#if defined(DEBUG_FOCUS) || defined(TEST_FORCES) || defined(TEST_ENERGY)
 void Debug_Marker_Bonded( output_controls*, int );
 void Debug_Marker_Nonbonded( output_controls*, int );
-void  Print_Near_Neighbors_List( reax_system*, reax_list**, control_params*, 
-				 simulation_data*, output_controls* );
-void  Print_Far_Neighbors_List( reax_system*, reax_list**, control_params*, 
-				simulation_data*, output_controls* );
-void  Print_Bond_List( reax_system*, control_params*, simulation_data*, 
-		       reax_list**, output_controls* );
-/*void Dummy_Printer( reax_system*, control_params*, simulation_data*, 
-		    storage*, reax_list**, output_controls* );
-void Print_Bond_Orders( reax_system*, control_params*, simulation_data*, 
-			storage*, reax_list**, output_controls* );
-void Print_Bond_Forces( reax_system*, control_params*, simulation_data*, 
-			storage*, reax_list**, output_controls* );
-void Print_LonePair_Forces( reax_system*, control_params*, simulation_data*, 
-			    storage*, reax_list**, output_controls* );
-void Print_OverUnderCoor_Forces( reax_system*, control_params*, 
-				 simulation_data*, storage*, reax_list**, 
-				 output_controls* );
-void Print_Three_Body_Forces( reax_system*, control_params*, simulation_data*, 
-				 storage*, reax_list**, output_controls* );
-void Print_Hydrogen_Bond_Forces( reax_system*, control_params*, 
-				 simulation_data*, storage*, reax_list**, 
-				 output_controls* );
-void Print_Four_Body_Forces( reax_system*, control_params*, simulation_data*, 
-				 storage*, reax_list**, output_controls* );
-void Print_vdW_Coulomb_Forces( reax_system*, control_params*, 
-			       simulation_data*, storage*, reax_list**, 
-			       output_controls* );
-void Print_Total_Force( reax_system*, control_params*, simulation_data*, 
-			storage*, reax_list**, output_controls* );
-void Compare_Total_Forces( reax_system*, control_params*, simulation_data*, 
+void  Print_Near_Neighbors_List( reax_system*, reax_list**, control_params*,
+                                 simulation_data*, output_controls* );
+void  Print_Far_Neighbors_List( reax_system*, reax_list**, control_params*,
+                                simulation_data*, output_controls* );
+void  Print_Bond_List( reax_system*, control_params*, simulation_data*,
+                       reax_list**, output_controls* );
+/*void Dummy_Printer( reax_system*, control_params*, simulation_data*,
+                    storage*, reax_list**, output_controls* );
+void Print_Bond_Orders( reax_system*, control_params*, simulation_data*,
+                        storage*, reax_list**, output_controls* );
+void Print_Bond_Forces( reax_system*, control_params*, simulation_data*,
+                        storage*, reax_list**, output_controls* );
+void Print_LonePair_Forces( reax_system*, control_params*, simulation_data*,
+                            storage*, reax_list**, output_controls* );
+void Print_OverUnderCoor_Forces( reax_system*, control_params*,
+                                 simulation_data*, storage*, reax_list**,
+                                 output_controls* );
+void Print_Three_Body_Forces( reax_system*, control_params*, simulation_data*,
+                                 storage*, reax_list**, output_controls* );
+void Print_Hydrogen_Bond_Forces( reax_system*, control_params*,
+                                 simulation_data*, storage*, reax_list**,
+                                 output_controls* );
+void Print_Four_Body_Forces( reax_system*, control_params*, simulation_data*,
+                                 storage*, reax_list**, output_controls* );
+void Print_vdW_Coulomb_Forces( reax_system*, control_params*,
+                               simulation_data*, storage*, reax_list**,
+                               output_controls* );
+void Print_Total_Force( reax_system*, control_params*, simulation_data*,
+                        storage*, reax_list**, output_controls* );
+void Compare_Total_Forces( reax_system*, control_params*, simulation_data*,
 storage*, reax_list**, output_controls* );*/
 //void  Print_Total_Force( reax_system*, control_params* );
-void Print_Force_Files( reax_system*, control_params*, simulation_data*, 
-			storage*, reax_list**, output_controls*, 
-			mpi_datatypes * );
+void Print_Force_Files( reax_system*, control_params*, simulation_data*,
+                        storage*, reax_list**, output_controls*,
+                        mpi_datatypes * );
 //void Init_Force_Test_Functions( );
 
-int fn_qsort_intcmp( const void *, const void * ); 
+int fn_qsort_intcmp( const void *, const void * );
 
-void Print_Far_Neighbors_List( reax_system*, reax_list**, control_params*, 
-			       simulation_data*, output_controls* );
+void Print_Far_Neighbors_List( reax_system*, reax_list**, control_params*,
+                               simulation_data*, output_controls* );
 
 void Print_Near_Neighbors_List( reax_system*, reax_list**, control_params*,
-				simulation_data*, output_controls* );
+                                simulation_data*, output_controls* );
 
-void Print_Bond_List( reax_system*, control_params*, simulation_data*, 
-		      reax_list**, output_controls*);
+void Print_Bond_List( reax_system*, control_params*, simulation_data*,
+                      reax_list**, output_controls*);
 
 #endif
 #endif

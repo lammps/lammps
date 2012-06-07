@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -18,7 +18,7 @@
 #ifndef LMP_MATH_COMPLEX_H
 #define LMP_MATH_COMPLEX_H
 
-#define COMPLEX_NULL	{0, 0}
+#define COMPLEX_NULL        {0, 0}
 
 namespace LAMMPS_NS {
 
@@ -70,4 +70,3 @@ typedef struct complex {
   memcpy(&d, &x, sizeof(complex)); }
 
 #endif
-

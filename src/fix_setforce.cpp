@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,7 +86,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix setforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all(FLERR,"Region ID for fix setforce does not exist");
+        error->all(FLERR,"Region ID for fix setforce does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -131,7 +131,7 @@ void FixSetForce::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) 
+    if (xvar < 0)
       error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
@@ -139,7 +139,7 @@ void FixSetForce::init()
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) 
+    if (yvar < 0)
       error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
@@ -147,7 +147,7 @@ void FixSetForce::init()
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) 
+    if (zvar < 0)
       error->all(FLERR,"Variable name for fix setforce does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
@@ -158,11 +158,11 @@ void FixSetForce::init()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region ID for fix setforce does not exist");
   }
 
-  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
   else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
@@ -183,7 +183,7 @@ void FixSetForce::init()
     if (ystyle == CONSTANT && yvalue != 0.0) flag = 1;
     if (zstyle == CONSTANT && zvalue != 0.0) flag = 1;
   }
-  if (flag) 
+  if (flag)
     error->all(FLERR,"Cannot use non-zero forces in an energy minimization");
 }
 
@@ -231,16 +231,16 @@ void FixSetForce::post_force(int vflag)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
 
-	foriginal[0] += f[i][0];
-	foriginal[1] += f[i][1];
-	foriginal[2] += f[i][2];
-	if (xstyle) f[i][0] = xvalue;
-	if (ystyle) f[i][1] = yvalue;
-	if (zstyle) f[i][2] = zvalue;
+        foriginal[0] += f[i][0];
+        foriginal[1] += f[i][1];
+        foriginal[2] += f[i][2];
+        if (xstyle) f[i][0] = xvalue;
+        if (ystyle) f[i][1] = yvalue;
+        if (zstyle) f[i][2] = zvalue;
       }
 
   // variable force, wrap with clear/add
@@ -253,7 +253,7 @@ void FixSetForce::post_force(int vflag)
     else if (xstyle == ATOM && sforce)
       input->variable->compute_atom(xvar,igroup,&sforce[0][0],3,0);
     if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM && sforce) 
+    else if (ystyle == ATOM && sforce)
       input->variable->compute_atom(yvar,igroup,&sforce[0][1],3,0);
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
     else if (zstyle == ATOM && sforce)
@@ -263,19 +263,19 @@ void FixSetForce::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
 
-	foriginal[0] += f[i][0];
-	foriginal[1] += f[i][1];
-	foriginal[2] += f[i][2];
-	if (xstyle == ATOM) f[i][0] = sforce[i][0];
-	else if (xstyle) f[i][0] = xvalue;
-	if (ystyle == ATOM) f[i][1] = sforce[i][1];
-	else if (ystyle) f[i][1] = yvalue;
-	if (zstyle == ATOM) f[i][2] = sforce[i][2];
-	else if (zstyle) f[i][2] = zvalue;
+        foriginal[0] += f[i][0];
+        foriginal[1] += f[i][1];
+        foriginal[2] += f[i][2];
+        if (xstyle == ATOM) f[i][0] = sforce[i][0];
+        else if (xstyle) f[i][0] = xvalue;
+        if (ystyle == ATOM) f[i][1] = sforce[i][1];
+        else if (ystyle) f[i][1] = yvalue;
+        if (zstyle == ATOM) f[i][2] = sforce[i][2];
+        else if (zstyle) f[i][2] = zvalue;
       }
   }
 }
@@ -291,12 +291,12 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
     double **f = atom->f;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    
+
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xstyle) f[i][0] = 0.0;
-	if (ystyle) f[i][1] = 0.0;
-	if (zstyle) f[i][2] = 0.0;
+        if (xstyle) f[i][0] = 0.0;
+        if (ystyle) f[i][1] = 0.0;
+        if (zstyle) f[i][2] = 0.0;
       }
   }
 }

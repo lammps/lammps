@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -80,9 +80,9 @@ void BondHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nbondlist[m] > maxbond[m]) {
-	memory->destroy(bondlist[m]);
-	maxbond[m] = nbondlist[m] + EXTRA;
-	memory->create(bondlist[m],maxbond[m],3,"bond_hybrid:bondlist");
+        memory->destroy(bondlist[m]);
+        maxbond[m] = nbondlist[m] + EXTRA;
+        memory->create(bondlist[m],maxbond[m],3,"bond_hybrid:bondlist");
       }
       nbondlist[m] = 0;
     }
@@ -96,7 +96,7 @@ void BondHybrid::compute(int eflag, int vflag)
       nbondlist[m]++;
     }
   }
-  
+
   // call each sub-style's compute function
   // set neighbor->bondlist to sub-style bondlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
@@ -124,8 +124,8 @@ void BondHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-	for (j = 0; j < 6; j++)
-	  vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++)
+          vatom[i][j] += vatom_substyle[i][j];
     }
   }
 
@@ -212,11 +212,11 @@ void BondHybrid::settings(int narg, char **arg)
 
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all(FLERR,"Bond style hybrid cannot use same pair style twice");
-    if (strcmp(arg[i],"hybrid") == 0) 
+      if (strcmp(arg[i],keywords[m]) == 0)
+        error->all(FLERR,"Bond style hybrid cannot use same pair style twice");
+    if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[i],"none") == 0) 
+    if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
     styles[nstyles] = force->new_bond(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
@@ -277,17 +277,17 @@ void BondHybrid::coeff(int narg, char **arg)
 
 void BondHybrid::init_style()
 {
-  for (int m = 0; m < nstyles; m++) 
+  for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
 }
 
 /* ----------------------------------------------------------------------
-   return an equilbrium bond length 
+   return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
 double BondHybrid::equilibrium_distance(int i)
 {
-  if (map[i] < 0) 
+  if (map[i] < 0)
     error->one(FLERR,"Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }

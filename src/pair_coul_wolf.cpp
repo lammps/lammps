@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -74,16 +74,16 @@ void PairCoulWolf::compute(int eflag, int vflag)
 
   // self and shifted coulombic energy
 
-  e_self = v_sh = 0.0; 
+  e_self = v_sh = 0.0;
   e_shift = erfc(alf*cut_coul)/cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
- 
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -112,38 +112,38 @@ void PairCoulWolf::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cut_coulsq) {
-	r = sqrt(rsq);
-	prefactor = qqrd2e*qtmp*q[j]/r;
-	erfcc = erfc(alf*r); 
-	erfcd = exp(-alf*alf*r*r);
-	v_sh = (erfcc - e_shift*r) * prefactor; 
-	dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
-	forcecoul = dvdrr*rsq*prefactor;
-	if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	fpair = forcecoul / rsq;
+        r = sqrt(rsq);
+        prefactor = qqrd2e*qtmp*q[j]/r;
+        erfcc = erfc(alf*r);
+        erfcd = exp(-alf*alf*r*r);
+        v_sh = (erfcc - e_shift*r) * prefactor;
+        dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
+        forcecoul = dvdrr*rsq*prefactor;
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        fpair = forcecoul / rsq;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = v_sh;
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            ecoul = v_sh;
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             0.0,ecoul,fpair,delx,dely,delz);
       }
     }
   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -179,7 +179,7 @@ void PairCoulWolf::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set cutoffs for one or more type pairs, optional 
+   set cutoffs for one or more type pairs, optional
 ------------------------------------------------------------------------- */
 
 void PairCoulWolf::coeff(int narg, char **arg)
@@ -203,7 +203,7 @@ void PairCoulWolf::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style 
+   init specific to this pair style
 ------------------------------------------------------------------------- */
 
 void PairCoulWolf::init_style()
@@ -291,29 +291,29 @@ void PairCoulWolf::read_restart_settings(FILE *fp)
    only the pair part is calculated here
 ------------------------------------------------------------------------- */
 
-double PairCoulWolf::single(int i, int j, int itype, int jtype, double rsq, 
-			    double factor_coul, double factor_lj,
-			    double &fforce)
+double PairCoulWolf::single(int i, int j, int itype, int jtype, double rsq,
+                            double factor_coul, double factor_lj,
+                            double &fforce)
 {
   double r6inv,r,prefactor,rexp;
   double forcecoul,forceborn,phicoul;
-  double e_shift,f_shift,dvdrr,erfcc,erfcd; 
+  double e_shift,f_shift,dvdrr,erfcc,erfcd;
 
   e_shift = erfc(alf*cut_coul) / cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
- 
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
+
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
     prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    erfcc = erfc(alf*r); 
+    erfcc = erfc(alf*r);
     erfcd = exp(-alf*alf*r*r);
     dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
     forcecoul = dvdrr*rsq*prefactor;
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
   fforce = forcecoul / rsq;
-  
+
   double eng = 0.0;
   if (rsq < cut_coulsq) {
     phicoul = prefactor * (erfcc-e_shift*r);

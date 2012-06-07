@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -58,7 +58,7 @@ void NeighborCuda::init()
 void NeighborCuda::choose_build(int index, NeighRequest *rq)
 {
   Neighbor::choose_build(index,rq);
-  
+
   if (rq->full && style == NSQ && rq->cudable)
     pair_build[index] = (Neighbor::PairPtr) &NeighborCuda::full_nsq_cuda;
   else if (rq->full && style == BIN && rq->cudable)
@@ -88,12 +88,12 @@ int NeighborCuda::check_distance()
       domain->box_corners();
       delta1 = delta2 = 0.0;
       for (int i = 0; i < 8; i++) {
-	delx = corners[i][0] - corners_hold[i][0];
-	dely = corners[i][1] - corners_hold[i][1];
-	delz = corners[i][2] - corners_hold[i][2];
-	delta = sqrt(delx*delx + dely*dely + delz*delz);
-	if (delta > delta1) delta1 = delta;
-	else if (delta > delta2) delta2 = delta;
+        delx = corners[i][0] - corners_hold[i][0];
+        dely = corners[i][1] - corners_hold[i][1];
+        delz = corners[i][2] - corners_hold[i][2];
+        delta = sqrt(delx*delx + dely*dely + delz*delz);
+        if (delta > delta1) delta1 = delta;
+        else if (delta > delta2) delta2 = delta;
       }
       delta = 0.5 * (skin - (delta1+delta2));
       deltasq = delta*delta;
@@ -117,7 +117,7 @@ int NeighborCuda::check_distance()
     }
   }
   else flag = cuda->shared_data.atom.reneigh_flag;
-  
+
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && ago == MAX(every,delay)) ndanger++;
@@ -140,43 +140,43 @@ void NeighborCuda::build()
       cuda->update_xhold(maxhold, &xhold[0][0]);
     else {
       if (cuda->finished_setup) cuda->cu_x_download();
-      
+
       double **x = atom->x;
       int nlocal = atom->nlocal;
       if (includegroup) nlocal = atom->nfirst;
       if (nlocal > maxhold) {
-	maxhold = atom->nmax;
-	memory->destroy(xhold);
-	memory->create(xhold,maxhold,3,"neigh:xhold");
+        maxhold = atom->nmax;
+        memory->destroy(xhold);
+        memory->create(xhold,maxhold,3,"neigh:xhold");
       }
       for (i = 0; i < nlocal; i++) {
-	xhold[i][0] = x[i][0];
-	xhold[i][1] = x[i][1];
-	xhold[i][2] = x[i][2];
+        xhold[i][0] = x[i][0];
+        xhold[i][1] = x[i][1];
+        xhold[i][2] = x[i][2];
       }
       if (boxcheck) {
-	if (triclinic == 0) {
-	  boxlo_hold[0] = bboxlo[0];
-	  boxlo_hold[1] = bboxlo[1];
-	  boxlo_hold[2] = bboxlo[2];
-	  boxhi_hold[0] = bboxhi[0];
-	  boxhi_hold[1] = bboxhi[1];
-	  boxhi_hold[2] = bboxhi[2];
-	} else {
-	  domain->box_corners();
-	  corners = domain->corners;
-	  for (i = 0; i < 8; i++) {
-	    corners_hold[i][0] = corners[i][0];
-	    corners_hold[i][1] = corners[i][1];
-	    corners_hold[i][2] = corners[i][2];
-	  }
-	}
+        if (triclinic == 0) {
+          boxlo_hold[0] = bboxlo[0];
+          boxlo_hold[1] = bboxlo[1];
+          boxlo_hold[2] = bboxlo[2];
+          boxhi_hold[0] = bboxhi[0];
+          boxhi_hold[1] = bboxhi[1];
+          boxhi_hold[2] = bboxhi[2];
+        } else {
+          domain->box_corners();
+          corners = domain->corners;
+          for (i = 0; i < 8; i++) {
+            corners_hold[i][0] = corners[i][0];
+            corners_hold[i][1] = corners[i][1];
+            corners_hold[i][2] = corners[i][2];
+          }
+        }
       }
     }
   }
-  
+
   if (not cudable && cuda->finished_setup && atom->avec->cudable)
-    cuda->downloadAll(); 
+    cuda->downloadAll();
   if (cudable && (not cuda->finished_setup)) {
     cuda->checkResize();
     cuda->uploadAll();
@@ -194,7 +194,7 @@ void NeighborCuda::build()
     maxatom = atom->nmax;
     for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxatom);
   }
-  
+
   // extend atom bin list if necessary
 
   if (style != NSQ && atom->nmax > maxbin) {

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -46,7 +46,7 @@ using namespace LAMMPS_NS;
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 /* ----------------------------------------------------------------------
-   default is periodic 
+   default is periodic
 ------------------------------------------------------------------------- */
 
 DomainCuda::DomainCuda(LAMMPS *lmp) : Domain(lmp)
@@ -229,11 +229,11 @@ void DomainCuda::pbc()
 {
   if(cuda->finished_setup&&(!cuda->oncpu))
   {
-  	cuda->setDomainParams();
+          cuda->setDomainParams();
     Cuda_Domain_PBC(&cuda->shared_data, deform_vremap, deform_groupbit,cuda->extent);
     return;
   }
-  
+
   Domain::pbc();
 }
 
@@ -266,6 +266,6 @@ void DomainCuda::x2lamda(int n)
     Cuda_Domain_x2lamda(&cuda->shared_data,n);
     return;
   }
- 
+
   Domain::x2lamda(n);
 }

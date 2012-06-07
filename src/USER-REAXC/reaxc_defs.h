@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -64,7 +64,7 @@
 #define CAL_to_JOULES   4.184000   // CALories --> JOULES
 #define JOULES_to_CAL   1/4.184000 // JOULES --> CALories
 #define AMU_to_GRAM     1.6605e-24
-#define ANG_to_CM       1e-8   
+#define ANG_to_CM       1e-8
 #define AVOGNR          6.0221367e23
 #define P_CONV          1e-24 * AVOGNR * JOULES_to_CAL
 
@@ -79,7 +79,7 @@
 #define MAX_ATOM_TYPES      25
 
 #define NUM_INTRS      10
-#define ALMOST_ZERO    1e-10 
+#define ALMOST_ZERO    1e-10
 #define NEG_INF       -1e10
 #define NO_BOND        1e-3  // 0.001
 #define HB_THRESHOLD   1e-2  // 0.01
@@ -122,30 +122,30 @@ enum restart_formats { WRITE_ASCII, WRITE_BINARY, RF_N };
 
 enum ensembles { NVE, bNVT, nhNVT, sNPT, iNPT, NPT, ens_N };
 
-enum lists { BONDS, OLD_BONDS, THREE_BODIES, 
-	     HBONDS, FAR_NBRS, DBOS, DDELTAS, LIST_N };
+enum lists { BONDS, OLD_BONDS, THREE_BODIES,
+             HBONDS, FAR_NBRS, DBOS, DDELTAS, LIST_N };
 
-enum interactions { TYP_VOID, TYP_BOND, TYP_THREE_BODY, 
-		    TYP_HBOND, TYP_FAR_NEIGHBOR, TYP_DBO, TYP_DDELTA, TYP_N };
+enum interactions { TYP_VOID, TYP_BOND, TYP_THREE_BODY,
+                    TYP_HBOND, TYP_FAR_NEIGHBOR, TYP_DBO, TYP_DDELTA, TYP_N };
 
 enum message_tags { INIT, UPDATE, BNDRY, UPDATE_BNDRY,
-		    EXC_VEC1, EXC_VEC2, DIST_RVEC2, COLL_RVEC2, 
-		    DIST_RVECS, COLL_RVECS, INIT_DESCS, ATOM_LINES, 
-		    BOND_LINES, ANGLE_LINES, RESTART_ATOMS, TAGS_N };
+                    EXC_VEC1, EXC_VEC2, DIST_RVEC2, COLL_RVEC2,
+                    DIST_RVECS, COLL_RVECS, INIT_DESCS, ATOM_LINES,
+                    BOND_LINES, ANGLE_LINES, RESTART_ATOMS, TAGS_N };
 
-enum errors { FILE_NOT_FOUND = -10, UNKNOWN_ATOM_TYPE = -11, 
-	      CANNOT_OPEN_FILE = -12, CANNOT_INITIALIZE = -13, 
-	      INSUFFICIENT_MEMORY = -14, UNKNOWN_OPTION = -15,
-	      INVALID_INPUT = -16, INVALID_GEO = -17 };
+enum errors { FILE_NOT_FOUND = -10, UNKNOWN_ATOM_TYPE = -11,
+              CANNOT_OPEN_FILE = -12, CANNOT_INITIALIZE = -13,
+              INSUFFICIENT_MEMORY = -14, UNKNOWN_OPTION = -15,
+              INVALID_INPUT = -16, INVALID_GEO = -17 };
 
 enum exchanges { NONE, NEAR_EXCH, FULL_EXCH };
 
-enum gcell_types { NO_NBRS=0, NEAR_ONLY=1, HBOND_ONLY=2, FAR_ONLY=4, 
-		   NEAR_HBOND=3, NEAR_FAR=5, HBOND_FAR=6, FULL_NBRS=7, 
-		   NATIVE=8 };
+enum gcell_types { NO_NBRS=0, NEAR_ONLY=1, HBOND_ONLY=2, FAR_ONLY=4,
+                   NEAR_HBOND=3, NEAR_FAR=5, HBOND_FAR=6, FULL_NBRS=7,
+                   NATIVE=8 };
 
-enum atoms { C_ATOM = 0, H_ATOM = 1, O_ATOM = 2, N_ATOM = 3, 
-	     S_ATOM = 4, SI_ATOM = 5, GE_ATOM = 6, X_ATOM = 7 };
+enum atoms { C_ATOM = 0, H_ATOM = 1, O_ATOM = 2, N_ATOM = 3,
+             S_ATOM = 4, SI_ATOM = 5, GE_ATOM = 6, X_ATOM = 7 };
 
 enum traj_methods { REG_TRAJ, MPI_TRAJ, TF_N };
 

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,7 +86,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix aveforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all(FLERR,"Region ID for fix aveforce does not exist");
+        error->all(FLERR,"Region ID for fix aveforce does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -95,7 +95,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
 
   }
 
-  foriginal_all[0] = foriginal_all[1] = 
+  foriginal_all[0] = foriginal_all[1] =
     foriginal_all[2] = foriginal_all[3] = 0.0;
 }
 
@@ -196,9 +196,9 @@ void FixAveForce::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (iregion >= 0 && 
+      if (iregion >= 0 &&
           !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	continue;
+        continue;
 
       foriginal[0] += f[i][0];
       foriginal[1] += f[i][1];
@@ -233,9 +233,9 @@ void FixAveForce::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (iregion >= 0 && 
+      if (iregion >= 0 &&
           !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	continue;
+        continue;
 
       if (xstyle) f[i][0] = fave[0];
       if (ystyle) f[i][1] = fave[1];
@@ -262,14 +262,14 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
 
-	foriginal[0] += f[i][0];
-	foriginal[1] += f[i][1];
-	foriginal[2] += f[i][2];
-	foriginal[3] += 1.0;
+        foriginal[0] += f[i][0];
+        foriginal[1] += f[i][1];
+        foriginal[2] += f[i][2];
+        foriginal[3] += 1.0;
       }
 
     MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
@@ -284,13 +284,13 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
 
-	if (xstyle) f[i][0] = fave[0];
-	if (ystyle) f[i][1] = fave[1];
-	if (zstyle) f[i][2] = fave[2];
+        if (xstyle) f[i][0] = fave[0];
+        if (ystyle) f[i][1] = fave[1];
+        if (zstyle) f[i][2] = fave[2];
       }
   }
 }

@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -112,11 +112,11 @@ int FixTempRescaleCuda::setmask()
 void FixTempRescaleCuda::init()
 {
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix temp/rescale/cuda does not exist");
   temperature = modify->compute[icompute];
-  if(not temperature->cudable) 
-	error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
+  if(not temperature->cudable)
+        error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 }
@@ -149,29 +149,29 @@ void FixTempRescaleCuda::end_of_step()
     if (which == NOBIAS) {
       energy += (t_current-t_target) * efactor;
 
-	Cuda_FixTempRescaleCuda_EndOfStep(&cuda->shared_data, groupbit,factor);
+        Cuda_FixTempRescaleCuda_EndOfStep(&cuda->shared_data, groupbit,factor);
 
     } else if (which == BIAS) {
       energy += (t_current-t_target) * efactor;
       if(not temperature->cudable)
       {
-      	cuda->cu_x->download();cuda->cu_v->download();
+              cuda->cu_x->download();cuda->cu_v->download();
       for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  temperature->remove_bias(i,v[i]);
-	  v[i][0] *= factor;
-	  v[i][1] *= factor;
-	  v[i][2] *= factor;
-	  temperature->restore_bias(i,v[i]);
-	}
+        if (mask[i] & groupbit) {
+          temperature->remove_bias(i,v[i]);
+          v[i][0] *= factor;
+          v[i][1] *= factor;
+          v[i][2] *= factor;
+          temperature->restore_bias(i,v[i]);
         }
-	  cuda->cu_v->upload();
+        }
+          cuda->cu_v->upload();
       }
       else
       {
-	    temperature->remove_bias_all();
-	    Cuda_FixTempRescaleCuda_EndOfStep(&cuda->shared_data, groupbit,factor);
-	    temperature->restore_bias_all();
+            temperature->remove_bias_all();
+            Cuda_FixTempRescaleCuda_EndOfStep(&cuda->shared_data, groupbit,factor);
+            temperature->restore_bias_all();
       }
     }
 
@@ -201,8 +201,8 @@ int FixTempRescaleCuda::modify_param(int narg, char **arg)
       error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
-    if(not temperature->cudable) 
-	  error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
+    if(not temperature->cudable)
+          error->warning(FLERR,"Fix temp/rescale/cuda uses non cudable temperature compute");
     return 2;
   }
   return 0;

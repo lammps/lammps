@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -24,10 +24,10 @@
 using namespace LAMMPS_NS;
 
 
-ThrData::ThrData(int tid) 
+ThrData::ThrData(int tid)
   : _f(NULL), _torque(NULL), _erforce(NULL), _de(NULL), _drho(NULL), _mu(NULL),
     _lambda(NULL), _rhoB(NULL), _D_values(NULL), _rho(NULL), _fp(NULL),
-    _rho1d(NULL), _tid(tid) 
+    _rho1d(NULL), _tid(tid)
 {
   // nothing else to do here.
 }
@@ -44,7 +44,7 @@ void ThrData::check_tid(int tid)
 /* ---------------------------------------------------------------------- */
 
 void ThrData::init_force(int nall, double **f, double **torque,
-			 double *erforce, double *de, double *drho)
+                         double *erforce, double *de, double *drho)
 {
   eng_vdwl=eng_coul=eng_bond=eng_angle=eng_dihed=eng_imprp=eng_kspce=0.0;
   memset(virial_pair,0,6*sizeof(double));
@@ -184,7 +184,7 @@ void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirs
 
 /* ---------------------------------------------------------------------- */
 
-double ThrData::memory_usage() 
+double ThrData::memory_usage()
 {
   double bytes = (7 + 6*6) * sizeof(double);
   bytes += 2 * sizeof(double*);
@@ -215,12 +215,12 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
     // this if protects against having more threads than atoms
-    if (ifrom < nvals) { 
+    if (ifrom < nvals) {
       for (int m = ifrom; m < ito; ++m) {
-	for (int n = 1; n < nthreads; ++n) {
-	  dall[m] += dall[n*nvals + m];
-	  dall[n*nvals + m] = 0.0;
-	}
+        for (int n = 1; n < nthreads; ++n) {
+          dall[m] += dall[n*nvals + m];
+          dall[n*nvals + m] = 0.0;
+        }
       }
     }
   }
@@ -229,4 +229,3 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
   return;
 #endif
 }
-

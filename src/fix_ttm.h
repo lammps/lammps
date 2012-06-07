@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -44,7 +44,7 @@ class FixTTM : public Fix {
   int size_restart(int);
   int maxsize_restart();
   double memory_usage();
-  void grow_arrays(int); 
+  void grow_arrays(int);
   double compute_vector(int);
 
  private:
@@ -58,7 +58,7 @@ class FixTTM : public Fix {
   int ***nsum;
   int ***nsum_all,***T_initial_set;
   double *gfactor1,*gfactor2,*ratio;
-  double **flangevin; 
+  double **flangevin;
   double ***T_electron,***T_electron_old;
   double ***sum_vsq,***sum_mass_vsq;
   double ***sum_vsq_all,***sum_mass_vsq_all;

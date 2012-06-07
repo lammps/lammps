@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "stdlib.h" 
+#include "stdlib.h"
 #include "math.h"
 #include "fix_msst.h"
 #include "atom.h"
@@ -68,7 +68,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   p0_set = 0;
   v0_set = 0;
   e0_set = 0;
-  tscale = 0.01; 
+  tscale = 0.01;
 
   if ( strcmp(arg[3],"x") == 0 )
     direction = 0;
@@ -80,7 +80,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix msst command");
   }
 
-  velocity = atof(arg[4]);   
+  velocity = atof(arg[4]);
   if ( velocity < 0 )
     error->all(FLERR,"Illegal fix msst command");
 
@@ -106,7 +106,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     } else if ( strcmp(arg[iarg],"tscale") == 0 ) {
       tscale = atof(arg[iarg+1]);
       if (tscale < 0.0 || tscale > 1.0)
-	error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
+        error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg++;
     } else error->all(FLERR,"Illegal fix msst command");
   }
@@ -118,21 +118,21 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       else if (direction == 1) fprintf(screen,"  Shock in y direction\n");
       else if (direction == 2) fprintf(screen,"  Shock in z direction\n");
       fprintf(screen,"  Cell mass-like parameter qmass "
-	      "(units of mass^2/length^4) = %12.5e\n", qmass);
+              "(units of mass^2/length^4) = %12.5e\n", qmass);
       fprintf(screen,"  Shock velocity = %12.5e\n", velocity);
       fprintf(screen,"  Artificial viscosity "
-	      "(units of mass/length/time) = %12.5e\n", mu);
-      
+              "(units of mass/length/time) = %12.5e\n", mu);
+
       if (p0_set)
-	fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
+        fprintf(screen,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(screen,"  Initial pressure calculated on first step\n");
-      
+
       if (v0_set)
-	fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
+        fprintf(screen,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(screen,"  Initial volume calculated on first step\n");
-      
-      if (e0_set) 
-	fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
+
+      if (e0_set)
+        fprintf(screen,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(screen,"  Initial energy calculated on first step\n");
     }
     if (logfile) {
@@ -141,21 +141,21 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       else if (direction == 1) fprintf(logfile,"  Shock in y direction\n");
       else if (direction == 2) fprintf(logfile,"  Shock in z direction\n");
       fprintf(logfile,"  Cell mass-like parameter qmass "
-	      "(units of mass^2/length^4) = %12.5e\n", qmass);
+              "(units of mass^2/length^4) = %12.5e\n", qmass);
       fprintf(logfile,"  Shock velocity = %12.5e\n", velocity);
       fprintf(logfile,"  Artificial viscosity "
-	      "(units of mass/length/time) = %12.5e\n", mu);
-      
-      if (p0_set) 
-	fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
+              "(units of mass/length/time) = %12.5e\n", mu);
+
+      if (p0_set)
+        fprintf(logfile,"  Initial pressure specified to be %12.5e\n", p0);
       else fprintf(logfile,"  Initial pressure calculated on first step\n");
-      
-      if (v0_set) 
-	fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
+
+      if (v0_set)
+        fprintf(logfile,"  Initial volume specified to be %12.5e\n", v0);
       else fprintf(logfile,"  Initial volume calculated on first step\n");
-      
-      if (e0_set) 
-	fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
+
+      if (e0_set)
+        fprintf(logfile,"  Initial energy specified to be %12.5e\n", e0);
       else fprintf(logfile,"  Initial energy calculated on first step\n");
     }
   }
@@ -217,7 +217,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize the time derivative of the volume.
   omega[0] = omega[1] = omega[2] = 0.0;
-  
+
   nrigid = 0;
   rfix = NULL;
 
@@ -313,19 +313,19 @@ void FixMSST::init()
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
+        strcmp(modify->fix[i]->style,"poems") == 0) nrigid++;
   if (nrigid) {
     rfix = new int[nrigid];
     nrigid = 0;
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"rigid") == 0 ||
-	  strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
+          strcmp(modify->fix[i]->style,"poems") == 0) rfix[nrigid++] = i;
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   compute T,P before integrator starts 
+   compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
 void FixMSST::setup(int vflag)
@@ -344,7 +344,7 @@ void FixMSST::setup(int vflag)
       if ( screen ) fprintf(screen,"Fix MSST v0 = %12.5e\n", v0);
       if ( logfile ) fprintf(logfile,"Fix MSST v0 = %12.5e\n", v0);
     }
-  } 
+  }
 
   if ( p0_set == 0 ) {
     p0 = p_current[direction];
@@ -370,10 +370,10 @@ void FixMSST::setup(int vflag)
   temperature->compute_vector();
   double *ke_tensor = temperature->vector;
   double ke_temp = ke_tensor[0]+ke_tensor[1]+ke_tensor[2];
-  if (ke_temp > 0.0 && tscale > 0.0 ) { 
+  if (ke_temp > 0.0 && tscale > 0.0 ) {
 
     // transfer energy from atom velocities to cell volume motion
-    // to bias initial compression 
+    // to bias initial compression
 
     double **v = atom->v;
     int *mask = atom->mask;
@@ -386,22 +386,22 @@ void FixMSST::setup(int vflag)
 
     if ( comm->me == 0 && tscale != 1.0) {
       if ( screen )
-	fprintf(screen,"Fix MSST initial strain rate of %12.5e established "
-		"by reducing temperature by factor of %12.5e\n",
-		fac2,tscale);
+        fprintf(screen,"Fix MSST initial strain rate of %12.5e established "
+                "by reducing temperature by factor of %12.5e\n",
+                fac2,tscale);
       if ( logfile )
-	fprintf(logfile,"Fix MSST initial strain rate of %12.5e established "
-		"by reducing temperature by factor of %12.5e\n",
-		fac2,tscale);
+        fprintf(logfile,"Fix MSST initial strain rate of %12.5e established "
+                "by reducing temperature by factor of %12.5e\n",
+                fac2,tscale);
     }
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++ ) {
           v[i][k]*=sqrt_initial_temperature_scaling;
-	}
+        }
       }
     }
-  } 
+  }
 
   // trigger virial computation on next timestep
 
@@ -409,7 +409,7 @@ void FixMSST::setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   1st half of Verlet update 
+   1st half of Verlet update
 ------------------------------------------------------------------------- */
 
 void FixMSST::initial_integrate(int vflag)
@@ -417,7 +417,7 @@ void FixMSST::initial_integrate(int vflag)
   int sd;
   double p_msst;                // MSST driving pressure.
   int i, k;
-  double vol;                   
+  double vol;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double **v = atom->v;
@@ -438,12 +438,12 @@ void FixMSST::initial_integrate(int vflag)
   couple();
   vol = compute_vol();
 
-  // propagate the time derivative of 
+  // propagate the time derivative of
   // the volume 1/2 step at fixed vol, r, rdot.
 
   p_msst = nktv2p * mvv2e * velocity * velocity * total_mass *
     ( v0 - vol)/( v0 * v0);
-  double A = total_mass * ( p_current[sd] - p0 - p_msst ) / 
+  double A = total_mass * ( p_current[sd] - p0 - p_msst ) /
     (qmass * nktv2p * mvv2e);
   double B = total_mass * mu / ( qmass * vol );
 
@@ -456,34 +456,34 @@ void FixMSST::initial_integrate(int vflag)
   // use taylor expansion to avoid singularity at B == 0.
 
   if ( B * dthalf > 1.0e-06 ) {
-    omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B ) 
+    omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B )
       * exp(-B * dthalf);
   } else {
     omega[sd] = omega[sd] + (A - B * omega[sd]) * dthalf +
       0.5 * (B * B * omega[sd] - A * B ) * dthalf * dthalf;
   }
-		  
-  // propagate velocity sum 1/2 step by 
+
+  // propagate velocity sum 1/2 step by
   // temporarily propagating the velocities.
 
   velocity_sum = compute_vsum();
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	double C = f[i][k] * force->ftm2v / mass[type[i]];
-	double D = mu * omega[sd] * omega[sd] / 
-	  (velocity_sum * mass[type[i]] * vol );
-	old_velocity[i][k] = v[i][k];
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        double C = f[i][k] * force->ftm2v / mass[type[i]];
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol );
+        old_velocity[i][k] = v[i][k];
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
@@ -494,7 +494,7 @@ void FixMSST::initial_integrate(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	v[i][k] = old_velocity[i][k];
+        v[i][k] = old_velocity[i][k];
       }
     }
   }
@@ -504,23 +504,23 @@ void FixMSST::initial_integrate(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( k = 0; k < 3; k++ ) {
-	double C = f[i][k] * force->ftm2v / mass[type[i]];
-	double D = mu * omega[sd] * omega[sd] / 
-	  (velocity_sum * mass[type[i]] * vol );
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        double C = f[i][k] * force->ftm2v / mass[type[i]];
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol );
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
-  
+
   // propagate the volume 1/2 step.
 
   double vol1 = vol + omega[sd] * dthalf;
@@ -539,7 +539,7 @@ void FixMSST::initial_integrate(int vflag)
       x[i][2] += dtv * v[i][2];
     }
   }
-  
+
   // propagate the volume 1/2 step.
 
   double vol2 = vol1 + omega[sd] * dthalf;
@@ -553,7 +553,7 @@ void FixMSST::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   2nd half of Verlet update 
+   2nd half of Verlet update
 ------------------------------------------------------------------------- */
 
 void FixMSST::final_integrate()
@@ -577,19 +577,19 @@ void FixMSST::final_integrate()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for ( int k = 0; k < 3; k++ ) {
-	double C = f[i][k] * force->ftm2v / mass[type[i]];
-	double D = mu * omega[sd] * omega[sd] / 
-	  (velocity_sum * mass[type[i]] * vol );
-	if ( k == direction ) {
-	  D = D - 2.0 * omega[sd] / vol;
-	}
-	if ( fabs(dthalf * D) > 1.0e-06 ) {
-	  double expd = exp(D * dthalf);
-	  v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
-	} else {
-	  v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
-	    0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
-	}
+        double C = f[i][k] * force->ftm2v / mass[type[i]];
+        double D = mu * omega[sd] * omega[sd] /
+          (velocity_sum * mass[type[i]] * vol );
+        if ( k == direction ) {
+          D = D - 2.0 * omega[sd] / vol;
+        }
+        if ( fabs(dthalf * D) > 1.0e-06 ) {
+          double expd = exp(D * dthalf);
+          v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
+        } else {
+          v[i][k] = v[i][k] + ( C + D * v[i][k] ) * dthalf +
+            0.5 * (D * D * v[i][k] + C * D ) * dthalf * dthalf;
+        }
       }
     }
   }
@@ -607,7 +607,7 @@ void FixMSST::final_integrate()
 
   p_msst = nktv2p * mvv2e * velocity * velocity * total_mass *
     ( v0 - vol )/( v0 * v0 );
-  double A = total_mass * ( p_current[sd] - p0 - p_msst ) / 
+  double A = total_mass * ( p_current[sd] - p0 - p_msst ) /
     ( qmass * nktv2p * mvv2e );
   double B = total_mass * mu  / ( qmass * vol );
 
@@ -620,12 +620,12 @@ void FixMSST::final_integrate()
   // use taylor expansion to avoid singularity at B == 0.
 
   if ( B * dthalf > 1.0e-06 ) {
-    omega[sd] = ( omega[sd] + A * 
-		  ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
+    omega[sd] = ( omega[sd] + A *
+                  ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
     omega[sd] = omega[sd] + (A - B * omega[sd]) * dthalf +
       0.5 * (B * B * omega[sd] - A * B ) * dthalf * dthalf;
-  }  
+  }
 
   // calculate Lagrangian position of computational cell
 
@@ -694,13 +694,13 @@ void FixMSST::remap(int flag)
       modify->fix[rfix[i]]->deform(1);
 
   for (i = 0; i < n; i++) {
-    v[i][direction] = v[i][direction] * 
+    v[i][direction] = v[i][direction] *
       dilation[direction];
   }
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixMSST::write_restart(FILE *fp)
@@ -719,7 +719,7 @@ void FixMSST::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixMSST::restart(char *buf)
@@ -800,7 +800,7 @@ double FixMSST::compute_scalar()
 
   i = direction;
   energy = qmass * omega[i] * omega[i] / (2.0 * total_mass) * mvv2e;
-  energy -= 0.5 * total_mass * velocity * velocity * 
+  energy -= 0.5 * total_mass * velocity * velocity *
     (1.0 - volume/ v0) *
     (1.0 - volume/ v0) * mvv2e;
   energy -= p0 * ( v0 - volume ) / nktv2p;
@@ -809,7 +809,7 @@ double FixMSST::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
-   return a single element from the following vector, 
+   return a single element from the following vector,
    [dhug,dray,lgr_vel,lgr_pos]
 ------------------------------------------------------------------------- */
 
@@ -828,7 +828,7 @@ double FixMSST::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   Computes the deviation of the current point 
+   Computes the deviation of the current point
    from the Hugoniot in Kelvin for the MSST.
 ------------------------------------------------------------------------- */
 
@@ -836,24 +836,24 @@ double FixMSST::compute_hugoniot()
 {
   double v, e, p;
   double dhugo;
-  
+
   e = compute_etotal();
-  
+
   temperature->compute_vector();
   pressure->compute_vector();
   p = pressure->vector[direction];
-  
+
   v = compute_vol();
-  
-  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) / 
+
+  dhugo = (0.5 * (p + p0 ) * ( v0 - v)) /
     force->nktv2p + e0 - e;
   dhugo /= temperature->dof * force->boltz;
-  
+
   return dhugo;
 }
 
 /* ----------------------------------------------------------------------
-   Computes the deviation of the current point from the Rayleigh 
+   Computes the deviation of the current point from the Rayleigh
    in pressure units for the MSST.
 ------------------------------------------------------------------------- */
 
@@ -876,7 +876,7 @@ double FixMSST::compute_rayleigh()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the speed of the MSST computational cell in the 
+   Computes the speed of the MSST computational cell in the
    unshocked material rest-frame
 ------------------------------------------------------------------------- */
 
@@ -887,7 +887,7 @@ double FixMSST::compute_lagrangian_speed()
 }
 
 /* ----------------------------------------------------------------------
-   Computes the distance behind the 
+   Computes the distance behind the
    shock front of the MSST computational cell.
 ------------------------------------------------------------------------- */
 
@@ -958,4 +958,3 @@ double FixMSST::compute_vsum()
   MPI_Allreduce(&t,&vsum,1,MPI_DOUBLE,MPI_SUM,world);
   return vsum;
 }
-

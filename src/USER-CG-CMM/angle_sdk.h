@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,9 +50,9 @@ class AngleSDK : public Angle {
 
   int repflag; // 1 if we have to handle 1-3 repulsion
 
-  void ev_tally13(int, int, int, int, double, double, 
-		  double, double, double);
-  
+  void ev_tally13(int, int, int, int, double, double,
+                  double, double, double);
+
   void allocate();
 };
 

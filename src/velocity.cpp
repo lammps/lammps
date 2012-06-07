@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -53,7 +53,7 @@ void Velocity::command(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal velocity command");
 
-  if (domain->box_exist == 0) 
+  if (domain->box_exist == 0)
     error->all(FLERR,"Velocity command before simulation box is defined");
   if (atom->natoms == 0)
     error->all(FLERR,"Velocity command with no atoms existing");
@@ -194,7 +194,7 @@ void Velocity::create(double t_desired, int seed)
   int m;
   double vx,vy,vz,factor;
   RanPark *random;
-  
+
   if (loop_flag == ALL) {
 
     // create an atom map if one doesn't exist already
@@ -213,9 +213,11 @@ void Velocity::create(double t_desired, int seed)
     if (atom->natoms > MAXSMALLINT)
       error->all(FLERR,"Too big a problem to use velocity create loop all");
     if (atom->tag_enable == 0)
-      error->all(FLERR,"Cannot use velocity create loop all unless atoms have IDs");
+      error->all(FLERR,
+                 "Cannot use velocity create loop all unless atoms have IDs");
     if (atom->tag_consecutive() == 0)
-      error->all(FLERR,"Atom IDs must be consecutive for velocity create loop all");
+      error->all(FLERR,
+                 "Atom IDs must be consecutive for velocity create loop all");
 
     // loop over all atoms in system
     // generate RNGs for all atoms, only assign to ones I own
@@ -226,24 +228,24 @@ void Velocity::create(double t_desired, int seed)
 
     for (i = 1; i <= natoms; i++) {
       if (dist_flag == 0) {
-	vx = random->uniform();
-	vy = random->uniform();
-	vz = random->uniform();
+        vx = random->uniform();
+        vy = random->uniform();
+        vz = random->uniform();
       } else {
-	vx = random->gaussian();
-	vy = random->gaussian();
-	vz = random->gaussian();
+        vx = random->gaussian();
+        vy = random->gaussian();
+        vz = random->gaussian();
       }
       m = atom->map(i);
       if (m >= 0 && m < nlocal) {
-	if (mask[m] & groupbit) {
-	  if (rmass) factor = 1.0/sqrt(rmass[m]);
-	  else factor = 1.0/sqrt(mass[type[m]]);
-	  v[m][0] = vx * factor;
-	  v[m][1] = vy * factor;
-	  if (dimension == 3) v[m][2] = vz * factor;
-	  else v[m][2] = 0.0;
-	}
+        if (mask[m] & groupbit) {
+          if (rmass) factor = 1.0/sqrt(rmass[m]);
+          else factor = 1.0/sqrt(mass[type[m]]);
+          v[m][0] = vx * factor;
+          v[m][1] = vy * factor;
+          if (dimension == 3) v[m][2] = vz * factor;
+          else v[m][2] = 0.0;
+        }
       }
     }
 
@@ -260,47 +262,47 @@ void Velocity::create(double t_desired, int seed)
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	if (dist_flag == 0) {
-	  vx = random->uniform();
-	  vy = random->uniform();
-	  vz = random->uniform();
-	} else {
-	  vx = random->gaussian();
-	  vy = random->gaussian();
-	  vz = random->gaussian();
-	}
-	if (rmass) factor = 1.0/sqrt(rmass[i]);
-	else factor = 1.0/sqrt(mass[type[i]]);
-	v[i][0] = vx * factor;
-	v[i][1] = vy * factor;
-	if (dimension == 3) v[i][2] = vz * factor;
-	else v[i][2] = 0.0;
+        if (dist_flag == 0) {
+          vx = random->uniform();
+          vy = random->uniform();
+          vz = random->uniform();
+        } else {
+          vx = random->gaussian();
+          vy = random->gaussian();
+          vz = random->gaussian();
+        }
+        if (rmass) factor = 1.0/sqrt(rmass[i]);
+        else factor = 1.0/sqrt(mass[type[i]]);
+        v[i][0] = vx * factor;
+        v[i][1] = vy * factor;
+        if (dimension == 3) v[i][2] = vz * factor;
+        else v[i][2] = 0.0;
       }
     }
 
   } else if (loop_flag == GEOM) {
     random = new RanPark(lmp,1);
     double **x = atom->x;
-    
+
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	random->reset(seed,x[i]);
-	if (dist_flag == 0) {
-	  vx = random->uniform();
-	  vy = random->uniform();
-	  vz = random->uniform();
-	} else {
-	  vx = random->gaussian();
-	  vy = random->gaussian();
-	  vz = random->gaussian();
-	}
+        random->reset(seed,x[i]);
+        if (dist_flag == 0) {
+          vx = random->uniform();
+          vy = random->uniform();
+          vz = random->uniform();
+        } else {
+          vx = random->gaussian();
+          vy = random->gaussian();
+          vz = random->gaussian();
+        }
 
-	if (rmass) factor = 1.0/sqrt(rmass[i]);
-	else factor = 1.0/sqrt(mass[type[i]]);
-	v[i][0] = vx * factor;
-	v[i][1] = vy * factor;
-	if (dimension == 3) v[i][2] = vz * factor;
-	else v[i][2] = 0.0;
+        if (rmass) factor = 1.0/sqrt(rmass[i]);
+        else factor = 1.0/sqrt(mass[type[i]]);
+        v[i][0] = vx * factor;
+        v[i][1] = vy * factor;
+        if (dimension == 3) v[i][2] = vz * factor;
+        else v[i][2] = 0.0;
       }
     }
   }
@@ -315,14 +317,14 @@ void Velocity::create(double t_desired, int seed)
   double t = temperature->compute_scalar();
   rescale(t,t_desired);
 
-  // if sum_flag set, add back in previous velocities 
+  // if sum_flag set, add back in previous velocities
 
   if (sum_flag) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	v[i][0] += vhold[i][0];
-	v[i][1] += vhold[i][1];
-	v[i][2] += vhold[i][2];
+        v[i][0] += vhold[i][0];
+        v[i][1] += vhold[i][1];
+        v[i][2] += vhold[i][2];
       }
     }
   }
@@ -397,21 +399,24 @@ void Velocity::set(int narg, char **arg)
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
+    if (xvar < 0)
+      error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
     else error->all(FLERR,"Variable for velocity set is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
+    if (yvar < 0)
+      error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
     else error->all(FLERR,"Variable for velocity set is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,"Variable name for velocity set does not exist");
+    if (zvar < 0)
+      error->all(FLERR,"Variable name for velocity set does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all(FLERR,"Variable for velocity set is invalid style");
@@ -446,15 +451,15 @@ void Velocity::set(int narg, char **arg)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	if (sum_flag == 0) {
-	  if (xstyle) v[i][0] = vx;
-	  if (ystyle) v[i][1] = vy;
-	  if (zstyle) v[i][2] = vz;
-	} else {
-	  if (xstyle) v[i][0] += vx;
-	  if (ystyle) v[i][1] += vy;
-	  if (zstyle) v[i][2] += vz;
-	}
+        if (sum_flag == 0) {
+          if (xstyle) v[i][0] = vx;
+          if (ystyle) v[i][1] = vy;
+          if (zstyle) v[i][2] = vz;
+        } else {
+          if (xstyle) v[i][0] += vx;
+          if (ystyle) v[i][1] += vy;
+          if (zstyle) v[i][2] += vz;
+        }
       }
     }
 
@@ -473,21 +478,21 @@ void Velocity::set(int narg, char **arg)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (sum_flag == 0) {
-	  if (xstyle == ATOM) v[i][0] = vfield[i][0];
-	  else if (xstyle) v[i][0] = vx;
-	  if (ystyle == ATOM) v[i][1] = vfield[i][1];
-	  else if (ystyle) v[i][1] = vy;
-	  if (zstyle == ATOM) v[i][2] = vfield[i][2];
-	  else if (zstyle) v[i][2] = vz;
-	} else {
-	  if (xstyle == ATOM) v[i][0] += vfield[i][0];
-	  else if (xstyle) v[i][0] += vx;
-	  if (ystyle == ATOM) v[i][1] += vfield[i][1];
-	  else if (ystyle) v[i][1] += vy;
-	  if (zstyle == ATOM) v[i][2] += vfield[i][2];
-	  else if (zstyle) v[i][2] += vz;
-	}
+        if (sum_flag == 0) {
+          if (xstyle == ATOM) v[i][0] = vfield[i][0];
+          else if (xstyle) v[i][0] = vx;
+          if (ystyle == ATOM) v[i][1] = vfield[i][1];
+          else if (ystyle) v[i][1] = vy;
+          if (zstyle == ATOM) v[i][2] = vfield[i][2];
+          else if (zstyle) v[i][2] = vz;
+        } else {
+          if (xstyle == ATOM) v[i][0] += vfield[i][0];
+          else if (xstyle) v[i][0] += vx;
+          if (ystyle == ATOM) v[i][1] += vfield[i][1];
+          else if (ystyle) v[i][1] += vy;
+          if (zstyle == ATOM) v[i][2] += vfield[i][2];
+          else if (zstyle) v[i][2] += vz;
+        }
       }
   }
 
@@ -500,7 +505,7 @@ void Velocity::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   rescale velocities of a group after computing its temperature 
+   rescale velocities of a group after computing its temperature
 ------------------------------------------------------------------------- */
 
 void Velocity::scale(int narg, char **arg)
@@ -538,7 +543,7 @@ void Velocity::scale(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   apply a ramped set of velocities 
+   apply a ramped set of velocities
 ------------------------------------------------------------------------- */
 
 void Velocity::ramp(int narg, char **arg)
@@ -563,7 +568,7 @@ void Velocity::ramp(int narg, char **arg)
   else if (strcmp(arg[0],"vz") == 0) v_dim = 2;
   else error->all(FLERR,"Illegal velocity command");
 
-  if (v_dim == 2 && domain->dimension == 2) 
+  if (v_dim == 2 && domain->dimension == 2)
     error->all(FLERR,"Velocity ramp in z for a 2d problem");
 
   double v_lo,v_hi;
@@ -598,7 +603,7 @@ void Velocity::ramp(int narg, char **arg)
 
   // vramp = ramped velocity component for v_dim
   // add or set based on sum_flag
-  
+
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
@@ -629,7 +634,7 @@ void Velocity::zero(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   rescale velocities of group atoms to t_new from t_old 
+   rescale velocities of group atoms to t_new from t_old
 ------------------------------------------------------------------------- */
 
 void Velocity::rescale(double t_old, double t_new)
@@ -712,13 +717,13 @@ void Velocity::zero_rotation()
   int *mask = atom->mask;
   int *image = atom->image;
   int nlocal = atom->nlocal;
-  
+
   int xbox,ybox,zbox;
   double dx,dy,dz;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  
+
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       xbox = (image[i] & 1023) - 512;
@@ -734,7 +739,7 @@ void Velocity::zero_rotation()
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of velocity input line 
+   parse optional parameters at end of velocity input line
 ------------------------------------------------------------------------- */
 
 void Velocity::options(int narg, char **arg)
@@ -771,12 +776,13 @@ void Velocity::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       int icompute;
       for (icompute = 0; icompute < modify->ncompute; icompute++)
-	if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
-      if (icompute == modify->ncompute) 
-	error->all(FLERR,"Could not find velocity temperature ID");
+        if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
+      if (icompute == modify->ncompute)
+        error->all(FLERR,"Could not find velocity temperature ID");
       temperature = modify->compute[icompute];
       if (temperature->tempflag == 0)
-	error->all(FLERR,"Velocity temperature ID does not compute temperature");
+        error->all(FLERR,
+                   "Velocity temperature ID does not compute temperature");
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");

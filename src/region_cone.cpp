@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -33,7 +33,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-9,&arg[9]);
 
-  if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z")) 
+  if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z"))
     error->all(FLERR,"Illegal region cylinder command");
   axis = arg[2][0];
 
@@ -55,7 +55,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[7],"INF") == 0) lo = -BIG;
@@ -79,7 +79,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (strcmp(arg[8],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
       if (strcmp(arg[8],"INF") == 0) hi = BIG;
@@ -218,7 +218,7 @@ int RegCone::surface_interior(double *x, double cutoff)
     currentradius = radiuslo + (x[0]-lo)*(radiushi-radiuslo)/(hi-lo);
 
     // x is exterior to cone
-    
+
     if (r > currentradius || x[0] < lo || x[0] > hi) return 0;
 
     // x is interior to cone or on its surface
@@ -238,11 +238,11 @@ int RegCone::surface_interior(double *x, double cutoff)
       delz = x[2] - xs[2];
       dist = sqrt(delx*delx + dely*dely + delz*delz);
       if (dist < cutoff) {
-	contact[n].r = dist;
-	contact[n].delx = delx;
-	contact[n].dely = dely;
-	contact[n].delz = delz;
-	n++;
+        contact[n].r = dist;
+        contact[n].delx = delx;
+        contact[n].dely = dely;
+        contact[n].delz = delz;
+        n++;
       }
     }
 
@@ -268,7 +268,7 @@ int RegCone::surface_interior(double *x, double cutoff)
     currentradius = radiuslo + (x[1]-lo)*(radiushi-radiuslo)/(hi-lo);
 
     // y is exterior to cone
-    
+
     if (r > currentradius || x[1] < lo || x[1] > hi) return 0;
 
     // y is interior to cone or on its surface
@@ -288,11 +288,11 @@ int RegCone::surface_interior(double *x, double cutoff)
       delz = x[2] - xs[2];
       dist = sqrt(delx*delx + dely*dely + delz*delz);
       if (dist < cutoff) {
-	contact[n].r = dist;
-	contact[n].delx = delx;
-	contact[n].dely = dely;
-	contact[n].delz = delz;
-	n++;
+        contact[n].r = dist;
+        contact[n].delx = delx;
+        contact[n].dely = dely;
+        contact[n].delz = delz;
+        n++;
       }
     }
 
@@ -318,7 +318,7 @@ int RegCone::surface_interior(double *x, double cutoff)
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
 
     // z is exterior to cone
-    
+
     if (r > currentradius || x[2] < lo || x[2] > hi) return 0;
 
     // z is interior to cone or on its surface
@@ -338,11 +338,11 @@ int RegCone::surface_interior(double *x, double cutoff)
       delz = x[2] - xs[2];
       dist = sqrt(delx*delx + dely*dely + delz*delz);
       if (dist < cutoff) {
-	contact[n].r = dist;
-	contact[n].delx = delx;
-	contact[n].dely = dely;
-	contact[n].delz = delz;
-	n++;
+        contact[n].r = dist;
+        contact[n].delx = delx;
+        contact[n].dely = dely;
+        contact[n].delz = delz;
+        n++;
       }
     }
 
@@ -385,8 +385,8 @@ int RegCone::surface_exterior(double *x, double cutoff)
     // x is far enough from cone that there is no contact
     // x is interior to cone
 
-    if (r >= maxradius+cutoff || 
-	x[0] <= lo-cutoff || x[0] >= hi+cutoff) return 0;
+    if (r >= maxradius+cutoff ||
+        x[0] <= lo-cutoff || x[0] >= hi+cutoff) return 0;
     if (r < currentradius && x[0] > lo && x[0] < hi) return 0;
 
     // x is exterior to cone or on its surface
@@ -430,8 +430,8 @@ int RegCone::surface_exterior(double *x, double cutoff)
     // y is far enough from cone that there is no contact
     // y is interior to cone
 
-    if (r >= maxradius+cutoff || 
-	x[1] <= lo-cutoff || x[1] >= hi+cutoff) return 0;
+    if (r >= maxradius+cutoff ||
+        x[1] <= lo-cutoff || x[1] >= hi+cutoff) return 0;
     if (r < currentradius && x[1] > lo && x[1] < hi) return 0;
 
     // y is exterior to cone or on its surface
@@ -475,8 +475,8 @@ int RegCone::surface_exterior(double *x, double cutoff)
     // z is far enough from cone that there is no contact
     // z is interior to cone
 
-    if (r >= maxradius+cutoff || 
-	x[2] <= lo-cutoff || x[2] >= hi+cutoff) return 0;
+    if (r >= maxradius+cutoff ||
+        x[2] <= lo-cutoff || x[2] >= hi+cutoff) return 0;
     if (r < currentradius && x[2] > lo && x[2] < hi) return 0;
 
     // z is exterior to cone or on its surface
@@ -522,8 +522,8 @@ int RegCone::surface_exterior(double *x, double cutoff)
    else closest point is between A and B
 ------------------------------------------------------------------------- */
 
-void RegCone::point_on_line_segment(double *a, double *b, 
-				    double *c, double *d)
+void RegCone::point_on_line_segment(double *a, double *b,
+                                    double *c, double *d)
 {
   double ba[3],ca[3];
 

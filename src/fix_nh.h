@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,7 +45,7 @@ class FixNH : public Fix {
   double dtv,dtf,dthalf,dt4,dt8,dto;
   double boltz,nktv2p,tdof;
   double vol0;                      // reference volume
-  double t0;                        // reference temperature 
+  double t0;                        // reference temperature
                                     // used for barostat mass
   double t_start,t_stop;
   double t_current,t_target,ke_target;
@@ -81,14 +81,14 @@ class FixNH : public Fix {
   double *eta_dotdot;
   double *eta_mass;
   int mtchain;                     // length of chain
-  int mtchain_default_flag;        // 1 = mtchain is default   
-                                   
+  int mtchain_default_flag;        // 1 = mtchain is default
+
   double *etap;                    // chain thermostat for barostat
   double *etap_dot;
   double *etap_dotdot;
   double *etap_mass;
   int mpchain;                     // length of chain
-                                   
+
   int mtk_flag;                    // 0 if using Hoover barostat
   int pdim;                        // number of barostatted dims
   double p_freq_max;               // maximum barostat frequency
@@ -109,9 +109,9 @@ class FixNH : public Fix {
   int omega_mass_flag;             // 1 if omega_mass updated, 0 if not.
   int etap_mass_flag;              // 1 if etap_mass updated, 0 if not.
 
-  int scaleyz;                     // 1 if yz scaled with lz 
-  int scalexz;                     // 1 if xz scaled with lz 
-  int scalexy;                     // 1 if xy scaled with ly 
+  int scaleyz;                     // 1 if yz scaled with lz
+  int scalexz;                     // 1 if xz scaled with lz
+  int scalexy;                     // 1 if xy scaled with ly
 
   double fixedpoint[3];            // Location of dilation fixed-point
 

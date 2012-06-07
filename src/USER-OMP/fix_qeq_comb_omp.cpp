@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,7 +35,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) 
+FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg)
   : FixQEQComb(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb/omp command");
@@ -88,7 +88,7 @@ void FixQEQCombOMP::post_force(int vflag)
 
   // more loops for first-time charge equilibrium
 
-  iloop = 0; 
+  iloop = 0;
   if (firstflag) loopmax = 5000;
   else loopmax = 2000;
 
@@ -96,7 +96,7 @@ void FixQEQCombOMP::post_force(int vflag)
 
   if (me == 0 && fp)
     fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
-	    update->ntimestep);
+            update->ntimestep);
 
   heatpq = 0.05;
   qmass  = 0.000548580;
@@ -104,7 +104,7 @@ void FixQEQCombOMP::post_force(int vflag)
   dtq2   = 0.5*dtq*dtq/qmass;
 
   double enegchk = 0.0;
-  double enegtot = 0.0; 
+  double enegtot = 0.0;
   double enegmax = 0.0;
 
   double *q = atom->q;
@@ -117,8 +117,8 @@ void FixQEQCombOMP::post_force(int vflag)
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	q1[i] += qf[i]*dtq2 - heatpq*q1[i];
-	q[i]  += q1[i]; 
+        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
+        q[i]  += q1[i];
       }
 
     enegtot = comb->yasu_char(qf,igroup);
@@ -127,10 +127,10 @@ void FixQEQCombOMP::post_force(int vflag)
 
     for (i = 0; i < nlocal ; i++)
       if (mask[i] & groupbit) {
-	q2[i] = enegtot-qf[i];
-	enegmax = MAX(enegmax,fabs(q2[i]));
-	enegchk += fabs(q2[i]);
-	qf[i] = q2[i];
+        q2[i] = enegtot-qf[i];
+        enegmax = MAX(enegmax,fabs(q2[i]));
+        enegchk += fabs(q2[i]);
+        qf[i] = q2[i];
       }
 
     MPI_Allreduce(&enegchk,&enegchkall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -142,20 +142,19 @@ void FixQEQCombOMP::post_force(int vflag)
 
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "
-	      "enegmax %.6g, fq deviation: %.6g\n",
-	      iloop,enegtot,enegmax,enegchk); 
+              "enegmax %.6g, fq deviation: %.6g\n",
+              iloop,enegtot,enegmax,enegchk);
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 
-  } 
+        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
+  }
 
   if (me == 0 && fp) {
     if (iloop == loopmax)
       fprintf(fp,"Charges did not converge in %d iterations\n",iloop);
     else
       fprintf(fp,"Charges converged in %d iterations to %.10f tolerance\n",
-	      iloop,enegchk);
+              iloop,enegchk);
   }
 }
-

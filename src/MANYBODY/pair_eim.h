@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -71,7 +71,7 @@ class PairEIM : public Pair {
   int nFij,nGij,nphiij;
   double **Fij,**Gij,**phiij;
   int **type2Fij,**type2Gij,**type2phiij;
-  
+
   // potentials in spline form used for force computation
 
   double dr,rdr;
@@ -81,7 +81,7 @@ class PairEIM : public Pair {
   void allocate();
   void array2spline();
   void interpolate(int, double, double *, double **, double);
-  int grabglobal(FILE *); 
+  int grabglobal(FILE *);
   int grabsingle(FILE *, int);
   int grabpair(FILE *, int, int);
 

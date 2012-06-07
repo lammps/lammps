@@ -5,16 +5,16 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// User-settable FFT precision 
+// User-settable FFT precision
 
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag) 
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag) 
+// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
+// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
 
 #ifdef FFT_SINGLE
 #define FFT_PRECISION 1
@@ -30,9 +30,9 @@ typedef double FFT_SCALAR;
 #define FFT_FFTW2
 #endif
 
-// ------------------------------------------------------------------------- 
+// -------------------------------------------------------------------------
 
-// Data types for single-precision complex 
+// Data types for single-precision complex
 
 #if FFT_PRECISION == 1
 
@@ -100,7 +100,7 @@ typedef complex single FFT_DATA;
 #define FFT_1D_INIT GGFFT
 extern "C" {
   void GGFFT(int *, int *, double *, FFT_DATA *, FFT_DATA *,
-	     double *, double *, int *);
+             double *, double *, int *);
 }
 
 #elif defined(FFT_FFTW2)
@@ -132,9 +132,9 @@ struct kiss_fft_state;
 typedef struct kiss_fft_state* kiss_fft_cfg;
 #endif
 
-// ------------------------------------------------------------------------- 
+// -------------------------------------------------------------------------
 
-// Data types for double-precision complex 
+// Data types for double-precision complex
 
 #elif FFT_PRECISION == 2
 
@@ -202,7 +202,7 @@ typedef complex double FFT_DATA;
 #define FFT_1D_INIT CCFFT
 extern "C" {
   void CCFFT(int *, int *, double *, FFT_DATA *, FFT_DATA *,
-	     double *, double *, int *);
+             double *, double *, int *);
 }
 
 #elif defined(FFT_FFTW2)
@@ -238,26 +238,26 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 #error "FFT_PRECISION needs to be either 1 (=single) or 2 (=double)"
 #endif
 
-// ------------------------------------------------------------------------- 
+// -------------------------------------------------------------------------
 
-// details of how to do a 3d FFT 
+// details of how to do a 3d FFT
 
 struct fft_plan_3d {
-  struct remap_plan_3d *pre_plan;       // remap from input -> 1st FFTs 
-  struct remap_plan_3d *mid1_plan;      // remap from 1st -> 2nd FFTs 
-  struct remap_plan_3d *mid2_plan;      // remap from 2nd -> 3rd FFTs 
-  struct remap_plan_3d *post_plan;      // remap from 3rd FFTs -> output 
-  FFT_DATA *copy;                   // memory for remap results (if needed) 
-  FFT_DATA *scratch;                // scratch space for remaps 
-  int total1,total2,total3;         // # of 1st,2nd,3rd FFTs (times length) 
-  int length1,length2,length3;      // length of 1st,2nd,3rd FFTs 
-  int pre_target;                   // where to put remap results 
+  struct remap_plan_3d *pre_plan;       // remap from input -> 1st FFTs
+  struct remap_plan_3d *mid1_plan;      // remap from 1st -> 2nd FFTs
+  struct remap_plan_3d *mid2_plan;      // remap from 2nd -> 3rd FFTs
+  struct remap_plan_3d *post_plan;      // remap from 3rd FFTs -> output
+  FFT_DATA *copy;                   // memory for remap results (if needed)
+  FFT_DATA *scratch;                // scratch space for remaps
+  int total1,total2,total3;         // # of 1st,2nd,3rd FFTs (times length)
+  int length1,length2,length3;      // length of 1st,2nd,3rd FFTs
+  int pre_target;                   // where to put remap results
   int mid1_target,mid2_target;
-  int scaled;                       // whether to scale FFT results 
-  int normnum;                      // # of values to rescale 
-  double norm;                      // normalization factor for rescaling 
+  int scaled;                       // whether to scale FFT results
+  int normnum;                      // # of values to rescale
+  double norm;                      // normalization factor for rescaling
 
-                                    // system specific 1d FFT info 
+                                    // system specific 1d FFT info
 #if defined(FFT_SGI)
   FFT_DATA *coeff1;
   FFT_DATA *coeff2;
@@ -312,7 +312,7 @@ struct fft_plan_3d {
 #endif
 };
 
-// function prototypes 
+// function prototypes
 
 void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
 struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,

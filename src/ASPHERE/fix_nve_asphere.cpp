@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,11 +34,11 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) : 
+FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
+  if (!avec)
     error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
 }
 
@@ -56,7 +56,7 @@ void FixNVEAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one(FLERR,"Fix nve/asphere requires extended particles");
+        error->one(FLERR,"Fix nve/asphere requires extended particles");
 
   FixNVE::init();
 }
@@ -96,7 +96,7 @@ void FixNVEAsphere::initial_integrate(int vflag)
       x[i][2] += dtv * v[i][2];
 
       // update angular momentum by 1/2 step
-      
+
       angmom[i][0] += dtf * torque[i][0];
       angmom[i][1] += dtf * torque[i][1];
       angmom[i][2] += dtf * torque[i][2];
@@ -140,7 +140,7 @@ void FixNVEAsphere::final_integrate()
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
-  
+
       angmom[i][0] += dtf * torque[i][0];
       angmom[i][1] += dtf * torque[i][1];
       angmom[i][2] += dtf * torque[i][2];

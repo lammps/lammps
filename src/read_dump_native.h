@@ -26,21 +26,20 @@ class ReadDumpNative : protected Pointers {
   ReadDumpNative(class LAMMPS *);
   ~ReadDumpNative();
 
-  void init(FILE *);
-  void scan(bigint, int, int *, char **, int, bigint &, double [3][3], int &);
-  void read(int, double **);
+  void file(FILE *);
+  int read_time(bigint &);
+  void skip();
+  bigint read_header(double [3][3], int &, int, int, int *, char **,
+                     int, int &, int &, int &, int &);
+  void read_atoms(int, int, double **);
 
 private:
   FILE *fp;                // pointer to file opened by caller
   char *line;              // line read from dump file
-  int dimension;
-  int triclinic;
 
   int nwords;              // # of per-atom columns in dump file
-  char **words;            // ptrs to words in parsed per-atom line
-
-  int nfield;              // # of fields to extract for each atom
-  int *fieldindex;         // index into words for each field
+  char **words;            // ptrs to values in parsed per-atom line
+  int *fieldindex;         //
 
   int find_label(const char *, int, char **);
   void read_lines(int);

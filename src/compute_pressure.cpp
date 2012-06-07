@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,11 +54,11 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_temp,arg[3]);
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Could not find compute pressure temperature ID");
   if (modify->compute[icompute]->tempflag == 0)
     error->all(FLERR,
-	       "Compute pressure temperature ID does not compute temperature");
+               "Compute pressure temperature ID does not compute temperature");
 
   // process optional args
 
@@ -83,9 +83,9 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
       else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
       else if (strcmp(arg[iarg],"virial") == 0) {
-	pairflag = 1;
-	bondflag = angleflag = dihedralflag = improperflag = 1;
-	kspaceflag = fixflag = 1;
+        pairflag = 1;
+        bondflag = angleflag = dihedralflag = improperflag = 1;
+        kspaceflag = fixflag = 1;
       } else error->all(FLERR,"Illegal compute pressure command");
       iarg++;
     }
@@ -117,7 +117,7 @@ void ComputePressure::init()
   // fixes could have changed or compute_modify could have changed it
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Could not find compute pressure temperature ID");
   temperature = modify->compute[icompute];
 
@@ -149,8 +149,8 @@ void ComputePressure::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-	if (modify->fix[i]->virial_flag)
-	  vptr[nvirial++] = modify->fix[i]->virial;
+        if (modify->fix[i]->virial_flag)
+          vptr[nvirial++] = modify->fix[i]->virial;
   }
 
   // flag Kspace contribution separately, since not summed across procs
@@ -182,16 +182,16 @@ double ComputePressure::compute_scalar()
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(3,3);
     if (keflag)
-      scalar = (temperature->dof * boltz * t + 
-		virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
+      scalar = (temperature->dof * boltz * t +
+                virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(2,2);
     if (keflag)
-      scalar = (temperature->dof * boltz * t + 
-		virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
+      scalar = (temperature->dof * boltz * t +
+                virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
   }
@@ -224,10 +224,10 @@ void ComputePressure::compute_vector()
     virial_compute(6,3);
     if (keflag) {
       for (int i = 0; i < 6; i++)
-	vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
+        vector[i] = (ke_tensor[i] + virial[i]) * inv_volume * nktv2p;
     } else
       for (int i = 0; i < 6; i++)
-	vector[i] = virial[i] * inv_volume * nktv2p;
+        vector[i] = virial[i] * inv_volume * nktv2p;
   } else {
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(4,2);

@@ -47,7 +47,7 @@ static void my_backup_file(const char *filename, const char *extension)
       char *sys_err_msg = strerror(errno);
       if ( !sys_err_msg ) sys_err_msg = (char *) "(unknown error)";
       fprintf(stderr,"Error renaming file %s to %s: %s\n",
-	      filename, backup, sys_err_msg);
+              filename, backup, sys_err_msg);
     }
     delete [] backup;
   }
@@ -56,12 +56,12 @@ static void my_backup_file(const char *filename, const char *extension)
 ////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
-				       const char *conf_file,
-				       const char *inp_name,
-				       const char *out_name,
-				       const int seed,
-				       const double temp,
-				       const int *typemap) 
+                                       const char *conf_file,
+                                       const char *inp_name,
+                                       const char *out_name,
+                                       const int seed,
+                                       const double temp,
+                                       const int *typemap)
   : _lmp(lmp), _typemap(typemap)
 {
   if (cvm::debug())
@@ -127,7 +127,7 @@ colvarproxy_lammps::~colvarproxy_lammps()
   }
 }
 
-// trigger colvars computation 
+// trigger colvars computation
 double colvarproxy_lammps::compute()
 {
   if (first_timestep) {
@@ -145,8 +145,8 @@ double colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log(cvm::line_marker+
-	     "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
-	     "Updating internal data.\n");
+             "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
+             "Updating internal data.\n");
   }
 
   // call the collective variable module
@@ -155,9 +155,9 @@ double colvarproxy_lammps::compute()
 #if 0
   for (int i=0; i < colvars_atoms.size(); ++i) {
     fprintf(stderr,"CV: atom %d/%d/%d pos: %g %g %g  for: %g %g %g\n",
-	    colvars_atoms[i], colvars_atoms_ncopies[i],
-	    positions[i].type, positions[i].x, positions[i].y, positions[i].z,
-	    applied_forces[i].x, applied_forces[i].y, applied_forces[i].z);
+            colvars_atoms[i], colvars_atoms_ncopies[i],
+            positions[i].type, positions[i].x, positions[i].y, positions[i].z,
+            applied_forces[i].x, applied_forces[i].y, applied_forces[i].z);
   }
 #endif
 
@@ -165,7 +165,7 @@ double colvarproxy_lammps::compute()
 }
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
-						   cvm::atom_pos const &pos2)
+                                                   cvm::atom_pos const &pos2)
 {
   double xtmp = pos2.x - pos1.x;
   double ytmp = pos2.y - pos1.y;
@@ -175,7 +175,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
 }
 
 cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
-					     cvm::atom_pos const &pos2)
+                                             cvm::atom_pos const &pos2)
 {
   double xtmp = pos2.x - pos1.x;
   double ytmp = pos2.y - pos1.y;
@@ -186,7 +186,7 @@ cvm::real colvarproxy_lammps::position_dist2(cvm::atom_pos const &pos1,
 
 
 inline void colvarproxy_lammps::select_closest_image(cvm::atom_pos &pos,
-						     cvm::atom_pos const &ref)
+                                                     cvm::atom_pos const &ref)
 {
   double xtmp = pos.x - ref.x;
   double ytmp = pos.y - ref.y;
@@ -214,10 +214,10 @@ void colvarproxy_lammps::fatal_error(std::string const &message)
   log(message);
   if (!cvm::debug())
     log("If this error message is unclear, try recompiling the "
-	 "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
+         "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
 
   _lmp->error->one(FLERR,
-		   "Fatal error in the collective variables module.\n");
+                   "Fatal error in the collective variables module.\n");
 }
 
 void colvarproxy_lammps::exit(std::string const &message)
@@ -256,7 +256,7 @@ e_pdb_field pdb_field_str2enum(std::string const &pdb_field_str)
       colvarparse::to_lower_cppstr("X")) {
     pdb_field = e_pdb_x;
   }
-  
+
   if (colvarparse::to_lower_cppstr(pdb_field_str) ==
       colvarparse::to_lower_cppstr("Y")) {
     pdb_field = e_pdb_y;
@@ -283,7 +283,7 @@ void colvarproxy_lammps::load_coords(char const *pdb_filename,
 {
 
   cvm::fatal_error("Reading collective variable coordinates "
-		    "from a PDB file is currently not supported.\n");
+                    "from a PDB file is currently not supported.\n");
 }
 
 void colvarproxy_lammps::load_atoms(char const *pdb_filename,
@@ -292,7 +292,7 @@ void colvarproxy_lammps::load_atoms(char const *pdb_filename,
                                    double const pdb_field_value)
 {
   cvm::fatal_error("Selecting collective variable atoms "
-		    "from a PDB file is currently not supported.\n");
+                    "from a PDB file is currently not supported.\n");
 }
 
 void colvarproxy_lammps::backup_file(char const *filename)
@@ -339,11 +339,11 @@ cvm::atom::atom(const int &id)
 
   if (cvm::debug())
     cvm::log("Adding atom "+cvm::to_str(id)+
-	     " for collective variables calculation.\n");
+             " for collective variables calculation.\n");
 
   if (id < 0)
     cvm::fatal_error("Error: invalid atom ID specified, "+
-		     cvm::to_str(id)+"\n");
+                     cvm::to_str(id)+"\n");
 
   int idx = ((colvarproxy_lammps *) cvm::proxy)->init_lammps_atom(id,this);
   if (idx < 0)
@@ -352,7 +352,7 @@ cvm::atom::atom(const int &id)
   this->index = idx;
   if (cvm::debug())
     cvm::log("The index of this atom in the colvarproxy_lammps arrays is "+
-	     cvm::to_str(this->index)+".\n");
+             cvm::to_str(this->index)+".\n");
 
   this->reset_data();
 }
@@ -362,11 +362,11 @@ cvm::atom::atom(const int &id)
 /// "MAIN" (the segment id assigned by NAMD's AMBER topology parser),
 /// and is therefore optional when an AMBER topology is used
 cvm::atom::atom(cvm::residue_id const &residue,
-		std::string const     &atom_name,
-		std::string const     &segment_id)
+                std::string const     &atom_name,
+                std::string const     &segment_id)
 {
   cvm::fatal_error("Creating collective variable atoms "
-		   "from a PDB file is currently not supported.\n");
+                   "from a PDB file is currently not supported.\n");
 }
 
 
@@ -383,7 +383,7 @@ cvm::atom::atom(cvm::atom const &a)
 }
 
 
-cvm::atom::~atom() 
+cvm::atom::~atom()
 {
   colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
   if (cp->colvars_atoms_ncopies[this->index] > 0)
@@ -422,4 +422,3 @@ void cvm::atom::apply_force(cvm::rvector const &new_force)
   cp->applied_forces[this->index].y = new_force.y;
   cp->applied_forces[this->index].z = new_force.z;
 }
-

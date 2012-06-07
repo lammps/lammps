@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -70,7 +70,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
       fraction = atof(arg[iarg+1]);
       seed = atoi(arg[iarg+2]);
       if (fraction < 0.0 || fraction > 1.0)
-	error->all(FLERR,"Illegal fix bond/break command");
+        error->all(FLERR,"Illegal fix bond/break command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");
       iarg += 3;
     } else error->all(FLERR,"Illegal fix bond/break command");
@@ -140,9 +140,9 @@ void FixBondBreak::init()
   // warn if angles, dihedrals, impropers are being used
 
   if (force->angle || force->dihedral || force->improper) {
-    if (me == 0) 
+    if (me == 0)
       error->warning(FLERR,"Broken bonds will not alter angles, "
-		     "dihedrals, or impropers");
+                     "dihedrals, or impropers");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -263,12 +263,12 @@ void FixBondBreak::post_integrate()
 
     for (m = 0; m < num_bond[i]; m++) {
       if (bond_atom[i][m] == partner[i]) {
-	for (k = m; k < num_bond[i]-1; k++) {
-	  bond_atom[i][k] = bond_atom[i][k+1];
-	  bond_type[i][k] = bond_type[i][k+1];
-	}
-	num_bond[i]--;
-	break;
+        for (k = m; k < num_bond[i]-1; k++) {
+          bond_atom[i][k] = bond_atom[i][k+1];
+          bond_type[i][k] = bond_type[i][k+1];
+        }
+        num_bond[i]--;
+        break;
       }
     }
 
@@ -284,7 +284,7 @@ void FixBondBreak::post_integrate()
     nspecial[i][0]--;
     nspecial[i][1]--;
     nspecial[i][2]--;
-    
+
     // count the broken bond once
 
     if (tag[i] < tag[j]) nbreak++;
@@ -311,7 +311,7 @@ void FixBondBreak::post_integrate_respa(int ilevel, int iloop)
 /* ---------------------------------------------------------------------- */
 
 int FixBondBreak::pack_comm(int n, int *list, double *buf,
-			     int pbc_flag, int *pbc)
+                             int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -378,7 +378,7 @@ double FixBondBreak::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixBondBreak::memory_usage()

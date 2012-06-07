@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,9 +86,9 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = F;
       argindex[nvalues++] = 2;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 || 
-	       strncmp(arg[iarg],"f_",2) == 0 || 
-	       strncmp(arg[iarg],"v_",2) == 0) {
+    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
+               strncmp(arg[iarg],"f_",2) == 0 ||
+               strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
@@ -99,10 +99,10 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Illegal fix ave/atom command");
-	argindex[nvalues] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Illegal fix ave/atom command");
+        argindex[nvalues] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[nvalues] = 0;
 
       n = strlen(suffix) + 1;
@@ -128,41 +128,41 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for fix ave/atom does not exist");
+        error->all(FLERR,"Compute ID for fix ave/atom does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all(FLERR,"Fix ave/atom compute does not calculate per-atom values");
-      if (argindex[i] == 0 && 
-	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all(FLERR,"Fix ave/atom compute does not "
-		   "calculate a per-atom vector");
+        error->all(FLERR,"Fix ave/atom compute does not calculate per-atom values");
+      if (argindex[i] == 0 &&
+          modify->compute[icompute]->size_peratom_cols != 0)
+        error->all(FLERR,"Fix ave/atom compute does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all(FLERR,"Fix ave/atom compute does not "
-		   "calculate a per-atom array");
-      if (argindex[i] && 
-	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,"Fix ave/atom compute array is accessed out-of-range");
+        error->all(FLERR,"Fix ave/atom compute does not "
+                   "calculate a per-atom array");
+      if (argindex[i] &&
+          argindex[i] > modify->compute[icompute]->size_peratom_cols)
+        error->all(FLERR,"Fix ave/atom compute array is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for fix ave/atom does not exist");
+        error->all(FLERR,"Fix ID for fix ave/atom does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all(FLERR,"Fix ave/atom fix does not calculate per-atom values");
+        error->all(FLERR,"Fix ave/atom fix does not calculate per-atom values");
       if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom vector");
+        error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom array");
+        error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all(FLERR,"Fix ave/atom fix array is accessed out-of-range");
+        error->all(FLERR,"Fix ave/atom fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all(FLERR,"Fix for fix ave/atom not computed at compatible time");
+        error->all(FLERR,"Fix for fix ave/atom not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for fix ave/atom does not exist");
+        error->all(FLERR,"Variable name for fix ave/atom does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Fix ave/atom variable is not atom-style variable");
+        error->all(FLERR,"Fix ave/atom variable is not atom-style variable");
     }
   }
 
@@ -186,7 +186,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nlocal; i++)
     for (int m = 0; m < nvalues; m++)
       array[i][m] = 0.0;
-  
+
   // nvalid = next step on which end_of_step does something
   // add nvalid to all computes that store invocation times
   // since don't know a priori which are invoked by this fix
@@ -202,7 +202,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 FixAveAtom::~FixAveAtom()
 {
   // unregister callback to this fix from Atom class
- 
+
   atom->delete_callback(id,0);
 
   delete [] which;
@@ -233,19 +233,19 @@ void FixAveAtom::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for fix ave/atom does not exist");
+        error->all(FLERR,"Compute ID for fix ave/atom does not exist");
       value2index[m] = icompute;
-      
+
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0) 
-	error->all(FLERR,"Fix ID for fix ave/atom does not exist");
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for fix ave/atom does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
-      if (ivariable < 0) 
-	error->all(FLERR,"Variable name for fix ave/atom does not exist");
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for fix ave/atom does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -287,8 +287,8 @@ void FixAveAtom::end_of_step()
   if (irepeat == 0)
     for (i = 0; i < nlocal; i++)
       for (m = 0; m < nvalues; m++)
-	array[i][m] = 0.0;
-  
+        array[i][m] = 0.0;
+
   // accumulate results of attributes,computes,fixes,variables to local copy
   // compute/fix/variable may invoke computes so wrap with clear/add
 
@@ -303,50 +303,50 @@ void FixAveAtom::end_of_step()
     if (which[m] == X) {
       double **x = atom->x;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) array[i][m] += x[i][j];
+        if (mask[i] & groupbit) array[i][m] += x[i][j];
 
     } else if (which[m] == V) {
       double **v = atom->v;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) array[i][m] += v[i][j];
+        if (mask[i] & groupbit) array[i][m] += v[i][j];
 
     } else if (which[m] == F) {
       double **f = atom->f;
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) array[i][m] += f[i][j];
+        if (mask[i] & groupbit) array[i][m] += f[i][j];
 
     // invoke compute if not previously invoked
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-	compute->compute_peratom();
-	compute->invoked_flag |= INVOKED_PERATOM;
+        compute->compute_peratom();
+        compute->invoked_flag |= INVOKED_PERATOM;
       }
 
       if (j == 0) {
-	double *compute_vector = compute->vector_atom;
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) array[i][m] += compute_vector[i];
+        double *compute_vector = compute->vector_atom;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) array[i][m] += compute_vector[i];
       } else {
-	int jm1 = j - 1;
-	double **compute_array = compute->array_atom;
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) array[i][m] += compute_array[i][jm1];
+        int jm1 = j - 1;
+        double **compute_array = compute->array_atom;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) array[i][m] += compute_array[i][jm1];
       }
 
     // access fix fields, guaranteed to be ready
 
     } else if (which[m] == FIX) {
       if (j == 0) {
-	double *fix_vector = modify->fix[n]->vector_atom;
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) array[i][m] += fix_vector[i];
+        double *fix_vector = modify->fix[n]->vector_atom;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) array[i][m] += fix_vector[i];
       } else {
-	int jm1 = j - 1;
-	double **fix_array = modify->fix[n]->array_atom;
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) array[i][m] += fix_array[i][jm1];
+        int jm1 = j - 1;
+        double **fix_array = modify->fix[n]->array_atom;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) array[i][m] += fix_array[i][jm1];
       }
 
     // evaluate atom-style variable

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -41,7 +41,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) : 
+ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
@@ -56,7 +56,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   strcpy(group2,arg[3]);
 
   jgroup = group->find(group2);
-  if (jgroup == -1) 
+  if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
@@ -68,21 +68,21 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute group/group command");
+        error->all(FLERR,"Illegal compute group/group command");
       if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
       else error->all(FLERR,"Illegal compute group/group command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute group/group command");
+        error->all(FLERR,"Illegal compute group/group command");
       if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
       else error->all(FLERR,"Illegal compute group/group command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"boundary") == 0) {
       if (iarg+2 > narg)
-	error->all(FLERR,"Illegal compute group/group command");
+        error->all(FLERR,"Illegal compute group/group command");
       if (strcmp(arg[iarg+1],"yes") == 0) boundaryflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) boundaryflag  = 0;
       else error->all(FLERR,"Illegal compute group/group command");
@@ -124,26 +124,26 @@ void ComputeGroupGroup::init()
     pair = force->pair;
     cutsq = force->pair->cutsq;
   } else pair = NULL;
-  
+
   if (kspaceflag) kspace = force->kspace;
   else kspace = NULL;
-  
+
   // compute Kspace correction terms
-  
+
   if (kspaceflag) {
     kspace_correction();
     if (fabs(e_correction) > SMALL && comm->me == 0) {
       char str[128];
       sprintf(str,"Both groups in compute group/group have a net charge; "
-	      "the Kspace boundary correction to energy will be non-zero");
+              "the Kspace boundary correction to energy will be non-zero");
       error->warning(FLERR,str);
     }
   }
-  
+
   // recheck that group 2 has not been deleted
 
   jgroup = group->find(group2);
-  if (jgroup == -1) 
+  if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");
   jgroupbit = group->bitmask[jgroup];
 
@@ -252,35 +252,35 @@ void ComputeGroupGroup::pair_contribution()
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+        eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
-	// energy only computed once so tally full amount
-	// force tally is jgroup acting on igroup
+        // energy only computed once so tally full amount
+        // force tally is jgroup acting on igroup
 
-	if (newton_pair || j < nlocal) {
-	  one[0] += eng;
-	  if (othergroupbit == jgroupbit) {
-	    one[1] += delx*fpair;
-	    one[2] += dely*fpair;
-	    one[3] += delz*fpair;
-	  }
-	  if (othergroupbit == groupbit) {
-	    one[1] -= delx*fpair;
-	    one[2] -= dely*fpair;
-	    one[3] -= delz*fpair;
-	  }
+        if (newton_pair || j < nlocal) {
+          one[0] += eng;
+          if (othergroupbit == jgroupbit) {
+            one[1] += delx*fpair;
+            one[2] += dely*fpair;
+            one[3] += delz*fpair;
+          }
+          if (othergroupbit == groupbit) {
+            one[1] -= delx*fpair;
+            one[2] -= dely*fpair;
+            one[3] -= delz*fpair;
+          }
 
-	// energy computed twice so tally half amount
-	// only tally force if I own igroup atom
+        // energy computed twice so tally half amount
+        // only tally force if I own igroup atom
 
-	} else {
-	  one[0] += 0.5*eng;
-	  if (othergroupbit == jgroupbit) {
-	    one[1] += delx*fpair;
-	    one[2] += dely*fpair;
-	    one[3] += delz*fpair;
-	  }
-	}
+        } else {
+          one[0] += 0.5*eng;
+          if (othergroupbit == jgroupbit) {
+            one[1] += delx*fpair;
+            one[2] += dely*fpair;
+            one[3] += delz*fpair;
+          }
+        }
       }
     }
   }
@@ -297,23 +297,23 @@ void ComputeGroupGroup::kspace_contribution()
 {
   double *vector_kspace = force->kspace->f2group;
 
-  force->kspace->compute_group_group(groupbit,jgroupbit,0); 
+  force->kspace->compute_group_group(groupbit,jgroupbit,0);
   scalar += force->kspace->e2group;
   vector[0] += vector_kspace[0];
   vector[1] += vector_kspace[1];
   vector[2] += vector_kspace[2];
-  
+
   // compute extra B <--> A Kspace interaction so energy matches
   //   real-space style of compute group-group
   // add extra Kspace term to energy
-  
-  force->kspace->compute_group_group(groupbit,jgroupbit,1); 
+
+  force->kspace->compute_group_group(groupbit,jgroupbit,1);
   scalar += force->kspace->e2group;
-  
+
   // self energy correction term
-    
+
   scalar -= e_self;
-  
+
   // k=0 boundary correction term
 
   if (boundaryflag) {
@@ -330,63 +330,63 @@ void ComputeGroupGroup::kspace_contribution()
 void ComputeGroupGroup::kspace_correction()
 {
 
-  // total charge of groups A & B, needed for correction term        
-    
+  // total charge of groups A & B, needed for correction term
+
   double qsqsum_group,qsum_A,qsum_B;
   qsqsum_group = qsum_A = qsum_B = 0.0;
-  
+
   double *q = atom->q;
   int *mask = atom->mask;
   int groupbit_A = groupbit;
   int groupbit_B = jgroupbit;
-    
+
   for (int i = 0; i < atom->nlocal; i++) {
     if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
       qsqsum_group += q[i]*q[i];
     if (mask[i] & groupbit_A) qsum_A += q[i];
     if (mask[i] & groupbit_B) qsum_B += q[i];
   }
-    
+
   double tmp;
   MPI_Allreduce(&qsqsum_group,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsqsum_group = tmp;
-  
+
   MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsum_A = tmp;
-  
+
   MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsum_B = tmp;
-  
+
   double g_ewald = force->kspace->g_ewald;
-  
+
   double scale = 1.0;
   const double qscale = force->qqrd2e * scale;
-  
+
   // self-energy correction
-    
+
   e_self = qscale * g_ewald*qsqsum_group/MY_PIS;
   e_correction = qsum_A*qsum_B;
-  
+
   // Extra BA terms
-  
+
   qsum_A = qsum_B = 0.0;
-  
+
   for (int i = 0; i < atom->nlocal; i++) {
     if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
-  	  continue;
-	
-	if (mask[i] & groupbit_A) qsum_A += q[i];
+            continue;
+
+        if (mask[i] & groupbit_A) qsum_A += q[i];
     if (mask[i] & groupbit_B) qsum_B += q[i];
   }
-  
+
   MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsum_A = tmp;
-  
+
   MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsum_B = tmp;
-    
+
   // k=0 energy correction term (still need to divide by volume above)
-  
+
   e_correction += qsum_A*qsum_B;
-  e_correction *= qscale * MY_PI2 / (g_ewald*g_ewald); 
+  e_correction *= qscale * MY_PI2 / (g_ewald*g_ewald);
 }

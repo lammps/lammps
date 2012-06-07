@@ -90,7 +90,8 @@ using the rerun command.
 
 If more than one dump file is specified, the dump files are read one
 after the other.  It is assumed that snapshot timesteps will be in
-ascending order.
+ascending order.  If a snapshot is encountered that is not in
+ascending order, it will cause the rerun command to complete.
 
 The {first}, {last}, {every}, {skip} keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until

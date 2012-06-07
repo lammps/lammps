@@ -146,10 +146,10 @@ protected:
 
   /// \brief Number of stages over which to perform the change
   /// If zero, perform a continuous change
-  size_t target_nstages;
+  int target_nstages;
 
   /// \brief Number of current stage of the perturbation
-  size_t stage;
+  int stage;
   
   /// \brief Intermediate quantity to compute the restraint free energy
   /// (in TI, would be the accumulating FE derivative)

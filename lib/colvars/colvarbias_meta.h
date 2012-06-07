@@ -147,6 +147,12 @@ protected:
   /// time steps, appending the step number to each file
   bool       dump_fes_save;
 
+  /// \brief Whether to use well-tempered metadynamics 
+  bool       well_tempered; 
+
+  /// \brief Biasing temperature in well-tempered metadynamics 
+  cvm::real  bias_temperature;
+
   /// \brief Try to read the restart information by allocating new
   /// grids before replacing the current ones (used e.g. in
   /// multiple_replicas)
@@ -160,7 +166,8 @@ protected:
 
   /// \brief Project the selected hills onto grids
   void project_hills (hill_iter h_first, hill_iter h_last,
-                      colvar_grid_scalar *ge, colvar_grid_gradient *gf);
+                      colvar_grid_scalar *ge, colvar_grid_gradient *gf,
+                      bool print_progress = false);
 
 
   // Multiple Replicas variables and functions

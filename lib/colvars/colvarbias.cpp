@@ -26,6 +26,14 @@ colvarbias::colvarbias (std::string const &conf, char const *key)
 
   get_keyval (conf, "name", name, key_str+cvm::to_str (rank));
 
+  for (std::vector<colvarbias *>::iterator bi = cvm::biases.begin();
+       bi != cvm::biases.end();
+       bi++) {
+    if ((*bi)->name == this->name)
+      cvm::fatal_error ("Error: this bias cannot have the same name, \""+this->name+
+                        "\", of another bias.\n");
+  }
+
   // lookup the associated colvars
   std::vector<std::string> colvars_str;
   if (get_keyval (conf, "colvars", colvars_str)) {

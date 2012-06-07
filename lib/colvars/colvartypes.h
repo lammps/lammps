@@ -103,7 +103,8 @@ public:
 
   inline cvm::rvector unit() const
   {
-    return cvm::rvector (x, y, z)/this->norm();
+    const cvm::real n = this->norm();
+    return (n > 0. ? cvm::rvector (x, y, z)/n : cvm::rvector (1., 0., 0.));
   }
 
   static inline size_t output_width (size_t const &real_width)

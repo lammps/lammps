@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -61,7 +61,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int dimension = domain->dimension;
   if (dimension == 2) {
     if (style == SC || style == BCC || style == FCC || style == HCP ||
-	style == DIAMOND)
+        style == DIAMOND)
       error->all(FLERR,"Lattice style incompatible with simulation dimension");
   }
   if (dimension == 3) {
@@ -143,9 +143,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       origin[1] = atof(arg[iarg+2]);
       origin[2] = atof(arg[iarg+3]);
       if (origin[0] < 0.0 || origin[0] >= 1.0 ||
-	  origin[1] < 0.0 || origin[1] >= 1.0 ||
-	  origin[2] < 0.0 || origin[2] >= 1.0)
-	error->all(FLERR,"Illegal lattice command");
+          origin[1] < 0.0 || origin[1] >= 1.0 ||
+          origin[2] < 0.0 || origin[2] >= 1.0)
+        error->all(FLERR,"Illegal lattice command");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"orient") == 0) {
@@ -174,27 +174,27 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"a1") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
-      if (style != CUSTOM) 
-	error->all(FLERR,
-		   "Invalid option in lattice command for non-custom style");
+      if (style != CUSTOM)
+        error->all(FLERR,
+                   "Invalid option in lattice command for non-custom style");
       a1[0] = atof(arg[iarg+1]);
       a1[1] = atof(arg[iarg+2]);
       a1[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a2") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
-      if (style != CUSTOM) 
-	error->all(FLERR,
-		   "Invalid option in lattice command for non-custom style");
+      if (style != CUSTOM)
+        error->all(FLERR,
+                   "Invalid option in lattice command for non-custom style");
       a2[0] = atof(arg[iarg+1]);
       a2[1] = atof(arg[iarg+2]);
       a2[2] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a3") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
-      if (style != CUSTOM) 
-	error->all(FLERR,
-		   "Invalid option in lattice command for non-custom style");
+      if (style != CUSTOM)
+        error->all(FLERR,
+                   "Invalid option in lattice command for non-custom style");
       a3[0] = atof(arg[iarg+1]);
       a3[1] = atof(arg[iarg+2]);
       a3[2] = atof(arg[iarg+3]);
@@ -202,14 +202,14 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
-      if (style != CUSTOM) 
-	error->all(FLERR,
-		   "Invalid option in lattice command for non-custom style");
+      if (style != CUSTOM)
+        error->all(FLERR,
+                   "Invalid option in lattice command for non-custom style");
       double x = atof(arg[iarg+1]);
       double y = atof(arg[iarg+2]);
       double z = atof(arg[iarg+3]);
       if (x < 0.0 || x >= 1.0 || y < 0.0 || y >= 1.0 || z < 0.0 || z >= 1.0)
-	error->all(FLERR,"Illegal lattice command");
+        error->all(FLERR,"Illegal lattice command");
       add_basis(x,y,z);
       iarg += 4;
     } else error->all(FLERR,"Illegal lattice command");
@@ -228,14 +228,14 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (dimension == 2) {
     if (origin[2] != 0.0)
       error->all(FLERR,
-		 "Lattice settings are not compatible with 2d simulation");
-    if (orientx[2] != 0 || orienty[2] != 0 || 
-	orientz[0] != 0 || orientz[1] != 0)
+                 "Lattice settings are not compatible with 2d simulation");
+    if (orientx[2] != 0 || orienty[2] != 0 ||
+        orientz[0] != 0 || orientz[1] != 0)
       error->all(FLERR,
-		 "Lattice settings are not compatible with 2d simulation");
+                 "Lattice settings are not compatible with 2d simulation");
     if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
       error->all(FLERR,
-		 "Lattice settings are not compatible with 2d simulation");
+                 "Lattice settings are not compatible with 2d simulation");
   }
 
   if (spaceflag) {
@@ -293,10 +293,10 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (comm->me == 0) {
     if (screen)
       fprintf(screen,"Lattice spacing in x,y,z = %g %g %g\n",
-	      xlattice,ylattice,zlattice);
+              xlattice,ylattice,zlattice);
     if (logfile)
       fprintf(logfile,"Lattice spacing in x,y,z = %g %g %g\n",
-	      xlattice,ylattice,zlattice);
+              xlattice,ylattice,zlattice);
   }
 }
 
@@ -308,23 +308,23 @@ Lattice::~Lattice()
 }
 
 /* ----------------------------------------------------------------------
-   check if 3 orientation vectors are mutually orthogonal 
+   check if 3 orientation vectors are mutually orthogonal
 ------------------------------------------------------------------------- */
 
 int Lattice::orthogonal()
 {
-  if (orientx[0]*orienty[0] + orientx[1]*orienty[1] + 
+  if (orientx[0]*orienty[0] + orientx[1]*orienty[1] +
       orientx[2]*orienty[2]) return 0;
-  if (orienty[0]*orientz[0] + orienty[1]*orientz[1] + 
+  if (orienty[0]*orientz[0] + orienty[1]*orientz[1] +
       orienty[2]*orientz[2]) return 0;
-  if (orientx[0]*orientz[0] + orientx[1]*orientz[1] + 
+  if (orientx[0]*orientz[0] + orientx[1]*orientz[1] +
       orientx[2]*orientz[2]) return 0;
   return 1;
 }
 
 /* ----------------------------------------------------------------------
    check righthandedness of orientation vectors
-   x cross y must be in same direction as z 
+   x cross y must be in same direction as z
 ------------------------------------------------------------------------- */
 
 int Lattice::right_handed()
@@ -381,29 +381,29 @@ void Lattice::setup_transform()
     primitive[0][1]*primitive[1][0]*primitive[2][2] -
     primitive[0][2]*primitive[1][1]*primitive[2][0];
 
-  if (determinant == 0.0) 
+  if (determinant == 0.0)
     error->all(FLERR,"Degenerate lattice primitive vectors");
 
-  priminv[0][0] = (primitive[1][1]*primitive[2][2] - 
-		   primitive[1][2]*primitive[2][1]) / determinant;
-  priminv[1][0] = (primitive[1][2]*primitive[2][0] - 
-		   primitive[1][0]*primitive[2][2]) / determinant;
-  priminv[2][0] = (primitive[1][0]*primitive[2][1] - 
-		   primitive[1][1]*primitive[2][0]) / determinant;
+  priminv[0][0] = (primitive[1][1]*primitive[2][2] -
+                   primitive[1][2]*primitive[2][1]) / determinant;
+  priminv[1][0] = (primitive[1][2]*primitive[2][0] -
+                   primitive[1][0]*primitive[2][2]) / determinant;
+  priminv[2][0] = (primitive[1][0]*primitive[2][1] -
+                   primitive[1][1]*primitive[2][0]) / determinant;
 
-  priminv[0][1] = (primitive[0][2]*primitive[2][1] - 
-		   primitive[0][1]*primitive[2][2]) / determinant;
-  priminv[1][1] = (primitive[0][0]*primitive[2][2] - 
-		   primitive[0][2]*primitive[2][0]) / determinant;
-  priminv[2][1] = (primitive[0][1]*primitive[2][0] - 
-		   primitive[0][0]*primitive[2][1]) / determinant;
+  priminv[0][1] = (primitive[0][2]*primitive[2][1] -
+                   primitive[0][1]*primitive[2][2]) / determinant;
+  priminv[1][1] = (primitive[0][0]*primitive[2][2] -
+                   primitive[0][2]*primitive[2][0]) / determinant;
+  priminv[2][1] = (primitive[0][1]*primitive[2][0] -
+                   primitive[0][0]*primitive[2][1]) / determinant;
 
-  priminv[0][2] = (primitive[0][1]*primitive[1][2] - 
-		   primitive[0][2]*primitive[1][1]) / determinant;
-  priminv[1][2] = (primitive[0][2]*primitive[1][0] - 
-		   primitive[0][0]*primitive[1][2]) / determinant;
-  priminv[2][2] = (primitive[0][0]*primitive[1][1] - 
-		   primitive[0][1]*primitive[1][0]) / determinant;
+  priminv[0][2] = (primitive[0][1]*primitive[1][2] -
+                   primitive[0][2]*primitive[1][1]) / determinant;
+  priminv[1][2] = (primitive[0][2]*primitive[1][0] -
+                   primitive[0][0]*primitive[1][2]) / determinant;
+  priminv[2][2] = (primitive[0][0]*primitive[1][1] -
+                   primitive[0][1]*primitive[1][0]) / determinant;
 
   // rotaterow = 3x3 matrix with normalized orient vectors as rows
 
@@ -420,11 +420,11 @@ void Lattice::setup_transform()
     orienty[2]*orienty[2];
   length = sqrt((double) lensq);
   if (length == 0.0) error->all(FLERR,"Zero-length lattice orient vector");
-  
+
   rotaterow[1][0] = orienty[0] / length;
   rotaterow[1][1] = orienty[1] / length;
   rotaterow[1][2] = orienty[2] / length;
-  
+
   lensq = orientz[0]*orientz[0] + orientz[1]*orientz[1] +
     orientz[2]*orientz[2];
   length = sqrt((double) lensq);
@@ -549,12 +549,12 @@ void Lattice::cross(double *x, double *y, double *z)
 
 /* ----------------------------------------------------------------------
    convert x,y,z from lattice coords to box coords (flag = 0) or vice versa
-   use new point to expand bounding box (min to max) 
+   use new point to expand bounding box (min to max)
 ------------------------------------------------------------------------- */
 
 void Lattice::bbox(int flag, double x, double y, double z,
-		   double &xmin, double &ymin, double &zmin,
-		   double &xmax, double &ymax, double &zmax)
+                   double &xmin, double &ymin, double &zmin,
+                   double &xmax, double &ymax, double &zmax)
 {
   if (flag == 0) lattice2box(x,y,z);
   else box2lattice(x,y,z);

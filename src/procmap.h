@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -23,8 +23,8 @@ class ProcMap : protected Pointers {
   ProcMap(class LAMMPS *);
   ~ProcMap() {}
   void onelevel_grid(int, int *, int *, int, int, int *, int *);
-  void twolevel_grid(int, int *, int *, int, int *, int *, int, int, 
-		     int *, int *);
+  void twolevel_grid(int, int *, int *, int, int *, int *, int, int,
+                     int *, int *);
   void numa_grid(int, int *, int *, int *);
   void custom_grid(char *, int, int *, int *);
   void cart_map(int, int *, int *, int [3][2], int ***);

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -19,12 +19,12 @@
 // corresponding macro at compile time using -D e.g. -D_IBM
 
 // CONS(a,b) should return ab, the concatenation of its arguments.
-// If compiler is using strict ISO C standards, the ## works. 
+// If compiler is using strict ISO C standards, the ## works.
 // Otherwise try the old /**/ trick and test.
-// If that fails, you will need to figure out 
+// If that fails, you will need to figure out
 // a definition for the FORTRAN macro that works on your machine.
 
-#if  __STDC__ 
+#if  __STDC__
 #define CONS(a,b) a##b
 #elif defined(_IBM)
 #define CONS(a,b) a##b
@@ -56,11 +56,11 @@ static int my_applesoroanges = CONS(my_apples,_my_oranges);
 
 class ReaxParams {
  public:
-  enum {nneighmax=NNEIGHMAXDEF, 
-	nat=NATDEF, 
-	nattot=NATTOTDEF, 
+  enum {nneighmax=NNEIGHMAXDEF,
+        nat=NATDEF,
+        nattot=NATTOTDEF,
         nsort=NSORTDEF,
-	mbond=MBONDDEF, 
+        mbond=MBONDDEF,
         nbomax=NBOMAXDEF,
   };
 };
@@ -96,7 +96,7 @@ extern "C" struct {
 
 extern "C" struct {
   double atomvirial[6*ReaxParams::nat];
-  double virial[6]; 
+  double virial[6];
   int Lvirial;
   int Latomvirial;
 } FORTRAN(cbkvirial,CBKVIRIAL);
@@ -160,15 +160,15 @@ extern "C" struct {
 } FORTRAN(cbkenergies,CBKENERGIES);
 
 extern "C" struct {
-  double tset; 
-  double dseed; 
-  double tempmd; 
-  double ts2; 
-  double ts22; 
-  int nmolo; 
-  int nmolo5; 
-  int nbon; 
-  int na; 
+  double tset;
+  double dseed;
+  double tempmd;
+  double ts2;
+  double ts22;
+  int nmolo;
+  int nmolo5;
+  int nbon;
+  int na;
   int namov;
   int na_local;
 } FORTRAN(rsmall,RSMALL);
@@ -208,4 +208,3 @@ extern "C" void FORTRAN(mdsav,MDSAV)(int*);
 extern "C" void FORTRAN(getnsbmax,GETNSBMAX)(int*);
 extern "C" void FORTRAN(getnsbma2,GETNSBMA2)(int*);
 extern "C" void FORTRAN(getcutof3,GETCUTOF3)(double*);
-

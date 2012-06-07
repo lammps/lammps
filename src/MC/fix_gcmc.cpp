@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -53,7 +53,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   time_depend = 1;
 
   // required args
-  
+
   nevery = atoi(arg[3]);
   nexchanges = atoi(arg[4]);
   nmcmoves = atoi(arg[5]);
@@ -63,22 +63,22 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   chemical_potential = atof(arg[9]);
   displace = atof(arg[10]);
 
-  if (ntype <= 0 || ntype > atom->ntypes) 
+  if (ntype <= 0 || ntype > atom->ntypes)
     error->all(FLERR,"Invalid atom type in fix GCMC command");
   if (nexchanges < 0) error->all(FLERR,"Illegal fix GCMC command");
   if (nmcmoves < 0) error->all(FLERR,"Illegal fix GCMC command");
   if (seed <= 0) error->all(FLERR,"Illegal fix GCMC command");
-  if (reservoir_temperature < 0.0) 
-    error->all(FLERR,"Illegal fix GCMC command");  
-  if (displace < 0.0) error->all(FLERR,"Illegal fix GCMC command"); 
+  if (reservoir_temperature < 0.0)
+    error->all(FLERR,"Illegal fix GCMC command");
+  if (displace < 0.0) error->all(FLERR,"Illegal fix GCMC command");
 
   // compute beta, lambda, sigma, and the zz factor
-  
+
   beta = 1.0/(force->boltz*reservoir_temperature);
   double gas_mass = atom->mass[ntype];
   double lambda = sqrt(force->hplanck*force->hplanck/
-		       (2.0*MY_PI*gas_mass*force->mvv2e*
-			force->boltz*reservoir_temperature));
+                       (2.0*MY_PI*gas_mass*force->mvv2e*
+                        force->boltz*reservoir_temperature));
   sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
 
@@ -97,23 +97,23 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp,seed);
-  
+
   // compute the number of MC cycles that occur nevery timesteps
-  
+
   ncycles = nexchanges + nmcmoves;
-  
+
   // set up reneighboring
 
   force_reneighbor = 1;
   next_reneighbor = update->ntimestep + 1;
 
   // zero out counters
-  
-  nmove_attempts = 0.0;   
-  nmove_successes = 0.0;  
-  ndel_attempts = 0.0;    
-  ndel_successes = 0.0;   
-  ninsert_attempts = 0.0; 
+
+  nmove_attempts = 0.0;
+  nmove_successes = 0.0;
+  ndel_attempts = 0.0;
+  ndel_successes = 0.0;
+  ninsert_attempts = 0.0;
   ninsert_successes = 0.0;
 
   nmax = 0;
@@ -146,7 +146,7 @@ void FixGCMC::init()
   // deleting such an atom would not leave firstgroup atoms first
 
   int *type = atom->type;
-  
+
   if (atom->firstgroup >= 0) {
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -177,17 +177,17 @@ void FixGCMC::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
       error->warning(FLERR,
-		     "Fix GCMC may delete atom with non-zero molecule ID");
+                     "Fix GCMC may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
       error->all(FLERR,
-		 "Fix GCMC molecule command requires atom attribute molecule");
-      
-  if (molflag != 0) 
-    error->all(FLERR,"Fix GCMC molecule feature does not yet work"); 
-  
-  if (force->pair->single_enable == 0) 
+                 "Fix GCMC molecule command requires atom attribute molecule");
+
+  if (molflag != 0)
+    error->all(FLERR,"Fix GCMC molecule feature does not yet work");
+
+  if (force->pair->single_enable == 0)
     error->all(FLERR,"Fix GCMC incompatible with given pair_style");
 }
 
@@ -200,7 +200,7 @@ void FixGCMC::init()
 void FixGCMC::pre_exchange()
 {
   // just return if should not be called on this timestep
-  
+
   if (next_reneighbor != update->ntimestep) return;
 
   if (domain->triclinic == 0) {
@@ -221,34 +221,34 @@ void FixGCMC::pre_exchange()
     zhi = domain->boxhi_bound[2];
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
-  } 
-  
+  }
+
   volume = domain->xprd * domain->yprd * domain->zprd;
-  
+
   // grow local_gas_list array if necessary
 
   if (atom->nlocal > nmax) {
     memory->sfree(local_gas_list);
     nmax = atom->nmax;
     local_gas_list = (int *) memory->smalloc(nmax*sizeof(int),
-					     "GCMC:local_gas_list");
+                                             "GCMC:local_gas_list");
   }
-  
+
   int *type = atom->type;
   ngas_local = 0;
   for (int i = 0; i < atom->nlocal; i++)
     if (type[i] == ntype)
       local_gas_list[ngas_local++] = i;
-                                           
+
   MPI_Allreduce(&ngas_local,&ngas,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ngas_local,&ngas_before,1,MPI_INT,MPI_SUM,world);
   ngas_before -= ngas_local;
-      
+
   // perform ncycles MC cycles
-  
+
   for (int i = 0; i < ncycles; i++) {
-    int random_int_fraction = 
-      static_cast<int>(random_equal->uniform()*ncycles) + 1;	
+    int random_int_fraction =
+      static_cast<int>(random_equal->uniform()*ncycles) + 1;
     if (random_int_fraction <= nmcmoves) {
       attempt_move();
     } else {
@@ -256,26 +256,26 @@ void FixGCMC::pre_exchange()
       else attempt_insertion();
     }
   }
-  
+
   next_reneighbor = update->ntimestep + nevery;
-} 
+}
 
 /* ----------------------------------------------------------------------
    choose particle randomly across all procs and attempt displacement
 ------------------------------------------------------------------------- */
 
 void FixGCMC::attempt_move()
-{  
+{
   int i,iwhichglobal,iwhichlocal;
   double rx,ry,rz;
   double coord[3];
   double **x = atom->x;
 
   nmove_attempts += 1.0;
-  
+
   int success = 0;
   iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-  if ((iwhichglobal >= ngas_before) && 
+  if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
     iwhichlocal = iwhichglobal - ngas_before;
     i = local_gas_list[iwhichlocal];
@@ -293,19 +293,19 @@ void FixGCMC::attempt_move()
     coord[2] = x[i][2] + displace*rz;
     double energy_after = energy(i,coord);
     if (random_unequal->uniform() < exp(-beta*(energy_after - energy_before))) {
-      x[i][0] = coord[0]; 
-      x[i][1] = coord[1]; 
+      x[i][0] = coord[0];
+      x[i][1] = coord[1];
       x[i][2] = coord[2];
       success = 1;
     }
-  } 
-  
+  }
+
   int success_all = 0;
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
-  
+
   if (success_all) {
-    nmove_successes += 1.0;  
-    comm->borders(); 
+    nmove_successes += 1.0;
+    comm->borders();
   }
 }
 
@@ -314,7 +314,7 @@ void FixGCMC::attempt_move()
 ------------------------------------------------------------------------- */
 
 void FixGCMC::attempt_deletion()
-{ 
+{
   ndel_attempts += 1.0;
 
   if (ngas == 0) return;
@@ -325,32 +325,32 @@ void FixGCMC::attempt_deletion()
   // choose particle randomly across all procs and delete it
   // keep ngas, ngas_local, ngas_before, and local_gas_list current
   // after each deletion
-  
+
   int success = 0;
   iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-  if ((iwhichglobal >= ngas_before) && 
+  if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
     iwhichlocal = iwhichglobal - ngas_before;
     i = local_gas_list[iwhichlocal];
-    double deletion_energy = energy(i,atom->x[i]);      
-    if (random_unequal->uniform() < 
-	ngas*exp(beta*deletion_energy)/(zz*volume)) {
+    double deletion_energy = energy(i,atom->x[i]);
+    if (random_unequal->uniform() <
+        ngas*exp(beta*deletion_energy)/(zz*volume)) {
       avec->copy(atom->nlocal-1,i,1);
       atom->nlocal--;
       local_gas_list[iwhichlocal] = local_gas_list[ngas_local-1];
       ngas_local--;
-      success = 1; 
+      success = 1;
     }
   }
- 
+
   int success_all = 0;
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
-  
+
   if (success_all) {
     ngas--;
     ndel_successes += 1.0;
     atom->natoms--;
-    if (iwhichglobal < ngas_before) ngas_before--;      
+    if (iwhichglobal < ngas_before) ngas_before--;
     comm->borders();
     if (atom->tag_enable) {
       atom->tag_extend();
@@ -367,13 +367,13 @@ void FixGCMC::attempt_deletion()
 ------------------------------------------------------------------------- */
 
 void FixGCMC::attempt_insertion()
-{  
+{
   int flag,success;
   double coord[3],lamda[3];
-  double *newcoord; 
-  
+  double *newcoord;
+
   ninsert_attempts += 1.0;
-  
+
   // choose random position for new atom within box
 
   coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
@@ -384,7 +384,7 @@ void FixGCMC::attempt_insertion()
   // if so, add to my list via create_atom()
   // initialize info about the atoms
   // set group mask to "all" plus fix group
-  
+
   if (domain->triclinic) {
     domain->x2lamda(coord,lamda);
     newcoord = lamda;
@@ -394,21 +394,21 @@ void FixGCMC::attempt_insertion()
   if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
     newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
     newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
-    
+
   success = 0;
   if (flag) {
     int nall = atom->nlocal + atom->nghost;
     double insertion_energy = energy(nall,coord);
-    if (random_unequal->uniform() < 
-	zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
-      atom->avec->create_atom(ntype,coord);    
+    if (random_unequal->uniform() <
+        zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
+      atom->avec->create_atom(ntype,coord);
       int m = atom->nlocal - 1;
       atom->type[m] = ntype;
       atom->mask[m] = 1 | groupbit;
       atom->v[m][0] = random_unequal->gaussian()*sigma;
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
-      
+
       int nfix = modify->nfix;
       Fix **fix = modify->fix;
       for (int j = 0; j < nfix; j++)
@@ -416,20 +416,20 @@ void FixGCMC::attempt_insertion()
 
       if (atom->nlocal > nmax) {
         nmax = atom->nmax;
-        local_gas_list = (int *) 
-	  memory->srealloc(local_gas_list,nmax*sizeof(int),
-			   "GCMC:local_gas_list");
+        local_gas_list = (int *)
+          memory->srealloc(local_gas_list,nmax*sizeof(int),
+                           "GCMC:local_gas_list");
       }
-      
+
       local_gas_list[ngas_local] = atom->nlocal;
-      ngas_local++; 
-      success = 1; 
+      ngas_local++;
+      success = 1;
     }
   }
-  
+
   int success_all = 0;
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
-  
+
   if (success_all) {
     ngas++;
     ninsert_successes += 1.0;
@@ -443,15 +443,15 @@ void FixGCMC::attempt_insertion()
         atom->map_init();
         atom->map_set();
       }
-    }   
-  } 
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
    compute particle's interaction energy with the rest of the system
 ------------------------------------------------------------------------- */
 
-double FixGCMC::energy(int i, double *coord) 
+double FixGCMC::energy(int i, double *coord)
 {
   double delx,dely,delz,rsq;
 
@@ -464,7 +464,7 @@ double FixGCMC::energy(int i, double *coord)
   double fpair = 0.0;
   double factor_coul = 1.0;
   double factor_lj = 1.0;
-  
+
   double total_energy = 0.0;
   for (int j = 0; j < nall; j++) {
 
@@ -477,15 +477,15 @@ double FixGCMC::energy(int i, double *coord)
     int jtype = type[j];
 
     if (rsq < cutsq[ntype][jtype])
-      total_energy += 
-	pair->single(i,j,ntype,jtype,rsq,factor_coul,factor_lj,fpair);
+      total_energy +=
+        pair->single(i,j,ntype,jtype,rsq,factor_coul,factor_lj,fpair);
   }
 
   return total_energy;
 }
 
 /* ----------------------------------------------------------------------
-   parse optional parameters at end of input line 
+   parse optional parameters at end of input line
 ------------------------------------------------------------------------- */
 
 void FixGCMC::options(int narg, char **arg)
@@ -530,7 +530,7 @@ double FixGCMC::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixGCMC::write_restart(FILE *fp)
@@ -549,7 +549,7 @@ void FixGCMC::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix  
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixGCMC::restart(char *buf)
@@ -559,9 +559,9 @@ void FixGCMC::restart(char *buf)
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);
-  
+
   seed = static_cast<int> (list[n++]);
   random_unequal->reset(seed);
-  
+
   next_reneighbor = static_cast<int> (list[n++]);
 }

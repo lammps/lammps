@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -65,11 +65,11 @@ void AngleCosineDeltaOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
@@ -123,21 +123,21 @@ void AngleCosineDeltaOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
-        
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-        
+
     theta = acos(c);
- 
+
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
     s = 1.0/s;
-   
+
     cot = c/s;
- 
+
     // force & energy
-	
-    dtheta = theta - theta0[type]; 
+
+    dtheta = theta - theta0[type];
     dcostheta = cos(dtheta);
     tk = k[type] * (1.0-dcostheta);
 
@@ -146,15 +146,15 @@ void AngleCosineDeltaOMP::eval(int nfrom, int nto, ThrData * const thr)
     a = -k[type];
 
     // expand dtheta for cos and sin contribution to force
-    
+
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-    
+
     b11 = -a*c*cot / rsq1;
     b12 = a*cot / (r1*r2);
     b22 = -a*c*cot / rsq2;
-        
+
     c0 = cos(theta0[type]);
     s0 = sin(theta0[type]);
 
@@ -186,6 +186,6 @@ void AngleCosineDeltaOMP::eval(int nfrom, int nto, ThrData * const thr)
     }
 
     if (EVFLAG) ev_tally_thr(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
-			     delx1,dely1,delz1,delx2,dely2,delz2,thr);
+                             delx1,dely1,delz1,delx2,dely2,delz2,thr);
   }
 }

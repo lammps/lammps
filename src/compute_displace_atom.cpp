@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -118,34 +118,34 @@ void ComputeDisplaceAtom::compute_peratom()
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + xbox*xprd - xoriginal[i][0];
-	dy = x[i][1] + ybox*yprd - xoriginal[i][1];
-	dz = x[i][2] + zbox*zprd - xoriginal[i][2];
-	displace[i][0] = dx;
-	displace[i][1] = dy;
-	displace[i][2] = dz;
-	displace[i][3] = sqrt(dx*dx + dy*dy + dz*dz);
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        dx = x[i][0] + xbox*xprd - xoriginal[i][0];
+        dy = x[i][1] + ybox*yprd - xoriginal[i][1];
+        dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+        displace[i][0] = dx;
+        displace[i][1] = dy;
+        displace[i][2] = dz;
+        displace[i][3] = sqrt(dx*dx + dy*dy + dz*dz);
       } else displace[i][0] = displace[i][1] =
-	       displace[i][2] = displace[i][3] = 0.0;
+               displace[i][2] = displace[i][3] = 0.0;
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
-	dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
-	dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
-	displace[i][0] = dx;
-	displace[i][1] = dy;
-	displace[i][2] = dz;
-	displace[i][3] = sqrt(dx*dx + dy*dy + dz*dz);
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
+        dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
+        dz = x[i][2] + h[2]*zbox - xoriginal[i][2];
+        displace[i][0] = dx;
+        displace[i][1] = dy;
+        displace[i][2] = dz;
+        displace[i][3] = sqrt(dx*dx + dy*dy + dz*dz);
       } else displace[i][0] = displace[i][1] =
-	       displace[i][2] = displace[i][3] = 0.0;
+               displace[i][2] = displace[i][3] = 0.0;
   }
 }
 

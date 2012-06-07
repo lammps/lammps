@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -107,27 +107,27 @@ void PairGaussCut::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	rexp = (r-rmh[itype][jtype])/sigmah[itype][jtype];
-	ugauss = pgauss[itype][jtype]*exp(-0.5*rexp*rexp); 
-	fpair = factor_lj*rexp/r*ugauss/sigmah[itype][jtype];
+        r = sqrt(rsq);
+        rexp = (r-rmh[itype][jtype])/sigmah[itype][jtype];
+        ugauss = pgauss[itype][jtype]*exp(-0.5*rexp*rexp);
+        fpair = factor_lj*rexp/r*ugauss/sigmah[itype][jtype];
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = ugauss - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          evdwl = ugauss - offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -137,7 +137,7 @@ void PairGaussCut::compute(int eflag, int vflag)
 
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairGaussCut::allocate()
@@ -161,7 +161,7 @@ void PairGaussCut::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairGaussCut::settings(int narg, char **arg)
@@ -176,7 +176,7 @@ void PairGaussCut::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -226,13 +226,13 @@ double PairGaussCut::init_one(int i, int j)
     error->all(FLERR,"for gauss/cut pair style, parameters need to be set explicitly for all pairs.");
   }
   pgauss[i][j] = hgauss[i][j] / sqrt(MY_2PI)/ sigmah[i][j];
-  
+
 
   if (offset_flag) {
     double rexp = (cut[i][j]-rmh[i][j])/sigmah[i][j];
     offset[i][j] = pgauss[i][j] * exp(-0.5*rexp*rexp);
   } else offset[i][j] = 0.0;
-  
+
   hgauss[j][i] = hgauss[i][j];
   sigmah[j][i] = sigmah[i][j];
   rmh[j][i] = rmh[i][j];
@@ -254,13 +254,13 @@ double PairGaussCut::init_one(int i, int j)
       if (type[k] == j) count[1] += 1.0;
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-  } 
+  }
 
   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairGaussCut::write_restart(FILE *fp)
@@ -272,10 +272,10 @@ void PairGaussCut::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&hgauss[i][j],sizeof(double),1,fp);
-	fwrite(&rmh[i][j],sizeof(double),1,fp);
-	fwrite(&sigmah[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&hgauss[i][j],sizeof(double),1,fp);
+        fwrite(&rmh[i][j],sizeof(double),1,fp);
+        fwrite(&sigmah[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -296,16 +296,16 @@ void PairGaussCut::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&hgauss[i][j],sizeof(double),1,fp);
-	  fread(&rmh[i][j],sizeof(double),1,fp);
-	  fread(&sigmah[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&hgauss[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&rmh[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigmah[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&hgauss[i][j],sizeof(double),1,fp);
+          fread(&rmh[i][j],sizeof(double),1,fp);
+          fread(&sigmah[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&hgauss[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&rmh[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigmah[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -341,15 +341,15 @@ void PairGaussCut::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairGaussCut::single(int i, int j, int itype, int jtype, double rsq,
-			 double factor_coul, double factor_lj,
-			 double &fforce)
+                         double factor_coul, double factor_lj,
+                         double &fforce)
 {
   double r, rexp,ugauss,phigauss;
 
   r=sqrt(rsq);
   rexp = (r-rmh[itype][jtype])/sigmah[itype][jtype];
-  ugauss = pgauss[itype][jtype]*exp(-0.5*rexp*rexp); 
-	
+  ugauss = pgauss[itype][jtype]*exp(-0.5*rexp*rexp);
+
   fforce = factor_lj*rexp/r*ugauss/sigmah[itype][jtype];
 
   phigauss = ugauss - offset[itype][jtype];
@@ -360,7 +360,7 @@ double PairGaussCut::single(int i, int j, int itype, int jtype, double rsq,
 double PairGaussCut::memory_usage()
 {
   const int n=atom->ntypes;
-  
+
   double bytes = Pair::memory_usage();
 
   bytes += 7*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
@@ -368,4 +368,3 @@ double PairGaussCut::memory_usage()
 
   return bytes;
 }
-

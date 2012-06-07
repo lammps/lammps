@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -49,10 +49,10 @@ using namespace LAMMPS_NS;
 enum{SINGLE,MULTI};
 
 /* ----------------------------------------------------------------------
-   setup MPI and allocate buffer space 
+   setup MPI and allocate buffer space
 ------------------------------------------------------------------------- */
 
-CommCuda::CommCuda(LAMMPS *lmp):Comm(lmp) 
+CommCuda::CommCuda(LAMMPS *lmp):Comm(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
@@ -123,11 +123,11 @@ void CommCuda::init()
   delete cu_slabhi;
   cu_slabhi = new cCudaData<double, X_FLOAT,x>(slabhi,cuda->shared_data.comm.maxswap);
   cu_slabhi->upload();
-  
+
   cuda->shared_data.comm.pbc.dev_data=cu_pbc->dev_data();
   cuda->shared_data.comm.slablo.dev_data=cu_slablo->dev_data();
   cuda->shared_data.comm.slabhi.dev_data=cu_slabhi->dev_data();
- 
+
   Comm::init();
 }
 
@@ -142,17 +142,17 @@ void CommCuda::setup()
 {
   if(cuda->shared_data.pair.neighall) cutghostuser = MAX(2.0*neighbor->cutneighmax,cutghostuser);
   Comm::setup();
-   
+
   //upload changed geometry to device
     if(style == SINGLE)
     {
-    	if(cu_slablo) cu_slablo->upload();
-    	if(cu_slabhi) cu_slabhi->upload();
+            if(cu_slablo) cu_slablo->upload();
+            if(cu_slabhi) cu_slabhi->upload();
     }
-	else
+        else
     {
-    	if(cu_multilo) cu_multilo->upload();
-    	if(cu_multihi) cu_multihi->upload();
+            if(cu_multilo) cu_multilo->upload();
+            if(cu_multihi) cu_multihi->upload();
     }
 }
 
@@ -176,7 +176,7 @@ void CommCuda::forward_comm_cuda()
   static double kerneltime=0.0;
   static double copytime=0.0;
   timespec time1,time2,time3;
-  
+
   int n;
   MPI_Request request;
   MPI_Status status;
@@ -190,112 +190,112 @@ void CommCuda::forward_comm_cuda()
   cuda->shared_data.domain.prd[1]=domain->prd[1];
   cuda->shared_data.domain.prd[2]=domain->prd[2];
   cuda->shared_data.domain.triclinic=domain->triclinic;
-  if(not comm_x_only && not avec->cudable) 
+  if(not comm_x_only && not avec->cudable)
   {
-  	cuda->downloadAll(); 
+          cuda->downloadAll();
     Comm::forward_comm();
     cuda->uploadAll();
     return;
-  } 
-  
+  }
+
   // exchange data with another proc
   // if other proc is self, just copy
   // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap] != me) 
-    {   
-      if (comm_x_only) 
+    if (sendproc[iswap] != me)
+    {
+      if (comm_x_only)
       {
 
         int size_forward_recv_now=0;
-        
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
           size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
 clock_gettime(CLOCK_REALTIME,&time1);
-        
+
         MPI_Irecv(buf_recv,size_forward_recv_now,MPI_DOUBLE,
                  recvproc[iswap],0,world,&request);
         n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*) buf_send,pbc[iswap],pbc_flag[iswap]);
-		
+
 clock_gettime(CLOCK_REALTIME,&time2);
-		
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
 
-		//printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now,n);
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-       
+                //printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now,n);
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+
 clock_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
 cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
       time3.tv_sec-time2.tv_sec+1.0*(time3.tv_nsec-time2.tv_nsec)/1000000000;
- 
+
         Cuda_CommCuda_UnpackComm(&cuda->shared_data,recvnum[iswap],firstrecv[iswap],(void*)buf_recv,iswap); //Unpack for cpu exchange happens implicitely since buf==x[firstrecv]
- 	
-      } 
-      else if (ghost_velocity) 
+
+      }
+      else if (ghost_velocity)
       {
-	    MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-        
+            MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+
         if(avec->cudable)
           n = avec->pack_comm_vel(sendnum[iswap],&iswap,
                            buf_send,pbc_flag[iswap],pbc[iswap]);
         else
-	      n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-				buf_send,pbc_flag[iswap],pbc[iswap]);
-	    
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-	    avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
-      } 
-      else 
+              n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+            avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
+      }
+      else
       {
-	    MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-        
+            MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+
         if(avec->cudable)
           n = avec->pack_comm(sendnum[iswap],&iswap,
                            buf_send,pbc_flag[iswap],pbc[iswap]);
         else
-	      n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-	    avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+              n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+            avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     }
     else  //sendproc == me
     {
       cuda->self_comm=1;
-      if (comm_x_only) 
-      {     	
-	    if (sendnum[iswap])
-		{
+      if (comm_x_only)
+      {
+            if (sendnum[iswap])
+                {
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
           if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
           if((sizeof(X_FLOAT)!=sizeof(double)) && n)
             n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
-		}
-      } 
-      else if (ghost_velocity) 
+                }
+      }
+      else if (ghost_velocity)
       {
-		n = avec->pack_comm_vel(sendnum[iswap],&iswap,
-				(double*) firstrecv,pbc_flag[iswap],pbc[iswap]);
-	    //avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],(double*) firstrecv);
-      } 
-      else 
+                n = avec->pack_comm_vel(sendnum[iswap],&iswap,
+                                (double*) firstrecv,pbc_flag[iswap],pbc[iswap]);
+            //avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],(double*) firstrecv);
+      }
+      else
       {
-		n = avec->pack_comm(sendnum[iswap],&iswap,
-			    (double*) firstrecv,pbc_flag[iswap],pbc[iswap]);
-		//avec->unpack_comm(recvnum[iswap],firstrecv[iswap],(double*) firstrecv);
+                n = avec->pack_comm(sendnum[iswap],&iswap,
+                            (double*) firstrecv,pbc_flag[iswap],pbc[iswap]);
+                //avec->unpack_comm(recvnum[iswap],firstrecv[iswap],(double*) firstrecv);
       }
       cuda->self_comm=0;
     }
@@ -304,9 +304,9 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
 
 void CommCuda::forward_comm_pack_cuda()
 {
-	static int count=0;
-	static double kerneltime=0.0;
-	static double copytime=0.0;
+        static int count=0;
+        static double kerneltime=0.0;
+        static double copytime=0.0;
     timespec time1,time2,time3;
   int n;  // initialize comm buffers & exchange memory
 
@@ -322,94 +322,94 @@ void CommCuda::forward_comm_pack_cuda()
   cuda->shared_data.domain.prd[1]=domain->prd[1];
   cuda->shared_data.domain.prd[2]=domain->prd[2];
   cuda->shared_data.domain.triclinic=domain->triclinic;
-  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used 
+  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used
 
   // exchange data with another proc
   // if other proc is self, just copy
   // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap] != me) 
-    {   
-      if (comm_x_only) 
+    if (sendproc[iswap] != me)
+    {
+      if (comm_x_only)
       {
 
-		
+
 clock_gettime(CLOCK_REALTIME,&time1);
-        
+
       //  n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*) cuda->shared_data.comm.buf_send[iswap],pbc[iswap],pbc_flag[iswap]);
-		  n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*)buf_send,pbc[iswap],pbc_flag[iswap]);
-		
+                  n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*)buf_send,pbc[iswap],pbc_flag[iswap]);
+
 clock_gettime(CLOCK_REALTIME,&time2);
-		
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
-		cuda->shared_data.comm.send_size[iswap]=n;
-      } 
-      else if (ghost_velocity) 
+                cuda->shared_data.comm.send_size[iswap]=n;
+      }
+      else if (ghost_velocity)
       {
 clock_gettime(CLOCK_REALTIME,&time1);
 
        // n = Cuda_CommCuda_PackComm_Vel(&cuda->shared_data,sendnum[iswap],iswap,(void*) &buf_send[iswap*maxsend],pbc[iswap],pbc_flag[iswap]);
-		
+
 clock_gettime(CLOCK_REALTIME,&time2);
-		
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
-		cuda->shared_data.comm.send_size[iswap]=n;
-       } 
-      else 
+                cuda->shared_data.comm.send_size[iswap]=n;
+       }
+      else
       {
-	    MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-        
+            MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+
         if(avec->cudable)
           n = avec->pack_comm(sendnum[iswap],&iswap,
                            cuda->shared_data.comm.buf_send[iswap],pbc_flag[iswap],pbc[iswap]);
         else
-	      n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    cuda->shared_data.comm.buf_send[iswap],pbc_flag[iswap],pbc[iswap]);
-	
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-	    avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+              n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            cuda->shared_data.comm.buf_send[iswap],pbc_flag[iswap],pbc[iswap]);
+
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+            avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     }
     else  //sendproc == me
     {
-      if (comm_x_only) 
-      {     	
-	    if (sendnum[iswap])
-		{
+      if (comm_x_only)
+      {
+            if (sendnum[iswap])
+                {
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
           if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
           if((sizeof(X_FLOAT)!=sizeof(double)) && n)
             n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
-		}
-      } 
-      else if (ghost_velocity) 
+                }
+      }
+      else if (ghost_velocity)
       {
-		n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-				buf_send,pbc_flag[iswap],pbc[iswap]);
-	    avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
-      } 
-      else 
+                n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+            avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
+      }
+      else
       {
-		n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-		avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+                n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+                avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }
-  if(not comm_x_only && not avec->cudable) cuda->uploadAll(); 
+  if(not comm_x_only && not avec->cudable) cuda->uploadAll();
 }
 
 void CommCuda::forward_comm_transfer_cuda()
 {
-	static int count=0;
-	static double kerneltime=0.0;
-	static double copytime=0.0;
+        static int count=0;
+        static double kerneltime=0.0;
+        static double copytime=0.0;
     timespec time1,time2,time3;
   int n;
   MPI_Request request;
@@ -423,51 +423,51 @@ void CommCuda::forward_comm_transfer_cuda()
   cuda->shared_data.domain.prd[1]=domain->prd[1];
   cuda->shared_data.domain.prd[2]=domain->prd[2];
   cuda->shared_data.domain.triclinic=domain->triclinic;
-  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used 
+  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used
 //printf("A\n");
   // exchange data with another proc
   // if other proc is self, just copy
   // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap] != me) 
-    {   
-      if (comm_x_only) 
+    if (sendproc[iswap] != me)
+    {
+      if (comm_x_only)
       {
 
         int size_forward_recv_now=0;
-        
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
           size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
-		
+
         //printf("A: %i \n",size_forward_recv_now/1024*4);
         //MPI_Irecv(cuda->shared_data.comm.buf_recv[iswap],size_forward_recv_now,MPI_DOUBLE,
         //         recvproc[iswap],0,world,&request);
         MPI_Irecv(buf_recv,size_forward_recv_now,MPI_DOUBLE,
                  recvproc[iswap],0,world,&request);
-		//printf("%p %p %i\n",buf_send, cuda->shared_data.comm.buf_send_dev[iswap], cuda->shared_data.comm.send_size[iswap]*sizeof(double));
+                //printf("%p %p %i\n",buf_send, cuda->shared_data.comm.buf_send_dev[iswap], cuda->shared_data.comm.send_size[iswap]*sizeof(double));
         //memcpy(buf_send,cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap]*sizeof(double));
-	//	CudaWrapper_SyncStream(1);
+        //        CudaWrapper_SyncStream(1);
         //printf("B: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
-		CudaWrapper_DownloadCudaDataAsync((void*) buf_send, cuda->shared_data.comm.buf_send_dev[iswap], cuda->shared_data.comm.send_size[iswap]*sizeof(double),2);
-	    //MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+                CudaWrapper_DownloadCudaDataAsync((void*) buf_send, cuda->shared_data.comm.buf_send_dev[iswap], cuda->shared_data.comm.send_size[iswap]*sizeof(double),2);
+            //MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
 clock_gettime(CLOCK_REALTIME,&time1);
         CudaWrapper_SyncStream(2);
         //printf("C: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
 clock_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_forward_download+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
-	    MPI_Send(buf_send,cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
+            MPI_Send(buf_send,cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
         //printf("D: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
-		CudaWrapper_UploadCudaDataAsync((void*) buf_recv,cuda->shared_data.comm.buf_recv_dev[iswap], size_forward_recv_now*sizeof(double),2);
+                CudaWrapper_UploadCudaDataAsync((void*) buf_recv,cuda->shared_data.comm.buf_recv_dev[iswap], size_forward_recv_now*sizeof(double),2);
 clock_gettime(CLOCK_REALTIME,&time1);
         CudaWrapper_SyncStream(2);
         //printf("E: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
         //memcpy(cuda->shared_data.comm.buf_recv[iswap],buf_recv,size_forward_recv_now*sizeof(double));
- 		//printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now*sizeof(double),cuda->shared_data.comm.send_size[iswap]*sizeof(double));      
+                 //printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now*sizeof(double),cuda->shared_data.comm.send_size[iswap]*sizeof(double));
 clock_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_upload+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
@@ -476,78 +476,78 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
 clock_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
-      } 
-      else if (ghost_velocity) 
+      }
+      else if (ghost_velocity)
       {
  /*       int size_forward_recv_now=0;
-        
+
         if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
           size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
-		
+
 clock_gettime(CLOCK_REALTIME,&time1);
-        
+
         MPI_Irecv(cuda->shared_data.comm.buf_recv[iswap],size_forward_recv_now,MPI_DOUBLE,
                  recvproc[iswap],0,world,&request);
-		
+
 clock_gettime(CLOCK_REALTIME,&time2);
-		
-	    MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-       
+
+            MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+
 clock_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
 cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
       time3.tv_sec-time2.tv_sec+1.0*(time3.tv_nsec-time2.tv_nsec)/1000000000;*/
- 
-       } 
-      else 
+
+       }
+      else
       {
-	    MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-        
+            MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+
         if(avec->cudable)
           n = avec->pack_comm(sendnum[iswap],&iswap,
                            buf_send,pbc_flag[iswap],pbc[iswap]);
         else
-	      n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-	    avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+              n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+            avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     }
     else  //sendproc == me
     {
-      if (comm_x_only) 
-      {     	
-	    if (sendnum[iswap])
-		{
-		}
-      } 
-      else if (ghost_velocity) 
+      if (comm_x_only)
       {
-      } 
-      else 
+            if (sendnum[iswap])
+                {
+                }
+      }
+      else if (ghost_velocity)
       {
-		n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-		avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+      }
+      else
+      {
+                n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+                avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }
-  if(not comm_x_only && not avec->cudable) cuda->uploadAll(); 
+  if(not comm_x_only && not avec->cudable) cuda->uploadAll();
 }
 
 void CommCuda::forward_comm_unpack_cuda()
 {
-	static int count=0;
-	static double kerneltime=0.0;
-	static double copytime=0.0;
+        static int count=0;
+        static double kerneltime=0.0;
+        static double copytime=0.0;
     timespec time1,time2,time3;
   int n;
   MPI_Request request;
@@ -562,73 +562,73 @@ void CommCuda::forward_comm_unpack_cuda()
   cuda->shared_data.domain.prd[1]=domain->prd[1];
   cuda->shared_data.domain.prd[2]=domain->prd[2];
   cuda->shared_data.domain.triclinic=domain->triclinic;
-  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used 
+  if(not comm_x_only && not avec->cudable) cuda->downloadAll();  //if not comm_x_only the communication routine of the atom_vec style class is used
 
   // exchange data with another proc
   // if other proc is self, just copy
   // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap] != me) 
-    {   
-      if (comm_x_only) 
-      {   
- 
+    if (sendproc[iswap] != me)
+    {
+      if (comm_x_only)
+      {
+
         //Cuda_CommCuda_UnpackComm(&cuda->shared_data,recvnum[iswap],firstrecv[iswap],cuda->shared_data.comm.buf_recv[iswap],iswap); //Unpack for cpu exchange happens implicitely since buf==x[firstrecv]
         Cuda_CommCuda_UnpackComm(&cuda->shared_data,recvnum[iswap],firstrecv[iswap],buf_recv,iswap); //Unpack for cpu exchange happens implicitely since buf==x[firstrecv]
- 	
-      } 
-      else if (ghost_velocity) 
-      { 
-        //Cuda_CommCuda_UnpackComm_Vel(&cuda->shared_data,recvnum[iswap],firstrecv[iswap],(void*)&buf_recv[iswap*maxrecv]); //Unpack for cpu exchange happens implicitely since buf==x[firstrecv]
-      } 
-      else 
+
+      }
+      else if (ghost_velocity)
       {
-	    MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-        
+        //Cuda_CommCuda_UnpackComm_Vel(&cuda->shared_data,recvnum[iswap],firstrecv[iswap],(void*)&buf_recv[iswap*maxrecv]); //Unpack for cpu exchange happens implicitely since buf==x[firstrecv]
+      }
+      else
+      {
+            MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+
         if(avec->cudable)
           n = avec->pack_comm(sendnum[iswap],&iswap,
                            buf_send,pbc_flag[iswap],pbc[iswap]);
         else
-	      n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-	
-	    MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	    MPI_Wait(&request,&status);
-	    avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+              n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+
+            MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+            MPI_Wait(&request,&status);
+            avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
     }
     else  //sendproc == me
     {
-      if (comm_x_only) 
-      {     	
-	    if (sendnum[iswap])
-		{
-		}
-      } 
-      else if (ghost_velocity) 
+      if (comm_x_only)
       {
-      } 
-      else 
+            if (sendnum[iswap])
+                {
+                }
+      }
+      else if (ghost_velocity)
       {
-		n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-			    buf_send,pbc_flag[iswap],pbc[iswap]);
-		avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+      }
+      else
+      {
+                n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+                avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
   }
-  if(not comm_x_only && not avec->cudable) cuda->uploadAll(); 
+  if(not comm_x_only && not avec->cudable) cuda->uploadAll();
 }
 
 void CommCuda::forward_comm_pair(Pair *pair)
 {
   if(not cuda->shared_data.pair.cudable_force)
   {
-  	return Comm::forward_comm_pair(pair);
+          return Comm::forward_comm_pair(pair);
   }
-  
+
   int iswap,n;
   double *buf;
   MPI_Request request;
@@ -639,18 +639,18 @@ void CommCuda::forward_comm_pair(Pair *pair)
     // pack buffer
 
     n = pair->pack_comm(sendnum[iswap],&iswap,
-			buf_send,pbc_flag[iswap],pbc[iswap]);
-	int nrecv = recvnum[iswap]*n;
-	if(nrecv<0) nrecv=-(nrecv+1)/2;
-	int nsend = sendnum[iswap]*n;
-	if(nsend<0) nsend=-(nsend+1)/2;
-	
+                        buf_send,pbc_flag[iswap],pbc[iswap]);
+        int nrecv = recvnum[iswap]*n;
+        if(nrecv<0) nrecv=-(nrecv+1)/2;
+        int nsend = sendnum[iswap]*n;
+        if(nsend<0) nsend=-(nsend+1)/2;
+
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       MPI_Irecv(buf_recv,nrecv,MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
+                world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,sendproc[iswap],0,world);
       MPI_Wait(&request,&status);
       buf = buf_recv;
@@ -663,10 +663,10 @@ void CommCuda::forward_comm_pair(Pair *pair)
 }
 
 /* ----------------------------------------------------------------------
-   reverse communication of forces on atoms every timestep 
+   reverse communication of forces on atoms every timestep
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
-      
+
 void CommCuda::reverse_comm()
 {
   int n;
@@ -687,10 +687,10 @@ void CommCuda::reverse_comm()
       if (comm_f_only) {
 
     int size_recv_now=size_reverse_recv[iswap];
-	if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_recv[iswap])
-	  size_recv_now=(size_recv_now+1)*sizeof(F_FLOAT)/sizeof(double);
-	MPI_Irecv(buf_recv,size_recv_now,MPI_DOUBLE,
-		  sendproc[iswap],0,world,&request);
+        if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_recv[iswap])
+          size_recv_now=(size_recv_now+1)*sizeof(F_FLOAT)/sizeof(double);
+        MPI_Irecv(buf_recv,size_recv_now,MPI_DOUBLE,
+                  sendproc[iswap],0,world,&request);
 
     buf=buf_send;
     if (size_reverse_send[iswap])
@@ -699,30 +699,30 @@ void CommCuda::reverse_comm()
     }
     else buf=NULL;
     int size_reverse_send_now=size_reverse_send[iswap];
-	if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_send[iswap])
-	  size_reverse_send_now=(size_reverse_send_now+1)*sizeof(F_FLOAT)/sizeof(double);
-	MPI_Send(buf,size_reverse_send_now,MPI_DOUBLE,
-		 recvproc[iswap],0,world);
-	MPI_Wait(&request,&status);
-	Cuda_CommCuda_UnpackReverse(&cuda->shared_data,sendnum[iswap],iswap,buf_recv);
+        if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_send[iswap])
+          size_reverse_send_now=(size_reverse_send_now+1)*sizeof(F_FLOAT)/sizeof(double);
+        MPI_Send(buf,size_reverse_send_now,MPI_DOUBLE,
+                 recvproc[iswap],0,world);
+        MPI_Wait(&request,&status);
+        Cuda_CommCuda_UnpackReverse(&cuda->shared_data,sendnum[iswap],iswap,buf_recv);
 
       } else {
-	MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-		  sendproc[iswap],0,world,&request);
-	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-	MPI_Wait(&request,&status);
+        MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+                  sendproc[iswap],0,world,&request);
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
+        MPI_Wait(&request,&status);
 
       avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
       }
 
     } else {
       if (comm_f_only) {
-	if (sendnum[iswap])
-      	Cuda_CommCuda_UnpackReverse_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap]);
+        if (sendnum[iswap])
+              Cuda_CommCuda_UnpackReverse_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap]);
       } else {
-	n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
-	avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
       }
     }
   }
@@ -743,12 +743,12 @@ void CommCuda::reverse_comm()
 void CommCuda::exchange()
 {
   AtomVec *avec = atom->avec;
-	
-  if(not cuda->oncpu && avec->cudable)
-    	return exchange_cuda();
 
-  if(not cuda->oncpu) cuda->downloadAll();  
-  
+  if(not cuda->oncpu && avec->cudable)
+            return exchange_cuda();
+
+  if(not cuda->oncpu) cuda->downloadAll();
+
   Comm::exchange();
 }
 
@@ -765,11 +765,11 @@ void CommCuda::exchange_cuda()
     timespec time1,time2,time3;
 
   // clear global->local map for owned and ghost atoms
-  // b/c atoms migrate to new procs in exchange() and 
+  // b/c atoms migrate to new procs in exchange() and
   // new ghosts are created in borders()
   // map_set() is done at end of borders()
 
-  
+
   if(map_style) cuda->cu_tag->download();
 
   if (map_style) atom->map_clear();
@@ -785,13 +785,13 @@ void CommCuda::exchange_cuda()
   }
 
   // loop over dimensions
-	
+
   for (int dim = 0; dim < 3; dim++) {
     // fill buffer with atoms leaving my box, using < and >=
     // when atom is deleted, fill it in with last atom
 
-  	cuda->shared_data.exchange_dim=dim;
-    
+          cuda->shared_data.exchange_dim=dim;
+
     nlocal = atom->nlocal;
     avec->maxsend=&maxsend;
     nsend=avec->pack_exchange(dim,(double*) &buf_send);
@@ -806,39 +806,39 @@ void CommCuda::exchange_cuda()
     // if more than 2 procs in dimension, send/recv to both neighbors
 
  clock_gettime(CLOCK_REALTIME,&time1);
- 
+
     if (procgrid[dim] == 1) {
       nrecv = nsend;
       buf = buf_send;
 
     } else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-		   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
-	MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-		     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
-	nrecv += nrecv2;
+        MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+        nrecv += nrecv2;
       }
       if (nrecv+1 > maxrecv) grow_recv(nrecv+1);
-      
+
       MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
-		world,&request);
+                world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
       MPI_Wait(&request,&status);
-      
-      if (procgrid[dim] > 2) {
-	MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
-		  world,&request);
-	MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-	MPI_Wait(&request,&status);
 
-    	if((nrecv1==0)||(nrecv2==0)) buf_recv[nrecv]=0;
+      if (procgrid[dim] > 2) {
+        MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
+                  world,&request);
+        MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
+        MPI_Wait(&request,&status);
+
+            if((nrecv1==0)||(nrecv2==0)) buf_recv[nrecv]=0;
       }
-      
+
       buf = buf_recv;
     }
-	//printf("nsend: %i nrecv: %i\n",nsend,nrecv);
+        //printf("nsend: %i nrecv: %i\n",nsend,nrecv);
     // check incoming atoms to see if they are in my box
     // if so, add to my list
 clock_gettime(CLOCK_REALTIME,&time2);
@@ -856,7 +856,7 @@ cuda->shared_data.cuda_timings.comm_exchange_mpi+=
 
   if(atom->firstgroupname) atom->first_reorder();
 
-  if(atom->firstgroupname) cuda->uploadAll(); 
+  if(atom->firstgroupname) cuda->uploadAll();
 }
 
 /* ----------------------------------------------------------------------
@@ -875,19 +875,19 @@ void CommCuda::borders()
   AtomVec *avec = atom->avec;
   if(not cuda->oncpu && avec->cudable)
   {
-  	if(cuda->shared_data.overlap_comm&&cuda->finished_setup)
-   	  borders_cuda_overlap_forward_comm();
-   	else
-   	  borders_cuda();
-   	  
-   	return;
+          if(cuda->shared_data.overlap_comm&&cuda->finished_setup)
+             borders_cuda_overlap_forward_comm();
+           else
+             borders_cuda();
+
+           return;
   }
 
   Comm::borders();
- 
+
   cuda->setSystemParams();
   if(cuda->finished_setup) {cuda->checkResize(); cuda->uploadAll();}
-  cuda->shared_data.atom.nghost=atom->nghost;  
+  cuda->shared_data.atom.nghost=atom->nghost;
   cu_sendlist->upload();
 }
 
@@ -912,7 +912,7 @@ void CommCuda::borders_cuda()
 
   iswap = 0;
   smax = rmax = 0;
-  
+
   cuda->shared_data.comm.nsend=0;
   for (dim = 0; dim < 3; dim++) {
     nlast = 0;
@@ -927,16 +927,16 @@ void CommCuda::borders_cuda()
 
       x = atom->x;
       if (style == SINGLE) {
-	lo = slablo[iswap];
-	hi = slabhi[iswap];
+        lo = slablo[iswap];
+        hi = slabhi[iswap];
       } else {
-	type = atom->type;
-	mlo = multilo[iswap];
-	mhi = multihi[iswap];
+        type = atom->type;
+        mlo = multilo[iswap];
+        mhi = multihi[iswap];
       }
       if (ineed % 2 == 0) {
-	nfirst = nlast;
-	nlast = atom->nlocal + atom->nghost;
+        nfirst = nlast;
+        nlast = atom->nlocal + atom->nghost;
       }
 
       nsend = 0;
@@ -948,13 +948,13 @@ void CommCuda::borders_cuda()
      do
      {
        if(nsend>=maxsendlist[iswap]) grow_list(iswap,static_cast <int> (nsend*1.05));
-   	    nsend=Cuda_CommCuda_BuildSendlist(&cuda->shared_data,bordergroup,ineed,style==SINGLE?1:0,atom->nfirst,nfirst,nlast,dim,iswap);
+               nsend=Cuda_CommCuda_BuildSendlist(&cuda->shared_data,bordergroup,ineed,style==SINGLE?1:0,atom->nfirst,nfirst,nlast,dim,iswap);
      }while(nsend>=maxsendlist[iswap]);
       // pack up list of border atoms
 
       if (nsend*size_border > maxsend)
-	grow_send(nsend*size_border,0);
-  
+        grow_send(nsend*size_border,0);
+
       if (ghost_velocity)
         n = avec->pack_border_vel(nsend,&iswap,buf_send,
                            pbc_flag[iswap],pbc[iswap]);
@@ -968,18 +968,18 @@ void CommCuda::borders_cuda()
 
 clock_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
-	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*size_border > maxrecv) 
-	  grow_recv(nrecv*size_border);
-	MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
-	buf = buf_recv;
+        MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+        if (nrecv*size_border > maxrecv)
+          grow_recv(nrecv*size_border);
+        MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Wait(&request,&status);
+        buf = buf_recv;
       } else {
-	nrecv = nsend;
-	buf = buf_send;
+        nrecv = nsend;
+        buf = buf_send;
       }
 
 clock_gettime(CLOCK_REALTIME,&time2);
@@ -989,9 +989,9 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
       // unpack buffer
 
       if (ghost_velocity)
-	avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       else
-	avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
 
       // set all pointers & counters
 
@@ -1016,14 +1016,14 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
   if (max > maxrecv) grow_recv(max);
 
   // reset global->local map
-  if(map_style) 
+  if(map_style)
   {
-  	cuda->cu_tag->download();
- 	atom->map_set();
+          cuda->cu_tag->download();
+         atom->map_set();
   }
-  
+
   cuda->setSystemParams();
-  cuda->shared_data.atom.nghost+=n;  
+  cuda->shared_data.atom.nghost+=n;
 }
 
 void CommCuda::borders_cuda_overlap_forward_comm()
@@ -1047,7 +1047,7 @@ void CommCuda::borders_cuda_overlap_forward_comm()
 
   iswap = 0;
   smax = rmax = 0;
-  
+
   cuda->shared_data.comm.nsend=0;
   for (dim = 0; dim < 3; dim++) {
     nlast = 0;
@@ -1062,16 +1062,16 @@ void CommCuda::borders_cuda_overlap_forward_comm()
 
       x = atom->x;
       if (style == SINGLE) {
-	lo = slablo[iswap];
-	hi = slabhi[iswap];
+        lo = slablo[iswap];
+        hi = slabhi[iswap];
       } else {
-	type = atom->type;
-	mlo = multilo[iswap];
-	mhi = multihi[iswap];
+        type = atom->type;
+        mlo = multilo[iswap];
+        mhi = multihi[iswap];
       }
       if (ineed % 2 == 0) {
-	nfirst = nlast;
-	nlast = atom->nlocal + atom->nghost;
+        nfirst = nlast;
+        nlast = atom->nlocal + atom->nghost;
       }
 
       nsend = 0;
@@ -1083,14 +1083,14 @@ void CommCuda::borders_cuda_overlap_forward_comm()
      do
      {
        if(nsend>=maxsendlist[iswap]) grow_list(iswap,static_cast <int> (nsend*1.05));
-   	    nsend=Cuda_CommCuda_BuildSendlist(&cuda->shared_data,bordergroup,ineed,style==SINGLE?1:0,atom->nfirst,nfirst,nlast,dim,iswap);
+               nsend=Cuda_CommCuda_BuildSendlist(&cuda->shared_data,bordergroup,ineed,style==SINGLE?1:0,atom->nfirst,nfirst,nlast,dim,iswap);
      }while(nsend>=maxsendlist[iswap]);
-	 cuda->shared_data.comm.nsend_swap[iswap]=nsend;
-	  // pack up list of border atoms
+         cuda->shared_data.comm.nsend_swap[iswap]=nsend;
+          // pack up list of border atoms
 
       if (nsend*size_border > maxsend)
-	grow_send(nsend*size_border,0);
-  
+        grow_send(nsend*size_border,0);
+
       if (ghost_velocity)
         n = avec->pack_border_vel(nsend,&iswap,buf_send,
                            pbc_flag[iswap],pbc[iswap]);
@@ -1104,18 +1104,18 @@ void CommCuda::borders_cuda_overlap_forward_comm()
 
 clock_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
-	MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-		     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
-	if (nrecv*size_border > maxrecv) 
-	  grow_recv(nrecv*size_border);
-	MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
-		  recvproc[iswap],0,world,&request);
-	MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-	MPI_Wait(&request,&status);
-	buf = buf_recv;
+        MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+        if (nrecv*size_border > maxrecv)
+          grow_recv(nrecv*size_border);
+        MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Wait(&request,&status);
+        buf = buf_recv;
       } else {
-	nrecv = nsend;
-	buf = buf_send;
+        nrecv = nsend;
+        buf = buf_send;
       }
 
 clock_gettime(CLOCK_REALTIME,&time2);
@@ -1125,9 +1125,9 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
       // unpack buffer
 
       if (ghost_velocity)
-	avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       else
-	avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
+        avec->unpack_border(nrecv,atom->nlocal+atom->nghost,buf);
 
       // set all pointers & counters
 
@@ -1152,14 +1152,14 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
   if (max > maxrecv) grow_recv(max);
 
   // reset global->local map
-  if(map_style) 
+  if(map_style)
   {
-  	cuda->cu_tag->download();
- 	atom->map_set();
+          cuda->cu_tag->download();
+         atom->map_set();
   }
-  
+
   cuda->setSystemParams();
-  cuda->shared_data.atom.nghost+=n;  
+  cuda->shared_data.atom.nghost+=n;
 }
 
 
@@ -1176,27 +1176,27 @@ void CommCuda::forward_comm_fix(Fix *fix)
     // pack buffer
     if(fix->cudable_comm&&cuda->finished_setup)
     {
-    	int swap=iswap;
+            int swap=iswap;
         if(sendproc[iswap] == me) {swap=-iswap-1; buf=(double*)&(firstrecv[iswap]);}
         else buf=buf_send;
-        
+
         n = fix->pack_comm(sendnum[iswap],&swap,
                         buf,pbc_flag[iswap],pbc[iswap]);
-        if(sendproc[iswap] == me) 
+        if(sendproc[iswap] == me)
         {
-        	continue;
+                continue;
         }
     }
     else
     n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-		       buf_send,pbc_flag[iswap],pbc[iswap]);
+                       buf_send,pbc_flag[iswap],pbc[iswap]);
 
      // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-		world,&request);
+                world,&request);
       MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       MPI_Wait(&request,&status);
       buf = buf_recv;
@@ -1221,13 +1221,13 @@ void CommCuda::grow_send(int n, int flag)
       if(buf_send) CudaWrapper_FreePinnedHostData((void*) (buf_send));
       buf_send = (double*) CudaWrapper_AllocPinnedHostData((maxsend+BUFEXTRA)*sizeof(double),false);
       memcpy(buf_send,tmp,oldmaxsend*sizeof(double));
-      delete [] tmp;	        	
+      delete [] tmp;
     }
     else
     {
-    buf_send = (double *) 
+    buf_send = (double *)
       memory->srealloc(buf_send,(maxsend+BUFEXTRA)*sizeof(double),
-		       "comm:buf_send");printf("srealloc\n"); 
+                       "comm:buf_send");printf("srealloc\n");
     }
   }
   else {
@@ -1240,7 +1240,7 @@ void CommCuda::grow_send(int n, int flag)
     {
       memory->sfree(buf_send);
       buf_send = (double *) memory->smalloc((maxsend+BUFEXTRA)*sizeof(double),
-					  "comm:buf_send");
+                                          "comm:buf_send");
     }
     for(int i=0;i<maxswap;i++)
     {
@@ -1250,7 +1250,7 @@ void CommCuda::grow_send(int n, int flag)
   }
 }
 /* ----------------------------------------------------------------------
-   free/malloc the size of the recv buffer as needed with BUFFACTOR 
+   free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
 
@@ -1267,7 +1267,7 @@ void CommCuda::grow_recv(int n)
   {
     memory->sfree(buf_recv);
     buf_recv = (double *) memory->smalloc(maxrecv*sizeof(double),
-					"comm:buf_recv");
+                                        "comm:buf_recv");
   }
   for(int i=0;i<maxswap;i++)
   {
@@ -1277,33 +1277,33 @@ void CommCuda::grow_recv(int n)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the iswap sendlist as needed with BUFFACTOR 
+   realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void CommCuda::grow_list(int iswap, int n)
 {
-  
+
   MYDBG(printf(" # CUDA CommCuda::grow_list\n");)
   if(cuda->finished_setup&&cu_sendlist) cu_sendlist->download();
   if(!cu_sendlist||n*BUFFACTOR>cu_sendlist->get_dim()[1]||n*BUFFACTOR>maxsendlist[iswap])
   {
-  	for(int i=0;i<maxswap;i++)
-  	{
-  	  maxsendlist[i] = static_cast<int> (BUFFACTOR * n);
-  	  sendlist[i] = (int *) 
-    		memory->srealloc(sendlist[i],maxsendlist[i]*sizeof(int),
-		     		"comm:sendlist[iswap]");
-  	}
-  	delete cu_sendlist;
-  	cu_sendlist=new cCudaData<int, int, xy> ((int*)sendlist,maxswap,maxsendlist[iswap]);
-  	cuda->shared_data.comm.sendlist.dev_data=cu_sendlist->dev_data();
+          for(int i=0;i<maxswap;i++)
+          {
+            maxsendlist[i] = static_cast<int> (BUFFACTOR * n);
+            sendlist[i] = (int *)
+                    memory->srealloc(sendlist[i],maxsendlist[i]*sizeof(int),
+                                     "comm:sendlist[iswap]");
+          }
+          delete cu_sendlist;
+          cu_sendlist=new cCudaData<int, int, xy> ((int*)sendlist,maxswap,maxsendlist[iswap]);
+          cuda->shared_data.comm.sendlist.dev_data=cu_sendlist->dev_data();
     cuda->shared_data.comm.maxlistlength=maxsendlist[iswap];
     cu_sendlist->upload();
   }
  }
 
 /* ----------------------------------------------------------------------
-   realloc the buffers needed for swaps 
+   realloc the buffers needed for swaps
 ------------------------------------------------------------------------- */
 
 void CommCuda::grow_swap(int n)
@@ -1313,22 +1313,22 @@ void CommCuda::grow_swap(int n)
   if(n>cu_sendlist->get_dim()[0])
   {
    MYDBG(printf(" # CUDA CommCuda::grow_swap\n");)
-    
-  	delete cu_sendlist;
-  	cu_sendlist=new cCudaData<int, int, xy> ((int*)sendlist,n,BUFMIN);
-  	cuda->shared_data.comm.sendlist.dev_data=cu_sendlist->dev_data();
+
+          delete cu_sendlist;
+          cu_sendlist=new cCudaData<int, int, xy> ((int*)sendlist,n,BUFMIN);
+          cuda->shared_data.comm.sendlist.dev_data=cu_sendlist->dev_data();
     cuda->shared_data.comm.maxlistlength=BUFMIN;
     cuda->shared_data.comm.maxswap=n;
     cuda->shared_data.comm.nsend_swap=new int[n];
     cuda->shared_data.comm.send_size=new int[n];
-    cuda->shared_data.comm.recv_size=new int[n]; 
+    cuda->shared_data.comm.recv_size=new int[n];
   }
   for(int i=0;i<oldmaxswap;i++)
   {
     if(cuda->shared_data.comm.buf_recv_dev[i]) CudaWrapper_FreeCudaData(cuda->shared_data.comm.buf_recv_dev[i],maxrecv*sizeof(double));
     if(cuda->shared_data.comm.buf_send_dev[i]) CudaWrapper_FreeCudaData(cuda->shared_data.comm.buf_send_dev[i],maxsend*sizeof(double));
     cuda->shared_data.comm.buf_recv_dev[i]=NULL;
-    cuda->shared_data.comm.buf_send_dev[i]=NULL;    
+    cuda->shared_data.comm.buf_send_dev[i]=NULL;
   }
   cuda->shared_data.comm.buf_send= new double*[n];
   cuda->shared_data.comm.buf_recv= new double*[n];
@@ -1337,9 +1337,9 @@ void CommCuda::grow_swap(int n)
   for(int i=0;i<n;i++)
   {
     cuda->shared_data.comm.buf_recv[i]=NULL;
-    cuda->shared_data.comm.buf_send[i]=NULL;      	
+    cuda->shared_data.comm.buf_send[i]=NULL;
     cuda->shared_data.comm.buf_recv_dev[i]=NULL;
-    cuda->shared_data.comm.buf_send_dev[i]=NULL;      	
+    cuda->shared_data.comm.buf_send_dev[i]=NULL;
   }
   grow_send(maxsend,0);
   grow_recv(maxrecv);
@@ -1348,28 +1348,28 @@ void CommCuda::grow_swap(int n)
 }
 
 /* ----------------------------------------------------------------------
-   allocation of swap info 
+   allocation of swap info
 ------------------------------------------------------------------------- */
 
 void CommCuda::allocate_swap(int n)
 {
    Comm::allocate_swap(n);
-   
-  	delete cu_pbc;
-  	delete cu_slablo;
-  	delete cu_slabhi;
-  
+
+          delete cu_pbc;
+          delete cu_slablo;
+          delete cu_slabhi;
+
     cuda->shared_data.comm.maxswap=n;
-  	if(cu_sendlist)
-  	{
-  	  cu_pbc=new cCudaData<int, int, xy> ((int*)pbc,n,6);
-  	  cu_slablo = new cCudaData<double, X_FLOAT,x>(slablo,n);
-  	  cu_slabhi = new cCudaData<double, X_FLOAT,x>(slabhi,n);
-  	
-  	  cuda->shared_data.comm.pbc.dev_data=cu_pbc->dev_data();
-  	  cuda->shared_data.comm.slablo.dev_data=cu_slablo->dev_data();
-  	  cuda->shared_data.comm.slabhi.dev_data=cu_slabhi->dev_data();
-  	}
+          if(cu_sendlist)
+          {
+            cu_pbc=new cCudaData<int, int, xy> ((int*)pbc,n,6);
+            cu_slablo = new cCudaData<double, X_FLOAT,x>(slablo,n);
+            cu_slabhi = new cCudaData<double, X_FLOAT,x>(slabhi,n);
+
+            cuda->shared_data.comm.pbc.dev_data=cu_pbc->dev_data();
+            cuda->shared_data.comm.slablo.dev_data=cu_slablo->dev_data();
+            cuda->shared_data.comm.slabhi.dev_data=cu_slabhi->dev_data();
+          }
     cuda->shared_data.comm.nsend_swap=new int[n];
     cuda->shared_data.comm.send_size=new int[n];
     cuda->shared_data.comm.recv_size=new int[n];
@@ -1390,17 +1390,17 @@ void CommCuda::allocate_multi(int n)
 {
   Comm::allocate_multi(n);
 
-  	delete cu_multilo;
-  	delete cu_multihi;
-  	cu_multilo = new cCudaData<double, X_FLOAT,xy>(slablo,n,atom->ntypes+1);
-  	cu_multihi = new cCudaData<double, X_FLOAT,xy>(slabhi,n,atom->ntypes+1);
-  	
-  	cuda->shared_data.comm.multilo.dev_data=cu_multilo->dev_data();
-  	cuda->shared_data.comm.multihi.dev_data=cu_multihi->dev_data();
+          delete cu_multilo;
+          delete cu_multihi;
+          cu_multilo = new cCudaData<double, X_FLOAT,xy>(slablo,n,atom->ntypes+1);
+          cu_multihi = new cCudaData<double, X_FLOAT,xy>(slabhi,n,atom->ntypes+1);
+
+          cuda->shared_data.comm.multilo.dev_data=cu_multilo->dev_data();
+          cuda->shared_data.comm.multihi.dev_data=cu_multihi->dev_data();
 }
 
 /* ----------------------------------------------------------------------
-   free memory for swaps 
+   free memory for swaps
 ------------------------------------------------------------------------- */
 
 void CommCuda::free_swap()
@@ -1417,7 +1417,7 @@ void CommCuda::free_swap()
     if(cuda->shared_data.comm.buf_recv_dev[i]) CudaWrapper_FreeCudaData(cuda->shared_data.comm.buf_recv_dev[i],maxrecv*sizeof(double));
     if(cuda->shared_data.comm.buf_send_dev[i]) CudaWrapper_FreeCudaData(cuda->shared_data.comm.buf_send_dev[i],maxsend*sizeof(double));
   }
-  
+
 
 }
 
@@ -1431,4 +1431,3 @@ void CommCuda::free_multi()
   delete cu_multilo; cu_multilo = NULL;
   delete cu_multihi; cu_multihi = NULL;
 }
-

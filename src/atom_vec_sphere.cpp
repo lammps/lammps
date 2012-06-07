@@ -49,7 +49,7 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp, int narg, char **arg) :
   xcol_data = 5;
 
   atom->sphere_flag = 1;
-  atom->radius_flag = atom->rmass_flag = atom->omega_flag = 
+  atom->radius_flag = atom->rmass_flag = atom->omega_flag =
     atom->torque_flag = 1;
 }
 
@@ -70,7 +70,7 @@ void AtomVecSphere::init()
       FixAdapt *fix = (FixAdapt *) modify->fix[i];
       if (fix->diamflag) {
         radvary = 1;
-	comm_x_only = 0;
+        comm_x_only = 0;
         size_forward = 5;
       }
     }
@@ -152,7 +152,7 @@ void AtomVecSphere::copy(int i, int j, int delflag)
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_comm(int n, int *list, double *buf,
-			       int pbc_flag, int *pbc)
+                               int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -161,26 +161,26 @@ int AtomVecSphere::pack_comm(int n, int *list, double *buf,
     m = 0;
     if (pbc_flag == 0) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0];
-	buf[m++] = x[j][1];
-	buf[m++] = x[j][2];
+        j = list[i];
+        buf[m++] = x[j][0];
+        buf[m++] = x[j][1];
+        buf[m++] = x[j][2];
       }
     } else {
       if (domain->triclinic == 0) {
-	dx = pbc[0]*domain->xprd;
-	dy = pbc[1]*domain->yprd;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd;
+        dy = pbc[1]*domain->yprd;
+        dz = pbc[2]*domain->zprd;
       } else {
-	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+        dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+        dz = pbc[2]*domain->zprd;
       }
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0] + dx;
-	buf[m++] = x[j][1] + dy;
-	buf[m++] = x[j][2] + dz;
+        j = list[i];
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        buf[m++] = x[j][2] + dz;
       }
     }
 
@@ -188,30 +188,30 @@ int AtomVecSphere::pack_comm(int n, int *list, double *buf,
     m = 0;
     if (pbc_flag == 0) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0];
-	buf[m++] = x[j][1];
-	buf[m++] = x[j][2];
-	buf[m++] = radius[j];
-	buf[m++] = rmass[j];
+        j = list[i];
+        buf[m++] = x[j][0];
+        buf[m++] = x[j][1];
+        buf[m++] = x[j][2];
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
       }
     } else {
       if (domain->triclinic == 0) {
-	dx = pbc[0]*domain->xprd;
-	dy = pbc[1]*domain->yprd;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd;
+        dy = pbc[1]*domain->yprd;
+        dz = pbc[2]*domain->zprd;
       } else {
-	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+        dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+        dz = pbc[2]*domain->zprd;
       }
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0] + dx;
-	buf[m++] = x[j][1] + dy;
-	buf[m++] = x[j][2] + dz;
-	buf[m++] = radius[j];
-	buf[m++] = rmass[j];
+        j = list[i];
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        buf[m++] = x[j][2] + dz;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
       }
     }
   }
@@ -222,7 +222,7 @@ int AtomVecSphere::pack_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_comm_vel(int n, int *list, double *buf,
-				   int pbc_flag, int *pbc)
+                                   int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -231,62 +231,62 @@ int AtomVecSphere::pack_comm_vel(int n, int *list, double *buf,
     m = 0;
     if (pbc_flag == 0) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0];
-	buf[m++] = x[j][1];
-	buf[m++] = x[j][2];
-	buf[m++] = v[j][0];
-	buf[m++] = v[j][1];
-	buf[m++] = v[j][2];
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
+        j = list[i];
+        buf[m++] = x[j][0];
+        buf[m++] = x[j][1];
+        buf[m++] = x[j][2];
+        buf[m++] = v[j][0];
+        buf[m++] = v[j][1];
+        buf[m++] = v[j][2];
+        buf[m++] = omega[j][0];
+        buf[m++] = omega[j][1];
+        buf[m++] = omega[j][2];
       }
     } else {
       if (domain->triclinic == 0) {
-	dx = pbc[0]*domain->xprd;
-	dy = pbc[1]*domain->yprd;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd;
+        dy = pbc[1]*domain->yprd;
+        dz = pbc[2]*domain->zprd;
       } else {
-	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+        dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+        dz = pbc[2]*domain->zprd;
       }
       if (!deform_vremap) {
-	for (i = 0; i < n; i++) {
-	  j = list[i];
-	  buf[m++] = x[j][0] + dx;
-	  buf[m++] = x[j][1] + dy;
-	  buf[m++] = x[j][2] + dz;
-	  buf[m++] = v[j][0];
-	  buf[m++] = v[j][1];
-	  buf[m++] = v[j][2];
-	  buf[m++] = omega[j][0];
-	  buf[m++] = omega[j][1];
-	  buf[m++] = omega[j][2];
-	}
+        for (i = 0; i < n; i++) {
+          j = list[i];
+          buf[m++] = x[j][0] + dx;
+          buf[m++] = x[j][1] + dy;
+          buf[m++] = x[j][2] + dz;
+          buf[m++] = v[j][0];
+          buf[m++] = v[j][1];
+          buf[m++] = v[j][2];
+          buf[m++] = omega[j][0];
+          buf[m++] = omega[j][1];
+          buf[m++] = omega[j][2];
+        }
       } else {
-	dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-	dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-	dvz = pbc[2]*h_rate[2];
-	for (i = 0; i < n; i++) {
-	  j = list[i];
-	  buf[m++] = x[j][0] + dx;
-	  buf[m++] = x[j][1] + dy;
-	  buf[m++] = x[j][2] + dz;
-	  if (mask[i] & deform_groupbit) {
-	    buf[m++] = v[j][0] + dvx;
-	    buf[m++] = v[j][1] + dvy;
-	    buf[m++] = v[j][2] + dvz;
-	  } else {
-	    buf[m++] = v[j][0];
-	    buf[m++] = v[j][1];
-	    buf[m++] = v[j][2];
-	  }
-	  buf[m++] = omega[j][0];
-	  buf[m++] = omega[j][1];
-	  buf[m++] = omega[j][2];
-	}
+        dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+        dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+        dvz = pbc[2]*h_rate[2];
+        for (i = 0; i < n; i++) {
+          j = list[i];
+          buf[m++] = x[j][0] + dx;
+          buf[m++] = x[j][1] + dy;
+          buf[m++] = x[j][2] + dz;
+          if (mask[i] & deform_groupbit) {
+            buf[m++] = v[j][0] + dvx;
+            buf[m++] = v[j][1] + dvy;
+            buf[m++] = v[j][2] + dvz;
+          } else {
+            buf[m++] = v[j][0];
+            buf[m++] = v[j][1];
+            buf[m++] = v[j][2];
+          }
+          buf[m++] = omega[j][0];
+          buf[m++] = omega[j][1];
+          buf[m++] = omega[j][2];
+        }
       }
     }
 
@@ -294,68 +294,68 @@ int AtomVecSphere::pack_comm_vel(int n, int *list, double *buf,
     m = 0;
     if (pbc_flag == 0) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0];
-	buf[m++] = x[j][1];
-	buf[m++] = x[j][2];
-	buf[m++] = radius[j];
-	buf[m++] = rmass[j];
-	buf[m++] = v[j][0];
-	buf[m++] = v[j][1];
-	buf[m++] = v[j][2];
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
+        j = list[i];
+        buf[m++] = x[j][0];
+        buf[m++] = x[j][1];
+        buf[m++] = x[j][2];
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
+        buf[m++] = v[j][0];
+        buf[m++] = v[j][1];
+        buf[m++] = v[j][2];
+        buf[m++] = omega[j][0];
+        buf[m++] = omega[j][1];
+        buf[m++] = omega[j][2];
       }
     } else {
       if (domain->triclinic == 0) {
-	dx = pbc[0]*domain->xprd;
-	dy = pbc[1]*domain->yprd;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd;
+        dy = pbc[1]*domain->yprd;
+        dz = pbc[2]*domain->zprd;
       } else {
-	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+        dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+        dz = pbc[2]*domain->zprd;
       }
       if (!deform_vremap) {
-	for (i = 0; i < n; i++) {
-	  j = list[i];
-	  buf[m++] = x[j][0] + dx;
-	  buf[m++] = x[j][1] + dy;
-	  buf[m++] = x[j][2] + dz;
-	  buf[m++] = radius[j];
-	  buf[m++] = rmass[j];
-	  buf[m++] = v[j][0];
-	  buf[m++] = v[j][1];
-	  buf[m++] = v[j][2];
-	  buf[m++] = omega[j][0];
-	  buf[m++] = omega[j][1];
-	  buf[m++] = omega[j][2];
-	}
+        for (i = 0; i < n; i++) {
+          j = list[i];
+          buf[m++] = x[j][0] + dx;
+          buf[m++] = x[j][1] + dy;
+          buf[m++] = x[j][2] + dz;
+          buf[m++] = radius[j];
+          buf[m++] = rmass[j];
+          buf[m++] = v[j][0];
+          buf[m++] = v[j][1];
+          buf[m++] = v[j][2];
+          buf[m++] = omega[j][0];
+          buf[m++] = omega[j][1];
+          buf[m++] = omega[j][2];
+        }
       } else {
-	dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-	dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-	dvz = pbc[2]*h_rate[2];
-	for (i = 0; i < n; i++) {
-	  j = list[i];
-	  buf[m++] = x[j][0] + dx;
-	  buf[m++] = x[j][1] + dy;
-	  buf[m++] = x[j][2] + dz;
-	  buf[m++] = radius[j];
-	  buf[m++] = rmass[j];
-	  if (mask[i] & deform_groupbit) {
-	    buf[m++] = v[j][0] + dvx;
-	    buf[m++] = v[j][1] + dvy;
-	    buf[m++] = v[j][2] + dvz;
-	  } else {
-	    buf[m++] = v[j][0];
-	    buf[m++] = v[j][1];
-	    buf[m++] = v[j][2];
-	  }
-	  buf[m++] = omega[j][0];
-	  buf[m++] = omega[j][1];
-	  buf[m++] = omega[j][2];
-	}
+        dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
+        dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
+        dvz = pbc[2]*h_rate[2];
+        for (i = 0; i < n; i++) {
+          j = list[i];
+          buf[m++] = x[j][0] + dx;
+          buf[m++] = x[j][1] + dy;
+          buf[m++] = x[j][2] + dz;
+          buf[m++] = radius[j];
+          buf[m++] = rmass[j];
+          if (mask[i] & deform_groupbit) {
+            buf[m++] = v[j][0] + dvx;
+            buf[m++] = v[j][1] + dvy;
+            buf[m++] = v[j][2] + dvz;
+          } else {
+            buf[m++] = v[j][0];
+            buf[m++] = v[j][1];
+            buf[m++] = v[j][2];
+          }
+          buf[m++] = omega[j][0];
+          buf[m++] = omega[j][1];
+          buf[m++] = omega[j][2];
+        }
       }
     }
   }
@@ -535,7 +535,7 @@ int AtomVecSphere::unpack_reverse_hybrid(int n, int *list, double *buf)
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_border(int n, int *list, double *buf,
-				 int pbc_flag, int *pbc)
+                                 int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -581,7 +581,7 @@ int AtomVecSphere::pack_border(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_border_vel(int n, int *list, double *buf,
-				     int pbc_flag, int *pbc)
+                                     int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
@@ -617,48 +617,48 @@ int AtomVecSphere::pack_border_vel(int n, int *list, double *buf,
     }
     if (!deform_vremap) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0] + dx;
-	buf[m++] = x[j][1] + dy;
-	buf[m++] = x[j][2] + dz;
-	buf[m++] = tag[j];
-	buf[m++] = type[j];
-	buf[m++] = mask[j];
-	buf[m++] = radius[j];
-	buf[m++] = rmass[j];
-	buf[m++] = v[j][0];
-	buf[m++] = v[j][1];
-	buf[m++] = v[j][2];
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
+        j = list[i];
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        buf[m++] = x[j][2] + dz;
+        buf[m++] = tag[j];
+        buf[m++] = type[j];
+        buf[m++] = mask[j];
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
+        buf[m++] = v[j][0];
+        buf[m++] = v[j][1];
+        buf[m++] = v[j][2];
+        buf[m++] = omega[j][0];
+        buf[m++] = omega[j][1];
+        buf[m++] = omega[j][2];
       }
     } else {
       dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
       dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
       dvz = pbc[2]*h_rate[2];
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0] + dx;
-	buf[m++] = x[j][1] + dy;
-	buf[m++] = x[j][2] + dz;
-	buf[m++] = tag[j];
-	buf[m++] = type[j];
-	buf[m++] = mask[j];
-	buf[m++] = radius[j];
-	buf[m++] = rmass[j];
-	if (mask[i] & deform_groupbit) {
-	  buf[m++] = v[j][0] + dvx;
-	  buf[m++] = v[j][1] + dvy;
-	  buf[m++] = v[j][2] + dvz;
-	} else {
-	  buf[m++] = v[j][0];
-	  buf[m++] = v[j][1];
-	  buf[m++] = v[j][2];
-	}
-	buf[m++] = omega[j][0];
-	buf[m++] = omega[j][1];
-	buf[m++] = omega[j][2];
+        j = list[i];
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        buf[m++] = x[j][2] + dz;
+        buf[m++] = tag[j];
+        buf[m++] = type[j];
+        buf[m++] = mask[j];
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
+        if (mask[i] & deform_groupbit) {
+          buf[m++] = v[j][0] + dvx;
+          buf[m++] = v[j][1] + dvy;
+          buf[m++] = v[j][2] + dvz;
+        } else {
+          buf[m++] = v[j][0];
+          buf[m++] = v[j][1];
+          buf[m++] = v[j][2];
+        }
+        buf[m++] = omega[j][0];
+        buf[m++] = omega[j][1];
+        buf[m++] = omega[j][2];
       }
     }
   }
@@ -746,7 +746,7 @@ int AtomVecSphere::unpack_border_hybrid(int n, int first, double *buf)
 
 /* ----------------------------------------------------------------------
    pack data for atom I for sending to another proc
-   xyz must be 1st 3 values, so comm::exchange() can test on them 
+   xyz must be 1st 3 values, so comm::exchange() can test on them
 ------------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_exchange(int i, double *buf)
@@ -770,7 +770,7 @@ int AtomVecSphere::pack_exchange(int i, double *buf)
   buf[m++] = omega[i][2];
 
   if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i,&buf[m]);
 
   buf[0] = m;
@@ -803,9 +803,9 @@ int AtomVecSphere::unpack_exchange(double *buf)
   omega[nlocal][2] = buf[m++];
 
   if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       m += modify->fix[atom->extra_grow[iextra]]->
-	unpack_exchange(nlocal,&buf[m]);
+        unpack_exchange(nlocal,&buf[m]);
 
   atom->nlocal++;
   return m;
@@ -824,9 +824,9 @@ int AtomVecSphere::size_restart()
   int n = 16 * nlocal;
 
   if (atom->nextra_restart)
-    for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
       for (i = 0; i < nlocal; i++)
-	n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
+        n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
 
   return n;
 }
@@ -834,7 +834,7 @@ int AtomVecSphere::size_restart()
 /* ----------------------------------------------------------------------
    pack atom I's data for restart file including extra quantities
    xyz must be 1st 3 values, so that read_restart can test on them
-   molecular types may be negative, but write as positive   
+   molecular types may be negative, but write as positive
 ------------------------------------------------------------------------- */
 
 int AtomVecSphere::pack_restart(int i, double *buf)
@@ -858,7 +858,7 @@ int AtomVecSphere::pack_restart(int i, double *buf)
   buf[m++] = omega[i][2];
 
   if (atom->nextra_restart)
-    for (int iextra = 0; iextra < atom->nextra_restart; iextra++) 
+    for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
       m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i,&buf[m]);
 
   buf[0] = m;
@@ -963,7 +963,7 @@ void AtomVecSphere::data_atom(double *coord, int imagetmp, char **values)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
   if (radius[nlocal] == 0.0) rmass[nlocal] = density;
-  else 
+  else
     rmass[nlocal] = 4.0*MY_PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density;
 
@@ -1000,7 +1000,7 @@ int AtomVecSphere::data_atom_hybrid(int nlocal, char **values)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 
   if (radius[nlocal] == 0.0) rmass[nlocal] = density;
-  else 
+  else
     rmass[nlocal] = 4.0*MY_PI/3.0 *
       radius[nlocal]*radius[nlocal]*radius[nlocal] * density;
 
@@ -1034,7 +1034,7 @@ int AtomVecSphere::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   return # of bytes of allocated memory 
+   return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
 bigint AtomVecSphere::memory_usage()

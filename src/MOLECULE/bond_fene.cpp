@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -87,7 +87,7 @@ void BondFENE::compute(int eflag, int vflag)
     if (rlogarg < 0.1) {
       char str[128];
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %d %d %g",
-	      update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
+              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(FLERR,str,0);
       if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
@@ -108,7 +108,7 @@ void BondFENE::compute(int eflag, int vflag)
     if (eflag) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
       if (rsq < TWO_1_3*sigma[type]*sigma[type])
-	ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
+        ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 
     // apply force to each of 2 atoms
@@ -244,7 +244,7 @@ double BondFENE::single(int type, double rsq, int i, int j)
   if (rlogarg < 0.1) {
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
-	    update->ntimestep,sqrt(rsq));
+            update->ntimestep,sqrt(rsq));
     error->warning(FLERR,str,0);
     if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
     rlogarg = 0.1;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,7 +59,7 @@ void PairBeck::compute(int eflag, int vflag)
   double aaij,alphaij,betaij;
   double term1,term1inv,term2,term3,term4,term5,term6;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -70,12 +70,12 @@ void PairBeck::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -97,10 +97,10 @@ void PairBeck::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-        r5 = rsq*rsq*r; 
+        r5 = rsq*rsq*r;
         aaij = aa[itype][jtype];
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
@@ -108,31 +108,31 @@ void PairBeck::compute(int eflag, int vflag)
         term2 = 1.0/pow(term1,5.0);
         term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
         term4 = alphaij + r5*betaij;
-        term5 = alphaij + 6.0*r5*betaij; 
+        term5 = alphaij + 6.0*r5*betaij;
         rinv  = 1.0/r;
-	force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
-        force_beck -= BB[itype][jtype]*r*term2*term3; 
- 
-	fpair = factor_lj*force_beck*rinv;
-        
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
-	
-	if (eflag) {
+        force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
+        force_beck -= BB[itype][jtype]*r*term2*term3;
+
+        fpair = factor_lj*force_beck*rinv;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) {
           term6 = 1.0/pow(term1,3.0);
           term1inv = 1.0/term1;
           evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
           evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
-	}
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -141,7 +141,7 @@ void PairBeck::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairBeck::allocate()
@@ -165,7 +165,7 @@ void PairBeck::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairBeck::settings(int narg, char **arg)
@@ -180,9 +180,9 @@ void PairBeck::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) {
-	  cut[i][j] = cut_global; 
-	}
+        if (setflag[i][j]) {
+          cut[i][j] = cut_global;
+        }
   }
 }
 
@@ -205,7 +205,7 @@ void PairBeck::coeff(int narg, char **arg)
   double aa_one = atof(arg[4]);
   double alpha_one = atof(arg[5]);
   double beta_one = atof(arg[6]);
-  
+
   double cut_one = cut_global;
   if (narg == 8) cut_one = atof(arg[7]);
 
@@ -245,7 +245,7 @@ double PairBeck::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairBeck::write_restart(FILE *fp)
@@ -257,12 +257,12 @@ void PairBeck::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&AA[i][j],sizeof(double),1,fp);
-	fwrite(&BB[i][j],sizeof(double),1,fp);
-	fwrite(&aa[i][j],sizeof(double),1,fp);
-	fwrite(&alpha[i][j],sizeof(double),1,fp);
-	fwrite(&beta[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&AA[i][j],sizeof(double),1,fp);
+        fwrite(&BB[i][j],sizeof(double),1,fp);
+        fwrite(&aa[i][j],sizeof(double),1,fp);
+        fwrite(&alpha[i][j],sizeof(double),1,fp);
+        fwrite(&beta[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -283,20 +283,20 @@ void PairBeck::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&AA[i][j],sizeof(double),1,fp);
-	  fread(&BB[i][j],sizeof(double),1,fp);
-	  fread(&aa[i][j],sizeof(double),1,fp);
-	  fread(&alpha[i][j],sizeof(double),1,fp);
-	  fread(&beta[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&AA[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&BB[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&aa[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&beta[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&AA[i][j],sizeof(double),1,fp);
+          fread(&BB[i][j],sizeof(double),1,fp);
+          fread(&aa[i][j],sizeof(double),1,fp);
+          fread(&alpha[i][j],sizeof(double),1,fp);
+          fread(&beta[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&AA[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&BB[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&aa[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&beta[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -328,10 +328,10 @@ void PairBeck::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBeck::single(int i, int j, int itype, int jtype, 
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  double &fforce)
+double PairBeck::single(int i, int j, int itype, int jtype,
+                                  double rsq,
+                                  double factor_coul, double factor_lj,
+                                  double &fforce)
 {
   double phi_beck,r,rinv;
   double r5,force_beck;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -110,8 +110,8 @@ void ComputeDamageAtom::compute_peratom()
         j = atom->map(partner[i][jj]);
         if (j < 0) continue;
 
-        damage_temp += vfrac[j];       
-      }  
+        damage_temp += vfrac[j];
+      }
     }
     else damage_temp = vinter[i];
 

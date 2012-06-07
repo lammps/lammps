@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,7 +45,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
-  
+
   // set timestep here since dt may have changed or come via rRESPA
   const double dtfrotate = dtf / INERTIA;
 
@@ -63,7 +63,7 @@ void FixNVESphereOMP::initial_integrate(int vflag)
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
-      
+
       const double dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];
@@ -80,19 +80,19 @@ void FixNVESphereOMP::initial_integrate(int vflag)
 #if defined(_OPENMP)
 #pragma omp parallel for private(i) default(none)
 #endif
-    for (i = 0; i < nlocal; i++) { 
+    for (i = 0; i < nlocal; i++) {
       double g0,g1,g2,msq,scale;
       if (mask[i] & groupbit) {
-	if (mu[i][3] > 0.0) {
-	  g0 = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
-	  g1 = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
-	  g2 = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
-	  msq = g0*g0 + g1*g1 + g2*g2;
-	  scale = mu[i][3]/sqrt(msq);
-	  mu[i][0] = g0*scale;
-	  mu[i][1] = g1*scale;
-	  mu[i][2] = g2*scale;
-	}
+        if (mu[i][3] > 0.0) {
+          g0 = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
+          g1 = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
+          g2 = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
+          msq = g0*g0 + g1*g1 + g2*g2;
+          scale = mu[i][3]/sqrt(msq);
+          mu[i][0] = g0*scale;
+          mu[i][1] = g1*scale;
+          mu[i][2] = g2*scale;
+        }
       }
     }
   }
@@ -111,7 +111,7 @@ void FixNVESphereOMP::final_integrate()
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
-  
+
   // set timestep here since dt may have changed or come via rRESPA
 
   const double dtfrotate = dtf / INERTIA;
@@ -128,7 +128,7 @@ void FixNVESphereOMP::final_integrate()
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
-      
+
       const double dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];

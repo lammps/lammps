@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -56,13 +56,13 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     for (int ilist = 0; ilist < nregion; ilist++) {
       if (regions[list[ilist]]->bboxflag == 0) continue;
       if (first) {
-	extent_xlo = regions[list[ilist]]->extent_xlo;
-	extent_ylo = regions[list[ilist]]->extent_ylo;
-	extent_zlo = regions[list[ilist]]->extent_zlo;
-	extent_xhi = regions[list[ilist]]->extent_xhi;
-	extent_yhi = regions[list[ilist]]->extent_yhi;
-	extent_zhi = regions[list[ilist]]->extent_zhi;
-	first = 0;
+        extent_xlo = regions[list[ilist]]->extent_xlo;
+        extent_ylo = regions[list[ilist]]->extent_ylo;
+        extent_zlo = regions[list[ilist]]->extent_zlo;
+        extent_xhi = regions[list[ilist]]->extent_xhi;
+        extent_yhi = regions[list[ilist]]->extent_yhi;
+        extent_zhi = regions[list[ilist]]->extent_zhi;
+        first = 0;
       }
 
       extent_xlo = MAX(extent_xlo,regions[list[ilist]]->extent_xlo);
@@ -141,20 +141,20 @@ int RegIntersect::surface_interior(double *x, double cutoff)
       ys = x[1] - regions[iregion]->contact[m].dely;
       zs = x[2] - regions[iregion]->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
-	if (jlist == ilist) continue;
-	jregion = list[jlist];
-	if (!regions[jregion]->match(xs,ys,zs)) break;
+        if (jlist == ilist) continue;
+        jregion = list[jlist];
+        if (!regions[jregion]->match(xs,ys,zs)) break;
       }
       if (jlist == nregion) {
-	contact[n].r = regions[iregion]->contact[m].r;
-	contact[n].delx = regions[iregion]->contact[m].delx;
-	contact[n].dely = regions[iregion]->contact[m].dely;
-	contact[n].delz = regions[iregion]->contact[m].delz;
-	n++;
+        contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].delx = regions[iregion]->contact[m].delx;
+        contact[n].dely = regions[iregion]->contact[m].dely;
+        contact[n].delz = regions[iregion]->contact[m].delz;
+        n++;
       }
     }
   }
-  
+
   return n;
 }
 
@@ -186,22 +186,22 @@ int RegIntersect::surface_exterior(double *x, double cutoff)
       ys = x[1] - regions[iregion]->contact[m].dely;
       zs = x[2] - regions[iregion]->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
-	if (jlist == ilist) continue;
-	jregion = list[jlist];
-	if (regions[jregion]->match(xs,ys,zs)) break;
+        if (jlist == ilist) continue;
+        jregion = list[jlist];
+        if (regions[jregion]->match(xs,ys,zs)) break;
       }
       if (jlist == nregion) {
-	contact[n].r = regions[iregion]->contact[m].r;
-	contact[n].delx = regions[iregion]->contact[m].delx;
-	contact[n].dely = regions[iregion]->contact[m].dely;
-	contact[n].delz = regions[iregion]->contact[m].delz;
-	n++;
+        contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].delx = regions[iregion]->contact[m].delx;
+        contact[n].dely = regions[iregion]->contact[m].dely;
+        contact[n].delz = regions[iregion]->contact[m].delz;
+        n++;
       }
     }
   }
 
   for (ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->interior ^= 1;
-  
+
   return n;
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -116,10 +116,10 @@ void AngleClass2::compute(int eflag, int vflag)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
-        
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-        
+
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
     s = 1.0/s;
@@ -131,14 +131,14 @@ void AngleClass2::compute(int eflag, int vflag)
     dtheta3 = dtheta2*dtheta;
     dtheta4 = dtheta3*dtheta;
 
-    de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 + 
+    de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 +
       4.0*k4[type]*dtheta3;
 
     a = -de_angle*s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-        
+
     f1[0] = a11*delx1 + a12*delx2;
     f1[1] = a11*dely1 + a12*dely2;
     f1[2] = a11*delz1 + a12*delz2;
@@ -227,7 +227,7 @@ void AngleClass2::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+                         delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 
@@ -283,7 +283,7 @@ void AngleClass2::coeff(int narg, char **arg)
     double bb_k_one = force->numeric(arg[2]);
     double bb_r1_one = force->numeric(arg[3]);
     double bb_r2_one = force->numeric(arg[4]);
-    
+
     for (int i = ilo; i <= ihi; i++) {
       bb_k[i] = bb_k_one;
       bb_r1[i] = bb_r1_one;
@@ -299,7 +299,7 @@ void AngleClass2::coeff(int narg, char **arg)
     double ba_k2_one = force->numeric(arg[3]);
     double ba_r1_one = force->numeric(arg[4]);
     double ba_r2_one = force->numeric(arg[5]);
-    
+
     for (int i = ilo; i <= ihi; i++) {
       ba_k1[i] = ba_k1_one;
       ba_k2[i] = ba_k2_one;
@@ -316,7 +316,7 @@ void AngleClass2::coeff(int narg, char **arg)
     double k2_one = force->numeric(arg[2]);
     double k3_one = force->numeric(arg[3]);
     double k4_one = force->numeric(arg[4]);
-    
+
     // convert theta0 from degrees to radians
 
     for (int i = ilo; i <= ihi; i++) {
@@ -365,7 +365,7 @@ void AngleClass2::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void AngleClass2::read_restart(FILE *fp)
@@ -381,7 +381,7 @@ void AngleClass2::read_restart(FILE *fp)
     fread(&bb_k[1],sizeof(double),atom->nangletypes,fp);
     fread(&bb_r1[1],sizeof(double),atom->nangletypes,fp);
     fread(&bb_r2[1],sizeof(double),atom->nangletypes,fp);
-    
+
     fread(&ba_k1[1],sizeof(double),atom->nangletypes,fp);
     fread(&ba_k2[1],sizeof(double),atom->nangletypes,fp);
     fread(&ba_r1[1],sizeof(double),atom->nangletypes,fp);
@@ -427,7 +427,7 @@ double AngleClass2::single(int type, int i1, int i2, int i3)
   c /= r1*r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-        
+
   double s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
@@ -436,9 +436,9 @@ double AngleClass2::single(int type, int i1, int i2, int i3)
   double dtheta2 = dtheta*dtheta;
   double dtheta3 = dtheta2*dtheta;
   double dtheta4 = dtheta3*dtheta;
-  
+
   double energy = k2[type]*dtheta2 + k3[type]*dtheta3 + k4[type]*dtheta4;
-  
+
   double dr1 = r1 - bb_r1[type];
   double dr2 = r2 - bb_r2[type];
   energy += bb_k[type]*dr1*dr2;

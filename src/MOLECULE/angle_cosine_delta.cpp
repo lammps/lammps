@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -84,21 +84,21 @@ void AngleCosineDelta::compute(int eflag, int vflag)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
-      
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-        
+
     theta = acos(c);
- 
+
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
     s = 1.0/s;
-   
+
     cot = c/s;
- 
+
     // force & energy
-	
-    dtheta = theta - theta0[type]; 
+
+    dtheta = theta - theta0[type];
     dcostheta = cos(dtheta);
     tk = k[type] * (1.0-dcostheta);
 
@@ -107,15 +107,15 @@ void AngleCosineDelta::compute(int eflag, int vflag)
     a = -k[type];
 
     // expand dtheta for cos and sin contribution to force
-    
+
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
-    
+
     b11 = -a*c*cot / rsq1;
     b12 = a*cot / (r1*r2);
     b22 = -a*c*cot / rsq2;
-        
+
     c0 = cos(theta0[type]);
     s0 = sin(theta0[type]);
 
@@ -147,7 +147,7 @@ void AngleCosineDelta::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+                         delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 
@@ -162,7 +162,7 @@ double AngleCosineDelta::single(int type, int i1, int i2, int i3)
   double delz1 = x[i1][2] - x[i2][2];
   domain->minimum_image(delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
-  
+
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];

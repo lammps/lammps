@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,7 +35,7 @@ FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
+  if (!avec)
     error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
 }
 
@@ -53,7 +53,7 @@ void FixNHAsphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-	error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
+        error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
 
   FixNH::init();
 }
@@ -76,7 +76,7 @@ void FixNHAsphere::nve_v()
 
   // update angular momentum by 1/2 step for all particles
 
-  for (int i = 0; i < nlocal; i++) {    
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       angmom[i][0] += dtf*torque[i][0];
       angmom[i][1] += dtf*torque[i][1];
@@ -127,7 +127,7 @@ void FixNHAsphere::nve_x()
       inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
       inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
       inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
-      
+
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration
       // returns new normalized quaternion
@@ -152,7 +152,7 @@ void FixNHAsphere::nh_v_temp()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  for (int i = 0; i < nlocal; i++) {    
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       angmom[i][0] *= factor_eta;
       angmom[i][1] *= factor_eta;

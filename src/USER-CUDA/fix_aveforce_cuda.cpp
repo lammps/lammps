@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -77,13 +77,13 @@ FixAveForceCuda::FixAveForceCuda(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix aveforce command");
 
   }
-  
+
   if(iregion!=-1) error->all(FLERR,"Error: fix aveforce/cuda does not currently support 'region' option");
 
   foriginal_all[0] = foriginal_all[1] = foriginal_all[2] = foriginal_all[3] = 0.0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
   cu_foriginal = NULL;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,7 +102,7 @@ int FixAveForceCuda::setmask()
 void FixAveForceCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);    
+  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
@@ -122,7 +122,7 @@ void FixAveForceCuda::setup(int vflag)
     cuda->cu_f->upload();
     post_force(vflag);
     cuda->cu_f->download();
-    
+
   }
   else
   {
@@ -189,11 +189,11 @@ void FixAveForceCuda::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	foriginal[0] += f[i][0];
-	foriginal[1] += f[i][1];
-	foriginal[2] += f[i][2];
-	foriginal[3] += 1;
-	
+        foriginal[0] += f[i][0];
+        foriginal[1] += f[i][1];
+        foriginal[2] += f[i][2];
+        foriginal[3] += 1;
+
       }
 
     MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
@@ -206,9 +206,9 @@ void FixAveForceCuda::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xflag) f[i][0] = fave[0];
-	if (yflag) f[i][1] = fave[1];
-	if (zflag) f[i][2] = fave[2];
+        if (xflag) f[i][0] = fave[0];
+        if (yflag) f[i][1] = fave[1];
+        if (zflag) f[i][2] = fave[2];
       }
     cuda->cu_f->upload();
   }

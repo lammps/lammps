@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -106,7 +106,7 @@ void FixEfield::init()
   if (xstr) {
     xvar = input->variable->find(xstr);
     if (xvar < 0) error->all(FLERR,
-			     "Variable name for fix efield does not exist");
+                             "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
@@ -114,7 +114,7 @@ void FixEfield::init()
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0) error->all(FLERR,
-			     "Variable name for fix efield does not exist");
+                             "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
@@ -122,7 +122,7 @@ void FixEfield::init()
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0) error->all(FLERR,
-			     "Variable name for fix efield does not exist");
+                             "Variable name for fix efield does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
@@ -173,9 +173,9 @@ void FixEfield::post_force(int vflag)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	f[i][0] += q[i]*ex;
-	f[i][1] += q[i]*ey;
-	f[i][2] += q[i]*ez;
+        f[i][0] += q[i]*ex;
+        f[i][1] += q[i]*ey;
+        f[i][2] += q[i]*ez;
       }
 
   // variable efield, wrap with clear/add
@@ -198,12 +198,12 @@ void FixEfield::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xstyle == ATOM) f[i][0] += qe2f * q[i]*efield[i][0];
-	else f[i][0] += q[i]*ex;
-	if (ystyle == ATOM) f[i][1] += qe2f * q[i]*efield[i][1];
-	else f[i][1] += q[i]*ey;
-	if (zstyle == ATOM) f[i][2] += qe2f * q[i]*efield[i][2];
-	else f[i][2] += q[i]*ez;
+        if (xstyle == ATOM) f[i][0] += qe2f * q[i]*efield[i][0];
+        else f[i][0] += q[i]*ex;
+        if (ystyle == ATOM) f[i][1] += qe2f * q[i]*efield[i][1];
+        else f[i][1] += q[i]*ey;
+        if (zstyle == ATOM) f[i][2] += qe2f * q[i]*efield[i][2];
+        else f[i][2] += q[i]*ez;
       }
   }
 }

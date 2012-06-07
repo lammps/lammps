@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -102,12 +102,12 @@ void BondQuartic::compute(int eflag, int vflag)
     if (rsq > rc[type]*rc[type]) {
       bondlist[n][2] = 0;
       for (m = 0; m < atom->num_bond[i1]; m++)
-	if (atom->bond_atom[i1][m] == atom->tag[i2])
-	  atom->bond_type[i1][m] = 0;
+        if (atom->bond_atom[i1][m] == atom->tag[i2])
+          atom->bond_type[i1][m] = 0;
       if (i2 < atom->nlocal)
-	for (m = 0; m < atom->num_bond[i2]; m++)
-	  if (atom->bond_atom[i2][m] == atom->tag[i1])
-	    atom->bond_type[i2][m] = 0;
+        for (m = 0; m < atom->num_bond[i2]; m++)
+          if (atom->bond_atom[i2][m] == atom->tag[i1])
+            atom->bond_type[i2][m] = 0;
       continue;
     }
 
@@ -121,7 +121,7 @@ void BondQuartic::compute(int eflag, int vflag)
     ra = dr - b1[type];
     rb = dr - b2[type];
     fbond = -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
-    
+
     if (rsq < TWO_1_3) {
       sr2 = 1.0/rsq;
       sr6 = sr2*sr2*sr2;
@@ -161,18 +161,18 @@ void BondQuartic::compute(int eflag, int vflag)
       fpair = -fpair;
 
       if (newton_bond || i1 < nlocal) {
-	f[i1][0] += delx*fpair;
-	f[i1][1] += dely*fpair;
-	f[i1][2] += delz*fpair;
+        f[i1][0] += delx*fpair;
+        f[i1][1] += dely*fpair;
+        f[i1][2] += delz*fpair;
       }
       if (newton_bond || i2 < nlocal) {
-	f[i2][0] -= delx*fpair;
-	f[i2][1] -= dely*fpair;
-	f[i2][2] -= delz*fpair;
+        f[i2][0] -= delx*fpair;
+        f[i2][1] -= dely*fpair;
+        f[i2][2] -= delz*fpair;
       }
 
       if (evflag) force->pair->ev_tally(i1,i2,nlocal,newton_bond,
-					evdwl,0.0,fpair,delx,dely,delz);
+                                        evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 }
@@ -249,7 +249,7 @@ void BondQuartic::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   return an equilbrium bond length 
+   return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
 double BondQuartic::equilibrium_distance(int i)
@@ -258,7 +258,7 @@ double BondQuartic::equilibrium_distance(int i)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void BondQuartic::write_restart(FILE *fp)
@@ -271,7 +271,7 @@ void BondQuartic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void BondQuartic::read_restart(FILE *fp)
@@ -309,7 +309,7 @@ double BondQuartic::single(int type, double rsq, int i, int j)
 
   int itype = atom->type[i];
   int jtype = atom->type[j];
-  
+
   if (rsq < force->pair->cutsq[itype][jtype]) {
     double tmp;
     eng = -force->pair->single(i,j,itype,jtype,rsq,1.0,1.0,tmp);

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -64,11 +64,11 @@ void DihedralClass2OMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
@@ -82,7 +82,7 @@ void DihedralClass2OMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-  
+
   int i1,i2,i3,i4,i,j,k,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral;
@@ -136,7 +136,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
     domain->minimum_image(vb3x,vb3y,vb3z);
-    
+
     // distances
 
     r1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
@@ -162,14 +162,14 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     costh12 = (vb1x*vb2x + vb1y*vb2y + vb1z*vb2z) * r12c1;
     costh13 = c0;
     costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
-          
+
     // cos and sin of 2 angles and final c
 
     sin2 = MAX(1.0 - costh12*costh12,0.0);
     sc1 = sqrt(sin2);
     if (sc1 < SMALL) sc1 = SMALL;
     sc1 = 1.0/sc1;
-          
+
     sin2 = MAX(1.0 - costh23*costh23,0.0);
     sc2 = sqrt(sin2);
     if (sc2 < SMALL) sc2 = SMALL;
@@ -186,19 +186,19 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
       int me = comm->me;
 
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
-		me,thr->get_tid(),update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
+                me,thr->get_tid(),update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
 
@@ -216,7 +216,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     a12 = r12c1 * (costh12*c*s1 + costh23*s12);
     a13 = rb1*rb3*s12;
     a23 = r12c2 * (-costh23*c*s2 - costh12*s12);
-          
+
     sx1  = a11*vb1x + a12*vb2x + a13*vb3x;
     sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
     sx12 = a13*vb1x + a23*vb2x + a33*vb3x;
@@ -244,18 +244,18 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	dphidr[i][j] = -dcosphidr[i][j] / sinphi;
+        dphidr[i][j] = -dcosphidr[i][j] / sinphi;
 
     // energy
 
     dphi1 = phi - phi1[type];
     dphi2 = 2.0*phi - phi2[type];
     dphi3 = 3.0*phi - phi3[type];
-    
+
     if (EFLAG) edihedral = k1[type]*(1.0 - cos(dphi1)) +
-		 k2[type]*(1.0 - cos(dphi2)) +
-		 k3[type]*(1.0 - cos(dphi3));
-    
+                 k2[type]*(1.0 - cos(dphi2)) +
+                 k3[type]*(1.0 - cos(dphi3));
+
     de_dihedral = k1[type]*sin(dphi1) + 2.0*k2[type]*sin(dphi2) +
       3.0*k3[type]*sin(dphi3);
 
@@ -263,18 +263,18 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] = de_dihedral*dphidr[i][j];
+        fabcd[i][j] = de_dihedral*dphidr[i][j];
 
     // set up d(bond)/d(r) array
     // dbonddr(i,j,k) = bond i, atom j, coordinate k
 
     for (i = 0; i < 3; i++)
       for (j = 0; j < 4; j++)
-	for (k = 0; k < 3; k++)
-	  dbonddr[i][j][k] = 0.0;
-    
+        for (k = 0; k < 3; k++)
+          dbonddr[i][j][k] = 0.0;
+
     // bond1
-    
+
     dbonddr[0][0][0] = vb1x / r1;
     dbonddr[0][0][1] = vb1y / r1;
     dbonddr[0][0][2] = vb1z / r1;
@@ -292,7 +292,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     dbonddr[1][2][2] = -vb2z / r2;
 
     // bond3
-    
+
     dbonddr[2][2][0] = vb3x / r3;
     dbonddr[2][2][1] = vb3y / r3;
     dbonddr[2][2][2] = vb3z / r3;
@@ -305,71 +305,71 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 2; i++)
       for (j = 0; j < 4; j++)
-	for (k = 0; k < 3; k++)
-	  dthetadr[i][j][k] = 0.0;
-    
+        for (k = 0; k < 3; k++)
+          dthetadr[i][j][k] = 0.0;
+
     t1 = costh12 / r1mag2;
     t2 = costh23 / r2mag2;
     t3 = costh12 / r2mag2;
     t4 = costh23 / r3mag2;
-    
+
     // angle12
-    
+
     dthetadr[0][0][0] = sc1 * ((t1 * vb1x) - (vb2x * r12c1));
     dthetadr[0][0][1] = sc1 * ((t1 * vb1y) - (vb2y * r12c1));
     dthetadr[0][0][2] = sc1 * ((t1 * vb1z) - (vb2z * r12c1));
-    
+
     dthetadr[0][1][0] = sc1 * ((-t1 * vb1x) + (vb2x * r12c1) +
-			       (-t3 * vb2x) + (vb1x * r12c1));
+                               (-t3 * vb2x) + (vb1x * r12c1));
     dthetadr[0][1][1] = sc1 * ((-t1 * vb1y) + (vb2y * r12c1) +
-			       (-t3 * vb2y) + (vb1y * r12c1));
+                               (-t3 * vb2y) + (vb1y * r12c1));
     dthetadr[0][1][2] = sc1 * ((-t1 * vb1z) + (vb2z * r12c1) +
-			       (-t3 * vb2z) + (vb1z * r12c1));
-    
-    dthetadr[0][2][0] = sc1 * ((t3 * vb2x) - (vb1x * r12c1)); 
+                               (-t3 * vb2z) + (vb1z * r12c1));
+
+    dthetadr[0][2][0] = sc1 * ((t3 * vb2x) - (vb1x * r12c1));
     dthetadr[0][2][1] = sc1 * ((t3 * vb2y) - (vb1y * r12c1));
     dthetadr[0][2][2] = sc1 * ((t3 * vb2z) - (vb1z * r12c1));
-    
+
     // angle23
-    
+
     dthetadr[1][1][0] = sc2 * ((t2 * vb2x) + (vb3x * r12c2));
     dthetadr[1][1][1] = sc2 * ((t2 * vb2y) + (vb3y * r12c2));
     dthetadr[1][1][2] = sc2 * ((t2 * vb2z) + (vb3z * r12c2));
-    
+
     dthetadr[1][2][0] = sc2 * ((-t2 * vb2x) - (vb3x * r12c2) +
-			       (t4 * vb3x) + (vb2x * r12c2));
+                               (t4 * vb3x) + (vb2x * r12c2));
     dthetadr[1][2][1] = sc2 * ((-t2 * vb2y) - (vb3y * r12c2) +
-			       (t4 * vb3y) + (vb2y * r12c2));
+                               (t4 * vb3y) + (vb2y * r12c2));
     dthetadr[1][2][2] = sc2 * ((-t2 * vb2z) - (vb3z * r12c2) +
-			       (t4 * vb3z) + (vb2z * r12c2));
-    
+                               (t4 * vb3z) + (vb2z * r12c2));
+
     dthetadr[1][3][0] = -sc2 * ((t4 * vb3x) + (vb2x * r12c2));
     dthetadr[1][3][1] = -sc2 * ((t4 * vb3y) + (vb2y * r12c2));
     dthetadr[1][3][2] = -sc2 * ((t4 * vb3z) + (vb2z * r12c2));
-    
+
     // mid-bond/torsion coupling
     // energy on bond2 (middle bond)
-    
+
     cos2phi = cos(2.0*phi);
     cos3phi = cos(3.0*phi);
-    
+
     bt1 = mbt_f1[type] * cosphi;
     bt2 = mbt_f2[type] * cos2phi;
     bt3 = mbt_f3[type] * cos3phi;
     sumbte = bt1 + bt2 + bt3;
     db = r2 - mbt_r0[type];
     if (EFLAG) edihedral += db * sumbte;
-    
+
     // force on bond2
-    
+
     bt1 = -mbt_f1[type] * sinphi;
     bt2 = -2.0 * mbt_f2[type] * sin(2.0*phi);
     bt3 = -3.0 * mbt_f3[type] * sin(3.0*phi);
     sumbtf = bt1 + bt2 + bt3;
-    
+
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[1][i][j];
+        fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[1][i][j];
 
     // end-bond/torsion coupling
     // energy on bond1 (first bond)
@@ -391,7 +391,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= db*sumbtf*dphidr[i][j] + sumbte*dbonddr[0][i][j];
+        fabcd[i][j] -= db*sumbtf*dphidr[i][j] + sumbte*dbonddr[0][i][j];
 
     // end-bond/torsion coupling
     // energy on bond3 (last bond)
@@ -413,7 +413,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[2][i][j];
+        fabcd[i][j] += db*sumbtf*dphidr[i][j] + sumbte*dbonddr[2][i][j];
 
     // angle/torsion coupling
     // energy on angle1
@@ -435,7 +435,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= da*sumbtf*dphidr[i][j] + sumbte*dthetadr[0][i][j];
+        fabcd[i][j] -= da*sumbtf*dphidr[i][j] + sumbte*dthetadr[0][i][j];
 
     // energy on angle2
 
@@ -456,20 +456,20 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] += da*sumbtf*dphidr[i][j] + sumbte*dthetadr[1][i][j];
+        fabcd[i][j] += da*sumbtf*dphidr[i][j] + sumbte*dthetadr[1][i][j];
 
     // angle/angle/torsion coupling
 
     da1 = acos(costh12) - aat_theta0_1[type];
     da2 = acos(costh23) - aat_theta0_2[type];
-          
+
     if (EFLAG) edihedral += aat_k[type]*da1*da2*cosphi;
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-	fabcd[i][j] -= aat_k[type] * 
-	  (cosphi * (da2*dthetadr[0][i][j] - da1*dthetadr[1][i][j]) +
-	   sinphi * da1*da2*dphidr[i][j]);
+        fabcd[i][j] -= aat_k[type] *
+          (cosphi * (da2*dthetadr[0][i][j] - da1*dthetadr[1][i][j]) +
+           sinphi * da1*da2*dphidr[i][j]);
 
     // bond1/bond3 coupling
 
@@ -483,7 +483,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
       tk2 = -bb13t_k[type] * dr2 / r1;
 
       if (EFLAG) edihedral += bb13t_k[type]*dr1*dr2;
-        
+
       fabcd[0][0] += tk2 * vb1x;
       fabcd[0][1] += tk2 * vb1y;
       fabcd[0][2] += tk2 * vb1z;
@@ -491,7 +491,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
       fabcd[1][0] -= tk2 * vb1x;
       fabcd[1][1] -= tk2 * vb1y;
       fabcd[1][2] -= tk2 * vb1z;
-        
+
       fabcd[2][0] -= tk1 * vb3x;
       fabcd[2][1] -= tk1 * vb3y;
       fabcd[2][2] -= tk1 * vb3z;
@@ -529,8 +529,7 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,
-		   fabcd[0],fabcd[2],fabcd[3],
-		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+                   fabcd[0],fabcd[2],fabcd[3],
+                   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
   }
 }
-

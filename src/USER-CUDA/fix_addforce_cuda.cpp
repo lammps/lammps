@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -75,9 +75,9 @@ FixAddForceCuda::FixAddForceCuda(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix addforce/cuda command");
   }
-  
+
   if(iregion!=-1) error->all(FLERR,"Error: fix addforce/cuda does not currently support 'region' option");
-  
+
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
   cu_foriginal = NULL;
@@ -100,7 +100,7 @@ int FixAddForceCuda::setmask()
 void FixAddForceCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);    
+  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
@@ -110,14 +110,14 @@ void FixAddForceCuda::init()
 void FixAddForceCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixAddForceCuda::setup\n"); )
-	
+
   if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixAddForceCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();
     post_force(vflag);
     cuda->cu_f->download();
-    
+
   }
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

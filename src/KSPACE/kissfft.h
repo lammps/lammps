@@ -6,11 +6,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* 
+/*
    we use a stripped down KISS FFT as default FFT for LAMMPS
    this code is adapted from kiss_fft_v1_2_9
-   homepage: http://kissfft.sf.net/ 
-   
+   homepage: http://kissfft.sf.net/
+
    changes 2008-2011 by Axel Kohlmeyer <akohlmey@gmail.com>
 */
 #ifndef LMP_FFT_KISSFFT
@@ -23,7 +23,7 @@
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
- 
+
 #ifndef M_PI
 #define M_PI 3.141592653589793238462643383279502884197169399375105820974944
 #endif
@@ -65,7 +65,7 @@
 #define KISS_FFT_MALLOC malloc
 #define KISS_FFT_FREE free
 #define MAXFACTORS 32
-/* e.g. an fft of length 128 has 4 factors 
+/* e.g. an fft of length 128 has 4 factors
  as far as kissfft is concerned: 4*4*4*2  */
 struct kiss_fft_state {
     int nfft;
@@ -76,18 +76,18 @@ struct kiss_fft_state {
 
 #ifdef KISS_FFT_USE_ALLOCA
 // define this to allow use of alloca instead of malloc for temporary buffers
-// Temporary buffers are used in two case: 
+// Temporary buffers are used in two case:
 // 1. FFT sizes that have "bad" factors. i.e. not 2,3 and 5
 // 2. "in-place" FFTs.  Notice the quotes, since kissfft does not really do an in-place transform.
 #include <alloca.h>
 #define  KISS_FFT_TMP_ALLOC(nbytes) alloca(nbytes)
-#define  KISS_FFT_TMP_FREE(ptr) 
+#define  KISS_FFT_TMP_FREE(ptr)
 #else
 #define  KISS_FFT_TMP_ALLOC(nbytes) KISS_FFT_MALLOC(nbytes)
 #define  KISS_FFT_TMP_FREE(ptr) KISS_FFT_FREE(ptr)
 #endif
 
-static kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *); 
+static kiss_fft_cfg kiss_fft_alloc(int,int,void *,size_t *);
 static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
 
 /*
@@ -115,28 +115,28 @@ static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
 
 #define  C_ADD( res, a,b)\
     do { \
-	    CHECK_OVERFLOW_OP((a).re,+,(b).re)\
-	    CHECK_OVERFLOW_OP((a).im,+,(b).im)\
-	    (res).re=(a).re+(b).re;  (res).im=(a).im+(b).im; \
+            CHECK_OVERFLOW_OP((a).re,+,(b).re)\
+            CHECK_OVERFLOW_OP((a).im,+,(b).im)\
+            (res).re=(a).re+(b).re;  (res).im=(a).im+(b).im; \
     }while(0)
 #define  C_SUB( res, a,b)\
     do { \
-	    CHECK_OVERFLOW_OP((a).re,-,(b).re)\
-	    CHECK_OVERFLOW_OP((a).im,-,(b).im)\
-	    (res).re=(a).re-(b).re;  (res).im=(a).im-(b).im; \
+            CHECK_OVERFLOW_OP((a).re,-,(b).re)\
+            CHECK_OVERFLOW_OP((a).im,-,(b).im)\
+            (res).re=(a).re-(b).re;  (res).im=(a).im-(b).im; \
     }while(0)
 #define C_ADDTO( res , a)\
     do { \
-	    CHECK_OVERFLOW_OP((res).re,+,(a).re)\
-	    CHECK_OVERFLOW_OP((res).im,+,(a).im)\
-	    (res).re += (a).re;  (res).im += (a).im;\
+            CHECK_OVERFLOW_OP((res).re,+,(a).re)\
+            CHECK_OVERFLOW_OP((res).im,+,(a).im)\
+            (res).re += (a).re;  (res).im += (a).im;\
     }while(0)
 
 #define C_SUBFROM( res , a)\
     do {\
-	    CHECK_OVERFLOW_OP((res).re,-,(a).re)\
-	    CHECK_OVERFLOW_OP((res).im,-,(a).im)\
-	    (res).re -= (a).re;  (res).im -= (a).im; \
+            CHECK_OVERFLOW_OP((res).re,-,(a).re)\
+            CHECK_OVERFLOW_OP((res).im,-,(a).im)\
+            (res).re -= (a).re;  (res).im -= (a).im; \
     }while(0)
 
 
@@ -145,10 +145,10 @@ static void kiss_fft(kiss_fft_cfg,const FFT_DATA *,FFT_DATA *);
 #define HALF_OF(x) ((x)*.5)
 
 #define  kf_cexp(x,phase) \
-	do{ \
-		(x)->re = KISS_FFT_COS(phase);\
-		(x)->im = KISS_FFT_SIN(phase);\
-	}while(0)
+        do{ \
+                (x)->re = KISS_FFT_COS(phase);\
+                (x)->im = KISS_FFT_SIN(phase);\
+        }while(0)
 
 static void kf_bfly2(FFT_DATA *Fout, const size_t fstride,
                      const kiss_fft_cfg st, int m)
@@ -362,7 +362,7 @@ static void kf_work(FFT_DATA * Fout, const FFT_DATA *f,
         do {
             /* recursive call:
                DFT of size m*p performed by doing
-               p instances of smaller DFTs of size m, 
+               p instances of smaller DFTs of size m,
                each one takes a decimated version of the input */
             kf_work( Fout , f, fstride*p, in_stride, factors,st);
             f += fstride*in_stride;
@@ -374,15 +374,15 @@ static void kf_work(FFT_DATA * Fout, const FFT_DATA *f,
     /* recombine the p smaller DFTs */
     switch (p) {
       case 2: kf_bfly2(Fout,fstride,st,m); break;
-      case 3: kf_bfly3(Fout,fstride,st,m); break; 
+      case 3: kf_bfly3(Fout,fstride,st,m); break;
       case 4: kf_bfly4(Fout,fstride,st,m); break;
-      case 5: kf_bfly5(Fout,fstride,st,m); break; 
+      case 5: kf_bfly5(Fout,fstride,st,m); break;
       default: kf_bfly_generic(Fout,fstride,st,m,p); break;
     }
 }
 
 /*  facbuf is populated by p1,m1,p2,m2, ...
-    where 
+    where
     p[i] * m[i] = m[i-1]
     m0 = n                  */
 static void kf_factor(int n, int *facbuf)
@@ -391,7 +391,7 @@ static void kf_factor(int n, int *facbuf)
     double floor_sqrt;
     floor_sqrt = floor( sqrt((double)n) );
 
-    /* factor out the remaining powers of 4, powers of 2, 
+    /* factor out the remaining powers of 4, powers of 2,
        and then any other remaining primes */
     do {
         if (nf == MAXFACTORS) p = n; /* make certain that we don't run out of space */
@@ -445,7 +445,7 @@ static kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t 
     }
     return st;
 }
-   
+
 static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout, int in_stride)
 {
     if (fin == fout) {
@@ -454,7 +454,7 @@ static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout
         FFT_DATA * tmpbuf = (FFT_DATA*)KISS_FFT_TMP_ALLOC( sizeof(FFT_DATA)*st->nfft);
         kf_work(tmpbuf,fin,1,in_stride, st->factors,st);
         memcpy(fout,tmpbuf,sizeof(FFT_DATA)*st->nfft);
-	KISS_FFT_TMP_FREE(tmpbuf);
+        KISS_FFT_TMP_FREE(tmpbuf);
     }else{
         kf_work( fout, fin, 1,in_stride, st->factors,st );
     }

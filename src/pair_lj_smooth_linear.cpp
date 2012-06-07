@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -60,7 +60,7 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
   double rsq,r2inv,r6inv,forcelj,factor_lj;
   double r,rinv;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -72,12 +72,12 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
   int nall = nlocal + atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -99,34 +99,34 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
-      if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-        rinv  = sqrt(r2inv);
-	forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-	forcelj = rinv*forcelj - dljcut[itype][jtype];
- 
-	fpair = factor_lj*forcelj*rinv;
-        
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
-	
-	if (eflag) {
-          r = sqrt(rsq);
-	  evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-          evdwl = evdwl - ljcut[itype][jtype]
-	  		+ (r-cut[itype][jtype])*dljcut[itype][jtype]; 
-	}
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+      if (rsq < cutsq[itype][jtype]) {
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        rinv  = sqrt(r2inv);
+        forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+        forcelj = rinv*forcelj - dljcut[itype][jtype];
+
+        fpair = factor_lj*forcelj*rinv;
+
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) {
+          r = sqrt(rsq);
+          evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+          evdwl = evdwl - ljcut[itype][jtype]
+                          + (r-cut[itype][jtype])*dljcut[itype][jtype];
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -135,7 +135,7 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJSmoothLinear::allocate()
@@ -162,7 +162,7 @@ void PairLJSmoothLinear::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJSmoothLinear::settings(int narg, char **arg)
@@ -177,9 +177,9 @@ void PairLJSmoothLinear::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) {
-	  cut[i][j] = cut_global;
-	}
+        if (setflag[i][j]) {
+          cut[i][j] = cut_global;
+        }
   }
 }
 
@@ -199,7 +199,7 @@ void PairLJSmoothLinear::coeff(int narg, char **arg)
 
   double epsilon_one = atof(arg[2]);
   double sigma_one = atof(arg[3]);
-  
+
   double cut_one = cut_global;
   if (narg == 5) {
     cut_one = atof(arg[4]);
@@ -227,7 +227,7 @@ double PairLJSmoothLinear::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
@@ -252,7 +252,7 @@ double PairLJSmoothLinear::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLJSmoothLinear::write_restart(FILE *fp)
@@ -264,9 +264,9 @@ void PairLJSmoothLinear::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -287,14 +287,14 @@ void PairLJSmoothLinear::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -326,10 +326,10 @@ void PairLJSmoothLinear::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSmoothLinear::single(int i, int j, int itype, int jtype, 
-				  double rsq,
-				  double factor_coul, double factor_lj,
-				  double &fforce)
+double PairLJSmoothLinear::single(int i, int j, int itype, int jtype,
+                                  double rsq,
+                                  double factor_coul, double factor_lj,
+                                  double &fforce)
 {
   double r2inv,r6inv,forcelj,philj,r,rinv;
 

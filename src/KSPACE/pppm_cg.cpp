@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -44,7 +44,7 @@ using namespace MathConst;
 
 PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
-  if ((narg < 1) || (narg > 2)) 
+  if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
   if (narg == 2)
@@ -57,7 +57,7 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 }
 
 /* ----------------------------------------------------------------------
-   free all memory 
+   free all memory
 ------------------------------------------------------------------------- */
 
 PPPMCG::~PPPMCG()
@@ -66,7 +66,7 @@ PPPMCG::~PPPMCG()
 }
 
 /* ----------------------------------------------------------------------
-   compute the PPPM long-range force, energy, virial 
+   compute the PPPM long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
 void PPPMCG::compute(int eflag, int vflag)
@@ -77,8 +77,8 @@ void PPPMCG::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global = 
-	 eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global =
+         eflag_atom = vflag_atom = 0;
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
@@ -86,7 +86,7 @@ void PPPMCG::compute(int eflag, int vflag)
   }
 
   // convert atoms from box to lamda coords
-  
+
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
@@ -117,7 +117,7 @@ void PPPMCG::compute(int eflag, int vflag)
     // get fraction of charged particles per domain
 
     if (atom->nlocal > 0)
-      charged_frac = static_cast<double>(num_charged) * 100.0 
+      charged_frac = static_cast<double>(num_charged) * 100.0
                    / static_cast<double>(atom->nlocal);
     else
       charged_frac = 0.0;
@@ -128,22 +128,22 @@ void PPPMCG::compute(int eflag, int vflag)
 
     charged_num = num_charged;
     MPI_Reduce(&charged_num,&charged_all,1,MPI_LMP_BIGINT,MPI_SUM,0,world);
-    charged_frac = static_cast<double>(charged_all) * 100.0 
+    charged_frac = static_cast<double>(charged_all) * 100.0
                    / static_cast<double>(atom->natoms);
 
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,
-		"  PPPM/cg optimization cutoff: %g\n"
-		"  Total charged atoms: %.1f%%\n"
-		"  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-		smallq,charged_frac,charged_fmin,charged_fmax);
+      if (screen)
+        fprintf(screen,
+                "  PPPM/cg optimization cutoff: %g\n"
+                "  Total charged atoms: %.1f%%\n"
+                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
+                smallq,charged_frac,charged_fmin,charged_fmax);
       if (logfile)
-	fprintf(logfile,
-		"  PPPM/cg optimization cutoff: %g\n"
-		"  Total charged atoms: %.1f%%\n"
-		"  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-		smallq,charged_frac,charged_fmin,charged_fmax);
+        fprintf(logfile,
+                "  PPPM/cg optimization cutoff: %g\n"
+                "  Total charged atoms: %.1f%%\n"
+                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
+                smallq,charged_frac,charged_fmin,charged_fmax);
     }
   }
 
@@ -198,7 +198,7 @@ void PPPMCG::compute(int eflag, int vflag)
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
-   
+
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
@@ -223,9 +223,9 @@ void PPPMCG::compute(int eflag, int vflag)
     if (eflag_atom) {
       for (int j = 0; j < num_charged; j++) {
         int i = is_charged[j];
-	eatom[i] *= 0.5;
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum / 
-	  (g_ewald*g_ewald*volume);
+        eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+          (g_ewald*g_ewald*volume);
         eatom[i] *= qscale;
       }
     }
@@ -243,14 +243,14 @@ void PPPMCG::compute(int eflag, int vflag)
   if (slabflag) slabcorr();
 
   // convert atoms back from lamda to box coords
-  
+
   if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
+   store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
 void PPPMCG::particle_map()
@@ -262,7 +262,7 @@ void PPPMCG::particle_map()
   int flag = 0;
   for (int j = 0; j < num_charged; j++) {
     int i = is_charged[j];
-    
+
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
@@ -278,8 +278,8 @@ void PPPMCG::particle_map()
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag = 1;
   }
 
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
@@ -289,7 +289,7 @@ void PPPMCG::particle_map()
    create discretized "density" on section of global grid due to my particles
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
+   in global grid
 ------------------------------------------------------------------------- */
 
 void PPPMCG::make_rho()
@@ -327,19 +327,19 @@ void PPPMCG::make_rho()
       mz = n+nz;
       y0 = z0*rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	x0 = y0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  density_brick[mz][my][mx] += x0*rho1d[0][l];
-	}
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPMCG::fieldforce()
@@ -375,15 +375,15 @@ void PPPMCG::fieldforce()
       mz = n+nz;
       z0 = rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
-	my = m+ny;
-	y0 = z0*rho1d[1][m];
-	for (l = nlower; l <= nupper; l++) {
-	  mx = l+nx;
-	  x0 = y0*rho1d[0][l];
-	  ekx -= x0*vdx_brick[mz][my][mx];
-	  eky -= x0*vdy_brick[mz][my][mx];
-	  ekz -= x0*vdz_brick[mz][my][mx];
-	}
+        my = m+ny;
+        y0 = z0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          x0 = y0*rho1d[0][l];
+          ekx -= x0*vdx_brick[mz][my][mx];
+          eky -= x0*vdy_brick[mz][my][mx];
+          ekz -= x0*vdz_brick[mz][my][mx];
+        }
       }
     }
 
@@ -464,9 +464,9 @@ void PPPMCG::fieldforce_peratom()
 
 /* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
-   periodically repeating slabs.  Yields good approximation to 2D Ewald if 
-   adequate empty space is left between repeating slabs (J. Chem. Phys. 
-   111, 3155).  Slabs defined here to be parallel to the xy plane. 
+   periodically repeating slabs.  Yields good approximation to 2D Ewald if
+   adequate empty space is left between repeating slabs (J. Chem. Phys.
+   111, 3155).  Slabs defined here to be parallel to the xy plane.
 ------------------------------------------------------------------------- */
 
 void PPPMCG::slabcorr()
@@ -488,10 +488,10 @@ void PPPMCG::slabcorr()
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // compute corrections
-  
+
   const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
-  
+
   if (eflag_global) energy += qscale * e_slabcorr;
 
   //per-atom energy
@@ -506,7 +506,7 @@ void PPPMCG::slabcorr()
 
   // add on force corrections
 
-  const double ffact = -4.0*MY_PI*dipole_all/volume * qscale; 
+  const double ffact = -4.0*MY_PI*dipole_all/volume * qscale;
   double **f = atom->f;
 
   for (int j = 0; j < num_charged; j++) {
@@ -516,7 +516,7 @@ void PPPMCG::slabcorr()
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local arrays 
+   memory usage of local arrays
 ------------------------------------------------------------------------- */
 
 double PPPMCG::memory_usage()

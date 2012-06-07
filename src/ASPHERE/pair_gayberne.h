@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -60,12 +60,12 @@ class PairGayBerne : public Pair {
   void allocate();
   double gayberne_analytic(const int i, const int j, double a1[3][3],
                            double a2[3][3], double b1[3][3], double b2[3][3],
-                           double g1[3][3], double g2[3][3], double *r12, 
-                           const double rsq, double *fforce, double *ttor, 
+                           double g1[3][3], double g2[3][3], double *r12,
+                           const double rsq, double *fforce, double *ttor,
                            double *rtor);
   double gayberne_lj(const int i, const int j, double a1[3][3],
-                     double b1[3][3],double g1[3][3],double *r12, 
-		     const double rsq, double *fforce, double *ttor);
+                     double b1[3][3],double g1[3][3],double *r12,
+                     const double rsq, double *fforce, double *ttor);
   void compute_eta_torque(double m[3][3], double m2[3][3],
                           double *s, double ans[3][3]);
 };

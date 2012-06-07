@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -133,7 +133,7 @@ void ComputeCOMMolecule::compute_array()
     }
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nmolecules,
-		MPI_DOUBLE,MPI_SUM,world);
+                MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < nmolecules; i++) {
     comall[i][0] /= masstotal[i];
     comall[i][1] /= masstotal[i];

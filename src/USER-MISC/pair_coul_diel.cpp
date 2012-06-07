@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -100,31 +100,31 @@ void PairCoulDiel::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	rarg = (r-rme[itype][jtype])/sigmae[itype][jtype];
-	th=tanh(rarg);
-	epsr=a_eps+b_eps*th;
-	depsdr=b_eps * (1.0 - th*th) / sigmae[itype][jtype];
-	
-	forcecoul = qqrd2e*qtmp*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
-	fpair = factor_coul*forcecoul/r;
-	
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        r = sqrt(rsq);
+        rarg = (r-rme[itype][jtype])/sigmae[itype][jtype];
+        th=tanh(rarg);
+        epsr=a_eps+b_eps*th;
+        depsdr=b_eps * (1.0 - th*th) / sigmae[itype][jtype];
 
-	if (eflag) {
-	  ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
-	  ecoul *= factor_coul;
-	}
+        forcecoul = qqrd2e*qtmp*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
+        fpair = factor_coul*forcecoul/r;
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,0.0,
-			     ecoul,fpair,delx,dely,delz);
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
+
+        if (eflag) {
+          ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
+          ecoul *= factor_coul;
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,0.0,
+                             ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -169,7 +169,7 @@ void PairCoulDiel::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -189,8 +189,8 @@ void PairCoulDiel::coeff(int narg, char **arg)
   eps_s = force->numeric(arg[2]);
   double rme_one =force->numeric(arg[3]);
   double sigmae_one = force->numeric(arg[4]);
-  
-  double cut_one = cut_global;  
+
+  double cut_one = cut_global;
   if (narg == 6) cut_one = force->numeric(arg[5]);
 
   int count = 0;
@@ -234,14 +234,14 @@ double PairCoulDiel::init_one(int i, int j)
 
   double *q = atom->q;
   double qqrd2e = force->qqrd2e;
- 
+
   if (offset_flag) {
     double rarg = (cut[i][j]-rme[i][j])/sigmae[i][j];
     double epsr=a_eps+b_eps*tanh(rarg);
     offset[i][j] = qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/cut[i][j];
   } else offset[i][j] = 0.0;
-  
-  
+
+
   sigmae[j][i] = sigmae[i][j];
   rme[j][i] = rme[i][j];
   offset[j][i] = offset[i][j];
@@ -263,9 +263,9 @@ void PairCoulDiel::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&rme[i][j],sizeof(double),1,fp);
-	fwrite(&sigmae[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&rme[i][j],sizeof(double),1,fp);
+        fwrite(&sigmae[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -284,14 +284,14 @@ void PairCoulDiel::read_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&rme[i][j],sizeof(double),1,fp);
-	  fread(&sigmae[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&rme[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigmae[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&rme[i][j],sizeof(double),1,fp);
+          fread(&sigmae[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&rme[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigmae[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -326,8 +326,8 @@ void PairCoulDiel::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCoulDiel::single(int i, int j, int itype, int jtype,
-			   double rsq, double factor_coul, double factor_lj,
-			   double &fforce)
+                           double rsq, double factor_coul, double factor_lj,
+                           double &fforce)
 {
   double r, rarg,forcedielec,phidielec;
   double th,epsr,depsdr;
@@ -339,10 +339,10 @@ double PairCoulDiel::single(int i, int j, int itype, int jtype,
   th = tanh(rarg);
   epsr=a_eps+b_eps*th;
   depsdr=b_eps*(1.-th*th)/sigmae[itype][jtype];
-	
+
   forcedielec = qqrd2e*q[i]*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
   fforce = factor_coul*forcedielec/r;
-    
+
   phidielec = (qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/r)- offset[itype][jtype];
   return factor_coul*phidielec;
 }

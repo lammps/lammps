@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -75,7 +75,7 @@ void PairEffCut::compute(int eflag, int vflag)
   double ecp_epauli, ecp_fpair, ecp_e1rforce, ecp_e2rforce;
   double rsq,rc;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   energy = eke = epauli = ecoul = errestrain = 0.0;
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
@@ -88,7 +88,7 @@ void PairEffCut::compute(int eflag, int vflag)
   double *q = atom->q;
   double *erforce = atom->erforce;
   double *eradius = atom->eradius;
-  int *spin = atom->spin;	
+  int *spin = atom->spin;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -99,7 +99,7 @@ void PairEffCut::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -110,7 +110,7 @@ void PairEffCut::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-  
+
     // add electron wavefuntion kinetic energy (not pairwise)
 
     if (abs(spin[i])==1 || spin[i]==2) {
@@ -120,7 +120,7 @@ void PairEffCut::compute(int eflag, int vflag)
       s_fpair = 0.0;
 
       KinElec(eradius[i],&eke,&e1rforce);
- 
+
       // Fixed-core
       if (spin[i] == 2) {
         // KE(2s)+Coul(1s-1s)+Coul(2s-nuclei)+Pauli(2s)
@@ -144,10 +144,10 @@ void PairEffCut::compute(int eflag, int vflag)
       epauli *= hhmss2e;
       s_fpair *= hhmss2e;
       e1rforce *= hhmss2e;
-      
+
       // Sum up contributions
       energy = eke + epauli + ecoul;
-      fpair = fpair + s_fpair;	
+      fpair = fpair + s_fpair;
 
       erforce[i] += e1rforce;
 
@@ -173,26 +173,26 @@ void PairEffCut::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       rc = sqrt(rsq);
-      
+
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	
+
         energy = ecoul = epauli = ecp_epauli = 0.0;
         fx = fy = fz = fpair = s_fpair = ecp_fpair = 0.0;
 
         double taper = sqrt(cutsq[itype][jtype]);
         double dist = rc / taper;
-        double spline = cutoff(dist); 
+        double spline = cutoff(dist);
         double dspline = dcutoff(dist) / taper;
 
-	// nucleus (i) - nucleus (j) Coul interaction
+        // nucleus (i) - nucleus (j) Coul interaction
 
-	if (spin[i] == 0 && spin[j] == 0) {
-	  double qxq = q[i]*q[j];
+        if (spin[i] == 0 && spin[j] == 0) {
+          double qxq = q[i]*q[j];
 
           ElecNucNuc(qxq, rc, &ecoul, &fpair);
-	}
+        }
 
         // fixed-core (i) - nucleus (j) nuclear Coul interaction
         else if (spin[i] == 2 && spin[j] == 0) {
@@ -228,39 +228,39 @@ void PairEffCut::compute(int eflag, int vflag)
           ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
         }
 
-	// nucleus (i) - electron (j) Coul interaction
+        // nucleus (i) - electron (j) Coul interaction
 
-	else if  (spin[i] == 0 && abs(spin[j]) == 1) {
+        else if  (spin[i] == 0 && abs(spin[j]) == 1) {
           e1rforce = 0.0;
 
           ElecNucElec(q[i],rc,eradius[j],&ecoul,&fpair,&e1rforce);
 
-	  e1rforce = spline * qqrd2e * e1rforce;
-	  erforce[j] += e1rforce;
-	  
+          e1rforce = spline * qqrd2e * e1rforce;
+          erforce[j] += e1rforce;
+
           // Radial electron virial, iff flexible pressure flag set
-	  if (evflag && flexible_pressure_flag) { 
+          if (evflag && flexible_pressure_flag) {
             e1rvirial = eradius[j] * e1rforce;
             ev_tally_eff(j,j,nlocal,newton_pair,0.0,e1rvirial);
           }
-	}
+        }
 
-	// electron (i) - nucleus (j) Coul interaction
+        // electron (i) - nucleus (j) Coul interaction
 
-	else if (abs(spin[i]) == 1 && spin[j] == 0) {
+        else if (abs(spin[i]) == 1 && spin[j] == 0) {
           e1rforce = 0.0;
 
           ElecNucElec(q[j],rc,eradius[i],&ecoul,&fpair,&e1rforce);
 
-	  e1rforce = spline * qqrd2e * e1rforce;
-	  erforce[i] += e1rforce;
-	  
+          e1rforce = spline * qqrd2e * e1rforce;
+          erforce[i] += e1rforce;
+
           // Radial electron virial, iff flexible pressure flag set
-	  if (evflag && flexible_pressure_flag) {
+          if (evflag && flexible_pressure_flag) {
             e1rvirial = eradius[i] * e1rforce;
             ev_tally_eff(i,i,nlocal,newton_pair,0.0,e1rvirial);
           }
-	}
+        }
 
         // electron (i) - electron (j) interactions
 
@@ -342,7 +342,7 @@ void PairEffCut::compute(int eflag, int vflag)
           epauli *= hhmss2e;
           s_fpair *= hhmss2e;
 
-          // only update virial for i electron 
+          // only update virial for i electron
           e2rforce = spline * (qqrd2e * e2rforce + hhmss2e * s_e2rforce);
           erforce[i] += e2rforce;
 
@@ -373,7 +373,7 @@ void PairEffCut::compute(int eflag, int vflag)
                          &e1rforce,&e2rforce);
           ElecElecElec(rc,eradius[i],eradius[j],&ecoul,&fpair,
                          &e1rforce,&e2rforce);
-          
+
           PauliElecElec(0,rc,eradius[i],eradius[j],&epauli,
                        &s_fpair,&s_e1rforce,&s_e2rforce);
           PauliElecElec(1,rc,eradius[i],eradius[j],&epauli,
@@ -473,7 +473,7 @@ void PairEffCut::compute(int eflag, int vflag)
         else if (spin[i] == 3 && abs(spin[j]) == 3) {
           double qxq = q[i]*q[j];
 
-          ElecCoreCore(qxq,rc,eradius[i],eradius[j],&ecoul,&fpair); 
+          ElecCoreCore(qxq,rc,eradius[i],eradius[j],&ecoul,&fpair);
         }
 
         // Apply Coulomb conversion factor for all cases
@@ -506,41 +506,41 @@ void PairEffCut::compute(int eflag, int vflag)
         if (eflag_global) {
           if (newton_pair) {
             pvector[1] += spline * epauli;
-            pvector[2] += spline * ecoul; 
+            pvector[2] += spline * ecoul;
           }
           else {
             halfpauli = 0.5 * spline * epauli;
             halfcoul = 0.5 * spline * ecoul;
             if (i < nlocal) {
               pvector[1] += halfpauli;
-              pvector[2] += halfcoul; 
+              pvector[2] += halfcoul;
             }
             if (j < nlocal) {
               pvector[1] += halfpauli;
-              pvector[2] += halfcoul; 
+              pvector[2] += halfcoul;
             }
           }
         }
 
       }
     }
-    
+
     // limit electron stifness (size) for periodic systems, to max=half-box-size
 
     if (abs(spin[i]) == 1 && limit_size_flag) {
-      double half_box_length=0, dr, kfactor=hhmss2e*1.0; 
+      double half_box_length=0, dr, kfactor=hhmss2e*1.0;
       e1rforce = errestrain = 0.0;
 
       if (domain->xperiodic == 1 || domain->yperiodic == 1 ||
-	  domain->zperiodic == 1) {
-	delx = domain->boxhi[0]-domain->boxlo[0];
-	dely = domain->boxhi[1]-domain->boxlo[1];
-	delz = domain->boxhi[2]-domain->boxlo[2];
-	half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
-	if (eradius[i] > half_box_length) {
-	  dr = eradius[i]-half_box_length;
-	  errestrain=0.5*kfactor*dr*dr;
-	  e1rforce=-kfactor*dr;
+          domain->zperiodic == 1) {
+        delx = domain->boxhi[0]-domain->boxlo[0];
+        dely = domain->boxhi[1]-domain->boxlo[1];
+        delz = domain->boxhi[2]-domain->boxlo[2];
+        half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
+        if (eradius[i] > half_box_length) {
+          dr = eradius[i]-half_box_length;
+          errestrain=0.5*kfactor*dr*dr;
+          e1rforce=-kfactor*dr;
           if (eflag_global) pvector[3] += errestrain;
 
           erforce[i] += e1rforce;
@@ -560,7 +560,7 @@ void PairEffCut::compute(int eflag, int vflag)
     virial_fdotr_compute();
     if (flexible_pressure_flag) virial_eff_compute();
   }
-}	
+}
 
 /* ----------------------------------------------------------------------
    eff-specific contribution to global virial
@@ -574,7 +574,7 @@ void PairEffCut::virial_eff_compute()
   int *spin = atom->spin;
 
   // sum over force on all particles including ghosts
-  
+
   if (neighbor->includegroup == 0) {
     int nall = atom->nlocal + atom->nghost;
     for (int i = 0; i < nall; i++) {
@@ -585,10 +585,10 @@ void PairEffCut::virial_eff_compute()
         virial[2] += e_virial;
       }
     }
-    
+
   // neighbor includegroup flag is set
   // sum over force on initial nfirst particles and ghosts
-    
+
   } else {
     int nall = atom->nfirst;
     for (int i = 0; i < nall; i++) {
@@ -599,7 +599,7 @@ void PairEffCut::virial_eff_compute()
         virial[2] += e_virial;
       }
     }
-    
+
     nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; i++) {
       if (spin[i]) {
@@ -618,7 +618,7 @@ void PairEffCut::virial_eff_compute()
 ------------------------------------------------------------------------- */
 
 void PairEffCut::ev_tally_eff(int i, int j, int nlocal, int newton_pair,
-			      double energy, double e_virial)
+                              double energy, double e_virial)
 {
   double energyhalf;
   double partial_evirial = e_virial/3.0;
@@ -634,7 +634,7 @@ void PairEffCut::ev_tally_eff(int i, int j, int nlocal, int newton_pair,
         energyhalf = 0.5*energy;
         if (i < nlocal)
           eng_coul += energyhalf;
-        if (j < nlocal) 
+        if (j < nlocal)
           eng_coul += energyhalf;
       }
     }
@@ -665,7 +665,7 @@ void PairEffCut::ev_tally_eff(int i, int j, int nlocal, int newton_pair,
           vatom[i][2] += half_partial_evirial;
         }
       }
-      if (spin[j]) { 
+      if (spin[j]) {
         if (newton_pair || j < nlocal) {
           vatom[j][0] += half_partial_evirial;
           vatom[j][1] += half_partial_evirial;
@@ -684,12 +684,12 @@ void PairEffCut::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-  
+
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
-  
+
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cut,n+1,n+1,"pair:cut");
 }
@@ -700,7 +700,7 @@ void PairEffCut::allocate()
 
 void PairEffCut::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3 && narg != 5 && narg != 7) 
+  if (narg != 1 && narg != 3 && narg != 5 && narg != 7)
     error->all(FLERR,"Illegal pair_style command");
 
   // Defaults ECP parameters for Si
@@ -739,23 +739,23 @@ void PairEffCut::settings(int narg, char **arg)
       PAULI_CORE_C = force->numeric(arg[6]);
     }
   }
-  
+
   // Need to introduce 2 new constants w/out changing update.cpp
-  if (force->qqr2e==332.06371) {	// i.e. Real units chosen
-    h2e = 627.509;                      // hartree->kcal/mol    
+  if (force->qqr2e==332.06371) {        // i.e. Real units chosen
+    h2e = 627.509;                      // hartree->kcal/mol
     hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
-  } else if (force->qqr2e==1.0) {	// electron units
+  } else if (force->qqr2e==1.0) {        // electron units
     h2e = 1.0;
     hhmss2e = 1.0;
   } else error->all(FLERR,"Check your units");
 
   // reset cutoffs that have been explicitly set
-  
+
   if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -767,14 +767,14 @@ void PairEffCut::coeff(int narg, char **arg)
 {
   if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-  
+
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
-  
+
   double cut_one = cut_global;
   if (narg == 3) cut_one = atof(arg[2]);
-  
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -783,7 +783,7 @@ void PairEffCut::coeff(int narg, char **arg)
       count++;
     }
   }
-  
+
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
@@ -795,25 +795,25 @@ void PairEffCut::init_style()
 {
   // error and warning checks
 
-  if (!atom->q_flag || !atom->spin_flag || 
+  if (!atom->q_flag || !atom->spin_flag ||
       !atom->eradius_flag || !atom->erforce_flag)
     error->all(FLERR,"Pair eff/cut requires atom attributes "
-	       "q, spin, eradius, erforce");
+               "q, spin, eradius, erforce");
 
   // add hook to minimizer for eradius and erforce
 
-  if (update->whichflag == 2) 
+  if (update->whichflag == 2)
     int ignore = update->minimize->request(this,1,0.01);
 
   // make sure to use the appropriate timestep when using real units
 
-  if (update->whichflag == 1) { 
+  if (update->whichflag == 1) {
     if (force->qqr2e == 332.06371 && update->dt == 1.0)
       error->all(FLERR,"You must lower the default real units timestep for pEFF ");
   }
 
   // need a half neigh list and optionally a granular history neigh list
- 
+
   int irequest = neighbor->request(this);
 }
 
@@ -825,7 +825,7 @@ double PairEffCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  
+
   return cut[i][j];
 }
 
@@ -836,7 +836,7 @@ double PairEffCut::init_one(int i, int j)
 void PairEffCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
-  
+
   int i,j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
@@ -853,7 +853,7 @@ void PairEffCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
-  
+
   int i,j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
@@ -861,8 +861,8 @@ void PairEffCut::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -947,12 +947,12 @@ void PairEffCut::min_x_set(int ignore)
   int *spin = atom->spin;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) 
+  for (int i = 0; i < nlocal; i++)
     if (spin[i]) eradius[i] = exp(min_eradius[i]);
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double PairEffCut::memory_usage()

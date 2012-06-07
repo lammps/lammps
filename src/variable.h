@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -72,10 +72,10 @@ class Variable : protected Pointers {
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
   int region_function(char *);
-  int special_function(char *, char *, Tree **, Tree **, 
-		       int &, double *, int &);
+  int special_function(char *, char *, Tree **, Tree **,
+                       int &, double *, int &);
   void peratom2global(int, char *, double *, int, int,
-		      Tree **, Tree **, int &, double *, int &);
+                      Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
   int is_constant(char *);

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -82,11 +82,11 @@ void FixGravityOMP::post_force(int vflag)
 #endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	f[i][0] += massone*xacc_thr;
-	f[i][1] += massone*yacc_thr;
-	f[i][2] += massone*zacc_thr;
-	grav -= massone * (xacc_thr*x[i][0] + yacc_thr*x[i][1] + zacc_thr*x[i][2]);
+        massone = rmass[i];
+        f[i][0] += massone*xacc_thr;
+        f[i][1] += massone*yacc_thr;
+        f[i][2] += massone*zacc_thr;
+        grav -= massone * (xacc_thr*x[i][0] + yacc_thr*x[i][1] + zacc_thr*x[i][2]);
       }
   } else {
 #if defined(_OPENMP)
@@ -94,11 +94,11 @@ void FixGravityOMP::post_force(int vflag)
 #endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	f[i][0] += massone*xacc_thr;
-	f[i][1] += massone*yacc_thr;
-	f[i][2] += massone*zacc_thr;
-	grav -= massone * (xacc_thr*x[i][0] + yacc_thr*x[i][1] + zacc_thr*x[i][2]);
+        massone = mass[type[i]];
+        f[i][0] += massone*xacc_thr;
+        f[i][1] += massone*yacc_thr;
+        f[i][2] += massone*zacc_thr;
+        grav -= massone * (xacc_thr*x[i][0] + yacc_thr*x[i][1] + zacc_thr*x[i][2]);
       }
   }
   egrav = grav;
@@ -110,4 +110,3 @@ void FixGravityOMP::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
-

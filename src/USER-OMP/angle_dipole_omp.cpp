@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
     ev_setup(eflag,vflag);
   } else evflag = 0;
 
-  if (!force->newton_bond) 
+  if (!force->newton_bond)
     error->all(FLERR,"'newton' flag for bonded interactions must be 'on'");
 
   const int nall = atom->nlocal + atom->nghost;
@@ -111,16 +111,16 @@ void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
     deltaGamma = cosGamma - cos(gamma0[type]);
     kdg = k[type] * deltaGamma;
 
-    if (EFLAG) eangle = kdg * deltaGamma; // energy  
-      
-    tangle = 2.0 * kdg / rmu; 
-      
+    if (EFLAG) eangle = kdg * deltaGamma; // energy
+
+    tangle = 2.0 * kdg / rmu;
+
     torque[iDip][0] += tangle * (dely*mu[iDip][2] - delz*mu[iDip][1]);
     torque[iDip][1] += tangle * (delz*mu[iDip][0] - delx*mu[iDip][2]);
     torque[iDip][2] += tangle * (delx*mu[iDip][1] - dely*mu[iDip][0]);
 
     if (EFLAG) // tally energy (virial=0 because force=0)
       ev_tally_thr(this,iRef,iDip,iDummy,nlocal,/* NEWTON_BOND */ 1,
-		   eangle,f1,f3,0.0,0.0,0.0,0.0,0.0,0.0,thr);
+                   eangle,f1,f3,0.0,0.0,0.0,0.0,0.0,0.0,thr);
   }
 }

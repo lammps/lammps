@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,7 +73,7 @@ int MinCG::iterate(int maxiter)
     // line minimization along direction h from current atom->x
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ecurrent,alpha_final);    
+    fail = (this->*linemin)(ecurrent,alpha_final);
     if (fail) return fail;
 
     // function evaluation criterion
@@ -82,8 +82,8 @@ int MinCG::iterate(int maxiter)
 
     // energy tolerance criterion
 
-    if (fabs(ecurrent-eprevious) < 
-	update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+    if (fabs(ecurrent-eprevious) <
+        update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
       return ETOL;
 
     // force tolerance criterion
@@ -95,19 +95,19 @@ int MinCG::iterate(int maxiter)
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	fatom = fextra_atom[m];
-	gatom = gextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) {
-	  dot[0] += fatom[i]*fatom[i];
-	  dot[1] += fatom[i]*gatom[i];
-	}
+        fatom = fextra_atom[m];
+        gatom = gextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) {
+          dot[0] += fatom[i]*fatom[i];
+          dot[1] += fatom[i]*gatom[i];
+        }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global)
       for (i = 0; i < nextra_global; i++) {
-	dotall[0] += fextra[i]*fextra[i];
-	dotall[1] += fextra[i]*gextra[i];
+        dotall[0] += fextra[i]*fextra[i];
+        dotall[1] += fextra[i]*gextra[i];
       }
 
     if (dotall[0] < update->ftol*update->ftol) return FTOL;
@@ -127,19 +127,19 @@ int MinCG::iterate(int maxiter)
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	fatom = fextra_atom[m];
-	gatom = gextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) {
-	  gatom[i] = fatom[i];
-	  hatom[i] = gatom[i] + beta*hatom[i];
-	}
+        fatom = fextra_atom[m];
+        gatom = gextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) {
+          gatom[i] = fatom[i];
+          hatom[i] = gatom[i] + beta*hatom[i];
+        }
       }
     if (nextra_global)
       for (i = 0; i < nextra_global; i++) {
-	gextra[i] = fextra[i];
-	hextra[i] = gextra[i] + beta*hextra[i];
+        gextra[i] = fextra[i];
+        hextra[i] = gextra[i] + beta*hextra[i];
       }
 
     // reinitialize CG if new search direction h is not downhill
@@ -148,27 +148,27 @@ int MinCG::iterate(int maxiter)
     for (i = 0; i < nvec; i++) dot[0] += g[i]*h[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	gatom = gextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) dot[0] += gatom[i]*hatom[i];
+        gatom = gextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) dot[0] += gatom[i]*hatom[i];
       }
     MPI_Allreduce(dot,dotall,1,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global)
       for (i = 0; i < nextra_global; i++)
-	dotall[0] += gextra[i]*hextra[i];
+        dotall[0] += gextra[i]*hextra[i];
 
     if (dotall[0] <= 0.0) {
       for (i = 0; i < nvec; i++) h[i] = g[i];
       if (nextra_atom)
-	for (m = 0; m < nextra_atom; m++) {
-	  gatom = gextra_atom[m];
-	  hatom = hextra_atom[m];
-	  n = extra_nlen[m];
-	  for (i = 0; i < n; i++) hatom[i] = gatom[i];
-	}
+        for (m = 0; m < nextra_atom; m++) {
+          gatom = gextra_atom[m];
+          hatom = hextra_atom[m];
+          n = extra_nlen[m];
+          for (i = 0; i < n; i++) hatom[i] = gatom[i];
+        }
       if (nextra_global)
-	for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
+        for (i = 0; i < nextra_global; i++) hextra[i] = gextra[i];
     }
 
     // output for thermo, dump, restart files

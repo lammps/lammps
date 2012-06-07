@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -134,14 +134,14 @@ void FixGravityCuda::init()
 void FixGravityCuda::setup(int vflag)
 {
   MYDBG( printf("# CUDA: FixGravityCuda::setup\n"); )
-	
+
   if (strstr(update->integrate_style,"verlet"))
   {
     Cuda_FixGravityCuda_Init(&cuda->shared_data);
     cuda->cu_f->upload();
     post_force(vflag);
     cuda->cu_f->download();
-    
+
   }
   else {
   }
@@ -156,16 +156,16 @@ void FixGravityCuda::post_force(int vflag)
 
   if (style == GRADIENT) {
     if (domain->dimension == 3) {
-      double phi_current = degree2rad * 
-	(phi + (update->ntimestep - time_origin)*dt*phigrad*360.0);
-      double theta_current = degree2rad * 
-	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
+      double phi_current = degree2rad *
+        (phi + (update->ntimestep - time_origin)*dt*phigrad*360.0);
+      double theta_current = degree2rad *
+        (theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
       xgrav = sin(theta_current) * cos(phi_current);
       ygrav = sin(theta_current) * sin(phi_current);
       zgrav = cos(theta_current);
     } else {
-      double theta_current = degree2rad * 
-	(theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
+      double theta_current = degree2rad *
+        (theta + (update->ntimestep - time_origin)*dt*thetagrad*360.0);
       xgrav = sin(theta_current);
       ygrav = cos(theta_current);
     }
@@ -177,5 +177,3 @@ void FixGravityCuda::post_force(int vflag)
   MYDBG( printf("# CUDA: FixGravityCuda::postforce start\n"); )
   Cuda_FixGravityCuda_PostForce(&cuda->shared_data, groupbit, xacc,yacc,zacc);
 }
-
-

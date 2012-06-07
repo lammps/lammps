@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -64,7 +64,7 @@ void PairTable::compute(int eflag, int vflag)
   double rsq,factor_lj,fraction,value,a,b;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
-  
+
   union_int_float_t rsq_lookup;
   int tlm1 = tablength - 1;
 
@@ -83,7 +83,7 @@ void PairTable::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -105,66 +105,66 @@ void PairTable::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
-	tb = &tables[tabindex[itype][jtype]];
-	if (rsq < tb->innersq)
-	  error->one(FLERR,"Pair distance < table inner cutoff");
- 
-	if (tabstyle == LOOKUP) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
-	  fpair = factor_lj * tb->f[itable];
-	} else if (tabstyle == LINEAR) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
-	  fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	} else if (tabstyle == SPLINE) {
-	  itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1)
-	    error->one(FLERR,"Pair distance > table outer cutoff");
-	  b = (rsq - tb->rsq[itable]) * tb->invdelta;
-	  a = 1.0 - b;
-	  value = a * tb->f[itable] + b * tb->f[itable+1] + 
-	    ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+        tb = &tables[tabindex[itype][jtype]];
+        if (rsq < tb->innersq)
+          error->one(FLERR,"Pair distance < table inner cutoff");
+
+        if (tabstyle == LOOKUP) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1)
+            error->one(FLERR,"Pair distance > table outer cutoff");
+          fpair = factor_lj * tb->f[itable];
+        } else if (tabstyle == LINEAR) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1)
+            error->one(FLERR,"Pair distance > table outer cutoff");
+          fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+          value = tb->f[itable] + fraction*tb->df[itable];
+          fpair = factor_lj * value;
+        } else if (tabstyle == SPLINE) {
+          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1)
+            error->one(FLERR,"Pair distance > table outer cutoff");
+          b = (rsq - tb->rsq[itable]) * tb->invdelta;
+          a = 1.0 - b;
+          value = a * tb->f[itable] + b * tb->f[itable+1] +
+            ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
             tb->deltasq6;
-	  fpair = factor_lj * value;
-	} else {
-	  rsq_lookup.f = rsq;
-	  itable = rsq_lookup.i & tb->nmask;
-	  itable >>= tb->nshiftbits;
-	  fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-	  value = tb->f[itable] + fraction*tb->df[itable];
-	  fpair = factor_lj * value;
-	}
+          fpair = factor_lj * value;
+        } else {
+          rsq_lookup.f = rsq;
+          itable = rsq_lookup.i & tb->nmask;
+          itable >>= tb->nshiftbits;
+          fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+          value = tb->f[itable] + fraction*tb->df[itable];
+          fpair = factor_lj * value;
+        }
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (tabstyle == LOOKUP)
-	    evdwl = tb->e[itable];
-	  else if (tabstyle == LINEAR || tabstyle == BITMAP)
-	    evdwl = tb->e[itable] + fraction*tb->de[itable];
-	  else
-	    evdwl = a * tb->e[itable] + b * tb->e[itable+1] + 
-	      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * 
-	      tb->deltasq6;
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          if (tabstyle == LOOKUP)
+            evdwl = tb->e[itable];
+          else if (tabstyle == LINEAR || tabstyle == BITMAP)
+            evdwl = tb->e[itable] + fraction*tb->de[itable];
+          else
+            evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
+              ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
+              tb->deltasq6;
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -173,7 +173,7 @@ void PairTable::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairTable::allocate()
@@ -191,7 +191,7 @@ void PairTable::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairTable::settings(int narg, char **arg)
@@ -237,10 +237,10 @@ void PairTable::coeff(int narg, char **arg)
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
-  
+
   int me;
   MPI_Comm_rank(world,&me);
-  tables = (Table *) 
+  tables = (Table *)
     memory->srealloc(tables,(ntables+1)*sizeof(Table),"pair:tables");
   Table *tb = &tables[ntables];
   null_table(tb);
@@ -276,9 +276,9 @@ void PairTable::coeff(int narg, char **arg)
   // for tabstyle SPLINE, always need to build spline tables
 
   tb->match = 0;
-  if (tabstyle == LINEAR && tb->ninput == tablength && 
+  if (tabstyle == LINEAR && tb->ninput == tablength &&
       tb->rflag == RSQ && tb->rhi == tb->cut) tb->match = 1;
-  if (tabstyle == BITMAP && tb->ninput == 1 << tablength && 
+  if (tabstyle == BITMAP && tb->ninput == 1 << tablength &&
       tb->rflag == BMP && tb->rhi == tb->cut) tb->match = 1;
   if (tb->rflag == BMP && tb->match == 0)
     error->all(FLERR,"Bitmapped table in file does not match requested table");
@@ -319,7 +319,7 @@ double PairTable::init_one(int i, int j)
 /* ----------------------------------------------------------------------
    read a table section from a tabulated potential file
    only called by proc 0
-   this function sets these values in Table: 
+   this function sets these values in Table:
      ninput,rfile,efile,ffile,rflag,rlo,rhi,fpflag,fplo,fphi,ntablebits
 ------------------------------------------------------------------------- */
 
@@ -386,8 +386,8 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     if (tb->rflag == RLINEAR)
       rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
     else if (tb->rflag == RSQ) {
-      rtmp = tb->rlo*tb->rlo + 
-	(tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
+      rtmp = tb->rlo*tb->rlo +
+        (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
       rtmp = sqrt(rtmp);
     } else if (tb->rflag == BMP) {
       rsq_lookup.i = i << nshiftbits;
@@ -457,7 +457,7 @@ void PairTable::spline_table(Table *tb)
 
   if (tb->fpflag == 0) {
     tb->fplo = (tb->ffile[1] - tb->ffile[0]) / (tb->rfile[1] - tb->rfile[0]);
-    tb->fphi = (tb->ffile[tb->ninput-1] - tb->ffile[tb->ninput-2]) / 
+    tb->fphi = (tb->ffile[tb->ninput-1] - tb->ffile[tb->ninput-2]) /
       (tb->rfile[tb->ninput-1] - tb->rfile[tb->ninput-2]);
   }
 
@@ -477,14 +477,14 @@ void PairTable::param_extract(Table *tb, char *line)
   tb->ninput = 0;
   tb->rflag = NONE;
   tb->fpflag = 0;
-  
+
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(NULL," \t\n\r\f");
       tb->ninput = atoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0 ||
-	       strcmp(word,"BITMAP") == 0) {
+               strcmp(word,"BITMAP") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
       else if (strcmp(word,"BITMAP") == 0) tb->rflag = BMP;
@@ -568,14 +568,14 @@ void PairTable::compute_table(Table *tb)
       r = sqrt(rsq);
       tb->rsq[i] = rsq;
       if (tb->match) {
-	tb->e[i] = tb->efile[i];
-	tb->f[i] = tb->ffile[i]/r;
+        tb->e[i] = tb->efile[i];
+        tb->f[i] = tb->ffile[i]/r;
       } else {
-	tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-	tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
+        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
+        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
       }
     }
-    
+
     for (int i = 0; i < tlm1; i++) {
       tb->de[i] = tb->e[i+1] - tb->e[i];
       tb->df[i] = tb->f[i+1] - tb->f[i];
@@ -605,11 +605,11 @@ void PairTable::compute_table(Table *tb)
       r = sqrt(rsq);
       tb->rsq[i] = rsq;
       if (tb->match) {
-	tb->e[i] = tb->efile[i];
-	tb->f[i] = tb->ffile[i]/r;
+        tb->e[i] = tb->efile[i];
+        tb->f[i] = tb->ffile[i]/r;
       } else {
-	tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-	tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r);
+        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
+        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r);
       }
     }
 
@@ -634,7 +634,7 @@ void PairTable::compute_table(Table *tb)
       double rsq1 = tb->innersq;
       double rsq2 = rsq1 + secant_factor*tb->delta;
       fp0 = (splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq2)) /
-	     sqrt(rsq2) - tb->f[0] / sqrt(rsq1)) / (secant_factor*tb->delta);
+             sqrt(rsq2) - tb->f[0] / sqrt(rsq1)) / (secant_factor*tb->delta);
     }
 
     if (tb->fpflag && tb->cut == tb->rfile[tb->ninput-1]) fpn =
@@ -642,9 +642,9 @@ void PairTable::compute_table(Table *tb)
     else {
       double rsq2 = tb->cut * tb->cut;
       double rsq1 = rsq2 - secant_factor*tb->delta;
-      fpn = (tb->f[tlm1] / sqrt(rsq2) - 
-	     splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq1)) /
-	     sqrt(rsq1)) / (secant_factor*tb->delta);
+      fpn = (tb->f[tlm1] / sqrt(rsq2) -
+             splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,sqrt(rsq1)) /
+             sqrt(rsq1)) / (secant_factor*tb->delta);
     }
 
     for (int i = 0; i < tablength; i++) tb->f[i] /= sqrt(tb->rsq[i]);
@@ -663,7 +663,7 @@ void PairTable::compute_table(Table *tb)
 
     // linear lookup tables of length ntable = 2^n
     // stored value = value at lower edge of bin
-	
+
     init_bitmap(inner,tb->cut,tablength,masklo,maskhi,tb->nmask,tb->nshiftbits);
     int ntable = 1 << tablength;
     int ntablem1 = ntable - 1;
@@ -674,7 +674,7 @@ void PairTable::compute_table(Table *tb)
     memory->create(tb->de,ntable,"pair:de");
     memory->create(tb->df,ntable,"pair:df");
     memory->create(tb->drsq,ntable,"pair:drsq");
-  
+
     union_int_float_t minrsq_lookup;
     minrsq_lookup.i = 0 << tb->nshiftbits;
     minrsq_lookup.i |= maskhi;
@@ -689,56 +689,56 @@ void PairTable::compute_table(Table *tb)
       r = sqrtf(rsq_lookup.f);
       tb->rsq[i] = rsq_lookup.f;
       if (tb->match) {
-	tb->e[i] = tb->efile[i];
-	tb->f[i] = tb->ffile[i]/r;
+        tb->e[i] = tb->efile[i];
+        tb->f[i] = tb->ffile[i]/r;
       } else {
-	tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
-	tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
+        tb->e[i] = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
+        tb->f[i] = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
       }
       minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
     }
 
     tb->innersq = minrsq_lookup.f;
-    
+
     for (int i = 0; i < ntablem1; i++) {
       tb->de[i] = tb->e[i+1] - tb->e[i];
       tb->df[i] = tb->f[i+1] - tb->f[i];
       tb->drsq[i] = 1.0/(tb->rsq[i+1] - tb->rsq[i]);
-    } 
+    }
 
-    // get the delta values for the last table entries 
+    // get the delta values for the last table entries
     // tables are connected periodically between 0 and ntablem1
-    
+
     tb->de[ntablem1] = tb->e[0] - tb->e[ntablem1];
     tb->df[ntablem1] = tb->f[0] - tb->f[ntablem1];
     tb->drsq[ntablem1] = 1.0/(tb->rsq[0] - tb->rsq[ntablem1]);
 
-    // get the correct delta values at itablemax    
+    // get the correct delta values at itablemax
     // smallest r is in bin itablemin
     // largest r is in bin itablemax, which is itablemin-1,
     //   or ntablem1 if itablemin=0
 
     // deltas at itablemax only needed if corresponding rsq < cut*cut
-    // if so, compute deltas between rsq and cut*cut 
+    // if so, compute deltas between rsq and cut*cut
     //   if tb->match, data at cut*cut is unavailable, so we'll take
     //   deltas at itablemax-1 as a good approximation
-	
+
     double e_tmp,f_tmp;
     int itablemin = minrsq_lookup.i & tb->nmask;
-    itablemin >>= tb->nshiftbits;  
-    int itablemax = itablemin - 1; 
-    if (itablemin == 0) itablemax = ntablem1;     
-    int itablemaxm1 = itablemax - 1; 
-    if (itablemax == 0) itablemaxm1 = ntablem1;       
+    itablemin >>= tb->nshiftbits;
+    int itablemax = itablemin - 1;
+    if (itablemin == 0) itablemax = ntablem1;
+    int itablemaxm1 = itablemax - 1;
+    if (itablemax == 0) itablemaxm1 = ntablem1;
     rsq_lookup.i = itablemax << tb->nshiftbits;
-    rsq_lookup.i |= maskhi;          
+    rsq_lookup.i |= maskhi;
     if (rsq_lookup.f < tb->cut*tb->cut) {
       if (tb->match) {
         tb->de[itablemax] = tb->de[itablemaxm1];
         tb->df[itablemax] = tb->df[itablemaxm1];
         tb->drsq[itablemax] = tb->drsq[itablemaxm1];
       } else {
-	    rsq_lookup.f = tb->cut*tb->cut;   
+            rsq_lookup.f = tb->cut*tb->cut;
         r = sqrtf(rsq_lookup.f);
         e_tmp = splint(tb->rfile,tb->efile,tb->e2file,tb->ninput,r);
         f_tmp = splint(tb->rfile,tb->ffile,tb->f2file,tb->ninput,r)/r;
@@ -747,7 +747,7 @@ void PairTable::compute_table(Table *tb)
         tb->drsq[itablemax] = 1.0/(rsq_lookup.f - tb->rsq[itablemax]);
       }
     }
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -789,7 +789,7 @@ void PairTable::free_table(Table *tb)
 ------------------------------------------------------------------------- */
 
 void PairTable::spline(double *x, double *y, int n,
-		       double yp1, double ypn, double *y2)
+                       double yp1, double ypn, double *y2)
 {
   int i,k;
   double p,qn,sig,un;
@@ -835,7 +835,7 @@ double PairTable::splint(double *xa, double *ya, double *y2a, int n, double x)
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] + 
+  y = a*ya[klo] + b*ya[khi] +
     ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
   return y;
 }
@@ -886,8 +886,8 @@ void PairTable::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairTable::single(int i, int j, int itype, int jtype, double rsq,
-			 double factor_coul, double factor_lj,
-			 double &fforce)
+                         double factor_coul, double factor_lj,
+                         double &fforce)
 {
   int itable;
   double fraction,value,a,b,phi;
@@ -911,8 +911,8 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
     if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
     b = (rsq - tb->rsq[itable]) * tb->invdelta;
     a = 1.0 - b;
-    value = a * tb->f[itable] + b * tb->f[itable+1] + 
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * 
+    value = a * tb->f[itable] + b * tb->f[itable+1] +
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
       tb->deltasq6;
     fforce = factor_lj * value;
   } else {
@@ -930,7 +930,7 @@ double PairTable::single(int i, int j, int itype, int jtype, double rsq,
   else if (tabstyle == LINEAR || tabstyle == BITMAP)
     phi = tb->e[itable] + fraction*tb->de[itable];
   else
-    phi = a * tb->e[itable] + b * tb->e[itable+1] + 
+    phi = a * tb->e[itable] + b * tb->e[itable+1] +
       ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
   return factor_lj*phi;
 }
@@ -951,7 +951,7 @@ void *PairTable::extract(const char *str, int &dim)
   for (int m = 1; m < ntables; m++)
     if (tables[m].cut != cut_coul)
       error->all(FLERR,
-		 "Pair table cutoffs must all be equal to use with KSpace");
+                 "Pair table cutoffs must all be equal to use with KSpace");
   dim = 0;
   return &tables[0].cut;
 }

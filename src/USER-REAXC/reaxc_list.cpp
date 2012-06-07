@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -38,10 +38,10 @@
 int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
 {
   l->allocated = 1;
-  
+
   l->n = n;
   l->num_intrs = num_intrs;
-    
+
   l->index = (int*) smalloc( n * sizeof(int), "list:index", comm );
   l->end_index = (int*) smalloc( n * sizeof(int), "list:end_index", comm );
 
@@ -54,38 +54,38 @@ int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
   case TYP_VOID:
     l->select.v = (void*) smalloc(l->num_intrs * sizeof(void*), "list:v", comm);
     break;
-    
+
   case TYP_THREE_BODY:
-    l->select.three_body_list = (three_body_interaction_data*) 
-      smalloc( l->num_intrs * sizeof(three_body_interaction_data), 
-	       "list:three_bodies", comm );
+    l->select.three_body_list = (three_body_interaction_data*)
+      smalloc( l->num_intrs * sizeof(three_body_interaction_data),
+               "list:three_bodies", comm );
     break;
-    
+
   case TYP_BOND:
-    l->select.bond_list = (bond_data*) 
+    l->select.bond_list = (bond_data*)
       smalloc( l->num_intrs * sizeof(bond_data), "list:bonds", comm );
     break;
-    
+
   case TYP_DBO:
-    l->select.dbo_list = (dbond_data*) 
+    l->select.dbo_list = (dbond_data*)
       smalloc( l->num_intrs * sizeof(dbond_data), "list:dbonds", comm );
     break;
-    
+
   case TYP_DDELTA:
-    l->select.dDelta_list = (dDelta_data*) 
+    l->select.dDelta_list = (dDelta_data*)
       smalloc( l->num_intrs * sizeof(dDelta_data), "list:dDeltas", comm );
     break;
-    
+
   case TYP_FAR_NEIGHBOR:
-    l->select.far_nbr_list = (far_neighbor_data*) 
+    l->select.far_nbr_list = (far_neighbor_data*)
       smalloc(l->num_intrs * sizeof(far_neighbor_data), "list:far_nbrs", comm);
     break;
-        
+
   case TYP_HBOND:
     l->select.hbond_list = (hbond_data*)
       smalloc( l->num_intrs * sizeof(hbond_data), "list:hbonds", comm );
-    break;			
-    
+    break;
+
   default:
     fprintf( stderr, "ERROR: no %d list type defined!\n", l->type );
     MPI_Abort( comm, INVALID_INPUT );
@@ -103,7 +103,7 @@ void Delete_List( reax_list *l, MPI_Comm comm )
 
   sfree( l->index, "list:index" );
   sfree( l->end_index, "list:end_index" );
-  
+
   switch(l->type) {
   case TYP_VOID:
     sfree( l->select.v, "list:v" );

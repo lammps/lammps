@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,9 +35,9 @@ void Error::universe_all(const char *file, int line, const char *str)
 
   if (universe->me == 0) {
     if (universe->uscreen) fprintf(universe->uscreen,
-				   "ERROR: %s (%s:%d)\n",str,file,line);
+                                   "ERROR: %s (%s:%d)\n",str,file,line);
     if (universe->ulogfile) fprintf(universe->ulogfile,
-				    "ERROR: %s (%s:%d)\n",str,file,line);
+                                    "ERROR: %s (%s:%d)\n",str,file,line);
   }
 
   if (output) delete output;
@@ -60,7 +60,7 @@ void Error::universe_one(const char *file, int line, const char *str)
 {
   if (universe->uscreen)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
-	    universe->me,str,file,line);
+            universe->me,str,file,line);
   MPI_Abort(universe->uworld,1);
 }
 
@@ -95,7 +95,7 @@ void Error::all(const char *file, int line, const char *str)
 /* ----------------------------------------------------------------------
    called by one proc in world
    write to world screen only if non-NULL on this proc
-   always write to universe screen 
+   always write to universe screen
    forces abort of entire world (and universe) if any proc in world calls
 ------------------------------------------------------------------------- */
 
@@ -104,24 +104,24 @@ void Error::one(const char *file, int line, const char *str)
   int me;
   MPI_Comm_rank(world,&me);
   if (screen) fprintf(screen,"ERROR on proc %d: %s (%s:%d)\n",
-		      me,str,file,line);
+                      me,str,file,line);
   if (universe->nworlds > 1)
     if (universe->uscreen)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
-	      universe->me,str,file,line);
+              universe->me,str,file,line);
   MPI_Abort(world,1);
 }
 
 /* ----------------------------------------------------------------------
    called by one proc in world
-   only write to screen if non-NULL on this proc since could be file 
+   only write to screen if non-NULL on this proc since could be file
 ------------------------------------------------------------------------- */
 
 void Error::warning(const char *file, int line, const char *str, int logflag)
 {
   if (screen) fprintf(screen,"WARNING: %s (%s:%d)\n",str,file,line);
   if (logflag && logfile) fprintf(logfile,"WARNING: %s (%s:%d)\n",
-				  str,file,line);
+                                  str,file,line);
 }
 
 /* ----------------------------------------------------------------------

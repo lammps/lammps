@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,7 +21,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) : 
+FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) :
   FixWall(lmp, narg, arg) {}
 
 /* ----------------------------------------------------------------------
@@ -52,8 +52,8 @@ void FixWallHarmonic::wall_particle(int m, int which, double coord)
       else delta = coord - x[i][dim];
       if (delta >= cutoff[m]) continue;
       if (delta <= 0.0) {
-	onflag = 1;
-	continue;
+        onflag = 1;
+        continue;
       }
       dr = cutoff[m]-delta;
       fwall = side * 2.0*epsilon[m]*dr;

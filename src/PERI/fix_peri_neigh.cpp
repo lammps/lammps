@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -37,7 +37,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) : 
+FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   restart_global = 1;
@@ -106,25 +106,25 @@ void FixPeriNeigh::init()
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 0; 
+  neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
 }
 
 /* ---------------------------------------------------------------------- */
- 
+
 void FixPeriNeigh::init_list(int id, NeighList *ptr)
 {
   list = ptr;
 }
 
-/* ---------------------------------------------------------------------- 
-   For minimization: setup as with dynamics 
+/* ----------------------------------------------------------------------
+   For minimization: setup as with dynamics
 ------------------------------------------------------------------------- */
 
 void FixPeriNeigh::min_setup(int vflag)
 {
-  setup(vflag); 
+  setup(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -241,7 +241,7 @@ void FixPeriNeigh::setup(int vflag)
   }
 
   // sanity check: does any atom appear twice in any neigborlist?
-  // should only be possible if using pbc and domain < 2*delta 
+  // should only be possible if using pbc and domain < 2*delta
 
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
     for (i = 0; i < nlocal; i++) {
@@ -249,8 +249,8 @@ void FixPeriNeigh::setup(int vflag)
       for (jj = 0; jj < jnum; jj++) {
         for (int kk = jj+1; kk < jnum; kk++) {
           if (partner[i][jj] == partner[i][kk])
-	    error->one(FLERR,"Duplicate particle in PeriDynamic bond - "
-		       "simulation box is too small");
+            error->one(FLERR,"Duplicate particle in PeriDynamic bond - "
+                       "simulation box is too small");
         }
       }
     }
@@ -304,8 +304,8 @@ void FixPeriNeigh::setup(int vflag)
       if (pairpmb != NULL) // define influence function to be 1.0
         wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale;
       else if (pairlps != NULL) // call the PairPeriLPS influence function
-        wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) * 
-	  rsq0 * vfrac[j] * vfrac_scale;
+        wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) *
+          rsq0 * vfrac[j] * vfrac_scale;
 
     }
   }

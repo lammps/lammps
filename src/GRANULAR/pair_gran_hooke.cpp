@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -91,100 +91,100 @@ void PairGranHooke::compute(int eflag, int vflag)
       radsum = radi + radj;
 
       if (rsq < radsum*radsum) {
-	r = sqrt(rsq);
-	rinv = 1.0/r;
-	rsqinv = 1.0/rsq;
+        r = sqrt(rsq);
+        rinv = 1.0/r;
+        rsqinv = 1.0/rsq;
 
-	// relative translational velocity
+        // relative translational velocity
 
-	vr1 = v[i][0] - v[j][0];
-	vr2 = v[i][1] - v[j][1];
-	vr3 = v[i][2] - v[j][2];
+        vr1 = v[i][0] - v[j][0];
+        vr2 = v[i][1] - v[j][1];
+        vr3 = v[i][2] - v[j][2];
 
-	// normal component
+        // normal component
 
-	vnnr = vr1*delx + vr2*dely + vr3*delz;
-	vn1 = delx*vnnr * rsqinv;
-	vn2 = dely*vnnr * rsqinv;
-	vn3 = delz*vnnr * rsqinv;
+        vnnr = vr1*delx + vr2*dely + vr3*delz;
+        vn1 = delx*vnnr * rsqinv;
+        vn2 = dely*vnnr * rsqinv;
+        vn3 = delz*vnnr * rsqinv;
 
-	// tangential component
+        // tangential component
 
-	vt1 = vr1 - vn1;
-	vt2 = vr2 - vn2;
-	vt3 = vr3 - vn3;
+        vt1 = vr1 - vn1;
+        vt2 = vr2 - vn2;
+        vt3 = vr3 - vn3;
 
-	// relative rotational velocity
+        // relative rotational velocity
 
-	wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
-	wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
-	wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
+        wr1 = (radi*omega[i][0] + radj*omega[j][0]) * rinv;
+        wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
+        wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-	// normal forces = Hookian contact + normal velocity damping
+        // normal forces = Hookian contact + normal velocity damping
 
-	if (rmass) {
-	  meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-	  if (mask[i] & freeze_group_bit) meff = rmass[j];
-	  if (mask[j] & freeze_group_bit) meff = rmass[i];
-	} else {
-	  itype = type[i];
-	  jtype = type[j];
-	  meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
-	  if (mask[i] & freeze_group_bit) meff = mass[jtype];
-	  if (mask[j] & freeze_group_bit) meff = mass[itype];
-	}
+        if (rmass) {
+          meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
+          if (mask[i] & freeze_group_bit) meff = rmass[j];
+          if (mask[j] & freeze_group_bit) meff = rmass[i];
+        } else {
+          itype = type[i];
+          jtype = type[j];
+          meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
+          if (mask[i] & freeze_group_bit) meff = mass[jtype];
+          if (mask[j] & freeze_group_bit) meff = mass[itype];
+        }
 
-	damp = meff*gamman*vnnr*rsqinv;
-	ccel = kn*(radsum-r)*rinv - damp;
+        damp = meff*gamman*vnnr*rsqinv;
+        ccel = kn*(radsum-r)*rinv - damp;
 
-	// relative velocities
+        // relative velocities
 
-	vtr1 = vt1 - (delz*wr2-dely*wr3);
-	vtr2 = vt2 - (delx*wr3-delz*wr1);
-	vtr3 = vt3 - (dely*wr1-delx*wr2);
-	vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-	vrel = sqrt(vrel);
+        vtr1 = vt1 - (delz*wr2-dely*wr3);
+        vtr2 = vt2 - (delx*wr3-delz*wr1);
+        vtr3 = vt3 - (dely*wr1-delx*wr2);
+        vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+        vrel = sqrt(vrel);
 
-	// force normalization
+        // force normalization
 
-	fn = xmu * fabs(ccel*r);
-	fs = meff*gammat*vrel;
-	if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
-	else ft = 0.0;
+        fn = xmu * fabs(ccel*r);
+        fs = meff*gammat*vrel;
+        if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
+        else ft = 0.0;
 
-	// tangential force due to tangential velocity damping
+        // tangential force due to tangential velocity damping
 
-	fs1 = -ft*vtr1;
-	fs2 = -ft*vtr2;
-	fs3 = -ft*vtr3;
+        fs1 = -ft*vtr1;
+        fs2 = -ft*vtr2;
+        fs3 = -ft*vtr3;
 
-	// forces & torques
+        // forces & torques
 
-	fx = delx*ccel + fs1;
-	fy = dely*ccel + fs2;
-	fz = delz*ccel + fs3;
-	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
+        fx = delx*ccel + fs1;
+        fy = dely*ccel + fs2;
+        fz = delz*ccel + fs3;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
 
-	tor1 = rinv * (dely*fs3 - delz*fs2);
-	tor2 = rinv * (delz*fs1 - delx*fs3);
-	tor3 = rinv * (delx*fs2 - dely*fs1);
-	torque[i][0] -= radi*tor1;
-	torque[i][1] -= radi*tor2;
-	torque[i][2] -= radi*tor3;
+        tor1 = rinv * (dely*fs3 - delz*fs2);
+        tor2 = rinv * (delz*fs1 - delx*fs3);
+        tor3 = rinv * (delx*fs2 - dely*fs1);
+        torque[i][0] -= radi*tor1;
+        torque[i][1] -= radi*tor2;
+        torque[i][2] -= radi*tor3;
 
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= fx;
-	  f[j][1] -= fy;
-	  f[j][2] -= fz;
-	  torque[j][0] -= radj*tor1;
-	  torque[j][1] -= radj*tor2;
-	  torque[j][2] -= radj*tor3;
-	}
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fx;
+          f[j][1] -= fy;
+          f[j][2] -= fz;
+          torque[j][0] -= radj*tor1;
+          torque[j][1] -= radj*tor2;
+          torque[j][2] -= radj*tor3;
+        }
 
-	if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-				 0.0,0.0,fx,fy,fz,delx,dely,delz);
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+                                 0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
   }
@@ -195,8 +195,8 @@ void PairGranHooke::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
-			     double factor_coul, double factor_lj,
-			     double &fforce)
+                             double factor_coul, double factor_lj,
+                             double &fforce)
 {
   double radi,radj,radsum,r,rinv,rsqinv;
   double delx,dely,delz;
@@ -228,7 +228,7 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   vr1 = v[i][0] - v[j][0];
   vr2 = v[i][1] - v[j][1];
   vr3 = v[i][2] - v[j][2];
-  
+
   // normal component
 
   double **x = atom->x;
@@ -287,15 +287,15 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   fs = meff*gammat*vrel;
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
-  
+
   // set all forces and return no energy
-  
+
   fforce = ccel;
   svector[0] = -ft*vtr1;
   svector[1] = -ft*vtr2;
   svector[2] = -ft*vtr3;
-  svector[3] = sqrt(svector[0]*svector[0] + 
-		    svector[1]*svector[1] + 
-		    svector[2]*svector[2]);
+  svector[3] = sqrt(svector[0]*svector[0] +
+                    svector[1]*svector[1] +
+                    svector[2]*svector[2]);
   return 0.0;
 }

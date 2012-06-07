@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,7 +32,7 @@ class Lattice : protected Pointers {
   void lattice2box(double &, double &, double &);
   void box2lattice(double &, double &, double &);
   void bbox(int, double, double, double,
-	    double &, double &, double &, double &, double &, double &);
+            double &, double &, double &, double &, double &, double &);
 
 private:
   double scale;

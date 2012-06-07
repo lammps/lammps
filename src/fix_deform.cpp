@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -59,11 +59,11 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // set defaults
 
   set = new Set[6];
-  set[0].style = set[1].style = set[2].style = 
+  set[0].style = set[1].style = set[2].style =
     set[3].style = set[4].style = set[5].style = NONE;
-  set[0].hstr = set[1].hstr = set[2].hstr = 
+  set[0].hstr = set[1].hstr = set[2].hstr =
     set[3].hstr = set[4].hstr = set[5].hstr = NULL;
-  set[0].hratestr = set[1].hratestr = set[2].hratestr = 
+  set[0].hratestr = set[1].hratestr = set[2].hratestr =
     set[3].hratestr = set[4].hratestr = set[5].hratestr = NULL;
 
   // parse arguments
@@ -73,9 +73,9 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int index;
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"x") == 0 || 
-	strcmp(arg[iarg],"y") == 0 ||
-	strcmp(arg[iarg],"z") == 0) {
+    if (strcmp(arg[iarg],"x") == 0 ||
+        strcmp(arg[iarg],"y") == 0 ||
+        strcmp(arg[iarg],"z") == 0) {
 
       if (strcmp(arg[iarg],"x") == 0) index = 0;
       else if (strcmp(arg[iarg],"y") == 0) index = 1;
@@ -83,126 +83,126 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = FINAL;
-	set[index].flo = atof(arg[iarg+2]);
-	set[index].fhi = atof(arg[iarg+3]);
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = FINAL;
+        set[index].flo = atof(arg[iarg+2]);
+        set[index].fhi = atof(arg[iarg+3]);
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = DELTA;
-	set[index].dlo = atof(arg[iarg+2]);
-	set[index].dhi = atof(arg[iarg+3]);
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = DELTA;
+        set[index].dlo = atof(arg[iarg+2]);
+        set[index].dhi = atof(arg[iarg+3]);
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = SCALE;
-	set[index].scale = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = SCALE;
+        set[index].scale = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"vel") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = VEL;
-	set[index].vel = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = VEL;
+        set[index].vel = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"erate") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = ERATE;
-	set[index].rate = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = ERATE;
+        set[index].rate = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"trate") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = TRATE;
-	set[index].rate = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = TRATE;
+        set[index].rate = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"volume") == 0) {
-	set[index].style = VOLUME;
-	iarg += 2;
+        set[index].style = VOLUME;
+        iarg += 2;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = WIGGLE;
-	set[index].amplitude = atof(arg[iarg+2]);
-	set[index].tperiod = atof(arg[iarg+3]);
-	if (set[index].tperiod <= 0.0) 
-	  error->all(FLERR,"Illegal fix deform command");
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = WIGGLE;
+        set[index].amplitude = atof(arg[iarg+2]);
+        set[index].tperiod = atof(arg[iarg+3]);
+        if (set[index].tperiod <= 0.0)
+          error->all(FLERR,"Illegal fix deform command");
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"variable") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = VARIABLE;
-	if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
-	  error->all(FLERR,"Illegal fix deform command");
-	if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
-	  error->all(FLERR,"Illegal fix deform command");
-	delete [] set[index].hstr;
-	delete [] set[index].hratestr;
-	int n = strlen(&arg[iarg+2][2]) + 1;
-	set[index].hstr = new char[n];
-	strcpy(set[index].hstr,&arg[iarg+2][2]);
-	n = strlen(&arg[iarg+3][2]) + 1;
-	set[index].hratestr = new char[n];
-	strcpy(set[index].hratestr,&arg[iarg+3][2]);
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = VARIABLE;
+        if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
+          error->all(FLERR,"Illegal fix deform command");
+        if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
+          error->all(FLERR,"Illegal fix deform command");
+        delete [] set[index].hstr;
+        delete [] set[index].hratestr;
+        int n = strlen(&arg[iarg+2][2]) + 1;
+        set[index].hstr = new char[n];
+        strcpy(set[index].hstr,&arg[iarg+2][2]);
+        n = strlen(&arg[iarg+3][2]) + 1;
+        set[index].hratestr = new char[n];
+        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
-      
-    } else if (strcmp(arg[iarg],"xy") == 0 || 
-	       strcmp(arg[iarg],"xz") == 0 ||
-	       strcmp(arg[iarg],"yz") == 0) {
+
+    } else if (strcmp(arg[iarg],"xy") == 0 ||
+               strcmp(arg[iarg],"xz") == 0 ||
+               strcmp(arg[iarg],"yz") == 0) {
 
       if (triclinic == 0)
-	error->all(FLERR,"Fix deform tilt factors require triclinic box");
+        error->all(FLERR,"Fix deform tilt factors require triclinic box");
       if (strcmp(arg[iarg],"xy") == 0) index = 5;
       else if (strcmp(arg[iarg],"xz") == 0) index = 4;
       else if (strcmp(arg[iarg],"yz") == 0) index = 3;
 
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
       if (strcmp(arg[iarg+1],"final") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = FINAL;
-	set[index].ftilt = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = FINAL;
+        set[index].ftilt = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = DELTA;
-	set[index].dtilt = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = DELTA;
+        set[index].dtilt = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"vel") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = VEL;
-	set[index].vel = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = VEL;
+        set[index].vel = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"erate") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = ERATE;
-	set[index].rate = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = ERATE;
+        set[index].rate = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"trate") == 0) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = TRATE;
-	set[index].rate = atof(arg[iarg+2]);
-	iarg += 3;
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = TRATE;
+        set[index].rate = atof(arg[iarg+2]);
+        iarg += 3;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = WIGGLE;
-	set[index].amplitude = atof(arg[iarg+2]);
-	set[index].tperiod = atof(arg[iarg+3]);
-	if (set[index].tperiod <= 0.0) 
-	  error->all(FLERR,"Illegal fix deform command");
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = WIGGLE;
+        set[index].amplitude = atof(arg[iarg+2]);
+        set[index].tperiod = atof(arg[iarg+3]);
+        if (set[index].tperiod <= 0.0)
+          error->all(FLERR,"Illegal fix deform command");
+        iarg += 4;
       } else if (strcmp(arg[iarg+1],"variable") == 0) {
-	if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
-	set[index].style = VARIABLE;
-	if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
-	  error->all(FLERR,"Illegal fix deform command");
-	if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
-	  error->all(FLERR,"Illegal fix deform command");
-	delete [] set[index].hstr;
-	delete [] set[index].hratestr;
-	int n = strlen(&arg[iarg+2][2]) + 1;
-	set[index].hstr = new char[n];
-	strcpy(set[index].hstr,&arg[iarg+2][2]);
-	n = strlen(&arg[iarg+3][2]) + 1;
-	set[index].hratestr = new char[n];
-	strcpy(set[index].hratestr,&arg[iarg+3][2]);
-	iarg += 4;
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        set[index].style = VARIABLE;
+        if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
+          error->all(FLERR,"Illegal fix deform command");
+        if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
+          error->all(FLERR,"Illegal fix deform command");
+        delete [] set[index].hstr;
+        delete [] set[index].hratestr;
+        int n = strlen(&arg[iarg+2][2]) + 1;
+        set[index].hstr = new char[n];
+        strcpy(set[index].hstr,&arg[iarg+2][2]);
+        n = strlen(&arg[iarg+3][2]) + 1;
+        set[index].hratestr = new char[n];
+        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
     } else break;
@@ -226,26 +226,26 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // no tensile deformation on shrink-wrapped dims
   // b/c shrink wrap will change box-length
 
-  if (set[0].style && 
+  if (set[0].style &&
       (domain->boundary[0][0] >= 2 || domain->boundary[0][1] >= 2))
       error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
-  if (set[1].style && 
+  if (set[1].style &&
       (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
       error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
-  if (set[2].style && 
+  if (set[2].style &&
       (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
       error->all(FLERR,"Cannot use fix deform on a shrink-wrapped boundary");
 
   // no tilt deformation on shrink-wrapped 2nd dim
   // b/c shrink wrap will change tilt factor in domain::reset_box()
 
-  if (set[3].style && 
+  if (set[3].style &&
       (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
     error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
-  if (set[4].style && 
+  if (set[4].style &&
       (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
     error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
-  if (set[4].style && 
+  if (set[4].style &&
       (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
     error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
 
@@ -253,8 +253,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   int flag = 0;
   for (int i = 0; i < 6; i++)
-    if (set[i].style == FINAL || set[i].style == DELTA || 
-	set[i].style == VEL || set[i].style == WIGGLE) flag = 1;
+    if (set[i].style == FINAL || set[i].style == DELTA ||
+        set[i].style == VEL || set[i].style == WIGGLE) flag = 1;
 
   if (flag && scaleflag && domain->lattice == NULL)
     error->all(FLERR,"Use of fix deform with undefined lattice");
@@ -304,25 +304,25 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     if (set[other1].style == NONE) {
       if (set[other2].style == NONE || set[other2].style == VOLUME)
-	error->all(FLERR,"Fix deform volume setting is invalid");
+        error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = ONE_FROM_ONE;
       set[i].fixed = other1;
       set[i].dynamic1 = other2;
     } else if (set[other2].style == NONE) {
       if (set[other1].style == NONE || set[other1].style == VOLUME)
-	error->all(FLERR,"Fix deform volume setting is invalid");
+        error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = ONE_FROM_ONE;
       set[i].fixed = other2;
       set[i].dynamic1 = other1;
     } else if (set[other1].style == VOLUME) {
       if (set[other2].style == NONE || set[other2].style == VOLUME)
-	error->all(FLERR,"Fix deform volume setting is invalid");
+        error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = TWO_FROM_ONE;
       set[i].fixed = other1;
       set[i].dynamic1 = other2;
     } else if (set[other2].style == VOLUME) {
       if (set[other1].style == NONE || set[other1].style == VOLUME)
-	error->all(FLERR,"Fix deform volume setting is invalid");
+        error->all(FLERR,"Fix deform volume setting is invalid");
       set[i].substyle = TWO_FROM_ONE;
       set[i].fixed = other2;
       set[i].dynamic1 = other1;
@@ -360,7 +360,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nrigid = 0;
   rfix = NULL;
   flip = 0;
-  
+
   if (force_reneighbor) irregular = new Irregular(lmp);
   else irregular = NULL;
 
@@ -385,7 +385,7 @@ FixDeform::~FixDeform()
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;
 
-  h_rate[0] = h_rate[1] = h_rate[2] = 
+  h_rate[0] = h_rate[1] = h_rate[2] =
     h_rate[3] = h_rate[4] = h_rate[5] = 0.0;
   h_ratelo[0] = h_ratelo[1] = h_ratelo[2] = 0.0;
 }
@@ -426,12 +426,12 @@ void FixDeform::init()
   for (int i = 0; i < 6; i++) {
     if (set[i].style != VARIABLE) continue;
     set[i].hvar = input->variable->find(set[i].hstr);
-    if (set[i].hvar < 0) 
+    if (set[i].hvar < 0)
       error->all(FLERR,"Variable name for fix deform does not exist");
     if (!input->variable->equalstyle(set[i].hvar))
       error->all(FLERR,"Variable for fix deform is invalid style");
     set[i].hratevar = input->variable->find(set[i].hratestr);
-    if (set[i].hratevar < 0) 
+    if (set[i].hratevar < 0)
       error->all(FLERR,"Variable name for fix deform does not exist");
     if (!input->variable->equalstyle(set[i].hratevar))
       error->all(FLERR,"Variable for fix deform is invalid style");
@@ -461,30 +461,30 @@ void FixDeform::init()
       set[i].lo_stop = set[i].lo_start + set[i].dlo;
       set[i].hi_stop = set[i].hi_start + set[i].dhi;
     } else if (set[i].style == SCALE) {
-      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
-      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
+      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) -
+        0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
+      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) +
+        0.5*set[i].scale*(set[i].hi_start-set[i].lo_start);
     } else if (set[i].style == VEL) {
       set[i].lo_stop = set[i].lo_start - 0.5*delt*set[i].vel;
       set[i].hi_stop = set[i].hi_start + 0.5*delt*set[i].vel;
     } else if (set[i].style == ERATE) {
-      set[i].lo_stop = set[i].lo_start - 
-	0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
-      set[i].hi_stop = set[i].hi_start + 
-	0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
+      set[i].lo_stop = set[i].lo_start -
+        0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
+      set[i].hi_stop = set[i].hi_start +
+        0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
       if (set[i].hi_stop <= set[i].lo_stop)
-	error->all(FLERR,"Final box dimension due to fix deform is < 0.0");
+        error->all(FLERR,"Final box dimension due to fix deform is < 0.0");
     } else if (set[i].style == TRATE) {
-      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
-      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
+      set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) -
+        0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
+      set[i].hi_stop = 0.5*(set[i].lo_start+set[i].hi_start) +
+        0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
     } else if (set[i].style == WIGGLE) {
       set[i].lo_stop = set[i].lo_start -
-	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       set[i].hi_stop = set[i].hi_start +
-	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
     }
   }
 
@@ -502,52 +502,52 @@ void FixDeform::init()
     } else if (set[i].style == VEL) {
       set[i].tilt_stop = set[i].tilt_start + delt*set[i].vel;
     } else if (set[i].style == ERATE) {
-      if (i == 3) set[i].tilt_stop = set[i].tilt_start + 
-		    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
-      if (i == 4) set[i].tilt_stop = set[i].tilt_start + 
-		    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
-      if (i == 5) set[i].tilt_stop = set[i].tilt_start + 
-		    delt*set[i].rate * (set[1].hi_start-set[1].lo_start);
+      if (i == 3) set[i].tilt_stop = set[i].tilt_start +
+                    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
+      if (i == 4) set[i].tilt_stop = set[i].tilt_start +
+                    delt*set[i].rate * (set[2].hi_start-set[2].lo_start);
+      if (i == 5) set[i].tilt_stop = set[i].tilt_start +
+                    delt*set[i].rate * (set[1].hi_start-set[1].lo_start);
     } else if (set[i].style == TRATE) {
       set[i].tilt_stop = set[i].tilt_start * exp(set[i].rate*delt);
     } else if (set[i].style == WIGGLE) {
       set[i].tilt_stop = set[i].tilt_start +
-	set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
 
       // compute min/max for WIGGLE = extrema tilt factor will ever reach
 
       if (set[i].amplitude >= 0.0) {
-	if (delt < 0.25*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start;
-	  set[i].tilt_max = set[i].tilt_start + 
-	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
-	} else if (delt < 0.5*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start;
-	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
-	} else if (delt < 0.75*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start - 
-	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
-	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
-	} else {
-	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
-	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
-	}
+        if (delt < 0.25*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start;
+          set[i].tilt_max = set[i].tilt_start +
+            set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+        } else if (delt < 0.5*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start;
+          set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+        } else if (delt < 0.75*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start -
+            set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+          set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+        } else {
+          set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+          set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+        }
       } else {
-	if (delt < 0.25*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start - 
-	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
-	  set[i].tilt_max = set[i].tilt_start;
-	} else if (delt < 0.5*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
-	  set[i].tilt_max = set[i].tilt_start;
-	} else if (delt < 0.75*set[i].tperiod) {
-	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
-	  set[i].tilt_max = set[i].tilt_start + 
-	    set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
-	} else {
-	  set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
-	  set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
-	}
+        if (delt < 0.25*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start -
+            set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+          set[i].tilt_max = set[i].tilt_start;
+        } else if (delt < 0.5*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+          set[i].tilt_max = set[i].tilt_start;
+        } else if (delt < 0.75*set[i].tperiod) {
+          set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+          set[i].tilt_max = set[i].tilt_start +
+            set[i].amplitude*sin(TWOPI*delt/set[i].tperiod);
+        } else {
+          set[i].tilt_min = set[i].tilt_start - set[i].amplitude;
+          set[i].tilt_max = set[i].tilt_start + set[i].amplitude;
+        }
       }
     }
   }
@@ -576,10 +576,10 @@ void FixDeform::init()
       hi = set[3].tilt_max;
     } else lo = hi = set[3].tilt_stop;
     if (lo/(set[1].hi_start-set[1].lo_start) < -0.5 ||
-	hi/(set[1].hi_start-set[1].lo_start) > 0.5) flag = 1;
+        hi/(set[1].hi_start-set[1].lo_start) > 0.5) flag = 1;
     if (set[1].style) {
       if (lo/(set[1].hi_stop-set[1].lo_stop) < -0.5 ||
-	  hi/(set[1].hi_stop-set[1].lo_stop) > 0.5) flag = 1;
+          hi/(set[1].hi_stop-set[1].lo_stop) > 0.5) flag = 1;
     }
     if (flag) error->all(FLERR,"Fix deform is changing yz too much with xy");
   }
@@ -594,12 +594,12 @@ void FixDeform::init()
   for (int i = 0; i < 3; i++) {
     h_rate[i] = h_ratelo[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
-	set[i].style == SCALE || set[i].style == VEL || 
-	set[i].style == ERATE) {
+        set[i].style == SCALE || set[i].style == VEL ||
+        set[i].style == ERATE) {
       double dlo_dt,dhi_dt;
       if (delt != 0.0) {
-	dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
-	dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
+        dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
+        dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
       } else dlo_dt = dhi_dt = 0.0;
       h_rate[i] = dhi_dt - dlo_dt;
       h_ratelo[i] = dlo_dt;
@@ -608,13 +608,13 @@ void FixDeform::init()
 
   for (int i = 3; i < 6; i++) {
     h_rate[i] = 0.0;
-    if (set[i].style == FINAL || set[i].style == DELTA || 
-	set[i].style == VEL || set[i].style == ERATE) {
+    if (set[i].style == FINAL || set[i].style == DELTA ||
+        set[i].style == VEL || set[i].style == ERATE) {
       if (delt != 0.0)
-	h_rate[i] = (set[i].tilt_stop - set[i].tilt_start) / delt;
+        h_rate[i] = (set[i].tilt_stop - set[i].tilt_start) / delt;
       else h_rate[i] = 0.0;
     }
-  }    
+  }
 
   // detect if any rigid fixes exist so rigid bodies can be rescaled
   // rfix[] = indices to each fix rigid
@@ -693,20 +693,20 @@ void FixDeform::end_of_step()
       set[i].hi_target = domain->boxhi[i];
     } else if (set[i].style == TRATE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
-      set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) - 
-	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
-      set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) + 
-	0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
+      set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
+        0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
+      set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) +
+        0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));
       h_rate[i] = set[i].rate * domain->h[i];
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == WIGGLE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = set[i].lo_start -
-	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
       set[i].hi_target = set[i].hi_start +
-	0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-      h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
-	cos(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+      h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
+        cos(TWOPI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == VARIABLE) {
       double del = input->variable->compute_equal(set[i].hvar);
@@ -715,10 +715,10 @@ void FixDeform::end_of_step()
       h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style != VOLUME) {
-      set[i].lo_target = set[i].lo_start + 
-	delta*(set[i].lo_stop - set[i].lo_start);
-      set[i].hi_target = set[i].hi_start + 
-	delta*(set[i].hi_stop - set[i].hi_start);
+      set[i].lo_target = set[i].lo_start +
+        delta*(set[i].lo_stop - set[i].lo_start);
+      set[i].hi_target = set[i].hi_start +
+        delta*(set[i].hi_stop - set[i].hi_start);
     }
   }
 
@@ -730,45 +730,45 @@ void FixDeform::end_of_step()
 
     if (set[i].substyle == ONE_FROM_ONE) {
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
-	0.5*(set[i].vol_start /
-	     (set[set[i].dynamic1].hi_target -
-	      set[set[i].dynamic1].lo_target) /
-	     (set[set[i].fixed].hi_start-set[set[i].fixed].lo_start));
+        0.5*(set[i].vol_start /
+             (set[set[i].dynamic1].hi_target -
+              set[set[i].dynamic1].lo_target) /
+             (set[set[i].fixed].hi_start-set[set[i].fixed].lo_start));
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) +
-	0.5*(set[i].vol_start /
-	     (set[set[i].dynamic1].hi_target -
-	      set[set[i].dynamic1].lo_target) /
-	     (set[set[i].fixed].hi_start-set[set[i].fixed].lo_start));
+        0.5*(set[i].vol_start /
+             (set[set[i].dynamic1].hi_target -
+              set[set[i].dynamic1].lo_target) /
+             (set[set[i].fixed].hi_start-set[set[i].fixed].lo_start));
 
     } else if (set[i].substyle == ONE_FROM_TWO) {
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
-	0.5*(set[i].vol_start /
-	     (set[set[i].dynamic1].hi_target - 
-	      set[set[i].dynamic1].lo_target) /
-	     (set[set[i].dynamic2].hi_target - 
-	      set[set[i].dynamic2].lo_target));
+        0.5*(set[i].vol_start /
+             (set[set[i].dynamic1].hi_target -
+              set[set[i].dynamic1].lo_target) /
+             (set[set[i].dynamic2].hi_target -
+              set[set[i].dynamic2].lo_target));
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) +
-	0.5*(set[i].vol_start /
-	     (set[set[i].dynamic1].hi_target -
-	      set[set[i].dynamic1].lo_target) /
-	     (set[set[i].dynamic2].hi_target - 
-	      set[set[i].dynamic2].lo_target));
-      
+        0.5*(set[i].vol_start /
+             (set[set[i].dynamic1].hi_target -
+              set[set[i].dynamic1].lo_target) /
+             (set[set[i].dynamic2].hi_target -
+              set[set[i].dynamic2].lo_target));
+
     } else if (set[i].substyle == TWO_FROM_ONE) {
       set[i].lo_target = 0.5*(set[i].lo_start+set[i].hi_start) -
-	0.5*sqrt(set[i].vol_start /
-		 (set[set[i].dynamic1].hi_target - 
-		  set[set[i].dynamic1].lo_target) /
-		 (set[set[i].fixed].hi_start - 
-		  set[set[i].fixed].lo_start) *
-		 (set[i].hi_start - set[i].lo_start));
+        0.5*sqrt(set[i].vol_start /
+                 (set[set[i].dynamic1].hi_target -
+                  set[set[i].dynamic1].lo_target) /
+                 (set[set[i].fixed].hi_start -
+                  set[set[i].fixed].lo_start) *
+                 (set[i].hi_start - set[i].lo_start));
       set[i].hi_target = 0.5*(set[i].lo_start+set[i].hi_start) +
-	0.5*sqrt(set[i].vol_start /
-		 (set[set[i].dynamic1].hi_target - 
-		  set[set[i].dynamic1].lo_target) /
-		 (set[set[i].fixed].hi_start - 
-		  set[set[i].fixed].lo_start) *
-		 (set[i].hi_start - set[i].lo_start));
+        0.5*sqrt(set[i].vol_start /
+                 (set[set[i].dynamic1].hi_target -
+                  set[set[i].dynamic1].lo_target) /
+                 (set[set[i].fixed].hi_start -
+                  set[set[i].fixed].lo_start) *
+                 (set[i].hi_start - set[i].lo_start));
     }
   }
 
@@ -784,26 +784,26 @@ void FixDeform::end_of_step()
 
     for (i = 3; i < 6; i++) {
       if (set[i].style == NONE) {
-	if (i == 5) set[i].tilt_target = domain->xy;
-	else if (i == 4) set[i].tilt_target = domain->xz;
-	else if (i == 3) set[i].tilt_target = domain->yz;
+        if (i == 5) set[i].tilt_target = domain->xy;
+        else if (i == 4) set[i].tilt_target = domain->xz;
+        else if (i == 3) set[i].tilt_target = domain->yz;
       } else if (set[i].style == TRATE) {
-	double delt = (update->ntimestep - update->beginstep) * update->dt;
-	set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
-	h_rate[i] = set[i].rate * domain->h[i];
+        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
+        h_rate[i] = set[i].rate * domain->h[i];
       } else if (set[i].style == WIGGLE) {
-	double delt = (update->ntimestep - update->beginstep) * update->dt;
-	set[i].tilt_target = set[i].tilt_start +
-	  set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-	h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude * 
-	  cos(TWOPI*delt/set[i].tperiod);
+        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        set[i].tilt_target = set[i].tilt_start +
+          set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
+          cos(TWOPI*delt/set[i].tperiod);
       } else if (set[i].style == VARIABLE) {
-	double delta_tilt = input->variable->compute_equal(set[i].hvar);
-	set[i].tilt_target = set[i].tilt_start + delta_tilt;
-	h_rate[i] = input->variable->compute_equal(set[i].hratevar);
+        double delta_tilt = input->variable->compute_equal(set[i].hvar);
+        set[i].tilt_target = set[i].tilt_start + delta_tilt;
+        h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       } else {
-	set[i].tilt_target = set[i].tilt_start + 
-	  delta*(set[i].tilt_stop - set[i].tilt_start);
+        set[i].tilt_target = set[i].tilt_start +
+          delta*(set[i].tilt_stop - set[i].tilt_start);
       }
 
       // tilt_target can be large positive or large negative value
@@ -818,12 +818,12 @@ void FixDeform::end_of_step()
       double current = h[i]/h[idenom];
 
       while (set[i].tilt_target/denom - current > 0.0)
-	set[i].tilt_target -= denom;
+        set[i].tilt_target -= denom;
       while (set[i].tilt_target/denom - current < 0.0)
-	set[i].tilt_target += denom;
-      if (fabs(set[i].tilt_target/denom - 1.0 - current) < 
-	  fabs(set[i].tilt_target/denom - current))
-	set[i].tilt_target -= denom;
+        set[i].tilt_target += denom;
+      if (fabs(set[i].tilt_target/denom - 1.0 - current) <
+          fabs(set[i].tilt_target/denom - current))
+        set[i].tilt_target -= denom;
     }
   }
 
@@ -843,46 +843,46 @@ void FixDeform::end_of_step()
     double yprd = set[1].hi_target - set[1].lo_target;
     double xprdinv = 1.0 / xprd;
     double yprdinv = 1.0 / yprd;
-    if (set[3].tilt_target*yprdinv < -0.5 || 
-				     set[3].tilt_target*yprdinv > 0.5 ||
-	set[4].tilt_target*xprdinv < -0.5 || 
-				     set[4].tilt_target*xprdinv > 0.5 ||
-	set[5].tilt_target*xprdinv < -0.5 || 
-				     set[5].tilt_target*xprdinv > 0.5) {
+    if (set[3].tilt_target*yprdinv < -0.5 ||
+                                     set[3].tilt_target*yprdinv > 0.5 ||
+        set[4].tilt_target*xprdinv < -0.5 ||
+                                     set[4].tilt_target*xprdinv > 0.5 ||
+        set[5].tilt_target*xprdinv < -0.5 ||
+                                     set[5].tilt_target*xprdinv > 0.5) {
       set[3].tilt_flip = set[3].tilt_target;
       set[4].tilt_flip = set[4].tilt_target;
       set[5].tilt_flip = set[5].tilt_target;
-      
+
       flipxy = flipxz = flipyz = 0;
 
       if (domain->yperiodic) {
-	if (set[3].tilt_flip*yprdinv < -0.5) {
-	  set[3].tilt_flip += yprd;
-	  set[4].tilt_flip += set[5].tilt_flip;
-	  flipyz = 1;
-	} else if (set[3].tilt_flip*yprdinv > 0.5) {
-	  set[3].tilt_flip -= yprd;
-	  set[4].tilt_flip -= set[5].tilt_flip;
-	  flipyz = -1;
-	}
+        if (set[3].tilt_flip*yprdinv < -0.5) {
+          set[3].tilt_flip += yprd;
+          set[4].tilt_flip += set[5].tilt_flip;
+          flipyz = 1;
+        } else if (set[3].tilt_flip*yprdinv > 0.5) {
+          set[3].tilt_flip -= yprd;
+          set[4].tilt_flip -= set[5].tilt_flip;
+          flipyz = -1;
+        }
       }
       if (domain->xperiodic) {
-	if (set[4].tilt_flip*xprdinv < -0.5) {
-	  set[4].tilt_flip += xprd;
-	  flipxz = 1;
-	}
-	if (set[4].tilt_flip*xprdinv > 0.5) {
-	  set[4].tilt_flip -= xprd;
-	  flipxz = -1;
-	}
-	if (set[5].tilt_flip*xprdinv < -0.5) {
-	  set[5].tilt_flip += xprd;
-	  flipxy = 1;
-	}
-	if (set[5].tilt_flip*xprdinv > 0.5) {
-	  set[5].tilt_flip -= xprd;
-	  flipxy = -1;
-	}
+        if (set[4].tilt_flip*xprdinv < -0.5) {
+          set[4].tilt_flip += xprd;
+          flipxz = 1;
+        }
+        if (set[4].tilt_flip*xprdinv > 0.5) {
+          set[4].tilt_flip -= xprd;
+          flipxz = -1;
+        }
+        if (set[5].tilt_flip*xprdinv < -0.5) {
+          set[5].tilt_flip += xprd;
+          flipxy = 1;
+        }
+        if (set[5].tilt_flip*xprdinv > 0.5) {
+          set[5].tilt_flip -= xprd;
+          flipxy = -1;
+        }
       }
 
       flip = 0;
@@ -900,11 +900,11 @@ void FixDeform::end_of_step()
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->x2lamda(x[i],x[i]);
+        domain->x2lamda(x[i],x[i]);
 
     if (nrigid)
       for (i = 0; i < nrigid; i++)
-	modify->fix[rfix[i]]->deform(0);
+        modify->fix[rfix[i]]->deform(0);
   }
 
   // reset global and local box to new size/shape
@@ -940,11 +940,11 @@ void FixDeform::end_of_step()
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->lamda2x(x[i],x[i]);
+        domain->lamda2x(x[i],x[i]);
 
     if (nrigid)
       for (i = 0; i < nrigid; i++)
-	modify->fix[rfix[i]]->deform(1);
+        modify->fix[rfix[i]]->deform(1);
   }
 
   // redo KSpace coeffs since box has changed

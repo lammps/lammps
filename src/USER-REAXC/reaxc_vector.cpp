@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  
+
   Copyright (2010) Purdue University
   Hasan Metin Aktulga, hmaktulga@lbl.gov
   Joseph Fogarty, jcfogart@mail.usf.edu
@@ -9,17 +9,17 @@
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
-  "Parallel Reactive Molecular Dynamics: Numerical Methods and 
+  "Parallel Reactive Molecular Dynamics: Numerical Methods and
   Algorithmic Techniques", Parallel Computing, in press.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -37,7 +37,7 @@ int Vector_isZero( real* v, int k )
   for( --k; k>=0; --k )
     if( fabs( v[k] ) > ALMOST_ZERO )
       return 0;
-  
+
   return 1;
 }
 
@@ -80,7 +80,7 @@ void Vector_Add( real* dest, real c, real* v, int k )
 real Dot( real* v1, real* v2, int k )
 {
   real ret = 0;
-  
+
   for( --k; k>=0; --k )
     ret +=  v1[k] * v2[k];
 
@@ -91,7 +91,7 @@ real Dot( real* v1, real* v2, int k )
 real Norm( real* v1, int k )
 {
   real ret = 0;
-  
+
   for( --k; k>=0; --k )
     ret +=  SQR( v1[k] );
 
@@ -143,7 +143,7 @@ void rvec_Sum( rvec ret, rvec v1 ,rvec v2 )
 
 void rvec_ScaledSum( rvec ret, real c1, rvec v1 ,real c2, rvec v2 )
 {
-  ret[0] = c1 * v1[0] + c2 * v2[0]; 
+  ret[0] = c1 * v1[0] + c2 * v2[0];
   ret[1] = c1 * v1[1] + c2 * v2[1];
   ret[2] = c1 * v1[2] + c2 * v2[2];
 }
@@ -233,8 +233,8 @@ real rvec_Norm( rvec v )
 
 int rvec_isZero( rvec v )
 {
-  if( fabs(v[0]) > ALMOST_ZERO || 
-      fabs(v[1]) > ALMOST_ZERO || 
+  if( fabs(v[0]) > ALMOST_ZERO ||
+      fabs(v[1]) > ALMOST_ZERO ||
       fabs(v[2]) > ALMOST_ZERO )
     return 0;
   return 1;
@@ -264,31 +264,31 @@ void rtensor_Multiply( rtensor ret, rtensor m1, rtensor m2 )
   rtensor temp;
 
   // check if the result matrix is the same as one of m1, m2.
-  // if so, we cannot modify the contents of m1 or m2, so 
+  // if so, we cannot modify the contents of m1 or m2, so
   // we have to use a temp matrix.
   if( ret == m1 || ret == m2 )
     {
       for( i = 0; i < 3; ++i )
-	for( j = 0; j < 3; ++j )
-	  {
-	    temp[i][j] = 0;	    
-	    for( k = 0; k < 3; ++k )
-	      temp[i][j] += m1[i][k] * m2[k][j];
-	  }
-      
+        for( j = 0; j < 3; ++j )
+          {
+            temp[i][j] = 0;
+            for( k = 0; k < 3; ++k )
+              temp[i][j] += m1[i][k] * m2[k][j];
+          }
+
       for( i = 0; i < 3; ++i )
-	for( j = 0; j < 3; ++j )
-	  ret[i][j] = temp[i][j];	
+        for( j = 0; j < 3; ++j )
+          ret[i][j] = temp[i][j];
     }
   else
     {
       for( i = 0; i < 3; ++i )
-	for( j = 0; j < 3; ++j )
-	  {
-	    ret[i][j] = 0;	    
-	    for( k = 0; k < 3; ++k )
-	      ret[i][j] += m1[i][k] * m2[k][j];
-	  }
+        for( j = 0; j < 3; ++j )
+          {
+            ret[i][j] = 0;
+            for( k = 0; k < 3; ++k )
+              ret[i][j] += m1[i][k] * m2[k][j];
+          }
     }
 }
 
@@ -298,20 +298,20 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
   int i;
   rvec temp;
 
-  // if ret is the same vector as v, we cannot modify the 
+  // if ret is the same vector as v, we cannot modify the
   // contents of v until all computation is finished.
   if( ret == v )
     {
       for( i = 0; i < 3; ++i )
-	temp[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
+        temp[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
 
       for( i = 0; i < 3; ++i )
-	ret[i] = temp[i];
+        ret[i] = temp[i];
     }
   else
     {
       for( i = 0; i < 3; ++i )
-	ret[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
+        ret[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
     }
 }
 
@@ -356,8 +356,8 @@ void rtensor_Sum( rtensor ret, rtensor t1, rtensor t2 )
 }
 
 
-void rtensor_ScaledSum( rtensor ret, real c1, rtensor t1, 
-			       real c2, rtensor t2 )
+void rtensor_ScaledSum( rtensor ret, real c1, rtensor t1,
+                               real c2, rtensor t2 )
 {
   int i, j;
 
@@ -423,7 +423,7 @@ void Print_rTensor(FILE* fp, rtensor t)
     {
       fprintf(fp,"[");
       for (j=0; j < 3; j++)
-	fprintf(fp,"%8.3f,\t",t[i][j]);
+        fprintf(fp,"%8.3f,\t",t[i][j]);
       fprintf(fp,"]\n");
     }
 }
@@ -520,4 +520,3 @@ void ivec_Max3( ivec res, ivec v1, ivec v2, ivec v3 )
   res[1] = MAX3( v1[1], v2[1], v3[1] );
   res[2] = MAX3( v1[2], v2[2], v3[2] );
 }
-

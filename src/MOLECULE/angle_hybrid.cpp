@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -80,9 +80,9 @@ void AngleHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nanglelist[m] > maxangle[m]) {
-	memory->destroy(anglelist[m]);
-	maxangle[m] = nanglelist[m] + EXTRA;
-	memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
+        memory->destroy(anglelist[m]);
+        maxangle[m] = nanglelist[m] + EXTRA;
+        memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
       }
       nanglelist[m] = 0;
     }
@@ -97,7 +97,7 @@ void AngleHybrid::compute(int eflag, int vflag)
       nanglelist[m]++;
     }
   }
-  
+
   // call each sub-style's compute function
   // set neighbor->anglelist to sub-style anglelist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
@@ -125,8 +125,8 @@ void AngleHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-	for (j = 0; j < 6; j++)
-	  vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++)
+          vatom[i][j] += vatom_substyle[i][j];
     }
   }
 
@@ -213,11 +213,11 @@ void AngleHybrid::settings(int narg, char **arg)
 
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i],keywords[m]) == 0) 
-	error->all(FLERR,"Angle style hybrid cannot use same pair style twice");
-    if (strcmp(arg[i],"hybrid") == 0) 
+      if (strcmp(arg[i],keywords[m]) == 0)
+        error->all(FLERR,"Angle style hybrid cannot use same pair style twice");
+    if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,"Angle style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[i],"none") == 0) 
+    if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Angle style hybrid cannot have none as an argument");
     styles[nstyles] = force->new_angle(arg[i],lmp->suffix,dummy);
     keywords[nstyles] = new char[strlen(arg[i])+1];
@@ -293,7 +293,7 @@ void AngleHybrid::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   return an equilbrium angle length 
+   return an equilbrium angle length
 ------------------------------------------------------------------------- */
 
 double AngleHybrid::equilibrium_angle(int i)
@@ -332,7 +332,7 @@ void AngleHybrid::read_restart(FILE *fp)
   keywords = new char*[nstyles];
 
   allocate();
-  
+
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
@@ -361,7 +361,7 @@ double AngleHybrid::memory_usage()
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maxangle[m]*4 * sizeof(int);
-  for (int m = 0; m < nstyles; m++) 
+  for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;
 }

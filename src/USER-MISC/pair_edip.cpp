@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -210,8 +210,8 @@ void PairEDIP::compute(int eflag, int vflag)
 
         interpolY1 = exp3B[interpolIDX];
         interpolY2 = exp3B[interpolIDX+1];
-        exp3B_ij = interpolY1 + (interpolY2 - interpolY1) * 
-	  (interpolTMP-interpolIDX);
+        exp3B_ij = interpolY1 + (interpolY2 - interpolY1) *
+          (interpolTMP-interpolIDX);
 
         exp3BDerived_ij = - exp3B_ij * gammInvRMinusCutoffA * invRMinusCutoffA;
 
@@ -220,8 +220,8 @@ void PairEDIP::compute(int eflag, int vflag)
 
         interpolY1 = exp2B[interpolIDX];
         interpolY2 = exp2B[interpolIDX+1];
-        exp2B_ij = interpolY1 + (interpolY2 - interpolY1) * 
-	  (interpolTMP-interpolIDX);
+        exp2B_ij = interpolY1 + (interpolY2 - interpolY1) *
+          (interpolTMP-interpolIDX);
 
         exp2BDerived_ij = - exp2B_ij * sigmaInvRMinusCutoffA * invRMinusCutoffA;
 
@@ -230,8 +230,8 @@ void PairEDIP::compute(int eflag, int vflag)
 
         interpolY1 = pow2B[interpolIDX];
         interpolY2 = pow2B[interpolIDX+1];
-        pow2B_ij = interpolY1 + (interpolY2 - interpolY1) * 
-	  (interpolTMP-interpolIDX);
+        pow2B_ij = interpolY1 + (interpolY2 - interpolY1) *
+          (interpolTMP-interpolIDX);
 
         prePow2B_ij[neighbor_j] = pow2B_ij;
 
@@ -241,15 +241,15 @@ void PairEDIP::compute(int eflag, int vflag)
         else {
             interpolY1 = cutoffFunction[interpolIDX];
             interpolY2 = cutoffFunction[interpolIDX+1];
-            cutoffFunction_ij = interpolY1 + (interpolY2 - interpolY1) * 
-	      (interpolTMP-interpolIDX);
+            cutoffFunction_ij = interpolY1 + (interpolY2 - interpolY1) *
+              (interpolTMP-interpolIDX);
 
             zeta_i += cutoffFunction_ij;
 
             interpolY1 = cutoffFunctionDerived[interpolIDX];
             interpolY2 = cutoffFunctionDerived[interpolIDX+1];
-            zeta_iDerived = interpolY1 + (interpolY2 - interpolY1) * 
-	      (interpolTMP-interpolIDX);
+            zeta_iDerived = interpolY1 + (interpolY2 - interpolY1) *
+              (interpolTMP-interpolIDX);
 
             zeta_iDerivedInvR_ij = zeta_iDerived * invR_ij;
 
@@ -271,22 +271,22 @@ void PairEDIP::compute(int eflag, int vflag)
 
     interpolY1 = expMinusBetaZeta_iZeta_iGrid[interpolIDX];
     interpolY2 = expMinusBetaZeta_iZeta_iGrid[interpolIDX+1];
-    expMinusBetaZeta_iZeta_i = interpolY1 + (interpolY2 - interpolY1) * 
+    expMinusBetaZeta_iZeta_i = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
     interpolY1 = qFunctionGrid[interpolIDX];
     interpolY2 = qFunctionGrid[interpolIDX+1];
-    qFunction = interpolY1 + (interpolY2 - interpolY1) * 
+    qFunction = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
     interpolY1 = tauFunctionGrid[interpolIDX];
     interpolY2 = tauFunctionGrid[interpolIDX+1];
-    tauFunction = interpolY1 + (interpolY2 - interpolY1) * 
+    tauFunction = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
     interpolY1 = tauFunctionDerivedGrid[interpolIDX];
     interpolY2 = tauFunctionDerivedGrid[interpolIDX+1];
-    tauFunctionDerived = interpolY1 + (interpolY2 - interpolY1) * 
+    tauFunctionDerived = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
     qFunctionDerived = -mu * qFunction;
@@ -326,8 +326,8 @@ void PairEDIP::compute(int eflag, int vflag)
       forceModCoord += (forceModCoord_factor*exp2B_ij);
 
       exp2BDerived_ij = preExp2BDerived_ij[neighbor_j];
-      forceMod2B = exp2BDerived_ij * potential2B_factor + 
-	exp2B_ij * pow2BDerived_ij;
+      forceMod2B = exp2BDerived_ij * potential2B_factor +
+        exp2B_ij * pow2BDerived_ij;
 
       directorCos_ij_x = invR_ij * dr_ij[0];
       directorCos_ij_y = invR_ij * dr_ij[1];
@@ -381,56 +381,56 @@ void PairEDIP::compute(int eflag, int vflag)
           directorCos_ik_y = invR_ik * dr_ik[1];
           directorCos_ik_z = invR_ik * dr_ik[2];
 
-          cosTeta = directorCos_ij_x * directorCos_ik_x + 
-	    directorCos_ij_y * directorCos_ik_y +
-	    directorCos_ij_z * directorCos_ik_z;
+          cosTeta = directorCos_ij_x * directorCos_ik_x +
+            directorCos_ij_y * directorCos_ik_y +
+            directorCos_ij_z * directorCos_ik_z;
 
           cosTetaDiff = cosTeta + tauFunction;
           cosTetaDiffCosTetaDiff = cosTetaDiff * cosTetaDiff;
           qFunctionCosTetaDiffCosTetaDiff = cosTetaDiffCosTetaDiff * qFunction;
-          expMinusQFunctionCosTetaDiffCosTetaDiff = 
-	    exp(-qFunctionCosTetaDiffCosTetaDiff);
+          expMinusQFunctionCosTetaDiffCosTetaDiff =
+            exp(-qFunctionCosTetaDiffCosTetaDiff);
 
-          potentia3B_factor = lambda * 
-	    ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) + 
-	     eta * qFunctionCosTetaDiffCosTetaDiff);
+          potentia3B_factor = lambda *
+            ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) +
+             eta * qFunctionCosTetaDiffCosTetaDiff);
 
           exp3B_ik = preExp3B_ij[neighbor_k];
           exp3BDerived_ik = preExp3BDerived_ij[neighbor_k];
 
-          forceMod3B_factor1_ij = - exp3BDerived_ij * exp3B_ik * 
-	    potentia3B_factor;
-          forceMod3B_factor2 = 2.0 * lambda * exp3B_ij * exp3B_ik * 
-	    qFunction * cosTetaDiff *
-	    (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
+          forceMod3B_factor1_ij = - exp3BDerived_ij * exp3B_ik *
+            potentia3B_factor;
+          forceMod3B_factor2 = 2.0 * lambda * exp3B_ij * exp3B_ik *
+            qFunction * cosTetaDiff *
+            (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
           forceMod3B_factor2_ij = forceMod3B_factor2 * invR_ij;
 
-          f_ij[0] = forceMod3B_factor1_ij * directorCos_ij_x + 
-	    forceMod3B_factor2_ij *
-	    (cosTeta * directorCos_ij_x - directorCos_ik_x);
-          f_ij[1] = forceMod3B_factor1_ij * directorCos_ij_y + 
-	    forceMod3B_factor2_ij *
-	    (cosTeta * directorCos_ij_y - directorCos_ik_y);
-          f_ij[2] = forceMod3B_factor1_ij * directorCos_ij_z + 
-	    forceMod3B_factor2_ij *
-	    (cosTeta * directorCos_ij_z - directorCos_ik_z);
+          f_ij[0] = forceMod3B_factor1_ij * directorCos_ij_x +
+            forceMod3B_factor2_ij *
+            (cosTeta * directorCos_ij_x - directorCos_ik_x);
+          f_ij[1] = forceMod3B_factor1_ij * directorCos_ij_y +
+            forceMod3B_factor2_ij *
+            (cosTeta * directorCos_ij_y - directorCos_ik_y);
+          f_ij[2] = forceMod3B_factor1_ij * directorCos_ij_z +
+            forceMod3B_factor2_ij *
+            (cosTeta * directorCos_ij_z - directorCos_ik_z);
 
-          forceMod3B_factor1_ik = - exp3BDerived_ik * exp3B_ij * 
-	    potentia3B_factor;
+          forceMod3B_factor1_ik = - exp3BDerived_ik * exp3B_ij *
+            potentia3B_factor;
           forceMod3B_factor2_ik = forceMod3B_factor2 * invR_ik;
 
-          f_ik[0] = forceMod3B_factor1_ik * directorCos_ik_x + 
-	    forceMod3B_factor2_ik *
-	    (cosTeta * directorCos_ik_x - directorCos_ij_x);
-          f_ik[1] = forceMod3B_factor1_ik * directorCos_ik_y + 
-	    forceMod3B_factor2_ik *
-	    (cosTeta * directorCos_ik_y - directorCos_ij_y);
-          f_ik[2] = forceMod3B_factor1_ik * directorCos_ik_z + 
-	    forceMod3B_factor2_ik *
-	    (cosTeta * directorCos_ik_z - directorCos_ij_z);
+          f_ik[0] = forceMod3B_factor1_ik * directorCos_ik_x +
+            forceMod3B_factor2_ik *
+            (cosTeta * directorCos_ik_x - directorCos_ij_x);
+          f_ik[1] = forceMod3B_factor1_ik * directorCos_ik_y +
+            forceMod3B_factor2_ik *
+            (cosTeta * directorCos_ik_y - directorCos_ij_y);
+          f_ik[2] = forceMod3B_factor1_ik * directorCos_ik_z +
+            forceMod3B_factor2_ik *
+            (cosTeta * directorCos_ik_z - directorCos_ij_z);
 
-          forceModCoord += (forceMod3B_factor2 * 
-			    (tauFunctionDerived -  0.5 * mu * cosTetaDiff));
+          forceModCoord += (forceMod3B_factor2 *
+                            (tauFunctionDerived -  0.5 * mu * cosTetaDiff));
 
           f[j][0] += f_ij[0];
           f[j][1] += f_ij[1];
@@ -482,7 +482,7 @@ void PairEDIP::compute(int eflag, int vflag)
 
         evdwl = 0.0;
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0,
-			     forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2]);
+                             forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2]);
     }
   }
 
@@ -509,27 +509,27 @@ void PairEDIP::allocateGrids(void)
   // tauFunctionGrid
 
   maxArgumentTauFunctionGrid = leadDimInteractionList;
-  numGridPointsTauFunctionGrid = (int) 
+  numGridPointsTauFunctionGrid = (int)
     ((maxArgumentTauFunctionGrid) * GRIDDENSITY) + 2;
 
   memory->create(tauFunctionGrid,numGridPointsTauFunctionGrid,
-		 "edip:tauFunctionGrid");
+                 "edip:tauFunctionGrid");
   memory->create(tauFunctionDerivedGrid,numGridPointsTauFunctionGrid,
-		 "edip:tauFunctionDerivedGrid");
+                 "edip:tauFunctionDerivedGrid");
 
   // expMinusBetaZeta_iZeta_iGrid
 
   maxArgumentExpMinusBetaZeta_iZeta_i = leadDimInteractionList;
-  numGridPointsExpMinusBetaZeta_iZeta_i = (int) 
+  numGridPointsExpMinusBetaZeta_iZeta_i = (int)
     ((maxArgumentExpMinusBetaZeta_iZeta_i) * GRIDDENSITY) + 2;
   memory->create(expMinusBetaZeta_iZeta_iGrid,
-		 numGridPointsExpMinusBetaZeta_iZeta_i,
-		 "edip:expMinusBetaZeta_iZeta_iGrid");
+                 numGridPointsExpMinusBetaZeta_iZeta_i,
+                 "edip:expMinusBetaZeta_iZeta_iGrid");
 
   // qFunctionGrid
 
   maxArgumentQFunctionGrid = leadDimInteractionList;
-  numGridPointsQFunctionGrid = (int) 
+  numGridPointsQFunctionGrid = (int)
     ((maxArgumentQFunctionGrid) * GRIDDENSITY) + 2;
   memory->create(qFunctionGrid,numGridPointsQFunctionGrid,"edip:qFunctionGrid");
 
@@ -537,17 +537,17 @@ void PairEDIP::allocateGrids(void)
 
   numGridPointsOneCutoffFunction = (int) ((cutoffC - GRIDSTART) * GRIDDENSITY);
   numGridPointsNotOneCutoffFunction = (int) ((cutoffA-cutoffC) * GRIDDENSITY);
-  numGridPointsCutoffFunction = numGridPointsOneCutoffFunction + 
+  numGridPointsCutoffFunction = numGridPointsOneCutoffFunction +
     numGridPointsNotOneCutoffFunction+2;
 
   memory->create(cutoffFunction,numGridPointsCutoffFunction,
-		 "edip:cutoffFunction");
+                 "edip:cutoffFunction");
   memory->create(cutoffFunctionDerived,numGridPointsCutoffFunction,
-		 "edip:cutoffFunctionDerived");
+                 "edip:cutoffFunctionDerived");
 
   // pow2B
 
-  numGridPointsR = (int) 
+  numGridPointsR = (int)
     ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY);
   numGridPointsRTotal = numGridPointsR + 2;
 
@@ -563,14 +563,14 @@ void PairEDIP::allocateGrids(void)
 void PairEDIP::allocatePreLoops(void)
 {
   int nthreads = comm->nthreads;
-  
+
   memory->create(preInvR_ij,nthreads*leadDimInteractionList,"edip:preInvR_ij");
   memory->create(preExp3B_ij,nthreads*leadDimInteractionList,"edip:preExp3B_ij");
   memory->create(preExp3BDerived_ij,nthreads*leadDimInteractionList,
-		 "edip:preExp3BDerived_ij");
+                 "edip:preExp3BDerived_ij");
   memory->create(preExp2B_ij,nthreads*leadDimInteractionList,"edip:preExp2B_ij");
   memory->create(preExp2BDerived_ij,nthreads*leadDimInteractionList,
-		 "edip:preExp2BDerived_ij");
+                 "edip:preExp2BDerived_ij");
   memory->create(prePow2B_ij,nthreads*leadDimInteractionList,"edip:prePow2B_ij");
   memory->create(preForceCoord,5*nthreads*leadDimInteractionList,"edip:preForceCoord");
 }
@@ -621,7 +621,7 @@ void PairEDIP::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairEDIP::settings(int narg, char **arg)
@@ -660,17 +660,17 @@ void PairEDIP::initGrids(void)
 
   maxArgumentTauFunctionGrid = leadDimInteractionList;
 
-  numGridPointsTauFunctionGrid = (int) 
+  numGridPointsTauFunctionGrid = (int)
     ((maxArgumentTauFunctionGrid) * GRIDDENSITY) + 2;
 
   r = 0.0;
   deltaArgumentTauFunctionGrid = 1.0 / GRIDDENSITY;
 
   for (l = 0; l < numGridPointsTauFunctionGrid; l++) {
-      tauFunctionGrid[l] = u1 + u2 * u3 * exp(-u4 * r) - 
-	u2 * exp(-2.0 * u4 * r);
-      tauFunctionDerivedGrid[l] = - u2 * u3 * u4 * exp(-u4 * r) + 
-	2.0 * u2 * u4 * exp(-2.0 * u4 * r);
+      tauFunctionGrid[l] = u1 + u2 * u3 * exp(-u4 * r) -
+        u2 * exp(-2.0 * u4 * r);
+      tauFunctionDerivedGrid[l] = - u2 * u3 * u4 * exp(-u4 * r) +
+        2.0 * u2 * u4 * exp(-2.0 * u4 * r);
       r += deltaArgumentTauFunctionGrid;
   }
 
@@ -678,7 +678,7 @@ void PairEDIP::initGrids(void)
 
   maxArgumentExpMinusBetaZeta_iZeta_i = leadDimInteractionList;
 
-  numGridPointsExpMinusBetaZeta_iZeta_i = (int) 
+  numGridPointsExpMinusBetaZeta_iZeta_i = (int)
     ((maxArgumentExpMinusBetaZeta_iZeta_i) * GRIDDENSITY) + 2;
 
   r = 0.0;
@@ -692,7 +692,7 @@ void PairEDIP::initGrids(void)
   // qFunctionGrid
 
   maxArgumentQFunctionGrid = leadDimInteractionList;
-  numGridPointsQFunctionGrid = 
+  numGridPointsQFunctionGrid =
     (int) ((maxArgumentQFunctionGrid) * GRIDDENSITY) + 2;
 
   r = 0.0;
@@ -705,11 +705,11 @@ void PairEDIP::initGrids(void)
 
   // cutoffFunction
 
-  numGridPointsOneCutoffFunction = 
+  numGridPointsOneCutoffFunction =
     (int) ((cutoffC - GRIDSTART) * GRIDDENSITY);
-  numGridPointsNotOneCutoffFunction = 
+  numGridPointsNotOneCutoffFunction =
     (int) ((cutoffA-cutoffC) * GRIDDENSITY);
-  numGridPointsCutoffFunction = 
+  numGridPointsCutoffFunction =
     numGridPointsOneCutoffFunction+numGridPointsNotOneCutoffFunction+2;
 
   r = GRIDSTART;
@@ -721,20 +721,20 @@ void PairEDIP::initGrids(void)
       r += deltaArgumentCutoffFunction;
   }
 
-  for (l = numGridPointsOneCutoffFunction; 
+  for (l = numGridPointsOneCutoffFunction;
        l < numGridPointsCutoffFunction; l++) {
       temp = (cutoffA - cutoffC)/(r - cutoffC);
       temp3 = temp * temp * temp;
       temp4 = temp3 * temp;
       cutoffFunction[l] = exp(alpha/(1.0-temp3));
-      cutoffFunctionDerived[l] = (-3*alpha/(cutoffA-cutoffC)) * 
-	(temp4/((1-temp3)*(1-temp3)))*exp(alpha/(1.0-temp3));
+      cutoffFunctionDerived[l] = (-3*alpha/(cutoffA-cutoffC)) *
+        (temp4/((1-temp3)*(1-temp3)))*exp(alpha/(1.0-temp3));
       r += deltaArgumentCutoffFunction;
   }
 
   // pow2B
 
-  numGridPointsR = (int) 
+  numGridPointsR = (int)
     ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY);
   numGridPointsRTotal = numGridPointsR + 2;
 
@@ -804,7 +804,7 @@ void PairEDIP::coeff(int narg, char **arg)
   }
 
   // read potential file and initialize potential parameters
-  
+
   read_file(arg[2]);
   setup();
 
@@ -821,8 +821,8 @@ void PairEDIP::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -898,8 +898,8 @@ void PairEDIP::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -920,8 +920,8 @@ void PairEDIP::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -960,7 +960,7 @@ void PairEDIP::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -985,13 +985,13 @@ void PairEDIP::read_file(char *file)
     params[nparams].u4 = atof(words[19]);
 
     if (params[nparams].A < 0.0 || params[nparams].B < 0.0 ||
-	params[nparams].cutoffA < 0.0 || params[nparams].cutoffC < 0.0 ||
-	params[nparams].alpha < 0.0 || params[nparams].beta < 0.0 ||
-	params[nparams].eta < 0.0 || params[nparams].gamm < 0.0 ||
-	params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
-	params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
+        params[nparams].cutoffA < 0.0 || params[nparams].cutoffC < 0.0 ||
+        params[nparams].alpha < 0.0 || params[nparams].beta < 0.0 ||
+        params[nparams].eta < 0.0 || params[nparams].gamm < 0.0 ||
+        params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
+        params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
       error->all(FLERR,"Illegal EDIP parameter");
-    
+
     nparams++;
   }
 
@@ -1015,16 +1015,16 @@ void PairEDIP::setup()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement && 
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
   // set cutoff square

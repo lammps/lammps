@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,7 +34,7 @@ class Force : protected Pointers {
   double qqrd2e;                     // q^2/r to energy w/ dielectric constant
   double e_mass;                     // electron mass
   double hhmrr2e;                    // conversion of (hbar)^2/(mr^2) to energy
-  double mvh2r;                      // conversion of mv/hbar to distance 
+  double mvh2r;                      // conversion of mv/hbar to distance
                                      // hbar = h/(2*pi)
   double angstrom;                   // 1 angstrom in native units
   double femtosecond;                // 1 femtosecond in native units
@@ -78,7 +78,7 @@ class Force : protected Pointers {
 
   void create_bond(const char *, const char *suffix = NULL);
   class Bond *new_bond(const char *, const char *, int &);
-  class Bond *bond_match(const char *); 
+  class Bond *bond_match(const char *);
 
   void create_angle(const char *, const char *suffix = NULL);
   class Angle *new_angle(const char *, const char *, int &);

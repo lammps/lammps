@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -46,7 +46,7 @@ class FixSRD : public Fix {
   int cubicflag,shiftuser,shiftseed,shiftflag,tstat;
   double gridsrd,gridsearch,lamda,radfactor,cubictol;
   int triclinic,change_size,change_shape,deformflag;
-  
+
   double dt_big,dt_srd;
   double mass_big,mass_srd;
   double temperature_srd;
@@ -198,29 +198,29 @@ class FixSRD : public Fix {
   int inside_wall(double *, int);
 
   double collision_sphere_exact(double *, double *, double *, double *,
-				Big *, double *, double *, double *);
+                                Big *, double *, double *, double *);
   void collision_sphere_inexact(double *, double *,
-				Big *, double *, double *, double *);
+                                Big *, double *, double *, double *);
   double collision_ellipsoid_exact(double *, double *, double *, double *,
-				   Big *, double *, double *, double *);
+                                   Big *, double *, double *, double *);
   void collision_ellipsoid_inexact(double *, double *,
-				   Big *, double *, double *, double *);
+                                   Big *, double *, double *, double *);
   double collision_line_exact(double *, double *, double *, double *,
-			      Big *, double, double *, double *, double *);
+                              Big *, double, double *, double *, double *);
   double collision_tri_exact(double *, double *, double *, double *,
-			     Big *, double, double *, double *, double *);
+                             Big *, double, double *, double *, double *);
   double collision_wall_exact(double *, int, double *,
-			      double *, double *, double *);
+                              double *, double *, double *);
   void collision_wall_inexact(double *, int, double *, double *, double *);
 
   void slip(double *, double *, double *, Big *,
-	    double *, double *,  double *);
+            double *, double *,  double *);
   void slip_wall(double *, int, double *, double *);
   void noslip(double *, double *, double *, Big *, int,
-	      double *, double *,  double *);
+              double *, double *,  double *);
 
   void force_torque(double *, double *, double *,
-		    double *, double *,  double *);
+                    double *, double *,  double *);
   void force_wall(double *, double *, int);
 
   int update_srd(int, double, double *, double *, double *, double *);
@@ -244,7 +244,7 @@ class FixSRD : public Fix {
 
   double distance(int, int);
   void print_collision(int, int, int, double, double,
-		       double *, double *, double *, int);
+                       double *, double *, double *, int);
 };
 
 }

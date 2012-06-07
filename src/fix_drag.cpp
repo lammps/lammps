@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -97,7 +97,7 @@ void FixDrag::post_force(int vflag)
 
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
   force_flag = 0;
-  
+
   double dx,dy,dz,r,prefactor,fx,fy,fz;
 
   for (int i = 0; i < nlocal; i++)
@@ -111,16 +111,16 @@ void FixDrag::post_force(int vflag)
       domain->minimum_image(dx,dy,dz);
       r = sqrt(dx*dx + dy*dy + dz*dz);
       if (r > delta) {
-	prefactor = f_mag/r;
-	fx = prefactor*dx;
-	fy = prefactor*dy;
-	fz = prefactor*dz;
-	f[i][0] -= fx;
-	f[i][1] -= fy;
-	f[i][2] -= fz;
-	ftotal[0] -= fx;
-	ftotal[1] -= fy;
-	ftotal[2] -= fz;
+        prefactor = f_mag/r;
+        fx = prefactor*dx;
+        fy = prefactor*dy;
+        fz = prefactor*dz;
+        f[i][0] -= fx;
+        f[i][1] -= fy;
+        f[i][2] -= fz;
+        ftotal[0] -= fx;
+        ftotal[1] -= fy;
+        ftotal[2] -= fz;
       }
     }
 }

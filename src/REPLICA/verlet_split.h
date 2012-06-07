@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -44,7 +44,7 @@ class VerletSplit : public Verlet {
 
   double **f_kspace;                 // copy of Kspace forces on Rspace procs
   int maxatom;
-  
+
   void rk_setup();
   void r2k_comm();
   void k2r_comm();

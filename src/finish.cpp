@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -98,7 +98,7 @@ void Finish::end(int flag)
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  
+
   // choose flavors of statistical output
   // flag determines caller
   // flag = 0 = just loop summary
@@ -114,9 +114,9 @@ void Finish::end(int flag)
     if (update->whichflag == 2) minflag = 1;
     timeflag = histoflag = 1;
     neighflag = 1;
-    if (update->whichflag == 1 && 
-	strcmp(update->integrate_style,"verlet/split") == 0 && 
-	universe->iworld == 1) neighflag = 0;
+    if (update->whichflag == 1 &&
+        strcmp(update->integrate_style,"verlet/split") == 0 &&
+        universe->iworld == 1) neighflag = 0;
     if (force->kspace && force->kspace_match("pppm",0)) fftflag = 1;
   }
   if (flag == 2) prdflag = histoflag = neighflag = 1;
@@ -137,25 +137,24 @@ void Finish::end(int flag)
 
     // overall loop time
 
-#if defined(_OPENMP)    
+#if defined(_OPENMP)
     if (me == 0) {
       int ntasks = nprocs * comm->nthreads;
       if (screen) fprintf(screen,
-			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
-			  "for %d steps with " BIGINT_FORMAT " atoms\n",
-			  time_loop,ntasks,nprocs,comm->nthreads,
-			  update->nsteps,atom->natoms);
+                          "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+                          "for %d steps with " BIGINT_FORMAT " atoms\n",
+                          time_loop,ntasks,nprocs,comm->nthreads,
+                          update->nsteps,atom->natoms);
       if (logfile) fprintf(logfile,
-			  "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
-			  "for %d steps with " BIGINT_FORMAT " atoms\n",
-			  time_loop,ntasks,nprocs,comm->nthreads,
-			  update->nsteps,atom->natoms);
-
+                           "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
+                           "for %d steps with " BIGINT_FORMAT " atoms\n",
+                           time_loop,ntasks,nprocs,comm->nthreads,
+                           update->nsteps,atom->natoms);
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
-	   (update->nsteps > 0) &&
-	   ((strcmp(update->unit_style,"metal") == 0) ||
-	    (strcmp(update->unit_style,"real") == 0)) ) {
+           (update->nsteps > 0) &&
+           ((strcmp(update->unit_style,"metal") == 0) ||
+            (strcmp(update->unit_style,"real") == 0)) ) {
         float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
 
         // conversion factor to femtoseconds
@@ -176,13 +175,13 @@ void Finish::end(int flag)
 #else
     if (me == 0) {
       if (screen) fprintf(screen,
-			  "Loop time of %g on %d procs for %d steps with " 
-			  BIGINT_FORMAT " atoms\n",
-			  time_loop,nprocs,update->nsteps,atom->natoms);
+                          "Loop time of %g on %d procs for %d steps with "
+                          BIGINT_FORMAT " atoms\n",
+                          time_loop,nprocs,update->nsteps,atom->natoms);
       if (logfile) fprintf(logfile,
-			   "Loop time of %g on %d procs for %d steps with " 
-			   BIGINT_FORMAT " atoms\n",
-			   time_loop,nprocs,update->nsteps,atom->natoms);
+                           "Loop time of %g on %d procs for %d steps with "
+                           BIGINT_FORMAT " atoms\n",
+                           time_loop,nprocs,update->nsteps,atom->natoms);
     }
 #endif
 
@@ -199,44 +198,44 @@ void Finish::end(int flag)
 
     if (me == 0) {
       if (screen) {
-	fprintf(screen,"Minimization stats:\n");
-	fprintf(screen,"  Stopping criterion = %s\n",
-		update->minimize->stopstr);
-	fprintf(screen,"  Energy initial, next-to-last, final = \n"
-		"    %18.12g %18.12g %18.12g\n",
-		update->minimize->einitial,update->minimize->eprevious,
-		update->minimize->efinal);
-	fprintf(screen,"  Force two-norm initial, final = %g %g\n",
-		update->minimize->fnorm2_init,update->minimize->fnorm2_final);
-	fprintf(screen,"  Force max component initial, final = %g %g\n",
-		update->minimize->fnorminf_init,
-		update->minimize->fnorminf_final);
-	fprintf(screen,"  Final line search alpha, max atom move = %g %g\n",
-		update->minimize->alpha_final,
-		update->minimize->alpha_final*
-		update->minimize->fnorminf_final);
-	fprintf(screen,"  Iterations, force evaluations = %d %d\n",
-		update->minimize->niter,update->minimize->neval);
+        fprintf(screen,"Minimization stats:\n");
+        fprintf(screen,"  Stopping criterion = %s\n",
+                update->minimize->stopstr);
+        fprintf(screen,"  Energy initial, next-to-last, final = \n"
+                "    %18.12g %18.12g %18.12g\n",
+                update->minimize->einitial,update->minimize->eprevious,
+                update->minimize->efinal);
+        fprintf(screen,"  Force two-norm initial, final = %g %g\n",
+                update->minimize->fnorm2_init,update->minimize->fnorm2_final);
+        fprintf(screen,"  Force max component initial, final = %g %g\n",
+                update->minimize->fnorminf_init,
+                update->minimize->fnorminf_final);
+        fprintf(screen,"  Final line search alpha, max atom move = %g %g\n",
+                update->minimize->alpha_final,
+                update->minimize->alpha_final*
+                update->minimize->fnorminf_final);
+        fprintf(screen,"  Iterations, force evaluations = %d %d\n",
+                update->minimize->niter,update->minimize->neval);
       }
       if (logfile) {
-	fprintf(logfile,"Minimization stats:\n");
-	fprintf(logfile,"  Stopping criterion = %s\n",
-		update->minimize->stopstr);
-	fprintf(logfile,"  Energy initial, next-to-last, final = \n"
-		"    %18.12g %18.12g %18.12g\n",
-		update->minimize->einitial,update->minimize->eprevious,
-		update->minimize->efinal);
-	fprintf(logfile,"  Force two-norm initial, final = %g %g\n",
-		update->minimize->fnorm2_init,update->minimize->fnorm2_final);
-	fprintf(logfile,"  Force max component initial, final = %g %g\n",
-		update->minimize->fnorminf_init,
-		update->minimize->fnorminf_final);
-	fprintf(logfile,"  Final line search alpha, max atom move = %g %g\n",
-		update->minimize->alpha_final,
-		update->minimize->alpha_final*
-		update->minimize->fnorminf_final);
-	fprintf(logfile,"  Iterations, force evaluations = %d %d\n",
-		update->minimize->niter,update->minimize->neval);
+        fprintf(logfile,"Minimization stats:\n");
+        fprintf(logfile,"  Stopping criterion = %s\n",
+                update->minimize->stopstr);
+        fprintf(logfile,"  Energy initial, next-to-last, final = \n"
+                "    %18.12g %18.12g %18.12g\n",
+                update->minimize->einitial,update->minimize->eprevious,
+                update->minimize->efinal);
+        fprintf(logfile,"  Force two-norm initial, final = %g %g\n",
+                update->minimize->fnorm2_init,update->minimize->fnorm2_final);
+        fprintf(logfile,"  Force max component initial, final = %g %g\n",
+                update->minimize->fnorminf_init,
+                update->minimize->fnorminf_final);
+        fprintf(logfile,"  Final line search alpha, max atom move = %g %g\n",
+                update->minimize->alpha_final,
+                update->minimize->alpha_final*
+                update->minimize->fnorminf_final);
+        fprintf(logfile,"  Iterations, force evaluations = %d %d\n",
+                update->minimize->niter,update->minimize->neval);
       }
     }
   }
@@ -256,48 +255,48 @@ void Finish::end(int flag)
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Dephase  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Dephase  time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Dephase  time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Dephase  time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = timer->get_wall(Timer::BOND);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Other    time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
   }
 
@@ -316,36 +315,36 @@ void Finish::end(int flag)
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  NEB      time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  NEB      time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  NEB      time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  NEB      time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = timer->get_wall(Timer::BOND);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Dynamics time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Quench   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
 
@@ -353,12 +352,12 @@ void Finish::end(int flag)
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Comm     time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Comm     time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Comm     time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Comm     time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
 
@@ -366,24 +365,24 @@ void Finish::end(int flag)
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Output   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Output   time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Output   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Output   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-      if (screen) 
-	fprintf(screen,"  Other    time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Other    time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
     }
   }
 
@@ -408,47 +407,47 @@ void Finish::end(int flag)
     }
 
     print_timings("Pair",timer,Timer::PAIR,
-		  world,nprocs,me,time_loop,screen,logfile);
+                  world,nprocs,me,time_loop,screen,logfile);
 
     if (atom->molecular)
       print_timings("Bond",timer,Timer::BOND,
-		    world,nprocs,me,time_loop,screen,logfile);
+                    world,nprocs,me,time_loop,screen,logfile);
     
     if (force->kspace)
       print_timings("Kspace",timer,Timer::KSPACE,
-		    world,nprocs,me,time_loop,screen,logfile);
+                    world,nprocs,me,time_loop,screen,logfile);
 
     print_timings("Neigh",timer,Timer::NEIGHBOR,
-		  world,nprocs,me,time_loop,screen,logfile);
+                  world,nprocs,me,time_loop,screen,logfile);
     print_timings("Comm",timer,Timer::COMM,
-		  world,nprocs,me,time_loop,screen,logfile);
+                  world,nprocs,me,time_loop,screen,logfile);
     print_timings("Output",timer,Timer::OUTPUT,
-		  world,nprocs,me,time_loop,screen,logfile);
+                  world,nprocs,me,time_loop,screen,logfile);
     print_timings("Modify",timer,Timer::MODIFY,
-		  world,nprocs,me,time_loop,screen,logfile);
+                  world,nprocs,me,time_loop,screen,logfile);
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
 #if defined(_OPENMP)
-      if (screen) 
-	fprintf(screen,"Other   |            |%- 12.4g|            |"
-		"%6.2f |\n",time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Other   |            |%- 12.4g|            |"
-		"%6.2f |\n",time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"Other   |            |%- 12.4g|            |"
+                "%6.2f |\n",time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"Other   |            |%- 12.4g|            |"
+                "%6.2f |\n",time,time/time_loop*100.0);
 #else
-      if (screen) 
-	fprintf(screen,"Other time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
-      if (logfile) 
-	fprintf(logfile,"Other time (%%) = %g (%g)\n",
-		time,time/time_loop*100.0);
+      if (screen)
+        fprintf(screen,"Other time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"Other time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
 #endif
     }
   }
-  
+
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs
   // time_kspace may be 0.0 if another partition is doing Kspace
@@ -464,15 +463,15 @@ void Finish::end(int flag)
     int nsample = 5;
     double time3d,time1d;
     force->kspace->timing(nsample,time3d,time1d);
-    
+
     time3d = nsteps * time3d / nsample;
     MPI_Allreduce(&time3d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time3d = tmp/nprocs;
-    
+
     time1d = nsteps * time1d / nsample;
     MPI_Allreduce(&time1d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time1d = tmp/nprocs;
-    
+
     double time_kspace = timer->get_wall(Timer::KSPACE);
     MPI_Allreduce(&time_kspace,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time_kspace = tmp/nprocs;
@@ -491,12 +490,12 @@ void Finish::end(int flag)
 
     if (me == 0) {
       if (screen) {
-	fprintf(screen,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
-	fprintf(screen,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
+        fprintf(screen,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
+        fprintf(screen,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
       }
       if (logfile) {
-	fprintf(logfile,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
-	fprintf(logfile,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
+        fprintf(logfile,"FFT time (%% of Kspce) = %g (%g)\n",time3d,fraction);
+        fprintf(logfile,"FFT Gflps 3d (1d only) = %g %g\n",flop3,flop1);
       }
     }
   }
@@ -511,46 +510,46 @@ void Finish::end(int flag)
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
       if (screen) {
-	fprintf(screen,"Nlocal:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(screen,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
-	fprintf(screen,"\n");
+        fprintf(screen,"Nlocal:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(screen,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
+        fprintf(screen,"\n");
       }
       if (logfile) {
-	fprintf(logfile,"Nlocal:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(logfile,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
-	fprintf(logfile,"\n");
+        fprintf(logfile,"Nlocal:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(logfile,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
+        fprintf(logfile,"\n");
       }
     }
-    
+
     tmp = atom->nghost;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
       if (screen) {
-	fprintf(screen,"Nghost:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(screen,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
-	fprintf(screen,"\n");
+        fprintf(screen,"Nghost:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(screen,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
+        fprintf(screen,"\n");
       }
       if (logfile) {
-	fprintf(logfile,"Nghost:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(logfile,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
-	fprintf(logfile,"\n");
+        fprintf(logfile,"Nghost:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(logfile,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
+        fprintf(logfile,"\n");
       }
     }
-    
+
     // find a non-skip neighbor list containing half the pairwise interactions
     // count neighbors in that list for stats purposes
-    
+
     for (m = 0; m < neighbor->old_nrequest; m++)
-      if ((neighbor->old_requests[m]->half || 
-	   neighbor->old_requests[m]->gran ||
-	   neighbor->old_requests[m]->respaouter ||
-	   neighbor->old_requests[m]->half_from_full) &&
-	  neighbor->old_requests[m]->skip == 0 &&
-	  neighbor->lists[m]->numneigh) break;
+      if ((neighbor->old_requests[m]->half ||
+           neighbor->old_requests[m]->gran ||
+           neighbor->old_requests[m]->respaouter ||
+           neighbor->old_requests[m]->half_from_full) &&
+          neighbor->old_requests[m]->skip == 0 &&
+          neighbor->lists[m]->numneigh) break;
 
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
@@ -558,58 +557,58 @@ void Finish::end(int flag)
       int *ilist = neighbor->lists[m]->ilist;
       int *numneigh = neighbor->lists[m]->numneigh;
       for (i = 0; i < inum; i++)
-	nneigh += numneigh[ilist[i]];
+        nneigh += numneigh[ilist[i]];
     }
-    
+
     tmp = nneigh;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
       if (screen) {
-	fprintf(screen,"Neighs:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(screen,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
-	fprintf(screen,"\n");
+        fprintf(screen,"Neighs:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(screen,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
+        fprintf(screen,"\n");
       }
       if (logfile) {
-	fprintf(logfile,"Neighs:    %g ave %g max %g min\n",ave,max,min);
-	fprintf(logfile,"Histogram:");
-	for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
-	fprintf(logfile,"\n");
+        fprintf(logfile,"Neighs:    %g ave %g max %g min\n",ave,max,min);
+        fprintf(logfile,"Histogram:");
+        for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
+        fprintf(logfile,"\n");
       }
     }
-    
+
     // find a non-skip neighbor list containing full pairwise interactions
     // count neighbors in that list for stats purposes
 
     for (m = 0; m < neighbor->old_nrequest; m++)
       if (neighbor->old_requests[m]->full &&
-	  neighbor->old_requests[m]->skip == 0) break;
-    
+          neighbor->old_requests[m]->skip == 0) break;
+
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
       if (neighbor->lists[m]->numneigh > 0) {
-	int inum = neighbor->lists[m]->inum;
-	int *ilist = neighbor->lists[m]->ilist;
-	int *numneigh = neighbor->lists[m]->numneigh;
-	for (i = 0; i < inum; i++)
-	  nneighfull += numneigh[ilist[i]];
+        int inum = neighbor->lists[m]->inum;
+        int *ilist = neighbor->lists[m]->ilist;
+        int *numneigh = neighbor->lists[m]->numneigh;
+        for (i = 0; i < inum; i++)
+          nneighfull += numneigh[ilist[i]];
       }
 
       tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
-	if (screen) {
-	  fprintf(screen,"FullNghs:  %g ave %g max %g min\n",ave,max,min);
-	  fprintf(screen,"Histogram:");
-	  for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
-	  fprintf(screen,"\n");
-	}
-	if (logfile) {
-	  fprintf(logfile,"FullNghs:  %g ave %g max %g min\n",ave,max,min);
-	  fprintf(logfile,"Histogram:");
-	  for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
-	  fprintf(logfile,"\n");
-	}
+        if (screen) {
+          fprintf(screen,"FullNghs:  %g ave %g max %g min\n",ave,max,min);
+          fprintf(screen,"Histogram:");
+          for (i = 0; i < 10; i++) fprintf(screen," %d",histo[i]);
+          fprintf(screen,"\n");
+        }
+        if (logfile) {
+          fprintf(logfile,"FullNghs:  %g ave %g max %g min\n",ave,max,min);
+          fprintf(logfile,"Histogram:");
+          for (i = 0; i < 10; i++) fprintf(logfile," %d",histo[i]);
+          fprintf(logfile,"\n");
+        }
       }
     }
   }
@@ -619,11 +618,11 @@ void Finish::end(int flag)
       if (screen) fprintf(screen,"\n");
       if (logfile) fprintf(logfile,"\n");
     }
-    
+
     tmp = MAX(nneigh,nneighfull);
     double nall;
     MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
-    
+
     int nspec;
     double nspec_all;
     if (atom->molecular) {
@@ -633,45 +632,45 @@ void Finish::end(int flag)
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
     }
-    
+
     if (me == 0) {
       if (screen) {
-	if (nall < 2.0e9) 
-	  fprintf(screen,
-		  "Total # of neighbors = %d\n",static_cast<int> (nall));
-	else fprintf(screen,"Total # of neighbors = %g\n",nall);
-	if (atom->natoms > 0) 
-	  fprintf(screen,"Ave neighs/atom = %g\n",nall/atom->natoms);
-	if (atom->molecular && atom->natoms > 0) 
-	  fprintf(screen,"Ave special neighs/atom = %g\n",
-		  nspec_all/atom->natoms);
-	fprintf(screen,"Neighbor list builds = %d\n",neighbor->ncalls);
-	fprintf(screen,"Dangerous builds = %d\n",neighbor->ndanger);
+        if (nall < 2.0e9)
+          fprintf(screen,
+                  "Total # of neighbors = %d\n",static_cast<int> (nall));
+        else fprintf(screen,"Total # of neighbors = %g\n",nall);
+        if (atom->natoms > 0)
+          fprintf(screen,"Ave neighs/atom = %g\n",nall/atom->natoms);
+        if (atom->molecular && atom->natoms > 0)
+          fprintf(screen,"Ave special neighs/atom = %g\n",
+                  nspec_all/atom->natoms);
+        fprintf(screen,"Neighbor list builds = %d\n",neighbor->ncalls);
+        fprintf(screen,"Dangerous builds = %d\n",neighbor->ndanger);
       }
       if (logfile) {
-	if (nall < 2.0e9) 
-	  fprintf(logfile,
-		  "Total # of neighbors = %d\n",static_cast<int> (nall));
-	else fprintf(logfile,"Total # of neighbors = %g\n",nall);
-	if (atom->natoms > 0) 
-	  fprintf(logfile,"Ave neighs/atom = %g\n",nall/atom->natoms);
-	if (atom->molecular && atom->natoms > 0) 
-	  fprintf(logfile,"Ave special neighs/atom = %g\n",
-		  nspec_all/atom->natoms);
-	fprintf(logfile,"Neighbor list builds = %d\n",neighbor->ncalls);
-	fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
+        if (nall < 2.0e9)
+          fprintf(logfile,
+                  "Total # of neighbors = %d\n",static_cast<int> (nall));
+        else fprintf(logfile,"Total # of neighbors = %g\n",nall);
+        if (atom->natoms > 0)
+          fprintf(logfile,"Ave neighs/atom = %g\n",nall/atom->natoms);
+        if (atom->molecular && atom->natoms > 0)
+          fprintf(logfile,"Ave special neighs/atom = %g\n",
+                  nspec_all/atom->natoms);
+        fprintf(logfile,"Neighbor list builds = %d\n",neighbor->ncalls);
+        fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
       }
     }
   }
-  
+
   if (logfile) fflush(logfile);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Finish::stats(int n, double *data, 
-		   double *pave, double *pmax, double *pmin,
-		   int nhisto, int *histo)
+void Finish::stats(int n, double *data,
+                   double *pave, double *pmax, double *pmin,
+                   int nhisto, int *histo)
 {
   int i,m;
   int *histotmp;

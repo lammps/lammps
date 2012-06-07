@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -84,7 +84,7 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -109,68 +109,68 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_bothsq) {
-	r2inv = 1.0/rsq;
+        r2inv = 1.0/rsq;
 
-	// skip if qi or qj = 0.0 since this potential may be used as
-	// coarse-grain model with many uncharged atoms
+        // skip if qi or qj = 0.0 since this potential may be used as
+        // coarse-grain model with many uncharged atoms
 
-	if (rsq < cut_coulsq && qtmp != 0.0 && q[j] != 0.0) {
-	  forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
+        if (rsq < cut_coulsq && qtmp != 0.0 && q[j] != 0.0) {
+          forcecoul = qqrd2e * qtmp*q[j]*sqrt(r2inv);
           if (rsq > cut_coul_innersq) {
-            r = sqrt(rsq); 
-	    tc = r - cut_coul_inner;
+            r = sqrt(rsq);
+            tc = r - cut_coul_inner;
             fswitchcoul = qqrd2e * qtmp*q[j]*r*tc*tc*(coulsw1 + coulsw2*tc);
             forcecoul += fswitchcoul;
           }
-	} else forcecoul = 0.0;
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  jtype = type[j];
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        if (rsq < cut_ljsq) {
+          r6inv = r2inv*r2inv*r2inv;
+          jtype = type[j];
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
-            r = sqrt(rsq); 
-	    tlj = r - cut_lj_inner;
-	    fswitch = r*tlj*tlj*(ljsw1[itype][jtype] + 
-				 ljsw2[itype][jtype]*tlj);
-	    forcelj += fswitch;
+            r = sqrt(rsq);
+            tlj = r - cut_lj_inner;
+            fswitch = r*tlj*tlj*(ljsw1[itype][jtype] +
+                                 ljsw2[itype][jtype]*tlj);
+            forcelj += fswitch;
           }
-	} else forcelj = 0.0;
+        } else forcelj = 0.0;
 
-	fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+        fpair = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = qqrd2e * qtmp*q[j] * (sqrt(r2inv) - coulsw5);
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            ecoul = qqrd2e * qtmp*q[j] * (sqrt(r2inv) - coulsw5);
             if (rsq > cut_coul_innersq) {
               ecoulswitch = tc*tc*tc * (coulsw3 + coulsw4*tc);
               ecoul += qqrd2e*qtmp*q[j]*ecoulswitch;
             }
-	    ecoul *= factor_coul;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq) {
-	    evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-	    evdwl += ljsw5[itype][jtype];
+            ecoul *= factor_coul;
+          } else ecoul = 0.0;
+          if (rsq < cut_ljsq) {
+            evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+            evdwl += ljsw5[itype][jtype];
             if (rsq > cut_lj_innersq) {
-              eswitch = tlj*tlj*tlj * 
-		(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
+              eswitch = tlj*tlj*tlj *
+                (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
               evdwl += eswitch;
             }
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -213,7 +213,7 @@ void PairLJGromacsCoulGromacs::allocate()
 
 void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
 {
-  if (narg != 2 && narg != 4) 
+  if (narg != 2 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_inner = force->numeric(arg[0]);
@@ -287,7 +287,7 @@ double PairLJGromacsCoulGromacs::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
   }
 
@@ -355,8 +355,8 @@ void PairLJGromacsCoulGromacs::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -377,12 +377,12 @@ void PairLJGromacsCoulGromacs::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -426,21 +426,21 @@ void PairLJGromacsCoulGromacs::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
-				double rsq,
-				double factor_coul, double factor_lj,
-				double &fforce)
+                                double rsq,
+                                double factor_coul, double factor_lj,
+                                double &fforce)
 {
   double r2inv,r6inv,forcecoul,forcelj,phicoul,philj;
-  double r,tlj,tc,fswitch,phiswitch,fswitchcoul,phiswitchcoul; 
+  double r,tlj,tc,fswitch,phiswitch,fswitchcoul,phiswitchcoul;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq) {
     forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
     if (rsq > cut_coul_innersq) {
-      r = sqrt(rsq); 
+      r = sqrt(rsq);
       tc = r - cut_coul_inner;
-      fswitchcoul =  force->qqrd2e * 
-	atom->q[i]*atom->q[j] * r*tc*tc * (coulsw1 + coulsw2*tc);
+      fswitchcoul =  force->qqrd2e *
+        atom->q[i]*atom->q[j] * r*tc*tc * (coulsw1 + coulsw2*tc);
       forcecoul += fswitchcoul;
     }
   } else forcecoul = 0.0;
@@ -449,7 +449,7 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
     if (rsq > cut_lj_innersq) {
-      r = sqrt(rsq); 
+      r = sqrt(rsq);
       tlj = r - cut_lj_inner;
       fswitch = r*tlj*tlj*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*tlj);
       forcelj += fswitch;
@@ -463,7 +463,7 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
     phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * (sqrt(r2inv)-coulsw5);
     if (rsq > cut_coul_innersq) {
       phiswitchcoul = force->qqrd2e * atom->q[i]*atom->q[j] *
-	tc*tc*tc * (coulsw3 + coulsw4*tc);
+        tc*tc*tc * (coulsw3 + coulsw4*tc);
       phicoul += phiswitchcoul;
     }
     eng += factor_coul*phicoul;
@@ -473,8 +473,8 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
     philj += ljsw5[itype][jtype];
     if (rsq > cut_lj_innersq) {
-      phiswitch = tlj*tlj*tlj * 
-	(ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
+      phiswitch = tlj*tlj*tlj *
+        (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
       philj += phiswitch;
     }
     eng += factor_lj*philj;

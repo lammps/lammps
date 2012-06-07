@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -42,22 +42,22 @@ int SumScan( int n, int me, int root, MPI_Comm comm )
   if( me == root ) {
     MPI_Comm_size( comm, &wsize );
     nbuf = (int *) calloc( wsize, sizeof(int) );
-    
+
     MPI_Gather( &n, 1, MPI_INT, nbuf, 1, MPI_INT, root, comm );
-    
+
     for( i = 0; i < wsize-1; ++i ) {
       nbuf[i+1] += nbuf[i];
     }
-    
+
     MPI_Scatter( nbuf, 1, MPI_INT, &my_order, 1, MPI_INT, root, comm );
-    
+
     free( nbuf );
   }
   else {
     MPI_Gather( &n, 1, MPI_INT, nbuf, 1, MPI_INT, root, comm );
     MPI_Scatter( nbuf, 1, MPI_INT, &my_order, 1, MPI_INT, root, comm );
   }
-  
+
   return my_order;
 }
 
@@ -72,7 +72,7 @@ void SumScanB( int n, int me, int wsize, int root, MPI_Comm comm, int *nbuf )
     for( i = 0; i < wsize-1; ++i )
       nbuf[i+1] += nbuf[i];
   }
- 
+
   MPI_Bcast( nbuf, wsize, MPI_INT, root, comm );
 }
 #endif
@@ -85,12 +85,12 @@ void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
   real tmp;
 
   //  printf(">x1: (%lf, %lf, %lf)\n",x1[0],x1[1],x1[2]);
-	  
+
   if (flag > 0) {
     for (i=0; i < 3; i++) {
       tmp = 0.0;
       for (j=0; j < 3; j++)
-	tmp += box->trans[i][j]*x1[j]; 
+        tmp += box->trans[i][j]*x1[j];
       x2[i] = tmp;
     }
   }
@@ -98,18 +98,18 @@ void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
     for (i=0; i < 3; i++) {
       tmp = 0.0;
       for (j=0; j < 3; j++)
-	tmp += box->trans_inv[i][j]*x1[j]; 
+        tmp += box->trans_inv[i][j]*x1[j];
       x2[i] = tmp;
     }
   }
-  //  printf(">x2: (%lf, %lf, %lf)\n", x2[0], x2[1], x2[2]);  
+  //  printf(">x2: (%lf, %lf, %lf)\n", x2[0], x2[1], x2[2]);
 }
 
 
 void Transform_to_UnitBox( rvec x1, simulation_box *box, char flag, rvec x2 )
 {
   Transform( x1, box, flag, x2 );
-  
+
   x2[0] /= box->box_norms[0];
   x2[1] /= box->box_norms[1];
   x2[2] /= box->box_norms[2];
@@ -122,21 +122,21 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
   int i;
 
   for( i = 0; i < 3; ++i ) {
-    if( (*p)[i] < box->min[i] ) { 
+    if( (*p)[i] < box->min[i] ) {
       /* handle lower coords */
       while( (*p)[i] < box->min[i] )
-	(*p)[i] += box->box_norms[i];
+        (*p)[i] += box->box_norms[i];
     }
     else if( (*p)[i] >= box->max[i] ) {
       /* handle higher coords */
       while( (*p)[i] >= box->max[i] )
-	(*p)[i] -= box->box_norms[i];
+        (*p)[i] -= box->box_norms[i];
     }
   }
 }
 
 #if defined(PURE_REAX)
-/* determine the touch point, tp, of a box to 
+/* determine the touch point, tp, of a box to
    its neighbor denoted by the relative coordinate rl */
 inline void Box_Touch_Point( simulation_box *box, ivec rl, rvec tp )
 {
@@ -156,8 +156,8 @@ inline void Box_Touch_Point( simulation_box *box, ivec rl, rvec tp )
 /* assumes orthogonal box */
 inline int is_Inside_Box( simulation_box *box, rvec p )
 {
-  if( p[0] < box->min[0] || p[0] >= box->max[0] || 
-      p[1] < box->min[1] || p[1] >= box->max[1] || 
+  if( p[0] < box->min[0] || p[0] >= box->max[0] ||
+      p[1] < box->min[1] || p[1] >= box->max[1] ||
       p[2] < box->min[2] || p[2] >= box->max[2] )
      return 0;
 
@@ -173,11 +173,11 @@ inline int iown_midpoint( simulation_box *box, rvec p1, rvec p2 )
   midp[1] = (p1[1] + p2[1]) / 2;
   midp[2] = (p1[2] + p2[2]) / 2;
 
-  if( midp[0] < box->min[0] || midp[0] >= box->max[0] || 
-      midp[1] < box->min[1] || midp[1] >= box->max[1] || 
+  if( midp[0] < box->min[0] || midp[0] >= box->max[0] ||
+      midp[1] < box->min[1] || midp[1] >= box->max[1] ||
       midp[2] < box->min[2] || midp[2] >= box->max[2] )
      return 0;
-  
+
   return 1;
 }
 
@@ -185,13 +185,13 @@ inline int iown_midpoint( simulation_box *box, rvec p1, rvec p2 )
 
 /**************** from grid.c ****************/
 /* finds the closest point of grid cell cj to ci.
-   no need to consider periodic boundary conditions as in the serial case 
+   no need to consider periodic boundary conditions as in the serial case
    because the box of a process is not periodic in itself */
 inline void GridCell_Closest_Point( grid_cell *gci, grid_cell *gcj,
-				    ivec ci, ivec cj, rvec cp )
+                                    ivec ci, ivec cj, rvec cp )
 {
   int  d;
-  
+
   for( d = 0; d < 3; d++ )
     if( cj[d] > ci[d] )
       cp[d] = gcj->min[d];
@@ -206,7 +206,7 @@ inline void GridCell_Closest_Point( grid_cell *gci, grid_cell *gcj,
 inline void GridCell_to_Box_Points( grid_cell *gc, ivec rl, rvec cp, rvec fp )
 {
   int d;
- 
+
   for( d = 0; d < 3; ++d )
     if( rl[d] == -1 ) {
       cp[d] = gc->min[d];
@@ -218,7 +218,7 @@ inline void GridCell_to_Box_Points( grid_cell *gc, ivec rl, rvec cp, rvec fp )
     else{
       cp[d] = gc->max[d];
       fp[d] = gc->min[d];
-    }  
+    }
 }
 
 
@@ -269,12 +269,12 @@ int is_Valid_Serial( storage *workspace, int serial )
 {
   // if( workspace->map_serials[ serial ] < 0 )
   // {
-  // fprintf( stderr, "CONECT line includes invalid pdb serial number %d.\n", 
+  // fprintf( stderr, "CONECT line includes invalid pdb serial number %d.\n",
   // serial );
   // fprintf( stderr, "Please correct the input file.Terminating...\n" );
   //  MPI_Abort( MPI_COMM_WORLD, INVALID_INPUT );
   // }
-  
+
   return SUCCESS;
 }
 
@@ -283,11 +283,11 @@ int is_Valid_Serial( storage *workspace, int serial )
 int Check_Input_Range( int val, int lo, int hi, char *message, MPI_Comm comm )
 {
   if( val < lo || val > hi ) {
-    fprintf( stderr, "%s\nInput %d - Out of range %d-%d. Terminating...\n", 
-	     message, val, lo, hi );
+    fprintf( stderr, "%s\nInput %d - Out of range %d-%d. Terminating...\n",
+             message, val, lo, hi );
     MPI_Abort( comm, INVALID_INPUT );
   }
-  
+
   return 1;
 }
 
@@ -297,7 +297,7 @@ void Trim_Spaces( char *element )
   int i, j;
 
   for( i = 0; element[i] == ' '; ++i ); // skip initial space chars
-  
+
   for( j = i; j < (int)(strlen(element)) && element[j] != ' '; ++j )
     element[j-i] = toupper( element[j] ); // make uppercase, offset to 0
   element[j-i] = 0; // finalize the string
@@ -307,7 +307,7 @@ void Trim_Spaces( char *element )
 /************ from system_props.c *************/
 struct timeval tim;
 real t_end;
- 
+
 real Get_Time( )
 {
   gettimeofday(&tim, NULL );
@@ -316,7 +316,7 @@ real Get_Time( )
 
 
 real Get_Timing_Info( real t_start )
-{ 
+{
   gettimeofday(&tim, NULL );
   t_end = tim.tv_sec + (tim.tv_usec / 1000000.0);
   return (t_end - t_start);
@@ -343,7 +343,7 @@ int Get_Atom_Type( reax_interaction *reax_param, char *s, MPI_Comm comm )
 
   fprintf( stderr, "Unknown atom type %s. Terminating...\n", s );
   MPI_Abort( comm, UNKNOWN_ATOM_TYPE );
-  
+
   return -1;
 }
 
@@ -393,7 +393,7 @@ int Tokenize( char* s, char*** tok )
   int count=0;
 
   strncpy( test, s, MAX_LINE );
-  
+
   for( word = strtok(test, sep); word; word = strtok(NULL, sep) ) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
@@ -411,15 +411,15 @@ void *smalloc( long n, char *name, MPI_Comm comm )
 
   if( n <= 0 ) {
     fprintf( stderr, "WARNING: trying to allocate %ld bytes for array %s. ",
-	     n, name );
+             n, name );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;
   }
 
   ptr = malloc( n );
   if( ptr == NULL ) {
-    fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s", 
-	     n, name );
+    fprintf( stderr, "ERROR: failed to allocate %ld bytes for array %s",
+             n, name );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
 
@@ -434,22 +434,22 @@ void *scalloc( int n, int size, char *name, MPI_Comm comm )
 
   if( n <= 0 ) {
     fprintf( stderr, "WARNING: trying to allocate %d elements for array %s. ",
-	     n, name );
+             n, name );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;
   }
 
   if( size <= 0 ) {
     fprintf( stderr, "WARNING: elements size for array %s is %d. ",
-	     name, size );
+             name, size );
     fprintf( stderr, "returning NULL.\n" );
     return NULL;
   }
 
   ptr = calloc( n, size );
   if( ptr == NULL ) {
-    fprintf( stderr, "ERROR: failed to allocate %d bytes for array %s", 
-	     n*size, name );
+    fprintf( stderr, "ERROR: failed to allocate %d bytes for array %s",
+             n*size, name );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
 
@@ -462,11 +462,10 @@ void sfree( void *ptr, char *name )
 {
   if( ptr == NULL ) {
     fprintf( stderr, "WARNING: trying to free the already NULL pointer %s!\n",
-	     name );
+             name );
     return;
   }
-  
+
   free( ptr );
   ptr = NULL;
 }
-

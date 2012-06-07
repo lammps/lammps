@@ -83,11 +83,11 @@ void PairHbondDreidingLJOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -135,7 +135,7 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  
+
   // ii = loop over donors
   // jj = loop over acceptors
   // kk = loop over hydrogens bonded to donor
@@ -173,107 +173,107 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-	k = atom->map(klist[kk]);
-	if (k < 0) continue;
-	ktype = type[k];
-	m = type2param[itype][jtype][ktype];
-	if (m < 0) continue;
-	pm = &params[m];
+        k = atom->map(klist[kk]);
+        if (k < 0) continue;
+        ktype = type[k];
+        m = type2param[itype][jtype][ktype];
+        if (m < 0) continue;
+        pm = &params[m];
 
-	if (rsq < pm->cut_outersq) {
-	  delr1[0] = xtmp - x[k][0];
-	  delr1[1] = ytmp - x[k][1];
-	  delr1[2] = ztmp - x[k][2];
-	  domain->minimum_image(delr1);
-	  rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-	  r1 = sqrt(rsq1);
-	  
-	  delr2[0] = x[j][0] - x[k][0];
-	  delr2[1] = x[j][1] - x[k][1];
-	  delr2[2] = x[j][2] - x[k][2];
-	  domain->minimum_image(delr2);
-	  rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	  r2 = sqrt(rsq2);
-	  
-	  // angle (cos and sin)
-	  
-	  c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
-	  c /= r1*r2;
-	  if (c > 1.0) c = 1.0;
-	  if (c < -1.0) c = -1.0;
-	  ac = acos(c);
+        if (rsq < pm->cut_outersq) {
+          delr1[0] = xtmp - x[k][0];
+          delr1[1] = ytmp - x[k][1];
+          delr1[2] = ztmp - x[k][2];
+          domain->minimum_image(delr1);
+          rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+          r1 = sqrt(rsq1);
 
-	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
-	    s = sqrt(1.0 - c*c);
-	    if (s < SMALL) s = SMALL;
+          delr2[0] = x[j][0] - x[k][0];
+          delr2[1] = x[j][1] - x[k][1];
+          delr2[2] = x[j][2] - x[k][2];
+          domain->minimum_image(delr2);
+          rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+          r2 = sqrt(rsq2);
 
-	    // LJ-specific kernel
+          // angle (cos and sin)
 
-	    r2inv = 1.0/rsq;
-	    r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-	    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
-	      pow(c,(double)pm->ap);
-	    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
-	      pow(c,pm->ap-1.0)*s;
+          c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
+          c /= r1*r2;
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+          ac = acos(c);
 
-	    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
-	    if (rsq > pm->cut_innersq) {
-	      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) * 
-			(pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-			pm->denom_vdw;
-	      switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-			(rsq-pm->cut_innersq) / pm->denom_vdw;
-	      force_kernel = force_kernel*switch1 + eng_lj*switch2;
-	      eng_lj *= switch1;
-	    }
+          if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
+            s = sqrt(1.0 - c*c);
+            if (s < SMALL) s = SMALL;
 
-	    if (EFLAG) {
-	      evdwl = eng_lj * pow(c,(double)pm->ap);
-	      evdwl *= factor_hb;
-	    }
+            // LJ-specific kernel
 
-	    a = factor_hb*force_angle/s;
-	    b = factor_hb*force_kernel;
-	    
-	    a11 = a*c / rsq1;
-	    a12 = -a / (r1*r2);
-	    a22 = a*c / rsq2;
-	    
-	    vx1 = a11*delr1[0] + a12*delr2[0];
-	    vx2 = a22*delr2[0] + a12*delr1[0];
-	    vy1 = a11*delr1[1] + a12*delr2[1];
-	    vy2 = a22*delr2[1] + a12*delr1[1];
-	    vz1 = a11*delr1[2] + a12*delr2[2];
-	    vz2 = a22*delr2[2] + a12*delr1[2];
-	    
-	    fi[0] = vx1 + b*delx;
-	    fi[1] = vy1 + b*dely;
-	    fi[2] = vz1 + b*delz;
-	    fj[0] = vx2 - b*delx;
-	    fj[1] = vy2 - b*dely;
-	    fj[2] = vz2 - b*delz;
+            r2inv = 1.0/rsq;
+            r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
+            force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv *
+              pow(c,(double)pm->ap);
+            force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) *
+              pow(c,pm->ap-1.0)*s;
 
-	    fxtmp += fi[0];
-	    fytmp += fi[1];
-	    fztmp += fi[2];
+            eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
+            if (rsq > pm->cut_innersq) {
+              switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
+                        (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
+                        pm->denom_vdw;
+              switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
+                        (rsq-pm->cut_innersq) / pm->denom_vdw;
+              force_kernel = force_kernel*switch1 + eng_lj*switch2;
+              eng_lj *= switch1;
+            }
 
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	    f[j][2] += fj[2];
-	    
-	    f[k][0] -= vx1 + vx2;
-	    f[k][1] -= vy1 + vy2;
-	    f[k][2] -= vz1 + vz2;
+            if (EFLAG) {
+              evdwl = eng_lj * pow(c,(double)pm->ap);
+              evdwl *= factor_hb;
+            }
 
-	    // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
+            a = factor_hb*force_angle/s;
+            b = factor_hb*force_kernel;
 
-	    if (EVFLAG) ev_tally3_thr(this,k,i,j,evdwl,0.0,fi,fj,delr1,delr2,thr);
-	    if (EFLAG) {
-	      hbcount++;
-	      hbeng += evdwl;
-	    }
-	  }
-	}
+            a11 = a*c / rsq1;
+            a12 = -a / (r1*r2);
+            a22 = a*c / rsq2;
+
+            vx1 = a11*delr1[0] + a12*delr2[0];
+            vx2 = a22*delr2[0] + a12*delr1[0];
+            vy1 = a11*delr1[1] + a12*delr2[1];
+            vy2 = a22*delr2[1] + a12*delr1[1];
+            vz1 = a11*delr1[2] + a12*delr2[2];
+            vz2 = a22*delr2[2] + a12*delr1[2];
+
+            fi[0] = vx1 + b*delx;
+            fi[1] = vy1 + b*dely;
+            fi[2] = vz1 + b*delz;
+            fj[0] = vx2 - b*delx;
+            fj[1] = vy2 - b*dely;
+            fj[2] = vz2 - b*delz;
+
+            fxtmp += fi[0];
+            fytmp += fi[1];
+            fztmp += fi[2];
+
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+            f[j][2] += fj[2];
+
+            f[k][0] -= vx1 + vx2;
+            f[k][1] -= vy1 + vy2;
+            f[k][2] -= vz1 + vz2;
+
+            // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
+
+            if (EVFLAG) ev_tally3_thr(this,k,i,j,evdwl,0.0,fi,fj,delr1,delr2,thr);
+            if (EFLAG) {
+              hbcount++;
+              hbeng += evdwl;
+            }
+          }
+        }
       }
     }
     f[i][0] += fxtmp;

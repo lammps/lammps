@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -40,26 +40,26 @@
 // External functions from cuda library for atom decomposition
 
 int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
-		const double mu, double **shape, double **well, double **cutsq,
-		double **sigma, double **epsilon, double *host_lshape,
-		int **form, double **host_lj1, double **host_lj2,
-		double **host_lj3, double **host_lj4, double **offset,
-		double *special_lj, const int nlocal, const int nall,
-		const int max_nbors, const int maxspecial,
-		const double cell_size,	int &gpu_mode, FILE *screen);
+                const double mu, double **shape, double **well, double **cutsq,
+                double **sigma, double **epsilon, double *host_lshape,
+                int **form, double **host_lj1, double **host_lj2,
+                double **host_lj3, double **host_lj4, double **offset,
+                double *special_lj, const int nlocal, const int nall,
+                const int max_nbors, const int maxspecial,
+                const double cell_size,        int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
 int ** gb_gpu_compute_n(const int ago, const int inum, const int nall,
-			double **host_x, int *host_type, double *sublo,
-			double *subhi, int *tag, int **nspecial, int **special,
-			const bool eflag, const bool vflag,
-			const bool eatom, const bool vatom, int &host_start,
-			int **ilist, int **jnum, const double cpu_time,
-			bool &success, double **host_quat);
+                        double **host_x, int *host_type, double *sublo,
+                        double *subhi, int *tag, int **nspecial, int **special,
+                        const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        int **ilist, int **jnum, const double cpu_time,
+                        bool &success, double **host_quat);
 int * gb_gpu_compute(const int ago, const int inum, const int nall,
-		     double **host_x, int *host_type, int *ilist, int *numj,
-		     int **firstneigh, const bool eflag, const bool vflag,
-		     const bool eatom, const bool vatom, int &host_start,
-		     const double cpu_time, bool &success, double **host_quat);
+                     double **host_x, int *host_type, int *ilist, int *numj,
+                     int **firstneigh, const bool eflag, const bool vflag,
+                     const bool eatom, const bool vatom, int &host_start,
+                     const double cpu_time, bool &success, double **host_quat);
 double gb_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -72,11 +72,11 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
                                                 gpu_mode(GPU_FORCE)
 {
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) 
+  if (!avec)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +101,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
   int inum, host_start;
 
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;  
+  int *ilist, *numneigh, **firstneigh;
 
   if (nall > quat_nmax) {
     quat_nmax = static_cast<int>(1.1 * nall);
@@ -122,19 +122,19 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				  atom->type, domain->sublo, domain->subhi,
-				  atom->tag, atom->nspecial, atom->special,
-				  eflag, vflag, eflag_atom, vflag_atom,
-				  host_start, &ilist, &numneigh, cpu_time,
-				  success, quat);
+                                  atom->type, domain->sublo, domain->subhi,
+                                  atom->tag, atom->nspecial, atom->special,
+                                  eflag, vflag, eflag_atom, vflag_atom,
+                                  host_start, &ilist, &numneigh, cpu_time,
+                                  success, quat);
   } else {
     inum = list->inum;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     ilist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-			   list->ilist, numneigh, firstneigh, eflag, vflag,
-			   eflag_atom, vflag_atom, host_start,
-			   cpu_time, success, quat);
+                           list->ilist, numneigh, firstneigh, eflag, vflag,
+                           eflag_atom, vflag_atom, host_start,
+                           cpu_time, success, quat);
   }
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -152,7 +152,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
 void PairGayBerneGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with gayberne/gpu pair style");
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
@@ -169,7 +169,7 @@ void PairGayBerneGPU::init_style()
     shape2[i][0] = shape1[i][0]*shape1[i][0];
     shape2[i][1] = shape1[i][1]*shape1[i][1];
     shape2[i][2] = shape1[i][2]*shape1[i][2];
-    lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) * 
+    lshape[i] = (shape1[i][0]*shape1[i][1]+shape1[i][2]*shape1[i][2]) *
       sqrt(shape1[i][0]*shape1[i][1]);
   }
 
@@ -194,11 +194,11 @@ void PairGayBerneGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu, 
-			    shape2, well, cutsq, sigma, epsilon, lshape, form,
-			    lj1, lj2, lj3, lj4, offset, force->special_lj, 
-			    atom->nlocal, atom->nlocal+atom->nghost, 300, 
-			    maxspecial, cell_size, gpu_mode, screen);
+  int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu,
+                            shape2, well, cutsq, sigma, epsilon, lshape, form,
+                            lj1, lj2, lj3, lj4, offset, force->special_lj,
+                            atom->nlocal, atom->nlocal+atom->nghost, 300,
+                            maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {
@@ -221,7 +221,7 @@ double PairGayBerneGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-				  int *ilist, int *numneigh, int **firstneigh)
+                                  int *ilist, int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double evdwl,one_eng,rsq,r2inv,r6inv,forcelj,factor_lj;
@@ -273,68 +273,68 @@ void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
       if (rsq < cutsq[itype][jtype]) {
 
-	switch (form[itype][jtype]) {
-	case SPHERE_SPHERE:
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	  forcelj *= -r2inv;
-	  if (eflag) one_eng = 
-	    r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  fforce[0] = r12[0]*forcelj;
-	  fforce[1] = r12[1]*forcelj;
-	  fforce[2] = r12[2]*forcelj;
-	  ttor[0] = ttor[1] = ttor[2] = 0.0;
-	  rtor[0] = rtor[1] = rtor[2] = 0.0;
-	  break;
+        switch (form[itype][jtype]) {
+        case SPHERE_SPHERE:
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          forcelj *= -r2inv;
+          if (eflag) one_eng =
+            r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+            offset[itype][jtype];
+          fforce[0] = r12[0]*forcelj;
+          fforce[1] = r12[1]*forcelj;
+          fforce[2] = r12[2]*forcelj;
+          ttor[0] = ttor[1] = ttor[2] = 0.0;
+          rtor[0] = rtor[1] = rtor[2] = 0.0;
+          break;
 
         case SPHERE_ELLIPSE:
-	  jquat = bonus[ellipsoid[j]].quat;
-	  MathExtra::quat_to_mat_trans(jquat,a2);
-	  MathExtra::diag_times3(well[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape2[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,g2);
-	  one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
-	  ttor[0] = ttor[1] = ttor[2] = 0.0;
-	  break;
+          jquat = bonus[ellipsoid[j]].quat;
+          MathExtra::quat_to_mat_trans(jquat,a2);
+          MathExtra::diag_times3(well[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,b2);
+          MathExtra::diag_times3(shape2[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,g2);
+          one_eng = gayberne_lj(j,i,a2,b2,g2,r12,rsq,fforce,rtor);
+          ttor[0] = ttor[1] = ttor[2] = 0.0;
+          break;
 
         case ELLIPSE_SPHERE:
-	  one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
-	  rtor[0] = rtor[1] = rtor[2] = 0.0;
-	  break;
+          one_eng = gayberne_lj(i,j,a1,b1,g1,r12,rsq,fforce,ttor);
+          rtor[0] = rtor[1] = rtor[2] = 0.0;
+          break;
 
-	default:
-	  jquat = bonus[ellipsoid[j]].quat;
-	  MathExtra::quat_to_mat_trans(jquat,a2);
-	  MathExtra::diag_times3(well[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,b2);
-	  MathExtra::diag_times3(shape2[jtype],a2,temp);
-	  MathExtra::transpose_times3(a2,temp,g2);
-	  one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
-				      fforce,ttor,rtor);
-	  break;
-	}
+        default:
+          jquat = bonus[ellipsoid[j]].quat;
+          MathExtra::quat_to_mat_trans(jquat,a2);
+          MathExtra::diag_times3(well[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,b2);
+          MathExtra::diag_times3(shape2[jtype],a2,temp);
+          MathExtra::transpose_times3(a2,temp,g2);
+          one_eng = gayberne_analytic(i,j,a1,a2,b1,b2,g1,g2,r12,rsq,
+                                      fforce,ttor,rtor);
+          break;
+        }
 
         fforce[0] *= factor_lj;
-	fforce[1] *= factor_lj;
-	fforce[2] *= factor_lj;
+        fforce[1] *= factor_lj;
+        fforce[2] *= factor_lj;
         ttor[0] *= factor_lj;
-	ttor[1] *= factor_lj;
-	ttor[2] *= factor_lj;
+        ttor[1] *= factor_lj;
+        ttor[2] *= factor_lj;
 
         f[i][0] += fforce[0];
-	f[i][1] += fforce[1];
-	f[i][2] += fforce[2];
+        f[i][1] += fforce[1];
+        f[i][2] += fforce[2];
         tor[i][0] += ttor[0];
-	tor[i][1] += ttor[1];
-	tor[i][2] += ttor[2];
+        tor[i][1] += ttor[1];
+        tor[i][2] += ttor[2];
 
         if (eflag) evdwl = factor_lj*one_eng;
 
-	if (evflag) ev_tally_xyz_full(i,evdwl,0.0,fforce[0],fforce[1],fforce[2],
-				      -r12[0],-r12[1],-r12[2]);
+        if (evflag) ev_tally_xyz_full(i,evdwl,0.0,fforce[0],fforce[1],fforce[2],
+                                      -r12[0],-r12[1],-r12[2]);
       }
     }
   }

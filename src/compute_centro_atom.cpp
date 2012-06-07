@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -38,7 +38,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute centro/atom command");
-  
+
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
   else nnn = atoi(arg[3]);
@@ -69,7 +69,7 @@ ComputeCentroAtom::~ComputeCentroAtom()
 
 void ComputeCentroAtom::init()
 {
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;
@@ -148,11 +148,11 @@ void ComputeCentroAtom::compute_peratom()
       // insure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
-	memory->destroy(distsq);
-	memory->destroy(nearest);
-	maxneigh = jnum;
-	memory->create(distsq,maxneigh,"centro/atom:distsq");
-	memory->create(nearest,maxneigh,"centro/atom:nearest");
+        memory->destroy(distsq);
+        memory->destroy(nearest);
+        maxneigh = jnum;
+        memory->create(distsq,maxneigh,"centro/atom:distsq");
+        memory->create(nearest,maxneigh,"centro/atom:nearest");
       }
 
       // loop over list of all neighbors within force cutoff
@@ -161,24 +161,24 @@ void ComputeCentroAtom::compute_peratom()
 
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq < cutsq) {
-	  distsq[n] = rsq;
-	  nearest[n++] = j;
-	}
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) {
+          distsq[n] = rsq;
+          nearest[n++] = j;
+        }
       }
 
       // if not nnn neighbors, centro = 0.0
 
       if (n < nnn) {
-	centro[i] = 0.0;
-	continue;
+        centro[i] = 0.0;
+        continue;
       }
 
       // store nnn nearest neighs in 1st nnn locations of distsq and nearest
@@ -190,14 +190,14 @@ void ComputeCentroAtom::compute_peratom()
 
       n = 0;
       for (j = 0; j < nnn; j++) {
-	jj = nearest[j];
-	for (k = j+1; k < nnn; k++) {
-	  kk = nearest[k];
-	  delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
-	  dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
-	  delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-	  pairs[n++] = delx*delx + dely*dely + delz*delz;
-	}
+        jj = nearest[j];
+        for (k = j+1; k < nnn; k++) {
+          kk = nearest[k];
+          delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
+          dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
+          delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
+          pairs[n++] = delx*delx + dely*dely + delz*delz;
+        }
       }
 
       // store nhalf smallest pair distances in 1st nhalf locations of pairs
@@ -235,29 +235,29 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
   for (;;) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
-	SWAP(arr[l],arr[ir])
+        SWAP(arr[l],arr[ir])
       }
       return;
     } else {
       mid=(l+ir) >> 1;
       SWAP(arr[mid],arr[l+1])
       if (arr[l] > arr[ir]) {
-	SWAP(arr[l],arr[ir])
+        SWAP(arr[l],arr[ir])
       }
       if (arr[l+1] > arr[ir]) {
-	SWAP(arr[l+1],arr[ir])
+        SWAP(arr[l+1],arr[ir])
       }
       if (arr[l] > arr[l+1]) {
-	SWAP(arr[l],arr[l+1])
+        SWAP(arr[l],arr[l+1])
       }
       i = l+1;
       j = ir;
       a = arr[l+1];
       for (;;) {
-	do i++; while (arr[i] < a);
-	do j--; while (arr[j] > a);
-	if (j < i) break;
-	SWAP(arr[i],arr[j])
+        do i++; while (arr[i] < a);
+        do j--; while (arr[j] > a);
+        if (j < i) break;
+        SWAP(arr[i],arr[j])
       }
       arr[l+1] = arr[j];
       arr[j] = a;
@@ -281,8 +281,8 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
   for (;;) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
-	SWAP(arr[l],arr[ir])
-	ISWAP(iarr[l],iarr[ir])
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
       }
       return;
     } else {
@@ -290,27 +290,27 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
       SWAP(arr[mid],arr[l+1])
       ISWAP(iarr[mid],iarr[l+1])
       if (arr[l] > arr[ir]) {
-	SWAP(arr[l],arr[ir])
-	ISWAP(iarr[l],iarr[ir])
+        SWAP(arr[l],arr[ir])
+        ISWAP(iarr[l],iarr[ir])
       }
       if (arr[l+1] > arr[ir]) {
-	SWAP(arr[l+1],arr[ir])
-	ISWAP(iarr[l+1],iarr[ir])
+        SWAP(arr[l+1],arr[ir])
+        ISWAP(iarr[l+1],iarr[ir])
       }
       if (arr[l] > arr[l+1]) {
-	SWAP(arr[l],arr[l+1])
-	ISWAP(iarr[l],iarr[l+1])
+        SWAP(arr[l],arr[l+1])
+        ISWAP(iarr[l],iarr[l+1])
       }
       i = l+1;
       j = ir;
       a = arr[l+1];
       ia = iarr[l+1];
       for (;;) {
-	do i++; while (arr[i] < a);
-	do j--; while (arr[j] > a);
-	if (j < i) break;
-	SWAP(arr[i],arr[j])
-	ISWAP(iarr[i],iarr[j])
+        do i++; while (arr[i] < a);
+        do j--; while (arr[j] > a);
+        if (j < i) break;
+        SWAP(arr[i],arr[j])
+        ISWAP(iarr[i],iarr[j])
       }
       arr[l+1] = arr[j];
       arr[j] = a;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -57,21 +57,21 @@ class ThrOMP {
     };
 
   enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
-	THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
-	THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8,THR_FIX=1<<9};
+        THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
+        THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8,THR_FIX=1<<9};
 
  protected:
   // extra ev_tally setup work for threaded styles
   void ev_setup_thr(int, int, int, double *, double **, ThrData *);
 
   // compute global per thread virial contribution from per-thread force
-  void virial_fdotr_compute_thr(double * const, const double * const * const, 
-				const double * const * const,
-				const int, const int, const int);
+  void virial_fdotr_compute_thr(double * const, const double * const * const,
+                                const double * const * const,
+                                const int, const int, const int);
 
   // reduce per thread data as needed
   void reduce_thr(void * const style, const int eflag, const int vflag,
-		  ThrData * const thr, const int nproxy=0);
+                  ThrData * const thr, const int nproxy=0);
 
   // thread safe variant error abort support.
   // signals an error condition in any thread by making
@@ -82,7 +82,7 @@ class ThrOMP {
   // use return value to jump/return to end of threaded region.
 
   bool check_error_thr(const bool cond, const int tid, const char *fname,
-		       const int line, const char *errmsg) {
+                       const int line, const char *errmsg) {
     if (cond) {
 #if defined(_OPENMP)
 #pragma omp atomic
@@ -92,8 +92,8 @@ class ThrOMP {
       else lmp->error->one(fname,line,errmsg);
     } else {
       if (thr_error > 0) {
-	if (tid == 0) lmp->error->one(fname,line,errmsg);
-	else return true;
+        if (tid == 0) lmp->error->one(fname,line,errmsg);
+        else return true;
       } else return false;
     }
     return false;
@@ -106,68 +106,68 @@ class ThrOMP {
 
   // Pair
   void e_tally_thr(Pair * const, const int, const int, const int,
-		   const int, const double, const double, ThrData * const);
+                   const int, const double, const double, ThrData * const);
   void v_tally_thr(Pair * const, const int, const int, const int,
-		   const int, const double * const, ThrData * const);
+                   const int, const double * const, ThrData * const);
 
   void ev_tally_thr(Pair * const, const int, const int, const int, const int,
-		    const double, const double, const double, const double,
-		    const double, const double, ThrData * const);
+                    const double, const double, const double, const double,
+                    const double, const double, ThrData * const);
   void ev_tally_xyz_thr(Pair * const, const int, const int, const int,
-			const int, const double, const double, const double,
-			const double, const double, const double,
-			const double, const double, ThrData * const);
+                        const int, const double, const double, const double,
+                        const double, const double, const double,
+                        const double, const double, ThrData * const);
   void ev_tally3_thr(Pair * const, const int, const int, const int, const double,
-		     const double, const double * const, const double * const,
-		     const double * const, const double * const, ThrData * const);
+                     const double, const double * const, const double * const,
+                     const double * const, const double * const, ThrData * const);
   void ev_tally4_thr(Pair * const, const int, const int, const int, const int,
-		     const double, const double * const, const double * const,
-		     const double * const, const double * const, const double * const,
-		     const double * const, ThrData * const);
+                     const double, const double * const, const double * const,
+                     const double * const, const double * const, const double * const,
+                     const double * const, ThrData * const);
 
   // Bond
   void ev_tally_thr(Bond * const, const int, const int, const int, const int,
-		    const double, const double, const double, const double,
-		    const double, ThrData * const);
+                    const double, const double, const double, const double,
+                    const double, ThrData * const);
 
   // Angle
   void ev_tally_thr(Angle * const, const int, const int, const int, const int, const int,
-		    const double, const double * const, const double * const,
-		    const double, const double, const double, const double, const double,
-		    const double, ThrData * const thr);
+                    const double, const double * const, const double * const,
+                    const double, const double, const double, const double, const double,
+                    const double, ThrData * const thr);
   void ev_tally13_thr(Angle * const, const int, const int, const int, const int,
-		      const double, const double, const double, const double,
-		      const double, ThrData * const thr);
+                      const double, const double, const double, const double,
+                      const double, ThrData * const thr);
 
   // Dihedral
   void ev_tally_thr(Dihedral * const, const int, const int, const int, const int, const int,
-		    const int, const double, const double * const, const double * const,
-		    const double * const, const double, const double, const double,
-		    const double, const double, const double, const double, const double,
-		    const double, ThrData * const);
+                    const int, const double, const double * const, const double * const,
+                    const double * const, const double, const double, const double,
+                    const double, const double, const double, const double, const double,
+                    const double, ThrData * const);
 
   // Improper
   void ev_tally_thr(Improper * const, const int, const int, const int, const int, const int,
-		    const int, const double, const double * const, const double * const,
-		    const double * const, const double, const double, const double,
-		    const double, const double, const double, const double, const double,
-		    const double, ThrData * const);
+                    const int, const double, const double * const, const double * const,
+                    const double * const, const double, const double, const double,
+                    const double, const double, const double, const double, const double,
+                    const double, ThrData * const);
 
   // style independent versions
   void v_tally2_thr(const int, const int, const double, const double * const, ThrData * const);
   void v_tally3_thr(const int, const int, const int, const double * const, const double * const,
-		    const double * const, const double * const, ThrData * const);
+                    const double * const, const double * const, ThrData * const);
   void v_tally4_thr(const int, const int, const int, const int, const double * const,
-		    const double * const, const double * const, const double * const,
-		    const double * const, const double * const, ThrData * const);
+                    const double * const, const double * const, const double * const,
+                    const double * const, const double * const, ThrData * const);
   void ev_tally_list_thr(Pair * const, const int, const int * const,
-			 const double , const double * const , ThrData * const);
+                         const double , const double * const , ThrData * const);
 
 };
 
 // set loop range thread id, and force array offset for threaded runs.
 static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
-				  int inum, int nthreads, int nproxy=0)
+                                  int inum, int nthreads, int nproxy=0)
 {
 #if defined(_OPENMP)
   tid = omp_get_thread_num();

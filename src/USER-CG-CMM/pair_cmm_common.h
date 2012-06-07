@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -67,7 +67,7 @@ namespace LAMMPS_NS {
 
     // coarse grain flags
     int **cg_type;
-    
+
     // lennard jones parameters
     double cut_lj_global, **cut, **cut_lj, **cut_ljsq;
     double **epsilon, **sigma;
@@ -83,7 +83,7 @@ namespace LAMMPS_NS {
     double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
     double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
     int ncoulshiftbits,ncoulmask;
-    
+
     // r-RESPA parameters
     double *cut_respa;
 
@@ -97,19 +97,19 @@ namespace LAMMPS_NS {
 
     protected:
     // general optimizeable real space loops
-    template < const int EVFLAG, const int EFLAG, 
-      const int NEWTON_PAIR, const int COUL_TYPE > 
+    template < const int EVFLAG, const int EFLAG,
+      const int NEWTON_PAIR, const int COUL_TYPE >
       void eval_verlet();
-    template < const int NEWTON_PAIR, const int COUL_TYPE > 
+    template < const int NEWTON_PAIR, const int COUL_TYPE >
       void eval_inner();
-    template < const int NEWTON_PAIR, const int COUL_TYPE > 
+    template < const int NEWTON_PAIR, const int COUL_TYPE >
       void eval_middle();
-    template < const int EVFLAG, const int EFLAG, const int VFLAG, 
-      const int NEWTON_PAIR, const int COUL_TYPE > 
+    template < const int EVFLAG, const int EFLAG, const int VFLAG,
+      const int NEWTON_PAIR, const int COUL_TYPE >
       void eval_outer();
 
     // this one is not performance critical... no template needed.
-    double eval_single(int, int, int, int, int, 
+    double eval_single(int, int, int, int, int,
                      double, double, double, double &);
   };
 
@@ -173,11 +173,11 @@ namespace LAMMPS_NS {
       ;                                                                 \
     }                                                                   \
   }                                                                     \
-  
 
-  
-  template < const int EVFLAG, const int EFLAG, 
-    const int NEWTON_PAIR, const int COUL_TYPE > 
+
+
+  template < const int EVFLAG, const int EFLAG,
+    const int NEWTON_PAIR, const int COUL_TYPE >
     void PairCMMCommon::eval_verlet()
   {
     double ** const x = atom->x;
@@ -194,7 +194,7 @@ namespace LAMMPS_NS {
     const int * const ilist = list->ilist;
     const int * const numneigh = list->numneigh;
     int * const * const firstneigh = list->firstneigh;
-  
+
     // loop over neighbors of my atoms
 
     int ii,jj;
@@ -211,9 +211,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-	factor_lj = special_lj[sbmask(j2)];
-	factor_coul = special_coul[sbmask(j2)];
-	const int j = j2 & NEIGHMASK;
+        factor_lj = special_lj[sbmask(j2)];
+        factor_coul = special_coul[sbmask(j2)];
+        const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -235,7 +235,7 @@ namespace LAMMPS_NS {
           } else {
             double forcelj  = 0.0;
             double forcecoul = 0.0;
-            
+
             if (rsq < cut_ljsq[itype][jtype]) {
               CG_LJ_INNER(EFLAG,forcelj);
             }
@@ -247,7 +247,7 @@ namespace LAMMPS_NS {
                 double qscreen=exp(-kappa*r);
                 forcecoul = factor_coul * qqrd2e
                   * qtmp * q[j] * qscreen * (kappa + 1.0/r);
-                if (EFLAG) ecoul=factor_coul*qqrd2e 
+                if (EFLAG) ecoul=factor_coul*qqrd2e
                   * qtmp*q[j] * qscreen / r;
               }
             }
@@ -256,7 +256,7 @@ namespace LAMMPS_NS {
               if (rsq < cut_coulsq_global) {
                 if (!ncoultablebits || rsq <= tabinnersq) {
                   const double r = sqrt(rsq);
-                  
+
                   const double grij = g_ewald * r;
                   const double expm2 = exp(-grij*grij);
                   const double t = 1.0 / (1.0 + EWALD_P*grij);
@@ -309,7 +309,7 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-  template < const int NEWTON_PAIR, const int COUL_TYPE > 
+  template < const int NEWTON_PAIR, const int COUL_TYPE >
     void PairCMMCommon::eval_inner()
   {
     double ** const x = atom->x;
@@ -326,14 +326,14 @@ namespace LAMMPS_NS {
     const int * const ilist = listinner->ilist;
     const int * const numneigh = listinner->numneigh;
     int * const * const firstneigh = listinner->firstneigh;
-  
+
     const double cut_out_on = cut_respa[0];
     const double cut_out_off = cut_respa[1];
-  
+
     const double cut_out_diff = cut_out_off - cut_out_on;
     const double cut_out_on_sq = cut_out_on*cut_out_on;
     const double cut_out_off_sq = cut_out_off*cut_out_off;
-  
+
     // loop over neighbors of my atoms
 
     int ii,jj;
@@ -349,9 +349,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-	factor_lj = special_lj[sbmask(j2)];
-	factor_coul = special_coul[sbmask(j2)];
-	const int j = j2 & NEIGHMASK;
+        factor_lj = special_lj[sbmask(j2)];
+        factor_coul = special_coul[sbmask(j2)];
+        const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -371,7 +371,7 @@ namespace LAMMPS_NS {
             CG_LJ_INNER(0,fpair);
             fpair *= r2inv;
             if (rsq > cut_out_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
               fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
             }
           } else {
@@ -387,7 +387,7 @@ namespace LAMMPS_NS {
 
             fpair = (forcecoul + forcelj) * r2inv;
             if (rsq > cut_out_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
               fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
             }
           }
@@ -407,7 +407,7 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-  template < const int NEWTON_PAIR, const int COUL_TYPE > 
+  template < const int NEWTON_PAIR, const int COUL_TYPE >
     void PairCMMCommon::eval_middle()
   {
     double ** const x = atom->x;
@@ -424,7 +424,7 @@ namespace LAMMPS_NS {
     const int * const ilist = listmiddle->ilist;
     const int * const numneigh = listmiddle->numneigh;
     int * const * const firstneigh = listmiddle->firstneigh;
-  
+
     const double cut_in_off = cut_respa[0];
     const double cut_in_on = cut_respa[1];
     const double cut_out_on = cut_respa[2];
@@ -436,7 +436,7 @@ namespace LAMMPS_NS {
     const double cut_in_on_sq = cut_in_on*cut_in_on;
     const double cut_out_on_sq = cut_out_on*cut_out_on;
     const double cut_out_off_sq = cut_out_off*cut_out_off;
-  
+
     // loop over neighbors of my atoms
 
     int ii,jj;
@@ -452,9 +452,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-	factor_lj = special_lj[sbmask(j2)];
-	factor_coul = special_coul[sbmask(j2)];
-	const int j = j2 & NEIGHMASK;
+        factor_lj = special_lj[sbmask(j2)];
+        factor_coul = special_coul[sbmask(j2)];
+        const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -474,11 +474,11 @@ namespace LAMMPS_NS {
             CG_LJ_INNER(0,fpair);
             fpair *= r2inv;
             if (rsq < cut_in_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
+              const double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
               fpair *= rsw*rsw*(3.0 - 2.0*rsw);
             }
             if (rsq > cut_out_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
               fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
             }
           } else {
@@ -494,11 +494,11 @@ namespace LAMMPS_NS {
 
             fpair = (forcecoul + forcelj) * r2inv;
             if (rsq < cut_in_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
+              const double rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
               fpair *= rsw*rsw*(3.0 - 2.0*rsw);
             }
             if (rsq > cut_out_on_sq) {
-              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
+              const double rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
               fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
             }
           }
@@ -519,7 +519,7 @@ namespace LAMMPS_NS {
 /* ---------------------------------------------------------------------- */
 
   template < const int EVFLAG, const int EFLAG, const int VFLAG,
-    const int NEWTON_PAIR, const int COUL_TYPE > 
+    const int NEWTON_PAIR, const int COUL_TYPE >
     void PairCMMCommon::eval_outer()
   {
     double ** const x = atom->x;
@@ -536,7 +536,7 @@ namespace LAMMPS_NS {
     const int * const ilist = listouter->ilist;
     const int * const numneigh = listouter->numneigh;
     int * const * const firstneigh = listouter->firstneigh;
-  
+
     const double cut_in_off = cut_respa[2];
     const double cut_in_on = cut_respa[3];
 
@@ -559,9 +559,9 @@ namespace LAMMPS_NS {
 
       for (jj = 0; jj < jnum; jj++) {
         int j2 = jlist[jj];
-	factor_lj = special_lj[sbmask(j2)];
-	factor_coul = special_coul[sbmask(j2)];
-	const int j = j2 & NEIGHMASK;
+        factor_lj = special_lj[sbmask(j2)];
+        factor_coul = special_coul[sbmask(j2)];
+        const int j = j2 & NEIGHMASK;
 
         const double delx = xtmp - x[j][0];
         const double dely = ytmp - x[j][1];
@@ -579,7 +579,7 @@ namespace LAMMPS_NS {
         if (rsq < cutsq[itype][jtype]) {
           if (COUL_TYPE == CG_COUL_NONE) {
             double forcelj=0.0;
-            
+
             if (rsq > cut_in_off_sq) {
               CG_LJ_INNER(0,forcelj);
               fpair = forcelj*r2inv;
@@ -599,7 +599,7 @@ namespace LAMMPS_NS {
             }
 
             CG_LJ_ENERGY(EFLAG);
-              
+
             if (VFLAG) {
               if (rsq <= cut_in_off_sq) {
                 CG_LJ_INNER(0,fpair);
@@ -608,13 +608,13 @@ namespace LAMMPS_NS {
                 fpair = forcelj*r2inv;
               }
             }
-            
+
             if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
                                  evdwl,ecoul,fpair,delx,dely,delz);
           } else {
             double forcelj  = 0.0;
             double forcecoul = 0.0;
-            
+
             if (rsq < cut_ljsq[itype][jtype]) {
               CG_LJ_INNER(EFLAG,forcelj);
             }
@@ -626,7 +626,7 @@ namespace LAMMPS_NS {
                 double qscreen=exp(-kappa*r);
                 forcecoul = factor_coul * qqrd2e
                   * qtmp * q[j] * qscreen * (kappa + 1.0/r);
-                if (EFLAG) ecoul=factor_coul*qqrd2e 
+                if (EFLAG) ecoul=factor_coul*qqrd2e
                   * qtmp*q[j] * qscreen / r;
               }
             }
@@ -635,7 +635,7 @@ namespace LAMMPS_NS {
               if (rsq < cut_coulsq_global) {
                 if (!ncoultablebits || rsq <= tabinnersq) {
                   const double r = sqrt(rsq);
-                  
+
                   const double grij = g_ewald * r;
                   const double expm2 = exp(-grij*grij);
                   const double t = 1.0 / (1.0 + EWALD_P*grij);

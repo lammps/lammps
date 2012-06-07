@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -78,13 +78,13 @@ void FixEnforce2DCuda::init()
 {
   if (domain->dimension == 3)
     error->all(FLERR,"Cannot use fix enforce2d/cuda with 3d simulation");
-  if (atom->omega_flag) 
+  if (atom->omega_flag)
     error->warning(FLERR,"Enforce2d/cuda does not support omega_flag on gpu yet. Will be handled on cpu.");
-  	
+
   if (atom->angmom_flag)
     error->warning(FLERR,"Enforce2d/cuda does not support angmom_flag (angular momentum) on gpu yet. Will be handled on cpu.");
 
-  if (atom->torque_flag) 
+  if (atom->torque_flag)
     error->warning(FLERR,"Enforce2d/cuda does not support torque_flag on gpu yet. Will be handled on cpu.");
 }
 
@@ -127,13 +127,13 @@ void FixEnforce2DCuda::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-  
+
   if (atom->omega_flag) {
     double **omega = atom->omega;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	omega[i][0] = 0.0;
-	omega[i][1] = 0.0;
+        omega[i][0] = 0.0;
+        omega[i][1] = 0.0;
       }
   }
 
@@ -141,8 +141,8 @@ void FixEnforce2DCuda::post_force(int vflag)
     double **angmom = atom->angmom;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	angmom[i][0] = 0.0;
-	angmom[i][1] = 0.0;
+        angmom[i][0] = 0.0;
+        angmom[i][1] = 0.0;
       }
   }
 
@@ -150,10 +150,10 @@ void FixEnforce2DCuda::post_force(int vflag)
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	torque[i][0] = 0.0;
-	torque[i][1] = 0.0;
+        torque[i][0] = 0.0;
+        torque[i][1] = 0.0;
       }
-  }  
+  }
 }
 
 /* ---------------------------------------------------------------------- */

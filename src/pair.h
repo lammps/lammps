@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -63,7 +63,7 @@ class Pair : protected Pointers {
 
   int single_extra;              // number of extra single values calculated
   double *svector;               // vector of extra single quantities
-  
+
   class NeighList *list;         // standard neighbor list used by most pairs
   class NeighList *listhalf;     // half list used by some pairs
   class NeighList *listfull;     // full list used by some pairs
@@ -92,14 +92,14 @@ class Pair : protected Pointers {
 
   void v_tally(int, double *, double *);
   void ev_tally(int, int, int, int, double, double, double,
-		double, double, double);
+                double, double, double);
   void ev_tally3(int, int, int, double, double,
-		 double *, double *, double *, double *);
+                 double *, double *, double *, double *);
   void v_tally3(int, int, int, double *, double *, double *, double *);
   void v_tally4(int, int, int, int, double *, double *, double *,
-		double *, double *, double *);
+                double *, double *, double *);
   void ev_tally_xyz(int, int, int, int, double, double,
-		    double, double, double, double, double, double);
+                    double, double, double, double, double, double);
 
   // general child-class methods
 
@@ -109,7 +109,7 @@ class Pair : protected Pointers {
   virtual void compute_outer(int, int) {}
 
   virtual double single(int, int, int, int,
-			double, double, double, double &) {return 0.0;}
+                        double, double, double, double &) {return 0.0;}
 
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
@@ -130,7 +130,7 @@ class Pair : protected Pointers {
   virtual double memory_usage();
 
   // specific child-class methods for certain Pair styles
-  
+
   virtual void *extract(const char *, int &) {return NULL;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
@@ -162,13 +162,13 @@ class Pair : protected Pointers {
   void ev_unset();
   void ev_tally_full(int, double, double, double, double, double, double);
   void ev_tally_xyz_full(int, double, double,
-			 double, double, double, double, double, double);
+                         double, double, double, double, double, double);
   void ev_tally4(int, int, int, int, double,
-		 double *, double *, double *, double *, double *, double *);
+                 double *, double *, double *, double *, double *, double *);
   void ev_tally_list(int, int *, double, double *);
   void v_tally2(int, int, double, double *);
   void v_tally_tensor(int, int, int, int,
-		      double, double, double, double, double, double);
+                      double, double, double, double, double, double);
   void virial_fdotr_compute();
 
   inline int sbmask(int j) {

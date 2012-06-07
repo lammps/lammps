@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -47,28 +47,28 @@
 // External functions from cuda library for atom decomposition
 
 int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
-		  double **host_lj1, double **host_lj2, double **host_lj3,
-		  double **host_lj4, double **offset, double *special_lj,
-		  const int nlocal, const int nall, const int max_nbors,
-		  const int maxspecial, const double cell_size, int &gpu_mode,
-		  FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
-		  double *host_special_coul, const double qqrd2e,
-		  const double g_ewald);
+                  double **host_lj1, double **host_lj2, double **host_lj3,
+                  double **host_lj4, double **offset, double *special_lj,
+                  const int nlocal, const int nall, const int max_nbors,
+                  const int maxspecial, const double cell_size, int &gpu_mode,
+                  FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
+                  double *host_special_coul, const double qqrd2e,
+                  const double g_ewald);
 void cmml_gpu_clear();
 int ** cmml_gpu_compute_n(const int ago, const int inum, const int nall,
-			  double **host_x, int *host_type, double *sublo,
-			  double *subhi, int *tag, int **nspecial,
-			  int **special, const bool eflag, const bool vflag,
-			  const bool eatom, const bool vatom, int &host_start,
-			  int **ilist, int **jnum, const double cpu_time,
-			  bool &success, double *host_q, double *boxlo,
-			  double *prd);
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, int *tag, int **nspecial,
+                          int **special, const bool eflag, const bool vflag,
+                          const bool eatom, const bool vatom, int &host_start,
+                          int **ilist, int **jnum, const double cpu_time,
+                          bool &success, double *host_q, double *boxlo,
+                          double *prd);
 void cmml_gpu_compute(const int ago, const int inum, const int nall,
-		      double **host_x, int *host_type, int *ilist, int *numj,
-		      int **firstneigh, const bool eflag, const bool vflag,
-		      const bool eatom, const bool vatom, int &host_start,
-		      const double cpu_time, bool &success, double *host_q,
-		      const int nlocal, double *boxlo, double *prd);
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success, double *host_q,
+                      const int nlocal, double *boxlo, double *prd);
 double cmml_gpu_bytes();
 
 #include "lj_sdk_common.h"
@@ -83,7 +83,7 @@ PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -101,30 +101,30 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;    
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = cmml_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-				    atom->type, domain->sublo, domain->subhi,
-				    atom->tag, atom->nspecial, atom->special,
-				    eflag, vflag, eflag_atom, vflag_atom,
-				    host_start, &ilist, &numneigh, cpu_time,
-				    success, atom->q, domain->boxlo,
-				    domain->prd);
+                                    atom->type, domain->sublo, domain->subhi,
+                                    atom->tag, atom->nspecial, atom->special,
+                                    eflag, vflag, eflag_atom, vflag_atom,
+                                    host_start, &ilist, &numneigh, cpu_time,
+                                    success, atom->q, domain->boxlo,
+                                    domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     cmml_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		     vflag_atom, host_start, cpu_time, success, atom->q,
-		     atom->nlocal, domain->boxlo, domain->prd);
+                     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+                     vflag_atom, host_start, cpu_time, success, atom->q,
+                     atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -147,7 +147,7 @@ void PairLJSDKCoulLongGPU::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/sdk/coul/long/gpu requires atom attribute q");
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj/sdk/coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -183,11 +183,11 @@ void PairLJSDKCoulLongGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = cmml_gpu_init(atom->ntypes+1, cutsq, lj_type, lj1, lj2, lj3,
-			      lj4, offset, force->special_lj, atom->nlocal,
-			      atom->nlocal+atom->nghost, 300, maxspecial,
-			      cell_size, gpu_mode, screen, cut_ljsq,
-			      cut_coulsq, force->special_coul,
-			      force->qqrd2e, g_ewald);
+                              lj4, offset, force->special_lj, atom->nlocal,
+                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              cell_size, gpu_mode, screen, cut_ljsq,
+                              cut_coulsq, force->special_coul,
+                              force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {
@@ -208,7 +208,7 @@ double PairLJSDKCoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG>
 void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
-				       int *numneigh, int **firstneigh)
+                                       int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj;
   double qtmp,xtmp,ytmp,ztmp;
@@ -255,11 +255,11 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
       double fpair = 0.0;
 
       if (rsq < cutsq[itype][jtype]) {
-  	r2inv = 1.0/rsq;
-	const int ljt = lj_type[itype][jtype];
+          r2inv = 1.0/rsq;
+        const int ljt = lj_type[itype][jtype];
 
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
+        if (rsq < cut_coulsq) {
+          if (!ncoultablebits || rsq <= tabinnersq) {
             const double r = sqrt(rsq);
             const double grij = g_ewald * r;
             const double expm2 = exp(-grij*grij);
@@ -272,7 +272,7 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
               forcecoul -= (1.0-factor_coul)*prefactor;
               if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
             }
-	  } else {
+          } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
             int itable = rsq_lookup.i & ncoulmask;
@@ -291,56 +291,56 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
               forcecoul -= (1.0-factor_coul)*prefactor;
               if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
             }
-	  }
-	} else {
-	  forcecoul = 0.0;
-	  ecoul = 0.0;
-	}
+          }
+        } else {
+          forcecoul = 0.0;
+          ecoul = 0.0;
+        }
 
 
-	if (rsq < cut_ljsq[itype][jtype]) {
+        if (rsq < cut_ljsq[itype][jtype]) {
 
-	  if (ljt == LJ12_4) {
-	    const double r4inv=r2inv*r2inv;
-	    forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
-			     - lj2[itype][jtype]);
+          if (ljt == LJ12_4) {
+            const double r4inv=r2inv*r2inv;
+            forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                             - lj2[itype][jtype]);
 
-	    if (EFLAG)
-	      evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  
-	  } else if (ljt == LJ9_6) {
-	    const double r3inv = r2inv*sqrt(r2inv);
-	    const double r6inv = r3inv*r3inv;
-	    forcelj = r6inv*(lj1[itype][jtype]*r3inv
-			     - lj2[itype][jtype]);
-	    if (EFLAG)
-	      evdwl = r6inv*(lj3[itype][jtype]*r3inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
+            if (EFLAG)
+              evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
 
-	  } else if (ljt == LJ12_6) {
-	    const double r6inv = r2inv*r2inv*r2inv;
-	    forcelj = r6inv*(lj1[itype][jtype]*r6inv
-			     - lj2[itype][jtype]);
-	    if (EFLAG)
-	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  }
+          } else if (ljt == LJ9_6) {
+            const double r3inv = r2inv*sqrt(r2inv);
+            const double r6inv = r3inv*r3inv;
+            forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r6inv*(lj3[itype][jtype]*r3inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
 
-	  if (EFLAG) evdwl *= factor_lj;
+          } else if (ljt == LJ12_6) {
+            const double r6inv = r2inv*r2inv*r2inv;
+            forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r6inv*(lj3[itype][jtype]*r6inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
+          }
 
-	} else {
-	  forcelj=0.0;
-	  evdwl = 0.0;
-	}
+          if (EFLAG) evdwl *= factor_lj;
 
-	fpair = (forcecoul + factor_lj*forcelj) * r2inv;
+        } else {
+          forcelj=0.0;
+          evdwl = 0.0;
+        }
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
+        fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-	if (EVFLAG) ev_tally_full(i,evdwl,ecoul,fpair,delx,dely,delz);
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+
+        if (EVFLAG) ev_tally_full(i,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
     f[i][0] += fxtmp;

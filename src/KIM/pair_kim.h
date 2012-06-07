@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -78,7 +78,7 @@ class PairKIM : public Pair {
     bool halfNeighbors;
   };
   process_fij_4_pair_KIM process_dE;
-  
+
   bool support_atypes;
   bool support_Rij;
 
@@ -103,7 +103,7 @@ class PairKIM : public Pair {
 
   static int get_neigh(void **,int *, int *, int *, int *, int **, double **);
   static void process_dEdr(KIM_API_model **, double *, double *,
-			    double **, int *, int *, int *);
+                            double **, int *, int *, int *);
 };
 
 }

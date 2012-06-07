@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -116,7 +116,7 @@ int Region::match(double x, double y, double z)
      before: inverse transform x,y,z (unmove, then unrotate)
      after: forward transform contact point xs,yx,zs (rotate, then move),
             then reset contact delx,dely,delz based on new contact point
-	    no need to do this if no rotation since delxyz doesn't change
+            no need to do this if no rotation since delxyz doesn't change
 ------------------------------------------------------------------------- */
 
 int Region::surface(double x, double y, double z, double cutoff)
@@ -183,7 +183,7 @@ void Region::forward_transform(double &x, double &y, double &z)
       theta = input->variable->compute_equal(tvar);
     rotate(x,y,z,theta);
   }
-  
+
   if (moveflag) {
     if (update->ntimestep != laststep) {
       if (xstr) dx = input->variable->compute_equal(xvar);
@@ -221,7 +221,7 @@ void Region::inverse_transform(double &x, double &y, double &z)
       theta = input->variable->compute_equal(tvar);
     rotate(x,y,z,-theta);
   }
-  
+
   laststep = update->ntimestep;
 }
 
@@ -248,7 +248,7 @@ void Region::rotate(double &x, double &y, double &z, double angle)
 
   double sine = sin(angle);
   double cosine = cos(angle);
-  double x0dotr = x*runit[0] + y*runit[1] + z*runit[2]; 
+  double x0dotr = x*runit[0] + y*runit[1] + z*runit[2];
   c[0] = x0dotr * runit[0];
   c[1] = x0dotr * runit[1];
   c[2] = x0dotr * runit[2];
@@ -301,33 +301,33 @@ void Region::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"move") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal region command");
       if (strcmp(arg[iarg+1],"NULL") != 0) {
-	if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
-	  error->all(FLERR,"Illegal region command");
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	xstr = new char[n];
-	strcpy(xstr,&arg[iarg+1][2]);
+        if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
+          error->all(FLERR,"Illegal region command");
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        xstr = new char[n];
+        strcpy(xstr,&arg[iarg+1][2]);
       }
       if (strcmp(arg[iarg+2],"NULL") != 0) {
-	if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) 
-	  error->all(FLERR,"Illegal region command");
-	int n = strlen(&arg[iarg+2][2]) + 1;
-	ystr = new char[n];
-	strcpy(ystr,&arg[iarg+2][2]);
+        if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
+          error->all(FLERR,"Illegal region command");
+        int n = strlen(&arg[iarg+2][2]) + 1;
+        ystr = new char[n];
+        strcpy(ystr,&arg[iarg+2][2]);
       }
       if (strcmp(arg[iarg+3],"NULL") != 0) {
-	if (strstr(arg[iarg+3],"v_") != arg[iarg+3]) 
-	  error->all(FLERR,"Illegal region command");
-	int n = strlen(&arg[iarg+3][2]) + 1;
-	zstr = new char[n];
-	strcpy(zstr,&arg[iarg+3][2]);
+        if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
+          error->all(FLERR,"Illegal region command");
+        int n = strlen(&arg[iarg+3][2]) + 1;
+        zstr = new char[n];
+        strcpy(zstr,&arg[iarg+3][2]);
       }
       moveflag = 1;
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"rotate") == 0) {
       if (iarg+8 > narg) error->all(FLERR,"Illegal region command");
-      if (strstr(arg[iarg+1],"v_") != arg[iarg+1]) 
-	error->all(FLERR,"Illegal region command");
+      if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
+        error->all(FLERR,"Illegal region command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       tstr = new char[n];
       strcpy(tstr,&arg[iarg+1][2]);
@@ -343,8 +343,8 @@ void Region::options(int narg, char **arg)
   }
 
   // error check
-  
-  if ((moveflag || rotateflag) && 
+
+  if ((moveflag || rotateflag) &&
       (strcmp(style,"union") == 0 || strcmp(style,"intersect") == 0))
     error->all(FLERR,"Region union or intersect cannot be dynamic");
 
@@ -370,7 +370,7 @@ void Region::options(int narg, char **arg)
 
   if (rotateflag) {
     double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-    if (len == 0.0) 
+    if (len == 0.0)
       error->all(FLERR,"Region cannot have 0 length rotation vector");
     runit[0] = axis[0]/len;
     runit[1] = axis[1]/len;

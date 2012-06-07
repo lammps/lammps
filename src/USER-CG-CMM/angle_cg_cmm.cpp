@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ AngleCGCMM::~AngleCGCMM()
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCGCMM::ev_tally_lj13(int i, int j, int nlocal, int newton_bond, 
+void AngleCGCMM::ev_tally_lj13(int i, int j, int nlocal, int newton_bond,
                                double evdwl, double fpair,
                                double delx, double dely, double delz)
 {
@@ -76,7 +76,7 @@ void AngleCGCMM::ev_tally_lj13(int i, int j, int nlocal, int newton_bond,
       if (newton_bond || j < nlocal) eatom[i] += 0.5*evdwl;
     }
   }
-  
+
   if (vflag_either) {
     v[0] = delx*delx*fpair;
     v[1] = dely*dely*fpair;
@@ -185,15 +185,15 @@ void AngleCGCMM::compute(int eflag, int vflag)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
-        
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-        
+
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
     s = 1.0/s;
 
-    // 1-3 LJ interaction. 
+    // 1-3 LJ interaction.
     // we only want to use the repulsive part,
     // so this has to be done here and not in the
     // general non-bonded code.
@@ -206,20 +206,20 @@ void AngleCGCMM::compute(int eflag, int vflag)
 
     f13=0.0;
     e13=0.0;
-    
+
     if (r3 < rcut[type]) {
       const int cgt = cg_type[type];
       const double cgpow1 = cg_pow1[cgt];
       const double cgpow2 = cg_pow2[cgt];
       const double cgpref = cg_prefact[cgt];
-        
+
       const double ratio = sigma[type]/r3;
       const double eps = epsilon[type];
 
-      f13 = cgpref*eps / rsq3 * (cgpow1*pow(ratio,cgpow1) 
+      f13 = cgpref*eps / rsq3 * (cgpow1*pow(ratio,cgpow1)
                                   - cgpow2*pow(ratio,cgpow2));
 
-      if (eflag) e13 = eps + cgpref*eps * (pow(ratio,cgpow1) 
+      if (eflag) e13 = eps + cgpref*eps * (pow(ratio,cgpow1)
                                           - pow(ratio,cgpow2));
 
     }
@@ -264,7 +264,7 @@ void AngleCGCMM::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+                         delx1,dely1,delz1,delx2,dely2,delz2);
 
     if (evflag) ev_tally_lj13(i1,i3,nlocal,newton_bond,
                          e13,f13,delx3,dely3,delz3);
@@ -310,7 +310,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
 
   int cg_type_one=find_cg_type(arg[3]);
   if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
-  
+
   double epsilon_one = atof(arg[4]);
   double sigma_one = atof(arg[5]);
 
@@ -328,7 +328,7 @@ void AngleCGCMM::coeff(int narg, char **arg)
     theta0[i] = theta0_one/180.0 * MY_PI;
     epsilon[i] = epsilon_one;
     sigma[i] = sigma_one;
-    rcut[i] = rcut_one; 
+    rcut[i] = rcut_one;
     cg_type[i] = cg_type_one;
     setflag[i] = 1;
     count++;
@@ -359,7 +359,7 @@ void AngleCGCMM::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void AngleCGCMM::read_restart(FILE *fp)
@@ -395,7 +395,7 @@ double AngleCGCMM::single(int type, int i1, int i2, int i3)
   double delz1 = x[i1][2] - x[i2][2];
   domain->minimum_image(delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
-  
+
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
@@ -407,7 +407,7 @@ double AngleCGCMM::single(int type, int i1, int i2, int i3)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  // 1-3 LJ interaction. 
+  // 1-3 LJ interaction.
   double delx3 = x[i1][0] - x[i3][0];
   double dely3 = x[i1][1] - x[i3][1];
   double delz3 = x[i1][2] - x[i3][2];
@@ -416,17 +416,17 @@ double AngleCGCMM::single(int type, int i1, int i2, int i3)
   const double r3 = sqrt(delx3*delx3 + dely3*dely3 + delz3*delz3);
 
   double e13=0.0;
-    
+
   if (r3 < rcut[type]) {
     const int cgt = cg_type[type];
     const double cgpow1 = cg_pow1[cgt];
     const double cgpow2 = cg_pow2[cgt];
     const double cgpref = cg_prefact[cgt];
-        
+
     const double ratio = sigma[type]/r3;
     const double eps = epsilon[type];
 
-    e13 = eps + cgpref*eps * (pow(ratio,cgpow1) 
+    e13 = eps + cgpref*eps * (pow(ratio,cgpow1)
                               - pow(ratio,cgpow2));
   }
 

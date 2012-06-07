@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -35,7 +35,7 @@ void CreateBox::command(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal create_box command");
 
-  if (domain->box_exist) 
+  if (domain->box_exist)
     error->all(FLERR,"Cannot create_box after simulation box is defined");
   if (domain->dimension == 2 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -80,24 +80,24 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   if (which[m] == X) {
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,x[i][j],i);
+        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          combine(one,x[i][j],i);
     } else one = x[flag][j];
   } else if (which[m] == V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,v[i][j],i);
+        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          combine(one,v[i][j],i);
     } else one = v[flag][j];
   } else if (which[m] == F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,f[i][j],i);
+        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          combine(one,f[i][j],i);
     } else one = f[flag][j];
-    
+
   // invoke compute if not previously invoked
 
   } else if (which[m] == COMPUTE) {
@@ -105,50 +105,50 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
     if (flavor[m] == PERATOM) {
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-	compute->compute_peratom();
-	compute->invoked_flag |= INVOKED_PERATOM;
+        compute->compute_peratom();
+        compute->invoked_flag |= INVOKED_PERATOM;
       }
 
       if (j == 0) {
-	double *compute_vector = compute->vector_atom;
-	int n = nlocal;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	      combine(one,compute_vector[i],i);
-	} else one = compute_vector[flag];
+        double *compute_vector = compute->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+              combine(one,compute_vector[i],i);
+        } else one = compute_vector[flag];
       } else {
-	double **compute_array = compute->array_atom;
-	int n = nlocal;
-	int jm1 = j - 1;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	      combine(one,compute_array[i][jm1],i);
-	} else one = compute_array[flag][jm1];
+        double **compute_array = compute->array_atom;
+        int n = nlocal;
+        int jm1 = j - 1;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+              combine(one,compute_array[i][jm1],i);
+        } else one = compute_array[flag][jm1];
       }
 
     } else if (flavor[m] == LOCAL) {
       if (!(compute->invoked_flag & INVOKED_LOCAL)) {
-	compute->compute_local();
-	compute->invoked_flag |= INVOKED_LOCAL;
+        compute->compute_local();
+        compute->invoked_flag |= INVOKED_LOCAL;
       }
 
       if (j == 0) {
-	double *compute_vector = compute->vector_local;
-	int n = compute->size_local_rows;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,compute_vector[i],i);
-	else one = compute_vector[flag];
+        double *compute_vector = compute->vector_local;
+        int n = compute->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,compute_vector[i],i);
+        else one = compute_vector[flag];
       } else {
-	double **compute_array = compute->array_local;
-	int n = compute->size_local_rows;
-	int jm1 = j - 1;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,compute_array[i][jm1],i);
-	else one = compute_array[flag][jm1];
+        double **compute_array = compute->array_local;
+        int n = compute->size_local_rows;
+        int jm1 = j - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,compute_array[i][jm1],i);
+        else one = compute_array[flag][jm1];
       }
     }
 
@@ -161,42 +161,42 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
     if (flavor[m] == PERATOM) {
       if (j == 0) {
-	double *fix_vector = fix->vector_atom;
-	int n = nlocal;
-	if (flag < 0) {
-	  for (i = 0; i < n; i++)
-	    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	      combine(one,fix_vector[i],i);
-	} else one = fix_vector[flag];
+        double *fix_vector = fix->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+              combine(one,fix_vector[i],i);
+        } else one = fix_vector[flag];
       } else {
-	double **fix_array = fix->array_atom;
-	int jm1 = j - 1;
-	if (flag < 0) {
-	  for (i = 0; i < nlocal; i++)
-	    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	      combine(one,fix_array[i][jm1],i);
-	} else one = fix_array[flag][jm1];
+        double **fix_array = fix->array_atom;
+        int jm1 = j - 1;
+        if (flag < 0) {
+          for (i = 0; i < nlocal; i++)
+            if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+              combine(one,fix_array[i][jm1],i);
+        } else one = fix_array[flag][jm1];
       }
 
     } else if (flavor[m] == LOCAL) {
       if (j == 0) {
-	double *fix_vector = fix->vector_local;
-	int n = fix->size_local_rows;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix_vector[i],i);
-	else one = fix_vector[flag];
+        double *fix_vector = fix->vector_local;
+        int n = fix->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_vector[i],i);
+        else one = fix_vector[flag];
       } else {
-	double **fix_array = fix->array_local;
-	int n = fix->size_local_rows;
-	int jm1 = j - 1;
-	if (flag < 0)
-	  for (i = 0; i < n; i++)
-	    combine(one,fix_array[i][jm1],i);
-	else one = fix_array[flag][jm1];
+        double **fix_array = fix->array_local;
+        int n = fix->size_local_rows;
+        int jm1 = j - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_array[i][jm1],i);
+        else one = fix_array[flag][jm1];
       }
     }
-    
+
   // evaluate atom-style variable
 
   } else if (which[m] == VARIABLE) {
@@ -209,8 +209,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     input->variable->compute_atom(n,igroup,varatom,1,0);
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	  combine(one,varatom[i],i);
+        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          combine(one,varatom[i],i);
     } else one = varatom[flag];
   }
 

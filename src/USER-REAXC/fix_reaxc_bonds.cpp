@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
   global_freq = nfreq = atoi(arg[5]);
-  
+
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix reax/c/bonds command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
@@ -117,7 +117,7 @@ void FixReaxCBonds::init()
 {
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
-		  "pair_style reax/c");
+                  "pair_style reax/c");
 
   if (nvalid < update->ntimestep) {
     irepeat = 0;
@@ -157,7 +157,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
     for (i = 0; i < nmax; i++) {
       sbo[i] = nlp[i] = avq[i] = 0.0;
       for (j = 0; j < MAXBOND; j++) {
-	tmpid[i][j] = 0;
+        tmpid[i][j] = 0;
         tmpabo[i][j] = 0.0;
       }
     }
@@ -218,14 +218,14 @@ void FixReaxCBonds::GatherBond( reax_system *system, reax_list *lists)
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
-	here:;
-	if (jtag != tmpid[i][nj] && tmpid[i][nj] != 0) {
-	  nj ++;
-	  if (nj > MAXBOND) error->all(FLERR,"Increase MAXBOND value");
-	  goto here;
-	}
-	tmpid[i][nj] = jtag;
-	tmpabo[i][nj] += bo_tmp;
+        here:;
+        if (jtag != tmpid[i][nj] && tmpid[i][nj] != 0) {
+          nj ++;
+          if (nj > MAXBOND) error->all(FLERR,"Increase MAXBOND value");
+          goto here;
+        }
+        tmpid[i][nj] = jtag;
+        tmpabo[i][nj] += bo_tmp;
         nj ++;
       }
 
@@ -239,7 +239,7 @@ void FixReaxCBonds::GatherBond( reax_system *system, reax_list *lists)
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::FindBond( reax_system *system, reax_list *lists,
-		int &numbonds)
+                int &numbonds)
 {
   int *ilist, i, ii, inum;
   int j, pj, nj, jtag, jtype;
@@ -268,9 +268,9 @@ void FixReaxCBonds::FindBond( reax_system *system, reax_list *lists,
 
     for (j = 0; j < MAXBOND; j++){
       if (tmpabo[i][j] > bo_cut) {
-	neighid[i][nj] = tmpid[i][j];
-	abo[i][nj] = tmpabo[i][j];
-	nj ++;
+        neighid[i][nj] = tmpid[i][j];
+        abo[i][nj] = tmpabo[i][j];
+        nj ++;
       }
     }
     numneigh[i] = nj;
@@ -280,8 +280,8 @@ void FixReaxCBonds::FindBond( reax_system *system, reax_list *lists,
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::PassBuffer( reax_system *system, double *buf, 
-		int &nbuf_local)
+void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
+                int &nbuf_local)
 {
   int i, j, k, jtag, numbonds;
   int nlocal = atom->nlocal;
@@ -297,7 +297,7 @@ void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
     buf[j+4] = numneigh[i];
     numbonds = nint(buf[j+4]);
 
-    for (k = 5; k < 5+numbonds; k++) {  
+    for (k = 5; k < 5+numbonds; k++) {
       buf[j+k] = neighid[i][k-5];
     }
     j += (5+numbonds);
@@ -306,7 +306,7 @@ void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
     else buf[j] = atom->molecule[i];
     j ++;
 
-    for (k = 0; k < numbonds; k++) {	
+    for (k = 0; k < numbonds; k++) {
       buf[j+k] = abo[i][k];
     }
     j += (1+numbonds);
@@ -316,8 +316,8 @@ void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer( reax_system *system, double *buf, 
-		int nbuf, int nbuf_local, int natoms, int maxnum)
+void FixReaxCBonds::RecvBuffer( reax_system *system, double *buf,
+                int nbuf, int nbuf_local, int natoms, int maxnum)
 {
   int i, j, k, l, itype, jtype, itag, jtag;
   int inode, nlocal_tmp, numbonds, molid;
@@ -329,13 +329,13 @@ void FixReaxCBonds::RecvBuffer( reax_system *system, double *buf,
   MPI_Request irequest, irequest2;
   MPI_Status istatus;
 
-  if (me == 0 ){ 
+  if (me == 0 ){
     fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",natoms);
     fprintf(fp,"# \n");
     fprintf(fp,"# Max number of bonds per atom %d with "
-	    "coarse bond order cutoff %5.3f \n",maxnum,cutof3);
+            "coarse bond order cutoff %5.3f \n",maxnum,cutof3);
     fprintf(fp,"# Particle connection table and bond orders \n");
     fprintf(fp,"# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q \n");
   }
@@ -344,38 +344,38 @@ void FixReaxCBonds::RecvBuffer( reax_system *system, double *buf,
   if (me == 0) {
     for (inode = 0; inode < nprocs; inode ++) {
       if (inode == 0) {
-	nlocal_tmp = nlocal;
+        nlocal_tmp = nlocal;
       } else {
-	MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
+        MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
         MPI_Wait(&irequest,&istatus);
-	nlocal_tmp = nint(buf[0]);
+        nlocal_tmp = nint(buf[0]);
       }
       j = 2;
       for (i = 0; i < nlocal_tmp; i ++) {
-	itag = nint(buf[j-1]);
-	itype = nint(buf[j+0]);
-	sbotmp = buf[j+1];
-	nlptmp = buf[j+2];
-	avqtmp = buf[j+3];
-	numbonds = nint(buf[j+4]);
+        itag = nint(buf[j-1]);
+        itype = nint(buf[j+0]);
+        sbotmp = buf[j+1];
+        nlptmp = buf[j+2];
+        avqtmp = buf[j+3];
+        numbonds = nint(buf[j+4]);
 
-	fprintf(fp," %d %d %d",itag,itype,numbonds);
+        fprintf(fp," %d %d %d",itag,itype,numbonds);
 
-	for (k = 5; k < 5+numbonds; k++) {
+        for (k = 5; k < 5+numbonds; k++) {
           jtag = nint(buf[j+k]);
-	  fprintf(fp," %d",jtag);
-	}
-	j += (5+numbonds);
+          fprintf(fp," %d",jtag);
+        }
+        j += (5+numbonds);
 
-	fprintf(fp," %d",nint(buf[j]));
-	j ++;
+        fprintf(fp," %d",nint(buf[j]));
+        j ++;
 
-	for (k = 0; k < numbonds; k++) {
-	  abotmp = buf[j+k];
-	  fprintf(fp,"%14.3f",abotmp);
-	}
-	j += (1+numbonds);
-	fprintf(fp,"%14.3f%14.3f%14.3f\n",sbotmp,nlptmp,avqtmp);
+        for (k = 0; k < numbonds; k++) {
+          abotmp = buf[j+k];
+          fprintf(fp,"%14.3f",abotmp);
+        }
+        j += (1+numbonds);
+        fprintf(fp,"%14.3f%14.3f%14.3f\n",sbotmp,nlptmp,avqtmp);
       }
     }
   } else {
@@ -455,4 +455,3 @@ double FixReaxCBonds::memory_usage()
 
   return bytes;
 }
-

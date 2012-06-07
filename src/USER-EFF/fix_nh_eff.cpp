@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,12 +32,12 @@ enum{NOBIAS,BIAS};
 
 FixNHEff::FixNHEff(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
-  if (!atom->electron_flag) 
+  if (!atom->electron_flag)
     error->all(FLERR,"Fix nvt/nph/npt/eff requires atom style electron");
 }
 
 /* ----------------------------------------------------------------------
-   perform half-step update of electron radial velocities 
+   perform half-step update of electron radial velocities
 -----------------------------------------------------------------------*/
 
 void FixNHEff::nve_v()
@@ -59,11 +59,11 @@ void FixNHEff::nve_v()
   int itype;
   double dtfm;
 
-  for (int i = 0; i < nlocal; i++) {    
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (fabs(spin[i])==1) {
-	dtfm = dtf / mass[type[i]];
-	ervel[i] = dtfm * erforce[i] / mefactor;
+        dtfm = dtf / mass[type[i]];
+        ervel[i] = dtfm * erforce[i] / mefactor;
       }
     }
   }

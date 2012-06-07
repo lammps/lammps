@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ class PairCDEAMOMP : public PairCDEAM, public ThrOMP {
     /// Constructor.
     PairCDEAM_OneSiteOMP(class LAMMPS* lmp) : PairEAM(lmp), PairCDEAMOMP(lmp, 1) {}
   };
-  
+
   /// The two-site concentration formulation of CD-EAM.
   class PairCDEAM_TwoSiteOMP : public PairCDEAMOMP
   {

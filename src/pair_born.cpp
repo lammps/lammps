@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -82,7 +82,7 @@ void PairBorn::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -106,31 +106,31 @@ void PairBorn::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r = sqrt(rsq);
-	rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-	forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
-	  + born3[itype][jtype]*r2inv*r6inv;
-	fpair = factor_lj*forceborn*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r = sqrt(rsq);
+        rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+        forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+          + born3[itype][jtype]*r2inv*r6inv;
+        fpair = factor_lj*forceborn*r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
-	    + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv
+            + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -183,7 +183,7 @@ void PairBorn::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -238,8 +238,8 @@ double PairBorn::init_one(int i, int j)
   rhoinv[i][j] = 1.0/rho[i][j];
   born1[i][j] = a[i][j]/rho[i][j];
   born2[i][j] = 6.0*c[i][j];
-  born3[i][j] = 8.0*d[i][j]; 
-     
+  born3[i][j] = 8.0*d[i][j];
+
   if (offset_flag) {
     double rexp = exp((sigma[i][j]-cut[i][j])*rhoinv[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut[i][j],6.0) +
@@ -256,19 +256,19 @@ double PairBorn::init_one(int i, int j)
   born3[j][i] = born3[i][j];
   offset[j][i] = offset[i][j];
 
-  // compute I,J contribution to long-range tail correction 
-  // count total # of atoms of type I and J via Allreduce 
+  // compute I,J contribution to long-range tail correction
+  // count total # of atoms of type I and J via Allreduce
 
-  if (tail_flag) { 
-     int *type = atom->type; 
-     int nlocal = atom->nlocal; 
+  if (tail_flag) {
+     int *type = atom->type;
+     int nlocal = atom->nlocal;
 
-     double count[2],all[2]; 
-     count[0] = count[1] = 0.0; 
-     for (int k = 0; k < nlocal; k++) { 
-       if (type[k] == i) count[0] += 1.0; 
-       if (type[k] == j) count[1] += 1.0; 
-     } 
+     double count[2],all[2];
+     count[0] = count[1] = 0.0;
+     for (int k = 0; k < nlocal; k++) {
+       if (type[k] == i) count[0] += 1.0;
+       if (type[k] == j) count[1] += 1.0;
+     }
      MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
 
      double rho1 = rho[i][j];
@@ -278,15 +278,15 @@ double PairBorn::init_one(int i, int j)
      double rc2 = rc*rc;
      double rc3 = rc2*rc;
      double rc5 = rc3*rc2;
-     etail_ij = 2.0*MY_PI*all[0]*all[1] * 
-       (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1* 
-	(rc2 + 2.0*rho1*rc + 2.0*rho2) - 
-	c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
-     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1] * 
-       (-a[i][j]*exp((sigma[i][j]-rc)/rho1) * 
-	(rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) + 
-	2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5)); 
-   } 
+     etail_ij = 2.0*MY_PI*all[0]*all[1] *
+       (a[i][j]*exp((sigma[i][j]-rc)/rho1)*rho1*
+        (rc2 + 2.0*rho1*rc + 2.0*rho2) -
+        c[i][j]/(3.0*rc3) + d[i][j]/(5.0*rc5));
+     ptail_ij = (-1/3.0)*2.0*MY_PI*all[0]*all[1] *
+       (-a[i][j]*exp((sigma[i][j]-rc)/rho1) *
+        (rc3 + 3.0*rho1*rc2 + 6.0*rho2*rc + 6.0*rho3) +
+        2.0*c[i][j]/rc3 - 8.0*d[i][j]/(5.0*rc5));
+   }
 
    return cut[i][j];
 }
@@ -304,12 +304,12 @@ void PairBorn::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a[i][j],sizeof(double),1,fp);
-	fwrite(&rho[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&c[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j],sizeof(double),1,fp);
+        fwrite(&rho[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&c[i][j],sizeof(double),1,fp);
         fwrite(&d[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -331,20 +331,20 @@ void PairBorn::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&a[i][j],sizeof(double),1,fp);
-	  fread(&rho[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&c[i][j],sizeof(double),1,fp);
+        if (me == 0) {
+          fread(&a[i][j],sizeof(double),1,fp);
+          fread(&rho[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&c[i][j],sizeof(double),1,fp);
           fread(&d[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&d[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -379,8 +379,8 @@ void PairBorn::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairBorn::single(int i, int j, int itype, int jtype,
-			double rsq, double factor_coul, double factor_lj,
-			double &fforce)
+                        double rsq, double factor_coul, double factor_lj,
+                        double &fforce)
 {
   double r2inv,r6inv,r,rexp,forceborn,phiborn;
 
@@ -391,7 +391,7 @@ double PairBorn::single(int i, int j, int itype, int jtype,
   forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv +
     born3[itype][jtype]*r2inv*r6inv;
   fforce = factor_lj*forceborn*r2inv;
-  
+
   phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
     d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
   return factor_lj*phiborn;

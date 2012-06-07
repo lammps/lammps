@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -267,8 +267,8 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
     de = ecurrent - eoriginal;
     if (de <= de_ideal) {
       if (nextra_global) {
-	int itmp = modify->min_reset_ref();
-	if (itmp) ecurrent = energy_force(1);
+        int itmp = modify->min_reset_ref();
+        if (itmp) ecurrent = energy_force(1);
       }
       return 0;
     }
@@ -289,16 +289,16 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
 
 /* ----------------------------------------------------------------------
     // linemin: quadratic line search (adapted from Dennis and Schnabel)
-    // The objective function is approximated by a quadratic 
-    // function in alpha, for sufficiently small alpha. 
+    // The objective function is approximated by a quadratic
+    // function in alpha, for sufficiently small alpha.
     // This idea is the same as that used in the well-known secant
-    // method. However, since the change in the objective function 
-    // (difference of two finite numbers) is not known as accurately 
-    // as the gradient (which is close to zero), all the expressions 
-    // are written in terms of gradients. In this way, we can converge 
-    // the LAMMPS forces much closer to zero. 
+    // method. However, since the change in the objective function
+    // (difference of two finite numbers) is not known as accurately
+    // as the gradient (which is close to zero), all the expressions
+    // are written in terms of gradients. In this way, we can converge
+    // the LAMMPS forces much closer to zero.
     //
-    // We know E,Eprev,fh,fhprev. The Taylor series about alpha_prev 
+    // We know E,Eprev,fh,fhprev. The Taylor series about alpha_prev
     // truncated at the quadratic term is:
     //
     //     E = Eprev - del_alpha*fhprev + (1/2)del_alpha^2*Hprev
@@ -317,7 +317,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
     //
     //      relerr = |(Esolve-E)/Eprev|
     //             = |1.0 - (0.5*del_alpha*(f+fprev)+E)/Eprev|
-    // 
+    //
     // If this is accurate to within a reasonable tolerance, then
     // we go ahead and use a secant step to fh = 0:
     //
@@ -331,7 +331,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   double fdothall,fdothme,hme,hmax,hmaxall;
   double de_ideal,de;
   double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
-  double dot[2],dotall[2]; 
+  double dot[2],dotall[2];
   double *xatom,*x0atom,*fatom,*hatom;
   double alphamax;
 
@@ -426,19 +426,19 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	fatom = fextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) {
-	  dot[0] += fatom[i]*fatom[i];
-	  dot[1] += fatom[i]*hatom[i];
-	}
+        fatom = fextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) {
+          dot[0] += fatom[i]*fatom[i];
+          dot[1] += fatom[i]*hatom[i];
+        }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global) {
       for (i = 0; i < nextra_global; i++) {
-	dotall[0] += fextra[i]*fextra[i];
-	dotall[1] += fextra[i]*hextra[i];
+        dotall[0] += fextra[i]*fextra[i];
+        dotall[1] += fextra[i]*hextra[i];
       }
     }
     ff = dotall[0];
@@ -466,11 +466,11 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
     if (relerr <= QUADRATIC_TOL && alpha0 > 0.0 && alpha0 < alphamax) {
       ecurrent = alpha_step(alpha0,1);
       if (ecurrent - eoriginal < EMACH) {
-	if (nextra_global) {
-	  int itmp = modify->min_reset_ref();
-	  if (itmp) ecurrent = energy_force(1);
-	}
-	return 0;
+        if (nextra_global) {
+          int itmp = modify->min_reset_ref();
+          if (itmp) ecurrent = energy_force(1);
+        }
+        return 0;
       }
     }
 
@@ -481,8 +481,8 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
 
     if (de <= de_ideal) {
       if (nextra_global) {
-	int itmp = modify->min_reset_ref();
-	if (itmp) ecurrent = energy_force(1);
+        int itmp = modify->min_reset_ref();
+        if (itmp) ecurrent = energy_force(1);
       }
       return 0;
     }
@@ -509,76 +509,76 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
 
 /* ----------------------------------------------------------------------
 
-forcezero linesearch method - seeks a zero of force in a robust manner. 
+forcezero linesearch method - seeks a zero of force in a robust manner.
     (motivated by a line minimization routine of f77 DYNAMO code)
 
-central idea: 
-  In each linesearch we attempt to converge to a zero of force 
+central idea:
+  In each linesearch we attempt to converge to a zero of force
   (usual case) or reduces forces (worst case).
-  Energy does not play any role in the search procedure, 
+  Energy does not play any role in the search procedure,
   except we ensure that it doesn't increase.
 
 pseudo code:
   i)  Fix an alpha max:
-        // also account for nextra atom & global 
-	alpha_max <= dmax/hmaxall 
+        // also account for nextra atom & global
+        alpha_max <= dmax/hmaxall
 
   ii) Initialize:
         fhCurr = current_force.dot.search_direction
         fhoriginal = fhCurr
         // try decreasing the energy to 1/10 of initial
-        alpha_init = 0.1*fabs(eoriginal)/fhCurr; 
+        alpha_init = 0.1*fabs(eoriginal)/fhCurr;
         // initial alpha is smaller than alpha_max
         alpha_del = MIN(alpha_init, 0.5*alpha_max);
         alpha = 0.0
   iii) Loop:
         backtrack = false
-	alpha += alpha_del
-	if (alpha > alpha_max):
-	   // we have done enough in the search space
-	   EXIT with success
+        alpha += alpha_del
+        if (alpha > alpha_max):
+           // we have done enough in the search space
+           EXIT with success
 
         Step with the new alpha
-	Compute:
-	   current energy and 'fhCurr'
-	   de = ecurrent - eprev
+        Compute:
+           current energy and 'fhCurr'
+           de = ecurrent - eprev
 
-	   // ZERO_ENERGY = 1e-12, is max allowed energy increase
-	   if (de > ZERO_ENERGY):
-	      bactrack = true
+           // ZERO_ENERGY = 1e-12, is max allowed energy increase
+           if (de > ZERO_ENERGY):
+              bactrack = true
 
-	   // GRAD_TOL = 0.1
-	   if ( (not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL) ): 
-	      // forces sufficiently reduced without energy increase
-	      EXIT with success
+           // GRAD_TOL = 0.1
+           if ( (not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL) ):
+              // forces sufficiently reduced without energy increase
+              EXIT with success
 
-	   // projected force changed sign but didn't become small enough
-	   if ( fhCurr < 0):
-	      backtrack = true
+           // projected force changed sign but didn't become small enough
+           if ( fhCurr < 0):
+              backtrack = true
 
-	   if (bactrack):
-	      // forces along search direction changed sign
-	      if (fhCurr < 0):
-	         Get alpha_del by solving for zero 
+           if (bactrack):
+              // forces along search direction changed sign
+              if (fhCurr < 0):
+                 Get alpha_del by solving for zero
                     of force (1D Newton's Method)
-	      else:
-	         // force didn't change sign but only energy increased,
-		 // we overshot a minimum which is very close to a 
+              else:
+                 // force didn't change sign but only energy increased,
+                 // we overshot a minimum which is very close to a
                  // maximum (or there is an inflection point)
 
-		 // New alpha_del should be much smaller
-		 // ALPHA_FACT = 0.1
-		 alpha_del *= ALPHA_FACT
+                 // New alpha_del should be much smaller
+                 // ALPHA_FACT = 0.1
+                 alpha_del *= ALPHA_FACT
 
-		 // Check to see if new 'alpha_del' isn't too small
-		 if (alpha_del < MIN_ALPHA):
-		    EXIT with failure("linesearch alpha is zero")
+                 // Check to see if new 'alpha_del' isn't too small
+                 if (alpha_del < MIN_ALPHA):
+                    EXIT with failure("linesearch alpha is zero")
 
-	       Undo the step of alpha.
+               Undo the step of alpha.
 
-	   // continue the loop with a new alpha_del
-	   else:   
-	      Get new alpha_del by linearizing force and solving for its zero
+           // continue the loop with a new alpha_del
+           else:
+              Get new alpha_del by linearizing force and solving for its zero
 
  ---------------------------------------------------------------------- */
 
@@ -589,8 +589,8 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
   double de_ideal,de;
   double *xatom,*x0atom,*fatom,*hatom;
 
-  double alpha_max, alpha_init, alpha_del; 
-  // projection of: force on itself, current force on search direction, 
+  double alpha_max, alpha_init, alpha_del;
+  // projection of: force on itself, current force on search direction,
   double ffCurr, fhCurr;
   // previous force on search direction, initial force on search direction
   double fhPrev, fhoriginal;
@@ -620,13 +620,13 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
       fatom = fextra_atom[m];
       hatom = hextra_atom[m];
       n = extra_nlen[m];
-      for (i = 0; i < n; i++) 
-	fdothme += fatom[i]*hatom[i];
+      for (i = 0; i < n; i++)
+        fdothme += fatom[i]*hatom[i];
     }
 
   MPI_Allreduce(&fdothme,&fdothall,1,MPI_DOUBLE,MPI_SUM,world);
   if (nextra_global)
-    for (i = 0; i < nextra_global; i++) 
+    for (i = 0; i < nextra_global; i++)
       fdothall += fextra[i]*hextra[i];
   if (output->thermo->normflag) fdothall /= atom->natoms;
   if (fdothall <= 0.0) return DOWNHILL;
@@ -636,13 +636,13 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
   // for extra per-atom dof, max amount = extra_max[]
   // for extra global dof, max amount is set by fix
 
-  // also insure alpha <= ALPHA_MAX else will have 
+  // also insure alpha <= ALPHA_MAX else will have
   // to backtrack from huge value when forces are tiny
 
   // if all search dir components are already 0.0, exit with error
 
   hme = 0.0;
-  for (i = 0; i < nvec; i++) 
+  for (i = 0; i < nvec; i++)
     hme = MAX(hme,fabs(h[i]));
 
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
@@ -682,12 +682,12 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
   if (nextra_global) modify->min_store();
 
-  // initialize important variables before main linesearch loop 
+  // initialize important variables before main linesearch loop
 
   ffCurr = 0.0;
   fhCurr = fdothall;
   fhoriginal = fhCurr;
-  engCurr = eoriginal; 
+  engCurr = eoriginal;
 
   // stores energy difference due to the current move
 
@@ -698,16 +698,16 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
   alpha_init = 0.1*fabs(eoriginal)/fdothall;
 
-  // initialize aplha to 0.0 
+  // initialize aplha to 0.0
 
   alpha = 0.0;
-  
-  // compute increment to alpha, ensure that we 
+
+  // compute increment to alpha, ensure that we
   // don't take the largest allowed alpha
   // first alpha that will actually apply
 
   alpha_del = MIN(alpha_init,0.5*alpha_max);
- 
+
   // main linesearch loop
 
   while (1) {
@@ -715,27 +715,27 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
     fhPrev = fhCurr;
     engPrev = engCurr;
 
-    // apply the increment to alpha, but first 
+    // apply the increment to alpha, but first
     // check whether we are still in allowed search space
 
     alpha += alpha_del;
     if (alpha > alpha_max) {
 
-      // undo the increment 
+      // undo the increment
 
-      alpha -= alpha_del; 
+      alpha -= alpha_del;
       if (nextra_global) {
-	int itmp = modify->min_reset_ref();
-	if (itmp) ecurrent = energy_force(1);
+        int itmp = modify->min_reset_ref();
+        if (itmp) ecurrent = energy_force(1);
       }
 
-      // exit linesearch with success: have done 
+      // exit linesearch with success: have done
       // enough in allowed search space
 
       return 0;
     }
 
-    // move the system 
+    // move the system
 
     // '1' updates coordinates of atoms which cross PBC
 
@@ -750,7 +750,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
     de = engCurr - engPrev;
 
-    // if the function value increases measurably, 
+    // if the function value increases measurably,
     // then we have to reduce alpha
 
     if (de >= ZERO_ENERGY)
@@ -761,8 +761,8 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
     if ((!backtrack) && (fabs(fhCurr/fhoriginal) <= GRAD_TOL)) {
       if (nextra_global) {
-	int itmp = modify->min_reset_ref();
-	if (itmp) ecurrent = energy_force(1);
+        int itmp = modify->min_reset_ref();
+        if (itmp) ecurrent = energy_force(1);
       }
 
       // we are done
@@ -770,7 +770,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
       return 0;
     }
 
-    // check if the directional derivative changed sign 
+    // check if the directional derivative changed sign
     // but it's not small: we overshot the minima -- BACKTRACK
 
     if (fhCurr < 0.0)
@@ -783,21 +783,21 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
       // move back
 
       alpha -= alpha_del;
-      
-      // choose new alpha 
-      // if the force changed sign, linearize force and 
+
+      // choose new alpha
+      // if the force changed sign, linearize force and
       // solve for new alpha_del
 
       if (fhCurr < 0.0)
-	alpha_del *= fhPrev/(fhPrev - fhCurr);
+        alpha_del *= fhPrev/(fhPrev - fhCurr);
       else
 
-    // force didn't change sign but only energy increased, 
-    // we overshot a minimum which is very close to a maxima 
+    // force didn't change sign but only energy increased,
+    // we overshot a minimum which is very close to a maxima
     // (or there is an inflection point)
     // new alpha_del should be much smaller
 
-	alpha_del *= ALPHA_FACT;
+        alpha_del *= ALPHA_FACT;
 
       // since we moved back ...
 
@@ -805,33 +805,33 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
       ecurrent = engCurr;
       fhCurr = fhPrev;
 
-      // if new move is too small then we have failed; 
+      // if new move is too small then we have failed;
       // exit with 'failed_linesearch'
 
       if (hmaxall*alpha_del <= MIN_ALPHA_FAC) {
 
-	// undo all line minization moves
+        // undo all line minization moves
 
-	engCurr = alpha_step(0.0,1); 
-	ecurrent= engCurr;
-	return ZEROALPHA;
+        engCurr = alpha_step(0.0,1);
+        ecurrent= engCurr;
+        return ZEROALPHA;
       }
 
-    } else { 
+    } else {
 
-      // get a new alpha by linearizing force and start over 
-       
+      // get a new alpha by linearizing force and start over
+
       double boostFactor = LIMIT_BOOST;
-      
-      // avoids problems near an energy inflection point 
-      
+
+      // avoids problems near an energy inflection point
+
       if (fhPrev > fhCurr)
-	boostFactor = fhCurr/(fhPrev - fhCurr);
+        boostFactor = fhCurr/(fhPrev - fhCurr);
 
-      // don't want to boost too much 
+      // don't want to boost too much
 
-      boostFactor = MIN(boostFactor, LIMIT_BOOST); 
-      alpha_del *= boostFactor; 
+      boostFactor = MIN(boostFactor, LIMIT_BOOST);
+      alpha_del *= boostFactor;
     }
   }
 }
@@ -855,7 +855,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
       for (i = 0; i < n; i++) xatom[i] = x0atom[i];
       requestor[m]->min_x_set(m);
     }
-  
+
   // step forward along h
 
   if (alpha > 0.0) {
@@ -863,11 +863,11 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
     for (i = 0; i < nvec; i++) xvec[i] += alpha*h[i];
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
-	xatom = xextra_atom[m];
-	hatom = hextra_atom[m];
-	n = extra_nlen[m];
-	for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
-	requestor[m]->min_x_set(m);
+        xatom = xextra_atom[m];
+        hatom = hextra_atom[m];
+        n = extra_nlen[m];
+        for (i = 0; i < n; i++) xatom[i] += alpha*hatom[i];
+        requestor[m]->min_x_set(m);
       }
   }
 
@@ -879,7 +879,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
 
 /* ---------------------------------------------------------------------- */
 
-// compute projection of force on: itself and the search direction 
+// compute projection of force on: itself and the search direction
 
 double MinLineSearch::compute_dir_deriv(double &ff)
 {

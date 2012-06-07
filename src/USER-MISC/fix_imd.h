@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,31 +13,31 @@
 
 /* ----------------------------------------------------------------------
    The FixIMD class contains code from VMD and NAMD which is copyrighted
-   by the Board of Trustees of the University of Illinois and is free to 
+   by the Board of Trustees of the University of Illinois and is free to
    use with LAMMPS according to point 2 of the UIUC license (10% clause):
 
-" Licensee may, at its own expense, create and freely distribute 
-complimentary works that interoperate with the Software, directing others to 
-the TCBG server to license and obtain the Software itself. Licensee may, at 
-its own expense, modify the Software to make derivative works.  Except as 
-explicitly provided below, this License shall apply to any derivative work 
-as it does to the original Software distributed by Illinois.  Any derivative 
-work should be clearly marked and renamed to notify users that it is a 
-modified version and not the original Software distributed by Illinois.  
-Licensee agrees to reproduce the copyright notice and other proprietary 
-markings on any derivative work and to include in the documentation of such 
+" Licensee may, at its own expense, create and freely distribute
+complimentary works that interoperate with the Software, directing others to
+the TCBG server to license and obtain the Software itself. Licensee may, at
+its own expense, modify the Software to make derivative works.  Except as
+explicitly provided below, this License shall apply to any derivative work
+as it does to the original Software distributed by Illinois.  Any derivative
+work should be clearly marked and renamed to notify users that it is a
+modified version and not the original Software distributed by Illinois.
+Licensee agrees to reproduce the copyright notice and other proprietary
+markings on any derivative work and to include in the documentation of such
 work the acknowledgement:
 
- "This software includes code developed by the Theoretical and Computational 
-  Biophysics Group in the Beckman Institute for Advanced Science and 
+ "This software includes code developed by the Theoretical and Computational
+  Biophysics Group in the Beckman Institute for Advanced Science and
   Technology at the University of Illinois at Urbana-Champaign."
 
-Licensee may redistribute without restriction works with up to 1/2 of their 
-non-comment source code derived from at most 1/10 of the non-comment source 
-code developed by Illinois and contained in the Software, provided that the 
-above directions for notice and acknowledgement are observed.  Any other 
-distribution of the Software or any derivative work requires a separate 
-license with Illinois.  Licensee may contact Illinois (vmd@ks.uiuc.edu) to 
+Licensee may redistribute without restriction works with up to 1/2 of their
+non-comment source code derived from at most 1/10 of the non-comment source
+code developed by Illinois and contained in the Software, provided that the
+above directions for notice and acknowledgement are observed.  Any other
+distribution of the Software or any derivative work requires a separate
+license with Illinois.  Licensee may contact Illinois (vmd@ks.uiuc.edu) to
 negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
@@ -68,7 +68,7 @@ class FixIMD : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void post_force(int); 
+  void post_force(int);
   void post_force_respa(int, int, int);
   double memory_usage();
 
@@ -76,8 +76,8 @@ class FixIMD : public Fix {
   int    imd_port;
   void  *localsock;
   void  *clientsock;
-  
-  int    num_coords;            // total number of atoms controlled by this fix 
+
+  int    num_coords;            // total number of atoms controlled by this fix
   int    size_one;              // bytes per atom in communication buffer.
   int    maxbuf;                // size of atom communication buffer.
   void  *comm_buf;              // communication buffer

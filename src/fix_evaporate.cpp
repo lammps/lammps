@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -143,17 +143,17 @@ void FixEvaporate::init()
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (molecule[i]) flag = 1;
+        if (molecule[i]) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
       error->warning(FLERR,
-		     "Fix evaporate may delete atom with non-zero molecule ID");
+                     "Fix evaporate may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
       error->all(FLERR,
-		 "Fix evaporate molecule requires atom attribute molecule");
+                 "Fix evaporate molecule requires atom attribute molecule");
 }
 
 /* ----------------------------------------------------------------------
@@ -193,7 +193,7 @@ void FixEvaporate::pre_exchange()
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	list[ncount++] = i;
+        list[ncount++] = i;
 
   int nall,nbefore;
   MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
@@ -217,10 +217,10 @@ void FixEvaporate::pre_exchange()
       iwhichglobal = static_cast<int> (nall*random->uniform());
       if (iwhichglobal < nbefore) nbefore--;
       else if (iwhichglobal < nbefore + ncount) {
-	iwhichlocal = iwhichglobal - nbefore;
-	mark[list[iwhichlocal]] = 1;
-	list[iwhichlocal] = list[ncount-1];
-	ncount--;
+        iwhichlocal = iwhichglobal - nbefore;
+        mark[list[iwhichlocal]] = 1;
+        list[iwhichlocal] = list[ncount-1];
+        ncount--;
       }
       ndel++;
       nall--;
@@ -245,10 +245,10 @@ void FixEvaporate::pre_exchange()
 
       iwhichglobal = static_cast<int> (nall*random->uniform());
       if (iwhichglobal >= nbefore && iwhichglobal < nbefore + ncount) {
-	iwhichlocal = iwhichglobal - nbefore;
-	iatom = list[iwhichlocal];
-	imolecule = molecule[iatom];
-	me = comm->me;
+        iwhichlocal = iwhichglobal - nbefore;
+        iatom = list[iwhichlocal];
+        imolecule = molecule[iatom];
+        me = comm->me;
       } else me = -1;
 
       // bcast mol ID to delete all atoms from
@@ -260,60 +260,60 @@ void FixEvaporate::pre_exchange()
       MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
       ndelone = 0;
       for (i = 0; i < nlocal; i++) {
-	if (imolecule && molecule[i] == imolecule) {
-	  mark[i] = 1;
-	  ndelone++;
+        if (imolecule && molecule[i] == imolecule) {
+          mark[i] = 1;
+          ndelone++;
 
-	  if (atom->avec->bonds_allow) {
-	    if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
-	    else {
-	      for (j = 0; j < atom->num_bond[i]; j++) {
-		if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
-	      }
-	    }
-	  }
-	  if (atom->avec->angles_allow) {
-	    if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
-	    else {
-	      for (j = 0; j < atom->num_angle[i]; j++) {
-		m = atom->map(atom->angle_atom2[i][j]);
-		if (m >= 0 && m < nlocal) ndeltopo[1]++;
-	      }
-	    }
-	  }
-	  if (atom->avec->dihedrals_allow) {
-	    if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
-	    else {
-	      for (j = 0; j < atom->num_dihedral[i]; j++) {
-		m = atom->map(atom->dihedral_atom2[i][j]);
-		if (m >= 0 && m < nlocal) ndeltopo[2]++;
-	      }
-	    }
-	  }
-	  if (atom->avec->impropers_allow) {
-	    if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
-	    else {
-	      for (j = 0; j < atom->num_improper[i]; j++) {
-		m = atom->map(atom->improper_atom2[i][j]);
-		if (m >= 0 && m < nlocal) ndeltopo[3]++;
-	      }
-	    }
-	  }
+          if (atom->avec->bonds_allow) {
+            if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
+            else {
+              for (j = 0; j < atom->num_bond[i]; j++) {
+                if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
+              }
+            }
+          }
+          if (atom->avec->angles_allow) {
+            if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
+            else {
+              for (j = 0; j < atom->num_angle[i]; j++) {
+                m = atom->map(atom->angle_atom2[i][j]);
+                if (m >= 0 && m < nlocal) ndeltopo[1]++;
+              }
+            }
+          }
+          if (atom->avec->dihedrals_allow) {
+            if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
+            else {
+              for (j = 0; j < atom->num_dihedral[i]; j++) {
+                m = atom->map(atom->dihedral_atom2[i][j]);
+                if (m >= 0 && m < nlocal) ndeltopo[2]++;
+              }
+            }
+          }
+          if (atom->avec->impropers_allow) {
+            if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
+            else {
+              for (j = 0; j < atom->num_improper[i]; j++) {
+                m = atom->map(atom->improper_atom2[i][j]);
+                if (m >= 0 && m < nlocal) ndeltopo[3]++;
+              }
+            }
+          }
 
-	} else if (me == proc && i == iatom) {
-	  mark[i] = 1;
-	  ndelone++;
-	}
+        } else if (me == proc && i == iatom) {
+          mark[i] = 1;
+          ndelone++;
+        }
       }
 
       // remove any atoms marked for deletion from my eligible list
 
       i = 0;
       while (i < ncount) {
-	if (mark[list[i]]) {
-	  list[i] = list[ncount-1];
-	  ncount--;
-	} else i++;
+        if (mark[list[i]]) {
+          list[i] = list[ncount-1];
+          ncount--;
+        } else i++;
       }
 
       // update ndel,ncount,nall,nbefore
@@ -330,9 +330,9 @@ void FixEvaporate::pre_exchange()
 
   // delete my marked atoms
   // loop in reverse order to avoid copying marked atoms
-  
+
   AtomVec *avec = atom->avec;
-  
+
   for (i = nlocal-1; i >= 0; i--) {
     if (mark[i]) {
       avec->copy(atom->nlocal-1,i,1);
@@ -361,7 +361,7 @@ void FixEvaporate::pre_exchange()
   }
 
   // statistics
-  
+
   ndeleted += ndel;
   next_reneighbor = update->ntimestep + nevery;
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -92,9 +92,9 @@ double PairCGCMMCoulCut::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- *
  * the real compute work is done in the PairCMMCommon::eval_XXX<>() templates
- * in the common PairCG class. Through using templates we can have one 
- * implementation for all CG varieties _and_ gain speed through having 
- * the compiler optimize away conditionals within the innerloops that 
+ * in the common PairCG class. Through using templates we can have one
+ * implementation for all CG varieties _and_ gain speed through having
+ * the compiler optimize away conditionals within the innerloops that
  * can be predetermined outside the loop through instantiation of the
  * different combination of template flags.
  * ---------------------------------------------------------------------- */
@@ -203,7 +203,7 @@ void PairCGCMMCoulCut::compute_outer(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairCGCMMCoulCut::write_restart(FILE *fp) 
+void PairCGCMMCoulCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
   PairCMMCommon::write_restart(fp);
@@ -223,19 +223,19 @@ void PairCGCMMCoulCut::read_restart(FILE *fp)
 double PairCGCMMCoulCut::memory_usage()
 {
   double bytes=PairCMMCommon::memory_usage();
-  
+
   int n = atom->ntypes;
 
   // cut_coul/cut_coulsq/cut_lj/cut_ljsq;
-  bytes += (n+1)*(n+1)*sizeof(double)*4; 
-  
+  bytes += (n+1)*(n+1)*sizeof(double)*4;
+
   return bytes;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairCGCMMCoulCut::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_lj, double &fforce)
+                       double factor_coul, double factor_lj, double &fforce)
 {
   return eval_single(CG_COUL_CUT,i,j,itype,jtype,rsq,factor_coul,factor_lj,fforce);
 }

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -24,33 +24,33 @@
 namespace GPU_EXTRA {
 
   inline void check_flag(int error_flag, LAMMPS_NS::Error *error,
-                         MPI_Comm &world) { 
+                         MPI_Comm &world) {
     int all_success;
     MPI_Allreduce(&error_flag, &all_success, 1, MPI_INT, MPI_MIN, world);
     if (all_success != 0) {
       if (all_success == -1)
-	error->all(FLERR,
-		   "The package gpu command is required for gpu styles"); 
+        error->all(FLERR,
+                   "The package gpu command is required for gpu styles");
       else if (all_success == -2)
-	error->all(FLERR,
-		   "Could not find/initialize a specified accelerator device");
+        error->all(FLERR,
+                   "Could not find/initialize a specified accelerator device");
       else if (all_success == -3)
-	error->all(FLERR,"Insufficient memory on accelerator");
+        error->all(FLERR,"Insufficient memory on accelerator");
       else if (all_success == -4)
-	error->all(FLERR,"GPU library not compiled for this accelerator");
+        error->all(FLERR,"GPU library not compiled for this accelerator");
       else if (all_success == -5)
-	error->all(FLERR,
-		   "Double precision is not supported on this accelerator");
+        error->all(FLERR,
+                   "Double precision is not supported on this accelerator");
       else if (all_success == -6)
-	error->all(FLERR,"Unable to initialize accelerator for use");
+        error->all(FLERR,"Unable to initialize accelerator for use");
       else if (all_success == -7)
-	error->all(FLERR,
+        error->all(FLERR,
                    "Accelerator sharing is not currently supported on system");
       else if (all_success == -8)
-	error->all(FLERR,
+        error->all(FLERR,
                    "GPU particle split must be set to 1 for this pair style.");
       else
-	error->all(FLERR,"Unknown error in GPU library");
+        error->all(FLERR,"Unknown error in GPU library");
     }
   };
 

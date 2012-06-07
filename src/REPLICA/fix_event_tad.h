@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -28,7 +28,7 @@ class FixEventTAD : public FixEvent {
  public:
   int event_number;      // event counter
   bigint event_timestep; // timestep of last event
-  double tlo;            // event time at low temperature 
+  double tlo;            // event time at low temperature
   double ebarrier;       // energy barrier for this event
 
   FixEventTAD(class LAMMPS *, int, char **);

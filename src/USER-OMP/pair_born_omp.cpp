@@ -56,11 +56,11 @@ void PairBornOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -117,31 +117,31 @@ void PairBornOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r = sqrt(rsq);
-	rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-	forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
-	  + born3[itype][jtype]*r2inv*r6inv;
-	fpair = factor_lj*forceborn*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r = sqrt(rsq);
+        rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+        forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+          + born3[itype][jtype]*r2inv*r6inv;
+        fpair = factor_lj*forceborn*r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG) {
-	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
-	    + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (EFLAG) {
+          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv
+            + d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,0.0,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

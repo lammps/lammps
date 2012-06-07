@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -63,9 +63,9 @@
    my subsection must not overlap with any other proc's subsection,
      i.e. the union of all proc's input (or output) subsections must
      exactly tile the global Nfast x Nmid x Nslow data set
-   when called from C, all subsection indices are 
+   when called from C, all subsection indices are
      C-style from 0 to N-1 where N = Nfast or Nmid or Nslow
-   when called from F77, all subsection indices are 
+   when called from F77, all subsection indices are
      F77-style from 1 to N where N = Nfast or Nmid or Nslow
    a proc can own 0 elements on input or output
      by specifying hi index < lo index
@@ -74,7 +74,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Perform 3d FFT 
+   Perform 3d FFT
 
    Arguments:
    in           starting address of input data on this proc
@@ -90,15 +90,15 @@ void fft_3d_cuda(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan
   plan->iterate++;
   timespec starttime,starttime2;
   timespec endtime,endtime2;
-	
+
   int i,total,length,offset,num;
   double norm;
   FFT_DATA *data,*copy;
-  // system specific constants 
+  // system specific constants
 
 
   // pre-remap to prepare for 1st FFTs if needed
-  // copy = loc for remap result 
+  // copy = loc for remap result
   int nprocs=plan->nprocs;
 if(nprocs>1)
 {
@@ -116,8 +116,8 @@ if(nprocs>1)
   cufftResult retvalc;
   if(plan->init)
   {
-	if(nprocs>1)
-	{
+        if(nprocs>1)
+        {
       if(sizeof(FFT_FLOAT)==sizeof(double))cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize/2,cudaMemcpyHostToDevice);
       if(sizeof(FFT_FLOAT)==sizeof(float)) cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize,cudaMemcpyHostToDevice);
       initfftdata((double*)plan->cudata2,(FFT_FLOAT*)plan->cudata,plan->nfast,plan->nmid,plan->nslow);
@@ -137,7 +137,7 @@ if(nprocs>1)
 #endif
 }
 /* ----------------------------------------------------------------------
-   Create plan for performing a 3d FFT 
+   Create plan for performing a 3d FFT
 
    Arguments:
    comm                 MPI communicator for the P procs which own the data
@@ -151,8 +151,8 @@ if(nprocs>1)
    scaled               0 = no scaling of result, 1 = scaling
    permute              permutation in storage order of indices on output
                           0 = no permutation
-			  1 = permute once = mid->fast, slow->mid, fast->slow
-			  2 = permute twice = slow->fast, fast->mid, mid->slow
+                          1 = permute once = mid->fast, slow->mid, fast->slow
+                          2 = permute twice = slow->fast, fast->mid, mid->slow
    nbuf                 returns size of internal storage buffers used by FFT
 ------------------------------------------------------------------------- */
 
@@ -175,9 +175,9 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   int np1,np2,ip1,ip2;
   int list[50];
 
-  // system specific variables 
+  // system specific variables
 
-  // query MPI info 
+  // query MPI info
 
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
@@ -185,7 +185,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
 #ifndef FFT_CUFFT
     error->all(FLERR,"ERROR: Trying to use cuda fft without FFT_CUFFT set. Recompile with make option 'cufft=1'.");
 #endif
-  // compute division of procs in 2 dimensions not on-processor 
+  // compute division of procs in 2 dimensions not on-processor
   bifactor_cuda(nprocs,&np1,&np2);
   ip1 = me % np1;
   ip2 = me/np1;
@@ -196,13 +196,13 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   int ip2out = ip2;
   int np1out = np1;
   int np2out = np2;
-  
+
   ip1 = 0;
   ip2 = 0;
   np1 = 1;
   np2 = 1;
 
-  // allocate memory for plan data struct 
+  // allocate memory for plan data struct
 
   plan = (struct fft_plan_3d *) malloc(sizeof(struct fft_plan_3d));
   if (plan == NULL) return NULL;
@@ -210,7 +210,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
 
   // remap from initial distribution to layout needed for 1st set of 1d FFTs
   // not needed if all procs own entire fast axis initially
-  // first indices = distribution after 1st set of FFTs 
+  // first indices = distribution after 1st set of FFTs
 
   if (in_ilo == 0 && in_ihi == nfast-1)
     flag = 0;
@@ -241,20 +241,20 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
     if(plan->init) members=1;
     plan->pre_plan =
       remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-			   first_ilo,first_ihi,first_jlo,first_jhi,
-			   first_klo,first_khi,
-			   members,0,0,2);
+                           first_ilo,first_ihi,first_jlo,first_jhi,
+                           first_klo,first_khi,
+                           members,0,0,2);
     if (plan->pre_plan == NULL) return NULL;
   }
 
-  // 1d FFTs along fast axis 
+  // 1d FFTs along fast axis
 
   plan->length1 = nfast;
   plan->total1 = nfast * nmid * nslow;
 
   // remap from 1st to 2nd FFT
   // choose which axis is split over np1 vs np2 to minimize communication
-  // second indices = distribution after 2nd set of FFTs 
+  // second indices = distribution after 2nd set of FFTs
 
   second_ilo = ip1*nfast/np1;
   second_ihi = (ip1+1)*nfast/np1 - 1;
@@ -264,14 +264,14 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   second_khi = (ip2+1)*nslow/np2 - 1;
   plan->mid1_plan =
       remap_3d_create_plan(comm,
-			   first_ilo,first_ihi,first_jlo,first_jhi,
-			   first_klo,first_khi,
-			   second_ilo,second_ihi,second_jlo,second_jhi,
-			   second_klo,second_khi,
-			   2,1,0,2);
+                           first_ilo,first_ihi,first_jlo,first_jhi,
+                           first_klo,first_khi,
+                           second_ilo,second_ihi,second_jlo,second_jhi,
+                           second_klo,second_khi,
+                           2,1,0,2);
   if (plan->mid1_plan == NULL) return NULL;
 
-  // 1d FFTs along mid axis 
+  // 1d FFTs along mid axis
 
   plan->length2 = nmid;
   plan->total2 = nfast * nmid * nslow;
@@ -279,7 +279,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   // remap from 2nd to 3rd FFT
   // if final distribution is permute=2 with all procs owning entire slow axis
   //   then this remapping goes directly to final distribution
-  //  third indices = distribution after 3rd set of FFTs 
+  //  third indices = distribution after 3rd set of FFTs
 
   flag=1;
 
@@ -301,23 +301,23 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
     third_klo = 0;
     third_khi = nslow - 1;
   }
-  
+
   plan->mid2_plan =
     remap_3d_create_plan(comm,
-			 second_jlo,second_jhi,second_klo,second_khi,
-			 second_ilo,second_ihi,
-			 third_jlo,third_jhi,third_klo,third_khi,
-			 third_ilo,third_ihi,
-			 2,1,0,2);
+                         second_jlo,second_jhi,second_klo,second_khi,
+                         second_ilo,second_ihi,
+                         third_jlo,third_jhi,third_klo,third_khi,
+                         third_ilo,third_ihi,
+                         2,1,0,2);
   if (plan->mid2_plan == NULL) return NULL;
 
-  // 1d FFTs along slow axis 
+  // 1d FFTs along slow axis
 
   plan->length3 = nslow;
   plan->total3 = nfast * nmid * nslow;
 
   // remap from 3rd FFT to final distribution
-  //  not needed if permute = 2 and third indices = out indices on all procs 
+  //  not needed if permute = 2 and third indices = out indices on all procs
 
   flag=1;
 
@@ -328,11 +328,11 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   else {
     plan->post_plan =
       remap_3d_create_plan(comm,
-			   third_klo,third_khi,third_ilo,third_ihi,
-			   third_jlo,third_jhi,
-			   out_klo,out_khi,out_ilo,out_ihi,
-			   out_jlo,out_jhi,
-			   2,(permute+1)%3,0,2);
+                           third_klo,third_khi,third_ilo,third_ihi,
+                           third_jlo,third_jhi,
+                           out_klo,out_khi,out_ilo,out_ihi,
+                           out_jlo,out_jhi,
+                           2,(permute+1)%3,0,2);
     if (plan->post_plan == NULL) return NULL;
   }
 
@@ -343,14 +343,14 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   // scratch_size = amount needed internally for remap scratch space
   // for each remap:
   //   out space used for result if big enough, else require copy buffer
-  //   accumulate largest required remap scratch space 
+  //   accumulate largest required remap scratch space
 
   out_size = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) * (out_khi-out_klo+1);
-  first_size = (first_ihi-first_ilo+1) * (first_jhi-first_jlo+1) * 
+  first_size = (first_ihi-first_ilo+1) * (first_jhi-first_jlo+1) *
     (first_khi-first_klo+1);
-  second_size = (second_ihi-second_ilo+1) * (second_jhi-second_jlo+1) * 
+  second_size = (second_ihi-second_ilo+1) * (second_jhi-second_jlo+1) *
     (second_khi-second_klo+1);
-  third_size = (third_ihi-third_ilo+1) * (third_jhi-third_jlo+1) * 
+  third_size = (third_ihi-third_ilo+1) * (third_jhi-third_jlo+1) *
     (third_khi-third_klo+1);
 
   plan->ihi_out=out_ihi;
@@ -410,15 +410,15 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
   }
   else plan->scratch = NULL;
 
-  // system specific pre-computation of 1d FFT coeffs 
-  // and scaling normalization 
+  // system specific pre-computation of 1d FFT coeffs
+  // and scaling normalization
 
   cufftResult retvalc;
   int nfft = (in_ihi-in_ilo+1) * (in_jhi-in_jlo+1) *
     (in_khi-in_klo+1);
   int nfft_brick = (out_ihi-out_ilo+1) * (out_jhi-out_jlo+1) *
     (out_khi-out_klo+1);
-    
+
   int nfft_both = MAX(nfft,nfft_brick);
   nfft_both=nfast*nmid*nslow;
 
@@ -458,7 +458,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
 }
 
 /* ----------------------------------------------------------------------
-   Destroy a 3d fft plan 
+   Destroy a 3d fft plan
 ------------------------------------------------------------------------- */
 
 void fft_3d_destroy_plan_cuda(struct fft_plan_3d *plan)
@@ -528,7 +528,7 @@ void factor_cuda(int n, int *num, int *list)
 }
 
 /* ----------------------------------------------------------------------
-   divide n into 2 factors of as equal size as possible 
+   divide n into 2 factors of as equal size as possible
 ------------------------------------------------------------------------- */
 
 void bifactor_cuda(int n, int *factor1, int *factor2)
@@ -564,7 +564,7 @@ void fft_1d_only_cuda(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *p
   int i,total,length,offset,num;
   double norm;
 
-  // system specific constants 
+  // system specific constants
 
 
 
@@ -602,7 +602,7 @@ void fft_1d_only_cuda(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *p
   }
   cudaMemcpy((void*) data, (void**) &(plan->cudata), plan->cudatasize,cudaMemcpyDeviceToHost);
 
-  // scaling if required 
+  // scaling if required
   // limit num to size of data
 
 #endif

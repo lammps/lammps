@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -89,9 +89,9 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
-  if (electronic_specific_heat <= 0.0) 
+  if (electronic_specific_heat <= 0.0)
     error->all(FLERR,"Fix ttm electronic_specific_heat must be > 0.0");
-  if (electronic_density <= 0.0) 
+  if (electronic_density <= 0.0)
     error->all(FLERR,"Fix ttm electronic_density must be > 0.0");
   if (electronic_thermal_conductivity < 0.0)
     error->all(FLERR,"Fix ttm electronic_thermal_conductivity must be >= 0.0");
@@ -123,14 +123,14 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm:sum_mass_vsq");
   memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm:sum_vsq_all");
   memory->create(sum_mass_vsq_all,nxnodes,nynodes,nznodes,
-		 "ttm:sum_mass_vsq_all");
+                 "ttm:sum_mass_vsq_all");
   memory->create(T_electron_old,nxnodes,nynodes,nznodes,"ttm:T_electron_old");
   memory->create(T_electron,nxnodes,nynodes,nznodes,"ttm:T_electron");
   memory->create(net_energy_transfer,nxnodes,nynodes,nznodes,
-		 "TTM:net_energy_transfer");
+                 "TTM:net_energy_transfer");
   memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
-		 "TTM:net_energy_transfer_all");
- 
+                 "TTM:net_energy_transfer_all");
+
   flangevin = NULL;
   grow_arrays(atom->nmax);
 
@@ -173,7 +173,7 @@ FixTTM::~FixTTM()
   memory->destroy(T_electron);
   memory->destroy(flangevin);
   memory->destroy(net_energy_transfer);
-  memory->destroy(net_energy_transfer_all); 
+  memory->destroy(net_energy_transfer_all);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,7 +202,7 @@ void FixTTM::init()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - gamma_p / force->ftm2v;
-    gfactor2[i] = 
+    gfactor2[i] =
       sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
   }
 
@@ -259,7 +259,7 @@ void FixTTM::post_force(int vflag)
       while (iynode < 0) iynode += nynodes;
       while (iznode < 0) iznode += nznodes;
 
-      if (T_electron[ixnode][iynode][iznode] < 0) 
+      if (T_electron[ixnode][iynode][iznode] < 0)
         error->all(FLERR,"Electronic temperature dropped below zero");
 
       double tsqrt = sqrt(T_electron[ixnode][iynode][iznode]);
@@ -318,7 +318,7 @@ void FixTTM::post_force_respa_setup(int vflag, int ilevel, int iloop)
 void FixTTM::reset_dt()
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    gfactor2[i] = 
+    gfactor2[i] =
       sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
 }
 
@@ -370,12 +370,12 @@ void FixTTM::end_of_step()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
- 
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer[ixnode][iynode][iznode] = 0;
-      
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
@@ -390,14 +390,14 @@ void FixTTM::end_of_step()
       while (ixnode < 0) ixnode += nxnodes;
       while (iynode < 0) iynode += nynodes;
       while (iznode < 0) iznode += nznodes;
-      net_energy_transfer[ixnode][iynode][iznode] += 
-	(flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + 
-	 flangevin[i][2]*v[i][2]);
+      net_energy_transfer[ixnode][iynode][iznode] +=
+        (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
+         flangevin[i][2]*v[i][2]);
     }
-  
+
   MPI_Allreduce(&net_energy_transfer[0][0][0],
-		&net_energy_transfer_all[0][0][0],
-		total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+                &net_energy_transfer_all[0][0][0],
+                total_nnodes,MPI_DOUBLE,MPI_SUM,world);
 
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
@@ -409,19 +409,19 @@ void FixTTM::end_of_step()
 
   int num_inner_timesteps = 1;
   double inner_dt = update->dt;
-  double stability_criterion = 1.0 - 
-    2.0*inner_dt/(electronic_specific_heat*electronic_density) * 
+  double stability_criterion = 1.0 -
+    2.0*inner_dt/(electronic_specific_heat*electronic_density) *
     (electronic_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
   if (stability_criterion < 0.0) {
-    inner_dt = 0.5*(electronic_specific_heat*electronic_density) / 
+    inner_dt = 0.5*(electronic_specific_heat*electronic_density) /
       (electronic_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
-    if (num_inner_timesteps > 1000000) 
+    if (num_inner_timesteps > 1000000)
       error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
   }
 
-  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps; 
+  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
        ith_inner_timestep++) {
 
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -429,7 +429,7 @@ void FixTTM::end_of_step()
         for (int iznode = 0; iznode < nznodes; iznode++)
           T_electron_old[ixnode][iynode][iznode] =
             T_electron[ixnode][iynode][iznode];
-    
+
     // compute new electron T profile
 
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -447,41 +447,41 @@ void FixTTM::end_of_step()
           if (left_xnode == -1) left_xnode = nxnodes - 1;
           if (left_ynode == -1) left_ynode = nynodes - 1;
           if (left_znode == -1) left_znode = nznodes - 1;
-          T_electron[ixnode][iynode][iznode] = 
-            T_electron_old[ixnode][iynode][iznode] + 
-            inner_dt/(electronic_specific_heat*electronic_density) * 
+          T_electron[ixnode][iynode][iznode] =
+            T_electron_old[ixnode][iynode][iznode] +
+            inner_dt/(electronic_specific_heat*electronic_density) *
             (electronic_thermal_conductivity *
-             ((T_electron_old[right_xnode][iynode][iznode] + 
-               T_electron_old[left_xnode][iynode][iznode] - 
+             ((T_electron_old[right_xnode][iynode][iznode] +
+               T_electron_old[left_xnode][iynode][iznode] -
                2*T_electron_old[ixnode][iynode][iznode])/dx/dx +
-              (T_electron_old[ixnode][right_ynode][iznode] + 
-               T_electron_old[ixnode][left_ynode][iznode] - 
+              (T_electron_old[ixnode][right_ynode][iznode] +
+               T_electron_old[ixnode][left_ynode][iznode] -
                2*T_electron_old[ixnode][iynode][iznode])/dy/dy +
-              (T_electron_old[ixnode][iynode][right_znode] + 
-               T_electron_old[ixnode][iynode][left_znode] - 
+              (T_electron_old[ixnode][iynode][right_znode] +
+               T_electron_old[ixnode][iynode][left_znode] -
                2*T_electron_old[ixnode][iynode][iznode])/dz/dz) -
-              (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);   
+              (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
         }
   }
 
   // output nodal temperatures for current timestep
 
-  if ((nfileevery) && !(update->ntimestep % nfileevery)) { 
+  if ((nfileevery) && !(update->ntimestep % nfileevery)) {
 
     // compute atomic Ta for each grid point
-  
+
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)
         for (int iznode = 0; iznode < nznodes; iznode++) {
           nsum[ixnode][iynode][iznode] = 0;
           nsum_all[ixnode][iynode][iznode] = 0;
-          sum_vsq[ixnode][iynode][iznode] = 0.0; 
+          sum_vsq[ixnode][iynode][iznode] = 0.0;
           sum_mass_vsq[ixnode][iynode][iznode] = 0.0;
           sum_vsq_all[ixnode][iynode][iznode] = 0.0;
           sum_mass_vsq_all[ixnode][iynode][iznode] = 0.0;
-        } 
+        }
 
-    double massone;  
+    double massone;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         if (rmass) massone = rmass[i];
@@ -503,14 +503,14 @@ void FixTTM::end_of_step()
         sum_vsq[ixnode][iynode][iznode] += vsq;
         sum_mass_vsq[ixnode][iynode][iznode] += massone*vsq;
       }
-  
+
     MPI_Allreduce(&nsum[0][0][0],&nsum_all[0][0][0],total_nnodes,
                   MPI_INT,MPI_SUM,world);
     MPI_Allreduce(&sum_vsq[0][0][0],&sum_vsq_all[0][0][0],total_nnodes,
                   MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
-  
+
     if (me == 0) {
       fprintf(fp,BIGINT_FORMAT,update->ntimestep);
 
@@ -524,7 +524,7 @@ void FixTTM::end_of_step()
                 (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
             fprintf(fp," %f",T_a);
           }
-            
+
       fprintf(fp,"\t");
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
         for (int iynode = 0; iynode < nynodes; iynode++)
@@ -549,10 +549,10 @@ double FixTTM::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTM::grow_arrays(int ngrow) 
+void FixTTM::grow_arrays(int ngrow)
 {
 
- memory->grow(flangevin,ngrow,3,"TTM:flangevin");  
+ memory->grow(flangevin,ngrow,3,"TTM:flangevin");
 
 }
 
@@ -574,11 +574,11 @@ double FixTTM::compute_vector(int n)
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++) {
-        e_energy += 
-	  T_electron[ixnode][iynode][iznode]*electronic_specific_heat* 
-	  electronic_density*del_vol;
-        transfer_energy += 
-	  net_energy_transfer_all[ixnode][iynode][iznode]*update->dt;
+        e_energy +=
+          T_electron[ixnode][iynode][iznode]*electronic_specific_heat*
+          electronic_density*del_vol;
+        transfer_energy +=
+          net_energy_transfer_all[ixnode][iynode][iznode]*update->dt;
   }
 
   if (n == 0) return e_energy;
@@ -587,7 +587,7 @@ double FixTTM::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixTTM::write_restart(FILE *fp)
@@ -597,12 +597,12 @@ void FixTTM::write_restart(FILE *fp)
 
   int n = 0;
   rlist[n++] = seed;
- 
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         rlist[n++] =  T_electron[ixnode][iynode][iznode];
-  
+
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
@@ -613,23 +613,23 @@ void FixTTM::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixTTM::restart(char *buf)
 {
   int n = 0;
   double *rlist = (double *) buf;
-  
+
   // the seed must be changed from the initial seed
 
   seed = static_cast<int> (0.5*rlist[n++]);
-  
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         T_electron[ixnode][iynode][iznode] = rlist[n++];
-  
+
   delete random;
   random = new RanMars(lmp,seed+comm->me);
 }

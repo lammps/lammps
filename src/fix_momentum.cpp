@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -56,8 +56,8 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix momentum command");
 
   if (linear)
-    if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 || 
-	zflag < 0 || zflag > 1) error->all(FLERR,"Illegal fix momentum command");
+    if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
+        zflag < 0 || zflag > 1) error->all(FLERR,"Illegal fix momentum command");
 
   // cannot have 0 atoms in group
 
@@ -91,16 +91,16 @@ void FixMomentum::end_of_step()
 
     // adjust velocities by vcm to zero linear momentum
     // only adjust a component if flag is set
-    
+
     double **v = atom->v;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    
+
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (xflag) v[i][0] -= vcm[0];
-	if (yflag) v[i][1] -= vcm[1];
-	if (zflag) v[i][2] -= vcm[2];
+        if (xflag) v[i][0] -= vcm[0];
+        if (yflag) v[i][1] -= vcm[1];
+        if (zflag) v[i][2] -= vcm[2];
       }
   }
 
@@ -110,7 +110,7 @@ void FixMomentum::end_of_step()
     group->angmom(igroup,xcm,angmom);
     group->inertia(igroup,xcm,inertia);
     group->omega(angmom,inertia,omega);
-    
+
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i
     // must use unwrapped coords to compute r_i correctly
@@ -129,15 +129,15 @@ void FixMomentum::end_of_step()
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	dx = (x[i][0] + xbox*xprd) - xcm[0];
-	dy = (x[i][1] + ybox*yprd) - xcm[1];
-	dz = (x[i][2] + zbox*zprd) - xcm[2];
-	v[i][0] -= omega[1]*dz - omega[2]*dy;
-	v[i][1] -= omega[2]*dx - omega[0]*dz;
-	v[i][2] -= omega[0]*dy - omega[1]*dx;
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        dx = (x[i][0] + xbox*xprd) - xcm[0];
+        dy = (x[i][1] + ybox*yprd) - xcm[1];
+        dz = (x[i][2] + zbox*zprd) - xcm[2];
+        v[i][0] -= omega[1]*dz - omega[2]*dy;
+        v[i][1] -= omega[2]*dx - omega[0]*dz;
+        v[i][2] -= omega[0]*dy - omega[1]*dx;
       }
   }
 }

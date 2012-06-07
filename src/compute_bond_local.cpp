@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -70,7 +70,7 @@ ComputeBondLocal::~ComputeBondLocal()
 
 void ComputeBondLocal::init()
 {
-  if (force->bond == NULL) 
+  if (force->bond == NULL)
     error->all(FLERR,"No bond style is defined for compute bond/local");
 
   // do initial memory allocation so that memory_usage() is correct
@@ -142,18 +142,18 @@ int ComputeBondLocal::compute_bonds(int flag)
       if (bond_type[atom1][i] == 0) continue;
 
       if (flag) {
-	delx = x[atom1][0] - x[atom2][0];
-	dely = x[atom1][1] - x[atom2][1];
-	delz = x[atom1][2] - x[atom2][2];
-	domain->minimum_image(delx,dely,delz);
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (dflag >= 0) dbuf[n] = sqrt(rsq);
-	if (eflag >= 0) {
-	  if (bond_type[atom1][i] > 0)
-	    ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
-	  else ebuf[n] = 0.0;
-	}
-	n += nvalues;
+        delx = x[atom1][0] - x[atom2][0];
+        dely = x[atom1][1] - x[atom2][1];
+        delz = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx,dely,delz);
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (dflag >= 0) dbuf[n] = sqrt(rsq);
+        if (eflag >= 0) {
+          if (bond_type[atom1][i] > 0)
+            ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
+          else ebuf[n] = 0.0;
+        }
+        n += nvalues;
       }
 
       m++;

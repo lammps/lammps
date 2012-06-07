@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,7 +86,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (!ndim) error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim == 2 && dim[0] == dim[1])
     error->all(FLERR,"Same dimension twice in fix ave/spatial");
-  if (ndim == 3 && (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2])) 
+  if (ndim == 3 && (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2]))
     error->all(FLERR,"Same dimension twice in fix ave/spatial");
 
   // parse values until one isn't recognized
@@ -127,9 +127,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = DENSITY_MASS;
       argindex[nvalues++] = 0;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 || 
-	       strncmp(arg[iarg],"f_",2) == 0 || 
-	       strncmp(arg[iarg],"v_",2) == 0) {
+    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
+               strncmp(arg[iarg],"f_",2) == 0 ||
+               strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
@@ -140,10 +140,10 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Illegal fix ave/spatial command");
-	argindex[nvalues] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Illegal fix ave/spatial command");
+        argindex[nvalues] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[nvalues] = 0;
 
       n = strlen(suffix) + 1;
@@ -187,8 +187,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) 
-	error->all(FLERR,"Region ID for fix ave/spatial does not exist");
+      if (iregion == -1)
+        error->all(FLERR,"Region ID for fix ave/spatial does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -197,12 +197,12 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       if (me == 0) {
-	fp = fopen(arg[iarg+1],"w");
-	if (fp == NULL) {
-	  char str[128];
-	  sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
-	  error->one(FLERR,str);
-	}
+        fp = fopen(arg[iarg+1],"w");
+        if (fp == NULL) {
+          char str[128];
+          sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
+          error->one(FLERR,str);
+        }
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
@@ -212,9 +212,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
       else error->all(FLERR,"Illegal fix ave/spatial command");
       if (ave == WINDOW) {
-	if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-	nwindow = atoi(arg[iarg+2]);
-	if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/spatial command");
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+        nwindow = atoi(arg[iarg+2]);
+        if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/spatial command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
@@ -249,52 +249,52 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all(FLERR,"Illegal fix ave/spatial command");
   if (delta[0] <= 0.0) error->all(FLERR,"Illegal fix ave/spatial command");
-  if (ndim >= 2 && delta[1] <= 0.0) 
+  if (ndim >= 2 && delta[1] <= 0.0)
     error->all(FLERR,"Illegal fix ave/spatial command");
-  if (ndim == 3 && delta[2] <= 0.0) 
+  if (ndim == 3 && delta[2] <= 0.0)
     error->all(FLERR,"Illegal fix ave/spatial command");
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
+        error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all(FLERR,"Fix ave/spatial compute does not "
-		   "calculate per-atom values");
-      if (argindex[i] == 0 && 
-	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all(FLERR,"Fix ave/spatial compute does not "
-		   "calculate a per-atom vector");
+        error->all(FLERR,"Fix ave/spatial compute does not "
+                   "calculate per-atom values");
+      if (argindex[i] == 0 &&
+          modify->compute[icompute]->size_peratom_cols != 0)
+        error->all(FLERR,"Fix ave/spatial compute does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all(FLERR,"Fix ave/spatial compute does not "
-		   "calculate a per-atom array");
-      if (argindex[i] && 
-	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,
-		   "Fix ave/spatial compute vector is accessed out-of-range");
+        error->all(FLERR,"Fix ave/spatial compute does not "
+                   "calculate a per-atom array");
+      if (argindex[i] &&
+          argindex[i] > modify->compute[icompute]->size_peratom_cols)
+        error->all(FLERR,
+                   "Fix ave/spatial compute vector is accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
+        error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
       if (modify->fix[ifix]->peratom_flag == 0)
-	error->all(FLERR,
-		   "Fix ave/spatial fix does not calculate per-atom values");
+        error->all(FLERR,
+                   "Fix ave/spatial fix does not calculate per-atom values");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,
-		   "Fix ave/spatial fix does not calculate a per-atom vector");
+        error->all(FLERR,
+                   "Fix ave/spatial fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,
-		   "Fix ave/spatial fix does not calculate a per-atom array");
+        error->all(FLERR,
+                   "Fix ave/spatial fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all(FLERR,"Fix ave/spatial fix vector is accessed out-of-range");
+        error->all(FLERR,"Fix ave/spatial fix vector is accessed out-of-range");
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for fix ave/spatial does not exist");
+        error->all(FLERR,"Variable name for fix ave/spatial does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Fix ave/spatial variable is not atom-style variable");
+        error->all(FLERR,"Fix ave/spatial variable is not atom-style variable");
     }
   }
 
@@ -303,7 +303,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (fp && me == 0) {
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Spatial-averaged data for fix %s and group %s\n",
-		 id,arg[1]);
+                 id,arg[1]);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-bins\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -332,7 +332,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   int triclinic = domain->triclinic;
   if (triclinic == 1 && scaleflag != REDUCED)
     error->all(FLERR,
-	       "Fix ave/spatial for triclinic boxes requires units reduced");
+               "Fix ave/spatial for triclinic boxes requires units reduced");
 
   if (scaleflag == LATTICE && domain->lattice == NULL)
     error->all(FLERR,"Use of fix ave/spatial with undefined lattice");
@@ -449,23 +449,23 @@ void FixAveSpatial::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
+        error->all(FLERR,"Compute ID for fix ave/spatial does not exist");
       value2index[m] = icompute;
-      
+
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0) 
-	error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
       value2index[m] = ifix;
 
       if (nevery % modify->fix[ifix]->peratom_freq)
-	error->all(FLERR,
-		   "Fix for fix ave/spatial not computed at compatible time");
+        error->all(FLERR,
+                   "Fix for fix ave/spatial not computed at compatible time");
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
-      if (ivariable < 0) 
-	error->all(FLERR,"Variable name for fix ave/spatial does not exist");
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for fix ave/spatial does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -553,15 +553,15 @@ void FixAveSpatial::end_of_step()
       double **attribute;
       if (which[m] == V) attribute = atom->v;
       else attribute = atom->f;
-      
+
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit)
-	    values_one[bin[i]][m] += attribute[i][j];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            values_one[bin[i]][m] += attribute[i][j];
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[bin[i]][m] += attribute[i][j];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            values_one[bin[i]][m] += attribute[i][j];
       }
 
     // DENSITY_NUMBER adds 1 to values
@@ -569,13 +569,13 @@ void FixAveSpatial::end_of_step()
     } else if (which[m] == DENSITY_NUMBER) {
 
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit)
-	    values_one[bin[i]][m] += 1.0;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            values_one[bin[i]][m] += 1.0;
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[bin[i]][m] += 1.0;
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            values_one[bin[i]][m] += 1.0;
       }
 
     // DENSITY_MASS adds mass to values
@@ -586,17 +586,17 @@ void FixAveSpatial::end_of_step()
       double *rmass = atom->rmass;
 
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (rmass) values_one[bin[i]][m] += rmass[i];
-	    else values_one[bin[i]][m] += mass[type[i]];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            if (rmass) values_one[bin[i]][m] += rmass[i];
+            else values_one[bin[i]][m] += mass[type[i]];
+          }
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (rmass) values_one[bin[i]][m] += rmass[i];
-	    else values_one[bin[i]][m] += mass[type[i]];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+            if (rmass) values_one[bin[i]][m] += rmass[i];
+            else values_one[bin[i]][m] += mass[type[i]];
+          }
       }
 
     // COMPUTE adds its scalar or vector component to values
@@ -605,25 +605,25 @@ void FixAveSpatial::end_of_step()
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
       if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-	compute->compute_peratom();
-	compute->invoked_flag |= INVOKED_PERATOM;
+        compute->compute_peratom();
+        compute->invoked_flag |= INVOKED_PERATOM;
       }
       double *vector = compute->vector_atom;
       double **array = compute->array_atom;
       int jm1 = j - 1;
 
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (j == 0) values_one[bin[i]][m] += vector[i];
-	    else values_one[bin[i]][m] += array[i][jm1];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            if (j == 0) values_one[bin[i]][m] += vector[i];
+            else values_one[bin[i]][m] += array[i][jm1];
+          }
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (j == 0) values_one[bin[i]][m] += vector[i];
-	    else values_one[bin[i]][m] += array[i][jm1];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+            if (j == 0) values_one[bin[i]][m] += vector[i];
+            else values_one[bin[i]][m] += array[i][jm1];
+          }
       }
 
     // FIX adds its scalar or vector component to values
@@ -635,17 +635,17 @@ void FixAveSpatial::end_of_step()
       int jm1 = j - 1;
 
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-	    if (j == 0) values_one[bin[i]][m] += vector[i];
-	    else values_one[bin[i]][m] += array[i][jm1];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            if (j == 0) values_one[bin[i]][m] += vector[i];
+            else values_one[bin[i]][m] += array[i][jm1];
+          }
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	    if (j == 0) values_one[bin[i]][m] += vector[i];
-	    else values_one[bin[i]][m] += array[i][jm1];
-	  }
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+            if (j == 0) values_one[bin[i]][m] += vector[i];
+            else values_one[bin[i]][m] += array[i][jm1];
+          }
       }
 
     // VARIABLE adds its per-atom quantities to values
@@ -653,21 +653,21 @@ void FixAveSpatial::end_of_step()
 
     } else if (which[m] == VARIABLE) {
       if (nlocal > maxvar) {
-	maxvar = atom->nmax;
-	memory->destroy(varatom);
-	memory->create(varatom,maxvar,"ave/spatial:varatom");
+        maxvar = atom->nmax;
+        memory->destroy(varatom);
+        memory->create(varatom,maxvar,"ave/spatial:varatom");
       }
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
 
       if (regionflag == 0) {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit)
-	    values_one[bin[i]][m] += varatom[i];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            values_one[bin[i]][m] += varatom[i];
       } else {
-	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
-	    values_one[bin[i]][m] += varatom[i];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+            values_one[bin[i]][m] += varatom[i];
       }
     }
   }
@@ -681,17 +681,17 @@ void FixAveSpatial::end_of_step()
     for (m = 0; m < nbins; m++) {
       count_many[m] += count_one[m];
       for (j = 0; j < nvalues; j++)
-	values_many[m][j] += values_one[m][j];
+        values_many[m][j] += values_one[m][j];
     }
   } else {
     MPI_Allreduce(count_one,count_many,nbins,MPI_DOUBLE,MPI_SUM,world);
     for (m = 0; m < nbins; m++) {
       if (count_many[m] > 0.0)
-	for (j = 0; j < nvalues; j++) {
-	  if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
-	    values_many[m][j] += values_one[m][j];
-	  else values_many[m][j] += values_one[m][j]/count_many[m];
-	}
+        for (j = 0; j < nvalues; j++) {
+          if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
+            values_many[m][j] += values_one[m][j];
+          else values_many[m][j] += values_one[m][j]/count_many[m];
+        }
       count_sum[m] += count_many[m];
     }
   }
@@ -721,21 +721,21 @@ void FixAveSpatial::end_of_step()
   if (normflag == ALL) {
     MPI_Allreduce(count_many,count_sum,nbins,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nbins*nvalues,
-		  MPI_DOUBLE,MPI_SUM,world);
+                  MPI_DOUBLE,MPI_SUM,world);
     for (m = 0; m < nbins; m++) {
       if (count_sum[m] > 0.0)
-	for (j = 0; j < nvalues; j++)
-	  if (which[j] == DENSITY_NUMBER) values_sum[m][j] /= repeat;
-	  else if (which[j] == DENSITY_MASS) values_sum[m][j] *= mv2d/repeat;
-	  else values_sum[m][j] /= count_sum[m];
+        for (j = 0; j < nvalues; j++)
+          if (which[j] == DENSITY_NUMBER) values_sum[m][j] /= repeat;
+          else if (which[j] == DENSITY_MASS) values_sum[m][j] *= mv2d/repeat;
+          else values_sum[m][j] /= count_sum[m];
       count_sum[m] /= repeat;
     }
   } else {
     MPI_Allreduce(&values_many[0][0],&values_sum[0][0],nbins*nvalues,
-		  MPI_DOUBLE,MPI_SUM,world);
+                  MPI_DOUBLE,MPI_SUM,world);
     for (m = 0; m < nbins; m++) {
       for (j = 0; j < nvalues; j++)
-	values_sum[m][j] /= repeat;
+        values_sum[m][j] /= repeat;
       count_sum[m] /= repeat;
     }
   }
@@ -745,7 +745,7 @@ void FixAveSpatial::end_of_step()
   for (j = 0; j < nvalues; j++)
     if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS)
       for (m = 0; m < nbins; m++)
-	values_sum[m][j] /= bin_volume;
+        values_sum[m][j] /= bin_volume;
 
   // if ave = ONE, only single Nfreq timestep value is needed
   // if ave = RUNNING, combine with all previous Nfreq timestep values
@@ -753,8 +753,8 @@ void FixAveSpatial::end_of_step()
 
   if (ave == ONE) {
     for (m = 0; m < nbins; m++) {
-      for (i = 0; i < nvalues; i++) 
-	values_total[m][i] = values_sum[m][i];
+      for (i = 0; i < nvalues; i++)
+        values_total[m][i] = values_sum[m][i];
       count_total[m] = count_sum[m];
     }
     norm = 1;
@@ -762,7 +762,7 @@ void FixAveSpatial::end_of_step()
   } else if (ave == RUNNING) {
     for (m = 0; m < nbins; m++) {
       for (i = 0; i < nvalues; i++)
-	values_total[m][i] += values_sum[m][i];
+        values_total[m][i] += values_sum[m][i];
       count_total[m] += count_sum[m];
     }
     norm++;
@@ -770,9 +770,9 @@ void FixAveSpatial::end_of_step()
   } else if (ave == WINDOW) {
     for (m = 0; m < nbins; m++) {
       for (i = 0; i < nvalues; i++) {
-	values_total[m][i] += values_sum[m][i];
-	if (window_limit) values_total[m][i] -= values_list[iwindow][m][i];
-	values_list[iwindow][m][i] = values_sum[m][i];
+        values_total[m][i] += values_sum[m][i];
+        if (window_limit) values_total[m][i] -= values_list[iwindow][m][i];
+        values_list[iwindow][m][i] = values_sum[m][i];
       }
       count_total[m] += count_sum[m];
       if (window_limit) count_total[m] -= count_list[iwindow][m];
@@ -789,32 +789,32 @@ void FixAveSpatial::end_of_step()
   }
 
   // output result to file
-  
+
   if (fp && me == 0) {
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nbins);
     if (ndim == 1)
       for (m = 0; m < nbins; m++) {
-	fprintf(fp,"  %d %g %g",m+1,coord[m][0],
-		count_total[m]/norm);
-	for (i = 0; i < nvalues; i++) 
-	  fprintf(fp," %g",values_total[m][i]/norm);
-	fprintf(fp,"\n");
+        fprintf(fp,"  %d %g %g",m+1,coord[m][0],
+                count_total[m]/norm);
+        for (i = 0; i < nvalues; i++)
+          fprintf(fp," %g",values_total[m][i]/norm);
+        fprintf(fp,"\n");
       }
     else if (ndim == 2)
       for (m = 0; m < nbins; m++) {
-	fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
-		count_total[m]/norm);
-	for (i = 0; i < nvalues; i++) 
-	  fprintf(fp," %g",values_total[m][i]/norm);
-	fprintf(fp,"\n");
+        fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
+                count_total[m]/norm);
+        for (i = 0; i < nvalues; i++)
+          fprintf(fp," %g",values_total[m][i]/norm);
+        fprintf(fp,"\n");
       }
     else
       for (m = 0; m < nbins; m++) {
-	fprintf(fp,"  %d %g %g %g %g",m+1,coord[m][0],coord[m][1],coord[m][2],
-		count_total[m]/norm);
-	for (i = 0; i < nvalues; i++) 
-	  fprintf(fp," %g",values_total[m][i]/norm);
-	fprintf(fp,"\n");
+        fprintf(fp,"  %d %g %g %g %g",m+1,coord[m][0],coord[m][1],coord[m][2],
+                count_total[m]/norm);
+        for (i = 0; i < nvalues; i++)
+          fprintf(fp," %g",values_total[m][i]/norm);
+        fprintf(fp,"\n");
       }
 
     fflush(fp);
@@ -854,9 +854,9 @@ void FixAveSpatial::setup_bins()
   for (m = 0; m < ndim; m++) {
     if (originflag[m] == LOWER) origin[m] = boxlo[dim[m]];
     else if (originflag[m] == UPPER) origin[m] = boxhi[dim[m]];
-    else if (originflag[m] == CENTER) 
+    else if (originflag[m] == CENTER)
       origin[m] = 0.5 * (boxlo[dim[m]] + boxhi[dim[m]]);
-    
+
     if (origin[m] < boxlo[dim[m]]) {
       n = static_cast<int> ((boxlo[dim[m]] - origin[m]) * invdelta[m]);
       lo = origin[m] + n*delta[m];
@@ -873,7 +873,7 @@ void FixAveSpatial::setup_bins()
       n = static_cast<int> ((origin[m] - boxhi[dim[m]]) * invdelta[m]);
       hi = origin[m] - n*delta[m];
     }
-    
+
     offset[m] = lo;
     nlayers[m] = static_cast<int> ((hi-lo) * invdelta[m] + 0.5);
     nbins *= nlayers[m];
@@ -888,19 +888,19 @@ void FixAveSpatial::setup_bins()
     memory->grow(count_many,nbins,"ave/spatial:count_many");
     memory->grow(count_sum,nbins,"ave/spatial:count_sum");
     memory->grow(count_total,nbins,"ave/spatial:count_total");
-    
+
     memory->grow(coord,nbins,ndim,"ave/spatial:coord");
     memory->grow(values_one,nbins,nvalues,"ave/spatial:values_one");
     memory->grow(values_many,nbins,nvalues,"ave/spatial:values_many");
     memory->grow(values_sum,nbins,nvalues,"ave/spatial:values_sum");
     memory->grow(values_total,nbins,nvalues,"ave/spatial:values_total");
-    
+
     // only allocate count and values list for ave = WINDOW
-    
+
     if (ave == WINDOW) {
       memory->create(count_list,nwindow,nbins,"ave/spatial:count_list");
       memory->create(values_list,nwindow,nbins,nvalues,
-		     "ave/spatial:values_list");
+                     "ave/spatial:values_list");
     }
 
     // reinitialize regrown count/values total since they accumulate
@@ -921,9 +921,9 @@ void FixAveSpatial::setup_bins()
     for (i = 0; i < nlayers[0]; i++) {
       coord1 = offset[0] + (i+0.5)*delta[0];
       for (j = 0; j < nlayers[1]; j++) {
-	coord[m][0] = coord1;
-	coord[m][1] = offset[1] + (j+0.5)*delta[1];
-	m++;
+        coord[m][0] = coord1;
+        coord[m][1] = offset[1] + (j+0.5)*delta[1];
+        m++;
       }
     }
   } else if (ndim == 3) {
@@ -931,13 +931,13 @@ void FixAveSpatial::setup_bins()
     for (i = 0; i < nlayers[0]; i++) {
       coord1 = offset[0] + (i+0.5)*delta[0];
       for (j = 0; j < nlayers[1]; j++) {
-	coord2 = offset[1] + (j+0.5)*delta[1];
-	for (k = 0; k < nlayers[2]; k++) {
-	  coord[m][0] = coord1;
-	  coord[m][1] = coord2;
-	  coord[m][2] = offset[2] + (k+0.5)*delta[2];
-	  m++;
-	}
+        coord2 = offset[1] + (j+0.5)*delta[1];
+        for (k = 0; k < nlayers[2]; k++) {
+          coord[m][0] = coord1;
+          coord[m][1] = coord2;
+          coord[m][2] = offset[2] + (k+0.5)*delta[2];
+          m++;
+        }
       }
     }
   }
@@ -981,35 +981,35 @@ void FixAveSpatial::atom2bin1d()
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xremap = x[i][idim];
-	if (periodicity) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	ibin = MAX(ibin,0);
-	ibin = MIN(ibin,nlayerm1);
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        xremap = x[i][idim];
+        if (periodicity) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        ibin = MAX(ibin,0);
+        ibin = MIN(ibin,nlayerm1);
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
     if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	if (scaleflag == REDUCED) {
-	  domain->x2lamda(x[i],lamda);
-	  xremap = lamda[idim];
-	} else xremap = x[i][idim];
-	if (periodicity) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	ibin = MAX(ibin,0);
-	ibin = MIN(ibin,nlayerm1);
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        if (scaleflag == REDUCED) {
+          domain->x2lamda(x[i],lamda);
+          xremap = lamda[idim];
+        } else xremap = x[i][idim];
+        if (periodicity) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        ibin = MAX(ibin,0);
+        ibin = MIN(ibin,nlayerm1);
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
   }
 }
@@ -1054,61 +1054,61 @@ void FixAveSpatial::atom2bin2d()
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xremap = x[i][idim];
-	if (periodicity[idim]) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	i1bin = MAX(i1bin,0);
-	i1bin = MIN(i1bin,nlayer1m1);
+        xremap = x[i][idim];
+        if (periodicity[idim]) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        i1bin = MAX(i1bin,0);
+        i1bin = MIN(i1bin,nlayer1m1);
 
-	yremap = x[i][jdim];
-	if (periodicity[jdim]) {
-	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
-	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
-	}
-	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-	i2bin = MAX(i2bin,0);
-	i2bin = MIN(i2bin,nlayer2m1);
+        yremap = x[i][jdim];
+        if (periodicity[jdim]) {
+          if (yremap < boxlo[jdim]) yremap += prd[jdim];
+          if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+        }
+        i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+        i2bin = MAX(i2bin,0);
+        i2bin = MIN(i2bin,nlayer2m1);
 
-	ibin = i1bin*nlayers[1] + i2bin;
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        ibin = i1bin*nlayers[1] + i2bin;
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
     if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	if (scaleflag == REDUCED) {
-	  domain->x2lamda(x[i],lamda);
-	  xremap = lamda[idim];
-	  yremap = lamda[jdim];
-	} else {
-	  xremap = x[i][idim];
-	  yremap = x[i][jdim];
-	}
+        if (scaleflag == REDUCED) {
+          domain->x2lamda(x[i],lamda);
+          xremap = lamda[idim];
+          yremap = lamda[jdim];
+        } else {
+          xremap = x[i][idim];
+          yremap = x[i][jdim];
+        }
 
-	if (periodicity[idim]) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	i1bin = MAX(i1bin,0);
-	i1bin = MIN(i1bin,nlayer1m1-1);
+        if (periodicity[idim]) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        i1bin = MAX(i1bin,0);
+        i1bin = MIN(i1bin,nlayer1m1-1);
 
-	if (periodicity[jdim]) {
-	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
-	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
-	}
-	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-	i2bin = MAX(i2bin,0);
-	i2bin = MIN(i2bin,nlayer2m1-1);
+        if (periodicity[jdim]) {
+          if (yremap < boxlo[jdim]) yremap += prd[jdim];
+          if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+        }
+        i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+        i2bin = MAX(i2bin,0);
+        i2bin = MIN(i2bin,nlayer2m1-1);
 
-	ibin = i1bin*nlayers[1] + i2bin;
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        ibin = i1bin*nlayers[1] + i2bin;
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
   }
 }
@@ -1155,80 +1155,80 @@ void FixAveSpatial::atom2bin3d()
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	xremap = x[i][idim];
-	if (periodicity[idim]) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	i1bin = MAX(i1bin,0);
-	i1bin = MIN(i1bin,nlayer1m1);
+        xremap = x[i][idim];
+        if (periodicity[idim]) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        i1bin = MAX(i1bin,0);
+        i1bin = MIN(i1bin,nlayer1m1);
 
-	yremap = x[i][jdim];
-	if (periodicity[jdim]) {
-	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
-	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
-	}
-	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-	i2bin = MAX(i2bin,0);
-	i2bin = MIN(i2bin,nlayer2m1);
+        yremap = x[i][jdim];
+        if (periodicity[jdim]) {
+          if (yremap < boxlo[jdim]) yremap += prd[jdim];
+          if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+        }
+        i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+        i2bin = MAX(i2bin,0);
+        i2bin = MIN(i2bin,nlayer2m1);
 
-	zremap = x[i][kdim];
-	if (periodicity[kdim]) {
-	  if (zremap < boxlo[kdim]) yremap += prd[kdim];
-	  if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
-	}
-	i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
-	i3bin = MAX(i3bin,0);
-	i3bin = MIN(i3bin,nlayer3m1);
+        zremap = x[i][kdim];
+        if (periodicity[kdim]) {
+          if (zremap < boxlo[kdim]) yremap += prd[kdim];
+          if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+        }
+        i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
+        i3bin = MAX(i3bin,0);
+        i3bin = MIN(i3bin,nlayer3m1);
 
-	ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
     if (scaleflag == REDUCED) domain->lamda2x(nlocal);
 
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	if (scaleflag == REDUCED) {
-	  domain->x2lamda(x[i],lamda);
-	  xremap = lamda[idim];
-	  yremap = lamda[jdim];
-	  zremap = lamda[kdim];
-	} else {
-	  xremap = x[i][idim];
-	  yremap = x[i][jdim];
-	  zremap = x[i][kdim];
-	}
+        if (scaleflag == REDUCED) {
+          domain->x2lamda(x[i],lamda);
+          xremap = lamda[idim];
+          yremap = lamda[jdim];
+          zremap = lamda[kdim];
+        } else {
+          xremap = x[i][idim];
+          yremap = x[i][jdim];
+          zremap = x[i][kdim];
+        }
 
-	if (periodicity[idim]) {
-	  if (xremap < boxlo[idim]) xremap += prd[idim];
-	  if (xremap >= boxhi[idim]) xremap -= prd[idim];
-	}
-	i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-	i1bin = MAX(i1bin,0);
-	i1bin = MIN(i1bin,nlayer1m1);
+        if (periodicity[idim]) {
+          if (xremap < boxlo[idim]) xremap += prd[idim];
+          if (xremap >= boxhi[idim]) xremap -= prd[idim];
+        }
+        i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
+        i1bin = MAX(i1bin,0);
+        i1bin = MIN(i1bin,nlayer1m1);
 
-	if (periodicity[jdim]) {
-	  if (yremap < boxlo[jdim]) yremap += prd[jdim];
-	  if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
-	}
-	i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-	i2bin = MAX(i2bin,0);
-	i2bin = MIN(i2bin,nlayer2m1);
+        if (periodicity[jdim]) {
+          if (yremap < boxlo[jdim]) yremap += prd[jdim];
+          if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
+        }
+        i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
+        i2bin = MAX(i2bin,0);
+        i2bin = MIN(i2bin,nlayer2m1);
 
-	if (periodicity[kdim]) {
-	  if (zremap < boxlo[kdim]) yremap += prd[kdim];
-	  if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
-	}
-	i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
-	i3bin = MAX(i3bin,0);
-	i3bin = MIN(i3bin,nlayer3m1);
+        if (periodicity[kdim]) {
+          if (zremap < boxlo[kdim]) yremap += prd[kdim];
+          if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+        }
+        i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
+        i3bin = MAX(i3bin,0);
+        i3bin = MIN(i3bin,nlayer3m1);
 
-	ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
-	bin[i] = ibin;
-	count_one[ibin] += 1.0;
+        ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
+        bin[i] = ibin;
+        count_one[ibin] += 1.0;
       }
   }
 }

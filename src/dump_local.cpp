@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,7 +32,7 @@ enum{INT,DOUBLE};
 
 /* ---------------------------------------------------------------------- */
 
-DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) : 
+DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg)
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");
@@ -209,8 +209,8 @@ int DumpLocal::count()
   if (ncompute) {
     for (i = 0; i < ncompute; i++) {
       if (!(compute[i]->invoked_flag & INVOKED_LOCAL)) {
-	compute[i]->compute_local();
-	compute[i]->invoked_flag |= INVOKED_LOCAL;
+        compute[i]->compute_local();
+        compute[i]->invoked_flag |= INVOKED_LOCAL;
       }
     }
   }
@@ -289,27 +289,27 @@ void DumpLocal::parse_fields(int narg, char **arg)
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Invalid attribute in dump local command");
-	argindex[i] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Invalid attribute in dump local command");
+        argindex[i] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_compute(suffix);
       if (n < 0) error->all(FLERR,"Could not find dump local compute ID");
       if (modify->compute[n]->local_flag == 0)
-	error->all(FLERR,"Dump local compute does not compute local info");
+        error->all(FLERR,"Dump local compute does not compute local info");
       if (argindex[i] == 0 && modify->compute[n]->size_local_cols > 0)
-	error->all(FLERR,"Dump local compute does not calculate local vector");
+        error->all(FLERR,"Dump local compute does not calculate local vector");
       if (argindex[i] > 0 && modify->compute[n]->size_local_cols == 0)
-	error->all(FLERR,"Dump local compute does not calculate local array");
-      if (argindex[i] > 0 && 
-	  argindex[i] > modify->compute[n]->size_local_cols)
-	error->all(FLERR,"Dump local compute vector is accessed out-of-range");
+        error->all(FLERR,"Dump local compute does not calculate local array");
+      if (argindex[i] > 0 &&
+          argindex[i] > modify->compute[n]->size_local_cols)
+        error->all(FLERR,"Dump local compute vector is accessed out-of-range");
 
       field2index[i] = add_compute(suffix);
       delete [] suffix;
-      
+
     // fix value = f_ID
     // if no trailing [], then arg is set to 0, else arg is between []
 
@@ -324,23 +324,23 @@ void DumpLocal::parse_fields(int narg, char **arg)
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Invalid attribute in dump local command");
-	argindex[i] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Invalid attribute in dump local command");
+        argindex[i] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[i] = 0;
 
       n = modify->find_fix(suffix);
       if (n < 0) error->all(FLERR,"Could not find dump local fix ID");
       if (modify->fix[n]->local_flag == 0)
-	error->all(FLERR,"Dump local fix does not compute local info");
+        error->all(FLERR,"Dump local fix does not compute local info");
       if (argindex[i] == 0 && modify->fix[n]->size_local_cols > 0)
-	error->all(FLERR,"Dump local fix does not compute local vector");
+        error->all(FLERR,"Dump local fix does not compute local vector");
       if (argindex[i] > 0 && modify->fix[n]->size_local_cols == 0)
-	error->all(FLERR,"Dump local fix does not compute local array");
-      if (argindex[i] > 0 && 
-	  argindex[i] > modify->fix[n]->size_local_cols)
-	error->all(FLERR,"Dump local fix vector is accessed out-of-range");
+        error->all(FLERR,"Dump local fix does not compute local array");
+      if (argindex[i] > 0 &&
+          argindex[i] > modify->fix[n]->size_local_cols)
+        error->all(FLERR,"Dump local fix vector is accessed out-of-range");
 
       field2index[i] = add_fix(suffix);
       delete [] suffix;
@@ -364,7 +364,7 @@ int DumpLocal::add_compute(char *id)
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(id,id_compute[icompute]) == 0) break;
   if (icompute < ncompute) return icompute;
-  
+
   id_compute = (char **)
     memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
   delete [] compute;
@@ -389,7 +389,7 @@ int DumpLocal::add_fix(char *id)
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(id,id_fix[ifix]) == 0) break;
   if (ifix < nfix) return ifix;
-  
+
   id_fix = (char **)
     memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
   delete [] fix;

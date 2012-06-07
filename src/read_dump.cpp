@@ -49,7 +49,7 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   dimension = domain->dimension;
   triclinic = domain->triclinic;
 
-  nfiles = 0;
+  nfile = 0;
   files = NULL;
 
   nfield = 0;
@@ -59,13 +59,14 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   uflag = ucflag = ucflag_all = NULL;
 
   reader = NULL;
+  fp = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ReadDump::~ReadDump()
 {
-  for (int i = 0; i < nfiles; i++) delete [] files[i];
+  for (int i = 0; i < nfile; i++) delete [] files[i];
   delete [] files;
   for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
   delete [] fieldlabel;
@@ -113,7 +114,6 @@ void ReadDump::command(int narg, char **arg)
   bigint natoms_prev = atom->natoms;
   atoms();
 
-  // NOTE: this logic is not yet right
   if (me == 0) close();
 
   // print out stats
@@ -158,10 +158,10 @@ void ReadDump::command(int narg, char **arg)
 
 void ReadDump::store_files(int nstr, char **str)
 {
-  nfiles = nstr;
-  files = new char*[nfiles];
+  nfile = nstr;
+  files = new char*[nfile];
 
-  for (int i = 0; i < nfiles; i++) {
+  for (int i = 0; i < nfile; i++) {
     int n = strlen(str[i]) + 1;
     files[i] = new char[n];
     strcpy(files[i],str[i]);
@@ -184,7 +184,6 @@ void ReadDump::setup_reader()
 
 /* ----------------------------------------------------------------------
    seek Nrequest timestep in one or more dump files
-   Nrequest can be a timestamp or -1 to match first step with exact = 0
    if exact = 1, must find exactly Nrequest
    if exact = 0, find first step >= Nrequest
    return matching ntimestep or -1 if did not find a match
@@ -196,7 +195,11 @@ bigint ReadDump::seek(bigint nrequest, int exact)
   bigint ntimestep;
 
   if (me == 0) {
-    for (ifile = 0; ifile < nfiles; ifile++) {
+
+    // exit file loop when dump timestep >= nrequest
+    // or files exhausted
+
+    for (ifile = 0; ifile < nfile; ifile++) {
       ntimestep = -1;
       open(files[ifile]);
       reader->file(fp);
@@ -211,9 +214,9 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     }
 
     currentfile = ifile;
-    if (ntimestep < nrequest) close();
     if (ntimestep < nrequest) ntimestep = -1;
     if (exact && ntimestep != nrequest) ntimestep = -1;
+    if (ntimestep < 0) close();
   }
 
   MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -223,34 +226,48 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 /* ----------------------------------------------------------------------
    find next matching snapshot in one or more dump files
    Ncurrent = current timestep from last snapshot
-   Nstop = match no timestep bigger than Nstop
+   Nlast = match no timestep bigger than Nlast
    Nevery = only match timesteps that are a multiple of Nevery
    Nskip = skip every this many timesteps
    return matching ntimestep or -1 if did not find a match
 ------------------------------------------------------------------------- */
 
-bigint ReadDump::next(bigint ncurrent, bigint nstop, int nevery, int nskip)
+bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 {
   int ifile,eofflag;
   bigint ntimestep;
 
-  // NOTE: this logic is not yet right
-
   if (me == 0) {
-    for (ifile = currentfile; ifile < nfiles; ifile++) {
+
+    // exit file loop when dump timestep matches all criteria
+    // or files exhausted
+
+    int iskip = 0;
+
+    for (ifile = currentfile; ifile < nfile; ifile++) {
       ntimestep = -1;
       if (ifile != currentfile) open(files[ifile]);
       reader->file(fp);
       while (1) {
         eofflag = reader->read_time(ntimestep);
-        if (eofflag) ntimestep = -1;
-        break;
+        if (iskip == nskip) iskip = 0;
+        iskip++;
+        if (eofflag) break;
+        if (ntimestep <= ncurrent) break;
+        if (ntimestep > nlast) break;
+        if (nevery && ntimestep % nevery) reader->skip();
+        else if (iskip < nskip) reader->skip();
+        else break;
       }
-      if (ntimestep > ncurrent) break;
-      close();
+      if (eofflag) close();
+      else break;
     }
 
     currentfile = ifile;
+    if (eofflag) ntimestep = -1;
+    if (ntimestep <= ncurrent) ntimestep = -1;
+    if (ntimestep > nlast) ntimestep = -1;
+    if (ntimestep < 0) close();
   }
 
   MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -860,6 +877,8 @@ void ReadDump::open(char *file)
 
 void ReadDump::close()
 {
+  if (fp == NULL) return;
   if (compressed) pclose(fp);
   else fclose(fp);
+  fp = NULL;
 }

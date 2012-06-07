@@ -120,4 +120,3 @@ void FixMesoStationary::reset_dt() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
-

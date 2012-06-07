@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,7 +69,7 @@ void PairSoft::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -93,26 +93,26 @@ void PairSoft::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	arg = MY_PI*r/cut[itype][jtype];
-	if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] * 
-		       sin(arg) * MY_PI/cut[itype][jtype]/r;
-	else fpair = 0.0;
+        r = sqrt(rsq);
+        arg = MY_PI*r/cut[itype][jtype];
+        if (r > 0.0) fpair = factor_lj * prefactor[itype][jtype] *
+                       sin(arg) * MY_PI/cut[itype][jtype]/r;
+        else fpair = 0.0;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag)
-	  evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg));
+        if (eflag)
+          evdwl = factor_lj * prefactor[itype][jtype] * (1.0+cos(arg));
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -121,7 +121,7 @@ void PairSoft::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairSoft::allocate()
@@ -141,7 +141,7 @@ void PairSoft::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairSoft::settings(int narg, char **arg)
@@ -156,7 +156,7 @@ void PairSoft::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -223,8 +223,8 @@ void PairSoft::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&prefactor[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&prefactor[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -246,12 +246,12 @@ void PairSoft::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&prefactor[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&prefactor[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&prefactor[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&prefactor[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -283,16 +283,16 @@ void PairSoft::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairSoft::single(int i, int j, int itype, int jtype, double rsq,
-			double factor_coul, double factor_lj,
-			double &fforce)
+                        double factor_coul, double factor_lj,
+                        double &fforce)
 {
   double r,arg,philj;
 
   r = sqrt(rsq);
   arg = MY_PI*r/cut[itype][jtype];
-  fforce = factor_lj * prefactor[itype][jtype] * 
+  fforce = factor_lj * prefactor[itype][jtype] *
     sin(arg) * MY_PI/cut[itype][jtype]/r;
-  
+
   philj = prefactor[itype][jtype] * (1.0+cos(arg));
   return factor_lj*philj;
 }

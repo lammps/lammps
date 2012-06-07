@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,7 +45,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->cuda) 
+  if (lmp->cuda)
     error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
 
   if (narg < 7) error->all(FLERR,"Illegal fix GPU command");
@@ -73,7 +73,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   _particle_split = force->numeric(arg[6]);
   if (_particle_split==0 || _particle_split>1)
     error->all(FLERR,"Illegal fix GPU command");
-    
+
   int nthreads = 1;
   int threads_per_atom = -1;
   if (narg == 9) {
@@ -88,15 +88,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   if (nthreads < 1)
     error->all(FLERR,"Illegal fix GPU command");
-    
+
   #ifndef _OPENMP
   if (nthreads > 1)
     error->all(FLERR,"No OpenMP support compiled in");
   #endif
 
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
-				 _gpu_mode, _particle_split, nthreads,
-				 threads_per_atom);
+                                 _gpu_mode, _particle_split, nthreads,
+                                 threads_per_atom);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
@@ -125,11 +125,11 @@ void FixGPU::init()
 
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (force->pair_match("hybrid",1) != NULL ||
-	force->pair_match("hybrid/overlay",1) != NULL)
+        force->pair_match("hybrid/overlay",1) != NULL)
       error->all(FLERR,"Cannot use pair hybrid with GPU neighbor builds");
   if (_particle_split < 0)
     if (force->pair_match("hybrid",1) != NULL ||
-	force->pair_match("hybrid/overlay",1) != NULL)
+        force->pair_match("hybrid/overlay",1) != NULL)
       error->all(FLERR,"Fix GPU split must be positive for hybrid pair styles");
 }
 
@@ -140,7 +140,7 @@ void FixGPU::setup(int vflag)
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting()!=0)
       error->all(FLERR,
-		 "Cannot use neigh_modify exclude with GPU neighbor builds");
+                 "Cannot use neigh_modify exclude with GPU neighbor builds");
   post_force(vflag);
 }
 

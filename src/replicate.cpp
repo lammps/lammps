@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -57,13 +57,13 @@ void Replicate::command(int narg, char **arg)
 
   // error and warning checks
 
-  if (nx <= 0 || ny <= 0 || nz <= 0) 
+  if (nx <= 0 || ny <= 0 || nz <= 0)
     error->all(FLERR,"Illegal replicate command");
   if (domain->dimension == 2 && nz != 1)
     error->all(FLERR,"Cannot replicate 2d simulation in z dimension");
-  if ((nx > 1 && domain->xperiodic == 0) || 
+  if ((nx > 1 && domain->xperiodic == 0) ||
       (ny > 1 && domain->yperiodic == 0) ||
-      (nz > 1 && domain->zperiodic == 0)) { 
+      (nz > 1 && domain->zperiodic == 0)) {
     if (comm->me == 0)
       error->warning(FLERR,"Replicating in a non-periodic dimension");
   }
@@ -137,9 +137,9 @@ void Replicate::command(int narg, char **arg)
       atom->tag[i] = 0;
 
   if (nrep*old->natoms < 0 || nrep*old->natoms > MAXBIGINT ||
-      nrep*old->nbonds < 0 || nrep*old->nbonds > MAXBIGINT || 
-      nrep*old->nangles < 0 || nrep*old->nangles > MAXBIGINT || 
-      nrep*old->ndihedrals < 0 || nrep*old->ndihedrals > MAXBIGINT || 
+      nrep*old->nbonds < 0 || nrep*old->nbonds > MAXBIGINT ||
+      nrep*old->nangles < 0 || nrep*old->nangles > MAXBIGINT ||
+      nrep*old->ndihedrals < 0 || nrep*old->ndihedrals > MAXBIGINT ||
       nrep*old->nimpropers < 0 || nrep*old->nimpropers > MAXBIGINT)
     error->all(FLERR,"Replicated system is too big");
 
@@ -156,7 +156,7 @@ void Replicate::command(int narg, char **arg)
   atom->nangletypes = old->nangletypes;
   atom->ndihedraltypes = old->ndihedraltypes;
   atom->nimpropertypes = old->nimpropertypes;
-  
+
   atom->bond_per_atom = old->bond_per_atom;
   atom->angle_per_atom = old->angle_per_atom;
   atom->dihedral_per_atom = old->dihedral_per_atom;
@@ -270,77 +270,77 @@ void Replicate::command(int narg, char **arg)
 
     for (ix = 0; ix < nx; ix++) {
       for (iy = 0; iy < ny; iy++) {
-	for (iz = 0; iz < nz; iz++) {
+        for (iz = 0; iz < nz; iz++) {
 
-	  // while loop over one proc's atom list
+          // while loop over one proc's atom list
 
-	  m = 0;
-	  while (m < n) {
-	    image = (512 << 20) | (512 << 10) | 512;
-	    if (triclinic == 0) {
-	      x[0] = buf[m+1] + ix*old_xprd;
-	      x[1] = buf[m+2] + iy*old_yprd;
-	      x[2] = buf[m+3] + iz*old_zprd;
-	    } else {
-	      x[0] = buf[m+1] + ix*old_xprd + iy*old_xy + iz*old_xz;
-	      x[1] = buf[m+2] + iy*old_yprd + iz*old_yz;
-	      x[2] = buf[m+3] + iz*old_zprd;
-	    }
-	    domain->remap(x,image);
-	    if (triclinic) {
-	      domain->x2lamda(x,lamda);
-	      coord = lamda;
-	    } else coord = x;
+          m = 0;
+          while (m < n) {
+            image = (512 << 20) | (512 << 10) | 512;
+            if (triclinic == 0) {
+              x[0] = buf[m+1] + ix*old_xprd;
+              x[1] = buf[m+2] + iy*old_yprd;
+              x[2] = buf[m+3] + iz*old_zprd;
+            } else {
+              x[0] = buf[m+1] + ix*old_xprd + iy*old_xy + iz*old_xz;
+              x[1] = buf[m+2] + iy*old_yprd + iz*old_yz;
+              x[2] = buf[m+3] + iz*old_zprd;
+            }
+            domain->remap(x,image);
+            if (triclinic) {
+              domain->x2lamda(x,lamda);
+              coord = lamda;
+            } else coord = x;
 
-	    if (coord[0] >= sublo[0] && coord[0] < subhi[0] && 
-		coord[1] >= sublo[1] && coord[1] < subhi[1] && 
-		coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+            if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+                coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+                coord[2] >= sublo[2] && coord[2] < subhi[2]) {
 
-	      m += avec->unpack_restart(&buf[m]);
+              m += avec->unpack_restart(&buf[m]);
 
-	      i = atom->nlocal - 1;
-	      if (tag_enable)
-		atom_offset = iz*ny*nx*maxtag + iy*nx*maxtag + ix*maxtag;
-	      else atom_offset = 0;
-	      mol_offset = iz*ny*nx*maxmol + iy*nx*maxmol + ix*maxmol;
+              i = atom->nlocal - 1;
+              if (tag_enable)
+                atom_offset = iz*ny*nx*maxtag + iy*nx*maxtag + ix*maxtag;
+              else atom_offset = 0;
+              mol_offset = iz*ny*nx*maxmol + iy*nx*maxmol + ix*maxmol;
 
-	      atom->x[i][0] = x[0];
-	      atom->x[i][1] = x[1];
-	      atom->x[i][2] = x[2];
+              atom->x[i][0] = x[0];
+              atom->x[i][1] = x[1];
+              atom->x[i][2] = x[2];
 
-	      atom->tag[i] += atom_offset;
-	      atom->image[i] = image;
+              atom->tag[i] += atom_offset;
+              atom->image[i] = image;
 
-	      if (atom->molecular) {
-		if (atom->molecule[i] > 0)
-		  atom->molecule[i] += mol_offset;
-		if (atom->avec->bonds_allow)
-		  for (j = 0; j < atom->num_bond[i]; j++)
-		    atom->bond_atom[i][j] += atom_offset;
-		if (atom->avec->angles_allow)
-		  for (j = 0; j < atom->num_angle[i]; j++) {
-		    atom->angle_atom1[i][j] += atom_offset;
-		    atom->angle_atom2[i][j] += atom_offset;
-		    atom->angle_atom3[i][j] += atom_offset;
-		  }
-		if (atom->avec->dihedrals_allow)
-		  for (j = 0; j < atom->num_dihedral[i]; j++) {
-		    atom->dihedral_atom1[i][j] += atom_offset;
-		    atom->dihedral_atom2[i][j] += atom_offset;
-		    atom->dihedral_atom3[i][j] += atom_offset;
-		    atom->dihedral_atom4[i][j] += atom_offset;
-		  }
-		if (atom->avec->impropers_allow)
-		  for (j = 0; j < atom->num_improper[i]; j++) {
-		    atom->improper_atom1[i][j] += atom_offset;
-		    atom->improper_atom2[i][j] += atom_offset;
-		    atom->improper_atom3[i][j] += atom_offset;
-		    atom->improper_atom4[i][j] += atom_offset;
-		  }
-	      }
-	    } else m += static_cast<int> (buf[m]);
-	  }
-	}
+              if (atom->molecular) {
+                if (atom->molecule[i] > 0)
+                  atom->molecule[i] += mol_offset;
+                if (atom->avec->bonds_allow)
+                  for (j = 0; j < atom->num_bond[i]; j++)
+                    atom->bond_atom[i][j] += atom_offset;
+                if (atom->avec->angles_allow)
+                  for (j = 0; j < atom->num_angle[i]; j++) {
+                    atom->angle_atom1[i][j] += atom_offset;
+                    atom->angle_atom2[i][j] += atom_offset;
+                    atom->angle_atom3[i][j] += atom_offset;
+                  }
+                if (atom->avec->dihedrals_allow)
+                  for (j = 0; j < atom->num_dihedral[i]; j++) {
+                    atom->dihedral_atom1[i][j] += atom_offset;
+                    atom->dihedral_atom2[i][j] += atom_offset;
+                    atom->dihedral_atom3[i][j] += atom_offset;
+                    atom->dihedral_atom4[i][j] += atom_offset;
+                  }
+                if (atom->avec->impropers_allow)
+                  for (j = 0; j < atom->num_improper[i]; j++) {
+                    atom->improper_atom1[i][j] += atom_offset;
+                    atom->improper_atom2[i][j] += atom_offset;
+                    atom->improper_atom3[i][j] += atom_offset;
+                    atom->improper_atom4[i][j] += atom_offset;
+                  }
+              }
+            } else m += static_cast<int> (buf[m]);
+          }
+        }
       }
     }
   }
@@ -363,7 +363,7 @@ void Replicate::command(int narg, char **arg)
 
   if (natoms != atom->natoms)
     error->all(FLERR,"Replicate did not assign all atoms correctly");
-  
+
   if (me == 0) {
     if (atom->nbonds) {
       if (screen) fprintf(screen,"  " BIGINT_FORMAT " bonds\n",atom->nbonds);
@@ -371,21 +371,21 @@ void Replicate::command(int narg, char **arg)
     }
     if (atom->nangles) {
       if (screen) fprintf(screen,"  " BIGINT_FORMAT " angles\n",
-			  atom->nangles);
+                          atom->nangles);
       if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " angles\n",
-			   atom->nangles);
+                           atom->nangles);
     }
     if (atom->ndihedrals) {
       if (screen) fprintf(screen,"  " BIGINT_FORMAT " dihedrals\n",
-			  atom->ndihedrals);
+                          atom->ndihedrals);
       if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " dihedrals\n",
-			   atom->ndihedrals);
+                           atom->ndihedrals);
     }
     if (atom->nimpropers) {
       if (screen) fprintf(screen,"  " BIGINT_FORMAT " impropers\n",
-			  atom->nimpropers);
+                          atom->nimpropers);
       if (logfile) fprintf(logfile,"  " BIGINT_FORMAT " impropers\n",
-			   atom->nimpropers);
+                           atom->nimpropers);
     }
   }
 

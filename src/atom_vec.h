@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -29,7 +29,7 @@ class AtomVec : protected Pointers {
   int comm_x_only;                     // 1 if only exchange x in forward comm
   int comm_f_only;                     // 1 if only exchange f in reverse comm
 
-  int size_forward;                    // # of values per atom in comm       
+  int size_forward;                    // # of values per atom in comm
   int size_reverse;                    // # in reverse comm
   int size_border;                     // # in border comm
   int size_velocity;                   // # of velocity based quantities

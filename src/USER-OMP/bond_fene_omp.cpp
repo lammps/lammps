@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -62,11 +62,11 @@ void BondFENEOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
@@ -112,11 +112,11 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
       char str[128];
 
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %d %d %g",
-	      update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
+              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       error->warning(FLERR,str,0);
 
       if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
-	return;
+        return;
 
       rlogarg = 0.1;
     }
@@ -136,7 +136,7 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
     if (EFLAG) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
       if (rsq < TWO_1_3*sigma[type]*sigma[type])
-	ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
+        ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 
     // apply force to each of 2 atoms
@@ -154,6 +154,6 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
     }
 
     if (EVFLAG) ev_tally_thr(this,i1,i2,nlocal,NEWTON_BOND,
-			     ebond,fbond,delx,dely,delz,thr);
+                             ebond,fbond,delx,dely,delz,thr);
   }
 }

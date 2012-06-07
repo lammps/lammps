@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,7 +86,7 @@ void PairLJ96Cut::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -110,29 +110,29 @@ void PairLJ96Cut::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r3inv = sqrt(r6inv);
-	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r3inv = sqrt(r6inv);
+        forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -155,7 +155,7 @@ void PairLJ96Cut::compute_inner()
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
-  
+
   inum = listinner->inum;
   ilist = listinner->ilist;
   numneigh = listinner->numneigh;
@@ -163,11 +163,11 @@ void PairLJ96Cut::compute_inner()
 
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
-  
+
   double cut_out_diff = cut_out_off - cut_out_on;
   double cut_out_on_sq = cut_out_on*cut_out_on;
   double cut_out_off_sq = cut_out_off*cut_out_off;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -190,25 +190,25 @@ void PairLJ96Cut::compute_inner()
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_out_off_sq) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r3inv = sqrt(r6inv);
-	jtype = type[j];
-	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r3inv = sqrt(r6inv);
+        jtype = type[j];
+        forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
         if (rsq > cut_out_on_sq) {
-	  rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	  fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
-	}
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair *= 1.0 - rsw*rsw*(3.0 - 2.0*rsw);
+        }
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
       }
     }
   }
@@ -269,29 +269,29 @@ void PairLJ96Cut::compute_middle()
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r3inv = sqrt(r6inv);
-	jtype = type[j];
-	forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r3inv = sqrt(r6inv);
+        jtype = type[j];
+        forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
         if (rsq < cut_in_on_sq) {
-	  rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	  fpair *= rsw*rsw*(3.0 - 2.0*rsw);
-	}
+          rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+          fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+        }
         if (rsq > cut_out_on_sq) {
-	  rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff; 
-	  fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
-	}
+          rsw = (sqrt(rsq) - cut_out_on)/cut_out_diff;
+          fpair *= 1.0 + rsw*rsw*(2.0*rsw - 3.0);
+        }
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
       }
     }
   }
@@ -352,56 +352,56 @@ void PairLJ96Cut::compute_outer(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	if (rsq > cut_in_off_sq) {
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  r3inv = sqrt(r6inv);
-	  forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	  fpair = factor_lj*forcelj*r2inv;
+        if (rsq > cut_in_off_sq) {
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          r3inv = sqrt(r6inv);
+          forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+          fpair = factor_lj*forcelj*r2inv;
           if (rsq < cut_in_on_sq) {
-	    rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff; 
-	    fpair *= rsw*rsw*(3.0 - 2.0*rsw);
-	  }
+            rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
+            fpair *= rsw*rsw*(3.0 - 2.0*rsw);
+          }
 
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
-	  if (newton_pair || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
-	  }
-	}
-	
-	if (eflag) {
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  r3inv = sqrt(r6inv);
-	  evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
-	
-	if (vflag) {
-	  if (rsq <= cut_in_off_sq) {
-	    r2inv = 1.0/rsq;
-	    r6inv = r2inv*r2inv*r2inv;
-	    r3inv = sqrt(r6inv);
-	    forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
-	    fpair = factor_lj*forcelj*r2inv;
-	  } else if (rsq < cut_in_on_sq)
-	    fpair = factor_lj*forcelj*r2inv;
-	}
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (eflag) {
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          r3inv = sqrt(r6inv);
+          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
+
+        if (vflag) {
+          if (rsq <= cut_in_off_sq) {
+            r2inv = 1.0/rsq;
+            r6inv = r2inv*r2inv*r2inv;
+            r3inv = sqrt(r6inv);
+            forcelj = r6inv * (lj1[itype][jtype]*r3inv - lj2[itype][jtype]);
+            fpair = factor_lj*forcelj*r2inv;
+          } else if (rsq < cut_in_on_sq)
+            fpair = factor_lj*forcelj*r2inv;
+        }
+
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLJ96Cut::allocate()
@@ -427,7 +427,7 @@ void PairLJ96Cut::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLJ96Cut::settings(int narg, char **arg)
@@ -442,7 +442,7 @@ void PairLJ96Cut::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -452,7 +452,7 @@ void PairLJ96Cut::settings(int narg, char **arg)
 
 void PairLJ96Cut::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -551,7 +551,7 @@ double PairLJ96Cut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
@@ -591,23 +591,23 @@ double PairLJ96Cut::init_one(int i, int j)
       if (type[k] == j) count[1] += 1.0;
     }
     MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
-        
+
     double sig3 = sigma[i][j]*sigma[i][j]*sigma[i][j];
     double sig6 = sig3*sig3;
     double rc3 = cut[i][j]*cut[i][j]*cut[i][j];
     double rc6 = rc3*rc3;
-    
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (sig3 - 2.0*rc3) / (6.0*rc6); 
-    ptail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * 
-      sig6 * (3.0*sig3 - 4.0*rc3) / (6.0*rc6); 
-  } 
+
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (sig3 - 2.0*rc3) / (6.0*rc6);
+    ptail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (3.0*sig3 - 4.0*rc3) / (6.0*rc6);
+  }
 
   return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLJ96Cut::write_restart(FILE *fp)
@@ -619,9 +619,9 @@ void PairLJ96Cut::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -642,14 +642,14 @@ void PairLJ96Cut::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -685,8 +685,8 @@ void PairLJ96Cut::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJ96Cut::single(int i, int j, int itype, int jtype, double rsq,
-			   double factor_coul, double factor_lj,
-			   double &fforce)
+                           double factor_coul, double factor_lj,
+                           double &fforce)
 {
   double r2inv,r3inv,r6inv,forcelj,philj;
 

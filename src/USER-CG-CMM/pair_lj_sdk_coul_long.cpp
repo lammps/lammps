@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -78,7 +78,7 @@ PairLJSDKCoulLong::~PairLJSDKCoulLong()
     memory->destroy(rminsq);
     memory->destroy(emin);
 
-    allocated = 0;   
+    allocated = 0;
   }
   if (ftable) free_tables();
 }
@@ -105,7 +105,7 @@ void PairLJSDKCoulLong::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-} 
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -163,86 +163,86 @@ void PairLJSDKCoulLong::eval()
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	const int ljt = lj_type[itype][jtype];
+        r2inv = 1.0/rsq;
+        const int ljt = lj_type[itype][jtype];
 
-	if (rsq < cut_coulsq) {
-	  if (!ncoultablebits || rsq <= tabinnersq) {
-	    r = sqrt(rsq);
-	    grij = g_ewald * r;
-	    expm2 = exp(-grij*grij);
-	    t = 1.0 / (1.0 + EWALD_P*grij);
-	    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	    prefactor = qqrd2e * qtmp*q[j]/r;
-	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	    if (EFLAG) ecoul = prefactor*erfc;
-	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  } else {
-	    union_int_float_t rsq_lookup;
-	    rsq_lookup.f = rsq;
-	    itable = rsq_lookup.i & ncoulmask;
-	    itable >>= ncoulshiftbits;
-	    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	    table = ftable[itable] + fraction*dftable[itable];
-	    forcecoul = qtmp*q[j] * table;
-	    if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
-	    if (factor_coul < 1.0) {
-	      table = ctable[itable] + fraction*dctable[itable];
-	      prefactor = qtmp*q[j] * table;
-	      forcecoul -= (1.0-factor_coul)*prefactor;
-	      if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
-	    }
-	  }
-	}
+        if (rsq < cut_coulsq) {
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (EFLAG) ecoul = prefactor*erfc;
+            if (factor_coul < 1.0) {
+              forcecoul -= (1.0-factor_coul)*prefactor;
+              if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
+            }
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+              if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
+        }
 
-	if (rsq < cut_ljsq[itype][jtype]) {
+        if (rsq < cut_ljsq[itype][jtype]) {
 
-	  if (ljt == LJ12_4) {
-	    const double r4inv=r2inv*r2inv;
-	    forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
-			     - lj2[itype][jtype]);
+          if (ljt == LJ12_4) {
+            const double r4inv=r2inv*r2inv;
+            forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                             - lj2[itype][jtype]);
 
-	    if (EFLAG)
-	      evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
+            if (EFLAG)
+              evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
 
-	  } else if (ljt == LJ9_6) {
-	    const double r3inv = r2inv*sqrt(r2inv);
-	    const double r6inv = r3inv*r3inv;
-	    forcelj = r6inv*(lj1[itype][jtype]*r3inv
-			     - lj2[itype][jtype]);
-	    if (EFLAG)
-	      evdwl = r6inv*(lj3[itype][jtype]*r3inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
+          } else if (ljt == LJ9_6) {
+            const double r3inv = r2inv*sqrt(r2inv);
+            const double r6inv = r3inv*r3inv;
+            forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r6inv*(lj3[itype][jtype]*r3inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
 
-	  } else if (ljt == LJ12_6) {
-	    const double r6inv = r2inv*r2inv*r2inv;
-	    forcelj = r6inv*(lj1[itype][jtype]*r6inv
-			     - lj2[itype][jtype]);
-	    if (EFLAG)
-	      evdwl = r6inv*(lj3[itype][jtype]*r6inv
-			     - lj4[itype][jtype]) - offset[itype][jtype];
-	  }
-	  forcelj *= factor_lj;
-	  if (EFLAG) evdwl *= factor_lj;
-	}
+          } else if (ljt == LJ12_6) {
+            const double r6inv = r2inv*r2inv*r2inv;
+            forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r6inv*(lj3[itype][jtype]*r6inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
+          }
+          forcelj *= factor_lj;
+          if (EFLAG) evdwl *= factor_lj;
+        }
 
-	fpair = (forcecoul + forcelj) * r2inv;
+        fpair = (forcecoul + forcelj) * r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
     f[i][0] += fxtmp;
@@ -306,7 +306,7 @@ void PairLJSDKCoulLong::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -380,7 +380,7 @@ double PairLJSDKCoulLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
     error->all(FLERR,"No mixing support for lj/sdk/coul/long. "
-	       "Coefficients for all pairs need to be set explicitly.");
+               "Coefficients for all pairs need to be set explicitly.");
 
   const int ljt = lj_type[i][j];
 
@@ -414,12 +414,12 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   const double eps = epsilon[i][j];
   const double sig = sigma[i][j];
   const double rmin = sig*exp(1.0/(lj_pow1[ljt]-lj_pow2[ljt])
-			      *log(lj_pow1[ljt]/lj_pow2[ljt]) );
+                              *log(lj_pow1[ljt]/lj_pow2[ljt]) );
   rminsq[j][i] = rminsq[i][j] = rmin*rmin;
 
   const double ratio = sig/rmin;
   const double emin_one = lj_prefact[ljt] * eps * (pow(ratio,lj_pow1[ljt])
-						   - pow(ratio,lj_pow2[ljt]));
+                                                   - pow(ratio,lj_pow2[ljt]));
   emin[j][i] = emin[i][j] = emin_one;
 
   // compute I,J contribution to long-range tail correction
@@ -443,17 +443,17 @@ void PairLJSDKCoulLong::init_tables()
 
   tabinnersq = tabinner*tabinner;
   init_bitmap(tabinner,cut_coul,ncoultablebits,
-	      masklo,maskhi,ncoulmask,ncoulshiftbits);
-  
+              masklo,maskhi,ncoulmask,ncoulshiftbits);
+
   int ntable = 1;
   for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
-  
+
   // linear lookup tables of length N = 2^ncoultablebits
   // stored value = value at lower edge of bin
   // d values = delta from lower edge to upper edge of bin
 
   if (ftable) free_tables();
-  
+
   memory->create(rtable,ntable,"pair:rtable");
   memory->create(ftable,ntable,"pair:ftable");
   memory->create(ctable,ntable,"pair:ctable");
@@ -468,7 +468,7 @@ void PairLJSDKCoulLong::init_tables()
   int itablemin;
   minrsq_lookup.i = 0 << ncoulshiftbits;
   minrsq_lookup.i |= maskhi;
-    
+
   for (int i = 0; i < ntable; i++) {
     rsq_lookup.i = i << ncoulshiftbits;
     rsq_lookup.i |= masklo;
@@ -489,9 +489,9 @@ void PairLJSDKCoulLong::init_tables()
   }
 
   tabinnersq = minrsq_lookup.f;
-  
+
   int ntablem1 = ntable - 1;
-  
+
   for (int i = 0; i < ntablem1; i++) {
     drtable[i] = 1.0/(rtable[i+1] - rtable[i]);
     dftable[i] = ftable[i+1] - ftable[i];
@@ -499,31 +499,31 @@ void PairLJSDKCoulLong::init_tables()
     detable[i] = etable[i+1] - etable[i];
   }
 
-  // get the delta values for the last table entries 
+  // get the delta values for the last table entries
   // tables are connected periodically between 0 and ntablem1
-    
+
   drtable[ntablem1] = 1.0/(rtable[0] - rtable[ntablem1]);
   dftable[ntablem1] = ftable[0] - ftable[ntablem1];
   dctable[ntablem1] = ctable[0] - ctable[ntablem1];
   detable[ntablem1] = etable[0] - etable[ntablem1];
 
-  // get the correct delta values at itablemax    
+  // get the correct delta values at itablemax
   // smallest r is in bin itablemin
   // largest r is in bin itablemax, which is itablemin-1,
   //   or ntablem1 if itablemin=0
   // deltas at itablemax only needed if corresponding rsq < cut*cut
-  // if so, compute deltas between rsq and cut*cut 
+  // if so, compute deltas between rsq and cut*cut
 
   double f_tmp,c_tmp,e_tmp;
   itablemin = minrsq_lookup.i & ncoulmask;
-  itablemin >>= ncoulshiftbits;  
-  int itablemax = itablemin - 1; 
-  if (itablemin == 0) itablemax = ntablem1;     
+  itablemin >>= ncoulshiftbits;
+  int itablemax = itablemin - 1;
+  if (itablemin == 0) itablemax = ntablem1;
   rsq_lookup.i = itablemax << ncoulshiftbits;
   rsq_lookup.i |= maskhi;
 
   if (rsq_lookup.f < cut_coulsq) {
-    rsq_lookup.f = cut_coulsq;  
+    rsq_lookup.f = cut_coulsq;
     r = sqrtf(rsq_lookup.f);
     grij = g_ewald * r;
     expm2 = exp(-grij*grij);
@@ -533,7 +533,7 @@ void PairLJSDKCoulLong::init_tables()
     c_tmp = qqrd2e/r;
     e_tmp = qqrd2e/r * derfc;
 
-    drtable[itablemax] = 1.0/(rsq_lookup.f - rtable[itablemax]);   
+    drtable[itablemax] = 1.0/(rsq_lookup.f - rtable[itablemax]);
     dftable[itablemax] = f_tmp - ftable[itablemax];
     dctable[itablemax] = c_tmp - ctable[itablemax];
     detable[itablemax] = e_tmp - etable[itablemax];
@@ -554,9 +554,9 @@ void PairLJSDKCoulLong::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         fwrite(&lj_type[i][j],sizeof(int),1,fp);
-	fwrite(&epsilon[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -577,16 +577,16 @@ void PairLJSDKCoulLong::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&lj_type[i][j],sizeof(int),1,fp);
-	  fread(&epsilon[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
-	MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&lj_type[i][j],sizeof(int),1,fp);
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -640,9 +640,9 @@ void PairLJSDKCoulLong::free_tables()
 /* ---------------------------------------------------------------------- */
 
 double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
-				 double rsq,
-				 double factor_coul, double factor_lj,
-				 double &fforce)
+                                 double rsq,
+                                 double factor_coul, double factor_lj,
+                                 double &fforce)
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
@@ -662,8 +662,8 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
       forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
       phicoul = prefactor*erfc;
       if (factor_coul < 1.0) {
-	forcecoul -= (1.0-factor_coul)*prefactor;
-	phicoul -= (1.0-factor_coul)*prefactor;
+        forcecoul -= (1.0-factor_coul)*prefactor;
+        phicoul -= (1.0-factor_coul)*prefactor;
       }
     } else {
       union_int_float_t rsq_lookup_single;
@@ -676,10 +676,10 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
       table = etable[itable] + fraction*detable[itable];
       phicoul = atom->q[i]*atom->q[j] * table;
       if (factor_coul < 1.0) {
-	table = ctable[itable] + fraction*dctable[itable];
-	prefactor = atom->q[i]*atom->q[j] * table;
-	forcecoul -= (1.0-factor_coul)*prefactor;
-	phicoul -= (1.0-factor_coul)*prefactor;
+        table = ctable[itable] + fraction*dctable[itable];
+        prefactor = atom->q[i]*atom->q[j] * table;
+        forcecoul -= (1.0-factor_coul)*prefactor;
+        phicoul -= (1.0-factor_coul)*prefactor;
       }
     }
   }
@@ -689,14 +689,14 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype,
     const double ljpow1 = lj_pow1[ljt];
     const double ljpow2 = lj_pow2[ljt];
     const double ljpref = lj_prefact[ljt];
-        
+
     const double ratio = sigma[itype][jtype]/sqrt(rsq);
     const double eps = epsilon[itype][jtype];
 
-    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1) 
-			  - ljpow2*pow(ratio,ljpow2))/rsq;
+    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
+                          - ljpow2*pow(ratio,ljpow2))/rsq;
     philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-			 - offset[itype][jtype]);
+                         - offset[itype][jtype]);
   }
 
   fforce = (forcecoul + forcelj) * r2inv;
@@ -718,7 +718,7 @@ void *PairLJSDKCoulLong::extract(const char *str, int &dim)
   if (strcmp(str,"lj4") == 0) return (void *) lj4;
   if (strcmp(str,"rminsq") == 0) return (void *) rminsq;
   if (strcmp(str,"emin") == 0) return (void *) emin;
-  
+
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
@@ -732,7 +732,7 @@ double PairLJSDKCoulLong::memory_usage()
   int n = atom->ntypes;
 
   // setflag/lj_type
-  bytes += 2 * (n+1)*(n+1)*sizeof(int); 
+  bytes += 2 * (n+1)*(n+1)*sizeof(int);
   // lj_cut/lj_cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4/rminsq/emin
   bytes += 11 * (n+1)*(n+1)*sizeof(double);
 

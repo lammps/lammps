@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,42 +34,42 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   options(narg-11,&arg[11]);
 
   if (strcmp(arg[2],"INF") == 0 || strcmp(arg[2],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else xlo = domain->boxlo[0];
   } else xlo = xscale*atof(arg[2]);
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else xhi = domain->boxhi[0];
   } else xhi = xscale*atof(arg[3]);
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else ylo = domain->boxlo[1];
   } else ylo = yscale*atof(arg[4]);
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else yhi = domain->boxhi[1];
   } else yhi = yscale*atof(arg[5]);
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else zlo = domain->boxlo[2];
   } else zlo = zscale*atof(arg[6]);
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
-    if (domain->box_exist == 0) 
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else zhi = domain->boxhi[2];
@@ -102,14 +102,14 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     error->all(FLERR,"Illegal region prism command");
 
   // extent of prism
-  
+
   if (interior) {
     bboxflag = 1;
     extent_xlo = MIN(xlo,xlo+xy);
     extent_xlo = MIN(extent_xlo,extent_xlo+xz);
     extent_ylo = MIN(ylo,ylo+yz);
     extent_zlo = zlo;
-    
+
     extent_xhi = MAX(xhi,xhi+xy);
     extent_xhi = MAX(extent_xhi,extent_xhi+xz);
     extent_yhi = MAX(yhi,yhi+yz);
@@ -266,7 +266,7 @@ int RegPrism::surface_interior(double *x, double cutoff)
   for (i = 0; i < 6; i++) {
     if (i % 2) corner = chi;
     else corner = clo;
-    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] + 
+    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] +
       (x[2]-corner[2])*face[i][2];
     if (dot < 0.0) return 0;
   }
@@ -278,7 +278,7 @@ int RegPrism::surface_interior(double *x, double cutoff)
   for (int i = 0; i < 6; i++) {
     if (i % 2) corner = chi;
     else corner = clo;
-    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] + 
+    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] +
       (x[2]-corner[2])*face[i][2];
     if (dot < cutoff) {
       contact[n].r = dot;
@@ -310,7 +310,7 @@ int RegPrism::surface_exterior(double *x, double cutoff)
   for (i = 0; i < 6; i++) {
     if (i % 2) corner = chi;
     else corner = clo;
-    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] + 
+    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] +
       (x[2]-corner[2])*face[i][2];
     if (dot <= -cutoff) return 0;
   }
@@ -320,7 +320,7 @@ int RegPrism::surface_exterior(double *x, double cutoff)
   for (i = 0; i < 6; i++) {
     if (i % 2) corner = chi;
     else corner = clo;
-    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] + 
+    dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] +
       (x[2]-corner[2])*face[i][2];
     if (dot <= 0.0) break;
   }
@@ -364,8 +364,8 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
     i = tri[itri][0];
     j = tri[itri][1];
     k = tri[itri][2];
-    dot = (x[0]-corners[i][0])*face[iface][0] + 
-      (x[1]-corners[i][1])*face[iface][1] + 
+    dot = (x[0]-corners[i][0])*face[iface][0] +
+      (x[1]-corners[i][1])*face[iface][1] +
       (x[2]-corners[i][2])*face[iface][2];
     xproj[0] = x[0] - dot*face[iface][0];
     xproj[1] = x[1] - dot*face[iface][1];
@@ -381,7 +381,7 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
       distsq = closest(x,xline,nearest,distsq);
     }
   }
-  
+
   xp = nearest[0];
   yp = nearest[1];
   zp = nearest[2];
@@ -397,7 +397,7 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
 ------------------------------------------------------------------------- */
 
 int RegPrism::inside_tri(double *x, double *v1, double *v2, double *v3,
-			 double *norm)
+                         double *norm)
 {
   double edge[3],pvec[3],xproduct[3];
 
@@ -428,8 +428,8 @@ int RegPrism::inside_tri(double *x, double *v1, double *v2, double *v3,
    else closest point is between A and B
 ------------------------------------------------------------------------- */
 
-void RegPrism::point_on_line_segment(double *a, double *b, 
-				     double *c, double *d)
+void RegPrism::point_on_line_segment(double *a, double *b,
+                                     double *c, double *d)
 {
   double ba[3],ca[3];
 

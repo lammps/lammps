@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempRotate::ComputeTempRotate(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempRotate::ComputeTempRotate(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute temp/rotate command");
@@ -120,10 +120,10 @@ double ComputeTempRotate::compute_scalar()
   }
 
   double t = 0.0;
-  
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      
+
       xbox = (image[i] & 1023) - 512;
       ybox = (image[i] >> 10 & 1023) - 512;
       zbox = (image[i] >> 20) - 512;
@@ -138,11 +138,11 @@ double ComputeTempRotate::compute_scalar()
       vthermal[1] = v[i][1] - vbiasall[i][1];
       vthermal[2] = v[i][2] - vbiasall[i][2];
       if (rmass)
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * rmass[i];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * rmass[i];
       else
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * mass[type[i]];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * mass[type[i]];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -242,9 +242,9 @@ void ComputeTempRotate::remove_bias_all()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {   
+    if (mask[i] & groupbit) {
       v[i][0] -= vbiasall[i][0];
       v[i][1] -= vbiasall[i][1];
       v[i][2] -= vbiasall[i][2];
@@ -273,7 +273,7 @@ void ComputeTempRotate::restore_bias_all()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       v[i][0] += vbiasall[i][0];

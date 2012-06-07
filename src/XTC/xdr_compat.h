@@ -13,15 +13,15 @@ extern "C" {
  * This file is needed for systems, that do not provide XDR support
  * in their system libraries. It was written for windows, but will
  * most probably work on other platforms too. better make sure you
- * test that the xtc files produced are ok before using it. 
+ * test that the xtc files produced are ok before using it.
  *
  * It is also needed on BG/L, BG/P and Cray XT3/XT4/XT5 as we don't
  * have XDR support in the lightweight kernel runtimes either.
  *
- * This file contains the definitions for Sun External Data 
+ * This file contains the definitions for Sun External Data
  * Representation (XDR) headers and routines.
  *
- * Although the rest of LAMPPS is GPL, you can copy and use the XDR 
+ * Although the rest of LAMPPS is GPL, you can copy and use the XDR
  * routines in any way you want as long as you obey Sun's license:
  * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
  * unrestricted use provided that this legend is included on all tape
@@ -49,12 +49,12 @@ extern "C" {
  * Sun Microsystems, Inc.
  * 2550 Garcia Avenue
  * Mountain View, California  94043
- */ 
+ */
 
 /*
  * Xdr operations.  XDR_ENCODE causes the type to be encoded into the
  * stream.  XDR_DECODE causes the type to be extracted from the stream.
- * XDR_FREE can be used to release the space allocated by an 
+ * XDR_FREE can be used to release the space allocated by an
  * XDR_DECODE request.
  */
 
@@ -65,7 +65,7 @@ typedef char * caddr_t;
 typedef unsigned int u_int;
 #endif
 
-/* 
+/*
  * Aninteger type that is 32 bits wide. Check if int,
  * long or short is 32 bits and die if none of them is :-)
  */
@@ -95,7 +95,7 @@ enum xdr_op {
 #      define  TRUE    (1)
 #endif
 
-#define BYTES_PER_XDR_UNIT	(4)
+#define BYTES_PER_XDR_UNIT        (4)
 /* Macro to round up to units of 4. */
 #define XDR_RNDUP(x)  (((x) + BYTES_PER_XDR_UNIT - 1) & ~(BYTES_PER_XDR_UNIT - 1))
 
@@ -110,36 +110,36 @@ enum xdr_op {
 typedef struct XDR XDR;
 struct XDR
   {
-    enum xdr_op x_op;		/* operation; fast additional param */
+    enum xdr_op x_op;                /* operation; fast additional param */
     struct xdr_ops  *x_ops;
-    char *x_public;		/* users' data */
-    char *x_private;		/* pointer to private data */
-    char *x_base;		/* private used for position info */
-    int x_handy;		/* extra private word */
+    char *x_public;                /* users' data */
+    char *x_private;                /* pointer to private data */
+    char *x_base;                /* private used for position info */
+    int x_handy;                /* extra private word */
   };
 
 struct xdr_ops
       {
-	bool_t (*x_getbytes) (XDR *__xdrs, char *__addr, unsigned int __len);
-	/* get some bytes from " */
-	bool_t (*x_putbytes) (XDR *__xdrs, char *__addr, unsigned int __len);
-	/* put some bytes to " */
-	unsigned int (*x_getpostn) (XDR *__xdrs);
-	/* returns bytes off from beginning */
-	bool_t (*x_setpostn) (XDR *__xdrs, unsigned int __pos);
-	/* lets you reposition the stream */
-	xdr_int32_t *(*x_inline) (XDR *__xdrs, int __len);
-	/* buf quick ptr to buffered data */
-	void (*x_destroy) (XDR *__xdrs);
-	/* free privates of this xdr_stream */
-	bool_t (*x_getint32) (XDR *__xdrs, xdr_int32_t *__ip);
-	/* get a int from underlying stream */
-	bool_t (*x_putint32) (XDR *__xdrs, xdr_int32_t *__ip);
-	/* put a int to " */
-	bool_t (*x_getuint32) (XDR *__xdrs, xdr_uint32_t *__ip);
-	/* get a unsigned int from underlying stream */
-	bool_t (*x_putuint32) (XDR *__xdrs, xdr_uint32_t *__ip);
-	/* put a int to " */
+        bool_t (*x_getbytes) (XDR *__xdrs, char *__addr, unsigned int __len);
+        /* get some bytes from " */
+        bool_t (*x_putbytes) (XDR *__xdrs, char *__addr, unsigned int __len);
+        /* put some bytes to " */
+        unsigned int (*x_getpostn) (XDR *__xdrs);
+        /* returns bytes off from beginning */
+        bool_t (*x_setpostn) (XDR *__xdrs, unsigned int __pos);
+        /* lets you reposition the stream */
+        xdr_int32_t *(*x_inline) (XDR *__xdrs, int __len);
+        /* buf quick ptr to buffered data */
+        void (*x_destroy) (XDR *__xdrs);
+        /* free privates of this xdr_stream */
+        bool_t (*x_getint32) (XDR *__xdrs, xdr_int32_t *__ip);
+        /* get a int from underlying stream */
+        bool_t (*x_putint32) (XDR *__xdrs, xdr_int32_t *__ip);
+        /* put a int to " */
+        bool_t (*x_getuint32) (XDR *__xdrs, xdr_uint32_t *__ip);
+        /* get a unsigned int from underlying stream */
+        bool_t (*x_putuint32) (XDR *__xdrs, xdr_uint32_t *__ip);
+        /* put a int to " */
 };
 
 /*
@@ -177,26 +177,26 @@ typedef bool_t (*xdrproc_t) (XDR *, void *,...);
 #define xdr_putuint32(xdrs, uint32p)                      \
         (*(xdrs)->x_ops->x_putuint32)(xdrs, uint32p)
 
-#define xdr_getbytes(xdrs, addr, len)			\
-	(*(xdrs)->x_ops->x_getbytes)(xdrs, addr, len)
+#define xdr_getbytes(xdrs, addr, len)                        \
+        (*(xdrs)->x_ops->x_getbytes)(xdrs, addr, len)
 
-#define xdr_putbytes(xdrs, addr, len)			\
-	(*(xdrs)->x_ops->x_putbytes)(xdrs, addr, len)
+#define xdr_putbytes(xdrs, addr, len)                        \
+        (*(xdrs)->x_ops->x_putbytes)(xdrs, addr, len)
 
-#define xdr_getpos(xdrs)				\
-	(*(xdrs)->x_ops->x_getpostn)(xdrs)
+#define xdr_getpos(xdrs)                                \
+        (*(xdrs)->x_ops->x_getpostn)(xdrs)
 
-#define xdr_setpos(xdrs, pos)				\
-	(*(xdrs)->x_ops->x_setpostn)(xdrs, pos)
+#define xdr_setpos(xdrs, pos)                                \
+        (*(xdrs)->x_ops->x_setpostn)(xdrs, pos)
 
-#define	xdr_inline(xdrs, len)				\
-	(*(xdrs)->x_ops->x_inline)(xdrs, len)
+#define        xdr_inline(xdrs, len)                                \
+        (*(xdrs)->x_ops->x_inline)(xdrs, len)
 
-#define	xdr_destroy(xdrs)					\
-	do {							\
-		if ((xdrs)->x_ops->x_destroy)			\
-			(*(xdrs)->x_ops->x_destroy)(xdrs);	\
-	} while (0)
+#define        xdr_destroy(xdrs)                                        \
+        do {                                                        \
+                if ((xdrs)->x_ops->x_destroy)                        \
+                        (*(xdrs)->x_ops->x_destroy)(xdrs);        \
+        } while (0)
 
 
 extern bool_t xdr_int (XDR *__xdrs, int *__ip);
@@ -209,7 +209,7 @@ extern bool_t xdr_string (XDR *__xdrs, char **__cpp, unsigned int __maxsize);
 extern bool_t xdr_char (XDR *__xdrs, char *__cp);
 extern bool_t xdr_u_char (XDR *__xdrs, unsigned char *__cp);
 extern bool_t xdr_vector (XDR *__xdrs, char *__basep, unsigned int __nelem,
-			  unsigned int __elemsize, xdrproc_t __xdr_elem);
+                          unsigned int __elemsize, xdrproc_t __xdr_elem);
 extern bool_t xdr_float (XDR *__xdrs, float *__fp);
 extern bool_t xdr_double (XDR *__xdrs, double *__dp);
 extern void xdrstdio_create (XDR *__xdrs, FILE *__file, enum xdr_op __xop);
@@ -223,4 +223,3 @@ extern void xdr_free (xdrproc_t __proc, char *__objp);
 
 
 #endif /* XDR_COMPAT_H */
-

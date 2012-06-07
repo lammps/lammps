@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -51,13 +51,13 @@ void PairHybridOverlay::coeff(int narg, char **arg)
     multflag = 0;
     if (strcmp(arg[2],keywords[m]) == 0) {
       if (multiple[m]) {
-	multflag = 1;
-	if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-	if (!isdigit(arg[3][0]))
-	  error->all(FLERR,"Incorrect args for pair coefficients");
-	int index = atoi(arg[3]);
-	if (index == multiple[m]) break;
-	else continue;
+        multflag = 1;
+        if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+        if (!isdigit(arg[3][0]))
+          error->all(FLERR,"Incorrect args for pair coefficients");
+        int index = atoi(arg[3]);
+        if (index == multiple[m]) break;
+        else continue;
       } else break;
     }
   }
@@ -89,16 +89,16 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       if (none) {
-	setflag[i][j] = 1;
-	nmap[i][j] = 0;
-	count++;
+        setflag[i][j] = 1;
+        nmap[i][j] = 0;
+        count++;
       } else if (styles[m]->setflag[i][j]) {
-	int k;
-	for (k = 0; k < nmap[i][j]; k++)
-	  if (map[i][j][k] == m) break;
-	if (k == nmap[i][j]) map[i][j][nmap[i][j]++] = m;
-	setflag[i][j] = 1;
-	count++;
+        int k;
+        for (k = 0; k < nmap[i][j]; k++)
+          if (map[i][j][k] == m) break;
+        if (k == nmap[i][j]) map[i][j][nmap[i][j]++] = m;
+        setflag[i][j] = 1;
+        count++;
       }
     }
   }
@@ -129,9 +129,9 @@ void PairHybridOverlay::modify_requests()
       if (!neighbor->requests[j]->pair) continue;
       jrq = neighbor->requests[j];
       if (irq->same_kind(jrq) && irq->same_skip(jrq)) {
-	irq->copy = 1;
-	irq->otherlist = j;
-	break;
+        irq->copy = 1;
+        irq->otherlist = j;
+        break;
       }
     }
   }

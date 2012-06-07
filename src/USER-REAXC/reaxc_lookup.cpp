@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -38,20 +38,20 @@
 LR_lookup_table **LR;
 
 /* Fills solution into x. Warning: will modify c and d! */
-void Tridiagonal_Solve( const real *a, const real *b, 
-			real *c, real *d, real *x, unsigned int n){
+void Tridiagonal_Solve( const real *a, const real *b,
+                        real *c, real *d, real *x, unsigned int n){
   int i;
   real id;
- 
+
   /* Modify the coefficients. */
-  c[0] /= b[0];	/* Division by zero risk. */
-  d[0] /= b[0];	/* Division by zero would imply a singular matrix. */
+  c[0] /= b[0];        /* Division by zero risk. */
+  d[0] /= b[0];        /* Division by zero would imply a singular matrix. */
   for(i = 1; i < n; i++){
     id = (b[i] - c[i-1] * a[i]);  /* Division by zero risk. */
-    c[i] /= id;	        /* Last value calculated is redundant. */
+    c[i] /= id;                /* Last value calculated is redundant. */
     d[i] = (d[i] - d[i-1] * a[i])/id;
   }
-  
+
   /* Now back substitute. */
   x[n - 1] = d[n - 1];
   for(i = n - 2; i >= 0; i--)
@@ -59,9 +59,9 @@ void Tridiagonal_Solve( const real *a, const real *b,
 }
 
 
-void Natural_Cubic_Spline( const real *h, const real *f, 
-			   cubic_spline_coef *coef, unsigned int n, 
-			   MPI_Comm comm )
+void Natural_Cubic_Spline( const real *h, const real *f,
+                           cubic_spline_coef *coef, unsigned int n,
+                           MPI_Comm comm )
 {
   int i;
   real *a, *b, *c, *d, *v;
@@ -80,7 +80,7 @@ void Natural_Cubic_Spline( const real *h, const real *f,
 
   b[0] = b[n-1] = 0;
   for( i = 1; i < n-1; ++i )
-    b[i] = 2 * (h[i-1] + h[i]); 
+    b[i] = 2 * (h[i-1] + h[i]);
 
   c[0] = c[n-2] = c[n-1] = 0;
   for( i = 1; i < n-2; ++i )
@@ -89,11 +89,11 @@ void Natural_Cubic_Spline( const real *h, const real *f,
   d[0] = d[n-1] = 0;
   for( i = 1; i < n-1; ++i )
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
-  
+
   v[0] = 0;
   v[n-1] = 0;
   Tridiagonal_Solve( &(a[1]), &(b[1]), &(c[1]), &(d[1]), &(v[1]), n-2 );
-  
+
   for( i = 1; i < n; ++i ){
     coef[i-1].d = (v[i] - v[i-1]) / (6*h[i-1]);
     coef[i-1].c = v[i]/2;
@@ -111,8 +111,8 @@ void Natural_Cubic_Spline( const real *h, const real *f,
 
 
 void Complete_Cubic_Spline( const real *h, const real *f, real v0, real vlast,
-			    cubic_spline_coef *coef, unsigned int n, 
-			    MPI_Comm comm )
+                            cubic_spline_coef *coef, unsigned int n,
+                            MPI_Comm comm )
 {
   int i;
   real *a, *b, *c, *d, *v;
@@ -131,13 +131,13 @@ void Complete_Cubic_Spline( const real *h, const real *f, real v0, real vlast,
 
   b[0] = 2*h[0];
   for( i = 1; i < n; ++i )
-    b[i] = 2 * (h[i-1] + h[i]); 
+    b[i] = 2 * (h[i-1] + h[i]);
 
   c[n-1] = 0;
   for( i = 0; i < n-1; ++i )
     c[i] = h[i];
 
-  d[0] = 6 * (f[1]-f[0])/h[0] - 6 * v0;   
+  d[0] = 6 * (f[1]-f[0])/h[0] - 6 * v0;
   d[n-1] = 6 * vlast - 6 * (f[n-1]-f[n-2]/h[n-2]);
   for( i = 1; i < n-1; ++i )
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
@@ -169,12 +169,12 @@ void LR_Lookup( LR_lookup_table *t, real r, LR_data *y )
   base = (real)(i+1) * t->dx;
   dif = r - base;
 
-  y->e_vdW = ((t->vdW[i].d*dif + t->vdW[i].c)*dif + t->vdW[i].b)*dif + 
+  y->e_vdW = ((t->vdW[i].d*dif + t->vdW[i].c)*dif + t->vdW[i].b)*dif +
     t->vdW[i].a;
-  y->CEvd = ((t->CEvd[i].d*dif + t->CEvd[i].c)*dif + 
-	     t->CEvd[i].b)*dif + t->CEvd[i].a;
+  y->CEvd = ((t->CEvd[i].d*dif + t->CEvd[i].c)*dif +
+             t->CEvd[i].b)*dif + t->CEvd[i].a;
 
-  y->e_ele = ((t->ele[i].d*dif + t->ele[i].c)*dif + t->ele[i].b)*dif + 
+  y->e_ele = ((t->ele[i].d*dif + t->ele[i].c)*dif + t->ele[i].b)*dif +
     t->ele[i].a;
   y->CEclmb = ((t->CEclmb[i].d*dif + t->CEclmb[i].c)*dif + t->CEclmb[i].b)*dif +
     t->CEclmb[i].a;
@@ -183,8 +183,8 @@ void LR_Lookup( LR_lookup_table *t, real r, LR_data *y )
 }
 
 
-int Init_Lookup_Tables( reax_system *system, control_params *control, 
-			storage *workspace, mpi_datatypes *mpi_data, char *msg )
+int Init_Lookup_Tables( reax_system *system, control_params *control,
+                        storage *workspace, mpi_datatypes *mpi_data, char *msg )
 {
   int i, j, r;
   int num_atom_types;
@@ -203,25 +203,25 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
 
   num_atom_types = system->reax_param.num_atom_types;
   dr = control->nonb_cut / control->tabulate;
-  h = (real*) 
+  h = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:h", comm );
-  fh = (real*) 
+  fh = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fh", comm );
-  fvdw = (real*) 
+  fvdw = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fvdw", comm );
-  fCEvd = (real*) 
+  fCEvd = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fCEvd", comm );
-  fele = (real*) 
+  fele = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fele", comm );
-  fCEclmb = (real*) 
+  fCEclmb = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fCEclmb", comm );
-  
-  /* allocate Long-Range LookUp Table space based on 
+
+  /* allocate Long-Range LookUp Table space based on
      number of atom types in the ffield file */
-  LR = (LR_lookup_table**) 
+  LR = (LR_lookup_table**)
     scalloc( num_atom_types, sizeof(LR_lookup_table*), "lookup:LR", comm );
   for( i = 0; i < num_atom_types; ++i )
-    LR[i] = (LR_lookup_table*) 
+    LR[i] = (LR_lookup_table*)
       scalloc( num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]", comm );
 
   /* most atom types in ffield file will not exist in the current
@@ -232,8 +232,8 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
   for( i = 0; i < system->n; ++i )
     existing_types[ system->my_atoms[i].type ] = 1;
 
-  MPI_Allreduce( existing_types, aggregated, MAX_ATOM_TYPES, 
-		 MPI_INT, MPI_SUM, mpi_data->world );
+  MPI_Allreduce( existing_types, aggregated, MAX_ATOM_TYPES,
+                 MPI_INT, MPI_SUM, mpi_data->world );
 
   /* fill in the lookup table entries for existing atom types.
      only lower half should be enough. */
@@ -241,75 +241,75 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
     if( aggregated[i] )
       //for( j = 0; j < num_atom_types; ++j )
       for( j = i; j < num_atom_types; ++j )
-	if( aggregated[j] ) {
-	  LR[i][j].xmin = 0;
-	  LR[i][j].xmax = control->nonb_cut;
-	  LR[i][j].n = control->tabulate + 2;
-	  LR[i][j].dx = dr;
-	  LR[i][j].inv_dx = control->tabulate / control->nonb_cut;
-	  LR[i][j].y = (LR_data*) 
-	    smalloc( LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", comm );
-	  LR[i][j].H = (cubic_spline_coef*) 
-	    smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" , 
-		     comm );
-	  LR[i][j].vdW = (cubic_spline_coef*) 
-	    smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
-		     comm);
-	  LR[i][j].CEvd = (cubic_spline_coef*) 
-	    smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
-		     comm);
-	  LR[i][j].ele = (cubic_spline_coef*) 
-	    smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele", 
-		     comm );
-	  LR[i][j].CEclmb = (cubic_spline_coef*) 
-	    smalloc( LR[i][j].n*sizeof(cubic_spline_coef), 
-		     "lookup:LR[i,j].CEclmb", comm );
-	  
-	  for( r = 1; r <= control->tabulate; ++r ) {
-	    LR_vdW_Coulomb( system, workspace, control, i, j, r * dr, &(LR[i][j].y[r]) );
-	    h[r] = LR[i][j].dx;
-	    fh[r] = LR[i][j].y[r].H;
-	    fvdw[r] = LR[i][j].y[r].e_vdW;
-	    fCEvd[r] = LR[i][j].y[r].CEvd;
-	    fele[r] = LR[i][j].y[r].e_ele;
-	    fCEclmb[r] = LR[i][j].y[r].CEclmb;
-	  }
+        if( aggregated[j] ) {
+          LR[i][j].xmin = 0;
+          LR[i][j].xmax = control->nonb_cut;
+          LR[i][j].n = control->tabulate + 2;
+          LR[i][j].dx = dr;
+          LR[i][j].inv_dx = control->tabulate / control->nonb_cut;
+          LR[i][j].y = (LR_data*)
+            smalloc( LR[i][j].n * sizeof(LR_data), "lookup:LR[i,j].y", comm );
+          LR[i][j].H = (cubic_spline_coef*)
+            smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].H" ,
+                     comm );
+          LR[i][j].vdW = (cubic_spline_coef*)
+            smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].vdW",
+                     comm);
+          LR[i][j].CEvd = (cubic_spline_coef*)
+            smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].CEvd",
+                     comm);
+          LR[i][j].ele = (cubic_spline_coef*)
+            smalloc( LR[i][j].n*sizeof(cubic_spline_coef),"lookup:LR[i,j].ele",
+                     comm );
+          LR[i][j].CEclmb = (cubic_spline_coef*)
+            smalloc( LR[i][j].n*sizeof(cubic_spline_coef),
+                     "lookup:LR[i,j].CEclmb", comm );
 
-	  // init the start-end points
-	  h[r] = LR[i][j].dx;
-	  v0_vdw = LR[i][j].y[1].CEvd;
-	  v0_ele = LR[i][j].y[1].CEclmb;
-	  fh[r] = fh[r-1];
-	  fvdw[r] = fvdw[r-1];
-	  fCEvd[r] = fCEvd[r-1];
-	  fele[r] = fele[r-1];
-	  fCEclmb[r] = fCEclmb[r-1];
-	  vlast_vdw = fCEvd[r-1];
-	  vlast_ele = fele[r-1];
-	  
-	  Natural_Cubic_Spline( &h[1], &fh[1], 
-				&(LR[i][j].H[1]), control->tabulate+1, comm );
+          for( r = 1; r <= control->tabulate; ++r ) {
+            LR_vdW_Coulomb( system, workspace, control, i, j, r * dr, &(LR[i][j].y[r]) );
+            h[r] = LR[i][j].dx;
+            fh[r] = LR[i][j].y[r].H;
+            fvdw[r] = LR[i][j].y[r].e_vdW;
+            fCEvd[r] = LR[i][j].y[r].CEvd;
+            fele[r] = LR[i][j].y[r].e_ele;
+            fCEclmb[r] = LR[i][j].y[r].CEclmb;
+          }
 
-	  Complete_Cubic_Spline( &h[1], &fvdw[1], v0_vdw, vlast_vdw, 
-				 &(LR[i][j].vdW[1]), control->tabulate+1, 
-				 comm );
+          // init the start-end points
+          h[r] = LR[i][j].dx;
+          v0_vdw = LR[i][j].y[1].CEvd;
+          v0_ele = LR[i][j].y[1].CEclmb;
+          fh[r] = fh[r-1];
+          fvdw[r] = fvdw[r-1];
+          fCEvd[r] = fCEvd[r-1];
+          fele[r] = fele[r-1];
+          fCEclmb[r] = fCEclmb[r-1];
+          vlast_vdw = fCEvd[r-1];
+          vlast_ele = fele[r-1];
 
-	  Natural_Cubic_Spline( &h[1], &fCEvd[1], 
-				&(LR[i][j].CEvd[1]), control->tabulate+1, 
-				comm );
+          Natural_Cubic_Spline( &h[1], &fh[1],
+                                &(LR[i][j].H[1]), control->tabulate+1, comm );
 
-	  Complete_Cubic_Spline( &h[1], &fele[1], v0_ele, vlast_ele, 
-				 &(LR[i][j].ele[1]), control->tabulate+1, 
-				 comm );
+          Complete_Cubic_Spline( &h[1], &fvdw[1], v0_vdw, vlast_vdw,
+                                 &(LR[i][j].vdW[1]), control->tabulate+1,
+                                 comm );
 
-	  Natural_Cubic_Spline( &h[1], &fCEclmb[1], 
-				&(LR[i][j].CEclmb[1]), control->tabulate+1, 
-				comm );
-	}
-	else{
-	  LR[i][j].n = 0;
-	}
-  
+          Natural_Cubic_Spline( &h[1], &fCEvd[1],
+                                &(LR[i][j].CEvd[1]), control->tabulate+1,
+                                comm );
+
+          Complete_Cubic_Spline( &h[1], &fele[1], v0_ele, vlast_ele,
+                                 &(LR[i][j].ele[1]), control->tabulate+1,
+                                 comm );
+
+          Natural_Cubic_Spline( &h[1], &fCEclmb[1],
+                                &(LR[i][j].CEclmb[1]), control->tabulate+1,
+                                comm );
+        }
+        else{
+          LR[i][j].n = 0;
+        }
+
   free(h);
   free(fh);
   free(fvdw);
@@ -331,12 +331,12 @@ void Deallocate_Lookup_Tables( reax_system *system )
   for( i = 0; i < ntypes; ++i ) {
     for( j = i; j < ntypes; ++j )
       if( LR[i][j].n ) {
-	sfree( LR[i][j].y, "LR[i,j].y" );
-	sfree( LR[i][j].H, "LR[i,j].H" );
-	sfree( LR[i][j].vdW, "LR[i,j].vdW" );
-	sfree( LR[i][j].CEvd, "LR[i,j].CEvd" );
-	sfree( LR[i][j].ele, "LR[i,j].ele" );
-	sfree( LR[i][j].CEclmb, "LR[i,j].CEclmb" );
+        sfree( LR[i][j].y, "LR[i,j].y" );
+        sfree( LR[i][j].H, "LR[i,j].H" );
+        sfree( LR[i][j].vdW, "LR[i,j].vdW" );
+        sfree( LR[i][j].CEvd, "LR[i,j].CEvd" );
+        sfree( LR[i][j].ele, "LR[i,j].ele" );
+        sfree( LR[i][j].CEclmb, "LR[i,j].CEclmb" );
       }
     sfree( LR[i], "LR[i]" );
   }

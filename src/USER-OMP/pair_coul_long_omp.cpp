@@ -65,11 +65,11 @@ void PairCoulLongOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -133,54 +133,54 @@ void PairCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cut_coulsq) {
-	r2inv = 1.0/rsq;
-	if (!ncoultablebits || rsq <= tabinnersq) {
-	  r = sqrt(rsq);
-	  grij = g_ewald * r;
-	  expm2 = exp(-grij*grij);
-	  t = 1.0 / (1.0 + EWALD_P*grij);
-	  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	  prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
-	  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else {
-	  union_int_float_t rsq_lookup;
-	  rsq_lookup.f = rsq;
-	  itable = rsq_lookup.i & ncoulmask;
-	  itable >>= ncoulshiftbits;
-	  fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-	  table = ftable[itable] + fraction*dftable[itable];
-	  forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
-	  if (factor_coul < 1.0) {
-	    table = ctable[itable] + fraction*dctable[itable];
-	    prefactor = scale[itype][jtype] * qtmp*q[j] * table;
-	    forcecoul -= (1.0-factor_coul)*prefactor;
-	  }
-	}
+        r2inv = 1.0/rsq;
+        if (!ncoultablebits || rsq <= tabinnersq) {
+          r = sqrt(rsq);
+          grij = g_ewald * r;
+          expm2 = exp(-grij*grij);
+          t = 1.0 / (1.0 + EWALD_P*grij);
+          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        } else {
+          union_int_float_t rsq_lookup;
+          rsq_lookup.f = rsq;
+          itable = rsq_lookup.i & ncoulmask;
+          itable >>= ncoulshiftbits;
+          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          table = ftable[itable] + fraction*dftable[itable];
+          forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
+          if (factor_coul < 1.0) {
+            table = ctable[itable] + fraction*dctable[itable];
+            prefactor = scale[itype][jtype] * qtmp*q[j] * table;
+            forcecoul -= (1.0-factor_coul)*prefactor;
+          }
+        }
 
-	fpair = forcecoul * r2inv;
+        fpair = forcecoul * r2inv;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EFLAG) {
-	  if (!ncoultablebits || rsq <= tabinnersq)
-	    ecoul = prefactor*erfc;
-	  else {
-	    table = etable[itable] + fraction*detable[itable];
-	    ecoul = scale[itype][jtype] * qtmp*q[j] * table;
-	  }
-	  if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	}
+        if (EFLAG) {
+          if (!ncoultablebits || rsq <= tabinnersq)
+            ecoul = prefactor*erfc;
+          else {
+            table = etable[itable] + fraction*detable[itable];
+            ecoul = scale[itype][jtype] * qtmp*q[j] * table;
+          }
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+        }
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 0.0,ecoul,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 0.0,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

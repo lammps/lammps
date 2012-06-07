@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -88,46 +88,46 @@ void FixNVELimit::initial_integrate(int vflag)
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtf / rmass[i];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
 
-	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (vsq > vlimitsq) {
-	  ncount++;
-	  scale = sqrt(vlimitsq/vsq);
-	  v[i][0] *= scale;
-	  v[i][1] *= scale;
-	  v[i][2] *= scale;
-	}
+        vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+        if (vsq > vlimitsq) {
+          ncount++;
+          scale = sqrt(vlimitsq/vsq);
+          v[i][0] *= scale;
+          v[i][1] *= scale;
+          v[i][2] *= scale;
+        }
 
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
       }
     }
 
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
 
-	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (vsq > vlimitsq) {
-	  ncount++;
-	  scale = sqrt(vlimitsq/vsq);
-	  v[i][0] *= scale;
-	  v[i][1] *= scale;
-	  v[i][2] *= scale;
-	}
+        vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+        if (vsq > vlimitsq) {
+          ncount++;
+          scale = sqrt(vlimitsq/vsq);
+          v[i][0] *= scale;
+          v[i][1] *= scale;
+          v[i][2] *= scale;
+        }
 
-	x[i][0] += dtv * v[i][0];
-	x[i][1] += dtv * v[i][1];
-	x[i][2] += dtv * v[i][2];
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
       }
     }
   }
@@ -151,38 +151,38 @@ void FixNVELimit::final_integrate()
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / rmass[i];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtf / rmass[i];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
 
-	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (vsq > vlimitsq) {
-	  ncount++;
-	  scale = sqrt(vlimitsq/vsq);
-	  v[i][0] *= scale;
-	  v[i][1] *= scale;
-	  v[i][2] *= scale;
-	}
+        vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+        if (vsq > vlimitsq) {
+          ncount++;
+          scale = sqrt(vlimitsq/vsq);
+          v[i][0] *= scale;
+          v[i][1] *= scale;
+          v[i][2] *= scale;
+        }
       }
     }
 
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	dtfm = dtf / mass[type[i]];
-	v[i][0] += dtfm * f[i][0];
-	v[i][1] += dtfm * f[i][1];
-	v[i][2] += dtfm * f[i][2];
+        dtfm = dtf / mass[type[i]];
+        v[i][0] += dtfm * f[i][0];
+        v[i][1] += dtfm * f[i][1];
+        v[i][2] += dtfm * f[i][2];
 
-	vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-	if (vsq > vlimitsq) {
-	  ncount++;
-	  scale = sqrt(vlimitsq/vsq);
-	  v[i][0] *= scale;
-	  v[i][1] *= scale;
-	  v[i][2] *= scale;
-	}
+        vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+        if (vsq > vlimitsq) {
+          ncount++;
+          scale = sqrt(vlimitsq/vsq);
+          v[i][0] *= scale;
+          v[i][1] *= scale;
+          v[i][2] *= scale;
+        }
       }
     }
   }

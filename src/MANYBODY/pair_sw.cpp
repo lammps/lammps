@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -118,13 +118,13 @@ void PairSW::compute(int eflag, int vflag)
       jtag = tag[j];
 
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       jtype = map[type[j]];
@@ -147,7 +147,7 @@ void PairSW::compute(int eflag, int vflag)
       f[j][2] -= delz*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
 
     jnumm1 = jnum - 1;
@@ -164,32 +164,32 @@ void PairSW::compute(int eflag, int vflag)
       if (rsq1 > params[ijparam].cutsq) continue;
 
       for (kk = jj+1; kk < jnum; kk++) {
-	k = jlist[kk];
-	k &= NEIGHMASK;
-	ktype = map[type[k]];
-	ikparam = elem2param[itype][ktype][ktype];
-	ijkparam = elem2param[itype][jtype][ktype];
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        ikparam = elem2param[itype][ktype][ktype];
+        ijkparam = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[ikparam].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if (rsq2 > params[ikparam].cutsq) continue;
 
-	threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-		  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
+                  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
-	f[i][0] -= fj[0] + fk[0];
-	f[i][1] -= fj[1] + fk[1];
-	f[i][2] -= fj[2] + fk[2];
-	f[j][0] += fj[0];
-	f[j][1] += fj[1];
-	f[j][2] += fj[2];
-	f[k][0] += fk[0];
-	f[k][1] += fk[1];
-	f[k][2] += fk[2];
+        f[i][0] -= fj[0] + fk[0];
+        f[i][1] -= fj[1] + fk[1];
+        f[i][2] -= fj[2] + fk[2];
+        f[j][0] += fj[0];
+        f[j][1] += fj[1];
+        f[j][2] += fj[2];
+        f[k][0] += fk[0];
+        f[k][1] += fk[1];
+        f[k][2] += fk[2];
 
-	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
   }
@@ -211,7 +211,7 @@ void PairSW::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairSW::settings(int narg, char **arg)
@@ -267,7 +267,7 @@ void PairSW::coeff(int narg, char **arg)
   }
 
   // read potential file and initialize potential parameters
-  
+
   read_file(arg[2]);
   setup();
 
@@ -284,8 +284,8 @@ void PairSW::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	count++;
+        setflag[i][j] = 1;
+        count++;
       }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -355,8 +355,8 @@ void PairSW::read_file(char *file)
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
-	eof = 1;
-	fclose(fp);
+        eof = 1;
+        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -377,8 +377,8 @@ void PairSW::read_file(char *file)
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == NULL) {
-	  eof = 1;
-	  fclose(fp);
+          eof = 1;
+          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -417,7 +417,7 @@ void PairSW::read_file(char *file)
     if (nparams == maxparam) {
       maxparam += DELTA;
       params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					  "pair:params");
+                                          "pair:params");
     }
 
     params[nparams].ielement = ielement;
@@ -435,11 +435,11 @@ void PairSW::read_file(char *file)
     params[nparams].powerq = atof(words[12]);
     params[nparams].tol = atof(words[13]);
 
-    if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 || 
-	params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
-	params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 || 
-	params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
-	params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
+    if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
+        params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
+        params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||
+        params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
+        params[nparams].powerq < 0.0 || params[nparams].tol < 0.0)
       error->all(FLERR,"Illegal Stillinger-Weber parameter");
 
     nparams++;
@@ -465,16 +465,16 @@ void PairSW::setup()
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
-	n = -1;
-	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement && 
-	      k == params[m].kelement) {
-	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	    n = m;
-	  }
-	}
-	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-	elem2param[i][j][k] = n;
+        n = -1;
+        for (m = 0; m < nparams; m++) {
+          if (i == params[m].ielement && j == params[m].jelement &&
+              k == params[m].kelement) {
+            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            n = m;
+          }
+        }
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        elem2param[i][j][k] = n;
       }
 
 
@@ -482,7 +482,7 @@ void PairSW::setup()
 
   // set cutsq using shortcut to reduce neighbor list for accelerated
   // calculations. cut must remain unchanged as it is a potential parameter
-  // (cut = a*sigma) 
+  // (cut = a*sigma)
 
   for (m = 0; m < nparams; m++) {
     params[m].cut = params[m].sigma*params[m].littlea;
@@ -493,24 +493,24 @@ void PairSW::setup()
       if (params[m].gamma < 1.0)
         rtmp = rtmp +
           params[m].gamma * params[m].sigma / log(params[m].tol);
-      else rtmp = rtmp +  
-	     params[m].sigma / log(params[m].tol);
+      else rtmp = rtmp +
+             params[m].sigma / log(params[m].tol);
     }
     params[m].cutsq = rtmp * rtmp;
 
     params[m].sigma_gamma = params[m].sigma*params[m].gamma;
     params[m].lambda_epsilon = params[m].lambda*params[m].epsilon;
     params[m].lambda_epsilon2 = 2.0*params[m].lambda*params[m].epsilon;
-    params[m].c1 = params[m].biga*params[m].epsilon * 
-      params[m].powerp*params[m].bigb * 
+    params[m].c1 = params[m].biga*params[m].epsilon *
+      params[m].powerp*params[m].bigb *
       pow(params[m].sigma,params[m].powerp);
-    params[m].c2 = params[m].biga*params[m].epsilon*params[m].powerq * 
+    params[m].c2 = params[m].biga*params[m].epsilon*params[m].powerq *
       pow(params[m].sigma,params[m].powerq);
-    params[m].c3 = params[m].biga*params[m].epsilon*params[m].bigb * 
+    params[m].c3 = params[m].biga*params[m].epsilon*params[m].bigb *
       pow(params[m].sigma,params[m].powerp+1.0);
-    params[m].c4 = params[m].biga*params[m].epsilon * 
+    params[m].c4 = params[m].biga*params[m].epsilon *
       pow(params[m].sigma,params[m].powerq+1.0);
-    params[m].c5 = params[m].biga*params[m].epsilon*params[m].bigb * 
+    params[m].c5 = params[m].biga*params[m].epsilon*params[m].bigb *
       pow(params[m].sigma,params[m].powerp);
     params[m].c6 = params[m].biga*params[m].epsilon *
       pow(params[m].sigma,params[m].powerq);
@@ -523,12 +523,12 @@ void PairSW::setup()
     rtmp = sqrt(params[m].cutsq);
     if (rtmp > cutmax) cutmax = rtmp;
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
 void PairSW::twobody(Param *param, double rsq, double &fforce,
-		     int eflag, double &eng)
+                     int eflag, double &eng)
 {
   double r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
@@ -537,19 +537,19 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
   rp = pow(r,-param->powerp);
   rq = pow(r,-param->powerq);
   rainv = 1.0 / (r - param->cut);
-  rainvsq = rainv*rainv*r; 
+  rainvsq = rainv*rainv*r;
   expsrainv = exp(param->sigma * rainv);
   fforce = (param->c1*rp - param->c2*rq +
-	    (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
+            (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
   if (eflag) eng = (param->c5*rp - param->c6*rq) * expsrainv;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
-		       double rsq1, double rsq2,
-		       double *delr1, double *delr2,
-		       double *fj, double *fk, int eflag, double &eng)
+                       double rsq1, double rsq2,
+                       double *delr1, double *delr2,
+                       double *fj, double *fk, int eflag, double &eng)
 {
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
@@ -560,14 +560,14 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   rinvsq1 = 1.0/rsq1;
   rainv1 = 1.0/(r1 - paramij->cut);
   gsrainv1 = paramij->sigma_gamma * rainv1;
-  gsrainvsq1 = gsrainv1*rainv1/r1; 
+  gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = exp(gsrainv1);
 
   r2 = sqrt(rsq2);
   rinvsq2 = 1.0/rsq2;
   rainv2 = 1.0/(r2 - paramik->cut);
   gsrainv2 = paramik->sigma_gamma * rainv2;
-  gsrainvsq2 = gsrainv2*rainv2/r2; 
+  gsrainvsq2 = gsrainv2*rainv2/r2;
   expgsrainv2 = exp(gsrainv2);
 
   rinv12 = 1.0/(r1*r2);
@@ -587,11 +587,11 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;
-  
+
   fj[0] = delr1[0]*(frad1+csfac1)-delr2[0]*facang12;
   fj[1] = delr1[1]*(frad1+csfac1)-delr2[1]*facang12;
   fj[2] = delr1[2]*(frad1+csfac1)-delr2[2]*facang12;
-  
+
   csfac2 = rinvsq2*csfacang;
 
   fk[0] = delr2[0]*(frad2+csfac2)-delr1[0]*facang12;
@@ -600,4 +600,3 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
 
   if (eflag) eng = facrad;
 }
-

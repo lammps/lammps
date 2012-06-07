@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -38,24 +38,24 @@
 // External functions from cuda library for atom decomposition
 
 int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-		  double **host_buck1, double **host_buck2, 
-		  double **host_a, double **host_c,       
-		  double **offset, double *special_lj, const int inum,
-		  const int nall, const int max_nbors,  const int maxspecial,
-		  const double cell_size, int &gpu_mode, FILE *screen);
+                  double **host_buck1, double **host_buck2,
+                  double **host_a, double **host_c,
+                  double **offset, double *special_lj, const int inum,
+                  const int nall, const int max_nbors,  const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen);
 void buck_gpu_clear();
 int ** buck_gpu_compute_n(const int ago, const int inum_full, const int nall,
-			  double **host_x, int *host_type, double *sublo,
-			  double *subhi, int *tag, int **nspecial,
-			  int **special, const bool eflag, const bool vflag,
-			  const bool eatom, const bool vatom, int &host_start,
-			  int **ilist, int **jnum, const double cpu_time,
-			  bool &success);
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, int *tag, int **nspecial,
+                          int **special, const bool eflag, const bool vflag,
+                          const bool eatom, const bool vatom, int &host_start,
+                          int **ilist, int **jnum, const double cpu_time,
+                          bool &success);
 void buck_gpu_compute(const int ago, const int inum_full, const int nall,
-		      double **host_x, int *host_type, int *ilist, int *numj,
-		      int **firstneigh, const bool eflag, const bool vflag,
-		      const bool eatom, const bool vatom, int &host_start,
-		      const double cpu_time, bool &success);
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success);
 double buck_gpu_bytes();
 
 using namespace LAMMPS_NS;
@@ -66,7 +66,7 @@ PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -84,28 +84,28 @@ void PairBuckGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = buck_gpu_compute_n(neighbor->ago, inum, nall,
-				    atom->x, atom->type, domain->sublo,
-				    domain->subhi, atom->tag, atom->nspecial,
-				    atom->special, eflag, vflag, eflag_atom,
-				    vflag_atom, host_start, 
-				    &ilist, &numneigh, cpu_time, success);
+                                    atom->x, atom->type, domain->sublo,
+                                    domain->subhi, atom->tag, atom->nspecial,
+                                    atom->special, eflag, vflag, eflag_atom,
+                                    vflag_atom, host_start,
+                                    &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     buck_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-		     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-		     vflag_atom, host_start, cpu_time, success);
+                     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
+                     vflag_atom, host_start, cpu_time, success);
   }
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -123,7 +123,7 @@ void PairBuckGPU::compute(int eflag, int vflag)
 
 void PairBuckGPU::init_style()
 {
-  if (force->newton_pair) 
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with buck/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
@@ -146,10 +146,10 @@ void PairBuckGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = buck_gpu_init(atom->ntypes+1, cutsq, rhoinv, buck1, buck2, 
-			      a, c, offset, force->special_lj, atom->nlocal,
-			      atom->nlocal+atom->nghost, 300, maxspecial,
-			      cell_size, gpu_mode, screen);
+  int success = buck_gpu_init(atom->ntypes+1, cutsq, rhoinv, buck1, buck2,
+                              a, c, offset, force->special_lj, atom->nlocal,
+                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {
@@ -169,8 +169,8 @@ double PairBuckGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int vflag, 
-			       int *ilist, int *numneigh, int **firstneigh) {
+void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int vflag,
+                               int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcebuck,factor_lj;
@@ -205,24 +205,24 @@ void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int vflag,
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	r = sqrt(rsq);
-	rexp = exp(-r*rhoinv[itype][jtype]);
-	forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-	fpair = factor_lj*forcebuck*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        r = sqrt(rsq);
+        rexp = exp(-r*rhoinv[itype][jtype]);
+        forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
+        fpair = factor_lj*forcebuck*r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
 
-	if (eflag) {
-	  evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }

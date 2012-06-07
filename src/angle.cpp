@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -77,7 +77,7 @@ void Angle::ev_setup(int eflag, int vflag)
   vflag_either = vflag;
   vflag_global = vflag % 4;
   vflag_atom = vflag / 4;
-  
+
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {
@@ -120,9 +120,9 @@ void Angle::ev_setup(int eflag, int vflag)
 ------------------------------------------------------------------------- */
 
 void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
-		     double eangle, double *f1, double *f3,
-		     double delx1, double dely1, double delz1,
-		     double delx2, double dely2, double delz2)
+                     double eangle, double *f1, double *f3,
+                     double delx1, double dely1, double delz1,
+                     double delx2, double dely2, double delz2)
 {
   double eanglethird,v[6];
 
@@ -130,10 +130,10 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
     if (eflag_global) {
       if (newton_bond) energy += eangle;
       else {
-	eanglethird = THIRD*eangle;
-	if (i < nlocal) energy += eanglethird;
-	if (j < nlocal) energy += eanglethird;
-	if (k < nlocal) energy += eanglethird;
+        eanglethird = THIRD*eangle;
+        if (i < nlocal) energy += eanglethird;
+        if (j < nlocal) energy += eanglethird;
+        if (k < nlocal) energy += eanglethird;
       }
     }
     if (eflag_atom) {
@@ -154,64 +154,64 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
 
     if (vflag_global) {
       if (newton_bond) {
-	virial[0] += v[0];
-	virial[1] += v[1];
-	virial[2] += v[2];
-	virial[3] += v[3];
-	virial[4] += v[4];
-	virial[5] += v[5];
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
       } else {
-	if (i < nlocal) {
-	  virial[0] += THIRD*v[0];
-	  virial[1] += THIRD*v[1];
-	  virial[2] += THIRD*v[2];
-	  virial[3] += THIRD*v[3];
-	  virial[4] += THIRD*v[4];
-	  virial[5] += THIRD*v[5];
-	}
-	if (j < nlocal) {
-	  virial[0] += THIRD*v[0];
-	  virial[1] += THIRD*v[1];
-	  virial[2] += THIRD*v[2];
-	  virial[3] += THIRD*v[3];
-	  virial[4] += THIRD*v[4];
-	  virial[5] += THIRD*v[5];
-	}
-	if (k < nlocal) {
-	  virial[0] += THIRD*v[0];
-	  virial[1] += THIRD*v[1];
-	  virial[2] += THIRD*v[2];
-	  virial[3] += THIRD*v[3];
-	  virial[4] += THIRD*v[4];
-	  virial[5] += THIRD*v[5];
-	}
+        if (i < nlocal) {
+          virial[0] += THIRD*v[0];
+          virial[1] += THIRD*v[1];
+          virial[2] += THIRD*v[2];
+          virial[3] += THIRD*v[3];
+          virial[4] += THIRD*v[4];
+          virial[5] += THIRD*v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += THIRD*v[0];
+          virial[1] += THIRD*v[1];
+          virial[2] += THIRD*v[2];
+          virial[3] += THIRD*v[3];
+          virial[4] += THIRD*v[4];
+          virial[5] += THIRD*v[5];
+        }
+        if (k < nlocal) {
+          virial[0] += THIRD*v[0];
+          virial[1] += THIRD*v[1];
+          virial[2] += THIRD*v[2];
+          virial[3] += THIRD*v[3];
+          virial[4] += THIRD*v[4];
+          virial[5] += THIRD*v[5];
+        }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-	vatom[i][0] += THIRD*v[0];
-	vatom[i][1] += THIRD*v[1];
-	vatom[i][2] += THIRD*v[2];
-	vatom[i][3] += THIRD*v[3];
-	vatom[i][4] += THIRD*v[4];
-	vatom[i][5] += THIRD*v[5];
+        vatom[i][0] += THIRD*v[0];
+        vatom[i][1] += THIRD*v[1];
+        vatom[i][2] += THIRD*v[2];
+        vatom[i][3] += THIRD*v[3];
+        vatom[i][4] += THIRD*v[4];
+        vatom[i][5] += THIRD*v[5];
       }
       if (newton_bond || j < nlocal) {
-	vatom[j][0] += THIRD*v[0];
-	vatom[j][1] += THIRD*v[1];
-	vatom[j][2] += THIRD*v[2];
-	vatom[j][3] += THIRD*v[3];
-	vatom[j][4] += THIRD*v[4];
-	vatom[j][5] += THIRD*v[5];
+        vatom[j][0] += THIRD*v[0];
+        vatom[j][1] += THIRD*v[1];
+        vatom[j][2] += THIRD*v[2];
+        vatom[j][3] += THIRD*v[3];
+        vatom[j][4] += THIRD*v[4];
+        vatom[j][5] += THIRD*v[5];
       }
       if (newton_bond || k < nlocal) {
-	vatom[k][0] += THIRD*v[0];
-	vatom[k][1] += THIRD*v[1];
-	vatom[k][2] += THIRD*v[2];
-	vatom[k][3] += THIRD*v[3];
-	vatom[k][4] += THIRD*v[4];
-	vatom[k][5] += THIRD*v[5];
+        vatom[k][0] += THIRD*v[0];
+        vatom[k][1] += THIRD*v[1];
+        vatom[k][2] += THIRD*v[2];
+        vatom[k][3] += THIRD*v[3];
+        vatom[k][4] += THIRD*v[4];
+        vatom[k][5] += THIRD*v[5];
       }
     }
   }

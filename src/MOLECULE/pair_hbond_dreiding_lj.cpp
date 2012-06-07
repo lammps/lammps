@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -39,7 +39,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp) 
+PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
 {
   // hbond cannot compute virial as F dot r
   // due to using map() to find bonded H atoms which are not near donor atom
@@ -88,19 +88,19 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   evdwl = ehbond = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   int **special = atom->special;
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   double *special_lj = force->special_lj;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // ii = loop over donors
   // jj = loop over acceptors
   // kk = loop over hydrogens bonded to donor
@@ -115,7 +115,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
     knum = nspecial[i][0];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_hb = special_lj[sbmask(j)];
@@ -130,110 +130,110 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-	k = atom->map(klist[kk]);
-	if (k < 0) continue;
-	ktype = type[k];
-	m = type2param[itype][jtype][ktype];
-	if (m < 0) continue;
-	pm = &params[m];
+        k = atom->map(klist[kk]);
+        if (k < 0) continue;
+        ktype = type[k];
+        m = type2param[itype][jtype][ktype];
+        if (m < 0) continue;
+        pm = &params[m];
 
-	if (rsq < pm->cut_outersq) {
-	  delr1[0] = x[i][0] - x[k][0];
-	  delr1[1] = x[i][1] - x[k][1];
-	  delr1[2] = x[i][2] - x[k][2];
-	  domain->minimum_image(delr1);
-	  rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-	  r1 = sqrt(rsq1);
-	  
-	  delr2[0] = x[j][0] - x[k][0];
-	  delr2[1] = x[j][1] - x[k][1];
-	  delr2[2] = x[j][2] - x[k][2];
-	  domain->minimum_image(delr2);
-	  rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	  r2 = sqrt(rsq2);
-	  
-	  // angle (cos and sin)
-	  
-	  c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
-	  c /= r1*r2;
-	  if (c > 1.0) c = 1.0;
-	  if (c < -1.0) c = -1.0;
-	  ac = acos(c);
+        if (rsq < pm->cut_outersq) {
+          delr1[0] = x[i][0] - x[k][0];
+          delr1[1] = x[i][1] - x[k][1];
+          delr1[2] = x[i][2] - x[k][2];
+          domain->minimum_image(delr1);
+          rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+          r1 = sqrt(rsq1);
 
-	  if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
-	    s = sqrt(1.0 - c*c);
-	    if (s < SMALL) s = SMALL;
+          delr2[0] = x[j][0] - x[k][0];
+          delr2[1] = x[j][1] - x[k][1];
+          delr2[2] = x[j][2] - x[k][2];
+          domain->minimum_image(delr2);
+          rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+          r2 = sqrt(rsq2);
 
-	    // LJ-specific kernel
+          // angle (cos and sin)
 
-	    r2inv = 1.0/rsq;
-	    r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-	    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
-	      pow(c,(double)pm->ap);
-	    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
-	      pow(c,(double)pm->ap-1.0)*s;
+          c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
+          c /= r1*r2;
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+          ac = acos(c);
 
-	    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
-	    if (rsq > pm->cut_innersq) {
-	      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) * 
-			(pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-			pm->denom_vdw;
-	      switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-			(rsq-pm->cut_innersq) / pm->denom_vdw;
-	      force_kernel = force_kernel*switch1 + eng_lj*switch2;
-	      eng_lj *= switch1;
-	    }
+          if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
+            s = sqrt(1.0 - c*c);
+            if (s < SMALL) s = SMALL;
 
-	    if (eflag) {
-	      evdwl = eng_lj * pow(c,(double)pm->ap);
-	      evdwl *= factor_hb;
-	      ehbond += evdwl;
-	    }
+            // LJ-specific kernel
 
-	    a = factor_hb*force_angle/s;
-	    b = factor_hb*force_kernel;
-	    
-	    a11 = a*c / rsq1;
-	    a12 = -a / (r1*r2);
-	    a22 = a*c / rsq2;
-	    
-	    vx1 = a11*delr1[0] + a12*delr2[0];
-	    vx2 = a22*delr2[0] + a12*delr1[0];
-	    vy1 = a11*delr1[1] + a12*delr2[1];
-	    vy2 = a22*delr2[1] + a12*delr1[1];
-	    vz1 = a11*delr1[2] + a12*delr2[2];
-	    vz2 = a22*delr2[2] + a12*delr1[2];
-	    
-	    fi[0] = vx1 + b*delx;
-	    fi[1] = vy1 + b*dely;
-	    fi[2] = vz1 + b*delz;
-	    fj[0] = vx2 - b*delx;
-	    fj[1] = vy2 - b*dely;
-	    fj[2] = vz2 - b*delz;
+            r2inv = 1.0/rsq;
+            r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
+            force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv *
+              pow(c,(double)pm->ap);
+            force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) *
+              pow(c,(double)pm->ap-1.0)*s;
 
-	    f[i][0] += fi[0];
-	    f[i][1] += fi[1];
-	    f[i][2] += fi[2];
+            eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
+            if (rsq > pm->cut_innersq) {
+              switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
+                        (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
+                        pm->denom_vdw;
+              switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
+                        (rsq-pm->cut_innersq) / pm->denom_vdw;
+              force_kernel = force_kernel*switch1 + eng_lj*switch2;
+              eng_lj *= switch1;
+            }
 
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	    f[j][2] += fj[2];
-	    
-	    f[k][0] -= vx1 + vx2;
-	    f[k][1] -= vy1 + vy2;
-	    f[k][2] -= vz1 + vz2;
+            if (eflag) {
+              evdwl = eng_lj * pow(c,(double)pm->ap);
+              evdwl *= factor_hb;
+              ehbond += evdwl;
+            }
 
-	    // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
+            a = factor_hb*force_angle/s;
+            b = factor_hb*force_kernel;
 
-	    if (evflag) ev_tally3(k,i,j,evdwl,0.0,fi,fj,delr1,delr2);
+            a11 = a*c / rsq1;
+            a12 = -a / (r1*r2);
+            a22 = a*c / rsq2;
 
-	    hbcount++;
-	  }
+            vx1 = a11*delr1[0] + a12*delr2[0];
+            vx2 = a22*delr2[0] + a12*delr1[0];
+            vy1 = a11*delr1[1] + a12*delr2[1];
+            vy2 = a22*delr2[1] + a12*delr1[1];
+            vz1 = a11*delr1[2] + a12*delr2[2];
+            vz2 = a22*delr2[2] + a12*delr1[2];
+
+            fi[0] = vx1 + b*delx;
+            fi[1] = vy1 + b*dely;
+            fi[2] = vz1 + b*delz;
+            fj[0] = vx2 - b*delx;
+            fj[1] = vy2 - b*dely;
+            fj[2] = vz2 - b*delz;
+
+            f[i][0] += fi[0];
+            f[i][1] += fi[1];
+            f[i][2] += fi[2];
+
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+            f[j][2] += fj[2];
+
+            f[k][0] -= vx1 + vx2;
+            f[k][1] -= vy1 + vy2;
+            f[k][2] -= vz1 + vz2;
+
+            // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
+
+            if (evflag) ev_tally3(k,i,j,evdwl,0.0,fi,fj,delr1,delr2);
+
+            hbcount++;
+          }
         }
       }
     }
   }
-  
+
   if (eflag_global) {
     pvector[0] = hbcount;
     pvector[1] = ehbond;
@@ -241,7 +241,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairHbondDreidingLJ::allocate()
@@ -257,27 +257,27 @@ void PairHbondDreidingLJ::allocate()
       setflag[i][j] = 1;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  
+
   donor = new int[n+1];
   acceptor = new int[n+1];
   memory->create(type2param,n+1,n+1,n+1,"pair:type2param");
 
   int i,j,k;
   for (i = 1; i <= n; i++)
-    for (j = 1; j <= n; j++) 
+    for (j = 1; j <= n; j++)
       for (k = 1; k <= n; k++)
         type2param[i][j][k] = -1;
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairHbondDreidingLJ::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
-  
-  ap_global = force->inumeric(arg[0]);  
+
+  ap_global = force->inumeric(arg[0]);
   cut_inner_global = force->numeric(arg[1]);
   cut_outer_global = force->numeric(arg[2]);
   cut_angle_global = force->numeric(arg[3]) * MY_PI/180.0;
@@ -292,12 +292,12 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (narg < 6 || narg > 9)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-  
+
   int ilo,ihi,jlo,jhi,klo,khi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
   force->bounds(arg[2],atom->ntypes,klo,khi);
-  
+
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
@@ -305,7 +305,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
 
   double epsilon_one = force->numeric(arg[4]);
   double sigma_one = force->numeric(arg[5]);
-  
+
   int ap_one = ap_global;
   if (narg > 6) ap_one = force->inumeric(arg[6]);
   double cut_inner_one = cut_inner_global;
@@ -323,7 +323,7 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (nparams == maxparam) {
     maxparam += CHUNK;
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-					"pair:params");
+                                        "pair:params");
   }
 
   params[nparams].epsilon = epsilon_one;
@@ -334,10 +334,10 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   params[nparams].cut_innersq = cut_inner_one*cut_inner_one;
   params[nparams].cut_outersq = cut_outer_one*cut_outer_one;
   params[nparams].cut_angle = cut_angle_one;
-  params[nparams].denom_vdw = 
+  params[nparams].denom_vdw =
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
     (params[nparams].cut_outersq-params[nparams].cut_innersq) *
-    (params[nparams].cut_outersq-params[nparams].cut_innersq);	
+    (params[nparams].cut_outersq-params[nparams].cut_innersq);
 
   // flag type2param with either i,j = D,A or j,i = D,A
 
@@ -345,9 +345,9 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++)
     for (int j = MAX(jlo,i); j <= jhi; j++)
       for (int k = klo; k <= khi; k++) {
-	if (donor_flag == 0) type2param[i][j][k] = nparams;
-	else type2param[j][i][k] = nparams;
-	count++;
+        if (donor_flag == 0) type2param[i][j][k] = nparams;
+        else type2param[j][i][k] = nparams;
+        count++;
       }
   nparams++;
 
@@ -369,9 +369,9 @@ void PairHbondDreidingLJ::init_style()
     error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
-  if (atom->map_style == 0) 
+  if (atom->map_style == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
-	       "see atom_modify");
+               "see atom_modify");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires newton pair on");
 
@@ -383,11 +383,11 @@ void PairHbondDreidingLJ::init_style()
   for (int i = 1; i <= n; i++)
     for (int j = 1; j <= n; j++)
       for (int k = 1; k <= n; k++)
-	if (type2param[i][j][k] >= 0) {
-	  anyflag = 1;
-	  donor[i] = 1;
-	  acceptor[j] = 1;
-	}
+        if (type2param[i][j][k] >= 0) {
+          anyflag = 1;
+          donor[i] = 1;
+          acceptor[j] = 1;
+        }
 
   if (!anyflag) error->all(FLERR,"No pair hbond/dreiding coefficients set");
 
@@ -399,21 +399,21 @@ void PairHbondDreidingLJ::init_style()
     params[m].lj2 = 60.0*params[m].epsilon*pow(params[m].sigma,10.0);
     params[m].lj3 = 5.0*params[m].epsilon*pow(params[m].sigma,12.0);
     params[m].lj4 = 6.0*params[m].epsilon*pow(params[m].sigma,10.0);
-    
+
     /*
     if (offset_flag) {
       double ratio = params[m].sigma / params[m].cut_outer;
-      params[m].offset = params[m].epsilon * 
-	((2.0*pow(ratio,9.0)) - (3.0*pow(ratio,6.0)));
+      params[m].offset = params[m].epsilon *
+        ((2.0*pow(ratio,9.0)) - (3.0*pow(ratio,6.0)));
     } else params[m].offset = 0.0;
     */
   }
-  
+
   // full neighbor list request
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1; 
+  neighbor->requests[irequest]->full = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -460,7 +460,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
 
   eng = 0.0;
   fforce = 0;
-  
+
   // sanity check
 
   if (!donor[itype]) return 0.0;
@@ -468,7 +468,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
 
   klist = special[i];
   knum = nspecial[i][0];
-    
+
   factor_hb = special_lj[sbmask(j)];
 
   for (kk = 0; kk < knum; kk++) {
@@ -485,16 +485,16 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     domain->minimum_image(delr1);
     rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
     r1 = sqrt(rsq1);
-	  
+
     delr2[0] = x[j][0] - x[k][0];
     delr2[1] = x[j][1] - x[k][1];
     delr2[2] = x[j][2] - x[k][2];
     domain->minimum_image(delr2);
     rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
     r2 = sqrt(rsq2);
-	  
+
     // angle (cos and sin)
-	  
+
     c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
     c /= r1*r2;
     if (c > 1.0) c = 1.0;
@@ -509,20 +509,20 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
 
     r2inv = 1.0/rsq;
     r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv * 
+    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv *
       pow(c,(double)pm->ap);
-    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) * 
+    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) *
       pow(c,(double)pm->ap-1.0)*s;
 
     // only lj part for now
 
-    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4); 
+    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
     if (rsq > pm->cut_innersq) {
-      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) * 
-		(pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-		pm->denom_vdw;
+      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
+                (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
+                pm->denom_vdw;
       switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-		(rsq-pm->cut_innersq) / pm->denom_vdw;
+                (rsq-pm->cut_innersq) / pm->denom_vdw;
       force_kernel = force_kernel*switch1 + eng_lj*switch2;
       eng_lj *= switch1;
     }

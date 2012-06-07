@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -67,11 +67,11 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_bond) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_bond) eval<0,0,1>(ifrom, ito, thr);
@@ -85,7 +85,7 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-  
+
   int i1,i2,i3,i4,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
@@ -134,7 +134,7 @@ void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
     domain->minimum_image(vb3x,vb3y,vb3z);
-    
+
     // c0 calculation
 
     sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
@@ -192,19 +192,19 @@ void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
       int me = comm->me;
 
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
-		me,thr->get_tid(),update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
+                me,thr->get_tid(),update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
 
@@ -221,7 +221,7 @@ void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
       cphi[type]*sin(phi + MY_PI4)*siinv;
 
     if (EFLAG) edihedral = aphi[type]*(1.0 - c) + bphi[type]*(1.0 + cos(3.0*phi)) +
-		 cphi[type]*(1.0 + cos(phi + MY_PI4));
+                 cphi[type]*(1.0 + cos(phi + MY_PI4));
 
     a = pd;
     c = c * a;
@@ -281,6 +281,6 @@ void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-		   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+                   vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
   }
 }

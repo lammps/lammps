@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -133,20 +133,20 @@ int RegUnion::surface_interior(double *x, double cutoff)
       ys = x[1] - regions[iregion]->contact[m].dely;
       zs = x[2] - regions[iregion]->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
-	if (jlist == ilist) continue;
-	jregion = list[jlist];
-	if (regions[jregion]->match(xs,ys,zs)) break;
+        if (jlist == ilist) continue;
+        jregion = list[jlist];
+        if (regions[jregion]->match(xs,ys,zs)) break;
       }
       if (jlist == nregion) {
-	contact[n].r = regions[iregion]->contact[m].r;
-	contact[n].delx = regions[iregion]->contact[m].delx;
-	contact[n].dely = regions[iregion]->contact[m].dely;
-	contact[n].delz = regions[iregion]->contact[m].delz;
-	n++;
+        contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].delx = regions[iregion]->contact[m].delx;
+        contact[n].dely = regions[iregion]->contact[m].dely;
+        contact[n].delz = regions[iregion]->contact[m].delz;
+        n++;
       }
     }
   }
-  
+
   return n;
 }
 
@@ -178,22 +178,22 @@ int RegUnion::surface_exterior(double *x, double cutoff)
       ys = x[1] - regions[iregion]->contact[m].dely;
       zs = x[2] - regions[iregion]->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
-	if (jlist == ilist) continue;
-	jregion = list[jlist];
-	if (!regions[jregion]->match(xs,ys,zs)) break;
+        if (jlist == ilist) continue;
+        jregion = list[jlist];
+        if (!regions[jregion]->match(xs,ys,zs)) break;
       }
       if (jlist == nregion) {
-	contact[n].r = regions[iregion]->contact[m].r;
-	contact[n].delx = regions[iregion]->contact[m].delx;
-	contact[n].dely = regions[iregion]->contact[m].dely;
-	contact[n].delz = regions[iregion]->contact[m].delz;
-	n++;
+        contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].delx = regions[iregion]->contact[m].delx;
+        contact[n].dely = regions[iregion]->contact[m].dely;
+        contact[n].delz = regions[iregion]->contact[m].delz;
+        n++;
       }
     }
   }
 
   for (ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->interior ^= 1;
-  
+
   return n;
 }

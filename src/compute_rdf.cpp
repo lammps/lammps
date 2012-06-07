@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -73,7 +73,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
       force->bounds(arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
       force->bounds(arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
       if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
-	error->all(FLERR,"Illegal compute rdf command");
+        error->all(FLERR,"Illegal compute rdf command");
       npairs++;
       iarg += 2;
     }
@@ -87,7 +87,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < npairs; m++)
     for (i = ilo[m]; i <= ihi[m]; i++)
       for (j = jlo[m]; j <= jhi[m]; j++)
-	rdfpair[nrdfpair[i][j]++][i][j] = m;
+        rdfpair[nrdfpair[i][j]++][i][j] = m;
 
   memory->create(hist,npairs,nbin,"rdf:hist");
   memory->create(histall,npairs,nbin,"rdf:histall");
@@ -250,12 +250,12 @@ void ComputeRDF::compute_array()
       if (ibin >= nbin) continue;
 
       if (ipair)
-	for (ihisto = 0; ihisto < ipair; ihisto++)
-	  hist[rdfpair[ihisto][itype][jtype]][ibin] += 1.0;
+        for (ihisto = 0; ihisto < ipair; ihisto++)
+          hist[rdfpair[ihisto][itype][jtype]][ibin] += 1.0;
       if (newton_pair || j < nlocal) {
-	if (jpair)
-	  for (ihisto = 0; ihisto < jpair; ihisto++)
-	    hist[rdfpair[ihisto][jtype][itype]][ibin] += 1.0;
+        if (jpair)
+          for (ihisto = 0; ihisto < jpair; ihisto++)
+            hist[rdfpair[ihisto][jtype][itype]][ibin] += 1.0;
       }
     }
   }
@@ -276,16 +276,16 @@ void ComputeRDF::compute_array()
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
-	rlower = ibin*delr;
-	rupper = (ibin+1)*delr;
-	nideal = constant * 
-	  (rupper*rupper*rupper - rlower*rlower*rlower) * jcount[m];
-	if (icount[m]*nideal != 0.0) 
-	  gr = histall[m][ibin] / (icount[m]*nideal);
-	else gr = 0.0;
-	ncoord += gr*nideal;
-	array[ibin][1+2*m] = gr;
-	array[ibin][2+2*m] = ncoord;
+        rlower = ibin*delr;
+        rupper = (ibin+1)*delr;
+        nideal = constant *
+          (rupper*rupper*rupper - rlower*rlower*rlower) * jcount[m];
+        if (icount[m]*nideal != 0.0)
+          gr = histall[m][ibin] / (icount[m]*nideal);
+        else gr = 0.0;
+        ncoord += gr*nideal;
+        array[ibin][1+2*m] = gr;
+        array[ibin][2+2*m] = ncoord;
       }
     }
 
@@ -295,15 +295,15 @@ void ComputeRDF::compute_array()
     for (m = 0; m < npairs; m++) {
       ncoord = 0.0;
       for (ibin = 0; ibin < nbin; ibin++) {
-	rlower = ibin*delr;
-	rupper = (ibin+1)*delr;
-	nideal = constant * (rupper*rupper - rlower*rlower) * jcount[m];
-	if (icount[m]*nideal != 0.0) 
-	  gr = histall[m][ibin] / (icount[m]*nideal);
-	else gr = 0.0;
-	ncoord += gr*nideal;
-	array[ibin][1+2*m] = gr;
-	array[ibin][2+2*m] = ncoord;
+        rlower = ibin*delr;
+        rupper = (ibin+1)*delr;
+        nideal = constant * (rupper*rupper - rlower*rlower) * jcount[m];
+        if (icount[m]*nideal != 0.0)
+          gr = histall[m][ibin] / (icount[m]*nideal);
+        else gr = 0.0;
+        ncoord += gr*nideal;
+        array[ibin][1+2*m] = gr;
+        array[ibin][2+2*m] = ncoord;
       }
     }
   }

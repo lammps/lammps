@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -79,7 +79,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
   }
 
   if (aug[2][2] == 0.0) return 1;
-  
+
   // back substitution
 
   ans[2] = aug[2][3]/aug[2][2];
@@ -102,7 +102,7 @@ int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
 {
   int i,j,k;
   double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
-  
+
   for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) evectors[i][j] = 0.0;
     evectors[i][i] = 1.0;
@@ -111,48 +111,48 @@ int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
     b[i] = evalues[i] = matrix[i][i];
     z[i] = 0.0;
   }
-  
+
   for (int iter = 1; iter <= MAXJACOBI; iter++) {
     sm = 0.0;
     for (i = 0; i < 2; i++)
       for (j = i+1; j < 3; j++)
-	sm += fabs(matrix[i][j]);
+        sm += fabs(matrix[i][j]);
     if (sm == 0.0) return 0;
-    
+
     if (iter < 4) tresh = 0.2*sm/(3*3);
     else tresh = 0.0;
-    
+
     for (i = 0; i < 2; i++) {
       for (j = i+1; j < 3; j++) {
-	g = 100.0*fabs(matrix[i][j]);
-	if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
-	    && fabs(evalues[j])+g == fabs(evalues[j]))
-	  matrix[i][j] = 0.0;
-	else if (fabs(matrix[i][j]) > tresh) {
-	  h = evalues[j]-evalues[i];
-	  if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
-	  else {
-	    theta = 0.5*h/(matrix[i][j]);
-	    t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-	    if (theta < 0.0) t = -t;
-	  }
-	  c = 1.0/sqrt(1.0+t*t);
-	  s = t*c;
-	  tau = s/(1.0+c);
-	  h = t*matrix[i][j];
-	  z[i] -= h;
-	  z[j] += h;
-	  evalues[i] -= h;
-	  evalues[j] += h;
-	  matrix[i][j] = 0.0;
-	  for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
-	  for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
-	  for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
-	  for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
-	}
+        g = 100.0*fabs(matrix[i][j]);
+        if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
+            && fabs(evalues[j])+g == fabs(evalues[j]))
+          matrix[i][j] = 0.0;
+        else if (fabs(matrix[i][j]) > tresh) {
+          h = evalues[j]-evalues[i];
+          if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
+          else {
+            theta = 0.5*h/(matrix[i][j]);
+            t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
+            if (theta < 0.0) t = -t;
+          }
+          c = 1.0/sqrt(1.0+t*t);
+          s = t*c;
+          tau = s/(1.0+c);
+          h = t*matrix[i][j];
+          z[i] -= h;
+          z[j] += h;
+          evalues[i] -= h;
+          evalues[j] += h;
+          matrix[i][j] = 0.0;
+          for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
+          for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
+          for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
+          for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
+        }
       }
     }
-    
+
     for (i = 0; i < 3; i++) {
       evalues[i] = b[i] += z[i];
       z[i] = 0.0;
@@ -166,7 +166,7 @@ int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
 ------------------------------------------------------------------------- */
 
 void rotate(double matrix[3][3], int i, int j, int k, int l,
-	    double s, double tau)
+            double s, double tau)
 {
   double g = matrix[i][j];
   double h = matrix[k][l];
@@ -238,7 +238,7 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
 ------------------------------------------------------------------------- */
 
 void angmom_to_omega(double *m, double *ex, double *ey, double *ez,
-		     double *idiag, double *w)
+                     double *idiag, double *w)
 {
   double wbody[3];
 
@@ -288,7 +288,7 @@ void mq_to_omega(double *m, double *q, double *moments, double *w)
 ------------------------------------------------------------------------- */
 
 void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
-		     double *idiag, double *m)
+                     double *idiag, double *m)
 {
   double mbody[3];
 
@@ -309,15 +309,15 @@ void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
 void exyz_to_q(double *ex, double *ey, double *ez, double *q)
 {
   // squares of quaternion components
-  
+
   double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
   double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
   double q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
   double q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
-  
+
   // some component must be greater than 1/4 since they sum to 1
   // compute other components from it
-  
+
   if (q0sq >= 0.25) {
     q[0] = sqrt(q0sq);
     q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
@@ -354,11 +354,11 @@ void q_to_exyz(double *q, double *ex, double *ey, double *ez)
   ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
   ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
   ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
-  
+
   ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
   ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
   ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
-  
+
   ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
   ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
   ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
@@ -389,7 +389,7 @@ void quat_to_mat(const double *quat, double mat[3][3])
   mat[1][0] = twoij+twokw;
   mat[1][1] = w2-i2+j2-k2;
   mat[1][2] = twojk-twoiw;
-	
+
   mat[2][0] = twoik-twojw;
   mat[2][1] = twojk+twoiw;
   mat[2][2] = w2-i2-j2+k2;
@@ -420,7 +420,7 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
   mat[0][1] = twoij+twokw;
   mat[1][1] = w2-i2+j2-k2;
   mat[2][1] = twojk-twoiw;
-	
+
   mat[0][2] = twoik-twojw;
   mat[1][2] = twojk+twoiw;
   mat[2][2] = w2-i2-j2+k2;
@@ -434,7 +434,7 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 ------------------------------------------------------------------------- */
 
 void inertia_ellipsoid(double *radii, double *quat, double mass,
-		       double *inertia)
+                       double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
   double idiag[3];
@@ -500,7 +500,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *v0, double *v1, double *v2,
-		      double mass, double *inertia)
+                      double mass, double *inertia)
 {
   double s[3][3] = {{2.0, 1.0, 1.0}, {1.0, 2.0, 1.0}, {1.0, 1.0, 2.0}};
   double v[3][3],sv[3][3],vtsv[3][3];
@@ -541,7 +541,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *idiag, double *quat, double mass,
-		      double *inertia)
+                      double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
 

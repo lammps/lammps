@@ -57,11 +57,11 @@ void PairColloidOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -120,94 +120,94 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq >= cutsq[itype][jtype]) continue;
-      
+
       switch(form[itype][jtype]) {
       case SMALL_SMALL:
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
-	if (EFLAG) 
-	  evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-	    offset[itype][jtype];
-	break;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
+        if (EFLAG)
+          evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+            offset[itype][jtype];
+        break;
 
       case SMALL_LARGE:
-	c2 = a2[itype][jtype];
-	K[1] = c2*c2;
-	K[2] = rsq;
-	K[0] = K[1] - rsq;
-	K[4] = rsq*rsq;
-	K[3] = K[1] - K[2];
-	K[3] *= K[3]*K[3];
-	K[6] = K[3]*K[3];
-	fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-	fpair = 4.0/15.0*fR*factor_lj * 
-	  (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
-	   sigma6[itype][jtype]/K[6]-5.0) / K[0];
-	if (EFLAG) 
-	  evdwl = 2.0/9.0*fR * 
-	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
-	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
+        c2 = a2[itype][jtype];
+        K[1] = c2*c2;
+        K[2] = rsq;
+        K[0] = K[1] - rsq;
+        K[4] = rsq*rsq;
+        K[3] = K[1] - K[2];
+        K[3] *= K[3]*K[3];
+        K[6] = K[3]*K[3];
+        fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
+        fpair = 4.0/15.0*fR*factor_lj *
+          (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) *
+           sigma6[itype][jtype]/K[6]-5.0) / K[0];
+        if (EFLAG)
+          evdwl = 2.0/9.0*fR *
+            (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
+             sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
 
-	if (check_error_thr((rsq <= K[1]),tid,FLERR,
-			    "Overlapping small/large in pair colloid"))
-	  return;
+        if (check_error_thr((rsq <= K[1]),tid,FLERR,
+                            "Overlapping small/large in pair colloid"))
+          return;
 
-	break;
+        break;
 
       case LARGE_LARGE:
-	r = sqrt(rsq);
-	c1 = a1[itype][jtype];
-	c2 = a2[itype][jtype];
-	K[0] = c1*c2;
-	K[1] = c1+c2;
-	K[2] = c1-c2;
-	K[3] = K[1]+r;
-	K[4] = K[1]-r;
-	K[5] = K[2]+r;
-	K[6] = K[2]-r;
-	K[7] = 1.0/(K[3]*K[4]);
-	K[8] = 1.0/(K[5]*K[6]);
-	g[0] = pow(K[3],-7.0);
-	g[1] = pow(K[4],-7.0);
-	g[2] = pow(K[5],-7.0);
-	g[3] = pow(K[6],-7.0);
-	h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
-	h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
-	h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];
-	h[3] = ((K[6]+5.0*K[2])*K[6]-30.0*K[0])*g[3];
-	g[0] *= 42.0*K[0]/K[3]+6.0*K[1]+K[3];
-	g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
-	g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
-	g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
-	
-	fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
-	evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
-	dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-	dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] + 
-					(2.0*K[0]*K[8]-1.0)*K[8]);
-	fpair = factor_lj * (dUR+dUA)/r;
-	if (EFLAG)
-	  evdwl += a12[itype][jtype]/6.0 * 
-	    (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-	if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
-	break;
+        r = sqrt(rsq);
+        c1 = a1[itype][jtype];
+        c2 = a2[itype][jtype];
+        K[0] = c1*c2;
+        K[1] = c1+c2;
+        K[2] = c1-c2;
+        K[3] = K[1]+r;
+        K[4] = K[1]-r;
+        K[5] = K[2]+r;
+        K[6] = K[2]-r;
+        K[7] = 1.0/(K[3]*K[4]);
+        K[8] = 1.0/(K[5]*K[6]);
+        g[0] = pow(K[3],-7.0);
+        g[1] = pow(K[4],-7.0);
+        g[2] = pow(K[5],-7.0);
+        g[3] = pow(K[6],-7.0);
+        h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
+        h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
+        h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];
+        h[3] = ((K[6]+5.0*K[2])*K[6]-30.0*K[0])*g[3];
+        g[0] *= 42.0*K[0]/K[3]+6.0*K[1]+K[3];
+        g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
+        g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
+        g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
+
+        fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
+        evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
+        dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
+        dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] +
+                                        (2.0*K[0]*K[8]-1.0)*K[8]);
+        fpair = factor_lj * (dUR+dUA)/r;
+        if (EFLAG)
+          evdwl += a12[itype][jtype]/6.0 *
+            (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
+        if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
+        break;
       }
-      
+
       if (EFLAG) evdwl *= factor_lj;
-    
+
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
       fztmp += delz*fpair;
       if (NEWTON_PAIR || j < nlocal) {
-	f[j][0] -= delx*fpair;
-	f[j][1] -= dely*fpair;
-	f[j][2] -= delz*fpair;
+        f[j][0] -= delx*fpair;
+        f[j][1] -= dely*fpair;
+        f[j][2] -= delz*fpair;
       }
 
       if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-			       evdwl,0.0,fpair,delx,dely,delz,thr);
+                               evdwl,0.0,fpair,delx,dely,delz,thr);
     }
     f[i][0] += fxtmp;
     f[i][1] += fytmp;

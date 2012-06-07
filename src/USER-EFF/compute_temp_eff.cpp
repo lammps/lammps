@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,18 +32,18 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempEff::ComputeTempEff(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempEff::ComputeTempEff(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (!atom->electron_flag) 
+  if (!atom->electron_flag)
     error->all(FLERR,"Compute temp/eff requires atom style electron");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
-  extscalar = 0; 
+  extscalar = 0;
   extvector = 1;
   tempflag = 1;
-  
+
   vector = new double[size_vector];
 }
 
@@ -70,7 +70,7 @@ void ComputeTempEff::dof_compute()
 {
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
-  dof -= extra_dof + fix_dof;	
+  dof -= extra_dof + fix_dof;
 
   int *spin = atom->spin;
   int *mask = atom->mask;
@@ -84,7 +84,7 @@ void ComputeTempEff::dof_compute()
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
-  // Assume 3/2 k T per nucleus 
+  // Assume 3/2 k T per nucleus
 
   dof -= domain->dimension * nelectrons;
 
@@ -108,11 +108,11 @@ double ComputeTempEff::compute_scalar()
   double mefactor = domain->dimension/4.0;
 
   double t = 0.0;
-   
+
   if (mass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
         if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }

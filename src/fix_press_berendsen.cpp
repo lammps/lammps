@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -68,62 +68,62 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
       p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
-	p_start[2] = p_stop[2] = p_period[2] = 0.0;
-	p_flag[2] = 0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg)
-	error->all(FLERR,"Illegal fix press/berendsen command");
+        error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[0] = atof(arg[iarg+1]);
       p_stop[0] = atof(arg[iarg+2]);
       p_period[0] = atof(arg[iarg+3]);
       p_flag[0] = 1;
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg)
-	error->all(FLERR,"Illegal fix press/berendsen command");
+        error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[1] = atof(arg[iarg+1]);
       p_stop[1] = atof(arg[iarg+2]);
       p_period[1] = atof(arg[iarg+3]);
       p_flag[1] = 1;
-      iarg += 4; 
+      iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+4 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       p_start[2] = atof(arg[iarg+1]);
       p_stop[2] = atof(arg[iarg+2]);
       p_period[2] = atof(arg[iarg+3]);
       p_flag[2] = 1;
-      iarg += 4; 
+      iarg += 4;
       if (dimension == 2)
-	error->all(FLERR,"Invalid fix press/berendsen for a 2d simulation");
+        error->all(FLERR,"Invalid fix press/berendsen for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
@@ -133,15 +133,15 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"modulus") == 0) {
-      if (iarg+2 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       bulkmodulus = atof(arg[iarg+1]);
-      if (bulkmodulus <= 0.0) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (bulkmodulus <= 0.0)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) 
-	error->all(FLERR,"Illegal fix press/berendsen command");
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix press/berendsen command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
       else error->all(FLERR,"Illegal fix press/berendsen command");
@@ -171,38 +171,38 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix press/berendsen on a non-periodic dimension");
+               "Cannot use fix press/berendsen on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix press/berendsen on a non-periodic dimension");
+               "Cannot use fix press/berendsen on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,
-	       "Cannot use fix press/berendsen on a non-periodic dimension");
+               "Cannot use fix press/berendsen on a non-periodic dimension");
 
   if (pcouple == XYZ && dimension == 3 &&
-      (p_start[0] != p_start[1] || p_start[0] != p_start[2] || 
-       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] || 
+      (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
+       p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
   if (pcouple == XYZ && dimension == 2 &&
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
-  if (pcouple == XY && 
-      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] || 
+  if (pcouple == XY &&
+      (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
-  if (pcouple == YZ && 
+  if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
-  if (pcouple == XZ && 
+  if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix press/berendsen pressure settings");
 
-  if ((p_flag[0] && p_period[0] <= 0.0) || 
-      (p_flag[1] && p_period[1] <= 0.0) || 
+  if ((p_flag[0] && p_period[0] <= 0.0) ||
+      (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0))
     error->all(FLERR,"Fix press/berendsen damping parameters must be > 0.0");
 
@@ -279,7 +279,7 @@ int FixPressBerendsen::setmask()
 
 void FixPressBerendsen::init()
 {
-  if (domain->triclinic) 
+  if (domain->triclinic)
     error->all(FLERR,"Cannot use fix press/berendsen with triclinic box");
 
   // insure no conflict with fix deform
@@ -287,16 +287,16 @@ void FixPressBerendsen::init()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
-      if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || 
-	  (p_flag[2] && dimflag[2]))
-	error->all(FLERR,"Cannot use fix press/berendsen and "
-		   "fix deform on same component of stress tensor");
+      if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+          (p_flag[2] && dimflag[2]))
+        error->all(FLERR,"Cannot use fix press/berendsen and "
+                   "fix deform on same component of stress tensor");
     }
 
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix press/berendsen does not exist");
   temperature = modify->compute[icompute];
 
@@ -331,7 +331,7 @@ void FixPressBerendsen::init()
 }
 
 /* ----------------------------------------------------------------------
-   compute T,P before integrator starts 
+   compute T,P before integrator starts
 ------------------------------------------------------------------------- */
 
 void FixPressBerendsen::setup(int vflag)
@@ -362,9 +362,9 @@ void FixPressBerendsen::end_of_step()
   for (int i = 0; i < 3; i++) {
     if (p_flag[i]) {
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
-      dilation[i] = 
-	pow(1.0 - update->dt/p_period[i] * 
-	    (p_target[i]-p_current[i])/bulkmodulus,1.0/3.0);
+      dilation[i] =
+        pow(1.0 - update->dt/p_period[i] *
+            (p_target[i]-p_current[i])/bulkmodulus,1.0/3.0);
     }
   }
 
@@ -430,7 +430,7 @@ void FixPressBerendsen::remap()
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->x2lamda(x[i],x[i]);
+        domain->x2lamda(x[i],x[i]);
   }
 
   if (nrigid)
@@ -458,7 +458,7 @@ void FixPressBerendsen::remap()
   else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	domain->lamda2x(x[i],x[i]);
+        domain->lamda2x(x[i],x[i]);
   }
 
   if (nrigid)
@@ -491,9 +491,9 @@ int FixPressBerendsen::modify_param(int narg, char **arg)
       error->warning(FLERR,"Temperature for NPT is not for group all");
 
     // reset id_temp of pressure to new temperature ID
-    
+
     icompute = modify->find_compute(id_press);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Pressure ID for fix press/berendsen does not exist");
     modify->compute[icompute]->reset_extra_compute_fix(id_temp);
 

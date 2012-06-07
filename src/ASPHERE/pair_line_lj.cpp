@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -88,12 +88,12 @@ void PairLineLJ::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // grow discrete list if necessary and initialize
 
   if (nall > nmax) {
@@ -116,7 +116,7 @@ void PairLineLJ::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -126,179 +126,179 @@ void PairLineLJ::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq >= cutsq[itype][jtype]) continue;
-      
+
       // line/line interactions = NxN particles
-      
+
       evdwl = 0.0;
       if (line[i] >= 0 && line[j] >= 0) {
-	if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
-	npi = dnum[i];
-	ifirst = dfirst[i];
-	if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
-	npj = dnum[j];
-	jfirst = dfirst[j];
+        if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
+        npi = dnum[i];
+        ifirst = dfirst[i];
+        if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
+        npj = dnum[j];
+        jfirst = dfirst[j];
 
-	for (ni = 0; ni < npi; ni++) {
-	  dxi = discrete[ifirst+ni].dx;
-	  dyi = discrete[ifirst+ni].dy;
+        for (ni = 0; ni < npi; ni++) {
+          dxi = discrete[ifirst+ni].dx;
+          dyi = discrete[ifirst+ni].dy;
 
-	  for (nj = 0; nj < npj; nj++) {
-	    dxj = discrete[jfirst+nj].dx;
-	    dyj = discrete[jfirst+nj].dy;
+          for (nj = 0; nj < npj; nj++) {
+            dxj = discrete[jfirst+nj].dx;
+            dyj = discrete[jfirst+nj].dy;
 
-	    xi[0] = x[i][0] + dxi;
-	    xi[1] = x[i][1] + dyi;
-	    xj[0] = x[j][0] + dxj;
-	    xj[1] = x[j][1] + dyj;
+            xi[0] = x[i][0] + dxi;
+            xi[1] = x[i][1] + dyi;
+            xj[0] = x[j][0] + dxj;
+            xj[1] = x[j][1] + dyj;
 
-	    delx = xi[0] - xj[0];
-	    dely = xi[1] - xj[1];
-	    rsq = delx*delx + dely*dely;
+            delx = xi[0] - xj[0];
+            dely = xi[1] - xj[1];
+            rsq = delx*delx + dely*dely;
 
-	    sig = 0.5 * (discrete[ifirst+ni].sigma+discrete[jfirst+nj].sigma);
-	    sig3 = sig*sig*sig;
-	    term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	    term1 = 2.0 * term2 * sig3*sig3;
-	    r2inv = 1.0/rsq;
-	    r6inv = r2inv*r2inv*r2inv;
-	    forcelj = r6inv * (term1*r6inv - term2);
-	    fpair = forcelj*r2inv;
+            sig = 0.5 * (discrete[ifirst+ni].sigma+discrete[jfirst+nj].sigma);
+            sig3 = sig*sig*sig;
+            term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+            term1 = 2.0 * term2 * sig3*sig3;
+            r2inv = 1.0/rsq;
+            r6inv = r2inv*r2inv*r2inv;
+            forcelj = r6inv * (term1*r6inv - term2);
+            fpair = forcelj*r2inv;
 
-	    if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+            if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
 
-	    fi[0] = delx*fpair;
-	    fi[1] = dely*fpair;
-	    f[i][0] += fi[0];
-	    f[i][1] += fi[1];
-	    torque[i][2] += dxi*fi[1] - dyi*fi[0];
+            fi[0] = delx*fpair;
+            fi[1] = dely*fpair;
+            f[i][0] += fi[0];
+            f[i][1] += fi[1];
+            torque[i][2] += dxi*fi[1] - dyi*fi[0];
 
-	    if (newton_pair || j < nlocal) {
-	      fj[0] = -delx*fpair;
-	      fj[1] = -dely*fpair;
-	      f[j][0] += fj[0];
-	      f[j][1] += fj[1];
-	      torque[j][2] += dxj*fj[1] - dyj*fj[0];
-	    }
-	  }
-	}
+            if (newton_pair || j < nlocal) {
+              fj[0] = -delx*fpair;
+              fj[1] = -dely*fpair;
+              f[j][0] += fj[0];
+              f[j][1] += fj[1];
+              torque[j][2] += dxj*fj[1] - dyj*fj[0];
+            }
+          }
+        }
 
       // line/particle interaction = Nx1 particles
       // convert line into Np particles based on sigma and line length
 
       } else if (line[i] >= 0) {
-	if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
-	npi = dnum[i];
-	ifirst = dfirst[i];
+        if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
+        npi = dnum[i];
+        ifirst = dfirst[i];
 
-	for (ni = 0; ni < npi; ni++) {
-	  dxi = discrete[ifirst+ni].dx;
-	  dyi = discrete[ifirst+ni].dy;
+        for (ni = 0; ni < npi; ni++) {
+          dxi = discrete[ifirst+ni].dx;
+          dyi = discrete[ifirst+ni].dy;
 
-	  xi[0] = x[i][0] + dxi;
-	  xi[1] = x[i][1] + dyi;
-	  xj[0] = x[j][0];
-	  xj[1] = x[j][1];
+          xi[0] = x[i][0] + dxi;
+          xi[1] = x[i][1] + dyi;
+          xj[0] = x[j][0];
+          xj[1] = x[j][1];
 
-	  delx = xi[0] - xj[0];
-	  dely = xi[1] - xj[1];
-	  rsq = delx*delx + dely*dely;
+          delx = xi[0] - xj[0];
+          dely = xi[1] - xj[1];
+          rsq = delx*delx + dely*dely;
 
-	  sig = 0.5 * (discrete[ifirst+ni].sigma+sigma[jtype][jtype]);
-	  sig3 = sig*sig*sig;
-	  term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	  term1 = 2.0 * term2 * sig3*sig3;
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (term1*r6inv - term2);
-	  fpair = forcelj*r2inv;
-	  
-	  if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+          sig = 0.5 * (discrete[ifirst+ni].sigma+sigma[jtype][jtype]);
+          sig3 = sig*sig*sig;
+          term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+          term1 = 2.0 * term2 * sig3*sig3;
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (term1*r6inv - term2);
+          fpair = forcelj*r2inv;
 
-	  fi[0] = delx*fpair;
-	  fi[1] = dely*fpair;
-	  f[i][0] += fi[0];
-	  f[i][1] += fi[1];
-	  torque[i][2] += dxi*fi[1] - dyi*fi[0];
-	  
-	  if (newton_pair || j < nlocal) {
-	    fj[0] = -delx*fpair;
-	    fj[1] = -dely*fpair;
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	  }
-	}
+          if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+
+          fi[0] = delx*fpair;
+          fi[1] = dely*fpair;
+          f[i][0] += fi[0];
+          f[i][1] += fi[1];
+          torque[i][2] += dxi*fi[1] - dyi*fi[0];
+
+          if (newton_pair || j < nlocal) {
+            fj[0] = -delx*fpair;
+            fj[1] = -dely*fpair;
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+          }
+        }
 
       // particle/line interaction = Nx1 particles
       // convert line into Np particles based on sigma and line length
 
       } else if (line[j] >= 0) {
-	if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
-	npj = dnum[j];
-	jfirst = dfirst[j];
+        if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
+        npj = dnum[j];
+        jfirst = dfirst[j];
 
-	for (nj = 0; nj < npj; nj++) {
-	  dxj = discrete[jfirst+nj].dx;
-	  dyj = discrete[jfirst+nj].dy;
+        for (nj = 0; nj < npj; nj++) {
+          dxj = discrete[jfirst+nj].dx;
+          dyj = discrete[jfirst+nj].dy;
 
-	  xi[0] = x[i][0];
-	  xi[1] = x[i][1];
-	  xj[0] = x[j][0] + dxj;
-	  xj[1] = x[j][1] + dyj;
+          xi[0] = x[i][0];
+          xi[1] = x[i][1];
+          xj[0] = x[j][0] + dxj;
+          xj[1] = x[j][1] + dyj;
 
-	  delx = xi[0] - xj[0];
-	  dely = xi[1] - xj[1];
-	  rsq = delx*delx + dely*dely;
+          delx = xi[0] - xj[0];
+          dely = xi[1] - xj[1];
+          rsq = delx*delx + dely*dely;
 
-	  sig = 0.5 * (sigma[itype][itype]+discrete[jfirst+nj].sigma);
-	  sig3 = sig*sig*sig;
-	  term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
-	  term1 = 2.0 * term2 * sig3*sig3;
-	  r2inv = 1.0/rsq;
-	  r6inv = r2inv*r2inv*r2inv;
-	  forcelj = r6inv * (term1*r6inv - term2);
-	  fpair = forcelj*r2inv;
-	  
-	  if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+          sig = 0.5 * (sigma[itype][itype]+discrete[jfirst+nj].sigma);
+          sig3 = sig*sig*sig;
+          term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
+          term1 = 2.0 * term2 * sig3*sig3;
+          r2inv = 1.0/rsq;
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (term1*r6inv - term2);
+          fpair = forcelj*r2inv;
 
-	  fi[0] = delx*fpair;
-	  fi[1] = dely*fpair;
-	  f[i][0] += fi[0];
-	  f[i][1] += fi[1];
-	  
-	  if (newton_pair || j < nlocal) {
-	    f[j][0] += fj[0];
-	    f[j][1] += fj[1];
-	    fj[0] = -delx*fpair;
-	    fj[1] = -dely*fpair;
-	    torque[j][2] += dxj*fj[1] - dyj*fj[0];
-	  }
-	}
-	
+          if (eflag) evdwl += r6inv*(term1/12.0*r6inv-term2/6.0);
+
+          fi[0] = delx*fpair;
+          fi[1] = dely*fpair;
+          f[i][0] += fi[0];
+          f[i][1] += fi[1];
+
+          if (newton_pair || j < nlocal) {
+            f[j][0] += fj[0];
+            f[j][1] += fj[1];
+            fj[0] = -delx*fpair;
+            fj[1] = -dely*fpair;
+            torque[j][2] += dxj*fj[1] - dyj*fj[0];
+          }
+        }
+
       // particle/particle interaction = 1x1 particles
 
       } else {
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = forcelj*r2inv;
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        fpair = forcelj*r2inv;
 
-	if (eflag)
-	  evdwl += r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+        if (eflag)
+          evdwl += r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 
@@ -306,7 +306,7 @@ void PairLineLJ::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLineLJ::allocate()
@@ -331,7 +331,7 @@ void PairLineLJ::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLineLJ::settings(int narg, char **arg)
@@ -346,7 +346,7 @@ void PairLineLJ::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -356,7 +356,7 @@ void PairLineLJ::settings(int narg, char **arg)
 
 void PairLineLJ::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 4 || narg > 5)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -392,7 +392,7 @@ double PairLineLJ::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-			       sigma[i][i],sigma[j][j]);
+                               sigma[i][i],sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }

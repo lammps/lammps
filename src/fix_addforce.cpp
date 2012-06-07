@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -83,7 +83,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-	error->all(FLERR,"Region ID for fix addforce does not exist");
+        error->all(FLERR,"Region ID for fix addforce does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -91,9 +91,9 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	estr = new char[n];
-	strcpy(estr,&arg[iarg+1][2]);
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        estr = new char[n];
+        strcpy(estr,&arg[iarg+1][2]);
       } else error->all(FLERR,"Illegal fix addforce command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix addforce command");
@@ -138,7 +138,7 @@ void FixAddForce::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) 
+    if (xvar < 0)
       error->all(FLERR,"Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
@@ -146,7 +146,7 @@ void FixAddForce::init()
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) 
+    if (yvar < 0)
       error->all(FLERR,"Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
@@ -154,7 +154,7 @@ void FixAddForce::init()
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) 
+    if (zvar < 0)
       error->all(FLERR,"Variable name for fix addforce does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
@@ -162,7 +162,7 @@ void FixAddForce::init()
   }
   if (estr) {
     evar = input->variable->find(estr);
-    if (evar < 0) 
+    if (evar < 0)
       error->all(FLERR,"Variable name for fix addforce does not exist");
     if (input->variable->atomstyle(evar)) estyle = ATOM;
     else error->all(FLERR,"Variable for fix addforce is invalid style");
@@ -176,7 +176,7 @@ void FixAddForce::init()
       error->all(FLERR,"Region ID for fix addforce does not exist");
   }
 
-  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM) 
+  if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
   else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
@@ -184,8 +184,8 @@ void FixAddForce::init()
 
   if (varflag == CONSTANT && estyle != NONE)
     error->all(FLERR,"Cannot use variable energy with "
-	       "constant force in fix addforce");
-  if ((varflag == EQUAL || varflag == ATOM) && 
+               "constant force in fix addforce");
+  if ((varflag == EQUAL || varflag == ATOM) &&
       update->whichflag == 2 && estyle == NONE)
     error->all(FLERR,"Must use variable energy with fix addforce");
 
@@ -249,22 +249,22 @@ void FixAddForce::post_force(int vflag)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
-	
-	xbox = (image[i] & 1023) - 512;
-	ybox = (image[i] >> 10 & 1023) - 512;
-	zbox = (image[i] >> 20) - 512;
-	foriginal[0] -= xvalue * (x[i][0]+xbox*xprd) + 
-	  yvalue * (x[i][1]+ybox*yprd) + zvalue * (x[i][2]+zbox*zprd);
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
 
-	foriginal[1] += f[i][0];
-	foriginal[2] += f[i][1];
-	foriginal[3] += f[i][2];
-	f[i][0] += xvalue;
-	f[i][1] += yvalue;
-	f[i][2] += zvalue;
+        xbox = (image[i] & 1023) - 512;
+        ybox = (image[i] >> 10 & 1023) - 512;
+        zbox = (image[i] >> 20) - 512;
+        foriginal[0] -= xvalue * (x[i][0]+xbox*xprd) +
+          yvalue * (x[i][1]+ybox*yprd) + zvalue * (x[i][2]+zbox*zprd);
+
+        foriginal[1] += f[i][0];
+        foriginal[2] += f[i][1];
+        foriginal[3] += f[i][2];
+        f[i][0] += xvalue;
+        f[i][1] += yvalue;
+        f[i][2] += zvalue;
       }
 
   // variable force, wrap with clear/add
@@ -279,7 +279,7 @@ void FixAddForce::post_force(int vflag)
     else if (xstyle == ATOM && sforce)
       input->variable->compute_atom(xvar,igroup,&sforce[0][0],4,0);
     if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM && sforce) 
+    else if (ystyle == ATOM && sforce)
       input->variable->compute_atom(yvar,igroup,&sforce[0][1],4,0);
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
     else if (zstyle == ATOM && sforce)
@@ -291,20 +291,20 @@ void FixAddForce::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (iregion >= 0 && 
-	    !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-	  continue;
-	
-	if (estyle == ATOM) foriginal[0] += sforce[i][3];
-	foriginal[1] += f[i][0];
-	foriginal[2] += f[i][1];
-	foriginal[3] += f[i][2];
-	if (xstyle == ATOM) f[i][0] += sforce[i][0];
-	else if (xstyle) f[i][0] += xvalue;
-	if (ystyle == ATOM) f[i][1] += sforce[i][1];
-	else if (ystyle) f[i][1] += yvalue;
-	if (zstyle == ATOM) f[i][2] += sforce[i][2];
-	else if (zstyle) f[i][2] += zvalue;
+        if (iregion >= 0 &&
+            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          continue;
+
+        if (estyle == ATOM) foriginal[0] += sforce[i][3];
+        foriginal[1] += f[i][0];
+        foriginal[2] += f[i][1];
+        foriginal[3] += f[i][2];
+        if (xstyle == ATOM) f[i][0] += sforce[i][0];
+        else if (xstyle) f[i][0] += xvalue;
+        if (ystyle == ATOM) f[i][1] += sforce[i][1];
+        else if (ystyle) f[i][1] += yvalue;
+        if (zstyle == ATOM) f[i][2] += sforce[i][2];
+        else if (zstyle) f[i][2] += zvalue;
       }
   }
 }

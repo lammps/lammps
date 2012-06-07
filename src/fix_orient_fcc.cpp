@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  
+
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
@@ -297,27 +297,27 @@ void FixOrientFCC::post_force(int vflag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq < cutsq) {
-	sort[nsort].id = j;
-	sort[nsort].rsq = rsq;
-	sort[nsort].delta[0] = dx;
-	sort[nsort].delta[1] = dy;
-	sort[nsort].delta[2] = dz;
-	if (use_xismooth) {
-	  xismooth = (xicutoffsq - 2.0*rsq/(a*a)) / (xicutoffsq - 1.0);
-	  sort[nsort].xismooth = 1.0 - fabs(1.0-xismooth);
-	}
-	nsort++;
+        sort[nsort].id = j;
+        sort[nsort].rsq = rsq;
+        sort[nsort].delta[0] = dx;
+        sort[nsort].delta[1] = dy;
+        sort[nsort].delta[2] = dz;
+        if (use_xismooth) {
+          xismooth = (xicutoffsq - 2.0*rsq/(a*a)) / (xicutoffsq - 1.0);
+          sort[nsort].xismooth = 1.0 - fabs(1.0-xismooth);
+        }
+        nsort++;
       }
     }
 
     // sort neighbors by rsq distance
     // no need to sort if nsort <= 12
-    
+
     if (nsort > 12) qsort(sort,nsort,sizeof(Sort),compare);
 
     // copy up to 12 nearest neighbors into nbr data structure
     // operate on delta vector via find_best_ref() to compute dxi
-    
+
     n = MIN(12,nsort);
     nbr[i].n = n;
     if (n == 0) continue;
@@ -353,9 +353,9 @@ void FixOrientFCC::post_force(int vflag)
     }
     added_energy += edelta;
   }
-  
+
   if (maxcount) delete [] sort;
-  
+
   // communicate to acquire nbr data for ghost atoms
 
   comm->forward_comm_fix(this);
@@ -372,12 +372,12 @@ void FixOrientFCC::post_force(int vflag)
     for (j = 0; j < n; j++) {
       dxiptr = &nbr[i].dxi[j][0];
       if (use_xismooth) {
-	xismooth = nbr[i].xismooth[j];
+        xismooth = nbr[i].xismooth[j];
         f[i][0] += duxi * dxiptr[0] * xismooth;
         f[i][1] += duxi * dxiptr[1] * xismooth;
         f[i][2] += duxi * dxiptr[2] * xismooth;
       } else {
-	f[i][0] += duxi * dxiptr[0];
+        f[i][0] += duxi * dxiptr[0];
         f[i][1] += duxi * dxiptr[1];
         f[i][2] += duxi * dxiptr[2];
       }
@@ -387,29 +387,29 @@ void FixOrientFCC::post_force(int vflag)
       // if M is local atom, id_self will be local ID of atom I
       // if M is ghost atom, id_self will be global ID of atom I
 
-      m = nbr[i].id[j]; 
+      m = nbr[i].id[j];
       if (m < nlocal) id_self = i;
       else id_self = tag[i];
       found_myself = false;
       nn = nbr[m].n;
 
       for (k = 0; k < nn; k++) {
-	if (id_self == nbr[m].id[k]) {
-	  if (found_myself) error->one(FLERR,"Fix orient/fcc found self twice");
-	  found_myself = true;
-	  duxi_other = nbr[m].duxi;
-	  dxiptr = &nbr[m].dxi[k][0];
-	  if (use_xismooth) {
-	    xismooth = nbr[m].xismooth[k];
-	    f[i][0] -= duxi_other * dxiptr[0] * xismooth;
-	    f[i][1] -= duxi_other * dxiptr[1] * xismooth;
-	    f[i][2] -= duxi_other * dxiptr[2] * xismooth;
-	  } else {
-	    f[i][0] -= duxi_other * dxiptr[0];
-	    f[i][1] -= duxi_other * dxiptr[1];
-	    f[i][2] -= duxi_other * dxiptr[2];
-	  }
-	}
+        if (id_self == nbr[m].id[k]) {
+          if (found_myself) error->one(FLERR,"Fix orient/fcc found self twice");
+          found_myself = true;
+          duxi_other = nbr[m].duxi;
+          dxiptr = &nbr[m].dxi[k][0];
+          if (use_xismooth) {
+            xismooth = nbr[m].xismooth[k];
+            f[i][0] -= duxi_other * dxiptr[0] * xismooth;
+            f[i][1] -= duxi_other * dxiptr[1] * xismooth;
+            f[i][2] -= duxi_other * dxiptr[2] * xismooth;
+          } else {
+            f[i][0] -= duxi_other * dxiptr[0];
+            f[i][1] -= duxi_other * dxiptr[1];
+            f[i][2] -= duxi_other * dxiptr[2];
+          }
+        }
       }
     }
   }
@@ -425,21 +425,21 @@ void FixOrientFCC::post_force(int vflag)
     MPI_Allreduce(&mincount,&min,1,MPI_INT,MPI_MIN,world);
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
-    if (me == 0) { 
+    if (me == 0) {
       if (screen) fprintf(screen,
-			  "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT 
-			  " atoms have %d neighbors\n",
-			  update->ntimestep,atom->natoms,total);
+                          "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
+                          " atoms have %d neighbors\n",
+                          update->ntimestep,atom->natoms,total);
       if (logfile) fprintf(logfile,
-			   "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT 
-			   " atoms have %d neighbors\n",
-			   update->ntimestep,atom->natoms,total);
+                           "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
+                           " atoms have %d neighbors\n",
+                           update->ntimestep,atom->natoms,total);
       if (screen)
-	fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
-		min,max,ave);
+        fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
+                min,max,ave);
       if (logfile)
-	fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
-		min,max,ave);
+        fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
+                min,max,ave);
     }
   }
 }
@@ -463,7 +463,7 @@ double FixOrientFCC::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 int FixOrientFCC::pack_comm(int n, int *list, double *buf,
-			    int pbc_flag, int *pbc)
+                            int pbc_flag, int *pbc)
 {
   int i,j,k,id,num;
   int *tag = atom->tag;
@@ -526,8 +526,8 @@ void FixOrientFCC::unpack_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientFCC::find_best_ref(double *displs, int which_crystal, 
-				 double &xi_sq, double *dxi)
+void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
+                                 double &xi_sq, double *dxi)
 {
   int i;
   double dot,tmp;
@@ -557,8 +557,8 @@ void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
   if (xi_sq > 0.0) {
     double xi = sqrt(xi_sq);
     for (i = 0; i < 3; i++)
-      dxi[i] = (best_sign * half_xi_chi_vec[which_crystal][best_i][i] - 
-		displs[i]) / xi;
+      dxi[i] = (best_sign * half_xi_chi_vec[which_crystal][best_i][i] -
+                displs[i]) / xi;
   } else dxi[0] = dxi[1] = dxi[2] = 0.0;
 }
 
@@ -581,7 +581,7 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixOrientFCC::memory_usage()

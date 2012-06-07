@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -83,7 +83,7 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (requestor != other->requestor) same = 0;
   if (id != other->id) same = 0;
-  
+
   if (pair != other->pair) same = 0;
   if (fix != other->fix) same = 0;
   if (compute != other->compute) same = 0;
@@ -156,7 +156,7 @@ int NeighRequest::same_skip(NeighRequest *other)
       if (iskip[i] != other->iskip[i]) same = 0;
     for (i = 1; i <= ntypes; i++)
       for (j = 1; j <= ntypes; j++)
-	if (ijskip[i][j] != other->ijskip[i][j]) same = 0;
+        if (ijskip[i][j] != other->ijskip[i][j]) same = 0;
   }
 
   return same;

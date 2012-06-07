@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -135,13 +135,13 @@ void Neighbor::half_from_full_newton(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (j < nlocal) {
-	if (i > j) continue;
+        if (i > j) continue;
       } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp) {
-	  if (x[j][1] < ytmp) continue;
-	  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	}
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp) {
+          if (x[j][1] < ytmp) continue;
+          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
       }
       neighptr[n++] = joriginal;
     }
@@ -289,9 +289,9 @@ void Neighbor::skip_from_granular(NeighList *list)
       npnt = 0;
       npage++;
       if (npage == list->maxpage) {
-	pages = list->add_pages();
-	pages_touch = listgranhistory->add_pages();
-	pages_shear = listgranhistory->dpages;
+        pages = list->add_pages();
+        pages_touch = listgranhistory->add_pages();
+        pages_shear = listgranhistory->dpages;
       }
     }
 
@@ -406,17 +406,17 @@ void Neighbor::skip_from_respa(NeighList *list)
       npnt_inner = 0;
       npage_inner++;
       if (npage_inner == listinner->maxpage)
-	pages_inner = listinner->add_pages();
+        pages_inner = listinner->add_pages();
     }
     neighptr_inner = &pages_inner[npage_inner][npnt_inner];
     n_inner = 0;
 
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
-	npnt_middle = 0;
-	npage_middle++;
-	if (npage_middle == listmiddle->maxpage)
-	  pages_middle = listmiddle->add_pages();
+        npnt_middle = 0;
+        npage_middle++;
+        if (npage_middle == listmiddle->maxpage)
+          pages_middle = listmiddle->add_pages();
       }
       neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
@@ -453,10 +453,10 @@ void Neighbor::skip_from_respa(NeighList *list)
       jnum = numneigh_middle_skip[i];
 
       for (jj = 0; jj < jnum; jj++) {
-	joriginal = jlist[jj];
-	j = joriginal & NEIGHMASK;
-	if (ijskip[itype][type[j]]) continue;
-	neighptr_middle[n_middle++] = joriginal;
+        joriginal = jlist[jj];
+        j = joriginal & NEIGHMASK;
+        if (ijskip[itype][type[j]]) continue;
+        neighptr_middle[n_middle++] = joriginal;
       }
     }
 
@@ -478,7 +478,7 @@ void Neighbor::skip_from_respa(NeighList *list)
       numneigh_middle[i] = n_middle;
       npnt_middle += n_middle;
       if (n_middle > oneatom)
-	error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+        error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
 

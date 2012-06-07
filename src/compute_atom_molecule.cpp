@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -51,9 +51,9 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"c_",2) == 0 || 
-	strncmp(arg[iarg],"f_",2) == 0 || 
-	strncmp(arg[iarg],"v_",2) == 0) {
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0 ||
+        strncmp(arg[iarg],"v_",2) == 0) {
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
@@ -64,10 +64,10 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
-	if (suffix[strlen(suffix)-1] != ']')
-	  error->all(FLERR,"Illegal compute reduce command");
-	argindex[nvalues] = atoi(ptr+1);
-	*ptr = '\0';
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Illegal compute reduce command");
+        argindex[nvalues] = atoi(ptr+1);
+        *ptr = '\0';
       } else argindex[nvalues] = 0;
 
       n = strlen(suffix) + 1;
@@ -86,47 +86,47 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
     if (which[i] == COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
+        error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-	error->all(FLERR,"Compute atom/molecule compute does not "
-		   "calculate per-atom values");
-      if (argindex[i] == 0 && 
-	  modify->compute[icompute]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute atom/molecule compute does not "
-		   "calculate a per-atom vector");
+        error->all(FLERR,"Compute atom/molecule compute does not "
+                   "calculate per-atom values");
+      if (argindex[i] == 0 &&
+          modify->compute[icompute]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute atom/molecule compute does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute atom/molecule compute does not "
-		   "calculate a per-atom array");
-      if (argindex[i] && 
-	  argindex[i] > modify->compute[icompute]->size_peratom_cols)
-	error->all(FLERR,"Compute atom/molecule compute array is "
-		   "accessed out-of-range");
+        error->all(FLERR,"Compute atom/molecule compute does not "
+                   "calculate a per-atom array");
+      if (argindex[i] &&
+          argindex[i] > modify->compute[icompute]->size_peratom_cols)
+        error->all(FLERR,"Compute atom/molecule compute array is "
+                   "accessed out-of-range");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
-	error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
+        error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
       if (modify->fix[ifix]->peratom_flag)
-	error->all(FLERR,"Compute atom/molecule fix does not "
-		   "calculate per-atom values");
-      if (argindex[i] == 0 && 
-	  modify->fix[ifix]->size_peratom_cols != 0)
-	error->all(FLERR,"Compute atom/molecule fix does not "
-		   "calculate a per-atom vector");
+        error->all(FLERR,"Compute atom/molecule fix does not "
+                   "calculate per-atom values");
+      if (argindex[i] == 0 &&
+          modify->fix[ifix]->size_peratom_cols != 0)
+        error->all(FLERR,"Compute atom/molecule fix does not "
+                   "calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-	error->all(FLERR,"Compute atom/molecule fix does not "
-		   "calculate a per-atom array");
-      if (argindex[i] && 
-	  argindex[i] > modify->fix[ifix]->size_peratom_cols)
-	error->all(FLERR,"Compute atom/molecule fix array is accessed out-of-range");
+        error->all(FLERR,"Compute atom/molecule fix does not "
+                   "calculate a per-atom array");
+      if (argindex[i] &&
+          argindex[i] > modify->fix[ifix]->size_peratom_cols)
+        error->all(FLERR,"Compute atom/molecule fix array is accessed out-of-range");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-	error->all(FLERR,"Variable name for compute atom/molecule does not exist");
+        error->all(FLERR,"Variable name for compute atom/molecule does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-	error->all(FLERR,"Compute atom/molecule variable is not "
-		   "atom-style variable");
+        error->all(FLERR,"Compute atom/molecule variable is not "
+                   "atom-style variable");
     }
   }
 
@@ -187,19 +187,19 @@ void ComputeAtomMolecule::init()
     if (which[m] == COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-	error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
+        error->all(FLERR,"Compute ID for compute atom/molecule does not exist");
       value2index[m] = icompute;
-      
+
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0) 
-	error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
-      if (ivariable < 0) 
-	error->all(FLERR,"Variable name for compute atom/molecule does not exist");
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute atom/molecule does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -255,17 +255,17 @@ void ComputeAtomMolecule::compute_array()
     j = 0;
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	imol = molecule[i];
-	if (molmap) imol = molmap[imol-idlo];
-	else imol--;
-	aone[imol][m] += peratom[j];
+        imol = molecule[i];
+        if (molmap) imol = molmap[imol-idlo];
+        else imol--;
+        aone[imol][m] += peratom[j];
       }
       j += nstride;
     }
   }
 
   MPI_Allreduce(&aone[0][0],&array[0][0],nvalues*nmolecules,
-		MPI_DOUBLE,MPI_SUM,world);
+                MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -283,7 +283,7 @@ void ComputeAtomMolecule::compute_one(int m)
 
   if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[vidx];
-    
+
     if (!(compute->invoked_flag & INVOKED_PERATOM)) {
       compute->compute_peratom();
       compute->invoked_flag |= INVOKED_PERATOM;
@@ -302,7 +302,7 @@ void ComputeAtomMolecule::compute_one(int m)
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[vidx]->peratom_freq)
       error->all(FLERR,"Fix used in compute atom/molecule not computed "
-		 "at compatible time");
+                 "at compatible time");
     Fix *fix = modify->fix[vidx];
 
     if (aidx == 0) {
@@ -312,7 +312,7 @@ void ComputeAtomMolecule::compute_one(int m)
       peratom = &fix->array_atom[0][aidx-1];
       nstride = fix->size_array_cols;
     }
-    
+
   // evaluate atom-style variable
 
   } else if (which[m] == VARIABLE) {

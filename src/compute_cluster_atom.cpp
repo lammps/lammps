@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -60,9 +60,9 @@ void ComputeClusterAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute cluster/atom requires a pair style be defined");
-  if (sqrt(cutsq) > force->pair->cutforce) 
+  if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,"Compute cluster/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
@@ -146,38 +146,38 @@ void ComputeClusterAtom::compute_peratom()
     while (1) {
       done = 1;
       for (ii = 0; ii < inum; ii++) {
-	i = ilist[ii];
-	if (!(mask[i] & groupbit)) continue;
-	
-	xtmp = x[i][0];
-	ytmp = x[i][1];
-	ztmp = x[i][2];
-	jlist = firstneigh[i];
-	jnum = numneigh[i];
-	
-	n = 0;
-	for (jj = 0; jj < jnum; jj++) {
-	  j = jlist[jj];
-	  j &= NEIGHMASK;
-	  if (!(mask[j] & groupbit)) continue;
-	  if (clusterID[i] == clusterID[j]) continue;
-	  
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  if (rsq < cutsq) {
-	    clusterID[i] = clusterID[j] = MIN(clusterID[i],clusterID[j]);
-	    done = 0;
-	  }
-	}
+        i = ilist[ii];
+        if (!(mask[i] & groupbit)) continue;
+
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
+
+        n = 0;
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          if (!(mask[j] & groupbit)) continue;
+          if (clusterID[i] == clusterID[j]) continue;
+
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq) {
+            clusterID[i] = clusterID[j] = MIN(clusterID[i],clusterID[j]);
+            done = 0;
+          }
+        }
       }
       if (!done) change = 1;
       if (done) break;
     }
-    
+
     // stop if all procs are done
-    
+
     MPI_Allreduce(&change,&anychange,1,MPI_INT,MPI_MAX,world);
     if (!anychange) break;
   }
@@ -185,8 +185,8 @@ void ComputeClusterAtom::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeClusterAtom::pack_comm(int n, int *list, double *buf, 
-				  int pbc_flag, int *pbc)
+int ComputeClusterAtom::pack_comm(int n, int *list, double *buf,
+                                  int pbc_flag, int *pbc)
 {
   int i,j,m;
 

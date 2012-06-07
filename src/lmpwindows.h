@@ -17,7 +17,7 @@
 #define pclose _pclose
 #define __restrict__ __restrict
 
-// the following functions ared defined to get rid of 
+// the following functions ared defined to get rid of
 // 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
 
 #if defined(__MINGW32_VERSION)

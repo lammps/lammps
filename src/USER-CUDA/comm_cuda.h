@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -33,7 +33,7 @@ public:
   virtual void forward_comm_pack_cuda();
   virtual void forward_comm_transfer_cuda();
   virtual void forward_comm_unpack_cuda();
-  virtual void forward_comm_pair(Pair *pair);    
+  virtual void forward_comm_pair(Pair *pair);
   virtual void reverse_comm();              // reverse communication of forces
   virtual void exchange();                  // move atoms to new procs
   virtual void exchange_cuda();                  // move atoms to new procs
@@ -43,7 +43,7 @@ public:
   virtual void forward_comm_fix(class Fix *);          // forward comm from a Fix
 
 
-  
+
 
  protected:
   class Cuda *cuda;
@@ -52,7 +52,7 @@ public:
   cCudaData<double, X_FLOAT, x>* cu_slabhi;
   cCudaData<double, X_FLOAT, xy>* cu_multilo;
   cCudaData<double, X_FLOAT, xy>* cu_multihi;
-  
+
   cCudaData<int, int, xy>* cu_sendlist;
   virtual void grow_send(int,int);          // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -123,11 +123,11 @@ void NeighList::grow(int nmax)
   memory->create(ilist,maxatoms,"neighlist:ilist");
   memory->create(numneigh,maxatoms,"neighlist:numneigh");
   firstneigh = (int **) memory->smalloc(maxatoms*sizeof(int *),
-					"neighlist:firstneigh");
+                                        "neighlist:firstneigh");
 
-  if (dnum) 
+  if (dnum)
     firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
-					      "neighlist:firstdouble");
+                                              "neighlist:firstdouble");
 }
 
 /* ----------------------------------------------------------------------
@@ -145,8 +145,8 @@ void NeighList::stencil_allocate(int smax, int style)
       memory->destroy(stencil);
       memory->create(stencil,maxstencil,"neighlist:stencil");
       if (ghostflag) {
-	memory->destroy(stencilxyz);
-	memory->create(stencilxyz,maxstencil,3,"neighlist:stencilxyz");
+        memory->destroy(stencilxyz);
+        memory->create(stencilxyz,maxstencil,3,"neighlist:stencilxyz");
       }
     }
 
@@ -157,20 +157,20 @@ void NeighList::stencil_allocate(int smax, int style)
       stencil_multi = new int*[n+1];
       distsq_multi = new double*[n+1];
       for (i = 1; i <= n; i++) {
-	nstencil_multi[i] = 0;
-	stencil_multi[i] = NULL;
-	distsq_multi[i] = NULL;
+        nstencil_multi[i] = 0;
+        stencil_multi[i] = NULL;
+        distsq_multi[i] = NULL;
       }
     }
     if (smax > maxstencil_multi) {
       maxstencil_multi = smax;
       for (i = 1; i <= n; i++) {
-	memory->destroy(stencil_multi[i]);
-	memory->destroy(distsq_multi[i]);
-	memory->create(stencil_multi[i],maxstencil_multi,
-		       "neighlist:stencil_multi");
-	memory->create(distsq_multi[i],maxstencil_multi,
-		       "neighlist:distsq_multi");
+        memory->destroy(stencil_multi[i]);
+        memory->destroy(distsq_multi[i]);
+        memory->create(stencil_multi[i],maxstencil_multi,
+                       "neighlist:stencil_multi");
+        memory->create(distsq_multi[i],maxstencil_multi,
+                       "neighlist:distsq_multi");
       }
     }
   }
@@ -185,13 +185,13 @@ int **NeighList::add_pages(int howmany)
   int toppage = maxpage;
   maxpage += howmany*PGDELTA;
 
-  pages = (int **) 
+  pages = (int **)
     memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");
   for (int i = toppage; i < maxpage; i++)
     memory->create(pages[i],pgsize,"neighlist:pages[i]");
 
   if (dnum) {
-    dpages = (double **) 
+    dpages = (double **)
       memory->srealloc(dpages,maxpage*sizeof(double *),"neighlist:dpages");
     for (int i = toppage; i < maxpage; i++)
       memory->create(dpages[i],dnum*pgsize,"neighlist:dpages[i]");

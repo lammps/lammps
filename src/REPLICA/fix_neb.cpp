@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -142,7 +142,7 @@ void FixNEB::min_post_force(int vflag)
 
   if (ireplica < nreplica-1) MPI_Send(&veng,1,MPI_DOUBLE,procnext,0,uworld);
   if (ireplica > 0) MPI_Recv(&vprev,1,MPI_DOUBLE,procprev,0,uworld,&status);
-  
+
   if (ireplica > 0) MPI_Send(&veng,1,MPI_DOUBLE,procprev,0,uworld);
   if (ireplica < nreplica-1)
     MPI_Recv(&vnext,1,MPI_DOUBLE,procnext,0,uworld,&status);
@@ -199,41 +199,41 @@ void FixNEB::min_post_force(int vflag)
   if (vnext > veng && veng > vprev) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	tangent[i][0] = xnext[i][0] - x[i][0];
-	tangent[i][1] = xnext[i][1] - x[i][1];
-	tangent[i][2] = xnext[i][2] - x[i][2];
-	domain->minimum_image(tangent[i]);
+        tangent[i][0] = xnext[i][0] - x[i][0];
+        tangent[i][1] = xnext[i][1] - x[i][1];
+        tangent[i][2] = xnext[i][2] - x[i][2];
+        domain->minimum_image(tangent[i]);
       }
   } else if (vnext < veng && veng < vprev) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	tangent[i][0] = x[i][0] - xprev[i][0];
-	tangent[i][1] = x[i][1] - xprev[i][1];
-	tangent[i][2] = x[i][2] - xprev[i][2];
-	domain->minimum_image(tangent[i]);
+        tangent[i][0] = x[i][0] - xprev[i][0];
+        tangent[i][1] = x[i][1] - xprev[i][1];
+        tangent[i][2] = x[i][2] - xprev[i][2];
+        domain->minimum_image(tangent[i]);
       }
   } else {
     vmax = MAX(fabs(vnext-veng),fabs(vprev-veng));
     vmin = MIN(fabs(vnext-veng),fabs(vprev-veng));
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	delta1[0] = xnext[i][0] - x[i][0];
-	delta1[1] = xnext[i][1] - x[i][1];
-	delta1[2] = xnext[i][2] - x[i][2];
-	domain->minimum_image(delta1);
-	delta2[0] = x[i][0] - xprev[i][0];
-	delta2[1] = x[i][1] - xprev[i][1];
-	delta2[2] = x[i][2] - xprev[i][2];
-	domain->minimum_image(delta2);
-	if (vnext > vprev) {
-	  tangent[i][0] = vmax*delta1[0] + vmin*delta2[0];
-	  tangent[i][1] = vmax*delta1[1] + vmin*delta2[1];
-	  tangent[i][2] = vmax*delta1[2] + vmin*delta2[2];
-	} else {
-	  tangent[i][0] = vmin*delta1[0] + vmax*delta2[0];
-	  tangent[i][1] = vmin*delta1[1] + vmax*delta2[1];
-	  tangent[i][2] = vmin*delta1[2] + vmax*delta2[2];
-	}
+        delta1[0] = xnext[i][0] - x[i][0];
+        delta1[1] = xnext[i][1] - x[i][1];
+        delta1[2] = xnext[i][2] - x[i][2];
+        domain->minimum_image(delta1);
+        delta2[0] = x[i][0] - xprev[i][0];
+        delta2[1] = x[i][1] - xprev[i][1];
+        delta2[2] = x[i][2] - xprev[i][2];
+        domain->minimum_image(delta2);
+        if (vnext > vprev) {
+          tangent[i][0] = vmax*delta1[0] + vmin*delta2[0];
+          tangent[i][1] = vmax*delta1[1] + vmin*delta2[1];
+          tangent[i][2] = vmax*delta1[2] + vmin*delta2[2];
+        } else {
+          tangent[i][0] = vmin*delta1[0] + vmax*delta2[0];
+          tangent[i][1] = vmin*delta1[1] + vmax*delta2[1];
+          tangent[i][2] = vmin*delta1[2] + vmax*delta2[2];
+        }
       }
   }
 
@@ -245,9 +245,9 @@ void FixNEB::min_post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] + 
-	tangent[i][2]*tangent[i][2];
-      
+      tlen += tangent[i][0]*tangent[i][0] + tangent[i][1]*tangent[i][1] +
+        tangent[i][2]*tangent[i][2];
+
       delx = x[i][0] - xprev[i][0];
       dely = x[i][1] - xprev[i][1];
       delz = x[i][2] - xprev[i][2];
@@ -271,9 +271,9 @@ void FixNEB::min_post_force(int vflag)
     double tleninv = 1.0/tlen;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	tangent[i][0] *= tleninv;
-	tangent[i][1] *= tleninv;
-	tangent[i][2] *= tleninv;
+        tangent[i][0] *= tleninv;
+        tangent[i][1] *= tleninv;
+        tangent[i][2] *= tleninv;
       }
   }
 
@@ -292,8 +292,8 @@ void FixNEB::min_post_force(int vflag)
   double dot = 0.0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit)
-      dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] + 
-	f[i][2]*tangent[i][2];
+      dot += f[i][0]*tangent[i][0] + f[i][1]*tangent[i][1] +
+        f[i][2]*tangent[i][2];
   }
 
   double prefactor;

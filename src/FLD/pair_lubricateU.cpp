@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -108,7 +108,7 @@ PairLubricateU::~PairLubricateU()
 
 void PairLubricateU::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype; 
+  int i,j,ii,jj,inum,jnum,itype,jtype;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -122,7 +122,7 @@ void PairLubricateU::compute(int eflag, int vflag)
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   // skip compute() if called from integrate::setup()
   // this is b/c do not want compute() to update velocities twice on a restart
   // when restarting, call compute on step N (last step of prev run),
@@ -155,16 +155,16 @@ void PairLubricateU::compute(int eflag, int vflag)
       xl[i][j] = x[i][j];
     }
   }
-  
+
   // Stage one of Midpoint method
   // Solve for velocities based on intial positions
 
   stage_one();
-  
+
   // find positions at half the timestep and store in xl
 
   intermediates(nall,xl);
-  
+
   // store back the saved forces and torques in original arrays
 
   for(i=0;i<nlocal+nghost;i++) {
@@ -173,10 +173,10 @@ void PairLubricateU::compute(int eflag, int vflag)
       torque[i][j] = Tl[i][j];
     }
   }
-  
+
   // stage two: this will give the final velocities
 
-  stage_two(xl);  
+  stage_two(xl);
 }
 
 /* ------------------------------------------------------------------------
@@ -185,8 +185,8 @@ void PairLubricateU::compute(int eflag, int vflag)
 
 void PairLubricateU::stage_one()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype; 
-  
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -201,13 +201,13 @@ void PairLubricateU::stage_one()
   double vxmu2f = force->vxmu2f;
   double inv_inertia,mo_inertia;
   int *ilist;
-  
+
   double radi;
   int nprocs = comm->nprocs;
-  
+
   inum = list->inum;
   ilist = list->ilist;
-  
+
   if (6*inum > cgmax) {
     memory->destroy(bcg);
     memory->destroy(xcg);
@@ -227,149 +227,149 @@ void PairLubricateU::stage_one()
   double alpha,beta;
   double normi,error,normig;
   double send[2],recv[2],rcg_dot_rcg;
-  
-  // First compute R_FE*E  
+
+  // First compute R_FE*E
 
   compute_RE();
-  
-  // Reverse communication of forces and torques to 
+
+  // Reverse communication of forces and torques to
   // accumulate the net force on each of the particles
-  
+
   if (newton_pair) comm->reverse_comm();
-  
+
   // CONJUGATE GRADIENT
   // Find the right hand side= -ve of all forces/torques
   // b = 6*Npart in overall size
-  
+
   for(ii = 0; ii < inum; ii++) {
-    i = ilist[ii];  
+    i = ilist[ii];
     for (j = 0; j < 3; j++) {
       bcg[6*ii+j] = -f[i][j];
-      bcg[6*ii+j+3] = -torque[i][j];  
+      bcg[6*ii+j+3] = -torque[i][j];
     }
-  } 
-  
-  // Start solving the equation : F^H = -F^P -F^B - F^H_{Ef}   
+  }
+
+  // Start solving the equation : F^H = -F^P -F^B - F^H_{Ef}
   // Store initial guess for velocity and angular-velocities/angular momentum
   // NOTE velocities and angular velocities are assumed relative to the fluid
-  
+
   for (ii=0;ii<inum;ii++)
-    for (j=0;j<3;j++) {      
+    for (j=0;j<3;j++) {
       xcg[6*ii+j] = 0.0;
-      xcg[6*ii+j+3] = 0.0;       
+      xcg[6*ii+j+3] = 0.0;
     }
-  
+
   // Copy initial guess to the global arrays to be acted upon by R_{FU}
   // and returned by f and torque arrays
-  
+
   copy_vec_uo(inum,xcg,v,omega);
-  
+
   // set velocities for ghost particles
-  
+
   comm->forward_comm_pair(this);
-  
+
   // Find initial residual
-  
+
   compute_RU();
-  
+
   // reverse communication of forces and torques
-  
+
   if (newton_pair) comm->reverse_comm();
-  
+
   copy_uo_vec(inum,f,torque,RU);
-  
+
   for (i=0;i<6*inum;i++)
     rcg[i] = bcg[i] - RU[i];
-  
+
   // Set initial conjugate direction
-  
+
   for (i=0;i<6*inum;i++)
     pcg[i] = rcg[i];
-  
+
   // Find initial norm of the residual or norm of the RHS (either is fine)
-  
+
   normi = dot_vec_vec(6*inum,bcg,bcg);
-  
+
   MPI_Allreduce(&normi,&normig,1,MPI_DOUBLE,MPI_SUM,world);
-  
+
   // Loop until convergence
-  
-  do {    
+
+  do {
     // find R*p
-    
+
     copy_vec_uo(inum,pcg,v,omega);
-    
-    // set velocities for ghost particles   
-    
+
+    // set velocities for ghost particles
+
     comm->forward_comm_pair(this);
-    
+
     compute_RU();
-    
+
     // reverse communication of forces and torques
-    
+
     if (newton_pair) comm->reverse_comm();
-    
-    
-    copy_uo_vec(inum,f,torque,RU);  
-    
+
+
+    copy_uo_vec(inum,f,torque,RU);
+
     // Find alpha
-    
+
     send[0] = dot_vec_vec(6*inum,rcg,rcg);
     send[1] = dot_vec_vec(6*inum,RU,pcg);
-    
+
     MPI_Allreduce(send,recv,2,MPI_DOUBLE,MPI_SUM,world);
-    
+
     alpha = recv[0]/recv[1];
     rcg_dot_rcg = recv[0];
-    
+
     // Find new x
-    
+
     for (i=0;i<6*inum;i++)
       xcg[i] = xcg[i] + alpha*pcg[i];
-    
+
     // find new residual
-    
+
     for (i=0;i<6*inum;i++)
       rcg1[i] = rcg[i] - alpha*RU[i];
-    
+
     // find beta
-    
+
     send[0] = dot_vec_vec(6*inum,rcg1,rcg1);
-    
+
     MPI_Allreduce(send,recv,1,MPI_DOUBLE,MPI_SUM,world);
-    
+
     beta = recv[0]/rcg_dot_rcg;
-    
+
     // Find new conjugate direction
-    
+
     for (i=0;i<6*inum;i++)
       pcg[i] = rcg1[i] + beta*pcg[i];
-    
+
     for (i=0;i<6*inum;i++)
       rcg[i] = rcg1[i];
-    
+
     // Find relative error
-    
-    error = sqrt(recv[0]/normig);    
-    
-  } while (error > TOL);  
-  
+
+    error = sqrt(recv[0]/normig);
+
+  } while (error > TOL);
+
   // update the final converged velocities in respective arrays
-  
+
   copy_vec_uo(inum,xcg,v,omega);
 
-  // set velocities for ghost particles  
+  // set velocities for ghost particles
 
   comm->forward_comm_pair(this);
-  
-  // Find actual particle's velocities from relative velocities 
-  // Only non-zero component of fluid's vel : vx=gdot*y and wz=-gdot/2  
+
+  // Find actual particle's velocities from relative velocities
+  // Only non-zero component of fluid's vel : vx=gdot*y and wz=-gdot/2
 
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];
     itype = type[i];
     radi = radius[i];
-    
+
     v[i][0] = v[i][0] + gdot*x[i][1];
     omega[i][2] = omega[i][2] - gdot/2.0;
   }
@@ -385,7 +385,7 @@ void PairLubricateU::intermediates(int nall, double **xl)
   double **x = atom->x;
   double **v = atom->v;
   double dtv = update->dt;
-  
+
   for (i=0;i<nall;i++) {
     xl[i][0] = x[i][0] + 0.5*dtv*v[i][0];
     xl[i][1] = x[i][1] + 0.5*dtv*v[i][1];
@@ -399,7 +399,7 @@ void PairLubricateU::intermediates(int nall, double **xl)
 
 void PairLubricateU::stage_two(double **x)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype; 
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
@@ -413,163 +413,163 @@ void PairLubricateU::stage_two(double **x)
   double vxmu2f = force->vxmu2f;
   double inv_inertia,mo_inertia;
   int *ilist;
-  
+
   double radi;
   int nprocs = comm->nprocs;
-  
+
   inum = list->inum;
   ilist = list->ilist;
-  
+
   double alpha,beta;
   double normi,error,normig;
   double send[2],recv[2],rcg_dot_rcg;
-  
-  // First compute R_FE*E  
+
+  // First compute R_FE*E
 
   compute_RE(x);
-  
-  // Reverse communication of forces and torques to 
+
+  // Reverse communication of forces and torques to
   // accumulate the net force on each of the particles
-  
+
   if (newton_pair) comm->reverse_comm();
-  
+
   // CONJUGATE GRADIENT
   // Find the right hand side= -ve of all forces/torques
   // b = 6*Npart in overall size
-  
+
   for(ii = 0; ii < inum; ii++) {
-    i = ilist[ii];  
+    i = ilist[ii];
     for (j = 0; j < 3; j++) {
       bcg[6*ii+j] = -f[i][j];
-      bcg[6*ii+j+3] = -torque[i][j];  
+      bcg[6*ii+j+3] = -torque[i][j];
     }
-  } 
-  
-  // Start solving the equation : F^H = -F^P -F^B - F^H_{Ef}   
+  }
+
+  // Start solving the equation : F^H = -F^P -F^B - F^H_{Ef}
   // Store initial guess for velocity and angular-velocities/angular momentum
   // NOTE velocities and angular velocities are assumed relative to the fluid
-  
+
   for (ii=0;ii<inum;ii++)
-    for (j=0;j<3;j++) {      
+    for (j=0;j<3;j++) {
       xcg[6*ii+j] = 0.0;
-      xcg[6*ii+j+3] = 0.0;       
+      xcg[6*ii+j+3] = 0.0;
     }
-  
+
   // Copy initial guess to the global arrays to be acted upon by R_{FU}
   // and returned by f and torque arrays
-  
+
   copy_vec_uo(inum,xcg,v,omega);
-  
+
   // set velocities for ghost particles
-  
+
   comm->forward_comm_pair(this);
-  
+
   // Find initial residual
-  
+
   compute_RU(x);
-  
+
   // reverse communication of forces and torques
-  
+
   if (newton_pair) comm->reverse_comm();
-  
+
   copy_uo_vec(inum,f,torque,RU);
-  
+
   for (i=0;i<6*inum;i++)
     rcg[i] = bcg[i] - RU[i];
-  
+
   // Set initial conjugate direction
-  
+
   for (i=0;i<6*inum;i++)
     pcg[i] = rcg[i];
-  
+
   // Find initial norm of the residual or norm of the RHS (either is fine)
-  
+
   normi = dot_vec_vec(6*inum,bcg,bcg);
-  
+
   MPI_Allreduce(&normi,&normig,1,MPI_DOUBLE,MPI_SUM,world);
-  
+
   // Loop until convergence
-  
-  do {    
+
+  do {
     // find R*p
-    
+
     copy_vec_uo(inum,pcg,v,omega);
-    
-    // set velocities for ghost particles   
-    
+
+    // set velocities for ghost particles
+
     comm->forward_comm_pair(this);
-    
+
     compute_RU(x);
-    
+
     // reverse communication of forces and torques
-    
+
     if (newton_pair) comm->reverse_comm();
-    
-    copy_uo_vec(inum,f,torque,RU);  
-    
+
+    copy_uo_vec(inum,f,torque,RU);
+
     // Find alpha
-    
+
     send[0] = dot_vec_vec(6*inum,rcg,rcg);
     send[1] = dot_vec_vec(6*inum,RU,pcg);
-    
+
     MPI_Allreduce(send,recv,2,MPI_DOUBLE,MPI_SUM,world);
-    
+
     alpha = recv[0]/recv[1];
     rcg_dot_rcg = recv[0];
-    
+
     // Find new x
-    
+
     for (i=0;i<6*inum;i++)
       xcg[i] = xcg[i] + alpha*pcg[i];
-    
+
     // find new residual
-    
+
     for (i=0;i<6*inum;i++)
       rcg1[i] = rcg[i] - alpha*RU[i];
-    
+
     // find beta
-    
+
     send[0] = dot_vec_vec(6*inum,rcg1,rcg1);
-    
+
     MPI_Allreduce(send,recv,1,MPI_DOUBLE,MPI_SUM,world);
-    
+
     beta = recv[0]/rcg_dot_rcg;
-    
+
     // Find new conjugate direction
-    
+
     for (i=0;i<6*inum;i++)
       pcg[i] = rcg1[i] + beta*pcg[i];
-    
+
     for (i=0;i<6*inum;i++)
       rcg[i] = rcg1[i];
-    
+
     // Find relative error
-    
-    error = sqrt(recv[0]/normig);    
-    
-  } while (error > TOL);  
-  
-  
+
+    error = sqrt(recv[0]/normig);
+
+  } while (error > TOL);
+
+
   // update the final converged velocities in respective arrays
-  
+
   copy_vec_uo(inum,xcg,v,omega);
-  
+
   // set velocities for ghost particles
-  
+
   comm->forward_comm_pair(this);
-  
+
   // Compute the viscosity/pressure
-  
+
   if (evflag) compute_Fh(x);
-  
-  // Find actual particle's velocities from relative velocities 
+
+  // Find actual particle's velocities from relative velocities
   // Only non-zero component of fluid's vel : vx=gdot*y and wz=-gdot/2
-  
+
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];
     itype = type[i];
     radi = radius[i];
-    
+
     v[i][0] = v[i][0] + gdot*x[i][1];
     omega[i][2] = omega[i][2] - gdot/2.0;
   }
@@ -586,10 +586,10 @@ void PairLubricateU::compute_Fh(double **x)
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;   
+  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
   double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
@@ -603,12 +603,12 @@ void PairLubricateU::compute_Fh(double **x)
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
 
@@ -616,43 +616,43 @@ void PairLubricateU::compute_Fh(double **x)
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++){
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++){
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->wallstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	//	RT0 = 8*MY_PI*mu*pow(rad,3);
-	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
-	  (1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        //        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+        //        RT0 = 8*MY_PI*mu*pow(rad,3);
+        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
+          (1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	//	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	//	RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
-	  (1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        //        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        //        RT0 = 8*MY_PI*mu*pow(rad,3)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3.0)*
+          (1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
- 
+
   // end of R0 adjustment code
 
   // Set force to zero which is the final value after this pair interaction
@@ -661,11 +661,11 @@ void PairLubricateU::compute_Fh(double **x)
       f[i][j] = 0.0;
       torque[i][j] = 0.0;
     }
-  
+
   // reverse communication of forces and torques
 
   if (newton_pair) comm->reverse_comm(); // not really needed
-  
+
   // Find additional contribution from the stresslets
 
   for (ii = 0; ii < inum; ii++) {
@@ -676,8 +676,8 @@ void PairLubricateU::compute_Fh(double **x)
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
-    
+    jnum = numneigh[i];
+
     // Find the contribution to stress from isotropic RS0
     // Set psuedo force to obtain the required contribution
     // need to set delx  and fy only
@@ -687,15 +687,15 @@ void PairLubricateU::compute_Fh(double **x)
     fz = 0.0; delz = 0.0;
     if (evflag)
       ev_tally_xyz(i,i,nlocal,newton_pair,0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
-    
+
     // Find angular velocity
 
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
-    wi[2] = omega[i][2];          
-    
+    wi[2] = omega[i][2];
+
     if (!flagHI) continue;
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -705,23 +705,23 @@ void PairLubricateU::compute_Fh(double **x)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-        
+        r = sqrt(rsq);
+
         // Use omega directly if it exists, else angmom
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
-        
-	wj[0] = omega[j][0];
-	wj[1] = omega[j][1];
-	wj[2] = omega[j][2];              
-        
+
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
+
         // loc of the point of closest approach on particle i from its cente
 
         xl[0] = -delx/r*radi;
         xl[1] = -dely/r*radi;
         xl[2] = -delz/r*radi;
-        
+
         // velocity at the point of closest approach on both particles
         // v = v + omega_cross_xl
 
@@ -730,54 +730,54 @@ void PairLubricateU::compute_Fh(double **x)
         vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1]);
         vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2]);
         vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0]);
-        
+
         // particle j
 
         vj[0] = v[j][0] - (wj[1]*xl[2] - wj[2]*xl[1]);
         vj[1] = v[j][1] - (wj[2]*xl[0] - wj[0]*xl[2]);
         vj[2] = v[j][2] - (wj[0]*xl[1] - wj[1]*xl[0]);
-        
-        
-        // Relative  velocity at the point of closest approach
-	// include contribution from Einf of the fluid
 
-        vr1 = vi[0] - vj[0] - 
-	  2.0*(Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
-        vr2 = vi[1] - vj[1] - 
-	  2.0*(Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
-        vr3 = vi[2] - vj[2] - 
-	  2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
-        
+
+        // Relative  velocity at the point of closest approach
+        // include contribution from Einf of the fluid
+
+        vr1 = vi[0] - vj[0] -
+          2.0*(Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
+        vr2 = vi[1] - vj[1] -
+          2.0*(Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
+        vr3 = vi[2] - vj[2] -
+          2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
+
         // Normal component (vr.n)n
 
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
         vn1 = vnnr*delx/r;
         vn2 = vnnr*dely/r;
         vn3 = vnnr*delz/r;
-        
+
         // Tangential component vr - (vr.n)n
 
         vt1 = vr1 - vn1;
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
-        
+
         // Find the scalar resistances a_sq, a_sh and a_pu
 
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
 
         if (h_sep < 0.0) overlaps++;
-        
+
         // If less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // Scale h_sep by radi
 
         h_sep = h_sep/radi;
-        
+
         // Scalar resistances
 
         if (flaglog) {
@@ -785,45 +785,45 @@ void PairLubricateU::compute_Fh(double **x)
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
-                
+
         // Find force due to squeeze type motion
 
         fx  = a_sq*vn1;
         fy  = a_sq*vn2;
         fz  = a_sq*vn3;
-        
+
         // Find force due to all shear kind of motions
 
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
-        
+
         // Scale forces to obtain in appropriate units
 
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-				 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
   }
 }
 
-/* ---------------------------------------------------------------------- 
-  computes R_FU * U 
+/* ----------------------------------------------------------------------
+  computes R_FU * U
 ---------------------------------------------------------------------- */
-  
+
 void PairLubricateU::compute_RU()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;   
+  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
   double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -842,7 +842,7 @@ void PairLubricateU::compute_RU()
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -855,37 +855,37 @@ void PairLubricateU::compute_RU()
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++){
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++){
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->wallstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0);
-	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
@@ -897,7 +897,7 @@ void PairLubricateU::compute_RU()
       f[i][j] = 0.0;
       torque[i][j] = 0.0;
     }
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -906,25 +906,25 @@ void PairLubricateU::compute_RU()
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
-    
+    jnum = numneigh[i];
+
     // Find angular velocity
 
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
-    wi[2] = omega[i][2];          
-     
+    wi[2] = omega[i][2];
+
     // Contribution due to the isotropic terms
 
     f[i][0] += -vxmu2f*R0*v[i][0];
     f[i][1] += -vxmu2f*R0*v[i][1];
-    f[i][2] += -vxmu2f*R0*v[i][2];    
-    
+    f[i][2] += -vxmu2f*R0*v[i][2];
+
     torque[i][0] += -vxmu2f*RT0*wi[0];
     torque[i][1] += -vxmu2f*RT0*wi[1];
-    torque[i][2] += -vxmu2f*RT0*wi[2];   
-    
-    if (!flagHI) continue; 
+    torque[i][2] += -vxmu2f*RT0*wi[2];
+
+    if (!flagHI) continue;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -937,21 +937,21 @@ void PairLubricateU::compute_RU()
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-  
+        r = sqrt(rsq);
+
         // Use omega directly if it exists, else angmom
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
 
-	wj[0] = omega[j][0];
-	wj[1] = omega[j][1];
-	wj[2] = omega[j][2];              
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
 
         // loc of the point of closest approach on particle i from its center
 
         xl[0] = -delx/r*radi;
         xl[1] = -dely/r*radi;
         xl[2] = -delz/r*radi;
-  
+
         // velocity at the point of closest approach on both particles
         // v = v + omega_cross_xl
 
@@ -960,30 +960,30 @@ void PairLubricateU::compute_RU()
         vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1]);
         vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2]);
         vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0]);
-  
+
         // particle j
 
         vj[0] = v[j][0] - (wj[1]*xl[2] - wj[2]*xl[1]);
         vj[1] = v[j][1] - (wj[2]*xl[0] - wj[0]*xl[2]);
         vj[2] = v[j][2] - (wj[0]*xl[1] - wj[1]*xl[0]);
-  
+
         // Find the scalar resistances a_sq and a_sh
 
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
 
         if(h_sep < 0.0) overlaps++;
-        
+
         // If less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // Scale h_sep by radi
 
         h_sep = h_sep/radi;
-  
+
         // Scalar resistances
 
         if (flaglog) {
@@ -992,7 +992,7 @@ void PairLubricateU::compute_RU()
           a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
-  
+
         // Relative  velocity at the point of closest approach
 
         vr1 = vi[0] - vj[0];
@@ -1017,83 +1017,83 @@ void PairLubricateU::compute_RU()
         fx  = a_sq*vn1;
         fy  = a_sq*vn2;
         fz  = a_sq*vn3;
-        
+
         // Find force due to all shear kind of motions
 
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
-        
+
         // Scale forces to obtain in appropriate units
 
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         // Add to the total forc
 
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         if (newton_pair || j < nlocal) {
           f[j][0] += fx;
           f[j][1] += fy;
-          f[j][2] += fz;    
+          f[j][2] += fz;
         }
-  
+
         // Find torque due to this force
 
         if (flaglog) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-  
+          tz = xl[0]*fy - xl[1]*fx;
+
           // Why a scale factor ?
 
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-            
+          torque[i][2] -= vxmu2f*tz;
+
           if(newton_pair || j < nlocal) {
             torque[j][0] -= vxmu2f*tx;
             torque[j][1] -= vxmu2f*ty;
             torque[j][2] -= vxmu2f*tz;
           }
-          
+
           // Torque due to a_pu
 
-          wdotn = ((wi[0]-wj[0])*delx + 
-		   (wi[1]-wj[1])*dely + (wi[2]-wj[2])*delz)/r;
+          wdotn = ((wi[0]-wj[0])*delx +
+                   (wi[1]-wj[1])*dely + (wi[2]-wj[2])*delz)/r;
           wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
           wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
           wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
-          
+
           tx = a_pu*wt1;
           ty = a_pu*wt2;
           tz = a_pu*wt3;
-          
+
           // add to total
 
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-            
+          torque[i][2] -= vxmu2f*tz;
+
           if (newton_pair || j < nlocal) {
             torque[j][0] += vxmu2f*tx;
             torque[j][1] += vxmu2f*ty;
             torque[j][2] += vxmu2f*tz;
           }
-        }      
+        }
       }
     }
   }
 }
 
-/* ---------------------------------------------------------------------- 
-  computes R_FU * U 
+/* ----------------------------------------------------------------------
+  computes R_FU * U
 ---------------------------------------------------------------------- */
 
 void PairLubricateU::compute_RU(double **x)
@@ -1102,10 +1102,10 @@ void PairLubricateU::compute_RU(double **x)
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;   
+  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
   double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
@@ -1119,12 +1119,12 @@ void PairLubricateU::compute_RU(double **x)
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
 
@@ -1132,37 +1132,37 @@ void PairLubricateU::compute_RU(double **x)
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++){
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++){
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->wallstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0);
-	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	//	RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
@@ -1174,7 +1174,7 @@ void PairLubricateU::compute_RU(double **x)
       f[i][j] = 0.0;
       torque[i][j] = 0.0;
     }
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -1183,24 +1183,24 @@ void PairLubricateU::compute_RU(double **x)
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
-    
+    jnum = numneigh[i];
+
     // Find angular velocity
-    
+
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
     wi[2] = omega[i][2];
-    
+
     // Contribution due to the isotropic terms
-    
+
     f[i][0] += -vxmu2f*R0*v[i][0];
     f[i][1] += -vxmu2f*R0*v[i][1];
-    f[i][2] += -vxmu2f*R0*v[i][2];    
-    
+    f[i][2] += -vxmu2f*R0*v[i][2];
+
     torque[i][0] += -vxmu2f*RT0*wi[0];
     torque[i][1] += -vxmu2f*RT0*wi[1];
-    torque[i][2] += -vxmu2f*RT0*wi[2];   
-    
+    torque[i][2] += -vxmu2f*RT0*wi[2];
+
     if (!flagHI) continue;
 
     for (jj = 0; jj < jnum; jj++) {
@@ -1212,177 +1212,177 @@ void PairLubricateU::compute_RU(double **x)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-        
+        r = sqrt(rsq);
+
         // Use omega directly if it exists, else angmom
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
-        
-	wj[0] = omega[j][0];
-	wj[1] = omega[j][1];
-	wj[2] = omega[j][2];              
-        
+
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
+
         // loc of the point of closest approach on particle i from its center
-        
+
         xl[0] = -delx/r*radi;
         xl[1] = -dely/r*radi;
         xl[2] = -delz/r*radi;
-        
+
         // velocity at the point of closest approach on both particles
         // v = v + omega_cross_xl
-        
+
         // particle i
-        
+
         vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1]);
         vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2]);
         vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0]);
-        
+
         // particle j
-        
+
         vj[0] = v[j][0] - (wj[1]*xl[2] - wj[2]*xl[1]);
         vj[1] = v[j][1] - (wj[2]*xl[0] - wj[0]*xl[2]);
         vj[2] = v[j][2] - (wj[0]*xl[1] - wj[1]*xl[0]);
-        
+
         // Find the scalar resistances a_sq and a_sh
-        
+
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
-        
+
         if(h_sep < 0.0) overlaps++;
-        
+
         // If less than the minimum gap use the minimum gap instead
-        
+
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // Scale h_sep by radi
-        
+
         h_sep = h_sep/radi;
-        
+
         // Scalar resistances
-        
+
         if (flaglog) {
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
           a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
-        
+
         // Relative  velocity at the point of closest approach
-        
+
         vr1 = vi[0] - vj[0];
         vr2 = vi[1] - vj[1];
         vr3 = vi[2] - vj[2];
-        
+
         // Normal component (vr.n)n
-        
+
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
         vn1 = vnnr*delx/r;
         vn2 = vnnr*dely/r;
         vn3 = vnnr*delz/r;
-        
+
         // Tangential component vr - (vr.n)n
-        
+
         vt1 = vr1 - vn1;
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
-        
+
         // Find force due to squeeze type motion
-        
+
         fx  = a_sq*vn1;
         fy  = a_sq*vn2;
         fz  = a_sq*vn3;
-        
+
         // Find force due to all shear kind of motions
-        
+
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
-        
+
         // Scale forces to obtain in appropriate units
-        
+
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         // Add to the total force
-        
+
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         if (newton_pair || j < nlocal) {
           f[j][0] += fx;
           f[j][1] += fy;
-          f[j][2] += fz;    
+          f[j][2] += fz;
         }
-        
+
         // Find torque due to this force
-        
+
         if (flaglog) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-          
+          tz = xl[0]*fy - xl[1]*fx;
+
           // Why a scale factor ?
-          
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-          
+          torque[i][2] -= vxmu2f*tz;
+
           if(newton_pair || j < nlocal) {
             torque[j][0] -= vxmu2f*tx;
             torque[j][1] -= vxmu2f*ty;
             torque[j][2] -= vxmu2f*tz;
           }
-          
+
           // Torque due to a_pu
-          
-          wdotn = ((wi[0]-wj[0])*delx + 
+
+          wdotn = ((wi[0]-wj[0])*delx +
                    (wi[1]-wj[1])*dely + (wi[2]-wj[2])*delz)/r;
           wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
           wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
           wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
-          
+
           tx = a_pu*wt1;
           ty = a_pu*wt2;
           tz = a_pu*wt3;
-          
+
           // add to total
-          
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-          
+          torque[i][2] -= vxmu2f*tz;
+
           if (newton_pair || j < nlocal) {
             torque[j][0] += vxmu2f*tx;
             torque[j][1] += vxmu2f*ty;
             torque[j][2] += vxmu2f*tz;
           }
-        }      
+        }
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   This computes R_{FE}*E , where E is the rate of strain of tensor which is 
+   This computes R_{FE}*E , where E is the rate of strain of tensor which is
    known apriori, as it depends only on the known fluid velocity.
    So, this part of the hydrodynamic interaction can be pre computed and
    transferred to the RHS
    ---------------------------------------------------------------------- */
-  
+
 void PairLubricateU::compute_RE()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3;  
+  double vt1,vt2,vt3;
   double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -1400,7 +1400,7 @@ void PairLubricateU::compute_RE()
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
-  
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -1416,10 +1416,10 @@ void PairLubricateU::compute_RE()
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
-       
-    // No contribution from isotropic terms due to E    
-    
+    jnum = numneigh[i];
+
+    // No contribution from isotropic terms due to E
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -1431,51 +1431,51 @@ void PairLubricateU::compute_RE()
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-  
+        r = sqrt(rsq);
+
         // loc of the point of closest approach on particle i from its center
 
         xl[0] = -delx/r*radi;
         xl[1] = -dely/r*radi;
         xl[2] = -delz/r*radi;
-  
+
         // Find the scalar resistances a_sq and a_sh
 
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
 
         if(h_sep < 0.0) overlaps++;
-        
+
         // If less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // Scale h_sep by radi
 
         h_sep = h_sep/radi;
-  
+
         // Scalar resistance for Squeeze type motions
 
         if (flaglog)
           a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1/h_sep));
         else
           a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep);
-        
+
         // Scalar resistance for Shear type motions
 
         if (flaglog) {
           a_sh = 6*MY_PI*mu*radi*(1.0/6.0*log(1/h_sep));
           a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         }
-         
+
         // Relative velocity at the point of closest approach due to Ef only
 
         vr1 = -2.0*(Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
         vr2 = -2.0*(Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
-        vr3 = -2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);        
-            
+        vr3 = -2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
+
         // Normal component (vr.n)n
 
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
@@ -1494,54 +1494,54 @@ void PairLubricateU::compute_RE()
         fx  = a_sq*vn1;
         fy  = a_sq*vn2;
         fz  = a_sq*vn3;
-        
+
         // Find force due to all shear kind of motions
 
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
-        
+
         // Scale forces to obtain in appropriate units
 
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         // Add to the total forc
 
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         if (newton_pair || j < nlocal) {
           f[j][0] += fx;
           f[j][1] += fy;
-          f[j][2] += fz;    
+          f[j][2] += fz;
         }
-        
+
         // Find torque due to this force
 
         if (flaglog) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-  
+          tz = xl[0]*fy - xl[1]*fx;
+
           // Why a scale factor ?
 
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-            
+          torque[i][2] -= vxmu2f*tz;
+
           if (newton_pair || j < nlocal) {
             torque[j][0] -= vxmu2f*tx;
             torque[j][1] -= vxmu2f*ty;
             torque[j][2] -= vxmu2f*tz;
           }
-          
+
           // NOTE No a_pu term needed as they add up to zero
-        }      
+        }
       }
     }
   }
@@ -1552,7 +1552,7 @@ void PairLubricateU::compute_RE()
 }
 
 /* ----------------------------------------------------------------------
-   This computes R_{FE}*E , where E is the rate of strain of tensor which is 
+   This computes R_{FE}*E , where E is the rate of strain of tensor which is
    known apriori, as it depends only on the known fluid velocity.
    So, this part of the hydrodynamic interaction can be pre computed and
    transferred to the RHS
@@ -1564,10 +1564,10 @@ void PairLubricateU::compute_RE(double **x)
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3;  
+  double vt1,vt2,vt3;
   double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
@@ -1581,14 +1581,14 @@ void PairLubricateU::compute_RE(double **x)
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
-  
+
   if (!flagHI) return;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -1597,10 +1597,10 @@ void PairLubricateU::compute_RE(double **x)
     itype = type[i];
     radi = radius[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
-    
-    // No contribution from isotropic terms due to E    
-    
+    jnum = numneigh[i];
+
+    // No contribution from isotropic terms due to E
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -1610,123 +1610,123 @@ void PairLubricateU::compute_RE(double **x)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-        
+        r = sqrt(rsq);
+
         // loc of the point of closest approach on particle i from its center
-        
+
         xl[0] = -delx/r*radi;
         xl[1] = -dely/r*radi;
         xl[2] = -delz/r*radi;
-        
+
         // Find the scalar resistances a_sq and a_sh
-        
+
         h_sep = r - 2.0*radi;
-        
+
         // check for overlaps
-        
+
         if(h_sep < 0.0) overlaps++;
-        
+
         // If less than the minimum gap use the minimum gap instead
-        
+
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;          
-        
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
         // Scale h_sep by radi
-        
+
         h_sep = h_sep/radi;
-        
+
         // Scalar resistance for Squeeze type motions
-        
+
         if (flaglog)
           a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1/h_sep));
         else
           a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep);
-        
+
         // Scalar resistance for Shear type motions
-        
+
         if (flaglog) {
           a_sh = 6*MY_PI*mu*radi*(1.0/6.0*log(1/h_sep));
           a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
         }
-        
+
         // Relative velocity at the point of closest approach due to Ef only
-        
+
         vr1 = -2.0*(Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
         vr2 = -2.0*(Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
-        vr3 = -2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);        
-        
+        vr3 = -2.0*(Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
+
         // Normal component (vr.n)n
-        
+
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
         vn1 = vnnr*delx/r;
         vn2 = vnnr*dely/r;
         vn3 = vnnr*delz/r;
-        
+
         // Tangential component vr - (vr.n)n
-        
+
         vt1 = vr1 - vn1;
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
-        
+
         // Find force due to squeeze type motion
-        
+
         fx  = a_sq*vn1;
         fy  = a_sq*vn2;
         fz  = a_sq*vn3;
-        
+
         // Find force due to all shear kind of motions
-        
+
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
-        
+
         // Scale forces to obtain in appropriate units
-        
+
         fx = vxmu2f*fx;
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
-        
+
         // Add to the total forc
-        
+
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         if (newton_pair || j < nlocal) {
           f[j][0] += fx;
           f[j][1] += fy;
-          f[j][2] += fz;    
+          f[j][2] += fz;
         }
-        
+
         // Find torque due to this force
-        
+
         if (flaglog) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-          
+          tz = xl[0]*fy - xl[1]*fx;
+
           // Why a scale factor ?
-          
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
-          
+          torque[i][2] -= vxmu2f*tz;
+
           if (newton_pair || j < nlocal) {
             torque[j][0] -= vxmu2f*tx;
             torque[j][1] -= vxmu2f*ty;
             torque[j][2] -= vxmu2f*tz;
           }
-          
+
           // NOTE No a_pu term needed as they add up to zero
-        }      
+        }
       }
     }
   }
-  
+
   int print_overlaps = 0;
   if (print_overlaps && overlaps)
     printf("Number of overlaps=%d\n",overlaps);
@@ -1734,7 +1734,7 @@ void PairLubricateU::compute_RE(double **x)
 
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairLubricateU::allocate()
@@ -1754,7 +1754,7 @@ void PairLubricateU::allocate()
 }
 
 /*-----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairLubricateU::settings(int narg, char **arg)
@@ -1766,7 +1766,7 @@ void PairLubricateU::settings(int narg, char **arg)
   cut_inner_global = atof(arg[2]);
   cut_global = atof(arg[3]);
   gdot =  atof(arg[4]);
-  
+
   flagHI = flagVF = 1;
   if (narg == 7) {
     flagHI = atoi(arg[5]);
@@ -1775,9 +1775,9 @@ void PairLubricateU::settings(int narg, char **arg)
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,"Cannot include log terms without 1/r terms; "
-		   "setting flagHI to 1.");
+                   "setting flagHI to 1.");
     flagHI = 1;
-  } 
+  }
 
   // reset cutoffs that have been explicitly set
 
@@ -1790,7 +1790,7 @@ void PairLubricateU::settings(int narg, char **arg)
           cut[i][j] = cut_global;
         }
   }
-  
+
   // store the rate of strain tensor
 
   Ef[0][0] = 0.0;
@@ -1801,7 +1801,7 @@ void PairLubricateU::settings(int narg, char **arg)
   Ef[1][2] = 0.0;
   Ef[2][0] = 0.0;
   Ef[2][1] = 0.0;
-  Ef[2][2] = 0.0; 
+  Ef[2][2] = 0.0;
 }
 
 /*-----------------------------------------------------------------------
@@ -1863,7 +1863,7 @@ void PairLubricateU::init_style()
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
     radi = radtype;
   }
-  
+
   // check for fix deform, if exists it must use "remap v"
   // If box will change volume, set appropriate flag so that volume
   // and v.f. corrections are re-calculated at every step.
@@ -1875,46 +1875,46 @@ void PairLubricateU::init_style()
 
   flagdeform = flagwall = 0;
   for (int i = 0; i < modify->nfix; i++){
-    if (strcmp(modify->fix[i]->style,"deform") == 0) 
+    if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != NULL){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->varflag ) {
-	flagwall = 2; // Moving walls exist
-	wallfix = (FixWall *) modify->fix[i];
+        flagwall = 2; // Moving walls exist
+        wallfix = (FixWall *) modify->fix[i];
       }
     }
   }
-  
+
   // set the isotropic constants depending on the volume fraction
-  // vol_T = total volumeshearing = flagdeform = flagwall = 0;  
+  // vol_T = total volumeshearing = flagdeform = flagwall = 0;
   double vol_T, wallcoord;
     if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {    
+  else {
     double wallhi[3], walllo[3];
     for (int j = 0; j < 3; j++){
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
-    }    
+    }
     for (int m = 0; m < wallfix->nwall; m++){
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
       if (wallfix->wallstyle[m] == VARIABLE){
-	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
-	//Since fix->wall->init happens after pair->init_style
-	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+        wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+        //Since fix->wall->init happens after pair->init_style
+        wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
       }
 
       else wallcoord = wallfix->coord0[m];
-      
+
       if (side == 0) walllo[dim] = wallcoord;
       else wallhi[dim] = wallcoord;
     }
-    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
       (wallhi[2] - walllo[2]);
   }
-   
-  
+
+
   // assuming monodisperse spheres, vol_P = volume of the particles
 
   double tmp = 0.0;
@@ -1922,11 +1922,11 @@ void PairLubricateU::init_style()
   MPI_Allreduce(&tmp,&rad,1,MPI_DOUBLE,MPI_MAX,world);
 
   vol_P = atom->natoms * (4.0/3.0)*MY_PI*pow(rad,3.0);
-  
+
   // vol_f = volume fraction
 
   double vol_f = vol_P/vol_T;
-  
+
   if (!flagVF) vol_f = 0;
 
   // set the isotropic constant
@@ -1959,7 +1959,7 @@ double PairLubricateU::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairLubricateU::write_restart(FILE *fp)
@@ -1971,8 +1971,8 @@ void PairLubricateU::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&cut_inner[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&cut_inner[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -1993,12 +1993,12 @@ void PairLubricateU::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&cut_inner[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&cut_inner[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -2048,8 +2048,8 @@ void PairLubricateU::read_restart_settings(FILE *fp)
 
 /*---------------------------------------------------------------------------*/
 
-void PairLubricateU::copy_vec_uo(int inum, double *xcg, 
-				 double **v, double **omega)
+void PairLubricateU::copy_vec_uo(int inum, double *xcg,
+                                 double **v, double **omega)
 {
   int i,j,ii;
   int *ilist;
@@ -2059,16 +2059,16 @@ void PairLubricateU::copy_vec_uo(int inum, double *xcg,
 
   double *rmass = atom->rmass;
   int *type = atom->type;
-  
+
   ilist = list->ilist;
-  
+
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];
     itype = type[i];
     radi = atom->radius[i];
-    inertia = 0.4*rmass[i]*radi*radi;    
-    
-    for (j=0;j<3;j++) {       
+    inertia = 0.4*rmass[i]*radi*radi;
+
+    for (j=0;j<3;j++) {
       v[i][j] = xcg[6*ii+j];
       omega[i][j] = xcg[6*ii+j+3];
     }
@@ -2077,17 +2077,17 @@ void PairLubricateU::copy_vec_uo(int inum, double *xcg,
 
 /*---------------------------------------------------------------------------*/
 
-void PairLubricateU::copy_uo_vec(int inum, double **f, double **torque, 
-				 double *RU)
+void PairLubricateU::copy_uo_vec(int inum, double **f, double **torque,
+                                 double *RU)
 {
   int i,j,ii;
   int *ilist;
-  
+
   ilist = list->ilist;
-  
+
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];
-    for (j=0;j<3;j++) {       
+    for (j=0;j<3;j++) {
       RU[6*ii+j] = f[i][j];
       RU[6*ii+j+3] = torque[i][j];
     }
@@ -2097,7 +2097,7 @@ void PairLubricateU::copy_uo_vec(int inum, double **f, double **torque,
 /* ---------------------------------------------------------------------- */
 
 int PairLubricateU::pack_comm(int n, int *list, double *buf,
-			      int pbc_flag, int *pbc)
+                              int pbc_flag, int *pbc)
 {
   int i,j,m;
 

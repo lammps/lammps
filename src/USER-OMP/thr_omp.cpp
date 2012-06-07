@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -64,21 +64,21 @@ ThrOMP::~ThrOMP()
    ---------------------------------------------------------------------- */
 
 void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
-			  double **vatom, ThrData *thr)
+                          double **vatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
   if (tid == 0) thr_error = 0;
-  
+
   if (thr_style & THR_PAIR) {
     if (eflag & 2) {
       thr->eatom_pair = eatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
+        memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
     }
     if (vflag & 4) {
       thr->vatom_pair = vatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
     }
   }
 
@@ -86,12 +86,12 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (eflag & 2) {
       thr->eatom_bond = eatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
+        memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
     }
     if (vflag & 4) {
       thr->vatom_bond = vatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
     }
   }
 
@@ -99,12 +99,12 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (eflag & 2) {
       thr->eatom_angle = eatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->eatom_angle[0]),0,nall*sizeof(double));
+        memset(&(thr->eatom_angle[0]),0,nall*sizeof(double));
     }
     if (vflag & 4) {
       thr->vatom_angle = vatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
     }
   }
 
@@ -112,12 +112,12 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (eflag & 2) {
       thr->eatom_dihed = eatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->eatom_dihed[0]),0,nall*sizeof(double));
+        memset(&(thr->eatom_dihed[0]),0,nall*sizeof(double));
     }
     if (vflag & 4) {
       thr->vatom_dihed = vatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
     }
   }
 
@@ -125,12 +125,12 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
     if (eflag & 2) {
       thr->eatom_imprp = eatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->eatom_imprp[0]),0,nall*sizeof(double));
+        memset(&(thr->eatom_imprp[0]),0,nall*sizeof(double));
     }
     if (vflag & 4) {
       thr->vatom_imprp = vatom + tid*nall;
       if (nall > 0)
-	memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
+        memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
     }
   }
 
@@ -147,7 +147,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
    ---------------------------------------------------------------------- */
 
 void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
-			ThrData *const thr, const int nproxy)
+                        ThrData *const thr, const int nproxy)
 {
   const int nlocal = lmp->atom->nlocal;
   const int nghost = lmp->atom->nghost;
@@ -155,7 +155,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   const int nfirst = lmp->atom->nfirst;
   const int nthreads = lmp->comm->nthreads;
   const int evflag = eflag | vflag;
-  
+
   const int tid = thr->get_tid();
   double **f = lmp->atom->f;
   double **x = lmp->atom->x;
@@ -173,18 +173,18 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (pair->vflag_fdotr) {
 
       if (style == fix->last_pair_hybrid) {
-	// pair_style hybrid will compute fdotr for us
-	// but we first need to reduce the forces
-	data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-	need_force_reduce = 0;
+        // pair_style hybrid will compute fdotr for us
+        // but we first need to reduce the forces
+        data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+        need_force_reduce = 0;
       }
 
       // this is a non-hybrid pair style. compute per thread fdotr
       if (fix->last_pair_hybrid == NULL) {
-	if (lmp->neighbor->includegroup == 0)
-	  thr->virial_fdotr_compute(x, nlocal, nghost, -1);
-	else
-	  thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+        if (lmp->neighbor->includegroup == 0)
+          thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+        else
+          thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
       }
     }
 
@@ -193,23 +193,23 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  pair->eng_vdwl += thr->eng_vdwl;
-	  pair->eng_coul += thr->eng_coul;
-	  thr->eng_vdwl = 0.0;
-	  thr->eng_coul = 0.0;
-	}
-	if (vflag & 3)
-	  for (int i=0; i < 6; ++i) {
-	    pair->virial[i] += thr->virial_pair[i];
-	    thr->virial_pair[i] = 0.0;
-	  }
+        if (eflag & 1) {
+          pair->eng_vdwl += thr->eng_vdwl;
+          pair->eng_coul += thr->eng_coul;
+          thr->eng_vdwl = 0.0;
+          thr->eng_coul = 0.0;
+        }
+        if (vflag & 3)
+          for (int i=0; i < 6; ++i) {
+            pair->virial[i] += thr->virial_pair[i];
+            thr->virial_pair[i] = 0.0;
+          }
       }
       if (eflag & 2) {
-	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
   }
@@ -221,56 +221,56 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (tid >= nproxy && pair->vflag_fdotr) {
 
       if (fix->last_pair_hybrid) {
-	if (tid == nproxy)
-	  lmp->error->all(FLERR,
-			  "Cannot use hybrid pair style with kspace proxy");
-	else return;
+        if (tid == nproxy)
+          lmp->error->all(FLERR,
+                          "Cannot use hybrid pair style with kspace proxy");
+        else return;
       }
 
       // this is a non-hybrid pair style. compute per thread fdotr
       if (fix->last_pair_hybrid == NULL) {
-	if (lmp->neighbor->includegroup == 0)
-	  thr->virial_fdotr_compute(x, nlocal, nghost, -1);
-	else
-	  thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+        if (lmp->neighbor->includegroup == 0)
+          thr->virial_fdotr_compute(x, nlocal, nghost, -1);
+        else
+          thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
       }
     }
-    
+
     if (evflag) {
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
       {
-	if (tid < nproxy) {
-	  // nothing to collect for kspace proxy threads
-	  // just reset pair accumulators to 0.0.
-	  if (eflag & 1) {
-	    thr->eng_vdwl = 0.0;
-	    thr->eng_coul = 0.0;
-	  }
-	  if (vflag & 3)
-	    for (int i=0; i < 6; ++i) {
-	      thr->virial_pair[i] = 0.0;
-	    }
-	} else {
-	  if (eflag & 1) {
-	    pair->eng_vdwl += thr->eng_vdwl;
-	    pair->eng_coul += thr->eng_coul;
-	    thr->eng_vdwl = 0.0;
-	    thr->eng_coul = 0.0;
-	  }
-	  if (vflag & 3)
-	    for (int i=0; i < 6; ++i) {
-	      pair->virial[i] += thr->virial_pair[i];
-	      thr->virial_pair[i] = 0.0;
-	    }
-	}
+        if (tid < nproxy) {
+          // nothing to collect for kspace proxy threads
+          // just reset pair accumulators to 0.0.
+          if (eflag & 1) {
+            thr->eng_vdwl = 0.0;
+            thr->eng_coul = 0.0;
+          }
+          if (vflag & 3)
+            for (int i=0; i < 6; ++i) {
+              thr->virial_pair[i] = 0.0;
+            }
+        } else {
+          if (eflag & 1) {
+            pair->eng_vdwl += thr->eng_vdwl;
+            pair->eng_coul += thr->eng_coul;
+            thr->eng_vdwl = 0.0;
+            thr->eng_coul = 0.0;
+          }
+          if (vflag & 3)
+            for (int i=0; i < 6; ++i) {
+              pair->virial[i] += thr->virial_pair[i];
+              thr->virial_pair[i] = 0.0;
+            }
+        }
       }
       if (eflag & 2) {
-	data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       if (vflag & 4) {
-	data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
   }
@@ -284,24 +284,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  bond->energy += thr->eng_bond;
-	  thr->eng_bond = 0.0;
-	}
+        if (eflag & 1) {
+          bond->energy += thr->eng_bond;
+          thr->eng_bond = 0.0;
+        }
 
-	if (vflag & 3) {
-	  for (int i=0; i < 6; ++i) {
-	    bond->virial[i] += thr->virial_bond[i];
-	    thr->virial_bond[i] = 0.0;
-	  }
-	}
+        if (vflag & 3) {
+          for (int i=0; i < 6; ++i) {
+            bond->virial[i] += thr->virial_bond[i];
+            thr->virial_bond[i] = 0.0;
+          }
+        }
 
-	if (eflag & 2) {
-	  data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
-	}
-	if (vflag & 4) {
-	  data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
-	}
+        if (eflag & 2) {
+          data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
+        }
+        if (vflag & 4) {
+          data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
+        }
       }
     }
     break;
@@ -314,54 +314,54 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  angle->energy += thr->eng_angle;
-	  thr->eng_angle = 0.0;
-	}
+        if (eflag & 1) {
+          angle->energy += thr->eng_angle;
+          thr->eng_angle = 0.0;
+        }
 
-	if (vflag & 3) {
-	  for (int i=0; i < 6; ++i) {
-	    angle->virial[i] += thr->virial_angle[i];
-	    thr->virial_angle[i] = 0.0;
-	  }
-	}
+        if (vflag & 3) {
+          for (int i=0; i < 6; ++i) {
+            angle->virial[i] += thr->virial_angle[i];
+            thr->virial_angle[i] = 0.0;
+          }
+        }
 
-	if (eflag & 2) {
-	  data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
-	}
-	if (vflag & 4) {
-	  data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
-	}
+        if (eflag & 2) {
+          data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+        }
+        if (vflag & 4) {
+          data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+        }
       }
     }
     break;
 
   case THR_DIHEDRAL:
-    
+
     if (evflag) {
       Dihedral * const dihedral = lmp->force->dihedral;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  dihedral->energy += thr->eng_dihed;
-	  thr->eng_dihed = 0.0;
-	}
+        if (eflag & 1) {
+          dihedral->energy += thr->eng_dihed;
+          thr->eng_dihed = 0.0;
+        }
 
-	if (vflag & 3) {
-	  for (int i=0; i < 6; ++i) {
-	    dihedral->virial[i] += thr->virial_dihed[i];
-	    thr->virial_dihed[i] = 0.0;
-	  }
-	}
+        if (vflag & 3) {
+          for (int i=0; i < 6; ++i) {
+            dihedral->virial[i] += thr->virial_dihed[i];
+            thr->virial_dihed[i] = 0.0;
+          }
+        }
 
-	if (eflag & 2) {
-	  data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-	}
-	if (vflag & 4) {
-	  data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-	}
+        if (eflag & 2) {
+          data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+        }
+        if (vflag & 4) {
+          data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+        }
       }
     }
     break;
@@ -375,32 +375,32 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  dihedral->energy += thr->eng_dihed;
-	  pair->eng_vdwl += thr->eng_vdwl;
-	  pair->eng_coul += thr->eng_coul;
-	  thr->eng_dihed = 0.0;
-	  thr->eng_vdwl = 0.0;
-	  thr->eng_coul = 0.0;
-	}
+        if (eflag & 1) {
+          dihedral->energy += thr->eng_dihed;
+          pair->eng_vdwl += thr->eng_vdwl;
+          pair->eng_coul += thr->eng_coul;
+          thr->eng_dihed = 0.0;
+          thr->eng_vdwl = 0.0;
+          thr->eng_coul = 0.0;
+        }
 
-	if (vflag & 3) {
-	  for (int i=0; i < 6; ++i) {
-	    dihedral->virial[i] += thr->virial_dihed[i];
-	    pair->virial[i] += thr->virial_pair[i];
-	    thr->virial_dihed[i] = 0.0;
-	    thr->virial_pair[i] = 0.0;
-	  }
-	}
+        if (vflag & 3) {
+          for (int i=0; i < 6; ++i) {
+            dihedral->virial[i] += thr->virial_dihed[i];
+            pair->virial[i] += thr->virial_pair[i];
+            thr->virial_dihed[i] = 0.0;
+            thr->virial_pair[i] = 0.0;
+          }
+        }
 
-	if (eflag & 2) {
-	  data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-	  data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
-	}
-	if (vflag & 4) {
-	  data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-	  data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
-	}
+        if (eflag & 2) {
+          data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+          data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+        }
+        if (vflag & 4) {
+          data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+          data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+        }
       }
     }
     break;
@@ -413,24 +413,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-	if (eflag & 1) {
-	  improper->energy += thr->eng_imprp;
-	  thr->eng_imprp = 0.0;
-	}
+        if (eflag & 1) {
+          improper->energy += thr->eng_imprp;
+          thr->eng_imprp = 0.0;
+        }
 
-	if (vflag & 3) {
-	  for (int i=0; i < 6; ++i) {
-	    improper->virial[i] += thr->virial_imprp[i];
-	    thr->virial_imprp[i] = 0.0;
-	  }
-	}
+        if (vflag & 3) {
+          for (int i=0; i < 6; ++i) {
+            improper->virial[i] += thr->virial_imprp[i];
+            thr->virial_imprp[i] = 0.0;
+          }
+        }
 
-	if (eflag & 2) {
-	  data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
-	}
-	if (vflag & 4) {
-	  data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
-	}
+        if (eflag & 2) {
+          data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
+        }
+        if (vflag & 4) {
+          data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+        }
       }
     }
     break;
@@ -444,7 +444,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     printf("tid:%d unhandled thr_style case %d\n", tid, thr_style);
     break;
   }
-    
+
   if (style == fix->last_omp_style) {
     if (need_force_reduce)
       data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
@@ -458,9 +458,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
    tally eng_vdwl and eng_coul into per thread global and per-atom accumulators
 ------------------------------------------------------------------------- */
 
-void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j, 
-			 const int nlocal, const int newton_pair,
-			 const double evdwl, const double ecoul, ThrData * const thr)
+void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
+                         const int nlocal, const int newton_pair,
+                         const double evdwl, const double ecoul, ThrData * const thr)
 {
   if (pair->eflag_global) {
     if (newton_pair) {
@@ -470,12 +470,12 @@ void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
       const double evdwlhalf = 0.5*evdwl;
       const double ecoulhalf = 0.5*ecoul;
       if (i < nlocal) {
-	thr->eng_vdwl += evdwlhalf;
-	thr->eng_coul += ecoulhalf;
+        thr->eng_vdwl += evdwlhalf;
+        thr->eng_coul += ecoulhalf;
       }
       if (j < nlocal) {
-	thr->eng_vdwl += evdwlhalf;
-	thr->eng_coul += ecoulhalf;
+        thr->eng_vdwl += evdwlhalf;
+        thr->eng_coul += ecoulhalf;
       }
     }
   }
@@ -487,7 +487,7 @@ void ThrOMP::e_tally_thr(Pair * const pair, const int i, const int j,
 }
 
 /* helper functions */
-static void v_tally(double * const vout, const double * const vin) 
+static void v_tally(double * const vout, const double * const vin)
 {
   vout[0] += vin[0];
   vout[1] += vin[1];
@@ -497,7 +497,7 @@ static void v_tally(double * const vout, const double * const vin)
   vout[5] += vin[5];
 }
 
-static void v_tally(double * const vout, const double scale, const double * const vin) 
+static void v_tally(double * const vout, const double scale, const double * const vin)
 {
   vout[0] += scale*vin[0];
   vout[1] += scale*vin[1];
@@ -510,9 +510,9 @@ static void v_tally(double * const vout, const double scale, const double * cons
 /* ----------------------------------------------------------------------
    tally virial into per thread global and per-atom accumulators
 ------------------------------------------------------------------------- */
-void ThrOMP::v_tally_thr(Pair * const pair, const int i, const int j, 
-			 const int nlocal, const int newton_pair,
-			 const double * const v, ThrData * const thr)
+void ThrOMP::v_tally_thr(Pair * const pair, const int i, const int j,
+                         const int nlocal, const int newton_pair,
+                         const double * const v, ThrData * const thr)
 {
   if (pair->vflag_global) {
     double * const va = thr->virial_pair;
@@ -542,9 +542,9 @@ void ThrOMP::v_tally_thr(Pair * const pair, const int i, const int j,
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int nlocal,
-			  const int newton_pair, const double evdwl, const double ecoul,
-			  const double fpair, const double delx, const double dely,
-			  const double delz, ThrData * const thr)
+                          const int newton_pair, const double evdwl, const double ecoul,
+                          const double fpair, const double delx, const double dely,
+                          const double delz, ThrData * const thr)
 {
 
   if (pair->eflag_either)
@@ -569,11 +569,11 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_xyz_thr(Pair * const pair, const int i, const int j,
-			      const int nlocal, const int newton_pair, 
-			      const double evdwl, const double ecoul,
-			      const double fx, const double fy, const double fz,
-			      const double delx, const double dely, const double delz,
-			      ThrData * const thr)
+                              const int nlocal, const int newton_pair,
+                              const double evdwl, const double ecoul,
+                              const double fx, const double fy, const double fz,
+                              const double delx, const double dely, const double delz,
+                              ThrData * const thr)
 {
 
   if (pair->eflag_either)
@@ -599,10 +599,10 @@ void ThrOMP::ev_tally_xyz_thr(Pair * const pair, const int i, const int j,
  ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally3_thr(Pair * const pair, const int i, const int j, const int k,
-			   const double evdwl, const double ecoul,
-			   const double * const fj, const double * const fk,
-			   const double * const drji, const double * const drki,
-			   ThrData * const thr)
+                           const double evdwl, const double ecoul,
+                           const double * const fj, const double * const fk,
+                           const double * const drji, const double * const drki,
+                           ThrData * const thr)
 {
   if (pair->eflag_either) {
     if (pair->eflag_global) {
@@ -626,7 +626,7 @@ void ThrOMP::ev_tally3_thr(Pair * const pair, const int i, const int j, const in
     v[3] = drji[0]*fj[1] + drki[0]*fk[1];
     v[4] = drji[0]*fj[2] + drki[0]*fk[2];
     v[5] = drji[1]*fj[2] + drki[1]*fk[2];
-      
+
     if (pair->vflag_global) v_tally(thr->virial_pair,v);
 
     if (pair->vflag_atom) {
@@ -643,11 +643,11 @@ void ThrOMP::ev_tally3_thr(Pair * const pair, const int i, const int j, const in
  ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
-			   const int k, const int m, const double evdwl,
-			   const double * const fi, const double * const fj,
-			   const double * const fk, const double * const drim,
-			   const double * const drjm, const double * const drkm,
-			   ThrData * const thr)
+                           const int k, const int m, const double evdwl,
+                           const double * const fi, const double * const fj,
+                           const double * const fk, const double * const drim,
+                           const double * const drjm, const double * const drkm,
+                           ThrData * const thr)
 {
   double v[6];
 
@@ -669,7 +669,7 @@ void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
     v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
     v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
     v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
-    
+
     v_tally(thr->vatom_pair[i],v);
     v_tally(thr->vatom_pair[j],v);
     v_tally(thr->vatom_pair[k],v);
@@ -684,8 +684,8 @@ void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
  ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
-			       const int * const list, const double ecoul,
-			       const double * const v, ThrData * const thr)
+                               const int * const list, const double ecoul,
+                               const double * const v, ThrData * const thr)
 {
   if (pair->eflag_either) {
     if (pair->eflag_global) thr->eng_coul += ecoul;
@@ -711,8 +711,8 @@ void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
       vtmp[5] = s * v[5];
 
       for (int i = 0; i < n; i++) {
-	const int j = list[i];
-	v_tally(thr->vatom_pair[j],vtmp);
+        const int j = list[i];
+        v_tally(thr->vatom_pair[j],vtmp);
       }
     }
   }
@@ -723,27 +723,27 @@ void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int nlocal,
-			  const int newton_bond, const double ebond, const double fbond,
-			  const double delx, const double dely, const double delz,
-			  ThrData * const thr)
+                          const int newton_bond, const double ebond, const double fbond,
+                          const double delx, const double dely, const double delz,
+                          ThrData * const thr)
 {
   if (bond->eflag_either) {
     const double ebondhalf = 0.5*ebond;
     if (newton_bond) {
       if (bond->eflag_global)
-	thr->eng_bond += ebond;
+        thr->eng_bond += ebond;
       if (bond->eflag_atom) {
-	thr->eatom_bond[i] += ebondhalf;
-	thr->eatom_bond[j] += ebondhalf;
+        thr->eatom_bond[i] += ebondhalf;
+        thr->eatom_bond[j] += ebondhalf;
       }
     } else {
       if (bond->eflag_global) {
-	if (i < nlocal) thr->eng_bond += ebondhalf;
-	if (j < nlocal) thr->eng_bond += ebondhalf;
+        if (i < nlocal) thr->eng_bond += ebondhalf;
+        if (j < nlocal) thr->eng_bond += ebondhalf;
       }
       if (bond->eflag_atom) {
-	if (i < nlocal) thr->eatom_bond[i] += ebondhalf;
-	if (j < nlocal) thr->eatom_bond[j] += ebondhalf;
+        if (i < nlocal) thr->eatom_bond[i] += ebondhalf;
+        if (j < nlocal) thr->eatom_bond[j] += ebondhalf;
       }
     }
   }
@@ -760,12 +760,12 @@ void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int
 
     if (bond->vflag_global) {
       if (newton_bond)
-	v_tally(thr->virial_bond,v);
+        v_tally(thr->virial_bond,v);
       else {
-	if (i < nlocal)
-	  v_tally(thr->virial_bond,0.5,v);
-	if (j < nlocal)
-	  v_tally(thr->virial_bond,0.5,v);
+        if (i < nlocal)
+          v_tally(thr->virial_bond,0.5,v);
+        if (j < nlocal)
+          v_tally(thr->virial_bond,0.5,v);
       }
     }
 
@@ -778,13 +778,13 @@ void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int
       v[5] *= 0.5;
 
       if (newton_bond) {
-	v_tally(thr->vatom_bond[i],v);
-	v_tally(thr->vatom_bond[j],v);
+        v_tally(thr->vatom_bond[i],v);
+        v_tally(thr->vatom_bond[j],v);
       } else {
-	if (j < nlocal)
-	  v_tally(thr->vatom_bond[i],v);
-	if (j < nlocal)
-	  v_tally(thr->vatom_bond[j],v);
+        if (j < nlocal)
+          v_tally(thr->vatom_bond[i],v);
+        if (j < nlocal)
+          v_tally(thr->vatom_bond[j],v);
       }
     }
   }
@@ -796,32 +796,32 @@ void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const int k,
-			  const int nlocal, const int newton_bond, const double eangle,
-			  const double * const f1, const double * const f3,
-			  const double delx1, const double dely1, const double delz1,
-			  const double delx2, const double dely2, const double delz2,
-			  ThrData * const thr)
+                          const int nlocal, const int newton_bond, const double eangle,
+                          const double * const f1, const double * const f3,
+                          const double delx1, const double dely1, const double delz1,
+                          const double delx2, const double dely2, const double delz2,
+                          ThrData * const thr)
 {
   if (angle->eflag_either) {
     const double eanglethird = THIRD*eangle;
     if (newton_bond) {
       if (angle->eflag_global)
-	thr->eng_angle += eangle;
+        thr->eng_angle += eangle;
       if (angle->eflag_atom) {
-	thr->eatom_angle[i] += eanglethird;
-	thr->eatom_angle[j] += eanglethird;
-	thr->eatom_angle[k] += eanglethird;
+        thr->eatom_angle[i] += eanglethird;
+        thr->eatom_angle[j] += eanglethird;
+        thr->eatom_angle[k] += eanglethird;
       }
     } else {
       if (angle->eflag_global) {
-	if (i < nlocal) thr->eng_angle += eanglethird;
-	if (j < nlocal) thr->eng_angle += eanglethird;
-	if (k < nlocal) thr->eng_angle += eanglethird;
+        if (i < nlocal) thr->eng_angle += eanglethird;
+        if (j < nlocal) thr->eng_angle += eanglethird;
+        if (k < nlocal) thr->eng_angle += eanglethird;
       }
       if (angle->eflag_atom) {
-	if (i < nlocal) thr->eatom_angle[i] += eanglethird;
-	if (j < nlocal) thr->eatom_angle[j] += eanglethird;
-	if (k < nlocal) thr->eatom_angle[k] += eanglethird;
+        if (i < nlocal) thr->eatom_angle[i] += eanglethird;
+        if (j < nlocal) thr->eatom_angle[j] += eanglethird;
+        if (k < nlocal) thr->eatom_angle[k] += eanglethird;
       }
     }
   }
@@ -838,13 +838,13 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
 
     if (angle->vflag_global) {
       if (newton_bond) {
-	v_tally(thr->virial_angle,v);
+        v_tally(thr->virial_angle,v);
       } else {
-	int cnt = 0;
-	if (i < nlocal) ++cnt;
-	if (j < nlocal) ++cnt;
-	if (k < nlocal) ++cnt;
-	v_tally(thr->virial_angle,cnt*THIRD,v);
+        int cnt = 0;
+        if (i < nlocal) ++cnt;
+        if (j < nlocal) ++cnt;
+        if (k < nlocal) ++cnt;
+        v_tally(thr->virial_angle,cnt*THIRD,v);
       }
     }
 
@@ -857,13 +857,13 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
       v[5] *= THIRD;
 
       if (newton_bond) {
-	v_tally(thr->vatom_angle[i],v);
-	v_tally(thr->vatom_angle[j],v);
-	v_tally(thr->vatom_angle[k],v);
+        v_tally(thr->vatom_angle[i],v);
+        v_tally(thr->vatom_angle[j],v);
+        v_tally(thr->vatom_angle[k],v);
       } else {
-	if (j < nlocal) v_tally(thr->vatom_angle[i],v);
-	if (j < nlocal) v_tally(thr->vatom_angle[j],v);
-	if (k < nlocal) v_tally(thr->vatom_angle[k],v);
+        if (j < nlocal) v_tally(thr->vatom_angle[i],v);
+        if (j < nlocal) v_tally(thr->vatom_angle[j],v);
+        if (k < nlocal) v_tally(thr->vatom_angle[k],v);
       }
     }
   }
@@ -874,10 +874,10 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
-			    const int nlocal, const int newton_bond,
-			    const double epair, const double fpair,
-			    const double delx, const double dely,
-			    const double delz, ThrData * const thr)
+                            const int nlocal, const int newton_bond,
+                            const double epair, const double fpair,
+                            const double delx, const double dely,
+                            const double delz, ThrData * const thr)
 {
 
   if (angle->eflag_either) {
@@ -885,9 +885,9 @@ void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
 
     if (angle->eflag_global) {
       if (newton_bond || i1 < nlocal)
-	thr->eng_angle += epairhalf;
+        thr->eng_angle += epairhalf;
       if (newton_bond || i3 < nlocal)
-	thr->eng_angle += epairhalf;
+        thr->eng_angle += epairhalf;
     }
 
     if (angle->eflag_atom) {
@@ -895,7 +895,7 @@ void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
       if (newton_bond || i3 < nlocal) thr->eatom_angle[i3] += epairhalf;
     }
   }
-  
+
   if (angle->vflag_either) {
     double v[6];
     v[0] = delx*delx*fpair;
@@ -913,15 +913,15 @@ void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
 
     if (angle->vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-	double * const va = thr->vatom_angle[i1];
-	v_tally(va,0.5,v);
+        double * const va = thr->vatom_angle[i1];
+        v_tally(va,0.5,v);
       }
       if (newton_bond || i3 < nlocal) {
-	double * const va = thr->vatom_angle[i3];
-	v_tally(va,0.5,v);
+        double * const va = thr->vatom_angle[i3];
+        v_tally(va,0.5,v);
       }
     }
-  }  
+  }
 }
 
 
@@ -929,45 +929,45 @@ void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
-	  = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
+          = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
-			  const int i3, const int i4, const int nlocal,
-			  const int newton_bond, const double edihedral,
-			  const double * const f1, const double * const f3,
-			  const double * const f4, const double vb1x,
-			  const double vb1y, const double vb1z, const double vb2x,
-			  const double vb2y, const double vb2z, const double vb3x,
-			  const double vb3y, const double vb3z, ThrData * const thr)
+                          const int i3, const int i4, const int nlocal,
+                          const int newton_bond, const double edihedral,
+                          const double * const f1, const double * const f3,
+                          const double * const f4, const double vb1x,
+                          const double vb1y, const double vb1z, const double vb2x,
+                          const double vb2y, const double vb2z, const double vb3x,
+                          const double vb3y, const double vb3z, ThrData * const thr)
 {
 
   if (dihed->eflag_either) {
     if (dihed->eflag_global) {
       if (newton_bond) {
-	thr->eng_dihed += edihedral;
+        thr->eng_dihed += edihedral;
       } else {
-	const double edihedralquarter = 0.25*edihedral;
-	int cnt = 0;
-	if (i1 < nlocal) ++cnt;
-	if (i2 < nlocal) ++cnt;
-	if (i3 < nlocal) ++cnt;
-	if (i4 < nlocal) ++cnt;
-	thr->eng_dihed += static_cast<double>(cnt)*edihedralquarter;
+        const double edihedralquarter = 0.25*edihedral;
+        int cnt = 0;
+        if (i1 < nlocal) ++cnt;
+        if (i2 < nlocal) ++cnt;
+        if (i3 < nlocal) ++cnt;
+        if (i4 < nlocal) ++cnt;
+        thr->eng_dihed += static_cast<double>(cnt)*edihedralquarter;
       }
     }
     if (dihed->eflag_atom) {
       const double edihedralquarter = 0.25*edihedral;
       if (newton_bond) {
-	thr->eatom_dihed[i1] += edihedralquarter;
-	thr->eatom_dihed[i2] += edihedralquarter;
-	thr->eatom_dihed[i3] += edihedralquarter;
-	thr->eatom_dihed[i4] += edihedralquarter;
+        thr->eatom_dihed[i1] += edihedralquarter;
+        thr->eatom_dihed[i2] += edihedralquarter;
+        thr->eatom_dihed[i3] += edihedralquarter;
+        thr->eatom_dihed[i4] += edihedralquarter;
       } else {
-	if (i1 < nlocal) thr->eatom_dihed[i1] +=  edihedralquarter;
-	if (i2 < nlocal) thr->eatom_dihed[i2] +=  edihedralquarter;
-	if (i3 < nlocal) thr->eatom_dihed[i3] +=  edihedralquarter;
-	if (i4 < nlocal) thr->eatom_dihed[i4] +=  edihedralquarter;
+        if (i1 < nlocal) thr->eatom_dihed[i1] +=  edihedralquarter;
+        if (i2 < nlocal) thr->eatom_dihed[i2] +=  edihedralquarter;
+        if (i3 < nlocal) thr->eatom_dihed[i3] +=  edihedralquarter;
+        if (i4 < nlocal) thr->eatom_dihed[i4] +=  edihedralquarter;
       }
     }
   }
@@ -983,14 +983,14 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
 
     if (dihed->vflag_global) {
       if (newton_bond) {
-	v_tally(thr->virial_dihed,v);
+        v_tally(thr->virial_dihed,v);
       } else {
-	int cnt = 0;
-	if (i1 < nlocal) ++cnt;
-	if (i2 < nlocal) ++cnt;
-	if (i3 < nlocal) ++cnt;
-	if (i4 < nlocal) ++cnt;
-	v_tally(thr->virial_dihed,0.25*static_cast<double>(cnt),v);
+        int cnt = 0;
+        if (i1 < nlocal) ++cnt;
+        if (i2 < nlocal) ++cnt;
+        if (i3 < nlocal) ++cnt;
+        if (i4 < nlocal) ++cnt;
+        v_tally(thr->virial_dihed,0.25*static_cast<double>(cnt),v);
       }
     }
 
@@ -1000,18 +1000,18 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
     v[3] *= 0.25;
     v[4] *= 0.25;
     v[5] *= 0.25;
-    
+
     if (dihed->vflag_atom) {
       if (newton_bond) {
-	v_tally(thr->vatom_dihed[i1],v);
-	v_tally(thr->vatom_dihed[i2],v);
-	v_tally(thr->vatom_dihed[i3],v);
-	v_tally(thr->vatom_dihed[i4],v);
+        v_tally(thr->vatom_dihed[i1],v);
+        v_tally(thr->vatom_dihed[i2],v);
+        v_tally(thr->vatom_dihed[i3],v);
+        v_tally(thr->vatom_dihed[i4],v);
       } else {
-	if (i1 < nlocal) v_tally(thr->vatom_dihed[i1],v);
-	if (i2 < nlocal) v_tally(thr->vatom_dihed[i2],v);
-	if (i3 < nlocal) v_tally(thr->vatom_dihed[i3],v);
-	if (i4 < nlocal) v_tally(thr->vatom_dihed[i4],v);
+        if (i1 < nlocal) v_tally(thr->vatom_dihed[i1],v);
+        if (i2 < nlocal) v_tally(thr->vatom_dihed[i2],v);
+        if (i3 < nlocal) v_tally(thr->vatom_dihed[i3],v);
+        if (i4 < nlocal) v_tally(thr->vatom_dihed[i4],v);
       }
     }
   }
@@ -1021,45 +1021,45 @@ void ThrOMP::ev_tally_thr(Dihedral * const dihed, const int i1, const int i2,
    tally energy and virial into global and per-atom accumulators
    virial = r1F1 + r2F2 + r3F3 + r4F4 = (r1-r2) F1 + (r3-r2) F3 + (r4-r2) F4
           = (r1-r2) F1 + (r3-r2) F3 + (r4-r3 + r3-r2) F4
-	  = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
+          = vb1*f1 + vb2*f3 + (vb3+vb2)*f4
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
-			  const int i3, const int i4, const int nlocal,
-			  const int newton_bond, const double eimproper,
-			  const double * const f1, const double * const f3,
-			  const double * const f4, const double vb1x,
-			  const double vb1y, const double vb1z, const double vb2x,
-			  const double vb2y, const double vb2z, const double vb3x,
-			  const double vb3y, const double vb3z, ThrData * const thr)
+                          const int i3, const int i4, const int nlocal,
+                          const int newton_bond, const double eimproper,
+                          const double * const f1, const double * const f3,
+                          const double * const f4, const double vb1x,
+                          const double vb1y, const double vb1z, const double vb2x,
+                          const double vb2y, const double vb2z, const double vb3x,
+                          const double vb3y, const double vb3z, ThrData * const thr)
 {
 
   if (imprp->eflag_either) {
     if (imprp->eflag_global) {
       if (newton_bond) {
-	thr->eng_imprp += eimproper;
+        thr->eng_imprp += eimproper;
       } else {
-	const double eimproperquarter = 0.25*eimproper;
-	int cnt = 0;
-	if (i1 < nlocal) ++cnt;
-	if (i2 < nlocal) ++cnt;
-	if (i3 < nlocal) ++cnt;
-	if (i4 < nlocal) ++cnt;
-	thr->eng_imprp += static_cast<double>(cnt)*eimproperquarter;
+        const double eimproperquarter = 0.25*eimproper;
+        int cnt = 0;
+        if (i1 < nlocal) ++cnt;
+        if (i2 < nlocal) ++cnt;
+        if (i3 < nlocal) ++cnt;
+        if (i4 < nlocal) ++cnt;
+        thr->eng_imprp += static_cast<double>(cnt)*eimproperquarter;
       }
     }
     if (imprp->eflag_atom) {
       const double eimproperquarter = 0.25*eimproper;
       if (newton_bond) {
-	thr->eatom_imprp[i1] += eimproperquarter;
-	thr->eatom_imprp[i2] += eimproperquarter;
-	thr->eatom_imprp[i3] += eimproperquarter;
-	thr->eatom_imprp[i4] += eimproperquarter;
+        thr->eatom_imprp[i1] += eimproperquarter;
+        thr->eatom_imprp[i2] += eimproperquarter;
+        thr->eatom_imprp[i3] += eimproperquarter;
+        thr->eatom_imprp[i4] += eimproperquarter;
       } else {
-	if (i1 < nlocal) thr->eatom_imprp[i1] +=  eimproperquarter;
-	if (i2 < nlocal) thr->eatom_imprp[i2] +=  eimproperquarter;
-	if (i3 < nlocal) thr->eatom_imprp[i3] +=  eimproperquarter;
-	if (i4 < nlocal) thr->eatom_imprp[i4] +=  eimproperquarter;
+        if (i1 < nlocal) thr->eatom_imprp[i1] +=  eimproperquarter;
+        if (i2 < nlocal) thr->eatom_imprp[i2] +=  eimproperquarter;
+        if (i3 < nlocal) thr->eatom_imprp[i3] +=  eimproperquarter;
+        if (i4 < nlocal) thr->eatom_imprp[i4] +=  eimproperquarter;
       }
     }
   }
@@ -1075,14 +1075,14 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
 
     if (imprp->vflag_global) {
       if (newton_bond) {
-	v_tally(thr->virial_imprp,v);
+        v_tally(thr->virial_imprp,v);
       } else {
-	int cnt = 0;
-	if (i1 < nlocal) ++cnt;
-	if (i2 < nlocal) ++cnt;
-	if (i3 < nlocal) ++cnt;
-	if (i4 < nlocal) ++cnt;
-	v_tally(thr->virial_imprp,0.25*static_cast<double>(cnt),v);
+        int cnt = 0;
+        if (i1 < nlocal) ++cnt;
+        if (i2 < nlocal) ++cnt;
+        if (i3 < nlocal) ++cnt;
+        if (i4 < nlocal) ++cnt;
+        v_tally(thr->virial_imprp,0.25*static_cast<double>(cnt),v);
       }
     }
 
@@ -1092,18 +1092,18 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
     v[3] *= 0.25;
     v[4] *= 0.25;
     v[5] *= 0.25;
-    
+
     if (imprp->vflag_atom) {
       if (newton_bond) {
-	v_tally(thr->vatom_imprp[i1],v);
-	v_tally(thr->vatom_imprp[i2],v);
-	v_tally(thr->vatom_imprp[i3],v);
-	v_tally(thr->vatom_imprp[i4],v);
+        v_tally(thr->vatom_imprp[i1],v);
+        v_tally(thr->vatom_imprp[i2],v);
+        v_tally(thr->vatom_imprp[i3],v);
+        v_tally(thr->vatom_imprp[i4],v);
       } else {
-	if (i1 < nlocal) v_tally(thr->vatom_imprp[i1],v);
-	if (i2 < nlocal) v_tally(thr->vatom_imprp[i2],v);
-	if (i3 < nlocal) v_tally(thr->vatom_imprp[i3],v);
-	if (i4 < nlocal) v_tally(thr->vatom_imprp[i4],v);
+        if (i1 < nlocal) v_tally(thr->vatom_imprp[i1],v);
+        if (i2 < nlocal) v_tally(thr->vatom_imprp[i2],v);
+        if (i3 < nlocal) v_tally(thr->vatom_imprp[i3],v);
+        if (i4 < nlocal) v_tally(thr->vatom_imprp[i4],v);
       }
     }
   }
@@ -1116,10 +1116,10 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
 ------------------------------------------------------------------------- */
 
 void ThrOMP::v_tally2_thr(const int i, const int j, const double fpair,
-			  const double * const drij, ThrData * const thr)
+                          const double * const drij, ThrData * const thr)
 {
   double v[6];
-  
+
   v[0] = 0.5 * drij[0]*drij[0]*fpair;
   v[1] = 0.5 * drij[1]*drij[1]*fpair;
   v[2] = 0.5 * drij[2]*drij[2]*fpair;
@@ -1137,12 +1137,12 @@ void ThrOMP::v_tally2_thr(const int i, const int j, const double fpair,
 ------------------------------------------------------------------------- */
 
 void ThrOMP::v_tally3_thr(const int i, const int j, const int k,
-			  const double * const fi, const double * const fj,
-			  const double * const drik, const double * const drjk,
-			  ThrData * const thr)
+                          const double * const fi, const double * const fj,
+                          const double * const drik, const double * const drjk,
+                          ThrData * const thr)
 {
   double v[6];
-  
+
   v[0] = THIRD * (drik[0]*fi[0] + drjk[0]*fj[0]);
   v[1] = THIRD * (drik[1]*fi[1] + drjk[1]*fj[1]);
   v[2] = THIRD * (drik[2]*fi[2] + drjk[2]*fj[2]);
@@ -1161,10 +1161,10 @@ void ThrOMP::v_tally3_thr(const int i, const int j, const int k,
 ------------------------------------------------------------------------- */
 
 void ThrOMP::v_tally4_thr(const int i, const int j, const int k, const int m,
-			  const double * const fi, const double * const fj,
-			  const double * const fk, const double * const drim,
-			  const double * const drjm, const double * const drkm,
-			  ThrData * const thr)
+                          const double * const fi, const double * const fj,
+                          const double * const fk, const double * const drim,
+                          const double * const drjm, const double * const drkm,
+                          ThrData * const thr)
 {
   double v[6];
 
@@ -1183,9 +1183,9 @@ void ThrOMP::v_tally4_thr(const int i, const int j, const int k, const int m,
 
 /* ---------------------------------------------------------------------- */
 
-double ThrOMP::memory_usage_thr() 
+double ThrOMP::memory_usage_thr()
 {
   double bytes=0.0;
-  
+
   return bytes;
 }

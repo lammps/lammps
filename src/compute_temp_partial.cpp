@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute temp/partial command");
@@ -110,13 +110,13 @@ double ComputeTempPartial::compute_scalar()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
-	      zflag*v[i][2]*v[i][2]) * rmass[i];
+        t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] +
+              zflag*v[i][2]*v[i][2]) * rmass[i];
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] + 
-	      zflag*v[i][2]*v[i][2]) * mass[type[i]];
+        t += (xflag*v[i][0]*v[i][0] + yflag*v[i][1]*v[i][1] +
+              zflag*v[i][2]*v[i][2]) * mass[type[i]];
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -198,22 +198,22 @@ void ComputeTempPartial::remove_bias_all()
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][0] = v[i][0];
-	v[i][0] = 0.0;
+        vbiasall[i][0] = v[i][0];
+        v[i][0] = 0.0;
       }
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][1] = v[i][1];
-	v[i][1] = 0.0;
+        vbiasall[i][1] = v[i][1];
+        v[i][1] = 0.0;
       }
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	vbiasall[i][2] = v[i][2];
-	v[i][2] = 0.0;
+        vbiasall[i][2] = v[i][2];
+        v[i][2] = 0.0;
       }
   }
 }
@@ -244,17 +244,17 @@ void ComputeTempPartial::restore_bias_all()
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][0] += vbiasall[i][0];
+        v[i][0] += vbiasall[i][0];
   }
   if (!yflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][1] += vbiasall[i][1];
+        v[i][1] += vbiasall[i][1];
   }
   if (!zflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][2] += vbiasall[i][2];
+        v[i][2] += vbiasall[i][2];
   }
 }
 

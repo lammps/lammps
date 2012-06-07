@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -29,7 +29,7 @@ PairStyle(cg/cmm,PairLJSDK)
 
 namespace LAMMPS_NS {
 class LAMMPS;
-  
+
 class PairLJSDK : public Pair {
  public:
   PairLJSDK(LAMMPS *);
@@ -54,7 +54,7 @@ class PairLJSDK : public Pair {
   double **lj1,**lj2,**lj3,**lj4,**offset;
 
   // cutoff and offset for minimum of LJ potential
-  // to be used in SDK angle potential, which 
+  // to be used in SDK angle potential, which
   // uses only the repulsive part of the potential
 
   double **rminsq, **emin;

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -88,16 +88,16 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
 
   // self and shifted coulombic energy
 
-  e_self = v_sh = 0.0; 
+  e_self = v_sh = 0.0;
   e_shift = erfc(alf*cut_coul)/cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
+  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
- 
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -127,52 +127,52 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
+        r2inv = 1.0/rsq;
 
-	if (rsq < cut_coulsq) {
-	  r = sqrt(rsq);
+        if (rsq < cut_coulsq) {
+          r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j]/r;
-          erfcc = erfc(alf*r); 
+          erfcc = erfc(alf*r);
           erfcd = exp(-alf*alf*r*r);
-          v_sh = (erfcc - e_shift*r) * prefactor; 
+          v_sh = (erfcc - e_shift*r) * prefactor;
           dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = dvdrr*rsq*prefactor;
-	  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-	} else forcecoul = 0.0;
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        } else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
           r = sqrt(rsq);
-	  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
-	  forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
-	    + born3[itype][jtype]*r2inv*r6inv;
-	} else forceborn = 0.0;
+          rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+          forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
+            + born3[itype][jtype]*r2inv*r6inv;
+        } else forceborn = 0.0;
 
-	fpair = (forcecoul + factor_lj*forceborn) * r2inv;
+        fpair = (forcecoul + factor_lj*forceborn) * r2inv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  if (rsq < cut_coulsq) {
-	    ecoul = v_sh;
-	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-	  } else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
-	      d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        if (eflag) {
+          if (rsq < cut_coulsq) {
+            ecoul = v_sh;
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
+              d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -227,7 +227,7 @@ void PairBornCoulWolf::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -237,7 +237,7 @@ void PairBornCoulWolf::settings(int narg, char **arg)
 
 void PairBornCoulWolf::coeff(int narg, char **arg)
 {
-  if (narg < 7 || narg > 8) 
+  if (narg < 7 || narg > 8)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -301,7 +301,7 @@ double PairBornCoulWolf::init_one(int i, int j)
   born1[i][j] = a[i][j]/rho[i][j];
   born2[i][j] = 6.0*c[i][j];
   born3[i][j] = 8.0*d[i][j];
-     
+
   if (offset_flag) {
     double rexp = exp(-cut_lj[i][j]/rho[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut_lj[i][j],6.0)
@@ -335,12 +335,12 @@ void PairBornCoulWolf::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a[i][j],sizeof(double),1,fp);
-	fwrite(&rho[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&c[i][j],sizeof(double),1,fp);
-	fwrite(&d[i][j],sizeof(double),1,fp);
-	fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j],sizeof(double),1,fp);
+        fwrite(&rho[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&c[i][j],sizeof(double),1,fp);
+        fwrite(&d[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -362,20 +362,20 @@ void PairBornCoulWolf::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&a[i][j],sizeof(double),1,fp);
-	  fread(&rho[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&c[i][j],sizeof(double),1,fp);
-	  fread(&d[i][j],sizeof(double),1,fp);
-	  fread(&cut_lj[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&d[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&a[i][j],sizeof(double),1,fp);
+          fread(&rho[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&c[i][j],sizeof(double),1,fp);
+          fread(&d[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&rho[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&d[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -418,23 +418,23 @@ void PairBornCoulWolf::read_restart_settings(FILE *fp)
 ------------------------------------------------------------------------- */
 
 double PairBornCoulWolf::single(int i, int j, int itype, int jtype,
-				double rsq, 
-				double factor_coul, double factor_lj,
-				double &fforce)
+                                double rsq,
+                                double factor_coul, double factor_lj,
+                                double &fforce)
 {
   double r2inv,r6inv,r,prefactor,rexp;
   double forcecoul,forceborn,phicoul,phiborn;
-  double e_shift,f_shift,dvdrr,erfcc,erfcd; 
+  double e_shift,f_shift,dvdrr,erfcc,erfcd;
 
   r2inv = 1.0/rsq;
   e_shift = erfc(alf*cut_coul) / cut_coul;
-  f_shift = -(e_shift+2*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
-    cut_coul; 
- 
+  f_shift = -(e_shift+2*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul;
+
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
     prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    erfcc = erfc(alf*r); 
+    erfcc = erfc(alf*r);
     erfcd = exp(-alf*alf*r*r);
     dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
     forcecoul = dvdrr*rsq*prefactor;
@@ -450,7 +450,7 @@ double PairBornCoulWolf::single(int i, int j, int itype, int jtype,
   } else forceborn = 0.0;
 
   fforce = (forcecoul + factor_lj*forceborn) * r2inv;
-  
+
   double eng = 0.0;
   if (rsq < cut_coulsq) {
     phicoul = prefactor * (erfcc-e_shift*r);
@@ -458,7 +458,7 @@ double PairBornCoulWolf::single(int i, int j, int itype, int jtype,
     eng += phicoul;
   }
   if (rsq < cut_ljsq[itype][jtype]) {
-    phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv 
+    phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv
       + d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
     eng += factor_lj*phiborn;
   }

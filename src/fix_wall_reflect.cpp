@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -45,8 +45,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
-	(strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
-	(strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
+        (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
+        (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/reflect command");
 
       int newwall;
@@ -58,24 +58,24 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
 
       for (int m = 0; m < nwall; m++)
-	if (newwall == wallwhich[m])
-	  error->all(FLERR,"Wall defined twice in fix wall/reflect command");
+        if (newwall == wallwhich[m])
+          error->all(FLERR,"Wall defined twice in fix wall/reflect command");
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
-	wallstyle[nwall] = EDGE;
-	int dim = wallwhich[nwall] / 2;
-	int side = wallwhich[nwall] % 2;
-	if (side == 0) coord0[nwall] = domain->boxlo[dim];
-	else coord0[nwall] = domain->boxhi[dim];
+        wallstyle[nwall] = EDGE;
+        int dim = wallwhich[nwall] / 2;
+        int side = wallwhich[nwall] % 2;
+        if (side == 0) coord0[nwall] = domain->boxlo[dim];
+        else coord0[nwall] = domain->boxhi[dim];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	wallstyle[nwall] = VARIABLE;
-	int n = strlen(&arg[iarg+1][2]) + 1;
-	varstr[nwall] = new char[n];
-	strcpy(varstr[nwall],&arg[iarg+1][2]);
+        wallstyle[nwall] = VARIABLE;
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        varstr[nwall] = new char[n];
+        strcpy(varstr[nwall],&arg[iarg+1][2]);
       } else {
-	wallstyle[nwall] = CONSTANT;
-	coord0[nwall] = atof(arg[iarg+1]);
+        wallstyle[nwall] = CONSTANT;
+        coord0[nwall] = atof(arg[iarg+1]);
       }
 
       nwall++;
@@ -106,7 +106,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
       error->all(FLERR,
-		 "Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
+                 "Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
 
   // scale factors for CONSTANT and VARIABLE walls
 
@@ -124,7 +124,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       zscale = domain->lattice->zlattice;
     }
     else xscale = yscale = zscale = 1.0;
-    
+
     for (int m = 0; m < nwall; m++) {
       if (wallstyle[m] != CONSTANT) continue;
       if (wallwhich[m] < YLO) coord0[m] *= xscale;
@@ -175,9 +175,9 @@ void FixWallReflect::init()
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
 
-  if (nrigid && comm->me == 0) 
+  if (nrigid && comm->me == 0)
     error->warning(FLERR,"Should not allow rigid bodies to bounce off "
-		   "relecting walls");
+                   "relecting walls");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,17 +210,17 @@ void FixWallReflect::post_integrate()
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if (side == 0) {
-	  if (x[i][dim] < coord) {
-	    x[i][dim] = coord + (coord - x[i][dim]);
-	    v[i][dim] = -v[i][dim];
-	  }
-	} else {
-	  if (x[i][dim] > coord) {
-	    x[i][dim] = coord - (x[i][dim] - coord);
-	    v[i][dim] = -v[i][dim];
-	  }
-	}
+        if (side == 0) {
+          if (x[i][dim] < coord) {
+            x[i][dim] = coord + (coord - x[i][dim]);
+            v[i][dim] = -v[i][dim];
+          }
+        } else {
+          if (x[i][dim] > coord) {
+            x[i][dim] = coord - (x[i][dim] - coord);
+            v[i][dim] = -v[i][dim];
+          }
+        }
       }
   }
 

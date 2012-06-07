@@ -56,11 +56,11 @@ void PairBuckCoulCutOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -123,43 +123,43 @@ void PairBuckCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r2inv = 1.0/rsq;
-	r = sqrt(rsq);
+        r2inv = 1.0/rsq;
+        r = sqrt(rsq);
 
-	if (rsq < cut_coulsq[itype][jtype])
-	  forcecoul = qqrd2e * qtmp*q[j]/r;
-	else forcecoul = 0.0;
+        if (rsq < cut_coulsq[itype][jtype])
+          forcecoul = qqrd2e * qtmp*q[j]/r;
+        else forcecoul = 0.0;
 
-	if (rsq < cut_ljsq[itype][jtype]) {
-	  r6inv = r2inv*r2inv*r2inv;
-	  rexp = exp(-r*rhoinv[itype][jtype]);
-	  forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
-	} else forcebuck = 0.0;
-	
-	fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          rexp = exp(-r*rhoinv[itype][jtype]);
+          forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
+        } else forcebuck = 0.0;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fpair = (forcecoul + factor_lj*forcebuck)*r2inv;
 
-	if (EFLAG) {
-	  if (rsq < cut_coulsq[itype][jtype])
-	    ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
-	  else ecoul = 0.0;
-	  if (rsq < cut_ljsq[itype][jtype]) {
-	    evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
-	      offset[itype][jtype];
-	    evdwl *= factor_lj;
-	  } else evdwl = 0.0;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-				 evdwl,ecoul,fpair,delx,dely,delz,thr);
+        if (EFLAG) {
+          if (rsq < cut_coulsq[itype][jtype])
+            ecoul = factor_coul * qqrd2e * qtmp*q[j]/r;
+          else ecoul = 0.0;
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+        }
+
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;

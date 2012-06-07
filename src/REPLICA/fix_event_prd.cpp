@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -60,7 +60,7 @@ void FixEventPRD::store_event_prd(bigint ntimestep, int delta_clock)
 }
 
 /* ----------------------------------------------------------------------
-   pack entire state of Fix into one write 
+   pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixEventPRD::write_restart(FILE *fp)
@@ -82,7 +82,7 @@ void FixEventPRD::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix 
+   use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
 void FixEventPRD::restart(char *buf)
@@ -97,5 +97,3 @@ void FixEventPRD::restart(char *buf)
   correlated_event = static_cast<int> (list[n++]);
   ncoincident = static_cast<int> (list[n++]);
 }
-
-

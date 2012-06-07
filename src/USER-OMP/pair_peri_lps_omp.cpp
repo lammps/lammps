@@ -56,8 +56,8 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
   // grow bond forces array if necessary
 
   if (atom->nmax > nmax) {
-    memory->destroy(s0_new);				
-    memory->destroy(theta);				
+    memory->destroy(s0_new);
+    memory->destroy(theta);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
     memory->create(theta,nmax,"pair:theta");
@@ -75,11 +75,11 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else {
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
@@ -163,7 +163,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (periodic) domain->minimum_image(delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
- 
+
       r = sqrt(rsq);
 
       // short-range interaction distance based on initial particle position
@@ -179,27 +179,27 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
         dr = r - d_ij;
 
         // kshort based upon short-range force constant
-	// of the bond-based theory used in PMB model
+        // of the bond-based theory used in PMB model
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
-	  (MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
+          (MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
         rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
         else fpair = 0.0;
 
-	fxtmp += delx*fpair;
-	fytmp += dely*fpair;
-	fztmp += delz*fpair;
-	if (NEWTON_PAIR || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
+        if (NEWTON_PAIR || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
         if (EFLAG) evdwl = 0.5*rk*dr;
-	if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
-				 fpair*vfrac[i],delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,
+                                 fpair*vfrac[i],delx,dely,delz,thr);
       }
     }
     f[i][0] += fxtmp;
@@ -216,7 +216,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int idelta = 1 + nlocal/comm->nthreads;
   iifrom = thr->get_tid()*idelta;
   iito   = ((iifrom + idelta) > nlocal) ? nlocal : (iifrom + idelta);
-#else 
+#else
   iifrom = 0;
   iito = nlocal;
 #endif
@@ -231,7 +231,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-  { // communicate dilatation (theta) of each particle	
+  { // communicate dilatation (theta) of each particle
     comm->forward_comm_pair(this);
     // communicate weighted volume (wvolume) upon every reneighbor
     if (neighbor->ago == 0)
@@ -242,10 +242,10 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   // Volume-dependent part of the energy
   if (EFLAG) {
-    for (i = iifrom; i < iito; i++) {   
+    for (i = iifrom; i < iito; i++) {
       itype = type[i];
       e_tally_thr(this, i, i, nlocal, NEWTON_PAIR,
-		  0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]), 0.0, thr);
+                  0.5 * bulkmodulus[itype][itype] * (theta[i] * theta[i]), 0.0, thr);
     }
   }
 
@@ -261,9 +261,9 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    xtmp0 = x0[i][0];			
-    ytmp0 = x0[i][1];		
-    ztmp0 = x0[i][2];			
+    xtmp0 = x0[i][0];
+    ytmp0 = x0[i][1];
+    ztmp0 = x0[i][2];
     itype = type[i];
     jnum = npartner[i];
     first = true;
@@ -286,10 +286,10 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j][2];
       if (periodic) domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
-      delx0 = xtmp0 - x0[j][0];						
-      dely0 = ytmp0 - x0[j][1];						
-      delz0 = ztmp0 - x0[j][2];						
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);   
+      delx0 = xtmp0 - x0[j][0];
+      dely0 = ytmp0 - x0[j][1];
+      delz0 = ztmp0 - x0[j][2];
+      if (periodic) domain->minimum_image(delx0,dely0,delz0);
       jtype = type[j];
       delta = cut[itype][jtype];
       r = sqrt(rsq);
@@ -302,18 +302,18 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
       // scale vfrac[j] if particle j near the horizon
 
       if ((fabs(r0[i][jj] - delta)) <= half_lc)
-        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) + 
-	  (1.0 + ((delta - half_lc)/(2*half_lc) ) );
+        vfrac_scale = (-1.0/(2*half_lc))*(r0[i][jj]) +
+          (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
       omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       omega_minus = influence_function(delx0,dely0,delz0);
-      rk = ( (3.0 * bulkmodulus[itype][itype]) - 
-	     (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale * 
-	( (omega_plus * theta[i] / wvolume[i]) + 
-	  ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj]; 
+      rk = ( (3.0 * bulkmodulus[itype][itype]) -
+             (5.0 * shearmodulus[itype][itype]) ) * vfrac[j] * vfrac_scale *
+        ( (omega_plus * theta[i] / wvolume[i]) +
+          ( omega_minus * theta[j] / wvolume[j] ) ) * r0[i][jj];
       rk +=  15.0 * ( shearmodulus[itype][itype] * vfrac[j] * vfrac_scale ) *
-	( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr; 
+        ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * dr;
 
       if (r > 0.0) fbond = -(rk/r);
       else fbond = 0.0;
@@ -322,14 +322,14 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[i][1] += dely*fbond;
       f[i][2] += delz*fbond;
 
-      // since I-J is double counted, set newton off & use 1/2 factor and I,I 
+      // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
-      if (EFLAG) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) * 
-		   omega_plus*(deviatoric_extension * deviatoric_extension) *
-		   vfrac[j] * vfrac_scale;
+      if (EFLAG) evdwl = 0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
+                   omega_plus*(deviatoric_extension * deviatoric_extension) *
+                   vfrac[j] * vfrac_scale;
       if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.5*evdwl,0.0,
-			       0.5*fbond*vfrac[i],delx,dely,delz,thr);
+                               0.5*fbond*vfrac[i],delx,dely,delz,thr);
 
       // find stretch in bond I-J and break if necessary
       // use s0 from previous timestep
@@ -370,7 +370,7 @@ void PairPeriLPSOMP::compute_dilatation_thr(int ifrom, int ito)
   double **x0 = atom->x0;
   double *vfrac = atom->vfrac;
   double vfrac_scale = 1.0;
-  
+
   double lc = domain->lattice->xlattice;
   double half_lc = 0.5*lc;
 
@@ -431,11 +431,11 @@ void PairPeriLPSOMP::compute_dilatation_thr(int ifrom, int ito)
       else vfrac_scale = 1.0;
 
       theta[i] += influence_function(delx0, dely0, delz0) * r0[i][jj] * dr *
-	vfrac[j] * vfrac_scale;
+        vfrac[j] * vfrac_scale;
     }
 
     // if wvolume[i] is zero, then particle i has no bonds
-    // therefore, the dilatation is set to 
+    // therefore, the dilatation is set to
 
     if (wvolume[i] != 0.0) theta[i] = (3.0/wvolume[i]) * theta[i];
     else theta[i] = 0;
@@ -451,4 +451,3 @@ double PairPeriLPSOMP::memory_usage()
 
   return bytes;
 }
-

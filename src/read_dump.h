@@ -30,17 +30,29 @@ namespace LAMMPS_NS {
 class ReadDump : protected Pointers {
  public:
   ReadDump(class LAMMPS *);
-  ~ReadDump() {}
+  ~ReadDump();
   void command(int, char **);
+
+  void store_files(int, char **);
+  void setup_reader();
+  bigint seek(bigint, int);
+  void header(int);
+  bigint next(bigint, bigint, int, int);
+  void atoms();
+  void fields_and_keywords(int, char **);
 
 private:
   int me,nprocs;
   FILE *fp;
+
   int dimension;
   int triclinic;
 
-  bigint nstep;            // timestep to find in dump file
-  int boxflag;             // use dump file box params
+  int nfiles;              // # of dump files to process
+  char **files;            // list of file names
+  int currentfile;         // currently open file
+
+  int boxflag;             // overwrite simulation with dump file box params
   int replaceflag,addflag; // flags for processing dump snapshot atoms
   int trimflag,purgeflag;
   int scaledflag;          // user setting for coordinate scaling
@@ -54,7 +66,7 @@ private:
   double **fields;         // per-atom field values
 
   double box[3][3];         // dump file box parameters
-  double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;
+  double xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz;  // dump snapshot box params
   double xprd,yprd,zprd;
 
   bigint nsnapatoms;        // # of atoms in dump file shapshot
@@ -69,13 +81,14 @@ private:
   class ReadDumpNative *reader;     // class that reads native dump file
 
   void process_atoms(int);
-  void delete_atoms(int *);
+  void delete_atoms();
 
   double xfield(int, int);
   double yfield(int, int);
   double zfield(int, int);
 
   void open(char *);
+  void close();
 };
 
 }

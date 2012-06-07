@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -158,22 +158,22 @@ void PairADP::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // zero out density
 
   if (newton_pair) {
     m = nlocal + atom->nghost;
     for (i = 0; i < m; i++) {
-      rho[i] = 0.0; 
+      rho[i] = 0.0;
       mu[i][0] = 0.0; mu[i][1] = 0.0; mu[i][2] = 0.0;
-      lambda[i][0] = 0.0; lambda[i][1] = 0.0; lambda[i][2] = 0.0; 
+      lambda[i][0] = 0.0; lambda[i][1] = 0.0; lambda[i][2] = 0.0;
       lambda[i][3] = 0.0; lambda[i][4] = 0.0; lambda[i][5] = 0.0;
     }
   } else {
     for (i = 0; i < nlocal; i++) {
       rho[i] = 0.0;
       mu[i][0] = 0.0; mu[i][1] = 0.0; mu[i][2] = 0.0;
-      lambda[i][0] = 0.0; lambda[i][1] = 0.0; lambda[i][2] = 0.0; 
+      lambda[i][0] = 0.0; lambda[i][1] = 0.0; lambda[i][2] = 0.0;
       lambda[i][3] = 0.0; lambda[i][4] = 0.0; lambda[i][5] = 0.0;
     }
   }
@@ -199,21 +199,21 @@ void PairADP::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-	jtype = type[j];
-	p = sqrt(rsq)*rdr + 1.0;
-	m = static_cast<int> (p);
-	m = MIN(m,nr-1);
-	p -= m;
-	p = MIN(p,1.0);
-	coeff = rhor_spline[type2rhor[jtype][itype]][m];
-	rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        jtype = type[j];
+        p = sqrt(rsq)*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         coeff = u2r_spline[type2u2r[jtype][itype]][m];
-	u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         mu[i][0] += u2*delx;
         mu[i][1] += u2*dely;
         mu[i][2] += u2*delz;
         coeff = w2r_spline[type2w2r[jtype][itype]][m];
-	w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         lambda[i][0] += w2*delx*delx;
         lambda[i][1] += w2*dely*dely;
         lambda[i][2] += w2*delz*delz;
@@ -221,24 +221,24 @@ void PairADP::compute(int eflag, int vflag)
         lambda[i][4] += w2*delx*delz;
         lambda[i][5] += w2*delx*dely;
 
-	if (newton_pair || j < nlocal) {
+        if (newton_pair || j < nlocal) {
           // verify sign difference for mu and lambda
-	  coeff = rhor_spline[type2rhor[itype][jtype]][m];
-	  rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+          coeff = rhor_spline[type2rhor[itype][jtype]][m];
+          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
           coeff = u2r_spline[type2u2r[itype][jtype]][m];
           u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
           mu[j][0] -= u2*delx;
           mu[j][1] -= u2*dely;
           mu[j][2] -= u2*delz;
           coeff = w2r_spline[type2w2r[itype][jtype]][m];
-	  w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+          w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
           lambda[j][0] += w2*delx*delx;
           lambda[j][1] += w2*dely*dely;
           lambda[j][2] += w2*delz*delz;
           lambda[j][3] += w2*dely*delz;
           lambda[j][4] += w2*delx*delz;
           lambda[j][5] += w2*delx*dely;
-	}
+        }
       }
     }
   }
@@ -263,11 +263,11 @@ void PairADP::compute(int eflag, int vflag)
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       phi += 0.5*(mu[i][0]*mu[i][0]+mu[i][1]*mu[i][1]+mu[i][2]*mu[i][2]);
       phi += 0.5*(lambda[i][0]*lambda[i][0]+lambda[i][1]*
-		  lambda[i][1]+lambda[i][2]*lambda[i][2]);
+                  lambda[i][1]+lambda[i][2]*lambda[i][2]);
       phi += 1.0*(lambda[i][3]*lambda[i][3]+lambda[i][4]*
-		  lambda[i][4]+lambda[i][5]*lambda[i][5]);
+                  lambda[i][4]+lambda[i][5]*lambda[i][5]);
       phi -= 1.0/6.0*(lambda[i][0]+lambda[i][1]+lambda[i][2])*
-	(lambda[i][0]+lambda[i][1]+lambda[i][2]);
+        (lambda[i][0]+lambda[i][1]+lambda[i][2]);
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -299,51 +299,51 @@ void PairADP::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-	jtype = type[j];
-	r = sqrt(rsq);
-	p = r*rdr + 1.0;
-	m = static_cast<int> (p);
-	m = MIN(m,nr-1);
-	p -= m;
-	p = MIN(p,1.0);
+        jtype = type[j];
+        r = sqrt(rsq);
+        p = r*rdr + 1.0;
+        m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
 
-	// rhoip = derivative of (density at atom j due to atom i)
-	// rhojp = derivative of (density at atom i due to atom j)
-	// phi = pair potential energy
-	// phip = phi'
-	// z2 = phi * r
-	// z2p = (phi * r)' = (phi' r) + phi
+        // rhoip = derivative of (density at atom j due to atom i)
+        // rhojp = derivative of (density at atom i due to atom j)
+        // phi = pair potential energy
+        // phip = phi'
+        // z2 = phi * r
+        // z2p = (phi * r)' = (phi' r) + phi
         // u2 = u
         // u2p = u'
         // w2 = w
         // w2p = w'
-	// psip needs both fp[i] and fp[j] terms since r_ij appears in two
-	//   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
-	//   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
+        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
+        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
 
-	coeff = rhor_spline[type2rhor[itype][jtype]][m];
-	rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
-	coeff = rhor_spline[type2rhor[jtype][itype]][m];
-	rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
-	coeff = z2r_spline[type2z2r[itype][jtype]][m];
-	z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-	z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        coeff = rhor_spline[type2rhor[itype][jtype]][m];
+        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = rhor_spline[type2rhor[jtype][itype]][m];
+        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+        coeff = z2r_spline[type2z2r[itype][jtype]][m];
+        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         coeff = u2r_spline[type2u2r[itype][jtype]][m];
-	u2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-	u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        u2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+        u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         coeff = w2r_spline[type2w2r[itype][jtype]][m];
-	w2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-	w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        w2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+        w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
-	recip = 1.0/r;
-	phi = z2*recip;
-	phip = z2p*recip - phi*recip;
-	psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-	fpair = -psip*recip;
+        recip = 1.0/r;
+        phi = z2*recip;
+        phip = z2p*recip - phi*recip;
+        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+        fpair = -psip*recip;
 
         delmux = mu[i][0]-mu[j][0];
-	delmuy = mu[i][1]-mu[j][1];
-	delmuz = mu[i][2]-mu[j][2];
+        delmuy = mu[i][1]-mu[j][1];
+        delmuz = mu[i][2]-mu[j][2];
         trdelmu = delmux*delx+delmuy*dely+delmuz*delz;
         sumlamxx = lambda[i][0]+lambda[j][0];
         sumlamyy = lambda[i][1]+lambda[j][1];
@@ -352,37 +352,37 @@ void PairADP::compute(int eflag, int vflag)
         sumlamxz = lambda[i][4]+lambda[j][4];
         sumlamxy = lambda[i][5]+lambda[j][5];
         tradellam = sumlamxx*delx*delx+sumlamyy*dely*dely+
-	  sumlamzz*delz*delz+2.0*sumlamxy*delx*dely+
-	  2.0*sumlamxz*delx*delz+2.0*sumlamyz*dely*delz;
+          sumlamzz*delz*delz+2.0*sumlamxy*delx*dely+
+          2.0*sumlamxz*delx*delz+2.0*sumlamyz*dely*delz;
         nu = sumlamxx+sumlamyy+sumlamzz;
 
-        adpx = delmux*u2 + trdelmu*u2p*delx*recip + 
-	  2.0*w2*(sumlamxx*delx+sumlamxy*dely+sumlamxz*delz) + 
-	  w2p*delx*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*delx;
-        adpy = delmuy*u2 + trdelmu*u2p*dely*recip + 
-	  2.0*w2*(sumlamxy*delx+sumlamyy*dely+sumlamyz*delz) + 
-	  w2p*dely*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*dely;
-        adpz = delmuz*u2 + trdelmu*u2p*delz*recip + 
-	  2.0*w2*(sumlamxz*delx+sumlamyz*dely+sumlamzz*delz) + 
-	  w2p*delz*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*delz;
+        adpx = delmux*u2 + trdelmu*u2p*delx*recip +
+          2.0*w2*(sumlamxx*delx+sumlamxy*dely+sumlamxz*delz) +
+          w2p*delx*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*delx;
+        adpy = delmuy*u2 + trdelmu*u2p*dely*recip +
+          2.0*w2*(sumlamxy*delx+sumlamyy*dely+sumlamyz*delz) +
+          w2p*dely*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*dely;
+        adpz = delmuz*u2 + trdelmu*u2p*delz*recip +
+          2.0*w2*(sumlamxz*delx+sumlamyz*dely+sumlamzz*delz) +
+          w2p*delz*recip*tradellam - 1.0/3.0*nu*(w2p*r+2.0*w2)*delz;
         adpx*=-1.0; adpy*=-1.0; adpz*=-1.0;
 
         fx = delx*fpair+adpx;
-	fy = dely*fpair+adpy;
-	fz = delz*fpair+adpz;
-   
-	f[i][0] += fx;
-	f[i][1] += fy;
-	f[i][2] += fz;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= fx;
-	  f[j][1] -= fy;
-	  f[j][2] -= fz;
-	}
+        fy = dely*fpair+adpy;
+        fz = delz*fpair+adpz;
 
-	if (eflag) evdwl = phi;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fx;
+          f[j][1] -= fy;
+          f[j][2] -= fz;
+        }
+
+        if (eflag) evdwl = phi;
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
-				 fx,fy,fz,delx,dely,delz);
+                                 fx,fy,fz,delx,dely,delz);
       }
     }
   }
@@ -488,9 +488,9 @@ void PairADP::coeff(int narg, char **arg)
   for (i = 1; i <= n; i++) {
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
-	setflag[i][j] = 1;
-	if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
-	count++;
+        setflag[i][j] = 1;
+        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        count++;
       }
     }
   }
@@ -570,7 +570,7 @@ void PairADP::read_file(char *filename)
   int nwords = atom->count_words(line);
   if (nwords != file->nelements + 1)
     error->all(FLERR,"Incorrect element names in ADP potential file");
-  
+
   char **words = new char*[file->nelements+1];
   nwords = 0;
   strtok(line," \t\n\r\f");
@@ -587,7 +587,7 @@ void PairADP::read_file(char *filename)
   if (me == 0) {
     fgets(line,MAXLINE,fp);
     sscanf(line,"%d %lg %d %lg %lg",
-	   &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
   }
 
   MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
@@ -600,11 +600,11 @@ void PairADP::read_file(char *filename)
   memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
   memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
   memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
-		 "pair:z2r");
+                 "pair:z2r");
   memory->create(file->u2r,file->nelements,file->nelements,file->nr+1,
-		 "pair:u2r");
+                 "pair:u2r");
   memory->create(file->w2r,file->nelements,file->nelements,file->nr+1,
-		 "pair:w2r");
+                 "pair:w2r");
 
   int i,j,tmp;
   for (i = 0; i < file->nelements; i++) {
@@ -666,7 +666,7 @@ void PairADP::file2array()
 
   // allocate frho arrays
   // nfrho = # of setfl elements + 1 for zero array
-  
+
   nfrho = setfl->nelements + 1;
   memory->destroy(frho);
   memory->create(frho,nfrho,nrho+1,"pair:frho");
@@ -746,8 +746,8 @@ void PairADP::file2array()
       icol = map[j];
       if (irow == -1 || icol == -1) continue;
       if (irow < icol) {
-	irow = map[j];
-	icol = map[i];
+        irow = map[j];
+        icol = map[i];
       }
       n = 0;
       for (m = 0; m < irow; m++) n += m + 1;
@@ -788,8 +788,8 @@ void PairADP::file2array()
       icol = map[j];
       if (irow == -1 || icol == -1) continue;
       if (irow < icol) {
-	irow = map[j];
-	icol = map[i];
+        irow = map[j];
+        icol = map[i];
       }
       n = 0;
       for (m = 0; m < irow; m++) n += m + 1;
@@ -830,8 +830,8 @@ void PairADP::file2array()
       icol = map[j];
       if (irow == -1 || icol == -1) continue;
       if (irow < icol) {
-	irow = map[j];
-	icol = map[i];
+        irow = map[j];
+        icol = map[i];
       }
       n = 0;
       for (m = 0; m < irow; m++) n += m + 1;
@@ -886,21 +886,21 @@ void PairADP::interpolate(int n, double delta, double *f, double **spline)
   spline[2][5] = 0.5 * (spline[3][6]-spline[1][6]);
   spline[n-1][5] = 0.5 * (spline[n][6]-spline[n-2][6]);
   spline[n][5] = spline[n][6] - spline[n-1][6];
-  
+
   for (int m = 3; m <= n-2; m++)
-    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) + 
-		    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
-  
+    spline[m][5] = ((spline[m-2][6]-spline[m+2][6]) +
+                    8.0*(spline[m+1][6]-spline[m-1][6])) / 12.0;
+
   for (int m = 1; m <= n-1; m++) {
-    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) - 
+    spline[m][4] = 3.0*(spline[m+1][6]-spline[m][6]) -
       2.0*spline[m][5] - spline[m+1][5];
-    spline[m][3] = spline[m][5] + spline[m+1][5] - 
+    spline[m][3] = spline[m][5] + spline[m+1][5] -
       2.0*(spline[m+1][6]-spline[m][6]);
   }
-  
+
   spline[n][4] = 0.0;
   spline[n][3] = 0.0;
-  
+
   for (int m = 1; m <= n; m++) {
     spline[m][2] = spline[m][5]/delta;
     spline[m][1] = 2.0*spline[m][4]/delta;
@@ -1019,7 +1019,7 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays 
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double PairADP::memory_usage()

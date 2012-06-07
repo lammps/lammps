@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -85,7 +85,7 @@ void PairDPD::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -112,44 +112,44 @@ void PairDPD::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-	rinv = 1.0/r;
-	delvx = vxtmp - v[j][0];
-	delvy = vytmp - v[j][1];
-	delvz = vztmp - v[j][2];
-	dot = delx*delvx + dely*delvy + delz*delvz;
-	wd = 1.0 - r/cut[itype][jtype];
-	randnum = random->gaussian();
+        r = sqrt(rsq);
+        if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+        rinv = 1.0/r;
+        delvx = vxtmp - v[j][0];
+        delvy = vytmp - v[j][1];
+        delvz = vztmp - v[j][2];
+        dot = delx*delvx + dely*delvy + delz*delvz;
+        wd = 1.0 - r/cut[itype][jtype];
+        randnum = random->gaussian();
 
-	// conservative force = a0 * wd
-	// drag force = -gamma * wd^2 * (delx dot delv) / r
-	// random force = sigma * wd * rnd * dtinvsqrt;
+        // conservative force = a0 * wd
+        // drag force = -gamma * wd^2 * (delx dot delv) / r
+        // random force = sigma * wd * rnd * dtinvsqrt;
 
-	fpair = a0[itype][jtype]*wd;
-	fpair -= gamma[itype][jtype]*wd*wd*dot*rinv;
-	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fpair *= factor_dpd*rinv;	
+        fpair = a0[itype][jtype]*wd;
+        fpair -= gamma[itype][jtype]*wd*wd*dot*rinv;
+        fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+        fpair *= factor_dpd*rinv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
+        if (eflag) {
           // unshifted eng of conservative term:
-	  // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-	  // eng shifted to 0.0 at cutoff
-	  evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd*wd;
-	  evdwl *= factor_dpd;
-	}
+          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+          // eng shifted to 0.0 at cutoff
+          evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd*wd;
+          evdwl *= factor_dpd;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -158,7 +158,7 @@ void PairDPD::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairDPD::allocate()
@@ -180,7 +180,7 @@ void PairDPD::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairDPD::settings(int narg, char **arg)
@@ -203,7 +203,7 @@ void PairDPD::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -267,7 +267,7 @@ double PairDPD::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
-     
+
   cut[j][i] = cut[i][j];
   a0[j][i] = a0[i][j];
   gamma[j][i] = gamma[i][j];
@@ -289,9 +289,9 @@ void PairDPD::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a0[i][j],sizeof(double),1,fp);
-	fwrite(&gamma[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&a0[i][j],sizeof(double),1,fp);
+        fwrite(&gamma[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -313,14 +313,14 @@ void PairDPD::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&a0[i][j],sizeof(double),1,fp);
-	  fread(&gamma[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&a0[i][j],sizeof(double),1,fp);
+          fread(&gamma[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -364,7 +364,7 @@ void PairDPD::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairDPD::single(int i, int j, int itype, int jtype, double rsq,
-		       double factor_coul, double factor_dpd, double &fforce)
+                       double factor_coul, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
 

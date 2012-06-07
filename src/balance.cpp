@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -102,61 +102,61 @@ void Balance::command(int narg, char **arg)
     if (strcmp(arg[iarg],"x") == 0) {
       if (xflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-	if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
-	xflag = UNIFORM;
-	iarg += 2;
+        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
+        xflag = UNIFORM;
+        iarg += 2;
       } else {
-	if (1 + procgrid[0]-1 > narg)
-	  error->all(FLERR,"Illegal balance command");
-	xflag = USER;
-	delete [] user_xsplit;
-	user_xsplit = new double[procgrid[0]+1];
-	user_xsplit[0] = 0.0;
-	iarg++;
-	for (int i = 1; i < procgrid[0]; i++)
-	  user_xsplit[i] = force->numeric(arg[iarg++]);
-	user_xsplit[procgrid[0]] = 1.0;
+        if (1 + procgrid[0]-1 > narg)
+          error->all(FLERR,"Illegal balance command");
+        xflag = USER;
+        delete [] user_xsplit;
+        user_xsplit = new double[procgrid[0]+1];
+        user_xsplit[0] = 0.0;
+        iarg++;
+        for (int i = 1; i < procgrid[0]; i++)
+          user_xsplit[i] = force->numeric(arg[iarg++]);
+        user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (yflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-	if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
-	yflag = UNIFORM;
-	iarg += 2;
+        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
+        yflag = UNIFORM;
+        iarg += 2;
       } else {
-	if (1 + procgrid[1]-1 > narg)
-	  error->all(FLERR,"Illegal balance command");
-	yflag = USER;
-	delete [] user_ysplit;
-	user_ysplit = new double[procgrid[1]+1];
-	user_ysplit[0] = 0.0;
-	iarg++;
-	for (int i = 1; i < procgrid[1]; i++)
-	  user_ysplit[i] = force->numeric(arg[iarg++]);
-	user_ysplit[procgrid[1]] = 1.0;
+        if (1 + procgrid[1]-1 > narg)
+          error->all(FLERR,"Illegal balance command");
+        yflag = USER;
+        delete [] user_ysplit;
+        user_ysplit = new double[procgrid[1]+1];
+        user_ysplit[0] = 0.0;
+        iarg++;
+        for (int i = 1; i < procgrid[1]; i++)
+          user_ysplit[i] = force->numeric(arg[iarg++]);
+        user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (zflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
       if (strcmp(arg[iarg+1],"uniform") == 0) {
-	if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
-	zflag = UNIFORM;
-	iarg += 2;
+        if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
+        zflag = UNIFORM;
+        iarg += 2;
       } else {
-	if (1 + procgrid[2]-1 > narg)
-	  error->all(FLERR,"Illegal balance command");
-	zflag = USER;
-	delete [] user_zsplit;
-	user_zsplit = new double[procgrid[2]+1];
-	user_zsplit[0] = 0.0;
-	iarg++;
-	for (int i = 1; i < procgrid[2]; i++)
-	  user_zsplit[i] = force->numeric(arg[iarg++]);
-	user_zsplit[procgrid[2]] = 1.0;
+        if (1 + procgrid[2]-1 > narg)
+          error->all(FLERR,"Illegal balance command");
+        zflag = USER;
+        delete [] user_zsplit;
+        user_zsplit = new double[procgrid[2]+1];
+        user_zsplit[0] = 0.0;
+        iarg++;
+        for (int i = 1; i < procgrid[2]; i++)
+          user_zsplit[i] = force->numeric(arg[iarg++]);
+        user_zsplit[procgrid[2]] = 1.0;
       }
 
     } else if (strcmp(arg[iarg],"dynamic") == 0) {
       if (xflag != NONE || yflag != NONE || zflag != NONE)
-	error->all(FLERR,"Illegal balance command");
+        error->all(FLERR,"Illegal balance command");
       if (iarg+5 > narg) error->all(FLERR,"Illegal balance command");
       dflag = 1;
       xflag = yflag = DYNAMIC;
@@ -164,7 +164,7 @@ void Balance::command(int narg, char **arg)
       nrepeat = atoi(arg[iarg+1]);
       niter = atoi(arg[iarg+2]);
       if (nrepeat <= 0 || niter <= 0)
-	error->all(FLERR,"Illegal balance command");
+        error->all(FLERR,"Illegal balance command");
       int n = strlen(arg[iarg+3]) + 1;
       bstr = new char[n];
       strcpy(bstr,arg[iarg+3]);
@@ -182,23 +182,23 @@ void Balance::command(int narg, char **arg)
 
   if (xflag == USER)
     for (int i = 1; i <= procgrid[0]; i++)
-      if (user_xsplit[i-1] >= user_xsplit[i]) 
-	error->all(FLERR,"Illegal balance command");
+      if (user_xsplit[i-1] >= user_xsplit[i])
+        error->all(FLERR,"Illegal balance command");
   if (yflag == USER)
     for (int i = 1; i <= procgrid[1]; i++)
-      if (user_ysplit[i-1] >= user_ysplit[i]) 
-	error->all(FLERR,"Illegal balance command");
+      if (user_ysplit[i-1] >= user_ysplit[i])
+        error->all(FLERR,"Illegal balance command");
   if (zflag == USER)
     for (int i = 1; i <= procgrid[2]; i++)
-      if (user_zsplit[i-1] >= user_zsplit[i]) 
-	error->all(FLERR,"Illegal balance command");
+      if (user_zsplit[i-1] >= user_zsplit[i])
+        error->all(FLERR,"Illegal balance command");
 
   if (dflag) {
     for (int i = 0; i < strlen(bstr); i++) {
-      if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z') 
-	error->all(FLERR,"Balance dynamic string is invalid");
-      if (bstr[i] == 'z' && dimension == 2) 
-	error->all(FLERR,"Balance dynamic string is invalid for 2d simulation");
+      if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
+        error->all(FLERR,"Balance dynamic string is invalid");
+      if (bstr[i] == 'z' && dimension == 2)
+        error->all(FLERR,"Balance dynamic string is invalid for 2d simulation");
     }
   }
 
@@ -227,19 +227,19 @@ void Balance::command(int narg, char **arg)
   // explicit setting of sub-domain sizes
 
   if (xflag == UNIFORM) {
-    for (int i = 0; i < procgrid[0]; i++) 
+    for (int i = 0; i < procgrid[0]; i++)
       comm->xsplit[i] = i * 1.0/procgrid[0];
     comm->xsplit[procgrid[0]] = 1.0;
   }
 
   if (yflag == UNIFORM) {
-    for (int i = 0; i < procgrid[1]; i++) 
+    for (int i = 0; i < procgrid[1]; i++)
       comm->ysplit[i] = i * 1.0/procgrid[1];
     comm->ysplit[procgrid[1]] = 1.0;
   }
 
   if (zflag == UNIFORM) {
-    for (int i = 0; i < procgrid[2]; i++) 
+    for (int i = 0; i < procgrid[2]; i++)
       comm->zsplit[i] = i * 1.0/procgrid[2];
     comm->zsplit[procgrid[2]] = 1.0;
   }
@@ -276,7 +276,7 @@ void Balance::command(int narg, char **arg)
   } else {
     if (dimension == 3) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-	comm->uniform = 1;
+        comm->uniform = 1;
     } else {
       if (xflag == UNIFORM && yflag == UNIFORM) comm->uniform = 1;
     }
@@ -302,8 +302,8 @@ void Balance::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms) {
     char str[128];
-    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT 
-	    " current " BIGINT_FORMAT,atom->natoms,natoms);
+    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT
+            " current " BIGINT_FORMAT,atom->natoms,natoms);
     error->all(FLERR,str);
   }
 
@@ -316,16 +316,16 @@ void Balance::command(int narg, char **arg)
     if (screen) {
       fprintf(screen,"  iteration count = %d\n",count);
       fprintf(screen,"  initial/final max atoms/proc = %d %d\n",
-	      maxinit,maxfinal);
+              maxinit,maxfinal);
       fprintf(screen,"  initial/final imbalance factor = %g %g\n",
-	      imbinit,imbfinal);
+              imbinit,imbfinal);
     }
     if (logfile) {
       fprintf(logfile,"  iteration count = %d\n",count);
       fprintf(logfile,"  initial/final max atoms/proc = %d %d\n",
-	      maxinit,maxfinal);
+              maxinit,maxfinal);
       fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
-	      imbinit,imbfinal);
+              imbinit,imbfinal);
     }
   }
 
@@ -333,29 +333,29 @@ void Balance::command(int narg, char **arg)
     if (screen) {
       fprintf(screen,"  x cuts:");
       for (int i = 0; i <= comm->procgrid[0]; i++)
-	fprintf(screen," %g",comm->xsplit[i]);
+        fprintf(screen," %g",comm->xsplit[i]);
       fprintf(screen,"\n");
       fprintf(screen,"  y cuts:");
       for (int i = 0; i <= comm->procgrid[1]; i++)
-	fprintf(screen," %g",comm->ysplit[i]);
+        fprintf(screen," %g",comm->ysplit[i]);
       fprintf(screen,"\n");
       fprintf(screen,"  z cuts:");
       for (int i = 0; i <= comm->procgrid[2]; i++)
-	fprintf(screen," %g",comm->zsplit[i]);
+        fprintf(screen," %g",comm->zsplit[i]);
       fprintf(screen,"\n");
     }
     if (logfile) {
       fprintf(logfile,"  x cuts:");
       for (int i = 0; i <= comm->procgrid[0]; i++)
-	fprintf(logfile," %g",comm->xsplit[i]);
+        fprintf(logfile," %g",comm->xsplit[i]);
       fprintf(logfile,"\n");
       fprintf(logfile,"  y cuts:");
       for (int i = 0; i <= comm->procgrid[1]; i++)
-	fprintf(logfile," %g",comm->ysplit[i]);
+        fprintf(logfile," %g",comm->ysplit[i]);
       fprintf(logfile,"\n");
       fprintf(logfile,"  z cuts:");
       for (int i = 0; i <= comm->procgrid[2]; i++)
-	fprintf(logfile," %g",comm->zsplit[i]);
+        fprintf(logfile," %g",comm->zsplit[i]);
       fprintf(logfile,"\n");
     }
   }
@@ -427,7 +427,7 @@ void Balance::dynamic_setup(char *str)
     if (str[i] == 'y') ops[i] = Y;
     if (str[i] == 'z') ops[i] = Z;
   }
-  
+
   splits[0] = comm->xsplit;
   splits[1] = comm->ysplit;
   splits[2] = comm->zsplit;
@@ -452,7 +452,7 @@ void Balance::dynamic_setup(char *str)
 ------------------------------------------------------------------------- */
 
 void Balance::dynamic_setup(int nrepeat_in, int niter_in,
-			    char *str, double thresh_in)
+                            char *str, double thresh_in)
 {
   nrepeat = nrepeat_in;
   niter = niter_in;
@@ -480,12 +480,12 @@ int Balance::dynamic_once()
   for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
     for (i = 0; i < nops; i++) {
       for (m = 0; m < niter; m++) {
-	stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
-	adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
-	count++;
+        stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
+        adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
+        count++;
 
 #ifdef BALANCE_DEBUG
-	dumpout(-1);
+        dumpout(-1);
 #endif
       }
       imbfactor = imbalance_splits(max);
@@ -523,12 +523,12 @@ int Balance::dynamic()
   for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
     for (i = 0; i < nops; i++) {
       for (m = 0; m < niter; m++) {
-	stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
-	adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
-	count++;
+        stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
+        adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
+        count++;
 
 #ifdef BALANCE_DEBUG
-	dumpout(-1);
+        dumpout(-1);
 #endif
       }
       imbfactor = imbalance_splits(max);
@@ -632,27 +632,27 @@ void Balance::adjust(int n, bigint *count, double *split)
 
     if (mycount > leftcount && mycount > rightcount) {
       if (mycount-MAX(leftcount,rightcount) >= fabs(leftcount-rightcount)) {
-	if (leftcount <= rightcount) {
-	  targetleft = damp * 
-	    (rightcount-leftcount + (mycount-rightcount)/3.0);
-	  targetright = damp * (mycount-rightcount)/3.0;
-	  cuts[i] = split[i] + targetleft/rho;
-	  cuts[i+1] = split[i+1] - targetright/rho;
-	} else {
-	  targetleft = damp * (mycount-leftcount)/3.0;
-	  targetright = damp * 
-	    (leftcount-rightcount + (mycount-leftcount)/3.0);
-	  cuts[i] = split[i] + targetleft/rho;
-	  cuts[i+1] = split[i+1] - targetright/rho;
-	}
+        if (leftcount <= rightcount) {
+          targetleft = damp *
+            (rightcount-leftcount + (mycount-rightcount)/3.0);
+          targetright = damp * (mycount-rightcount)/3.0;
+          cuts[i] = split[i] + targetleft/rho;
+          cuts[i+1] = split[i+1] - targetright/rho;
+        } else {
+          targetleft = damp * (mycount-leftcount)/3.0;
+          targetright = damp *
+            (leftcount-rightcount + (mycount-leftcount)/3.0);
+          cuts[i] = split[i] + targetleft/rho;
+          cuts[i+1] = split[i+1] - targetright/rho;
+        }
       } else if (leftcount < rightcount) {
-	target = damp * 0.5*(mycount-leftcount);
-	cuts[i] = split[i] + target/rho;
-	cuts[i+1] = split[i+1];
+        target = damp * 0.5*(mycount-leftcount);
+        cuts[i] = split[i] + target/rho;
+        cuts[i+1] = split[i+1];
       } else if (rightcount < leftcount) {
-	target = damp * 0.5*(mycount-rightcount);
-	cuts[i+1] = split[i+1] - target/rho;
-	cuts[i] = split[i];
+        target = damp * 0.5*(mycount-rightcount);
+        cuts[i+1] = split[i+1] - target/rho;
+        cuts[i] = split[i];
       }
 
     // middle slice has more atoms than only left or right slice
@@ -743,32 +743,32 @@ void Balance::dumpout(bigint tstamp)
     if (domain->dimension == 2) {
       int m = 0;
       for (int j = 0; j < comm->procgrid[1]; j++)
-	for (int i = 0; i < comm->procgrid[0]; i++) {
-	  int c1 = j*nx + i + 1;
-	  int c2 = c1 + 1;
-	  int c3 = c2 + nx;
-	  int c4 = c3 - 1;
-	  fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
-	  m++;
-	}
+        for (int i = 0; i < comm->procgrid[0]; i++) {
+          int c1 = j*nx + i + 1;
+          int c2 = c1 + 1;
+          int c3 = c2 + nx;
+          int c4 = c3 - 1;
+          fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
+          m++;
+        }
 
     } else {
       int m = 0;
       for (int k = 0; k < comm->procgrid[2]; k++)
-	for (int j = 0; j < comm->procgrid[1]; j++)
-	  for (int i = 0; i < comm->procgrid[0]; i++) {
-	    int c1 = k*ny*nx + j*nx + i + 1;
-	    int c2 = c1 + 1;
-	    int c3 = c2 + nx;
-	    int c4 = c3 - 1;
-	    int c5 = c1 + ny*nx;
-	    int c6 = c2 + ny*nx;
-	    int c7 = c3 + ny*nx;
-	    int c8 = c4 + ny*nx;
-	    fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
-		    m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
-	    m++;
-	  }
+        for (int j = 0; j < comm->procgrid[1]; j++)
+          for (int i = 0; i < comm->procgrid[0]; i++) {
+            int c1 = k*ny*nx + j*nx + i + 1;
+            int c2 = c1 + 1;
+            int c3 = c2 + nx;
+            int c4 = c3 - 1;
+            int c5 = c1 + ny*nx;
+            int c6 = c2 + ny*nx;
+            int c7 = c3 + ny*nx;
+            int c8 = c4 + ny*nx;
+            fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
+                    m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
+            m++;
+          }
     }
   }
 
@@ -787,9 +787,9 @@ void Balance::dumpout(bigint tstamp)
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,"%ld\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
-  if (domain->dimension == 2) 
+  if (domain->dimension == 2)
     fprintf(fp,"%d\n",nx*ny);
-  else 
+  else
     fprintf(fp,"%d\n",nx*ny*nz);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
   fprintf(fp,"%g %g\n",boxlo[0],boxhi[0]);
@@ -801,22 +801,22 @@ void Balance::dumpout(bigint tstamp)
     int m = 0;
     for (int j = 0; j < ny; j++)
       for (int i = 0; i < nx; i++) {
-	fprintf(fp,"%d %d %g %g %g\n",m+1,1,
-		boxlo[0] + prd[0]*comm->xsplit[i],
-		boxlo[1] + prd[1]*comm->ysplit[j],
-		0.0);
-	m++;
+        fprintf(fp,"%d %d %g %g %g\n",m+1,1,
+                boxlo[0] + prd[0]*comm->xsplit[i],
+                boxlo[1] + prd[1]*comm->ysplit[j],
+                0.0);
+        m++;
       }
   } else {
     int m = 0;
     for (int k = 0; k < nz; k++)
       for (int j = 0; j < ny; j++)
-	for (int i = 0; i < nx; i++) {
-	  fprintf(fp,"%d %d %g %g %g\n",m+1,1,
-		  boxlo[0] + prd[0]*comm->xsplit[i],
-		  boxlo[1] + prd[1]*comm->ysplit[j],
-		  boxlo[2] + prd[2]*comm->zsplit[j]);
-	  m++;
+        for (int i = 0; i < nx; i++) {
+          fprintf(fp,"%d %d %g %g %g\n",m+1,1,
+                  boxlo[0] + prd[0]*comm->xsplit[i],
+                  boxlo[1] + prd[1]*comm->ysplit[j],
+                  boxlo[2] + prd[2]*comm->zsplit[j]);
+          m++;
       }
   }
 }

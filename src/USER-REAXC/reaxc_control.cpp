@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -34,8 +34,8 @@
 #endif
 
 
-char Read_Control_File( char *control_file, control_params* control, 
-			output_controls *out_control )
+char Read_Control_File( char *control_file, control_params* control,
+                        output_controls *out_control )
 {
   FILE *fp;
   char *s, **tmp;
@@ -131,7 +131,7 @@ char Read_Control_File( char *control_file, control_params* control,
       ival = atoi(tmp[1]);
       control->ensemble = ival;
       if( ival == iNPT || ival ==sNPT || ival == NPT )
-	control->virial = 1;
+        control->virial = 1;
     }
     else if( strcmp(tmp[0], "nsteps") == 0 ) {
       ival = atoi(tmp[1]);
@@ -150,7 +150,7 @@ char Read_Control_File( char *control_file, control_params* control,
       control->procs_by_dim[2] = ival;
 
       control->nprocs = control->procs_by_dim[0]*control->procs_by_dim[1]*
-	control->procs_by_dim[2];
+        control->procs_by_dim[2];
     }
     //else if( strcmp(tmp[0], "restart") == 0 ) {
     //  ival = atoi(tmp[1]);
@@ -203,15 +203,15 @@ char Read_Control_File( char *control_file, control_params* control,
       val = atof(tmp[1]);
       control->bond_cut = val;
     }
-    else if( strcmp(tmp[0], "bond_graph_cutoff") == 0 ) { 
+    else if( strcmp(tmp[0], "bond_graph_cutoff") == 0 ) {
       val = atof(tmp[1]);
       control->bg_cut = val;
     }
-    else if( strcmp(tmp[0], "thb_cutoff") == 0 ) { 
+    else if( strcmp(tmp[0], "thb_cutoff") == 0 ) {
       val = atof(tmp[1]);
       control->thb_cut = val;
     }
-    else if( strcmp(tmp[0], "thb_cutoff_sq") == 0 ) { 
+    else if( strcmp(tmp[0], "thb_cutoff_sq") == 0 ) {
       val = atof(tmp[1]);
       control->thb_cutsq = val;
     }
@@ -246,16 +246,16 @@ char Read_Control_File( char *control_file, control_params* control,
     else if( strcmp(tmp[0], "temp_init") == 0 ) {
       val = atof(tmp[1]);
       control->T_init = val;
-	
+
       if( control->T_init < 0.1 )
-	control->T_init = 0.1;
+        control->T_init = 0.1;
     }
     else if( strcmp(tmp[0], "temp_final") == 0 ) {
       val = atof(tmp[1]);
       control->T_final = val;
-	
+
       if( control->T_final < 0.1 )
-	control->T_final = 0.1;
+        control->T_final = 0.1;
     }
     else if( strcmp(tmp[0], "t_mass") == 0 ) {
       val = atof(tmp[1]);
@@ -275,30 +275,30 @@ char Read_Control_File( char *control_file, control_params* control,
     }
     else if( strcmp(tmp[0], "pressure") == 0 ) {
       if( control->ensemble == iNPT ) {
-	control->P[0] = control->P[1] = control->P[2] = atof(tmp[1]);
+        control->P[0] = control->P[1] = control->P[2] = atof(tmp[1]);
       }
       else if( control->ensemble == sNPT ) {
-	control->P[0] = atof(tmp[1]);
-	control->P[1] = atof(tmp[2]);
-	control->P[2] = atof(tmp[3]);
+        control->P[0] = atof(tmp[1]);
+        control->P[1] = atof(tmp[2]);
+        control->P[2] = atof(tmp[3]);
       }
     }
     else if( strcmp(tmp[0], "p_mass") == 0 ) {
       // convert p_mass from fs to ps
       if( control->ensemble == iNPT ) {
-	control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] = 
-	  atof(tmp[1]) * 1.e-3;
+        control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] =
+          atof(tmp[1]) * 1.e-3;
       }
       else if( control->ensemble == sNPT ) {
-	control->Tau_P[0] = atof(tmp[1]) * 1.e-3;
-	control->Tau_P[1] = atof(tmp[2]) * 1.e-3;
-	control->Tau_P[2] = atof(tmp[3]) * 1.e-3;
+        control->Tau_P[0] = atof(tmp[1]) * 1.e-3;
+        control->Tau_P[1] = atof(tmp[2]) * 1.e-3;
+        control->Tau_P[2] = atof(tmp[3]) * 1.e-3;
       }
     }
     else if( strcmp(tmp[0], "pt_mass") == 0 ) {
       val = atof(tmp[1]);
-      control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] = 
-	val * 1.e-3;  // convert pt_mass from fs to ps
+      control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] =
+        val * 1.e-3;  // convert pt_mass from fs to ps
     }
     else if( strcmp(tmp[0], "compress") == 0 ) {
       val = atof(tmp[1]);
@@ -307,7 +307,7 @@ char Read_Control_File( char *control_file, control_params* control,
     else if( strcmp(tmp[0], "press_mode") == 0 ) {
       ival = atoi(tmp[1]);
       control->press_mode = ival;
-    }      
+    }
     else if( strcmp(tmp[0], "geo_format") == 0 ) {
       ival = atoi( tmp[1] );
       control->geo_format = ival;
@@ -351,10 +351,10 @@ char Read_Control_File( char *control_file, control_params* control,
       ival = atoi(tmp[1]);
       control->molecular_analysis = ival;
     }
-    else if( strcmp(tmp[0], "ignore") == 0 ) { 
+    else if( strcmp(tmp[0], "ignore") == 0 ) {
       control->num_ignored = atoi(tmp[1]);
       for( i = 0; i < control->num_ignored; ++i )
-	control->ignore[atoi(tmp[i+2])] = 1;
+        control->ignore[atoi(tmp[i+2])] = 1;
     }
     else if( strcmp(tmp[0], "dipole_anal") == 0 ) {
       ival = atoi(tmp[1]);

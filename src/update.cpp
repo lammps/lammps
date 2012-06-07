@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -116,7 +116,7 @@ void Update::set_units(const char *style)
   // physical constants from:
   // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
   // using thermochemical calorie = 4.184 J
-  
+
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
     force->hplanck = 0.18292026;  // using LJ parameters for argon
@@ -137,7 +137,7 @@ void Update::set_units(const char *style)
 
     dt = 0.005;
     neighbor->skin = 0.3;
-    
+
   } else if (strcmp(style,"real") == 0) {
     force->boltz = 0.0019872067;
     force->hplanck = 95.306976368;
@@ -146,7 +146,7 @@ void Update::set_units(const char *style)
     force->mv2d = 1.0 / 0.602214179;
     force->nktv2p = 68568.415;
     force->qqr2e = 332.06371;
-    force->qe2f = 23.060549; 
+    force->qe2f = 23.060549;
     force->vxmu2f = 1.4393264316e4;
     force->xxt2kmu = 0.1;
     force->e_mass = 1.0/1836.1527556560675;
@@ -223,15 +223,15 @@ void Update::set_units(const char *style)
     neighbor->skin = 0.1;
 
   } else if (strcmp(style,"electron") == 0) {
-    force->boltz = 3.16681534e-6;  
+    force->boltz = 3.16681534e-6;
     force->hplanck = 0.1519829846;
-    force->mvv2e = 1.06657236;     
-    force->ftm2v = 0.937582899;    
-    force->mv2d = 1.0;             
-    force->nktv2p = 2.94210108e13; 
-    force->qqr2e = 1.0;            
-    force->qe2f = 1.94469051e-10;  
-    force->vxmu2f = 3.39893149e1;  
+    force->mvv2e = 1.06657236;
+    force->ftm2v = 0.937582899;
+    force->mv2d = 1.0;
+    force->nktv2p = 2.94210108e13;
+    force->qqr2e = 1.0;
+    force->qe2f = 1.94469051e-10;
+    force->vxmu2f = 3.39893149e1;
     force->xxt2kmu = 3.13796367e-2;
     force->e_mass = 0.0;    // not yet set
     force->hhmrr2e = 0.0;
@@ -242,7 +242,7 @@ void Update::set_units(const char *style)
 
     dt = 0.001;
     neighbor->skin = 2.0;
-    
+
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
@@ -281,7 +281,7 @@ void Update::create_integrate(int narg, char **arg, char *suffix)
 ------------------------------------------------------------------------- */
 
 void Update::new_integrate(char *style, int narg, char **arg,
-			   char *suffix, int &sflag)
+                           char *suffix, int &sflag)
 {
   int success = 0;
 
@@ -370,16 +370,16 @@ void Update::reset_timestep(bigint newstep)
   for (int i = 0; i < output->ndump; i++)
     if (output->last_dump[i] >= 0)
       error->all(FLERR,
-		 "Cannot reset timestep with dump file already written to");
+                 "Cannot reset timestep with dump file already written to");
 
   if (output->restart && output->last_restart >= 0)
     error->all(FLERR,
-	       "Cannot reset timestep with restart file already written");
+               "Cannot reset timestep with restart file already written");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
       error->all(FLERR,
-		 "Cannot reset timestep with a time-dependent fix defined");
+                 "Cannot reset timestep with a time-dependent fix defined");
 
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())

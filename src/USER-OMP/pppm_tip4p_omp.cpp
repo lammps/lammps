@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -71,12 +71,12 @@ static void data_reduce_fft(FFT_SCALAR *dall, int nall, int nthreads, int ndim, 
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
     // this if protects against having more threads than atoms
-    if (ifrom < nall) { 
+    if (ifrom < nall) {
       for (int m = ifrom; m < ito; ++m) {
-	for (int n = 1; n < nthreads; ++n) {
-	  dall[m] += dall[n*nvals + m];
-	  dall[n*nvals + m] = 0.0;
-	}
+        for (int n = 1; n < nthreads; ++n) {
+          dall[m] += dall[n*nvals + m];
+          dall[n*nvals + m] = 0.0;
+        }
       }
     }
   }
@@ -101,7 +101,7 @@ void PPPMTIP4POMP::init()
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
-   store central grid pt indices in part2grid array 
+   store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4POMP::particle_map()
@@ -119,7 +119,7 @@ void PPPMTIP4POMP::particle_map()
     double xM[3];
 
     if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
+      find_M(i,iH1,iH2,xM);
     } else {
       xM[0] = x[i][0];
       xM[1] = x[i][1];
@@ -141,8 +141,8 @@ void PPPMTIP4POMP::particle_map()
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
-	ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-	nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out) flag++;
   }
 
   int flag_all;
@@ -154,7 +154,7 @@ void PPPMTIP4POMP::particle_map()
    create discretized "density" on section of global grid due to my particles
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
-   in global grid 
+   in global grid
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4POMP::make_rho()
@@ -168,7 +168,7 @@ void PPPMTIP4POMP::make_rho()
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
-  {  
+  {
 #if defined(_OPENMP)
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
@@ -198,41 +198,41 @@ void PPPMTIP4POMP::make_rho()
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // (dx,dy,dz) = distance to "lower left" grid pt
     // (mx,my,mz) = global coords of moving stencil pt
-    
+
     // this if protects against having more threads than local atoms
-    if (ifrom < nlocal) { 
+    if (ifrom < nlocal) {
       for (int i = ifrom; i < ito; i++) {
 
-	if (type[i] == typeO) {
-	  find_M(i,iH1,iH2,xM);      
-	} else {
-	  xM[0] = x[i][0];
-	  xM[1] = x[i][1];
-	  xM[2] = x[i][2];
-	}
+        if (type[i] == typeO) {
+          find_M(i,iH1,iH2,xM);
+        } else {
+          xM[0] = x[i][0];
+          xM[1] = x[i][1];
+          xM[2] = x[i][2];
+        }
 
-	nx = part2grid[i][0];
-	ny = part2grid[i][1];
-	nz = part2grid[i][2];
-	dx = nx+shiftone - (xM[0]-boxlo[0])*delxinv;
-	dy = ny+shiftone - (xM[1]-boxlo[1])*delyinv;
-	dz = nz+shiftone - (xM[2]-boxlo[2])*delzinv;
+        nx = part2grid[i][0];
+        ny = part2grid[i][1];
+        nz = part2grid[i][2];
+        dx = nx+shiftone - (xM[0]-boxlo[0])*delxinv;
+        dy = ny+shiftone - (xM[1]-boxlo[1])*delyinv;
+        dz = nz+shiftone - (xM[2]-boxlo[2])*delzinv;
 
-	compute_rho1d_thr(r1d,dx,dy,dz);
+        compute_rho1d_thr(r1d,dx,dy,dz);
 
-	z0 = delvolinv * q[i];
-	for (n = nlower; n <= nupper; n++) {
-	  mz = n+nz;
-	  y0 = z0*r1d[2][n];
-	  for (m = nlower; m <= nupper; m++) {
-	    my = m+ny;
-	    x0 = y0*r1d[1][m];
-	    for (l = nlower; l <= nupper; l++) {
-	      mx = l+nx;
-	      db[mz][my][mx] += x0*r1d[0][l];
-	    }
-	  }
-	}
+        z0 = delvolinv * q[i];
+        for (n = nlower; n <= nupper; n++) {
+          mz = n+nz;
+          y0 = z0*r1d[2][n];
+          for (m = nlower; m <= nupper; m++) {
+            my = m+ny;
+            x0 = y0*r1d[1][m];
+            for (l = nlower; l <= nupper; l++) {
+              mx = l+nx;
+              db[mz][my][mx] += x0*r1d[0][l];
+            }
+          }
+        }
       }
     }
 #if defined(_OPENMP)
@@ -245,7 +245,7 @@ void PPPMTIP4POMP::make_rho()
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
+   interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
 void PPPMTIP4POMP::fieldforce()
@@ -266,7 +266,7 @@ void PPPMTIP4POMP::fieldforce()
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
-  {  
+  {
 #if defined(_OPENMP)
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
@@ -282,7 +282,7 @@ void PPPMTIP4POMP::fieldforce()
     ThrData *thr = fix->get_thr(tid);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
-    
+
     int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR ekx,eky,ekz;
@@ -291,79 +291,79 @@ void PPPMTIP4POMP::fieldforce()
     double ddotf, rOMx, rOMy, rOMz, f1x, f1y, f1z;
 
     // this if protects against having more threads than local atoms
-    if (ifrom < nlocal) { 
+    if (ifrom < nlocal) {
       for (int i = ifrom; i < ito; i++) {
 
-	if (type[i] == typeO) {
-	  find_M(i,iH1,iH2,xM);      
-	} else {
-	  xM[0] = x[i][0];
-	  xM[1] = x[i][1];
-	  xM[2] = x[i][2];
-	}
+        if (type[i] == typeO) {
+          find_M(i,iH1,iH2,xM);
+        } else {
+          xM[0] = x[i][0];
+          xM[1] = x[i][1];
+          xM[2] = x[i][2];
+        }
 
-	nx = part2grid[i][0];
-	ny = part2grid[i][1];
-	nz = part2grid[i][2];
-	dx = nx+shiftone - (xM[0]-boxlo[0])*delxinv;
-	dy = ny+shiftone - (xM[1]-boxlo[1])*delyinv;
-	dz = nz+shiftone - (xM[2]-boxlo[2])*delzinv;
+        nx = part2grid[i][0];
+        ny = part2grid[i][1];
+        nz = part2grid[i][2];
+        dx = nx+shiftone - (xM[0]-boxlo[0])*delxinv;
+        dy = ny+shiftone - (xM[1]-boxlo[1])*delyinv;
+        dz = nz+shiftone - (xM[2]-boxlo[2])*delzinv;
 
-	compute_rho1d_thr(r1d,dx,dy,dz);
+        compute_rho1d_thr(r1d,dx,dy,dz);
 
-	ekx = eky = ekz = ZEROF;
-	for (n = nlower; n <= nupper; n++) {
-	  mz = n+nz;
-	  z0 = r1d[2][n];
-	  for (m = nlower; m <= nupper; m++) {
-	    my = m+ny;
-	    y0 = z0*r1d[1][m];
-	    for (l = nlower; l <= nupper; l++) {
-	      mx = l+nx;
-	      x0 = y0*r1d[0][l];
-	      ekx -= x0*vdx_brick[mz][my][mx];
-	      eky -= x0*vdy_brick[mz][my][mx];
-	      ekz -= x0*vdz_brick[mz][my][mx];
-	    }
-	  }
-	}
+        ekx = eky = ekz = ZEROF;
+        for (n = nlower; n <= nupper; n++) {
+          mz = n+nz;
+          z0 = r1d[2][n];
+          for (m = nlower; m <= nupper; m++) {
+            my = m+ny;
+            y0 = z0*r1d[1][m];
+            for (l = nlower; l <= nupper; l++) {
+              mx = l+nx;
+              x0 = y0*r1d[0][l];
+              ekx -= x0*vdx_brick[mz][my][mx];
+              eky -= x0*vdy_brick[mz][my][mx];
+              ekz -= x0*vdz_brick[mz][my][mx];
+            }
+          }
+        }
 
-	// convert E-field to force
-	const double qfactor = qqrd2e*scale*q[i];
+        // convert E-field to force
+        const double qfactor = qqrd2e*scale*q[i];
 
-	if (type[i] != typeO) {
-	  f[i][0] += qfactor*ekx;
-	  f[i][1] += qfactor*eky;
-	  f[i][2] += qfactor*ekz;
+        if (type[i] != typeO) {
+          f[i][0] += qfactor*ekx;
+          f[i][1] += qfactor*eky;
+          f[i][2] += qfactor*ekz;
 
-	} else {
-	  fx = qfactor * ekx;
-	  fy = qfactor * eky;
-	  fz = qfactor * ekz;
-	  find_M(i,iH1,iH2,xM);
+        } else {
+          fx = qfactor * ekx;
+          fy = qfactor * eky;
+          fz = qfactor * ekz;
+          find_M(i,iH1,iH2,xM);
 
-	  rOMx = xM[0] - x[i][0];
-	  rOMy = xM[1] - x[i][1];
-	  rOMz = xM[2] - x[i][2];
-  
-	  ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
+          rOMx = xM[0] - x[i][0];
+          rOMy = xM[1] - x[i][1];
+          rOMz = xM[2] - x[i][2];
 
-	  f1x = ddotf * rOMx;
-	  f1y = ddotf * rOMy;
-	  f1z = ddotf * rOMz;
+          ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
 
-	  f[i][0] += fx - alpha * (fx - f1x);
-	  f[i][1] += fy - alpha * (fy - f1y);
-	  f[i][2] += fz - alpha * (fz - f1z);
+          f1x = ddotf * rOMx;
+          f1y = ddotf * rOMy;
+          f1z = ddotf * rOMz;
 
-	  f[iH1][0] += 0.5*alpha*(fx - f1x);
-	  f[iH1][1] += 0.5*alpha*(fy - f1y);
-	  f[iH1][2] += 0.5*alpha*(fz - f1z);
+          f[i][0] += fx - alpha * (fx - f1x);
+          f[i][1] += fy - alpha * (fy - f1y);
+          f[i][2] += fz - alpha * (fz - f1z);
 
-	  f[iH2][0] += 0.5*alpha*(fx - f1x);
-	  f[iH2][1] += 0.5*alpha*(fy - f1y);
-	  f[iH2][2] += 0.5*alpha*(fz - f1z);
-	}
+          f[iH1][0] += 0.5*alpha*(fx - f1x);
+          f[iH1][1] += 0.5*alpha*(fy - f1y);
+          f[iH1][2] += 0.5*alpha*(fz - f1z);
+
+          f[iH2][0] += 0.5*alpha*(fx - f1x);
+          f[iH2][1] += 0.5*alpha*(fy - f1y);
+          f[iH2][2] += 0.5*alpha*(fz - f1z);
+        }
       }
     }
   }
@@ -384,7 +384,7 @@ void PPPMTIP4POMP::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
-  const double * const * const x = atom->x; 
+  const double * const * const x = atom->x;
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];

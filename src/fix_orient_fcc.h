@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -36,7 +36,7 @@ class FixOrientFCC : public Fix {
     double duxi;            // d Energy / d order-parameter for atom
   };
 
-  struct Sort {             // data structure for sorting to find 12 closest 
+  struct Sort {             // data structure for sorting to find 12 closest
     int id;                 // ID of neighbor atom
     double rsq;             // distance between center and neighbor atom
     double delta[3];        // displacement between center and neighbor atom

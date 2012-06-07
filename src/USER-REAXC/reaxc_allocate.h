@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -34,8 +34,8 @@ void reax_atom_Copy( reax_atom*, reax_atom* );
 int  Allocate_System( reax_system*, int, int, char* );
 void DeAllocate_System( reax_system* );
 
-int  Allocate_Workspace( reax_system*, control_params*, storage*, 
-			 int, int, MPI_Comm, char* );
+int  Allocate_Workspace( reax_system*, control_params*, storage*,
+                         int, int, MPI_Comm, char* );
 void DeAllocate_Workspace( control_params*, storage* );
 
 void Allocate_Grid( reax_system*, MPI_Comm );
@@ -49,6 +49,6 @@ int  Allocate_HBond_List( int, int, int*, int*, reax_list* );
 
 int  Allocate_Bond_List( int, int*, reax_list* );
 
-void ReAllocate( reax_system*, control_params*, simulation_data*, storage*, 
-		 reax_list**, mpi_datatypes* );
+void ReAllocate( reax_system*, control_params*, simulation_data*, storage*,
+                 reax_list**, mpi_datatypes* );
 #endif

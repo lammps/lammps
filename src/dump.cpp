@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -191,32 +191,32 @@ void Dump::init()
       int min = IBIG;
       int max = 0;
       for (int i = 0; i < nlocal; i++)
-	if (mask[i] & groupbit) {
-	  min = MIN(min,tag[i]);
-	  max = MAX(max,tag[i]);
-	}
+        if (mask[i] & groupbit) {
+          min = MIN(min,tag[i]);
+          max = MAX(max,tag[i]);
+        }
       int minall,maxall;
       MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
       MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
       int isize = static_cast<int> (size);
 
       if (maxall-minall+1 == isize) {
-	reorderflag = 1;
-	double range = maxall-minall + EPSILON;
-	idlo = static_cast<int> (range*me/nprocs + minall);
-	int idhi = static_cast<int> (range*(me+1)/nprocs + minall);
+        reorderflag = 1;
+        double range = maxall-minall + EPSILON;
+        idlo = static_cast<int> (range*me/nprocs + minall);
+        int idhi = static_cast<int> (range*(me+1)/nprocs + minall);
 
-	int lom1 = static_cast<int> ((idlo-1-minall)/range * nprocs);
-	int lo = static_cast<int> ((idlo-minall)/range * nprocs);
-	int him1 = static_cast<int> ((idhi-1-minall)/range * nprocs);
-	int hi = static_cast<int> ((idhi-minall)/range * nprocs);
-	if (me && me == lom1) idlo--;
-	else if (me && me != lo) idlo++;
-	if (me+1 == him1) idhi--;
-	else if (me+1 != hi) idhi++;
+        int lom1 = static_cast<int> ((idlo-1-minall)/range * nprocs);
+        int lo = static_cast<int> ((idlo-minall)/range * nprocs);
+        int him1 = static_cast<int> ((idhi-1-minall)/range * nprocs);
+        int hi = static_cast<int> ((idhi-minall)/range * nprocs);
+        if (me && me == lom1) idlo--;
+        else if (me && me != lo) idlo++;
+        if (me+1 == him1) idhi--;
+        else if (me+1 != hi) idhi++;
 
-	nme_reorder = idhi-idlo;
-	ntotal_reorder = isize;
+        nme_reorder = idhi-idlo;
+        ntotal_reorder = isize;
       }
     }
   }
@@ -309,7 +309,7 @@ void Dump::write()
   else pack(NULL);
   if (sort_flag) sort();
 
-  // multiproc = 1 = each proc writes own data to own file 
+  // multiproc = 1 = each proc writes own data to own file
   // multiproc = 0 = all procs write to one file thru proc 0
   //   proc 0 pings each proc, receives it's data, writes to file
   //   all other procs wait for ping, send their data to proc 0
@@ -322,18 +322,18 @@ void Dump::write()
 
     if (me == 0) {
       for (int iproc = 0; iproc < nprocs; iproc++) {
-	if (iproc) {
-	  MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
-	  MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	  MPI_Wait(&request,&status);
-	  MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	  nlines /= size_one;
-	} else nlines = nme;
+        if (iproc) {
+          MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
+          MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+          MPI_Wait(&request,&status);
+          MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+          nlines /= size_one;
+        } else nlines = nme;
 
-	write_data(nlines,buf);
+        write_data(nlines,buf);
       }
       if (flush_flag) fflush(fp);
-      
+
     } else {
       MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
       MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
@@ -374,9 +374,9 @@ void Dump::openfile()
     filecurrent = new char[strlen(filename) + 16];
     char *ptr = strchr(filename,'*');
     *ptr = '\0';
-    if (padflag == 0) 
+    if (padflag == 0)
       sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-	      filename,update->ntimestep,ptr+1);
+              filename,update->ntimestep,ptr+1);
     else {
       char bif[8],pad[16];
       strcpy(bif,BIGINT_FORMAT);
@@ -433,8 +433,8 @@ void Dump::sort()
       memory->destroy(index);
       memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->destroy(idsort);
-	memory->create(idsort,maxsort,"dump:idsort");
+        memory->destroy(idsort);
+        memory->create(idsort,maxsort,"dump:idsort");
       }
     }
 
@@ -449,7 +449,7 @@ void Dump::sort()
     }
 
   // if multiple procs, exchange datums between procs via irregular
-    
+
   } else {
 
     // grow proclist if necessary
@@ -459,32 +459,32 @@ void Dump::sort()
       memory->destroy(proclist);
       memory->create(proclist,maxproc,"dump:proclist");
     }
-    
+
     // proclist[i] = which proc Ith datum will be sent to
 
     if (sortcol == 0) {
       int min = IBIG;
       int max = 0;
       for (i = 0; i < nme; i++) {
-	min = MIN(min,ids[i]);
-	max = MAX(max,ids[i]);
+        min = MIN(min,ids[i]);
+        max = MAX(max,ids[i]);
       }
       int minall,maxall;
       MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
       MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
       double range = maxall-minall + EPSILON;
       for (i = 0; i < nme; i++) {
-	iproc = static_cast<int> ((ids[i]-minall)/range * nprocs);
-	proclist[i] = iproc;
+        iproc = static_cast<int> ((ids[i]-minall)/range * nprocs);
+        proclist[i] = iproc;
       }
 
     } else {
       double min = BIG;
       double max = -BIG;
       for (i = 0; i < nme; i++) {
-	value = buf[i*size_one + sortcolm1];
-	min = MIN(min,value);
-	max = MAX(max,value);
+        value = buf[i*size_one + sortcolm1];
+        min = MIN(min,value);
+        max = MAX(max,value);
       }
       double minall,maxall;
       MPI_Allreduce(&min,&minall,1,MPI_DOUBLE,MPI_MIN,world);
@@ -492,9 +492,9 @@ void Dump::sort()
       double range = maxall-minall + EPSILON*(maxall-minall);
       if (range == 0.0) range = EPSILON;
       for (i = 0; i < nme; i++) {
-	value = buf[i*size_one + sortcolm1];
-	iproc = static_cast<int> ((value-minall)/range * nprocs);
-	proclist[i] = iproc;
+        value = buf[i*size_one + sortcolm1];
+        iproc = static_cast<int> ((value-minall)/range * nprocs);
+        proclist[i] = iproc;
       }
     }
 
@@ -511,14 +511,14 @@ void Dump::sort()
       memory->destroy(index);
       memory->create(index,maxsort,"dump:index");
       if (sortcol == 0) {
-	memory->destroy(idsort);
-	memory->create(idsort,maxsort,"dump:idsort");
+        memory->destroy(idsort);
+        memory->create(idsort,maxsort,"dump:idsort");
       }
     }
-    
+
     irregular->exchange_data((char *) buf,size_one*sizeof(double),
-			     (char *) bufsort);
-    if (sortcol == 0) 
+                             (char *) bufsort);
+    if (sortcol == 0)
       irregular->exchange_data((char *) ids,sizeof(int),(char *) idsort);
     irregular->destroy_data();
   }
@@ -537,7 +537,7 @@ void Dump::sort()
 
     if (reorderflag)
       for (i = 0; i < nme; i++)
-	index[idsort[i]-idlo] = i;
+        index[idsort[i]-idlo] = i;
   }
 
   if (!reorderflag) {
@@ -562,7 +562,7 @@ void Dump::sort()
   }
 
   // copy data from bufsort to buf using index
-    
+
   int nbytes = size_one*sizeof(double);
   for (i = 0; i < nme; i++)
     memcpy(&buf[i*size_one],&bufsort[index[i]*size_one],nbytes);
@@ -649,17 +649,17 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
-	if (strcmp(id,output->dump[idump]->id) == 0) break;
+        if (strcmp(id,output->dump[idump]->id) == 0) break;
       int n;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-	delete [] output->var_dump[idump];
-	n = strlen(&arg[iarg+1][2]) + 1;
-	output->var_dump[idump] = new char[n];
-	strcpy(output->var_dump[idump],&arg[iarg+1][2]);
-	n = 0;
+        delete [] output->var_dump[idump];
+        n = strlen(&arg[iarg+1][2]) + 1;
+        output->var_dump[idump] = new char[n];
+        strcpy(output->var_dump[idump],&arg[iarg+1][2]);
+        n = 0;
       } else {
-	n = atoi(arg[iarg+1]);
-	if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
+        n = atoi(arg[iarg+1]);
+        if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
       output->every_dump[idump] = n;
       iarg += 2;
@@ -680,9 +680,9 @@ void Dump::modify_params(int narg, char **arg)
       delete [] format_user;
       format_user = NULL;
       if (strcmp(arg[iarg+1],"none")) {
-	int n = strlen(arg[iarg+1]) + 1;
-	format_user = new char[n];
-	strcpy(format_user,arg[iarg+1]);
+        int n = strlen(arg[iarg+1]) + 1;
+        format_user = new char[n];
+        strcpy(format_user,arg[iarg+1]);
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"pad") == 0) {
@@ -694,19 +694,19 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
       else if (strcmp(arg[iarg+1],"id") == 0) {
-	sort_flag = 1;
-	sortcol = 0;
-	sortorder = ASCEND;
+        sort_flag = 1;
+        sortcol = 0;
+        sortorder = ASCEND;
       } else {
-	sort_flag = 1;
-	sortcol = atoi(arg[iarg+1]);
-	sortorder = ASCEND;
-	if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
-	if (sortcol < 0) {
-	  sortorder = DESCEND;
-	  sortcol = -sortcol;
-	}
-	sortcolm1 = sortcol - 1;
+        sort_flag = 1;
+        sortcol = atoi(arg[iarg+1]);
+        sortorder = ASCEND;
+        if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
+        if (sortcol < 0) {
+          sortorder = DESCEND;
+          sortcol = -sortcol;
+        }
+        sortcolm1 = sortcol - 1;
       }
       iarg += 2;
     } else {

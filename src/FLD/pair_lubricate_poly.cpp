@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,7 +69,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,h_sepj,beta0,beta1,betaj,betaj1,radi,radj,tfmag;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wt1,wt2,wt3,wdotn;  
+  double vt1,vt2,vt3,wt1,wt2,wt3,wdotn;
   double inertia,inv_inertia,vRS0;
   double vi[3],vj[3],wi[3],wj[3],xl[3],jl[3];
   double a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
@@ -95,7 +95,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
 
   int overlaps = 0;
-    
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -120,8 +120,8 @@ void PairLubricatePoly::compute(int eflag, int vflag)
       itype = type[i];
       radi = radius[i];
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       v[i][0] -= vstream[0];
@@ -137,7 +137,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
     Ef[0][0] = h_rate[0]/domain->xprd;
     Ef[1][1] = h_rate[1]/domain->yprd;
-    Ef[2][2] = h_rate[2]/domain->zprd; 
+    Ef[2][2] = h_rate[2]/domain->zprd;
     Ef[0][1] = Ef[1][0] = 0.5 * h_rate[5]/domain->yprd;
     Ef[0][2] = Ef[2][0] = 0.5 * h_rate[4]/domain->zprd;
     Ef[1][2] = Ef[2][1] = 0.5 * h_rate[3]/domain->zprd;
@@ -147,7 +147,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
     comm->forward_comm_pair(this);
   }
-  
+
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
 
@@ -155,43 +155,43 @@ void PairLubricatePoly::compute(int eflag, int vflag)
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
       if (flagdeform && !flagwall)
-	for (j = 0; j < 3; j++)
-	  dims[j] = domain->prd[j];      
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
       else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-	 double wallhi[3], walllo[3];
-	 for (int j = 0; j < 3; j++){
-	   wallhi[j] = domain->prd[j];
-	   walllo[j] = 0;
-	 }    
-	 for (int m = 0; m < wallfix->nwall; m++){
-	   int dim = wallfix->wallwhich[m] / 2;
-	   int side = wallfix->wallwhich[m] % 2;
-	   if (wallfix->wallstyle[m] == VARIABLE){
-	     wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
-	   }	   
-	   else wallcoord = wallfix->coord0[m];	   
-	   if (side == 0) walllo[dim] = wallcoord;
-	   else wallhi[dim] = wallcoord;	   
-	 }
-	 for (int j = 0; j < 3; j++)
-	   dims[j] = wallhi[j] - walllo[j];
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++){
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++){
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->wallstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
-	R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-	RT0 = 8*MY_PI*mu;
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu;
+        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
-	R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-	RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
-	RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
 
 
-  // end of R0 adjustment code  
- 
+  // end of R0 adjustment code
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -199,15 +199,15 @@ void PairLubricatePoly::compute(int eflag, int vflag)
     ztmp = x[i][2];
     itype = type[i];
     jlist = firstneigh[i];
-    jnum = numneigh[i];   
+    jnum = numneigh[i];
     radi = radius[i];
 
     // angular velocity
 
     wi[0] = omega[i][0];
     wi[1] = omega[i][1];
-    wi[2] = omega[i][2];          
-     
+    wi[2] = omega[i][2];
+
     // FLD contribution to force and torque due to isotropic terms
     // FLD contribution to stress from isotropic RS0
 
@@ -215,21 +215,21 @@ void PairLubricatePoly::compute(int eflag, int vflag)
       f[i][0] -= vxmu2f*R0*radi*v[i][0];
       f[i][1] -= vxmu2f*R0*radi*v[i][1];
       f[i][2] -= vxmu2f*R0*radi*v[i][2];
-      const double radi3 = radi*radi*radi;    
+      const double radi3 = radi*radi*radi;
       torque[i][0] -= vxmu2f*RT0*radi3*wi[0];
       torque[i][1] -= vxmu2f*RT0*radi3*wi[1];
-      torque[i][2] -= vxmu2f*RT0*radi3*wi[2];   
-    
+      torque[i][2] -= vxmu2f*RT0*radi3*wi[2];
+
       if (shearing && vflag_either) {
-	vRS0 = -vxmu2f * RS0*radi3;
-	v_tally_tensor(i,i,nlocal,newton_pair,
-		       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
-		       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
+        vRS0 = -vxmu2f * RS0*radi3;
+        v_tally_tensor(i,i,nlocal,newton_pair,
+                       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
+                       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
       }
     }
 
     if (!flagHI) continue;
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       delx = xtmp - x[j][0];
@@ -240,13 +240,13 @@ void PairLubricatePoly::compute(int eflag, int vflag)
       radj = atom->radius[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);  
-  
+        r = sqrt(rsq);
+
         // angular momentum = I*omega = 2/5 * M*R^2 * omega
 
-	wj[0] = omega[j][0];
-	wj[1] = omega[j][1];
-	wj[2] = omega[j][2];              
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
 
         // xl = point of closest approach on particle i from its center
 
@@ -256,7 +256,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
         jl[0] = -delx/r*radj;
         jl[1] = -dely/r*radj;
         jl[2] = -delz/r*radj;
-  
+
         // velocity at the point of closest approach on both particles
         // v = v + omega_cross_xl - Ef.xl
 
@@ -264,71 +264,71 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
         vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1])
                         - (Ef[0][0]*xl[0] + Ef[0][1]*xl[1] + Ef[0][2]*xl[2]);
-        
+
         vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2])
                         - (Ef[1][0]*xl[0] + Ef[1][1]*xl[1] + Ef[1][2]*xl[2]);
-        
+
         vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0])
                         - (Ef[2][0]*xl[0] + Ef[2][1]*xl[1] + Ef[2][2]*xl[2]);
-  
+
         // particle j
 
         vj[0] = v[j][0] - (wj[1]*jl[2] - wj[2]*jl[1])
                         + (Ef[0][0]*jl[0] + Ef[0][1]*jl[1] + Ef[0][2]*jl[2]);
-        
+
         vj[1] = v[j][1] - (wj[2]*jl[0] - wj[0]*jl[2])
                         + (Ef[1][0]*jl[0] + Ef[1][1]*jl[1] + Ef[1][2]*jl[2]);
-        
+
         vj[2] = v[j][2] - (wj[0]*jl[1] - wj[1]*jl[0])
                         + (Ef[2][0]*jl[0] + Ef[2][1]*jl[1] + Ef[2][2]*jl[2]);
-        
+
         // scalar resistances XA and YA
 
         h_sep = r - radi-radj;
-        
+
         // check for overlaps
 
         if (h_sep < 0.0) overlaps++;
-        
+
         // if less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - radi-radj;          
-        
+          h_sep = cut_inner[itype][jtype] - radi-radj;
+
         // scale h_sep by radi
 
         h_sep = h_sep/radi;
         beta0 = radj/radi;
         beta1 = 1.0 + beta0;
-  
+
         // scalar resistances
 
         if (flaglog) {
-          a_sq = beta0*beta0/beta1/beta1/h_sep + 
-	    (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
-          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 * 
-		   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) * 
-	    h_sep*log(1.0/h_sep);
+          a_sq = beta0*beta0/beta1/beta1/h_sep +
+            (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
+          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 *
+                   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) *
+            h_sep*log(1.0/h_sep);
           a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) * 
-	    log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) + 
-		       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) * 
-	    h_sep*log(1.0/h_sep);
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) *
+            log(1.0/h_sep);
+          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) +
+                       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
+            h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
           a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 * 
-		   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
+                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
           a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
-  
+
         // relative velocity at the point of closest approach
-	// includes fluid velocity
+        // includes fluid velocity
 
         vr1 = vi[0] - vj[0];
         vr2 = vi[1] - vj[1];
         vr3 = vi[2] - vj[2];
-        
+
         // normal component (vr.n)n
 
         vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
@@ -353,7 +353,7 @@ void PairLubricatePoly::compute(int eflag, int vflag)
         if (flaglog) {
           fx = fx + a_sh*vt1;
           fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;                  
+          fz = fz + a_sh*vt3;
         }
 
         // scale forces for appropriate units
@@ -361,50 +361,50 @@ void PairLubricatePoly::compute(int eflag, int vflag)
         fx *= vxmu2f;
         fy *= vxmu2f;
         fz *= vxmu2f;
-        
+
         // add to total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
-        f[i][2] -= fz;    
-        
+        f[i][2] -= fz;
+
         // torque due to this force
 
         if (flaglog) {
           tx = xl[1]*fz - xl[2]*fy;
           ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;                  
-    
+          tz = xl[0]*fy - xl[1]*fx;
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
+          torque[i][2] -= vxmu2f*tz;
 
           // torque due to a_pu
 
-          wdotn = ((wi[0]-wj[0])*delx + (wi[1]-wj[1])*dely + 
-		   (wi[2]-wj[2])*delz)/r;
+          wdotn = ((wi[0]-wj[0])*delx + (wi[1]-wj[1])*dely +
+                   (wi[2]-wj[2])*delz)/r;
           wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
           wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
           wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
-          
+
           tx = a_pu*wt1;
           ty = a_pu*wt2;
           tz = a_pu*wt3;
-          
+
           torque[i][0] -= vxmu2f*tx;
           torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;        
+          torque[i][2] -= vxmu2f*tz;
 
-        }        
+        }
 
-	// set j = nlocal so that only I gets tallied
+        // set j = nlocal so that only I gets tallied
 
         if (evflag) ev_tally_xyz(i,nlocal,nlocal,0,
-				 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
       }
     }
   }
-  
+
   // restore streaming component of velocity, omega, angmom
 
   if (shearing) {
@@ -415,10 +415,10 @@ void PairLubricatePoly::compute(int eflag, int vflag)
       i = ilist[ii];
       itype = type[i];
       radi = atom->radius[i];
-      
+
       domain->x2lamda(x[i],lamda);
-      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] + 
-	h_rate[4]*lamda[2] + h_ratelo[0];
+      vstream[0] = h_rate[0]*lamda[0] + h_rate[5]*lamda[1] +
+        h_rate[4]*lamda[2] + h_ratelo[0];
       vstream[1] = h_rate[1]*lamda[1] + h_rate[3]*lamda[2] + h_ratelo[1];
       vstream[2] = h_rate[2]*lamda[2] + h_ratelo[2];
       v[i][0] += vstream[0];
@@ -452,7 +452,7 @@ void PairLubricatePoly::init_style()
     error->all(FLERR,"Pair lubricate/poly requires newton pair off");
   if (comm->ghost_velocity == 0)
     error->all(FLERR,
-	       "Pair lubricate/poly requires ghost atoms store velocity");
+               "Pair lubricate/poly requires ghost atoms store velocity");
   if (!atom->sphere_flag)
     error->all(FLERR,"Pair lubricate/poly requires atom style sphere");
 
@@ -464,7 +464,7 @@ void PairLubricatePoly::init_style()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (radius[i] == 0.0) 
+    if (radius[i] == 0.0)
       error->one(FLERR,"Pair lubricate/poly requires extended particles");
 
   int irequest = neighbor->request(this);
@@ -482,20 +482,20 @@ void PairLubricatePoly::init_style()
   // due to walls, set volume appropriately; if walls will
   // move, set appropriate flag so that volume and v.f. corrections
   // are re-calculated at every step.
-  
+
   shearing = flagdeform = flagwall = 0;
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = flagdeform = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP) 
-	error->all(FLERR,"Using pair lubricate with inconsistent "
-		   "fix deform remap option");
+      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
+        error->all(FLERR,"Using pair lubricate with inconsistent "
+                   "fix deform remap option");
     }
     if (strstr(modify->fix[i]->style,"wall") != NULL){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->varflag ) {
-	flagwall = 2; // Moving walls exist
-	wallfix = (FixWall *) modify->fix[i];
+        flagwall = 2; // Moving walls exist
+        wallfix = (FixWall *) modify->fix[i];
       }
     }
   }
@@ -503,26 +503,26 @@ void PairLubricatePoly::init_style()
   double vol_T;
   double wallcoord;
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {    
+  else {
     double wallhi[3], walllo[3];
     for (int j = 0; j < 3; j++){
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
-    }    
+    }
     for (int m = 0; m < wallfix->nwall; m++){
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
       if (wallfix->wallstyle[m] == VARIABLE){
-	wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
-	//Since fix->wall->init happens after pair->init_style
-	wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+        wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+        //Since fix->wall->init happens after pair->init_style
+        wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
       }
       else wallcoord = wallfix->coord0[m];
-      
+
       if (side == 0) walllo[dim] = wallcoord;
       else wallhi[dim] = wallcoord;
     }
-    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) * 
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
       (wallhi[2] - walllo[2]);
   }
 
@@ -534,16 +534,16 @@ void PairLubricatePoly::init_style()
   double vol_f = vol_P/vol_T;
 
   if (!flagVF) vol_f = 0;
-  
+
   // set isotropic constants
- 
+
   if (flaglog == 0) {
     R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
     RT0 = 8*MY_PI*mu;
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
   } else {
     R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f); 
+    RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 
@@ -553,9 +553,9 @@ void PairLubricatePoly::init_style()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP) 
-	error->all(FLERR,"Using pair lubricate/poly with inconsistent "
-		   "fix deform remap option");
+      if (((FixDeform *) modify->fix[i])->remapflag != V_REMAP)
+        error->all(FLERR,"Using pair lubricate/poly with inconsistent "
+                   "fix deform remap option");
     }
 
   // set Ef = 0 since used whether shearing or not

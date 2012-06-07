@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -50,7 +50,7 @@ PairColloid::~PairColloid()
     memory->destroy(a1);
     memory->destroy(a2);
     memory->destroy(diameter);
-    memory->destroy(cut);		
+    memory->destroy(cut);
     memory->destroy(offset);
     memory->destroy(sigma3);
     memory->destroy(sigma6);
@@ -87,7 +87,7 @@ void PairColloid::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -103,7 +103,7 @@ void PairColloid::compute(int eflag, int vflag)
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
-     
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -113,87 +113,87 @@ void PairColloid::compute(int eflag, int vflag)
       if (rsq >= cutsq[itype][jtype]) continue;
 
       switch (form[itype][jtype]) {
-      case SMALL_SMALL: 
-	r2inv = 1.0/rsq;
-	r6inv = r2inv*r2inv*r2inv;
-	forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-	fpair = factor_lj*forcelj*r2inv;
-	if (eflag) evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-		     offset[itype][jtype];
-	break;
-	
+      case SMALL_SMALL:
+        r2inv = 1.0/rsq;
+        r6inv = r2inv*r2inv*r2inv;
+        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+        fpair = factor_lj*forcelj*r2inv;
+        if (eflag) evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
+                     offset[itype][jtype];
+        break;
+
       case SMALL_LARGE:
-	c2 = a2[itype][jtype];
-	K[1] = c2*c2;
-	K[2] = rsq;
-	K[0] = K[1] - rsq;
-	K[4] = rsq*rsq;
-	K[3] = K[1] - K[2];
-	K[3] *= K[3]*K[3];
-	K[6] = K[3]*K[3];
-	fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-	fpair = 4.0/15.0*fR*factor_lj * 
-	  (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
-	   sigma6[itype][jtype]/K[6]-5.0) / K[0];
-	if (eflag) 
-	  evdwl = 2.0/9.0*fR * 
-	    (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
-	     sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-	if (rsq <= K[1]) error->one(FLERR,"Overlapping small/large in pair colloid");
-	break;
+        c2 = a2[itype][jtype];
+        K[1] = c2*c2;
+        K[2] = rsq;
+        K[0] = K[1] - rsq;
+        K[4] = rsq*rsq;
+        K[3] = K[1] - K[2];
+        K[3] *= K[3]*K[3];
+        K[6] = K[3]*K[3];
+        fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
+        fpair = 4.0/15.0*fR*factor_lj *
+          (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) *
+           sigma6[itype][jtype]/K[6]-5.0) / K[0];
+        if (eflag)
+          evdwl = 2.0/9.0*fR *
+            (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
+             sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
+        if (rsq <= K[1]) error->one(FLERR,"Overlapping small/large in pair colloid");
+        break;
 
       case LARGE_LARGE:
-	r = sqrt(rsq);
-	c1 = a1[itype][jtype];
-	c2 = a2[itype][jtype];
-	K[0] = c1*c2;
-	K[1] = c1+c2;
-	K[2] = c1-c2;
-	K[3] = K[1]+r;
-	K[4] = K[1]-r;
-	K[5] = K[2]+r;
-	K[6] = K[2]-r;
-	K[7] = 1.0/(K[3]*K[4]);
-	K[8] = 1.0/(K[5]*K[6]);
-	g[0] = pow(K[3],-7.0);
-	g[1] = pow(K[4],-7.0);
-	g[2] = pow(K[5],-7.0);
-	g[3] = pow(K[6],-7.0);
-	h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
-	h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
-	h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];
-	h[3] = ((K[6]+5.0*K[2])*K[6]-30.0*K[0])*g[3];
-	g[0] *= 42.0*K[0]/K[3]+6.0*K[1]+K[3];
-	g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
-	g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
-	g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
-	
-	fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
-	evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
-	dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-	dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] + 
-					(2.0*K[0]*K[8]-1.0)*K[8]);
-	fpair = factor_lj * (dUR+dUA)/r;
-	if (eflag)
-	  evdwl += a12[itype][jtype]/6.0 * 
-	    (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-	if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
-	break;
+        r = sqrt(rsq);
+        c1 = a1[itype][jtype];
+        c2 = a2[itype][jtype];
+        K[0] = c1*c2;
+        K[1] = c1+c2;
+        K[2] = c1-c2;
+        K[3] = K[1]+r;
+        K[4] = K[1]-r;
+        K[5] = K[2]+r;
+        K[6] = K[2]-r;
+        K[7] = 1.0/(K[3]*K[4]);
+        K[8] = 1.0/(K[5]*K[6]);
+        g[0] = pow(K[3],-7.0);
+        g[1] = pow(K[4],-7.0);
+        g[2] = pow(K[5],-7.0);
+        g[3] = pow(K[6],-7.0);
+        h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
+        h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
+        h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];
+        h[3] = ((K[6]+5.0*K[2])*K[6]-30.0*K[0])*g[3];
+        g[0] *= 42.0*K[0]/K[3]+6.0*K[1]+K[3];
+        g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
+        g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
+        g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
+
+        fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
+        evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
+        dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
+        dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] +
+                                        (2.0*K[0]*K[8]-1.0)*K[8]);
+        fpair = factor_lj * (dUR+dUA)/r;
+        if (eflag)
+          evdwl += a12[itype][jtype]/6.0 *
+            (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
+        if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
+        break;
       }
-      
+
       if (eflag) evdwl *= factor_lj;
 
       f[i][0] += delx*fpair;
       f[i][1] += dely*fpair;
       f[i][2] += delz*fpair;
       if (newton_pair || j < nlocal) {
-	f[j][0] -= delx*fpair;
-	f[j][1] -= dely*fpair;
-	f[j][2] -= delz*fpair;
+        f[j][0] -= delx*fpair;
+        f[j][1] -= dely*fpair;
+        f[j][2] -= delz*fpair;
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			   evdwl,0.0,fpair,delx,dely,delz);
+                           evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 
@@ -201,7 +201,7 @@ void PairColloid::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairColloid::allocate()
@@ -235,7 +235,7 @@ void PairColloid::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairColloid::settings(int narg, char **arg)
@@ -250,7 +250,7 @@ void PairColloid::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -275,7 +275,7 @@ void PairColloid::coeff(int narg, char **arg)
   double cut_one = cut_global;
   if (narg == 7) cut_one = force->numeric(arg[6]);
 
-  if (d1_one < 0.0 || d2_one < 0.0) 
+  if (d1_one < 0.0 || d2_one < 0.0)
     error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
 
   int count = 0;
@@ -284,7 +284,7 @@ void PairColloid::coeff(int narg, char **arg)
       a12[i][j] = a12_one;
       sigma[i][j] = sigma_one;
       if (i == j && d1_one != d2_one)
-	error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
+        error->all(FLERR,"Invalid d1 or d2 value for pair colloid coeff");
       d1[i][j] = d1_one;
       d2[i][j] = d2_one;
       diameter[i][j] = 0.5*(d1_one+d2_one);
@@ -349,7 +349,7 @@ double PairColloid::init_one(int i, int j)
   offset[j][i] = offset[i][j] = 0.0;
   if (offset_flag) {
     double tmp;
-    offset[j][i] = offset[i][j] = 
+    offset[j][i] = offset[i][j] =
       single(0,0,i,j,cut[i][j]*cut[i][j],0.0,1.0,tmp);
   }
 
@@ -357,7 +357,7 @@ double PairColloid::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file 
+   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
 void PairColloid::write_restart(FILE *fp)
@@ -369,11 +369,11 @@ void PairColloid::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&a12[i][j],sizeof(double),1,fp);
-	fwrite(&sigma[i][j],sizeof(double),1,fp);
-	fwrite(&d1[i][j],sizeof(double),1,fp);
-	fwrite(&d2[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&a12[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&d1[i][j],sizeof(double),1,fp);
+        fwrite(&d2[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -394,18 +394,18 @@ void PairColloid::read_restart(FILE *fp)
       if (comm->me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (comm->me == 0) {
-	  fread(&a12[i][j],sizeof(double),1,fp);
-	  fread(&sigma[i][j],sizeof(double),1,fp);
-	  fread(&d1[i][j],sizeof(double),1,fp);
-	  fread(&d2[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&a12[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&d1[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&d2[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (comm->me == 0) {
+          fread(&a12[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&d1[i][j],sizeof(double),1,fp);
+          fread(&d2[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&a12[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&d1[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&d2[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -441,8 +441,8 @@ void PairColloid::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
-			   double factor_coul, double factor_lj,
-			   double &fforce)
+                           double factor_coul, double factor_lj,
+                           double &fforce)
 {
   double K[9],h[4],g[4];
   double r,r2inv,r6inv,forcelj,c1,c2,phi,fR,dUR,dUA;
@@ -467,11 +467,11 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     K[3] *= K[3]*K[3];
     K[6] = K[3]*K[3];
     fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-    fforce = 4.0/15.0*fR*factor_lj * 
-      (2.0*(K[1]+K[2])*(K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
+    fforce = 4.0/15.0*fR*factor_lj *
+      (2.0*(K[1]+K[2])*(K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) *
        sigma6[itype][jtype]/K[6] - 5.0)/K[0];
-    phi = 2.0/9.0*fR * 
-      (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) * 
+    phi = 2.0/9.0*fR *
+      (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
        sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
     break;
 
@@ -500,14 +500,14 @@ double PairColloid::single(int i, int j, int itype, int jtype, double rsq,
     g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
     g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
     g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
-    
+
     fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
     phi = fR * (h[0]-h[1]-h[2]+h[3]);
     dUR = phi/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-    dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] + 
-				    (2.0*K[0]*K[8]-1.0)*K[8]);
+    dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] +
+                                    (2.0*K[0]*K[8]-1.0)*K[8]);
     fforce = factor_lj*(dUR+dUA)/r;
-    phi += a12[itype][jtype]/6.0*(2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - 
+    phi += a12[itype][jtype]/6.0*(2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) -
       offset[itype][jtype];
     break;
   }

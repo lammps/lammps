@@ -14,12 +14,12 @@
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
-  published by the Free Software Foundation; either version 2 of 
+  published by the Free Software Foundation; either version 2 of
   the License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
@@ -72,11 +72,11 @@ enum BOND_LINE_OPTS  { OPT_NOBOND, OPT_BOND_BASIC, OPT_BOND_FULL, NR_OPT_BOND };
 enum ANGLE_LINE_OPTS { OPT_NOANGLE, OPT_ANGLE_BASIC, NR_OPT_ANGLE };
 
 
-int  Init_Traj( reax_system*, control_params*, output_controls*, 
-		mpi_datatypes*, char* );
+int  Init_Traj( reax_system*, control_params*, output_controls*,
+                mpi_datatypes*, char* );
 int  End_Traj( int, output_controls* );
 
-int  Append_Frame( reax_system*, control_params*, simulation_data*, 
-		   reax_list**, output_controls*, mpi_datatypes* );
+int  Append_Frame( reax_system*, control_params*, simulation_data*,
+                   reax_list**, output_controls*, mpi_datatypes* );
 
 #endif

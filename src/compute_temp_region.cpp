@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -27,13 +27,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
 
   iregion = domain->find_region(arg[3]);
-  if (iregion == -1) 
+  if (iregion == -1)
     error->all(FLERR,"Region ID for compute temp/region does not exist");
   int n = strlen(arg[3]) + 1;
   idregion = new char[n];
@@ -103,15 +103,15 @@ double ComputeTempRegion::compute_scalar()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	count++;
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+        count++;
+        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	count++;
-	t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-	  mass[type[i]];
+        count++;
+        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+          mass[type[i]];
       }
   }
 
@@ -194,18 +194,18 @@ void ComputeTempRegion::remove_bias_all()
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
   }
-  
+
   Region *region = domain->regions[iregion];
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (region->match(x[i][0],x[i][1],x[i][2]))
-	vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
+        vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
       else {
-	vbiasall[i][0] = v[i][0];
-	vbiasall[i][1] = v[i][1];
-	vbiasall[i][2] = v[i][2];
-	v[i][0] = v[i][1] = v[i][2] = 0.0;
+        vbiasall[i][0] = v[i][0];
+        vbiasall[i][1] = v[i][1];
+        vbiasall[i][2] = v[i][2];
+        v[i][0] = v[i][1] = v[i][2] = 0.0;
       }
     }
 }

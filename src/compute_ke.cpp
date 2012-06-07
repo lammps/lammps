@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -56,14 +56,14 @@ double ComputeKE::compute_scalar()
   double ke = 0.0;
 
   if (rmass) {
-    for (int i = 0; i < nlocal; i++) 
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	ke += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        ke += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	ke += mass[type[i]] * 
-	  (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        ke += mass[type[i]] *
+          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
   }
 
   MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,world);

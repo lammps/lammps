@@ -56,11 +56,11 @@ void PairTersoffOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else eval<0,0,0>(ifrom, ito, thr);
 
@@ -116,13 +116,13 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtag = tag[j];
 
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
       jtype = map[type[j]];
@@ -145,7 +145,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[j][2] -= delz*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-			       evdwl,0.0,fpair,delx,dely,delz,thr);
+                               evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
     // three-body interactions
@@ -170,19 +170,19 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       zeta_ij = 0.0;
 
       for (kk = 0; kk < jnum; kk++) {
-	if (jj == kk) continue;
-	k = jlist[kk];
-	k &= NEIGHMASK;
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
+        if (jj == kk) continue;
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[iparam_ijk].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
       }
 
       // pairwise force due to zeta
@@ -197,37 +197,37 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       fjztmp -= delr1[2]*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,evdwl,0.0,
-			       -fpair,-delr1[0],-delr1[1],-delr1[2],thr);
+                               -fpair,-delr1[0],-delr1[1],-delr1[2],thr);
 
       // attractive term via loop over k
 
       for (kk = 0; kk < jnum; kk++) {
-	if (jj == kk) continue;
-	k = jlist[kk];
-	k &= NEIGHMASK;
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
+        if (jj == kk) continue;
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-	if (rsq2 > params[iparam_ijk].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	attractive(&params[iparam_ijk],prefactor,
-		   rsq1,rsq2,delr1,delr2,fi,fj,fk);
+        attractive(&params[iparam_ijk],prefactor,
+                   rsq1,rsq2,delr1,delr2,fi,fj,fk);
 
-	fxtmp += fi[0];
-	fytmp += fi[1];
-	fztmp += fi[2];
-	fjxtmp += fj[0];
-	fjytmp += fj[1];
-	fjztmp += fj[2];
-	f[k][0] += fk[0];
-	f[k][1] += fk[1];
-	f[k][2] += fk[2];
+        fxtmp += fi[0];
+        fytmp += fi[1];
+        fztmp += fi[2];
+        fjxtmp += fj[0];
+        fjytmp += fj[1];
+        fjztmp += fj[2];
+        f[k][0] += fk[0];
+        f[k][1] += fk[1];
+        f[k][2] += fk[2];
 
-	if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
+        if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

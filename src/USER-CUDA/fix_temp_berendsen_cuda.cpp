@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -28,7 +28,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -120,11 +120,11 @@ int FixTempBerendsenCuda::setmask()
 void FixTempBerendsenCuda::init()
 {
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) 
+  if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix temp/berendsen/cuda does not exist");
   temperature = modify->compute[icompute];
-  if(not temperature->cudable) 
-	error->warning(FLERR,"Fix temp/berendsen/cuda uses non cudable temperature compute");
+  if(not temperature->cudable)
+        error->warning(FLERR,"Fix temp/berendsen/cuda uses non cudable temperature compute");
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
@@ -154,32 +154,32 @@ void FixTempBerendsenCuda::end_of_step()
   int nlocal = atom->nlocal;
 
   if (which == NOBIAS) {
-	Cuda_FixTempBerendsenCuda_EndOfStep(&cuda->shared_data, groupbit,lamda);
+        Cuda_FixTempBerendsenCuda_EndOfStep(&cuda->shared_data, groupbit,lamda);
 
     } else {
       if(not temperature->cudable)
       {
-      	cuda->cu_x->download();cuda->cu_v->download();
+              cuda->cu_x->download();cuda->cu_v->download();
       for (int i = 0; i < nlocal; i++) {
-	if (mask[i] & groupbit) {
-	  temperature->remove_bias(i,v[i]);
- 	  v[i][0] *= lamda;
-	  v[i][1] *= lamda;
-	  v[i][2] *= lamda;
-	  temperature->restore_bias(i,v[i]);
-	}
+        if (mask[i] & groupbit) {
+          temperature->remove_bias(i,v[i]);
+           v[i][0] *= lamda;
+          v[i][1] *= lamda;
+          v[i][2] *= lamda;
+          temperature->restore_bias(i,v[i]);
         }
-	  cuda->cu_v->upload();
+        }
+          cuda->cu_v->upload();
       }
       else
-	  {
-  	    temperature->remove_bias_all();
-	    Cuda_FixTempBerendsenCuda_EndOfStep(&cuda->shared_data, groupbit,lamda);
-	    temperature->restore_bias_all();
-	  }
+          {
+              temperature->remove_bias_all();
+            Cuda_FixTempBerendsenCuda_EndOfStep(&cuda->shared_data, groupbit,lamda);
+            temperature->restore_bias_all();
+          }
     }
 
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,6 +217,3 @@ void FixTempBerendsenCuda::reset_target(double t_new)
 {
   t_start = t_stop = t_new;
 }
-
-
-

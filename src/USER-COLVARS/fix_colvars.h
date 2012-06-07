@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -42,8 +42,8 @@ class FixColvars : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
-  virtual void min_post_force(int); 
-  virtual void post_force(int); 
+  virtual void min_post_force(int);
+  virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
   virtual void post_run();
   virtual void end_of_step();
@@ -59,7 +59,7 @@ class FixColvars : public Fix {
   char *inp_name;      // name/prefix of colvars restart file
   char *out_name;      // prefix string for all output files
   char *tmp_name;      // name of thermostat fix.
-  int   rng_seed;      // seed to initialize random number generator 
+  int   rng_seed;      // seed to initialize random number generator
   int   tstat_id;      // id of the thermostat fix
   double energy;       // biasing energy of the fix
 
@@ -69,7 +69,7 @@ class FixColvars : public Fix {
   std::vector<struct commdata> *coords; // coordinates of colvar atoms
   std::vector<struct commdata> *forces; // received forces of colvar atoms
   std::vector<struct commdata> *oforce; // old total forces of colvar atoms
-  
+
   int   nmax;          // size of atom communication buffer.
   int   size_one;      // bytes per atom in communication buffer.
   struct commdata *comm_buf; // communication buffer
@@ -79,7 +79,7 @@ class FixColvars : public Fix {
   int  *rev_idmap;     // list of the hash keys for reverse mapping.
 
   int nlevels_respa;   // flag to determine respa levels.
-  int store_forces;    // flag to determine whether to store total forces 
+  int store_forces;    // flag to determine whether to store total forces
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
 };

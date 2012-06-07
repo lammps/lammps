@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -72,7 +72,7 @@ ComputeAngleLocal::~ComputeAngleLocal()
 
 void ComputeAngleLocal::init()
 {
-  if (force->angle == NULL) 
+  if (force->angle == NULL)
     error->all(FLERR,"No angle style is defined for compute angle/local");
 
   // do initial memory allocation so that memory_usage() is correct
@@ -148,38 +148,38 @@ int ComputeAngleLocal::compute_angles(int flag)
       if (angle_type[atom2][i] == 0) continue;
 
       if (flag) {
-	if (tflag >= 0) {
-	  delx1 = x[atom1][0] - x[atom2][0];
-	  dely1 = x[atom1][1] - x[atom2][1];
-	  delz1 = x[atom1][2] - x[atom2][2];
-	  domain->minimum_image(delx1,dely1,delz1);
+        if (tflag >= 0) {
+          delx1 = x[atom1][0] - x[atom2][0];
+          dely1 = x[atom1][1] - x[atom2][1];
+          delz1 = x[atom1][2] - x[atom2][2];
+          domain->minimum_image(delx1,dely1,delz1);
 
-	  rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-	  r1 = sqrt(rsq1);
-	  
-	  delx2 = x[atom3][0] - x[atom2][0];
-	  dely2 = x[atom3][1] - x[atom2][1];
-	  delz2 = x[atom3][2] - x[atom2][2];
-	  domain->minimum_image(delx2,dely2,delz2);
+          rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+          r1 = sqrt(rsq1);
 
-	  rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-	  r2 = sqrt(rsq2);
+          delx2 = x[atom3][0] - x[atom2][0];
+          dely2 = x[atom3][1] - x[atom2][1];
+          delz2 = x[atom3][2] - x[atom2][2];
+          domain->minimum_image(delx2,dely2,delz2);
 
-	  // c = cosine of angle
+          rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+          r2 = sqrt(rsq2);
 
-	  c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-	  c /= r1*r2;
-	  if (c > 1.0) c = 1.0;
-	  if (c < -1.0) c = -1.0;
-	  tbuf[n] = 180.0*acos(c)/MY_PI;
-	}
+          // c = cosine of angle
 
-	if (eflag >= 0) {
-	  if (angle_type[atom2][i] > 0)
-	    ebuf[n] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
-	  else ebuf[n] = 0.0;
-	}
-	n += nvalues;
+          c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+          c /= r1*r2;
+          if (c > 1.0) c = 1.0;
+          if (c < -1.0) c = -1.0;
+          tbuf[n] = 180.0*acos(c)/MY_PI;
+        }
+
+        if (eflag >= 0) {
+          if (angle_type[atom2][i] > 0)
+            ebuf[n] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
+          else ebuf[n] = 0.0;
+        }
+        n += nvalues;
       }
 
       m++;

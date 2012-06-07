@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -79,10 +79,10 @@ void ImproperHybrid::compute(int eflag, int vflag)
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
-	memory->destroy(improperlist[m]);
-	maximproper[m] = nimproperlist[m] + EXTRA;
-	memory->create(improperlist[m],maximproper[m],5,
-		       "improper_hybrid:improperlist");
+        memory->destroy(improperlist[m]);
+        maximproper[m] = nimproperlist[m] + EXTRA;
+        memory->create(improperlist[m],maximproper[m],5,
+                       "improper_hybrid:improperlist");
       }
       nimproperlist[m] = 0;
     }
@@ -98,7 +98,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
       nimproperlist[m]++;
     }
   }
-  
+
   // call each sub-style's compute function
   // set neighbor->improperlist to sub-style improperlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
@@ -126,8 +126,8 @@ void ImproperHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-	for (j = 0; j < 6; j++)
-	  vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++)
+          vatom[i][j] += vatom_substyle[i][j];
     }
   }
 
@@ -169,13 +169,13 @@ void ImproperHybrid::settings(int narg, char **arg)
 
   for (int m = 0; m < nstyles; m++) {
     for (int i = 0; i < m; i++)
-      if (strcmp(arg[m],arg[i]) == 0) 
-	error->all(FLERR,
-		   "Improper style hybrid cannot use same improper style twice");
-    if (strcmp(arg[m],"hybrid") == 0) 
+      if (strcmp(arg[m],arg[i]) == 0)
+        error->all(FLERR,
+                   "Improper style hybrid cannot use same improper style twice");
+    if (strcmp(arg[m],"hybrid") == 0)
       error->all(FLERR,
-		 "Improper style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[m],"none") == 0) 
+                 "Improper style hybrid cannot have hybrid as an argument");
+    if (strcmp(arg[m],"none") == 0)
       error->all(FLERR,"Improper style hybrid cannot have none as an argument");
     styles[m] = force->new_improper(arg[m],lmp->suffix,dummy);
     keywords[m] = new char[strlen(arg[m])+1];
@@ -259,7 +259,7 @@ void ImproperHybrid::read_restart(FILE *fp)
   keywords = new char*[nstyles];
 
   allocate();
-  
+
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) fread(&n,sizeof(int),1,fp);
@@ -280,7 +280,7 @@ double ImproperHybrid::memory_usage()
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += maximproper[m]*5 * sizeof(int);
-  for (int m = 0; m < nstyles; m++) 
+  for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;
 }

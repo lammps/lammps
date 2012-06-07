@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -86,7 +86,7 @@ int FixShearHistory::setmask()
 
 void FixShearHistory::init()
 {
-  if (atom->tag_enable == 0) 
+  if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style granular with history requires atoms have IDs");
 }
 
@@ -135,27 +135,27 @@ void FixShearHistory::pre_exchange()
 
     for (jj = 0; jj < jnum; jj++) {
       if (touch[jj]) {
-	shear = &allshear[3*jj];
-	j = jlist[jj];
-	j &= NEIGHMASK;
-	if (npartner[i] < MAXTOUCH) {
-	  m = npartner[i];
-	  partner[i][m] = tag[j];
-	  shearpartner[i][m][0] = shear[0];
-	  shearpartner[i][m][1] = shear[1];
-	  shearpartner[i][m][2] = shear[2];
-	}
-	npartner[i]++;
-	if (j < nlocal) {
-	  if (npartner[j] < MAXTOUCH) {
-	    m = npartner[j];
-	    partner[j][m] = tag[i];
-	    shearpartner[j][m][0] = -shear[0];
-	    shearpartner[j][m][1] = -shear[1];
-	    shearpartner[j][m][2] = -shear[2];
-	  }
-	  npartner[j]++;
-	}
+        shear = &allshear[3*jj];
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        if (npartner[i] < MAXTOUCH) {
+          m = npartner[i];
+          partner[i][m] = tag[j];
+          shearpartner[i][m][0] = shear[0];
+          shearpartner[i][m][1] = shear[1];
+          shearpartner[i][m][2] = shear[2];
+        }
+        npartner[i]++;
+        if (j < nlocal) {
+          if (npartner[j] < MAXTOUCH) {
+            m = npartner[j];
+            partner[j][m] = tag[i];
+            shearpartner[j][m][0] = -shear[0];
+            shearpartner[j][m][1] = -shear[1];
+            shearpartner[j][m][2] = -shear[2];
+          }
+          npartner[j]++;
+        }
       }
     }
   }

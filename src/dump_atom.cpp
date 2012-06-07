@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -269,7 +269,7 @@ void DumpAtom::pack_scale_noimage(int *ids)
   double invxprd = 1.0/domain->xprd;
   double invyprd = 1.0/domain->yprd;
   double invzprd = 1.0/domain->zprd;
-  
+
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -326,7 +326,7 @@ void DumpAtom::pack_scale_noimage_triclinic(int *ids)
   int nlocal = atom->nlocal;
 
   double lamda[3];
-  
+
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -408,9 +408,9 @@ void DumpAtom::write_image(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-	    static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-	    mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
-	    static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
+            static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+            mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
+            static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
     m += size_one;
   }
 }
@@ -422,8 +422,8 @@ void DumpAtom::write_noimage(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-	    static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-	    mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+            static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }
 }

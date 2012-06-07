@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -55,8 +55,8 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix heat command");
       iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1) 
-	error->all(FLERR,"Region ID for fix heat does not exist");
+      if (iregion == -1)
+        error->all(FLERR,"Region ID for fix heat does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
@@ -91,13 +91,13 @@ void FixHeat::init()
 
   if (iregion >= 0) {
     iregion = domain->find_region(idregion);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region ID for fix heat does not exist");
   }
 
   // cannot have 0 atoms in group
 
-  if (group->count(igroup) == 0) 
+  if (group->count(igroup) == 0)
     error->all(FLERR,"Fix heat group has no atoms");
   masstotal = group->mass(igroup);
 }
@@ -105,12 +105,12 @@ void FixHeat::init()
 /* ---------------------------------------------------------------------- */
 
 void FixHeat::end_of_step()
-{ 
+{
   double heat,ke;
   double vsub[3],vcm[3];
   Region *region = NULL;
   if (iregion >= 0) region = domain->regions[iregion];
-  
+
   if (iregion < 0) {
     heat = heat_input*nevery*update->dt*force->ftm2v;
     ke = group->ke(igroup)*force->ftm2v;
@@ -140,16 +140,16 @@ void FixHeat::end_of_step()
   if (iregion < 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	v[i][0] = scale*v[i][0] - vsub[0];
-	v[i][1] = scale*v[i][1] - vsub[1];
-	v[i][2] = scale*v[i][2] - vsub[2];
+        v[i][0] = scale*v[i][0] - vsub[0];
+        v[i][1] = scale*v[i][1] - vsub[1];
+        v[i][2] = scale*v[i][2] - vsub[2];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-	v[i][0] = scale*v[i][0] - vsub[0];
-	v[i][1] = scale*v[i][1] - vsub[1];
-	v[i][2] = scale*v[i][2] - vsub[2];
+        v[i][0] = scale*v[i][0] - vsub[0];
+        v[i][1] = scale*v[i][1] - vsub[1];
+        v[i][2] = scale*v[i][2] - vsub[2];
       }
   }
 }

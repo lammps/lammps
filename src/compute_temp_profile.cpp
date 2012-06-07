@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) : 
+ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
@@ -96,7 +96,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(vbin,nbins,ncount+1,"temp/profile:vbin");
   memory->create(binave,nbins,ncount+1,"temp/profile:binave");
-  
+
   maxatom = 0;
   bin = NULL;
 
@@ -186,11 +186,11 @@ double ComputeTempProfile::compute_scalar()
       else vthermal[2] = v[i][2];
 
       if (rmass)
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * rmass[i];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * rmass[i];
       else
-	t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + 
-	      vthermal[2]*vthermal[2]) * mass[type[i]];
+        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+              vthermal[2]*vthermal[2]) * mass[type[i]];
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
@@ -286,16 +286,16 @@ void ComputeTempProfile::remove_bias_all()
     if (mask[i] & groupbit) {
       ibin = bin[i];
       if (xflag) {
-	vbiasall[i][0] = binave[ibin][ivx];
-	v[i][0] -= vbiasall[i][0];
+        vbiasall[i][0] = binave[ibin][ivx];
+        v[i][0] -= vbiasall[i][0];
       }
       if (yflag) {
-	vbiasall[i][1] = binave[ibin][ivy];
-	v[i][1] -= vbiasall[i][1];
+        vbiasall[i][1] = binave[ibin][ivy];
+        v[i][1] -= vbiasall[i][1];
       }
       if (zflag) {
-	vbiasall[i][2] = binave[ibin][ivz];
-	v[i][2] -= vbiasall[i][2];
+        vbiasall[i][2] = binave[ibin][ivz];
+        v[i][2] -= vbiasall[i][2];
       }
     }
 }
@@ -326,17 +326,17 @@ void ComputeTempProfile::restore_bias_all()
   if (xflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][0] += vbiasall[i][0];
+        v[i][0] += vbiasall[i][0];
   }
   if (yflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][1] += vbiasall[i][1];
+        v[i][1] += vbiasall[i][1];
   }
   if (zflag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	v[i][2] += vbiasall[i][2];
+        v[i][2] += vbiasall[i][2];
   }
 }
 
@@ -381,7 +381,7 @@ void ComputeTempProfile::bin_average()
   for (i = 0; i < nbins; i++)
     if (binave[i][ncount] > 0.0)
       for (j = 0; j < ncount; j++)
-	binave[i][j] /= binave[i][ncount];
+        binave[i][j] /= binave[i][ncount];
 }
 
 /* ----------------------------------------------------------------------
@@ -424,38 +424,38 @@ void ComputeTempProfile::bin_assign()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (nbinx > 1) {
-	coord = x[i][0];
-	if (periodicity[0]) {
-	  if (coord < boxlo[0]) coord += prd[0];
-	  if (coord >= boxhi[0]) coord -= prd[0];
-	}
-	ibinx = static_cast<int> ((coord - boxlo[0]) * invdelta[0]);
-	ibinx = MAX(ibinx,0);
-	ibinx = MIN(ibinx,nbinx-1);
+        coord = x[i][0];
+        if (periodicity[0]) {
+          if (coord < boxlo[0]) coord += prd[0];
+          if (coord >= boxhi[0]) coord -= prd[0];
+        }
+        ibinx = static_cast<int> ((coord - boxlo[0]) * invdelta[0]);
+        ibinx = MAX(ibinx,0);
+        ibinx = MIN(ibinx,nbinx-1);
       } else ibinx = 0;
-      
+
       if (nbiny > 1) {
-	coord = x[i][1];
-	if (periodicity[1]) {
-	  if (coord < boxlo[1]) coord += prd[1];
-	  if (coord >= boxhi[1]) coord -= prd[1];
-	}
-	ibiny = static_cast<int> ((coord - boxlo[1]) * invdelta[1]);
-	ibiny = MAX(ibiny,0);
-	ibiny = MIN(ibiny,nbiny-1);
+        coord = x[i][1];
+        if (periodicity[1]) {
+          if (coord < boxlo[1]) coord += prd[1];
+          if (coord >= boxhi[1]) coord -= prd[1];
+        }
+        ibiny = static_cast<int> ((coord - boxlo[1]) * invdelta[1]);
+        ibiny = MAX(ibiny,0);
+        ibiny = MIN(ibiny,nbiny-1);
       } else ibiny = 0;
-      
+
       if (nbinz > 1) {
-	coord = x[i][2];
-	if (periodicity[2]) {
-	  if (coord < boxlo[2]) coord += prd[2];
-	  if (coord >= boxhi[2]) coord -= prd[2];
-	}
-	ibinz = static_cast<int> ((coord - boxlo[2]) * invdelta[2]);
-	ibinz = MAX(ibinz,0);
-	ibinz = MIN(ibinz,nbinz-1);
+        coord = x[i][2];
+        if (periodicity[2]) {
+          if (coord < boxlo[2]) coord += prd[2];
+          if (coord >= boxhi[2]) coord -= prd[2];
+        }
+        ibinz = static_cast<int> ((coord - boxlo[2]) * invdelta[2]);
+        ibinz = MAX(ibinz,0);
+        ibinz = MIN(ibinz,nbinz-1);
       } else ibinz = 0;
-      
+
       bin[i] = nbinx*nbiny*ibinz + nbinx*ibiny + ibinx;
     }
 

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,14 +21,14 @@
 
 #include "string.h"
 
-namespace LAMMPS_NS { 
+namespace LAMMPS_NS {
 namespace LJSDKParms {
 
   // LJ type flags. list of supported LJ exponent combinations
   enum {LJ_NOT_SET=0, LJ9_6, LJ12_4, LJ12_6, NUM_LJ_TYPES};
 
   static int find_lj_type(const char *label,
-			  const char * const * const list) {
+                          const char * const * const list) {
     for (int i=0; i < NUM_LJ_TYPES; ++i)
       if (strcmp(label,list[i]) == 0) return i;
 
@@ -41,4 +41,3 @@ namespace LJSDKParms {
   static const double lj_pow2[]    = {0.0, 6.00,  4.0,              6.0};
 }}
 #endif
-

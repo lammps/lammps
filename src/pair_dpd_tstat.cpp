@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -54,7 +54,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
     double boltz = force->boltz;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
-	sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
+        sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
   }
 
   double **x = atom->x;
@@ -70,7 +70,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -97,34 +97,34 @@ void PairDPDTstat::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-	rinv = 1.0/r;
-	delvx = vxtmp - v[j][0];
-	delvy = vytmp - v[j][1];
-	delvz = vztmp - v[j][2];
-	dot = delx*delvx + dely*delvy + delz*delvz;
-	wd = 1.0 - r/cut[itype][jtype];
-	randnum = random->gaussian();
+        r = sqrt(rsq);
+        if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+        rinv = 1.0/r;
+        delvx = vxtmp - v[j][0];
+        delvy = vytmp - v[j][1];
+        delvz = vztmp - v[j][2];
+        dot = delx*delvx + dely*delvy + delz*delvz;
+        wd = 1.0 - r/cut[itype][jtype];
+        randnum = random->gaussian();
 
-	// drag force = -gamma * wd^2 * (delx dot delv) / r
-	// random force = sigma * wd * rnd * dtinvsqrt;
+        // drag force = -gamma * wd^2 * (delx dot delv) / r
+        // random force = sigma * wd * rnd * dtinvsqrt;
 
-	fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
-	fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-	fpair *= factor_dpd*rinv;	
+        fpair = -gamma[itype][jtype]*wd*wd*dot*rinv;
+        fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+        fpair *= factor_dpd*rinv;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             0.0,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -133,7 +133,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairDPDTstat::settings(int narg, char **arg)
@@ -159,7 +159,7 @@ void PairDPDTstat::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -234,4 +234,3 @@ void PairDPDTstat::read_restart_settings(FILE *fp)
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
-

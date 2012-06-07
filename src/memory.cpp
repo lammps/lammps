@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
-   safe malloc 
+   safe malloc
 ------------------------------------------------------------------------- */
 
 void *Memory::smalloc(bigint nbytes, const char *name)
@@ -41,14 +41,14 @@ void *Memory::smalloc(bigint nbytes, const char *name)
   if (ptr == NULL) {
     char str[128];
     sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
-	    nbytes,name);
+            nbytes,name);
     error->one(FLERR,str);
   }
   return ptr;
 }
 
 /* ----------------------------------------------------------------------
-   safe realloc 
+   safe realloc
 ------------------------------------------------------------------------- */
 
 void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
@@ -62,14 +62,14 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
   if (ptr == NULL) {
     char str[128];
     sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
-	    nbytes,name);
+            nbytes,name);
     error->one(FLERR,str);
   }
   return ptr;
 }
 
 /* ----------------------------------------------------------------------
-   safe free 
+   safe free
 ------------------------------------------------------------------------- */
 
 void Memory::sfree(void *ptr)

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -69,7 +69,7 @@ void PairMorse::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -93,28 +93,28 @@ void PairMorse::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	r = sqrt(rsq);
-	dr = r - r0[itype][jtype];
-	dexp = exp(-alpha[itype][jtype] * dr);
-	fpair = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+        r = sqrt(rsq);
+        dr = r - r0[itype][jtype];
+        dexp = exp(-alpha[itype][jtype] * dr);
+        fpair = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
 
-	f[i][0] += delx*fpair;
-	f[i][1] += dely*fpair;
-	f[i][2] += delz*fpair;
-	if (newton_pair || j < nlocal) {
-	  f[j][0] -= delx*fpair;
-	  f[j][1] -= dely*fpair;
-	  f[j][2] -= delz*fpair;
-	}
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= delx*fpair;
+          f[j][1] -= dely*fpair;
+          f[j][2] -= delz*fpair;
+        }
 
-	if (eflag) {
-	  evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-	    offset[itype][jtype];
-	  evdwl *= factor_lj;
-	}
+        if (eflag) {
+          evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
+            offset[itype][jtype];
+          evdwl *= factor_lj;
+        }
 
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -123,7 +123,7 @@ void PairMorse::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   allocate all arrays 
+   allocate all arrays
 ------------------------------------------------------------------------- */
 
 void PairMorse::allocate()
@@ -147,7 +147,7 @@ void PairMorse::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairMorse::settings(int narg, char **arg)
@@ -162,7 +162,7 @@ void PairMorse::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut[i][j] = cut_global;
+        if (setflag[i][j]) cut[i][j] = cut_global;
   }
 }
 
@@ -211,7 +211,7 @@ double PairMorse::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
-     
+
   if (offset_flag) {
     double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
     offset[i][j] = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
@@ -239,10 +239,10 @@ void PairMorse::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-	fwrite(&d0[i][j],sizeof(double),1,fp);
-	fwrite(&alpha[i][j],sizeof(double),1,fp);
-	fwrite(&r0[i][j],sizeof(double),1,fp);
-	fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&d0[i][j],sizeof(double),1,fp);
+        fwrite(&alpha[i][j],sizeof(double),1,fp);
+        fwrite(&r0[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
 }
@@ -264,16 +264,16 @@ void PairMorse::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-	if (me == 0) {
-	  fread(&d0[i][j],sizeof(double),1,fp);
-	  fread(&alpha[i][j],sizeof(double),1,fp);
-	  fread(&r0[i][j],sizeof(double),1,fp);
-	  fread(&cut[i][j],sizeof(double),1,fp);
-	}
-	MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
-	MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) {
+          fread(&d0[i][j],sizeof(double),1,fp);
+          fread(&alpha[i][j],sizeof(double),1,fp);
+          fread(&r0[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&r0[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
 }
@@ -308,8 +308,8 @@ void PairMorse::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
-			 double factor_coul, double factor_lj,
-			 double &fforce)
+                         double factor_coul, double factor_lj,
+                         double &fforce)
 {
   double r,dr,dexp,phi;
 
@@ -317,7 +317,7 @@ double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
   dr = r - r0[itype][jtype];
   dexp = exp(-alpha[itype][jtype] * dr);
   fforce = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-  
+
   phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
   return factor_lj*phi;
 }

@@ -15,19 +15,19 @@
 #include <iostream>
 
 /* struct for packed data communication of coordinates and forces. */
-struct commdata { 
-  int tag,type; 
-  double x,y,z; 
+struct commdata {
+  int tag,type;
+  double x,y,z;
 };
 
 inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
 {
-  out << " (" << cd.tag << "/" << cd.type << ": " 
+  out << " (" << cd.tag << "/" << cd.type << ": "
       << cd.x << ", " << cd.y << ", " << cd.z << ") ";
   return out;
 };
 
-/// \brief Communication between colvars and LAMMPS 
+/// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)
 class colvarproxy_lammps : public colvarproxy {
 
@@ -64,7 +64,7 @@ class colvarproxy_lammps : public colvarproxy {
  public:
   friend class cvm::atom;
   colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
-		      const char *, const int, const double, const int *);
+                      const char *, const int, const double, const int *);
   virtual ~colvarproxy_lammps();
 
  // disable default and copy constructor

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class FixRigidNVT : public FixRigid {
  public:
   FixRigidNVT(class LAMMPS *, int, char **);
-  virtual ~FixRigidNVT();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual double compute_scalar();
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
-  virtual void reset_target(double);
-  
+  ~FixRigidNVT();
+  int setmask();
+  void init();
+  void setup(int);
+  void initial_integrate(int);
+  void final_integrate();
+  double compute_scalar();
+  void write_restart(FILE *);
+  void restart(char *);
+  void reset_target(double);
+
  private:
   double **conjqm;                      // conjugate quaternion momentum
   double boltz;                         // boltzman constant

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -76,7 +76,7 @@ void FixNVESphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-	error->one(FLERR,"Fix nve/sphere requires extended particles");
+        error->one(FLERR,"Fix nve/sphere requires extended particles");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -113,7 +113,7 @@ void FixNVESphere::initial_integrate(int vflag)
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
-      
+
       dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];
@@ -129,16 +129,16 @@ void FixNVESphere::initial_integrate(int vflag)
     double **mu = atom->mu;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (mu[i][3] > 0.0) {
-	  g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
-	  g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
-	  g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
-	  msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-	  scale = mu[i][3]/sqrt(msq);
-	  mu[i][0] = g[0]*scale;
-	  mu[i][1] = g[1]*scale;
-	  mu[i][2] = g[2]*scale;
-	}
+        if (mu[i][3] > 0.0) {
+          g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
+          g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
+          g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
+          msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+          scale = mu[i][3]/sqrt(msq);
+          mu[i][0] = g[0]*scale;
+          mu[i][1] = g[1]*scale;
+          mu[i][2] = g[2]*scale;
+        }
   }
 }
 
@@ -171,7 +171,7 @@ void FixNVESphere::final_integrate()
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
       v[i][2] += dtfm * f[i][2];
-      
+
       dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];

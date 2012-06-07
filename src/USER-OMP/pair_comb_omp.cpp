@@ -64,11 +64,11 @@ void PairCombOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-	if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
-	else eval<1,1,0>(ifrom, ito, thr);
+        if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
       } else {
-	if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
-	else eval<1,0,0>(ifrom, ito, thr);
+        if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
       }
     } else eval<0,0,0>(ifrom, ito, thr);
 
@@ -89,7 +89,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   int mr1,mr2,mr3;
   int rsc,inty;
   double elp_ij,filp[3],fjlp[3],fklp[3];
-  double iq,jq; 
+  double iq,jq;
   double yaself;
   double potal,fac11,fac11e;
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
@@ -108,7 +108,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  yaself = vionij = fvionij = Eov = Fov = 0.0; 
+  yaself = vionij = fvionij = Eov = Fov = 0.0;
 
   double fxtmp,fytmp,fztmp;
   double fjxtmp,fjytmp,fjztmp;
@@ -139,7 +139,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     yaself = self(&params[iparam_i],iq,potal);
 
     if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,yaself,
-			     0.0,0.0,0.0,0.0,0.0,thr);
+                             0.0,0.0,0.0,0.0,0.0,thr);
 
     // two-body interactions (long and short repulsive)
 
@@ -154,16 +154,16 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtag = tag[j];
 
       if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
+        if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
+        if ((itag+jtag) % 2 == 1) continue;
       } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
-      // Qj calculates 2-body Coulombic 
+      // Qj calculates 2-body Coulombic
 
       jtype = map[type[j]];
       jq = q[j];
@@ -188,7 +188,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       // 1/r energy and forces
 
       direct(inty,mr1,mr2,mr3,rsq,sr1,sr2,sr3,iq,jq,
-	     potal,fac11,fac11e,vionij,fvionij);
+             potal,fac11,fac11e,vionij,fvionij);
 
       // field correction to self energy
 
@@ -204,9 +204,9 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[j][1] -= dely*fvionij;
       f[j][2] -= delz*fvionij;
 
-      if (EVFLAG) 
-	ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-		     0.0,vionij,fvionij,delx,dely,delz,thr);
+      if (EVFLAG)
+        ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
+                     0.0,vionij,fvionij,delx,dely,delz,thr);
 
       // short range q-independent
 
@@ -224,8 +224,8 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       f[j][2] -= delz*fpair;
 
       if (EVFLAG)
-	ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-		     evdwl,0.0,fpair,delx,dely,delz,thr);
+        ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
+                     evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
     // accumulate coordination number information
@@ -234,23 +234,23 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       int numcoor = 0;
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
-	jtype = map[type[j]];
-	iparam_ij = elem2param[itype][jtype][jtype];
-	
-	if(params[iparam_ij].hfocor > 0.0 ) {
-	  delr1[0] = x[j][0] - xtmp;
-	  delr1[1] = x[j][1] - ytmp;
-	  delr1[2] = x[j][2] - ztmp;
-	  rsq1 = vec3_dot(delr1,delr1);
-	  
-	  if (rsq1 > params[iparam_ij].cutsq) continue;
-	  ++numcoor;
-	}
+        jtype = map[type[j]];
+        iparam_ij = elem2param[itype][jtype][jtype];
+
+        if(params[iparam_ij].hfocor > 0.0 ) {
+          delr1[0] = x[j][0] - xtmp;
+          delr1[1] = x[j][1] - ytmp;
+          delr1[2] = x[j][2] - ztmp;
+          rsq1 = vec3_dot(delr1,delr1);
+
+          if (rsq1 > params[iparam_ij].cutsq) continue;
+          ++numcoor;
+        }
       }
-      NCo[i] = numcoor; 
+      NCo[i] = numcoor;
     }
 
-    // three-body interactions 
+    // three-body interactions
     // half i-j loop
 
     for (jj = 0; jj < sht_jnum; jj++) {
@@ -278,34 +278,34 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       cuo_flag1 = 0; cuo_flag2 = 0;
 
       for (kk = 0; kk < sht_jnum; kk++) {
-	k = sht_jlist[kk];
-	if (j == k) continue;
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
+        k = sht_jlist[kk];
+        if (j == k) continue;
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = vec3_dot(delr2,delr2);
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = vec3_dot(delr2,delr2);
 
-	if (rsq2 > params[iparam_ijk].cutsq) continue;
+        if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
 
-	if (params[iparam_ijk].hfocor == -2.0) cuo_flag1 = 1;
-	if (params[iparam_ijk].hfocor == -1.0) cuo_flag2 = 1;
+        if (params[iparam_ijk].hfocor == -2.0) cuo_flag1 = 1;
+        if (params[iparam_ijk].hfocor == -1.0) cuo_flag2 = 1;
       }
 
       if (cuo_flag1 && cuo_flag2) cuo_flag = 1;
       else cuo_flag = 0;
 
       force_zeta(&params[iparam_ij],EFLAG,i,nj,rsq1,zeta_ij,
-		 iq,jq,fpair,prefactor,evdwl);
+                 iq,jq,fpair,prefactor,evdwl);
 
       // over-coordination correction for HfO2
 
       if (cor_flag && NCo[i] != 0)
-	Over_cor(&params[iparam_ij],rsq1,NCo[i],Eov, Fov);
+        Over_cor(&params[iparam_ij],rsq1,NCo[i],Eov, Fov);
       evdwl +=  Eov;
       fpair +=  Fov;
 
@@ -317,47 +317,47 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       fjztmp -= delr1[2]*fpair;
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,evdwl,0.0,
-			       -fpair,-delr1[0],-delr1[1],-delr1[2],thr);
+                               -fpair,-delr1[0],-delr1[1],-delr1[2],thr);
 
       // attractive term via loop over k (3-body forces)
 
       for (kk = 0; kk < sht_jnum; kk++) {
-	k = sht_jlist[kk];
-	if (j == k) continue;
-	ktype = map[type[k]];
-	iparam_ijk = elem2param[itype][jtype][ktype];
+        k = sht_jlist[kk];
+        if (j == k) continue;
+        ktype = map[type[k]];
+        iparam_ijk = elem2param[itype][jtype][ktype];
 
-	delr2[0] = x[k][0] - xtmp;
-	delr2[1] = x[k][1] - ytmp;
-	delr2[2] = x[k][2] - ztmp;
-	rsq2 = vec3_dot(delr2,delr2);
-	if (rsq2 > params[iparam_ijk].cutsq) continue;
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = vec3_dot(delr2,delr2);
+        if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-	for (rsc = 0; rsc < 3; rsc++)
-	  fi[rsc] = fj[rsc] = fk[rsc] = 0.0;
+        for (rsc = 0; rsc < 3; rsc++)
+          fi[rsc] = fj[rsc] = fk[rsc] = 0.0;
 
-	attractive(&params[iparam_ijk],prefactor,
-		   rsq1,rsq2,delr1,delr2,fi,fj,fk);
+        attractive(&params[iparam_ijk],prefactor,
+                   rsq1,rsq2,delr1,delr2,fi,fj,fk);
 
-	// 3-body LP and BB correction and forces
+        // 3-body LP and BB correction and forces
 
-	elp_ij = elp(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
-	flp(&params[iparam_ijk],rsq1,rsq2,delr1,delr2,filp,fjlp,fklp); 
+        elp_ij = elp(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        flp(&params[iparam_ijk],rsq1,rsq2,delr1,delr2,filp,fjlp,fklp);
 
-	fxtmp += fi[0] + filp[0];
-	fytmp += fi[1] + filp[1];
-	fztmp += fi[2] + filp[2];
-	fjxtmp += fj[0] + fjlp[0];
-	fjytmp += fj[1] + fjlp[1];
-	fjztmp += fj[2] + fjlp[2];
-	f[k][0] += fk[0] + fklp[0];
-	f[k][1] += fk[1] + fklp[1];
-	f[k][2] += fk[2] + fklp[2];
+        fxtmp += fi[0] + filp[0];
+        fytmp += fi[1] + filp[1];
+        fztmp += fi[2] + filp[2];
+        fjxtmp += fj[0] + fjlp[0];
+        fjytmp += fj[1] + fjlp[1];
+        fjztmp += fj[2] + fjlp[2];
+        f[k][0] += fk[0] + fklp[0];
+        f[k][1] += fk[1] + fklp[1];
+        f[k][2] += fk[2] + fklp[2];
 
-        if (EVFLAG) 
-	  ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-		       elp_ij,0.0,0.0,0.0,0.0,0.0, thr);
-	if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
+        if (EVFLAG)
+          ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
+                       elp_ij,0.0,0.0,0.0,0.0,0.0, thr);
+        if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;
@@ -440,7 +440,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj] & NEIGHMASK;
-	const int jtag = tag[j];	
+        const int jtag = tag[j];
 
         if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;
@@ -450,7 +450,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
           if (x[j][2] < ytmp) continue;
           if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
           if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-        } 
+        }
 
         const int jtype = map[type[j]];
         double jq = q[j];
@@ -485,32 +485,32 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 #endif
         qf[j] += (iq * fqij + fqjj);
       }
-      
-        // three-body interactions
-	
-      for (int jj = 0; jj < jnum; jj++) {
-	const int j = jlist[jj] & NEIGHMASK;
-	const int jtype = map[type[j]];
-	const double jq = q[j];
 
-	delr1[0] = x[j][0] - xtmp;
-	delr1[1] = x[j][1] - ytmp;
-	delr1[2] = x[j][2] - ztmp;
-	double rsq1 = vec3_dot(delr1,delr1);
+        // three-body interactions
+
+      for (int jj = 0; jj < jnum; jj++) {
+        const int j = jlist[jj] & NEIGHMASK;
+        const int jtype = map[type[j]];
+        const double jq = q[j];
+
+        delr1[0] = x[j][0] - xtmp;
+        delr1[1] = x[j][1] - ytmp;
+        delr1[2] = x[j][2] - ztmp;
+        double rsq1 = vec3_dot(delr1,delr1);
 
         const int iparam_ij = elem2param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
-	nj ++;
+        nj ++;
 
         // charge force in Aij and Bij
 
         qfo_short(&params[iparam_ij],i,nj,rsq1,iq,jq,fqij,fqjj);
-        fqi += fqij;  
+        fqi += fqij;
 #if defined(_OPENMP)
 #pragma omp atomic
 #endif
-	qf[j] += fqjj;
+        qf[j] += fqjj;
       }
 
 #if defined(_OPENMP)
@@ -553,7 +553,7 @@ void PairCombOMP::Short_neigh_thr()
     nmax = atom->nmax;
     memory->sfree(sht_first);
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-	    "pair:sht_first");
+            "pair:sht_first");
     memory->grow(sht_num,nmax,"pair:sht_num");
     memory->grow(NCo,nmax,"pair:NCo");
     memory->grow(bbij,nmax,nmax,"pair:bbij");
@@ -596,42 +596,42 @@ void PairCombOMP::Short_neigh_thr()
 
     if (iifrom < inum) {
       for (ii = iifrom; ii < iito; ii++) {
-	i = ilist[ii];
+        i = ilist[ii];
 
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
-	if(pgsize - npntj < oneatom) {
-	  npntj = 0;
-	  npage += nthreads;
-	  if (npage >= maxpage) add_pages(nthreads);
-	}
- 
-	neighptrj = &pages[npage][npntj];
-	nj = 0;
+        if(pgsize - npntj < oneatom) {
+          npntj = 0;
+          npage += nthreads;
+          if (npage >= maxpage) add_pages(nthreads);
+        }
 
-	xtmp = x[i][0];
-	ytmp = x[i][1];
-	ztmp = x[i][2];
+        neighptrj = &pages[npage][npntj];
+        nj = 0;
 
-	jlist = firstneigh[i];
-	jnum = numneigh[i];
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
 
-	for (jj = 0; jj < jnum; jj++) {
-	  j = jlist[jj];
-	  j &= NEIGHMASK;
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
 
-	  delrj[0] = xtmp - x[j][0];
-	  delrj[1] = ytmp - x[j][1];
-	  delrj[2] = ztmp - x[j][2];
-	  rsq = vec3_dot(delrj,delrj);
-      
-	  if (rsq > cutmin) continue;
-	  neighptrj[nj++] = j;
-	}
-	sht_first[i] = neighptrj;
-	sht_num[i] = nj;
-	npntj += nj;
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+
+          delrj[0] = xtmp - x[j][0];
+          delrj[1] = ytmp - x[j][1];
+          delrj[2] = ztmp - x[j][2];
+          rsq = vec3_dot(delrj,delrj);
+
+          if (rsq > cutmin) continue;
+          neighptrj[nj++] = j;
+        }
+        sht_first[i] = neighptrj;
+        sht_num[i] = nj;
+        npntj += nj;
       }
     }
   }

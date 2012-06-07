@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -57,11 +57,11 @@ ComputeCoordAtom::~ComputeCoordAtom()
 
 void ComputeCoordAtom::init()
 {
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute coord/atom requires a pair style be defined");
-  if (sqrt(cutsq) > force->pair->cutforce) 
+  if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,
-	       "Compute coord/atom cutoff is longer than pairwise cutoff");
+               "Compute coord/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -131,14 +131,14 @@ void ComputeCoordAtom::compute_peratom()
 
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq < cutsq) n++;
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) n++;
       }
 
       coordination[i] = n;

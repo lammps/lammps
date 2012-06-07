@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -96,13 +96,13 @@ void ImproperHarmonic::compute(int eflag, int vflag)
     ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
     ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
     ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
-        
+
     r1 = sqrt(ss1);
     r2 = sqrt(ss2);
     r3 = sqrt(ss3);
-        
+
     // sin and cos of angle
-        
+
     c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * r1 * r3;
     c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
     c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
@@ -124,23 +124,23 @@ void ImproperHarmonic::compute(int eflag, int vflag)
       int me;
       MPI_Comm_rank(world,&me);
       if (screen) {
-	char str[128];
-	sprintf(str,
-		"Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
-		me,update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,
+                "Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
+                me,update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
-    
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
@@ -212,7 +212,7 @@ void ImproperHarmonic::compute(int eflag, int vflag)
 
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
-	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
   }
 }
 
@@ -259,7 +259,7 @@ void ImproperHarmonic::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void ImproperHarmonic::write_restart(FILE *fp)
@@ -269,7 +269,7 @@ void ImproperHarmonic::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void ImproperHarmonic::read_restart(FILE *fp)

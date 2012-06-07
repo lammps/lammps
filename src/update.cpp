@@ -356,7 +356,7 @@ void Update::reset_timestep(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    reset timestep
-   trigger reset of timestep for output and fixes that require it
+   trigger reset of timestep for output and for fixes that require it
    do not allow any timestep-dependent fixes to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
    reset invoked flags of computes,

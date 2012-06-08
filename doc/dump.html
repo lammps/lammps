@@ -104,7 +104,9 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce
 timesteps in one of several styles.  The <I>image</I> style is the
 exception; it creates a JPG or PPM image file of the atom
 configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
-image</A> doc page.
+image</A> doc page.  The timesteps on which dump output
+is written can also be controlled by a variable. See the <A HREF = "dump_modify.html">dump_modify
+every</A> command.
 </P>
 <P>Only information for atoms in the specified group is dumped.  The
 <A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also

@@ -355,6 +355,7 @@ the "dump"_dump.html command to a new value.  The every keyword can be
 specified in one of two ways.  It can be a numeric value in which case
 it must be > 0.  Or it can be an "equal-style variable"_variable.html,
 which should be specified as v_name, where name is the variable name.
+
 In this case, the variable is evaluated at the beginning of a run to
 determine the next timestep at which a dump snapshot will be written
 out.  On that timestep, the variable will be evaluated again to

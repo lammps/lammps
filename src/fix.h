@@ -145,6 +145,7 @@ class Fix : protected Pointers {
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
+  virtual void reset_timestep(bigint) {}
 
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *) {}

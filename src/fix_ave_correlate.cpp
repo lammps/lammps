@@ -53,8 +53,6 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nfreq = atoi(arg[5]);
 
   global_freq = nfreq;
-  time_depend = 1;
-
   // parse values until one isn't recognized
 
   which = new int[narg-6];
@@ -591,4 +589,11 @@ bigint FixAveCorrelate::nextvalid()
   if (startstep > nvalid) nvalid = startstep;
   if (nvalid % nevery) nvalid = (nvalid/nevery)*nevery + nevery;
   return nvalid;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveCorrelate::reset_timestep(bigint ntimestep)
+{
+  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/correlate missed timestep");
 }

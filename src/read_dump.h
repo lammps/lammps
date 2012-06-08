@@ -48,7 +48,7 @@ private:
   int dimension;
   int triclinic;
 
-  int nfiles;              // # of dump files to process
+  int nfile;               // # of dump files to process
   char **files;            // list of file names
   int currentfile;         // currently open file
 

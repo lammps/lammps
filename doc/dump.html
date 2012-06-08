@@ -305,7 +305,9 @@ changed via the <A HREF = "dump_modify.html">dump_modify first</A> command, whic
 can be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
 using the <A HREF = "dump_modify.html">dump_modify every</A> command (not allowed
-for <I>dcd</I> style).
+for <I>dcd</I> style).  The <A HREF = "dump_modify.html">dump_modify every</A> command
+also allows a variable to be used to determine the sequence of
+timesteps on which dump files are written.
 </P>
 <P>The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the

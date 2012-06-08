@@ -405,6 +405,12 @@ listed in the same order they appear as listed above.  Thus if
 </P>
 <PRE>atom-ID atom-type x y z q diameter density 
 </PRE>
+<P>Note that if a non-standard value is defined by multiple sub-styles,
+it must appear mutliple times in the atom line.  E.g. the atom line
+for atom_style hybrid dipole full would list "q" twice:
+</P>
+<PRE>atom-ID atom-type x y z q mux muy myz molecule-ID q 
+</PRE>
 <P>Atom lines (all lines or none of them) can optionally list 3 trailing
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the simulation box the atom is considered to be in.  An image
@@ -792,7 +798,8 @@ orientation may be important for defining some interactions.
 <TR><TD >dipole</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
 <TR><TD >electron</TD><TD > atom-ID vx vy vz ervel</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
-<TR><TD >sphere</TD><TD > atom-ID vx vy vz wx wy wz 
+<TR><TD >sphere</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
+<TR><TD >hybrid</TD><TD > atom-ID vx vy vz sub-style1 sub-style2 ... 
 </TD></TR></TABLE></DIV>
 
 <P>where the keywords have these meanings:
@@ -811,6 +818,28 @@ can be assigned to them.
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
 Wz are in units of angular velocity (radians/time).
 </P>
+<P>For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
+specific values for each sub-style must be listed.  The order of the
+sub-styles is the same as they were listed in the
+<A HREF = "atom_style.html">atom_style</A> command.  The sub-style specific values
+are those that are not the 5 standard ones (ID,vx,vy,vz).  For
+example, for the "sphere" sub-style, "wx", "wy", "wz" values would
+appear.  These are listed in the same order they appear as listed
+above.  Thus if
+</P>
+<PRE>atom_style hybrid electron sphere 
+</PRE>
+<P>were used in the input script, each velocity line would have these
+fields:
+</P>
+<PRE>atom-ID vx vy vz ervel wx wy wz 
+</PRE>
+<P>Note that if a non-standard value is defined by multiple sub-styles,
+it must appear mutliple times in the velocity line.  E.g. the velocity
+line for atom_style hybrid dipole sphere would list "wx" twice:
+</P>
+<PRE>atom-ID vx vy vz wx wy wz wx wy wz 
+</PRE>
 <P>Translational velocities can also be set by the
 <A HREF = "velocity.html">velocity</A> command in the input script.
 </P>

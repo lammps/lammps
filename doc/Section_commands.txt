@@ -285,9 +285,9 @@ Output:
 Actions:
 
 "delete_atoms"_delete_atoms.html, "delete_bonds"_delete_bonds.html,
-"displace_atoms"_displace_atoms.html,
-"change_box"_change_box.html, "minimize"_minimize.html,
-"neb"_neb.html "prd"_prd.html, "run"_run.html, "temper"_temper.html
+"displace_atoms"_displace_atoms.html, "change_box"_change_box.html,
+"minimize"_minimize.html, "neb"_neb.html "prd"_prd.html,
+"rerun"_rerun.html, "run"_run.html, "temper"_temper.html
 
 Miscellaneous:
 
@@ -372,6 +372,7 @@ in the command's documentation.
 "read_restart"_read_restart.html,
 "region"_region.html,
 "replicate"_replicate.html,
+"rerun"_rerun.html,
 "reset_timestep"_reset_timestep.html,
 "restart"_restart.html,
 "run"_run.html,

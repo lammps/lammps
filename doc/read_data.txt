@@ -381,6 +381,12 @@ were used in the input script, each atom line would have these fields:
 
 atom-ID atom-type x y z q diameter density :pre
 
+Note that if a non-standard value is defined by multiple sub-styles,
+it must appear mutliple times in the atom line.  E.g. the atom line
+for atom_style hybrid dipole full would list "q" twice:
+
+atom-ID atom-type x y z q mux muy myz molecule-ID q :pre
+
 Atom lines (all lines or none of them) can optionally list 3 trailing
 integer values: nx,ny,nz.  For periodic dimensions, they specify which
 image of the simulation box the atom is considered to be in.  An image
@@ -700,7 +706,8 @@ all styles except those listed: atom-ID vx vy vz
 dipole: atom-ID vx vy vz wx wy wz
 electron: atom-ID vx vy vz ervel
 ellipsoid: atom-ID vx vy vz lx ly lz
-sphere: atom-ID vx vy vz wx wy wz :tb(s=:)
+sphere: atom-ID vx vy vz wx wy wz
+hybrid: atom-ID vx vy vz sub-style1 sub-style2 ... :tb(s=:)
 
 where the keywords have these meanings:
 
@@ -717,6 +724,28 @@ can be assigned to them.
 Vx, vy, vz, and ervel are in "units"_units.html of velocity.  Lx, ly,
 lz are in units of angular momentum (distance-velocity-mass).  Wx, Wy,
 Wz are in units of angular velocity (radians/time).
+
+For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),
+specific values for each sub-style must be listed.  The order of the
+sub-styles is the same as they were listed in the
+"atom_style"_atom_style.html command.  The sub-style specific values
+are those that are not the 5 standard ones (ID,vx,vy,vz).  For
+example, for the "sphere" sub-style, "wx", "wy", "wz" values would
+appear.  These are listed in the same order they appear as listed
+above.  Thus if
+
+atom_style hybrid electron sphere :pre
+
+were used in the input script, each velocity line would have these
+fields:
+
+atom-ID vx vy vz ervel wx wy wz :pre
+
+Note that if a non-standard value is defined by multiple sub-styles,
+it must appear mutliple times in the velocity line.  E.g. the velocity
+line for atom_style hybrid dipole sphere would list "wx" twice:
+
+atom-ID vx vy vz wx wy wz wx wy wz :pre
 
 Translational velocities can also be set by the
 "velocity"_velocity.html command in the input script.

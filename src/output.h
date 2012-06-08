@@ -64,6 +64,7 @@ class Output : protected Pointers {
   void write(bigint);                // output for current timestep
   void write_dump(bigint);           // force output of dump snapshots
   void write_restart(bigint);        // force output of a restart file
+  void reset_timestep(bigint);       // reset next timestep for all output
 
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump

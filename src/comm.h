@@ -42,12 +42,12 @@ class Comm : protected Pointers {
   virtual ~Comm();
 
   virtual void init();
-  virtual void set_proc_grid();               // setup 3d grid of procs
-  virtual void setup();                       // setup 3d comm pattern
-  virtual void forward_comm(int dummy = 0);   // forward comm of atom coords
-  virtual void reverse_comm();                // reverse comm of forces
-  virtual void exchange();                    // move atoms to new procs
-  virtual void borders();                     // setup list of atoms to comm
+  virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
+  virtual void setup();                        // setup 3d comm pattern
+  virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
+  virtual void reverse_comm();                 // reverse comm of forces
+  virtual void exchange();                     // move atoms to new procs
+  virtual void borders();                      // setup list of atoms to comm
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair

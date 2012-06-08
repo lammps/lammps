@@ -154,7 +154,7 @@ Comm::~Comm()
    map processors to grid, setup xyz split for a uniform grid
 ------------------------------------------------------------------------- */
 
-void Comm::set_proc_grid()
+void Comm::set_proc_grid(int outflag)
 {
   // recv 3d proc grid of another partition if my 3d grid depends on it
 
@@ -237,7 +237,7 @@ void Comm::set_proc_grid()
 
   // print 3d grid info to screen and logfile
 
-  if (me == 0) {
+  if (outflag && me == 0) {
     if (screen) {
       fprintf(screen,"  %d by %d by %d MPI processor grid\n",
               procgrid[0],procgrid[1],procgrid[2]);

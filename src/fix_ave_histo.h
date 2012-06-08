@@ -35,6 +35,7 @@ class FixAveHisto : public Fix {
   void end_of_step();
   double compute_vector(int);
   double compute_array(int,int);
+  void reset_timestep(bigint);
 
  private:
   int me,nvalues;

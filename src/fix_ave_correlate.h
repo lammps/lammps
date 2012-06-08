@@ -34,6 +34,7 @@ class FixAveCorrelate : public Fix {
   void setup(int);
   void end_of_step();
   double compute_array(int,int);
+  void reset_timestep(bigint);
 
  private:
   int me,nvalues;

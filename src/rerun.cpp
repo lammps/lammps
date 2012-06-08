@@ -123,7 +123,6 @@ void Rerun::command(int narg, char **arg)
   // read all relevant snapshots
   // uset setup_minimal() since atoms are already owned by correct procs
   // addstep_compute_all() insures energy/virial computed on every snapshot
-  // set update->nsteps to ndump for Finish stats to print
 
   update->whichflag = 1;
 
@@ -153,7 +152,7 @@ void Rerun::command(int narg, char **arg)
     modify->addstep_compute_all(ntimestep);
     update->integrate->setup_minimal(1);
     modify->end_of_step();
-    if (firstflag) output->setup(firstflag,firstflag);
+    if (firstflag) output->setup();
     else if (output->next) output->write(ntimestep);
 
     firstflag = 0;
@@ -161,9 +160,16 @@ void Rerun::command(int narg, char **arg)
     if (ntimestep < 0) break;
   }
 
+  // insure thermo output on last dump timestep
+
+  output->next_thermo = ntimestep;
+  output->write(ntimestep);
+
   timer->barrier_stop(TIME_LOOP);
 
   update->integrate->cleanup();
+
+  // set update->nsteps to ndump for Finish stats to print
 
   update->nsteps = ndump;
 

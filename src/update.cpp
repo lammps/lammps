@@ -362,6 +362,7 @@ void Update::reset_timestep(int narg, char **arg)
    reset invoked flags of computes,
      so nothing will think they are current between runs
    clear timestep list of computes that store future invocation times
+   called from input script and rerun command
 ------------------------------------------------------------------------- */
 
 void Update::reset_timestep(bigint newstep)
@@ -376,7 +377,7 @@ void Update::reset_timestep(bigint newstep)
     if (modify->fix[i]->time_depend)
       error->all(FLERR,
                  "Cannot reset timestep with a time-dependent fix defined");
-    modify->fix[i]->reset_timestep(newstep);
+    modify->fix[i]->reset_timestep(ntimestep);
   }
 
   eflag_global = vflag_global = -1;

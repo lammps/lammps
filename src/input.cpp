@@ -1350,10 +1350,7 @@ void Input::suffix()
 
 void Input::thermo()
 {
-  if (narg != 1) error->all(FLERR,"Illegal thermo command");
-  int n = atoi(arg[0]);
-  if (n < 0) error->all(FLERR,"Illegal thermo command");
-  output->thermo_every = n;
+  output->set_thermo(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

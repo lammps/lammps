@@ -13,7 +13,7 @@ thermo_modify command :h3
 thermo_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press} or {every} :l
+keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}:l
   {lost} value = {error} or {warn} or {ignore}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
@@ -23,8 +23,6 @@ keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}
     string = C-style format string
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
-  {every} value = v_name
-    v_name = an equal-style variable name :pre
 :ule
 
 [Examples:]
@@ -139,33 +137,6 @@ the {temp} keyword comes before the {press} keyword, then the new
 pressure compute specified by the {press} keyword will be unaffected
 by the {temp} setting.
 
-The {every} keyword allows a variable to be specified which will
-determine which timesteps thermodynamic output is generated.  It must
-be an "equal-style variable"_variable.html, and is specified as
-v_name, where name is the variable name.  The variable is evaluated at
-the beginning of a run to determine the next timestep at which a dump
-snapshot will be written out.  On that timestep, the variable will be
-evaluated again to determine the next timestep, etc.  Thus the
-variable should return timestep values.  See the stagger() and
-logfreq() and stride() math functions for "equal-style
-variables"_variable.html, as examples of useful functions to use in
-this context.  Other similar math functions could easily be added as
-options for "equal-style variables"_variable.html.  In addition,
-thermodynamic output will always occur on the first and last timestep
-of each run.
-
-For example, the following commands will output thermodynamic info at
-timesteps 0,10,20,30,100,200,300,1000,2000,etc:
-
-variable	s equal logfreq(10,3,10)
-thermo_modify	1 every v_s :pre
-
-Note that the {every} keyword overrides the output frequency setting
-made by the "thermo"_thermo.html command, by setting it to 0.  If the
-"thermo"_thermo.html command is later used to set the output frequency
-to a non-zero value, then the variable setting of the thermo_modify
-every command will be overridden.
-
 [Restrictions:] none
 
 [Related commands:]
@@ -176,8 +147,7 @@ every command will be overridden.
 
 The option defaults are lost = error, norm = yes for unit style of
 {lj}, norm = no for unit style of {real} and {metal}, flush = no,
-temp/press = compute IDs defined by thermo_style, every = non-variable
-setting provided by the "thermo"_thermo.html command.
+and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults

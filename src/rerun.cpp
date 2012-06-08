@@ -162,8 +162,8 @@ void Rerun::command(int narg, char **arg)
 
   // insure thermo output on last dump timestep
 
-  output->next_thermo = ntimestep;
-  output->write(ntimestep);
+  output->next_thermo = update->ntimestep;
+  output->write(update->ntimestep);
 
   timer->barrier_stop(TIME_LOOP);
 

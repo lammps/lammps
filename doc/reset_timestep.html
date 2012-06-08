@@ -25,8 +25,9 @@ reset_timestep 4000000
 <P><B>Description:</B>
 </P>
 <P>Set the timestep counter to the specified value.  This command
-normally comes after the timestep has been set by reading it in from a
-file or a previous simulation advanced the timestep.
+normally comes after the timestep has been set by reading a restart
+file via the <A HREF = "read_restart.html">read_restart</A> command, or a previous
+simulation advanced the timestep.
 </P>
 <P>The <A HREF = "read_data.html">read_data</A> and <A HREF = "create_box.html">create_box</A>
 commands set the timestep to 0; the <A HREF = "read_restart.html">read_restart</A>
@@ -35,41 +36,30 @@ was written.
 </P>
 <P><B>Restrictions:</B> none
 </P>
-<P>This command cannot be used when a dump file is defined via the
-<A HREF = "dump.html">dump</A> command and has already been written to.  It also
-cannot be used when a <A HREF = "restart.html">restart frequency</A> has been set,
-and a restart file has already been written.  This is because the
-changed timestep can mess up the planned timestep for the next file
-write.  See the <A HREF = "undump.html">undump</A> command or <A HREF = "restart.html">restart
-0</A> command for info on how to turn off these definitions
-if necessary.  New specifications for dump and restart files can be
-given after the reset_timestep command is used.
-</P>
 <P>This command cannot be used when any fixes are defined that keep track
-of elapsed time to perform time-dependent operations.  Examples
-include the "ave" fixes such as <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A>.  Also <A HREF = "fix_dt_reset.html">fix
-dt/reset</A> and <A HREF = "fix_deposit.html">fix deposit</A>.
+of elapsed time to perform certain kinds of time-dependent operations.
+Examples are the <A HREF = "fix_deposit.html">fix deposit</A> and <A HREF = "fix_dt_reset.html">fix
+dt/reset</A> commands.  The former adds atoms on
+specific timesteps.  The latter keeps track of accumulated time.
 </P>
-<P>This command cannot be used when any dynamic regions are defined via
-the <A HREF = "region.html">region</A> command, which have time-dependent position
-and orientation.
+<P>Various fixes use the current timestep to calculate related
+quantities.  If the timestep is reset, this may produce unexpected
+behavior, but LAMMPS allows the fixes to be defined even if the
+timestep is reset.  For example, commands which thermostat the system,
+e.g. <A HREF = "fix_nh.html">fix nvt</A>, allow you to specify a target temperature
+which ramps from Tstart to Tstop which may persist over several runs.
+If you change the timestep, you may induce an instantaneous change in
+the target temperature.
 </P>
-<P>There are other fixes which use the current timestep which may produce
-unexpected behavior, but LAMMPS allows them to be in place when
-resetting the timestep.  For example, commands which thermostat the
-system, e.g. <A HREF = "fix_nh.html">fix nvt</A>, allow you to specify a target
-temperature which ramps from Tstart to Tstop which may persist over
-several runs.  If you change the timestep, you may change the target
-temperature.
+<P>Resetting the timestep clears flags for <A HREF = "compute.html">computes</A> that
+may have calculated some quantity from a previous run.  This means
+these quantity cannot be accessed by a variable in between runs until
+a new run is performed.  See the <A HREF = "variable.html">variable</A> command for
+more details.
 </P>
-<P>Resetting the timestep will clear the flags for <A HREF = "compute.html">computes</A>
-that may have calculated some quantity from a previous run.  This
-means that quantity cannot be accessed by a variable in between runs
-until a new run is performed.  See the <A HREF = "variable.html">variable</A>
-command for more details.
+<P><B>Related commands:</B>
 </P>
-<P><B>Related commands:</B> none
+<P><A HREF = "rerun.html">rerun</A>
 </P>
 <P><B>Default:</B> none
 </P>

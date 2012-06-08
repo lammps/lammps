@@ -58,7 +58,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = nfreq;
   no_change_box = 1;
-  time_depend = 1;
 
   ndim = 0;
   int iarg = 6;
@@ -1281,4 +1280,11 @@ double FixAveSpatial::memory_usage()
   bytes += nwindow*nbins * sizeof(double);          // count_list
   bytes += nwindow*nbins*nvalues * sizeof(double);  // values_list
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAveSpatial::reset_timestep(bigint ntimestep)
+{
+  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/spatial missed timestep");
 }

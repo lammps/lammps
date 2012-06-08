@@ -294,7 +294,9 @@ changed via the "dump_modify first"_dump_modify.html command, which
 can be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
 using the "dump_modify every"_dump_modify.html command (not allowed
-for {dcd} style).
+for {dcd} style).  The "dump_modify every"_dump_modify.html command
+also allows a variable to be used to determine the sequence of
+timesteps on which dump files are written.
 
 The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the

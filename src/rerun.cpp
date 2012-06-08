@@ -138,7 +138,7 @@ void Rerun::command(int narg, char **arg)
   lmp->init();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start(Timer::LOOP);
 
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
@@ -161,7 +161,7 @@ void Rerun::command(int narg, char **arg)
     if (ntimestep < 0) break;
   }
 
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop(Timer::LOOP);
 
   update->integrate->cleanup();
 

@@ -104,7 +104,9 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce
 timesteps in one of several styles.  The <I>image</I> style is the
 exception; it creates a JPG or PPM image file of the atom
 configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
-image</A> doc page.
+image</A> doc page.  The timesteps on which dump output
+is written can also be controlled by a variable. See the <A HREF = "dump_modify.html">dump_modify
+every</A> command.
 </P>
 <P>Only information for atoms in the specified group is dumped.  The
 <A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also
@@ -145,8 +147,8 @@ individual values and the file itself.
 <P>The <I>atom</I>, <I>local</I>, and <I>custom</I> styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Many of the
 LAMMPS <A HREF = "Section_tools.html">post-processing tools</A>, including
-<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>, work with
-this format.  
+<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A>, work with this
+format, as does the <A HREF = "rerun.html">rerun</A> fommand.
 </P>
 <P>For post-processing purposes the <I>atom</I> and <I>custom</I> text files are
 self-describing in the following sense.

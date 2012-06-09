@@ -17,9 +17,8 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I> or <I>every</I> 
-
-<PRE>  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
+keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I>:l
+  <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
   <I>norm</I> value = <I>yes</I> or <I>no</I>
   <I>flush</I> value = <I>yes</I> or <I>no</I>
   <I>line</I> value = <I>one</I> or <I>multi</I>
@@ -28,9 +27,6 @@
     string = C-style format string
   <I>temp</I> value = compute ID that calculates a temperature
   <I>press</I> value = compute ID that calculates a pressure
-  <I>every</I> value = v_name
-    v_name = an equal-style variable name 
-</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -145,33 +141,6 @@ the <I>temp</I> keyword comes before the <I>press</I> keyword, then the new
 pressure compute specified by the <I>press</I> keyword will be unaffected
 by the <I>temp</I> setting.
 </P>
-<P>The <I>every</I> keyword allows a variable to be specified which will
-determine which timesteps thermodynamic output is generated.  It must
-be an <A HREF = "variable.html">equal-style variable</A>, and is specified as
-v_name, where name is the variable name.  The variable is evaluated at
-the beginning of a run to determine the next timestep at which a dump
-snapshot will be written out.  On that timestep, the variable will be
-evaluated again to determine the next timestep, etc.  Thus the
-variable should return timestep values.  See the stagger() and
-logfreq() and stride() math functions for <A HREF = "variable.html">equal-style
-variables</A>, as examples of useful functions to use in
-this context.  Other similar math functions could easily be added as
-options for <A HREF = "variable.html">equal-style variables</A>.  In addition,
-thermodynamic output will always occur on the first and last timestep
-of each run.
-</P>
-<P>For example, the following commands will output thermodynamic info at
-timesteps 0,10,20,30,100,200,300,1000,2000,etc:
-</P>
-<PRE>variable	s equal logfreq(10,3,10)
-thermo_modify	1 every v_s 
-</PRE>
-<P>Note that the <I>every</I> keyword overrides the output frequency setting
-made by the <A HREF = "thermo.html">thermo</A> command, by setting it to 0.  If the
-<A HREF = "thermo.html">thermo</A> command is later used to set the output frequency
-to a non-zero value, then the variable setting of the thermo_modify
-every command will be overridden.
-</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -182,8 +151,7 @@ every command will be overridden.
 </P>
 <P>The option defaults are lost = error, norm = yes for unit style of
 <I>lj</I>, norm = no for unit style of <I>real</I> and <I>metal</I>, flush = no,
-temp/press = compute IDs defined by thermo_style, every = non-variable
-setting provided by the <A HREF = "thermo.html">thermo</A> command.
+and temp/press = compute IDs defined by thermo_style.
 </P>
 <P>The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults

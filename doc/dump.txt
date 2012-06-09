@@ -8,6 +8,7 @@
    
 dump command :h3
 "dump image"_dump_image.html command :h3
+"dump molfile"_dump_molfile.html command :h3
 
 [Syntax:]
 
@@ -15,7 +16,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {local} or {custom} :l
+style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {molfile} or {local} or {custom} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -26,6 +27,8 @@ args = list of arguments for a particular style :l
   {xyz} args = none :pre
 
   {image} args = discussed on "dump image"_dump_image.html doc page :pre
+
+  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page :pre
 
   {local} args = list of local attributes
     possible attributes = index, c_ID, c_ID\[N\], f_ID, f_ID\[N\]
@@ -122,9 +125,9 @@ parallel, because data for a single snapshot is collected from
 multiple processors.
 
 For the {atom}, {custom}, {cfg}, and {local} styles, sorting is off by
-default.  For the {dcd}, {xtc}, and {xyz} styles, sorting by atom ID
-is on by default.  See the "dump_modify"_dump_modify.html doc page for
-details.
+default.  For the {dcd}, {xtc}, {xyz}, and {molfile} styles, sorting by
+atom ID is on by default. See the "dump_modify"_dump_modify.html doc
+page for details.
 
 :line
 
@@ -279,11 +282,11 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 
-Note that DCD, XTC, and XYZ formatted files can be read directly by
-"VMD"_http://www.ks.uiuc.edu/Research/vmd (a popular molecular viewing
-program).  See "Section tools"_Section_tools.html#vmd of the manual
-and the tools/lmp2vmd/README.txt file for more information about
-support in VMD for reading and visualizing LAMMPS dump files.
+Note that {atom}, {custom}, {dcd}, {xtc}, and {xyz} style dump files can
+be read directly by "VMD"_http://www.ks.uiuc.edu/Research/vmd (a popular
+molecular viewing program).  See "Section tools"_Section_tools.html#vmd
+of the manual and the tools/lmp2vmd/README.txt file for more information
+about support in VMD for reading and visualizing LAMMPS dump files.
 
 :line
 

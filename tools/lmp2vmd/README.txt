@@ -1,16 +1,15 @@
-This directory used to contain utility scripts for using VMD to
-visualize and analyze LAMMPS trajectories. As of April 2010 all of the
-scripts and many additional features have been merged into the
-topotools plugin that is shipped with VMD.  Please see
-http://www.ks.uiuc.edu/Research/vmd/plugins/topotools and
-http://sites.google.com/site/akohlmey/software/topotools for more
-details about the latest version of VMD.
+This directory  used    to contain utility  scripts  for   using  VMD to
+visualize and analyze LAMMPS  trajectories. As of  April 2010 all of the
+scripts and many additional features have been merged into the topotools
+plugin that is bundled with VMD. Updates between VMD releases are here:
+http://sites.google.com/site/akohlmey/software/topotools
+This page also contains detailed documentation and some tutorials.
 
-The scripts within VMD are maintained by Axel Kohlmeyer
-<akohlmey@gmail.com>; please contact him through the LAMMPS mailing
-list in case of problems.
+These scripts within VMD and the plugin for native LAMMPS dump files are
+are  maintained  by Axel Kohlmeyer <akohlmey@gmail.com>;  please contact
+him through the LAMMPS mailing list in case of problems.
 
-Below are a few comment on support for LAMMPS in VMD.
+Below are a few comments on support for LAMMPS in VMD.
 
 -------------------------
 
@@ -20,25 +19,26 @@ Below are a few comment on support for LAMMPS in VMD.
    that LAMMPS can generate. Supported are: atom (text mode), custom
    (text mode, only some fields are directly supported, please see
    below for more details), dcd, xyz and xtc.  Cfg and binary native
-   dump files are not supported (04/2010).
+   dump files are not supported (06/2012). The new molfile dump style
+   in addition allows to use VMD molfile plugins to write dumps in
+   any format that is supported by VMD.
 
-   VMD requires all frames of a file to have the same number of
-   atoms. If the number of atoms changes between two frames, the file
+   However VMD requires all frames of a file to have the same number of
+   atoms.  If the number of atoms changes between two frames,  the file
    reader will stop. The topotools plugin has a special scripted file
-   reader for .xyz files that can generate the necessary padding so
-   that the file can still be read into VMD.  Whether an atom is real
-   or "invisible" is then flagged in the "user" field.  For efficiency
+   reader for .xyz files that can generate the necessary padding so that
+   the file can still be read into VMD.  Whether an atom is real or 
+   "invisible" is then flagged in the "user" field.  For efficiency
    reasons this script will not preserve atom identity between frames.
 
 2. Topology files, a.k.a. as "data" files
 
-   The topotools plugin also contains a read and write option for
-   LAMMPS data files. This reader will try to preserve as much
-   information as possible and will also store useful information as
-   comments upon writing. It does not store or read coefficient data
-   and it cannot handle class2 force fields.  In combination with
-   other functionality in topotools complete topologies for rather
-   complicated systems can be build.
+   The topotools plugin also contains a read and write option for LAMMPS
+   data files. This reader will try to preserve as much information as 
+   possible and will also store useful information as comments upon
+   writing. It does not store or read coefficient data.  In combination
+   with other functionality in topotools complete topologies for rather
+   complicated systems for LAMMPS can be build with VMD scripting.
 
 3. Reading custom data fields into VMD
 

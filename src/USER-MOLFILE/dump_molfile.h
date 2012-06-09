@@ -31,14 +31,17 @@ class DumpMolfile : public Dump {
   virtual void write();
 
  protected:
-  class MolfileInterface *mf;
-  float *coords, *vels;
-  int   *types;
+  class MolfileInterface *mf; //< handles low-level I/O
+  // per-atom data
+  float *coords, *vels, *masses, *charges, *radiuses;
+  int   *types, *molids;
   char **typenames;
+
   int natoms,me,ntotal,ntypes;
   int need_structure;
   int unwrap_flag;   // 1 if writing unwrapped atom coords, 0 if not
   int velocity_flag; // 1 if writing velocities, 0 if not
+  int topology_flag; // 1 if writing topology data, 0 if not
   float cell[6];     // cell parameters: A, B, C, alpha, beta, gamma
 
   virtual void init_style();

@@ -23,9 +23,9 @@ path = file path with plugins (optional) :l
 
 [Examples:]
 
-dump mf1 all molfile 10 melt1.xml hoomd .
+dump mf1 all molfile 10 melt1.xml hoomd
 dump mf2 all molfile 10 melt2-*.pdb pdb .
-dump mf3 all molfile 50 melt3.xyz xyz .:/home/akohlmey/vmd/plugins/LINUX/molfile
+dump mf3 all molfile 50 melt3.xyz xyz .:/home/akohlmey/vmd/plugins/LINUX/molfile :pre
 
 [Description:]
 
@@ -38,9 +38,9 @@ analysis program.  See "Section tools"_Section_tools.html#vmd of the
 manual and the tools/lmp2vmd/README.txt file for more information about
 support in VMD for reading and visualizing native LAMMPS dump files.
 
-Unless the filename contains a '*' character, the output will be written
+Unless the filename contains a * character, the output will be written
 to one single file with the specified format. Otherwise there will be
-one file per snapshot and the '*' will be replaced by the time step number
+one file per snapshot and the * will be replaced by the time step number
 when the snapshot is written.
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
@@ -113,6 +113,8 @@ from VMD that match the binary plugins.  These header files in the
 directory: <VMDHOME>/plugins/include For convenience, the package ships
 with a set of header files that are compatible with VMD 1.9 and 1.9.1
 (June 2012)
+
+:line
 
 [Related commands:]
 

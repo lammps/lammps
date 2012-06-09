@@ -49,7 +49,6 @@ class Balance : protected Pointers {
   bigint *counts[3];
   double *cuts;
   bigint *onecount;
-  MPI_Comm commslice[3];
 
   int *pcount,*allcount;
 

@@ -69,9 +69,6 @@ Balance::~Balance()
     delete [] counts[2];
     delete [] cuts;
     delete [] onecount;
-    //MPI_Comm_free(&commslice[0]);
-    //MPI_Comm_free(&commslice[1]);
-    //MPI_Comm_free(&commslice[2]);
   }
 
   if (fp) fclose(fp);
@@ -440,10 +437,6 @@ void Balance::dynamic_setup(char *str)
   max = MAX(max,comm->procgrid[2]);
   cuts = new double[max+1];
   onecount = new bigint[max];
-
-  //MPI_Comm_split(world,comm->myloc[0],0,&commslice[0]);
-  //MPI_Comm_split(world,comm->myloc[1],0,&commslice[1]);
-  //MPI_Comm_split(world,comm->myloc[2],0,&commslice[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -489,7 +482,6 @@ int Balance::dynamic_once()
 #endif
       }
       imbfactor = imbalance_splits(max);
-      //if (comm->me == 0) printf("AAA %d %d %g\n",irepeat,i,imbfactor);
       if (imbfactor <= thresh) break;
     }
     if (i < nops) break;

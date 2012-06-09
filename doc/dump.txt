@@ -93,7 +93,9 @@ Dump a snapshot of atom quantities to one or more files every N
 timesteps in one of several styles.  The {image} style is the
 exception; it creates a JPG or PPM image file of the atom
 configuration every N timesteps, as discussed on the "dump
-image"_dump_image.html doc page.
+image"_dump_image.html doc page.  The timesteps on which dump output
+is written can also be controlled by a variable. See the "dump_modify
+every"_dump_modify.html command.
 
 Only information for atoms in the specified group is dumped.  The
 "dump_modify thresh and region"_dump_modify.html commands can also
@@ -134,8 +136,8 @@ individual values and the file itself.
 The {atom}, {local}, and {custom} styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Many of the
 LAMMPS "post-processing tools"_Section_tools.html, including
-"Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html, work with
-this format.  
+"Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html, work with this
+format, as does the "rerun"_rerun.html fommand.
 
 For post-processing purposes the {atom} and {custom} text files are
 self-describing in the following sense.

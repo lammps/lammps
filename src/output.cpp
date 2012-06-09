@@ -513,11 +513,10 @@ void Output::reset_timestep(bigint ntimestep)
     update->ntimestep++;
     next_thermo = MIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);
-  } else {
-    next_thermo = (ntimestep/thermo_every)*thermo_every;
-    if (next_thermo < ntimestep) next_thermo += thermo_every;
+  } else if (thermo_every) {
+    next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
     next_thermo = MIN(next_thermo,update->laststep);
-  }
+  } else next_thermo = update->laststep;
 
   next = MIN(next_dump_any,next_restart);
   next = MIN(next,next_thermo);

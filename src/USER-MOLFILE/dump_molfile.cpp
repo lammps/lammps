@@ -77,7 +77,6 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   types = molids = NULL;
   ntypes = atom->ntypes;
   typenames = NULL;
-  
 
   // allocate global array for atom coords
 

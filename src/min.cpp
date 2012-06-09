@@ -278,7 +278,7 @@ void Min::setup()
       requestor[m]->min_xf_get(m);
 
   modify->setup(vflag);
-  output->setup(1,1);
+  output->setup();
 
   // stats for Finish to print
 

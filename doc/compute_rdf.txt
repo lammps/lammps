@@ -116,7 +116,8 @@ also numbers >= 0.0.
 The RDF is not computed for distances longer than the force cutoff,
 since processors (in parallel) don't know about atom coordinates for
 atoms further away than that distance.  If you want an RDF for larger
-distances, you'll need to post-process a dump file.
+distances, you can use the "rerun"_rerun.html command to post-process
+a dump file.
 
 [Related commands:]
 

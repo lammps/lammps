@@ -98,7 +98,7 @@ class PairLCBOP : public Pair {
   void g_decompose_x( double, size_t*, double* );
   double F_conj( double, double, double, double*, double*, double* );
 
-  void add_pages(int howmany=1);
+  void add_pages(int howmany = 1);
   void read_file( char * );
 
   void spline_init();

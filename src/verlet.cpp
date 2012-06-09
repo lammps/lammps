@@ -139,7 +139,7 @@ void Verlet::setup()
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
-  output->setup(1,1);
+  output->setup();
   update->setupflag = 0;
 }
 

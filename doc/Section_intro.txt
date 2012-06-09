@@ -198,7 +198,8 @@ Integrators :h4
   Brownian dynamics
   rigid body integration
   energy minimization via conjugate gradient or steepest descent relaxation
-  rRESPA hierarchical timestepping :ul
+  rRESPA hierarchical timestepping
+  rerun command for post-processing of dump files :ul
 
 Diagnostics :h4
 

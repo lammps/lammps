@@ -56,7 +56,7 @@ extern "C" {
     // make sure we have the proper plugin type (native reader)
     // for the desired file type (called "name" at this level)
     if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
-	&& (strcmp(r->name, p->name) == 0) ) {
+        && (strcmp(r->name, p->name) == 0) ) {
       r->p = static_cast<void *>(p);
     }
     return 0;
@@ -160,13 +160,13 @@ extern "C" {
 #else
     /* Replace with old VMD atom radii values */
     switch (idx) {
-      case  1: return 1.0;    /* H  */
-      case  6: return 1.5;    /* C  */
-      case  7: return 1.4;    /* N  */
-      case  8: return 1.3;    /* O  */
-      case  9: return 1.2;    /* F  */
-      case 15: return 1.5;    /* P  */
-      case 16: return 1.9;    /* S  */ 
+    case  1: return 1.0;    /* H  */
+    case  6: return 1.5;    /* C  */
+    case  7: return 1.4;    /* N  */
+    case  8: return 1.3;    /* O  */
+    case  9: return 1.2;    /* F  */
+    case 15: return 1.5;    /* P  */
+    case 16: return 1.9;    /* S  */ 
     }
 #endif
 
@@ -194,7 +194,7 @@ extern "C" {
     
     for (i=0; i < nr_pte_entries; ++i) {
       if ( (pte_label[i][0] == atom[0])
-	   && (pte_label[i][1] == atom[1]) ) return i;
+           && (pte_label[i][1] == atom[1]) ) return i;
     }
     
     return 0;
@@ -209,18 +209,18 @@ extern "C" {
       atom[0] = atom[1] = atom[2] = '\0';
 
       for (ind=0,i=0; (ind<2) && (label[i]!='\0'); i++) {
-	if (label[i] != ' ') {
-	  atom[ind] = toupper(label[i]);
-	  ind++;
-	}
+        if (label[i] != ' ') {
+          atom[ind] = toupper(label[i]);
+          ind++;
+        }
       }
 
       if (ind < 1)
-	return 0; /* no non-whitespace characters */
+        return 0; /* no non-whitespace characters */
  
       for (i=0; i < nr_pte_entries; ++i) {
-	if ((toupper(pte_label[i][0]) == atom[0]) && (toupper(pte_label[i][1]) == atom[1])) 
-	  return i;
+        if ((toupper(pte_label[i][0]) == atom[0]) && (toupper(pte_label[i][1]) == atom[1])) 
+          return i;
       }
     }  
 
@@ -533,16 +533,16 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // check if (basic) reading is supported
   } else if ((_mode & M_READ) &&
-	     ( (plugin->open_file_read == NULL) ||
-	       (plugin->read_next_timestep  == NULL) ||
-	       (plugin->close_file_read == NULL) )) {
+             ( (plugin->open_file_read == NULL) ||
+               (plugin->read_next_timestep  == NULL) ||
+               (plugin->close_file_read == NULL) )) {
     retval = E_MODE;
 
     // check if (basic) writing is supported
   } else if ( (_mode & M_WRITE) &&
-	      ( (plugin->open_file_write == NULL) ||
-		(plugin->write_timestep  == NULL) ||
-		(plugin->close_file_write == NULL) )) {
+              ( (plugin->open_file_write == NULL) ||
+                (plugin->write_timestep  == NULL) ||
+                (plugin->close_file_write == NULL) )) {
     retval = E_MODE;
 
     // make some additional check, if we
@@ -558,7 +558,7 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // check if the new plugin is of a newer minor version
     } else if ( (p->majorv == plugin->majorv) &&
-		(p->minorv >= plugin->minorv) ) {
+                (p->minorv >= plugin->minorv) ) {
       retval = E_VERSION;
     }
   }
@@ -575,7 +575,7 @@ int MolfileInterface::load_plugin(const char *filename)
     len += strlen(plugin->author);
     _name = new char[len];
     sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
-	    plugin->majorv, plugin->minorv, plugin->author);
+            plugin->majorv, plugin->minorv, plugin->author);
 
     // determine plugin capabilities
     _caps = M_NONE;
@@ -715,7 +715,7 @@ int MolfileInterface::close()
 
 // read or write timestep
 int MolfileInterface::timestep(float *coords, float *vels,
-			       float *cell, double *simtime)
+                               float *cell, double *simtime)
 {
   if (!_plugin || !_dso || !_ptr)
     return 1;
@@ -770,16 +770,16 @@ int MolfileInterface::timestep(float *coords, float *vels,
   return 0;
 }
 
-#define PROPUPDATE(PROP,ENTRY,VAL)			\
+#define PROPUPDATE(PROP,ENTRY,VAL)                                  \
   if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
 
-#define PROPSTRCPY(PROP,ENTRY,VAL)			\
+#define PROPSTRCPY(PROP,ENTRY,VAL)                                      \
   if ((propid & PROP) == PROP) { strcpy(a.ENTRY,VAL); plist |= PROP; }
 
 // floating point props
 static int write_atom_property(molfile_atom_t &a,
-			       const int propid,
-			       const float prop) 
+                               const int propid,
+                               const float prop) 
 {
   int plist = MolfileInterface::P_NONE;
   PROPUPDATE(MolfileInterface::P_OCCP,occupancy,prop);
@@ -792,33 +792,33 @@ static int write_atom_property(molfile_atom_t &a,
 
 // double precision floating point props
 static int write_atom_property(molfile_atom_t &a,
-			       const int propid,
-			       const double prop) 
+                               const int propid,
+                               const double prop) 
 {
   return write_atom_property(a,propid,static_cast<float>(prop));
 }
 
 // integer and derived props
 static int write_atom_property(molfile_atom_t &a,
-			       const int propid,
-			       const int prop) 
+                               const int propid,
+                               const int prop) 
 {
   int plist = MolfileInterface::P_NONE;
   PROPUPDATE(MolfileInterface::P_RESI,resid,prop);
   PROPUPDATE(MolfileInterface::P_ATMN,atomicnumber,prop);
   PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_MASS),
-	     mass,get_pte_mass(prop));
+             mass,get_pte_mass(prop));
   PROPSTRCPY((MolfileInterface::P_ATMN|MolfileInterface::P_NAME),
-	     name,get_pte_label(prop));
+             name,get_pte_label(prop));
   PROPSTRCPY((MolfileInterface::P_ATMN|MolfileInterface::P_TYPE),
-	     type,get_pte_label(prop));
+             type,get_pte_label(prop));
   return plist;
 }
 
 // integer and derived props
 static int write_atom_property(molfile_atom_t &a,
-			       const int propid,
-			       const char *prop) 
+                               const int propid,
+                               const char *prop) 
 {
   int plist = MolfileInterface::P_NONE;
   PROPSTRCPY(MolfileInterface::P_NAME,name,prop);
@@ -918,19 +918,19 @@ int MolfileInterface::property(int propid, double *prop)
   return _props;
 }
 
-#define INT_TO_STRING_BODY(IDX)			      \
-  buf[15] = 0;					      \
-  if (propid & P_NAME)				      \
-    _props |= write_atom_property(a[IDX],P_NAME,buf); \
-  if (propid & P_TYPE)				      \
-    _props |= write_atom_property(a[IDX],P_TYPE,buf); \
-  buf[7] = 0;					      \
-  if (propid & P_RESN)				      \
-    _props |= write_atom_property(a[IDX],P_RESN,buf); \
-  if (propid & P_SEGN)				      \
-    _props |= write_atom_property(a[IDX],P_SEGN,buf); \
-  buf[1] = 0;					      \
-  if (propid & P_CHAI)				      \
+#define INT_TO_STRING_BODY(IDX)                         \
+  buf[15] = 0;                                          \
+  if (propid & P_NAME)                                  \
+    _props |= write_atom_property(a[IDX],P_NAME,buf);   \
+  if (propid & P_TYPE)                                  \
+    _props |= write_atom_property(a[IDX],P_TYPE,buf);   \
+  buf[7] = 0;                                           \
+  if (propid & P_RESN)                                  \
+    _props |= write_atom_property(a[IDX],P_RESN,buf);   \
+  if (propid & P_SEGN)                                  \
+    _props |= write_atom_property(a[IDX],P_SEGN,buf);   \
+  buf[1] = 0;                                           \
+  if (propid & P_CHAI)                                  \
     _props |= write_atom_property(a[IDX],P_CHAI,buf)
 
 // set/get atom integer property
@@ -970,8 +970,8 @@ int MolfileInterface::property(int propid, int *types, int *prop)
 
     if (propid & (P_NAME|P_TYPE|P_RESN|P_SEGN|P_CHAI)) {
       for (int i=0; i < _natoms; ++i) {
-	sprintf(buf,"%d",prop[types[i]]);
-	INT_TO_STRING_BODY(i);
+        sprintf(buf,"%d",prop[types[i]]);
+        INT_TO_STRING_BODY(i);
       }
     }
   }
@@ -994,8 +994,8 @@ int MolfileInterface::property(int propid, int *prop)
 
     if (propid & (P_NAME|P_TYPE|P_RESN|P_SEGN|P_CHAI)) {
       for (int i=0; i < _natoms; ++i) {
-	sprintf(buf,"%d",prop[i]);
-	INT_TO_STRING_BODY(i);
+        sprintf(buf,"%d",prop[i]);
+        INT_TO_STRING_BODY(i);
       }
     } 
   }

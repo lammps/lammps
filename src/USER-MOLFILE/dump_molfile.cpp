@@ -98,7 +98,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
 
     mf = new MolfileInterface(arg[5],MFI::M_WRITE);
 
-    char *path = ".";
+    const char *path = (const char *) ".";
     if (narg > 6)
       path=arg[6];
 
@@ -107,10 +107,10 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
 
     if (screen)
       fprintf(screen,"Dump '%s' uses molfile plugin: %s\n",
-	      id, mf->get_plugin_name());
+              id, mf->get_plugin_name());
     if (logfile)
       fprintf(logfile,"Dump '%s' uses molfile plugin: %s\n",
-	      id,mf->get_plugin_name());
+              id,mf->get_plugin_name());
   }
 }
 
@@ -148,13 +148,12 @@ void DumpMolfile::init_style()
   if (me == 0) {
 
     /* initialize typenames array to numeric types by default */ 
-
     if (typenames == NULL) {
       typenames = new char*[ntypes+1];
       for (int itype = 1; itype <= ntypes; itype++) {
-	/* a 32-bit int can be maximally 10 digits plus sign */
-	typenames[itype] = new char[12];
-	sprintf(typenames[itype],"%d",itype);
+        /* a 32-bit int can be maximally 10 digits plus sign */
+        typenames[itype] = new char[12];
+        sprintf(typenames[itype],"%d",itype);
       }
     }
 
@@ -167,7 +166,6 @@ void DumpMolfile::init_style()
 
 void DumpMolfile::write()
 {
-
   // simulation box dimensions
 
   if (domain->triclinic == 1) {
@@ -243,11 +241,11 @@ void DumpMolfile::write()
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	nlines /= size_one;
+        MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+        nlines /= size_one;
       } else nlines = nme;
 
       write_data(nlines,buf);
@@ -263,7 +261,7 @@ void DumpMolfile::write()
 
 void DumpMolfile::openfile()
 {
-   // single file, already opened, so just return
+  // single file, already opened, so just return
 
   if (singlefile_opened) return;
   if (multifile == 0) singlefile_opened = 1;
@@ -284,15 +282,15 @@ void DumpMolfile::openfile()
       char *p1 = filename;
       char *p2 = filecurrent;
       while (p1 != ptr)
-	*p2++ = *p1++;
+        *p2++ = *p1++;
       
       if (padflag == 0) {
-	sprintf(p2,BIGINT_FORMAT "%s",update->ntimestep,ptr+1);
-      }	else {
-	char bif[8],pad[16];
-	strcpy(bif,BIGINT_FORMAT);
-	sprintf(pad,"%%0%d%s%%s",padflag,&bif[1]);
-	sprintf(p2,pad,update->ntimestep,ptr+1);
+        sprintf(p2,BIGINT_FORMAT "%s",update->ntimestep,ptr+1);
+      } else {
+        char bif[8],pad[16];
+        strcpy(bif,BIGINT_FORMAT);
+        sprintf(pad,"%%0%d%s%%s",padflag,&bif[1]);
+        sprintf(p2,pad,update->ntimestep,ptr+1);
       }
     }
 
@@ -326,32 +324,42 @@ void DumpMolfile::pack(int *ids)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-	int ix = (image[i] & 1023) - 512;
-	int iy = (image[i] >> 10 & 1023) - 512;
-	int iz = (image[i] >> 20) - 512;
+        int ix = (image[i] & 1023) - 512;
+        int iy = (image[i] >> 10 & 1023) - 512;
+        int iz = (image[i] >> 20) - 512;
 
-	buf[m++] = atom->type[i];
-	if (domain->triclinic) {
-	  buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;
-	  buf[m++] = x[i][1] + iy * yprd + iz * yz;
-	  buf[m++] = x[i][2] + iz * zprd;
-	} else {
-	  buf[m++] = x[i][0] + ix * xprd;
-	  buf[m++] = x[i][1] + iy * yprd;
-	  buf[m++] = x[i][2] + iz * zprd;
-	}
-	ids[n++] = tag[i];
+        buf[m++] = tag[i];
+        buf[m++] = type[i];
+        if (domain->triclinic) {
+          buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;
+          buf[m++] = x[i][1] + iy * yprd + iz * yz;
+          buf[m++] = x[i][2] + iz * zprd;
+        } else {
+          buf[m++] = x[i][0] + ix * xprd;
+          buf[m++] = x[i][1] + iy * yprd;
+          buf[m++] = x[i][2] + iz * zprd;
+        }
+        if (atom->molecule_flag) buf[m++] = atom->molecule[i];
+        if (atom->q_flag)        buf[m++] = atom->q[i];
+        if (atom->rmass_flag)    buf[m++] = atom->mass[i];
+        if (atom->radius_flag)   buf[m++] = atom->radius[i];
+        ids[n++] = tag[i];
       }
     }
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	buf[m++] = atom->type[i];
-	buf[m++] = x[i][0];
-	buf[m++] = x[i][1];
-	buf[m++] = x[i][2];
-	ids[n++] = tag[i];
+        buf[m++] = tag[i];
+        buf[m++] = type[i];
+        buf[m++] = x[i][0];
+        buf[m++] = x[i][1];
+        buf[m++] = x[i][2];
+        if (atom->molecule_flag) buf[m++] = atom->molecule[i];
+        if (atom->q_flag)        buf[m++] = atom->q[i];
+        if (atom->rmass_flag)    buf[m++] = atom->mass[i];
+        if (atom->radius_flag)   buf[m++] = atom->radius[i];
+        ids[n++] = tag[i];
       }
   }
 }
@@ -360,40 +368,52 @@ void DumpMolfile::pack(int *ids)
 
 void DumpMolfile::write_data(int n, double *mybuf)
 {
-  // copy buf atom coords into global arrays
-
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    types[ntotal] = static_cast<int>(mybuf[m++]);
-    coords[3*ntotal + 0] = mybuf[m++];
-    coords[3*ntotal + 1] = mybuf[m++];
-    coords[3*ntotal + 2] = mybuf[m++];
-    ++ntotal;
-  }
-
-  // if last chunk of atoms in this snapshot, write global arrays to file
-
-  if (ntotal == natoms) {
-    ntotal = 0;
-  }
-
-  if (need_structure) {
-    mf->property(MFI::P_NAME,types,typenames);
-
-    if (atom->rmass_flag) {
-      mf->property(MFI::P_MASS,atom->rmass);
-    } else { 
-      mf->property(MFI::P_MASS,types,atom->mass);
+  if (me == 0) {
+    // copy buf atom coords into global arrays
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      types[ntotal] = static_cast<int>(mybuf[m++]);
+      coords[3*ntotal + 0] = mybuf[m++];
+      coords[3*ntotal + 1] = mybuf[m++];
+      coords[3*ntotal + 2] = mybuf[m++];
+      if (atom->molecule_flag) molids[ntotal]   = static_cast<int>(mybuf[m++]);
+      if (atom->q_flag)        charges[ntotal]  = mybuf[m++];
+      if (atom->rmass_flag)    masses[ntotal]   = mybuf[m++];
+      if (atom->radius_flag)   radiuses[ntotal] = mybuf[m++];
+      ++ntotal;
     }
 
-    if (atom->q_flag)
-      mf->property(MFI::P_CHRG,atom->q);
+    // if last chunk of atoms in this snapshot, write global arrays to file
 
-    mf->structure();
-    need_structure = 0;
+    if (ntotal == natoms) {
+      ntotal = 0;
+
+      if (need_structure) {
+        mf->property(MFI::P_NAME,types,typenames);
+
+        if (atom->molecule_flag)
+          mf->property(MFI::P_RESI,molids);
+
+        if (atom->rmass_flag) {
+          mf->property(MFI::P_MASS,masses);
+        } else { 
+          mf->property(MFI::P_MASS,types,atom->mass);
+        }
+
+        if (atom->q_flag)
+          mf->property(MFI::P_CHRG,charges);
+
+        if (atom->radius_flag)
+          mf->property(MFI::P_RADS,radiuses);
+
+        // update/write structure information in plugin
+        mf->structure();
+        need_structure = 0;
+      }
+      double simtime = update->ntimestep * update->dt;
+      mf->timestep(coords,NULL,cell,&simtime);
+    }
   }
-  double simtime = update->ntimestep * update->dt;
-  mf->timestep(coords,NULL,cell,&simtime);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,7 +433,7 @@ int DumpMolfile::modify_param(int narg, char **arg)
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
-	delete [] typenames[i];
+        delete [] typenames[i];
 
       delete [] typenames;
       typenames = NULL;
@@ -442,4 +462,3 @@ bigint DumpMolfile::memory_usage()
   bytes += sizeof(MFI);
   return bytes;
 }
-

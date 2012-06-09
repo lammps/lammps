@@ -328,7 +328,6 @@ void DumpMolfile::pack(int *ids)
         int iy = (image[i] >> 10 & 1023) - 512;
         int iz = (image[i] >> 20) - 512;
 
-        buf[m++] = tag[i];
         buf[m++] = type[i];
         if (domain->triclinic) {
           buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;
@@ -350,7 +349,6 @@ void DumpMolfile::pack(int *ids)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        buf[m++] = tag[i];
         buf[m++] = type[i];
         buf[m++] = x[i][0];
         buf[m++] = x[i][1];

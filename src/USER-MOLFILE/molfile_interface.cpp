@@ -681,9 +681,9 @@ int MolfileInterface::structure()
   
     molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
     p->write_structure(_ptr,optflags,a);
-  } else if (_mode & M_READ)
+  } else if (_mode & M_READ) {
     ; // XXX: FIXME
-
+  }
   return 0;
 }
 

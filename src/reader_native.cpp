@@ -13,7 +13,7 @@
 
 #include "string.h"
 #include "stdlib.h"
-#include "read_dump_native.h"
+#include "reader_native.h"
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
@@ -27,7 +27,7 @@ enum{UNSET,UNSCALED,SCALED};
 
 /* ---------------------------------------------------------------------- */
 
-ReadDumpNative::ReadDumpNative(LAMMPS *lmp) : Pointers(lmp)
+ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
   words = NULL;
@@ -36,21 +36,11 @@ ReadDumpNative::ReadDumpNative(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-ReadDumpNative::~ReadDumpNative()
+ReaderNative::~ReaderNative()
 {
   delete [] line;
   delete [] words;
   memory->destroy(fieldindex);
-}
-
-/* ----------------------------------------------------------------------
-   set file ptr
-   caller opens/closes dump files
-------------------------------------------------------------------------- */
-
-void ReadDumpNative::file(FILE *fpcaller)
-{
-  fp = fpcaller;
 }
 
 /* ----------------------------------------------------------------------
@@ -59,7 +49,7 @@ void ReadDumpNative::file(FILE *fpcaller)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-int ReadDumpNative::read_time(bigint &ntimestep)
+int ReaderNative::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
@@ -77,7 +67,7 @@ int ReadDumpNative::read_time(bigint &ntimestep)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpNative::skip()
+void ReaderNative::skip()
 {
   read_lines(2);
   bigint natoms;
@@ -110,7 +100,7 @@ void ReadDumpNative::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReadDumpNative::read_header(double box[3][3], int &triclinic,
+bigint ReaderNative::read_header(double box[3][3], int &triclinic,
                                    int fieldinfo, int nfield,
                                    int *fieldtype, char **fieldlabel,
                                    int scaledflag, int &fieldflag,
@@ -284,7 +274,7 @@ bigint ReadDumpNative::read_header(double box[3][3], int &triclinic,
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpNative::read_atoms(int n, int nfield, double **fields)
+void ReaderNative::read_atoms(int n, int nfield, double **fields)
 {
   int i,m;
   char *eof;
@@ -311,7 +301,7 @@ void ReadDumpNative::read_atoms(int n, int nfield, double **fields)
    return index of match or -1 if no match
 ------------------------------------------------------------------------- */
 
-int ReadDumpNative::find_label(const char *label, int n, char **labels)
+int ReaderNative::find_label(const char *label, int n, char **labels)
 {
   for (int i = 0; i < n; i++)
     if (strcmp(label,labels[i]) == 0) return i;
@@ -325,7 +315,7 @@ int ReadDumpNative::find_label(const char *label, int n, char **labels)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpNative::read_lines(int n)
+void ReaderNative::read_lines(int n)
 {
   char *eof;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);

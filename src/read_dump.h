@@ -57,8 +57,8 @@ private:
   int trimflag,purgeflag;
   int scaledflag;          // user setting for coordinate scaling
   int scaled;              // actual setting for coordinate scaling
-  int format;              // style of dump file
   int compressed;          // flag for dump file compression
+  char *readerstyle;       // style of dump files to read
 
   int nfield;              // # of fields to extract from dump file
   int *fieldtype;          // type of each field = X,VY,IZ,etc
@@ -78,7 +78,7 @@ private:
   int *uflag;               // set to 1 if snapshot atom matches owned atom
   int *ucflag,*ucflag_all;  // set to 1 if snapshot chunk atom was processed
 
-  class ReadDumpNative *reader;     // class that reads native dump file
+  class Reader *reader;           // class that reads dump file
 
   void process_atoms(int);
   void delete_atoms();

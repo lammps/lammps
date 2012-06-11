@@ -60,6 +60,7 @@ if (test $1 = "style") then
   style KSPACE_CLASS    ""          kspace     force
   style MINIMIZE_CLASS  min_        minimize   update
   style PAIR_CLASS      pair_       pair       force      pair_hybrid
+  style READER_CLASS    reader_     reader     read_dump
   style REGION_CLASS    region_     region     domain
 
 # edit Makefile.lib

@@ -251,6 +251,26 @@ void Respa::init()
   if (modify->nfix == 0 && comm->me == 0)
     error->warning(FLERR,"No fixes defined, atoms won't move");
 
+  // incorrect pressures when using rRESPA with fix SHAKE
+  // error if also using fix npt or fix nph or fix press/berendsen
+  // otherwise just warn
+
+  int shakeflag = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"shake") == 0) shakeflag = 1;
+  if (shakeflag) {
+    int errorflag = 0;
+    for (int i = 0; i < modify->nfix; i++)
+      if (strstr(modify->fix[i]->style,"npt") == modify->fix[i]->style ||
+          strstr(modify->fix[i]->style,"nph") == modify->fix[i]->style ||
+          strstr(modify->fix[i]->style,"press/berendsen") == 0)
+        errorflag = 1;
+    if (errorflag) 
+      error->all(FLERR,"Fix shake with rRESPA computes invalid pressures");
+    else if (comm->me == 0)
+      error->warning(FLERR,"Fix shake with rRESPA computes invalid pressures");
+  }
+
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
 

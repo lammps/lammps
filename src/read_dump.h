@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -78,7 +78,7 @@ private:
   int *uflag;               // set to 1 if snapshot atom matches owned atom
   int *ucflag,*ucflag_all;  // set to 1 if snapshot chunk atom was processed
 
-  class ReadDumpNative *reader;     // class that reads native dump file
+  class ReadDumpXYZ *reader;     // class that reads native dump file
 
   void process_atoms(int);
   void delete_atoms();

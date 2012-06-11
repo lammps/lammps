@@ -20,7 +20,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "read_dump.h"
-#include "read_dump_native.h"
+#include "read_dump_xyz.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ,IX,IY,IZ};
 enum{UNSET,UNSCALED,SCALED};
-enum{NATIVE};
+enum{NATIVE,XYZ,MOLFILE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,8 +69,10 @@ ReadDump::~ReadDump()
 {
   for (int i = 0; i < nfile; i++) delete [] files[i];
   delete [] files;
-  for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
-  delete [] fieldlabel;
+  if (fieldlabel) {
+    for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
+    delete [] fieldlabel;
+  }
   delete [] fieldtype;
 
   memory->destroy(fields);
@@ -172,7 +174,7 @@ void ReadDump::setup_reader()
   // create reader class
   // could make this a parent class and customize with other readers
 
-  if (format == NATIVE) reader = new ReadDumpNative(lmp);
+  if (format == XYZ) reader = new ReadDumpXYZ(lmp);
 
   // allocate snapshot field buffer
 
@@ -558,7 +560,7 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
   addflag = 0;
   for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
   scaledflag = UNSCALED;
-  format = NATIVE;
+  format = XYZ;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"box") == 0) {
@@ -610,6 +612,7 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       if (strcmp(arg[iarg+1],"native") == 0) format = NATIVE;
+      else if (strcmp(arg[iarg+1],"xyz") == 0) format = XYZ;
       else error->all(FLERR,"Illegal read_dump command");
       iarg += 2;
     } else error->all(FLERR,"Illegal read_dump command");

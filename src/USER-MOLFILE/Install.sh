@@ -11,6 +11,21 @@ if (test $1 = 1) then
   cp molfile_plugin.h ..
   cp vmdplugin.h ..
 
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*molfile[^ \t]* //' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(molfile_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(molfile_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(molfile_SYSPATH) |' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*MOLFILE.*$/d' ../Makefile.package.settings
+    # multiline form needed for BSD sed on Macs
+    sed -i -e '4 i \
+include ..\/USER-MOLFILE\/Makefile.lammps\
+' ../Makefile.package.settings
+  fi
+
 elif (test $1 = 0) then
 
   rm -f ../molfile_interface.cpp
@@ -21,4 +36,14 @@ elif (test $1 = 0) then
 
   rm -f ../molfile_plugin.h
   rm -f ../vmdplugin.h
+
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*molfile[^ \t]* //' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*MOLFILE.*$/d' ../Makefile.package.settings
+  fi
+
 fi
+

@@ -326,7 +326,7 @@ void VerletCuda::setup()
   modify->setup(vflag);
 
   MYDBG( printf("# CUDA: VerletCuda::setup: call modify setup done\n"); )
-    output->setup(1,1);
+    output->setup(1);
 
   test_atom(testatom,"post setup");
 

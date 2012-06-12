@@ -130,6 +130,7 @@ doc/dimension.html
 doc/displace_atoms.html
 doc/dump.html
 doc/dump_image.html
+doc/dump_molfile.html
 doc/dump_modify.html
 doc/echo.html
 doc/fix.html
@@ -339,6 +340,7 @@ doc/region.html
 doc/replicate.html
 doc/reset_timestep.html
 doc/restart.html
+doc/rerun.html
 doc/run.html
 doc/run_style.html
 doc/set.html

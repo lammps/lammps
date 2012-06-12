@@ -532,7 +532,7 @@ int Balance::dynamic_once()
     int change = 1;
     for (m = 0; m < niter; m++) {
       change = adjust(np,split);
-      tally(bdim[i],np,split);
+      tally(bdim[idim],np,split);
       iter++;
 
 #ifdef BALANCE_DEBUG
@@ -681,7 +681,7 @@ int Balance::adjust(int n, double *split)
     if (sum[i] <= target[i]) lo[i] = split[i];
     if (sum[i] >= target[i]) hi[i] = split[i];
   }
-  for (i = 1; i < nprocs; i++)
+  for (i = 1; i < n; i++)
     if (lo[i] < lo[i-1]) lo[i] = lo[i-1];
   for (i = n-1; i > 0; i--)
     if (hi[i] > hi[i+1]) hi[i] = hi[i+1];

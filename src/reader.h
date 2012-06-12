@@ -13,36 +13,29 @@
    Contributed by Timothy Sirk
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_READ_DUMP_NATIVE_H
-#define LMP_READ_DUMP_NATIVE_H
+#ifndef LMP_READER_H
+#define LMP_READER_H
 
 #include "stdio.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class ReadDumpNative : protected Pointers {
+class Reader : protected Pointers {
  public:
-  ReadDumpNative(class LAMMPS *);
-  ~ReadDumpNative();
+  Reader(class LAMMPS *);
+  virtual ~Reader() {}
+
+  virtual int read_time(bigint &) = 0;
+  virtual void skip() = 0;
+  virtual bigint read_header(double [3][3], int &, int, int, int *, char **,
+                             int, int &, int &, int &, int &) = 0;
+  virtual void read_atoms(int, int, double **) = 0;
 
   void file(FILE *);
-  int read_time(bigint &);
-  void skip();
-  bigint read_header(double [3][3], int &, int, int, int *, char **,
-                     int, int &, int &, int &, int &);
-  void read_atoms(int, int, double **);
 
-private:
+ protected:
   FILE *fp;                // pointer to file opened by caller
-  char *line;              // line read from dump file
-
-  int nwords;              // # of per-atom columns in dump file
-  char **words;            // ptrs to values in parsed per-atom line
-  int *fieldindex;         //
-
-  int find_label(const char *, int, char **);
-  void read_lines(int);
 };
 
 }

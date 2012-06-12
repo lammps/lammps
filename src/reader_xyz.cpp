@@ -157,7 +157,7 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
   int mytype;
   double myx, myy, myz;
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 

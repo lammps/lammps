@@ -47,7 +47,6 @@ private:
 
   int dimension;
   int triclinic;
-  int noboxwarn;
 
   int nfile;               // # of dump files to process
   char **files;            // list of file names

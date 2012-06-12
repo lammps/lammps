@@ -50,7 +50,6 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
 
   dimension = domain->dimension;
   triclinic = domain->triclinic;
-  noboxwarn = 1;
 
   nfile = 0;
   files = NULL;
@@ -338,12 +337,9 @@ void ReadDump::header(int fieldinfo)
 
   // error check on current vs new box and fields
   // triclinic_snap < 1 means to box info in file
-  // so no check possible.
 
-  if ((triclinic_snap < 0) && (noboxwarn > 0)) {
-    noboxwarn = 0;
-    if (me == 0)
-      error->warning(FLERR,"No box information in dump file. Will use current box.");
+  if ((triclinic_snap < 0) && (boxflag > 0)) {
+    error->all(FLERR,"No box information in dump file. You have to use 'box no'");
   } else {
     if ((triclinic_snap && !triclinic) ||
         (!triclinic_snap && triclinic))

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,20 +13,24 @@
    Contributed by Timothy Sirk
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_READ_DUMP_NATIVE_H
-#define LMP_READ_DUMP_NATIVE_H
+#ifdef READER_CLASS
 
-#include "stdio.h"
-#include "pointers.h"
+ReaderStyle(native,ReaderNative)
+
+#else
+
+#ifndef LMP_READER_NATIVE_H
+#define LMP_READER_NATIVE_H
+
+#include "reader.h"
 
 namespace LAMMPS_NS {
 
-class ReadDumpNative : protected Pointers {
+class ReaderNative : public Reader {
  public:
-  ReadDumpNative(class LAMMPS *);
-  ~ReadDumpNative();
+  ReaderNative(class LAMMPS *);
+  ~ReaderNative();
 
-  void file(FILE *);
   int read_time(bigint &);
   void skip();
   bigint read_header(double [3][3], int &, int, int, int *, char **,
@@ -34,7 +38,6 @@ class ReadDumpNative : protected Pointers {
   void read_atoms(int, int, double **);
 
 private:
-  FILE *fp;                // pointer to file opened by caller
   char *line;              // line read from dump file
 
   int nwords;              // # of per-atom columns in dump file
@@ -47,4 +50,5 @@ private:
 
 }
 
+#endif
 #endif

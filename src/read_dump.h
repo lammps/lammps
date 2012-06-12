@@ -57,7 +57,6 @@ private:
   int trimflag,purgeflag;
   int scaledflag;          // user setting for coordinate scaling
   int scaled;              // actual setting for coordinate scaling
-  int compressed;          // flag for dump file compression
   char *readerstyle;       // style of dump files to read
 
   int nfield;              // # of fields to extract from dump file
@@ -86,9 +85,6 @@ private:
   double xfield(int, int);
   double yfield(int, int);
   double zfield(int, int);
-
-  void open(char *);
-  void close();
 };
 
 }

@@ -73,10 +73,8 @@ ReadDump::~ReadDump()
 {
   for (int i = 0; i < nfile; i++) delete [] files[i];
   delete [] files;
-  if (fieldlabel) {
-    for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
-    delete [] fieldlabel;
-  }
+  for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
+  delete [] fieldlabel;
   delete [] fieldtype;
   delete [] readerstyle;
 
@@ -338,8 +336,9 @@ void ReadDump::header(int fieldinfo)
   // error check on current vs new box and fields
   // triclinic_snap < 1 means to box info in file
 
-  if ((triclinic_snap < 0) && (boxflag > 0)) {
-    error->all(FLERR,"No box information in dump file. You have to use 'box no'");
+  if (triclinic_snap < 0) {
+    if (boxflag > 0)
+      error->all(FLERR,"No box information in dump. You have to use 'box no'");
   } else {
     if ((triclinic_snap && !triclinic) ||
         (!triclinic_snap && triclinic))

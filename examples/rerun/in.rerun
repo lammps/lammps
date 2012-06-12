@@ -55,11 +55,11 @@ thermo		1
 
 run 0 
 
-read_dump dump.xyz 0 x y z format xyz box no
+read_dump dump.xyz 1 x y z format xyz box no
 
 run 0 pre yes post no
 
-read_dump dump.melt 250 x y z format native box yes
+read_dump dump.melt 50 x y z format native box yes
 
 run 0 pre yes post no
 

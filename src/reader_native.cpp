@@ -279,7 +279,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
   int i,m;
   char *eof;
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 

@@ -733,9 +733,8 @@ void ReadDump::process_atoms(int n)
   MPI_Allreduce(ucflag,ucflag_all,n,MPI_INT,MPI_SUM,world);
 
   int nlocal_previous = atom->nlocal;
-  double lamda[3],one[3];
-  double *coord;
-  
+  double one[3];
+
   for (i = 0; i < n; i++) {
     if (ucflag_all[i]) continue;
 

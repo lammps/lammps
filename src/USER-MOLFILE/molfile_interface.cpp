@@ -629,7 +629,7 @@ void MolfileInterface::forget_plugin()
   _caps = M_NONE;
 }
 
-// open file for writing
+// open file for reading or writing
 int MolfileInterface::open(const char *name, int *natoms)
 {
   if (!_plugin || !_dso || !natoms)
@@ -681,8 +681,18 @@ int MolfileInterface::structure()
   
     molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
     p->write_structure(_ptr,optflags,a);
-  } else if (_mode & M_READ) {
-    ; // XXX: FIXME
+  } else if (_mode & M_RSTRUCT) {
+    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    p->read_structure(_ptr,&optflags,a);
+    // mandatory properties
+    _props = P_NAME|P_TYPE|P_RESN|P_RESI|P_SEGN|P_CHAI;
+    // optional properties
+    _props |= (optflags & MOLFILE_BFACTOR) ? P_BFAC : 0;
+    _props |= (optflags & MOLFILE_OCCUPANCY) ? P_OCCP : 0;
+    _props |= (optflags & MOLFILE_MASS) ? P_MASS : 0;
+    _props |= (optflags & MOLFILE_CHARGE) ? P_CHRG : 0;
+    _props |= (optflags & MOLFILE_RADIUS) ? P_RADS : 0;
+    _props |= (optflags & MOLFILE_ATOMICNUMBER) ? P_ATMN : 0;
   }
   return 0;
 }
@@ -735,12 +745,12 @@ int MolfileInterface::timestep(float *coords, float *vels,
       t->beta = cell[4];
       t->gamma = cell[5];
     } else {
-      t->A = 0.0;
-      t->B = 0.0;
-      t->C = 0.0;
-      t->alpha = 90.0;
-      t->beta = 90.0;
-      t->gamma = 90.0;
+      t->A = 0.0f;
+      t->B = 0.0f;
+      t->C = 0.0f;
+      t->alpha = 90.0f;
+      t->beta = 90.0f;
+      t->gamma = 90.0f;
     }
 
     if (simtime)
@@ -751,9 +761,14 @@ int MolfileInterface::timestep(float *coords, float *vels,
     rv = p->write_timestep(_ptr,t);
 
   } else {
-    t->coords = coords;
-    t->velocities = vels;
-    rv = p->read_next_timestep(_ptr, _natoms, t);
+    // no coordinate storage => skip step
+    if (coords == NULL) {
+      rv = p->read_next_timestep(_ptr, _natoms, NULL);
+    } else {
+      t->coords = coords;
+      t->velocities = vels;
+      rv = p->read_next_timestep(_ptr, _natoms, t);
+    }
     if (cell != NULL) {
       cell[0] = t->A;
       cell[1] = t->B;
@@ -765,10 +780,77 @@ int MolfileInterface::timestep(float *coords, float *vels,
 
     if (simtime)
       *simtime = t->physical_time;
+
+    if (rv == MOLFILE_EOF)
+      return 1;
   }
 
   return 0;
 }
+
+// functions to read properties from molfile structure
+
+#define PROPUPDATE(PROP,ENTRY,VAL)                                  \
+  if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
+
+#define PROPSTRCPY(PROP,ENTRY,VAL)                                      \
+  if ((propid & PROP) == PROP) { strcpy(a.ENTRY,VAL); plist |= PROP; }
+
+// floating point props
+static int read_atom_property(molfile_atom_t &a,
+                               const int propid,
+                               const float prop) 
+{
+  int plist = MolfileInterface::P_NONE;
+  PROPUPDATE(MolfileInterface::P_OCCP,occupancy,prop);
+  PROPUPDATE(MolfileInterface::P_BFAC,bfactor,prop);
+  PROPUPDATE(MolfileInterface::P_MASS,mass,prop);
+  PROPUPDATE(MolfileInterface::P_CHRG,charge,prop);
+  PROPUPDATE(MolfileInterface::P_RADS,radius,prop);
+  return plist;
+}
+
+// double precision floating point props
+static int read_atom_property(molfile_atom_t &a,
+                               const int propid,
+                               const double prop) 
+{
+  return read_atom_property(a,propid,static_cast<float>(prop));
+}
+
+// integer and derived props
+static int read_atom_property(molfile_atom_t &a,
+                               const int propid,
+                               const int prop) 
+{
+  int plist = MolfileInterface::P_NONE;
+  PROPUPDATE(MolfileInterface::P_RESI,resid,prop);
+  PROPUPDATE(MolfileInterface::P_ATMN,atomicnumber,prop);
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_MASS),
+             mass,get_pte_mass(prop));
+  PROPSTRCPY((MolfileInterface::P_ATMN|MolfileInterface::P_NAME),
+             name,get_pte_label(prop));
+  PROPSTRCPY((MolfileInterface::P_ATMN|MolfileInterface::P_TYPE),
+             type,get_pte_label(prop));
+  return plist;
+}
+
+// integer and derived props
+static int read_atom_property(molfile_atom_t &a,
+                               const int propid,
+                               const char *prop) 
+{
+  int plist = MolfileInterface::P_NONE;
+  PROPSTRCPY(MolfileInterface::P_NAME,name,prop);
+  PROPSTRCPY(MolfileInterface::P_TYPE,type,prop);
+  PROPSTRCPY(MolfileInterface::P_RESN,resname,prop);
+  PROPSTRCPY(MolfileInterface::P_SEGN,segid,prop);
+  return plist;
+}
+#undef PROPUPDATE
+#undef PROPSTRCPY
+
+// functions to store properties into molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
   if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }

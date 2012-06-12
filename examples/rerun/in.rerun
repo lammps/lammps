@@ -66,3 +66,10 @@ run 0 pre yes post no
 rerun dump.xyz dump x y z format xyz box no
 
 rerun dump.melt dump x y z format native box yes
+
+read_dump dump.xyz 1 x y z format molfile box no reader xyz "."
+
+run 0 pre yes post no
+
+rerun dump.xyz dump x y z format molfile box no reader xyz
+

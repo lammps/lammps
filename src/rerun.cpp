@@ -115,8 +115,11 @@ void Rerun::command(int narg, char **arg)
   ReadDump *rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
-  rd->fields_and_keywords(narg-iarg-1,&arg[iarg+1]);
-  rd->setup_reader();
+  int readargs = rd->fields_and_keywords(narg-iarg-1,&arg[iarg+1]);
+  if (readargs < narg-iarg-1)
+    rd->setup_reader(narg-iarg-readargs-1, &arg[iarg+readargs+1]);
+  else
+    rd->setup_reader(0, NULL);
 
   // perform the psuedo run
   // invoke lmp->init() only once

@@ -25,6 +25,8 @@ class Reader : protected Pointers {
   Reader(class LAMMPS *);
   virtual ~Reader() {}
 
+  virtual void settings(int, char**) {};
+
   virtual int read_time(bigint &) = 0;
   virtual void skip() = 0;
   virtual bigint read_header(double [3][3], int &, int, int, int *, char **,

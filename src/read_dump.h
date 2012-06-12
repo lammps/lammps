@@ -34,12 +34,12 @@ class ReadDump : protected Pointers {
   void command(int, char **);
 
   void store_files(int, char **);
-  void setup_reader();
+  void setup_reader(int, char **);
   bigint seek(bigint, int);
   void header(int);
   bigint next(bigint, bigint, int, int);
   void atoms();
-  void fields_and_keywords(int, char **);
+  int fields_and_keywords(int, char **);
 
 private:
   int me,nprocs;

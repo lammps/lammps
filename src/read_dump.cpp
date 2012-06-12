@@ -90,8 +90,11 @@ void ReadDump::command(int narg, char **arg)
 
   store_files(1,&arg[0]);
   bigint nstep = ATOBIGINT(arg[1]);
-  fields_and_keywords(narg-2,&arg[2]);
-  setup_reader();
+  int readargs = fields_and_keywords(narg-2,&arg[2]);
+  if (readargs < narg-2)
+    setup_reader(narg-readargs-2, &arg[readargs+2]);
+  else
+    setup_reader(0, NULL);
 
   // find the snapshot and read/bcast/process header info
 
@@ -172,7 +175,7 @@ void ReadDump::store_files(int nstr, char **str)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadDump::setup_reader()
+void ReadDump::setup_reader(int narg, char **arg)
 {
   // allocate snapshot field buffer
 
@@ -192,6 +195,8 @@ void ReadDump::setup_reader()
   // unrecognized style
 
   else error->all(FLERR,"Invalid dump reader style");
+
+  if (narg > 0) reader->settings(narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -515,7 +520,7 @@ void ReadDump::atoms()
    process arg list for dump file fields and optional keywords
 ------------------------------------------------------------------------- */
 
-void ReadDump::fields_and_keywords(int narg, char **arg)
+int ReadDump::fields_and_keywords(int narg, char **arg)
 {
   // per-field vectors, leave space for ID + TYPE
 
@@ -632,11 +637,18 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
       readerstyle = new char[n];
       strcpy(readerstyle,arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"reader") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      // all following keywords are passed on to the reader class
+      ++iarg;
+      break;
     } else error->all(FLERR,"Illegal read_dump command");
   }
 
   if (purgeflag && (replaceflag || trimflag))
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
+
+  return iarg;
 }
 
 /* ----------------------------------------------------------------------

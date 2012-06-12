@@ -20,7 +20,8 @@
 #include "string.h"
 #include "stdlib.h"
 #include "read_dump.h"
-#include "read_dump_xyz.h"
+#include "reader.h"
+#include "style_reader.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -39,7 +40,6 @@ using namespace LAMMPS_NS;
 
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ,IX,IY,IZ};
 enum{UNSET,UNSCALED,SCALED};
-enum{NATIVE,XYZ,MOLFILE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,6 +50,7 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
 
   dimension = domain->dimension;
   triclinic = domain->triclinic;
+  noboxwarn = 1;
 
   nfile = 0;
   files = NULL;
@@ -58,6 +59,10 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   fieldtype = NULL;
   fieldlabel = NULL;
   fields = NULL;
+
+  int n = strlen("native") + 1;
+  readerstyle = new char[n];
+  strcpy(readerstyle,"native");
 
   reader = NULL;
   fp = NULL;
@@ -74,6 +79,7 @@ ReadDump::~ReadDump()
     delete [] fieldlabel;
   }
   delete [] fieldtype;
+  delete [] readerstyle;
 
   memory->destroy(fields);
   delete reader;
@@ -171,14 +177,24 @@ void ReadDump::store_files(int nstr, char **str)
 
 void ReadDump::setup_reader()
 {
-  // create reader class
-  // could make this a parent class and customize with other readers
-
-  if (format == XYZ) reader = new ReadDumpXYZ(lmp);
-
   // allocate snapshot field buffer
 
   memory->create(fields,CHUNK,nfield,"read_dump:fields");
+
+  // create reader class
+  // match readerstyle to options in style_reader.h
+
+  if (0) return;        // dummy line to enable else-if macro expansion
+
+#define READER_CLASS
+#define ReaderStyle(key,Class) \
+  else if (strcmp(readerstyle,#key) == 0) reader = new Class(lmp);
+#include "style_reader.h"
+#undef READER_CLASS
+
+  // unrecognized style
+
+  else error->all(FLERR,"Invalid dump reader style");
 }
 
 /* ----------------------------------------------------------------------
@@ -321,10 +337,18 @@ void ReadDump::header(int fieldinfo)
   MPI_Bcast(&zflag,1,MPI_INT,0,world);
 
   // error check on current vs new box and fields
+  // triclinic_snap < 1 means to box info in file
+  // so no check possible.
 
-  if ((triclinic_snap && !triclinic) ||
-      (!triclinic_snap && triclinic))
-    error->one(FLERR,"Read_dump triclinic status does not match simulation");
+  if ((triclinic_snap < 0) && (noboxwarn > 0)) {
+    noboxwarn = 0;
+    if (me == 0)
+      error->warning(FLERR,"No box information in dump file. Will use current box.");
+  } else {
+    if ((triclinic_snap && !triclinic) ||
+        (!triclinic_snap && triclinic))
+      error->one(FLERR,"Read_dump triclinic status does not match simulation");
+  }
 
   // error check field and scaling info
 
@@ -345,7 +369,7 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled == SCALED && triclinic) {
+  if (scaled == SCALED && (triclinic == 1)) {
     int flag = 0;
     if (xflag != scaled) flag = 1;
     if (yflag != scaled) flag = 1;
@@ -560,7 +584,6 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
   addflag = 0;
   for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
   scaledflag = UNSCALED;
-  format = XYZ;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"box") == 0) {
@@ -611,9 +634,10 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"native") == 0) format = NATIVE;
-      else if (strcmp(arg[iarg+1],"xyz") == 0) format = XYZ;
-      else error->all(FLERR,"Illegal read_dump command");
+      delete [] readerstyle;
+      int n = strlen(arg[iarg+1]) + 1;
+      readerstyle = new char[n];
+      strcpy(readerstyle,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal read_dump command");
   }

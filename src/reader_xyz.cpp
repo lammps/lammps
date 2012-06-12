@@ -13,7 +13,7 @@
 
 #include "string.h"
 #include "stdlib.h"
-#include "read_dump_xyz.h"
+#include "reader_xyz.h"
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
@@ -23,11 +23,10 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024        // max line length in dump file
 
 enum{ID,TYPE,X,Y,Z};
-enum{UNSET,UNSCALED};
 
 /* ---------------------------------------------------------------------- */
 
-ReadDumpXYZ::ReadDumpXYZ(LAMMPS *lmp) : Pointers(lmp)
+ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
   fieldindex = NULL;
@@ -36,20 +35,10 @@ ReadDumpXYZ::ReadDumpXYZ(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-ReadDumpXYZ::~ReadDumpXYZ()
+ReaderXYZ::~ReaderXYZ()
 {
   delete [] line;
   memory->destroy(fieldindex);
-}
-
-/* ----------------------------------------------------------------------
-   set file ptr
-   caller opens/closes dump files
-------------------------------------------------------------------------- */
-
-void ReadDumpXYZ::file(FILE *fpcaller)
-{
-  fp = fpcaller;
 }
 
 /* ----------------------------------------------------------------------
@@ -58,7 +47,7 @@ void ReadDumpXYZ::file(FILE *fpcaller)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-int ReadDumpXYZ::read_time(bigint &ntimestep)
+int ReaderXYZ::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
   if (eof == NULL) return 1;
@@ -68,11 +57,15 @@ int ReadDumpXYZ::read_time(bigint &ntimestep)
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
 
-  // count step and ...
-  ntimestep = ++nstep;
+  // skip over comment/title line
 
-  // ... skip over comment/title line
   read_lines(1);
+
+  // we fake time step numbers.
+  ntimestep = nstep;
+
+  // count this frame.
+  ++nstep;
   return 0;
 }
 
@@ -81,7 +74,7 @@ int ReadDumpXYZ::read_time(bigint &ntimestep)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpXYZ::skip()
+void ReaderXYZ::skip()
 {
   // invoke read_lines() in chunks no larger than MAXSMALLINT
 
@@ -108,14 +101,17 @@ void ReadDumpXYZ::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReadDumpXYZ::read_header(double box[3][3], int &triclinic,
-                                   int fieldinfo, int nfield,
-                                   int *fieldtype, char **fieldlabel,
-                                   int scaledflag, int &fieldflag,
-                                   int &xflag, int &yflag, int &zflag)
+bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
+                              int fieldinfo, int nfield,
+                              int *fieldtype, char **fieldlabel,
+                              int scaledflag, int &fieldflag,
+                              int &xflag, int &yflag, int &zflag)
 {
 
   nid = 0;
+
+  // signal that we have no box info at all
+  triclinic = -1;
 
   // if no field info requested, just return
 
@@ -154,7 +150,7 @@ bigint ReadDumpXYZ::read_header(double box[3][3], int &triclinic,
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpXYZ::read_atoms(int n, int nfield, double **fields)
+void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 {
   int i,m;
   char *eof;
@@ -201,7 +197,7 @@ void ReadDumpXYZ::read_atoms(int n, int nfield, double **fields)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadDumpXYZ::read_lines(int n)
+void ReaderXYZ::read_lines(int n)
 {
   char *eof;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);

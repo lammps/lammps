@@ -13,36 +13,29 @@
    Contributed by Timothy Sirk
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_READ_DUMP_XYZ_H
-#define LMP_READ_DUMP_XYZ_H
+#ifndef LMP_READER_H
+#define LMP_READER_H
 
 #include "stdio.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class ReadDumpXYZ : protected Pointers {
+class Reader : protected Pointers {
  public:
-  ReadDumpXYZ(class LAMMPS *);
-  ~ReadDumpXYZ();
+  Reader(class LAMMPS *);
+  virtual ~Reader() {}
+
+  virtual int read_time(bigint &) = 0;
+  virtual void skip() = 0;
+  virtual bigint read_header(double [3][3], int &, int, int, int *, char **,
+                             int, int &, int &, int &, int &) = 0;
+  virtual void read_atoms(int, int, double **) = 0;
 
   void file(FILE *);
-  int read_time(bigint &);
-  void skip();
-  bigint read_header(double [3][3], int &, int, int, int *, char **,
-                     int, int &, int &, int &, int &);
-  void read_atoms(int, int, double **);
 
-private:
+ protected:
   FILE *fp;                // pointer to file opened by caller
-  char *line;              // line read from dump file
-  bigint nstep;            // current (time) step number
-  bigint natoms;           // current number of atoms
-  bigint nid;              // current atom id.
-
-  int *fieldindex;         // mapping of input fields to dump
-
-  void read_lines(int);
 };
 
 }

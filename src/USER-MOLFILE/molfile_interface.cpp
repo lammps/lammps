@@ -788,6 +788,9 @@ int MolfileInterface::timestep(float *coords, float *vels,
   return 0;
 }
 
+#if 0
+// these are not yet working
+
 // functions to read properties from molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
@@ -849,6 +852,8 @@ static int read_atom_property(molfile_atom_t &a,
 }
 #undef PROPUPDATE
 #undef PROPSTRCPY
+
+#endif
 
 // functions to store properties into molfile structure
 

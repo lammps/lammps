@@ -41,8 +41,8 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  memory->create(pcount,nprocs,"balance:pcount");
-  memory->create(allcount,nprocs,"balance:allcount");
+  memory->create(proccount,nprocs,"balance:proccount");
+  memory->create(allproccount,nprocs,"balance:allproccount");
 
   user_xsplit = user_ysplit = user_zsplit = NULL;
   dflag = 0;
@@ -54,21 +54,21 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
 
 Balance::~Balance()
 {
-  memory->destroy(pcount);
-  memory->destroy(allcount);
+  memory->destroy(proccount);
+  memory->destroy(allproccount);
 
   delete [] user_xsplit;
   delete [] user_ysplit;
   delete [] user_zsplit;
 
   if (dflag) {
-    delete [] bstr;
-    delete [] ops;
-    delete [] counts[0];
-    delete [] counts[1];
-    delete [] counts[2];
-    delete [] cuts;
+    delete [] bdim;
+    delete [] count;
+    delete [] sum;
+    delete [] target;
     delete [] onecount;
+    delete [] lo;
+    delete [] hi;
   }
 
   if (fp) fclose(fp);
@@ -93,6 +93,8 @@ void Balance::command(int narg, char **arg)
   int *procgrid = comm->procgrid;
   xflag = yflag = zflag = NONE;
   dflag = 0;
+  outflag = 0;
+  laststep = -1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -154,21 +156,27 @@ void Balance::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dynamic") == 0) {
       if (xflag != NONE || yflag != NONE || zflag != NONE)
         error->all(FLERR,"Illegal balance command");
-      if (iarg+5 > narg) error->all(FLERR,"Illegal balance command");
+      if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       dflag = 1;
       xflag = yflag = DYNAMIC;
       if (dimension == 3) zflag = DYNAMIC;
-      nrepeat = atoi(arg[iarg+1]);
+      if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
+      strcpy(bstr,arg[iarg+1]);
       niter = atoi(arg[iarg+2]);
-      if (nrepeat <= 0 || niter <= 0)
-        error->all(FLERR,"Illegal balance command");
-      int n = strlen(arg[iarg+3]) + 1;
-      bstr = new char[n];
-      strcpy(bstr,arg[iarg+3]);
-      thresh = atof(arg[iarg+4]);
+      if (niter <= 0) error->all(FLERR,"Illegal balance command");
+      thresh = atof(arg[iarg+3]);
       if (thresh < 1.0) error->all(FLERR,"Illegal balance command");
-      iarg += 5;
+      iarg += 4;
 
+    } else if (strcmp(arg[iarg],"out") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
+      if (outflag) error->all(FLERR,"Illegal balance command");
+      outflag = 1;
+      if (me == 0) {
+        fp = fopen(arg[iarg+1],"w");
+        if (fp == NULL) error->one(FLERR,"Cannot open balance output file");
+      }
+      iarg += 2;
     } else error->all(FLERR,"Illegal balance command");
   }
 
@@ -195,7 +203,10 @@ void Balance::command(int narg, char **arg)
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Balance dynamic string is invalid");
       if (bstr[i] == 'z' && dimension == 2)
-        error->all(FLERR,"Balance dynamic string is invalid for 2d simulation");
+        error->all(FLERR,"Balance dynamic string is invalid");
+      for (int j = i+1; j < strlen(bstr); j++)
+        if (bstr[i] == bstr[j])
+          error->all(FLERR,"Balance dynamic string is invalid");
     }
   }
 
@@ -220,6 +231,8 @@ void Balance::command(int narg, char **arg)
 #ifdef BALANCE_DEBUG
   dumpout(update->ntimestep);
 #endif
+
+  int iter = 0;
 
   // explicit setting of sub-domain sizes
 
@@ -252,17 +265,14 @@ void Balance::command(int narg, char **arg)
 
   // static load-balance of sub-domain sizes
 
-  int count = 0;
   if (dflag) {
     dynamic_setup(bstr);
-    count = dynamic_once();
+    iter = dynamic_once();
   }
 
-  // debug output of final result
+  // output of final result
 
-#ifdef BALANCE_DEBUG
-  dumpout(-1);
-#endif
+  if (outflag) dumpout(update->ntimestep);
 
   // reset comm->uniform flag if necessary
 
@@ -311,14 +321,14 @@ void Balance::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"  iteration count = %d\n",count);
+      fprintf(screen,"  iteration count = %d\n",iter);
       fprintf(screen,"  initial/final max atoms/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(screen,"  initial/final imbalance factor = %g %g\n",
               imbinit,imbfinal);
     }
     if (logfile) {
-      fprintf(logfile,"  iteration count = %d\n",count);
+      fprintf(logfile,"  iteration count = %d\n",iter);
       fprintf(logfile,"  initial/final max atoms/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
@@ -367,7 +377,8 @@ void Balance::command(int narg, char **arg)
 double Balance::imbalance_nlocal(int &max)
 {
   MPI_Allreduce(&atom->nlocal,&max,1,MPI_INT,MPI_MAX,world);
-  double imbalance = max / (1.0 * atom->natoms / nprocs);
+  double imbalance = 1.0;
+  if (max) imbalance = max / (1.0 * atom->natoms / nprocs);
   return imbalance;
 }
 
@@ -389,7 +400,7 @@ double Balance::imbalance_splits(int &max)
   int ny = comm->procgrid[1];
   int nz = comm->procgrid[2];
 
-  for (int i = 0; i < nprocs; i++) pcount[i] = 0;
+  for (int i = 0; i < nprocs; i++) proccount[i] = 0;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -399,13 +410,14 @@ double Balance::imbalance_splits(int &max)
     ix = binary(x[i][0],nx,xsplit);
     iy = binary(x[i][1],ny,ysplit);
     iz = binary(x[i][2],nz,zsplit);
-    pcount[iz*nx*ny + iy*nx + ix]++;
+    proccount[iz*nx*ny + iy*nx + ix]++;
   }
 
-  MPI_Allreduce(pcount,allcount,nprocs,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(proccount,allproccount,nprocs,MPI_INT,MPI_SUM,world);
   max = 0;
-  for (int i = 0; i < nprocs; i++) max = MAX(max,allcount[i]);
-  double imbalance = max / (1.0 * atom->natoms / nprocs);
+  for (int i = 0; i < nprocs; i++) max = MAX(max,allproccount[i]);
+  double imbalance = 1.0;
+  if (max) imbalance = max / (1.0 * atom->natoms / nprocs);
   return imbalance;
 }
 
@@ -416,27 +428,24 @@ double Balance::imbalance_splits(int &max)
 
 void Balance::dynamic_setup(char *str)
 {
-  nops = strlen(str);
-  ops = new int[nops];
+  ndim = strlen(str);
+  bdim = new int[ndim];
 
   for (int i = 0; i < strlen(str); i++) {
-    if (str[i] == 'x') ops[i] = X;
-    if (str[i] == 'y') ops[i] = Y;
-    if (str[i] == 'z') ops[i] = Z;
+    if (str[i] == 'x') bdim[i] = X;
+    if (str[i] == 'y') bdim[i] = Y;
+    if (str[i] == 'z') bdim[i] = Z;
   }
-
-  splits[0] = comm->xsplit;
-  splits[1] = comm->ysplit;
-  splits[2] = comm->zsplit;
-
-  counts[0] = new bigint[comm->procgrid[0]];
-  counts[1] = new bigint[comm->procgrid[1]];
-  counts[2] = new bigint[comm->procgrid[2]];
 
   int max = MAX(comm->procgrid[0],comm->procgrid[1]);
   max = MAX(max,comm->procgrid[2]);
-  cuts = new double[max+1];
+
+  count = new bigint[max];
   onecount = new bigint[max];
+  sum = new bigint[max+1];
+  target = new bigint[max+1];
+  lo = new double[max+1];
+  hi = new double[max+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -444,13 +453,10 @@ void Balance::dynamic_setup(char *str)
    called from fix balance
 ------------------------------------------------------------------------- */
 
-void Balance::dynamic_setup(int nrepeat_in, int niter_in,
-                            char *str, double thresh_in)
+void Balance::dynamic_setup(char *str, int niter_in, double thresh_in)
 {
-  nrepeat = nrepeat_in;
   niter = niter_in;
   thresh = thresh_in;
-
   dynamic_setup(str);
 }
 
@@ -462,34 +468,149 @@ void Balance::dynamic_setup(int nrepeat_in, int niter_in,
 
 int Balance::dynamic_once()
 {
-  int i,m,max;
-  double imbfactor;
+  int i,j,k,m,np,max;
+  double *split;
 
+  // no balancing if no atoms
+
+  bigint natoms = atom->natoms;
+  if (natoms == 0) return 0;
+
+  // set delta for 1d balancing = root of threshhold
+  // root = # of dimensions being balanced on
+
+  double delta = pow(thresh,1.0/ndim) - 1.0;
   int *procgrid = comm->procgrid;
+
+  // all balancing done in lamda coords
 
   domain->x2lamda(atom->nlocal);
 
-  int count = 0;
-  for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
-    for (i = 0; i < nops; i++) {
-      for (m = 0; m < niter; m++) {
-        stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
-        adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
-        count++;
+  // loop over dimensions in balance string
+
+  int iter = 0;
+  for (int idim = 0; idim < ndim; idim++) {
+
+    // split = ptr to xyz split in Comm
+
+    if (bdim[idim] == X) split = comm->xsplit;
+    else if (bdim[idim] == Y) split = comm->ysplit;
+    else if (bdim[idim] == Z) split = comm->zsplit;
+
+    // intial count and sum
+
+    np = procgrid[bdim[idim]];
+    tally(bdim[idim],np,split);
+
+    // target[i] = desired sum at split I
+
+    for (i = 0; i < np; i++)
+      target[i] = static_cast<int> (1.0*natoms/np * i + 0.5);
+    target[np] = natoms;
+
+    // lo[i] = closest split <= split[i] with a sum <= target
+    // hi[i] = closest split >= split[i] with a sum >= target
+
+    lo[0] = hi[0] = 0.0;
+    lo[np] = hi[np] = 1.0;
+    for (i = 1; i < np; i++) {
+      for (j = i; j >= 0; j--)
+        if (sum[j] <= target[i]) {
+          lo[i] = split[j];
+          break;
+        }
+      for (j = i; j <= np; j++)
+        if (sum[j] >= target[i]) {
+          hi[i] = split[j];
+          break;
+        }
+    }
+
+    // iterate until balanced
+
+    int doneflag;
+    int change = 1;
+    for (m = 0; m < niter; m++) {
+      change = adjust(np,split);
+      tally(bdim[i],np,split);
+      iter++;
 
 #ifdef BALANCE_DEBUG
-        dumpout(-1);
+      dumpout(update->ntimestep);
 #endif
-      }
-      imbfactor = imbalance_splits(max);
-      if (imbfactor <= thresh) break;
+
+      // stop if no change in splits, b/c all targets are met exactly
+
+      if (!change) break;
+
+      // stop if all split sums are within delta of targets
+      // this is a 1d test of particle count per slice
+      // assumption is that this is sufficient accuracy
+      //   for 3d imbalance factor to reach threshhold
+
+      doneflag = 1;
+      for (i = 1; i < np; i++)
+        if (fabs(1.0*(sum[i]-target[i]))/target[i] > delta) doneflag = 0;
+      if (doneflag) break;
     }
-    if (i < nops) break;
+
+    // eliminate adjacent splits that are duplicates
+    // can happen if particle distribution is narrow and Niter is small
+    // set lo = midpt between splits
+    // spread duplicates out evenly between bounding midpts with non-duplicates
+    // i,j = lo/hi indices of set of duplicate splits
+    // delta = new spacing between duplicates
+    // bounding midpts = lo[i-1] and lo[j]
+
+    int duplicate = 0;
+    for (i = 1; i < np-1; i++)
+      if (split[i] == split[i+1]) duplicate = 1;
+    if (duplicate) {
+      for (i = 0; i < np; i++)
+        lo[i] = 0.5 * (split[i] + split[i+1]);
+      i = 1;
+      while (i < np-1) {
+        j = i+1;
+        while (split[j] == split[i]) j++;
+        j--;
+        if (j > i) {
+          delta = (lo[j] - lo[i-1]) / (j-i+2);
+          for (k = i; k <= j; k++)
+            split[k] = lo[i-1] + (k-i+1)*delta;
+        }
+        i = j+1;
+      }
+    }
+
+    // sanity check on bad duplicate or inverted splits
+    // zero or negative width sub-domains will break Comm class
+    // should never happen if recursive multisection algorithm is correct
+
+    int bad = 0;
+    for (i = 0; i < np; i++)
+      if (split[i] >= split[i+1]) bad = 1;
+    if (bad) error->all(FLERR,"Balance produced bad splits");
+    /*
+      if (me == 0) {
+      printf("BAD SPLITS %d %d %d\n",np+1,iter,delta);
+      for (i = 0; i < np+1; i++)
+      printf(" %g",split[i]);
+      printf("\n");
+      }
+    */
+
+    // stop at this point in bstr if imbalance factor < threshhold
+    // this is a true 3d test of particle count per processor
+
+    double imbfactor = imbalance_splits(max);
+    if (imbfactor <= thresh) break;
   }
+
+  // restore real coords
 
   domain->lamda2x(atom->nlocal);
 
-  return count;
+  return iter;
 }
 
 /* ----------------------------------------------------------------------
@@ -500,51 +621,19 @@ int Balance::dynamic_once()
 
 int Balance::dynamic()
 {
-  int i,m,max;
-  double imbfactor;
-
-#ifdef BALANCE_DEBUG
-  dumpout(update->ntimestep);
-#endif
-
-  int *procgrid = comm->procgrid;
-
-  domain->x2lamda(atom->nlocal);
-
-  int count = 0;
-  for (int irepeat = 0; irepeat < nrepeat; irepeat++) {
-    for (i = 0; i < nops; i++) {
-      for (m = 0; m < niter; m++) {
-        stats(ops[i],procgrid[ops[i]],splits[ops[i]],counts[ops[i]]);
-        adjust(procgrid[ops[i]],counts[ops[i]],splits[ops[i]]);
-        count++;
-
-#ifdef BALANCE_DEBUG
-        dumpout(-1);
-#endif
-      }
-      imbfactor = imbalance_splits(max);
-      if (imbfactor <= thresh) break;
-    }
-    if (i < nops) break;
-  }
-
-  domain->lamda2x(atom->nlocal);
-
-#ifdef BALANCE_DEBUG
-  dumpout(-1);
-#endif
-
-  return count;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
-   count atoms in each slice
-   current cuts may be very different than original cuts,
-   so use binary search to find which slice each atom is in
+   count atoms in each slice, based on their dim coordinate
+   N = # of slices
+   split = N+1 cuts between N slices
+   return updated count = particles per slice
+   retrun updated sum = cummulative count below each of N+1 splits
+   use binary search to find which slice each atom is in
 ------------------------------------------------------------------------- */
 
-void Balance::stats(int dim, int n, double *split, bigint *count)
+void Balance::tally(int dim, int n, double *split)
 {
   for (int i = 0; i < n; i++) onecount[i] = 0;
 
@@ -558,9 +647,56 @@ void Balance::stats(int dim, int n, double *split, bigint *count)
   }
 
   MPI_Allreduce(onecount,count,n,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  sum[0] = 0;
+  for (int i = 1; i < n+1; i++)
+    sum[i] = sum[i-1] + count[i-1];
 }
 
 /* ----------------------------------------------------------------------
+   adjust cuts between N slices in a dim via recursive multisectioning method
+   split = current N+1 cuts, with 0.0 and 1.0 at end points
+   sum = cummulative count up to each split
+   target = desired cummulative count up to each split
+   lo/hi = split values that bound current split
+   update lo/hi to reflect sums at current split values
+   overwrite split with new cuts
+     guaranteed that splits will remain in ascending order,
+     though adjacent values may be identical
+   recursive bisectioning zooms in on each cut by halving lo/hi
+   return 0 if no changes in any splits, b/c they are all perfect
+------------------------------------------------------------------------- */
+
+int Balance::adjust(int n, double *split)
+{
+  int i;
+
+  // reset lo/hi based on current sum and splits
+  // insure lo is monotonically increasing, ties are OK
+  // insure hi is monotonically decreasing, ties are OK
+  // this effectively uses info from nearby splits
+  // to possibly tighten bounds on lo/hi
+
+  for (i = 1; i < n; i++) {
+    if (sum[i] <= target[i]) lo[i] = split[i];
+    if (sum[i] >= target[i]) hi[i] = split[i];
+  }
+  for (i = 1; i < nprocs; i++)
+    if (lo[i] < lo[i-1]) lo[i] = lo[i-1];
+  for (i = n-1; i > 0; i--)
+    if (hi[i] > hi[i+1]) hi[i] = hi[i+1];
+  
+  int change = 0;
+  for (int i = 1; i < n; i++)
+    if (sum[i] != target[i]) {
+      split[i] = 0.5 * (lo[i]+hi[i]);
+      change = 1;
+    }
+  return change;
+}
+
+/* ----------------------------------------------------------------------
+   OLD code: for local diffusion method that didn't work as well as RCB
    adjust cuts between N slices in a dim via diffusive method
    count = atoms per slice
    split = current N+1 cuts, with 0.0 and 1.0 at end points
@@ -569,8 +705,12 @@ void Balance::stats(int dim, int n, double *split, bigint *count)
      by moving cut closer to sender, further from receiver
 ------------------------------------------------------------------------- */
 
-void Balance::adjust(int n, bigint *count, double *split)
+void Balance::old_adjust(int iter, int n, bigint *count, double *split)
 {
+  // need to allocate this if start using it again
+
+  double *cuts;
+
   // damping factor
 
   double damp = 0.5;
@@ -666,12 +806,16 @@ void Balance::adjust(int n, bigint *count, double *split)
 }
 
 /* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
+   binary search for where value falls in N-length vec
+   note that vec actually has N+1 values, but ignore last one
+   values in vec are monotonically increasing, but adjacent values can be ties
    value may be outside range of vec limits
    always return index from 0 to N-1 inclusive
    return 0 if value < vec[0]
    reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+   return index = 1 to N-2 inclusive if vec[index] <= value < vec[index+1]
+   note that for adjacent tie values, index of lower tie is not returned
+     since never satisfies 2nd condition that value < vec[index+1]
 ------------------------------------------------------------------------- */
 
 int Balance::binary(double value, int n, double *vec)
@@ -697,42 +841,38 @@ int Balance::binary(double value, int n, double *vec)
 
 /* ----------------------------------------------------------------------
    create dump file of line segments in Pizza.py mdump mesh format
-   just for debug/viz purposes
-   write to tmp.mdump.*, open first time if necessary
+   invoked by out option or debug flag
+   debug flag requires out flag to specify file
    write xy lines around each proc's sub-domain for 2d
    write xyz cubes around each proc's sub-domain for 3d
    all procs but 0 just return
 ------------------------------------------------------------------------- */
 
-void Balance::dumpout(bigint tstamp)
+void Balance::dumpout(bigint tstep)
 {
   if (me) return;
+  if (fp == NULL) error->one(FLERR,"Balance output requires out keyword");
 
-  bigint tstep;
-  if (tstamp >= 0) tstep = tstamp;
-  else tstep = laststep + 1;
-  laststep = tstep;
+  int dimension = domain->dimension;
 
-  if (fp == NULL) {
-    char file[32];
-    sprintf(file,"tmp.mdump.%ld",tstep);
-    fp = fopen(file,"w");
-    if (!fp) error->one(FLERR,"Cannot open balance output file");
+  // write out one square/cube per processor for 2d/3d
+  // only write once since topology is static
 
-    // write out one square/cute per processor for 2d/3d
-    // only write once since topology is static
-
+  if (tstep != laststep) {
+    laststep = tstep;
     fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,"%ld\n",tstep);
-    fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
+    if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
+    else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
     fprintf(fp,"%d\n",nprocs);
-    fprintf(fp,"ITEM: SQUARES\n");
-
+    if (dimension == 2) fprintf(fp,"ITEM: SQUARES\n");
+    else fprintf(fp,"ITEM: CUBES\n");
+    
     int nx = comm->procgrid[0] + 1;
     int ny = comm->procgrid[1] + 1;
     int nz = comm->procgrid[2] + 1;
-
-    if (domain->dimension == 2) {
+  
+    if (dimension == 2) {
       int m = 0;
       for (int j = 0; j < comm->procgrid[1]; j++)
         for (int i = 0; i < comm->procgrid[0]; i++) {
@@ -743,7 +883,7 @@ void Balance::dumpout(bigint tstamp)
           fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
           m++;
         }
-
+      
     } else {
       int m = 0;
       for (int k = 0; k < comm->procgrid[2]; k++)
@@ -779,17 +919,15 @@ void Balance::dumpout(bigint tstamp)
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,"%ld\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
-  if (domain->dimension == 2)
-    fprintf(fp,"%d\n",nx*ny);
-  else
-    fprintf(fp,"%d\n",nx*ny*nz);
+  if (dimension == 2) fprintf(fp,"%d\n",nx*ny);
+  else fprintf(fp,"%d\n",nx*ny*nz);
   fprintf(fp,"ITEM: BOX BOUNDS\n");
   fprintf(fp,"%g %g\n",boxlo[0],boxhi[0]);
   fprintf(fp,"%g %g\n",boxlo[1],boxhi[1]);
   fprintf(fp,"%g %g\n",boxlo[2],boxhi[2]);
   fprintf(fp,"ITEM: NODES\n");
 
-  if (domain->dimension == 2) {
+  if (dimension == 2) {
     int m = 0;
     for (int j = 0; j < ny; j++)
       for (int i = 0; i < nx; i++) {

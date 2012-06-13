@@ -10,14 +10,19 @@ compute gyration/molecule command :h3
 
 [Syntax:]
 
-compute ID group-ID gyration/molecule :pre
+compute ID group-ID gyration/molecule keyword value ... :pre
 
-ID, group-ID are documented in "compute"_compute.html command
-gyration/molecule = style name of this compute command :ul
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+gyration/molecule = style name of this compute command :l
+zero or more keyword/value pairs may be appended :l
+keyword = {tensor} :l
+  {tensor} value = none
+:ule
 
 [Examples:]
 
-compute 1 molecule gyration/molecule :pre
+compute 1 molecule gyration/molecule
+compute 2 molecule gyration/molecule tensor :pre
 
 [Description:]
 
@@ -33,6 +38,13 @@ formula
 where M is the total mass of the molecule, Rcm is the center-of-mass
 position of the molecule, and the sum is over all atoms in the
 molecule and in the group.
+
+If the {tensor} keyword is specified, then the scalar Rg value is not
+calculated, but an Rg tensor is instead calculated for each molecule.
+The formula for the components of the tensor is the same as the above
+formula, except that (Ri - Rcm)^2 is replaced by (Rix - Rcmx) * (Riy -
+Rcmy) for the xy component, etc.  The 6 components of the tensor are
+ordered xx, yy, zz, xy, xz, yz.
 
 Rg for a particular molecule is only computed if one or more of its
 atoms are in the specified group.  Normally all atoms in the molecule
@@ -57,14 +69,18 @@ image"_set.html command.
 
 [Output info:]
 
-This compute calculates a global vector of Rg values where the length
-of the vector = Nmolecules.  These values can be used by any command
-that uses global vector values from a compute as input.  See "this
+This compute calculates a global vector if the {tensor} keyword is not
+specified and a global array if it is.  The length of the vector or
+number of rows in the array is the number of molecules.  If the
+{tensor} keyword is specified, the global array has 6 columns.  The
+vector or array can be accessed by any command that uses global values
+from a compute as input.  See "this
 section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
-The vector values calculated by this compute are "intensive".  The
-vector values will be in distance "units"_units.html.
+All the vector or array values calculated by this compute are
+"intensive".  The vector or array values will be in distance
+"units"_units.html.
 
 [Restrictions:] none
 

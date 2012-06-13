@@ -13,14 +13,23 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID gyration/molecule 
+<PRE>compute ID group-ID gyration/molecule keyword value ... 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
 <LI>gyration/molecule = style name of this compute command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>tensor</I> 
+
+  <I>tensor</I> value = none
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 molecule gyration/molecule 
+<PRE>compute 1 molecule gyration/molecule
+compute 2 molecule gyration/molecule tensor 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -36,6 +45,13 @@ formula
 <P>where M is the total mass of the molecule, Rcm is the center-of-mass
 position of the molecule, and the sum is over all atoms in the
 molecule and in the group.
+</P>
+<P>If the <I>tensor</I> keyword is specified, then the scalar Rg value is not
+calculated, but an Rg tensor is instead calculated for each molecule.
+The formula for the components of the tensor is the same as the above
+formula, except that (Ri - Rcm)^2 is replaced by (Rix - Rcmx) * (Riy -
+Rcmy) for the xy component, etc.  The 6 components of the tensor are
+ordered xx, yy, zz, xy, xz, yz.
 </P>
 <P>Rg for a particular molecule is only computed if one or more of its
 atoms are in the specified group.  Normally all atoms in the molecule
@@ -60,14 +76,18 @@ image</A> command.
 </P>
 <P><B>Output info:</B>
 </P>
-<P>This compute calculates a global vector of Rg values where the length
-of the vector = Nmolecules.  These values can be used by any command
-that uses global vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+<P>This compute calculates a global vector if the <I>tensor</I> keyword is not
+specified and a global array if it is.  The length of the vector or
+number of rows in the array is the number of molecules.  If the
+<I>tensor</I> keyword is specified, the global array has 6 columns.  The
+vector or array can be accessed by any command that uses global values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>
-<P>The vector values calculated by this compute are "intensive".  The
-vector values will be in distance <A HREF = "units.html">units</A>.
+<P>All the vector or array values calculated by this compute are
+"intensive".  The vector or array values will be in distance
+<A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 gyration/molecule = style name of this compute command :l
 zero or more keyword/value pairs may be appended :l
 keyword = {tensor} :l
-  {tensor} value = none
+  {tensor} value = none :pre
 :ule
 
 [Examples:]

@@ -29,7 +29,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_deform.h"

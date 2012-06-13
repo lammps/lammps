@@ -1,0 +1,24 @@
+This package provides an C++ interface class to the VMD molfile
+plugins, http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/, and a
+set of LAMMPS classes that use this interface.
+
+Molfile plugins provide a consistent programming interface to read and
+write file formats commonly used in molecular simulations.  The
+package only provides the interface code, not the plugins; these can
+be obtained from a VMD installation which has to match the platform
+that you are using to compile LAMMPS for. By adding plugins, support
+for new file formats can be added to LAMMPS (or VMD or other programs
+that use them) without having to recompile the application itself.
+The plugins are installed in the directory:
+<VMDHOME>/plugins/<VMDARCH>/molfile
+
+NOTE: while the programming interface (API) to the plugins is backward
+compatible, the binary interface (ABI) has been changing over time, so
+it is necessary to compile this package with the plugin header files
+from VMD that match the binary plugins.  These header files in the
+directory: <VMDHOME>/plugins/include For convenience, the package
+ships with a set of header files that are compatible with VMD 1.9 and
+1.9.1 (the current version in June 2012)
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.

@@ -20,6 +20,9 @@ fix		1 all nve
 
 dump		id all atom 50 dump.melt
 dump        xyz all xyz 50 dump.xyz
+dump        ele all xyz 50 dump-ele.xyz
+dump_modify ele element H
+
 dump        dcd all dcd 10 dump.dcd
 
 thermo		50
@@ -58,8 +61,14 @@ rerun dump.xyz dump x y z format xyz box no
 rerun dump.melt dump x y z format native box yes
 read_dump dump.xyz 1 x y z format molfile box no reader xyz "."
 run 0 pre yes post no
-read_dump dump.melt 1 x y z format molfile box no reader lammpstrj
+read_dump dump.melt 1 x y z format molfile box yes reader lammpstrj
 run 0 pre yes post no
 rerun dump.xyz dump x y z format molfile box no reader xyz
 rerun dump.dcd dump x y z format molfile box no reader dcd
+
+read_dump dump-ele.xyz 1 x y z format xyz box no
+run 0 pre yes post no
+rerun dump-ele.xyz dump x y z format molfile box no reader xyz
+rerun dump.dcd dump x y z format molfile box yes reader dcd
+
 

@@ -25,12 +25,20 @@
 #include "error.h"
 
 #include "molfile_interface.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 typedef MolfileInterface MFI;
+using namespace MathConst;
 
-enum{ID,TYPE,X,Y,Z};
+enum{ID,TYPE,X,Y,Z,VX,VY,VZ};
 #define SMALL 1.0e-6
+
+// true if the difference between two floats is "small"
+static bool is_smalldiff(const float &val1, const float &val2) 
+{
+  return (fabs(static_cast<double>(val1-val2)) < SMALL);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -192,13 +200,72 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
   // signal that we have no box info at all so far.
   triclinic = -1;
 
-  // heuristics to determine if we have boxinfo and whether
-  // we have an orthogonal box.
-  // XXX: add some tolerances for rounding and some sanity checks.
-  if (fabs(static_cast<double>(cell[0]*cell[1]*cell[2])) > SMALL) {
-    if ((cell[3] != 90.0f) || (cell[4] != 90.0f) ||
-        (cell[5] != 90.0f)) triclinic = 1;
-    else triclinic = 0;
+  // heuristics to determine if we have boxinfo (first if)
+  // and whether we have an orthogonal box (second if)
+  if (!is_smalldiff(cell[0]*cell[1]*cell[2], 0.0f)) {
+    if (is_smalldiff(cell[3],90.0f) && is_smalldiff(cell[4],90.0f) &&
+        is_smalldiff(cell[5],90.0f)) {
+      triclinic = 0;
+      // we have no information about the absolute location
+      // of the box, so we assume that the origin is in the middle.
+      // also we cannot tell periodicity. we assume, yes.
+      box[0][0] = -0.5*static_cast<double>(cell[0]);
+      box[0][1] =  0.5*static_cast<double>(cell[0]);
+      box[0][2] =  0.0;
+      box[1][0] = -0.5*static_cast<double>(cell[1]);
+      box[1][1] =  0.5*static_cast<double>(cell[1]);
+      box[1][2] =  0.0;
+      box[2][0] = -0.5*static_cast<double>(cell[2]);
+      box[2][1] =  0.5*static_cast<double>(cell[2]);
+      box[2][2] =  0.0;
+    } else {
+
+      triclinic = 1;
+
+      const double la = static_cast<double>(cell[0]);
+      const double lb = static_cast<double>(cell[1]);
+      const double lc = static_cast<double>(cell[2]);
+      const double alpha = static_cast<double>(cell[3]);
+      const double beta  = static_cast<double>(cell[4]);
+      const double gamma = static_cast<double>(cell[5]);
+      
+      const double lx = la;
+      const double xy = lb * cos(gamma/90.0*MY_PI2);
+      const double xz = lc * cos(beta/90.0*MY_PI2);
+      const double ly = sqrt(lb*lb - xy*xy);
+      const double yz = (fabs(ly) > SMALL) ?
+        (lb*lc*cos(alpha/90.0*MY_PI2) - xy*xz) / ly : 0.0;
+      const double lz = sqrt(lc*lc - xz*xz - yz*yz);
+
+      /* go from box length to boundary */
+      double xbnd;
+
+      xbnd = 0.0;
+      xbnd = (xy < xbnd) ? xy : xbnd;
+      xbnd = (xz < xbnd) ? xz : xbnd;
+      xbnd = (xy+xz < xbnd) ? (xy + xz) : xbnd;
+      box[0][0] = -0.5*static_cast<double>(cell[0]+xbnd);
+
+      xbnd = 0.0;
+      xbnd = (xy > xbnd) ? xy : xbnd;
+      xbnd = (xz > xbnd) ? xz : xbnd;
+      xbnd = (xy+xz > xbnd) ? (xy + xz) : xbnd;
+      box[0][1] =  0.5*static_cast<double>(cell[0]+xbnd);
+      box[0][2] =  xy;
+
+      xbnd = 0.0;
+      xbnd = (yz < xbnd) ? yz : xbnd;
+      box[1][0] = -0.5*static_cast<double>(cell[1]+xbnd);
+
+      xbnd = 0.0;
+      xbnd = (yz > xbnd) ? yz : xbnd;
+      box[1][1] =  0.5*static_cast<double>(cell[1]+xbnd);
+      box[1][2] =  xz;
+
+      box[2][0] = -0.5*static_cast<double>(cell[2]);
+      box[2][1] =  0.5*static_cast<double>(cell[2]);
+      box[2][2] =  yz;
+    }
   }
 
   // if no field info requested, just return

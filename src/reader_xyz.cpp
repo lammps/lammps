@@ -168,9 +168,10 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
     ++nid;
     sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
 
-    // FIXME: we need to find a way to signal parser errors here. XXX
+    // XXX: we could insert an element2type translation here
+    // XXX: for now we flag unrecognized types as type 0,
+    // XXX: which should trigger an error, if LAMMPS uses it.
     mytype = atoi(line);
-    if (mytype < 1) mytype = 1;
 
     for (m = 0; m < nfield; m++) {
       switch (fieldindex[m]) {

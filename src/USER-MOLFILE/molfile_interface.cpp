@@ -767,19 +767,25 @@ int MolfileInterface::timestep(float *coords, float *vels,
     } else {
       t->coords = coords;
       t->velocities = vels;
+      t->A = 0.0f;
+      t->B = 0.0f;
+      t->C = 0.0f;
+      t->alpha = 90.0f;
+      t->beta = 90.0f;
+      t->gamma = 90.0f;
+      t->physical_time = 0.0;
       rv = p->read_next_timestep(_ptr, _natoms, t);
+      if (cell != NULL) {
+        cell[0] = t->A;
+        cell[1] = t->B;
+        cell[2] = t->C;
+        cell[3] = t->alpha;
+        cell[4] = t->beta;
+        cell[5] = t->gamma;
+      }
+      if (simtime)
+        *simtime = t->physical_time;
     }
-    if (cell != NULL) {
-      cell[0] = t->A;
-      cell[1] = t->B;
-      cell[2] = t->C;
-      cell[3] = t->alpha;
-      cell[4] = t->beta;
-      cell[5] = t->gamma;
-    }
-
-    if (simtime)
-      *simtime = t->physical_time;
 
     if (rv == MOLFILE_EOF)
       return 1;

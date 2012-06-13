@@ -118,12 +118,14 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
                    "calculate a per-atom array");
       if (argindex[i] &&
           argindex[i] > modify->fix[ifix]->size_peratom_cols)
-        error->all(FLERR,"Compute atom/molecule fix array is accessed out-of-range");
+        error->all(FLERR,
+                   "Compute atom/molecule fix array is accessed out-of-range");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for compute atom/molecule does not exist");
+        error->all(FLERR,
+                   "Variable name for compute atom/molecule does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
         error->all(FLERR,"Compute atom/molecule variable is not "
                    "atom-style variable");
@@ -199,7 +201,8 @@ void ComputeAtomMolecule::init()
     } else if (which[m] == VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for compute atom/molecule does not exist");
+        error->all(FLERR,
+                   "Variable name for compute atom/molecule does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;

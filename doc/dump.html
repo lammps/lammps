@@ -13,6 +13,8 @@
 </H3>
 <H3><A HREF = "dump_image.html">dump image</A> command 
 </H3>
+<H3><A HREF = "dump_molfile.html">dump molfile</A> command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>dump ID group-ID style N file args 
@@ -21,7 +23,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>image</I> or <I>local</I> or <I>custom</I> 
+<LI>style = <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>image</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -36,6 +38,8 @@
   <I>xyz</I> args = none 
 </PRE>
 <PRE>  <I>image</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
+</PRE>
+<PRE>  <I>molfile</I> args = discussed on <A HREF = "dump_molfile.html">dump molfile</A> doc page 
 </PRE>
 <PRE>  <I>local</I> args = list of local attributes
     possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
@@ -133,9 +137,9 @@ parallel, because data for a single snapshot is collected from
 multiple processors.
 </P>
 <P>For the <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I> styles, sorting is off by
-default.  For the <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles, sorting by atom ID
-is on by default.  See the <A HREF = "dump_modify.html">dump_modify</A> doc page for
-details.
+default.  For the <I>dcd</I>, <I>xtc</I>, <I>xyz</I>, and <I>molfile</I> styles, sorting by
+atom ID is on by default. See the <A HREF = "dump_modify.html">dump_modify</A> doc
+page for details.
 </P>
 <HR>
 
@@ -290,11 +294,11 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 </P>
-<P>Note that DCD, XTC, and XYZ formatted files can be read directly by
-<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> (a popular molecular viewing
-program).  See <A HREF = "Section_tools.html#vmd">Section tools</A> of the manual
-and the tools/lmp2vmd/README.txt file for more information about
-support in VMD for reading and visualizing LAMMPS dump files.
+<P>Note that <I>atom</I>, <I>custom</I>, <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> style dump files can
+be read directly by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> (a popular
+molecular viewing program).  See <A HREF = "Section_tools.html#vmd">Section tools</A>
+of the manual and the tools/lmp2vmd/README.txt file for more information
+about support in VMD for reading and visualizing LAMMPS dump files.
 </P>
 <HR>
 

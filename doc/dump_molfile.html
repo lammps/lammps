@@ -1,0 +1,137 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump molfile command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dump ID group-ID molfile N file format path 
+</PRE>
+<UL><LI>ID = user-assigned name for the dump 
+
+<LI>group-ID = ID of the group of atoms to be imaged 
+
+<LI>molfile = style of dump command (other styles <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>local</I> or <I>custom</I> are discussed on the <A HREF = "dump.html">dump</A> doc page) 
+
+<LI>N = dump every this many timesteps 
+
+<LI>file = name of file to write to 
+
+<LI>format = file format to be used 
+
+<LI>path = file path with plugins (optional) 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dump mf1 all molfile 10 melt1.xml hoomd
+dump mf2 all molfile 10 melt2-*.pdb pdb .
+dump mf3 all molfile 50 melt3.xyz xyz .:/home/akohlmey/vmd/plugins/LINUX/molfile 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Dump a snapshot of atom coordinates and selected additional quantities
+to one or more files every N timesteps in one of several formats.  Only
+information for atoms in the specified group is dumped. This specific
+dump style uses molfile plugins that are bundled with the
+<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molecular visualization and
+analysis program.  See <A HREF = "Section_tools.html#vmd">Section tools</A> of the
+manual and the tools/lmp2vmd/README.txt file for more information about
+support in VMD for reading and visualizing native LAMMPS dump files.
+</P>
+<P>Unless the filename contains a * character, the output will be written
+to one single file with the specified format. Otherwise there will be
+one file per snapshot and the * will be replaced by the time step number
+when the snapshot is written.
+</P>
+<P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom written to a dump file may be slightly outside the simulation
+box.
+</P>
+<P>The molfile plugin API has a few restrictions that have to be honored
+by this dump style: the number of atoms must not change, the atoms
+must be sorted, outside of the coordinates no change in atom properties
+(like type, mass, charge) will be recorded.
+</P>
+<HR>
+
+<P>The <I>format</I> keyword determines what format is used to write out the
+dump. For this to work, LAMMPS must be able to find and load a
+compatible molfile plugin that supports this format.  Settings made via
+the <A HREF = "dump_modify.html">dump_modify</A> command can alter per atom properties
+like element names.
+</P>
+<P>The <I>path</I> keyword determines which in directories. This is a "path"
+like other search paths, i.e. it can contain multiple directories
+separated by a colon (or semi-colon on windows). This keyword is
+optional and default to ".", the current directory.
+</P>
+<P>The <I>unwrap</I> option of the <A HREF = "dump_modify.html">dump_modify</A> command allows
+coordinates to be written "unwrapped" by the image flags for each atom.
+Unwrapped means that if the atom has passed through a periodic boundary
+one or more times, the value is printed for what the coordinate would be
+if it had not been wrapped back into the periodic box.  Note that these
+coordinates may thus be far outside the box size stored with the
+snapshot.
+</P>
+<HR>
+
+<P>Dumps are performed on timesteps that are a multiple of N (including
+timestep 0) and on the last timestep of a minimization if the
+minimization converges.  Note that this means a dump will not be
+performed on the initial timestep after the dump command is invoked,
+if the current timestep is not a multiple of N.  This behavior can be
+changed via the <A HREF = "dump_modify.html">dump_modify first</A> command, which can
+be useful if the dump command is invoked after a minimization ended on
+an arbitrary timestep.  N can be changed between runs by using the
+<A HREF = "dump_modify.html">dump_modify every</A> command. The <A HREF = "dump_modify.html">dump_modify
+every</A> command also allows a variable to be used to
+determine the sequence of timesteps on which dump files are written.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>molfile</I> dump style is part of the USER-MOLFILE package.  It is
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Molfile plugins provide a consistent programming interface to read and
+write file formats commonly used in molecular simulations. The
+USER-MOLFILE package only provides the interface code, not the plugins.
+These can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD
+or other programs that use them) without having to recompile the
+application itself.  The plugins are installed in the directory:
+<VMDHOME>/plugins/<VMDARCH>/molfile
+</P>
+<P>NOTE: while the programming interface (API) to the plugins is backward
+compatible, the binary interface (ABI) has been changing over time, so
+it is necessary to compile this package with the plugin header files
+from VMD that match the binary plugins.  These header files in the
+directory: <VMDHOME>/plugins/include For convenience, the package ships
+with a set of header files that are compatible with VMD 1.9 and 1.9.1
+(June 2012)
+</P>
+<HR>
+
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default path is ".". All other properties have to be specified.
+</P>
+</HTML>

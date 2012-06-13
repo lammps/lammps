@@ -442,7 +442,7 @@ int MolfileInterface::find_plugin(const char *pluginpath)
     // check if this a single directory or path.
     next = strchr(plugindir,MY_PATHSEP);
     if (next) {
-      *next = NULL;
+      *next = '\0';
       ++next;
     }
 

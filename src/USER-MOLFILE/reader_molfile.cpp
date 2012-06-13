@@ -13,6 +13,7 @@
 
 #include "string.h"
 #include "stdlib.h"
+#include "math.h"
 #include "reader_molfile.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +26,7 @@ using namespace LAMMPS_NS;
 typedef MolfileInterface MFI;
 
 enum{ID,TYPE,X,Y,Z};
+#define SMALL 1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
@@ -189,7 +191,7 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
   // heuristics to determine if we have boxinfo and whether
   // we have an orthogonal box.
   // XXX: add some tolerances for rounding and some sanity checks.
-  if (static_cast<double>(cell[0]*cell[1]*cell[2]) != 0.0) {
+  if (fabs(static_cast<double>(cell[0]*cell[1]*cell[2])) > SMALL) {
     if ((cell[3] != 90.0f) || (cell[4] != 90.0f) ||
         (cell[5] != 90.0f)) triclinic = 1;
     else triclinic = 0;

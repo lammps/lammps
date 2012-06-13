@@ -1,5 +1,5 @@
 This package provides an C++ interface class to the VMD molfile
-plugins, http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/, and a
+plugins, http://www.ks.uiuc.edu/Research/vmd/plugins/molfile, and a
 set of LAMMPS classes that use this interface.
 
 Molfile plugins provide a consistent programming interface to read and

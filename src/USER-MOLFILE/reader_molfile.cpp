@@ -320,14 +320,15 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
 
 void ReaderMolfile::read_atoms(int n, int nfield, double **fields)
 {
-  int i,m, mytype;
+  int i,m,mytype;
+  char buf[16];
 
   for (i = 0; i < n; i++) {
-
-    // FIXME: we need to find a way to signal parser errors here. XXX
-    mytype = 1; // atoi(property())
-    if (mytype < 1) mytype = 1;
     ++nid;
+
+    if (mf->property(MFI::P_TYPE,nid-1,buf) != MFI::P_NONE) {
+      mytype = atoi(buf);
+    } else mytype = 0;
 
     for (m = 0; m < nfield; m++) {
       switch (fieldindex[m]) {

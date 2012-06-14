@@ -69,13 +69,13 @@ dynamics.
 <P>Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the <A HREF = "next.html">next</A> and <A HREF = "jump.html">jump</A>
 commands).  Each iteration of the loop reads one snapshot from the
-dump file via the <A HREF = "read_dump">read_dump</A> command, sets the timestep to
-the appropriate value, and then invokes a <A HREF = "run.html">run</A> command for
-zero timesteps to simply compute energy and forces, and any other
-<A HREF = "thermo_style.html">thermodynamic output</A> or diagnostic info you have
-defined.  This computation also invokes any fixes you have defined
-that apply constraints to the system, such as <A HREF = "fix_shake.html">fix
-shake</A> or "fix indent-_fix_indent.html.
+dump file via the <A HREF = "read_dump.html">read_dump</A> command, sets the
+timestep to the appropriate value, and then invokes a <A HREF = "run.html">run</A>
+command for zero timesteps to simply compute energy and forces, and
+any other <A HREF = "thermo_style.html">thermodynamic output</A> or diagnostic info
+you have defined.  This computation also invokes any fixes you have
+defined that apply constraints to the system, such as <A HREF = "fix_shake.html">fix
+shake</A> or <A HREF = "fix_indent.html">fix indent</A>.
 </P>
 <P>Note that a simulation box must already be defined before using the
 rerun command.  This can be done by the <A HREF = "create_box.html">create_box</A>,
@@ -128,10 +128,11 @@ elapsed time in the run, will essentially remain at its intiial value.
 <P>The <I>dump</I> keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the <A HREF = "read_dump.html">read_dump</A>
 command.  The first argument following the <I>dump</I> keyword should be
-the <I>field1</I> argument of the "read_dump" command.  See the
-<A HREF = "read_dump.html">read_dump</A> doc page for details on the various options
-it allows for extracting information from the dump file snapshots, and
-for using that information to alter the LAMMPS simulation.
+the <I>field1</I> argument of the <A HREF = "read_dump.html">read_dump</A> command.  See
+the <A HREF = "read_dump.html">read_dump</A> doc page for details on the various
+options it allows for extracting information from the dump file
+snapshots, and for using that information to alter the LAMMPS
+simulation.
 </P>
 <HR>
 
@@ -179,7 +180,7 @@ LAMMPS</A> section of the documentation.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "readdump.html">read_dump</A>
+<P><A HREF = "read_dump.html">read_dump</A>
 </P>
 <P><B>Default:</B>
 </P>

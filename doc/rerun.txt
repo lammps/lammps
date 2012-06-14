@@ -63,13 +63,13 @@ dynamics.  :l,ule
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the "next"_next.html and "jump"_jump.html
 commands).  Each iteration of the loop reads one snapshot from the
-dump file via the "read_dump"_read_dump command, sets the timestep to
-the appropriate value, and then invokes a "run"_run.html command for
-zero timesteps to simply compute energy and forces, and any other
-"thermodynamic output"_thermo_style.html or diagnostic info you have
-defined.  This computation also invokes any fixes you have defined
-that apply constraints to the system, such as "fix
-shake"_fix_shake.html or "fix indent-_fix_indent.html.
+dump file via the "read_dump"_read_dump.html command, sets the
+timestep to the appropriate value, and then invokes a "run"_run.html
+command for zero timesteps to simply compute energy and forces, and
+any other "thermodynamic output"_thermo_style.html or diagnostic info
+you have defined.  This computation also invokes any fixes you have
+defined that apply constraints to the system, such as "fix
+shake"_fix_shake.html or "fix indent"_fix_indent.html.
 
 Note that a simulation box must already be defined before using the
 rerun command.  This can be done by the "create_box"_create_box.html,
@@ -122,10 +122,11 @@ elapsed time in the run, will essentially remain at its intiial value.
 The {dump} keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the "read_dump"_read_dump.html
 command.  The first argument following the {dump} keyword should be
-the {field1} argument of the "read_dump" command.  See the
-"read_dump"_read_dump.html doc page for details on the various options
-it allows for extracting information from the dump file snapshots, and
-for using that information to alter the LAMMPS simulation.
+the {field1} argument of the "read_dump"_read_dump.html command.  See
+the "read_dump"_read_dump.html doc page for details on the various
+options it allows for extracting information from the dump file
+snapshots, and for using that information to alter the LAMMPS
+simulation.
 
 :line
 
@@ -173,7 +174,7 @@ LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 [Related commands:]
 
-"read_dump"_readdump.html
+"read_dump"_read_dump.html
 
 [Default:]
 

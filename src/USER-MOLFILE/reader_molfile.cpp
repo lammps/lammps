@@ -305,6 +305,9 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
     }
   }
 
+  if ((needvels > 0) && (!mf->has_vels()))
+    error->one(FLERR,"Molfile plugin does not support reading velocities");
+
   return natoms;
 }
 
@@ -336,6 +339,15 @@ void ReaderMolfile::read_atoms(int n, int nfield, double **fields)
         break;
       case Z:
         fields[i][m] = static_cast<double>(coords[3*nid-1]);
+        break;
+      case VX:
+        fields[i][m] = static_cast<double>(vels[3*nid-3]);
+        break;
+      case VY:
+        fields[i][m] = static_cast<double>(vels[3*nid-2]);
+        break;
+      case VZ:
+        fields[i][m] = static_cast<double>(vels[3*nid-1]);
         break;
       case ID:
         fields[i][m] = nid;

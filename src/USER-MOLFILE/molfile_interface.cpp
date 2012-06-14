@@ -1095,6 +1095,10 @@ int MolfileInterface::property(int propid, int idx, int *prop)
       INT_TO_STRING_BODY(idx);
     }
   }
+
+  if (_mode & M_RSTRUCT)
+    *prop = read_int_property(a[idx], propid);
+
   return _props;
 }
 
@@ -1119,6 +1123,11 @@ int MolfileInterface::property(int propid, int *types, int *prop)
       }
     }
   }
+
+  // useless when reading
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -1143,6 +1152,12 @@ int MolfileInterface::property(int propid, int *prop)
       }
     } 
   }
+
+  if (_mode & M_RSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      prop[i] = read_int_property(a[i], propid);
+  }
+
   return _props;
 }
 #undef INT_TO_STRING_BODY
@@ -1158,6 +1173,10 @@ int MolfileInterface::property(int propid, int idx, char *prop)
   if (_mode & M_WSTRUCT) {
     _props |= write_atom_property(a[idx], propid, prop);
   }
+
+  if (_mode & M_RSTRUCT)
+    strcpy(prop,read_string_property(a[idx], propid));
+
   return _props;
 }
 
@@ -1174,6 +1193,11 @@ int MolfileInterface::property(int propid, int *types, char **prop)
       _props |= write_atom_property(a[i], propid, prop[types[i]]);
     }
   }
+
+  // useless when reading
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -1190,6 +1214,11 @@ int MolfileInterface::property(int propid, char **prop)
       _props |= write_atom_property(a[i], propid, prop[i]);
     }
   }
+
+  // not supported right now. XXX: should we use strdup() here?
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 

@@ -239,9 +239,9 @@ void Verlet::run(int n)
       timer->stamp(Timer::COMM);
     } else {
       if (n_pre_exchange) {
-	timer->stamp();
-	modify->pre_exchange();
-	timer->stamp(Timer::MODIFY);
+        timer->stamp();
+        modify->pre_exchange();
+        timer->stamp(Timer::MODIFY);
       }
       if (triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
@@ -257,8 +257,8 @@ void Verlet::run(int n)
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(Timer::COMM);
       if (n_pre_neighbor) {
-	modify->pre_neighbor();
-	timer->stamp(Timer::MODIFY);
+        modify->pre_neighbor();
+        timer->stamp(Timer::MODIFY);
       }
       neighbor->build();
       timer->stamp(Timer::NEIGHBOR);

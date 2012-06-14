@@ -33,8 +33,8 @@
 using namespace LAMMPS_NS;
 
 static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
-			  MPI_Comm world, const int nprocs, const int me,
-			  double time_loop, FILE *screen, FILE *logfile)
+                          MPI_Comm world, const int nprocs, const int me,
+                          double time_loop, FILE *screen, FILE *logfile)
 {
   double tmp, time_max, time_min, time_wall;
   double time = t->get_wall(tt);
@@ -59,19 +59,19 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
   if (me == 0) {
     if (screen)
       fprintf(screen,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
-	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
+              label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
     if (logfile)
       fprintf(logfile,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
-	      label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
+              label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
   }
 #else
   if (me == 0) {
     if (screen)
       fprintf(screen,"%5s time (%%) = %g (%g)\n",
-	      label,time,time/time_loop*100.0);
+              label,time,time/time_loop*100.0);
     if (logfile)
       fprintf(logfile,"%5s time (%%) = %g (%g)\n",
-	      label,time,time/time_loop*100.0);
+              label,time,time/time_loop*100.0);
   }
 #endif
 }
@@ -395,14 +395,14 @@ void Finish::end(int flag)
 
 #if defined(_OPENMP)
       if (screen)
-	fputs("Section |  min time  |  avg time  |  max time  "
-	      "|%total |  #Thr\n------------------------------"
-	      "--------------------------------\n",screen);
+        fputs("Section |  min time  |  avg time  |  max time  "
+              "|%total |  #Thr\n------------------------------"
+              "--------------------------------\n",screen);
 
       if (logfile)
-	fputs("Section |  min time  |  avg time  |  max time  "
-	      "|%total |  #Thr\n------------------------------"
-	      "--------------------------------\n",logfile);
+        fputs("Section |  min time  |  avg time  |  max time  "
+              "|%total |  #Thr\n------------------------------"
+              "--------------------------------\n",logfile);
 #endif
     }
 

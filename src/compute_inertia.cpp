@@ -58,7 +58,7 @@ void ComputeInertia::compute_vector()
   ierror = MathExtra::jacobi(itensor,vector,eigvect);
   if (ierror) 
     error->warning(FLERR,
-		   "Insufficient Jacobi rotations for principal moments of inertia");
+                   "Insufficient Jacobi rotations for principal moments of inertia");
 
   // sort principal moments by size
   double tmp;

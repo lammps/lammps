@@ -34,7 +34,8 @@ using namespace MathConst;
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ};
 #define SMALL 1.0e-6
 
-// true if the difference between two floats is "small"
+// true if the difference between two floats is "small".
+// cannot use fabsf() since it is not fully portable.
 static bool is_smalldiff(const float &val1, const float &val2) 
 {
   return (fabs(static_cast<double>(val1-val2)) < SMALL);
@@ -46,9 +47,11 @@ ReaderMolfile::ReaderMolfile(LAMMPS *lmp) : Reader(lmp)
 {
   mf = NULL;
   coords = NULL;
+  vels = NULL;
   types = NULL;
   fieldindex = NULL;
   nstep = 0;
+  needvels = 0;
   me = comm->me;
 }
 
@@ -61,6 +64,7 @@ ReaderMolfile::~ReaderMolfile()
 
     memory->destroy(types);
     memory->destroy(coords);
+    memory->destroy(vels);
     if (mf) delete mf;
   }
 }
@@ -120,6 +124,8 @@ void ReaderMolfile::open_file(const char *file)
 
   memory->create(types,natoms,"reader:types");
   memory->create(coords,3*natoms,"reader:coords");
+  if (mf->has_vels())
+    memory->create(vels,3*natoms,"reader:vels");
 
   // initialize system properties, if available
   if (mf->has_props()) {
@@ -152,8 +158,8 @@ int ReaderMolfile::read_time(bigint &ntimestep)
 {
   int rv;
 
-  // try to read in the time step (coordinates and cell only)
-  rv = mf->timestep(coords, NULL, cell, NULL);
+  // try to read in the time step (coordinates, velocities and cell only)
+  rv = mf->timestep(coords, vels, cell, NULL);
   if (rv != 0) return 1;
 
   // we fake time step numbers.
@@ -244,26 +250,26 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
       xbnd = (xy < xbnd) ? xy : xbnd;
       xbnd = (xz < xbnd) ? xz : xbnd;
       xbnd = (xy+xz < xbnd) ? (xy + xz) : xbnd;
-      box[0][0] = -0.5*static_cast<double>(cell[0]+xbnd);
+      box[0][0] = -0.5*lx + xbnd;
 
       xbnd = 0.0;
       xbnd = (xy > xbnd) ? xy : xbnd;
       xbnd = (xz > xbnd) ? xz : xbnd;
       xbnd = (xy+xz > xbnd) ? (xy + xz) : xbnd;
-      box[0][1] =  0.5*static_cast<double>(cell[0]+xbnd);
+      box[0][1] =  0.5*lx+xbnd;
       box[0][2] =  xy;
 
       xbnd = 0.0;
       xbnd = (yz < xbnd) ? yz : xbnd;
-      box[1][0] = -0.5*static_cast<double>(cell[1]+xbnd);
+      box[1][0] = -0.5*ly+xbnd;
 
       xbnd = 0.0;
       xbnd = (yz > xbnd) ? yz : xbnd;
-      box[1][1] =  0.5*static_cast<double>(cell[1]+xbnd);
+      box[1][1] =  0.5*ly+xbnd;
       box[1][2] =  xz;
 
-      box[2][0] = -0.5*static_cast<double>(cell[2]);
-      box[2][1] =  0.5*static_cast<double>(cell[2]);
+      box[2][0] = -0.5*lz;
+      box[2][1] =  0.5*lz;
       box[2][2] =  yz;
     }
   }
@@ -281,13 +287,19 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
 
   // copy fieldtype list for supported fields
   fieldflag = 0;
+  needvels = 0;
   for (int i = 0; i < nfield; i++) {
     if ( (fieldtype[i] == X) ||
          (fieldtype[i] == Y) ||
          (fieldtype[i] == Z) ||
          (fieldtype[i] == ID) ||
          (fieldtype[i] == TYPE) ) {
-         fieldindex[i] = fieldtype[i];
+      fieldindex[i] = fieldtype[i];
+    } else if ( (fieldtype[i] == VX) ||
+                (fieldtype[i] == VY) ||
+                (fieldtype[i] == VZ) ) {
+      fieldindex[i] = fieldtype[i];
+      needvels = 1;
     } else {
       fieldflag = 1;
     }

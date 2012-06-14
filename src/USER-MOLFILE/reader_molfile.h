@@ -47,9 +47,11 @@ private:
 
   class MolfileInterface *mf;
   float *coords;           // pointer to temporary coordinate storage
+  float *vels;             // pointer to temporary velocity storage
   int *types;              // pointer to temporary type info storage
   float cell[6];           // box info (stored as, a, b, c, alpha, beta, gamma)
   int natoms;              // current number of atoms
+  int needvels;            // 1 if velocities are required, otherwise 0
 
   bigint nstep;            // current (time) step number
   bigint nid;              // current atom id.

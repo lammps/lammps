@@ -579,21 +579,31 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // determine plugin capabilities
     _caps = M_NONE;
-    if (plugin->read_next_timestep)    _caps |= M_READ;
-    if (plugin->write_timestep)        _caps |= M_WRITE;
-    if (plugin->read_structure)        _caps |= M_RSTRUCT;
-    if (plugin->write_structure)       _caps |= M_WSTRUCT;
-    if (plugin->read_bonds)            _caps |= M_RBONDS;
-    if (plugin->write_bonds)           _caps |= M_WBONDS;
-    if (plugin->read_angles)           _caps |= M_RANGLES;
-    if (plugin->write_angles)          _caps |= M_WANGLES;
-    if (plugin->read_volumetric_data)  _caps |= M_RVOL;
-    if (plugin->write_volumetric_data) _caps |= M_WVOL;
+    if (plugin->read_next_timestep)      _caps |= M_READ;
+    if (plugin->write_timestep)          _caps |= M_WRITE;
+#if vmdplugin_ABIVERSION > 10
+    // required to tell if velocities are present
+    if (plugin->read_timestep_metadata)  _caps |= M_RVELS;
+    // we can always offer velocities. we may not know if
+    // they will be written by the plugin though.
+    if (plugin->write_timestep)          _caps |= M_WVELS;
+#endif
+    if (plugin->read_structure)          _caps |= M_RSTRUCT;
+    if (plugin->write_structure)         _caps |= M_WSTRUCT;
+    if (plugin->read_bonds)              _caps |= M_RBONDS;
+    if (plugin->write_bonds)             _caps |= M_WBONDS;
+    if (plugin->read_angles)             _caps |= M_RANGLES;
+    if (plugin->write_angles)            _caps |= M_WANGLES;
+    if (plugin->read_volumetric_data)    _caps |= M_RVOL;
+    if (plugin->write_volumetric_data)   _caps |= M_WVOL;
 
-    if (_mode & M_WRITE)
+    if (_mode & M_WRITE) {
       _mode |= (_caps & M_WSTRUCT);
-    else if (_mode & M_READ)
+      _mode |= (_caps & M_WVELS);
+    } else if (_mode & M_READ) {
       _mode |= (_caps & M_RSTRUCT);
+      _mode |= (_caps & M_RVELS);
+    }
 
     _plugin = plugin;
     _dso = dso;

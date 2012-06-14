@@ -24,6 +24,7 @@ dump        ele all xyz 50 dump-ele.xyz
 dump_modify ele element H
 
 dump        dcd all dcd 10 dump.dcd
+dump		vel all custom 50 dump.vels id type xu yu zu vx vy vz
 
 thermo		50
 run		250
@@ -71,4 +72,7 @@ run 0 pre yes post no
 rerun dump-ele.xyz dump x y z format molfile box no reader xyz
 rerun dump.dcd dump x y z format molfile box yes reader dcd
 
+rerun dump.vels dump x y z vx vy vz format native box yes
+
+rerun dump.vels dump x y z vx vy vz format molfile box yes reader lammpstrj
 

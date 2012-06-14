@@ -143,7 +143,20 @@ points to consider, as discussed here.
 </P>
 <P>Fixes that perform time integration, such as <A HREF = "fix_nve.html">fix nve</A> or
 <A HREF = "fix_nh.html">fix npt</A> are not invoked, since no time integration is
-performed.
+performed.  Fixes that perturb or constrain the forces on atoms will
+be invoked, just as they would during a normal run.  Examples are <A HREF = "fix_indent.html">fix
+indent</A> and <A HREF = "fix_langevin.html">fix langevin</A>.  So you
+should think carefully as to whether that makes sense for the manner
+in which you are reprocessing the dump snapshots.
+</P>
+<P>If you only want the rerun script to perform analyses that do not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a <A HREF = "pair_style.html">pair
+style</A>, which may also mean neighbor lists will not
+need to be calculated which saves time.  The <A HREF = "communicate.html">communicate
+cutoff</A> command can also be used to insure ghost
+atoms are acquired from far enough away for operations like bond and
+angle evaluations, if no pair style is being used.
 </P>
 <P>Every time a snapshot is read, the timestep for the simulation is
 reset, as if the <A HREF = "reset_timestep.html<A HREF = "fix_deposit.html">>reset_timestep</A> command were

@@ -137,7 +137,20 @@ points to consider, as discussed here.
 
 Fixes that perform time integration, such as "fix nve"_fix_nve.html or
 "fix npt"_fix_nh.html are not invoked, since no time integration is
-performed.
+performed.  Fixes that perturb or constrain the forces on atoms will
+be invoked, just as they would during a normal run.  Examples are "fix
+indent"_fix_indent.html and "fix langevin"_fix_langevin.html.  So you
+should think carefully as to whether that makes sense for the manner
+in which you are reprocessing the dump snapshots.
+
+If you only want the rerun script to perform analyses that do not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a "pair
+style"_pair_style.html, which may also mean neighbor lists will not
+need to be calculated which saves time.  The "communicate
+cutoff"_communicate.html command can also be used to insure ghost
+atoms are acquired from far enough away for operations like bond and
+angle evaluations, if no pair style is being used.
 
 Every time a snapshot is read, the timestep for the simulation is
 reset, as if the "reset_timestep"_reset_timestep.html command were

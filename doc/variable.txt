@@ -194,6 +194,7 @@ string ("2", "3", etc) is assigned.  All processors assign the same
 string to the variable.  The {loop} style can also be specified with
 two arguments N1 and N2.  In this case the loop runs from N1 to N2
 inclusive, and the string N1 is initially assigned to the variable.
+N1 <= N2 and N2 >= 0 is required.
 
 For the {world} style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  See "this

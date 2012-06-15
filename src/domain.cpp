@@ -543,6 +543,8 @@ int Domain::box_too_small()
   
   int *num_bond = atom->num_bond;
   int **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -551,8 +553,11 @@ int Domain::box_too_small()
 
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
+      // skip over constrained bonds
+      if (bond_type[i][j] < 0) continue;
       k = atom->map(bond_atom[i][j]);
-      if (k < 0) error->one(FLERR,"Bond atom missing in box size check");
+      if (k < 0)
+        error->one(FLERR,"Bond atom missing in box size check");
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];

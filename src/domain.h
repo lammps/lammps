@@ -70,7 +70,7 @@ class Domain : protected Pointers {
 
                                          // triclinic box
   double xy,xz,yz;                       // 3 tilt factors
-  double h[6],h_inv[6];                           // shape matrix in Voigt notation
+  double h[6],h_inv[6];                  // shape matrix in Voigt notation
   double h_rate[6],h_ratelo[3];          // rate of box size/shape change
 
   int box_change;                 // 1 if box bounds ever change, 0 if fixed
@@ -93,6 +93,7 @@ class Domain : protected Pointers {
   virtual void set_local_box();
   virtual void reset_box();
   virtual void pbc();
+  int box_too_small();
   int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);

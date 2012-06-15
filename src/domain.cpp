@@ -41,6 +41,7 @@ using namespace MathConst;
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTA 1
+#define BONDSTRETCH 1.1
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
@@ -97,6 +98,12 @@ Domain::~Domain()
 
 void Domain::init()
 {
+  // check for too small a periodic box for molecular system
+
+  if (atom->molecular && box_too_small())
+    error->all(FLERR,"Bond/angle/dihedral extent must be < "
+               "half of periodic box dimension");
+
   // set box_change if box dimensions/shape ever changes
   // due to shrink-wrapping, fixes that change volume (npt, vol/rescale, etc)
 
@@ -513,6 +520,66 @@ void Domain::pbc()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   check that no pair of atoms in a bonded interaction
+   are further apart than half a periodic box length
+   return 1 if any pair is, else 0
+------------------------------------------------------------------------- */
+
+int Domain::box_too_small()
+{
+  int i,j,k;
+
+  // only need to check if some dimension is periodic
+
+  if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return 0;
+
+  // maxbondall = longest current bond length
+  // NOTE: if box is tiny (less than 2 * bond-length),
+  //       the check itself may compute bad bond lengths
+  //       not sure how to account for that extreme case
+  
+  int *num_bond = atom->num_bond;
+  int **bond_atom = atom->bond_atom;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  double delx,dely,delz,rsq,r;
+  double maxbondme = 0.0;
+
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < num_bond[i]; j++) {
+      k = atom->map(bond_atom[i][j]);
+      if (k < 0) error->one(FLERR,"Bond atom missing in box size check");
+      delx = x[i][0] - x[k][0];
+      dely = x[i][1] - x[k][1];
+      delz = x[i][2] - x[k][2];
+      domain->minimum_image(delx,dely,delz);
+      rsq = delx*delx + dely*dely + delz*delz;
+      maxbondme = MAX(maxbondme,rsq);
+    }
+
+  double maxbondall;
+  MPI_Allreduce(&maxbondme,&maxbondall,1,MPI_DOUBLE,MPI_MAX,world);
+  maxbondall = sqrt(maxbondall);
+
+  // maxdelta = furthest apart 2 atoms in a bonded interaction can be
+  // include BONDSTRETCH factor to account for dynamics
+
+  double maxdelta = maxbondall * BONDSTRETCH;
+  if (atom->nangles) maxdelta = 2.0 * maxbondall * BONDSTRETCH;
+  if (atom->ndihedrals) maxdelta = 3.0 * maxbondall * BONDSTRETCH;
+
+  // maxdelta cannot be more than half a periodic box length,
+  // else when use minimg() in bond/angle/dihdral compute,
+  // could calculate incorrect distance between 2 atoms
+
+  if (xperiodic && maxdelta > xprd_half) return 1;
+  if (yperiodic && maxdelta > yprd_half) return 1;
+  if (dimension == 3 && zperiodic && maxdelta > zprd_half) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

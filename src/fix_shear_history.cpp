@@ -87,7 +87,8 @@ int FixShearHistory::setmask()
 void FixShearHistory::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style granular with history requires atoms have IDs");
+    error->all(FLERR,
+               "Pair style granular with history requires atoms have IDs");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,16 +110,24 @@ void FixShearHistory::pre_exchange()
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  // zero npartners for all current atoms
+  // zero npartner for all current atoms
+  // do not do this if inum = 0, since will wipe out npartner counts
+  // inum is 0 when pre_exchange() is called from integrate->setup()
+  //   before first run when no neighbor lists yet exist
+  //   partner info may have just been read from restart file
+  //     and won't be used until granular neighbor lists are built
+  //   if nothing read from restart file, constructor sets npartner = 0
 
+  NeighList *list = pair->list;
   int nlocal = atom->nlocal;
-  for (i = 0; i < nlocal; i++) npartner[i] = 0;
+
+  //if (list->inum)
+    for (i = 0; i < nlocal; i++)
+      npartner[i] = 0;
 
   // copy shear info from neighbor list atoms to atom arrays
 
   int *tag = atom->tag;
-
-  NeighList *list = pair->list;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -167,7 +176,8 @@ void FixShearHistory::pre_exchange()
     if (npartner[i] >= MAXTOUCH) flag = 1;
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
+  if (flag_all)
+    error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
 }
 
 /* ----------------------------------------------------------------------

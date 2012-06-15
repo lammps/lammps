@@ -17,21 +17,21 @@ balance keyword args ... :pre
 
 one or more keyword/arg pairs may be appended :ule,l
 keyword = {x} or {y} or {z} or {dynamic} or {out} :l
-  {x} args = {uniform} or Px-1 numbers between 0 and 1
-    {uniform} = evenly spaced cuts between processors in x dimension
-    numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
-  {y} args = {uniform} or Py-1 numbers between 0 and 1
-    {uniform} = evenly spaced cuts between processors in y dimension
-    numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
-  {z} args = {uniform} or Pz-1 numbers between 0 and 1
-    {uniform} = evenly spaced cuts between processors in z dimension
-    numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
-  {dynamic} args = dimstr Niter thresh
-    dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
-    Niter = # of times to iterate within each dimension of dimstr sequence
-    thresh = stop balancing when this imbalance threshhold is reached
-  {out} arg = filename
-    filename = output file to write each processor's sub-domain to :pre
+ {x} args = {uniform} or Px-1 numbers between 0 and 1
+   {uniform} = evenly spaced cuts between processors in x dimension
+   numbers = Px-1 ascending values between 0 and 1, Px - # of processors in x dimension
+ {y} args = {uniform} or Py-1 numbers between 0 and 1
+   {uniform} = evenly spaced cuts between processors in y dimension
+   numbers = Py-1 ascending values between 0 and 1, Py - # of processors in y dimension
+ {z} args = {uniform} or Pz-1 numbers between 0 and 1
+   {uniform} = evenly spaced cuts between processors in z dimension
+   numbers = Pz-1 ascending values between 0 and 1, Pz - # of processors in z dimension
+ {dynamic} args = dimstr Niter thresh
+   dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
+   Niter = # of times to iterate within each dimension of dimstr sequence
+   thresh = stop balancing when this imbalance threshhold is reached
+ {out} arg = filename
+   filename = output file to write each processor's sub-domain to :pre
 :ule
 
 [Examples:]
@@ -155,8 +155,30 @@ except that the bounds used for each bisectioning take advantage of
 information from neighboring cuts if possible.  At each iteration, the
 count of particles on either side of each plane is tallied.  If the
 counts do not match the target value for the plane, the position of
-the cut is adjusted.  As the recustion progresses, the count of
-particles on either side of the plane gets closer to the target value.
+the cut is adjusted to be halfway between a low and high bound.  The
+low and high bounds are adjusted on each iteration, using new count
+information, so that they become closer together over time.  Thus as
+the recustion progresses, the count of particles on either side of the
+plane gets closer to the target value.
+
+Once the rebalancing is complete and final processor sub-domains
+assigned, particles are migrated to their new owning processor, and
+the balance procedure ends.
+
+IMPORTANT NOTE: At each rebalance operation, the recursive
+bisectioning operation for each cutting plane (line in 2d) typcially
+starts with low and high bounds separated by the extent of a
+processor's sub-domain in one dimension.  The size of this bracketing
+region shrinks by 1/2 every iteration.  Thus if {Niter} is specified
+as 10, the cutting plane will typically be positioned to 1 part in
+1000 accuracy (relative to the perfect target position).  For {Niter}
+= 20, it will be accurate to 1 part in a million.  Tus there is no
+need ot set {Niter} to a large value.  LAMMPS will check if the
+threshold accuracy is reached (in a dimension) is less iterations than
+{Niter} and exit early.  However, {Niter} should also not be set too
+small, since it will take roughly the same number of iterations to
+converge even if the cutting plane is initially close to the target
+value.
 
 :line
 
@@ -165,7 +187,7 @@ the results of the balancing operation.  The file contains the bounds
 of the sub-domain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
 "Pizza.py"_pizza {mdump} tool which has support for manipulating and
-visualizing mesh files.  An example is show here for a balancing by 4
+visualizing mesh files.  An example is shown here for a balancing by 4
 processors for a 2d problem:
 
 ITEM: TIMESTEP

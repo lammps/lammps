@@ -169,7 +169,6 @@ void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const q = atom->q;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
-  const int tid = thr->get_tid();
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;

@@ -157,7 +157,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
         hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
         hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
         hneigh[i][2] = 1;
-        if (iH1 == -1 || iH2 == -1) 
+        if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
@@ -218,7 +218,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
       // but only if they are within reach
 
       if (rsq < cut_coulsqplus) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 
           // if atom J = water O, set x2 = offset charge site
           // else x2 = x of atom J
@@ -228,7 +228,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
               hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
               hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
               hneigh[j][2] = 1;
-              if (jH1 == -1 || jH2 == -1) 
+              if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
@@ -457,7 +457,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
 ------------------------------------------------------------------------- */
 
 void PairLJCutCoulLongTIP4POpt::compute_newsite_opt(const double * xO,
-                                                    const double * xH1, 
+                                                    const double * xH1,
                                                     const double * xH2,
                                                     double * xM) const
 {

@@ -35,7 +35,7 @@ class PairLJCutCoulLongTIP4POpt : public PairLJCutCoulLongTIP4P {
  protected:
   template < const int, const int, const int, const int >
   void eval();
-  void compute_newsite_opt(const double *, const double *, 
+  void compute_newsite_opt(const double *, const double *,
                            const double *, double *) const;
 };
 

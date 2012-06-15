@@ -53,10 +53,22 @@ PairLJCutCoulLongTIP4P::PairLJCutCoulLongTIP4P(LAMMPS *lmp) :
   single_enable = 0;
   respa_enable = 0;
 
+  nmax = 0;
+  hneigh = NULL;
+  newsite = NULL;
+
   // TIP4P cannot compute virial as F dot r
-  // due to find_M() finding bonded H atoms which are not near O atom
+  // due to finding bonded H atoms which are not near O atom
 
   no_virial_fdotr_compute = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
+{
+  memory->destroy(hneigh);
+  memory->destroy(newsite);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,11 +93,28 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
+  // reallocate hneigh & newsite if necessary
+  // initialize hneigh[0] to -1 on steps when reneighboring occurred
+  // initialize hneigh[2] to 0 every step
+
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    memory->destroy(hneigh);
+    memory->create(hneigh,nmax,3,"pair:hneigh");
+    memory->destroy(newsite);
+    memory->create(newsite,nmax,3,"pair:newsite");
+  }
+  if (neighbor->ago == 0)
+    for (i = 0; i < nall; i++) hneigh[i][0] = -1;
+  for (i = 0; i < nall; i++) hneigh[i][2] = 0;
+
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -106,10 +135,31 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
+
+    // if atom I = water O, set x1 = offset charge site
+    // else x1 = x of atom I
+
     if (itype == typeO) {
-      find_M(i,iH1,iH2,xiM);
-      x1 = xiM;
+      if (hneigh[i][0] < 0) {
+        hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
+        hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
+        hneigh[i][2] = 1;
+        if (iH1 == -1 || iH2 == -1)
+          error->one(FLERR,"TIP4P hydrogen is missing");
+        if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
+          error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+      } else {
+        iH1 = hneigh[i][0];
+        iH2 = hneigh[i][1];
+        if (hneigh[i][2] == 0) {
+          hneigh[i][2] = 1;
+          compute_newsite(x[i],x[iH1],x[iH2],newsite[i]);
+        }
+      }
+      x1 = newsite[i];
     } else x1 = x[i];
+
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -154,12 +204,32 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       // but only if they are within reach
 
       if (rsq < cut_coulsqplus) {
-
         if (itype == typeO || jtype == typeO) {
+
+          // if atom J = water O, set x2 = offset charge site
+          // else x2 = x of atom J
+
           if (jtype == typeO) {
-            find_M(j,jH1,jH2,xjM);
-            x2 = xjM;
+            if (hneigh[j][0] < 0) {
+              hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
+              hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
+              hneigh[j][2] = 1;
+              if (jH1 == -1 || jH2 == -1)
+                error->one(FLERR,"TIP4P hydrogen is missing");
+              if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
+                error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+            } else {
+              jH1 = hneigh[j][0];
+              jH2 = hneigh[j][1];
+              if (hneigh[j][2] == 0) {
+                hneigh[j][2] = 1;
+                compute_newsite(x[j],x[jH1],x[jH2],newsite[j]);
+              }
+            }
+            x2 = newsite[j];
           } else x2 = x[j];
+
           delx = x1[0] - x2[0];
           dely = x1[1] - x2[1];
           delz = x1[2] - x2[2];
@@ -361,9 +431,6 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
       }
     }
   }
-
-  //if (comm->me == 0 && update->ntimestep == update->laststep)
-  //  printf("Count %ld %d\n",update->ntimestep,count);
 }
 
 /* ----------------------------------------------------------------------
@@ -400,8 +467,6 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
 
 void PairLJCutCoulLongTIP4P::init_style()
 {
-  //count = 0;
-
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair)
@@ -426,6 +491,29 @@ void PairLJCutCoulLongTIP4P::init_style()
   double theta = force->angle->equilibrium_angle(typeA);
   double blen = force->bond->equilibrium_distance(typeB);
   alpha = qdist / (cos(0.5*theta) * blen);
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairLJCutCoulLongTIP4P::init_one(int i, int j)
+{
+  double cut = PairLJCutCoulLong::init_one(i,j);
+
+  // check that LJ epsilon = 0.0 for water H
+  // set LJ cutoff to 0.0 for any interaction involving water H
+  // so LJ term isn't calculated in compute()
+
+  if ((i == typeH && epsilon[i][i] != 0.0) ||
+      (j == typeH && epsilon[j][j] != 0.0))
+    error->all(FLERR,"Water H epsilon must be 0.0 for "
+               "pair style lj/cut/coul/long/tip4p");
+
+  if (i == typeH || j == typeH)
+    cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;
+
+  return cut;
 }
 
 /* ----------------------------------------------------------------------
@@ -479,39 +567,26 @@ void PairLJCutCoulLongTIP4P::read_restart_settings(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-  find 2 H atoms bonded to O atom i
-  compute position xM of fictitious charge site for O atom
-  also return local indices iH1,iH2 of H atoms
+  compute position xM of fictitious charge site for O atom and 2 H atoms
+  return it as xM
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
+void PairLJCutCoulLongTIP4P::compute_newsite(double *xO, double *xH1,
+                                             double *xH2, double *xM)
 {
-  // test that O is correctly bonded to 2 succesive H atoms
-
-  iH1 = atom->map(atom->tag[i] + 1);
-  iH2 = atom->map(atom->tag[i] + 2);
-
-  if (iH1 == -1 || iH2 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
-  if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
-
-  double **x = atom->x;
-
-  double delx1 = x[iH1][0] - x[i][0];
-  double dely1 = x[iH1][1] - x[i][1];
-  double delz1 = x[iH1][2] - x[i][2];
+  double delx1 = xH1[0] - xO[0];
+  double dely1 = xH1[1] - xO[1];
+  double delz1 = xH1[2] - xO[2];
   domain->minimum_image(delx1,dely1,delz1);
 
-  double delx2 = x[iH2][0] - x[i][0];
-  double dely2 = x[iH2][1] - x[i][1];
-  double delz2 = x[iH2][2] - x[i][2];
+  double delx2 = xH2[0] - xO[0];
+  double dely2 = xH2[1] - xO[1];
+  double delz2 = xH2[2] - xO[2];
   domain->minimum_image(delx2,dely2,delz2);
 
-  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
-  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
-  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
-
-  //count++;
+  xM[0] = xO[0] + alpha * 0.5 * (delx1 + delx2);
+  xM[1] = xO[1] + alpha * 0.5 * (dely1 + dely2);
+  xM[2] = xO[2] + alpha * 0.5 * (delz1 + delz2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -527,3 +602,16 @@ void *PairLJCutCoulLongTIP4P::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   return NULL;
 }
+
+/* ----------------------------------------------------------------------
+   memory usage of hneigh
+------------------------------------------------------------------------- */
+
+double PairLJCutCoulLongTIP4P::memory_usage()
+{
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  bytes += 2 * nmax * sizeof(double);
+  return bytes;
+}
+

@@ -527,11 +527,11 @@ void Respa::recurse(int ilevel)
 
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
-	timer->stamp();
+    timer->stamp();
     modify->initial_integrate_respa(vflag,ilevel,iloop);
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
-	timer->stamp(Timer::MODIFY);
+    timer->stamp(Timer::MODIFY);
 
     if (ilevel) recurse(ilevel-1);
 
@@ -577,9 +577,9 @@ void Respa::recurse(int ilevel)
 
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa) {
-	  timer->stamp();
+      timer->stamp();
       modify->pre_force_respa(vflag,ilevel,iloop);
-	  timer->stamp(Timer::MODIFY);
+      timer->stamp(Timer::MODIFY);
     }
 
     timer->stamp();

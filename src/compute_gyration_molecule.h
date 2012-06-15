@@ -30,15 +30,20 @@ class ComputeGyrationMolecule : public Compute {
   ~ComputeGyrationMolecule();
   void init();
   void compute_vector();
+  void compute_array();
   double memory_usage();
 
  private:
+  int tensor;
   int nmolecules;
   int idlo,idhi;
 
   double *massproc,*masstotal;
   double **com,**comall;
-  double *rg,*rgall;
+  double *rg;
+  double **rgt;
+
+  void molcom();
 };
 
 }

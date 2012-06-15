@@ -164,7 +164,8 @@ void Variable::set(int narg, char **arg)
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
       nfirst = atoi(arg[2]);
       nlast = atoi(arg[3]);
-      if (nfirst > nlast || nlast <= 0) error->all(FLERR,"Illegal variable command");
+      if (nfirst > nlast || nlast < 0) 
+        error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         char digits[12];
         sprintf(digits,"%d",nlast);

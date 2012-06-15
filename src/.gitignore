@@ -741,6 +741,8 @@ pppm_tip4p_proxy.cpp
 pppm_tip4p_proxy.h
 prd.cpp
 prd.h
+reader_molfile.cpp
+reader_molfile.h
 reaxc_allocate.cpp
 reaxc_allocate.h
 reaxc_basic_comm.cpp
@@ -803,6 +805,7 @@ style_kspace.h
 style_lb.h
 style_minimize.h
 style_pair.h
+style_reader.h
 style_region.h
 tad.cpp
 tad.h

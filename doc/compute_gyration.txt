@@ -33,6 +33,12 @@ this formula
 where M is the total mass of the group, Rcm is the center-of-mass
 position of the group, and the sum is over all atoms in the group.
 
+A Rg tensor, stored as a 6-element vector, is also calculated by this
+compute.  The formula for the components of the tensor is the same as
+the above formula, except that (Ri - Rcm)^2 is replaced by (Rix -
+Rcmx) * (Riy - Rcmy) for the xy component, etc.  The 6 components of
+the vector are ordered xx, yy, zz, xy, xz, yz.
+
 IMPORTANT NOTE: The coordinates of an atom contribute to Rg in
 "unwrapped" form, by using the image flags associated with each atom.
 See the "dump custom"_dump.html command for a discussion of
@@ -44,13 +50,16 @@ image"_set.html command.
 
 [Output info:]
 
-This compute calculates a global scalar (Rg).  This value can be used
-by any command that uses a global scalar value from a compute as
-input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
-overview of LAMMPS output options.
+This compute calculates a global scalar (Rg) and a global vector of
+length 6 (Rg tensor), which can be accessed by indices 1-6.  These
+values can be used by any command that uses a global scalar value or
+vector values from a compute as input.  See "Section_howto
+15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options.
 
-The scalar value calculated by this compute is "intensive".  The
-scalar value will be in distance "units"_units.html.
+The scalar and vector values calculated by this compute are
+"intensive".  The scalar and vector values will be in distance
+"units"_units.html.
 
 [Restrictions:] none
 

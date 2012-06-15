@@ -167,18 +167,18 @@ void FixSpringPull::post_force(int vflag)
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = rmass[i];
-	f[i][0] -= fx*massone;
-	f[i][1] -= fy*massone;
-	f[i][2] -= fz*massone;
+        massone = rmass[i];
+        f[i][0] -= fx*massone;
+        f[i][1] -= fy*massone;
+        f[i][2] -= fz*massone;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	massone = mass[type[i]];
-	f[i][0] -= fx*massone;
-	f[i][1] -= fy*massone;
-	f[i][2] -= fz*massone;
+        massone = mass[type[i]];
+        f[i][0] -= fx*massone;
+        f[i][1] -= fy*massone;
+        f[i][2] -= fz*massone;
       }
   }
 }

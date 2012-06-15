@@ -14,6 +14,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "domain.h"
 #include "group.h"
 #include "error.h"
 
@@ -81,6 +82,7 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   int npnt_middle = 0;
 
   int which = 0;
+  int minchange = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -132,16 +134,21 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
           which = find_special(special[i],nspecial[i],tag[j]);
-          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          if (which == 0) neighptr[n++] = j;
+          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
           if (which == 0) neighptr_inner[n_inner++] = j;
+          else if (minchange) neighptr_inner[n_inner++] = j;
           else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
           if (which == 0) neighptr_middle[n_middle++] = j;
+          else if (minchange) neighptr_middle[n_middle++] = j;
           else if (which > 0)
             neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
@@ -242,6 +249,7 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   int npnt_middle = 0;
 
   int which = 0;
+  int minchange = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -310,17 +318,22 @@ void Neighbor::respa_nsq_newton(NeighList *list)
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
           which = find_special(special[i],nspecial[i],tag[j]);
-          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          if (which == 0) neighptr[n++] = j;
+          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
           if (which == 0) neighptr_inner[n_inner++] = j;
+          else if (minchange) neighptr_inner[n_inner++] = j;
           else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle &&
             rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
           if (which == 0) neighptr_middle[n_middle++] = j;
+          else if (minchange) neighptr_middle[n_middle++] = j;
           else if (which > 0)
             neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
@@ -423,6 +436,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int npnt_middle = 0;
 
   int which = 0;
+  int minchange = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -480,11 +494,15 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
 
           if (rsq < cut_inner_sq) {
             if (which == 0) neighptr_inner[n_inner++] = j;
+            else if (minchange) neighptr_inner[n_inner++] = j;
             else if (which > 0)
               neighptr_inner[n_inner++] = j ^ (which << SBBITS);
           }
@@ -492,6 +510,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
           if (respamiddle &&
               rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
             if (which == 0) neighptr_middle[n_middle++] = j;
+            else if (minchange) neighptr_middle[n_middle++] = j;
             else if (which > 0)
               neighptr_middle[n_middle++] = j ^ (which << SBBITS);
           }
@@ -594,6 +613,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int npnt_middle = 0;
 
   int which = 0;
+  int minchange = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -654,17 +674,22 @@ void Neighbor::respa_bin_newton(NeighList *list)
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
           which = find_special(special[i],nspecial[i],tag[j]);
-          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          if (which == 0) neighptr[n++] = j;
+          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
           if (which == 0) neighptr_inner[n_inner++] = j;
+          else if (minchange) neighptr_inner[n_inner++] = j;
           else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
         if (respamiddle &&
             rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
           if (which == 0) neighptr_middle[n_middle++] = j;
+          else if (minchange) neighptr_middle[n_middle++] = j;
           else if (which > 0)
             neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
@@ -687,11 +712,15 @@ void Neighbor::respa_bin_newton(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
 
           if (rsq < cut_inner_sq) {
             if (which == 0) neighptr_inner[n_inner++] = j;
+            else if (minchange) neighptr_inner[n_inner++] = j;
             else if (which > 0)
               neighptr_inner[n_inner++] = j ^ (which << SBBITS);
           }
@@ -699,6 +728,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
           if (respamiddle &&
               rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
             if (which == 0) neighptr_middle[n_middle++] = j;
+            else if (minchange) neighptr_middle[n_middle++] = j;
             else if (which > 0)
               neighptr_middle[n_middle++] = j ^ (which << SBBITS);
           }
@@ -801,6 +831,7 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int npnt_middle = 0;
 
   int which = 0;
+  int minchange = 0;
 
   for (i = 0; i < nlocal; i++) {
 
@@ -866,11 +897,15 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
 
           if (rsq < cut_inner_sq) {
             if (which == 0) neighptr_inner[n_inner++] = j;
+            else if (minchange) neighptr_inner[n_inner++] = j;
             else if (which > 0)
               neighptr_inner[n_inner++] = j ^ (which << SBBITS);
           }
@@ -878,6 +913,7 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
           if (respamiddle &&
               rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
             if (which == 0) neighptr_middle[n_middle++] = j;
+            else if (minchange) neighptr_middle[n_middle++] = j;
             else if (which > 0)
               neighptr_middle[n_middle++] = j ^ (which << SBBITS);
           }

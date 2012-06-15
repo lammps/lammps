@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_MOLFILE_INTERFACE_H
@@ -28,41 +28,42 @@ class MolfileInterface
  public:
   // plugin modes.
   enum {M_NONE=0,
-	M_READ    = 1<<0, M_WRITE   = 1<<1,
-	M_RSTRUCT = 1<<2, M_WSTRUCT = 1<<3,
-	M_RBONDS  = 1<<4, M_WBONDS  = 1<<5,
-	M_RANGLES = 1<<6, M_WANGLES = 1<<7,
-	M_RVOL    = 1<<8, M_WVOL    = 1<<9,
-	M_LAST };
+        M_READ    = 1<<0,  M_WRITE   = 1<<1,
+        M_RSTRUCT = 1<<2,  M_WSTRUCT = 1<<3,
+        M_RBONDS  = 1<<4,  M_WBONDS  = 1<<5,
+        M_RANGLES = 1<<6,  M_WANGLES = 1<<7,
+        M_RVOL    = 1<<8,  M_WVOL    = 1<<9,
+        M_RVELS   = 1<<10, M_WVELS   = 1<<11,
+        M_LAST    = 1<<12 };
 
   // plugin finder return values.
   enum {E_NONE=0,  //< nothing happened
-	E_DIR,     //< path is not a directory or not readable
-	E_FILE,    //< file not a DSO or not readable
-	E_SYMBOL,  //< DSO is not a VMD plugin
-	E_TYPE,    //< plugin is not of the correct type
-	E_ABI,     //< plugin ABI does not match
-	E_MODE,    //< plugin does not support desired mode
-	E_VERSION, //< plugin is not newer as the current one
-	E_MATCH,   //< plugin matches
-	E_LAST     //< last entry
+        E_DIR,     //< path is not a directory or not readable
+        E_FILE,    //< file not a DSO or not readable
+        E_SYMBOL,  //< DSO is not a VMD plugin
+        E_TYPE,    //< plugin is not of the correct type
+        E_ABI,     //< plugin ABI does not match
+        E_MODE,    //< plugin does not support desired mode
+        E_VERSION, //< plugin is not newer as the current one
+        E_MATCH,   //< plugin matches
+        E_LAST     //< last entry
   };
 
   // atom structure properties. deliberately not complete.
   enum {P_NONE=0,     //< no structure information available
-	P_NAME=1<<0,  //< atom name,    char[16]
-	P_TYPE=1<<1,  //< atom type,    char[16]
-	P_RESN=1<<2,  //< residue name, char[ 8]
-	P_RESI=1<<3,  //< residue index, int
-	P_SEGN=1<<4,  //< segment name, char[ 8]
-	P_CHAI=1<<5,  //< chain id,     char[ 2]
-	P_OCCP=1<<6,  //< occupancy,    float
-	P_BFAC=1<<7,  //< B factor,     float
-	P_MASS=1<<8,  //< atom mass,    float
-	P_CHRG=1<<9,  //< atom charge,  float
-	P_RADS=1<<10, //< atom radius,  float
-	P_ATMN=1<<11, //< atomic number, int
-	P_LAST        //< last entry
+        P_NAME=1<<0,  //< atom name,    char[16]
+        P_TYPE=1<<1,  //< atom type,    char[16]
+        P_RESN=1<<2,  //< residue name, char[ 8]
+        P_RESI=1<<3,  //< residue index, int
+        P_SEGN=1<<4,  //< segment name, char[ 8]
+        P_CHAI=1<<5,  //< chain id,     char[ 2]
+        P_OCCP=1<<6,  //< occupancy,    float
+        P_BFAC=1<<7,  //< B factor,     float
+        P_MASS=1<<8,  //< atom mass,    float
+        P_CHRG=1<<9,  //< atom charge,  float
+        P_RADS=1<<10, //< atom radius,  float
+        P_ATMN=1<<11, //< atomic number, int
+        P_LAST=1<<12  //< last entry
   };
 
   MolfileInterface(const char *type, const int mode);
@@ -106,6 +107,8 @@ class MolfileInterface
   bool is_open() const { return (_ptr != 0); };
   // true if file format requires or provides atom properties
   bool has_props() const { return (_mode & (M_RSTRUCT|M_WSTRUCT)) != 0; };
+  // true if file format can read or write velocities
+  bool has_vels() const { return (_mode & (M_RVELS|M_WVELS)) != 0; };
 
   // return number of atoms in current file. -1 if closed/invalid;
   bool get_natoms() const { return _natoms; };

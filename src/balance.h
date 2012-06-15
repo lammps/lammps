@@ -31,35 +31,42 @@ class Balance : protected Pointers {
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
-  void dynamic_setup(int, int, char *, double);
+  void dynamic_setup(char *, int, double);
   int dynamic();
   double imbalance_nlocal(int &);
 
  private:
   int me,nprocs;
-  int xflag,yflag,zflag,dflag;
-  int nrepeat,niter;
+
+  int xflag,yflag,zflag;                            // xyz LB flags
+  double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
+
+  int dflag;                 // dynamic LB flag
+  int niter;                 // params for dynamic LB
   double thresh;
-  char *bstr;
-  double *user_xsplit,*user_ysplit,*user_zsplit;
+  char bstr[4];
 
-  int *ops;
-  int nops;
-  double *splits[3];
-  bigint *counts[3];
-  double *cuts;
-  bigint *onecount;
+  int ndim;                  // length of balance string bstr
+  int *bdim;                 // XYZ for each character in bstr           
+  bigint *count;             // counts for slices in one dim
+  bigint *onecount;          // work vector of counts in one dim
+  bigint *sum;               // cummulative count for slices in one dim
+  bigint *target;            // target sum for slices in one dim
+  double *lo,*hi;            // lo/hi split coords that bound each target
 
-  int *pcount,*allcount;
+  int *proccount;            // particle count per processor
+  int *allproccount;
 
-  FILE *fp;                      // for debug output
+  int outflag;               // for output of balance results to file
+  FILE *fp;
   bigint laststep;
 
   void dynamic_setup(char *);
   int dynamic_once();
   double imbalance_splits(int &);
-  void stats(int, int, double *, bigint *);
-  void adjust(int, bigint *, double *);
+  void tally(int, int, double *);
+  int adjust(int, double *);
+  void old_adjust(int, int, bigint *, double *);
   int binary(double, int, double *);
 
   void dumpout(bigint);          // for debug output

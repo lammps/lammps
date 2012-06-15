@@ -34,6 +34,8 @@ keyword = {first} or {last} or {every} or {skip} or {start} or {stop} or {dump}
 
 rerun dump.file dump x y z vx vy vz
 rerun dump1.txt dump2.txt first 10000 every 1000 dump x y z
+rerun dump.vels dump x y z vx vy vz format molfile box yes reader lammpstrj
+rerun dump.dcd dump x y z format molfile box no reader dcd
 rerun ../run7/dump.file.gz skip 2 dump x y z box yes :pre
 
 [Description:]
@@ -63,13 +65,13 @@ dynamics.  :l,ule
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the "next"_next.html and "jump"_jump.html
 commands).  Each iteration of the loop reads one snapshot from the
-dump file via the "read_dump"_read_dump command, sets the timestep to
-the appropriate value, and then invokes a "run"_run.html command for
-zero timesteps to simply compute energy and forces, and any other
-"thermodynamic output"_thermo_style.html or diagnostic info you have
-defined.  This computation also invokes any fixes you have defined
-that apply constraints to the system, such as "fix
-shake"_fix_shake.html or "fix indent-_fix_indent.html.
+dump file via the "read_dump"_read_dump.html command, sets the
+timestep to the appropriate value, and then invokes a "run"_run.html
+command for zero timesteps to simply compute energy and forces, and
+any other "thermodynamic output"_thermo_style.html or diagnostic info
+you have defined.  This computation also invokes any fixes you have
+defined that apply constraints to the system, such as "fix
+shake"_fix_shake.html or "fix indent"_fix_indent.html.
 
 Note that a simulation box must already be defined before using the
 rerun command.  This can be done by the "create_box"_create_box.html,
@@ -122,10 +124,11 @@ elapsed time in the run, will essentially remain at its intiial value.
 The {dump} keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the "read_dump"_read_dump.html
 command.  The first argument following the {dump} keyword should be
-the {field1} argument of the "read_dump" command.  See the
-"read_dump"_read_dump.html doc page for details on the various options
-it allows for extracting information from the dump file snapshots, and
-for using that information to alter the LAMMPS simulation.
+the {field1} argument of the "read_dump"_read_dump.html command.  See
+the "read_dump"_read_dump.html doc page for details on the various
+options it allows for extracting information from the dump file
+snapshots, and for using that information to alter the LAMMPS
+simulation.
 
 :line
 
@@ -136,7 +139,20 @@ points to consider, as discussed here.
 
 Fixes that perform time integration, such as "fix nve"_fix_nve.html or
 "fix npt"_fix_nh.html are not invoked, since no time integration is
-performed.
+performed.  Fixes that perturb or constrain the forces on atoms will
+be invoked, just as they would during a normal run.  Examples are "fix
+indent"_fix_indent.html and "fix langevin"_fix_langevin.html.  So you
+should think carefully as to whether that makes sense for the manner
+in which you are reprocessing the dump snapshots.
+
+If you only want the rerun script to perform analyses that do not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a "pair
+style"_pair_style.html, which may also mean neighbor lists will not
+need to be calculated which saves time.  The "communicate
+cutoff"_communicate.html command can also be used to insure ghost
+atoms are acquired from far enough away for operations like bond and
+angle evaluations, if no pair style is being used.
 
 Every time a snapshot is read, the timestep for the simulation is
 reset, as if the "reset_timestep"_reset_timestep.html command were
@@ -173,7 +189,7 @@ LAMMPS"_Section_start.html#start_2 section of the documentation.
 
 [Related commands:]
 
-"read_dump"_readdump.html
+"read_dump"_read_dump.html
 
 [Default:]
 

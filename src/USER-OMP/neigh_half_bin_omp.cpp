@@ -16,6 +16,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -108,7 +109,10 @@ void Neighbor::half_bin_no_newton_omp(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }
@@ -214,7 +218,11 @@ void Neighbor::half_bin_newton_omp(NeighList *list)
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
           which = find_special(special[i],nspecial[i],tag[j]);
-          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          if (which == 0) neighptr[n++] = j;
+          else if (domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+          // OLD: if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
       }
     }
@@ -235,7 +243,11 @@ void Neighbor::half_bin_newton_omp(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            // OLD: if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }
@@ -346,7 +358,10 @@ void Neighbor::half_bin_newton_tri_omp(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }

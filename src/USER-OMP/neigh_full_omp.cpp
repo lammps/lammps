@@ -16,6 +16,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "group.h"
 #include "error.h"
 
@@ -96,7 +97,10 @@ void Neighbor::full_nsq_omp(NeighList *list)
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
           which = find_special(special[i],nspecial[i],tag[j]);
-          if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+          if (which == 0) neighptr[n++] = j;
+          else if (domain->minimum_image_check(delx,dely,delz))
+            neighptr[n++] = j;
+          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
       }
     }
@@ -115,7 +119,7 @@ void Neighbor::full_nsq_omp(NeighList *list)
 
 /* ----------------------------------------------------------------------
    N^2 search for all neighbors
-   include neighbors of ghost atoms (no "special neighbors" for ghosts)
+   include neighbors of ghost atoms, but no "special neighbors" for ghosts
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -185,11 +189,13 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
-
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }
@@ -304,7 +310,10 @@ void Neighbor::full_bin_omp(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }
@@ -410,7 +419,10 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular) {
               which = find_special(special[i],nspecial[i],tag[j]);
-              if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
             } else neighptr[n++] = j;
           }
         }
@@ -545,7 +557,10 @@ void Neighbor::full_multi_omp(NeighList *list)
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
-            if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }

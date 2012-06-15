@@ -43,65 +43,38 @@ PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
   respa_enable = 0;
 
   // TIP4P cannot compute virial as F dot r
-  // due to find_M() finding bonded H atoms which are not near O atom
+  // due to finding bonded H atoms which are not near O atom
 
   no_virial_fdotr_compute = 1;
-
-  // for caching m-shift corrected positions
-  maxmpos = 0;
-  h1idx = h2idx = NULL;
-  mpos = NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairLJCutCoulLongTIP4POMP::~PairLJCutCoulLongTIP4POMP()
-{
-  memory->destroy(h1idx);
-  memory->destroy(h2idx);
-  memory->destroy(mpos);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
-  // reallocate per-atom arrays, if necessary
-  if (nall > maxmpos) {
-    maxmpos = nall;
-    memory->grow(mpos,maxmpos,3,"pair:mpos");
-    memory->grow(h1idx,maxmpos,"pair:h1idx");
-    memory->grow(h2idx,maxmpos,"pair:h2idx");
+  // reallocate hneigh & newsite if necessary
+  // initialize hneigh[0] to -1 on steps when reneighboring occurred
+  // initialize hneigh[2] to 0 every step
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    memory->destroy(hneigh);
+    memory->create(hneigh,nmax,3,"pair:hneigh");
+    memory->destroy(newsite);
+    memory->create(newsite,nmax,3,"pair:newsite");
   }
 
-  // cache corrected M positions in mpos[]
-  const double * const * const x = atom->x;
-  const int * const type = atom->type;
-  for (int i = 0; i < nlocal; i++) {
-    if (type[i] == typeO) {
-      find_M(i,h1idx[i],h2idx[i],mpos[i]);
-    } else {
-      mpos[i][0] = x[i][0];
-      mpos[i][1] = x[i][1];
-      mpos[i][2] = x[i][2];
-    }
-  }
-  for (int i = nlocal; i < nall; i++) {
-    if (type[i] == typeO) {
-      find_M_permissive(i,h1idx[i],h2idx[i],mpos[i]);
-    } else {
-      mpos[i][0] = x[i][0];
-      mpos[i][1] = x[i][1];
-      mpos[i][2] = x[i][2];
-    }
-  }
+  // XXX: this could be threaded, too.
+  int i;
+  if (neighbor->ago == 0)
+    for (i = 0; i < nall; i++) hneigh[i][0] = -1;
+  for (i = 0; i < nall; i++) hneigh[i][2] = 0;
 
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
@@ -138,7 +111,6 @@ void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
     } else eval<0,0,0,0>(ifrom, ito, thr);
   }
 
-
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -159,7 +131,7 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   double grij,expm2,prefactor,t,erfc,ddotf;
   double v[6],xH1[3],xH2[3];
   double fdx,fdy,fdz,f1x,f1y,f1z,fOx,fOy,fOz,fHx,fHy,fHz;
-  double *x1,*x2;
+  const double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -184,7 +156,6 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
-
     i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
@@ -192,12 +163,39 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp = x[i][2];
     itype = type[i];
 
+    // if atom I = water O, set x1 = offset charge site
+    // else x1 = x of atom I
+    // NOTE: to make this part thread safe, we need to
+    // make sure that the hneigh[][] entries only get
+    // updated, when all data is in place. worst case,
+    // some calculation is repeated, but since the results
+    // will be the same, there is no race condition.
+    if (itype == typeO) {
+      if (hneigh[i][0] < 0) {
+        iH1 = atom->map(atom->tag[i] + 1);
+        iH2 = atom->map(atom->tag[i] + 2);
+        if (iH1 == -1 || iH2 == -1)
+          error->one(FLERR,"TIP4P hydrogen is missing");
+        if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
+          error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        compute_newsite_thr(x[i],x[iH1],x[iH2],newsite[i]);
+        hneigh[i][2] = 1;
+        hneigh[i][1] = iH2;
+        hneigh[i][0] = iH1;
+      } else {
+        iH1 = hneigh[i][0];
+        iH2 = hneigh[i][1];
+        if (hneigh[i][2] == 0) {
+          compute_newsite_thr(x[i],x[iH1],x[iH2],newsite[i]);
+          hneigh[i][2] = 1;
+        }
+      }
+      x1 = newsite[i];
+    } else x1 = x[i];
+
     jlist = firstneigh[i];
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
-    x1 = mpos[i];
-    iH1 = h1idx[i];
-    iH2 = h2idx[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -236,19 +234,41 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
                                  evdwl,0.0,forcelj,delx,dely,delz,thr);
       }
 
-      // adjust rsq and delxyz for off-site O charge(s),
+      // adjust rsq and delxyz for off-site O charge(s) if necessary
       // but only if they are within reach
-
+      // NOTE: to make this part thread safe, we need to
+      // make sure that the hneigh[][] entries only get
+      // updated, when all data is in place. worst case,
+      // some calculation is repeated, but since the results
+      // will be the same, there is no race condition.
       if (rsq < cut_coulsqplus) {
-
         if (itype == typeO || jtype == typeO) {
-          x2 = mpos[j];
-          jH1 = h1idx[j];
-          jH2 = h2idx[j];
 
-          if (check_error_thr((jtype == typeO  && ( jH1 < 0 || jH2 < 0 )),
-                              tid, FLERR,"TIP4P hydrogen is missing"))
-            return;
+          // if atom J = water O, set x2 = offset charge site
+          // else x2 = x of atom J
+
+          if (jtype == typeO) {
+            if (hneigh[j][0] < 0) {
+              jH1 = atom->map(atom->tag[j] + 1);
+              jH2 = atom->map(atom->tag[j] + 2);
+              if (jH1 == -1 || jH2 == -1)
+                error->one(FLERR,"TIP4P hydrogen is missing");
+              if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
+                error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              compute_newsite_thr(x[j],x[jH1],x[jH2],newsite[j]);
+              hneigh[j][2] = 1;
+              hneigh[j][1] = jH2;
+              hneigh[j][0] = jH1;
+            } else {
+              jH1 = hneigh[j][0];
+              jH2 = hneigh[j][1];
+              if (hneigh[j][2] == 0) {
+                compute_newsite_thr(x[j],x[jH1],x[jH2],newsite[j]);
+                hneigh[j][2] = 1;
+              }
+            }
+            x2 = newsite[j];
+          } else x2 = x[j];
 
           delx = x1[0] - x2[0];
           dely = x1[1] - x2[1];
@@ -457,18 +477,30 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 }
 
 /* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+  compute position xM of fictitious charge site for O atom and 2 H atoms
+  return it as xM
+------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4POMP::find_M_permissive(int i, int &iH1, int &iH2, double *xM)
+void PairLJCutCoulLongTIP4POMP::compute_newsite_thr(const double * xO,
+                                                    const double * xH1,
+                                                    const double * xH2,
+                                                    double * xM) const
 {
-  // test that O is correctly bonded to 2 succesive H atoms
+  double delx1 = xH1[0] - xO[0];
+  double dely1 = xH1[1] - xO[1];
+  double delz1 = xH1[2] - xO[2];
+  domain->minimum_image(delx1,dely1,delz1);
 
-   iH1 = atom->map(atom->tag[i] + 1);
-   iH2 = atom->map(atom->tag[i] + 2);
+  double delx2 = xH2[0] - xO[0];
+  double dely2 = xH2[1] - xO[1];
+  double delz2 = xH2[2] - xO[2];
+  domain->minimum_image(delx2,dely2,delz2);
 
-   if (iH1 == -1 || iH2 == -1)
-      return;
-   else
-      find_M(i,iH1,iH2,xM);
+  const double prefac = alpha * 0.5;
+  xM[0] = xO[0] + prefac * (delx1 + delx2);
+  xM[1] = xO[1] + prefac * (dely1 + dely2);
+  xM[2] = xO[2] + prefac * (delz1 + delz2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -477,9 +509,5 @@ double PairLJCutCoulLongTIP4POMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairLJCutCoulLongTIP4P::memory_usage();
-  bytes += 2 * maxmpos * sizeof(int);
-  bytes += 3 * maxmpos * sizeof(double);
-  bytes += maxmpos * sizeof(double *);
-
   return bytes;
 }

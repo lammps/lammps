@@ -182,20 +182,20 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
         r6inv = r2inv*r2inv*r2inv;
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
         forcelj *= factor_lj * r2inv;
-	
+
         f[i][0] += delx*forcelj;
         f[i][1] += dely*forcelj;
         f[i][2] += delz*forcelj;
         f[j][0] -= delx*forcelj;
         f[j][1] -= dely*forcelj;
         f[j][2] -= delz*forcelj;
-	
+
         if (eflag) {
           evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
             offset[itype][jtype];
           evdwl *= factor_lj;
         } else evdwl = 0.0;
-	
+
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,forcelj,delx,dely,delz);
       }
@@ -275,14 +275,14 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
           // preserves total force and torque on water molecule
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
-	
+
           n = 0;
-	
+
           if (itype != typeO) {
             f[i][0] += delx * cforce;
             f[i][1] += dely * cforce;
             f[i][2] += delz * cforce;
-	  
+
             if (vflag) {
               v[0] = x[i][0] * delx * cforce;
               v[1] = x[i][1] * dely * cforce;
@@ -292,7 +292,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[5] = x[i][1] * delz * cforce;
               vlist[n++] = i;
             }
-	  
+  
           } else {
 
             fd[0] = delx*cforce;
@@ -305,53 +305,53 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 
             ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
               (qdist*qdist);
-	  
+  
             f1[0] = ddotf * delxOM;
             f1[1] = ddotf * delyOM;
             f1[2] = ddotf * delzOM;
-	  
+  
             fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
             fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
             fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
-	  
+  
             fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
             fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
             fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
-	  
+  
             f[i][0] += fO[0];
             f[i][1] += fO[1];
             f[i][2] += fO[2];
-	  
+  
             f[iH1][0] += fH[0];
             f[iH1][1] += fH[1];
             f[iH1][2] += fH[2];
-	  
+  
             f[iH2][0] += fH[0];
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
-	  
+  
             if (vflag) {
               domain->closest_image(x[i],x[iH1],xH1);
               domain->closest_image(x[i],x[iH2],xH2);
-	    
+    
               v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
               v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
               v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
               v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
               v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-	    
+    
               vlist[n++] = i;
               vlist[n++] = iH1;
               vlist[n++] = iH2;
             }
           }
-	
+
           if (jtype != typeO) {
             f[j][0] -= delx * cforce;
             f[j][1] -= dely * cforce;
             f[j][2] -= delz * cforce;
-	  
+  
             if (vflag) {
               v[0] -= x[j][0] * delx * cforce;
               v[1] -= x[j][1] * dely * cforce;
@@ -361,61 +361,61 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[5] -= x[j][1] * delz * cforce;
               vlist[n++] = j;
             }
-	  
+  
           } else {
-	  
+  
             fd[0] = -delx*cforce;
             fd[1] = -dely*cforce;
             fd[2] = -delz*cforce;
-	  
+  
             delxOM = x[j][0] - x2[0];
             delyOM = x[j][1] - x2[1];
             delzOM = x[j][2] - x2[2];
-	  
+  
             ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
               (qdist*qdist);
-	  
+  
             f1[0] = ddotf * delxOM;
             f1[1] = ddotf * delyOM;
             f1[2] = ddotf * delzOM;
-	  
+  
             fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
             fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
             fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
-	  
+  
             fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
             fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
             fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
-	  
+  
             f[j][0] += fO[0];
             f[j][1] += fO[1];
             f[j][2] += fO[2];
-	  
+  
             f[jH1][0] += fH[0];
             f[jH1][1] += fH[1];
             f[jH1][2] += fH[2];
-	  
+  
             f[jH2][0] += fH[0];
             f[jH2][1] += fH[1];
             f[jH2][2] += fH[2];
-	  
+  
             if (vflag) {
               domain->closest_image(x[j],x[jH1],xH1);
               domain->closest_image(x[j],x[jH2],xH2);
-	    
+    
               v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
               v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
               v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
               v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
               v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-	    
+    
               vlist[n++] = j;
               vlist[n++] = jH1;
               vlist[n++] = jH2;
             }
           }
-	
+
           if (eflag) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor*erfc;
@@ -425,7 +425,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
-	
+
           if (evflag) ev_tally_list(n,vlist,ecoul,v);
         }
       }
@@ -457,7 +457,7 @@ void PairLJCutCoulLongTIP4P::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-	if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
+        if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
 }
 
@@ -471,10 +471,10 @@ void PairLJCutCoulLongTIP4P::init_style()
     error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom IDs");
   if (!force->newton_pair) 
     error->all(FLERR,
-	       "Pair style lj/cut/coul/long/tip4p requires newton pair on");
+               "Pair style lj/cut/coul/long/tip4p requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,
-	       "Pair style lj/cut/coul/long/tip4p requires atom attribute q");
+               "Pair style lj/cut/coul/long/tip4p requires atom attribute q");
   if ( (strcmp(force->kspace_style,"pppm/tip4p") != 0) &&
        (strcmp(force->kspace_style,"pppm/tip4p/omp") != 0) &&
        (strcmp(force->kspace_style,"pppm/tip4p/proxy") != 0) )
@@ -508,7 +508,7 @@ double PairLJCutCoulLongTIP4P::init_one(int i, int j)
   if ((i == typeH && epsilon[i][i] != 0.0) ||
       (j == typeH && epsilon[j][j] != 0.0))
     error->all(FLERR,"Water H epsilon must be 0.0 for "
-	       "pair style lj/cut/coul/long/tip4p");
+               "pair style lj/cut/coul/long/tip4p");
 
   if (i == typeH || j == typeH)
     cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;
@@ -572,7 +572,7 @@ void PairLJCutCoulLongTIP4P::read_restart_settings(FILE *fp)
 ------------------------------------------------------------------------- */
 
 void PairLJCutCoulLongTIP4P::compute_newsite(double *xO, double *xH1, 
-					      double *xH2, double *xM)
+                                             double *xH2, double *xM)
 {
   double delx1 = xH1[0] - xO[0];
   double dely1 = xH1[1] - xO[1];

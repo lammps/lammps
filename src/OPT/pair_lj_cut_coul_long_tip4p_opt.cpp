@@ -49,6 +49,8 @@ PairLJCutCoulLongTIP4POpt::PairLJCutCoulLongTIP4POpt(LAMMPS *lmp) :
   no_virial_fdotr_compute = 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairLJCutCoulLongTIP4POpt::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);

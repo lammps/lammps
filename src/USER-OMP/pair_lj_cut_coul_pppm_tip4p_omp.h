@@ -33,23 +33,18 @@ class PairLJCutCoulPPPMTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
 
  public:
   PairLJCutCoulPPPMTIP4POMP(class LAMMPS *);
-  virtual ~PairLJCutCoulPPPMTIP4POMP();
+  virtual ~PairLJCutCoulPPPMTIP4POMP() {};
 
   virtual void init_style();
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
- protected:
-  // this is to cache m-shift corrected positions.
-  int maxmpos;        // size of the following arrays
-  int *h1idx, *h2idx; // local index of hydrogen atoms
-  double **mpos;      // coordinates corrected for m-shift.
-  void find_M_permissive(int, int &, int &, double *);
-
  private:
   template <int, int, int, int>
   void eval(int ifrom, int ito, ThrData * const thr);
+  void compute_newsite_thr(const double *, const double *,
+                           const double *, double *) const;
 
   class PPPMTIP4PProxy *kspace;
   int nproxy;

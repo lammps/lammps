@@ -30,7 +30,7 @@ do \
     
     k=`echo $l | sed -e 's/log./ref./'`
 
-    egrep -v '(LAMMPS|OpenMP|MPI|serial|Memory|Loop|Perform|FFT)' $l   \
+    egrep -v '(LAMMPS|OpenMP|MPI|serial|Memory|Loop|Perform|FFT|/omp)' $l   \
       | sed -e 's/-0\.0000000000/0.0000000000 /g' -e '/^Section.*/,$d' \
       > $k
 

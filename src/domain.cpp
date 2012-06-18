@@ -41,7 +41,7 @@ using namespace MathConst;
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTA 1
-#define BONDSTRETCH 1.5
+#define BONDSTRETCH 1.1
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
@@ -98,12 +98,6 @@ Domain::~Domain()
 
 void Domain::init()
 {
-  // check for too small a periodic box for molecular system
-
-  if (atom->molecular && box_too_small())
-    error->all(FLERR,"Bond/angle/dihedral extent must be < "
-               "half of periodic box dimension");
-
   // set box_change if box dimensions/shape ever changes
   // due to shrink-wrapping, fixes that change volume (npt, vol/rescale, etc)
 
@@ -553,23 +547,9 @@ int Domain::box_too_small()
 
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
-      if (atom->map(i) < 0) continue;
-      // skip over constrained bonds
-      if (bond_type[i][j] < 0) continue;
       k = atom->map(bond_atom[i][j]);
-#if 1
-      return 0;
-      
-      if (k < 0) {
-        char errmsg[256];
-        sprintf(errmsg,"atom %d/%d, bond %d, type %d, to atom %d/%d missing",
-                i,atom->map(i),j,bond_type[i][j],bond_atom[i][j],k);
-        error->one(FLERR,errmsg);
-      }
-#else   
       if (k < 0)
         error->one(FLERR,"Bond atom missing in box size check");
-#endif
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];

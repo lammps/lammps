@@ -18,7 +18,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "force.h"
-#include "pair.h"
+#include "pair_gran_hooke_history.h"
 #include "update.h"
 #include "modify.h"
 #include "memory.h"
@@ -34,12 +34,8 @@ using namespace FixConst;
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  // set time_depend so that history will be preserved correctly
-  // across multiple runs via laststep setting in granular pair styles
-
   restart_peratom = 1;
   create_attribute = 1;
-  time_depend = 1;
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -79,6 +75,7 @@ int FixShearHistory::setmask()
 {
   int mask = 0;
   mask |= PRE_EXCHANGE;
+  mask |= MIN_PRE_EXCHANGE;
   return mask;
 }
 
@@ -91,16 +88,30 @@ void FixShearHistory::init()
                "Pair style granular with history requires atoms have IDs");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   called by setup of run or minimize
+   called by write_restart as input script command
+   only invoke pre_exchange() if neigh list stores more current history info
+     than npartner/partner arrays in this fix
+   that will only be case if pair->compute() has been invoked since
+     upate of npartner/npartner
+   this logic avoids 2 problems:
+     run 100; write_restart; run 100
+       setup_pre_exchange is called twice (by write_restart and 2nd run setup)
+       w/out a neighbor list being created in between
+     read_restart; run 100
+       setup_pre_exchange called by run setup whacks restart shear history info
+------------------------------------------------------------------------- */
 
 void FixShearHistory::setup_pre_exchange()
 {
-  pre_exchange();
+  if (pair->computeflag) pre_exchange();
+  pair->computeflag = 0;
 }
 
 /* ----------------------------------------------------------------------
    copy shear partner info from neighbor lists to atom arrays
-   so can be exchanged with atoms
+   so can be migrated or stored with atoms
 ------------------------------------------------------------------------- */
 
 void FixShearHistory::pre_exchange()
@@ -111,23 +122,14 @@ void FixShearHistory::pre_exchange()
   double *shear,*allshear,**firstshear;
 
   // zero npartner for all current atoms
-  // do not do this if inum = 0, since will wipe out npartner counts
-  // inum is 0 when pre_exchange() is called from integrate->setup()
-  //   before first run when no neighbor lists yet exist
-  //   partner info may have just been read from restart file
-  //     and won't be used until granular neighbor lists are built
-  //   if nothing read from restart file, constructor sets npartner = 0
 
-  NeighList *list = pair->list;
   int nlocal = atom->nlocal;
-
-  if (list->inum)
-    for (i = 0; i < nlocal; i++)
-      npartner[i] = 0;
+  for (i = 0; i < nlocal; i++) npartner[i] = 0;
 
   // copy shear info from neighbor list atoms to atom arrays
 
   int *tag = atom->tag;
+  NeighList *list = pair->list;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -178,6 +180,21 @@ void FixShearHistory::pre_exchange()
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
     error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShearHistory::min_setup_pre_exchange()
+{
+  if (pair->computeflag) pre_exchange();
+  pair->computeflag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShearHistory::min_pre_exchange()
+{
+  pre_exchange();
 }
 
 /* ----------------------------------------------------------------------

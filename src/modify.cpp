@@ -235,8 +235,12 @@ void Modify::setup(int vflag)
 
 void Modify::setup_pre_exchange()
 {
-  for (int i = 0; i < n_pre_exchange; i++)
-    fix[list_pre_exchange[i]]->setup_pre_exchange();
+  if (update->whichflag == 1)
+    for (int i = 0; i < n_pre_exchange; i++)
+      fix[list_pre_exchange[i]]->setup_pre_exchange();
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_min_pre_exchange; i++)
+      fix[list_min_pre_exchange[i]]->min_setup_pre_exchange();
 }
 
 /* ----------------------------------------------------------------------

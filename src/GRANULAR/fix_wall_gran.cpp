@@ -49,13 +49,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
-  // set time_depend so that history will be preserved correctly
-  // across multiple runs via laststep setting in granular pair styles
-  // same as fix shear/history
-
   restart_peratom = 1;
   create_attribute = 1;
-  time_depend = 1;
 
   // wall/particle coefficients
 
@@ -184,7 +179,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     shear[i][0] = shear[i][1] = shear[i][2] = 0.0;
 
   time_origin = update->ntimestep;
-  laststep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -289,8 +283,8 @@ void FixWallGran::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (update->ntimestep > laststep) shearupdate = 1;
-  else shearupdate = 0;
+  int shearupdate = 1;
+  if (update->setupflag) shearupdate = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -348,8 +342,6 @@ void FixWallGran::post_force(int vflag)
       }
     }
   }
-
-  laststep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

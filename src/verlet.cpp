@@ -158,6 +158,7 @@ void Verlet::setup_minimal(int flag)
   // build neighbor lists
 
   if (flag) {
+    modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();

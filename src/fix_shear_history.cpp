@@ -121,7 +121,7 @@ void FixShearHistory::pre_exchange()
   NeighList *list = pair->list;
   int nlocal = atom->nlocal;
 
-  //if (list->inum)
+  if (list->inum)
     for (i = 0; i < nlocal; i++)
       npartner[i] = 0;
 

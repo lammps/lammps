@@ -98,12 +98,6 @@ Domain::~Domain()
 
 void Domain::init()
 {
-  // check for too small a periodic box for molecular system
-
-  if (atom->molecular && box_too_small())
-    error->all(FLERR,"Bond/angle/dihedral extent must be < "
-               "half of periodic box dimension");
-
   // set box_change if box dimensions/shape ever changes
   // due to shrink-wrapping, fixes that change volume (npt, vol/rescale, etc)
 
@@ -525,16 +519,16 @@ void Domain::pbc()
 /* ----------------------------------------------------------------------
    check that no pair of atoms in a bonded interaction
    are further apart than half a periodic box length
-   return 1 if any pair is, else 0
 ------------------------------------------------------------------------- */
 
-int Domain::box_too_small()
+void Domain::box_too_small_check()
 {
   int i,j,k;
 
-  // only need to check if some dimension is periodic
+  // only need to check if system is molecluar and some dimension is periodic
 
-  if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return 0;
+  if (!atom->molecular) return;
+  if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
 
   // maxbondall = longest current bond length
   // NOTE: if box is tiny (less than 2 * bond-length),
@@ -552,7 +546,7 @@ int Domain::box_too_small()
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
       k = atom->map(bond_atom[i][j]);
-      if (k < 0) error->one(FLERR,"Bond atom missing in box size check");
+      if (k == -1) error->one(FLERR,"Bond atom missing in box size check");
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
@@ -576,10 +570,14 @@ int Domain::box_too_small()
   // else when use minimg() in bond/angle/dihdral compute,
   // could calculate incorrect distance between 2 atoms
 
-  if (xperiodic && maxdelta > xprd_half) return 1;
-  if (yperiodic && maxdelta > yprd_half) return 1;
-  if (dimension == 3 && zperiodic && maxdelta > zprd_half) return 1;
-  return 0;
+  int flag = 0;
+  if (xperiodic && maxdelta > xprd_half) flag = 1;
+  if (yperiodic && maxdelta > yprd_half) flag = 1;
+  if (dimension == 3 && zperiodic && maxdelta > zprd_half) flag = 1;
+
+  if (flag)
+    error->all(FLERR,
+               "Bond/angle/dihedral extent > half of periodic box length");
 }
 
 /* ----------------------------------------------------------------------

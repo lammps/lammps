@@ -363,6 +363,7 @@ void Respa::setup()
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->box_too_small_check();
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -427,6 +428,7 @@ void Respa::setup_minimal(int flag)
     comm->exchange();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->box_too_small_check();
     neighbor->build();
     neighbor->ncalls = 0;
   }
@@ -501,6 +503,7 @@ void Respa::cleanup()
 {
   modify->post_run();
   modify->delete_fix("RESPA");
+  domain->box_too_small_check();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -13,7 +13,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*USER-MOLFILE.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i '4 i \
-include USER-MOLFILE\/Makefile.lammps\
+include ..\/USER-MOLFILE\/Makefile.lammps\
 ' ../Makefile.package.settings
   fi
 

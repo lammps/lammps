@@ -147,5 +147,6 @@ void FixShearHistoryOMP::pre_exchange()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
+  if (flag_all)
+    error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
 }

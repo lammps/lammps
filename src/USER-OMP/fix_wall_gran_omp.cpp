@@ -23,8 +23,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-
-enum{XPLANE,YPLANE,ZPLANE,ZCYLINDER};    // XYZ PLANE need to be 0,1,2
+enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER};    // XYZ PLANE need to be 0,1,2
 enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 
 #define BIG 1.0e20
@@ -75,8 +74,7 @@ void FixWallGranOMP::post_force(int vflag)
   const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
 
-  if (update->ntimestep > laststep) shearupdate = 1;
-  else shearupdate = 0;
+  shearupdate = (update->setupflag) ? 0 : 1;
 
   int i;
 #if defined(_OPENMP)
@@ -140,8 +138,6 @@ void FixWallGranOMP::post_force(int vflag)
       }
     }
   }
-
-  laststep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

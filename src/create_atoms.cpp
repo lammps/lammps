@@ -336,6 +336,9 @@ void CreateAtoms::add_random()
   // iterate until atom is within region and triclinic simulation box
   // if final atom position is in my subbox, create it
 
+  if (xlo > xhi || ylo > yhi || zlo > zhi)
+    error->all(FLERR,"No overlap of box and region for create_atoms");
+
   int valid;
   for (int i = 0; i < nrandom; i++) {
     while (1) {

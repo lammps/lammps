@@ -283,7 +283,7 @@ void FixWallGran::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int shearupdate = 1;
+  shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 
   for (int i = 0; i < nlocal; i++) {

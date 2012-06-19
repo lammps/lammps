@@ -26,7 +26,7 @@ value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   v_name = global value calculated by an equal-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {type} or {ave} or {start} or {prefactor} or {file} or {title1} or {title2} or {title3} :l
+keyword = {type} or {ave} or {start} or {prefactor} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
   {type} arg = {auto} or {upper} or {lower} or {auto/upper} or {auto/lower} or {full}
     auto = correlate each value with itself
     upper = correlate each value with each succeeding value
@@ -43,6 +43,7 @@ keyword = {type} or {ave} or {start} or {prefactor} or {file} or {title1} or {ti
     value = prefactor to scale all the correlation data by
   {file} arg = filename
     filename = name of file to output correlation data to
+  {overwrite} arg = none = overwrite output file with only latest output
   {title1} arg = string
     string = text to print as 1st line of output file
   {title2} arg = string
@@ -231,6 +232,10 @@ steps, an array of correlation data is written to the file.  The
 number of rows is {Nrepeat}, as described above.  The number of
 columns is the Npair+2, also as described above.  Thus the file ends
 up to be a series of these array sections.
+
+The {overwrite} keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the {ave running} setting.
 
 The {title1} and {title2} and {title3} keywords allow specification of
 the strings that will be printed as the first 3 lines of the output

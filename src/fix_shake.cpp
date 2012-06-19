@@ -391,10 +391,11 @@ void FixShake::setup(int vflag)
   // setup SHAKE output
 
   bigint ntimestep = update->ntimestep;
-  next_output = ntimestep + output_every;
-  if (output_every == 0) next_output = update->laststep + 1;
-  if (output_every && ntimestep % output_every != 0)
-    next_output = (ntimestep/output_every)*output_every + output_every;
+  if (output_every) {
+    next_output = ntimestep + output_every;
+    if (ntimestep % output_every != 0)
+      next_output = (ntimestep/output_every)*output_every + output_every;
+  } else next_output = -1;
 
   // half timestep constraint on pre-step, full timestep thereafter
 

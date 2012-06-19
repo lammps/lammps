@@ -1,6 +1,11 @@
 #!/bin/sh
 
-dirs=`/bin/ls -d bench_*`
+if [ $# == 0 ]
+then
+    dirs=`/bin/ls -d bench_*`
+else
+    dirs="$@"
+fi
 
 for d in $dirs
 do \

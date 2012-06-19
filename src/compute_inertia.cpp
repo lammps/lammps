@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -30,7 +30,7 @@ ComputeInertia::ComputeInertia(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   extvector = 0;
 
-  vector = new double[3];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,15 +48,15 @@ void ComputeInertia::compute_vector()
 
   double xcm[3];
   group->xcm(igroup,masstotal,xcm);
-  
+
   double itensor[3][3];
   group->inertia(igroup,xcm,itensor);
 
   double eigvect[3][3];
   int ierror;
-  
+
   ierror = MathExtra::jacobi(itensor,vector,eigvect);
-  if (ierror) 
+  if (ierror)
     error->warning(FLERR,
                    "Insufficient Jacobi rotations for principal moments of inertia");
 

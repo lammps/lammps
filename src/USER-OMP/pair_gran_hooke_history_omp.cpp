@@ -46,7 +46,8 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
-  const int shearupdate = (update->ntimestep > laststep) ? 1 : 0;
+  computeflag = 1;
+  const int shearupdate = (update->setupflag) ? 0 : 1;
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -71,7 +72,6 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-  laststep = update->ntimestep;
 }
 
 template <int EVFLAG, int SHEARUPDATE>
@@ -89,7 +89,7 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   double shrmag,rsht;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
+  double *allshear,**firstshear;
 
   const double * const * const x = atom->x;
   const double * const * const v = atom->v;

@@ -30,18 +30,32 @@ stored in a restart file is given below.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
-those produced by the original run had it continued on.  Several
-things can prevent exact restarts due to round-off effects, in which
-case the trajectories in the 2 runs will slowly diverge.  These
+those produced by the original run had it continued on.
+
+Several things can prevent exact restarts due to round-off effects, in
+which case the trajectories in the 2 runs will slowly diverge.  These
 include running on a different number of processors or changing
 certain settings such as those set by the "newton"_newton.html or
 "processors"_processors.html commands.  LAMMPS will issue a warning in
-these cases.  Certain fixes will also not restart exactly, though they
-should provide statistically similar results.  These include "fix
-shake"_fix_shake.html and "fix langevin"_fix_langevin.html.  If a
-restarted run is immediately different than the run which produced the
-restart file, it could be a LAMMPS bug, so consider "reporting
-it"_Section_errors.html#err_2 if you think the behavior is wrong.
+these cases.
+
+Certain fixes will not restart exactly, though they should provide
+statistically similar results.  These include "fix
+shake"_fix_shake.html and "fix langevin"_fix_langevin.html.
+
+Certain pair styles will not restart exactly, though they should
+provide statistically similar results.  This is because the forces
+they compute depend on atom velocities, which are used at half-step
+values every timestep when forces are computed.  When a run restarts,
+forces are initiall evaluated with a full-step velocity, which is
+different than if the run had continued.  These pair styles include
+"granular pair styles"_pair_gran.html, "pair dpd"_pair_dpd.html, and
+"pair lubricate"_pair_lubricate.html.
+
+If a restarted run is immediately different than the run which
+produced the restart file, it could be a LAMMPS bug, so consider
+"reporting it"_Section_errors.html#err_2 if you think the behavior is
+wrong.
 
 Because restart files are binary, they may not be portable to other
 machines.  They can be converted to ASCII data files using the
@@ -128,6 +142,8 @@ specify settings for quantities like "timestep size"_timestep.html,
 criteria including settings made via the
 "neigh_modify"_doc/neigh_modify.html comand, "dump"_dump.html file
 output, "geometric regions"_region.html, etc.
+
+:line
 
 [Restrictions:] none
 

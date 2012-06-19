@@ -99,9 +99,10 @@ See the "fix qeq/reax"_fix_qeq_reax.html command for details.
 
 Using the optional keyword {lgvdw} with the value {yes} turns on 
 the low-gradient correction of the ReaxFF/C for long-range 
-London Dispersion, as described in the "(Liu)" paper. Force field 
+London Dispersion, as described in the "(Liu)"_#Liu paper. Force field 
 file {ffield.reax.lg} is designed for this correction, and is trained
-for several energetic materials (see "Liu"). When using lg-correction, 
+for several energetic materials (see "Liu"_#Liu ). 
+When using lg-correction, 
 recommended value for parameter {thb} is 0.01, which can be set in 
 the control file.  Note: Force field files 
 are different for the original or lg corrected pair styles, using
@@ -213,11 +214,11 @@ energy_update_freq: Denotes the frequency (in number of steps) of
 writes into the partial energies file. (default value = 0)
 
 nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
-regarding the bonded interactions. (default value = 4)
+regarding the bonded interactions. (default value = 5.0)
 
 hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 0 - means no hydrogen bonds are
-present)
+bond interactions.(default value = 7.5. Value of 0.0 turns off hydrogen 
+		bonds)
 
 bond_graph_cutoff: is the threshold used in determining what is a
 physical bond, what is not. Bonds and angles reported in the

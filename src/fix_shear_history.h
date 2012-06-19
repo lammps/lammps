@@ -36,6 +36,8 @@ class FixShearHistory : public Fix {
   void init();
   void setup_pre_exchange();
   virtual void pre_exchange();
+  void min_setup_pre_exchange();
+  void min_pre_exchange();
 
   double memory_usage();
   void grow_arrays(int);
@@ -54,6 +56,7 @@ class FixShearHistory : public Fix {
   double ***shearpartner;       // 3 shear values with the partner
 
   class Pair *pair;
+  int *computeflag;             // computeflag in PairGranHookeHistory
 };
 
 }

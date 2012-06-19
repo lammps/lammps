@@ -501,7 +501,7 @@ void FixShake::pre_neighbor()
 
 void FixShake::post_force(int vflag)
 {
-  if (update->ntimestep == next_output && output_every) stats();
+  if (update->ntimestep == next_output) stats();
 
   // xshake = unconstrained move with current v,f
   // communicate results if necessary

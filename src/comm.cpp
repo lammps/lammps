@@ -1073,12 +1073,6 @@ void Comm::borders()
   // reset global->local map
 
   if (map_style) atom->map_set();
-
-  // check for too small a periodic box for molecular system
-
-  if (atom->molecular && domain->box_too_small())
-    error->all(FLERR,"Bond/angle/dihedral extent must be < "
-               "half of periodic box dimension");
 }
 
 /* ----------------------------------------------------------------------

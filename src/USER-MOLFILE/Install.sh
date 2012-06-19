@@ -10,10 +10,10 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*molfile.*$/d' ../Makefile.package.settings
+    sed -i -e '/^include.*USER-MOLFILE.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i '4 i \
-include ..\/..\/lib\/molfile\/Makefile.lammps\
+include USER-MOLFILE\/Makefile.lammps\
 ' ../Makefile.package.settings
   fi
 
@@ -35,7 +35,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*molfile.*$/d' ../Makefile.package.settings
+    sed -i -e '/^include.*USER-MOLFILE.*$/d' ../Makefile.package.settings
   fi
 
   rm -f ../molfile_interface.cpp

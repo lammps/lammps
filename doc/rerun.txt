@@ -34,6 +34,8 @@ keyword = {first} or {last} or {every} or {skip} or {start} or {stop} or {dump}
 
 rerun dump.file dump x y z vx vy vz
 rerun dump1.txt dump2.txt first 10000 every 1000 dump x y z
+rerun dump.vels dump x y z vx vy vz box yes format molfile lammpstrj
+rerun dump.dcd dump x y z box no format molfile dcd
 rerun ../run7/dump.file.gz skip 2 dump x y z box yes :pre
 
 [Description:]

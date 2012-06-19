@@ -188,7 +188,7 @@ void DihedralHelix::compute(int eflag, int vflag)
     if (c < -1.0) c = -1.0;
 
     phi = acos(c);
-    if (dx < 0.0) phi *= -1.0;
+    if (dx > 0.0) phi *= -1.0;
     si = sin(phi);
     if (fabs(si) < SMALLER) si = SMALLER;
     siinv = 1.0/si;

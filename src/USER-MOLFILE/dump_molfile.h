@@ -9,6 +9,8 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS

@@ -442,7 +442,7 @@ int MolfileInterface::find_plugin(const char *pluginpath)
     // check if this a single directory or path.
     next = strchr(plugindir,MY_PATHSEP);
     if (next) {
-      *next = NULL;
+      *next = '\0';
       ++next;
     }
 
@@ -579,21 +579,31 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // determine plugin capabilities
     _caps = M_NONE;
-    if (plugin->read_next_timestep)    _caps |= M_READ;
-    if (plugin->write_timestep)        _caps |= M_WRITE;
-    if (plugin->read_structure)        _caps |= M_RSTRUCT;
-    if (plugin->write_structure)       _caps |= M_WSTRUCT;
-    if (plugin->read_bonds)            _caps |= M_RBONDS;
-    if (plugin->write_bonds)           _caps |= M_WBONDS;
-    if (plugin->read_angles)           _caps |= M_RANGLES;
-    if (plugin->write_angles)          _caps |= M_WANGLES;
-    if (plugin->read_volumetric_data)  _caps |= M_RVOL;
-    if (plugin->write_volumetric_data) _caps |= M_WVOL;
+    if (plugin->read_next_timestep)      _caps |= M_READ;
+    if (plugin->write_timestep)          _caps |= M_WRITE;
+#if vmdplugin_ABIVERSION > 10
+    // required to tell if velocities are present
+    if (plugin->read_timestep_metadata)  _caps |= M_RVELS;
+    // we can always offer velocities. we may not know if
+    // they will be written by the plugin though.
+    if (plugin->write_timestep)          _caps |= M_WVELS;
+#endif
+    if (plugin->read_structure)          _caps |= M_RSTRUCT;
+    if (plugin->write_structure)         _caps |= M_WSTRUCT;
+    if (plugin->read_bonds)              _caps |= M_RBONDS;
+    if (plugin->write_bonds)             _caps |= M_WBONDS;
+    if (plugin->read_angles)             _caps |= M_RANGLES;
+    if (plugin->write_angles)            _caps |= M_WANGLES;
+    if (plugin->read_volumetric_data)    _caps |= M_RVOL;
+    if (plugin->write_volumetric_data)   _caps |= M_WVOL;
 
-    if (_mode & M_WRITE)
+    if (_mode & M_WRITE) {
       _mode |= (_caps & M_WSTRUCT);
-    else if (_mode & M_READ)
+      _mode |= (_caps & M_WVELS);
+    } else if (_mode & M_READ) {
       _mode |= (_caps & M_RSTRUCT);
+      _mode |= (_caps & M_RVELS);
+    }
 
     _plugin = plugin;
     _dso = dso;
@@ -629,7 +639,7 @@ void MolfileInterface::forget_plugin()
   _caps = M_NONE;
 }
 
-// open file for writing
+// open file for reading or writing
 int MolfileInterface::open(const char *name, int *natoms)
 {
   if (!_plugin || !_dso || !natoms)
@@ -681,8 +691,18 @@ int MolfileInterface::structure()
   
     molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
     p->write_structure(_ptr,optflags,a);
-  } else if (_mode & M_READ) {
-    ; // XXX: FIXME
+  } else if (_mode & M_RSTRUCT) {
+    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    p->read_structure(_ptr,&optflags,a);
+    // mandatory properties
+    _props = P_NAME|P_TYPE|P_RESN|P_RESI|P_SEGN|P_CHAI;
+    // optional properties
+    _props |= (optflags & MOLFILE_BFACTOR) ? P_BFAC : 0;
+    _props |= (optflags & MOLFILE_OCCUPANCY) ? P_OCCP : 0;
+    _props |= (optflags & MOLFILE_MASS) ? P_MASS : 0;
+    _props |= (optflags & MOLFILE_CHARGE) ? P_CHRG : 0;
+    _props |= (optflags & MOLFILE_RADIUS) ? P_RADS : 0;
+    _props |= (optflags & MOLFILE_ATOMICNUMBER) ? P_ATMN : 0;
   }
   return 0;
 }
@@ -735,12 +755,12 @@ int MolfileInterface::timestep(float *coords, float *vels,
       t->beta = cell[4];
       t->gamma = cell[5];
     } else {
-      t->A = 0.0;
-      t->B = 0.0;
-      t->C = 0.0;
-      t->alpha = 90.0;
-      t->beta = 90.0;
-      t->gamma = 90.0;
+      t->A = 0.0f;
+      t->B = 0.0f;
+      t->C = 0.0f;
+      t->alpha = 90.0f;
+      t->beta = 90.0f;
+      t->gamma = 90.0f;
     }
 
     if (simtime)
@@ -751,24 +771,121 @@ int MolfileInterface::timestep(float *coords, float *vels,
     rv = p->write_timestep(_ptr,t);
 
   } else {
-    t->coords = coords;
-    t->velocities = vels;
-    rv = p->read_next_timestep(_ptr, _natoms, t);
-    if (cell != NULL) {
-      cell[0] = t->A;
-      cell[1] = t->B;
-      cell[2] = t->C;
-      cell[3] = t->alpha;
-      cell[4] = t->beta;
-      cell[5] = t->gamma;
+    // no coordinate storage => skip step
+    if (coords == NULL) {
+      rv = p->read_next_timestep(_ptr, _natoms, NULL);
+    } else {
+      t->coords = coords;
+      t->velocities = vels;
+      t->A = 0.0f;
+      t->B = 0.0f;
+      t->C = 0.0f;
+      t->alpha = 90.0f;
+      t->beta = 90.0f;
+      t->gamma = 90.0f;
+      t->physical_time = 0.0;
+      rv = p->read_next_timestep(_ptr, _natoms, t);
+      if (cell != NULL) {
+        cell[0] = t->A;
+        cell[1] = t->B;
+        cell[2] = t->C;
+        cell[3] = t->alpha;
+        cell[4] = t->beta;
+        cell[5] = t->gamma;
+      }
+      if (simtime)
+        *simtime = t->physical_time;
     }
 
-    if (simtime)
-      *simtime = t->physical_time;
+    if (rv == MOLFILE_EOF)
+      return 1;
   }
 
   return 0;
 }
+
+// functions to read properties from molfile structure
+
+#define PROPUPDATE(PROP,ENTRY,VAL)              \
+  if (propid == PROP) { VAL = a.ENTRY; }
+
+#define PROPSTRCPY(PROP,ENTRY,VAL)              \
+  if (propid == PROP) { strcpy(VAL,a.ENTRY); }
+
+// single precision floating point props
+static float read_float_property(molfile_atom_t &a, const int propid)
+{
+  float prop = 0.0f;
+  int iprop = 0;
+  PROPUPDATE(MolfileInterface::P_OCCP,occupancy,prop);
+  PROPUPDATE(MolfileInterface::P_BFAC,bfactor,prop);
+  PROPUPDATE(MolfileInterface::P_MASS,mass,prop);
+  PROPUPDATE(MolfileInterface::P_CHRG,charge,prop);
+  PROPUPDATE(MolfileInterface::P_RADS,radius,prop);
+
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_MASS),
+             atomicnumber,iprop);
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_RADS),
+             atomicnumber,iprop);
+  if (propid & MolfileInterface::P_ATMN) {
+    if (propid & MolfileInterface::P_MASS)
+      prop = get_pte_mass(iprop);
+    if (propid & MolfileInterface::P_RADS)
+      prop = get_pte_vdw_radius(iprop);
+  }
+
+  return prop;
+}
+
+// integer and derived props
+static int read_int_property(molfile_atom_t &a, const int propid)
+{
+  int prop = 0;
+  const char * sprop;
+
+  PROPUPDATE(MolfileInterface::P_RESI,resid,prop);
+  PROPUPDATE(MolfileInterface::P_ATMN,atomicnumber,prop);
+  
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_NAME),
+             name,sprop);
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_TYPE),
+             type,sprop);
+
+  if (propid & MolfileInterface::P_ATMN) {
+    if (propid & (MolfileInterface::P_NAME|MolfileInterface::P_TYPE))
+      prop = get_pte_idx_from_string(sprop);
+  }
+
+  return prop;
+}
+
+// string and derived props
+static const char *read_string_property(molfile_atom_t &a,
+                                        const int propid)
+{
+  const char *prop = NULL;
+  int iprop = 0;
+  PROPUPDATE(MolfileInterface::P_NAME,name,prop);
+  PROPUPDATE(MolfileInterface::P_TYPE,type,prop);
+  PROPUPDATE(MolfileInterface::P_RESN,resname,prop);
+  PROPUPDATE(MolfileInterface::P_SEGN,segid,prop);
+
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_NAME),
+             atomicnumber,iprop);
+  PROPUPDATE((MolfileInterface::P_ATMN|MolfileInterface::P_TYPE),
+             atomicnumber,iprop);
+
+  if (propid & MolfileInterface::P_ATMN) {
+    if (propid & (MolfileInterface::P_NAME|MolfileInterface::P_TYPE))
+      prop = get_pte_label(iprop);
+  }
+
+  return prop;
+}
+#undef PROPUPDATE
+#undef PROPSTRCPY
+
+// functions to store properties into molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
   if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
@@ -839,7 +956,10 @@ int MolfileInterface::property(int propid, int idx, float *prop)
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT)
-    return write_atom_property(a[idx], propid, *prop);
+    _props |= write_atom_property(a[idx], propid, *prop);
+
+  if (_mode & M_RSTRUCT)
+    *prop = read_float_property(a[idx], propid);
 
   return _props;
 }
@@ -856,6 +976,11 @@ int MolfileInterface::property(int propid, int *types, float *prop)
     for (int i=0; i < _natoms; ++i)
       _props |= write_atom_property(a[i], propid, prop[types[i]]);
   }
+
+  // useless for reading.
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -871,6 +996,12 @@ int MolfileInterface::property(int propid, float *prop)
     for (int i=0; i < _natoms; ++i)
       _props |= write_atom_property(a[i], propid, prop[i]);
   }
+
+  if (_mode & M_RSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      prop[i] = read_float_property(a[i], propid);
+  }
+
   return _props;
 }
 
@@ -884,6 +1015,9 @@ int MolfileInterface::property(int propid, int idx, double *prop)
 
   if (_mode & M_WSTRUCT)
     return write_atom_property(a[idx], propid, *prop);
+
+  if (_mode & M_RSTRUCT)
+    *prop = static_cast<double>(read_float_property(a[idx], propid));
 
   return _props;
 }
@@ -900,6 +1034,11 @@ int MolfileInterface::property(int propid, int *types, double *prop)
     for (int i=0; i < _natoms; ++i)
       _props |= write_atom_property(a[i], propid, prop[types[i]]);
   }
+
+  // useless for reading
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -915,6 +1054,11 @@ int MolfileInterface::property(int propid, double *prop)
     for (int i=0; i < _natoms; ++i)
       _props |= write_atom_property(a[i], propid, prop[i]);
   }
+  if (_mode & M_RSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      prop[i] = static_cast<double>(read_float_property(a[i], propid));
+  }
+
   return _props;
 }
 
@@ -951,6 +1095,10 @@ int MolfileInterface::property(int propid, int idx, int *prop)
       INT_TO_STRING_BODY(idx);
     }
   }
+
+  if (_mode & M_RSTRUCT)
+    *prop = read_int_property(a[idx], propid);
+
   return _props;
 }
 
@@ -975,6 +1123,11 @@ int MolfileInterface::property(int propid, int *types, int *prop)
       }
     }
   }
+
+  // useless when reading
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -999,6 +1152,12 @@ int MolfileInterface::property(int propid, int *prop)
       }
     } 
   }
+
+  if (_mode & M_RSTRUCT) {
+    for (int i=0; i < _natoms; ++i)
+      prop[i] = read_int_property(a[i], propid);
+  }
+
   return _props;
 }
 #undef INT_TO_STRING_BODY
@@ -1014,6 +1173,10 @@ int MolfileInterface::property(int propid, int idx, char *prop)
   if (_mode & M_WSTRUCT) {
     _props |= write_atom_property(a[idx], propid, prop);
   }
+
+  if (_mode & M_RSTRUCT)
+    strcpy(prop,read_string_property(a[idx], propid));
+
   return _props;
 }
 
@@ -1030,6 +1193,11 @@ int MolfileInterface::property(int propid, int *types, char **prop)
       _props |= write_atom_property(a[i], propid, prop[types[i]]);
     }
   }
+
+  // useless when reading
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 
@@ -1046,6 +1214,11 @@ int MolfileInterface::property(int propid, char **prop)
       _props |= write_atom_property(a[i], propid, prop[i]);
     }
   }
+
+  // not supported right now. XXX: should we use strdup() here?
+  if (_mode & M_RSTRUCT)
+    return P_NONE;
+
   return _props;
 }
 

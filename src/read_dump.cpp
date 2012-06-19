@@ -197,6 +197,8 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   else error->all(FLERR,"Invalid dump reader style");
 
+  // pass any arguments to reader
+
   if (narg > 0) reader->settings(narg,arg);
 }
 

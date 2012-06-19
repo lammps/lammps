@@ -875,7 +875,7 @@ void FixAveTime::options(int narg, char **arg)
       memory->grow(offlist,noff+1,"ave/time:offlist");
       offlist[noff++] = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+    } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {

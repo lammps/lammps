@@ -140,7 +140,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         }
       }
       iarg += 2;
-    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+    } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {

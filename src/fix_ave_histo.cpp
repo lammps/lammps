@@ -940,7 +940,7 @@ void FixAveHisto::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"extra") == 0) beyond = EXTRA;
       else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+    } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {

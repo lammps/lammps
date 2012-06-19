@@ -55,7 +55,8 @@ class FixShearHistory : public Fix {
   int **partner;                // tags for the partners
   double ***shearpartner;       // 3 shear values with the partner
 
-  class PairGranHookeHistory *pair;
+  class Pair *pair;
+  int *computeflag;             // computeflag in PairGranHookeHistory
 };
 
 }

@@ -18,7 +18,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "force.h"
-#include "pair_gran_hooke_history.h"
+#include "pair.h"
 #include "update.h"
 #include "modify.h"
 #include "memory.h"
@@ -86,6 +86,9 @@ void FixShearHistory::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,
                "Pair style granular with history requires atoms have IDs");
+
+  int dim;
+  computeflag = (int *) pair->extract("computeflag",dim);
 }
 
 /* ----------------------------------------------------------------------
@@ -105,8 +108,8 @@ void FixShearHistory::init()
 
 void FixShearHistory::setup_pre_exchange()
 {
-  if (pair->computeflag) pre_exchange();
-  pair->computeflag = 0;
+  if (*computeflag) pre_exchange();
+  *computeflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -186,8 +189,8 @@ void FixShearHistory::pre_exchange()
 
 void FixShearHistory::min_setup_pre_exchange()
 {
-  if (pair->computeflag) pre_exchange();
-  pair->computeflag = 0;
+  if (*computeflag) pre_exchange();
+  *computeflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

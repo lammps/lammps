@@ -40,8 +40,9 @@ class PairGranHookeHistory : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
   void reset_dt();
+  double single(int, int, int, int, double, double, double, double &);
+  void *extract(const char *, int &);
 
  protected:
   double kn,kt,gamman,gammat,xmu;

@@ -219,6 +219,7 @@ void Modify::init()
 
 /* ----------------------------------------------------------------------
    setup for run, calls setup() of all fixes
+   called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
 
 void Modify::setup(int vflag)
@@ -231,11 +232,12 @@ void Modify::setup(int vflag)
 
 /* ----------------------------------------------------------------------
    setup pre_exchange call, only for fixes that define pre_exchange
+   called from Verlet, RESPA, Min, and WriteRestart with whichflag = 0
 ------------------------------------------------------------------------- */
 
 void Modify::setup_pre_exchange()
 {
-  if (update->whichflag == 1)
+  if (update->whichflag <= 1)
     for (int i = 0; i < n_pre_exchange; i++)
       fix[list_pre_exchange[i]]->setup_pre_exchange();
   else if (update->whichflag == 2)
@@ -245,6 +247,7 @@ void Modify::setup_pre_exchange()
 
 /* ----------------------------------------------------------------------
    setup pre_force call, only for fixes that define pre_force
+   called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
 
 void Modify::setup_pre_force(int vflag)

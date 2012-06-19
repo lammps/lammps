@@ -251,25 +251,13 @@ void Respa::init()
   if (modify->nfix == 0 && comm->me == 0)
     error->warning(FLERR,"No fixes defined, atoms won't move");
 
-  // incorrect pressures when using rRESPA with fix SHAKE
-  // error if also using fix npt or fix nph or fix press/berendsen
-  // otherwise just warn
+  // warn about incorrect pressures when using rRESPA with fix SHAKE
 
   int shakeflag = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shake") == 0) shakeflag = 1;
-  if (shakeflag) {
-    int errorflag = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (strstr(modify->fix[i]->style,"npt") == modify->fix[i]->style ||
-          strstr(modify->fix[i]->style,"nph") == modify->fix[i]->style ||
-          strstr(modify->fix[i]->style,"press/berendsen") == 0)
-        errorflag = 1;
-    if (errorflag) 
-      error->all(FLERR,"Fix shake with rRESPA computes invalid pressures");
-    else if (comm->me == 0)
-      error->warning(FLERR,"Fix shake with rRESPA computes invalid pressures");
-  }
+  if (shakeflag && comm->me == 0)
+    error->warning(FLERR,"Fix shake with rRESPA computes invalid pressures");
 
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
@@ -367,6 +355,7 @@ void Respa::setup()
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->box_too_small_check();
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -422,6 +411,7 @@ void Respa::setup_minimal(int flag)
   // build neighbor lists
 
   if (flag) {
+    modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
@@ -430,6 +420,7 @@ void Respa::setup_minimal(int flag)
     comm->exchange();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->box_too_small_check();
     neighbor->build();
     neighbor->ncalls = 0;
   }
@@ -508,6 +499,7 @@ void Respa::cleanup()
 {
   modify->post_run();
   modify->delete_fix("RESPA");
+  domain->box_too_small_check();
 }
 
 /* ---------------------------------------------------------------------- */

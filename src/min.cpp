@@ -189,6 +189,8 @@ void Min::setup()
 {
   if (comm->me == 0 && screen) fprintf(screen,"Setting up minimization ...\n");
 
+  update->setupflag = 1;
+
   // setup extra global dof due to fixes
   // cannot be done in init() b/c update init() is before modify init()
 
@@ -222,6 +224,7 @@ void Min::setup()
   // build neighbor lists
 
   atom->setup();
+  modify->setup_pre_exchange();
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
@@ -231,6 +234,7 @@ void Min::setup()
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->box_too_small_check();
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -279,6 +283,7 @@ void Min::setup()
 
   modify->setup(vflag);
   output->setup();
+  update->setupflag = 0;
 
   // stats for Finish to print
 
@@ -299,11 +304,14 @@ void Min::setup()
 
 void Min::setup_minimal(int flag)
 {
+  update->setupflag = 1;
+
   // setup domain, communication and neighboring
   // acquire ghosts
   // build neighbor lists
 
   if (flag) {
+    modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
@@ -312,6 +320,7 @@ void Min::setup_minimal(int flag)
     comm->exchange();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->box_too_small_check();
     neighbor->build();
     neighbor->ncalls = 0;
   }
@@ -351,6 +360,7 @@ void Min::setup_minimal(int flag)
       requestor[m]->min_xf_get(m);
 
   modify->setup(vflag);
+  update->setupflag = 0;
 
   // stats for Finish to print
 
@@ -424,6 +434,8 @@ void Min::cleanup()
   // delete fix at end of run, so its atom arrays won't persist
 
   modify->delete_fix("MINIMIZE");
+
+  domain->box_too_small_check();
 }
 
 /* ----------------------------------------------------------------------

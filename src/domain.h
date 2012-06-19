@@ -93,7 +93,7 @@ class Domain : protected Pointers {
   virtual void set_local_box();
   virtual void reset_box();
   virtual void pbc();
-  int box_too_small();
+  void box_too_small_check();
   int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);

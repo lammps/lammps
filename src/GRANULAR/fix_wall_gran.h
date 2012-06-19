@@ -55,7 +55,6 @@ class FixWallGran : public Fix {
   int nlevels_respa;
   int time_origin;
 
-  bigint laststep;
   int *touch;
   double **shear;
   int shearupdate;

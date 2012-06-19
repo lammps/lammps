@@ -206,6 +206,12 @@ lubricate.
 </P>
 <P>Only spherical particles are allowed for pair_style lubricate/poly.
 </P>
+<P>These pair styles will not restart exactly when using the
+<A HREF = "read_restart.html">read_restart</A> command, though they should provide
+statistically similar results.  This is because the forces they
+compute depend on atom velocities.  See the
+<A HREF = "read_restart.html">read_restart</A> command for more details.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricateU.html">pair_style

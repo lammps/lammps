@@ -111,6 +111,7 @@ void Verlet::setup()
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->box_too_small_check();
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -158,6 +159,7 @@ void Verlet::setup_minimal(int flag)
   // build neighbor lists
 
   if (flag) {
+    modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
@@ -166,6 +168,7 @@ void Verlet::setup_minimal(int flag)
     comm->exchange();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->box_too_small_check();
     neighbor->build();
     neighbor->ncalls = 0;
   }
@@ -323,6 +326,7 @@ void Verlet::run(int n)
 void Verlet::cleanup()
 {
   modify->post_run();
+  domain->box_too_small_check();
 }
 
 /* ----------------------------------------------------------------------

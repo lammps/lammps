@@ -74,7 +74,7 @@ char Read_Control_File( char *control_file, control_params* control,
   control->bg_cut = 0.3;
   control->thb_cut = 0.001;
   control->thb_cutsq = 0.00001;
-  control->hbond_cut = 0.0;
+  control->hbond_cut = 7.5;
 
   control->tabulate = 0;
 

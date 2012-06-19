@@ -51,7 +51,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_extra = 4;
   svector = new double[4];
 
-  laststep = -1;
+  computeflag = 0;
   neighprev = 0;
 }
 
@@ -94,8 +94,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  int shearupdate = 0;
-  if (update->ntimestep > laststep) shearupdate = 1;
+  computeflag = 1;
+  int shearupdate = 1;
+  if (update->setupflag) shearupdate = 0;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -283,8 +284,6 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
       }
     }
   }
-
-  laststep = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -393,7 +392,8 @@ void PairGranHookeHistory::init_style()
   // if first init, create Fix needed for storing shear history
 
   if (history && force->newton_pair == 1)
-    error->all(FLERR,"Pair granular with shear history requires newton pair off");
+    error->all(FLERR,
+               "Pair granular with shear history requires newton pair off");
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];

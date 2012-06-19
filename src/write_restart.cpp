@@ -95,12 +95,11 @@ void WriteRestart::command(int narg, char **arg)
   lmp->init();
 
   // move atoms to new processors before writing file
-  // do pre_exchange so FixShearHistory will store 
-  //   current neigh info with atoms
+  // do setup_pre_exchange to force update of per-atom info if needed
   // enforce PBC in case atoms are outside box
   // call borders() to rebuild atom map since exchange() destroys map
 
-  if (modify->n_pre_exchange) modify->pre_exchange();
+  modify->setup_pre_exchange();
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();

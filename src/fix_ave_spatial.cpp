@@ -165,6 +165,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   fp = NULL;
   ave = ONE;
   nwindow = 0;
+  overwrite = 0;
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;
@@ -217,6 +218,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
+    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+      overwrite = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;
@@ -251,6 +255,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   if (ndim >= 2 && delta[1] <= 0.0)
     error->all(FLERR,"Illegal fix ave/spatial command");
   if (ndim == 3 && delta[2] <= 0.0)
+    error->all(FLERR,"Illegal fix ave/spatial command");
+  if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/spatial command");
 
   for (int i = 0; i < nvalues; i++) {
@@ -313,6 +319,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+3*ndim+i]);
       fprintf(fp,"\n");
     }
+    filepos = ftell(fp);
   }
 
   delete [] title1;
@@ -790,6 +797,7 @@ void FixAveSpatial::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nbins);
     if (ndim == 1)
       for (m = 0; m < nbins; m++) {

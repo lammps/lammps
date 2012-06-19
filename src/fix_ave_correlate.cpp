@@ -99,6 +99,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   startstep = 0;
   prefactor = 1.0;
   fp = NULL;
+  overwrite = 0;
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;
@@ -139,6 +140,9 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         }
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+      overwrite = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       delete [] title1;
@@ -171,6 +175,8 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   if (nfreq % nevery)
     error->all(FLERR,"Illegal fix ave/correlate command");
   if (ave == ONE && nfreq < (nrepeat-1)*nevery)
+    error->all(FLERR,"Illegal fix ave/correlate command");
+  if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/correlate command");
 
   for (int i = 0; i < nvalues; i++) {
@@ -255,6 +261,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
             fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
       fprintf(fp,"\n");
     }
+    filepos = ftell(fp);
   }
 
   delete [] title1;
@@ -461,9 +468,10 @@ void FixAveCorrelate::end_of_step()
         save_corr[i][j] = 0.0;
   }
 
-  // output to file
+  // output result to file
 
   if (fp && me == 0) {
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
       fprintf(fp,"%d %d %d",i+1,i*nevery,count[i]);

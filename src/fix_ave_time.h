@@ -48,9 +48,10 @@ class FixAveTime : public Fix {
   int nrows;
 
   int ave,nwindow,nsum,startstep,mode;
-  int noff;
+  int noff,overwrite;
   int *offlist;
   char *title1,*title2,*title3;
+  long filepos;
 
   int norm,iwindow,window_limit;
   double *vector;

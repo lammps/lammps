@@ -44,9 +44,10 @@ class FixAveCorrelate : public Fix {
   char **ids;
   FILE *fp;
 
-  int type,ave,startstep;
+  int type,ave,startstep,overwrite;
   double prefactor;
   char *title1,*title2,*title3;
+  long filepos;
 
   int firstindex;      // index in values ring of earliest time sample
   int lastindex;       // index in values ring of latest time sample

@@ -169,6 +169,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix ave/time command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
     error->all(FLERR,"Illegal fix ave/time command");
+  if (ave != RUNNING && overwrite)
+    error->all(FLERR,"Illegal fix ave/time command");
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == COMPUTE && mode == SCALAR) {
@@ -220,7 +222,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_array_cols)
         error->all(FLERR,"Fix ave/time fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-        error->all(FLERR,"Fix for fix ave/time not computed at compatible time");
+        error->all(FLERR,
+                   "Fix for fix ave/time not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -281,6 +284,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       }
       fprintf(fp,"\n");
     }
+    filepos = ftell(fp);
   }
 
   delete [] title1;
@@ -626,6 +630,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT,ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp," %g",vector_total[i]/norm);
     fprintf(fp,"\n");
@@ -764,6 +769,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
@@ -821,6 +827,7 @@ void FixAveTime::options(int narg, char **arg)
   mode = SCALAR;
   noff = 0;
   offlist = NULL;
+  overwrite = 0;
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;
@@ -868,6 +875,9 @@ void FixAveTime::options(int narg, char **arg)
       memory->grow(offlist,noff+1,"ave/time:offlist");
       offlist[noff++] = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"rewrite") == 0) {
+      overwrite = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;

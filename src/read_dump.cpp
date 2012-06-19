@@ -90,8 +90,12 @@ void ReadDump::command(int narg, char **arg)
 
   store_files(1,&arg[0]);
   bigint nstep = ATOBIGINT(arg[1]);
-  fields_and_keywords(narg-2,&arg[2]);
-  setup_reader();
+
+  int nremain = narg - 2;
+  if (nremain) nremain = fields_and_keywords(narg-nremain,&arg[narg-nremain]);
+  else nremain = fields_and_keywords(0,NULL);
+  if (nremain) setup_reader(narg-nremain,&arg[narg-nremain]);
+  else setup_reader(0,NULL);
 
   // find the snapshot and read/bcast/process header info
 
@@ -116,7 +120,7 @@ void ReadDump::command(int narg, char **arg)
   bigint natoms_prev = atom->natoms;
   atoms();
 
-  if (me == 0) close();
+  if (me == 0) reader->close_file();
 
   // print out stats
 
@@ -172,7 +176,7 @@ void ReadDump::store_files(int nstr, char **str)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadDump::setup_reader()
+void ReadDump::setup_reader(int narg, char **arg)
 {
   // allocate snapshot field buffer
 
@@ -192,6 +196,8 @@ void ReadDump::setup_reader()
   // unrecognized style
 
   else error->all(FLERR,"Invalid dump reader style");
+
+  if (narg > 0) reader->settings(narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -213,8 +219,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
     for (ifile = 0; ifile < nfile; ifile++) {
       ntimestep = -1;
-      open(files[ifile]);
-      reader->file(fp);
+      reader->open_file(files[ifile]);
       while (1) {
         eofflag = reader->read_time(ntimestep);
         if (eofflag) break;
@@ -222,13 +227,13 @@ bigint ReadDump::seek(bigint nrequest, int exact)
         reader->skip();
       }
       if (ntimestep >= nrequest) break;
-      close();
+      reader->close_file();
     }
 
     currentfile = ifile;
     if (ntimestep < nrequest) ntimestep = -1;
     if (exact && ntimestep != nrequest) ntimestep = -1;
-    if (ntimestep < 0) close();
+    if (ntimestep < 0) reader->close_file();
   }
 
   MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -258,8 +263,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
     for (ifile = currentfile; ifile < nfile; ifile++) {
       ntimestep = -1;
-      if (ifile != currentfile) open(files[ifile]);
-      reader->file(fp);
+      if (ifile != currentfile) reader->open_file(files[ifile]);
       while (1) {
         eofflag = reader->read_time(ntimestep);
         if (iskip == nskip) iskip = 0;
@@ -271,7 +275,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         else if (iskip < nskip) reader->skip();
         else break;
       }
-      if (eofflag) close();
+      if (eofflag) reader->close_file();
       else break;
     }
 
@@ -279,7 +283,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     if (eofflag) ntimestep = -1;
     if (ntimestep <= ncurrent) ntimestep = -1;
     if (ntimestep > nlast) ntimestep = -1;
-    if (ntimestep < 0) close();
+    if (ntimestep < 0) reader->close_file();
   }
 
   MPI_Bcast(&ntimestep,1,MPI_LMP_BIGINT,0,world);
@@ -334,10 +338,15 @@ void ReadDump::header(int fieldinfo)
   MPI_Bcast(&zflag,1,MPI_INT,0,world);
 
   // error check on current vs new box and fields
+  // triclinic_snap < 0 means no box info in file
 
-  if ((triclinic_snap && !triclinic) ||
-      (!triclinic_snap && triclinic))
-    error->one(FLERR,"Read_dump triclinic status does not match simulation");
+  if (triclinic_snap < 0 && boxflag > 0)
+    error->all(FLERR,"No box information in dump. You have to use 'box no'");
+  if (triclinic_snap >= 0) {
+    if ((triclinic_snap && !triclinic) ||
+        (!triclinic_snap && triclinic))
+      error->one(FLERR,"Read_dump triclinic status does not match simulation");
+  }
 
   // error check field and scaling info
 
@@ -358,7 +367,7 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled == SCALED && triclinic) {
+  if (scaled == SCALED && triclinic == 1) {
     int flag = 0;
     if (xflag != scaled) flag = 1;
     if (yflag != scaled) flag = 1;
@@ -511,9 +520,9 @@ void ReadDump::atoms()
    process arg list for dump file fields and optional keywords
 ------------------------------------------------------------------------- */
 
-void ReadDump::fields_and_keywords(int narg, char **arg)
+int ReadDump::fields_and_keywords(int narg, char **arg)
 {
-  // per-field vectors, leave space for ID + TYPE
+  // per-field vectors, leave space for ID and TYPE
 
   fieldtype = new int[narg+2];
   fieldlabel = new char*[narg+2];
@@ -628,11 +637,14 @@ void ReadDump::fields_and_keywords(int narg, char **arg)
       readerstyle = new char[n];
       strcpy(readerstyle,arg[iarg+1]);
       iarg += 2;
+      break;
     } else error->all(FLERR,"Illegal read_dump command");
   }
 
   if (purgeflag && (replaceflag || trimflag))
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
+
+  return narg-iarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -727,9 +739,8 @@ void ReadDump::process_atoms(int n)
   MPI_Allreduce(ucflag,ucflag_all,n,MPI_INT,MPI_SUM,world);
 
   int nlocal_previous = atom->nlocal;
-  double lamda[3],one[3];
-  double *coord;
-  
+  double one[3];
+
   for (i = 0; i < n; i++) {
     if (ucflag_all[i]) continue;
 
@@ -866,43 +877,3 @@ double ReadDump::zfield(int i, int j)
   return fields[i][j]*zprd + zlo;
 }
 
-/* ----------------------------------------------------------------------
-   proc 0 opens dump file
-   test if gzipped
-------------------------------------------------------------------------- */
-
-void ReadDump::open(char *file)
-{
-  compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
-#ifdef LAMMPS_GZIP
-    char gunzip[128];
-    sprintf(gunzip,"gunzip -c %s",file);
-    fp = popen(gunzip,"r");
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  }
-
-  if (fp == NULL) {
-    char str[128];
-    sprintf(str,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   close current dump file
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void ReadDump::close()
-{
-  if (fp == NULL) return;
-  if (compressed) pclose(fp);
-  else fclose(fp);
-  fp = NULL;
-}

@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -34,12 +34,12 @@ class ReadDump : protected Pointers {
   void command(int, char **);
 
   void store_files(int, char **);
-  void setup_reader();
+  void setup_reader(int, char **);
   bigint seek(bigint, int);
   void header(int);
   bigint next(bigint, bigint, int, int);
   void atoms();
-  void fields_and_keywords(int, char **);
+  int fields_and_keywords(int, char **);
 
 private:
   int me,nprocs;
@@ -57,7 +57,6 @@ private:
   int trimflag,purgeflag;
   int scaledflag;          // user setting for coordinate scaling
   int scaled;              // actual setting for coordinate scaling
-  int compressed;          // flag for dump file compression
   char *readerstyle;       // style of dump files to read
 
   int nfield;              // # of fields to extract from dump file
@@ -86,9 +85,6 @@ private:
   double xfield(int, int);
   double yfield(int, int);
   double zfield(int, int);
-
-  void open(char *);
-  void close();
 };
 
 }

@@ -101,10 +101,10 @@ void ReaderNative::skip()
 ------------------------------------------------------------------------- */
 
 bigint ReaderNative::read_header(double box[3][3], int &triclinic,
-                                   int fieldinfo, int nfield,
-                                   int *fieldtype, char **fieldlabel,
-                                   int scaledflag, int &fieldflag,
-                                   int &xflag, int &yflag, int &zflag)
+                                 int fieldinfo, int nfield,
+                                 int *fieldtype, char **fieldlabel,
+                                 int scaledflag, int &fieldflag,
+                                 int &xflag, int &yflag, int &zflag)
 {
   bigint natoms;
   read_lines(2);
@@ -254,11 +254,11 @@ bigint ReaderNative::read_header(double box[3][3], int &triclinic,
 
   delete [] labels;
 
-  // set fieldflag = 1 if any unfound fields
+  // set fieldflag = -1 if any unfound fields
 
   fieldflag = 0;
   for (int i = 0; i < nfield; i++)
-    if (fieldindex[i] < 0) fieldflag = 1;
+    if (fieldindex[i] < 0) fieldflag = -1;
 
   // create internal vector of word ptrs for future parsing of per-atom lines
 
@@ -279,7 +279,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
   int i,m;
   char *eof;
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
     if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
 

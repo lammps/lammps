@@ -12,20 +12,58 @@
 ------------------------------------------------------------------------- */
 
 #include "stdio.h"
+#include "string.h"
 #include "reader.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Reader::Reader(LAMMPS *lmp) : Pointers(lmp) {}
+Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
+{
+  fp = NULL;
+}
 
 /* ----------------------------------------------------------------------
-   set file ptr
-   caller opens/closes dump files
+   try to open given file
+   generic version for ASCII files that may be compressed
 ------------------------------------------------------------------------- */
 
-void Reader::file(FILE *fpcaller)
+void Reader::open_file(const char *file)
 {
-  fp = fpcaller;
+  if (fp != NULL) close_file();
+
+  compressed = 0;
+  const char *suffix = file + strlen(file) - 3;
+  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
+  if (!compressed) fp = fopen(file,"r");
+  else {
+#ifdef LAMMPS_GZIP
+    char gunzip[1024];
+    sprintf(gunzip,"gunzip -c %s",file);
+    fp = popen(gunzip,"r");
+#else
+    error->one(FLERR,"Cannot open gzipped file");
+#endif
+  }
+
+  if (fp == NULL) {
+    char str[128];
+    sprintf(str,"Cannot open file %s",file);
+    error->one(FLERR,str);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   close current file if open
+   generic version for ASCII files that may be compressed
+------------------------------------------------------------------------- */
+
+void Reader::close_file()
+{
+  if (fp == NULL) return;
+  if (compressed) pclose(fp);
+  else fclose(fp);
+  fp = NULL;
 }

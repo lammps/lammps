@@ -105,18 +105,23 @@ void Rerun::command(int narg, char **arg)
     } else error->all(FLERR,"Illegal rerun command");
   }
 
-  if (strcmp(arg[iarg],"dump") != 0) error->all(FLERR,"Illegal rerun command");
+  int nremain = narg - iarg - 1;
+  if (nremain <= 0) error->all(FLERR,"Illegal rerun command");
   if (first > last) error->all(FLERR,"Illegal rerun command");
   if (startflag && stopflag && start > stop) 
     error->all(FLERR,"Illegal rerun command");
 
-  // pass list of filenames to ReadDump, along with post-"dump" args
+  // pass list of filenames to ReadDump
+  // along with post-"dump" args and post-"format" args
 
   ReadDump *rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
-  rd->fields_and_keywords(narg-iarg-1,&arg[iarg+1]);
-  rd->setup_reader();
+  if (nremain) 
+    nremain = rd->fields_and_keywords(narg-nremain,&arg[narg-nremain]);
+  else nremain = rd->fields_and_keywords(0,NULL);
+  if (nremain) rd->setup_reader(narg-nremain,&arg[narg-nremain]);
+  else rd->setup_reader(0,NULL);
 
   // perform the psuedo run
   // invoke lmp->init() only once

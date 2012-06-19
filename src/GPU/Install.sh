@@ -17,8 +17,8 @@ if (test $1 = 1) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/gpu\/Makefile.lammps\
-' ../Makefile.package.settings
+include ..\/..\/lib\/gpu\/Makefile.lammps' \
+../Makefile.package.settings
   fi
 
   if (test -e ../pair_yukawa.cpp) then

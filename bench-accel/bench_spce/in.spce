@@ -35,5 +35,8 @@ timestep	2.0
 
 thermo_style    one
 thermo		10
+thermo_modify  format 2 "%10.5f" format 3 "%10.2f" format 4 "%10.5f" format 5 "%10.2f" format 6 "%10.4f"
+run     50 pre yes post no
 
-run		100
+thermo_modify format 6 "%10.2f"
+run     50 pre yes post yes

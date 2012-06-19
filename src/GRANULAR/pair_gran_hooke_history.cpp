@@ -694,3 +694,12 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   svector[3] = fs;
   return 0.0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairGranHookeHistory::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"computeflag") == 0) return (void *) &computeflag;
+  return NULL;
+}

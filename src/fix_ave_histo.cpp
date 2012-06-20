@@ -627,8 +627,9 @@ void FixAveHisto::end_of_step()
             compute->compute_array();
             compute->invoked_flag |= INVOKED_ARRAY;
           }
-          bin_vector(compute->size_array_rows,&compute->array[0][j-1],
-                     compute->size_array_cols);
+          if (compute->array)
+            bin_vector(compute->size_array_rows,&compute->array[0][j-1],
+                       compute->size_array_cols);
         }
 
       } else if (kind == PERATOM) {
@@ -638,7 +639,7 @@ void FixAveHisto::end_of_step()
         }
         if (j == 0)
           bin_atoms(compute->vector_atom,1);
-        else
+        else if (compute->array_atom)
           bin_atoms(compute->array_atom[j-1],
                     compute->size_peratom_cols);
 
@@ -649,7 +650,7 @@ void FixAveHisto::end_of_step()
         }
         if (j == 0)
           bin_vector(compute->size_local_rows,compute->vector_local,1);
-        else
+        else if (compute->array_local)
           bin_vector(compute->size_local_rows,&compute->array_local[0][j-1],
                      compute->size_local_cols);
       }
@@ -675,11 +676,12 @@ void FixAveHisto::end_of_step()
 
       } else if (kind == PERATOM) {
         if (j == 0) bin_atoms(fix->vector_atom,1);
-        else bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
+        else if (fix->array_atom)
+          bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
 
       } else if (kind == LOCAL) {
         if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
-        else
+        else if (fix->array_local)
           bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
                      fix->size_local_cols);
       }

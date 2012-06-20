@@ -16,7 +16,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*awpmd.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/awpmd\/Makefile.lammps\
+include ..\/..\/lib\/awpmd\/Makefile.lammps
 ' ../Makefile.package.settings
   fi
 

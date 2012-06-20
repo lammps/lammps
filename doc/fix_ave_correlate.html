@@ -37,7 +37,7 @@
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>type</I> or <I>ave</I> or <I>start</I> or <I>prefactor</I> or <I>file</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+<LI>keyword = <I>type</I> or <I>ave</I> or <I>start</I> or <I>prefactor</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
 <PRE>  <I>type</I> arg = <I>auto</I> or <I>upper</I> or <I>lower</I> or <I>auto/upper</I> or <I>auto/lower</I> or <I>full</I>
     auto = correlate each value with itself
@@ -55,6 +55,7 @@
     value = prefactor to scale all the correlation data by
   <I>file</I> arg = filename
     filename = name of file to output correlation data to
+  <I>overwrite</I> arg = none = overwrite output file with only latest output
   <I>title1</I> arg = string
     string = text to print as 1st line of output file
   <I>title2</I> arg = string
@@ -244,6 +245,10 @@ steps, an array of correlation data is written to the file.  The
 number of rows is <I>Nrepeat</I>, as described above.  The number of
 columns is the Npair+2, also as described above.  Thus the file ends
 up to be a series of these array sections.
+</P>
+<P>The <I>overwrite</I> keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the <I>ave running</I> setting.
 </P>
 <P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
 the strings that will be printed as the first 3 lines of the output

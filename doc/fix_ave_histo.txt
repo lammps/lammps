@@ -29,7 +29,7 @@ value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_nam
   v_name = value(s) calculated by an equal-style or atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {mode} or {file} or {ave} or {start} or {beyond} or {title1} or {title2} or {title3} :l
+keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} :l
   {mode} arg = {scalar} or {vector}
     scalar = all input values are scalars
     vector = all input values are vectors
@@ -45,6 +45,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {title1} or {title
     ignore = ignore values outside histogram lo/hi bounds
     end = count values outside histogram lo/hi bounds in end bins
     extra = create 2 extra bins for value outside histogram lo/hi bounds
+  {overwrite} arg = none = overwrite output file with only latest output
   {title1} arg = string
     string = text to print as 1st line of output file
   {title2} arg = string
@@ -250,6 +251,10 @@ the bin #, the coordinate for the center of the bin (between {lo} and
 normalized count is the bin count divided by the total count (not
 including values not histogrammed), so that the normalized values sum
 to 1.0 across all bins.
+
+The {overwrite} keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the {ave running} setting.
 
 The {title1} and {title2} and {title3} keywords allow specification of
 the strings that will be printed as the first 3 lines of the output

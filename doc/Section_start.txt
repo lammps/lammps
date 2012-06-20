@@ -634,10 +634,9 @@ in this manner:
 
 make -f Makefile.g++ :pre
 
-in the appropriate directory, e.g. in lib/reax.  Some of the libraries
-do not build this way.  Some of the directories do not even have
-source code for the library, since you are expected to download and
-build it separately.  Again, see the libary README file for details.
+in the appropriate directory, e.g. in lib/reax.  However, some of the
+libraries do not build this way.  Again, see the libary README file
+for details.
 
 If you are building the library, you will need to use a Makefile that
 is a match for your system.  If one of the provided Makefiles is not
@@ -681,8 +680,24 @@ LAPACK library.  It can then be included in the
 lib/atc/Makefile.lammps file as part of the SYSPATH and SYSLIB lines
 so that LAMMPS will build properly with the USER-ATC package.
 
-Note that if these settings are not correct for your box, the LAMMPS
-build will likely fail.
+Note that if the Makefile.lammps settings are not correct for your
+box, the LAMMPS build will likely fail.
+
+There are also a few packages, like KIM and USER-MOLFILE, that use
+additional auxiliary libraries which are not provided with LAMMPS.  In
+these cases, there is no corresponding sub-directory under the lib
+directory.  You are expected to download and install these libraries
+yourself before building LAMMPS with the package installed, if they
+are not already on your system.
+
+However there is still a Makefile.lammps file with settings used when
+building LAMMPS with the package installed, as in (2) above.  Is is
+found in the package directory itself, e.g. src/KIM/Makefile.lammps.
+This file contains the same 3 settings described above for SYSINC,
+SYSPATH, and SYSLIB.  The Makefile.lammps file contains instructions
+on how to specify these settings for your system.  You need to specify
+the settings before building LAMMPS with one of those packages
+installed, else the LAMMPS build will likely fail.
 
 :line
 

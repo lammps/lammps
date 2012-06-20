@@ -45,7 +45,8 @@ class FixAveHisto : public Fix {
   char **ids;
   FILE *fp;
   double lo,hi,binsize,bininv;
-  int kind,beyond;
+  int kind,beyond,overwrite;
+  long filepos;
 
   double stats[4],stats_total[4],stats_all[4];
   double **stats_list;

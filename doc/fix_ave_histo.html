@@ -42,7 +42,7 @@
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>mode</I> or <I>file</I> or <I>ave</I> or <I>start</I> or <I>beyond</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+<LI>keyword = <I>mode</I> or <I>file</I> or <I>ave</I> or <I>start</I> or <I>beyond</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
 <PRE>  <I>mode</I> arg = <I>scalar</I> or <I>vector</I>
     scalar = all input values are scalars
@@ -59,6 +59,7 @@
     ignore = ignore values outside histogram lo/hi bounds
     end = count values outside histogram lo/hi bounds in end bins
     extra = create 2 extra bins for value outside histogram lo/hi bounds
+  <I>overwrite</I> arg = none = overwrite output file with only latest output
   <I>title1</I> arg = string
     string = text to print as 1st line of output file
   <I>title2</I> arg = string
@@ -265,6 +266,10 @@ the bin #, the coordinate for the center of the bin (between <I>lo</I> and
 normalized count is the bin count divided by the total count (not
 including values not histogrammed), so that the normalized values sum
 to 1.0 across all bins.
+</P>
+<P>The <I>overwrite</I> keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the <I>ave running</I> setting.
 </P>
 <P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
 the strings that will be printed as the first 3 lines of the output

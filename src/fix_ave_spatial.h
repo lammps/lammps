@@ -41,7 +41,7 @@ class FixAveSpatial : public Fix {
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
   bigint nvalid;
-  int ndim,normflag,regionflag,iregion;
+  int ndim,normflag,regionflag,iregion,overwrite;
   char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
   char **ids;
@@ -53,6 +53,7 @@ class FixAveSpatial : public Fix {
   double xscale,yscale,zscale;
   double bin_volume;
 
+  long filepos;
   int dim[3],originflag[3],nlayers[3];
   double origin[3],delta[3];
   double offset[3],invdelta[3];

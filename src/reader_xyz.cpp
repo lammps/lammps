@@ -57,6 +57,7 @@ int ReaderXYZ::read_time(bigint &ntimestep)
   if (eof == NULL) return 1;
 
   // first line has to have the number of atoms
+
   natoms = ATOBIGINT(line);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
@@ -65,10 +66,12 @@ int ReaderXYZ::read_time(bigint &ntimestep)
 
   read_lines(1);
 
-  // we fake time step numbers.
+  // fake time step numbers
+
   ntimestep = nstep;
 
-  // count this frame.
+  // count this frame
+
   ++nstep;
   return 0;
 }
@@ -115,6 +118,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
   nid = 0;
 
   // signal that we have no box info at all
+
   triclinic = -1;
 
   // if no field info requested, just return
@@ -123,7 +127,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
 
   memory->create(fieldindex,nfield,"read_dump:fieldindex");
 
-  // for .xyz we know nothing about the style of coordinates, 
+  // for xyz we know nothing about the style of coordinates, 
   // so the caller has to set the proper flag.
 
   xflag = scaledflag;
@@ -131,6 +135,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
   zflag = scaledflag;
 
   // copy fieldtype list for supported fields
+
   fieldflag = 0;
   for (int i = 0; i < nfield; i++) {
     if ( (fieldtype[i] == X) ||
@@ -138,7 +143,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
          (fieldtype[i] == Z) ||
          (fieldtype[i] == ID) ||
          (fieldtype[i] == TYPE) ) {
-         fieldindex[i] = fieldtype[i];
+      fieldindex[i] = fieldtype[i];
     } else {
       fieldflag = 1;
     }

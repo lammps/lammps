@@ -39,7 +39,12 @@
     field = one of the listed fields or <I>id</I> or <I>type</I>
     column = label on corresponding column in dump file
   <I>scaled</I> value = <I>yes</I> or <I>no</I> = coords in dump file are scaled/unscaled
-  <I>format</I> value = <I>native</I> = format of dump file 
+  <I>format</I> values = format of dump file, must be last keyword if used
+    <I>native</I> = native LAMMPS dump file
+    <I>xyz</I> = XYZ file
+    <I>molfile</I> style path = VMD molfile plugin interface
+      style = <I>dcd</I> or <I>xyz</I> or others supported my mofile
+      path = optional path for location of molfile plugins 
 </PRE>
 
 </UL>
@@ -48,6 +53,10 @@
 <PRE>read_dump dump.file 5000 x y z
 read_dump dump.file 5000 x y vx vy trim yes
 read_dump ../run7/dump.file.gz 10000 x y z box yes 
+read_dump dump.xyz 5 x y z box no format xyz
+read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
+read_dump dump.dcd 0 x y z format molfile dcd
+read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -78,36 +87,80 @@ command, after the dump snapshot is read.
 </P>
 <HR>
 
-<P>The dump file must be in native LAMMPS format, meaning it was written
-with a "dump atom".html or <A HREF = "dump.html">dump custom</A> command.  Support
-for other dump file formats may be added in the future.  These will be
-added as options to the <I>format</I> keyword.
+<P>If the dump filename specified as <I>file</I> ends with ".gz", the dump
+file is read in gzipped format.  You cannot (yet) read a dump file
+that was written in binary format with a ".bin" suffix, or to multiple
+files via the "%" option in the dump file name.  See the
+<A HREF = "dump.html">dump</A> command for details.
 </P>
-<P>If the filename ends with ".gz", the dump file is read in gzipped
-format.  You cannot (yet) read a dump file that was written in binary
-format with a ".bin" suffix, or to multiple files via the "%" option
-in the dump file name.  See the <A HREF = "dump.html">dump</A> command for details.
+<P>The format of the dump file is selected through the <I>format</I> keyword.
+If specified, it must be the last keyword used, since all remaining
+arguments are passed on to the dump reader.  The <I>native</I> format is
+for native LAMMPS dump files, written with a "dump atom".html or <A HREF = "dump.html">dump
+custom</A> command.  The <I>xyz</I> format is for generic XYZ
+formatted dump files,
+</P>
+<P>The <I>molfile</I> format supports reading data through using the <A HREF = "vmd">VMD</A>
+molfile plugin interface. This dump reader format is only available,
+if the USER-MOLFILE package has been installed when compiling
+LAMMPS.
+</P>
+<P>The <I>molfile</I> format takes one or two additional values.  The <I>style</I>
+value determines the file format to be used and can be any format that
+the molfile plugins support, such as DCD or XYZ.  Note that DCD dump
+files can be written by LAMMPS via the <A HREF = "dump.html">dump dcd</A> command.
+The <I>path</I> value specifies a list of directories which LAMMPS will
+search for the molfile plugins appropriate to the specified <I>style</I>.
+The syntax of the <I>path</I> value is like other search paths: it can
+contain multiple directories separated by a colon (or semi-colon on
+windows).  The <I>path</I> keyword is optional and defaults to ".",
+i.e. the current directory.
+</P>
+<P>Support for other dump format readers may be added in the future.
+</P>
+<HR>
+
+<P>Global information is first read from the dump file, namely timestep
+and box information.
 </P>
 <P>The dump file is scanned for a snapshot with a time stamp that matches
-the specified <I>Nstep</I>.  The dimensions of the simulation box for that
-snapshot are also read; see the <I>box</I> keyword discussion below.  An
-error is generated if the snapshot is for a triclinic box and the
-current simulation box is orthogonal or vice versa.  A warning will be
-generated if the snapshot box boundary conditions (periodic,
+the specified <I>Nstep</I>.  This means the LAMMPS timestep the dump file
+snapshot was written on for the <I>native</I> format.  However, the <I>xyz</I>
+and <I>molfile</I> formats do not store the timestep.  For these formats,
+timesteps are numbered logically, in a sequential manner, starting
+from 0.  Thus to access the 10th snapshot in an <I>xyz</I> or <I>mofile</I>
+formatted dump file, use <I>Nstep</I> = 9.
+</P>
+<P>The dimensions of the simulation box for the selected snapshot are
+also read; see the <I>box</I> keyword discussion below.  For the <I>native</I>
+format, an error is generated if the snapshot is for a triclinic box
+and the current simulation box is orthogonal or vice versa.  A warning
+will be generated if the snapshot box boundary conditions (periodic,
 shrink-wrapped, etc) do not match the current simulation boundary
 conditions, but the boundary condition information in the snapshot is
 otherwise ignored.  See the "boundary" command for more details.
 </P>
-<P>Per-atom information from the dump file snapshot is then read in,
-corresponding to the specified <I>fields</I> listed in the read_dump
-command.  It is an error to specify a z-dimension field (<I>z</I>, <I>vz</I>,
-<I>iz</I>) for a 2d simulation.
+<P>For the <I>xyz</I> format, no information about the box is available, so
+you must set the <I>box</I> flag to <I>no</I>.  See details below.
 </P>
-<P>For dump files in native LAMMPS format, each column of per-atom data
-has a text label which is listed in the file.  A matching label for
-each field must appear, e.g. the label "vy" for the field <I>vy</I>.  For
-the <I>x</I>, <I>y</I>, <I>z</I> fields any of the following labels are considered a
-match:
+<P>For the <I>molfile</I> format, reading simulation box information is
+typically supported, but the location of the simulation box origin is
+lost and no explicit information about periodicity or
+orthogonal/triclinic box shape is available.  The USER-MOLFILE package
+makes a best effort to guess based on heuristics, but this may not
+always work perfectly.
+</P>
+<HR>
+
+<P>Per-atom information from the dump file snapshot is then read from the
+dump file snapshot.  This corresponds tot the specified <I>fields</I>
+listed in the read_dump command.  It is an error to specify a
+z-dimension field, namely <I>z</I>, <I>vz</I>, or <I>iz</I>, for a 2d simulation.
+</P>
+<P>For dump files in <I>native</I> format, each column of per-atom data has a
+text label listed in the file.  A matching label for each field must
+appear, e.g. the label "vy" for the field <I>vy</I>.  For the <I>x</I>, <I>y</I>, <I>z</I>
+fields any of the following labels are considered a match:
 </P>
 <PRE>x, xs, xu, xsu for field <I>x</I>
 y, ys, yu, ysu for field <I>y</I>
@@ -120,6 +173,10 @@ file, in order, until a match is found.
 </P>
 <P>The dump file must also contain atom IDs, with a column label of "id".
 </P>
+<P>If the <I>add</I> keyword is specified with a value of <I>yes</I>, as discussed
+below, the dump file must contain atom types, with a column label of
+"type".
+</P>
 <P>If a column label in the dump file is not a match to a specified
 field, the <I>label</I> keyword can be used to specify which column label
 to associate with that field.  An example is if a time-averaged
@@ -127,9 +184,25 @@ coordinate is written to the dump file via the <A HREF = "fix_ave_atom.html">fix
 ave/atom</A> command.  The column will then have a
 label corresponding to the fix-ID rather than "x" or "xs".  The
 <I>label</I> keyword can also be used to specify new column labels for
-fields <I>id</I> and <I>type</I>.  Information for atom types is needed from the
-dump file shapshot when the <I>add</I> keyword is used; see the discussion
-below.
+fields <I>id</I> and <I>type</I>.
+</P>
+<P>For dump files in <I>xyz</I> format, only the <I>x</I>, <I>y</I>, and <I>z</I> fields are
+supported.  The dump file does not store atom IDs, so these are
+assigned consecutively to the atoms as they appear in the dump file,
+starting from 1.  Thus you should insure that order of atoms is
+consistent from snapshot to snapshot in the the XYZ dump file.  See
+the <A HREF = "dump_modify.html">dump_modify sort</A> command if the XYZ dump file
+was written by LAMMPS.
+</P>
+<P>For dump files in <I>molfile</I> format, the <I>x</I>, <I>y</I>, <I>z</I>, <I>vx</I>, <I>vy</I>, and
+<I>vz</I> fields can be specified.  However, not all molfile formats store
+velocities, or their respective plugins may not support reading of
+velocities.  The molfile dump files do not store atom IDs, so these
+are assigned consecutively to the atoms as they appear in the dump
+file, starting from 1.  Thus you should insure that order of atoms are
+consistent from snapshot to snapshot in the the molfile dump file.
+See the <A HREF = "dump_modify.html">dump_modify sort</A> command if the dump file
+was written by LAMMPS.
 </P>
 <HR>
 
@@ -164,17 +237,18 @@ specified with a <I>no</I> value.
 </P>
 <P>If the <I>add</I> keyword is specified with a <I>yes</I> value, then atoms with
 IDs that are in the dump snapshot, but not in the current system are
-added to the system.  These dump atoms ignored if the <I>add</I> keyword is
-specified with a <I>no</I> value.
+added to the system.  These dump atoms are ignored if the <I>add</I>
+keyword is specified with a <I>no</I> value.
 </P>
 <P>Note that atoms added via the <I>add</I> keyword will have only the
 attributes read from the dump file due to the <I>field</I> arguments.  If
 <I>x</I> or <I>y</I> or <I>z</I> is not specified as a field, a value of 0.0 is used
-for added atoms.  Added atoms must have an atom type, so this per-atom
-attribute must also appear in the dump file snapshot, with a column
-label of "type".  Any other attributes (e.g. charge or particle
-diameter for spherical particles) will be set to default values, the
-same as if the <A HREF = "create_atoms.html">create_atoms</A> command were used.
+for added atoms.  Added atoms must have an atom type, so this value
+must appear in the dump file.
+</P>
+<P>Any other attributes (e.g. charge or particle diameter for spherical
+particles) will be set to default values, the same as if the
+<A HREF = "create_atoms.html">create_atoms</A> command were used.
 </P>
 <P>Note that atom IDs are not preserved for new dump snapshot atoms added
 via the <I>add</I> keyword.  The procedure for assigning new atom IDS to
@@ -194,8 +268,9 @@ conditions apply, the new coordinates may change the current box
 dimensions.  If fixed boundary conditions apply, the atom will be lost
 if it is outside the simulation box.
 </P>
-<P>The 3 xyz image flags for an atom in the dump file are set to values
-in the dump file if the <I>ix</I>, <I>iy</I>, <I>iz</I> fields are specified.  If not
+<P>For <I>native</I> format dump files, the 3 xyz image flags for an atom in
+the dump file are set to the corresponding values appearing in the
+dump file if the <I>ix</I>, <I>iy</I>, <I>iz</I> fields are specified.  If not
 specified, the image flags for replaced atoms are not changed and
 image flags for new atoms are set to default values.  The remapping
 procedure described in the previous paragraph can change images flags
@@ -228,10 +303,15 @@ generate absolute, unscaled coordinates.
 -DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
 LAMMPS</A> section of the documentation.
 </P>
+<P>The <I>molfile</I> dump file formats are part of the USER-MOLFILE package.
+They are only enabled if LAMMPS was built with that packages.  See the
+<A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump</A>, <A HREF = "read_data.html">read_data</A>,
-<A HREF = "read_restart.html">read_restart</A>, <A HREF = "rerun.html">rerun</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_molfile.html">dump molfile</A>,
+<A HREF = "read_data.html">read_data</A>, <A HREF = "read_restart.html">read_restart</A>,
+<A HREF = "rerun.html">rerun</A>
 </P>
 <P><B>Default:</B>
 </P>

@@ -90,11 +90,12 @@ void ReadDump::command(int narg, char **arg)
 
   store_files(1,&arg[0]);
   bigint nstep = ATOBIGINT(arg[1]);
-  int readargs = fields_and_keywords(narg-2,&arg[2]);
-  if (readargs < narg-2)
-    setup_reader(narg-readargs-2, &arg[readargs+2]);
-  else
-    setup_reader(0, NULL);
+
+  int nremain = narg - 2;
+  if (nremain) nremain = fields_and_keywords(narg-nremain,&arg[narg-nremain]);
+  else nremain = fields_and_keywords(0,NULL);
+  if (nremain) setup_reader(narg-nremain,&arg[narg-nremain]);
+  else setup_reader(0,NULL);
 
   // find the snapshot and read/bcast/process header info
 
@@ -195,6 +196,8 @@ void ReadDump::setup_reader(int narg, char **arg)
   // unrecognized style
 
   else error->all(FLERR,"Invalid dump reader style");
+
+  // pass any arguments to reader
 
   if (narg > 0) reader->settings(narg,arg);
 }
@@ -337,12 +340,11 @@ void ReadDump::header(int fieldinfo)
   MPI_Bcast(&zflag,1,MPI_INT,0,world);
 
   // error check on current vs new box and fields
-  // triclinic_snap < 1 means to box info in file
+  // triclinic_snap < 0 means no box info in file
 
-  if (triclinic_snap < 0) {
-    if (boxflag > 0)
-      error->all(FLERR,"No box information in dump. You have to use 'box no'");
-  } else {
+  if (triclinic_snap < 0 && boxflag > 0)
+    error->all(FLERR,"No box information in dump. You have to use 'box no'");
+  if (triclinic_snap >= 0) {
     if ((triclinic_snap && !triclinic) ||
         (!triclinic_snap && triclinic))
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
@@ -367,7 +369,7 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled == SCALED && (triclinic == 1)) {
+  if (scaled == SCALED && triclinic == 1) {
     int flag = 0;
     if (xflag != scaled) flag = 1;
     if (yflag != scaled) flag = 1;
@@ -522,7 +524,7 @@ void ReadDump::atoms()
 
 int ReadDump::fields_and_keywords(int narg, char **arg)
 {
-  // per-field vectors, leave space for ID + TYPE
+  // per-field vectors, leave space for ID and TYPE
 
   fieldtype = new int[narg+2];
   fieldlabel = new char*[narg+2];
@@ -637,10 +639,6 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       readerstyle = new char[n];
       strcpy(readerstyle,arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"reader") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      // all following keywords are passed on to the reader class
-      ++iarg;
       break;
     } else error->all(FLERR,"Illegal read_dump command");
   }
@@ -648,7 +646,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   if (purgeflag && (replaceflag || trimflag))
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
 
-  return iarg;
+  return narg-iarg;
 }
 
 /* ----------------------------------------------------------------------

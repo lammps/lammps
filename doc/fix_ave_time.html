@@ -37,7 +37,7 @@
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>mode</I> or <I>file</I> or <I>ave</I> or <I>start</I> or <I>off</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+<LI>keyword = <I>mode</I> or <I>file</I> or <I>ave</I> or <I>start</I> or <I>off</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
 <PRE>  <I>mode</I> arg = <I>scalar</I> or <I>vector</I>
     scalar = all input values are global scalars
@@ -52,6 +52,7 @@
     M = value # from 1 to Nvalues
   <I>file</I> arg = filename
     filename = name of file to output time averages to
+  <I>overwrite</I> arg = none = overwrite output file with only latest output
   <I>title1</I> arg = string
     string = text to print as 1st line of output file
   <I>title2</I> arg = string
@@ -247,6 +248,10 @@ of numbers is written each time output is performed.  The number of
 rows is the length of the input vectors, and the number of columns is
 the number of values.  Thus the file ends up to be a series of these
 array sections.
+</P>
+<P>The <I>overwrite</I> keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the <I>ave running</I> setting.
 </P>
 <P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the

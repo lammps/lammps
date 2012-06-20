@@ -39,7 +39,8 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
   if (atom->avec->impropers_allow == 0)
-    error->all(FLERR,"Compute improper/local used when impropers are not allowed");
+    error->all(FLERR,
+               "Compute improper/local used when impropers are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -127,7 +128,8 @@ int ComputeImproperLocal::compute_impropers(int flag)
     if (nvalues == 1) {
       if (cflag >= 0) cbuf = vector;
     } else {
-      if (cflag >= 0) cbuf = &array[0][cflag];
+      if (cflag >= 0 && array) cbuf = &array[0][cflag];
+      else cbuf = NULL;
     }
   }
 

@@ -125,8 +125,10 @@ int ComputeBondLocal::compute_bonds(int flag)
       if (dflag >= 0) dbuf = vector;
       if (eflag >= 0) ebuf = vector;
     } else {
-      if (dflag >= 0) dbuf = &array[0][dflag];
-      if (eflag >= 0) ebuf = &array[0][eflag];
+      if (dflag >= 0 && array) dbuf = &array[0][dflag];
+      else dbuf = NULL;
+      if (eflag >= 0 && array) ebuf = &array[0][eflag];
+      else ebuf = NULL;
     }
   }
 

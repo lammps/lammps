@@ -35,6 +35,8 @@ class FixQEQComb : public Fix {
   virtual void post_force(int);
   void post_force_respa(int,int,int);
   double memory_usage();
+  int pack_comm(int , int *, double *, int, int *);
+  void unpack_comm(int , int , double *);
 
  protected:
   int me,firstflag;

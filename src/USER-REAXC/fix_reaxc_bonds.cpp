@@ -48,8 +48,8 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
-  nmax = nint(atom->nlocal*1.05);
   ntypes = atom->ntypes;
+  nmax = atom->nmax;
 
   nevery = atoi(arg[3]);
   nrepeat = atoi(arg[4]);
@@ -72,8 +72,18 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Atom IDs must be consecutive for fix reax/c bonds");
 
+  sbo = NULL;
+  nlp = NULL;
+  avq = NULL;
+  numneigh = NULL;
+  neighid = NULL;
+  tmpid = NULL;
+  abo = NULL;
+  tmpabo = NULL;
+
   allocate();
 
+  irepeat = 0;
   nvalid = nextvalid();
 }
 
@@ -83,14 +93,7 @@ FixReaxCBonds::~FixReaxCBonds()
 {
   MPI_Comm_rank(world,&me);
 
-  memory->destroy(sbo);
-  memory->destroy(nlp);
-  memory->destroy(avq);
-  memory->destroy(numneigh);
-  memory->destroy(neighid);
-  memory->destroy(tmpid);
-  memory->destroy(abo);
-  memory->destroy(tmpabo);
+  destroy();
 
   if (me == 0) fclose(fp);
 }
@@ -150,6 +153,12 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
   int nlocal = atom->nlocal;
   int nlocal_tot = static_cast<int> (atom->natoms);
+
+  if (atom->nmax > nmax) {
+    destroy();
+    nmax = atom->nmax;
+    allocate();
+  }
 
   repeat = nrepeat;
   // zero out average BO for next Nfreq
@@ -415,20 +424,22 @@ bigint FixReaxCBonds::nextvalid()
 
 /* ---------------------------------------------------------------------- */
 
+void FixReaxCBonds::destroy()
+{
+  memory->destroy(sbo);
+  memory->destroy(nlp);
+  memory->destroy(avq);
+  memory->destroy(numneigh);
+  memory->destroy(neighid);
+  memory->destroy(tmpid);
+  memory->destroy(abo);
+  memory->destroy(tmpabo);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixReaxCBonds::allocate()
 {
-
-  irepeat = 0;
-
-  sbo = NULL;
-  nlp = NULL;
-  avq = NULL;
-  numneigh = NULL;
-  neighid = NULL;
-  tmpid = NULL;
-  abo = NULL;
-  tmpabo = NULL;
-
   memory->create(sbo,nmax,"reax/c/bonds:sbo");
   memory->create(nlp,nmax,"reax/c/bonds:nlp");
   memory->create(avq,nmax,"reax/c/bonds:avq");
@@ -437,9 +448,6 @@ void FixReaxCBonds::allocate()
   memory->create(neighid,nmax,MAXBOND,"reax/c/bonds:neighid");
   memory->create(tmpabo,nmax,MAXBOND,"reax/c/bonds:tmpabo");
   memory->create(tmpid,nmax,MAXBOND,"reax/c/bonds:tmpid");
-
-  irepeat = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */

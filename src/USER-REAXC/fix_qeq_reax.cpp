@@ -288,18 +288,12 @@ void FixQEqReax::init()
 {
   if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 	
-  // need a half neighbor list w/ Newton off
+  // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
-
-  // Ray
-  //neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
-  //neighbor->requests[irequest]->ghost = 2;	// 2 for newton off
-
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 

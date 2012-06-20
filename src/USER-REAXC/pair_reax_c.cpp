@@ -48,7 +48,6 @@
 #include "reaxc_traj.h"
 #include "reaxc_vector.h"
 #include "fix_reaxc_bonds.h"
-//#include "fix_reaxc_species.h"
 
 using namespace LAMMPS_NS;
 
@@ -288,6 +287,7 @@ void PairReaxC::coeff( int nargs, char **args )
 void PairReaxC::init_style( )
 {
   if (!atom->q_flag) error->all(FLERR,"Pair reax/c requires atom attribute q");
+
   // firstwarn = 1;
 
   int iqeq;
@@ -311,23 +311,7 @@ void PairReaxC::init_style( )
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c requires newton pair on");
 
-  // original
-  // need a half neighbor list w/ Newton off
-  // built whenever re-neighboring occurs
-
-  //int irequest = neighbor->request(this);
-  //neighbor->requests[irequest]->newton = 2;
-
-  // Ray
-  // need a full+ghost neighbor list w/ Newton off
-  // built whenever re-neighboring occurs
-
-  //int irequest = neighbor->request(this);
-  //neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
-  //neighbor->requests[irequest]->ghost = 2;	// 2 for newton off
-
-  // need a half neighbor list with ghosts w/ Newton off
+  // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
   int irequest = neighbor->request(this);

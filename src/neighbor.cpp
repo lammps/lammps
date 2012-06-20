@@ -475,7 +475,7 @@ void Neighbor::init()
     //   change this list to half_from_full and point at the full list
     //   parent could be copy list or pair or fix
     // fix/compute requests:
-    //   kind of request = half or full, occasional or not doesn't matter
+    //   whether request is occasional or not doesn't matter
     //   if request = half and non-skip pair half/respaouter exists,
     //     become copy of that list if cudable flag matches
     //   if request = full and non-skip pair full exists,
@@ -493,10 +493,8 @@ void Neighbor::init()
         lists[i]->listskip = lists[requests[i]->otherlist];
         lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
 
-      } else if (requests[i]->half_from_full) {
+      } else if (requests[i]->half_from_full) 
         lists[i]->listfull = lists[i-1];
-        printf("AAA\n");
-      }
 
       else if (requests[i]->granhistory) {
         lists[i-1]->listgranhistory = lists[i];
@@ -522,7 +520,6 @@ void Neighbor::init()
           requests[i]->half = 0;
           requests[i]->half_from_full = 1;
           lists[i]->listfull = lists[j];
-          printf("BBB %d %d\n",nlist,j);
         }
 
       } else if (requests[i]->fix || requests[i]->compute) {
@@ -538,6 +535,7 @@ void Neighbor::init()
           j = nlist;
         if (j < nlist) {
           requests[i]->copy = 1;
+          requests[i]->otherlist = j;
           lists[i]->listcopy = lists[j];
         } else {
           for (j = 0; j < nlist; j++) {
@@ -550,7 +548,6 @@ void Neighbor::init()
             requests[i]->half = 0;
             requests[i]->half_from_full = 1;
             lists[i]->listfull = lists[j];
-            printf("CCC\n");
           }
         }
       }
@@ -984,12 +981,6 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
         error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
     }
   }
-
-  // general error check
-
-  //if (rq->ghost && !rq->full)
-  //  error->all(FLERR,
-  //             "Neighbors of ghost atoms only allowed for full neighbor lists");
 
   pair_build[index] = pb;
 }

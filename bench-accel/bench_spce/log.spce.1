@@ -1,4 +1,4 @@
-LAMMPS (23 Sep 2010)
+LAMMPS (21 Jun 2012-ICMS)
 # SPC/E water box benchmark
 
 units		real	
@@ -8,7 +8,7 @@ read_data	data.spce
   2 = max bonds/atom
   1 = max angles/atom
   orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
-  1 by 1 by 1 processor grid
+  1 by 1 by 1 MPI processor grid
   4500 atoms
   3000 bonds
   1500 angles
@@ -19,7 +19,7 @@ read_data	data.spce
 
 replicate	2 4 1
   orthogonal box = (0.02645 0.02645 0.02641) to (71.0392 142.052 35.4736)
-  1 by 1 by 1 processor grid
+  1 by 1 by 1 MPI processor grid
   36000 atoms
   24000 bonds
   12000 angles
@@ -28,7 +28,7 @@ replicate	2 4 1
   1 = max # of 1-4 neighbors
   2 = max # of special neighbors
 
-pair_style	lj/cut/coul/long 9.8 9.8
+pair_style	lj/cut/coul/long 12.0 12.0
 kspace_style	pppm 1.0e-4
 
 pair_coeff	1 1 0.15535 3.166
@@ -49,7 +49,7 @@ special_bonds   lj/coul 0.0 0.0 0.5
   2 = max # of special neighbors
 
 neighbor        2.0 bin
-neigh_modify	every 1 delay 10 check yes
+neigh_modify	every 2 delay 4 check yes
 
 fix		1 all shake 0.0001 20 0 b 1 a 1
   0 = # of size 2 clusters
@@ -63,42 +63,68 @@ velocity	all create 300 432567 dist uniform
 timestep	2.0
 
 thermo_style    one
-thermo		50
-
-run		100
+thermo		10
+thermo_modify  format 2 "%10.5f" format 3 "%10.2f" format 4 "%10.5f" format 5 "%10.2f" format 6 "%10.4f"
+run     50 pre yes post no
 PPPM initialization ...
-  G vector = 0.268811
-  grid = 36 64 24
+  G vector (1/distance) = 0.217855
+  grid = 30 50 18
   stencil order = 5
-  RMS precision = 7.0495e-05
-  brick FFT buffer size/proc = 91977 55296 35604
-Memory usage per processor = 85.6047 Mbytes
+  estimated absolute RMS force accuracy = 0.0234978
+  estimated relative force accuracy = 7.0763e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 48125 27000 23100
+Memory usage per processor = 139.071 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0          300   -133281.51            0   -111820.57   -911.71285 
-      50    256.42601   -138687.16            0   -120343.35   -931.69585 
-     100    265.62923   -137828.91            0   -118826.74   -345.32244 
-Loop time of 51.5528 on 1 procs for 100 steps with 36000 atoms
+       0  300.00000 -133539.02    0.00000 -112078.08 -1012.4235 
+      10  225.02893 -137759.94    0.00000 -121662.16 -2847.5893 
+      20  226.73904 -137661.90    0.00000 -121441.79 -2753.4982 
+      30  236.67585 -138104.91    0.00000 -121173.95 -1805.4539 
+      40  246.34155 -138516.53    0.00000 -120894.13 -1246.7205 
+      50  256.49859 -138945.48    0.00000 -120596.48 -1027.3001 
+Loop time of 29.0231 on 1 procs for 50 steps with 36000 atoms
 
-Pair  time (%) = 37.5153 (72.7705)
-Bond  time (%) = 0.000215292 (0.000417614)
-Kspce time (%) = 7.9697 (15.4593)
-Neigh time (%) = 4.6501 (9.02006)
-Comm  time (%) = 0.206672 (0.400894)
-Outpt time (%) = 0.000396013 (0.00076817)
-Other time (%) = 1.21051 (2.34809)
+thermo_modify format 6 "%10.2f"
+run     50 pre yes post yes
+PPPM initialization ...
+  G vector (1/distance) = 0.217855
+  grid = 30 50 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0234978
+  estimated relative force accuracy = 7.0763e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 48125 27000 23100
+Memory usage per processor = 139.071 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      50  256.49859 -138945.48    0.00000 -120596.48   -1029.47 
+      60  255.31327 -138562.63    0.00000 -120298.42    -625.98 
+      70  259.81042 -138578.58    0.00000 -119992.66    -581.66 
+      80  263.64951 -138551.03    0.00000 -119690.48    -513.44 
+      90  263.84791 -138261.76    0.00000 -119387.01    -450.45 
+     100  265.69726 -138086.63    0.00000 -119079.59    -439.67 
+Loop time of 29.9095 on 1 procs for 50 steps with 36000 atoms
 
-FFT time (% of Kspce) = 1.19034 (14.9359)
-FFT Gflps 3d (1d only) = 1.01459 1.51104
+ Pair time (%) = 24.6407 (82.384)
+ Bond time (%) = 9.799e-05 (0.000327622)
+Kspace time (%) = 1.57391 (5.26223)
+Neigh time (%) = 3.32255 (11.1087)
+ Comm time (%) = 0.0502479 (0.168)
+Output time (%) = 0.000749826 (0.00250698)
+Modify time (%) = 0.29217 (0.976845)
+Other time (%) = 0.0291295 (0.0973921)
+
+FFT time (% of Kspce) = 0.3144 (19.9758)
+FFT Gflps 3d (1d only) = 0.876262 1.05103
 
 Nlocal:    36000 ave 36000 max 36000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    56917 ave 56917 max 56917 min
+Nghost:    71525 ave 71525 max 71525 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.24624e+07 ave 1.24624e+07 max 1.24624e+07 min
+Neighs:    2.08156e+07 ave 2.08156e+07 max 2.08156e+07 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 12462366
-Ave neighs/atom = 346.177
+Total # of neighbors = 20815550
+Ave neighs/atom = 578.21
 Ave special neighs/atom = 2
-Neighbor list builds = 9
-Dangerous builds = 8
+Neighbor list builds = 5
+Dangerous builds = 0

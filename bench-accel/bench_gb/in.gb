@@ -8,16 +8,19 @@ units	      lj
 atom_style    ellipsoid
 
 # creation
-#lattice	      sc 0.22
-#region	      box block 0 32 0 32 0 32
+#lattice          sc 0.22
+#region       box block 0 32 0 32 0 32
 #create_box    1 box
 #create_atoms  1 box
-#set	      group all quat/random 982381
+#set group all shape 1.0 1.5 2.0
+#set group all quat/random  982381
+#set group all mass 1.5
 
 read_data     data.gb
 
-mass	      1 1.5
-shape	      1 1 1.5 2
+# reset to make sure we have the correct info
+set group all mass 1.5
+set group all shape 1.0 1.5 2.0
 
 compute	      rot all temp/asphere
 group	      spheroid type 1
@@ -29,9 +32,9 @@ velocity      all create 2.4 41787 loop geom
 pair_style    gayberne 1.0 3.0 1.0 4.0
 pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
 
-neighbor      0.8 bin
+neighbor      0.75 bin
 
-timestep      0.002
+timestep      0.0015
 thermo	      10
 
 # equilibration run

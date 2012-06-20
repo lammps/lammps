@@ -61,6 +61,28 @@ void Neighbor::stencil_half_bin_2d_no_newton(NeighList *list,
 
 /* ---------------------------------------------------------------------- */
 
+void Neighbor::stencil_half_ghost_bin_2d_no_newton(NeighList *list,
+                                                   int sx, int sy, int sz)
+{
+  int i,j,k;
+  int *stencil = list->stencil;
+  int **stencilxyz = list->stencilxyz;
+  int nstencil = 0;
+
+  for (j = -sy; j <= sy; j++)
+    for (i = -sx; i <= sx; i++)
+      if (bin_distance(i,j,0) < cutneighmaxsq) {
+        stencilxyz[nstencil][0] = i;
+        stencilxyz[nstencil][1] = j;
+        stencilxyz[nstencil][2] = 0;
+        stencil[nstencil++] = j*mbinx + i;
+      }
+
+  list->nstencil = nstencil;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Neighbor::stencil_half_bin_3d_no_newton(NeighList *list,
                                              int sx, int sy, int sz)
 {

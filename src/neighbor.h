@@ -177,6 +177,7 @@ class Neighbor : protected Pointers {
   PairPtr *pair_build;
 
   void half_nsq_no_newton(class NeighList *);
+  void half_nsq_no_newton_ghost(class NeighList *);
   void half_nsq_newton(class NeighList *);
 
   void half_bin_no_newton(class NeighList *);
@@ -223,6 +224,7 @@ class Neighbor : protected Pointers {
   StencilPtr *stencil_create;
 
   void stencil_half_bin_2d_no_newton(class NeighList *, int, int, int);
+  void stencil_half_ghost_bin_2d_no_newton(class NeighList *, int, int, int);
   void stencil_half_bin_3d_no_newton(class NeighList *, int, int, int);
   void stencil_half_ghost_bin_3d_no_newton(class NeighList *, int, int, int);
   void stencil_half_bin_2d_newton(class NeighList *, int, int, int);

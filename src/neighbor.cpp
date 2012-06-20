@@ -826,24 +826,48 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
     } else if (rq->half) {
       if (style == NSQ) {
         if (rq->newton == 0) {
-          if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton;
-          else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
+          if (newton_pair == 0) {
+            if (rq->ghost == 0) pb = &Neighbor::half_nsq_no_newton;
+            else if (includegroup)
+              error->all(FLERR,"Neighbor include group not allowed "
+                         "with ghost neighbors");
+            else pb = &Neighbor::half_nsq_no_newton_ghost;
+          } else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
         } else if (rq->newton == 1) {
           pb = &Neighbor::half_nsq_newton;
-        } else if (rq->newton == 2) pb = &Neighbor::half_nsq_no_newton;
+        } else if (rq->newton == 2) {
+          if (rq->ghost == 0) pb = &Neighbor::half_nsq_no_newton;
+          else if (includegroup)
+            error->all(FLERR,"Neighbor include group not allowed "
+                       "with ghost neighbors");
+          else pb = &Neighbor::half_nsq_no_newton_ghost;
+        }
       } else if (style == BIN) {
         if (rq->newton == 0) {
-          if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
-          else if (triclinic == 0) pb = &Neighbor::half_bin_newton;
-          else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
+          if (newton_pair == 0) {
+            if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton;
+            else if (includegroup)
+              error->all(FLERR,"Neighbor include group not allowed "
+                         "with ghost neighbors");
+            else pb = &Neighbor::half_bin_no_newton_ghost;
+          } else if (triclinic == 0) {
+            pb = &Neighbor::half_bin_newton;
+          } else if (triclinic == 1) 
+            pb = &Neighbor::half_bin_newton_tri;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton;
           else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
         } else if (rq->newton == 2) {
-          if (rq->ghost) pb = &Neighbor::half_bin_no_newton_ghost;
-          else pb = &Neighbor::half_bin_no_newton;
+          if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton;
+          else if (includegroup)
+            error->all(FLERR,"Neighbor include group not allowed "
+                       "with ghost neighbors");
+          else pb = &Neighbor::half_bin_no_newton_ghost;
         }
       } else if (style == MULTI) {
+        if (rq->ghost == 1)
+          error->all(FLERR,
+                     "Neighbor multi not yet enabled for ghost neighbors");
         if (rq->newton == 0) {
           if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
           else if (triclinic == 0) pb = &Neighbor::half_multi_newton;
@@ -860,17 +884,18 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
         else if (includegroup)
           error->all(FLERR,
                      "Neighbor include group not allowed with ghost neighbors");
-        else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost;
+        else pb = &Neighbor::full_nsq_ghost;
       } else if (style == BIN) {
         if (rq->ghost == 0) pb = &Neighbor::full_bin;
         else if (includegroup)
           error->all(FLERR,
                      "Neighbor include group not allowed with ghost neighbors");
-        else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost;
+        else pb = &Neighbor::full_bin_ghost;
       } else if (style == MULTI) {
-        if (rq->ghost == 0) pb = &Neighbor::full_multi;
-        else error->all(FLERR,
-                        "Neighbor multi not yet enabled for ghost neighbors");
+        if (rq->ghost == 1)
+          error->all(FLERR,
+                     "Neighbor multi not yet enabled for ghost neighbors");
+        pb = &Neighbor::full_multi;
       }
 
     } else if (rq->gran) {
@@ -895,6 +920,9 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       } else if (style == MULTI)
         error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
     }
+
+  // OMP versions of build methods
+
   } else {
 
     if (rq->copy) pb = &Neighbor::copy_from;
@@ -912,23 +940,52 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
     } else if (rq->half) {
       if (style == NSQ) {
         if (rq->newton == 0) {
-          if (newton_pair == 0) pb = &Neighbor::half_nsq_no_newton_omp;
-          else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton_omp;
+          if (newton_pair == 0) {
+            if (rq->ghost == 0) pb = &Neighbor::half_nsq_no_newton_omp;
+            else if (includegroup)
+              error->all(FLERR,"Neighbor include group not allowed "
+                         "with ghost neighbors");
+            // NOTE: missing OMP version of this one
+            else pb = &Neighbor::half_nsq_no_newton_ghost;
+          } else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton_omp;
         } else if (rq->newton == 1) {
           pb = &Neighbor::half_nsq_newton_omp;
         } else if (rq->newton == 2) {
-          pb = &Neighbor::half_nsq_no_newton_omp;
+          if (rq->ghost == 0) pb = &Neighbor::half_nsq_no_newton_omp;
+          else if (includegroup)
+            error->all(FLERR,"Neighbor include group not allowed "
+                       "with ghost neighbors");
+          // NOTE: missing OMP version of this one
+          else pb = &Neighbor::half_nsq_no_newton_ghost;
         }
       } else if (style == BIN) {
         if (rq->newton == 0) {
-          if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton_omp;
-          else if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
-          else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri_omp;
+          if (newton_pair == 0) {
+            if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton_omp;
+            else if (includegroup)
+              error->all(FLERR,"Neighbor include group not allowed "
+                         "with ghost neighbors");
+            // NOTE: missing OMP version of this one
+            else pb = &Neighbor::half_bin_no_newton_ghost;
+          } else if (triclinic == 0) {
+            pb = &Neighbor::half_bin_newton_omp;
+          } else if (triclinic == 1) 
+            pb = &Neighbor::half_bin_newton_tri_omp;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
           else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri_omp;
-        } else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton_omp;
+        } else if (rq->newton == 2) {
+          if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton_omp;
+          else if (includegroup)
+            error->all(FLERR,"Neighbor include group not allowed "
+                       "with ghost neighbors");
+          // NOTE: missing OMP version of this one
+          else pb = &Neighbor::half_bin_no_newton_ghost;
+        }
       } else if (style == MULTI) {
+        if (rq->ghost == 1)
+          error->all(FLERR,
+                     "Neighbor multi not yet enabled for ghost neighbors");
         if (rq->newton == 0) {
           if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton_omp;
           else if (triclinic == 0) pb = &Neighbor::half_multi_newton_omp;
@@ -945,17 +1002,18 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
         else if (includegroup)
           error->all(FLERR,
                      "Neighbor include group not allowed with ghost neighbors");
-        else if (rq->ghost == 1) pb = &Neighbor::full_nsq_ghost_omp;
+        else pb = &Neighbor::full_nsq_ghost_omp;
       } else if (style == BIN) {
         if (rq->ghost == 0) pb = &Neighbor::full_bin_omp;
         else if (includegroup)
           error->all(FLERR,
                      "Neighbor include group not allowed with ghost neighbors");
-        else if (rq->ghost == 1) pb = &Neighbor::full_bin_ghost_omp;
+        else pb = &Neighbor::full_bin_ghost_omp;
       } else if (style == MULTI) {
-        if (rq->ghost == 0) pb = &Neighbor::full_multi_omp;
-        else error->all(FLERR,
-                        "Neighbor multi not yet enabled for ghost neighbors");
+        if (rq->ghost == 1)
+          error->all(FLERR,
+                     "Neighbor multi not yet enabled for ghost neighbors");
+        pb = &Neighbor::full_multi_omp;
       }
 
     } else if (rq->gran) {
@@ -1004,10 +1062,13 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
     if (style == BIN) {
       if (rq->newton == 0) {
         if (newton_pair == 0) {
-          if (dimension == 2)
-            sc = &Neighbor::stencil_half_bin_2d_no_newton;
-          else if (dimension == 3)
-            sc = &Neighbor::stencil_half_bin_3d_no_newton;
+          if (dimension == 2) {
+            if (rq->ghost) sc = &Neighbor::stencil_half_ghost_bin_2d_no_newton;
+            else sc = &Neighbor::stencil_half_bin_2d_no_newton;
+          } else if (dimension == 3) {
+            if (rq->ghost) sc = &Neighbor::stencil_half_ghost_bin_3d_no_newton;
+            else sc = &Neighbor::stencil_half_bin_3d_no_newton;
+          }
         } else if (triclinic == 0) {
           if (dimension == 2)
             sc = &Neighbor::stencil_half_bin_2d_newton;
@@ -1033,7 +1094,8 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
         }
       } else if (rq->newton == 2) {
         if (dimension == 2)
-          sc = &Neighbor::stencil_half_bin_2d_no_newton;
+          if (rq->ghost) sc = &Neighbor::stencil_half_ghost_bin_2d_no_newton;
+          else sc = &Neighbor::stencil_half_bin_2d_no_newton;
         else if (dimension == 3) {
           if (rq->ghost) sc = &Neighbor::stencil_half_ghost_bin_3d_no_newton;
           else sc = &Neighbor::stencil_half_bin_3d_no_newton;

@@ -187,6 +187,7 @@ void Neighbor::half_bin_no_newton_ghost(NeighList *list)
     // stores own/own pairs only once
     // stores own/ghost pairs with owned atom only, on both procs
     // stores ghost/ghost pairs only once
+    // no molecular test when i = ghost atom
 
     if (i < nlocal) {
       ibin = coord2bin(x[i]);
@@ -235,8 +236,7 @@ void Neighbor::half_bin_no_newton_ghost(NeighList *list)
           delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
 
-          if (rsq <= cutneighghostsq[itype][jtype])
-            neighptr[n++] = j;
+          if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
         }
       }
     }

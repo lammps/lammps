@@ -41,11 +41,12 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
-  const int shearupdate = (update->ntimestep > laststep) ? 1 : 0;
-
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
+
+  computeflag = 1;
+  const int shearupdate = (update->setupflag) ? 0 : 1;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
@@ -66,7 +67,6 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
 
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
-  laststep = update->ntimestep;
 }
 
 template <int EVFLAG, int SHEARUPDATE>

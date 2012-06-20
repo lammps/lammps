@@ -493,8 +493,10 @@ void Neighbor::init()
         lists[i]->listskip = lists[requests[i]->otherlist];
         lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
 
-      } else if (requests[i]->half_from_full)
+      } else if (requests[i]->half_from_full) {
         lists[i]->listfull = lists[i-1];
+        printf("AAA\n");
+      }
 
       else if (requests[i]->granhistory) {
         lists[i-1]->listgranhistory = lists[i];
@@ -520,6 +522,7 @@ void Neighbor::init()
           requests[i]->half = 0;
           requests[i]->half_from_full = 1;
           lists[i]->listfull = lists[j];
+          printf("BBB %d %d\n",nlist,j);
         }
 
       } else if (requests[i]->fix || requests[i]->compute) {
@@ -547,6 +550,7 @@ void Neighbor::init()
             requests[i]->half = 0;
             requests[i]->half_from_full = 1;
             lists[i]->listfull = lists[j];
+            printf("CCC\n");
           }
         }
       }
@@ -829,9 +833,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
           else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton;
         } else if (rq->newton == 1) {
           pb = &Neighbor::half_nsq_newton;
-        } else if (rq->newton == 2) {
-          pb = &Neighbor::half_nsq_no_newton;
-        }
+        } else if (rq->newton == 2) pb = &Neighbor::half_nsq_no_newton;
       } else if (style == BIN) {
         if (rq->newton == 0) {
           if (newton_pair == 0) pb = &Neighbor::half_bin_no_newton;
@@ -840,7 +842,10 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton;
           else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri;
-        } else if (rq->newton == 2) pb = &Neighbor::half_bin_no_newton;
+        } else if (rq->newton == 2) {
+          if (rq->ghost) pb = &Neighbor::half_bin_no_newton_ghost;
+          else pb = &Neighbor::half_bin_no_newton;
+        }
       } else if (style == MULTI) {
         if (rq->newton == 0) {
           if (newton_pair == 0) pb = &Neighbor::half_multi_no_newton;
@@ -982,9 +987,9 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 
   // general error check
 
-  if (rq->ghost && !rq->full)
-    error->all(FLERR,
-               "Neighbors of ghost atoms only allowed for full neighbor lists");
+  //if (rq->ghost && !rq->full)
+  //  error->all(FLERR,
+  //             "Neighbors of ghost atoms only allowed for full neighbor lists");
 
   pair_build[index] = pb;
 }
@@ -1038,8 +1043,10 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
       } else if (rq->newton == 2) {
         if (dimension == 2)
           sc = &Neighbor::stencil_half_bin_2d_no_newton;
-        else if (dimension == 3)
-          sc = &Neighbor::stencil_half_bin_3d_no_newton;
+        else if (dimension == 3) {
+          if (rq->ghost) sc = &Neighbor::stencil_half_ghost_bin_3d_no_newton;
+          else sc = &Neighbor::stencil_half_bin_3d_no_newton;
+        }
       }
 
     } else if (style == MULTI) {

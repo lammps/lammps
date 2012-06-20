@@ -634,12 +634,12 @@ void PRD::share_event(int ireplica, int flag)
   }
   if (flag == 0) fix_event->event_number--;
 
-  // dump snapshot of quenched coords
+  // dump snapshot of quenched coords, only on replica 0
   // must reneighbor and compute forces before dumping
   // since replica 0 possibly has new state from another replica
   // addstep_compute_all insures eng/virial are calculated if needed
 
-  if (output->ndump && universe->iworld == 0) {
+  if (output->ndump && universe->iworld) {
     timer->barrier_start(TIME_LOOP);
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
@@ -690,9 +690,7 @@ void PRD::log_event()
   communicate atom coords and image flags in ireplica to all other replicas
   one proc per replica:
     direct overwrite via bcast
-  equal procs per replica and no replica reneighbored:
-    direct overwrite via bcast
-  unequal procs per replica or reneighboring occurred:
+  else atoms could be stored in different order or on different procs:
     collect to root proc of event replica
     bcast to roots of other replicas
     bcast within each replica
@@ -705,19 +703,13 @@ void PRD::replicate(int ireplica)
   int nprocs_universe = universe->nprocs;
   int i,m,flag,commflag;
 
-  int *counts = new int[nprocs];
-
-  if (nreplica == nprocs_universe) commflag = 0;
-  else if (equal_size_replicas) {
-    flag = 0;
-    if (quench_reneighbor) flag = 1;
-    MPI_Allreduce(&flag,&commflag,1,MPI_INT,MPI_MAX,universe->uworld);
-  } else commflag = 1;
-
-  if (commflag == 0) {
+  if (nreplica == nprocs_universe) {
     MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
     MPI_Bcast(atom->x[0],3*atom->nlocal,MPI_DOUBLE,ireplica,comm_replica);
+
   } else {
+    int *counts = new int[nprocs];
+
     if (universe->iworld == ireplica) {
       MPI_Gather(&atom->nlocal,1,MPI_INT,counts,1,MPI_INT,0,world);
       displacements[0] = 0;
@@ -756,9 +748,9 @@ void PRD::replicate(int ireplica)
         atom->image[m] = imageall[i];
       }
     }
-  }
 
-  delete [] counts;
+    delete [] counts;
+  }
 }
 
 /* ----------------------------------------------------------------------

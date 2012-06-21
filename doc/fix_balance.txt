@@ -1,0 +1,241 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix balance command :h3
+
+[Syntax:]
+
+fix ID group-ID balance dimstr Nfreq Niter thresh keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+balance = style name of this fix command :l
+Nfreq = perform dynamic load balancing every this many steps :l
+dimstr = sequence of letters containing "x" or "y" or "z", each not more than once :l
+Niter = # of times to iterate within each dimension of dimstr sequence :l
+thresh = stop balancing when this imbalance threshhold is reached :l
+zero or more keyword/arg pairs may be appended :ule,l
+keyword = {out} :l
+ {out} arg = filename
+   filename = output file to write each processor's sub-domain to :pre
+:ule
+
+[Examples:]
+
+fix 2 all balance 1000 x 10 1.05
+fix 2 all balance 0 xy 20 1.1 out tmp.balance :pre
+
+[Description:]
+
+This command adjusts the size of processor sub-domains within the
+simulation box dynamically as a simulation runs, to attempt to balance
+the number of particles and thus the computational cost (load) evenly
+across processors. The load balancing is "dynamic" in the sense that
+rebalancing is performed periodically during the simulation.  To
+perform "static" balancing, before of between runs, see the
+"balance"_balance.html command.
+
+Load-balancing is only useful if the particles in the simulation box
+have a spatially-varying density distribution.  E.g. a model of a
+vapor/liquid interface, or a solid with an irregular-shaped geometry
+containing void regions. In this case, the LAMMPS default of dividing
+the simulation box volume into a regular-spaced grid of processor
+sub-domain, with one equal-volume sub-domain per procesor, may assign
+very different numbers of particles per processor. This can lead to
+poor performance in a scalability sense, when the simulation is run in
+parallel.
+
+Note that the "processors"_processors.html command gives you some
+control over how the box volume is split across
+processors. Specifically, for a Px by Py by Pz grid of processors, it
+lets you choose Px, Py, and Pz, subject to the constraint that Px * Py
+* Pz = P, the total number of processors. This can be sufficient to
+achieve good load-balance for some models on some processor
+counts. However, all the processor sub-domains will still be the same
+shape and have the same volume.
+
+This command does not alter the topology of the Px by Py by Pz grid or
+processors. But it shifts the cutting planes between processors (in
+3d, or lines in 2d), which adjusts the volume (area in 2d) assigned to
+each processor, as in the following 2d diagram. The left diagram is
+the default partitioning of the simulation box across processors (one
+sub-box for each of 16 processors); the right diagram is after
+balancing.
+
+:c,image(JPG/balance.jpg)
+
+IMPORTANT NOTE: This command attempts to minimize the imbalance
+factor, as defined above.  But because of the topology constraint that
+only the cutting planes (lines) between processors are moved, there
+are many irregular distributions of particles, where this factor
+cannot be shrunk to 1.0, particuarly in 3d.  Also, computational cost
+is not strictly proportional to particle count, and changing the
+relative size and shape of processor sub-domains may lead to
+additional computational and communication overheads, e.g. in the PPPM
+solver used via the "kspace_style"_kspace_style.html command.  Thus
+you should benchmark the run times of your simulation with and without
+balancing.
+
+:line
+
+The {group-ID} determines what particles are considered for balancing.
+Normally it only makes sense to use the {all} group.  But in some
+cases you may wish to balance on a subset of the particles, e.g. when
+modeling large nanoparticles in a background of small solvent
+particles.
+
+The {Nfreq} setting determines how often a rebalance is performed.  If
+{Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each
+time a rebalance occurs, a reneighboring is triggered, so you should
+not make {Nfreq} too small.  If {Nfreq} = 0, then rebalancing will be
+done every time reneighboring normally occurs, as determined by the
+the "neighbor"_neighbor.html and "neigh_modify"_neigh_modify.html
+command settings.
+
+On rebalance steps, rebalancing will only be attempted if the current
+imbalance factor, as defined above, exceeds the {thresh} setting.
+
+The {dimstr} argument is a string of characters, each of which must be
+an "x" or "y" or "z".  Eacn character can appear zero or one time,
+since there is no advantage to balancing on a dimension more than
+once.  You should normally only list dimensions where you expect there
+to be a density variation in the particles.
+
+Balancing proceeds by adjusting the cutting planes in each of the
+dimensions listed in {dimstr}, one dimension at a time.  For a single
+dimension, the balancing operation (described below) is iterated on up
+to {Niter} times.  After each dimension finishes, the imbalance factor
+is re-computed, and the balancing operation halts if the {thresh}
+criterion is met.
+
+A rebalance operation in a single dimension is performed using a
+recursive multisectioning algorithm, where the position of each
+cutting plane (line in 2d) in the dimension is adjusted independently.
+This is similar to a recursive bisectioning (RCB) for a single value,
+except that the bounds used for each bisectioning take advantage of
+information from neighboring cuts if possible.  At each iteration, the
+count of particles on either side of each plane is tallied.  If the
+counts do not match the target value for the plane, the position of
+the cut is adjusted to be halfway between a low and high bound.  The
+low and high bounds are adjusted on each iteration, using new count
+information, so that they become closer together over time.  Thus as
+the recustion progresses, the count of particles on either side of the
+plane gets closer to the target value.
+
+Once the rebalancing is complete and final processor sub-domains
+assigned, particles migrate to their new owning processor as part of
+the normal reneighboring procedure.
+
+IMPORTANT NOTE: At each rebalance operation, the recursive
+bisectioning operation for each cutting plane (line in 2d) typcially
+starts with low and high bounds separated by the extent of a
+processor's sub-domain in one dimension.  The size of this bracketing
+region shrinks by 1/2 every iteration.  Thus if {Niter} is specified
+as 10, the cutting plane will typically be positioned to 1 part in
+1000 accuracy (relative to the perfect target position).  For {Niter}
+= 20, it will be accurate to 1 part in a million.  Thus there is no
+need to set {Niter} to a large value.  LAMMPS will check if the
+threshold accuracy is reached (in a dimension) is less iterations than
+{Niter} and exit early.  However, {Niter} should also not be set too
+small, since it will take roughly the same number of iterations to
+converge even if the cutting plane is initially close to the target
+value.
+
+:line
+
+The {out} keyword writes a text file to the specified {filename} with
+the results of each rebalancing operation.  The file contains the
+bounds of the sub-domain for each processor after the balancing
+operation completes.  The format of the file is compatible with the
+"Pizza.py"_pizza {mdump} tool which has support for manipulating and
+visualizing mesh files.  An example is shown here for a balancing by 4
+processors for a 2d problem:
+
+ITEM: TIMESTEP
+1000
+ITEM: NUMBER OF SQUARES
+4
+ITEM: SQUARES
+1 1 1 2 7 6
+2 2 2 3 8 7
+3 3 3 4 9 8
+4 4 4 5 10 9
+ITEM: TIMESTEP
+1000
+ITEM: NUMBER OF NODES
+10
+ITEM: BOX BOUNDS
+-153.919 184.703
+0 15.3919
+-0.769595 0.769595
+ITEM: NODES
+1 1 -153.919 0 0
+2 1 7.45545 0 0
+3 1 14.7305 0 0
+4 1 22.667 0 0
+5 1 184.703 0 0
+6 1 -153.919 15.3919 0
+7 1 7.45545 15.3919 0
+8 1 14.7305 15.3919 0
+9 1 22.667 15.3919 0
+10 1 184.703 15.3919 0 :pre
+
+The "SQUARES" lists the node IDs of the 4 vertices in a rectangle for
+each processor (1 to 4).  The first SQUARE 1 (for processor 0) is a
+rectangle of type 1 (equal to SQUARE ID) and contains vertices
+1,2,7,6.  The coordinates of all the vertices are listed in the NODES
+section.  Note that the 4 sub-domains share vertices, so there are
+only 10 unique vertices in total.
+
+For a 3d problem, the syntax is similar with "SQUARES" replaced by
+"CUBES", and 8 vertices listed for each processor, instead of 4.
+
+Each time rebalancing is performed a new timestamp is written with new
+NODES values.  The SQUARES of CUBES sections are not repeated, since
+they do not change.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+This fix computes a global scalar which is the imbalance factor
+after the most recent rebalance and a global vector of length 3 with
+additional information about the most recent rebalancing.  The 3
+values in the vector are as follows:
+
+1 = max # of particles per processor
+2 = total # iterations performed in last rebalance
+3 = imbalance factor right before the last rebalance was performed :ul
+
+As explained above, the imbalance factor is the ratio of the maximum
+number of particles on any processor to the average number of
+particles per processor.
+
+These quantities can be accessed by various "output
+commands"_Section_howto.html#howto_15.  The scalar and vector values
+calculated by this fix are "intensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+:line
+
+[Restrictions:]
+
+The fix balance command cannot yet be used with the long-range
+Coulombic PPPM solver invoked by "kspace_style pppm"_kspace_style,html.
+
+[Related commands:]
+
+"processors"_processors.html, "balance"_balance.html
+
+[Default:] none

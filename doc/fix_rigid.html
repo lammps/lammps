@@ -33,7 +33,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>tparam</I> or <I>force</I> or <I>torque</I> 
+<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>tparam</I> or <I>force</I> or <I>torque</I> or <I>infile</I> 
 
 <PRE>  <I>langevin</I> values = Tstart Tstop Tperiod seed
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
@@ -51,7 +51,9 @@
     xflag,yflag,zflag = off/on if component of center-of-mass force is active
   <I>torque</I> values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
-    xflag,yflag,zflag = off/on if component of center-of-mass torque is active 
+    xflag,yflag,zflag = off/on if component of center-of-mass torque is active
+  <I>infile</I> filename
+    filename = file with per-body values of mass, center-of-mass, moments of inertia 
 </PRE>
 
 </UL>
@@ -255,10 +257,40 @@ rigid bodies should then effectively thermostat the rigid body
 temperature as well without use of the Langevin or Nose/Hoover options
 associated with the fix rigid commands.
 </P>
+<P>The <I>infile</I> keyword allows a file of rigid body attributes to be read
+in from a file, rather then letting LAMMPS compute them.  There are 3
+such attributes: the total mass of the rigid body, its center-of-mass
+position, and its 6 moments of inertia.  For rigid bodies consisting
+of point particles or non-overlapping finite-size particles, LAMMPS
+can compute these values accurately.  However, for rigid bodies
+consisting of finite-size particles which overlap each other, LAMMPS
+will ignore the overlaps when computing these 3 attributes.  The
+amount of error this induces depends on the amount of overlap.  To
+avoid this issue, the values can be pre-computed (e.g. using Monte
+Carlo integration).
+</P>
+<P>The format of the file is as follows.  Note that The file does not
+have to list attributes for every rigid body integrated by fix rigid.
+Only bodies which the file specifies will have their computed
+attributes overridden.  The file can contain
+initial blank lines or comment lines starting with "#" which
+are ignored.  The first non-blank, non-comment line should
+list N = the number of lines to follow.  The N successive lines
+contain the following information:
+</P>
+<PRE>ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
+ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
+...
+IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz 
+</PRE>
+<P>The rigid body IDs are all positive integers.  For the <I>single</I>
+bodystyle, only an ID of 1 can be used.  For the <I>group</I> bodystyle,
+IDs from 1 to Ng can be used where Ng is the number of specified
+groups.  For the <I>molecule</I> bodystyle, use the molecule ID for the
+atoms in a specific rigid body as the rigid body ID.
+</P>
 <HR>
 
-<P>The keyword/value option pairs are used in the following ways.
-</P>
 <P>If you use a <A HREF = "compute.html">temperature compute</A> with a group that
 includes particles in rigid bodies, the degrees-of-freedom removed by
 each rigid body are accounted for in the temperature (and pressure)

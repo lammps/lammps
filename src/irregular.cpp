@@ -237,9 +237,6 @@ int Irregular::migrate_check()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-
-  if (comm->me == 0) printf("MIGRATE CHECK %d\n",flagall);
-
   return flagall;
 }
 

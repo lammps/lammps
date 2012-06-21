@@ -12,7 +12,7 @@ balance command :h3
 
 balance keyword args ... :pre
 
-one or more keyword/arg pairs may be appended :ule,l
+one or more keyword/arg pairs may be appended :ulb,l
 keyword = {x} or {y} or {z} or {dynamic} or {out} :l
  {x} args = {uniform} or Px-1 numbers between 0 and 1
    {uniform} = evenly spaced cuts between processors in x dimension

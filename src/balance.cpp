@@ -30,9 +30,8 @@ using namespace LAMMPS_NS;
 
 enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
-enum{EXPAND,CONTRACT};
 
-//#define BALANCE_DEBUG 1
+#define BALANCE_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +47,7 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   dflag = 0;
 
   fp = NULL;
+  firststep = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,6 +69,8 @@ Balance::~Balance()
     delete [] onecount;
     delete [] lo;
     delete [] hi;
+    delete [] losum;
+    delete [] hisum;
   }
 
   if (fp) fclose(fp);
@@ -94,7 +96,6 @@ void Balance::command(int narg, char **arg)
   xflag = yflag = zflag = NONE;
   dflag = 0;
   outflag = 0;
-  laststep = -1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -162,8 +163,8 @@ void Balance::command(int narg, char **arg)
       if (dimension == 3) zflag = DYNAMIC;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
-      niter = atoi(arg[iarg+2]);
-      if (niter <= 0) error->all(FLERR,"Illegal balance command");
+      nitermax = atoi(arg[iarg+2]);
+      if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       thresh = atof(arg[iarg+3]);
       if (thresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
@@ -229,10 +230,10 @@ void Balance::command(int narg, char **arg)
   // debug output of initial state
 
 #ifdef BALANCE_DEBUG
-  dumpout(update->ntimestep);
+  if (me == 0 && fp) dumpout(update->ntimestep,fp);
 #endif
 
-  int iter = 0;
+  int niter = 0;
 
   // explicit setting of sub-domain sizes
 
@@ -266,13 +267,13 @@ void Balance::command(int narg, char **arg)
   // static load-balance of sub-domain sizes
 
   if (dflag) {
-    dynamic_setup(bstr);
-    iter = dynamic_once();
+    static_setup(bstr);
+    niter = dynamic();
   }
 
   // output of final result
 
-  if (outflag) dumpout(update->ntimestep);
+  if (outflag && me == 0) dumpout(update->ntimestep,fp);
 
   // reset comm->uniform flag if necessary
 
@@ -321,14 +322,14 @@ void Balance::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"  iteration count = %d\n",iter);
+      fprintf(screen,"  iteration count = %d\n",niter);
       fprintf(screen,"  initial/final max atoms/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(screen,"  initial/final imbalance factor = %g %g\n",
               imbinit,imbfinal);
     }
     if (logfile) {
-      fprintf(logfile,"  iteration count = %d\n",iter);
+      fprintf(logfile,"  iteration count = %d\n",niter);
       fprintf(logfile,"  initial/final max atoms/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
@@ -424,9 +425,10 @@ double Balance::imbalance_splits(int &max)
 /* ----------------------------------------------------------------------
    setup static load balance operations
    called from command
+   set rho = 0 for static balancing
 ------------------------------------------------------------------------- */
 
-void Balance::dynamic_setup(char *str)
+void Balance::static_setup(char *str)
 {
   ndim = strlen(str);
   bdim = new int[ndim];
@@ -446,27 +448,35 @@ void Balance::dynamic_setup(char *str)
   target = new bigint[max+1];
   lo = new double[max+1];
   hi = new double[max+1];
+  losum = new bigint[max+1];
+  hisum = new bigint[max+1];
+
+  rho = 0;
 }
 
 /* ----------------------------------------------------------------------
    setup dynamic load balance operations
    called from fix balance
+   set rho = 1 for dynamic balancing after call to dynamic_setup()
 ------------------------------------------------------------------------- */
 
-void Balance::dynamic_setup(char *str, int niter_in, double thresh_in)
+void Balance::dynamic_setup(char *str, int nitermax_in, double thresh_in)
 {
-  niter = niter_in;
+  dflag = 1;
+  static_setup(str);
+  nitermax = nitermax_in;
   thresh = thresh_in;
-  dynamic_setup(str);
+
+  rho = 1;
 }
 
 /* ----------------------------------------------------------------------
-   perform static load balance by changing xyz split proc boundaries in Comm
-   called from command
-   return actual iteration count
+   load balance by changing xyz split proc boundaries in Comm
+   called one time from input script command or many times from fix balance
+   return niter = iteration count
 ------------------------------------------------------------------------- */
 
-int Balance::dynamic_once()
+int Balance::dynamic()
 {
   int i,j,k,m,np,max;
   double *split;
@@ -488,7 +498,7 @@ int Balance::dynamic_once()
 
   // loop over dimensions in balance string
 
-  int iter = 0;
+  int niter = 0;
   for (int idim = 0; idim < ndim; idim++) {
 
     // split = ptr to xyz split in Comm
@@ -513,30 +523,40 @@ int Balance::dynamic_once()
 
     lo[0] = hi[0] = 0.0;
     lo[np] = hi[np] = 1.0;
+    losum[0] = hisum[0] = 0;
+    losum[np] = hisum[np] = natoms;
+
     for (i = 1; i < np; i++) {
       for (j = i; j >= 0; j--)
         if (sum[j] <= target[i]) {
           lo[i] = split[j];
+          losum[i] = sum[j];
           break;
         }
       for (j = i; j <= np; j++)
         if (sum[j] >= target[i]) {
           hi[i] = split[j];
+          hisum[i] = sum[j];
           break;
         }
     }
 
     // iterate until balanced
 
+#ifdef BALANCE_DEBUG
+    if (me == 0) debug_output(idim,0,np,split);
+#endif
+
     int doneflag;
     int change = 1;
-    for (m = 0; m < niter; m++) {
+    for (m = 0; m < nitermax; m++) {
       change = adjust(np,split);
       tally(bdim[idim],np,split);
-      iter++;
+      niter++;
 
 #ifdef BALANCE_DEBUG
-      dumpout(update->ntimestep);
+      if (me == 0) debug_output(idim,m+1,np,split);
+      if (me == 0 && fp) dumpout(update->ntimestep,fp);
 #endif
 
       // stop if no change in splits, b/c all targets are met exactly
@@ -554,8 +574,8 @@ int Balance::dynamic_once()
       if (doneflag) break;
     }
 
-    // eliminate adjacent splits that are duplicates
-    // can happen if particle distribution is narrow and Niter is small
+    // eliminate final adjacent splits that are duplicates
+    // can happen if particle distribution is narrow and Nitermax is small
     // set lo = midpt between splits
     // spread duplicates out evenly between bounding midpts with non-duplicates
     // i,j = lo/hi indices of set of duplicate splits
@@ -592,7 +612,7 @@ int Balance::dynamic_once()
     if (bad) error->all(FLERR,"Balance produced bad splits");
     /*
       if (me == 0) {
-      printf("BAD SPLITS %d %d %d\n",np+1,iter,delta);
+      printf("BAD SPLITS %d %d %d\n",np+1,niter,delta);
       for (i = 0; i < np+1; i++)
       printf(" %g",split[i]);
       printf("\n");
@@ -610,18 +630,7 @@ int Balance::dynamic_once()
 
   domain->lamda2x(atom->nlocal);
 
-  return iter;
-}
-
-/* ----------------------------------------------------------------------
-   perform dynamic load balance by changing xyz split proc boundaries in Comm
-   called from fix balance
-   return actual iteration count
-------------------------------------------------------------------------- */
-
-int Balance::dynamic()
-{
-  return 0;
+  return niter;
 }
 
 /* ----------------------------------------------------------------------
@@ -670,6 +679,7 @@ void Balance::tally(int dim, int n, double *split)
 int Balance::adjust(int n, double *split)
 {
   int i;
+  double fraction;
 
   // reset lo/hi based on current sum and splits
   // insure lo is monotonically increasing, ties are OK
@@ -678,19 +688,35 @@ int Balance::adjust(int n, double *split)
   // to possibly tighten bounds on lo/hi
 
   for (i = 1; i < n; i++) {
-    if (sum[i] <= target[i]) lo[i] = split[i];
-    if (sum[i] >= target[i]) hi[i] = split[i];
+    if (sum[i] <= target[i]) {
+      lo[i] = split[i];
+      losum[i] = sum[i];
+    }
+    if (sum[i] >= target[i]) {
+      hi[i] = split[i];
+      hisum[i] = sum[i];
+    }
   }
   for (i = 1; i < n; i++)
-    if (lo[i] < lo[i-1]) lo[i] = lo[i-1];
+    if (lo[i] < lo[i-1]) {
+      lo[i] = lo[i-1];
+      losum[i] = losum[i-1];
+    }
   for (i = n-1; i > 0; i--)
-    if (hi[i] > hi[i+1]) hi[i] = hi[i+1];
+    if (hi[i] > hi[i+1]) {
+      hi[i] = hi[i+1];
+      hisum[i] = hisum[i+1];
+    }
   
   int change = 0;
   for (int i = 1; i < n; i++)
     if (sum[i] != target[i]) {
-      split[i] = 0.5 * (lo[i]+hi[i]);
       change = 1;
+      if (rho == 0) split[i] = 0.5 * (lo[i]+hi[i]);
+      else {
+        fraction = 1.0*(target[i]-losum[i]) / (hisum[i]-losum[i]);
+        split[i] = lo[i] + fraction * (hi[i]-lo[i]);
+      }
     }
   return change;
 }
@@ -840,33 +866,28 @@ int Balance::binary(double value, int n, double *vec)
 }
 
 /* ----------------------------------------------------------------------
-   create dump file of line segments in Pizza.py mdump mesh format
-   invoked by out option or debug flag
-   debug flag requires out flag to specify file
+   write dump snapshot of line segments in Pizza.py mdump mesh format
    write xy lines around each proc's sub-domain for 2d
    write xyz cubes around each proc's sub-domain for 3d
-   all procs but 0 just return
+   only called by proc 0
 ------------------------------------------------------------------------- */
 
-void Balance::dumpout(bigint tstep)
+void Balance::dumpout(bigint tstep, FILE *bfp)
 {
-  if (me) return;
-  if (fp == NULL) error->one(FLERR,"Balance output requires out keyword");
-
   int dimension = domain->dimension;
 
   // write out one square/cube per processor for 2d/3d
   // only write once since topology is static
 
-  if (tstep != laststep) {
-    laststep = tstep;
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,"%ld\n",tstep);
-    if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
-    else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
-    fprintf(fp,"%d\n",nprocs);
-    if (dimension == 2) fprintf(fp,"ITEM: SQUARES\n");
-    else fprintf(fp,"ITEM: CUBES\n");
+  if (firststep) {
+    firststep = 0;
+    fprintf(bfp,"ITEM: TIMESTEP\n");
+    fprintf(bfp,BIGINT_FORMAT "\n",tstep);
+    if (dimension == 2) fprintf(bfp,"ITEM: NUMBER OF SQUARES\n");
+    else fprintf(bfp,"ITEM: NUMBER OF CUBES\n");
+    fprintf(bfp,"%d\n",nprocs);
+    if (dimension == 2) fprintf(bfp,"ITEM: SQUARES\n");
+    else fprintf(bfp,"ITEM: CUBES\n");
     
     int nx = comm->procgrid[0] + 1;
     int ny = comm->procgrid[1] + 1;
@@ -880,7 +901,7 @@ void Balance::dumpout(bigint tstep)
           int c2 = c1 + 1;
           int c3 = c2 + nx;
           int c4 = c3 - 1;
-          fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
+          fprintf(bfp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
           m++;
         }
       
@@ -897,7 +918,7 @@ void Balance::dumpout(bigint tstep)
             int c6 = c2 + ny*nx;
             int c7 = c3 + ny*nx;
             int c8 = c4 + ny*nx;
-            fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
+            fprintf(bfp,"%d %d %d %d %d %d %d %d %d %d\n",
                     m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
             m++;
           }
@@ -916,22 +937,22 @@ void Balance::dumpout(bigint tstep)
   double *boxhi = domain->boxhi;
   double *prd = domain->prd;
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,"%ld\n",tstep);
-  fprintf(fp,"ITEM: NUMBER OF NODES\n");
-  if (dimension == 2) fprintf(fp,"%d\n",nx*ny);
-  else fprintf(fp,"%d\n",nx*ny*nz);
-  fprintf(fp,"ITEM: BOX BOUNDS\n");
-  fprintf(fp,"%g %g\n",boxlo[0],boxhi[0]);
-  fprintf(fp,"%g %g\n",boxlo[1],boxhi[1]);
-  fprintf(fp,"%g %g\n",boxlo[2],boxhi[2]);
-  fprintf(fp,"ITEM: NODES\n");
+  fprintf(bfp,"ITEM: TIMESTEP\n");
+  fprintf(bfp,BIGINT_FORMAT "\n",tstep);
+  fprintf(bfp,"ITEM: NUMBER OF NODES\n");
+  if (dimension == 2) fprintf(bfp,"%d\n",nx*ny);
+  else fprintf(bfp,"%d\n",nx*ny*nz);
+  fprintf(bfp,"ITEM: BOX BOUNDS\n");
+  fprintf(bfp,"%g %g\n",boxlo[0],boxhi[0]);
+  fprintf(bfp,"%g %g\n",boxlo[1],boxhi[1]);
+  fprintf(bfp,"%g %g\n",boxlo[2],boxhi[2]);
+  fprintf(bfp,"ITEM: NODES\n");
 
   if (dimension == 2) {
     int m = 0;
     for (int j = 0; j < ny; j++)
       for (int i = 0; i < nx; i++) {
-        fprintf(fp,"%d %d %g %g %g\n",m+1,1,
+        fprintf(bfp,"%d %d %g %g %g\n",m+1,1,
                 boxlo[0] + prd[0]*comm->xsplit[i],
                 boxlo[1] + prd[1]*comm->ysplit[j],
                 0.0);
@@ -942,11 +963,66 @@ void Balance::dumpout(bigint tstep)
     for (int k = 0; k < nz; k++)
       for (int j = 0; j < ny; j++)
         for (int i = 0; i < nx; i++) {
-          fprintf(fp,"%d %d %g %g %g\n",m+1,1,
+          fprintf(bfp,"%d %d %g %g %g\n",m+1,1,
                   boxlo[0] + prd[0]*comm->xsplit[i],
                   boxlo[1] + prd[1]*comm->ysplit[j],
                   boxlo[2] + prd[2]*comm->zsplit[j]);
           m++;
       }
   }
+}
+
+/* ----------------------------------------------------------------------
+   debug output for Idim and count
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void Balance::debug_output(int idim, int m, int np, double *split)
+{
+  int i;
+  const char *dim;
+
+  double *boxlo = domain->boxlo;
+  double *prd = domain->prd;
+
+  if (bdim[idim] == X) dim = "X";
+  else if (bdim[idim] == Y) dim = "Y";
+  else if (bdim[idim] == Z) dim = "Z";
+  printf("Dimension %s, Iteration %d\n",dim,m);
+
+  printf("  Count:");
+  for (i = 0; i < np; i++) printf(" " BIGINT_FORMAT,count[i]);
+  printf("\n");
+  printf("  Sum:");
+  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,sum[i]);
+  printf("\n");
+  printf("  Target:");
+  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,target[i]);
+  printf("\n");
+  printf("  Actual cut:");
+  for (i = 0; i <= np; i++) 
+    printf(" %g",boxlo[bdim[idim]] + split[i]*prd[bdim[idim]]);
+  printf("\n");
+  printf("  Split:");
+  for (i = 0; i <= np; i++) printf(" %g",split[i]);
+  printf("\n");
+  printf("  Low:");
+  for (i = 0; i <= np; i++) printf(" %g",lo[i]);
+  printf("\n");
+  printf("  Low-sum:");
+  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,losum[i]);
+  printf("\n");
+  printf("  Hi:");
+  for (i = 0; i <= np; i++) printf(" %g",hi[i]);
+  printf("\n");
+  printf("  Hi-sum:");
+  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,hisum[i]);
+  printf("\n");
+  printf("  Delta:");
+  for (i = 0; i < np; i++) printf(" %g",split[i+1]-split[i]);
+  printf("\n");
+
+  bigint max = 0;
+  for (i = 0; i < np; i++) max = MAX(max,count[i]);
+  printf("  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }

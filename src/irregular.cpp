@@ -117,13 +117,14 @@ void Irregular::migrate_atoms()
   int nsendatom = 0;
   int *sizes = new int[nlocal];
   int *proclist = new int[nlocal];
+  int igx,igy,igz;
 
   int i = 0;
   while (i < nlocal) {
     if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
         x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
         x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
-      proclist[nsendatom] = coord2proc(x[i]);
+      proclist[nsendatom] = coord2proc(x[i],igx,igy,igz);
       if (proclist[nsendatom] != me) {
         if (nsend > maxsend) grow_send(nsend,1);
         sizes[nsendatom] = avec->pack_exchange(i,&buf_send[nsend]);
@@ -155,6 +156,90 @@ void Irregular::migrate_atoms()
   // reset global->local map
 
   if (map_style) atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   check if any atoms need to migrate further than one proc away in any dim
+   if not, caller can decide to use comm->exchange() instead
+   atoms must be remapped to be inside simulation box before this is called
+   for triclinic: atoms must be in lamda coords (0-1) before this is called
+   return 1 if migrate required, 0 if not
+------------------------------------------------------------------------- */
+
+int Irregular::migrate_check()
+{
+  return 1;
+
+  // subbox bounds for orthogonal or triclinic box
+  // other comm/domain data used by coord2proc()
+
+  double *sublo,*subhi;
+  if (triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  uniform = comm->uniform;
+  xsplit = comm->xsplit;
+  ysplit = comm->ysplit;
+  zsplit = comm->zsplit;
+  boxlo = domain->boxlo;
+  prd = domain->prd;
+
+  // loop over atoms, check for any that are not in my sub-box
+  // assign which proc it belongs to via coord2proc()
+  // if logical igx,igy,igz of newproc > one away from myloc, set flag = 1
+  // this check needs to observe PBC
+  // cannot check via comm->procneigh since it ignores PBC
+
+  AtomVec *avec = atom->avec;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  int *periodicity = domain->periodicity;
+  int *myloc = comm->myloc;
+  int *procgrid = comm->procgrid;
+  int newproc,igx,igy,igz,glo,ghi;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
+        x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
+        x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
+      newproc = coord2proc(x[i],igx,igy,igz);
+
+      glo = myloc[0] - 1;
+      ghi = myloc[0] + 1;
+      if (periodicity[0]) {
+        if (glo < 0) glo = procgrid[0] - 1;
+        if (ghi >= procgrid[0]) ghi = 0;
+      }
+      if (igx != myloc[0] && igx != glo && igx != ghi) flag = 1;
+
+      glo = myloc[1] - 1;
+      ghi = myloc[1] + 1;
+      if (periodicity[1]) {
+        if (glo < 0) glo = procgrid[1] - 1;
+        if (ghi >= procgrid[1]) ghi = 0;
+      }
+      if (igx != myloc[1] && igx != glo && igx != ghi) flag = 1;
+
+      glo = myloc[2] - 1;
+      ghi = myloc[2] + 1;
+      if (periodicity[2]) {
+        if (glo < 0) glo = procgrid[2] - 1;
+        if (ghi >= procgrid[2]) ghi = 0;
+      }
+      if (igx != myloc[2] && igx != glo && igx != ghi) flag = 1;
+    }
+  }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+  return flagall;
 }
 
 /* ----------------------------------------------------------------------
@@ -613,43 +698,43 @@ void Irregular::destroy_data()
    x will be in box (orthogonal) or lamda coords (triclinic)
    for uniform = 1, directly calculate owning proc
    for non-uniform, iteratively find owning proc via binary search
+   return owning proc ID via grid2proc
+   return igx,igy,igz = logical grid loc of owing proc within 3d grid of procs
 ------------------------------------------------------------------------- */
 
-int Irregular::coord2proc(double *x)
+int Irregular::coord2proc(double *x, int &igx, int &igy, int &igz)
 {
-  int loc[3];
-
   if (uniform) {
     if (triclinic == 0) {
-      loc[0] = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
-      loc[1] = static_cast<int>        (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
-      loc[2] = static_cast<int>        (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
+      igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
+      igy = static_cast<int> (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
+      igz = static_cast<int> (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
     } else {
-      loc[0] = static_cast<int> (procgrid[0] * x[0]);
-      loc[1] = static_cast<int> (procgrid[1] * x[1]);
-      loc[2] = static_cast<int> (procgrid[2] * x[2]);
+      igx = static_cast<int> (procgrid[0] * x[0]);
+      igy = static_cast<int> (procgrid[1] * x[1]);
+      igz = static_cast<int> (procgrid[2] * x[2]);
     }
 
   } else {
     if (triclinic == 0) {
-      loc[0] = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      loc[1] = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      loc[2] = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
     } else {
-      loc[0] = binary(x[0],procgrid[0],xsplit);
-      loc[1] = binary(x[1],procgrid[1],ysplit);
-      loc[2] = binary(x[2],procgrid[2],zsplit);
+      igx = binary(x[0],procgrid[0],xsplit);
+      igy = binary(x[1],procgrid[1],ysplit);
+      igz = binary(x[2],procgrid[2],zsplit);
     }
   }
 
-  if (loc[0] < 0) loc[0] = 0;
-  if (loc[0] >= procgrid[0]) loc[0] = procgrid[0] - 1;
-  if (loc[1] < 0) loc[1] = 0;
-  if (loc[1] >= procgrid[1]) loc[1] = procgrid[1] - 1;
-  if (loc[2] < 0) loc[2] = 0;
-  if (loc[2] >= procgrid[2]) loc[2] = procgrid[2] - 1;
+  if (igx < 0) igx = 0;
+  if (igx >= procgrid[0]) igx = procgrid[0] - 1;
+  if (igy < 0) igy = 0;
+  if (igy >= procgrid[1]) igy = procgrid[1] - 1;
+  if (igz < 0) igz = 0;
+  if (igz >= procgrid[2]) igz = procgrid[2] - 1;
 
-  return grid2proc[loc[0]][loc[1]][loc[2]];
+  return grid2proc[igx][igy][igz];
 }
 
 /* ----------------------------------------------------------------------

@@ -20,7 +20,6 @@ CommandStyle(balance,Balance)
 #ifndef LMP_BALANCE_H
 #define LMP_BALANCE_H
 
-#include "mpi.h"
 #include "stdio.h"
 #include "pointers.h"
 
@@ -34,6 +33,7 @@ class Balance : protected Pointers {
   void dynamic_setup(char *, int, double);
   int dynamic();
   double imbalance_nlocal(int &);
+  void dumpout(bigint, FILE *);
 
  private:
   int me,nprocs;
@@ -42,7 +42,7 @@ class Balance : protected Pointers {
   double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
 
   int dflag;                 // dynamic LB flag
-  int niter;                 // params for dynamic LB
+  int nitermax;              // params for dynamic LB
   double thresh;
   char bstr[4];
 
@@ -53,23 +53,24 @@ class Balance : protected Pointers {
   bigint *sum;               // cummulative count for slices in one dim
   bigint *target;            // target sum for slices in one dim
   double *lo,*hi;            // lo/hi split coords that bound each target
+  bigint *losum,*hisum;      // cummulative counts at lo/hi coords
+  int rho;                   // 0 for geometric recursion
+                             // 1 for density weighted recursion
 
   int *proccount;            // particle count per processor
   int *allproccount;
 
   int outflag;               // for output of balance results to file
   FILE *fp;
-  bigint laststep;
+  int firststep;
 
-  void dynamic_setup(char *);
-  int dynamic_once();
+  void static_setup(char *);
   double imbalance_splits(int &);
   void tally(int, int, double *);
   int adjust(int, double *);
   void old_adjust(int, int, bigint *, double *);
   int binary(double, int, double *);
-
-  void dumpout(bigint);          // for debug output
+  void debug_output(int, int, int, double *);
 };
 
 }

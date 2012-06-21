@@ -1,0 +1,257 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "string.h"
+#include "stdlib.h"
+#include "fix_balance.h"
+#include "balance.h"
+#include "update.h"
+#include "domain.h"
+#include "atom.h"
+#include "comm.h"
+#include "irregular.h"
+#include "force.h"
+#include "kspace.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+using namespace FixConst;
+
+/* ---------------------------------------------------------------------- */
+
+FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
+{
+  if (narg < 7) error->all(FLERR,"Illegal fix balance command");
+
+  box_change = 1;
+  scalar_flag = 1;
+  extscalar = 0;
+  vector_flag = 1;
+  size_vector = 3;
+  extvector = 0;
+  global_freq = 1;
+
+  // parse arguments
+
+  int dimension = domain->dimension;
+
+  nevery = atoi(arg[3]);
+  if (strlen(arg[4]) > 3) error->all(FLERR,"Illegal fix balance command");
+  strcpy(bstr,arg[4]);
+  nitermax = atoi(arg[5]);
+  thresh = atof(arg[6]);
+
+  if (nevery < 0 || nitermax <= 0 || thresh < 1.0) 
+    error->all(FLERR,"Illegal fix balance command");
+
+  for (int i = 0; i < strlen(bstr); i++) {
+    if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z') 
+      error->all(FLERR,"Fix balance string is invalid");
+    if (bstr[i] == 'z' && dimension == 2) 
+      error->all(FLERR,"Fix balance string is invalid for 2d simulation");
+    for (int j = i+1; j < strlen(bstr); j++)
+      if (bstr[i] == bstr[j])
+        error->all(FLERR,"Fix balance string is invalid");
+  }
+
+  // optional args
+
+  int outarg = 0;
+  fp = NULL;
+
+  int iarg = 7;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"out") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix balance command");
+      outarg = iarg+1;
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix balance command");
+  }
+
+  // create instance of Balance class and initialize it with params
+  // create instance of Irregular class
+
+  balance = new Balance(lmp);
+  balance->dynamic_setup(bstr,nitermax,thresh);
+  irregular = new Irregular(lmp);
+
+  // output file
+
+  if (outarg && comm->me == 0) {
+    fp = fopen(arg[outarg],"w");
+    if (fp == NULL) error->one(FLERR,"Cannot open fix balance output file");
+  }
+
+  // only force reneighboring if nevery > 0
+
+  if (nevery) force_reneighbor = 1;
+
+  // compute initial outputs
+
+  imbfinal = imbprev = balance->imbalance_nlocal(maxperproc);
+  itercount = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixBalance::~FixBalance()
+{
+  if (fp) fclose(fp);
+  delete balance;
+  delete irregular;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixBalance::setmask()
+{
+  int mask = 0;
+  mask |= PRE_EXCHANGE;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBalance::init()
+{
+  // don't allow PPPM for now
+
+  if (force->kspace && strstr(force->kspace_style,"pppm"))
+    error->all(FLERR,"Cannot yet use fix balance with PPPM");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBalance::setup_pre_exchange()
+{
+  // insure atoms are in current box & update box via shrink-wrap
+  // no exchange() since doesn't matter if atoms are assigned to correct procs
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // perform a rebalance if threshhold exceeded
+
+  imbnow = balance->imbalance_nlocal(maxperproc);
+  if (imbnow > thresh) rebalance();
+
+  // next_reneighbor = next time to force reneighboring
+
+  if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
+}
+
+/* ----------------------------------------------------------------------
+   perform dynamic load balancing
+------------------------------------------------------------------------- */
+
+void FixBalance::pre_exchange()
+{
+  // return if not a rebalance timestep
+
+  if (nevery && update->ntimestep < next_reneighbor) return;
+
+  // insure atoms are in current box & update box via shrink-wrap
+  // no exchange() since doesn't matter if atoms are assigned to correct procs
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // return if imbalance < threshhold
+
+  imbnow = balance->imbalance_nlocal(maxperproc);
+  if (imbnow <= thresh) {
+    if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
+    return;
+  }
+
+  rebalance();
+
+  // next timestep to rebalance
+
+  if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
+}
+
+/* ----------------------------------------------------------------------
+   perform dynamic load balancing
+------------------------------------------------------------------------- */
+
+void FixBalance::rebalance()
+{
+  imbprev = imbnow;
+  itercount = balance->dynamic();
+
+  // output of final result
+  
+  if (fp) balance->dumpout(update->ntimestep,fp);
+
+  // reset comm->uniform flag
+
+  comm->uniform = 0;
+
+  // reset proc sub-domains
+
+  if (domain->triclinic) domain->set_lamda_box();
+  domain->set_local_box();
+
+  // if splits moved further than neighboring processor
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far,
+  // else allow comm->exchange that follows in caller to do it
+  
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // NOTE: still to be implemented
+  // check that sub-domains are valid with KSpace constraints
+  // if (kspace_flag) force->kspace->check();
+
+  // imbfinal = final imbalance based on final nlocal
+
+  imbfinal = balance->imbalance_nlocal(maxperproc);
+}
+
+/* ----------------------------------------------------------------------
+   return imbalance factor after last rebalance
+------------------------------------------------------------------------- */
+
+double FixBalance::compute_scalar()
+{
+  return imbfinal;
+}
+
+/* ----------------------------------------------------------------------
+   return stats for last rebalance
+------------------------------------------------------------------------- */
+
+double FixBalance::compute_vector(int i)
+{
+  if (i == 0) return (double) maxperproc;
+  if (i == 1) return (double) itercount;
+  return imbprev;
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory
+------------------------------------------------------------------------- */
+
+double FixBalance::memory_usage()
+{
+  double bytes = irregular->memory_usage();
+  return bytes;
+}

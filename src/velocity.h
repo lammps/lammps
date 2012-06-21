@@ -95,7 +95,7 @@ Self-explanatory.
 
 E: Use of velocity with undefined lattice
 
-If scale = lattice (the default) for the velocity set or velocity ramp
+If units = lattice (the default) for the velocity set or velocity ramp
 command, then a lattice must first be defined via the lattice command.
 
 E: Variable name for velocity set does not exist

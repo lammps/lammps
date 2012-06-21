@@ -103,16 +103,18 @@ void PRD::command(int narg, char **arg)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  // comm_replica = communicator between same proc across replicas
-  // not used if replicas have unequal number of procs
-  // equal_size_replicas = 1 if all replicas have same # of procs
+  // comm_replica = communicator between all proc 0s across replicas
 
   int color = me;
   MPI_Comm_split(universe->uworld,color,0,&comm_replica);
 
-  flag = 0;
-  if (nreplica*nprocs == nprocs_universe) flag = 1;
-  MPI_Allreduce(&flag,&equal_size_replicas,1,MPI_INT,MPI_MIN,universe->uworld);
+  // equal_size_replicas = 1 if all replicas have same # of procs
+  // no longer used
+
+  //flag = 0;
+  //if (nreplica*nprocs == nprocs_universe) flag = 1;
+  //MPI_Allreduce(&flag,&equal_size_replicas,1,MPI_INT,MPI_MIN,
+  //              universe->uworld);
 
   // workspace for inter-replica communication via gathers
 

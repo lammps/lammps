@@ -31,8 +31,10 @@ class FixBalance : public Fix {
   ~FixBalance();
   int setmask();
   void init();
+  void setup(int);
   void setup_pre_exchange();
   void pre_exchange();
+  void pre_neighbor();
   double compute_scalar();
   double compute_vector(int);
   double memory_usage();
@@ -49,6 +51,7 @@ class FixBalance : public Fix {
   int maxperproc;               // max atoms on any processor
   int itercount;                // iteration count of last call to Balance
   int kspace_flag;              // 1 if KSpace solver defined
+  int pending;
 
   class Balance *balance;
   class Irregular *irregular;

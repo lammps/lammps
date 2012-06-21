@@ -101,6 +101,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   imbfinal = imbprev = balance->imbalance_nlocal(maxperproc);
   itercount = 0;
+  pending = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,6 +119,7 @@ int FixBalance::setmask()
 {
   int mask = 0;
   mask |= PRE_EXCHANGE;
+  mask |= PRE_NEIGHBOR;
   return mask;
 }
 
@@ -129,6 +131,13 @@ void FixBalance::init()
 
   if (force->kspace && strstr(force->kspace_style,"pppm"))
     error->all(FLERR,"Cannot yet use fix balance with PPPM");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBalance::setup(int vflag)
+{
+  pre_neighbor();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,6 +196,18 @@ void FixBalance::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
+   compute final imbalance factor based on nlocal after comm->exchange()
+   only do this if rebalancing just occured
+------------------------------------------------------------------------- */
+
+void FixBalance::pre_neighbor()
+{
+  if (!pending) return;
+  imbfinal = balance->imbalance_nlocal(maxperproc);
+  pending = 0;
+}
+
+/* ----------------------------------------------------------------------
    perform dynamic load balancing
 ------------------------------------------------------------------------- */
 
@@ -211,7 +232,7 @@ void FixBalance::rebalance()
   // if splits moved further than neighboring processor
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far,
-  // else allow comm->exchange that follows in caller to do it
+  // else allow caller's comm->exchange() to do it
   
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
@@ -221,9 +242,10 @@ void FixBalance::rebalance()
   // check that new sub-domains are valid with KSpace constraints
   // if (kspace_flag) force->kspace->check();
 
-  // imbfinal = final imbalance based on final nlocal
+  // pending triggers pre_neighbor() to compute final imbalance factor
+  // can only be done after atoms migrate in caller's comm->exchange()
 
-  imbfinal = balance->imbalance_nlocal(maxperproc);
+  pending = 1;
 }
 
 /* ----------------------------------------------------------------------

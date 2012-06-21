@@ -137,6 +137,9 @@ void FixBalance::init()
 
 void FixBalance::setup(int vflag)
 {
+  // compute final imbalance factor if setup_pre_exchange() invoked balancer
+  // this is called at end of run setup, before output
+
   pre_neighbor();
 }
 

@@ -113,37 +113,57 @@ is re-computed, and the balancing operation halts if the {thresh}
 criterion is met.
 
 A rebalance operation in a single dimension is performed using a
-recursive multisectioning algorithm, where the position of each
-cutting plane (line in 2d) in the dimension is adjusted independently.
-This is similar to a recursive bisectioning (RCB) for a single value,
-except that the bounds used for each bisectioning take advantage of
-information from neighboring cuts if possible.  At each iteration, the
-count of particles on either side of each plane is tallied.  If the
-counts do not match the target value for the plane, the position of
-the cut is adjusted to be halfway between a low and high bound.  The
-low and high bounds are adjusted on each iteration, using new count
-information, so that they become closer together over time.  Thus as
-the recustion progresses, the count of particles on either side of the
-plane gets closer to the target value.
+density-dependent recursive multisectioning algorithm, where the
+position of each cutting plane (line in 2d) in the dimension is
+adjusted independently.  This is similar to a recursive bisectioning
+(RCB) for a single value, except that the bounds used for each
+bisectioning take advantage of information from neighboring cuts if
+possible, as well as counts of particles at the bounds on either side
+of each cuts, which themselves were cuts in previous iterations.  The
+latter is used to infer a density of pariticles near each of the
+current cuts.  At each iteration, the count of particles on either
+side of each plane is tallied.  If the counts do not match the target
+value for the plane, the position of the cut is adjusted based on the
+local density.  The low and high bounds are adjusted on each
+iteration, using new count information, so that they become closer
+together over time.  Thus as the recustion progresses, the count of
+particles on either side of the plane gets closer to the target value.
+
+The density-dependent part of this algorithm is often an advantage
+when you rebalance a system that is already nearly balanced.  It
+typically converges more quickly than the geometric bisectioning
+algorithm used by the "balance"_balance.html command.  However, if can
+be a disadvants if you attempt to rebalance a system that is far from
+balanced, and converge more slowly.  In this case you probably want to
+use the "balance"_balance.html command before starting a run, so that
+you begin the run with a balanced system.
 
 Once the rebalancing is complete and final processor sub-domains
 assigned, particles migrate to their new owning processor as part of
 the normal reneighboring procedure.
 
-IMPORTANT NOTE: At each rebalance operation, the recursive
-bisectioning operation for each cutting plane (line in 2d) typcially
-starts with low and high bounds separated by the extent of a
-processor's sub-domain in one dimension.  The size of this bracketing
-region shrinks by 1/2 every iteration.  Thus if {Niter} is specified
-as 10, the cutting plane will typically be positioned to 1 part in
-1000 accuracy (relative to the perfect target position).  For {Niter}
-= 20, it will be accurate to 1 part in a million.  Thus there is no
-need to set {Niter} to a large value.  LAMMPS will check if the
-threshold accuracy is reached (in a dimension) is less iterations than
-{Niter} and exit early.  However, {Niter} should also not be set too
-small, since it will take roughly the same number of iterations to
-converge even if the cutting plane is initially close to the target
-value.
+IMPORTANT NOTE: At each rebalance operation, the RCB operation for
+each cutting plane (line in 2d) typcially starts with low and high
+bounds separated by the extent of a processor's sub-domain in one
+dimension.  The size of this bracketing region shrinks based on the
+local density, as described above, which should typically be 1/2 or
+more every iteration.  Thus if {Niter} is specified as 10, the cutting
+plane will typically be positioned to better than 1 part in 1000
+accuracy (relative to the perfect target position).  For {Niter} = 20,
+it will be accurate to better than 1 part in a million.  Thus there is
+no need to set {Niter} to a large value.  This is especially true if
+you are rebalancing often enough that each time you expect only an
+incremental adjustement in the cutting planes is necessary.  LAMMPS
+will check if the threshold accuracy is reached (in a dimension) is
+less iterations than {Niter} and exit early.
+
+IMPORTANT NOTE: If a portion of your system is a perfect lattice,
+e.g. a frozen substrate, then the balancer may be unable to achieve
+exact balance.  I.e. entire lattice planes will be owned or not owned
+by a single processor.  So you you should not expect to achieve
+perfect balance in this case.  Nor will it be helpful to use a large
+value for {Niter}, since it will simply cause the balancer to iterate
+until {Niter} is reached, without improving the imbalance factor.
 
 :line
 

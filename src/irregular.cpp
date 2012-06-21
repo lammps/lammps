@@ -168,8 +168,6 @@ void Irregular::migrate_atoms()
 
 int Irregular::migrate_check()
 {
-  return 1;
-
   // subbox bounds for orthogonal or triclinic box
   // other comm/domain data used by coord2proc()
 
@@ -225,7 +223,7 @@ int Irregular::migrate_check()
         if (glo < 0) glo = procgrid[1] - 1;
         if (ghi >= procgrid[1]) ghi = 0;
       }
-      if (igx != myloc[1] && igx != glo && igx != ghi) flag = 1;
+      if (igy != myloc[1] && igy != glo && igy != ghi) flag = 1;
 
       glo = myloc[2] - 1;
       ghi = myloc[2] + 1;
@@ -233,12 +231,15 @@ int Irregular::migrate_check()
         if (glo < 0) glo = procgrid[2] - 1;
         if (ghi >= procgrid[2]) ghi = 0;
       }
-      if (igx != myloc[2] && igx != glo && igx != ghi) flag = 1;
+      if (igz != myloc[2] && igz != glo && igz != ghi) flag = 1;
     }
   }
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+
+  if (comm->me == 0) printf("MIGRATE CHECK %d\n",flagall);
+
   return flagall;
 }
 

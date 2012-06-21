@@ -218,7 +218,7 @@ void FixBalance::rebalance()
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // NOTE: still to be implemented
-  // check that sub-domains are valid with KSpace constraints
+  // check that new sub-domains are valid with KSpace constraints
   // if (kspace_flag) force->kspace->check();
 
   // imbfinal = final imbalance based on final nlocal

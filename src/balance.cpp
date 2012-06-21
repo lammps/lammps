@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
 
-#define BALANCE_DEBUG 1
+//#define BALANCE_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 

@@ -8,9 +8,6 @@
 
 balance command :h3
 
-NOTE: the fix balance command referred to here for dynamic load
-balancing has not yet been released.
-
 [Syntax:]
 
 balance keyword args ... :pre

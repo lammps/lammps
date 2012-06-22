@@ -82,9 +82,10 @@ balancing.
 
 :line
 
-The {group-ID} determines what particles are considered for balancing.
-Normally it only makes sense to use the {all} group.  But in some
-cases you may wish to balance on a subset of the particles, e.g. when
+The {group-ID} is currently ignored.  In the future it may be used to
+determine what particles are considered for balancing.  Normally it
+would only makes sense to use the {all} group.  But in some cases it
+may be useful to balance on a subset of the particles, e.g. when
 modeling large nanoparticles in a background of small solvent
 particles.
 

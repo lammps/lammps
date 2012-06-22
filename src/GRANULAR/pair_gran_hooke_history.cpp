@@ -29,6 +29,7 @@
 #include "fix.h"
 #include "fix_pour.h"
 #include "fix_shear_history.h"
+#include "fix_rigid.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -84,7 +85,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double meff,damp,ccel,tor1,tor2,tor3;
+  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -97,6 +98,13 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   computeflag = 1;
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
+
+  // update body ptr and values for ghost atoms if using FixRigid masses
+
+  if (fix_rigid && neighbor->ago == 0) {
+    body = fix_rigid->body;
+    comm->forward_comm_pair(this);
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -181,19 +189,27 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
         wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-        // normal forces = Hookian contact + normal velocity damping
+        // meff = effective mass of pair of particles
+        // if I or J part of rigid body, use body mass
+        // if I or J is frozen, meff is other particle
 
         if (rmass) {
-          meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-          if (mask[i] & freeze_group_bit) meff = rmass[j];
-          if (mask[j] & freeze_group_bit) meff = rmass[i];
+          mi = rmass[i];
+          mj = rmass[j];
         } else {
-          itype = type[i];
-          jtype = type[j];
-          meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
-          if (mask[i] & freeze_group_bit) meff = mass[jtype];
-          if (mask[j] & freeze_group_bit) meff = mass[itype];
+          mi = mass[type[i]];
+          mj = mass[type[j]];
         }
+        if (fix_rigid) {
+          if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
+          if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
+        }
+
+        meff = mi*mj / (mi+mj);
+        if (mask[i] & freeze_group_bit) meff = mj;
+        if (mask[j] & freeze_group_bit) meff = mi;
+
+        // normal forces = Hookian contact + normal velocity damping
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
@@ -406,14 +422,14 @@ void PairGranHookeHistory::init_style()
     fix_history->pair = this;
   }
 
-  // check for Fix freeze and set freeze_group_bit
+  // check for FixFreeze and set freeze_group_bit
 
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
   if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
   else freeze_group_bit = 0;
 
-  // check for Fix pour and set pour_type and pour_maxdiam
+  // check for FixPour and set pour_type and pour_maxdiam
 
   int pour_type = 0;
   double pour_maxrad = 0.0;
@@ -423,6 +439,13 @@ void PairGranHookeHistory::init_style()
     pour_type = ((FixPour *) modify->fix[i])->ntype;
     pour_maxrad = ((FixPour *) modify->fix[i])->radius_hi;
   }
+
+  // check for FixRigid
+
+  fix_rigid = NULL;
+  for (i = 0; i < modify->nfix; i++)
+    if (strstr(modify->fix[i]->style,"rigid")) break;
+  if (i < modify->nfix) fix_rigid = (FixRigid *) modify->fix[i];
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future Fix pour particles as dynamic
@@ -561,10 +584,10 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   double radi,radj,radsum;
   double r,rinv,rsqinv,delx,dely,delz;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
-  double meff,damp,ccel,polyhertz;
+  double mi,mj,meff,damp,ccel,polyhertz;
   double vtr1,vtr2,vtr3,vrel,shrmag,rsht;
   double fs1,fs2,fs3,fs,fn;
-
+  
   double *radius = atom->radius;
   radi = radius[i];
   radj = radius[j];
@@ -612,21 +635,35 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
   wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-  // normal force = Hertzian contact + normal velocity damping
+  // meff = effective mass of pair of particles
+  // if I or J part of rigid body, use body mass
+  // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
   double *mass = atom->mass;
+  int *type = atom->type;
   int *mask = atom->mask;
 
   if (rmass) {
-    meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-    if (mask[i] & freeze_group_bit) meff = rmass[j];
-    if (mask[j] & freeze_group_bit) meff = rmass[i];
+    mi = rmass[i];
+    mj = rmass[j];
   } else {
-    meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
-    if (mask[i] & freeze_group_bit) meff = mass[jtype];
-    if (mask[j] & freeze_group_bit) meff = mass[itype];
+    mi = mass[type[i]];
+    mj = mass[type[j]];
   }
+  if (fix_rigid) {
+    // NOTE: need to make sure ghost atoms have updated body?
+    // depends on where single() is called from
+    body = fix_rigid->body;
+    if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
+    if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
+  }
+  
+  meff = mi*mj / (mi+mj);
+  if (mask[i] & freeze_group_bit) meff = mj;
+  if (mask[j] & freeze_group_bit) meff = mi;
+
+  // normal forces = Hookian contact + normal velocity damping
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radsum-r)*rinv - damp;
@@ -693,6 +730,33 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   svector[2] = fs3;
   svector[3] = fs;
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairGranHookeHistory::pack_comm(int n, int *list, 
+                                    double *buf, int pbc_flag, int *pbc)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = body[j];
+  }
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairGranHookeHistory::unpack_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    body[i] = static_cast<int> (buf[m++]);
 }
 
 /* ---------------------------------------------------------------------- */

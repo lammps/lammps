@@ -278,6 +278,26 @@ IDs from 1 to Ng can be used where Ng is the number of specified
 groups.  For the {molecule} bodystyle, use the molecule ID for the
 atoms in a specific rigid body as the rigid body ID.
 
+The masstotal and center-of-mass coordinates (xcm,ycm,zcm) are
+self-explanatory.  The center-of-mass should be consistent with what
+is calculated for the position of the rigid body with all its atoms
+unwrapped by their respective image flags.  If this produces a
+center-of-mass that is outside the simulation box, LAMMPS wraps it
+back into the box.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
+should be the values consistent with the current orientation of the
+rigid body around its center of mass.  The values are with respect to
+the XYZ coordinate axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calcultion internally.
+
+IMPORTANT NOTE: The last point means that you cannot restart a
+simulation with rigid bodies using the
+"read_restart"_read_restart.html command and use the same {infile} of
+rigid body attributes as input for the 2nd simulation, if the rigid
+bodies have moved or rotated.  Instead, you need to produce a new
+{infile} that reflects the correct attributes for each rigid body at
+the time of restart.  We are thinking about a good way to overcome
+this issue.
+
 :line
 
 If you use a "temperature compute"_compute.html with a group that

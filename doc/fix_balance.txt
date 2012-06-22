@@ -10,7 +10,7 @@ fix balance command :h3
 
 [Syntax:]
 
-fix ID group-ID balance dimstr Nfreq Niter thresh keyword value ... :pre
+fix ID group-ID balance Nfreq dimstr Niter thresh keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 balance = style name of this fix command :l

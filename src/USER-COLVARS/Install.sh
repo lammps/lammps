@@ -18,7 +18,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*colvars.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/colvars\/Makefile.lammps\
+include ..\/..\/lib\/colvars\/Makefile.lammps
 ' ../Makefile.package.settings
 
   fi

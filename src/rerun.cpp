@@ -118,9 +118,9 @@ void Rerun::command(int narg, char **arg)
 
   rd->store_files(nfile,arg);
   if (nremain) 
-    nremain = rd->fields_and_keywords(narg-nremain,&arg[narg-nremain]);
+    nremain = rd->fields_and_keywords(nremain,&arg[narg-nremain]);
   else nremain = rd->fields_and_keywords(0,NULL);
-  if (nremain) rd->setup_reader(narg-nremain,&arg[narg-nremain]);
+  if (nremain) rd->setup_reader(nremain,&arg[narg-nremain]);
   else rd->setup_reader(0,NULL);
 
   // perform the psuedo run

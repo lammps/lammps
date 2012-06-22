@@ -6685,12 +6685,12 @@ A lattice must be defined before using this fix. :dd
 
 {Use of region with undefined lattice} :dt
 
-If scale = lattice (the default) for the region command, then a
+If units = lattice (the default) for the region command, then a
 lattice must first be defined via the lattice command. :dd
 
 {Use of velocity with undefined lattice} :dt
 
-If scale = lattice (the default) for the velocity set or velocity ramp
+If units = lattice (the default) for the velocity set or velocity ramp
 command, then a lattice must first be defined via the lattice command. :dd
 
 {Using fix nvt/sllod with inconsistent fix deform remap option} :dt

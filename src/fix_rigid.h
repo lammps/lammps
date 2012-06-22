@@ -59,8 +59,15 @@ class FixRigid : public Fix {
   int triclinic;
   double MINUSPI,TWOPI;
 
+  int rstyle;               // SINGLE,MOLECULE,GROUP
+  int firstflag;            // 1 for first-time setup of rigid bodies
+  char *infile;             // file to read rigid body attributes from
+
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
+  int *mol2body;            // convert mol-ID to rigid body index
+  int maxmol;               // size of mol2body = max mol-ID
+
   double *masstotal;        // total mass of each rigid body
   double **xcm;             // coords of center-of-mass of each rigid body
   double **vcm;             // velocity of center-of-mass of each
@@ -115,6 +122,8 @@ class FixRigid : public Fix {
   void no_squish_rotate(int, double *, double *, double *, double);
   void set_xv();
   void set_v();
+  void setup_bodies();
+  void readfile(int, double *, double **, int *);
 };
 
 }

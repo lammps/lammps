@@ -92,9 +92,9 @@ void ReadDump::command(int narg, char **arg)
   bigint nstep = ATOBIGINT(arg[1]);
 
   int nremain = narg - 2;
-  if (nremain) nremain = fields_and_keywords(narg-nremain,&arg[narg-nremain]);
+  if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);
   else nremain = fields_and_keywords(0,NULL);
-  if (nremain) setup_reader(narg-nremain,&arg[narg-nremain]);
+  if (nremain) setup_reader(nremain,&arg[narg-nremain]);
   else setup_reader(0,NULL);
 
   // find the snapshot and read/bcast/process header info

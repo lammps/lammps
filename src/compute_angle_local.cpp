@@ -129,8 +129,10 @@ int ComputeAngleLocal::compute_angles(int flag)
       if (tflag >= 0) tbuf = vector;
       if (eflag >= 0) ebuf = vector;
     } else {
-      if (tflag >= 0) tbuf = &array[0][tflag];
-      if (eflag >= 0) ebuf = &array[0][eflag];
+      if (tflag >= 0 && array) tbuf = &array[0][tflag];
+      else tbuf = NULL;
+      if (eflag >= 0 && array) ebuf = &array[0][eflag];
+      else ebuf = NULL;
     }
   }
 

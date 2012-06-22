@@ -13,8 +13,8 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/^include.*KIM.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
-    sed -i '4 i \
-include ..\/KIM\/Makefile.lammps\
+    sed -i -e '4 i \
+include ..\/KIM\/Makefile.lammps
 ' ../Makefile.package.settings
   fi
 

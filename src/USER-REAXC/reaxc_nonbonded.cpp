@@ -262,7 +262,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
                                    reax_list **lists,
                                    output_controls *out_control )
 {
-  int i, j, pj, r, natoms, steps, update_freq, update_energies;
+  int i, j, pj, r, natoms;
   int type_i, type_j, tmin, tmax;
   int start_i, end_i, orig_i, orig_j, flag;
   real r_ij, base, dif;
@@ -277,9 +277,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
   natoms = system->n;
   far_nbrs = (*lists) + FAR_NBRS;
-  steps = data->step - data->prev_steps;
-  update_freq = out_control->energy_update_freq;
-  update_energies = update_freq > 0 && steps % update_freq == 0;
+
   e_ele = e_vdW = 0;
 
   for( i = 0; i < natoms; ++i ) {
@@ -328,17 +326,15 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       dif = r_ij - base;
       //fprintf(stderr, "r: %f, i: %d, base: %f, dif: %f\n", r, i, base, dif);
 
-      if( update_energies ) {
-        e_vdW = ((t->vdW[r].d*dif + t->vdW[r].c)*dif + t->vdW[r].b)*dif +
-          t->vdW[r].a;
+      e_vdW = ((t->vdW[r].d*dif + t->vdW[r].c)*dif + t->vdW[r].b)*dif +
+	t->vdW[r].a;
 
-        e_ele = ((t->ele[r].d*dif + t->ele[r].c)*dif + t->ele[r].b)*dif +
-          t->ele[r].a;
-        e_ele *= system->my_atoms[i].q * system->my_atoms[j].q;
-
-        data->my_en.e_vdW += e_vdW;
-        data->my_en.e_ele += e_ele;
-      }
+      e_ele = ((t->ele[r].d*dif + t->ele[r].c)*dif + t->ele[r].b)*dif +
+	t->ele[r].a;
+      e_ele *= system->my_atoms[i].q * system->my_atoms[j].q;
+      
+      data->my_en.e_vdW += e_vdW;
+      data->my_en.e_ele += e_ele;
 
       CEvd = ((t->CEvd[r].d*dif + t->CEvd[r].c)*dif + t->CEvd[r].b)*dif +
         t->CEvd[r].a;

@@ -871,9 +871,10 @@ double Variable::evaluate(char *str, Tree **tree)
             compute->invoked_flag |= INVOKED_PERATOM;
           }
 
-          peratom2global(1,NULL,&compute->array_atom[0][index2-1],
-                         compute->size_peratom_cols,index1,
-                         tree,treestack,ntreestack,argstack,nargstack);
+          if (compute->array_atom)
+            peratom2global(1,NULL,&compute->array_atom[0][index2-1],
+                           compute->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
 
         // c_ID = vector from per-atom vector
 
@@ -921,7 +922,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
           Tree *newtree = new Tree();
           newtree->type = ATOMARRAY;
-          newtree->array = &compute->array_atom[0][index1-1];
+          if (compute->array_atom)
+            newtree->array = &compute->array_atom[0][index1-1];
+          else 
+            newtree->array = NULL;
           newtree->nstride = compute->size_peratom_cols;
           newtree->left = newtree->middle = newtree->right = NULL;
           treestack[ntreestack++] = newtree;
@@ -1048,9 +1052,10 @@ double Variable::evaluate(char *str, Tree **tree)
               update->ntimestep % fix->peratom_freq)
             error->all(FLERR,"Fix in variable not computed at compatible time");
 
-          peratom2global(1,NULL,&fix->array_atom[0][index2-1],
-                         fix->size_peratom_cols,index1,
-                         tree,treestack,ntreestack,argstack,nargstack);
+          if (fix->array_atom)
+            peratom2global(1,NULL,&fix->array_atom[0][index2-1],
+                           fix->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
 
         // f_ID = vector from per-atom vector
 
@@ -1086,7 +1091,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
           Tree *newtree = new Tree();
           newtree->type = ATOMARRAY;
-          newtree->array = &fix->array_atom[0][index1-1];
+          if (fix->array_atom)
+            newtree->array = &fix->array_atom[0][index1-1];
+          else 
+            newtree->array = NULL;
           newtree->nstride = fix->size_peratom_cols;
           newtree->left = newtree->middle = newtree->right = NULL;
           treestack[ntreestack++] = newtree;
@@ -2883,7 +2891,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
                      "is accessed out-of-range");
         if (update->whichflag == 0) {
           if (compute->invoked_array != update->ntimestep)
-            error->all(FLERR,"Compute used in variable between runs is not current");
+            error->all(FLERR,
+                       "Compute used in variable between runs is not current");
         } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
           compute->compute_array();
           compute->invoked_flag |= INVOKED_ARRAY;
@@ -2910,7 +2919,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nstride = 1;
       } else if (index && fix->array_flag) {
         if (index > fix->size_array_cols)
-          error->all(FLERR,"Variable formula fix array is accessed out-of-range");
+          error->all(FLERR,
+                     "Variable formula fix array is accessed out-of-range");
         if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
           error->all(FLERR,"Fix in variable not computed at compatible time");
         nvec = fix->size_array_rows;
@@ -2925,8 +2935,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     if (compute) {
       double *vec;
-      if (index) vec = &compute->array[0][index-1];
-      else vec = compute->vector;
+      if (index) {
+        if (compute->array) vec = &compute->array[0][index-1];
+        else vec = NULL;
+      } else vec = compute->vector;
 
       int j = 0;
       for (int i = 0; i < nvec; i++) {

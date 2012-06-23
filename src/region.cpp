@@ -379,4 +379,7 @@ void Region::options(int narg, char **arg)
 
   if (moveflag || rotateflag) dynamic = 1;
   else dynamic = 0;
+
+  // initialize variables
+  init();
 }

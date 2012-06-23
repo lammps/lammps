@@ -155,7 +155,6 @@ void Neighbor::half_nsq_no_newton_ghost_omp(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
 
   // each thread works on its own page
   int npage = tid;

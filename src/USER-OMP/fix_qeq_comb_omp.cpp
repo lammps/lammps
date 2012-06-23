@@ -19,11 +19,17 @@
 #include "mpi.h"
 #include "math.h"
 #include "fix_qeq_comb_omp.h"
+#include "fix_omp.h"
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "error.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "respa.h"
 #include "update.h"
 #include "pair_comb_omp.h"
@@ -58,13 +64,28 @@ void FixQEQCombOMP::init()
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
+
+  // determine status of neighbor flag of the omp package command
+  int ifix = modify->find_fix("package_omp");
+  int use_omp = 0;
+  if (ifix >=0) {
+     FixOMP * fix = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
+     if (fix->get_neighbor()) use_omp = 1;
+  }
+
+  int irequest = neighbor->request(this);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->omp = use_omp;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEQCombOMP::post_force(int vflag)
 {
-  int i,iloop,loopmax;
+  int i,ii,iloop,loopmax,inum,*ilist;
   double heatpq,qmass,dtq,dtq2;
   double enegchkall,enegmaxall;
 
@@ -88,9 +109,9 @@ void FixQEQCombOMP::post_force(int vflag)
 
   // more loops for first-time charge equilibrium
 
-  iloop = 0;
-  if (firstflag) loopmax = 5000;
-  else loopmax = 2000;
+  iloop = 0; 
+  if (firstflag) loopmax = 500;
+  else loopmax = 200;
 
   // charge-equilibration loop
 
@@ -99,8 +120,8 @@ void FixQEQCombOMP::post_force(int vflag)
             update->ntimestep);
 
   heatpq = 0.05;
-  qmass  = 0.000548580;
-  dtq    = 0.0006;
+  qmass  = 0.016;
+  dtq    = 0.01;
   dtq2   = 0.5*dtq*dtq/qmass;
 
   double enegchk = 0.0;
@@ -109,29 +130,38 @@ void FixQEQCombOMP::post_force(int vflag)
 
   double *q = atom->q;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  inum = comb->list->inum;
+  ilist = comb->list->ilist;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
     q1[i] = q2[i] = qf[i] = 0.0;
+  }
 
   for (iloop = 0; iloop < loopmax; iloop ++ ) {
-    for (i = 0; i < nlocal; i++)
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
       if (mask[i] & groupbit) {
         q1[i] += qf[i]*dtq2 - heatpq*q1[i];
-        q[i]  += q1[i];
+        q[i]  += q1[i]; 
       }
+    }
+    comm->forward_comm_fix(this);
 
-    enegtot = comb->yasu_char(qf,igroup);
+    if(comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
-
-    for (i = 0; i < nlocal ; i++)
+    
+    for (ii = 0; ii < inum ; ii++) {
+      i = ilist[ii];
       if (mask[i] & groupbit) {
         q2[i] = enegtot-qf[i];
         enegmax = MAX(enegmax,fabs(q2[i]));
         enegchk += fabs(q2[i]);
         qf[i] = q2[i];
       }
+    }
 
     MPI_Allreduce(&enegchk,&enegchkall,1,MPI_DOUBLE,MPI_SUM,world);
     enegchk = enegchkall/ngroup;
@@ -143,13 +173,15 @@ void FixQEQCombOMP::post_force(int vflag)
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "
               "enegmax %.6g, fq deviation: %.6g\n",
-              iloop,enegtot,enegmax,enegchk);
-
-    for (i = 0; i < nlocal; i++)
+              iloop,enegtot,enegmax,enegchk); 
+    
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
       if (mask[i] & groupbit)
-        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
-  }
-
+        q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 
+    }
+  } 
+  
   if (me == 0 && fp) {
     if (iloop == loopmax)
       fprintf(fp,"Charges did not converge in %d iterations\n",iloop);

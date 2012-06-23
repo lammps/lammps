@@ -42,6 +42,8 @@ class PairGranHookeHistory : public Pair {
   void read_restart_settings(FILE *);
   void reset_dt();
   double single(int, int, int, int, double, double, double, double &);
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
   void *extract(const char *, int &);
 
  protected:
@@ -57,6 +59,8 @@ class PairGranHookeHistory : public Pair {
   double *maxrad_dynamic,*maxrad_frozen;
 
   class FixShearHistory *fix_history;
+  class FixRigid *fix_rigid;
+  int *body;
 
   void allocate();
 };

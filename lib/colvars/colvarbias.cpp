@@ -86,7 +86,8 @@ void colvarbias::communicate_forces()
 colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
                                           char const *key)
   : colvarbias (conf, key), 
-    target_nsteps (0)
+    target_nsteps (0),
+    target_nstages (0)
 {
   get_keyval (conf, "forceConstant", force_k, 1.0);
   for (size_t i = 0; i < colvars.size(); i++) {
@@ -120,7 +121,6 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
 
   if (get_keyval (conf, "targetCenters", target_centers, colvar_centers)) {
     b_chg_centers = true;
-    target_nstages = 0;
     for (size_t i = 0; i < target_centers.size(); i++) {
       target_centers[i].apply_constraints();
     }
@@ -142,8 +142,6 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
     if (lambda_schedule.size()) {
       // There is one more lambda-point than stages
       target_nstages = lambda_schedule.size() - 1;
-    } else {
-      target_nstages = 0;
     }
   } else {
     b_chg_force_k = false;

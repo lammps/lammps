@@ -38,6 +38,12 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
+enum{SINGLE,MOLECULE,GROUP};
+
+#define MAXLINE 256
+#define CHUNK 1024
+#define ATTRIBUTE_PERBODY 11
+
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
 
@@ -80,11 +86,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix rigid command");
   int iarg;
 
+  mol2body = NULL;
+
   // single rigid body
   // nbody = 1
   // all atoms in fix group are part of body
 
   if (strcmp(arg[3],"single") == 0) {
+    rstyle = SINGLE;
     iarg = 4;
     nbody = 1;
 
@@ -103,6 +112,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // use nall as incremented ptr to set body[] values for each atom
 
   } else if (strcmp(arg[3],"molecule") == 0) {
+    rstyle = MOLECULE;
     iarg = 4;
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
@@ -111,35 +121,35 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     int *molecule = atom->molecule;
     int nlocal = atom->nlocal;
 
-    int maxmol = -1;
+    maxmol = -1;
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) maxmol = MAX(maxmol,molecule[i]);
 
     int itmp;
     MPI_Allreduce(&maxmol,&itmp,1,MPI_INT,MPI_MAX,world);
-    maxmol = itmp + 1;
+    maxmol = itmp;
 
-    int *ncount = new int[maxmol];
-    for (i = 0; i < maxmol; i++) ncount[i] = 0;
+    int *ncount;
+    memory->create(ncount,maxmol+1,"rigid:ncount");
+    for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) ncount[molecule[i]]++;
 
-    int *nall = new int[maxmol];
-    MPI_Allreduce(ncount,nall,maxmol,MPI_INT,MPI_SUM,world);
+    memory->create(mol2body,maxmol+1,"rigid:ncount");
+    MPI_Allreduce(ncount,mol2body,maxmol+1,MPI_INT,MPI_SUM,world);
 
     nbody = 0;
-    for (i = 0; i < maxmol; i++)
-      if (nall[i]) nall[i] = nbody++;
-      else nall[i] = -1;
+    for (i = 0; i <= maxmol; i++)
+      if (mol2body[i]) mol2body[i] = nbody++;
+      else mol2body[i] = -1;
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
-      if (mask[i] & groupbit) body[i] = nall[molecule[i]];
+      if (mask[i] & groupbit) body[i] = mol2body[molecule[i]];
     }
 
-    delete [] ncount;
-    delete [] nall;
+    memory->destroy(ncount);
 
   // each listed group is a rigid body
   // check if all listed groups exist
@@ -148,6 +158,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   } else if (strcmp(arg[3],"group") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
+    rstyle = GROUP;
     nbody = atoi(arg[4]);
     if (nbody <= 0) error->all(FLERR,"Illegal fix rigid command");
     if (narg < 5+nbody) error->all(FLERR,"Illegal fix rigid command");
@@ -236,6 +247,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   t_iter = 1;
   t_order = 3;
   p_chain = 10;
+  infile = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"force") == 0) {
@@ -350,6 +362,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_chain = atoi(arg[iarg+1]);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"infile") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+      delete [] infile;
+      int n = strlen(arg[iarg+1]) + 1;
+      infile = new char[n];
+      strcpy(infile,arg[iarg+1]);
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal fix rigid command");
   }
   t_target = t_start;
@@ -385,13 +405,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++)
     if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
 
-  // set image flags for each rigid body to default values
-  // will be reset during init() based on xcm and then by pre_neighbor()
-  // set here, so image value will persist from run to run
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = (512 << 20) | (512 << 10) | 512;
-
   // bitmasks for properties of extended particles
 
   POINT = 1;
@@ -422,6 +435,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (screen) fprintf(screen,"%d rigid bodies with %d atoms\n",nbody,nsum);
     if (logfile) fprintf(logfile,"%d rigid bodies with %d atoms\n",nbody,nsum);
   }
+
+  // firstflag = 1 triggers one-time initialization of rigid body attributes
+
+  firstflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -433,6 +450,8 @@ FixRigid::~FixRigid()
   atom->delete_callback(id,0);
 
   delete random;
+  delete [] infile;
+  memory->destroy(mol2body);
 
   // delete locally stored arrays
 
@@ -485,7 +504,7 @@ int FixRigid::setmask()
 
 void FixRigid::init()
 {
-  int i,itype,ibody;
+  int i,ibody;
 
   triclinic = domain->triclinic;
 
@@ -517,468 +536,11 @@ void FixRigid::init()
   if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
-  // extended = 1 if any particle in a rigid body is finite size
-  //              or has a dipole moment
-
-  extended = orientflag = dorientflag = 0;
-
-  AtomVecEllipsoid::Bonus *ebonus;
-  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-  AtomVecLine::Bonus *lbonus;
-  if (avec_line) lbonus = avec_line->bonus;
-  AtomVecTri::Bonus *tbonus;
-  if (avec_tri) tbonus = avec_tri->bonus;
-  double **mu = atom->mu;
-  double *radius = atom->radius;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *ellipsoid = atom->ellipsoid;
-  int *line = atom->line;
-  int *tri = atom->tri;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  if (atom->radius_flag || atom->ellipsoid_flag || atom->line_flag ||
-      atom->tri_flag || atom->mu_flag) {
-    int flag = 0;
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      if (radius && radius[i] > 0.0) flag = 1;
-      if (ellipsoid && ellipsoid[i] >= 0) flag = 1;
-      if (line && line[i] >= 0) flag = 1;
-      if (tri && tri[i] >= 0) flag = 1;
-      if (mu && mu[i][3] > 0.0) flag = 1;
-    }
-
-    MPI_Allreduce(&flag,&extended,1,MPI_INT,MPI_MAX,world);
-  }
-
-  // grow extended arrays and set extended flags for each particle
-  // orientflag = 4 if any particle stores ellipsoid or tri orientation
-  // orientflag = 1 if any particle stores line orientation
-  // dorientflag = 1 if any particle stores dipole orientation
-
-  if (extended) {
-    if (atom->ellipsoid_flag) orientflag = 4;
-    if (atom->line_flag) orientflag = 1;
-    if (atom->tri_flag) orientflag = 4;
-    if (atom->mu_flag) dorientflag = 1;
-    grow_arrays(atom->nmax);
-
-    for (i = 0; i < nlocal; i++) {
-      eflags[i] = 0;
-      if (body[i] < 0) continue;
-
-      // set to POINT or SPHERE or ELLIPSOID or LINE
-
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
-        eflags[i] |= ELLIPSOID;
-        eflags[i] |= ANGMOM;
-        eflags[i] |= TORQUE;
-      } else if (line && line[i] >= 0) {
-        eflags[i] |= LINE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (tri && tri[i] >= 0) {
-        eflags[i] |= TRIANGLE;
-        eflags[i] |= ANGMOM;
-        eflags[i] |= TORQUE;
-      } else eflags[i] |= POINT;
-
-      // set DIPOLE if atom->mu and mu[3] > 0.0
-
-      if (atom->mu_flag && mu[i][3] > 0.0)
-        eflags[i] |= DIPOLE;
-    }
-  }
-
-  // compute masstotal & center-of-mass of each rigid body
-  // error if image flag is not 0 in a non-periodic dim
-
-  double **x = atom->x;
-  int *image = atom->image;
-
-  int *periodicity = domain->periodicity;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  double xy = domain->xy;
-  double xz = domain->xz;
-  double yz = domain->yz;
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-  int xbox,ybox,zbox;
-  double massone,xunwrap,yunwrap,zunwrap;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
-        (zbox && !periodicity[2]))
-      error->one(FLERR,"Fix rigid atom has non-zero image flag "
-                 "in a non-periodic dimension");
-
-    if (triclinic == 0) {
-      xunwrap = x[i][0] + xbox*xprd;
-      yunwrap = x[i][1] + ybox*yprd;
-      zunwrap = x[i][2] + zbox*zprd;
-    } else {
-      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
-      zunwrap = x[i][2] + zbox*zprd;
-    }
-
-    sum[ibody][0] += xunwrap * massone;
-    sum[ibody][1] += yunwrap * massone;
-    sum[ibody][2] += zunwrap * massone;
-    sum[ibody][3] += massone;
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    masstotal[ibody] = all[ibody][3];
-    xcm[ibody][0] = all[ibody][0]/masstotal[ibody];
-    xcm[ibody][1] = all[ibody][1]/masstotal[ibody];
-    xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
-  }
-
-  // remap the xcm of each body back into simulation box if needed
-  // only really necessary the 1st time a run is performed
-
-  pre_neighbor();
-
-  // compute 6 moments of inertia of each body
-  // dx,dy,dz = coords relative to center-of-mass
-  // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
-
-  double dx,dy,dz,rad;
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
-
-    if (triclinic == 0) {
-      xunwrap = x[i][0] + xbox*xprd;
-      yunwrap = x[i][1] + ybox*yprd;
-      zunwrap = x[i][2] + zbox*zprd;
-    } else {
-      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
-      zunwrap = x[i][2] + zbox*zprd;
-    }
-
-    dx = xunwrap - xcm[ibody][0];
-    dy = yunwrap - xcm[ibody][1];
-    dz = zunwrap - xcm[ibody][2];
-
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    sum[ibody][0] += massone * (dy*dy + dz*dz);
-    sum[ibody][1] += massone * (dx*dx + dz*dz);
-    sum[ibody][2] += massone * (dx*dx + dy*dy);
-    sum[ibody][3] -= massone * dy*dz;
-    sum[ibody][4] -= massone * dx*dz;
-    sum[ibody][5] -= massone * dx*dy;
-  }
-
-  // extended particles may contribute extra terms to moments of inertia
-
-  if (extended) {
-    double ivec[6];
-    double *shape,*quatatom,*inertiaatom;
-    double length,theta;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-
-      if (eflags[i] & SPHERE) {
-        sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];
-        sum[ibody][1] += SINERTIA*massone * radius[i]*radius[i];
-        sum[ibody][2] += SINERTIA*massone * radius[i]*radius[i];
-      } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
-        quatatom = ebonus[ellipsoid[i]].quat;
-        MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      } else if (eflags[i] & LINE) {
-        length = lbonus[line[i]].length;
-        theta = lbonus[line[i]].theta;
-        MathExtra::inertia_line(length,theta,massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      } else if (eflags[i] & TRIANGLE) {
-        inertiaatom = tbonus[tri[i]].inertia;
-        quatatom = tbonus[tri[i]].quat;
-        MathExtra::inertia_triangle(inertiaatom,quatatom,massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  // diagonalize inertia tensor for each body via Jacobi rotations
-  // inertia = 3 eigenvalues = principal moments of inertia
-  // evectors and exzy_space = 3 evectors = principal axes of rigid body
-
-  int ierror;
-  double cross[3];
-  double tensor[3][3],evectors[3][3];
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    tensor[0][0] = all[ibody][0];
-    tensor[1][1] = all[ibody][1];
-    tensor[2][2] = all[ibody][2];
-    tensor[1][2] = tensor[2][1] = all[ibody][3];
-    tensor[0][2] = tensor[2][0] = all[ibody][4];
-    tensor[0][1] = tensor[1][0] = all[ibody][5];
-
-    ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
-    if (ierror) error->all(FLERR,
-                           "Insufficient Jacobi rotations for rigid body");
-
-    ex_space[ibody][0] = evectors[0][0];
-    ex_space[ibody][1] = evectors[1][0];
-    ex_space[ibody][2] = evectors[2][0];
-    ey_space[ibody][0] = evectors[0][1];
-    ey_space[ibody][1] = evectors[1][1];
-    ey_space[ibody][2] = evectors[2][1];
-    ez_space[ibody][0] = evectors[0][2];
-    ez_space[ibody][1] = evectors[1][2];
-    ez_space[ibody][2] = evectors[2][2];
-
-    // if any principal moment < scaled EPSILON, set to 0.0
-
-    double max;
-    max = MAX(inertia[ibody][0],inertia[ibody][1]);
-    max = MAX(max,inertia[ibody][2]);
-
-    if (inertia[ibody][0] < EPSILON*max) inertia[ibody][0] = 0.0;
-    if (inertia[ibody][1] < EPSILON*max) inertia[ibody][1] = 0.0;
-    if (inertia[ibody][2] < EPSILON*max) inertia[ibody][2] = 0.0;
-
-    // enforce 3 evectors as a right-handed coordinate system
-    // flip 3rd vector if needed
-
-    MathExtra::cross3(ex_space[ibody],ey_space[ibody],cross);
-    if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
-      MathExtra::negate3(ez_space[ibody]);
-
-    // create initial quaternion
-
-    MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-                         quat[ibody]);
-  }
-
-  // displace = initial atom coords in basis of principal axes
-  // set displace = 0.0 for atoms not in any rigid body
-  // for extended particles, set their orientation wrt to rigid body
-
-  double qc[4],delta[3];
-  double *quatatom;
-  double theta_body;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) {
-      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
-      continue;
-    }
-
-    ibody = body[i];
-
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
-
-    if (triclinic == 0) {
-      xunwrap = x[i][0] + xbox*xprd;
-      yunwrap = x[i][1] + ybox*yprd;
-      zunwrap = x[i][2] + zbox*zprd;
-    } else {
-      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
-      zunwrap = x[i][2] + zbox*zprd;
-    }
-
-    delta[0] = xunwrap - xcm[ibody][0];
-    delta[1] = yunwrap - xcm[ibody][1];
-    delta[2] = zunwrap - xcm[ibody][2];
-    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
-                                ez_space[ibody],delta,displace[i]);
-
-    if (extended) {
-      if (eflags[i] & ELLIPSOID) {
-        quatatom = ebonus[ellipsoid[i]].quat;
-        MathExtra::qconjugate(quat[ibody],qc);
-        MathExtra::quatquat(qc,quatatom,orient[i]);
-        MathExtra::qnormalize(orient[i]);
-      } else if (eflags[i] & LINE) {
-        if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
-        else theta_body = -2.0*acos(quat[ibody][0]);
-        orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
-        if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
-      } else if (eflags[i] & TRIANGLE) {
-        quatatom = tbonus[tri[i]].quat;
-        MathExtra::qconjugate(quat[ibody],qc);
-        MathExtra::quatquat(qc,quatatom,orient[i]);
-        MathExtra::qnormalize(orient[i]);
-      } else if (orientflag == 4) {
-        orient[i][0] = orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
-      } else if (orientflag == 1)
-        orient[i][0] = 0.0;
-
-      if (eflags[i] & DIPOLE) {
-        MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
-                                    ez_space[ibody],mu[i],dorient[i]);
-        MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
-      } else if (dorientflag)
-        dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
-    }
-  }
-
-  // test for valid principal moments & axes
-  // recompute moments of inertia around new axes
-  // 3 diagonal moments should equal principal moments
-  // 3 off-diagonal moments should be 0.0
-  // extended particles may contribute extra terms to moments of inertia
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    sum[ibody][0] += massone *
-      (displace[i][1]*displace[i][1] + displace[i][2]*displace[i][2]);
-    sum[ibody][1] += massone *
-      (displace[i][0]*displace[i][0] + displace[i][2]*displace[i][2]);
-    sum[ibody][2] += massone *
-      (displace[i][0]*displace[i][0] + displace[i][1]*displace[i][1]);
-    sum[ibody][3] -= massone * displace[i][1]*displace[i][2];
-    sum[ibody][4] -= massone * displace[i][0]*displace[i][2];
-    sum[ibody][5] -= massone * displace[i][0]*displace[i][1];
-  }
-
-  if (extended) {
-    double ivec[6];
-    double *shape,*inertiaatom;
-    double length;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-
-      if (eflags[i] & SPHERE) {
-        sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];
-        sum[ibody][1] += SINERTIA*massone * radius[i]*radius[i];
-        sum[ibody][2] += SINERTIA*massone * radius[i]*radius[i];
-      } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
-        MathExtra::inertia_ellipsoid(shape,orient[i],massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      } else if (eflags[i] & LINE) {
-        length = lbonus[line[i]].length;
-        MathExtra::inertia_line(length,orient[i][0],massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      } else if (eflags[i] & TRIANGLE) {
-        inertiaatom = tbonus[tri[i]].inertia;
-        MathExtra::inertia_triangle(inertiaatom,orient[i],massone,ivec);
-        sum[ibody][0] += ivec[0];
-        sum[ibody][1] += ivec[1];
-        sum[ibody][2] += ivec[2];
-        sum[ibody][3] += ivec[3];
-        sum[ibody][4] += ivec[4];
-        sum[ibody][5] += ivec[5];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  double norm;
-  for (ibody = 0; ibody < nbody; ibody++) {
-    if (inertia[ibody][0] == 0.0) {
-      if (fabs(all[ibody][0]) > TOLERANCE)
-        error->all(FLERR,"Fix rigid: Bad principal moments");
-    } else {
-      if (fabs((all[ibody][0]-inertia[ibody][0])/inertia[ibody][0]) >
-          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
-    }
-    if (inertia[ibody][1] == 0.0) {
-      if (fabs(all[ibody][1]) > TOLERANCE)
-        error->all(FLERR,"Fix rigid: Bad principal moments");
-    } else {
-      if (fabs((all[ibody][1]-inertia[ibody][1])/inertia[ibody][1]) >
-          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
-    }
-    if (inertia[ibody][2] == 0.0) {
-      if (fabs(all[ibody][2]) > TOLERANCE)
-        error->all(FLERR,"Fix rigid: Bad principal moments");
-    } else {
-      if (fabs((all[ibody][2]-inertia[ibody][2])/inertia[ibody][2]) >
-          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
-    }
-    norm = (inertia[ibody][0] + inertia[ibody][1] + inertia[ibody][2]) / 3.0;
-    if (fabs(all[ibody][3]/norm) > TOLERANCE ||
-        fabs(all[ibody][4]/norm) > TOLERANCE ||
-        fabs(all[ibody][5]/norm) > TOLERANCE)
-      error->all(FLERR,"Fix rigid: Bad principal moments");
-  }
+  // one-time initialization of rigid body attributes
+  // extended flags, masstotal, COM, inertia tensor
+
+  if (firstflag) setup_bodies();
+  firstflag = 0;
 
   // temperature scale factor
 
@@ -1923,6 +1485,621 @@ void FixRigid::set_v()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   one-time initialization of rigid body attributes
+   extended flags, masstotal, center-of-mass
+   Cartesian and diagonalized inertia tensor
+   read per-body attributes from infile if specified
+------------------------------------------------------------------------- */
+
+void FixRigid::setup_bodies()
+{
+  int i,itype,ibody;
+
+  // extended = 1 if any particle in a rigid body is finite size
+  //              or has a dipole moment
+
+  extended = orientflag = dorientflag = 0;
+
+  AtomVecEllipsoid::Bonus *ebonus;
+  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
+  AtomVecLine::Bonus *lbonus;
+  if (avec_line) lbonus = avec_line->bonus;
+  AtomVecTri::Bonus *tbonus;
+  if (avec_tri) tbonus = avec_tri->bonus;
+  double **mu = atom->mu;
+  double *radius = atom->radius;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  if (atom->radius_flag || atom->ellipsoid_flag || atom->line_flag ||
+      atom->tri_flag || atom->mu_flag) {
+    int flag = 0;
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      if (radius && radius[i] > 0.0) flag = 1;
+      if (ellipsoid && ellipsoid[i] >= 0) flag = 1;
+      if (line && line[i] >= 0) flag = 1;
+      if (tri && tri[i] >= 0) flag = 1;
+      if (mu && mu[i][3] > 0.0) flag = 1;
+    }
+
+    MPI_Allreduce(&flag,&extended,1,MPI_INT,MPI_MAX,world);
+  }
+
+  // grow extended arrays and set extended flags for each particle
+  // orientflag = 4 if any particle stores ellipsoid or tri orientation
+  // orientflag = 1 if any particle stores line orientation
+  // dorientflag = 1 if any particle stores dipole orientation
+
+  if (extended) {
+    if (atom->ellipsoid_flag) orientflag = 4;
+    if (atom->line_flag) orientflag = 1;
+    if (atom->tri_flag) orientflag = 4;
+    if (atom->mu_flag) dorientflag = 1;
+    grow_arrays(atom->nmax);
+
+    for (i = 0; i < nlocal; i++) {
+      eflags[i] = 0;
+      if (body[i] < 0) continue;
+
+      // set to POINT or SPHERE or ELLIPSOID or LINE
+
+      if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
+        eflags[i] |= TORQUE;
+      } else if (ellipsoid && ellipsoid[i] >= 0) {
+        eflags[i] |= ELLIPSOID;
+        eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else if (line && line[i] >= 0) {
+        eflags[i] |= LINE;
+        eflags[i] |= OMEGA;
+        eflags[i] |= TORQUE;
+      } else if (tri && tri[i] >= 0) {
+        eflags[i] |= TRIANGLE;
+        eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else eflags[i] |= POINT;
+
+      // set DIPOLE if atom->mu and mu[3] > 0.0
+
+      if (atom->mu_flag && mu[i][3] > 0.0)
+        eflags[i] |= DIPOLE;
+    }
+  }
+
+  // compute masstotal & center-of-mass of each rigid body
+  // error if image flag is not 0 in a non-periodic dim
+
+  double **x = atom->x;
+  int *image = atom->image;
+
+  int *periodicity = domain->periodicity;
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+  double xy = domain->xy;
+  double xz = domain->xz;
+  double yz = domain->yz;
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+  int xbox,ybox,zbox;
+  double massone,xunwrap,yunwrap,zunwrap;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    xbox = (image[i] & 1023) - 512;
+    ybox = (image[i] >> 10 & 1023) - 512;
+    zbox = (image[i] >> 20) - 512;
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
+        (zbox && !periodicity[2]))
+      error->one(FLERR,"Fix rigid atom has non-zero image flag "
+                 "in a non-periodic dimension");
+
+    if (triclinic == 0) {
+      xunwrap = x[i][0] + xbox*xprd;
+      yunwrap = x[i][1] + ybox*yprd;
+      zunwrap = x[i][2] + zbox*zprd;
+    } else {
+      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
+      zunwrap = x[i][2] + zbox*zprd;
+    }
+
+    sum[ibody][0] += xunwrap * massone;
+    sum[ibody][1] += yunwrap * massone;
+    sum[ibody][2] += zunwrap * massone;
+    sum[ibody][3] += massone;
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    masstotal[ibody] = all[ibody][3];
+    xcm[ibody][0] = all[ibody][0]/masstotal[ibody];
+    xcm[ibody][1] = all[ibody][1]/masstotal[ibody];
+    xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
+  }
+
+  // overwrite masstotal and center-of-mass with file values
+  // inbody[i] = 0/1 if Ith rigid body is initialized by file
+
+  int *inbody;
+  if (infile) {
+    memory->create(inbody,nbody,"rigid:inbody");
+    for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
+    readfile(0,masstotal,xcm,inbody);
+  }
+
+  // set image flags for each rigid body to default values
+  // then remap the xcm of each body back into simulation box if needed
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    imagebody[ibody] = (512 << 20) | (512 << 10) | 512;
+
+  pre_neighbor();
+
+  // compute 6 moments of inertia of each body in Cartesian reference frame
+  // dx,dy,dz = coords relative to center-of-mass
+  // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
+
+  double dx,dy,dz,rad;
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    xbox = (image[i] & 1023) - 512;
+    ybox = (image[i] >> 10 & 1023) - 512;
+    zbox = (image[i] >> 20) - 512;
+
+    if (triclinic == 0) {
+      xunwrap = x[i][0] + xbox*xprd;
+      yunwrap = x[i][1] + ybox*yprd;
+      zunwrap = x[i][2] + zbox*zprd;
+    } else {
+      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
+      zunwrap = x[i][2] + zbox*zprd;
+    }
+
+    dx = xunwrap - xcm[ibody][0];
+    dy = yunwrap - xcm[ibody][1];
+    dz = zunwrap - xcm[ibody][2];
+
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    sum[ibody][0] += massone * (dy*dy + dz*dz);
+    sum[ibody][1] += massone * (dx*dx + dz*dz);
+    sum[ibody][2] += massone * (dx*dx + dy*dy);
+    sum[ibody][3] -= massone * dy*dz;
+    sum[ibody][4] -= massone * dx*dz;
+    sum[ibody][5] -= massone * dx*dy;
+  }
+
+  // extended particles may contribute extra terms to moments of inertia
+
+  if (extended) {
+    double ivec[6];
+    double *shape,*quatatom,*inertiaatom;
+    double length,theta;
+
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      ibody = body[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+
+      if (eflags[i] & SPHERE) {
+        sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];
+        sum[ibody][1] += SINERTIA*massone * radius[i]*radius[i];
+        sum[ibody][2] += SINERTIA*massone * radius[i]*radius[i];
+      } else if (eflags[i] & ELLIPSOID) {
+        shape = ebonus[ellipsoid[i]].shape;
+        quatatom = ebonus[ellipsoid[i]].quat;
+        MathExtra::inertia_ellipsoid(shape,quatatom,massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      } else if (eflags[i] & LINE) {
+        length = lbonus[line[i]].length;
+        theta = lbonus[line[i]].theta;
+        MathExtra::inertia_line(length,theta,massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      } else if (eflags[i] & TRIANGLE) {
+        inertiaatom = tbonus[tri[i]].inertia;
+        quatatom = tbonus[tri[i]].quat;
+        MathExtra::inertia_triangle(inertiaatom,quatatom,massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      }
+    }
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  // overwrite Cartesian inertia tensor with file values
+
+  if (infile) readfile(1,NULL,all,inbody);
+
+  // diagonalize inertia tensor for each body via Jacobi rotations
+  // inertia = 3 eigenvalues = principal moments of inertia
+  // evectors and exzy_space = 3 evectors = principal axes of rigid body
+
+  int ierror;
+  double cross[3];
+  double tensor[3][3],evectors[3][3];
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    tensor[0][0] = all[ibody][0];
+    tensor[1][1] = all[ibody][1];
+    tensor[2][2] = all[ibody][2];
+    tensor[1][2] = tensor[2][1] = all[ibody][3];
+    tensor[0][2] = tensor[2][0] = all[ibody][4];
+    tensor[0][1] = tensor[1][0] = all[ibody][5];
+
+    ierror = MathExtra::jacobi(tensor,inertia[ibody],evectors);
+    if (ierror) error->all(FLERR,
+                           "Insufficient Jacobi rotations for rigid body");
+
+    ex_space[ibody][0] = evectors[0][0];
+    ex_space[ibody][1] = evectors[1][0];
+    ex_space[ibody][2] = evectors[2][0];
+    ey_space[ibody][0] = evectors[0][1];
+    ey_space[ibody][1] = evectors[1][1];
+    ey_space[ibody][2] = evectors[2][1];
+    ez_space[ibody][0] = evectors[0][2];
+    ez_space[ibody][1] = evectors[1][2];
+    ez_space[ibody][2] = evectors[2][2];
+
+    // if any principal moment < scaled EPSILON, set to 0.0
+
+    double max;
+    max = MAX(inertia[ibody][0],inertia[ibody][1]);
+    max = MAX(max,inertia[ibody][2]);
+
+    if (inertia[ibody][0] < EPSILON*max) inertia[ibody][0] = 0.0;
+    if (inertia[ibody][1] < EPSILON*max) inertia[ibody][1] = 0.0;
+    if (inertia[ibody][2] < EPSILON*max) inertia[ibody][2] = 0.0;
+
+    // enforce 3 evectors as a right-handed coordinate system
+    // flip 3rd vector if needed
+
+    MathExtra::cross3(ex_space[ibody],ey_space[ibody],cross);
+    if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
+      MathExtra::negate3(ez_space[ibody]);
+
+    // create initial quaternion
+
+    MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],
+                         quat[ibody]);
+  }
+
+  // displace = initial atom coords in basis of principal axes
+  // set displace = 0.0 for atoms not in any rigid body
+  // for extended particles, set their orientation wrt to rigid body
+
+  double qc[4],delta[3];
+  double *quatatom;
+  double theta_body;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) {
+      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
+      continue;
+    }
+
+    ibody = body[i];
+
+    xbox = (image[i] & 1023) - 512;
+    ybox = (image[i] >> 10 & 1023) - 512;
+    zbox = (image[i] >> 20) - 512;
+
+    if (triclinic == 0) {
+      xunwrap = x[i][0] + xbox*xprd;
+      yunwrap = x[i][1] + ybox*yprd;
+      zunwrap = x[i][2] + zbox*zprd;
+    } else {
+      xunwrap = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+      yunwrap = x[i][1] + ybox*yprd + zbox*yz;
+      zunwrap = x[i][2] + zbox*zprd;
+    }
+
+    delta[0] = xunwrap - xcm[ibody][0];
+    delta[1] = yunwrap - xcm[ibody][1];
+    delta[2] = zunwrap - xcm[ibody][2];
+    MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+                                ez_space[ibody],delta,displace[i]);
+
+    if (extended) {
+      if (eflags[i] & ELLIPSOID) {
+        quatatom = ebonus[ellipsoid[i]].quat;
+        MathExtra::qconjugate(quat[ibody],qc);
+        MathExtra::quatquat(qc,quatatom,orient[i]);
+        MathExtra::qnormalize(orient[i]);
+      } else if (eflags[i] & LINE) {
+        if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
+        else theta_body = -2.0*acos(quat[ibody][0]);
+        orient[i][0] = lbonus[line[i]].theta - theta_body;
+        while (orient[i][0] <= MINUSPI) orient[i][0] += TWOPI;
+        while (orient[i][0] > MY_PI) orient[i][0] -= TWOPI;
+        if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
+      } else if (eflags[i] & TRIANGLE) {
+        quatatom = tbonus[tri[i]].quat;
+        MathExtra::qconjugate(quat[ibody],qc);
+        MathExtra::quatquat(qc,quatatom,orient[i]);
+        MathExtra::qnormalize(orient[i]);
+      } else if (orientflag == 4) {
+        orient[i][0] = orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
+      } else if (orientflag == 1)
+        orient[i][0] = 0.0;
+
+      if (eflags[i] & DIPOLE) {
+        MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
+                                    ez_space[ibody],mu[i],dorient[i]);
+        MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
+      } else if (dorientflag)
+        dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
+    }
+  }
+
+  // test for valid principal moments & axes
+  // recompute moments of inertia around new axes
+  // 3 diagonal moments should equal principal moments
+  // 3 off-diagonal moments should be 0.0
+  // extended particles may contribute extra terms to moments of inertia
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    ibody = body[i];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    sum[ibody][0] += massone *
+      (displace[i][1]*displace[i][1] + displace[i][2]*displace[i][2]);
+    sum[ibody][1] += massone *
+      (displace[i][0]*displace[i][0] + displace[i][2]*displace[i][2]);
+    sum[ibody][2] += massone *
+      (displace[i][0]*displace[i][0] + displace[i][1]*displace[i][1]);
+    sum[ibody][3] -= massone * displace[i][1]*displace[i][2];
+    sum[ibody][4] -= massone * displace[i][0]*displace[i][2];
+    sum[ibody][5] -= massone * displace[i][0]*displace[i][1];
+  }
+
+  if (extended) {
+    double ivec[6];
+    double *shape,*inertiaatom;
+    double length;
+
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      ibody = body[i];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+
+      if (eflags[i] & SPHERE) {
+        sum[ibody][0] += SINERTIA*massone * radius[i]*radius[i];
+        sum[ibody][1] += SINERTIA*massone * radius[i]*radius[i];
+        sum[ibody][2] += SINERTIA*massone * radius[i]*radius[i];
+      } else if (eflags[i] & ELLIPSOID) {
+        shape = ebonus[ellipsoid[i]].shape;
+        MathExtra::inertia_ellipsoid(shape,orient[i],massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      } else if (eflags[i] & LINE) {
+        length = lbonus[line[i]].length;
+        MathExtra::inertia_line(length,orient[i][0],massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      } else if (eflags[i] & TRIANGLE) {
+        inertiaatom = tbonus[tri[i]].inertia;
+        MathExtra::inertia_triangle(inertiaatom,orient[i],massone,ivec);
+        sum[ibody][0] += ivec[0];
+        sum[ibody][1] += ivec[1];
+        sum[ibody][2] += ivec[2];
+        sum[ibody][3] += ivec[3];
+        sum[ibody][4] += ivec[4];
+        sum[ibody][5] += ivec[5];
+      }
+    }
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  // error check that re-computed momemts of inertia match diagonalized ones
+  // do not do test for bodies with params read from infile
+
+  double norm;
+  for (ibody = 0; ibody < nbody; ibody++) {
+    if (infile && inbody[ibody]) continue;
+    if (inertia[ibody][0] == 0.0) {
+      if (fabs(all[ibody][0]) > TOLERANCE)
+        error->all(FLERR,"Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][0]-inertia[ibody][0])/inertia[ibody][0]) >
+          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
+    }
+    if (inertia[ibody][1] == 0.0) {
+      if (fabs(all[ibody][1]) > TOLERANCE)
+        error->all(FLERR,"Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][1]-inertia[ibody][1])/inertia[ibody][1]) >
+          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
+    }
+    if (inertia[ibody][2] == 0.0) {
+      if (fabs(all[ibody][2]) > TOLERANCE)
+        error->all(FLERR,"Fix rigid: Bad principal moments");
+    } else {
+      if (fabs((all[ibody][2]-inertia[ibody][2])/inertia[ibody][2]) >
+          TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
+    }
+    norm = (inertia[ibody][0] + inertia[ibody][1] + inertia[ibody][2]) / 3.0;
+    if (fabs(all[ibody][3]/norm) > TOLERANCE ||
+        fabs(all[ibody][4]/norm) > TOLERANCE ||
+        fabs(all[ibody][5]/norm) > TOLERANCE)
+      error->all(FLERR,"Fix rigid: Bad principal moments");
+  }
+
+  if (infile) memory->destroy(inbody);
+}
+
+/* ----------------------------------------------------------------------
+   read per rigid body info from user-provided file
+   which = 0 to read total mass and center-of-mass, store in vec and array
+   which = 1 to read 6 moments of inertia, store in array
+   flag inbody = 0 for bodies whose info is read from file
+   nlines = # of lines of rigid body info
+   one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
+------------------------------------------------------------------------- */
+
+void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
+{
+  int i,j,m,nchunk,id;
+  int nlines;
+  FILE *fp;
+  char *eof,*start,*next,*buf;
+  char line[MAXLINE];
+  
+  if (me == 0) {
+    fp = fopen(infile,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open fix rigid infile %s",infile);
+      error->one(FLERR,str);
+    }
+
+    while (1) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
+      start = &line[strspn(line," \t\n\v\f\r")];
+      if (*start != '\0' && *start != '#') break;
+    }
+
+    sscanf(line,"%d",&nlines);
+  }
+
+  MPI_Bcast(&nlines,1,MPI_INT,0,world);
+
+  char *buffer = new char[CHUNK*MAXLINE];
+  char **values = new char*[ATTRIBUTE_PERBODY];
+
+  int nread = 0;
+  while (nread < nlines) {
+    if (nlines-nread > CHUNK) nchunk = CHUNK;
+    else nchunk = nlines-nread;
+    if (me == 0) {
+      char *eof;
+      m = 0;
+      for (i = 0; i < nchunk; i++) {
+        eof = fgets(&buffer[m],MAXLINE,fp);
+        if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
+        m += strlen(&buffer[m]);
+      }
+      m++;
+    }
+    MPI_Bcast(&m,1,MPI_INT,0,world);
+    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+
+    buf = buffer;
+    next = strchr(buf,'\n');
+    *next = '\0';
+    int nwords = atom->count_words(buf);
+    *next = '\n';
+
+    if (nwords != ATTRIBUTE_PERBODY)
+      error->all(FLERR,"Incorrect rigid body format in fix rigid file");
+    
+    // loop over lines of rigid body attributes
+    // tokenize the line into values
+    // id = rigid body ID
+    // use ID as-is for SINGLE, as mol-ID for MOLECULE, as-is for GROUP
+    // for which = 0, store mass/com in vec/array
+    // for which = 1, store interia tensor array, invert 3,4,5 values to Voigt
+
+    for (int i = 0; i < nchunk; i++) {
+      next = strchr(buf,'\n');
+      
+      values[0] = strtok(buf," \t\n\r\f");
+      for (j = 1; j < nwords; j++)
+        values[j] = strtok(NULL," \t\n\r\f");
+      
+      id = atoi(values[0]);
+      if (rstyle == MOLECULE) {
+        if (id <= 0 || id > maxmol) 
+          error->all(FLERR,"Invalid rigid body ID in fix rigid file");
+        id = mol2body[id];
+      } else id--;
+
+      if (id < 0 || id >= nbody) 
+        error->all(FLERR,"Invalid rigid body ID in fix rigid file");
+      inbody[id] = 1;
+
+      if (which == 0) {
+        vec[id] = atof(values[1]);
+        array[id][0] = atof(values[2]);
+        array[id][1] = atof(values[3]);
+        array[id][2] = atof(values[4]);
+      } else {
+        array[id][0] = atof(values[5]);
+        array[id][1] = atof(values[6]);
+        array[id][2] = atof(values[7]);
+        array[id][5] = atof(values[8]);
+        array[id][4] = atof(values[9]);
+        array[id][3] = atof(values[10]);
+      }
+
+      buf = next + 1;
+    }
+    
+    nread += nchunk;
+  }
+
+  if (me == 0) fclose(fp);
+
+  delete [] buffer;
+  delete [] values;
 }
 
 /* ----------------------------------------------------------------------

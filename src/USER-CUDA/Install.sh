@@ -19,7 +19,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*cuda.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/cuda\/Makefile.lammps\
+include ..\/..\/lib\/cuda\/Makefile.lammps
 ' ../Makefile.package.settings
 
   fi

@@ -32,8 +32,6 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  // loop over each atom, storing neighbors
-
   int **special = atom->special;
   int **nspecial = atom->nspecial;
   int *tag = atom->tag;
@@ -59,6 +57,8 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   int npage = 0;
   int npnt = 0;
 
+  // loop over owned atoms, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
 
     if (pgsize - npnt < oneatom) {
@@ -76,6 +76,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
     ztmp = x[i][2];
 
     // loop over remaining atoms, owned and ghost
+    // only store pair if i < j
 
     for (j = i+1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;
@@ -107,6 +108,119 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   }
 
   list->inum = inum;
+}
+
+/* ----------------------------------------------------------------------
+   N^2 / 2 search for neighbor pairs with partial Newton's 3rd law
+   include neighbors of ghost atoms, but no "special neighbors" for ghosts
+   pair stored once if i,j are both owned and i < j
+   pair stored by me if i owned and j ghost (also stored by proc owning j)
+   pair stored once if i,j are both ghost and i < j
+------------------------------------------------------------------------- */
+
+void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
+{
+  int i,j,n,itype,jtype,which,bitmask;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int *neighptr;
+
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  int molecular = atom->molecular;
+  if (includegroup) {
+    nlocal = atom->nfirst;
+    bitmask = group->bitmask[includegroup];
+  }
+
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  int **pages = list->pages;
+
+  int inum = 0;
+  int npage = 0;
+  int npnt = 0;
+
+  // loop over owned & ghost atoms, storing neighbors
+
+  for (i = 0; i < nall; i++) {
+
+    if (pgsize - npnt < oneatom) {
+      npnt = 0;
+      npage++;
+      if (npage == list->maxpage) pages = list->add_pages();
+    }
+
+    neighptr = &pages[npage][npnt];
+    n = 0;
+
+    itype = type[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
+    // loop over remaining atoms, owned and ghost
+    // only store pair if i < j
+    // stores own/own pairs only once
+    // stores own/ghost pairs with owned atom only, on both procs
+    // stores ghost/ghost pairs only once
+    // no molecular test when i = ghost atom
+
+    if (i < nlocal) {
+      for (j = i+1; j < nall; j++) {
+        if (includegroup && !(mask[j] & bitmask)) continue;
+        jtype = type[j];
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        
+        if (rsq <= cutneighsq[itype][jtype]) {
+          if (molecular) {
+            which = find_special(special[i],nspecial[i],tag[j]);
+            if (which == 0) neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = j;
+            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+          } else neighptr[n++] = j;
+        }
+      }
+
+    } else {
+      for (j = i+1; j < nall; j++) {
+        if (includegroup && !(mask[j] & bitmask)) continue;
+        jtype = type[j];
+        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        
+        if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+      }
+    }
+    
+    ilist[inum++] = i;
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    npnt += n;
+    if (n > oneatom)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+  }
+
+  list->inum = atom->nlocal;
+  list->gnum = inum - atom->nlocal;
 }
 
 /* ----------------------------------------------------------------------

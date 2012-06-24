@@ -26,6 +26,10 @@ namespace LAMMPS_NS {
 
 class FixRigid : public Fix {
  public:
+  // public so that granular pair styles can access them
+  int *body;                // which body each atom is part of (-1 if none)
+  double *masstotal;        // total mass of each rigid body
+
   FixRigid(class LAMMPS *, int, char **);
   virtual ~FixRigid();
   virtual int setmask();
@@ -59,9 +63,15 @@ class FixRigid : public Fix {
   int triclinic;
   double MINUSPI,TWOPI;
 
+  int rstyle;               // SINGLE,MOLECULE,GROUP
+  int firstflag;            // 1 for first-time setup of rigid bodies
+  char *infile;             // file to read rigid body attributes from
+
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
-  double *masstotal;        // total mass of each rigid body
+  int *mol2body;            // convert mol-ID to rigid body index
+  int maxmol;               // size of mol2body = max mol-ID
+
   double **xcm;             // coords of center-of-mass of each rigid body
   double **vcm;             // velocity of center-of-mass of each
   double **fcm;             // force on center-of-mass of each
@@ -77,7 +87,6 @@ class FixRigid : public Fix {
   double **tflag;           // flag for on/off of center-of-mass torque
   double **langextra;       // Langevin thermostat forces and torques
 
-  int *body;                // which body each atom is part of (-1 if none)
   double **displace;        // displacement of each atom in body coords
 
   double **sum,**all;       // work vectors for each rigid body
@@ -115,6 +124,8 @@ class FixRigid : public Fix {
   void no_squish_rotate(int, double *, double *, double *, double);
   void set_xv();
   void set_v();
+  void setup_bodies();
+  void readfile(int, double *, double **, int *);
 };
 
 }

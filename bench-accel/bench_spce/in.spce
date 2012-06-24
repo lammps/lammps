@@ -24,7 +24,7 @@ angle_coeff	1 100.0 109.47
 special_bonds   lj/coul 0.0 0.0 0.5
 
 neighbor        2.0 bin
-neigh_modify	every 1 delay 10 check yes
+neigh_modify	every 2 delay 4 check yes
 
 fix		1 all shake 0.0001 20 0 b 1 a 1
 fix		2 all nvt temp 300.0 300.0 100.0

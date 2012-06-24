@@ -48,6 +48,7 @@ class FixReaxCBonds : public Fix {
   FILE *fp;
 
   void allocate();
+  void destroy();
   void Output_ReaxC_Bonds(bigint, FILE *);
   void GatherBond(reax_system*, reax_list*);
   void FindBond(reax_system*, reax_list*, int &);

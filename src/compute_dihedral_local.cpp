@@ -38,7 +38,8 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
   if (atom->avec->dihedrals_allow == 0)
-    error->all(FLERR,"Compute dihedral/local used when dihedrals are not allowed");
+    error->all(FLERR,
+               "Compute dihedral/local used when dihedrals are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -126,7 +127,8 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
     if (nvalues == 1) {
       if (pflag >= 0) pbuf = vector;
     } else {
-      if (pflag >= 0) pbuf = &array[0][pflag];
+      if (pflag >= 0 && array) pbuf = &array[0][pflag];
+      else pbuf = NULL;
     }
   }
 

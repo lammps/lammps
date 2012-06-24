@@ -20,16 +20,18 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Reader::Reader(LAMMPS *lmp) : fp(0), Pointers(lmp) {}
+Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
+{
+  fp = NULL;
+}
 
 /* ----------------------------------------------------------------------
-   try to open given file.
+   try to open given file
    generic version for ASCII files that may be compressed
 ------------------------------------------------------------------------- */
 
 void Reader::open_file(const char *file)
 {
-
   if (fp != NULL) close_file();
 
   compressed = 0;
@@ -52,7 +54,6 @@ void Reader::open_file(const char *file)
     error->one(FLERR,str);
   }
 }
-
 
 /* ----------------------------------------------------------------------
    close current file if open

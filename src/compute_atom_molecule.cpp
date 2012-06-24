@@ -267,8 +267,9 @@ void ComputeAtomMolecule::compute_array()
     }
   }
 
-  MPI_Allreduce(&aone[0][0],&array[0][0],nvalues*nmolecules,
-                MPI_DOUBLE,MPI_SUM,world);
+  if (array)
+    MPI_Allreduce(&aone[0][0],&array[0][0],nvalues*nmolecules,
+                  MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -296,7 +297,8 @@ void ComputeAtomMolecule::compute_one(int m)
       peratom = compute->vector_atom;
       nstride = 1;
     } else {
-      peratom = &compute->array_atom[0][aidx-1];
+      if (compute->array_atom) peratom = &compute->array_atom[0][aidx-1];
+      else peratom = NULL;
       nstride = compute->size_array_cols;
     }
 

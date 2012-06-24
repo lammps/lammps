@@ -178,6 +178,7 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
 
     // loop over all atoms, owned and ghost
     // skip i = j
+    // no molecular test when i = ghost atom
 
     if (i < nlocal) {
       for (j = 0; j < nall; j++) {
@@ -210,8 +211,7 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq <= cutneighghostsq[itype][jtype])
-          neighptr[n++] = j;
+        if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
       }
     }
 
@@ -401,6 +401,7 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
     // loop over all atoms in surrounding bins in stencil including self
     // when i is a ghost atom, must check if stencil bin is out of bounds
     // skip i = j
+    // no molecular test when i = ghost atom
 
     if (i < nlocal) {
       ibin = coord2bin(x[i]);
@@ -448,8 +449,7 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
           delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
 
-          if (rsq <= cutneighghostsq[itype][jtype])
-            neighptr[n++] = j;
+          if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
         }
       }
     }

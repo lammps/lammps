@@ -26,7 +26,7 @@ value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   v_name = global value calculated by an equal-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {mode} or {file} or {ave} or {start} or {off} or {title1} or {title2} or {title3} :l
+keyword = {mode} or {file} or {ave} or {start} or {off} or {overwrite} or {title1} or {title2} or {title3} :l
   {mode} arg = {scalar} or {vector}
     scalar = all input values are global scalars
     vector = all input values are global vectors or global arrays
@@ -40,6 +40,7 @@ keyword = {mode} or {file} or {ave} or {start} or {off} or {title1} or {title2} 
     M = value # from 1 to Nvalues
   {file} arg = filename
     filename = name of file to output time averages to
+  {overwrite} arg = none = overwrite output file with only latest output
   {title1} arg = string
     string = text to print as 1st line of output file
   {title2} arg = string
@@ -234,6 +235,10 @@ of numbers is written each time output is performed.  The number of
 rows is the length of the input vectors, and the number of columns is
 the number of values.  Thus the file ends up to be a series of these
 array sections.
+
+The {overwrite} keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the {ave running} setting.
 
 The {title1} and {title2} and {title3} keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the

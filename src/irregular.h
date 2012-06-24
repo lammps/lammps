@@ -23,6 +23,7 @@ class Irregular : protected Pointers {
   Irregular(class LAMMPS *);
   ~Irregular();
   void migrate_atoms();
+  int migrate_check();
   int create_data(int, int *);
   void exchange_data(char *, int, char *);
   void destroy_data();
@@ -84,7 +85,7 @@ class Irregular : protected Pointers {
   int create_atom(int, int *, int *);
   void exchange_atom(double *, int *, double *);
   void destroy_atom();
-  int coord2proc(double *);
+  int coord2proc(double *, int &, int &, int &);
   int binary(double, int, double *);
 
   void grow_send(int,int);          // reallocate send buffer

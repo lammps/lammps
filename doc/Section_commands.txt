@@ -411,6 +411,7 @@ of each style or click on the style itself for a full description:
 "ave/histo"_fix_ave_histo.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
+"balance"_fix_balance.html,
 "bond/break"_fix_bond_break.html,
 "bond/create"_fix_bond_create.html,
 "bond/swap"_fix_bond_swap.html,

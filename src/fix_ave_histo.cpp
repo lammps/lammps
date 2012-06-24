@@ -241,6 +241,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix ave/histo command");
   if (lo >= hi) error->all(FLERR,"Illegal fix ave/histo command");
   if (nbins <= 0) error->all(FLERR,"Illegal fix ave/histo command");
+  if (ave != RUNNING && overwrite)
+    error->all(FLERR,"Illegal fix ave/histo command");
 
   int kindflag;
   for (int i = 0; i < nvalues; i++) {
@@ -419,6 +421,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
                  "Total-counts Missing-counts Min-value Max-value\n");
     if (title3) fprintf(fp,"%s\n",title3);
     else fprintf(fp,"# Bin Coord Count Count/Total\n");
+    filepos = ftell(fp);
   }
 
   delete [] title1;
@@ -624,8 +627,9 @@ void FixAveHisto::end_of_step()
             compute->compute_array();
             compute->invoked_flag |= INVOKED_ARRAY;
           }
-          bin_vector(compute->size_array_rows,&compute->array[0][j-1],
-                     compute->size_array_cols);
+          if (compute->array)
+            bin_vector(compute->size_array_rows,&compute->array[0][j-1],
+                       compute->size_array_cols);
         }
 
       } else if (kind == PERATOM) {
@@ -635,7 +639,7 @@ void FixAveHisto::end_of_step()
         }
         if (j == 0)
           bin_atoms(compute->vector_atom,1);
-        else
+        else if (compute->array_atom)
           bin_atoms(compute->array_atom[j-1],
                     compute->size_peratom_cols);
 
@@ -646,7 +650,7 @@ void FixAveHisto::end_of_step()
         }
         if (j == 0)
           bin_vector(compute->size_local_rows,compute->vector_local,1);
-        else
+        else if (compute->array_local)
           bin_vector(compute->size_local_rows,&compute->array_local[0][j-1],
                      compute->size_local_cols);
       }
@@ -672,11 +676,12 @@ void FixAveHisto::end_of_step()
 
       } else if (kind == PERATOM) {
         if (j == 0) bin_atoms(fix->vector_atom,1);
-        else bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
+        else if (fix->array_atom)
+          bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
 
       } else if (kind == LOCAL) {
         if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
-        else
+        else if (fix->array_local)
           bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
                      fix->size_local_cols);
       }
@@ -780,6 +785,7 @@ void FixAveHisto::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
@@ -886,6 +892,7 @@ void FixAveHisto::options(int narg, char **arg)
   startstep = 0;
   mode = SCALAR;
   beyond = IGNORE;
+  overwrite = 0;
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;
@@ -935,6 +942,9 @@ void FixAveHisto::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"extra") == 0) beyond = EXTRA;
       else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"overwrite") == 0) {
+      overwrite = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       delete [] title1;

@@ -48,13 +48,14 @@ void Neighbor::bond_all()
                 tag[i],bond_atom[i][m],me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
         if (nbondlist == maxbond) {
           maxbond += BONDDELTA;
           memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
         }
         bondlist[nbondlist][0] = i;
-        bondlist[nbondlist][1] = domain->closest_image(i,atom1);
+        bondlist[nbondlist][1] = atom1;
         bondlist[nbondlist][2] = bond_type[i][m];
         nbondlist++;
       }
@@ -87,13 +88,14 @@ void Neighbor::bond_partial()
                 tag[i],bond_atom[i][m],me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
         if (nbondlist == maxbond) {
           maxbond += BONDDELTA;
           memory->grow(bondlist,maxbond,3,"neighbor:bondlist");
         }
         bondlist[nbondlist][0] = i;
-        bondlist[nbondlist][1] = domain->closest_image(i,atom1);       
+        bondlist[nbondlist][1] = atom1;
         bondlist[nbondlist][2] = bond_type[i][m];
         nbondlist++;
       }
@@ -130,14 +132,17 @@ void Neighbor::angle_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
         if (nanglelist == maxangle) {
           maxangle += BONDDELTA;
           memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
         }
-        anglelist[nanglelist][0] = domain->closest_image(i,atom1);
-        anglelist[nanglelist][1] = domain->closest_image(i,atom2);
-        anglelist[nanglelist][2] = domain->closest_image(i,atom3);
+        anglelist[nanglelist][0] = atom1;
+        anglelist[nanglelist][1] = atom2;
+        anglelist[nanglelist][2] = atom3;
         anglelist[nanglelist][3] = angle_type[i][m];
         nanglelist++;
       }
@@ -175,14 +180,17 @@ void Neighbor::angle_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
         if (nanglelist == maxangle) {
           maxangle += BONDDELTA;
           memory->grow(anglelist,maxangle,4,"neighbor:anglelist");
         }
-        anglelist[nanglelist][0] = domain->closest_image(i,atom1);
-        anglelist[nanglelist][1] = domain->closest_image(i,atom2);
-        anglelist[nanglelist][2] = domain->closest_image(i,atom3);
+        anglelist[nanglelist][0] = atom1;
+        anglelist[nanglelist][1] = atom2;
+        anglelist[nanglelist][2] = atom3;
         anglelist[nanglelist][3] = angle_type[i][m];
         nanglelist++;
       }
@@ -222,16 +230,20 @@ void Neighbor::dihedral_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (ndihedrallist == maxdihedral) {
           maxdihedral += BONDDELTA;
           memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
         }
-        dihedrallist[ndihedrallist][0] = domain->closest_image(i,atom1);
-        dihedrallist[ndihedrallist][1] = domain->closest_image(i,atom2);
-        dihedrallist[ndihedrallist][2] = domain->closest_image(i,atom3);
-        dihedrallist[ndihedrallist][3] = domain->closest_image(i,atom4);
+        dihedrallist[ndihedrallist][0] = atom1;
+        dihedrallist[ndihedrallist][1] = atom2;
+        dihedrallist[ndihedrallist][2] = atom3;
+        dihedrallist[ndihedrallist][3] = atom4;
         dihedrallist[ndihedrallist][4] = dihedral_type[i][m];
         ndihedrallist++;
       }
@@ -272,16 +284,20 @@ void Neighbor::dihedral_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (ndihedrallist == maxdihedral) {
           maxdihedral += BONDDELTA;
           memory->grow(dihedrallist,maxdihedral,5,"neighbor:dihedrallist");
         }
-        dihedrallist[ndihedrallist][0] = domain->closest_image(i,atom1);
-        dihedrallist[ndihedrallist][1] = domain->closest_image(i,atom2);
-        dihedrallist[ndihedrallist][2] = domain->closest_image(i,atom3);
-        dihedrallist[ndihedrallist][3] = domain->closest_image(i,atom4);
+        dihedrallist[ndihedrallist][0] = atom1;
+        dihedrallist[ndihedrallist][1] = atom2;
+        dihedrallist[ndihedrallist][2] = atom3;
+        dihedrallist[ndihedrallist][3] = atom4;
         dihedrallist[ndihedrallist][4] = dihedral_type[i][m];
         ndihedrallist++;
       }
@@ -321,16 +337,20 @@ void Neighbor::improper_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (nimproperlist == maximproper) {
           maximproper += BONDDELTA;
           memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
         }
-        improperlist[nimproperlist][0] = domain->closest_image(i,atom1);
-        improperlist[nimproperlist][1] = domain->closest_image(i,atom2);
-        improperlist[nimproperlist][2] = domain->closest_image(i,atom3);
-        improperlist[nimproperlist][3] = domain->closest_image(i,atom4);
+        improperlist[nimproperlist][0] = atom1;
+        improperlist[nimproperlist][1] = atom2;
+        improperlist[nimproperlist][2] = atom3;
+        improperlist[nimproperlist][3] = atom4;
         improperlist[nimproperlist][4] = improper_type[i][m];
         nimproperlist++;
       }
@@ -371,16 +391,20 @@ void Neighbor::improper_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (nimproperlist == maximproper) {
           maximproper += BONDDELTA;
           memory->grow(improperlist,maximproper,5,"neighbor:improperlist");
         }
-        improperlist[nimproperlist][0] = domain->closest_image(i,atom1);
-        improperlist[nimproperlist][1] = domain->closest_image(i,atom2);
-        improperlist[nimproperlist][2] = domain->closest_image(i,atom3);
-        improperlist[nimproperlist][3] = domain->closest_image(i,atom4);
+        improperlist[nimproperlist][0] = atom1;
+        improperlist[nimproperlist][1] = atom2;
+        improperlist[nimproperlist][2] = atom3;
+        improperlist[nimproperlist][3] = atom4;
         improperlist[nimproperlist][4] = improper_type[i][m];
         nimproperlist++;
       }

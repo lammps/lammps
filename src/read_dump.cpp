@@ -443,8 +443,9 @@ void ReadDump::atoms()
     MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
       error->all(FLERR,"Too many total atoms");
-    if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
-    if (atom->natoms <= MAXTAGINT) atom->tag_extend();
+    // change these to MAXTAGINT when allow tagint = bigint
+    if (atom->natoms > MAXSMALLINT) atom->tag_enable = 0;
+    if (atom->natoms <= MAXSMALLINT) atom->tag_extend();
   }
 
   // if trimflag set, delete atoms not replaced by snapshot atoms

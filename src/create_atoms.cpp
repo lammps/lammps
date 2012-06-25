@@ -238,8 +238,9 @@ void CreateAtoms::command(int narg, char **arg)
   // add tags for newly created atoms if possible
   // if global map exists, reset it
 
-  if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
-  if (atom->natoms <= MAXTAGINT) atom->tag_extend();
+  // change these to MAXTAGINT when allow tagint = bigint
+  if (atom->natoms > MAXSMALLINT) atom->tag_enable = 0;
+  if (atom->natoms <= MAXSMALLINT) atom->tag_extend();
 
   if (atom->map_style) {
     atom->nghost = 0;

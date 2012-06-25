@@ -627,6 +627,7 @@ potentials.  Click on the style itself for a full description:
 "adp"_pair_adp.html,
 "airebo"_pair_airebo.html,
 "beck"_pair_beck.html,
+"bop"_pair_bop.html,
 "born"_pair_born.html,
 "born/coul/long"_pair_born.html,
 "born/coul/wolf"_pair_born.html,

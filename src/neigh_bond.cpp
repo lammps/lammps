@@ -23,6 +23,12 @@ using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
 
+// bondlist, anglelist, dihedrallist, improperlist
+//   no longer store atom->map() of the bond partners
+// instead store domain->closest_image() of the bond partners of atom I
+// this enables distances between list atoms to be calculated
+//   w/out invoking domain->minimium_image(), e.g. in bond->compute()
+
 /* ---------------------------------------------------------------------- */
 
 void Neighbor::bond_all()

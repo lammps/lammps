@@ -118,6 +118,10 @@ class Atom : protected Pointers {
   int sortfreq;             // sort atoms every this many steps, 0 = off
   bigint nextsort;          // next timestep to sort on
 
+  // indices of atoms with same ID
+
+  int *sametag;      // sametag[I] = next atom with same ID, -1 if no more
+
   // functions
 
   Atom(class LAMMPS *);
@@ -190,8 +194,9 @@ class Atom : protected Pointers {
 
   // global to local ID mapping
 
-  int map_tag_max;
-  int *map_array;
+  int map_tag_max;      // size of map_array
+  int *map_array;       // direct map of length max atom ID + 1
+  int smax;             // max size of sametag
 
   struct HashElem {
     int global;                   // key to search on = global ID
@@ -204,8 +209,6 @@ class Atom : protected Pointers {
   int map_nbucket;                // # of hash buckets
   int *map_bucket;                // ptr to 1st entry in each bucket
   HashElem *map_hash;             // hash table
-  int *primes;                    // table of prime #s for hashing
-  int nprimes;                    // # of primes
 
   // spatial sorting of atoms
 
@@ -224,6 +227,7 @@ class Atom : protected Pointers {
   char *memstr;                   // string of array names already counted
 
   void setup_sort_bins();
+  int next_prime(int);
 };
 
 }

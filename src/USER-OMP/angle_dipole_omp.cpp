@@ -102,7 +102,6 @@ void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
     delx = x[iRef][0] - x[iDip][0];
     dely = x[iRef][1] - x[iDip][1];
     delz = x[iRef][2] - x[iDip][2];
-    domain->minimum_image(delx,dely,delz);
 
     r = sqrt(delx*delx + dely*dely + delz*delz);
 

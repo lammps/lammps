@@ -14,6 +14,7 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
+#include "math.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -94,9 +95,9 @@ class Domain : protected Pointers {
   virtual void reset_box();
   virtual void pbc();
   void box_too_small_check();
-  int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
+  int closest_image(int, int);
   void closest_image(const double * const, const double * const,
                      double * const);
   void remap(double *, int &);
@@ -120,6 +121,17 @@ class Domain : protected Pointers {
   void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();
+
+  // minimum image convention check
+  // return 1 if any distance > 1/2 of box size
+  // inline since called from neighbor build inner loop
+
+  inline int minimum_image_check(double dx, double dy, double dz) {
+    if (xperiodic && fabs(dx) > xprd_half) return 1;
+    if (yperiodic && fabs(dy) > yprd_half) return 1;
+    if (zperiodic && fabs(dz) > zprd_half) return 1;
+    return 0;
+  }
 
  private:
   double small[3];                  // fractions of box lengths

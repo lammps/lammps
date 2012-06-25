@@ -71,7 +71,6 @@ void BondHarmonicShiftCut::compute(int eflag, int vflag)
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];
-    domain->minimum_image(delx,dely,delz);
 
     rsq = delx*delx + dely*dely + delz*delz;
     r = sqrt(rsq);
@@ -86,7 +85,8 @@ void BondHarmonicShiftCut::compute(int eflag, int vflag)
     if (r > 0.0) fbond = -2.0*rk/r;
     else fbond = 0.0;
 
-    if (eflag) ebond = k[type]*(dr*dr -(r0[type]-r1[type])*(r0[type]-r1[type]) );
+    if (eflag) 
+      ebond = k[type]*(dr*dr -(r0[type]-r1[type])*(r0[type]-r1[type]));
 
     // apply force to each of 2 atoms
 

@@ -129,21 +129,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nextra_store = 0;
   extra = NULL;
 
-  // default mapping values and hash table primes
+  // default mapping values
 
   tag_enable = 1;
   map_style = 0;
   map_tag_max = 0;
   map_nhash = 0;
-
-  nprimes = 38;
-  primes = new int[nprimes];
-  int plist[] = {5041,10007,20011,30011,40009,50021,60013,70001,80021,
-                 90001,100003,110017,120011,130003,140009,150001,160001,
-                 170003,180001,190027,200003,210011,220009,230003,240007,
-                 250007,260003,270001,280001,290011,300007,310019,320009,
-                 330017,340007,350003,362881,3628801};
-  for (int i = 0; i < nprimes; i++) primes[i] = plist[i];
+  
+  sametag = NULL;
+  map_array = NULL;
+  map_bucket = NULL;
+  map_hash = NULL;
 
   // default atom style = atomic
 
@@ -236,7 +232,6 @@ Atom::~Atom()
   // delete mapping data structures
 
   map_delete();
-  delete [] primes;
 }
 
 /* ----------------------------------------------------------------------
@@ -429,243 +424,6 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 3;
     } else error->all(FLERR,"Illegal atom_modify command");
   }
-}
-
-/* ----------------------------------------------------------------------
-   allocate and initialize array or hash table for global -> local map
-   set map_tag_max = largest atom ID (may be larger than natoms)
-   for array option:
-     array length = 1 to largest tag of any atom
-     set entire array to -1 as initial values
-   for hash option:
-     map_nhash = length of hash table
-     map_nbucket = # of hash buckets, prime larger than map_nhash
-       so buckets will only be filled with 0 or 1 atoms on average
-------------------------------------------------------------------------- */
-
-void Atom::map_init()
-{
-  map_delete();
-
-  if (tag_enable == 0)
-    error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
-
-  int max = 0;
-  for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&map_tag_max,1,MPI_INT,MPI_MAX,world);
-
-  if (map_style == 1) {
-    memory->create(map_array,map_tag_max+1,"atom:map_array");
-    for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
-
-  } else {
-
-    // map_nhash = max of atoms/proc or total atoms, times 2, at least 1000
-
-    int nper = static_cast<int> (natoms/comm->nprocs);
-    map_nhash = MAX(nper,nmax);
-    if (map_nhash > natoms) map_nhash = static_cast<int> (natoms);
-    if (comm->nprocs > 1) map_nhash *= 2;
-    map_nhash = MAX(map_nhash,1000);
-
-    // map_nbucket = prime just larger than map_nhash
-
-    int n = map_nhash/10000;
-    n = MIN(n,nprimes-1);
-    map_nbucket = primes[n];
-    if (map_nbucket < map_nhash && n < nprimes-1) map_nbucket = primes[n+1];
-
-    // set all buckets to empty
-    // set hash to map_nhash in length
-    // put all hash entries in free list and point them to each other
-
-    map_bucket = new int[map_nbucket];
-    for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
-
-    map_hash = new HashElem[map_nhash];
-    map_nused = 0;
-    map_free = 0;
-    for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
-    map_hash[map_nhash-1].next = -1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   clear global -> local map for all of my own and ghost atoms
-   for hash table option:
-     global ID may not be in table if image atom was already cleared
-------------------------------------------------------------------------- */
-
-void Atom::map_clear()
-{
-  if (map_style == 1) {
-    int nall = nlocal + nghost;
-    for (int i = 0; i < nall; i++) map_array[tag[i]] = -1;
-
-  } else {
-    int previous,global,ibucket,index;
-    int nall = nlocal + nghost;
-    for (int i = 0; i < nall; i++) {
-
-      // search for key
-      // if don't find it, done
-
-      previous = -1;
-      global = tag[i];
-      ibucket = global % map_nbucket;
-      index = map_bucket[ibucket];
-      while (index > -1) {
-        if (map_hash[index].global == global) break;
-        previous = index;
-        index = map_hash[index].next;
-      }
-      if (index == -1) continue;
-
-      // delete the hash entry and add it to free list
-      // special logic if entry is 1st in the bucket
-
-      if (previous == -1) map_bucket[ibucket] = map_hash[index].next;
-      else map_hash[previous].next = map_hash[index].next;
-
-      map_hash[index].next = map_free;
-      map_free = index;
-      map_nused--;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set global -> local map for all of my own and ghost atoms
-   loop in reverse order so that nearby images take precedence over far ones
-     and owned atoms take precedence over images
-   this enables valid lookups of bond topology atoms
-   for hash table option:
-     if hash table too small, re-init
-     global ID may already be in table if image atom was set
-------------------------------------------------------------------------- */
-
-void Atom::map_set()
-{
-  if (map_style == 1) {
-    int nall = nlocal + nghost;
-    for (int i = nall-1; i >= 0 ; i--) map_array[tag[i]] = i;
-
-  } else {
-    int previous,global,ibucket,index;
-    int nall = nlocal + nghost;
-    if (nall > map_nhash) map_init();
-
-    for (int i = nall-1; i >= 0 ; i--) {
-
-      // search for key
-      // if found it, just overwrite local value with index
-
-      previous = -1;
-      global = tag[i];
-      ibucket = global % map_nbucket;
-      index = map_bucket[ibucket];
-      while (index > -1) {
-        if (map_hash[index].global == global) break;
-        previous = index;
-        index = map_hash[index].next;
-      }
-      if (index > -1) {
-        map_hash[index].local = i;
-        continue;
-      }
-
-      // take one entry from free list
-      // add the new global/local pair as entry at end of bucket list
-      // special logic if this entry is 1st in bucket
-
-      index = map_free;
-      map_free = map_hash[map_free].next;
-      if (previous == -1) map_bucket[ibucket] = index;
-      else map_hash[previous].next = index;
-      map_hash[index].global = global;
-      map_hash[index].local = i;
-      map_hash[index].next = -1;
-      map_nused++;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set global to local map for one atom
-   for hash table option:
-     global ID may already be in table if atom was already set
-------------------------------------------------------------------------- */
-
-void Atom::map_one(int global, int local)
-{
-  if (map_style == 1) map_array[global] = local;
-
-  else {
-    // search for key
-    // if found it, just overwrite local value with index
-
-    int previous = -1;
-    int ibucket = global % map_nbucket;
-    int index = map_bucket[ibucket];
-    while (index > -1) {
-      if (map_hash[index].global == global) break;
-      previous = index;
-      index = map_hash[index].next;
-    }
-    if (index > -1) {
-      map_hash[index].local = local;
-      return;
-    }
-
-    // take one entry from free list
-    // add the new global/local pair as entry at end of bucket list
-    // special logic if this entry is 1st in bucket
-
-    index = map_free;
-    map_free = map_hash[map_free].next;
-    if (previous == -1) map_bucket[ibucket] = index;
-    else map_hash[previous].next = index;
-    map_hash[index].global = global;
-    map_hash[index].local = local;
-    map_hash[index].next = -1;
-    map_nused++;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   free the array or hash table for global to local mapping
-------------------------------------------------------------------------- */
-
-void Atom::map_delete()
-{
-  if (map_style == 1) {
-    if (map_tag_max) memory->destroy(map_array);
-  } else {
-    if (map_nhash) {
-      delete [] map_bucket;
-      delete [] map_hash;
-    }
-    map_nhash = 0;
-  }
-  map_tag_max = 0;
-}
-
-/* ----------------------------------------------------------------------
-   lookup global ID in hash table, return local index
-------------------------------------------------------------------------- */
-
-int Atom::map_find_hash(int global)
-{
-  int local = -1;
-  int index = map_bucket[global % map_nbucket];
-  while (index > -1) {
-    if (map_hash[index].global == global) {
-      local = map_hash[index].local;
-      break;
-    }
-    index = map_hash[index].next;
-  }
-  return local;
 }
 
 /* ----------------------------------------------------------------------
@@ -1644,6 +1402,7 @@ bigint Atom::memory_usage()
   bigint bytes = avec->memory_usage();
   memory->destroy(memstr);
 
+  bytes += smax*sizeof(int);
   if (map_style == 1)
     bytes += memory->usage(map_array,map_tag_max+1);
   else if (map_style == 2) {

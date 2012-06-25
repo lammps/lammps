@@ -122,13 +122,10 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
        Although, they are irrelevant to the calculation of the potential, we keep
        them for maximal compatibility. */
     vb1x = x[i1][0] - x[i2][0]; vb1y = x[i1][1] - x[i2][1]; vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     vb2x = x[i3][0] - x[i2][0]; vb2y = x[i3][1] - x[i2][1]; vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     vb3x = x[i4][0] - x[i3][0]; vb3y = x[i4][1] - x[i3][1]; vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
 
     /* Pass the atom tags to form the necessary combinations. */
@@ -146,7 +143,6 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
       bvec1x[icomb] = x[at2[icomb]][0] - x[at1[icomb]][0];
       bvec1y[icomb] = x[at2[icomb]][1] - x[at1[icomb]][1];
       bvec1z[icomb] = x[at2[icomb]][2] - x[at1[icomb]][2];
-      domain -> minimum_image(bvec1x[icomb], bvec1y[icomb], bvec1z[icomb]);
       /* also calculate the norm of the vector: */
       bvec1n[icomb] = sqrt(  bvec1x[icomb]*bvec1x[icomb]
                              + bvec1y[icomb]*bvec1y[icomb]
@@ -155,7 +151,6 @@ void ImproperRingOMP::eval(int nfrom, int nto, ThrData * const thr)
       bvec2x[icomb] = x[at3[icomb]][0] - x[at2[icomb]][0];
       bvec2y[icomb] = x[at3[icomb]][1] - x[at2[icomb]][1];
       bvec2z[icomb] = x[at3[icomb]][2] - x[at2[icomb]][2];
-      domain -> minimum_image(bvec2x[icomb], bvec2y[icomb], bvec2z[icomb]);
       /* also calculate the norm of the vector: */
       bvec2n[icomb] = sqrt(  bvec2x[icomb]*bvec2x[icomb]
                              + bvec2y[icomb]*bvec2y[icomb]

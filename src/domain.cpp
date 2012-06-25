@@ -581,19 +581,6 @@ void Domain::box_too_small_check()
 }
 
 /* ----------------------------------------------------------------------
-   minimum image convention check
-   return 1 if any distance > 1/2 of box size
-------------------------------------------------------------------------- */
-
-int Domain::minimum_image_check(double dx, double dy, double dz)
-{
-  if (xperiodic && fabs(dx) > xprd_half) return 1;
-  if (yperiodic && fabs(dy) > yprd_half) return 1;
-  if (zperiodic && fabs(dz) > zprd_half) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
    minimum image convention
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
@@ -715,6 +702,40 @@ void Domain::minimum_image(double *delta)
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   return local index of atom J or any of its images that is closest to atom I
+   if J is not a valid index like -1, just return it
+------------------------------------------------------------------------- */
+
+int Domain::closest_image(int i, int j)
+{
+  if (j < 0) return j;
+
+  int *sametag = atom->sametag;
+  double **x = atom->x;
+  double *xi = x[i];
+
+  int closest = j;
+  double delx = xi[0] - x[j][0];
+  double dely = xi[1] - x[j][1];
+  double delz = xi[2] - x[j][2];
+  double rsqmin = delx*delx + dely*dely + delz*delz;
+  double rsq;
+  
+  while (sametag[j] >= 0) {
+    j = sametag[j];
+    delx = xi[0] - x[j][0];
+    dely = xi[1] - x[j][1];
+    delz = xi[2] - x[j][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rsqmin) {
+      rsqmin = rsq;
+      closest = j;
+    }
+  }
+  return closest;
 }
 
 /* ----------------------------------------------------------------------

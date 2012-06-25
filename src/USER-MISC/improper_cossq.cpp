@@ -86,7 +86,6 @@ void ImproperCossq::compute(int eflag, int vflag)
       vb1x = x[i2][0] - x[i1][0];
       vb1y = x[i2][1] - x[i1][1];
       vb1z = x[i2][2] - x[i1][2];
-      domain->minimum_image(vb1x,vb1y,vb1z);
       rjisq = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z ;
       rji = sqrt(rjisq);
 
@@ -94,13 +93,11 @@ void ImproperCossq::compute(int eflag, int vflag)
       vb2x = x[i3][0] - x[i2][0];
       vb2y = x[i3][1] - x[i2][1];
       vb2z = x[i3][2] - x[i2][2];
-      domain->minimum_image(vb2x,vb2y,vb2z);
 
       /* separation vector between i3 and i4, (i4-i3) */
       vb3x = x[i4][0] - x[i3][0];
       vb3y = x[i4][1] - x[i3][1];
       vb3z = x[i4][2] - x[i3][2];
-      domain->minimum_image(vb3x,vb3y,vb3z);
       rlksq = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z ;
       rlk = sqrt(rlksq);
 

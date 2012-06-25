@@ -108,17 +108,14 @@ void ImproperHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
     vb1x = x[i1][0] - x[i2][0];
     vb1y = x[i1][1] - x[i2][1];
     vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     vb2x = x[i3][0] - x[i2][0];
     vb2y = x[i3][1] - x[i2][1];
     vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     vb3x = x[i4][0] - x[i3][0];
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
     ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
     ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);

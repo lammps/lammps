@@ -567,7 +567,7 @@ int AtomVecPeri::pack_exchange(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m++] = image[i];
+  *((tagint *) &buf[m++]) = image[i];
 
   buf[m++] = vfrac[i];
   buf[m++] = rmass[i];
@@ -601,7 +601,7 @@ int AtomVecPeri::unpack_exchange(double *buf)
   tag[nlocal] = static_cast<int> (buf[m++]);
   type[nlocal] = static_cast<int> (buf[m++]);
   mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = static_cast<tagint> (buf[m++]);
+  image[nlocal] = *((tagint *) &buf[m++]);
 
   vfrac[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
@@ -655,7 +655,7 @@ int AtomVecPeri::pack_restart(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m++] = image[i];
+  *((tagint *) &buf[m++]) = image[i];
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
@@ -695,7 +695,7 @@ int AtomVecPeri::unpack_restart(double *buf)
   tag[nlocal] = static_cast<int> (buf[m++]);
   type[nlocal] = static_cast<int> (buf[m++]);
   mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = static_cast<tagint> (buf[m++]);
+  image[nlocal] = *((tagint *) &buf[m++]);
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];

@@ -125,7 +125,7 @@ void ComputeMSDMolecule::compute_array()
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -136,9 +136,9 @@ void ComputeMSDMolecule::compute_array()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       imol = molecule[i];

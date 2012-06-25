@@ -532,61 +532,61 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == XU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double xprd = domain->xprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
+          dchoose[i] = x[i][0] + ((image[i] & IMGMASK) - IMGMAX) * xprd;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == YU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double yprd = domain->yprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+          dchoose[i] = x[i][1] + ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ZU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double zprd = domain->zprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+          dchoose[i] = x[i][2] + ((image[i] >> IMG2BITS) - IMGMAX) * zprd;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == XUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *h = domain->h;
         int xbox,ybox,zbox;
         for (i = 0; i < nlocal; i++) {
-          xbox = (image[i] & 1023) - 512;
-          ybox = (image[i] >> 10 & 1023) - 512;
-          zbox = (image[i] >> 20) - 512;
+          xbox = (image[i] & IMGMASK) - IMGMAX;
+          ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+          zbox = (image[i] >> IMG2BITS) - IMGMAX;
           dchoose[i] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
         }
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == YUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *h = domain->h;
         int ybox,zbox;
         for (i = 0; i < nlocal; i++) {
-          ybox = (image[i] >> 10 & 1023) - 512;
-          zbox = (image[i] >> 20) - 512;
+          ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+          zbox = (image[i] >> IMG2BITS) - IMGMAX;
           dchoose[i] = x[i][1] + h[1]*ybox + h[3]*zbox;
         }
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ZUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *h = domain->h;
         int zbox;
         for (i = 0; i < nlocal; i++) {
-          zbox = (image[i] >> 20) - 512;
+          zbox = (image[i] >> IMG2BITS) - IMGMAX;
           dchoose[i] = x[i][2] + h[2]*zbox;
         }
         ptr = dchoose;
@@ -594,85 +594,85 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == XSU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double boxxlo = domain->boxlo[0];
         double invxprd = 1.0/domain->xprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][0] - boxxlo) * invxprd + (image[i] & 1023) - 512;
+          dchoose[i] = (x[i][0] - boxxlo) * invxprd + (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == YSU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double boxylo = domain->boxlo[1];
         double invyprd = 1.0/domain->yprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] =
-            (x[i][1] - boxylo) * invyprd + (image[i] >> 10 & 1023) - 512;
+            (x[i][1] - boxylo) * invyprd + (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == ZSU) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double boxzlo = domain->boxlo[2];
         double invzprd = 1.0/domain->zprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][2] - boxzlo) * invzprd + (image[i] >> 20) - 512;
+          dchoose[i] = (x[i][2] - boxzlo) * invzprd + (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == XSUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = h_inv[0]*(x[i][0]-boxlo[0]) +
             h_inv[5]*(x[i][1]-boxlo[1]) +
             h_inv[4]*(x[i][2]-boxlo[2]) +
-            (image[i] & 1023) - 512;
+            (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == YSUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = h_inv[1]*(x[i][1]-boxlo[1]) +
             h_inv[3]*(x[i][2]-boxlo[2]) +
-            (image[i] >> 10 & 1023) - 512;
+            (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == ZSUTRI) {
         double **x = atom->x;
-        int *image = atom->image;
+        tagint *image = atom->image;
         double *boxlo = domain->boxlo;
         double *h_inv = domain->h_inv;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = h_inv[2]*(x[i][2]-boxlo[2]) +
-            (image[i] >> 20) - 512;
+            (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
       } else if (thresh_array[ithresh] == IX) {
-        int *image = atom->image;
+        tagint *image = atom->image;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (image[i] & 1023) - 512;
+          dchoose[i] = (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == IY) {
-        int *image = atom->image;
+        tagint *image = atom->image;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (image[i] >> 10 & 1023) - 512;
+          dchoose[i] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == IZ) {
-        int *image = atom->image;
+        tagint *image = atom->image;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (image[i] >> 20) - 512;
+          dchoose[i] = (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
@@ -1847,13 +1847,13 @@ void DumpCustom::pack_xu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double xprd = domain->xprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = x[j][0] + ((image[j] & 1023) - 512) * xprd;
+    buf[n] = x[j][0] + ((image[j] & IMGMASK) - IMGMAX) * xprd;
     n += size_one;
   }
 }
@@ -1864,13 +1864,13 @@ void DumpCustom::pack_yu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double yprd = domain->yprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = x[j][1] + ((image[j] >> 10 & 1023) - 512) * yprd;
+    buf[n] = x[j][1] + ((image[j] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
     n += size_one;
   }
 }
@@ -1881,13 +1881,13 @@ void DumpCustom::pack_zu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double zprd = domain->zprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = x[j][2] + ((image[j] >> 20) - 512) * zprd;
+    buf[n] = x[j][2] + ((image[j] >> IMG2BITS) - IMGMAX) * zprd;
     n += size_one;
   }
 }
@@ -1898,16 +1898,16 @@ void DumpCustom::pack_xu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *h = domain->h;
   int xbox,ybox,zbox;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    xbox = (image[j] & 1023) - 512;
-    ybox = (image[j] >> 10 & 1023) - 512;
-    zbox = (image[j] >> 20) - 512;
+    xbox = (image[j] & IMGMASK) - IMGMAX;
+    ybox = (image[j] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[j] >> IMG2BITS) - IMGMAX;
     buf[n] = x[j][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
     n += size_one;
   }
@@ -1919,15 +1919,15 @@ void DumpCustom::pack_yu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *h = domain->h;
   int ybox,zbox;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    ybox = (image[j] >> 10 & 1023) - 512;
-    zbox = (image[j] >> 20) - 512;
+    ybox = (image[j] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[j] >> IMG2BITS) - IMGMAX;
     buf[n] = x[j][1] + h[1]*ybox + h[3]*zbox;
     n += size_one;
   }
@@ -1939,14 +1939,14 @@ void DumpCustom::pack_zu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *h = domain->h;
   int zbox;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    zbox = (image[j] >> 20) - 512;
+    zbox = (image[j] >> IMG2BITS) - IMGMAX;
     buf[n] = x[j][2] + h[2]*zbox;
     n += size_one;
   }
@@ -1958,14 +1958,14 @@ void DumpCustom::pack_xsu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double boxxlo = domain->boxlo[0];
   double invxprd = 1.0/domain->xprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = (x[j][0] - boxxlo) * invxprd + (image[j] & 1023) - 512;
+    buf[n] = (x[j][0] - boxxlo) * invxprd + (image[j] & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -1976,14 +1976,14 @@ void DumpCustom::pack_ysu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double boxylo = domain->boxlo[1];
   double invyprd = 1.0/domain->yprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = (x[j][1] - boxylo) * invyprd + (image[j] >> 10 & 1023) - 512;
+    buf[n] = (x[j][1] - boxylo) * invyprd + (image[j] >> IMGBITS & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -1994,14 +1994,14 @@ void DumpCustom::pack_zsu(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double boxzlo = domain->boxlo[2];
   double invzprd = 1.0/domain->zprd;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = (x[j][2] - boxzlo) * invzprd + (image[j] >> 20) - 512;
+    buf[n] = (x[j][2] - boxzlo) * invzprd + (image[j] >> IMG2BITS) - IMGMAX;
     n += size_one;
   }
 }
@@ -2012,7 +2012,7 @@ void DumpCustom::pack_xsu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
@@ -2020,7 +2020,7 @@ void DumpCustom::pack_xsu_triclinic(int n)
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
     buf[n] = h_inv[0]*(x[j][0]-boxlo[0]) + h_inv[5]*(x[j][1]-boxlo[1]) +
-      h_inv[4]*(x[j][2]-boxlo[2]) + (image[j] & 1023) - 512;
+      h_inv[4]*(x[j][2]-boxlo[2]) + (image[j] & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -2031,7 +2031,7 @@ void DumpCustom::pack_ysu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
@@ -2039,7 +2039,7 @@ void DumpCustom::pack_ysu_triclinic(int n)
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
     buf[n] = h_inv[1]*(x[j][1]-boxlo[1]) + h_inv[3]*(x[j][2]-boxlo[2]) +
-      (image[j] >> 10 & 1023) - 512;
+      (image[j] >> IMGBITS & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -2050,14 +2050,14 @@ void DumpCustom::pack_zsu_triclinic(int n)
 {
   int j;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   double *boxlo = domain->boxlo;
   double *h_inv = domain->h_inv;
 
   for (int i = 0; i < nchoose; i++) {
     j = clist[i];
-    buf[n] = h_inv[2]*(x[j][2]-boxlo[2]) + (image[j] >> 20) - 512;
+    buf[n] = h_inv[2]*(x[j][2]-boxlo[2]) + (image[j] >> IMG2BITS) - IMGMAX;
     n += size_one;
   }
 }
@@ -2066,10 +2066,10 @@ void DumpCustom::pack_zsu_triclinic(int n)
 
 void DumpCustom::pack_ix(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[clist[i]] & 1023) - 512;
+    buf[n] = (image[clist[i]] & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -2078,10 +2078,10 @@ void DumpCustom::pack_ix(int n)
 
 void DumpCustom::pack_iy(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[clist[i]] >> 10 & 1023) - 512;
+    buf[n] = (image[clist[i]] >> IMGBITS & IMGMASK) - IMGMAX;
     n += size_one;
   }
 }
@@ -2090,10 +2090,10 @@ void DumpCustom::pack_iy(int n)
 
 void DumpCustom::pack_iz(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   for (int i = 0; i < nchoose; i++) {
-    buf[n] = (image[clist[i]] >> 20) - 512;
+    buf[n] = (image[clist[i]] >> IMG2BITS) - IMGMAX;
     n += size_one;
   }
 }

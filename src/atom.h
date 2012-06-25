@@ -44,7 +44,8 @@ class Atom : protected Pointers {
   // per-atom arrays
   // customize by adding new array
 
-  int *tag,*type,*mask,*image;
+  int *tag,*type,*mask;
+  tagint *image;
   double **x,**v,**f;
 
   int *molecule;

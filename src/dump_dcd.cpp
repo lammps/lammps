@@ -180,7 +180,7 @@ void DumpDCD::pack(int *ids)
 
   int *tag = atom->tag;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -195,9 +195,9 @@ void DumpDCD::pack(int *ids)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        int ix = (image[i] & 1023) - 512;
-        int iy = (image[i] >> 10 & 1023) - 512;
-        int iz = (image[i] >> 20) - 512;
+        int ix = (image[i] & IMGMASK) - IMGMAX;
+        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
         if (domain->triclinic) {
           buf[m++] = x[i][0] + ix * xprd + iy * xy + iz * xz;

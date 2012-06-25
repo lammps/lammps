@@ -4,8 +4,7 @@ SHELL = /bin/sh
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
-# generally no need to edit this section
-# unless additional compiler/linker flags or libraries needed for your machine
+# specify flags and libraries needed for your compiler
 
 CC =		g++
 CCFLAGS =	-O
@@ -25,7 +24,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_BIGBIG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

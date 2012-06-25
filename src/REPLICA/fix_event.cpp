@@ -81,7 +81,7 @@ int FixEvent::setmask()
 void FixEvent::store_event()
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
@@ -97,7 +97,7 @@ void FixEvent::store_event()
 void FixEvent::restore_event()
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
@@ -108,9 +108,10 @@ void FixEvent::restore_event()
     // Since xevent is unwrapped coordinate, need to
     // adjust image flags when remapping
 
-    image[i] = (512 << 20) | (512 << 10) | 512;
+    image[i] = ((tagint) IMGMAX << IMG2BITS) | 
+      ((tagint) IMGMASK << IMGBITS) | IMGMASK;
     domain->remap(x[i],image[i]);
-    //    domain->remap(x[i]);
+    // domain->remap(x[i]);
   }
 
 }
@@ -125,7 +126,7 @@ void FixEvent::store_state()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
@@ -148,7 +149,7 @@ void FixEvent::restore_state()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {

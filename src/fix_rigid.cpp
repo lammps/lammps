@@ -601,7 +601,7 @@ void FixRigid::setup(int vflag)
   // angmom = angular momentum of each rigid body
   // torque = torque on each rigid body
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
 
   double xprd = domain->xprd;
@@ -620,9 +620,9 @@ void FixRigid::setup(int vflag)
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -833,7 +833,7 @@ void FixRigid::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -860,9 +860,9 @@ void FixRigid::final_integrate()
     sum[ibody][1] += f[i][1];
     sum[ibody][2] += f[i][2];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -1021,7 +1021,7 @@ void FixRigid::final_integrate_respa(int ilevel, int iloop)
 
 void FixRigid::pre_neighbor()
 {
-  int original,oldimage,newimage;
+  tagint original,oldimage,newimage;
 
   for (int ibody = 0; ibody < nbody; ibody++) {
     original = imagebody[ibody];
@@ -1029,14 +1029,14 @@ void FixRigid::pre_neighbor()
 
     if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
     else {
-      oldimage = original & 1023;
-      newimage = imagebody[ibody] & 1023;
+      oldimage = original & IMGMASK;
+      newimage = imagebody[ibody] & IMGMASK;
       remapflag[ibody][0] = newimage - oldimage;
-      oldimage = (original >> 10) & 1023;
-      newimage = (imagebody[ibody] >> 10) & 1023;
+      oldimage = (original >> IMGBITS) & IMGMASK;
+      newimage = (imagebody[ibody] >> IMGBITS) & IMGMASK;
       remapflag[ibody][1] = newimage - oldimage;
-      oldimage = original >> 20;
-      newimage = imagebody[ibody] >> 20;
+      oldimage = original >> IMG2BITS;
+      newimage = imagebody[ibody] >> IMG2BITS;
       remapflag[ibody][2] = newimage - oldimage;
       remapflag[ibody][3] = 1;
     }
@@ -1044,10 +1044,11 @@ void FixRigid::pre_neighbor()
 
   // adjust image flags of any atom in a rigid body whose xcm was remapped
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  int ibody,idim,otherdims;
+  int ibody;
+  tagint idim,otherdims;
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] == -1) continue;
@@ -1055,25 +1056,25 @@ void FixRigid::pre_neighbor()
     ibody = body[i];
 
     if (remapflag[ibody][0]) {
-      idim = image[i] & 1023;
+      idim = image[i] & IMGMASK;
       otherdims = image[i] ^ idim;
       idim -= remapflag[ibody][0];
-      idim &= 1023;
+      idim &= IMGMASK;
       image[i] = otherdims | idim;
     }
     if (remapflag[ibody][1]) {
-      idim = (image[i] >> 10) & 1023;
-      otherdims = image[i] ^ (idim << 10);
+      idim = (image[i] >> IMGBITS) & IMGMASK;
+      otherdims = image[i] ^ (idim << IMGBITS);
       idim -= remapflag[ibody][1];
-      idim &= 1023;
-      image[i] = otherdims | (idim << 10);
+      idim &= IMGMASK;
+      image[i] = otherdims | (idim << IMGBITS);
     }
     if (remapflag[ibody][2]) {
-      idim = image[i] >> 20;
-      otherdims = image[i] ^ (idim << 20);
+      idim = image[i] >> IMG2BITS;
+      otherdims = image[i] ^ (idim << IMG2BITS);
       idim -= remapflag[ibody][2];
-      idim &= 1023;
-      image[i] = otherdims | (idim << 20);
+      idim &= IMGMASK;
+      image[i] = otherdims | (idim << IMG2BITS);
     }
   }
 }
@@ -1183,7 +1184,7 @@ void FixRigid::set_xv()
   double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1208,9 +1209,9 @@ void FixRigid::set_xv()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     // save old positions and velocities for virial
 
@@ -1367,7 +1368,7 @@ void FixRigid::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
@@ -1416,9 +1417,9 @@ void FixRigid::set_v()
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
       if (triclinic == 0) {
         x0 = x[i][0] + xbox*xprd;
@@ -1581,7 +1582,7 @@ void FixRigid::setup_bodies()
   // error if image flag is not 0 in a non-periodic dim
 
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   int *periodicity = domain->periodicity;
   double xprd = domain->xprd;
@@ -1600,9 +1601,9 @@ void FixRigid::setup_bodies()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
@@ -1650,7 +1651,8 @@ void FixRigid::setup_bodies()
   // then remap the xcm of each body back into simulation box if needed
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = (512 << 20) | (512 << 10) | 512;
+    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
+      ((tagint) IMGMASK << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -1667,9 +1669,9 @@ void FixRigid::setup_bodies()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -1822,9 +1824,9 @@ void FixRigid::setup_bodies()
 
     ibody = body[i];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -2287,7 +2289,7 @@ double FixRigid::compute_array(int i, int j)
   if (j < 6) return vcm[i][j-3];
   if (j < 9) return fcm[i][j-6];
   if (j < 12) return torque[i][j-9];
-  if (j == 12) return (imagebody[i] & 1023) - 512;
-  if (j == 13) return (imagebody[i] >> 10 & 1023) - 512;
-  return (imagebody[i] >> 20) - 512;
+  if (j == 12) return (imagebody[i] & IMGMASK) - IMGMAX;
+  if (j == 13) return (imagebody[i] >> IMGBITS & IMGMASK) - IMGMAX;
+  return (imagebody[i] >> IMG2BITS) - IMGMAX;
 }

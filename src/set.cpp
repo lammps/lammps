@@ -490,14 +490,15 @@ void Set::set(int keyword)
     // reset any or all of 3 image flags
 
     } else if (keyword == IMAGE) {
-      int xbox = (atom->image[i] & 1023) - 512;
-      int ybox = (atom->image[i] >> 10 & 1023) - 512;
-      int zbox = (atom->image[i] >> 20) - 512;
+      int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+      int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
       if (ximageflag) xbox = ximage;
       if (yimageflag) ybox = yimage;
       if (zimageflag) zbox = zimage;
-      atom->image[i] = ((zbox + 512 & 1023) << 20) |
-        ((ybox + 512 & 1023) << 10) | (xbox + 512 & 1023);
+      atom->image[i] = ((zbox + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
+        ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) | 
+        (xbox + IMGMAX & IMGMASK);
 
     // set dipole moment
 

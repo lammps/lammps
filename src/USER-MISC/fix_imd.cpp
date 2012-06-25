@@ -823,7 +823,7 @@ void FixIMD::post_force(int vflag)
 
   int *tag = atom->tag;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
   int *mask  = atom->mask;
   struct commdata *buf;
@@ -1036,9 +1036,9 @@ void FixIMD::post_force(int vflag)
         if (mask[i] & groupbit) {
           const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
           if (j != HASH_FAIL) {
-            int ix = (image[i] & 1023) - 512;
-            int iy = (image[i] >> 10 & 1023) - 512;
-            int iz = (image[i] >> 20) - 512;
+            int ix = (image[i] & IMGMASK) - IMGMAX;
+            int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+            int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
             if (domain->triclinic) {
               recvcoord[j]   = x[i][0] + ix * xprd + iy * xy + iz * xz;
@@ -1112,9 +1112,9 @@ void FixIMD::post_force(int vflag)
 
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
-          int ix = (image[i] & 1023) - 512;
-          int iy = (image[i] >> 10 & 1023) - 512;
-          int iz = (image[i] >> 20) - 512;
+          int ix = (image[i] & IMGMASK) - IMGMAX;
+          int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+          int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
           if (domain->triclinic) {
             buf[nme].tag = tag[i];

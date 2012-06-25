@@ -65,7 +65,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom arrays
   // customize by adding new array
 
-  tag = type = mask = image = NULL;
+  tag = type = mask = NULL;
+  image = NULL;
   x = v = f = NULL;
 
   molecule = NULL;
@@ -464,7 +465,9 @@ void Atom::tag_extend()
 
 int Atom::tag_consecutive()
 {
-  int idmin = MAXTAGINT;
+  // change this when allow tagint = bigint
+  //int idmin = MAXTAGINT;
+  int idmin = MAXSMALLINT;
   int idmax = 0;
 
   for (int i = 0; i < nlocal; i++) {
@@ -513,7 +516,8 @@ int Atom::count_words(const char *line)
 
 void Atom::data_atoms(int n, char *buf)
 {
-  int m,imagedata,xptr,iptr;
+  int m,xptr,iptr;
+  tagint imagedata;
   double xdata[3],lamda[3];
   double *coord;
   char *next;
@@ -593,10 +597,12 @@ void Atom::data_atoms(int n, char *buf)
     }
 
     if (imageflag)
-      imagedata = ((atoi(values[iptr+2]) + 512 & 1023) << 20) |
-        ((atoi(values[iptr+1]) + 512 & 1023) << 10) |
-        (atoi(values[iptr]) + 512 & 1023);
-    else imagedata = (512 << 20) | (512 << 10) | 512;
+      imagedata = 
+        (((tagint) atoi(values[iptr+2]) + IMGMAX & IMGMASK) << IMG2BITS) |
+        (((tagint) atoi(values[iptr+1]) + IMGMASK & IMGMASK) << IMGBITS) |
+        (atoi(values[iptr]) + IMGMASK & IMGMASK);
+    else imagedata = ((tagint) IMGMAX << IMG2BITS) | 
+           ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);

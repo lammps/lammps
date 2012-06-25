@@ -79,7 +79,7 @@ void ComputeGyration::compute_vector()
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -95,9 +95,9 @@ void ComputeGyration::compute_vector()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - xcm[0];
       dy = (x[i][1] + ybox*yprd) - xcm[1];
       dz = (x[i][2] + zbox*zprd) - xcm[2];

@@ -251,7 +251,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // xoriginal = initial unwrapped positions of atoms
 
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -870,7 +870,7 @@ void FixMove::copy_arrays(int i, int j)
 void FixMove::set_arrays(int i)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
 
   // particle not in group

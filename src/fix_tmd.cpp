@@ -93,7 +93,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
@@ -108,9 +108,9 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xf[i][0];
       dy = x[i][1] + ybox*yprd - xf[i][1];
       dz = x[i][2] + zbox*zprd - xf[i][2];
@@ -198,7 +198,7 @@ void FixTMD::initial_integrate(int vflag)
   double **v = atom->v;
   double **f = atom->f;
   double *mass = atom->mass;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -216,9 +216,9 @@ void FixTMD::initial_integrate(int vflag)
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xf[i][0];
       dy = x[i][1] + ybox*yprd - xf[i][1];
       dz = x[i][2] + zbox*zprd - xf[i][2];
@@ -258,9 +258,9 @@ void FixTMD::initial_integrate(int vflag)
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       xback = x[i][0] + xbox*xprd + gamma_back*dxold;
       yback = x[i][1] + ybox*yprd + gamma_back*dyold;
       zback = x[i][2] + zbox*zprd + gamma_back*dzold;
@@ -314,9 +314,9 @@ void FixTMD::initial_integrate(int vflag)
       x[i][2] += gamma_forward*dzold;
       v[i][2] += gamma_forward*dzold/dtv;
       f[i][2] += gamma_forward*dzold/dtv/dtfm;
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       xold[i][0] = x[i][0] + xbox*xprd;
       xold[i][1] = x[i][1] + ybox*yprd;
       xold[i][2] = x[i][2] + zbox*zprd;

@@ -1,11 +1,11 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -91,9 +91,15 @@ typedef int64_t bigint;
 #define ATOTAGINT atoi
 #define ATOBIGINT ATOLL
 
+#define IMGMASK 1023
+#define IMGMAX 512
+#define IMGBITS 10
+#define IMG2BITS 20
+
 #endif
 
 // for molecular problems that exceed 2 billion (2^31) atoms
+// or problems where atoms wrap around the periodic box more than 512 times
 // 32-bit smallint, 64-bit tagint and bigint
 
 #ifdef LAMMPS_BIGBIG
@@ -114,6 +120,11 @@ typedef int64_t bigint;
 
 #define ATOTAGINT ATOLL
 #define ATOBIGINT ATOLL
+
+#define IMGMASK 2097151
+#define IMGMAX 1048576
+#define IMGBITS 21
+#define IMG2BITS 42
 
 #endif
 
@@ -138,6 +149,11 @@ typedef int bigint;
 
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
+
+#define IMGMASK 1023
+#define IMGMAX 512
+#define IMGBITS 10
+#define IMG2BITS 20
 
 #endif
 

@@ -72,7 +72,6 @@ void ComputeGyration::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  double masstotal;
   double xcm[3];
   group->xcm(igroup,masstotal,xcm);
 

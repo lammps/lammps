@@ -163,9 +163,9 @@ PairBOP::~PairBOP()
   int i;
   if(allocated) {
     memory_theta_destroy();
-    if(otfly==0) 
-      memory->destroy(cos_index);
+    if (otfly==0) memory->destroy(cos_index);
     delete [] map;
+
     memory->destroy(BOP_index);
     memory->destroy(rcut);
     memory->destroy(dr);
@@ -300,51 +300,34 @@ void PairBOP::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-// BOP Neighbor lists must be updated every time
-// atoms are moved between processors
+  // BOP Neighbor lists must be updated every time
+  // atoms are moved between processors
 
-  if((ago ==0)||bop_step==0||(ago>=delay&&(ago%every)==0)||(nall>maxnall))
-    {
-      gneigh();
-    }
+  if ((ago ==0)||bop_step==0||(ago>=delay&&(ago%every)==0)||(nall>maxnall))
+    gneigh();
 
-// For non on the fly calculations cos and derivatives
-// are calculated in advance and stored
+  // For non on the fly calculations cos and derivatives
+  // are calculated in advance and stored
 
-  if(otfly==0) {
-    theta();
-  }
-  else {
-    theta_mod();
-  }
+  if(otfly==0) theta();
+  else theta_mod();
 
-// Calculate Sigma Bond-Order
+  // Calculate Sigma Bond-Order
 
   if(a_flag==1) { 
-    if(otfly==0) {
-      sigmaBo_noa();
-    }
-    else {
-      sigmaBo_noa_otf();
-    }
+    if (otfly==0) sigmaBo_noa();
+    else sigmaBo_noa_otf();
   }
   else {
-    if(otfly==0) {
-      sigmaBo();
-    }
-    else {
-      sigmaBo_otf();
-    }
+    if (otfly==0) sigmaBo();
+    else sigmaBo_otf();
   }
 
-// Calculate Pi Bond-Order
+  // Calculate Pi Bond-Order
 
-  if(otfly==0) {
-    PiBo();
-  }
-  else {
-    PiBo_otf();
-  }
+  if (otfly==0) PiBo();
+  else PiBo_otf();
+
   n=0; 
   totE=0;
   for (ii = 0; ii < inum; ii++) {
@@ -380,8 +363,8 @@ void PairBOP::compute(int eflag, int vflag)
             f[j][1]=f[j][1]-ftmp2;
             f[j][2]=f[j][2]-ftmp3;
 
-//add repulsive and bond order components to total energy 
-//(d) Eq.1
+            // add repulsive and bond order components to total energy 
+            // (d) Eq.1
 
             dE=-2.0*betaS[temp_ij]*sigB[n]-2.0*betaP[temp_ij]*piB[n];
             totE+=dE+repul[temp_ij];
@@ -440,8 +423,8 @@ void PairBOP::compute(int eflag, int vflag)
             f[j][1]=f[j][1]-ftmp2;
             f[j][2]=f[j][2]-ftmp3;
 
-//add repulsive and bond order components to total energy 
-//(d) Eq. 1 
+            // add repulsive and bond order components to total energy 
+            // (d) Eq. 1 
 
             dE=-2.0*betaS_ij*sigB[n]-2.0*betaP_ij*piB[n];
             totE+=dE+repul_ij;
@@ -457,8 +440,9 @@ void PairBOP::compute(int eflag, int vflag)
       }
     }
   }
+
   if (vflag_fdotr) virial_fdotr_compute();
-  bop_step=1;
+  bop_step = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -512,7 +496,28 @@ void PairBOP::allocate()
 
 void PairBOP::settings(int narg, char **arg)
 {
-  if(narg!=0) error->all (FLERR,"Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+
+  // NOTE: where is this used - didn't see it even read in your code
+  double cutoff = atof(arg[0]);
+
+  table = 0;
+  otfly = 1;
+  a_flag = 0;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"table") == 0) {
+      table = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"save") == 0) {
+      otfly = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"sigmaoff") == 0) {
+      a_flag = 1;
+      iarg++;
+    } else error->all(FLERR,"Illegal pair_style command");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -525,12 +530,18 @@ void PairBOP::coeff(int narg, char **arg)
   MPI_Comm_rank(world,&me);
   map = new int[atom->ntypes+1];
 
-//These are predefined for use when generating table
-//If tables are being read in they can be changed
- 
+  if (narg < 3 + atom->ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // ensure I,J args are * *
+
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // read the potential file
+
   nr=2000;
   nBOt=2000;
-  table=0;
   bop_step=0;
   nb_pi=0;
   nb_sg=0;
@@ -538,106 +549,58 @@ void PairBOP::coeff(int narg, char **arg)
   allocate_pi=0;
   allocate_neigh=0;
   update_list=0;
-  a_flag=0;
 
-  if (narg < 5 + atom->ntypes || narg > 7 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients first");
+  if (table == 0) read_file(arg[2]);
+  else read_table(arg[2]);
 
-// ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients second");
-
-  if (narg > 5 + atom->ntypes) {
-    if(strstr(arg[5+atom->ntypes],"table")!=NULL)
-      table=1;
-    else if(strstr(arg[5+atom->ntypes],"no_a")!=NULL)
-      a_flag=1;
-    else
-      error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-  if (narg > 6 + atom->ntypes) {
-    if(strstr(arg[6+atom->ntypes],"table")!=NULL)
-      table=1;
-    else if(strstr(arg[6+atom->ntypes],"no_a")!=NULL)
-      a_flag=1;
-    else
-      error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-  for(i=0;i<atom->ntypes;i++) {
-    if(strstr(arg[5+i],"table")!=NULL)
-      error->all(FLERR,"Incorrect args for pair coefficients");
-    if(strstr(arg[5+i],"no_a")!=NULL)
-      error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-
-  if(table==0) {
-    read_file(arg[2]);
-  }
-  else {
-    read_table(arg[2]);
-  }
-  if(me==0) { 
-    if(narg==5+atom->ntypes) {
-      for (i = 5; i < narg; i++) {
-        if (strcmp(arg[i],"NULL") == 0) {
-          map[i-4] = -1;
-          continue;
-        }   
-        for (j = 0; j < bop_types; j++)
-          if (strcmp(arg[i],words[j]) == 0) break;
-        map[i-4] = j;
-      }
-    }
-    else {
-      for (i = 5; i < 5+atom->ntypes; i++) {
-        if (strcmp(arg[i],"NULL") == 0) {
-          map[i-4] = -1;
-          continue;
-        } 
-        for (j = 0; j < bop_types; j++) {
-          if (strcmp(arg[i],words[j]) == 0) break;
-        }
-        map[i-4] = j;
-      }
-    }
-  }
-  MPI_Bcast(&map[0],atom->ntypes+1,MPI_INT,0,world);
-  if(strstr(arg[4],"off")!=NULL)
-    otfly=0;
-  else if(strstr(arg[4],"on")!=NULL)
-    otfly=1;
-  else
-    error->all(FLERR,"Incorrect args for BOP on the fly settings");
-
-// read potential file and initialize fitting splines
-
-  if(table==0) {
+  if (table == 0) {
     setPbetaS();
     setPbetaP();
     setPrepul();
     setSign();
   }
-  n = atom->ntypes;
-  for(int i = 1; i<=n; i++)
-    for(int j =i;j<=n;j++)
-      setflag[i][j] = 0;  
 
-  int count =0;
-  for( int i = 1;i<= n;i++)
-    for( int j = i; j <= n; j++) {
-      if (map[i] >= 0 && map[j] >= 0) {
-      setflag[i][j] = 1;
-      count++;
-      }
-    }
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients"); 
-  if(me==0) {
-    if (words) {
-      for (i = 0; i < bop_types; i++) delete [] words[i];
-      delete[] words;
+  // match elements to BOP word types
+
+  if (me == 0) { 
+    for (i = 3; i < narg; i++) {
+      if (strcmp(arg[i],"NULL") == 0) {
+        map[i-2] = -1;
+        continue;
+      }   
+      for (j = 0; j < bop_types; j++)
+        if (strcmp(arg[i],words[j]) == 0) break;
+      map[i-2] = j;
     }
   }
+
+  MPI_Bcast(&map[1],atom->ntypes,MPI_INT,0,world);
+
+  if (me == 0) {
+    if (words) {
+      for (i = 0; i < bop_types; i++) delete [] words[i];
+      delete [] words;
+    }
+  }
+
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
+
+  int count = 0;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        count++;
+      }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -651,13 +614,15 @@ void PairBOP::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style BOP requires newton pair on");
 
-// need a full neighbor list
+  // need a full neighbor list and neighbors of ghosts
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairBOP::init_one(int i, int j)
 {
@@ -745,6 +710,8 @@ void PairBOP::gneigh()
   }
   maxnall=nall;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::theta()
 {
@@ -889,6 +856,8 @@ void PairBOP::theta()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::theta_mod()
 {
   if(update_list!=0)
@@ -896,6 +865,8 @@ void PairBOP::theta_mod()
   else
     memory_theta_create();
 }
+
+/* ---------------------------------------------------------------------- */
 
 /*  The formulation differs slightly to avoid negative square roots
     in the calculation of Sigma^(1/2) of (a) Eq. 6 and (b) Eq. 11 */
@@ -2513,6 +2484,8 @@ void PairBOP::sigmaBo()
     destroy_sigma();
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::sigmaBo_noa()
 {
   int nb_t,new_n_tot;
@@ -3551,6 +3524,8 @@ void PairBOP::sigmaBo_noa()
   }
   destroy_sigma();
 }
+
+/* ---------------------------------------------------------------------- */
  
 /*  The formulation differs slightly to avoid negative square roots
     in the calculation of Theta_pi,ij of (a) Eq. 36 and (b) Eq. 18 */
@@ -5530,6 +5505,8 @@ void PairBOP::sigmaBo_otf()
   destroy_sigma();
 }
 
+/* ---------------------------------------------------------------------- */
+
 /*  The formulation differs slightly to avoid negative square roots
     in the calculation of Theta_pi,ij of (a) Eq. 36 and (b) Eq. 18 
     see (d) */
@@ -6821,6 +6798,8 @@ void PairBOP::sigmaBo_noa_otf()
   destroy_sigma();
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::PiBo()
 {
   int new_n_tot;
@@ -7616,6 +7595,8 @@ void PairBOP::PiBo()
   }
   destroy_pi();
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::PiBo_otf()
 {
@@ -8569,7 +8550,6 @@ void PairBOP::PiBo_otf()
   destroy_pi();
 }
  
- 
 /* ----------------------------------------------------------------------
    read BOP potential file
 ------------------------------------------------------------------------- */
@@ -8802,6 +8782,8 @@ void PairBOP::read_file(char *filename)
   MPI_Bcast(&dr[0],npairs,MPI_DOUBLE,0,world);
   MPI_Bcast(&rdr[0],npairs,MPI_DOUBLE,0,world);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::read_table(char *filename)
 {
@@ -9080,6 +9062,8 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&FsigBO6[0][0],npairs*nBOt,MPI_DOUBLE,0,world);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::setPbetaS()
 {
   int i,j,k;
@@ -9140,6 +9124,8 @@ void PairBOP::setPbetaS()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::setPbetaP()
 {
   int i,j,k;
@@ -9197,6 +9183,8 @@ void PairBOP::setPbetaP()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::setPrepul()
 {
@@ -9256,6 +9244,8 @@ void PairBOP::setPrepul()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 double PairBOP::betaSfunc(int i,double r)
 {
   double temp_value;
@@ -9271,6 +9261,8 @@ double PairBOP::betaSfunc(int i,double r)
     temp_value=sigma_beta0[i]/pow(r,sigma_n[i]);
   return(temp_value);
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairBOP::dBetaSfunc(int i,double r,double value,double dmore)
 {
@@ -9289,6 +9281,7 @@ double PairBOP::dBetaSfunc(int i,double r,double value,double dmore)
   return(temp_dvalue);
 }
 
+/* ---------------------------------------------------------------------- */
 
 double PairBOP::betaPfunc(int i,double r)
 {
@@ -9306,6 +9299,8 @@ double PairBOP::betaPfunc(int i,double r)
   return(temp_value);
 }
 
+/* ---------------------------------------------------------------------- */
+
 double PairBOP::dBetaPfunc(int i,double r,double value,double dmore)
 {
   double temp_dvalue;
@@ -9321,6 +9316,8 @@ double PairBOP::dBetaPfunc(int i,double r,double value,double dmore)
       temp_dvalue=-pi_n[i]*value/r;
   return(temp_dvalue);
 }
+
+/* ---------------------------------------------------------------------- */
 
 double PairBOP::repulfunc(int i,double r)
 {
@@ -9338,6 +9335,8 @@ double PairBOP::repulfunc(int i,double r)
   return(temp_value);
 } 
 
+/* ---------------------------------------------------------------------- */
+
 double PairBOP::dRepulfunc(int i,double r,double value,double dmore)
 {
   double temp_dvalue;
@@ -9353,6 +9352,8 @@ double PairBOP::dRepulfunc(int i,double r,double value,double dmore)
       temp_dvalue=-phi_m[i]*value/r;
   return(temp_dvalue);
 } 
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::setSign()
 {
@@ -9415,6 +9416,8 @@ void PairBOP::setSign()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 double PairBOP::cutoff(double rp,double vrcut,int mode,double r)
 {
   double tmp,tmp_beta,tmp_alpha,cut_store;
@@ -9432,7 +9435,6 @@ double PairBOP::cutoff(double rp,double vrcut,int mode,double r)
   }
   return(cut_store);
 }
-
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays 
@@ -9651,6 +9653,8 @@ double PairBOP::memory_usage()
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::memory_theta_create()
 {
   int nlocal,nghost,nall;
@@ -9686,6 +9690,8 @@ void PairBOP::memory_theta_create()
   }
   update_list=1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::memory_theta_grow()
 {
@@ -9723,6 +9729,8 @@ void PairBOP::memory_theta_grow()
   update_list=1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::memory_theta_destroy()
 {
 
@@ -9749,6 +9757,8 @@ void PairBOP::memory_theta_destroy()
  update_list=0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairBOP::create_pi(int n_tot)
 {
   bt_pi = (B_PI *) memory->smalloc(n_tot*sizeof(B_PI),"BOP:bt_pi");
@@ -9772,6 +9782,8 @@ void PairBOP::destroy_sigma()
   memory->destroy(bt_sg);
   allocate_sigma=0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::grow_pi(int n1, int n2)
 {
@@ -9812,6 +9824,8 @@ void PairBOP::grow_pi(int n1, int n2)
   }
   memory->destroy(bt_temp);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairBOP::grow_sigma(int n1,int n2)
 {

@@ -44,6 +44,7 @@ void Atom::map_init()
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&map_tag_max,1,MPI_INT,MPI_MAX,world);
 
+  memory->destroy(sametag);
   smax = nlocal + nghost + EXTRA;
   memory->create(sametag,smax,"atom:sametag");
 
@@ -243,8 +244,6 @@ void Atom::map_one(int global, int local)
 
 void Atom::map_delete()
 {
-  memory->destroy(sametag);
-
   if (map_style == 1) {
     if (map_tag_max) memory->destroy(map_array);
   } else {

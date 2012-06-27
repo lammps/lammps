@@ -5,8 +5,13 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
+
+   The this work follows the formulation from (a) D.G. Pettifor, et al., Mat.
+   Sci. and Eng. A365, 2-13, (2004) and (b) D.A. Murdick, et al., Phys.
+   Rev. B 73, 045206 (2006). (c) D.K. Ward, et al., Phys. Rev. B 85, 115206 
+   (2012)
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
@@ -214,3 +219,17 @@ class PairBOP : public Pair {
 
 #endif
 #endif
+
+/*   ERROR/WARNING messages:
+ 
+E: BOP: Too many Atom Pairs
+
+The number of atomic pairs exceeds the expected number.  Check 
+your atomic structure to ensure that it is realistic.  
+
+E: BOP: Too many Atom Triplets
+
+The number of three atom groups for angle determinations 
+exceeds the expected number.  Check your atomic structrure
+to ensure that it is realistic.
+*/

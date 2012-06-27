@@ -44,6 +44,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   group_group_enable = 1;
+  group_allocate_flag = 0;
 
   accuracy_relative = atof(arg[0]);
 
@@ -67,7 +68,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 Ewald::~Ewald()
 {
   deallocate();
-  deallocate_groups();
+  if (group_allocate_flag) deallocate_groups();
   memory->destroy(ek);
   memory->destroy3d_offset(cs,-kmax_created);
   memory->destroy3d_offset(sn,-kmax_created);

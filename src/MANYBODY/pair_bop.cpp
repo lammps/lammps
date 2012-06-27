@@ -44,16 +44,17 @@
 #include "force.h"
 #include "timer.h"
 #include "comm.h"
+#include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
+#define EPSILON 1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
@@ -338,7 +339,7 @@ void PairBOP::compute(int eflag, int vflag)
     for(jj=0;jj<numneigh[i];jj++) {
       temp_ij=BOP_index[i]+jj;
       if(temp_ij>=neigh_total) {
-        printf("temp_ij is too big %7d\n",temp_ij);
+        printf("BOP: temp_ij is too big %7d",temp_ij);
         exit(1);
       }
       j=iilist[jj];
@@ -347,7 +348,7 @@ void PairBOP::compute(int eflag, int vflag)
       if(j_tag>=i_tag) {
         if(otfly==0) {
           if(n>=neigh_total) {
-            printf("n is too big %7d\n",n);
+            printf("BOP: n is too big %7d",n);
             exit(1);
           }
           if(neigh_flag[temp_ij]) {
@@ -496,16 +497,11 @@ void PairBOP::allocate()
 
 void PairBOP::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
-
-  // NOTE: where is this used - didn't see it even read in your code
-  double cutoff = atof(arg[0]);
-
   table = 0;
   otfly = 1;
   a_flag = 0;
 
-  int iarg = 1;
+  int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"table") == 0) {
       table = 1;
@@ -560,7 +556,7 @@ void PairBOP::coeff(int narg, char **arg)
     setSign();
   }
 
-  // match elements to BOP word types
+  // match element names to BOP word types
 
   if (me == 0) { 
     for (i = 3; i < narg; i++) {
@@ -614,6 +610,15 @@ void PairBOP::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style BOP requires newton pair on");
 
+  // check that user sets comm->cutghostuser to 3x the max BOP cutoff
+
+  if (comm->cutghostuser < 3.0*cutmax - EPSILON) {
+    char str[128];
+    sprintf(str,"Pair style bop requires comm ghost cutoff "
+            "at least 3x larger than %g",cutmax);
+    error->all(FLERR,str);
+  }
+
   // need a full neighbor list and neighbors of ghosts
 
   int irequest = neighbor->request(this);
@@ -626,19 +631,15 @@ void PairBOP::init_style()
 
 double PairBOP::init_one(int i, int j)
 {
-  int ij;
-  
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   int ii = map[i]+1;
   int jj = map[j]+1;
  
-  if(ii==jj)
-    ij=ii-1;
-  else if(ii<jj)
-    ij=ii*bop_types-ii*(ii+1)/2+jj-1;
-  else
-    ij=jj*bop_types-jj*(jj+1)/2+ii-1;
+  int ij;
+  if (ii==jj) ij=ii-1;
+  else if (ii<jj) ij=ii*bop_types-ii*(ii+1)/2+jj-1;
+  else ij=jj*bop_types-jj*(jj+1)/2+ii-1;
     
   cutghost[i][j] = rcut[ij];
   cutghost[j][i] = cutghost[i][j];
@@ -664,15 +665,12 @@ void PairBOP::gneigh()
 
   if(allocate_neigh==0) {
     memory->create (BOP_index,nall,"BOP_index");
-    if(otfly==0)
-      memory->create (cos_index,nall,"cos_index");
+    if (otfly==0) memory->create (cos_index,nall,"cos_index");
     allocate_neigh=1;
   }
   else {
     memory->grow (BOP_index,nall,"BOP_index");
-    if(otfly==0) {
-      memory->grow (cos_index,nall,"cos_index");
-    }
+    if (otfly==0) memory->grow (cos_index,nall,"cos_index");
     allocate_neigh=1;
   }
   ilist = list->ilist;
@@ -687,18 +685,14 @@ void PairBOP::gneigh()
   for (ii = 0; ii < nall; ii++) {
     if(i<nlocal) {
       i=ilist[ii];
-      if(numneigh[i]>maxneigh) {
-        maxneigh=numneigh[i];
-      }
+      if(numneigh[i]>maxneigh) maxneigh=numneigh[i];
     }
     else {
       i=ii;
-      if(numneigh[i]>maxneigh) {
-        maxneigh=numneigh[i];
-      }
+      if(numneigh[i]>maxneigh) maxneigh=numneigh[i];
     }
     if(i>=nall) {
-      printf("BOP 1:MAJOR ERROR in atom numbers\n");
+      printf("BOP: major error in atom numbers");
       exit(1);
     } 
     BOP_index[i]=neigh_total;
@@ -748,7 +742,7 @@ void PairBOP::theta()
       j=iilist[jj];
       temp_ij=BOP_index[i]+jj;
       if(temp_ij>=neigh_total) {
-        printf("BOP 2:ij neighbor error \n");
+        printf("BOP: ij neighbor error");
         exit(1);
       }
       jtype = map[type[j]]+1;
@@ -760,7 +754,7 @@ void PairBOP::theta()
       else
         i12=jtype*bop_types-jtype*(jtype+1)/2+itype-1;
       if(i12>=npairs) {
-        printf("incorrect npairs allocated %7d \n",i12);
+        printf("BOP: incorrect npairs allocated %7d",i12);
         exit(1);
       }
       disij[0][temp_ij]=x[j][0]-x[i][0]; 
@@ -807,23 +801,23 @@ void PairBOP::theta()
       j=iilist[jj];
       temp_ij=BOP_index[i]+jj;
       if(temp_ij>=neigh_total) {
-        printf("BOP 3:ij neighbor error \n");
+        printf("BOP: ij neighbor error");
         exit(1);
       }
       rj2=rij[temp_ij]*rij[temp_ij];
       for(kk=jj+1;kk<numneigh[i];kk++) {
         if(cos_index[i]+n>=cos_total) {
-          printf("BOP 4:too large \n");
+          printf("BOP: too large");
           exit(1);
         }
         temp_ik=BOP_index[i]+kk;
         if(temp_ik>=neigh_total) {
-          printf("BOP 5:ik neighbor error \n");
+          printf("BOP: i k neighbor error");
           exit(1);
         }
         temp_ijk=cos_index[i]+n; 
         if(temp_ijk>=cos_total) {
-          printf("BOP 6:ijk neighbor error \n");
+          printf("BOP: ijk neighbor error");
           exit(1);
         }
         rk2=rij[temp_ik]*rij[temp_ik];
@@ -833,7 +827,7 @@ void PairBOP::theta()
         rj1k2=rj1k1*rij[temp_ik];
         k=iilist[kk];
         if(temp_ijk>=cos_total) {
-          printf("11 error in cos %7d\n",temp_ijk);
+          printf("BOP: 11 error in cos %7d",temp_ijk);
           exit(1);
         }
         cosAng[temp_ijk]=(disij[0][temp_ij]*disij[0][temp_ik]+disij[1][temp_ij]
@@ -989,7 +983,8 @@ void PairBOP::sigmaBo()
             if(x[jlist[ki]][1]==x[i][1]) {
               if(x[jlist[ki]][2]==x[i][2]) {
                 if(!neigh_flag[temp_ki]) {
-                  printf("BOP 7:error 1 flag %7d temp %7d %7d\n",neigh_flag[temp_ki],temp_ki,temp_ij);
+                  printf("BOP: error 1 flag %7d temp %7d %7d",
+                         neigh_flag[temp_ki],temp_ki,temp_ij);
                   exit(1);
                 }
                 break;
@@ -1011,7 +1006,7 @@ void PairBOP::sigmaBo()
         bt_sg[nb_ij].j=j;
         if(j_tag>=i_tag) {
           if(n>=neigh_total) {
-            printf("BOP 9:n is too large \n");
+            printf("BOP: n is too large");
             exit(1);
           }
           if(itype==jtype)
@@ -1084,7 +1079,8 @@ void PairBOP::sigmaBo()
                     if(x[klist[kNeii]][1]==x[i][1]) {
                       if(x[klist[kNeii]][2]==x[i][2]) {
                         if(!neigh_flag[temp_ki]) {
-                          printf("BOP 8:error 2 flag %7d temp %7d %7d\n",neigh_flag[temp_ki],temp_ki,temp_ij);
+                          printf("BOP: error 2 flag %7d temp %7d %7d",
+                                 neigh_flag[temp_ki],temp_ki,temp_ij);
                           exit(1);
                         }
                         break;
@@ -1119,7 +1115,7 @@ void PairBOP::sigmaBo()
                 }
                 sig_flag=0;
                 if(nSigBk[n]>neigh_ct) {
-                  printf("1 too big nSigBk\n");
+                  printf("BOP: 1 too big nSigBk");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -1138,7 +1134,7 @@ void PairBOP::sigmaBo()
                   nSigBk[n]=nSigBk[n]+1;
                   nk0=nSigBk[n]-1;
                   if(nk0>=neigh_ct) {
-                    printf("2 too big nSigBk\n");
+                    printf("BOP: 2 too big nSigBk");
                     exit(1);
                   }
                   itypeSigBk[n][nk0]=k;
@@ -1347,7 +1343,7 @@ void PairBOP::sigmaBo()
                       kp=iilist[ltmp];
                       kptype = map[type[kp]]+1;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("3 too big nSigBk\n");
+                        printf("BOP: 3 too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -1500,7 +1496,7 @@ void PairBOP::sigmaBo()
                       }
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("4 too big nSigBk\n");
+                        printf("BOP: 4 too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -1519,7 +1515,7 @@ void PairBOP::sigmaBo()
                         nSigBk[n]=nSigBk[n]+1;
                         nkp=nSigBk[n]-1;
                         if(nkp>=neigh_ct) {
-                          printf("5 too big nSigBk\n");
+                          printf("BOP: 5 too big nSigBk");
                           exit(1);
                         }
                         itypeSigBk[n][nkp]=kp;
@@ -1685,7 +1681,7 @@ void PairBOP::sigmaBo()
                         }
                         sig_flag=0;
                         if(nSigBk[n]>neigh_ct) {
-                          printf("6 too big nSigBk\n");
+                          printf("BOP: 6 too big nSigBk");
                           exit(1);
                         }
                         for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -1704,7 +1700,7 @@ void PairBOP::sigmaBo()
                           nSigBk[n]=nSigBk[n]+1;
                           nkp=nSigBk[n]-1;
                           if(nkp>=neigh_ct) {
-                            printf("7 too big nSigBk\n");
+                            printf("BOP: 7 too big nSigBk");
                             exit(1);
                           }
                           itypeSigBk[n][nkp]=kp;
@@ -1865,7 +1861,7 @@ void PairBOP::sigmaBo()
                 }
                 sig_flag=0;
                 if(nSigBk[n]>neigh_ct) {
-                  printf("8 too big nSigBk\n");
+                  printf("BOP: 8 too big nSigBk");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -1884,7 +1880,7 @@ void PairBOP::sigmaBo()
                   nSigBk[n]=nSigBk[n]+1;
                   new1=nSigBk[n]-1;
                   if(new1>=neigh_ct) {
-                    printf("9 too big nSigBk\n");
+                    printf("BOP: 9 too big nSigBk");
                     exit(1);
                   }
                   itypeSigBk[n][new1]=k;
@@ -1963,7 +1959,7 @@ void PairBOP::sigmaBo()
                       kp=jlist[ltmp];
                       kptype=map[type[kp]]+1;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("10 too big nSigBk\n");
+                        printf("BOP: 10 too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -2117,7 +2113,7 @@ void PairBOP::sigmaBo()
                       }
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("11 too big nSigBk\n");
+                        printf("BOP: 11 too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -2136,7 +2132,7 @@ void PairBOP::sigmaBo()
                         nSigBk[n]=nSigBk[n]+1;
                         new2=nSigBk[n]-1;
                         if(new2>=neigh_ct) {
-                          printf("12 too big nSigBk\n");
+                          printf("BOP: 12 too big nSigBk");
                           exit(1);
                         }
                         itypeSigBk[n][new2]=kp;
@@ -2586,8 +2582,8 @@ void PairBOP::sigmaBo_noa()
             if(x[jlist[ki]][1]==x[i][1]) {
               if(x[jlist[ki]][2]==x[i][2]) {
                 if(!neigh_flag[temp_ki]) {
-                  printf("BOP 10:error 1 flag %7d temp %7d %7d\n",neigh_flag[temp_ki],temp_ki,temp_ij)
-;
+                  printf("BOP: error 1 flag %7d temp %7d %7d",
+                         neigh_flag[temp_ki],temp_ki,temp_ij);
                   exit(1);
                 }
                 break;
@@ -2609,7 +2605,7 @@ void PairBOP::sigmaBo_noa()
         bt_sg[nb_ij].j=j;
         if(j_tag>=i_tag) {
           if(n>=neigh_total) {
-            printf("BOP 12:n is too large \n");
+            printf("BOP: n is too large");
             exit(1);
           }
           if(itype==jtype)
@@ -2680,7 +2676,8 @@ void PairBOP::sigmaBo_noa()
                     if(x[klist[kNeii]][1]==x[i][1]) {
                       if(x[klist[kNeii]][2]==x[i][2]) {
                         if(!neigh_flag[temp_ki]) {
-                          printf("BOP 11:error 2 flag %7d temp %7d %7d\n",neigh_flag[temp_ki],temp_ki,temp_ij);
+                          printf("BOP: error 2 flag %7d temp %7d %7d",
+                                 neigh_flag[temp_ki],temp_ki,temp_ij);
                           exit(1);
                         }
                         break;
@@ -2715,7 +2712,7 @@ void PairBOP::sigmaBo_noa()
                 }
                 sig_flag=0;
                 if(nSigBk[n]>neigh_ct) {
-                  printf("13 too big nSigBk\n");
+                  printf("BOP: 13 too big nSigBk");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -2734,7 +2731,7 @@ void PairBOP::sigmaBo_noa()
                   nSigBk[n]=nSigBk[n]+1;
                   nk0=nSigBk[n]-1;
                   if(nk0>=neigh_ct) {
-                    printf("14 too big nSigBk\n");
+                    printf("BOP: 14 too big nSigBk");
                     exit(1);
                   }
                   itypeSigBk[n][nk0]=k;
@@ -2761,7 +2758,7 @@ void PairBOP::sigmaBo_noa()
                 bt_sg[nb_jk].j=k;
                 ang_jik=cos_index[i]+njik;
                 if(ang_jik>=cos_total) {
-                  printf("1 error in cos %7d\n",ang_jik);
+                  printf("BOP: error in cos %7d",ang_jik);
                   exit(1);
                 }
                 gmean0=sigma_g0[jtype-1][itype-1][ktype-1];
@@ -2854,7 +2851,7 @@ void PairBOP::sigmaBo_noa()
                   }
                   ang_ijk=cos_index[j]+nijk;
                   if(ang_ijk>=cos_total) {
-                    printf("2 error in cos %7d\n",ang_ijk);
+                    printf("BOP: error in cos %7d",ang_ijk);
                     exit(1);
                   }
                   gmean0=sigma_g0[itype-1][jtype-1][ktype-1];
@@ -2869,7 +2866,7 @@ void PairBOP::sigmaBo_noa()
                   gmean2=sigma_g2[itype-1][ktype-1][jtype-1];
                   ang_ikj=cos_index[k]+nikj;
                   if(ang_ikj>=cos_total) {
-                    printf("3 error in cos %7d\n",ang_ikj);
+                    printf("BOP: error in cos %7d",ang_ikj);
                     exit(1);
                   }
                   amean=cosAng[ang_ikj];
@@ -2937,7 +2934,7 @@ void PairBOP::sigmaBo_noa()
                       kp=iilist[ltmp];
                       kptype = map[type[kp]]+1;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("15 too big nSigBk\n");
+                        printf("BOP: too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -2968,7 +2965,7 @@ void PairBOP::sigmaBo_noa()
                       }
                       ang_jikp=cos_index[i]+njikp;
                       if(ang_jikp>=cos_total) {
-                        printf("4 error in cos %7d\n",ang_jikp);
+                        printf("BOP: error in cos %7d",ang_jikp);
                         exit(1);
                       }
                       gmean0=sigma_g0[jtype-1][itype-1][kptype-1];
@@ -2983,7 +2980,7 @@ void PairBOP::sigmaBo_noa()
                       gmean2=sigma_g2[ktype-1][itype-1][kptype-1];
                       ang_kikp=cos_index[i]+nkikp;
                       if(ang_kikp>=cos_total) {
-                        printf("5 error in cos %7d\n",ang_kikp);
+                        printf("BOP: error in cos %7d",ang_kikp);
                         exit(1);
                       }
                       amean=cosAng[ang_kikp];
@@ -3035,7 +3032,7 @@ void PairBOP::sigmaBo_noa()
                       }
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("16 too big nSigBk\n");
+                        printf("BOP: too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -3054,14 +3051,14 @@ void PairBOP::sigmaBo_noa()
                         nSigBk[n]=nSigBk[n]+1;
                         nkp=nSigBk[n]-1;
                         if(nkp>=neigh_ct) {
-                          printf("17 too big nSigBk\n");
+                          printf("BOP: too big nSigBk");
                           exit(1);
                         }
                         itypeSigBk[n][nkp]=kp;
                       }
                       ang_ikkp=cos_index[k]+nikkp;
                       if(ang_ikkp>=cos_total) {
-                        printf("6 error in cos %7d\n",ang_ikkp);
+                        printf("BOP: error in cos %7d",ang_ikkp);
                         exit(1);
                       }
                       gmean0=sigma_g0[itype-1][ktype-1][kptype-1];          
@@ -3119,7 +3116,7 @@ void PairBOP::sigmaBo_noa()
                 }
                 sig_flag=0;
                 if(nSigBk[n]>neigh_ct) {
-                  printf("18 too big nSigBk\n");
+                  printf("BOP: too big nSigBk");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -3138,14 +3135,14 @@ void PairBOP::sigmaBo_noa()
                   nSigBk[n]=nSigBk[n]+1;
                   new1=nSigBk[n]-1;
                   if(new1>=neigh_ct) {
-                    printf("19 too big nSigBk\n");
+                    printf("BOP: too big nSigBk");
                     exit(1);
                   }
                   itypeSigBk[n][new1]=k;
                 }
                 ang_ijk=cos_index[j]+njik;
                 if(ang_ijk>=cos_total) {
-                  printf("7 error in cos %7d\n",ang_ijk);
+                  printf("BOP: error in cos %7d",ang_ijk);
                   exit(1);
                 }
                 nb_jk=nb_t;
@@ -3205,7 +3202,7 @@ void PairBOP::sigmaBo_noa()
                       kp=jlist[ltmp];
                       kptype=map[type[kp]]+1;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("20 too big nSigBk\n");
+                        printf("BOP: too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -3239,12 +3236,12 @@ void PairBOP::sigmaBo_noa()
                       }
                       ang_ijkp=cos_index[j]+nijkp;
                       if(ang_ijkp>=cos_total) {
-                        printf("8 error in cos %7d\n",ang_ijkp);
+                        printf("BOP: error in cos %7d",ang_ijkp);
                         exit(1);
                       }
                       ang_kjkp=cos_index[j]+nkjkp;
                       if(ang_kjkp>=cos_total) {
-                        printf("9 error in cos %7d\n",ang_kjkp);
+                        printf("BOP: error in cos %7d",ang_kjkp);
                         exit(1);
                       }
                       gmean0=sigma_g0[itype-1][jtype-1][kptype-1];
@@ -3316,7 +3313,7 @@ void PairBOP::sigmaBo_noa()
                       }
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("21 too big nSigBk\n");
+                        printf("BOP: too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -3335,14 +3332,14 @@ void PairBOP::sigmaBo_noa()
                         nSigBk[n]=nSigBk[n]+1;
                         new2=nSigBk[n]-1;
                         if(new2>=neigh_ct) {
-                          printf("22 too big nSigBk %7d %7d\n",new2,neigh_ct);
+                          printf("BOP: too big nSigBk %7d %7d",new2,neigh_ct);
                           exit(1);
                         }
                         itypeSigBk[n][new2]=kp;
                       }
                       ang_jkkp=cos_index[k]+njkkp;
                       if(ang_jkkp>=cos_total) {
-                        printf("10 error in cos %7d\n",ang_jkkp);
+                        printf("BOP: error in cos %7d",ang_jkkp);
                         exit(1);
                       }
                       gmean0=sigma_g0[jtype-1][ktype-1][kptype-1];
@@ -3633,7 +3630,7 @@ void PairBOP::sigmaBo_otf()
 //j is loop over all neighbors of i
 
     if(numneigh[i]>maxneigh) {
-      printf("split neighbor error!\n");
+      printf("BOP: split neighbor error!");
       exit(1);
     } 
     for(jtmp=0;jtmp<numneigh[i];jtmp++) {
@@ -3680,7 +3677,7 @@ void PairBOP::sigmaBo_otf()
       bt_sg[nb_ij].j=j;
       if(j_tag>=i_tag) {
         if(n>=neigh_total) {
-          printf("BOP 16:n is too large \n");
+          printf("BOP: n is too large");
           exit(1);
         }
         if(itype==jtype)
@@ -3833,7 +3830,7 @@ void PairBOP::sigmaBo_otf()
 
                 sig_flag=0;
                 if(nSigBk[n]>neigh_ct) {
-                  printf("23 too big nSigBk\n");
+                  printf("BOP: too big nSigBk");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -3852,7 +3849,7 @@ void PairBOP::sigmaBo_otf()
                   nSigBk[n]=nSigBk[n]+1;
                   nk0=nSigBk[n]-1;
                   if(nk0>=neigh_ct) {
-                    printf("24 too big nSigBk\n");
+                    printf("BOP: too big nSigBk");
                     exit(1);
                   }
                   itypeSigBk[n][nk0]=k;
@@ -4121,7 +4118,7 @@ void PairBOP::sigmaBo_otf()
                     else
                       iikp=kptype*bop_types-kptype*(kptype+1)/2+itype-1;
                     if(nSigBk[n]>neigh_ct) {
-                      printf("25 too big nSigBk\n");
+                      printf("BOP: too big nSigBk");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -4321,7 +4318,7 @@ void PairBOP::sigmaBo_otf()
                           +pBetaP4[ikkp][ks-1];
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("26 too big nSigBk\n");
+                        printf("BOP: too big nSigBk");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -4340,7 +4337,7 @@ void PairBOP::sigmaBo_otf()
                         nSigBk[n]=nSigBk[n]+1;
                         nkp=nSigBk[n]-1;
                         if(nkp>=neigh_ct) {
-                          printf("27 too big nSigBk\n");
+                          printf("BOP: too big nSigBk");
                           exit(1);
                         }
                         itypeSigBk[n][nkp]=kp;
@@ -4599,7 +4596,7 @@ void PairBOP::sigmaBo_otf()
                           *-dis_kkp[2]*r_jkp*r_jkp)/(r_jkp*r_jkp*r_kkp*r_kkp);
                       sig_flag=0;
                       if(nSigBk[n]>neigh_ct) {
-                        printf("BOP 13:6 itypeSigBk error exit \n");
+                        printf("BOP: itypeSigBk error exit");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -4618,7 +4615,7 @@ void PairBOP::sigmaBo_otf()
                         nSigBk[n]=nSigBk[n]+1;
                         nkp=nSigBk[n]-1;
                         if((nkp>=neigh_ct)) {
-                          printf("BOP 14:7 itypeSigBk error exit \n");
+                          printf("BOP: itypeSigBk error exit");
                           exit(1);
                         }
                         itypeSigBk[n][nkp]=kp;
@@ -4770,7 +4767,7 @@ void PairBOP::sigmaBo_otf()
                 ijk=ktype*bop_types-ktype*(ktype+1)/2+jtype-1;
               sig_flag=0;
               if((nSigBk[n]>neigh_ct)) {
-                printf("BOP 14:7 itypeSigBk error exit \n");
+                printf("BOP 14:7 itypeSigBk error exit");
                 exit(1);
               }
               for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -4789,7 +4786,7 @@ void PairBOP::sigmaBo_otf()
                 nSigBk[n]=nSigBk[n]+1;
                 new1=nSigBk[n]-1;
                 if((new1>=neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 itypeSigBk[n][new1]=k;
@@ -4911,7 +4908,7 @@ void PairBOP::sigmaBo_otf()
                     else
                       ijkp=kptype*bop_types-kptype*(kptype+1)/2+jtype-1;
                     if((nSigBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -5100,7 +5097,7 @@ void PairBOP::sigmaBo_otf()
                     }
                     sig_flag=0;
                     if((nSigBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -5119,7 +5116,7 @@ void PairBOP::sigmaBo_otf()
                       nSigBk[n]=nSigBk[n]+1;
                       new2=nSigBk[n]-1;
                       if((new2>=neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       itypeSigBk[n][new2]=kp;
@@ -5612,7 +5609,7 @@ void PairBOP::sigmaBo_noa_otf()
 //j is loop over all neighbors of i
  
     if(numneigh[i]>maxneigh) {
-      printf("split neighbor error!\n");
+      printf("split neighbor error!");
       exit(1);
     } 
     for(jtmp=0;jtmp<numneigh[i];jtmp++) {
@@ -5648,7 +5645,7 @@ void PairBOP::sigmaBo_noa_otf()
       bt_sg[nb_ij].j=j;
       if(j_tag>=i_tag) {
         if(n>=neigh_total) {
-          printf("BOP 16:n is too large \n");
+          printf("BOP 16:n is too large");
           exit(1);
         }
         if(itype==jtype)
@@ -5802,7 +5799,7 @@ void PairBOP::sigmaBo_noa_otf()
  
                 sig_flag=0;
                 if((nSigBk[n]>neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -5821,7 +5818,7 @@ void PairBOP::sigmaBo_noa_otf()
                   nSigBk[n]=nSigBk[n]+1;
                   nk0=nSigBk[n]-1;
                   if((nk0>=neigh_ct)) {
-                    printf("BOP 14:7 itypeSigBk error exit \n");
+                    printf("BOP 14:7 itypeSigBk error exit");
                     exit(1);
                   }
                   itypeSigBk[n][nk0]=k;
@@ -6073,7 +6070,7 @@ void PairBOP::sigmaBo_noa_otf()
                     else
                       iikp=kptype*bop_types-kptype*(kptype+1)/2+itype-1;
                     if((nSigBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -6192,7 +6189,7 @@ void PairBOP::sigmaBo_noa_otf()
                           +pBetaP4[ikkp][ks-1];
                       sig_flag=0;
                       if((nSigBk[n]>neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -6211,7 +6208,7 @@ void PairBOP::sigmaBo_noa_otf()
                         nSigBk[n]=nSigBk[n]+1;
                         nkp=nSigBk[n]-1;
                         if((nkp>=neigh_ct)) {
-                          printf("BOP 14:7 itypeSigBk error exit \n");
+                          printf("BOP 14:7 itypeSigBk error exit");
                           exit(1);
                         }
                         itypeSigBk[n][nkp]=kp;
@@ -6267,7 +6264,7 @@ void PairBOP::sigmaBo_noa_otf()
                 ijk=ktype*bop_types-ktype*(ktype+1)/2+jtype-1;
               sig_flag=0;
               if((nSigBk[n]>neigh_ct)) {
-                printf("BOP 14:7 itypeSigBk error exit \n");
+                printf("BOP 14:7 itypeSigBk error exit");
                 exit(1);
               }
               for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -6286,7 +6283,7 @@ void PairBOP::sigmaBo_noa_otf()
                 nSigBk[n]=nSigBk[n]+1;
                 new1=nSigBk[n]-1;
                 if((new1>neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 itypeSigBk[n][new1]=k;
@@ -6391,7 +6388,7 @@ void PairBOP::sigmaBo_noa_otf()
                     else
                       ijkp=kptype*bop_types-kptype*(kptype+1)/2+jtype-1;
                     if((nSigBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -6532,7 +6529,7 @@ void PairBOP::sigmaBo_noa_otf()
                     }
                     sig_flag=0;
                     if((nSigBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nSigBk[n];nsearch++) {
@@ -6551,7 +6548,7 @@ void PairBOP::sigmaBo_noa_otf()
                       nSigBk[n]=nSigBk[n]+1;
                       new2=nSigBk[n]-1;
                       if((new2>=neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       itypeSigBk[n][new2]=kp;
@@ -6870,7 +6867,7 @@ void PairBOP::PiBo()
     for(jtmp=0;jtmp<numneigh[i];jtmp++) {
       temp_ij=BOP_index[i]+jtmp;
       if(temp_ij>=neigh_total) {
-        printf("neigh_total too big %7d\n",temp_ij);
+        printf("neigh_total too big %7d",temp_ij);
         exit(1);
       }
       if(neigh_flag[temp_ij]) {
@@ -6903,7 +6900,7 @@ void PairBOP::PiBo()
         bt_pi[nb_ij].temp=temp_ij;
         if(j_tag>=i_tag) {
           if(n>=neigh_total) {
-            printf("BOP 16:n is too large \n");
+            printf("BOP 16:n is too large");
             exit(1);
           }
           if(itype==jtype)
@@ -6918,14 +6915,14 @@ void PairBOP::PiBo()
           for(ji=0;ji<numneigh[j];ji++) {
             temp_ji=BOP_index[j]+ji;
             if(temp_ji>=neigh_total) {
-              printf("neigh_total too big %7d\n",temp_ji);
+              printf("neigh_total too big %7d",temp_ji);
               exit(1);
             }
             if(x[jlist[ji]][0]==x[i][0]) {
               if(x[jlist[ji]][1]==x[i][1]) {
                 if(x[jlist[ji]][2]==x[i][2]) {
                   if(!neigh_flag[temp_ji]) {
-                    printf("BOP 15:error 7 flag %7d temp %7d %7d\n",neigh_flag[temp_ji],temp_ji,temp_ij);
+                    printf("BOP 15:error 7 flag %7d temp %7d %7d",neigh_flag[temp_ji],temp_ji,temp_ij);
                     exit(1);
                   }
                   break;
@@ -6940,7 +6937,7 @@ void PairBOP::PiBo()
             if(ktmp!=jtmp) {
               temp_ik=BOP_index[i]+ktmp;
               if(temp_ik>=neigh_total) {
-                printf("neigh_total too big %7d\n",temp_ik);
+                printf("neigh_total too big %7d",temp_ik);
                 exit(1);
               }
               if(neigh_flag[temp_ik]) {
@@ -6957,7 +6954,7 @@ void PairBOP::PiBo()
                 }
                 ang_jik=cos_index[i]+njik;
                 if(ang_jik>=cos_total) {
-                  printf("1 ang too big %7d\n",ang_jik);
+                  printf("1 ang too big %7d",ang_jik);
                   exit(1);
                 }
                 nb_ik=nb_t;
@@ -6996,7 +6993,7 @@ void PairBOP::PiBo()
                 app2=-(1.0-cosSq)*cosAng[ang_jik]*betaCapSq1*betaCapSq1;
                 agpdpr2=.5*(1.0-cosSq)*(1.0-cosSq)*betaCapSq1*dbetaCapSq1/rij[temp_ik];
                 if((nPiBk[n]>=neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 itypePiBk[n][nPiBk[n]]=k;
@@ -7037,13 +7034,13 @@ void PairBOP::PiBo()
                   if(ltmp!=jtmp) {
                     temp_ikp=BOP_index[i]+ltmp;
                     if(temp_ikp>=neigh_total) {
-                       printf("neigh_total too big %7d\n",temp_ikp);
+                       printf("neigh_total too big %7d",temp_ikp);
                        exit(1);
                     }
                     if(neigh_flag[temp_ikp]) {
                       kp=iilist[ltmp];
                       if((nPiBk[n]>neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -7069,7 +7066,7 @@ void PairBOP::PiBo()
                       }
                       ang_jikp=cos_index[i]+njikp;
                       if(ang_jikp>=cos_total) {
-                        printf("2 ang too big %7d\n",ang_jikp);
+                        printf("2 ang too big %7d",ang_jikp);
                         exit(1);
                       }
                       nb_ikp=nb_t;
@@ -7084,7 +7081,7 @@ void PairBOP::PiBo()
                       bt_pi[nb_ikp].temp=temp_ikp;
                       ang_kikp=cos_index[i]+nkikp;
                       if(ang_kikp>=cos_total) {
-                        printf("3 ang too big %7d\n",ang_kikp);
+                        printf("3 ang too big %7d",ang_kikp);
                         exit(1);
                       }
                       betaCapSq2=pi_p[itype-1]*betaS[temp_ikp]*betaS[temp_ikp]
@@ -7163,7 +7160,7 @@ void PairBOP::PiBo()
           for(ki=0;ki<numneigh[j];ki++) {
             temp_jki=BOP_index[j]+ki;
             if(temp_jki>=neigh_total) {
-              printf("neigh_total too big %7d\n",temp_jki);
+              printf("neigh_total too big %7d",temp_jki);
               exit(1);
             }
             k=jlist[ki];
@@ -7171,7 +7168,7 @@ void PairBOP::PiBo()
               if(x[k][1]==x[i][1]) {
                 if(x[k][2]==x[i][2]) {
                   if(!neigh_flag[temp_jki]) {
-                    printf("error 8 \n");
+                    printf("error 8");
                   }
                   break;
                 }
@@ -7185,14 +7182,14 @@ void PairBOP::PiBo()
             if(ktmp!=ki) {
               temp_jk=BOP_index[j]+ktmp;
               if(temp_jk>=neigh_total) {
-                printf("neigh_total too big %7d\n",temp_jk);
+                printf("neigh_total too big %7d",temp_jk);
                 exit(1);
               }
               if(neigh_flag[temp_jk]) {
                 k=jlist[ktmp];
                 pi_flag=0;
                 if((nPiBk[n]>neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -7208,7 +7205,7 @@ void PairBOP::PiBo()
                 } 
                 if(pi_flag==0) {
                   if((nPiBk[n]>=neigh_ct)) {
-                    printf("BOP 14:7 itypeSigBk error exit \n");
+                    printf("BOP 14:7 itypeSigBk error exit");
                     exit(1);
                   }
                   itypePiBk[n][nPiBk[n]]=k;
@@ -7225,7 +7222,7 @@ void PairBOP::PiBo()
                 }
                 ang_ijk=cos_index[j]+njik;
                 if(ang_ijk>=cos_total) {
-                  printf("4 ang too big %7d\n",ang_ijk);
+                  printf("4 ang too big %7d",ang_ijk);
                   exit(1);
                 }
                 nb_jk=nb_t;
@@ -7300,13 +7297,13 @@ void PairBOP::PiBo()
                   if(ltmp!=ki) {
                     temp_jkp=BOP_index[j]+ltmp;
                     if(temp_jkp>=neigh_total) {
-                      printf("neigh_total too big %7d\n",temp_jkp);
+                      printf("neigh_total too big %7d",temp_jkp);
                       exit(1);
                     }
                     if(neigh_flag[temp_jkp]) {
                       kp=jlist[ltmp];
                       if((nPiBk[n]>neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -7332,12 +7329,12 @@ void PairBOP::PiBo()
                       }
                       ang_ijkp=cos_index[j]+nijkp;
                       if(ang_ijkp>=cos_total) {
-                        printf("5 ang too big %7d\n",ang_ijkp);
+                        printf("5 ang too big %7d",ang_ijkp);
                         exit(1);
                       }
                       ang_kjkp=cos_index[j]+nkjkp;
                       if(ang_kjkp>=cos_total) {
-                        printf("6 ang too big %7d\n",ang_kjkp);
+                        printf("6 ang too big %7d",ang_kjkp);
                         exit(1);
                       }
                       nb_jkp=nb_t;
@@ -7423,13 +7420,13 @@ void PairBOP::PiBo()
                   if(ltmp!=jtmp) {
                     temp_ikp=BOP_index[i]+ltmp;
                     if(temp_ikp>=neigh_total) {
-                      printf("neigh_total too big %7d\n",temp_ikp);
+                      printf("neigh_total too big %7d",temp_ikp);
                       exit(1);
                     }
                     if(neigh_flag[temp_ikp]) {
                       kp=iilist[ltmp];
                       if((nPiBk[n]>neigh_ct)) {
-                        printf("BOP 14:7 itypeSigBk error exit \n");
+                        printf("BOP 14:7 itypeSigBk error exit");
                         exit(1);
                       }
                       for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -7454,7 +7451,7 @@ void PairBOP::PiBo()
                       }
                       ang_jikp=cos_index[i]+njikp;
                       if(ang_jikp>=cos_total) {
-                        printf("7 ang too big %7d\n",ang_jikp);
+                        printf("7 ang too big %7d",ang_jikp);
                         exit(1);
                       }
                       nb_ikp=nb_t;
@@ -7744,7 +7741,7 @@ void PairBOP::PiBo_otf()
         r_ij=sqrt(rsq_ij); 
         if(r_ij<=rcut[iij]) {
           if(n>=neigh_total) {
-            printf("BOP 17:n is too large \n");
+            printf("BOP 17:n is too large");
             exit(1);
           }
           ps=r_ij*rdr[iij]+1.0;
@@ -7845,7 +7842,7 @@ void PairBOP::PiBo_otf()
                 app2=-(1.0-cosSq)*cosAng_jik*betaCapSq1*betaCapSq1;
                 agpdpr2=.5*(1.0-cosSq)*(1.0-cosSq)*betaCapSq1*dbetaCapSq1/r_ik;
                 if((nPiBk[n]>=neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 itypePiBk[n][nPiBk[n]]=k;
@@ -7888,7 +7885,7 @@ void PairBOP::PiBo_otf()
                     kp=iilist[ltmp];
                     kptype=map[type[kp]]+1;
                     if((nPiBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -8060,7 +8057,7 @@ void PairBOP::PiBo_otf()
               ktype=map[type[k]]+1;
               pi_flag=0;
               if((nPiBk[n]>neigh_ct)) {
-                printf("BOP 14:7 itypeSigBk error exit \n");
+                printf("BOP 14:7 itypeSigBk error exit");
                 exit(1);
               }
               for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -8076,7 +8073,7 @@ void PairBOP::PiBo_otf()
               } 
               if(pi_flag==0) {
                 if((nPiBk[n]>=neigh_ct)) {
-                  printf("BOP 14:7 itypeSigBk error exit \n");
+                  printf("BOP 14:7 itypeSigBk error exit");
                   exit(1);
                 }
                 itypePiBk[n][nPiBk[n]]=k;
@@ -8199,7 +8196,7 @@ void PairBOP::PiBo_otf()
                     kp=jlist[ltmp];
                     kptype=map[type[kp]]+1;
                     if((nPiBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -8353,7 +8350,7 @@ void PairBOP::PiBo_otf()
                     kp=iilist[ltmp];
                     kptype=map[type[kp]]+1;
                     if((nPiBk[n]>neigh_ct)) {
-                      printf("BOP 14:7 itypeSigBk error exit \n");
+                      printf("BOP 14:7 itypeSigBk error exit");
                       exit(1);
                     }
                     for(nsearch=0;nsearch<nPiBk[n];nsearch++) {
@@ -8574,7 +8571,7 @@ void PairBOP::read_file(char *filename)
     FILE *fp = fopen(filename,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s\n",filename);
+      sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
 
@@ -8634,7 +8631,7 @@ void PairBOP::read_file(char *filename)
     FILE *fp = fopen(filename,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s\n",filename);
+      sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);
@@ -8798,7 +8795,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = fopen(filename,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s\n",filename);
+      sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     fgets(s,MAXLINE,fp);
@@ -8847,7 +8844,7 @@ void PairBOP::read_table(char *filename)
     FILE *fp = fopen(filename,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open BOP potential file %s\n",filename);
+      sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
     for(i=0;i<bop_types+2;i++) {

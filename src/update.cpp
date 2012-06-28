@@ -362,7 +362,7 @@ void Update::reset_timestep(int narg, char **arg)
    reset invoked flags of computes,
      so nothing will think they are current between runs
    clear timestep list of computes that store future invocation times
-   called from input script and rerun command
+   called from rerun command and input script (indirectly)
 ------------------------------------------------------------------------- */
 
 void Update::reset_timestep(bigint newstep)

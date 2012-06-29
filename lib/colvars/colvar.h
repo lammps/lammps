@@ -51,6 +51,9 @@ public:
   /// \brief Current value (previously obtained from calc() or read_traj())
   colvarvalue const & value() const;
 
+  /// \brief Current actual value (not extended DOF)
+  colvarvalue const & actual_value() const;
+
   /// \brief Current velocity (previously obtained from calc() or read_traj())
   colvarvalue const & velocity() const;
 
@@ -257,6 +260,8 @@ public:
   colvarvalue lower_wall;
   /// \brief Force constant for the lower boundary potential (|x-xb|^2)
   cvm::real   lower_wall_k;
+  /// \brief Whether this colvar has a hard lower boundary
+  bool        hard_lower_boundary;
 
   /// \brief Location of the upper boundary
   colvarvalue upper_boundary;
@@ -264,6 +269,8 @@ public:
   colvarvalue upper_wall;
   /// \brief Force constant for the upper boundary potential (|x-xb|^2)
   cvm::real   upper_wall_k;
+  /// \brief Whether this colvar has a hard upper boundary
+  bool        hard_upper_boundary;
 
   /// \brief Is the interval defined by the two boundaries periodic?
   bool periodic_boundaries() const;
@@ -464,7 +471,7 @@ public:
   class distance;
   class distance_z;
   class distance_xy;
-  class min_distance;
+  class distance6;
   class angle;
   class dihedral;
   class coordnum;
@@ -476,6 +483,8 @@ public:
   class tilt;
   class spin_angle;
   class gyration;
+  class inertia;
+  class inertia_z;
   class eigenvector;
   class alpha_dihedrals;
   class alpha_angles;
@@ -532,6 +541,12 @@ inline colvarvalue::Type colvar::type() const
 inline colvarvalue const & colvar::value() const
 {
   return x_reported;
+}
+
+
+inline colvarvalue const & colvar::actual_value() const
+{
+  return x;
 }
 
 

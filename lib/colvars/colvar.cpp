@@ -22,7 +22,7 @@ colvar::colvar (std::string const &conf)
        cvi < cvm::colvars.end();
        cvi++) {
     if ((*cvi)->name == this->name)
-      cvm::fatal_error ("Error: this colvar has the same name, \""+this->name+
+      cvm::fatal_error ("Error: this colvar cannot have the same name, \""+this->name+
                         "\", as another colvar.\n");
   }
 
@@ -98,7 +98,8 @@ colvar::colvar (std::string const &conf)
                          "on an axis",       "distanceZ",      distance_z);
   initialize_components ("distance projection "
                          "on a plane",       "distanceXY",     distance_xy);
-  initialize_components ("minimum distance", "minDistance",    min_distance);
+  initialize_components ("average distance weighted by inverse sixth power",
+                         "distance6", distance6);
 
   initialize_components ("coordination "
                          "number",           "coordNum",       coordnum);
@@ -128,6 +129,10 @@ colvar::colvar (std::string const &conf)
 
   initialize_components ("radius of "
                          "gyration",         "gyration",       gyration);
+  initialize_components ("moment of "
+                         "inertia",          "inertia",        inertia);
+  initialize_components ("moment of inertia around an axis",
+                                             "inertia_z",      inertia_z);
   initialize_components ("eigenvector",      "eigenvector",    eigenvector);
 
   if (!cvcs.size())
@@ -247,6 +252,13 @@ colvar::colvar (std::string const &conf)
       get_keyval (conf, "upperWall", upper_wall, upper_boundary);
       enable (task_upper_wall);
     }
+  }
+
+  if (tasks[task_lower_boundary]) {
+    get_keyval (conf, "hardLowerBoundary", hard_lower_boundary, false);
+  }
+  if (tasks[task_upper_boundary]) {
+    get_keyval (conf, "hardUpperBoundary", hard_upper_boundary, false);
   }
 
   // consistency checks for boundaries and walls

@@ -45,6 +45,9 @@ protected:
   /// Colvars collected in this grid
   std::vector<colvar *> cv;
 
+  /// Do we request actual value (for extended-system colvars)?
+  std::vector<bool> actual_value;
+
   /// Get the low-level index corresponding to an index
   inline size_t address (std::vector<int> const &ix) const
   {
@@ -69,6 +72,12 @@ public:
 
   /// Whether some colvars are periodic
   std::vector<bool>        periodic;
+
+  /// Whether some colvars have hard lower boundaries
+  std::vector<bool>        hard_lower_boundaries;
+
+  /// Whether some colvars have hard upper boundaries
+  std::vector<bool>        hard_upper_boundaries;
 
   /// Widths of the colvars in this grid
   std::vector<cvm::real>   widths;
@@ -170,8 +179,11 @@ public:
                                           cv (g.cv),
                                           lower_boundaries (g.lower_boundaries),
                                           upper_boundaries (g.upper_boundaries),
+                                          hard_lower_boundaries (g.hard_lower_boundaries),
+                                          hard_upper_boundaries (g.hard_upper_boundaries),
                                           periodic (g.periodic),
                                           widths (g.widths),
+                                          actual_value (g.actual_value),
                                           data()
   {
     save_delimiters = false;
@@ -224,7 +236,18 @@ public:
       }
 
       widths.push_back (cv[i]->width);
+      hard_lower_boundaries.push_back (cv[i]->hard_lower_boundary);
+      hard_upper_boundaries.push_back (cv[i]->hard_upper_boundary);
       periodic.push_back (cv[i]->periodic_boundaries());
+
+      // By default, get reported colvar value (for extended Lagrangian colvars)
+      actual_value.push_back (false);
+
+      // except if a colvar is specified twice in a row
+      // then the first instance is the actual value
+      if (i > 0 && cv[i-1] == cv[i]) {
+        actual_value[i-1] = true;
+      }
 
       if (margin) {
         if (periodic[i]) {
@@ -288,7 +311,7 @@ public:
   /// \brief Report the bin corresponding to the current value of variable i
   inline int current_bin_scalar(int const i) const
   {
-    return value_to_bin_scalar (cv[i]->value(), i);
+    return value_to_bin_scalar (actual_value[i] ? cv[i]->actual_value() : cv[i]->value(), i);
   }
 
   /// \brief Use the lower boundary and the width to report which bin
@@ -381,7 +404,8 @@ public:
   /// \brief Get the minimal distance (in number of bins) from the
   /// boundaries; a negative number is returned if the given point is
   /// off-grid
-  inline cvm::real bin_distance_from_boundaries (std::vector<colvarvalue> const &values)
+  inline cvm::real bin_distance_from_boundaries (std::vector<colvarvalue> const &values,
+                                                 bool skip_hard_boundaries = false)
   {
     cvm::real minimum = 1.0E+16;
     for (size_t i = 0; i < nd; i++) {
@@ -396,9 +420,9 @@ public:
       if (values[i].real_value > upper_boundaries[i])
         du *= -1.0;
 
-      if (dl < minimum) 
+      if ( ((!skip_hard_boundaries) || (!hard_lower_boundaries[i])) && (dl < minimum))
         minimum = dl;
-      if (du < minimum) 
+      if ( ((!skip_hard_boundaries) || (!hard_upper_boundaries[i])) && (du < minimum))
         minimum = du;
     }
 

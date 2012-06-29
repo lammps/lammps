@@ -88,16 +88,18 @@ colvarmodule::colvarmodule (char const  *config_filename,
   cvm::log ("The trajectory file will be \""+
             cv_traj_name+"\".\n");
 
-  // open trajectory file
-  if (cv_traj_append) {
-    cvm::log ("Appending to colvar trajectory file \""+cv_traj_name+
-              "\".\n");
-    cv_traj_os.open (cv_traj_name.c_str(), std::ios::app);
-  } else {
-    proxy->backup_file (cv_traj_name.c_str());
-    cv_traj_os.open (cv_traj_name.c_str(), std::ios::out);
+  if (cv_traj_freq) {
+    // open trajectory file
+    if (cv_traj_append) {
+      cvm::log ("Appending to colvar trajectory file \""+cv_traj_name+
+                "\".\n");
+      cv_traj_os.open (cv_traj_name.c_str(), std::ios::app);
+    } else {
+      proxy->backup_file (cv_traj_name.c_str());
+      cv_traj_os.open (cv_traj_name.c_str(), std::ios::out);
+    }
+    cv_traj_os.setf (std::ios::scientific, std::ios::floatfield);
   }
-  cv_traj_os.setf (std::ios::scientific, std::ios::floatfield);
 
   // parse the options for collective variables
   init_colvars (conf);

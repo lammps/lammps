@@ -473,18 +473,18 @@ public:
 };
 
 
-/// \brief Colvar component: projection of the distance vector along
-/// a fixed axis (colvarvalue::type_scalar type, range (-*:*))
-class colvar::min_distance
+/// \brief Colvar component: average distance between two groups of atoms, weighted as the sixth power,
+/// as in NMR refinements (colvarvalue::type_scalar type, range (0:*))
+class colvar::distance6
   : public colvar::distance
 {
 protected:
   /// Components of the distance vector orthogonal to the axis
   cvm::real smoothing;
 public:
-  min_distance (std::string const &conf);
-  min_distance();
-  virtual inline ~min_distance() {}
+  distance6 (std::string const &conf);
+  distance6();
+  virtual inline ~distance6() {}
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force (colvarvalue const &force);
@@ -497,7 +497,6 @@ public:
   virtual cvm::real compare (colvarvalue const &x1,
                              colvarvalue const &x2) const;
 };
-
 
 
 
@@ -518,6 +517,60 @@ public:
   virtual void calc_gradients();
   virtual void calc_force_invgrads();
   virtual void calc_Jacobian_derivative();
+  virtual void apply_force (colvarvalue const &force);
+  virtual cvm::real dist2 (colvarvalue const &x1,
+                           colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual cvm::real compare (colvarvalue const &x1,
+                             colvarvalue const &x2) const;
+};
+
+
+/// \brief Colvar component: moment of inertia of an atom group
+/// (colvarvalue::type_scalar type, range [0:*))
+class colvar::inertia
+  : public colvar::cvc
+{
+protected:
+  /// Atoms involved
+  cvm::atom_group atoms;
+public:
+  /// Constructor
+  inertia (std::string const &conf);
+  inertia();
+  virtual inline ~inertia() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force (colvarvalue const &force);
+  virtual cvm::real dist2 (colvarvalue const &x1,
+                           colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual cvm::real compare (colvarvalue const &x1,
+                             colvarvalue const &x2) const;
+};
+
+
+/// \brief Colvar component: moment of inertia of an atom group
+/// around a user-defined axis (colvarvalue::type_scalar type, range [0:*))
+class colvar::inertia_z
+  : public colvar::inertia
+{
+protected:
+  /// Vector on which the inertia tensor is projected
+  cvm::rvector axis;
+public:
+  /// Constructor
+  inertia_z (std::string const &conf);
+  inertia_z();
+  virtual inline ~inertia_z() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
   virtual void apply_force (colvarvalue const &force);
   virtual cvm::real dist2 (colvarvalue const &x1,
                            colvarvalue const &x2) const;
@@ -1223,8 +1276,7 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   inline cvm::real colvar::TYPE::dist2 (colvarvalue const &x1,          \
                                         colvarvalue const &x2) const    \
   {                                                                     \
-    const cvm::real tmp = x1.real_value - x2.real_value;                \
-    return tmp*tmp;                                                     \
+    return (x1.real_value - x2.real_value)*(x1.real_value - x2.real_value); \
   }                                                                     \
                                                                         \
   inline colvarvalue colvar::TYPE::dist2_lgrad (colvarvalue const &x1,  \
@@ -1249,12 +1301,14 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   simple_scalar_dist_functions (distance)
   // NOTE: distance_z has explicit functions, see below 
   simple_scalar_dist_functions (distance_xy)
-  simple_scalar_dist_functions (min_distance)
+  simple_scalar_dist_functions (distance6)
   simple_scalar_dist_functions (angle)
   simple_scalar_dist_functions (coordnum)
   simple_scalar_dist_functions (selfcoordnum)
   simple_scalar_dist_functions (h_bond)
   simple_scalar_dist_functions (gyration)
+  simple_scalar_dist_functions (inertia)
+  simple_scalar_dist_functions (inertia_z)
   simple_scalar_dist_functions (rmsd)
   simple_scalar_dist_functions (logmsd)
   simple_scalar_dist_functions (orientation_angle)

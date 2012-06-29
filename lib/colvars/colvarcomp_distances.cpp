@@ -89,10 +89,10 @@ void colvar::distance::calc_Jacobian_derivative()
 void colvar::distance::apply_force (colvarvalue const &force)
 {
   if (!group1.noforce)
-    group1.apply_colvar_force (force);
+    group1.apply_colvar_force (force.real_value);
 
   if (!group2.noforce)
-    group2.apply_colvar_force (force);
+    group2.apply_colvar_force (force.real_value);
 }
 
 
@@ -394,83 +394,6 @@ void colvar::distance_xy::apply_force (colvarvalue const &force)
 
 
 
-colvar::min_distance::min_distance (std::string const &conf)
-  : distance (conf)
-{
-  function_type = "min_distance";
-  x.type (colvarvalue::type_scalar);
-
-  get_keyval (conf, "smoothing", smoothing, (1.0 * cvm::unit_angstrom()));
-}
-
-colvar::min_distance::min_distance()
-  : distance()
-{
-  function_type = "min_distance";
-  x.type (colvarvalue::type_scalar);
-}
-
-void colvar::min_distance::calc_value()
-{
-  group1.reset_atoms_data();
-  group2.reset_atoms_data();
-
-  group1.read_positions();
-  group2.read_positions();
-
-  x.real_value = 0.0;
-
-  bool zero_dist = false;
-
-  for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
-    for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
-      cvm::rvector const dv = cvm::position_distance (ai1->pos, ai2->pos);
-      cvm::real const d = dv.norm();
-      if (d > 0.0)
-        x.real_value += std::exp (smoothing / d);
-      else
-        zero_dist = true;
-    }
-  }
-
-  x.real_value = zero_dist ? 0.0 : smoothing/(std::log (x.real_value));
-}
-
-void colvar::min_distance::calc_gradients()
-{
-  if (x.real_value > 0.0) {
-    cvm::real const sum = std::exp (smoothing/x.real_value);
-    cvm::real const dxdsum = -1.0 *
-      (x.real_value/smoothing) * (x.real_value/smoothing) *
-      (1.0 / sum);
-
-    for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
-      for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
-        cvm::rvector const dv = cvm::position_distance (ai1->pos, ai2->pos);
-        cvm::real const d = dv.norm();
-        if (d > 0.0) {
-          cvm::rvector const dvu = dv / dv.norm();
-          ai1->grad += dxdsum * std::exp (smoothing / d) *
-            smoothing * (-1.0/(d*d)) * (-1.0) * dvu;
-          ai2->grad += dxdsum * std::exp (smoothing / d) *
-            smoothing * (-1.0/(d*d)) * dvu;
-        }
-      }
-    }
-  }
-}
-
-void colvar::min_distance::apply_force (colvarvalue const &force)
-{
-  if (!group1.noforce)
-    group1.apply_colvar_force (force.real_value);
-
-  if (!group2.noforce)
-    group2.apply_colvar_force (force.real_value);
-}
-
-
-
 colvar::distance_dir::distance_dir (std::string const &conf)
   : distance (conf)
 {
@@ -528,6 +451,76 @@ void colvar::distance_dir::apply_force (colvarvalue const &force)
 
 
 
+colvar::distance6::distance6 (std::string const &conf)
+  : distance (conf)
+{
+  function_type = "distance6";
+  b_inverse_gradients = false;
+  b_Jacobian_derivative = false;
+  x.type (colvarvalue::type_scalar);
+}
+
+colvar::distance6::distance6()
+{
+  function_type = "distance6";
+  b_inverse_gradients = false;
+  b_Jacobian_derivative = false;
+  b_1site_force = false;
+  x.type (colvarvalue::type_scalar);
+}
+
+void colvar::distance6::calc_value()
+{
+  group1.reset_atoms_data();
+  group2.reset_atoms_data();
+
+  group1.read_positions();
+  group2.read_positions();
+
+  x.real_value = 0.0;
+  if (b_no_PBC) {
+    for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
+      for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+        cvm::rvector const dv = ai2->pos - ai1->pos;
+        cvm::real const d2 = dv.norm2();
+        x.real_value += 1.0/(d2*d2*d2);
+        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        ai1->grad += -1.0 * dsumddv;
+        ai2->grad +=        dsumddv;
+      }
+    }
+  } else {
+    for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
+      for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+        cvm::rvector const dv = cvm::position_distance (ai1->pos, ai2->pos);
+        cvm::real const d2 = dv.norm2();
+        x.real_value += 1.0/(d2*d2*d2);
+        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        ai1->grad += -1.0 * dsumddv;
+        ai2->grad +=        dsumddv;
+      }
+    }
+  }
+
+  x.real_value = std::pow (x.real_value, -1.0/6.0);
+}
+
+void colvar::distance6::calc_gradients()
+{
+}
+
+void colvar::distance6::apply_force (colvarvalue const &force)
+{
+  cvm::real const dxdsum = (-1.0/6.0) * std::pow (x.real_value, -7.0/6.0);
+
+  if (!group1.noforce)
+    group1.apply_colvar_force (dxdsum * force.real_value);
+
+  if (!group2.noforce)
+    group2.apply_colvar_force (dxdsum * force.real_value);
+}
+
+
 
 colvar::gyration::gyration (std::string const &conf)
   : cvc (conf)
@@ -558,9 +551,9 @@ void colvar::gyration::calc_value()
 
   x.real_value = 0.0;
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    x.real_value += (ai->mass/atoms.total_mass) * (ai->pos).norm2();
+    x.real_value += (ai->pos).norm2();
   }
-  x.real_value = std::sqrt (x.real_value);
+  x.real_value = std::sqrt (x.real_value / cvm::real (atoms.size()));
 }
 
 
@@ -593,6 +586,105 @@ void colvar::gyration::calc_Jacobian_derivative()
 
 
 void colvar::gyration::apply_force (colvarvalue const &force)
+{
+  if (!atoms.noforce)
+    atoms.apply_colvar_force (force.real_value);
+}
+
+
+
+colvar::inertia::inertia (std::string const &conf)
+  : cvc (conf)
+{
+  function_type = "inertia";
+  parse_group (conf, "atoms", atoms);
+  atom_groups.push_back (&atoms);
+  x.type (colvarvalue::type_scalar);
+}
+
+
+colvar::inertia::inertia()
+{
+  function_type = "inertia";
+  x.type (colvarvalue::type_scalar);
+}
+
+
+void colvar::inertia::calc_value()
+{
+  atoms.reset_atoms_data();
+  atoms.read_positions();
+  atoms.apply_translation ((-1.0) * atoms.center_of_geometry());
+
+  x.real_value = 0.0;
+  for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
+    x.real_value += ai->mass * (ai->pos).norm2();
+  }
+  x.real_value = std::sqrt (x.real_value / atoms.total_mass);
+}
+
+
+void colvar::inertia::calc_gradients()
+{
+  cvm::real const drdx = 1.0/(atoms.total_mass * x.real_value);
+  for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
+    ai->grad = drdx * ai->mass * ai->pos;
+  }
+}
+
+
+void colvar::inertia::apply_force (colvarvalue const &force)
+{
+  if (!atoms.noforce)
+    atoms.apply_colvar_force (force.real_value);
+}
+
+
+colvar::inertia_z::inertia_z (std::string const &conf)
+  : inertia (conf)
+{
+  function_type = "inertia_z";
+  if (get_keyval (conf, "axis", axis, cvm::rvector (0.0, 0.0, 1.0))) {
+    if (axis.norm2() == 0.0)
+      cvm::fatal_error ("Axis vector is zero!");
+    axis = axis.unit();
+  }
+  x.type (colvarvalue::type_scalar);
+}
+
+
+colvar::inertia_z::inertia_z()
+{
+  function_type = "inertia_z";
+  x.type (colvarvalue::type_scalar);
+}
+
+
+void colvar::inertia_z::calc_value()
+{
+  atoms.reset_atoms_data();
+  atoms.read_positions();
+  atoms.apply_translation ((-1.0) * atoms.center_of_geometry());
+
+  x.real_value = 0.0;
+  for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
+    cvm::real const iprod = ai->pos * axis;
+    x.real_value += ai->mass * iprod * iprod;
+  }
+  x.real_value = std::sqrt (x.real_value / atoms.total_mass);
+}
+
+
+void colvar::inertia_z::calc_gradients()
+{
+  cvm::real const drdx = 1.0/(atoms.total_mass * x.real_value);
+  for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
+    ai->grad = drdx * ai->mass * (ai->pos * axis) * axis;
+  }
+}
+
+
+void colvar::inertia_z::apply_force (colvarvalue const &force)
 {
   if (!atoms.noforce)
     atoms.apply_colvar_force (force.real_value);
@@ -1111,3 +1203,6 @@ void colvar::eigenvector::calc_Jacobian_derivative()
 
   jd.real_value = sum * std::sqrt (eigenvec_invnorm2); 
 }
+
+
+

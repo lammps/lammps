@@ -2,6 +2,11 @@
 
 if (test $1 = 1) then
 
+  if (test -e ../pair_eam_alloy.cpp) then
+    cp pair_cdeam.cpp ..
+    cp pair_cdeam.h ..
+  fi
+
   cp angle_cosine_shift.cpp ..
   cp angle_cosine_shift_exp.cpp ..
   cp angle_dipole.cpp ..
@@ -16,7 +21,6 @@ if (test $1 = 1) then
   cp fix_smd.cpp ..
   cp improper_cossq.cpp ..
   cp improper_ring.cpp ..
-  cp pair_cdeam.cpp ..
   cp pair_coul_diel.cpp ..
   cp pair_dipole_sf.cpp ..
   cp pair_edip.cpp ..
@@ -39,7 +43,6 @@ if (test $1 = 1) then
   cp fix_smd.h ..
   cp improper_cossq.h ..
   cp improper_ring.h ..
-  cp pair_cdeam.h ..
   cp pair_coul_diel.h ..
   cp pair_dipole_sf.h ..
   cp pair_edip.h ..

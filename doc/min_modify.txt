@@ -16,7 +16,7 @@ one or more keyword/value pairs may be listed :ulb,l
 keyword = {dmax} or {line}
   {dmax} value = max
     max = maximum distance for line search to move (distance units)
-  {line} value = {backtrack} or {quadratic}or {forcezero}
+  {line} value = {backtrack} or {quadratic} or {forcezero}
     backtrack,quadratic,forcezero = style of linesearch to use :pre
 :ule
 

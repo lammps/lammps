@@ -125,6 +125,6 @@ UNDOCUMENTED
 
 E: Cannot (yet) use Kspace slab correction with compute group/group
 
-UNDOCUMENTED
+This option is not yet supported.
 
 */

@@ -94,6 +94,6 @@ All particles must be the same finite size.
 
 E: Using pair lubricate with inconsistent fix deform remap option
 
-If fix deform is used, the remap v option is required.
+Must use remap v option with fix deform with this pair style.
 
 */

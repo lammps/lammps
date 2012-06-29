@@ -53,7 +53,7 @@ within a water molecule.
 
 E: TIP4P hydrogen has incorrect atom type
 
-The atom LAMMPS assumes is a hydrogen bonded to a water oxygen,
-is not the hydrogen type specified in the command.
+The TIP4P pairwise computation found an H atom whose type does not
+agree with the specified H type.
 
 */

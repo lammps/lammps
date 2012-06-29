@@ -164,14 +164,19 @@ void ComputeStressAtom::compute_peratom()
   }
 
   // add in per-atom contributions from relevant fixes
+  // skip if vatom = NULL
+  // possible during setup phase if fix has not initialized its vatom yet
+  // e.g. fix ave/spatial defined before fix shake,
+  //   and fix ave/spatial uses a per-atom stress from this compute as input
 
   if (fixflag) {
     for (int ifix = 0; ifix < modify->nfix; ifix++)
       if (modify->fix[ifix]->virial_flag) {
         double **vatom = modify->fix[ifix]->vatom;
-        for (i = 0; i < nlocal; i++)
-          for (j = 0; j < 6; j++)
-            stress[i][j] += vatom[i][j];
+        if (vatom)
+          for (i = 0; i < nlocal; i++)
+            for (j = 0; j < 6; j++)
+              stress[i][j] += vatom[i][j];
       }
   }
 

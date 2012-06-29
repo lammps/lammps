@@ -123,7 +123,7 @@ void Fix::v_setup(int vflag)
   if (vflag_atom && atom->nlocal > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"bond:vatom");
+    memory->create(vatom,maxvatom,6,"fix:vatom");
   }
 
   // zero accumulators

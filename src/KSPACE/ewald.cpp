@@ -157,10 +157,11 @@ void Ewald::init()
   // zprd used rather than zprd_slab
 
   if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0)
-      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
   }
 
   // setup Ewald coefficients so can print stats

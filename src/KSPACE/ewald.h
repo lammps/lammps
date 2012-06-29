@@ -119,9 +119,9 @@ W: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0, which
 is not valid for Ewald or PPPM.
 
-E: KSpace accuracy too large to estimate G vector
+E: KSpace accuracy must be > 0
 
-UNDOCUMENTED
+The kspace accuracy designated in the input must be greater than zero.
 
 E: Cannot (yet) use Kspace slab correction with compute group/group
 

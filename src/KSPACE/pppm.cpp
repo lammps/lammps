@@ -1003,10 +1003,11 @@ void PPPM::set_grid()
   bigint natoms = atom->natoms;
 
   if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0)
-      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
   }
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy

@@ -245,9 +245,9 @@ to run, but can reduce the order no further.  Try increasing the
 accuracy of PPPM by reducing the tolerance size, thus inducing a
 larger PPPM grid.
 
-E: KSpace accuracy too large to estimate G vector
+E: KSpace accuracy must be > 0
 
-UNDOCUMENTED
+The kspace accuracy designated in the input must be greater than zero.
 
 E: Cannot compute PPPM G
 

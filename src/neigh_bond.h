@@ -15,10 +15,9 @@
 
 E: Bond atoms %d %d missing on proc %d at step %ld
 
-One or both of 2 atoms needed to compute a particular bond are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the bond has blown apart and an atom is
-too far away.
+The 2nd atom needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.
 
 E: Angle atoms %d %d %d missing on proc %d at step %ld
 

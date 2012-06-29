@@ -133,8 +133,7 @@ coordinates.
 
 E: Too many total atoms
 
-Adding atoms from the dump snapshot has caused the LAMMPS simulation
-to exceed the allowed number of atoms.
+See the setting for bigint in the src/lmptype.h file.
 
 E: Duplicate fields in read_dump command
 

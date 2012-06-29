@@ -217,6 +217,12 @@ command. :dd
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation. :dd
 
+{All read_dump x,y,z fields must be specified for scaled, triclinic coords} :dt
+
+For triclinic boxes and scaled coordinates you must specify all 3 of
+the x,y,z fields, else LAMMPS cannot reconstruct the unscaled
+coordinates. :dd
+
 {All universe/uloop variables must have same # of values} :dt
 
 Self-explanatory. :dd
@@ -315,7 +321,7 @@ still being processed. :dd
 {Append boundary must be shrink/minimum} :dt
 
 The boundary style of the face where atoms are added
-must be of type m (shrink/minimum).  :dd
+must be of type m (shrink/minimum). :dd
 
 {Arccos of invalid value in variable formula} :dt
 
@@ -472,9 +478,11 @@ or create_box command. :dd
 
 The string can only contain the characters "x", "y", or "z". :dd
 
-{Balance dynamic string is invalid for 2d simulation} :dt
+{Balance produced bad splits} :dt
 
-The string cannot contain the letter "z". :dd
+This should not occur.  It means two or more cutting plane locations
+are on top of each other or out of order.  Report the problem to the
+developers. :dd
 
 {Bias compute does not calculate a velocity bias} :dt
 
@@ -520,6 +528,12 @@ Number of table entries is not a correct power of 2. :dd
 
 Cannot use TIP4P pair potential unless bond and angle potentials
 are defined. :dd
+
+{Bond atom missing in box size check} :dt
+
+The 2nd atoms needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away. :dd
 
 {Bond atom missing in delete_bonds} :dt
 
@@ -583,6 +597,15 @@ List of bond table parameters must include N setting. :dd
 {Bond table values are not increasing} :dt
 
 The values in the tabulated file must be monotonically increasing. :dd
+
+{Bond/angle/dihedral extent > half of periodic box length} :dt
+
+This is a restriction because LAMMPS can be confused about which image
+of an atom in the bonded interaction is the correct one to use.
+"Extent" in this context means the maximum end-to-end length of the
+bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
+length, multiplying by the number of bonds in the interaction (e.g. 3
+for a dihedral) and adding a small amount of stretch. :dd
 
 {Bond_coeff command before bond_style is defined} :dt
 
@@ -651,6 +674,14 @@ This is current restriction for NEB as implemented in LAMMPS. :dd
 {Can only use TAD with 1-processor replicas for NEB} :dt
 
 This is current restriction for NEB as implemented in LAMMPS. :dd
+
+{Cannot (yet) use K-space slab correction with compute group/group} :dt
+
+This option is not yet supported. :dd
+
+{Cannot (yet) use Kspace slab correction with compute group/group} :dt
+
+This option is not yet supported. :dd
 
 {Cannot (yet) use PPPM with triclinic box} :dt
 
@@ -826,6 +857,11 @@ path and name are correct. :dd
 The specified AIREBO potential file cannot be opened.  Check that the
 path and name are correct. :dd
 
+{Cannot open BOP potential file %s} :dt
+
+The specified BOP potential file cannot be opened.  Check that the
+path and name are correct. :dd
+
 {Cannot open COMB potential file %s} :dt
 
 The specified COMB potential file cannot be opened.  Check that the
@@ -839,6 +875,11 @@ path and name are correct. :dd
 {Cannot open EIM potential file %s} :dt
 
 The specified EIM potential file cannot be opened.  Check that the
+path and name are correct. :dd
+
+{Cannot open LCBOP potential file %s} :dt
+
+The specified LCBOP potential file cannot be opened.  Check that the
 path and name are correct. :dd
 
 {Cannot open MEAM potential file %s} :dt
@@ -858,8 +899,7 @@ path and name are correct. :dd
 
 {Cannot open balance output file} :dt
 
-This error message can only occur if debug options
-are uncommented in src/balance.cpp. :dd
+Self-explanatory. :dd
 
 {Cannot open custom file} :dt
 
@@ -900,6 +940,10 @@ correct. :dd
 The specified file cannot be opened.  Check that the path and name are
 correct. :dd
 
+{Cannot open fix balance output file} :dt
+
+Self-explanatory. :dd
+
 {Cannot open fix poems file %s} :dt
 
 The specified file cannot be opened.  Check that the path and name are
@@ -918,6 +962,11 @@ Check that the path and name are correct. :dd
 
 The output file for the fix reax/bonds command cannot be opened.
 Check that the path and name are correct. :dd
+
+{Cannot open fix rigid infile %s} :dt
+
+The specified file cannot be opened.  Check that the path and name are
+correct. :dd
 
 {Cannot open fix tmd file %s} :dt
 
@@ -1022,17 +1071,6 @@ are defined. :dd
 
 You cannot reset the timestep when a fix that keeps track of elapsed
 time is in place. :dd
-
-{Cannot reset timestep with dump file already written to} :dt
-
-Changing the timestep will confuse when a dump file is written.  Use
-the undump command, then restart the dump file. :dd
-
-{Cannot reset timestep with restart file already written} :dt
-
-Changing the timestep will confuse when a restart file is written.
-Use the "restart 0" command to turn off restarts, then start them
-again. :dd
 
 {Cannot restart fix rigid/nvt with different # of chains} :dt
 
@@ -1545,6 +1583,10 @@ Self-explanatory. :dd
 {Cannot wiggle and shear fix wall/gran} :dt
 
 Cannot specify both options at the same time. :dd
+
+{Cannot yet use fix balance with PPPM} :dt
+
+This is a current limitation of LAMMPS. :dd
 
 {Cannot zero Langevin force of 0 atoms} :dt
 
@@ -2466,6 +2508,14 @@ Use the dump_modify sort command to enable this. :dd
 
 The variable must return a timestep greater than the current timestep. :dd
 
+{Dump file does not contain requested snapshot} :dt
+
+Self-explanatory. :dd
+
+{Dump file is incorrectly formatted} :dt
+
+No atoms were found in file. :dd
+
 {Dump image bond not allowed with no bond types} :dt
 
 Self-explanatory. :dd
@@ -2601,6 +2651,10 @@ dumped. :dd
 Only per-atom quantities that are defined for the atom style being
 used are allowed. :dd
 
+{Duplicate fields in read_dump command} :dt
+
+Self-explanatory. :dd
+
 {Duplicate particle in PeriDynamic bond - simulation box is too small} :dt
 
 This is likely because your box length is shorter than 2 times
@@ -2710,6 +2764,10 @@ Self-explanatory. :dd
 
 Self-explanatory :dd
 
+{Fix ID for read_data does not exist} :dt
+
+Self-explanatory. :dd
+
 {Fix ID must be alphanumeric or underscore characters} :dt
 
 Self-explanatory. :dd
@@ -2795,6 +2853,11 @@ A fix used by fix ave/atom must generate per-atom values. :dd
 
 A fix used by fix ave/atom must generate per-atom values. :dd
 
+{Fix ave/atom missed timestep} :dt
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging. :dd
+
 {Fix ave/atom variable is not atom-style variable} :dt
 
 A variable used by fix ave/atom must generate per-atom values. :dd
@@ -2822,6 +2885,11 @@ Self-explanatory. :dd
 {Fix ave/correlate fix vector is accessed out-of-range} :dt
 
 The index for the vector is out of bounds. :dd
+
+{Fix ave/correlate missed timestep} :dt
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging. :dd
 
 {Fix ave/correlate variable is not equal-style variable} :dt
 
@@ -2940,6 +3008,11 @@ Self-explanatory. :dd
 All inputs in a single fix ave/histo command must be of the
 same style. :dd
 
+{Fix ave/histo missed timestep} :dt
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging. :dd
+
 {Fix ave/spatial compute does not calculate a per-atom array} :dt
 
 Self-explanatory. :dd
@@ -2975,6 +3048,11 @@ The index for the vector is out of bounds. :dd
 {Fix ave/spatial for triclinic boxes requires units reduced} :dt
 
 Self-explanatory. :dd
+
+{Fix ave/spatial missed timestep} :dt
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging. :dd
 
 {Fix ave/spatial settings invalid with changing box} :dt
 
@@ -3039,6 +3117,11 @@ Self-explanatory. :dd
 {Fix ave/time fix vector is accessed out-of-range} :dt
 
 The index for the vector is out of bounds. :dd
+
+{Fix ave/time missed timestep} :dt
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging. :dd
 
 {Fix ave/time variable is not equal-style variable} :dt
 
@@ -3315,6 +3398,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Fix nvt/npt/nph dilate group ID does not exist} :dt
+
+Self-explanatory. :dd
+
 {Fix nvt/sphere requires extended particles} :dt
 
 This fix can only be used for particles of a finite size. :dd
@@ -3477,6 +3564,14 @@ Self-explanatory. :dd
 Only atom-style variables calculate per-atom quantities. :dd
 
 {Fix temp/berendsen period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
+{Fix temp/berendsen variable returned negative temperature} :dt
+
+Self-explanatory. :dd
+
+{Fix temp/rescale variable returned negative temperature} :dt
 
 Self-explanatory. :dd
 
@@ -3649,6 +3744,11 @@ create_box command. :dd
 
 A region ID used in the group command does not exist. :dd
 
+{If read_dump purges it cannot replace or trim} :dt
+
+These operations are not compatible.  See the read_dump doc
+page for details. :dd
+
 {Illegal ... command} :dt
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -3766,7 +3866,7 @@ The data file header lists improper but no improper types. :dd
 
 {Inconsistent iparam/jparam values in fix bond/create command} :dt
 
-If itype and jtype are the same, then their maxbond and newtype 
+If itype and jtype are the same, then their maxbond and newtype
 settings must also be the same. :dd
 
 {Inconsistent line segment in data file} :dt
@@ -3858,6 +3958,10 @@ Incorrect number of words per line in the potential file. :dd
 {Incorrect multiplicity arg for dihedral coefficients} :dt
 
 Self-explanatory.  Check the input script or data file. :dd
+
+{Incorrect rigid body format in fix rigid file} :dt
+
+The number of fields per line is not what expected. :dd
 
 {Incorrect sign arg for dihedral coefficients} :dt
 
@@ -4230,6 +4334,10 @@ Theta must be between 0.0 and 180.0 inclusive. :dd
 
 Zoom value must be > 0.0. :dd
 
+{Invalid dump reader style} :dt
+
+Self-explanatory. :dd
+
 {Invalid dump style} :dt
 
 The choice of dump style is unknown. :dd
@@ -4472,6 +4580,11 @@ The choice of region style is unknown. :dd
 
 Self-explanatory. :dd
 
+{Invalid rigid body ID in fix rigid file} :dt
+
+The ID does not match the number or an existing ID of rigid bodies
+that are defined by the fix rigid command. :dd
+
 {Invalid run command N value} :dt
 
 The number of timesteps must fit in a 32-bit integer.  If you want to
@@ -4611,6 +4724,10 @@ where it is requesting neighbors incorrectly. :dd
 This environment variable must be set to use pair_style kim.
 See the doc page for pair_style kim. :dd
 
+{KSpace accuracy too large to estimate G vector} :dt
+
+Paul will doc this. :dd
+
 {KSpace style has not yet been set} :dt
 
 Cannot use kspace_modify command until a kspace style is set. :dd
@@ -4621,6 +4738,10 @@ Setting a kspace style requires that a pair style with a long-range
 Coulombic component be selected. :dd
 
 {Keyword %s in MEAM parameter file not recognized} :dt
+
+Self-explanatory. :dd
+
+{Kspace style does not support compute group/group} :dt
 
 Self-explanatory. :dd
 
@@ -5015,10 +5136,6 @@ Self-explanatory. :dd
 
 This is required to prevent wasting too much memory. :dd
 
-{Neighbors of ghost atoms only allowed for full neighbor lists} :dt
-
-This is a current restriction within LAMMPS. :dd
-
 {New bond exceeded bonds per atom in fix bond/create} :dt
 
 See the read_data command for info on setting the "extra bond per
@@ -5033,6 +5150,10 @@ the special bonds list to allow for additional bonds to be formed. :dd
 
 The newton command cannot be used to change the newton bond value
 after a read_data, read_restart, or create_box command. :dd
+
+{No Kspace style defined for compute group/group} :dt
+
+Self-explanatory. :dd
 
 {No OpenMP support compiled in} :dt
 
@@ -5063,6 +5184,10 @@ Self-explanatory. :dd
 {No bonds allowed with this atom style} :dt
 
 Self-explanatory.  Check data file. :dd
+
+{No box information in dump. You have to use 'box no'} :dt
+
+Self-explanatory. :dd
 
 {No dihedral style is defined for compute dihedral/local} :dt
 
@@ -5110,6 +5235,10 @@ requested elements. :dd
 
 The EAM potential file does not contain elements that match the
 requested elements. :dd
+
+{No overlap of box and region for create_atoms} :dt
+
+Self-explanatory. :dd
 
 {No pair hbond/dreiding coefficients set} :dt
 
@@ -5203,15 +5332,15 @@ The global PPPM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 4096.  You likely need to decrease the
 requested accuracy. :dd
 
-{PPPM order cannot be greater than %d} :dt
+{PPPM order cannot be < 2 or > than %d} :dt
 
-Self-explanatory. :dd
+This is a limitation of the PPPM implementation in LAMMPS. :dd
 
 {PPPM order has been reduced to 0} :dt
 
 LAMMPS has attempted to reduce the PPPM order to enable the simulation
 to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM by reducing the tolerance size, thus inducing a 
+accuracy of PPPM by reducing the tolerance size, thus inducing a
 larger PPPM grid. :dd
 
 {PRD command before simulation box is defined} :dt
@@ -5446,6 +5575,15 @@ This is a requirement to use the AIREBO potential. :dd
 See the newton command.  This is a restriction to use the AIREBO
 potential. :dd
 
+{Pair style BOP requires atom IDs} :dt
+
+This is a requirement to use the BOP potential. :dd
+
+{Pair style BOP requires newton pair on} :dt
+
+See the newton command.  This is a restriction to use the BOP
+potential. :dd
+
 {Pair style COMB requires atom IDs} :dt
 
 This is a requirement to use the AIREBO potential. :dd
@@ -5457,6 +5595,15 @@ Self-explanatory. :dd
 {Pair style COMB requires newton pair on} :dt
 
 See the newton command.  This is a restriction to use the COMB
+potential. :dd
+
+{Pair style LCBOP requires atom IDs} :dt
+
+This is a requirement to use the LCBOP potential. :dd
+
+{Pair style LCBOP requires newton pair on} :dt
+
+See the newton command.  This is a restriction to use the LCBOP
 potential. :dd
 
 {Pair style MEAM requires newton pair on} :dt
@@ -5481,6 +5628,11 @@ This is a requirement to use the Tersoff potential. :dd
 
 See the newton command.  This is a restriction to use the Tersoff
 potential. :dd
+
+{Pair style bop requires comm ghost cutoff at least 3x larger than %g} :dt
+
+Use the communicate ghost command to set this.  See the pair bop
+doc page for more details. :dd
 
 {Pair style born/coul/long requires atom attribute q} :dt
 
@@ -5867,6 +6019,19 @@ Self-explanatory. :dd
 
 Equilibrium spring length is invalid. :dd
 
+{Read_dump field not found in dump file} :dt
+
+Self-explanatory. :dd
+
+{Read_dump triclinic status does not match simulation} :dt
+
+Both the dump snapshot and the current LAMMPS simulation must
+be using either an orthogonal or triclinic box. :dd
+
+{Read_dump x,y,z fields do not have consistent scaling} :dt
+
+Self-explanatory. :dd
+
 {Reax_defs.h setting for NATDEF is too small} :dt
 
 Edit the setting in the ReaxFF library and re-compile the
@@ -5973,6 +6138,15 @@ file. :dd
 
 See the setting for bigint in the src/lmptype.h file. :dd
 
+{Rerun command before simulation box is defined} :dt
+
+The rerun command cannot be used before a read_data, read_restart, or
+create_box command. :dd
+
+{Rerun dump file does not contain requested snapshot} :dt
+
+Self-explanatory. :dd
+
 {Resetting timestep is not allowed with fix move} :dt
 
 This is because fix move is moving atoms based on elapsed time. :dd
@@ -5989,9 +6163,25 @@ Self-explanatory. :dd
 
 The first cutoff must be <= the second cutoff. :dd
 
+{Restart variable returned a bad timestep} :dt
+
+The variable must return a timestep greater than the current timestep. :dd
+
 {Restrain atoms %d %d %d %d missing on proc %d at step %ld} :dt
 
 The 4 atoms in a restrain dihedral specified by the fix restrain
+command are not all accessible to a processor.  This probably means an
+atom has moved too far. :dd
+
+{Restrain atoms %d %d %d missing on proc %d at step %ld} :dt
+
+The 3 atoms in a restrain angle specified by the fix restrain
+command are not all accessible to a processor.  This probably means an
+atom has moved too far. :dd
+
+{Restrain atoms %d %d missing on proc %d at step %ld} :dt
+
+The 2 atoms in a restrain bond specified by the fix restrain
 command are not all accessible to a processor.  This probably means an
 atom has moved too far. :dd
 
@@ -6437,10 +6627,21 @@ The timestep must fit in a 32-bit integer to use this dump style. :dd
 Table size specified via pair_modify command does not work with your
 machine's floating point representation. :dd
 
+{Too many atom pairs for pair bop} :dt
+
+The number of atomic pairs exceeds the expected number.  Check your
+atomic structure to ensure that it is realistic. :dd
+
 {Too many atom sorting bins} :dt
 
 This is likely due to an immense simulation box that has blown up
 to a large size. :dd
+
+{Too many atom triplets for pair bop} :dt
+
+The number of three atom groups for angle determinations exceeds the
+expected number.  Check your atomic structrure to ensure that it is
+realistic. :dd
 
 {Too many atoms for dump dcd} :dt
 
@@ -6463,12 +6664,12 @@ machine's floating point representation. :dd
 
 {Too many groups} :dt
 
-The maximum number of atom groups (including the "all" group) is 
+The maximum number of atom groups (including the "all" group) is
 given by MAX_GROUP in group.cpp and is 32. :dd
 
 {Too many iterations} :dt
 
-You must use a number of iterations that fit in a 32-bit integer 
+You must use a number of iterations that fit in a 32-bit integer
 for minimization. :dd
 
 {Too many local+ghost atoms for neighbor list} :dt
@@ -6498,7 +6699,7 @@ The cummulative timesteps must fit in a 64-bit integer. :dd
 
 {Too many timesteps for NEB} :dt
 
-You must use a number of timesteps that fit in a 32-bit integer 
+You must use a number of timesteps that fit in a 32-bit integer
 for NEB. :dd
 
 {Too many total atoms} :dt
@@ -6573,6 +6774,14 @@ Self-explanatory. :dd
 
 LAMMPS hit the end of the data file while attempting to read a
 section.  Something is wrong with the format of the data file. :dd
+
+{Unexpected end of dump file} :dt
+
+A read operation from the file failed. :dd
+
+{Unexpected end of fix rigid file} :dt
+
+A read operation from the file failed. :dd
 
 {Units command after simulation box is defined} :dt
 
@@ -6709,7 +6918,7 @@ deform needs to be used. :dd
 
 {Using pair lubricate with inconsistent fix deform remap option} :dt
 
-If fix deform is used, the remap v option is required. :dd
+Must use remap v option with fix deform with this pair style. :dd
 
 {Using pair lubricate/poly with inconsistent fix deform remap option} :dt
 
@@ -6768,6 +6977,10 @@ The variable must be an equal-style variable. :dd
 
 Only equal-style variables can be used. :dd
 
+{Variable for fix gravity is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
 {Variable for fix indent is invalid style} :dt
 
 Only equal-style variables can be used. :dd
@@ -6785,6 +6998,14 @@ It must be an equal-style variable. :dd
 Only equal-style variables can be used. :dd
 
 {Variable for fix setforce is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix temp/berendsen is invalid style} :dt
+
+Only equal-style variables can be used. :dd
+
+{Variable for fix temp/rescale is invalid style} :dt
 
 Only equal-style variables can be used. :dd
 
@@ -6807,6 +7028,10 @@ Only equal-style variables can be used. :dd
 {Variable for region is not equal style} :dt
 
 Self-explanatory. :dd
+
+{Variable for restart is invalid style} :dt
+
+Only equal-style variables can be used. :dd
 
 {Variable for thermo every is invalid style} :dt
 
@@ -6908,6 +7133,10 @@ Self-explantory. :dd
 
 Self-explanatory. :dd
 
+{Variable name for fix gravity does not exist} :dt
+
+Self-explanatory. :dd
+
 {Variable name for fix indent does not exist} :dt
 
 Self-explanatory. :dd
@@ -6928,6 +7157,14 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Variable name for fix temp/berendsen does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable name for fix temp/rescale does not exist} :dt
+
+Self-explanatory. :dd
+
 {Variable name for fix wall does not exist} :dt
 
 Self-explanatory. :dd
@@ -6941,6 +7178,10 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Variable name for region does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable name for restart does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -7005,6 +7246,11 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Water H epsilon must be 0.0 for pair style lj/cut/coul/long/tip4p} :dt
+
+This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons. :dd
+
 {World variable count doesn't match # of partitions} :dt
 
 A world-style variable must specify a number of values equal to the
@@ -7031,6 +7277,10 @@ The group used in a compute command that operates on moleclues
 includes atoms with no molecule ID.  This is probably not what you
 want. :dd
 
+{Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
+
+Self-explantory. :dd
+
 {Broken bonds will not alter angles, dihedrals, or impropers} :dt
 
 See the doc page for fix bond/break for more info on this
@@ -7041,6 +7291,14 @@ restriction. :dd
 This can cause LAMMPS to crash when the neighbor list is built.
 The solution is to check for building the regular neighbor lists
 more frequently. :dd
+
+{Cannot include log terms without 1/r terms; setting flagHI to 1} :dt
+
+Self-explanatory. :dd
+
+{Cannot include log terms without 1/r terms; setting flagHI to 1.} :dt
+
+Self-explanatory. :dd
 
 {Compute cna/atom cutoff may be too large to find ghost atom neighbors} :dt
 
@@ -7108,8 +7366,17 @@ Atoms store this quantity, but fix move does not (yet) update it. :dd
 
 {Fix recenter should come after all other integration fixes} :dt
 
-Other fixes may change the position of the center-of-mass, so 
+Other fixes may change the position of the center-of-mass, so
 fix recenter should come last. :dd
+
+{Fix shake with rRESPA computes invalid pressures} :dt
+
+This is a known bug in LAMMPS that has not yet been fixed.  If you use
+SHAKE with rRESPA and perform a constant volume simulation (e.g. using
+fix npt) this only affects the output pressure, not the dynamics of
+the simulation.  If you use SHAKE with rRESPA and perform a constant
+pressure simulation (e.g. using fix npt) then you will be
+equilibrating to the wrong volume. :dd
 
 {Fix srd SRD moves may trigger frequent reneighboring} :dt
 

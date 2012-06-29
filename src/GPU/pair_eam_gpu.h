@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -32,6 +32,7 @@ class PairEAMGPU : public PairEAM {
   virtual ~PairEAMGPU();
   void compute(int, int);
   void init_style();
+  double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
 
   int pack_comm(int, int *, double *, int, int *);
@@ -44,7 +45,7 @@ class PairEAMGPU : public PairEAM {
   double cpu_time;
   int *gpulist;
   void *fp_pinned;
-  bool fp_single;
+  bool fp_single;  
 };
 
 }

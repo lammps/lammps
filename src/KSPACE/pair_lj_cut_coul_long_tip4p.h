@@ -57,6 +57,16 @@ class PairLJCutCoulLongTIP4P : public PairLJCutCoulLong {
 
 /* ERROR/WARNING messages:
 
+E: TIP4P hydrogen is missing
+
+The TIP4P pairwise computation failed to find the correct H atom
+within a water molecule.
+
+E: TIP4P hydrogen has incorrect atom type
+
+The TIP4P pairwise computation found an H atom whose type does not
+agree with the specified H type.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -92,14 +102,9 @@ E: Must use an angle style with TIP4P potential
 TIP4P potentials assume angles in water are constrained by a fix shake
 command.
 
-E: TIP4P hydrogen is missing
+E: Water H epsilon must be 0.0 for pair style lj/cut/coul/long/tip4p
 
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
+This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons.
 
 */

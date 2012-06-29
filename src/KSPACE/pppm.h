@@ -196,9 +196,9 @@ E: Incorrect boundaries with slab PPPM
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with PPPM.
 
-E: PPPM order cannot be greater than %d
+E: PPPM order cannot be < 2 or > than %d
 
-Self-explanatory.
+This is a limitation of the PPPM implementation in LAMMPS.
 
 E: KSpace style is incompatible with Pair style
 
@@ -245,6 +245,10 @@ to run, but can reduce the order no further.  Try increasing the
 accuracy of PPPM by reducing the tolerance size, thus inducing a
 larger PPPM grid.
 
+E: KSpace accuracy too large to estimate G vector
+
+UNDOCUMENTED
+
 E: Cannot compute PPPM G
 
 LAMMPS failed to compute a valid approximation for the PPPM g_ewald
@@ -265,5 +269,9 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
+
+E: Cannot (yet) use K-space slab correction with compute group/group
+
+This option is not yet supported.
 
 */

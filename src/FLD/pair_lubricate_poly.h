@@ -55,6 +55,10 @@ E: Pair lubricate/poly requires extended particles
 
 One of the particles has radius 0.0.
 
+E: Using pair lubricate with inconsistent fix deform remap option
+
+Must use remap v option with fix deform with this pair style.
+
 E: Using pair lubricate/poly with inconsistent fix deform remap option
 
 If fix deform is used, the remap v option is required.

@@ -220,16 +220,59 @@ class PairBOP : public Pair {
 #endif
 #endif
 
-/*   ERROR/WARNING messages:
  
 E: BOP: Too many Atom Pairs
 
-The number of atomic pairs exceeds the expected number.  Check 
-your atomic structure to ensure that it is realistic.  
 
 E: BOP: Too many Atom Triplets
 
-The number of three atom groups for angle determinations 
-exceeds the expected number.  Check your atomic structrure
-to ensure that it is realistic.
+*/
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style BOP requires atom IDs
+
+This is a requirement to use the BOP potential.
+
+E: Pair style BOP requires newton pair on
+
+See the newton command.  This is a restriction to use the BOP
+potential.
+
+E: Pair style bop requires comm ghost cutoff at least 3x larger than %g
+
+Use the communicate ghost command to set this.  See the pair bop
+doc page for more details.
+
+E: All pair coeffs are not set
+
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
+
+E: Too many atom pairs for pair bop
+
+The number of atomic pairs exceeds the expected number.  Check your
+atomic structure to ensure that it is realistic.
+
+E: Too many atom triplets for pair bop
+
+The number of three atom groups for angle determinations exceeds the
+expected number.  Check your atomic structrure to ensure that it is
+realistic.
+
+E: Cannot open BOP potential file %s
+
+The specified BOP potential file cannot be opened.  Check that the
+path and name are correct.
+
 */

@@ -51,4 +51,9 @@ E: TIP4P hydrogen is missing
 The TIP4P pairwise computation failed to find the correct H atom
 within a water molecule.
 
+E: TIP4P hydrogen has incorrect atom type
+
+The atom LAMMPS assumes is a hydrogen bonded to a water oxygen,
+is not the hydrogen type specified in the command.
+
 */

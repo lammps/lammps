@@ -476,8 +476,8 @@ void PairLubricatePoly::init_style()
   // check for fix deform, if exists it must use "remap v"
   // If box will change volume, set appropriate flag so that volume
   // and v.f. corrections are re-calculated at every step.
-  //
-  // If available volume is different from box volume
+
+  // if available volume is different from box volume
   // due to walls, set volume appropriately; if walls will
   // move, set appropriate flag so that volume and v.f. corrections
   // are re-calculated at every step.

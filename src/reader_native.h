@@ -57,7 +57,7 @@ private:
 
 E: Dump file is incorrectly formatted
 
-No atoms were found in file.
+Self-explanatory.
 
 E: Unexpected end of dump file
 

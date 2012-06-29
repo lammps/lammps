@@ -85,4 +85,8 @@ E: Too many total atoms
 
 See the setting for bigint in the src/lmptype.h file.
 
+E: No overlap of box and region for create_atoms
+
+Self-explanatory.
+
 */

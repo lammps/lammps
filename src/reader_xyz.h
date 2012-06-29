@@ -52,3 +52,15 @@ private:
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Dump file is incorrectly formatted
+
+No atoms were found in file.
+
+E: Unexpected end of dump file
+
+A read operation from the file failed.
+
+*/

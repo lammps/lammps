@@ -91,3 +91,58 @@ private:
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Dump file does not contain requested snapshot
+
+Self-explanatory.
+
+E: Invalid dump reader style
+
+Self-explanatory.
+
+E: No box information in dump. You have to use 'box no'
+
+Self-explanatory.
+
+E: Read_dump triclinic status does not match simulation
+
+Both the dump snapshot and the current LAMMPS simulation must
+be using either an orthogonal or triclinic box.
+
+E: Read_dump field not found in dump file
+
+Self-explanatory.
+
+E: Read_dump x,y,z fields do not have consistent scaling
+
+Self-explanatory.
+
+E: All read_dump x,y,z fields must be specified for scaled, triclinic coords
+
+For triclinic boxes and scaled coordinates you must specify all 3 of
+the x,y,z fields, else LAMMPS cannot reconstruct the unscaled
+coordinates.
+
+E: Too many total atoms
+
+Adding atoms from the dump snapshot has caused the LAMMPS simulation
+to exceed the allowed number of atoms.
+
+E: Duplicate fields in read_dump command
+
+Self-explanatory.
+
+E: If read_dump purges it cannot replace or trim
+
+These operations are not compatible.  See the read_dump doc
+page for details.
+
+*/

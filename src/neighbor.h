@@ -336,10 +336,6 @@ E: Neighbor multi not yet enabled for rRESPA
 
 Self-explanatory.
 
-E: Neighbors of ghost atoms only allowed for full neighbor lists
-
-This is a current restriction within LAMMPS.
-
 E: Too many local+ghost atoms for neighbor list
 
 The number of nlocal + nghost atoms on a processor

@@ -68,6 +68,18 @@ E: Fix restrain requires an atom map, see atom_modify
 
 Self-explanatory.
 
+E: Restrain atoms %d %d missing on proc %d at step %ld
+
+The 2 atoms in a restrain bond specified by the fix restrain
+command are not all accessible to a processor.  This probably means an
+atom has moved too far.
+
+E: Restrain atoms %d %d %d missing on proc %d at step %ld
+
+The 3 atoms in a restrain angle specified by the fix restrain
+command are not all accessible to a processor.  This probably means an
+atom has moved too far.
+
 E: Restrain atoms %d %d %d %d missing on proc %d at step %ld
 
 The 4 atoms in a restrain dihedral specified by the fix restrain

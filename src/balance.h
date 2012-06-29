@@ -91,6 +91,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Cannot open balance output file
+
+Self-explanatory.
+
 E: Cannot balance in z dimension for 2d simulation
 
 Self-explanatory.
@@ -99,17 +103,14 @@ E: Balance dynamic string is invalid
 
 The string can only contain the characters "x", "y", or "z".
 
-E: Balance dynamic string is invalid for 2d simulation
-
-The string cannot contain the letter "z".
-
 E: Lost atoms via balance: original %ld current %ld
 
 This should not occur.  Report the problem to the developers.
 
-E: Cannot open balance output file
+E: Balance produced bad splits
 
-This error message can only occur if debug options
-are uncommented in src/balance.cpp.
+This should not occur.  It means two or more cutting plane locations
+are on top of each other or out of order.  Report the problem to the
+developers.
 
 */

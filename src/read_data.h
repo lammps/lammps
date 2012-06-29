@@ -100,6 +100,10 @@ E: Cannot run 2d simulation with nonperiodic Z dimension
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.
 
+E: Fix ID for read_data does not exist
+
+Self-explanatory.
+
 E: Must read Atoms before Velocities
 
 The Atoms section of a data file must come before a Velocities

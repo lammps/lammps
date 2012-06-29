@@ -83,16 +83,13 @@ E: Illegal integrate style
 
 Self-explanatory.
 
-E: Cannot reset timestep with dump file already written to
+E: Timestep must be >= 0
 
-Changing the timestep will confuse when a dump file is written.  Use
-the undump command, then restart the dump file.
+Specified timestep is invalid.
 
-E: Cannot reset timestep with restart file already written
+E: Too big a timestep
 
-Changing the timestep will confuse when a restart file is written.
-Use the "restart 0" command to turn off restarts, then start them
-again.
+Specified timestep is too large.
 
 E: Cannot reset timestep with a time-dependent fix defined
 
@@ -104,13 +101,5 @@ E: Cannot reset timestep with a dynamic region defined
 Dynamic regions (see the region command) have a time dependence.
 Thus you cannot change the timestep when one or more of these
 are defined.
-
-E: Timestep must be >= 0
-
-Specified timestep is invalid.
-
-E: Too big a timestep
-
-Specified timestep is too large.
 
 */

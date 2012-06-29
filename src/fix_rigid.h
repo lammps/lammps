@@ -185,6 +185,13 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
+W: Computing temperature of portions of rigid bodies
+
+The group defined by the temperature compute does not encompass all
+the atoms in one or more rigid bodies, so the change in
+degrees-of-freedom for the atoms in those partial rigid bodies will
+not be accounted for.
+
 E: Fix rigid atom has non-zero image flag in a non-periodic dimension
 
 You cannot set image flags for non-periodic dimensions.
@@ -198,11 +205,22 @@ E: Fix rigid: Bad principal moments
 The principal moments of inertia computed for a rigid body
 are not within the required tolerances.
 
-W: Computing temperature of portions of rigid bodies
+E: Cannot open fix rigid infile %s
 
-The group defined by the temperature compute does not encompass all
-the atoms in one or more rigid bodies, so the change in
-degrees-of-freedom for the atoms in those partial rigid bodies will
-not be accounted for.
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+E: Unexpected end of fix rigid file
+
+A read operation from the file failed.
+
+E: Incorrect rigid body format in fix rigid file
+
+The number of fields per line is not what expected.
+
+E: Invalid rigid body ID in fix rigid file
+
+The ID does not match the number or an existing ID of rigid bodies
+that are defined by the fix rigid command.
 
 */

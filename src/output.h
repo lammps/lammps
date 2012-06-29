@@ -99,7 +99,19 @@ E: Variable for dump every is invalid style
 
 Only equal-style variables can be used.
 
+E: Variable name for restart does not exist
+
+Self-explanatory.
+
+E: Variable for restart is invalid style
+
+Only equal-style variables can be used.
+
 E: Dump every variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+E: Restart variable returned a bad timestep
 
 The variable must return a timestep greater than the current timestep.
 

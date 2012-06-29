@@ -260,11 +260,6 @@ E: Atom_modify sort and first options cannot be used together
 
 Self-explanatory.
 
-E: Cannot create an atom map unless atoms have IDs
-
-The simulation requires a mapping from global atom IDs to local atoms,
-but the atoms that have been defined have no IDs.
-
 E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with

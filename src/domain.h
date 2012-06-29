@@ -162,6 +162,21 @@ E: Illegal simulation box
 
 The lower bound of the simulation box is greater than the upper bound.
 
+E: Bond atom missing in box size check
+
+The 2nd atoms needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.
+
+E: Bond/angle/dihedral extent > half of periodic box length
+
+This is a restriction because LAMMPS can be confused about which image
+of an atom in the bonded interaction is the correct one to use.
+"Extent" in this context means the maximum end-to-end length of the
+bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
+length, multiplying by the number of bonds in the interaction (e.g. 3
+for a dihedral) and adding a small amount of stretch.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

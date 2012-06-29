@@ -693,7 +693,8 @@ int AtomVecWavepacket::pack_exchange(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m++] = image[i];
+  *((tagint *) &buf[m++]) = image[i];
+
   buf[m++] = q[i];
   buf[m++] = spin[i];
   buf[m++] = eradius[i];
@@ -728,7 +729,8 @@ int AtomVecWavepacket::unpack_exchange(double *buf)
   tag[nlocal] = static_cast<int> (buf[m++]);
   type[nlocal] = static_cast<int> (buf[m++]);
   mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = static_cast<tagint> (buf[m++]);
+  image[nlocal] = *((tagint *) &buf[m++]);
+
   q[nlocal] = buf[m++];
   spin[nlocal] = static_cast<int> (buf[m++]);
   eradius[nlocal] = buf[m++];
@@ -782,7 +784,7 @@ int AtomVecWavepacket::pack_restart(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m++] = image[i];
+  *((tagint *) &buf[m++]) = image[i];
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
@@ -824,7 +826,7 @@ int AtomVecWavepacket::unpack_restart(double *buf)
   tag[nlocal] = static_cast<int> (buf[m++]);
   type[nlocal] = static_cast<int> (buf[m++]);
   mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = static_cast<tagint> (buf[m++]);
+  image[nlocal] = *((tagint *) &buf[m++]);
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
@@ -897,7 +899,8 @@ void AtomVecWavepacket::data_atom(double *coord, tagint imagetmp, char **values)
 
   tag[nlocal] = atoi(values[0]);
   if (tag[nlocal] <= 0)
-    error->one(FLERR,"Invalid atom ID in Atoms section of data file (ID tag must be >0)");
+    error->one(FLERR,"Invalid atom ID in Atoms section of "
+               "data file (ID tag must be >0)");
 
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
@@ -998,7 +1001,8 @@ bigint AtomVecWavepacket::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax*comm->nthreads);
+  if (atom->memcheck("erforce")) 
+    bytes += memory->usage(erforce,nmax*comm->nthreads);
 
   if (atom->memcheck("ervelforce")) bytes += memory->usage(ervelforce,nmax);
   if (atom->memcheck("cs")) bytes += memory->usage(cs,2*nmax);

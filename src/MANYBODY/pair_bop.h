@@ -220,14 +220,6 @@ class PairBOP : public Pair {
 #endif
 #endif
 
- 
-E: BOP: Too many Atom Pairs
-
-
-E: BOP: Too many Atom Triplets
-
-*/
-
 /* ERROR/WARNING messages:
 
 E: Illegal ... command

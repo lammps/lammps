@@ -945,8 +945,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else if (includegroup)
               error->all(FLERR,"Neighbor include group not allowed "
                          "with ghost neighbors");
-            // NOTE: missing OMP version of this one
-            else pb = &Neighbor::half_nsq_no_newton_ghost;
+            else pb = &Neighbor::half_nsq_no_newton_ghost_omp;
           } else if (newton_pair == 1) pb = &Neighbor::half_nsq_newton_omp;
         } else if (rq->newton == 1) {
           pb = &Neighbor::half_nsq_newton_omp;
@@ -955,8 +954,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
           else if (includegroup)
             error->all(FLERR,"Neighbor include group not allowed "
                        "with ghost neighbors");
-          // NOTE: missing OMP version of this one
-          else pb = &Neighbor::half_nsq_no_newton_ghost;
+          else pb = &Neighbor::half_nsq_no_newton_ghost_omp;
         }
       } else if (style == BIN) {
         if (rq->newton == 0) {
@@ -965,8 +963,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else if (includegroup)
               error->all(FLERR,"Neighbor include group not allowed "
                          "with ghost neighbors");
-            // NOTE: missing OMP version of this one
-            else pb = &Neighbor::half_bin_no_newton_ghost;
+            else pb = &Neighbor::half_bin_no_newton_ghost_omp;
           } else if (triclinic == 0) {
             pb = &Neighbor::half_bin_newton_omp;
           } else if (triclinic == 1) 
@@ -979,8 +976,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
           else if (includegroup)
             error->all(FLERR,"Neighbor include group not allowed "
                        "with ghost neighbors");
-          // NOTE: missing OMP version of this one
-          else pb = &Neighbor::half_bin_no_newton_ghost;
+          else pb = &Neighbor::half_bin_no_newton_ghost_omp;
         }
       } else if (style == MULTI) {
         if (rq->ghost == 1)

@@ -16,6 +16,7 @@
 #include "pair_gran_hertz_history_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "fix_rigid.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -48,6 +49,13 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
   computeflag = 1;
   const int shearupdate = (update->setupflag) ? 0 : 1;
 
+  // update body ptr and values for ghost atoms if using FixRigid masses
+
+  if (fix_rigid && neighbor->ago == 0) {
+    body = fix_rigid->body;
+    comm->forward_comm_pair(this);
+  }
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(eflag,vflag)
 #endif
@@ -78,7 +86,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
-  double meff,damp,ccel,tor1,tor2,tor3;
+  double mi,mj,meff,damp,ccel,tor1,tor2,tor3;
   double fn,fs,fs1,fs2,fs3;
   double shrmag,rsht,polyhertz;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -171,19 +179,27 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
         wr2 = (radi*omega[i][1] + radj*omega[j][1]) * rinv;
         wr3 = (radi*omega[i][2] + radj*omega[j][2]) * rinv;
 
-        // normal force = Hertzian contact + normal velocity damping
+        // meff = effective mass of pair of particles
+        // if I or J part of rigid body, use body mass
+        // if I or J is frozen, meff is other particle
 
         if (rmass) {
-          meff = rmass[i]*rmass[j] / (rmass[i]+rmass[j]);
-          if (mask[i] & freeze_group_bit) meff = rmass[j];
-          if (mask[j] & freeze_group_bit) meff = rmass[i];
+          mi = rmass[i];
+          mj = rmass[j];
         } else {
-          itype = type[i];
-          jtype = type[j];
-          meff = mass[itype]*mass[jtype] / (mass[itype]+mass[jtype]);
-          if (mask[i] & freeze_group_bit) meff = mass[jtype];
-          if (mask[j] & freeze_group_bit) meff = mass[itype];
+          mi = mass[type[i]];
+          mj = mass[type[j]];
         }
+        if (fix_rigid) {
+          if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
+          if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
+        }
+
+        meff = mi*mj / (mi+mj);
+        if (mask[i] & freeze_group_bit) meff = mj;
+        if (mask[j] & freeze_group_bit) meff = mi;
+
+        // normal force = Hertzian contact + normal velocity damping
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;

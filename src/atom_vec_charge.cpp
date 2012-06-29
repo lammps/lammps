@@ -479,7 +479,6 @@ int AtomVecCharge::pack_exchange(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m++] = image[i];
   *((tagint *) &buf[m++]) = image[i];
 
   buf[m++] = q[i];

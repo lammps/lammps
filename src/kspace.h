@@ -70,6 +70,7 @@ class KSpace : protected Pointers {
   int maxeatom,maxvatom;
 
   void ev_setup(int, int);
+  double estimate_table_accuracy(double);
 };
 
 }
@@ -92,5 +93,10 @@ W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 
 The kspace_modify slab parameter should be larger to insure periodic
 grids padded with empty space do not overlap.
+
+W: For better accuracy use 'pair_modify table 0'
+
+The user-specified force accuracy cannot be achieved unless the table
+feature is disabled by using 'pair_modify table 0'.
 
 */

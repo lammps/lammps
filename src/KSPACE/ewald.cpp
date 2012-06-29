@@ -176,6 +176,8 @@ void Ewald::init()
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double tpr = estimate_table_accuracy(spr);
+  double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // stats
 
@@ -183,18 +185,18 @@ void Ewald::init()
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
     }
     if (logfile) {
       fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
     }

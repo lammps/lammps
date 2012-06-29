@@ -57,6 +57,8 @@ class Pair : protected Pointers {
   int evflag;                    // energy,virial settings
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;
+  
+  int ncoultablebits;                  // size of Coulomb table
 
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities
@@ -146,7 +148,6 @@ class Pair : protected Pointers {
 
                                        // pair_modify settings
   int offset_flag,mix_flag;            // flags for offset and mixing
-  int ncoultablebits;                  // size of Coulomb table
   double tabinner;                     // inner cutoff for Coulomb table
 
   // custom data type for accessing Coulomb tables

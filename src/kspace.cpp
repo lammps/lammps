@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "pair.h"
 #include "memory.h"
 #include "error.h"
 #include "suffix.h"
@@ -122,6 +123,37 @@ void KSpace::ev_setup(int eflag, int vflag)
       vatom[i][5] = 0.0;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   estimate the accuracy of the short-range coulomb tables
+------------------------------------------------------------------------- */
+
+double KSpace::estimate_table_accuracy(double spr)
+{
+  double table_accuracy = 0.0;
+  int nctb = force->pair->ncoultablebits;
+  if (nctb) {
+    double empirical_precision[17];
+    empirical_precision[6] = 2.12E-04;
+    empirical_precision[7] = 4.97E-05;
+    empirical_precision[8] = 1.24E-05;
+    empirical_precision[9] = 3.04E-06;
+    empirical_precision[10] = 8.51E-07;
+    empirical_precision[11] = 1.85E-07;
+    empirical_precision[12] = 5.87E-08;
+    empirical_precision[13] = 2.81E-08;
+    empirical_precision[14] = 2.20E-08;
+    empirical_precision[15] = 2.13E-08;
+    empirical_precision[16] = 2.11E-08;
+    if (nctb <= 6) table_accuracy = empirical_precision[6];
+    else if (nctb <= 16) table_accuracy = empirical_precision[nctb];
+    else table_accuracy = empirical_precision[16];
+    table_accuracy *= two_charge_force;
+    if (table_accuracy > spr)
+      error->warning(FLERR,"For better accuracy use 'pair_modify table 0'");
+  }
+  return table_accuracy;
 }
 
 /* ----------------------------------------------------------------------

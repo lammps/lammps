@@ -789,7 +789,7 @@ void FixStoreState::pack_zs_triclinic(int n)
 void FixStoreState::pack_xu(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -797,7 +797,7 @@ void FixStoreState::pack_xu(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      vbuf[n] = x[i][0] + ((image[i] & 1023) - 512) * xprd;
+      vbuf[n] = x[i][0] + ((image[i] & IMGMASK) - IMGMAX) * xprd;
       if (comflag) vbuf[n] -= cm[0];
     } else vbuf[n] = 0.0;
     n += nvalues;
@@ -809,7 +809,7 @@ void FixStoreState::pack_xu(int n)
 void FixStoreState::pack_yu(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -817,7 +817,7 @@ void FixStoreState::pack_yu(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      vbuf[n] = x[i][1] + ((image[i] >> 10 & 1023) - 512) * yprd;
+      vbuf[n] = x[i][1] + ((image[i] >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
       if (comflag) vbuf[n] -= cm[1];
     } else vbuf[n] = 0.0;
     n += nvalues;
@@ -829,7 +829,7 @@ void FixStoreState::pack_yu(int n)
 void FixStoreState::pack_zu(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -837,7 +837,7 @@ void FixStoreState::pack_zu(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      vbuf[n] = x[i][2] + ((image[i] >> 20) - 512) * zprd;
+      vbuf[n] = x[i][2] + ((image[i] >> IMG2BITS) - IMGMAX) * zprd;
       if (comflag) vbuf[n] -= cm[2];
     } else vbuf[n] = 0.0;
     n += nvalues;
@@ -849,7 +849,7 @@ void FixStoreState::pack_zu(int n)
 void FixStoreState::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -858,9 +858,9 @@ void FixStoreState::pack_xu_triclinic(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       vbuf[n] = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
       if (comflag) vbuf[n] -= cm[0];
     } else vbuf[n] = 0.0;
@@ -873,7 +873,7 @@ void FixStoreState::pack_xu_triclinic(int n)
 void FixStoreState::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -882,8 +882,8 @@ void FixStoreState::pack_yu_triclinic(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       vbuf[n] = x[i][1] + h[1]*ybox + h[3]*zbox;
       if (comflag) vbuf[n] -= cm[1];
     } else vbuf[n] = 0.0;
@@ -896,7 +896,7 @@ void FixStoreState::pack_yu_triclinic(int n)
 void FixStoreState::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -905,7 +905,7 @@ void FixStoreState::pack_zu_triclinic(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      zbox = (image[i] >> 20) - 512;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       vbuf[n] = x[i][2] + h[2]*zbox;
       if (comflag) vbuf[n] -= cm[2];
     } else vbuf[n] = 0.0;
@@ -917,12 +917,12 @@ void FixStoreState::pack_zu_triclinic(int n)
 
 void FixStoreState::pack_ix(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] & 1023) - 512;
+    if (mask[i] & groupbit) vbuf[n] = (image[i] & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -932,12 +932,12 @@ void FixStoreState::pack_ix(int n)
 
 void FixStoreState::pack_iy(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] >> 10 & 1023) - 512;
+    if (mask[i] & groupbit) vbuf[n] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }
@@ -947,12 +947,12 @@ void FixStoreState::pack_iy(int n)
 
 void FixStoreState::pack_iz(int n)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) vbuf[n] = (image[i] >> 20) - 512;
+    if (mask[i] & groupbit) vbuf[n] = (image[i] >> IMG2BITS) - IMGMAX;
     else vbuf[n] = 0.0;
     n += nvalues;
   }

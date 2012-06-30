@@ -128,9 +128,10 @@ void Replicate::command(int narg, char **arg)
   // if atomic and new N > MAXTAGINT, turn off tags for existing and new atoms
   // new system cannot exceed MAXBIGINT
 
-  if (atom->molecular && (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT))
+  // change these 2 to MAXTAGINT when allow tagint = bigint
+  if (atom->molecular && (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT))
     error->all(FLERR,"Replicated molecular system atom IDs are too big");
-  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXTAGINT)
+  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT)
     atom->tag_enable = 0;
   if (atom->tag_enable == 0)
     for (int i = 0; i < atom->nlocal; i++)
@@ -255,7 +256,8 @@ void Replicate::command(int narg, char **arg)
   AtomVec *old_avec = old->avec;
   AtomVec *avec = atom->avec;
 
-  int ix,iy,iz,image,atom_offset,mol_offset;
+  int ix,iy,iz,atom_offset,mol_offset;
+  tagint image;
   double x[3],lamda[3];
   double *coord;
   int tag_enable = atom->tag_enable;
@@ -276,7 +278,8 @@ void Replicate::command(int narg, char **arg)
 
           m = 0;
           while (m < n) {
-            image = (512 << 20) | (512 << 10) | 512;
+            image = ((tagint) IMGMAX << IMG2BITS) | 
+              ((tagint) IMGMASK << IMGBITS) | IMGMAX;
             if (triclinic == 0) {
               x[0] = buf[m+1] + ix*old_xprd;
               x[1] = buf[m+2] + iy*old_yprd;

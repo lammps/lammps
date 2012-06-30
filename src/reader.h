@@ -44,3 +44,17 @@ class Reader : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Cannot open gzipped file
+
+LAMMPS is attempting to open a gzipped version of the specified file
+but was unsuccessful.  Check that the path and name are correct.
+
+E: Cannot open file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+*/

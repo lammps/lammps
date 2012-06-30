@@ -112,7 +112,7 @@ void ReadData::command(int narg, char **arg)
                          "read_data:fix_section");
       fix_index[nfix] = modify->find_fix(arg[iarg+1]);
       if (fix_index[nfix] < 0)
-        error->all(FLERR,"Fix ID for Read_data does not exist");
+        error->all(FLERR,"Fix ID for read_data does not exist");
       int n = strlen(arg[iarg+2]) + 1;
       fix_header[nfix] = new char[n];
       strcpy(fix_header[nfix],arg[iarg+2]);

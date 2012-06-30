@@ -95,7 +95,6 @@ void BondHarmonicShiftOMP::eval(int nfrom, int nto, ThrData * const thr)
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];
-    domain->minimum_image(delx,dely,delz);
 
     rsq = delx*delx + dely*dely + delz*delz;
     r = sqrt(rsq);
@@ -107,7 +106,8 @@ void BondHarmonicShiftOMP::eval(int nfrom, int nto, ThrData * const thr)
     if (r > 0.0) fbond = -2.0*rk/r;
     else fbond = 0.0;
 
-    if (EFLAG) ebond = k[type]*(dr*dr -(r0[type]-r1[type])*(r0[type]-r1[type]) );
+    if (EFLAG) 
+      ebond = k[type]*(dr*dr -(r0[type]-r1[type])*(r0[type]-r1[type]) );
 
     // apply force to each of 2 atoms
 

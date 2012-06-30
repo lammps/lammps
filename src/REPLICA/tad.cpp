@@ -830,7 +830,7 @@ void TAD::revert()
 {
   double **x = atom->x;
   double **v = atom->v;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double **array_atom = fix_revert->array_atom;
@@ -839,9 +839,10 @@ void TAD::revert()
     x[i][0] = array_atom[i][0];
     x[i][1] = array_atom[i][1];
     x[i][2] = array_atom[i][2];
-    image[i] = ((int(array_atom[i][5]) + 512 & 1023) << 20) |
-      ((int(array_atom[i][4]) + 512 & 1023) << 10) |
-      (int(array_atom[i][3]) + 512 & 1023);
+    image[i] = 
+      ((int(array_atom[i][5]) + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
+      ((int(array_atom[i][4]) + (tagint) IMGMAX & IMGMASK) << IMGBITS) |
+      (int(array_atom[i][3]) + IMGMAX & IMGMASK);
     v[i][0] = -array_atom[i][6];
     v[i][1] = -array_atom[i][7];
     v[i][2] = -array_atom[i][8];

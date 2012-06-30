@@ -60,7 +60,7 @@ class AtomVecEllipsoid : public AtomVec {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, int, char **);
+  void data_atom(double *, tagint, char **);
   int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
@@ -76,7 +76,8 @@ class AtomVecEllipsoid : public AtomVec {
   void set_shape(int, double, double, double);
 
  private:
-  int *tag,*type,*mask,*image;
+  int *tag,*type,*mask;
+  tagint *image;
   double **x,**v,**f;
   double *rmass;
   double **angmom,**torque;

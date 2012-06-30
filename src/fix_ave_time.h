@@ -166,4 +166,9 @@ E: Cannot open fix ave/time file %s
 The specified file cannot be opened.  Check that the path and name are
 correct.
 
+E: Fix ave/time missed timestep
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging.
+
 */

@@ -360,7 +360,7 @@ void FixPOEMS::init()
   // only count joint atoms in 1st body
 
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double **x = atom->x;
   double **v = atom->v;
@@ -379,9 +379,9 @@ void FixPOEMS::init()
   for (i = 0; i < nlocal; i++) {
     if (natom2body[i]) {
       ibody = atom2body[i][0];
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       massone = mass[type[i]];
       sum[ibody][0] += (x[i][0] + xbox*xprd) * massone;
       sum[ibody][1] += (x[i][1] + ybox*yprd) * massone;
@@ -416,9 +416,9 @@ void FixPOEMS::init()
     if (natom2body[i]) {
       ibody = atom2body[i][0];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xcm[ibody][0];
       dy = x[i][1] + ybox*yprd - xcm[ibody][1];
       dz = x[i][2] + zbox*zprd - xcm[ibody][2];
@@ -511,9 +511,9 @@ void FixPOEMS::init()
     if (natom2body[i]) {
       ibody = atom2body[i][0];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xcm[ibody][0];
       dy = x[i][1] + ybox*yprd - xcm[ibody][1];
       dz = x[i][2] + zbox*zprd - xcm[ibody][2];
@@ -544,9 +544,9 @@ void FixPOEMS::init()
     if (natom2body[i]) {
       ibody = atom2body[i][0];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xcm[ibody][0];
       dy = x[i][1] + ybox*yprd - xcm[ibody][1];
       dz = x[i][2] + zbox*zprd - xcm[ibody][2];
@@ -596,7 +596,7 @@ void FixPOEMS::setup(int vflag)
   // only count joint atoms in 1st body
 
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double **x = atom->x;
   double **v = atom->v;
@@ -617,9 +617,9 @@ void FixPOEMS::setup(int vflag)
       ibody = atom2body[i][0];
       massone = mass[type[i]];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xcm[ibody][0];
       dy = x[i][1] + ybox*yprd - xcm[ibody][1];
       dz = x[i][2] + zbox*zprd - xcm[ibody][2];
@@ -710,7 +710,7 @@ void FixPOEMS::post_force(int vflag)
   int xbox,ybox,zbox;
   double dx,dy,dz;
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -730,9 +730,9 @@ void FixPOEMS::post_force(int vflag)
       sum[ibody][1] += f[i][1];
       sum[ibody][2] += f[i][2];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = x[i][0] + xbox*xprd - xcm[ibody][0];
       dy = x[i][1] + ybox*yprd - xcm[ibody][1];
       dz = x[i][2] + zbox*zprd - xcm[ibody][2];
@@ -1341,7 +1341,7 @@ void FixPOEMS::set_xv()
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double vr[6];
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1360,9 +1360,9 @@ void FixPOEMS::set_xv()
     if (natom2body[i] == 0) continue;
     ibody = atom2body[i][0];
 
-    xbox = (image[i] & 1023) - 512;
-    ybox = (image[i] >> 10 & 1023) - 512;
-    zbox = (image[i] >> 20) - 512;
+    xbox = (image[i] & IMGMASK) - IMGMAX;
+    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     // save old positions and velocities for virial
 
@@ -1445,7 +1445,7 @@ void FixPOEMS::set_v()
   double **x = atom->x;
   double **v = atom->v;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
@@ -1493,9 +1493,9 @@ void FixPOEMS::set_v()
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
 
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
       x0 = x[i][0] + xbox*xprd;
       x1 = x[i][1] + ybox*yprd;

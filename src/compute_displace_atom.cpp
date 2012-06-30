@@ -104,7 +104,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
@@ -118,9 +118,9 @@ void ComputeDisplaceAtom::compute_peratom()
   if (domain->triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         dx = x[i][0] + xbox*xprd - xoriginal[i][0];
         dy = x[i][1] + ybox*yprd - xoriginal[i][1];
         dz = x[i][2] + zbox*zprd - xoriginal[i][2];
@@ -134,9 +134,9 @@ void ComputeDisplaceAtom::compute_peratom()
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xoriginal[i][0];
         dy = x[i][1] + h[1]*ybox + h[3]*zbox - xoriginal[i][1];
         dz = x[i][2] + h[2]*zbox - xoriginal[i][2];

@@ -80,4 +80,12 @@ E: Fix balance string is invalid for 2d simulation
 
 The string cannot contain the letter "z".
 
+E: Cannot open fix balance output file
+
+Self-explanatory.
+
+E: Cannot yet use fix balance with PPPM
+
+This is a current limitation of LAMMPS.
+
 */

@@ -175,4 +175,9 @@ E: Fix for fix ave/spatial not computed at compatible time
 Fixes generate their values on specific timesteps.  Fix ave/spatial is
 requesting a value on a non-allowed timestep.
 
+E: Fix ave/spatial missed timestep
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging.
+
 */

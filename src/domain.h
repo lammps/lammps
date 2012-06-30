@@ -14,6 +14,7 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
+#include "math.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -94,16 +95,16 @@ class Domain : protected Pointers {
   virtual void reset_box();
   virtual void pbc();
   void box_too_small_check();
-  int minimum_image_check(double, double, double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
+  int closest_image(int, int);
   void closest_image(const double * const, const double * const,
                      double * const);
-  void remap(double *, int &);
+  void remap(double *, tagint &);
   void remap(double *);
   void remap_near(double *, double *);
-  void unmap(double *, int);
-  void unmap(double *, int, double *);
+  void unmap(double *, tagint);
+  void unmap(double *, tagint, double *);
   void image_flip(int, int, int);
   void set_lattice(int, char **);
   void add_region(int, char **);
@@ -120,6 +121,17 @@ class Domain : protected Pointers {
   void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();
+
+  // minimum image convention check
+  // return 1 if any distance > 1/2 of box size
+  // inline since called from neighbor build inner loop
+
+  inline int minimum_image_check(double dx, double dy, double dz) {
+    if (xperiodic && fabs(dx) > xprd_half) return 1;
+    if (yperiodic && fabs(dy) > yprd_half) return 1;
+    if (zperiodic && fabs(dz) > zprd_half) return 1;
+    return 0;
+  }
 
  private:
   double small[3];                  // fractions of box lengths
@@ -149,6 +161,21 @@ length in that dimension.  E.g. the xy tilt must be between -half and
 E: Illegal simulation box
 
 The lower bound of the simulation box is greater than the upper bound.
+
+E: Bond atom missing in box size check
+
+The 2nd atoms needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.
+
+E: Bond/angle/dihedral extent > half of periodic box length
+
+This is a restriction because LAMMPS can be confused about which image
+of an atom in the bonded interaction is the correct one to use.
+"Extent" in this context means the maximum end-to-end length of the
+bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
+length, multiplying by the number of bonds in the interaction (e.g. 3
+for a dihedral) and adding a small amount of stretch.
 
 E: Illegal ... command
 

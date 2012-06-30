@@ -90,14 +90,14 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   // read xi and chi reference orientations from files
 
   if (me == 0) {
-    char line[512];
+    char line[IMGMAX];
     char *result;
     int count;
 
     FILE *infile = fopen(xifilename,"r");
     if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,512,infile);
+      result = fgets(line,IMGMAX,infile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
@@ -107,7 +107,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     infile = fopen(chifilename,"r");
     if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,512,infile);
+      result = fgets(line,IMGMAX,infile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");

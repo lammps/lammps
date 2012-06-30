@@ -195,7 +195,7 @@ void DumpXTC::pack(int *ids)
 
   int *tag = atom->tag;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -210,9 +210,9 @@ void DumpXTC::pack(int *ids)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        int ix = (image[i] & 1023) - 512;
-        int iy = (image[i] >> 10 & 1023) - 512;
-        int iz = (image[i] >> 20) - 512;
+        int ix = (image[i] & IMGMASK) - IMGMAX;
+        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
         if (domain->triclinic) {
           buf[m++] = sfactor * (x[i][0] + ix * xprd + iy * xy + iz * xz);
@@ -359,7 +359,7 @@ static int *buf = NULL;
 static int magicints[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0,
   8, 10, 12, 16, 20, 25, 32, 40, 50, 64,
-  80, 101, 128, 161, 203, 256, 322, 406, 512, 645,
+  80, 101, 128, 161, 203, 256, 322, 406, IMGMAX, 645,
   812, 1024, 1290, 1625, 2048, 2580, 3250, 4096, 5060, 6501,
   8192, 10321, 13003, 16384, 20642, 26007, 32768, 41285, 52015, 65536,
   82570, 104031, 131072, 165140, 208063, 262144, 330280, 416127,

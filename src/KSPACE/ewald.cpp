@@ -44,6 +44,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   group_group_enable = 1;
+  group_allocate_flag = 0;
 
   accuracy_relative = atof(arg[0]);
 
@@ -67,7 +68,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 Ewald::~Ewald()
 {
   deallocate();
-  deallocate_groups();
+  if (group_allocate_flag) deallocate_groups();
   memory->destroy(ek);
   memory->destroy3d_offset(cs,-kmax_created);
   memory->destroy3d_offset(sn,-kmax_created);
@@ -156,10 +157,11 @@ void Ewald::init()
   // zprd used rather than zprd_slab
 
   if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0)
-      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
   }
 
   // setup Ewald coefficients so can print stats
@@ -174,6 +176,8 @@ void Ewald::init()
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double tpr = estimate_table_accuracy(spr);
+  double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // stats
 
@@ -181,18 +185,18 @@ void Ewald::init()
     if (screen) {
       fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
     }
     if (logfile) {
       fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
     }

@@ -154,6 +154,10 @@ E: Invalid fix nvt/npt/nph command for a 2d simulation
 
 Cannot control z dimension in a 2d model.
 
+E: Fix nvt/npt/nph dilate group ID does not exist
+
+Self-explanatory.
+
 E: Invalid fix nvt/npt/nph command pressure settings
 
 If multiple dimensions are coupled, those dimensions must be

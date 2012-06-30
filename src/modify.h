@@ -145,16 +145,16 @@ This is probably an error since you typically do not want to
 advance the positions or velocities of an atom more than once
 per timestep.
 
-E: Fix command before simulation box is defined
-
-The fix command cannot be used before a read_data, read_restart, or
-create_box command.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Fix command before simulation box is defined
+
+The fix command cannot be used before a read_data, read_restart, or
+create_box command.
 
 E: Could not find fix group ID
 

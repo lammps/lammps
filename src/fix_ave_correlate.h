@@ -127,4 +127,9 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
+E: Fix ave/correlate missed timestep
+
+You cannot reset the timestep to a value beyond where the fix
+expects to next perform averaging.
+
 */

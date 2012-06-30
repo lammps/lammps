@@ -84,21 +84,18 @@ void ImproperUmbrella::compute(int eflag, int vflag)
     vb1x = x[i2][0] - x[i1][0];
     vb1y = x[i2][1] - x[i1][1];
     vb1z = x[i2][2] - x[i1][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
     vb2x = x[i3][0] - x[i1][0];
     vb2y = x[i3][1] - x[i1][1];
     vb2z = x[i3][2] - x[i1][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     // 3rd bond
 
     vb3x = x[i4][0] - x[i1][0];
     vb3y = x[i4][1] - x[i1][1];
     vb3z = x[i4][2] - x[i1][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
     // c0 calculation
     // A = vb1 X vb2 is perpendicular to IJK plane

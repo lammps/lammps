@@ -308,7 +308,7 @@ void DumpMolfile::pack(int *ids)
   int *tag = atom->tag;
   int *type = atom->type;
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -323,9 +323,9 @@ void DumpMolfile::pack(int *ids)
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        int ix = (image[i] & 1023) - 512;
-        int iy = (image[i] >> 10 & 1023) - 512;
-        int iz = (image[i] >> 20) - 512;
+        int ix = (image[i] & IMGMASK) - IMGMAX;
+        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
         buf[m++] = type[i];
         if (domain->triclinic) {

@@ -96,7 +96,7 @@ double ComputeEventDisplace::compute_scalar()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;
@@ -109,9 +109,9 @@ double ComputeEventDisplace::compute_scalar()
   if (triclinic == 0) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         dx = x[i][0] + xbox*xprd - xevent[i][0];
         dy = x[i][1] + ybox*yprd - xevent[i][1];
         dz = x[i][2] + zbox*zprd - xevent[i][2];
@@ -124,9 +124,9 @@ double ComputeEventDisplace::compute_scalar()
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         dx = x[i][0] + h[0]*xbox + h[5]*ybox + h[4]*zbox - xevent[i][0];
         dy = x[i][1] + h[1]*ybox + h[3]*zbox - xevent[i][1];
         dz = x[i][2] + h[2]*zbox - xevent[i][2];

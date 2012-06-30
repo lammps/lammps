@@ -230,7 +230,7 @@ void DumpAtom::pack_scale_image(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -247,9 +247,9 @@ void DumpAtom::pack_scale_image(int *ids)
       buf[m++] = (x[i][0] - boxxlo) * invxprd;
       buf[m++] = (x[i][1] - boxylo) * invyprd;
       buf[m++] = (x[i][2] - boxzlo) * invzprd;
-      buf[m++] = (image[i] & 1023) - 512;
-      buf[m++] = (image[i] >> 10 & 1023) - 512;
-      buf[m++] = (image[i] >> 20) - 512;
+      buf[m++] = (image[i] & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMG2BITS) - IMGMAX;
       if (ids) ids[n++] = tag[i];
     }
 }
@@ -290,7 +290,7 @@ void DumpAtom::pack_scale_image_triclinic(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -306,9 +306,9 @@ void DumpAtom::pack_scale_image_triclinic(int *ids)
       buf[m++] = lamda[0];
       buf[m++] = lamda[1];
       buf[m++] = lamda[2];
-      buf[m++] = (image[i] & 1023) - 512;
-      buf[m++] = (image[i] >> 10 & 1023) - 512;
-      buf[m++] = (image[i] >> 20) - 512;
+      buf[m++] = (image[i] & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMG2BITS) - IMGMAX;
       if (ids) ids[n++] = tag[i];
     }
 }
@@ -348,7 +348,7 @@ void DumpAtom::pack_noscale_image(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -361,9 +361,9 @@ void DumpAtom::pack_noscale_image(int *ids)
       buf[m++] = x[i][0];
       buf[m++] = x[i][1];
       buf[m++] = x[i][2];
-      buf[m++] = (image[i] & 1023) - 512;
-      buf[m++] = (image[i] >> 10 & 1023) - 512;
-      buf[m++] = (image[i] >> 20) - 512;
+      buf[m++] = (image[i] & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMG2BITS) - IMGMAX;
       if (ids) ids[n++] = tag[i];
     }
 }

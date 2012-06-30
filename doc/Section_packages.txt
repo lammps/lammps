@@ -39,24 +39,24 @@ packages, more details are provided.
 The current list of standard packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Library
-ASPHERE, aspherical particles, -, "howto"_Section_howto.html#howto_14, ellipse, -
+ASPHERE, aspherical particles, -, "Section_howto"_Section_howto.html#howto_14, ellipse, -
 CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
 GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
-GRANULAR, granular systems, -, "howto"_Section_howto.html#howto_6, pour, -
-KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), pair_style kim"_pair_kim.html, kim, lib/kim
+GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour, -
+KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, lib/kim
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
-MOLECULE, molecular system force fields, -, "howto"_Section_howto.html#howto_3, peptide, -
+MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
 OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_1, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
-REPLICA, multi-replica methods, -, "howto"_Section_howto.html#howto_5, tad, -
+REPLICA, multi-replica methods, -, "Section_howto"_Section_howto.html#howto_5, tad, -
 SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
 SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
 XTC, dumps in XTC format, -, "dump"_dump.html, -, -

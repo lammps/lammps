@@ -133,17 +133,14 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     delr[0][0] = x[i1][0] - x[i2][0];
     delr[0][1] = x[i1][1] - x[i2][1];
     delr[0][2] = x[i1][2] - x[i2][2];
-    domain->minimum_image(delr[0]);
 
     delr[1][0] = x[i3][0] - x[i2][0];
     delr[1][1] = x[i3][1] - x[i2][1];
     delr[1][2] = x[i3][2] - x[i2][2];
-    domain->minimum_image(delr[1]);
 
     delr[2][0] = x[i4][0] - x[i2][0];
     delr[2][1] = x[i4][1] - x[i2][1];
     delr[2][2] = x[i4][2] - x[i2][2];
-    domain->minimum_image(delr[2]);
 
     // bond lengths and associated values
 
@@ -542,17 +539,14 @@ void ImproperClass2OMP::angleangle_thr(int nfrom, int nto, ThrData * const thr)
     delxAB = x[i1][0] - x[i2][0];
     delyAB = x[i1][1] - x[i2][1];
     delzAB = x[i1][2] - x[i2][2];
-    domain->minimum_image(delxAB,delyAB,delzAB);
 
     delxBC = x[i3][0] - x[i2][0];
     delyBC = x[i3][1] - x[i2][1];
     delzBC = x[i3][2] - x[i2][2];
-    domain->minimum_image(delxBC,delyBC,delzBC);
 
     delxBD = x[i4][0] - x[i2][0];
     delyBD = x[i4][1] - x[i2][1];
     delzBD = x[i4][2] - x[i2][2];
-    domain->minimum_image(delxBD,delyBD,delzBD);
 
     // bond lengths
 

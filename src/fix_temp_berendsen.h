@@ -65,11 +65,23 @@ E: Fix temp/berendsen period must be > 0.0
 
 Self-explanatory.
 
+E: Variable name for fix temp/berendsen does not exist
+
+Self-explanatory.
+
+E: Variable for fix temp/berendsen is invalid style
+
+Only equal-style variables can be used.
+
 E: Temperature ID for fix temp/berendsen does not exist
 
 Self-explanatory.
 
 E: Computed temperature for fix temp/berendsen cannot be 0.0
+
+Self-explanatory.
+
+E: Fix temp/berendsen variable returned negative temperature
 
 Self-explanatory.
 

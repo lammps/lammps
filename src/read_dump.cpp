@@ -443,8 +443,9 @@ void ReadDump::atoms()
     MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
       error->all(FLERR,"Too many total atoms");
-    if (atom->natoms > MAXTAGINT) atom->tag_enable = 0;
-    if (atom->natoms <= MAXTAGINT) atom->tag_extend();
+    // change these to MAXTAGINT when allow tagint = bigint
+    if (atom->natoms > MAXSMALLINT) atom->tag_enable = 0;
+    if (atom->natoms <= MAXSMALLINT) atom->tag_extend();
   }
 
   // if trimflag set, delete atoms not replaced by snapshot atoms
@@ -506,7 +507,7 @@ void ReadDump::atoms()
   // use irregular() in case atoms moved a long distance
 
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
@@ -666,7 +667,7 @@ void ReadDump::process_atoms(int n)
 
   double **x = atom->x;
   double **v = atom->v;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < n; i++) {
@@ -687,9 +688,9 @@ void ReadDump::process_atoms(int n)
 
       // current image flags
 
-      xbox = (image[m] & 1023) - 512;
-      ybox = (image[m] >> 10 & 1023) - 512;
-      zbox = (image[m] >> 20) - 512;
+      xbox = (image[m] & IMGMASK) - IMGMAX;
+      ybox = (image[m] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[m] >> IMG2BITS) - IMGMAX;
 
       // overwrite atom attributes with field info
       // start from field 1 since 0 = id, 1 will be skipped if type
@@ -728,7 +729,8 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = (xbox << 20) | (ybox << 10) | zbox;
+      image[m] = ((tagint) xbox << IMG2BITS) | 
+        ((tagint) ybox << IMGBITS) | zbox;
     }
   }
 
@@ -784,9 +786,9 @@ void ReadDump::process_atoms(int n)
     m = atom->nlocal;
 
     // set atom attributes from other dump file fields
-    // xyzbox = 512 is default value set by create_atom()
+    // xyzbox = IMGMAX is default value set by create_atom()
 
-    xbox = ybox = zbox = 512;
+    xbox = ybox = zbox = IMGMAX;
 
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
@@ -812,7 +814,8 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = (xbox << 20) | (ybox << 10) | zbox;
+      image[m] = ((tagint) xbox << IMG2BITS) | 
+        ((tagint) ybox << IMGBITS) | zbox;
     }
   }
 

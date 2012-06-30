@@ -15,12 +15,19 @@
 #include "atom.h"
 #include "force.h"
 #include "update.h"
+#include "domain.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
+
+// bondlist, anglelist, dihedrallist, improperlist
+//   no longer store atom->map() of the bond partners
+// instead store domain->closest_image() of the bond partners of atom I
+// this enables distances between list atoms to be calculated
+//   w/out invoking domain->minimium_image(), e.g. in bond->compute()
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,6 +54,7 @@ void Neighbor::bond_all()
                 tag[i],bond_atom[i][m],me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
         if (nbondlist == maxbond) {
           maxbond += BONDDELTA;
@@ -86,6 +94,7 @@ void Neighbor::bond_partial()
                 tag[i],bond_atom[i][m],me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
         if (nbondlist == maxbond) {
           maxbond += BONDDELTA;
@@ -129,6 +138,9 @@ void Neighbor::angle_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
         if (nanglelist == maxangle) {
           maxangle += BONDDELTA;
@@ -174,6 +186,9 @@ void Neighbor::angle_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
       if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
         if (nanglelist == maxangle) {
           maxangle += BONDDELTA;
@@ -221,6 +236,10 @@ void Neighbor::dihedral_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (ndihedrallist == maxdihedral) {
@@ -271,6 +290,10 @@ void Neighbor::dihedral_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (ndihedrallist == maxdihedral) {
@@ -320,6 +343,10 @@ void Neighbor::improper_all()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (nimproperlist == maximproper) {
@@ -370,6 +397,10 @@ void Neighbor::improper_partial()
                 me,update->ntimestep);
         error->one(FLERR,str);
       }
+      atom1 = domain->closest_image(i,atom1);
+      atom2 = domain->closest_image(i,atom2);
+      atom3 = domain->closest_image(i,atom3);
+      atom4 = domain->closest_image(i,atom4);
       if (newton_bond ||
           (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (nimproperlist == maximproper) {

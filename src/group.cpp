@@ -733,7 +733,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -750,9 +750,9 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = rmass[i];
         cmone[0] += (x[i][0] + xbox*xprd) * massone;
         cmone[1] += (x[i][1] + ybox*yprd) * massone;
@@ -761,9 +761,9 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = mass[type[i]];
         cmone[0] += (x[i][0] + xbox*xprd) * massone;
         cmone[1] += (x[i][1] + ybox*yprd) * massone;
@@ -794,7 +794,7 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -811,9 +811,9 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = rmass[i];
         cmone[0] += (x[i][0] + xbox*xprd) * massone;
         cmone[1] += (x[i][1] + ybox*yprd) * massone;
@@ -822,9 +822,9 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = mass[type[i]];
         cmone[0] += (x[i][0] + xbox*xprd) * massone;
         cmone[1] += (x[i][1] + ybox*yprd) * massone;
@@ -1071,7 +1071,7 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1085,9 +1085,9 @@ double Group::gyration(int igroup, double masstotal, double *cm)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1116,7 +1116,7 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1130,9 +1130,9 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1161,7 +1161,7 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   double **v = atom->v;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1176,9 +1176,9 @@ void Group::angmom(int igroup, double *cm, double *lmom)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1207,7 +1207,7 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
   double **v = atom->v;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1222,9 +1222,9 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1251,7 +1251,7 @@ void Group::torque(int igroup, double *cm, double *tq)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   int xbox,ybox,zbox;
@@ -1264,9 +1264,9 @@ void Group::torque(int igroup, double *cm, double *tq)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1292,7 +1292,7 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   int xbox,ybox,zbox;
@@ -1305,9 +1305,9 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1333,7 +1333,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1350,9 +1350,9 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];
@@ -1387,7 +1387,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1404,9 +1404,9 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & 1023) - 512;
-      ybox = (image[i] >> 10 & 1023) - 512;
-      zbox = (image[i] >> 20) - 512;
+      xbox = (image[i] & IMGMASK) - IMGMAX;
+      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - cm[0];
       dy = (x[i][1] + ybox*yprd) - cm[1];
       dz = (x[i][2] + zbox*zprd) - cm[2];

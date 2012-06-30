@@ -74,4 +74,16 @@ E: Pair style does not support compute group/group
 The pair_style does not have a single() function, so it cannot be
 invokded by the compute group/group command.
 
+E: No Kspace style defined for compute group/group
+
+Self-explanatory.
+
+E: Kspace style does not support compute group/group
+
+Self-explanatory.
+
+W: Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero
+
+Self-explantory.
+
 */

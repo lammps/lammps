@@ -1003,10 +1003,11 @@ void PPPM::set_grid()
   bigint natoms = atom->natoms;
 
   if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0)
-      error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-    g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
   }
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
@@ -1090,6 +1091,8 @@ void PPPM::set_grid()
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
     sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double tpr = estimate_table_accuracy(spr);
+  double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // free local memory
 
@@ -1108,9 +1111,9 @@ void PPPM::set_grid()
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(screen,"  using %s precision FFTs\n",fft_prec);
     }
     if (logfile) {
@@ -1118,9 +1121,9 @@ void PPPM::set_grid()
       fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(logfile,"  stencil order = %d\n",order);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              MAX(lpr,spr));
+              accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              MAX(lpr,spr)/two_charge_force);
+              accuracy/two_charge_force);
       fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
     }
   }

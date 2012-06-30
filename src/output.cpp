@@ -186,7 +186,7 @@ void Output::setup(int memflag)
         modify->clearstep_compute();
       writeflag = 0;
       if (every_dump[idump] && ntimestep % every_dump[idump] == 0 &&
-          last_dump[idump] < ntimestep) writeflag = 1;
+          last_dump[idump] != ntimestep) writeflag = 1;
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
 
       if (writeflag) {
@@ -295,11 +295,13 @@ void Output::write(bigint ntimestep)
     if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
 
     for (int idump = 0; idump < ndump; idump++) {
-      if (next_dump[idump] == ntimestep && last_dump[idump] < ntimestep) {
+      if (next_dump[idump] == ntimestep) {
         if (dump[idump]->clearstep || every_dump[idump] == 0)
           modify->clearstep_compute();
-        dump[idump]->write();
-        last_dump[idump] = ntimestep;
+        if (last_dump[idump] != ntimestep) {
+          dump[idump]->write();
+          last_dump[idump] = ntimestep;
+        }
         if (every_dump[idump]) next_dump[idump] += every_dump[idump];
         else {
           bigint nextdump = static_cast<bigint>
@@ -321,7 +323,7 @@ void Output::write(bigint ntimestep)
   // download data from GPU if necessary
   // eval of variable may invoke computes so wrap with clear/add
 
-  if (next_restart == ntimestep && last_restart != ntimestep) {
+  if (next_restart == ntimestep) {
     if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
 
     if (next_restart_single == ntimestep) {
@@ -330,7 +332,7 @@ void Output::write(bigint ntimestep)
       *ptr = '\0';
       sprintf(file,"%s" BIGINT_FORMAT "%s",restart1,ntimestep,ptr+1);
       *ptr = '*';
-      restart->write(file);
+      if (last_restart != ntimestep) restart->write(file);
       delete [] file;
       if (restart_every_single) next_restart_single += restart_every_single;
       else {
@@ -344,12 +346,14 @@ void Output::write(bigint ntimestep)
       }
     }
     if (next_restart_double == ntimestep) {
-      if (restart_toggle == 0) {
-        restart->write(restart2a);
-        restart_toggle = 1;
-      } else {
-        restart->write(restart2b);
-        restart_toggle = 0;
+      if (last_restart != ntimestep) {
+        if (restart_toggle == 0) {
+          restart->write(restart2a);
+          restart_toggle = 1;
+        } else {
+          restart->write(restart2b);
+          restart_toggle = 0;
+        }
       }
       if (restart_every_double) next_restart_double += restart_every_double;
       else {
@@ -369,9 +373,9 @@ void Output::write(bigint ntimestep)
   // insure next_thermo forces output on last step of run
   // thermo may invoke computes so wrap with clear/add
 
-  if (next_thermo == ntimestep && last_thermo != ntimestep) {
+  if (next_thermo == ntimestep) {
     modify->clearstep_compute();
-    thermo->compute(1);
+    if (last_thermo != ntimestep) thermo->compute(1);
     last_thermo = ntimestep;
     if (var_thermo) {
       next_thermo = static_cast<bigint>
@@ -392,6 +396,7 @@ void Output::write(bigint ntimestep)
 
 /* ----------------------------------------------------------------------
    force a snapshot to be written for all dumps
+   called from PRD and TAD
 ------------------------------------------------------------------------- */
 
 void Output::write_dump(bigint ntimestep)

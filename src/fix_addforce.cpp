@@ -226,7 +226,7 @@ void FixAddForce::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // reallocate sforce array if necessary
@@ -253,9 +253,9 @@ void FixAddForce::post_force(int vflag)
             !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
           continue;
 
-        xbox = (image[i] & 1023) - 512;
-        ybox = (image[i] >> 10 & 1023) - 512;
-        zbox = (image[i] >> 20) - 512;
+        xbox = (image[i] & IMGMASK) - IMGMAX;
+        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         foriginal[0] -= xvalue * (x[i][0]+xbox*xprd) +
           yvalue * (x[i][1]+ybox*yprd) + zvalue * (x[i][2]+zbox*zprd);
 

@@ -415,13 +415,14 @@ void Domain::reset_box()
 
 void Domain::pbc()
 {
-  int i,idim,otherdims;
+  int i;
+  tagint idim,otherdims;
   double *lo,*hi,*period;
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
-  int *image = atom->image;
+  tagint *image = atom->image;
 
   if (triclinic == 0) {
     lo = boxlo;
@@ -438,20 +439,20 @@ void Domain::pbc()
       if (x[i][0] < lo[0]) {
         x[i][0] += period[0];
         if (deform_vremap && mask[i] & deform_groupbit) v[i][0] += h_rate[0];
-        idim = image[i] & 1023;
+        idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim--;
-        idim &= 1023;
+        idim &= IMGMASK;
         image[i] = otherdims | idim;
       }
       if (x[i][0] >= hi[0]) {
         x[i][0] -= period[0];
         x[i][0] = MAX(x[i][0],lo[0]);
         if (deform_vremap && mask[i] & deform_groupbit) v[i][0] -= h_rate[0];
-        idim = image[i] & 1023;
+        idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim++;
-        idim &= 1023;
+        idim &= IMGMASK;
         image[i] = otherdims | idim;
       }
     }
@@ -463,11 +464,11 @@ void Domain::pbc()
           v[i][0] += h_rate[5];
           v[i][1] += h_rate[1];
         }
-        idim = (image[i] >> 10) & 1023;
-        otherdims = image[i] ^ (idim << 10);
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
         idim--;
-        idim &= 1023;
-        image[i] = otherdims | (idim << 10);
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
       }
       if (x[i][1] >= hi[1]) {
         x[i][1] -= period[1];
@@ -476,11 +477,11 @@ void Domain::pbc()
           v[i][0] -= h_rate[5];
           v[i][1] -= h_rate[1];
         }
-        idim = (image[i] >> 10) & 1023;
-        otherdims = image[i] ^ (idim << 10);
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
         idim++;
-        idim &= 1023;
-        image[i] = otherdims | (idim << 10);
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
       }
     }
 
@@ -492,11 +493,11 @@ void Domain::pbc()
           v[i][1] += h_rate[3];
           v[i][2] += h_rate[2];
         }
-        idim = image[i] >> 20;
-        otherdims = image[i] ^ (idim << 20);
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
         idim--;
-        idim &= 1023;
-        image[i] = otherdims | (idim << 20);
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
       }
       if (x[i][2] >= hi[2]) {
         x[i][2] -= period[2];
@@ -506,11 +507,11 @@ void Domain::pbc()
           v[i][1] -= h_rate[3];
           v[i][2] -= h_rate[2];
         }
-        idim = image[i] >> 20;
-        otherdims = image[i] ^ (idim << 20);
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
         idim++;
-        idim &= 1023;
-        image[i] = otherdims | (idim << 20);
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
       }
     }
   }
@@ -578,19 +579,6 @@ void Domain::box_too_small_check()
   if (flag)
     error->all(FLERR,
                "Bond/angle/dihedral extent > half of periodic box length");
-}
-
-/* ----------------------------------------------------------------------
-   minimum image convention check
-   return 1 if any distance > 1/2 of box size
-------------------------------------------------------------------------- */
-
-int Domain::minimum_image_check(double dx, double dy, double dz)
-{
-  if (xperiodic && fabs(dx) > xprd_half) return 1;
-  if (yperiodic && fabs(dy) > yprd_half) return 1;
-  if (zperiodic && fabs(dz) > zprd_half) return 1;
-  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -718,6 +706,40 @@ void Domain::minimum_image(double *delta)
 }
 
 /* ----------------------------------------------------------------------
+   return local index of atom J or any of its images that is closest to atom I
+   if J is not a valid index like -1, just return it
+------------------------------------------------------------------------- */
+
+int Domain::closest_image(int i, int j)
+{
+  if (j < 0) return j;
+
+  int *sametag = atom->sametag;
+  double **x = atom->x;
+  double *xi = x[i];
+
+  int closest = j;
+  double delx = xi[0] - x[j][0];
+  double dely = xi[1] - x[j][1];
+  double delz = xi[2] - x[j][2];
+  double rsqmin = delx*delx + dely*dely + delz*delz;
+  double rsq;
+  
+  while (sametag[j] >= 0) {
+    j = sametag[j];
+    delx = xi[0] - x[j][0];
+    dely = xi[1] - x[j][1];
+    delz = xi[2] - x[j][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rsqmin) {
+      rsqmin = rsq;
+      closest = j;
+    }
+  }
+  return closest;
+}
+
+/* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
@@ -831,10 +853,11 @@ void Domain::closest_image(const double * const xi, const double * const xj,
    increment/decrement in wrap-around fashion
 ------------------------------------------------------------------------- */
 
-void Domain::remap(double *x, int &image)
+void Domain::remap(double *x, tagint &image)
 {
   double *lo,*hi,*period,*coord;
   double lamda[3];
+  tagint idim,otherdims;
 
   if (triclinic == 0) {
     lo = boxlo;
@@ -852,18 +875,18 @@ void Domain::remap(double *x, int &image)
   if (xperiodic) {
     while (coord[0] < lo[0]) {
       coord[0] += period[0];
-      int idim = image & 1023;
-      int otherdims = image ^ idim;
+      idim = image & IMGMASK;
+      otherdims = image ^ idim;
       idim--;
-      idim &= 1023;
+      idim &= IMGMASK;
       image = otherdims | idim;
     }
     while (coord[0] >= hi[0]) {
       coord[0] -= period[0];
-      int idim = image & 1023;
-      int otherdims = image ^ idim;
+      idim = image & IMGMASK;
+      otherdims = image ^ idim;
       idim++;
-      idim &= 1023;
+      idim &= IMGMASK;
       image = otherdims | idim;
     }
     coord[0] = MAX(coord[0],lo[0]);
@@ -872,19 +895,19 @@ void Domain::remap(double *x, int &image)
   if (yperiodic) {
     while (coord[1] < lo[1]) {
       coord[1] += period[1];
-      int idim = (image >> 10) & 1023;
-      int otherdims = image ^ (idim << 10);
+      idim = (image >> IMGBITS) & IMGMASK;
+      otherdims = image ^ (idim << IMGBITS);
       idim--;
-      idim &= 1023;
-      image = otherdims | (idim << 10);
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMGBITS);
     }
     while (coord[1] >= hi[1]) {
       coord[1] -= period[1];
-      int idim = (image >> 10) & 1023;
-      int otherdims = image ^ (idim << 10);
+      idim = (image >> IMGBITS) & IMGMASK;
+      otherdims = image ^ (idim << IMGBITS);
       idim++;
-      idim &= 1023;
-      image = otherdims | (idim << 10);
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMGBITS);
     }
     coord[1] = MAX(coord[1],lo[1]);
   }
@@ -892,19 +915,19 @@ void Domain::remap(double *x, int &image)
   if (zperiodic) {
     while (coord[2] < lo[2]) {
       coord[2] += period[2];
-      int idim = image >> 20;
-      int otherdims = image ^ (idim << 20);
+      idim = image >> IMG2BITS;
+      otherdims = image ^ (idim << IMG2BITS);
       idim--;
-      idim &= 1023;
-      image = otherdims | (idim << 20);
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMG2BITS);
     }
     while (coord[2] >= hi[2]) {
       coord[2] -= period[2];
-      int idim = image >> 20;
-      int otherdims = image ^ (idim << 20);
+      idim = image >> IMG2BITS;
+      otherdims = image ^ (idim << IMG2BITS);
       idim++;
-      idim &= 1023;
-      image = otherdims | (idim << 20);
+      idim &= IMGMASK;
+      image = otherdims | (idim << IMG2BITS);
     }
     coord[2] = MAX(coord[2],lo[2]);
   }
@@ -1042,11 +1065,11 @@ void Domain::remap_near(double *xnew, double *xold)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, int image)
+void Domain::unmap(double *x, tagint image)
 {
-  int xbox = (image & 1023) - 512;
-  int ybox = (image >> 10 & 1023) - 512;
-  int zbox = (image >> 20) - 512;
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
     x[0] += xbox*xprd;
@@ -1065,11 +1088,11 @@ void Domain::unmap(double *x, int image)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, int image, double *y)
+void Domain::unmap(double *x, tagint image, double *y)
 {
-  int xbox = (image & 1023) - 512;
-  int ybox = (image >> 10 & 1023) - 512;
-  int zbox = (image >> 20) - 512;
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
     y[0] = x[0] + xbox*xprd;
@@ -1103,19 +1126,20 @@ void Domain::unmap(double *x, int image, double *y)
 
 void Domain::image_flip(int m, int n, int p)
 {
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    int xbox = (image[i] & 1023) - 512;
-    int ybox = (image[i] >> 10 & 1023) - 512;
-    int zbox = (image[i] >> 20) - 512;
+    int xbox = (image[i] & IMGMASK) - IMGMAX;
+    int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    int zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
     ybox -= p*zbox;
     xbox -= m*ybox + n*zbox;
 
-    image[i] = ((zbox + 512 & 1023) << 20) |
-      ((ybox + 512 & 1023) << 10) | (xbox + 512 & 1023);
+    image[i] = ((zbox + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
+      ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) | 
+      (xbox + IMGMAX & IMGMASK);
   }
 }
 

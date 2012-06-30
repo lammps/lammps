@@ -119,4 +119,12 @@ W: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0, which
 is not valid for Ewald or PPPM.
 
+E: KSpace accuracy must be > 0
+
+The kspace accuracy designated in the input must be greater than zero.
+
+E: Cannot (yet) use Kspace slab correction with compute group/group
+
+This option is not yet supported.
+
 */

@@ -101,26 +101,22 @@ void DihedralCharmm::compute(int eflag, int vflag)
     vb1x = x[i1][0] - x[i2][0];
     vb1y = x[i1][1] - x[i2][1];
     vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
     vb2x = x[i3][0] - x[i2][0];
     vb2y = x[i3][1] - x[i2][1];
     vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     vb2xm = -vb2x;
     vb2ym = -vb2y;
     vb2zm = -vb2z;
-    domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
     // 3rd bond
 
     vb3x = x[i4][0] - x[i3][0];
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
     ax = vb1y*vb2zm - vb1z*vb2ym;
     ay = vb1z*vb2xm - vb1x*vb2zm;
@@ -269,7 +265,6 @@ void DihedralCharmm::compute(int eflag, int vflag)
       delx = x[i1][0] - x[i4][0];
       dely = x[i1][1] - x[i4][1];
       delz = x[i1][2] - x[i4][2];
-      domain->minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       r2inv = 1.0/rsq;
       r6inv = r2inv*r2inv*r2inv;

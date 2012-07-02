@@ -272,7 +272,7 @@ void CreateAtoms::add_single()
 
   if (remapflag) {
     tagint imagetmp = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMASK << IMGBITS) | IMGMAX;
+      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
     domain->remap(xone,imagetmp);
   }
 

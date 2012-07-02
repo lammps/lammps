@@ -602,7 +602,7 @@ void Atom::data_atoms(int n, char *buf)
       imagedata = 
         (((tagint) atoi(values[iptr+2]) + IMGMAX & IMGMASK) << IMG2BITS) |
         (((tagint) atoi(values[iptr+1]) + IMGMAX & IMGMASK) << IMGBITS) |
-        (atoi(values[iptr]) + IMGMASK & IMGMASK);
+        (atoi(values[iptr]) + IMGMAX & IMGMASK);
     else imagedata = ((tagint) IMGMAX << IMG2BITS) | 
            ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 

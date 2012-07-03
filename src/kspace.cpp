@@ -189,14 +189,18 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      slab_volfactor = atof(arg[iarg+1]);
+      if (strcmp(arg[iarg+1],"nozforce") == 0) {
+        slabflag = 2;
+      } else {
+        slabflag = 1;
+        slab_volfactor = atof(arg[iarg+1]);
+        if (slab_volfactor <= 1.0)
+          error->all(FLERR,"Bad kspace_modify slab parameter");
+        if (slab_volfactor < 2.0 && comm->me == 0)
+          error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
+                         "cause unphysical behavior");
+      }
       iarg += 2;
-      if (slab_volfactor <= 1.0)
-        error->all(FLERR,"Bad kspace_modify slab parameter");
-      if (slab_volfactor < 2.0 && comm->me == 0)
-        error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
-                       "cause unphysical behavior");
-      slabflag = 1;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;

@@ -1,0 +1,31 @@
+# SiO2 for COMB potential
+
+units		metal
+atom_style	charge
+
+read_data  	data.comb
+
+mass		1 28.0855
+group    	type1 type 1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+mass		2 16.00
+group    	type2 type 2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+
+pair_style	comb
+pair_coeff	* * ffield.comb Si O
+neighbor	0.5 bin
+neigh_modify	every 10 delay 0 check yes 
+
+timestep        0.0002
+
+thermo_style	custom step temp etotal pe evdwl ecoul c_q1 c_q2 press vol
+thermo_modify	norm yes
+velocity  	all create 300.0 3482028
+fix		1 all nvt temp 300.0 300.0 0.1
+fix  		2 all qeq/comb 10 0.001 file fq.out
+
+thermo   	10
+run    		100

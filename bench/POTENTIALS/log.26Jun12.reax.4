@@ -1,0 +1,61 @@
+LAMMPS (30 Jun 2012)
+# ReaxFF benchmark: simulation of PETN crystal, replicated unit cell
+
+units		real
+atom_style	charge
+
+read_data	data.reax
+  orthogonal box = (0 0 0) to (9.49107 9.49107 6.99123)
+  2 by 2 by 1 MPI processor grid
+  58 atoms
+
+#replicate	7 8 10
+replicate	7 8 5
+  orthogonal box = (0 0 0) to (66.4375 75.9285 34.9562)
+  2 by 2 by 1 MPI processor grid
+  16240 atoms
+
+velocity	all create 300.0 9999
+
+pair_style	reax
+pair_coeff      * * ffield.reax 1 2 3 4
+
+timestep	0.1
+fix		2 all nve 
+
+thermo		10
+thermo_style	custom step temp ke pe pxx pyy pzz etotal
+
+run		100
+Memory usage per processor = 33.2558 Mbytes
+Step Temp KinEng PotEng Pxx Pyy Pzz TotEng 
+       0          300    14521.612   -1616144.1    22329.472   -29840.021    5669.6761   -1601622.5 
+      10    297.06023    14379.312   -1616004.6    22568.484   -23569.801    8334.8479   -1601625.3 
+      20    280.26351     13566.26   -1615190.8    19620.298   -9954.8085    11866.836   -1601624.5 
+      30    263.50831    12755.218   -1614379.5    13439.233     6176.348    14246.247   -1601624.2 
+      40    258.87863    12531.117   -1614157.3     5267.387    19729.498    14332.758   -1601626.2 
+      50    261.68221    12666.825   -1614296.2   -3026.4394    27591.523    12071.623   -1601629.4 
+      60    258.41413    12508.633   -1614143.1   -9016.9099    29528.913    8797.9693   -1601634.5 
+      70    247.72913    11991.421   -1613629.7   -11365.462    26152.598    5655.2121   -1601638.3 
+      80    244.65886    11842.804   -1613485.5   -10507.561    17663.127    2699.8679   -1601642.7 
+      90     259.7204    12571.863     -1614216   -7181.0717    5021.2084    246.67603   -1601644.1 
+     100    283.95637    13745.014   -1615390.6    -2652.405   -9521.5134   -1343.3681   -1601645.6 
+Loop time of 122.083 on 4 procs for 100 steps with 16240 atoms
+
+Pair  time (%) = 120.603 (98.7873)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 1.46018 (1.19605)
+Outpt time (%) = 0.00101995 (0.000835457)
+Other time (%) = 0.0192486 (0.0157668)
+
+Nlocal:    4060 ave 4080 max 4040 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    14972 ave 14992 max 14952 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    1.8135e+06 ave 1.82186e+06 max 1.80514e+06 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 7253988
+Ave neighs/atom = 446.674
+Neighbor list builds = 0
+Dangerous builds = 0

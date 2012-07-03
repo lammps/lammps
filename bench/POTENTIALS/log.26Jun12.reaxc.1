@@ -1,0 +1,61 @@
+LAMMPS (30 Jun 2012)
+# ReaxFF benchmark: simulation of PETN crystal, replicated unit cell
+
+units		real
+atom_style	charge
+
+read_data	data.reax
+  orthogonal box = (0 0 0) to (9.49107 9.49107 6.99123)
+  1 by 1 by 1 MPI processor grid
+  58 atoms
+
+replicate	7 8 10
+  orthogonal box = (0 0 0) to (66.4375 75.9285 69.9123)
+  1 by 1 by 1 MPI processor grid
+  32480 atoms
+
+velocity	all create 300.0 9999
+
+pair_style	reax/c NULL
+pair_coeff      * * ffield.reax 1 2 3 4
+
+timestep	0.1
+fix		1 all nve 
+fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+
+thermo		10
+thermo_style	custom step temp ke pe pxx pyy pzz etotal
+
+run		100
+Memory usage per processor = 290.813 Mbytes
+Step Temp KinEng PotEng Pxx Pyy Pzz TotEng 
+       0          300    29044.119   -3232140.8    22822.641    -29350.75    6269.9587   -3203096.6 
+      10    297.46826    28799.011   -3231900.7    22429.993   -23451.647    8632.9947   -3203101.7 
+      20    281.19686    27223.717   -3230326.1    18750.967   -10261.149    11753.374   -3203102.4 
+      30    264.44551    25601.956   -3228706.6     11945.12    5439.3337    13773.491   -3203104.6 
+      40    259.21485    25095.556   -3228205.6    3632.1983    18743.212     13728.05   -3203110.1 
+      50    261.28805    25296.271   -3228414.6   -4398.2677    26482.197    11507.677   -3203118.3 
+      60    257.70779    24949.652   -3228077.4   -9603.7544    28618.606    8576.0388   -3203127.8 
+      70    247.45488     23957.03   -3227092.6   -11047.563    25561.983    5786.1739   -3203135.6 
+      80    245.01202    23720.528   -3226863.5   -9338.6904    17459.913    3182.5255     -3203143 
+      90    260.13701    25184.834   -3228330.7   -5428.6211    5185.3492    974.10222   -3203145.8 
+     100    283.73163    27469.118   -3230613.8    -830.3439   -9143.6599   -640.66249   -3203144.7 
+Loop time of 354.457 on 1 procs for 100 steps with 32480 atoms
+
+Pair  time (%) = 256.137 (72.2618)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0505295 (0.0142555)
+Outpt time (%) = 0.0035758 (0.00100881)
+Other time (%) = 98.266 (27.7229)
+
+Nlocal:    32480 ave 32480 max 32480 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    45128 ave 45128 max 45128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.27781e+07 ave 1.27781e+07 max 1.27781e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 12778082
+Ave neighs/atom = 393.414
+Neighbor list builds = 0
+Dangerous builds = 0

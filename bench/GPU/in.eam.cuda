@@ -1,0 +1,29 @@
+# bulk Cu lattice
+
+# set variable g = 1/2 for 1/2 GPUs
+
+if "$g == 1" then "package cuda gpu/node 1"
+if "$g == 2" then "package cuda gpu/node 2"
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.615
+region		box block 0 $x 0 $y 0 $z
+create_box	1 box
+create_atoms	1 box
+
+pair_style	eam
+pair_coeff	1 1 Cu_u3.eam
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 all nve
+
+timestep	0.005
+thermo		50
+
+run		$t

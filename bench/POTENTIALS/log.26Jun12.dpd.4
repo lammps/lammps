@@ -1,0 +1,52 @@
+LAMMPS (29 Jun 2012)
+# DPD benchmark
+
+units		lj
+atom_style	atomic
+communicate	single vel yes
+
+lattice		fcc 3.0
+Lattice spacing in x,y,z = 1.10064 1.10064 1.10064
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (22.0128 22.0128 22.0128)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+mass		1 1.0
+
+velocity	all create 1.0 87287 loop geom
+
+pair_style	dpd 1.0 1.0 928948
+pair_coeff	1 1 25.0 4.5
+
+neighbor	0.5 bin
+neigh_modify    delay 0 every 1
+
+fix		1 all nve
+timestep	0.04
+
+run		100
+Memory usage per processor = 3.88609 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            1    3.6872574            0    5.1872105    28.911346 
+     100    1.0219182    4.5817845            0    6.1146139    23.803115 
+Loop time of 1.10533 on 4 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 0.521759 (47.2037)
+Neigh time (%) = 0.488133 (44.1616)
+Comm  time (%) = 0.0682133 (6.17129)
+Outpt time (%) = 7.55787e-05 (0.00683763)
+Other time (%) = 0.0271527 (2.45652)
+
+Nlocal:    8000 ave 8014 max 7986 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Nghost:    6744 ave 6764 max 6726 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Neighs:    165107 ave 166433 max 163419 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+
+Total # of neighbors = 660428
+Ave neighs/atom = 20.6384
+Neighbor list builds = 50
+Dangerous builds = 0

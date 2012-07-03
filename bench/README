@@ -1,7 +1,24 @@
 LAMMPS benchmark problems
 
 This directory contains 5 benchmark problems which are discussed in
-the Benchmark section of the LAMMPS documentation.
+the Benchmark section of the LAMMPS documentation, and on the
+Benchmark page of the LAMMPS WWW site (lammps.sandia.gov/bench).
+
+This directory also has 2 sub-directories:
+
+GPU                 GPU versions of 3 of these benchmarks
+POTENTIALS          benchmarks scripts for various potentials in LAMMPS
+
+The scripts and results in both of these directories are discussed on
+the Benchmark page of the LAMMPS WWW site (lammps.sandia.gov/bench) as
+well.  The two directories have their own README files which you
+should refer to before running the scripts.
+
+The remainer of this file refers to the 5 problems in the top-level
+of this directory and how to run them on CPUs, either in serial
+or parallel.
+
+----------------------------------------------------------------------
 
 Each of the 5 problems has 32,000 atoms and runs for 100 timesteps.
 Each can be run as a serial benchmark (on one processor) or in

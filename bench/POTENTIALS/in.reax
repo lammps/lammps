@@ -1,0 +1,22 @@
+# ReaxFF benchmark: simulation of PETN crystal, replicated unit cell
+
+units		real
+atom_style	charge
+
+read_data	data.reax
+
+#replicate	7 8 10
+replicate	7 8 5
+
+velocity	all create 300.0 9999
+
+pair_style	reax
+pair_coeff      * * ffield.reax 1 2 3 4
+
+timestep	0.1
+fix		2 all nve 
+
+thermo		10
+thermo_style	custom step temp ke pe pxx pyy pzz etotal
+
+run		100

@@ -1,0 +1,71 @@
+LAMMPS (29 Jun 2012)
+# SiO2 for COMB potential
+
+units		metal
+atom_style	charge
+
+read_data  	data.comb
+  triclinic box = (0 0 0) to (74.58 74.58 83.064) with tilt (0 0 0)
+  1 by 1 by 1 MPI processor grid
+  32400 atoms
+
+mass		1 28.0855
+group    	type1 type 1
+10800 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+mass		2 16.00
+group    	type2 type 2
+21600 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+
+pair_style	comb
+pair_coeff	* * ffield.comb Si O
+neighbor	0.5 bin
+neigh_modify	every 10 delay 0 check yes 
+
+timestep        0.0002
+
+thermo_style	custom step temp etotal pe evdwl ecoul c_q1 c_q2 press vol
+thermo_modify	norm yes
+velocity  	all create 300.0 3482028
+fix		1 all nvt temp 300.0 300.0 0.1
+fix  		2 all qeq/comb 10 0.001 file fq.out
+
+thermo   	10
+run    		100
+Memory usage per processor = 95.0552 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul q1 q2 Press Volume 
+       0          300    -6.800513   -6.8392899    4.6301362   -11.469426    2.8887101    -1.444355    14558.344    462016.62 
+      10    271.62515   -6.8007192   -6.8358285    4.6332165   -11.469045    2.8882392   -1.4441196    14514.953    462016.62 
+      20    238.98408   -6.8009297   -6.8318199    4.6310324   -11.462852    2.8879087   -1.4439543    13651.411    462016.62 
+      30     210.3787   -6.8010518   -6.8282445    4.6294419   -11.457686    2.8878659   -1.4439329    12043.903    462016.62 
+      40     193.1516   -6.8010917   -6.8260577    4.6290792   -11.455137    2.8882154   -1.4441076    9835.5857    462016.62 
+      50    191.94742   -6.8010622   -6.8258726     4.630419   -11.456292    2.8890872   -1.4445436    6942.5175    462016.62 
+      60    207.61185    -6.800982   -6.8278171      4.63437   -11.462187    2.8904146   -1.4452072    3246.4843    462016.62 
+      70    236.98233   -6.8008686      -6.8315    4.6406466   -11.472147    2.8920875   -1.4460437    -1291.732    462016.62 
+      80    273.85158    -6.800735   -6.8361321    4.6488576    -11.48499     2.894141   -1.4470705   -6592.9936    462016.62 
+      90    310.76808   -6.8006054   -6.8407741    4.6597903   -11.500564    2.8962597   -1.4481298   -12439.324    462016.62 
+     100    340.98434   -6.8004987    -6.844573      4.67158   -11.516153    2.8982813   -1.4491406   -18618.072    462016.62 
+Loop time of 648.075 on 1 procs for 100 steps with 32400 atoms
+
+Pair  time (%) = 151.932 (23.4435)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0529873 (0.00817611)
+Outpt time (%) = 0.0037415 (0.000577325)
+Other time (%) = 496.087 (76.5477)
+
+Nlocal:    32400 ave 32400 max 32400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    42400 ave 42400 max 42400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.85289e+07 ave 1.85289e+07 max 1.85289e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18528904
+Ave neighs/atom = 571.88
+Neighbor list builds = 0
+Dangerous builds = 0

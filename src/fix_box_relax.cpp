@@ -64,9 +64,24 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   p_flag[0] = p_flag[1] = p_flag[2] =
     p_flag[3] = p_flag[4] = p_flag[5] = 0;
 
-  // process keywords
+  // turn on tilt factor scaling, whenever applicable
 
   dimension = domain->dimension;
+
+  scaleyz = scalexz = scalexy = 0;
+  if (domain->yperiodic && domain->xy != 0.0) scalexy = 1;
+  if (domain->zperiodic && dimension == 3) {
+    if (domain->yz != 0.0) scaleyz = 1;
+    if (domain->xz != 0.0) scalexz = 1;
+  }
+
+  // set fixed-point to default = center of cell
+
+  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
+  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
+  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+
+  // process keywords
 
   int iarg = 3;
 
@@ -94,6 +109,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"tri") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
+      scalexy = scalexz = scaleyz = 0;
       p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_target[3] = p_target[4] = p_target[5] = 0.0;
@@ -130,6 +146,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[3] = atof(arg[iarg+1]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
+      scaleyz = 0;
       iarg += 2;
       if (dimension == 2)
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
@@ -138,6 +155,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[4] = atof(arg[iarg+1]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
+      scalexz = 0;
       iarg += 2;
       if (dimension == 2)
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
@@ -146,6 +164,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       p_target[5] = atof(arg[iarg+1]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
+      scalexy = 0;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
@@ -173,6 +192,30 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       nreset_h0 = atoi(arg[iarg+1]);
       if (nreset_h0 < 0) error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"scalexy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
+      else error->all(FLERR,"Illegal fix box/relax command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scalexz") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
+      else error->all(FLERR,"Illegal fix box/relax command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"scaleyz") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
+      else error->all(FLERR,"Illegal fix box/relax command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix box/relax command");
+      fixedpoint[0] = atof(arg[iarg+1]);
+      fixedpoint[1] = atof(arg[iarg+2]);
+      fixedpoint[2] = atof(arg[iarg+3]);
+      iarg += 4;
     } else error->all(FLERR,"Illegal fix box/relax command");
   }
 
@@ -217,7 +260,27 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
                "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix box/relax on a 2nd non-periodic dimension");
+               "Cannot use fix box/relax on a 2nd non-periodic dimensio");
+
+  if (scaleyz == 1 && domain->zperiodic == 0)
+    error->all(FLERR,"Cannot use fix box/relax "
+               "with tilt factor scaling on a 2nd non-periodic dimension");
+  if (scalexz == 1 && domain->zperiodic == 0)
+    error->all(FLERR,"Cannot use fix box/relax "
+               "with tilt factor scaling on a 2nd non-periodic dimension");
+  if (scalexy == 1 && domain->yperiodic == 0)
+    error->all(FLERR,"Cannot use fix box/relax "
+               "with tilt factor scaling on a 2nd non-periodic dimension");
+
+  if (p_flag[3] && scaleyz == 1)
+    error->all(FLERR,"Cannot use fix box/relax with "
+               "both relaxation and scaling on a tilt factor");
+  if (p_flag[4] && scalexz == 1)
+    error->all(FLERR,"Cannot use fix box/relax with "
+               "both relaxation and scaling on a tilt factor");
+  if (p_flag[5] && scalexy == 1)
+    error->all(FLERR,"Cannot use fix box/relax with "
+               "both relaxation and scaling on a tilt factor");
 
   if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
     error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in "
@@ -356,6 +419,12 @@ void FixBoxRelax::init()
   zprdinit = domain->zprd;
   if (dimension == 2) zprdinit = 1.0;
   vol0 = xprdinit * yprdinit * zprdinit;
+  h0[0] = domain->h[0];
+  h0[1] = domain->h[1];
+  h0[2] = domain->h[2];
+  h0[3] = domain->h[3];
+  h0[4] = domain->h[4];
+  h0[5] = domain->h[5];
 
   // hydrostatic target pressure and deviatoric target stress
 
@@ -443,7 +512,6 @@ double FixBoxRelax::min_energy(double *fextra)
 /* ----------------------------------------------------------------------
    store extra dof values for minimization linesearch starting point
    boxlo0,boxhi0 = box dimensions
-   s0 = ratio of current boxsize to initial boxsize
    box values are pushed onto a LIFO stack so nested calls can be made
    values are popped by calling min_step(0.0)
 ------------------------------------------------------------------------- */
@@ -454,9 +522,6 @@ void FixBoxRelax::min_store()
     boxlo0[current_lifo][i] = domain->boxlo[i];
     boxhi0[current_lifo][i] = domain->boxhi[i];
   }
-  s0[0] = (boxhi0[current_lifo][0]-boxlo0[current_lifo][0])/xprdinit;
-  s0[1] = (boxhi0[current_lifo][1]-boxlo0[current_lifo][1])/yprdinit;
-  s0[2] = (boxhi0[current_lifo][2]-boxlo0[current_lifo][2])/zprdinit;
   if (pstyle == TRICLINIC) {
     boxtilt0[current_lifo][0] = domain->yz;
     boxtilt0[current_lifo][1] = domain->xz;
@@ -585,9 +650,7 @@ int FixBoxRelax::min_dof()
 void FixBoxRelax::remap()
 {
   int i,n;
-  double ctr;
 
-  // ctr = geometric center of box in a dimension
   // rescale simulation box from linesearch starting point
   // scale atom coords for all atoms or only for fix group atoms
 
@@ -614,12 +677,17 @@ void FixBoxRelax::remap()
     if (p_flag[i]) {
       double currentBoxLo0 = boxlo0[current_lifo][i];
       double currentBoxHi0 = boxhi0[current_lifo][i];
-      ctr = 0.5 * (currentBoxLo0 + currentBoxHi0);
-      domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0-ctr)*ds[i]/s0[i];
-      domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0-ctr)*ds[i]/s0[i];
+      domain->boxlo[i] = currentBoxLo0 + (currentBoxLo0 - fixedpoint[i])/domain->h[i]*ds[i]*h0[i];
+      domain->boxhi[i] = currentBoxHi0 + (currentBoxHi0 - fixedpoint[i])/domain->h[i]*ds[i]*h0[i];
       if (domain->boxlo[i] >= domain->boxhi[i])
         error->all(FLERR,"Fix box/relax generated negative box length");
     }
+
+  // scale tilt factors with cell, if set
+
+  if (scaleyz) domain->yz = (domain->boxhi[2] - domain->boxlo[2])*h0[3]/h0[2];
+  if (scalexz) domain->xz = (domain->boxhi[2] - domain->boxlo[2])*h0[4]/h0[2];
+  if (scalexy) domain->xy = (domain->boxhi[1] - domain->boxlo[1])*h0[5]/h0[1];
 
   if (pstyle == TRICLINIC) {
     if (p_flag[3]) domain->yz = boxtilt0[current_lifo][0]+ds[3]*yprdinit;
@@ -755,13 +823,6 @@ void FixBoxRelax::compute_sigma()
   zprdinit = domain->zprd;
   if (dimension == 2) zprdinit = 1.0;
   vol0 = xprdinit * yprdinit * zprdinit;
-
-  h0[0] = domain->h[0];
-  h0[1] = domain->h[1];
-  h0[2] = domain->h[2];
-  h0[3] = domain->h[3];
-  h0[4] = domain->h[4];
-  h0[5] = domain->h[5];
 
   h0_inv[0] = domain->h_inv[0];
   h0_inv[1] = domain->h_inv[1];

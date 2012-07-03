@@ -174,15 +174,15 @@ When specifying an off-diagonal pressure component, the 2nd of the two
 dimensions must be periodic.  E.g. if the xy component is specified,
 then the y dimension must be periodic.
 
-E: Cannot use fix nvt/npt/nph with yz dynamics when z is non-periodic dimension
+E: Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph with xz dynamics when z is non-periodic dimension
+E: Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 
-E: Cannot use fix nvt/npt/nph with xy dynamics when y is non-periodic dimension
+E: Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension
 
 The 2nd dimension in the barostatted tilt factor must be periodic.
 

@@ -26,9 +26,10 @@
   <I>force</I> value = accuracy (force units)
   <I>gewald</I> value = rinv (1/distance units)
     rinv = PPPM G-ewald parameter
-  <I>slab</I> value = volfactor
+  <I>slab</I> value = volfactor or <I>nozforce</I>
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
+    <I>nozforce</I> turns off kspace forces in the z direction
   <I>compute</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ik</I> or <I>ad</I> 
 </PRE>
@@ -102,7 +103,9 @@ value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the <I>slab</I>
-option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.
+option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.  An alternative
+slab option can be invoked with the <I>nozforce</I> keyword in lieu of the 
+volfactor. This turns off all kspace forces in the z direction.
 </P>
 <P>The <I>compute</I> keyword allows Kspace computations to be turned off,
 even though a <A HREF = "kspace_style.html">kspace_style</A> is defined.  This is

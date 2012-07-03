@@ -260,7 +260,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
                "Cannot use fix box/relax on a 2nd non-periodic dimension");
   if (p_flag[5] && domain->yperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix box/relax on a 2nd non-periodic dimensio");
+               "Cannot use fix box/relax on a 2nd non-periodic dimension");
 
   if (scaleyz == 1 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix box/relax "

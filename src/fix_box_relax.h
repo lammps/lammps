@@ -125,6 +125,18 @@ When specifying an off-diagonal pressure component, the 2nd of the two
 dimensions must be periodic.  E.g. if the xy component is specified,
 then the y dimension must be periodic.
 
+E: Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension"
+
+When specifying scaling on a tilt factor component, the 2nd of the two
+dimensions must be periodic.  E.g. if the xy component is specified,
+then the y dimension must be periodic.
+
+E: Cannot use fix box/relax with both relaxation and scaling on a tilt factor
+
+When specifying scaling on a tilt factor component, that component can not
+also be controlled by the barostat. E.g. if scalexy yes is specified and
+also keyword tri or xy, this is wrong.
+
 E: Can not specify Pxy/Pxz/Pyz in fix box/relax with non-triclinic box
 
 Only triclinic boxes can be used with off-diagonal pressure components.

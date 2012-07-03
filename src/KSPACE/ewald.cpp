@@ -174,9 +174,9 @@ void Ewald::init()
   double lpry = rms(kymax,yprd,natoms,q2);
   double lprz = rms(kzmax,zprd_slab,natoms,q2);
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
-    sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
-  double tpr = estimate_table_accuracy(spr);
+  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double spr = 2.0 *q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
+  double tpr = estimate_table_accuracy(q2_over_sqrt,spr);
   double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // stats

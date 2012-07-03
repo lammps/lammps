@@ -109,9 +109,8 @@ void FixEvent::restore_event()
     // adjust image flags when remapping
 
     image[i] = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMASK << IMGBITS) | IMGMASK;
+      ((tagint) IMGMAX << IMGBITS) | IMGMASK;
     domain->remap(x[i],image[i]);
-    // domain->remap(x[i]);
   }
 
 }

@@ -2222,7 +2222,7 @@ void PairBOP::sigmaBo()
             psign=1.0;
             if(1.0+sigma_a[iij]*GGC<0.0)
               psign=-1.0;
-            bndtmp0=1.0/sqrtl(bndtmp);
+            bndtmp0=1.0/sqrt(bndtmp);
             sigB1[n]=psign*betaS[temp_ij]*(1.0+sigma_a[iij]*GGC)*bndtmp0;
             bndtmp=-0.5*bndtmp0*bndtmp0*bndtmp0;
             bndtmp1=psign*(1.0+sigma_a[iij]*GGC)*bndtmp0+psign*betaS[temp_ij]
@@ -4332,7 +4332,7 @@ void PairBOP::sigmaBo_otf()
                       rsq_jkp=dis_jkp[0]*dis_jkp[0]
                           +dis_jkp[1]*dis_jkp[1]
                           +dis_jkp[2]*dis_jkp[2];
-                      r_jkp=sqrtl(rsq_jkp);
+                      r_jkp=sqrt(rsq_jkp);
                       ps=r_jkp*rdr[ijkp]+1.0;
                       ks=(int)ps;
                       if(nr-1<ks)
@@ -4354,7 +4354,7 @@ void PairBOP::sigmaBo_otf()
                       rsq_kkp=dis_kkp[0]*dis_kkp[0]
                           +dis_kkp[1]*dis_kkp[1]
                           +dis_kkp[2]*dis_kkp[2];
-                      r_kkp=sqrtl(rsq_kkp);
+                      r_kkp=sqrt(rsq_kkp);
                       ps=r_kkp*rdr[ikkp]+1.0;
                       ks=(int)ps;
                       if(nr-1<ks)
@@ -5123,7 +5123,7 @@ void PairBOP::sigmaBo_otf()
             psign=1.0;
             if(1.0+sigma_a[iij]*GGC<0.0)
               psign=-1.0;
-            bndtmp0=1.0/sqrtl(bndtmp);
+            bndtmp0=1.0/sqrt(bndtmp);
             sigB1[n]=psign*betaS_ij*(1.0+sigma_a[iij]*GGC)*bndtmp0;
             bndtmp=-0.5*bndtmp0*bndtmp0*bndtmp0;
             bndtmp1=psign*(1.0+sigma_a[iij]*GGC)*bndtmp0+psign*betaS_ij

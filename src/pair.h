@@ -58,7 +58,7 @@ class Pair : protected Pointers {
   int eflag_either,eflag_global,eflag_atom;
   int vflag_either,vflag_global,vflag_atom;
   
-  int ncoultablebits;                  // size of Coulomb table
+  int ncoultablebits;            // size of Coulomb table, accessed by KSpace
 
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities

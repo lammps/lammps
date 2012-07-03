@@ -1652,7 +1652,7 @@ void FixRigid::setup_bodies()
 
   for (ibody = 0; ibody < nbody; ibody++)
     imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMASK << IMGBITS) | IMGMAX;
+      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 

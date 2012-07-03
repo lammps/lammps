@@ -728,7 +728,7 @@ void Velocity::zero_rotation()
     if (mask[i] & groupbit) {
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMASK;
+      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       dx = (x[i][0] + xbox*xprd) - xcm[0];
       dy = (x[i][1] + ybox*yprd) - xcm[1];
       dz = (x[i][2] + zbox*zprd) - xcm[2];

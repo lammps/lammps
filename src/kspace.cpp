@@ -129,30 +129,31 @@ void KSpace::ev_setup(int eflag, int vflag)
    estimate the accuracy of the short-range coulomb tables
 ------------------------------------------------------------------------- */
 
-double KSpace::estimate_table_accuracy(double spr)
+double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 {
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
   if (nctb) {
     double empirical_precision[17];
-    empirical_precision[6] = 2.12E-04;
-    empirical_precision[7] = 4.97E-05;
-    empirical_precision[8] = 1.24E-05;
-    empirical_precision[9] = 3.04E-06;
-    empirical_precision[10] = 8.51E-07;
-    empirical_precision[11] = 1.85E-07;
-    empirical_precision[12] = 5.87E-08;
-    empirical_precision[13] = 2.81E-08;
-    empirical_precision[14] = 2.20E-08;
-    empirical_precision[15] = 2.13E-08;
-    empirical_precision[16] = 2.11E-08;
+    empirical_precision[6] =  6.99E-03;
+    empirical_precision[7] =  1.78E-03;
+    empirical_precision[8] =  4.72E-04;
+    empirical_precision[9] =  1.17E-04;
+    empirical_precision[10] = 2.95E-05;
+    empirical_precision[11] = 7.41E-06;
+    empirical_precision[12] = 1.76E-06;
+    empirical_precision[13] = 9.28E-07;
+    empirical_precision[14] = 7.46E-07;
+    empirical_precision[15] = 7.32E-07;
+    empirical_precision[16] = 7.30E-07;
     if (nctb <= 6) table_accuracy = empirical_precision[6];
     else if (nctb <= 16) table_accuracy = empirical_precision[nctb];
     else table_accuracy = empirical_precision[16];
-    table_accuracy *= two_charge_force;
+    table_accuracy *= q2_over_sqrt;
     if (table_accuracy > spr)
       error->warning(FLERR,"For better accuracy use 'pair_modify table 0'");
   }
+
   return table_accuracy;
 }
 
@@ -188,14 +189,18 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      slab_volfactor = atof(arg[iarg+1]);
+      if (strcmp(arg[iarg+1],"nozforce") == 0) {
+        slabflag = 2;
+      } else {
+        slabflag = 1;
+        slab_volfactor = atof(arg[iarg+1]);
+        if (slab_volfactor <= 1.0)
+          error->all(FLERR,"Bad kspace_modify slab parameter");
+        if (slab_volfactor < 2.0 && comm->me == 0)
+          error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
+                         "cause unphysical behavior");
+      }
       iarg += 2;
-      if (slab_volfactor <= 1.0)
-        error->all(FLERR,"Bad kspace_modify slab parameter");
-      if (slab_volfactor < 2.0 && comm->me == 0)
-        error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
-                       "cause unphysical behavior");
-      slabflag = 1;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;

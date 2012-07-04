@@ -1,0 +1,55 @@
+LAMMPS (29 Jun 2012)
+# bulk Ni in MEAM
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (70.4 70.4 70.4)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+
+pair_style	meam
+pair_coeff	* * library.meam Ni4 Ni.meam Ni4
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    delay 5 every 1
+
+fix		1 all nve
+
+timestep	0.005
+thermo		50
+
+run		100
+Memory usage per processor = 56.0952 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1600      -142400            0   -135782.09     20259.18 
+      50    885.10702   -139411.51            0   -135750.54    32425.433 
+     100     895.5097    -139454.3            0    -135750.3    31804.187 
+Loop time of 42.1683 on 1 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 41.4542 (98.3066)
+Neigh time (%) = 0.597845 (1.41776)
+Comm  time (%) = 0.0312274 (0.0740541)
+Outpt time (%) = 0.000230074 (0.000545609)
+Other time (%) = 0.084774 (0.201037)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    13576 ave 13576 max 13576 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    780360 ave 780360 max 780360 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.56072e+06 ave 1.56072e+06 max 1.56072e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1560720
+Ave neighs/atom = 48.7725
+Neighbor list builds = 8
+Dangerous builds = 0

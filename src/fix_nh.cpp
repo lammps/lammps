@@ -197,34 +197,34 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      scaleyz = 0;
       p_start[3] = atof(arg[iarg+1]);
       p_stop[3] = atof(arg[iarg+2]);
       p_period[3] = atof(arg[iarg+3]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
+      scaleyz = 0;
       iarg += 4;
       if (dimension == 2)
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      scalexz = 0;
       p_start[4] = atof(arg[iarg+1]);
       p_stop[4] = atof(arg[iarg+2]);
       p_period[4] = atof(arg[iarg+3]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
+      scalexz = 0;
       iarg += 4;
       if (dimension == 2)
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
-      scalexy = 0;
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       p_start[5] = atof(arg[iarg+1]);
       p_stop[5] = atof(arg[iarg+2]);
       p_period[5] = atof(arg[iarg+3]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
+      scalexy = 0;
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
@@ -360,13 +360,13 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (scaleyz == 1 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph "
-               "with yz dynamics when z is non-periodic dimension");
+               "with yz scaling when z is non-periodic dimension");
   if (scalexz == 1 && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph "
-               "with xz dynamics when z is non-periodic dimension");
+               "with xz scaling when z is non-periodic dimension");
   if (scalexy == 1 && domain->yperiodic == 0)
     error->all(FLERR,"Cannot use fix nvt/npt/nph "
-               "with xy dynamics when y is non-periodic dimension");
+               "with xy scaling when y is non-periodic dimension");
 
   if (p_flag[3] && scaleyz == 1)
     error->all(FLERR,"Cannot use fix nvt/npt/nph with "
@@ -438,7 +438,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // reneighboring only forced if flips will occur due to shape changes
 
   if (p_flag[3] || p_flag[4] || p_flag[5]) force_reneighbor = 1;
-  if (scaleyz || scalexz || scalexy) force_reneighbor = 1;
+  if (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0) 
+    force_reneighbor = 1;
 
   // convert input periods to frequencies
 

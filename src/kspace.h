@@ -70,7 +70,7 @@ class KSpace : protected Pointers {
   int maxeatom,maxvatom;
 
   void ev_setup(int, int);
-  double estimate_table_accuracy(double);
+  double estimate_table_accuracy(double, double);
 };
 
 }

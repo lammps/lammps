@@ -1,0 +1,63 @@
+LAMMPS (29 Jun 2012)
+# REBO polyethelene benchmark
+
+units		    metal
+atom_style	    atomic
+
+read_data	    data.rebo
+  orthogonal box = (-2.1 -2.1 0) to (2.1 2.1 25.579)
+  1 by 1 by 1 MPI processor grid
+  60 atoms
+
+replicate	    17 16 2
+  orthogonal box = (-2.1 -2.1 0) to (69.3 65.1 51.158)
+  1 by 1 by 1 MPI processor grid
+  32640 atoms
+
+neighbor	    0.5 bin
+neigh_modify	    delay 5 every 1
+
+pair_style	    rebo
+pair_coeff	    * * CH.airebo C H
+
+velocity	    all create 300.0 761341
+
+fix		    1 all nve
+timestep	    0.0005
+
+thermo		    10
+run		    100
+Memory usage per processor = 33.1619 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -138442.48            0    -137176.8    2464.5258 
+      10    161.83836   -137855.93            0   -137173.14     14222.57 
+      20    212.11275   -138067.85            0   -137172.96   -26955.685 
+      30     118.6053   -137669.82            0   -137169.43   -14705.957 
+      40    192.52805   -137982.54            0   -137170.28   -6869.6528 
+      50    121.53391   -137682.34            0   -137169.59     4940.722 
+      60    202.88352   -138028.88            0   -137172.93    15911.927 
+      70    195.08113   -137996.06            0   -137173.03   -12031.849 
+      80    230.84583   -138148.96            0   -137175.04   -8565.0012 
+      90    166.26203   -137874.27            0   -137172.83   -31552.577 
+     100    191.03117   -137977.88            0   -137171.94   -1153.5542 
+Loop time of 10.3821 on 1 procs for 100 steps with 32640 atoms
+
+Pair  time (%) = 8.10849 (78.1005)
+Neigh time (%) = 2.15209 (20.7288)
+Comm  time (%) = 0.0356007 (0.342904)
+Outpt time (%) = 0.00113368 (0.0109195)
+Other time (%) = 0.0848057 (0.816844)
+
+Nlocal:    32640 ave 32640 max 32640 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    26746 ave 26746 max 26746 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  4.87269e+06 ave 4.87269e+06 max 4.87269e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4872694
+Ave neighs/atom = 149.286
+Neighbor list builds = 8
+Dangerous builds = 0

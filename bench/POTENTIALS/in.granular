@@ -1,0 +1,31 @@
+# granular chute flow
+
+units		lj
+atom_style	sphere
+boundary	p p fs
+newton		off
+communicate	single vel yes
+
+read_data	data.granular
+
+pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
+pair_coeff	* *
+
+neighbor	0.1 bin
+neigh_modify    delay 5 every 1
+
+timestep	0.0001
+
+group		bottom type 2
+group		active subtract all bottom
+neigh_modify	exclude group bottom bottom
+
+fix		1 all gravity 1.0 chute 26.0
+fix		2 bottom freeze
+fix		3 active nve/sphere
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo_modify	norm no
+
+run		100

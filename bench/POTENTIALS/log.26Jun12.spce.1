@@ -1,0 +1,106 @@
+LAMMPS (29 Jun 2012)
+# SPC/E water box benchmark
+
+units		real	
+atom_style	full
+
+read_data	data.spce
+  2 = max bonds/atom
+  1 = max angles/atom
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  1 by 1 by 1 MPI processor grid
+  4500 atoms
+  3000 bonds
+  1500 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+replicate	2 4 1
+  orthogonal box = (0.02645 0.02645 0.02641) to (71.0392 142.052 35.4736)
+  1 by 1 by 1 MPI processor grid
+  36000 atoms
+  24000 bonds
+  12000 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 9.8 9.8
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 0.5
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+neighbor        2.0 bin
+neigh_modify	every 1 delay 10 check yes
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  12000 = # of frozen angles
+fix		2 all nvt temp 300.0 300.0 100.0
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+thermo_style    one
+thermo		50
+
+run		100
+PPPM initialization ...
+  G vector (1/distance) = 0.268811
+  grid = 36 64 24
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0234088
+  estimated relative force accuracy = 7.0495e-05
+  using double precision FFTs
+  brick FFT buffer size/proc = 91977 55296 35604
+Memory usage per processor = 102.176 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -133281.51            0   -111820.57   -911.71286 
+      50    256.42601   -138687.16            0   -120343.35   -931.69582 
+     100    265.62923   -137828.91            0   -118826.74   -345.32241 
+Loop time of 31.5847 on 1 procs for 100 steps with 36000 atoms
+
+Pair  time (%) = 23.6339 (74.827)
+Bond  time (%) = 0.000171185 (0.000541985)
+Kspce time (%) = 4.19505 (13.2819)
+Neigh time (%) = 3.13994 (9.94134)
+Comm  time (%) = 0.0808184 (0.255878)
+Outpt time (%) = 0.000238895 (0.000756364)
+Other time (%) = 0.534611 (1.69263)
+
+FFT time (% of Kspce) = 0.933042 (22.2415)
+FFT Gflps 3d (1d only) = 1.29439 2.74331
+
+Nlocal:    36000 ave 36000 max 36000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    56916 ave 56916 max 56916 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.24624e+07 ave 1.24624e+07 max 1.24624e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 12462366
+Ave neighs/atom = 346.177
+Ave special neighs/atom = 2
+Neighbor list builds = 9
+Dangerous builds = 8

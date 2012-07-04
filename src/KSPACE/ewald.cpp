@@ -94,7 +94,7 @@ void Ewald::init()
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with Ewald");
-  if (slabflag == 1) {
+  if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab Ewald");
@@ -174,9 +174,9 @@ void Ewald::init()
   double lpry = rms(kymax,yprd,natoms,q2);
   double lprz = rms(kzmax,zprd_slab,natoms,q2);
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
-    sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
-  double tpr = estimate_table_accuracy(spr);
+  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double spr = 2.0 *q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
+  double tpr = estimate_table_accuracy(q2_over_sqrt,spr);
   double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // stats
@@ -382,7 +382,7 @@ void Ewald::compute(int eflag, int vflag)
   for (i = 0; i < nlocal; i++) {
     f[i][0] += qscale * q[i]*ek[i][0];
     f[i][1] += qscale * q[i]*ek[i][1];
-    f[i][2] += qscale * q[i]*ek[i][2];
+    if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
   }
 
   // global energy
@@ -426,7 +426,7 @@ void Ewald::compute(int eflag, int vflag)
 
   // 2d slab correction
 
-  if (slabflag) slabcorr();
+  if (slabflag == 1) slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -131,7 +131,7 @@ void PPPM::init()
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
-  if (slabflag == 1) {
+  if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab PPPM");
@@ -800,7 +800,7 @@ void PPPM::compute(int eflag, int vflag)
 
   // 2d slab correction
 
-  if (slabflag) slabcorr();
+  if (slabflag == 1) slabcorr();
 
   // convert atoms back from lamda to box coords
 
@@ -1089,9 +1089,9 @@ void PPPM::set_grid()
   double lpry = rms(h_y,yprd,natoms,q2,acons);
   double lprz = rms(h_z,zprd_slab,natoms,q2,acons);
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  double spr = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
-    sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
-  double tpr = estimate_table_accuracy(spr);
+  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double spr = 2.0 *q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
+  double tpr = estimate_table_accuracy(q2_over_sqrt,spr);
   double accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   // free local memory
@@ -2247,7 +2247,7 @@ void PPPM::fieldforce()
     const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
-    f[i][2] += qfactor*ekz;
+    if (slabflag != 2) f[i][2] += qfactor*ekz;
   }
 }
 

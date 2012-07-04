@@ -51,19 +51,30 @@ turn off (or weight) the pairwise interaction that would otherwise
 exist between 4 bonded atoms.
 
 In the formulas listed for each dihedral style, {phi} is the torsional
-angle defined by the quadruplet of atoms.
+angle defined by the quadruplet of atoms.  This angle has a sign
+convention as shown in this diagram:
 
-Here are some important points to take note of when defining the
-LAMMPS dihedral coefficients in the formulas that follow so that they
-are compatible with other force fields:
+:c,image(Eqs/dihedral_sign.jpg)
+
+where the I,J,K,L ordering of the 4 atoms that define the dihedral
+is from left to right.
+
+This sign convention effects several of the dihedral styles listed
+below (e.g. charmm, helix) in the sense that the energy formula
+depends on the sign of phi, which may be reflected in the value of the
+coefficients you specify.
+
+Here are other important points to take note of when defining the
+LAMMPS dihedral coefficients in the formulas for some styles, so that
+they are compatible with other force fields:
 
 The LAMMPS convention is that the trans position = 180 degrees, while
 in some force fields trans = 0 degrees. :ulb,l
 
-Some force fields reverse the sign convention on {d}. :l
+Some force fields divide/multiply the prefactor {K} by the number of
+multiple torsions that contain the j-k bond in an i-j-k-l torsion. :l
 
-Some force fields divide/multiply {K} by the number of multiple
-torsions that contain the j-k bond in an i-j-k-l torsion. :l
+Some force fields reverse the sign convention on {d}. :l
 
 Some force fields let {n} be positive or negative which corresponds to
 {d} = 1 or -1 for the harmonic style. :ule,l

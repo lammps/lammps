@@ -1,0 +1,76 @@
+LAMMPS (30 Jun 2012)
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+# NPT, T=2.4, P=8.0
+
+units	      lj
+atom_style    ellipsoid
+
+# creation
+#lattice	      sc 0.22
+#region	      box block 0 32 0 32 0 32
+#create_box    1 box
+#create_atoms  1 box
+#set	      group all quat/random 982381
+
+read_data     data.gb
+  orthogonal box = (2.19575 2.19575 2.19575) to (50.8124 50.8124 50.8124)
+  1 by 1 by 1 MPI processor grid
+  32768 atoms
+  32768 velocities
+  32768 ellipsoids
+
+compute	      rot all temp/asphere
+group	      spheroid type 1
+32768 atoms in group spheroid
+variable      dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+compute_modify rot extra 32771
+
+velocity      all create 2.4 41787 loop geom
+
+pair_style    gayberne 1.0 3.0 1.0 4.0
+pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor      0.8 bin
+
+timestep      0.002
+thermo	      20
+
+# equilibration
+#fix	      1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
+#compute_modify 1_temp extra ${dof}
+#run	      100
+#write_restart tmp.restart
+
+fix	      1 all npt/asphere temp 2.4 2.4 0.2 iso 8.0 8.0 0.2
+run	      100
+Memory usage per processor = 26.9944 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          2.4   0.50438568            0    4.1042758    6.7818168    114909.09 
+      20    2.7357818   0.26045557            0     4.364003    6.8299368    111715.16 
+      40    2.9201296   0.22570735            0     4.605768    7.0767907    109473.23 
+      60    2.9820039   0.19733812            0    4.6702075    7.1507065    108393.77 
+      80    3.0148529   0.15114819            0    4.6732895    7.1699502    107672.24 
+     100    3.0206703   0.10567623            0    4.6365433     7.154345    107184.83 
+Loop time of 72.0749 on 1 procs for 100 steps with 32768 atoms
+
+Pair  time (%) = 70.3565 (97.6157)
+Neigh time (%) = 0.493162 (0.684236)
+Comm  time (%) = 0.132031 (0.183186)
+Outpt time (%) = 0.000532866 (0.000739322)
+Other time (%) = 1.09272 (1.5161)
+
+Nlocal:    32768 ave 32768 max 32768 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    25669 ave 25669 max 25669 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.30433e+06 ave 2.30433e+06 max 2.30433e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2304332
+Ave neighs/atom = 70.3226
+Neighbor list builds = 6
+Dangerous builds = 3

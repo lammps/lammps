@@ -1,0 +1,54 @@
+LAMMPS (29 Jun 2012)
+# bulk Si via Tersoff
+
+units		metal
+atom_style	atomic
+
+lattice		diamond 5.431
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+region		box block 0 20 0 20 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (108.62 108.62 54.31)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+
+pair_style	tersoff
+pair_coeff	* * Si.tersoff Si
+mass            1 28.06
+
+velocity	all create 1000.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    delay 5 every 1
+
+fix		1 all nve
+
+timestep	0.001
+
+run		100
+Memory usage per processor = 10.9293 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1000   -148173.19            0   -144036.99    7019.4434 
+     100    430.57813   -145815.61            0   -144034.65   -14550.734 
+Loop time of 11.972 on 1 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 11.8132 (98.6733)
+Neigh time (%) = 0.07127 (0.595304)
+Comm  time (%) = 0.0146098 (0.122033)
+Outpt time (%) = 0.000103951 (0.000868278)
+Other time (%) = 0.072855 (0.608543)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    11537 ave 11537 max 11537 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  530500 ave 530500 max 530500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 530500
+Ave neighs/atom = 16.5781
+Neighbor list builds = 2
+Dangerous builds = 0

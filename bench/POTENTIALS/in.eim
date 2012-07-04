@@ -1,0 +1,25 @@
+# EIM benchmark
+# if run long enough (e.g. 1M steps), the unstable CsCl form of a NaCl single
+# crystal can be annealed to the correct NaCl type of NaCl polycrystals
+
+units		metal
+atom_style      atomic
+
+read_data       data.eim
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl 
+
+neighbor	0.3 bin
+neigh_modify    delay 0 every 1
+
+timestep        0.0005
+thermo_style    custom step pe pxx pyy pzz temp
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+
+fix             int all npt temp 1400.0 1400.0 0.1 aniso 0.0 0.0 0.1
+# anneal in much longer run
+#fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+run             100

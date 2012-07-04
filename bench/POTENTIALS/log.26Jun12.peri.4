@@ -1,0 +1,187 @@
+LAMMPS (29 Jun 2012)
+# Crack growth in notched 3D Peridynamic block
+
+# Mesh spacing
+variable    	h equal 5.00e-4
+# Peridynamic horizon
+variable    	delta equal 3.0*${h}
+variable    	delta equal 3.0*0.00050000000000000001041
+# Height of plate (meters)
+variable    	height equal 31.5*${h}
+variable    	height equal 31.5*0.00050000000000000001041
+# Width of plate (meters)
+variable    	width equal 39.5*${h}
+variable    	width equal 39.5*0.00050000000000000001041
+# Thickness of plate (meters)
+variable    	depth equal 24.5*${h}
+variable    	depth equal 24.5*0.00050000000000000001041
+# Height of notch
+variable	crackheight equal 10*${h}
+variable	crackheight equal 10*0.00050000000000000001041
+# Density of plate
+variable	mydensity equal 2440.0
+# Elastic modulus of material
+variable	myE equal 72.0e9
+# Strain energy release rate at branching
+variable	myG equal 135.0
+# constant, but define it as a variable here
+variable    	pi equal 3.14159265358979323846
+
+units 		si
+boundary        s s s
+atom_style      peri
+atom_modify	map array
+variable 	myskin equal 2.0*${h}
+variable 	myskin equal 2.0*0.00050000000000000001041
+neighbor	${myskin} bin
+neighbor	0.0010000000000000000208 bin
+
+lattice         sc $h
+lattice         sc 0.00050000000000000001041
+Lattice spacing in x,y,z = 0.0005 0.0005 0.0005
+variable	myxmin equal 0.0
+variable	myxmax equal ${width}
+variable	myxmax equal 0.019750000000000000194
+variable	myymin equal 0.0
+variable	myymax equal ${height}
+variable	myymax equal 0.015750000000000000111
+variable	myzmin equal 0.0
+variable	myzmax equal ${depth}
+variable	myzmax equal 0.012250000000000000472
+region          plate block 		${myxmin} ${myxmax} ${myymin} ${myymax} ${myzmin} ${myzmax} 		units box
+region          plate block 		0 ${myxmax} ${myymin} ${myymax} ${myzmin} ${myzmax} 		units box
+region          plate block 		0 0.019750000000000000194 ${myymin} ${myymax} ${myzmin} ${myzmax} 		units box
+region          plate block 		0 0.019750000000000000194 0 ${myymax} ${myzmin} ${myzmax} 		units box
+region          plate block 		0 0.019750000000000000194 0 0.015750000000000000111 ${myzmin} ${myzmax} 		units box
+region          plate block 		0 0.019750000000000000194 0 0.015750000000000000111 0 ${myzmax} 		units box
+region          plate block 		0 0.019750000000000000194 0 0.015750000000000000111 0 0.012250000000000000472 		units box
+create_box      3 plate
+Created orthogonal box = (0 0 0) to (0.01975 0.01575 0.01225)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 region plate
+Created 32000 atoms
+
+
+pair_style      peri/pmb
+variable	myk equal (2.0/3.0)*${myE}
+variable	myk equal (2.0/3.0)*72000000000
+
+variable	myc equal ((18.0*${myk})/(${pi}*(${delta}^4)))
+variable	myc equal ((18.0*48000000000)/(${pi}*(${delta}^4)))
+variable	myc equal ((18.0*48000000000)/(3.141592653589793116*(${delta}^4)))
+variable	myc equal ((18.0*48000000000)/(3.141592653589793116*(0.0015000000000000000312^4)))
+variable	mydelta equal (${delta}+(${delta}/100.0))
+variable	mydelta equal (0.0015000000000000000312+(${delta}/100.0))
+variable	mydelta equal (0.0015000000000000000312+(0.0015000000000000000312/100.0))
+variable	mys0 equal sqrt((5.0*${myG})/(9.0*${myk}*${delta}))
+variable	mys0 equal sqrt((5.0*135)/(9.0*${myk}*${delta}))
+variable	mys0 equal sqrt((5.0*135)/(9.0*48000000000*${delta}))
+variable	mys0 equal sqrt((5.0*135)/(9.0*48000000000*0.0015000000000000000312))
+
+variable	tmpvar1 equal ${myymax}-${crackheight}
+variable	tmpvar1 equal 0.015750000000000000111-${crackheight}
+variable	tmpvar1 equal 0.015750000000000000111-0.0050000000000000001041
+variable	tmpvar2 equal 0.5*${width}
+variable	tmpvar2 equal 0.5*0.019750000000000000194
+
+region		topleft  block 		0.0 ${tmpvar2} ${tmpvar1} ${myymax} ${myzmin} ${myzmax} 		units box
+region		topleft  block 		0.0 0.0098750000000000000971 ${tmpvar1} ${myymax} ${myzmin} ${myzmax} 		units box
+region		topleft  block 		0.0 0.0098750000000000000971 0.01074999999999999914 ${myymax} ${myzmin} ${myzmax} 		units box
+region		topleft  block 		0.0 0.0098750000000000000971 0.01074999999999999914 0.015750000000000000111 ${myzmin} ${myzmax} 		units box
+region		topleft  block 		0.0 0.0098750000000000000971 0.01074999999999999914 0.015750000000000000111 0 ${myzmax} 		units box
+region		topleft  block 		0.0 0.0098750000000000000971 0.01074999999999999914 0.015750000000000000111 0 0.012250000000000000472 		units box
+region		topright block 		${tmpvar2} ${myxmax} ${tmpvar1} ${myymax} ${myzmin} ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 ${myxmax} ${tmpvar1} ${myymax} ${myzmin} ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 0.019750000000000000194 ${tmpvar1} ${myymax} ${myzmin} ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 0.019750000000000000194 0.01074999999999999914 ${myymax} ${myzmin} ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 0.019750000000000000194 0.01074999999999999914 0.015750000000000000111 ${myzmin} ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 0.019750000000000000194 0.01074999999999999914 0.015750000000000000111 0 ${myzmax} 		units box
+region		topright block 		0.0098750000000000000971 0.019750000000000000194 0.01074999999999999914 0.015750000000000000111 0 0.012250000000000000472 		units box
+set 		region topleft  type 2
+  5000 settings made for type
+set 		region topright type 3
+  5000 settings made for type
+pair_coeff      1 1 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      1 1 5.4324887242033602757e+22 ${mydelta} ${mys0} 0.0
+pair_coeff      1 1 5.4324887242033602757e+22 0.0015150000000000000706 ${mys0} 0.0
+pair_coeff      1 1 5.4324887242033602757e+22 0.0015150000000000000706 0.0010206207261596576558 0.0
+pair_coeff      2 2 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      2 2 5.4324887242033602757e+22 ${mydelta} ${mys0} 0.0
+pair_coeff      2 2 5.4324887242033602757e+22 0.0015150000000000000706 ${mys0} 0.0
+pair_coeff      2 2 5.4324887242033602757e+22 0.0015150000000000000706 0.0010206207261596576558 0.0
+pair_coeff      3 3 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      3 3 5.4324887242033602757e+22 ${mydelta} ${mys0} 0.0
+pair_coeff      3 3 5.4324887242033602757e+22 0.0015150000000000000706 ${mys0} 0.0
+pair_coeff      3 3 5.4324887242033602757e+22 0.0015150000000000000706 0.0010206207261596576558 0.0
+pair_coeff      2 3 ${myc}        0.0 ${mys0} 0.0
+pair_coeff      2 3 5.4324887242033602757e+22        0.0 ${mys0} 0.0
+pair_coeff      2 3 5.4324887242033602757e+22        0.0 0.0010206207261596576558 0.0
+pair_coeff      1 2 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      1 2 5.4324887242033602757e+22 ${mydelta} ${mys0} 0.0
+pair_coeff      1 2 5.4324887242033602757e+22 0.0015150000000000000706 ${mys0} 0.0
+pair_coeff      1 2 5.4324887242033602757e+22 0.0015150000000000000706 0.0010206207261596576558 0.0
+pair_coeff      1 3 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      1 3 5.4324887242033602757e+22 ${mydelta} ${mys0} 0.0
+pair_coeff      1 3 5.4324887242033602757e+22 0.0015150000000000000706 ${mys0} 0.0
+pair_coeff      1 3 5.4324887242033602757e+22 0.0015150000000000000706 0.0010206207261596576558 0.0
+set             group all density ${mydensity}
+set             group all density 2440
+  32000 settings made for density
+variable	myvolume equal ($h)^3
+variable	myvolume equal (0.00050000000000000001041)^3
+set             group all volume ${myvolume}
+set             group all volume 1.2500000000000000779e-10
+  32000 settings made for volume
+
+velocity        all set 0.0 0.0 0.0 sum no units box
+
+fix             F1 all nve
+
+compute         C1 all damage/atom
+
+velocity 	all ramp vx -10.0 10.0 x ${myxmin} ${myxmax} units box
+velocity 	all ramp vx -10.0 10.0 x 0 ${myxmax} units box
+velocity 	all ramp vx -10.0 10.0 x 0 0.019750000000000000194 units box
+
+variable	mystep equal 		0.8*sqrt((2.0*${mydensity})/(512*(${myc}/$h)*${myvolume}))
+variable	mystep equal 		0.8*sqrt((2.0*2440)/(512*(${myc}/$h)*${myvolume}))
+variable	mystep equal 		0.8*sqrt((2.0*2440)/(512*(5.4324887242033602757e+22/$h)*${myvolume}))
+variable	mystep equal 		0.8*sqrt((2.0*2440)/(512*(5.4324887242033602757e+22/0.00050000000000000001041)*${myvolume}))
+variable	mystep equal 		0.8*sqrt((2.0*2440)/(512*(5.4324887242033602757e+22/0.00050000000000000001041)*1.2500000000000000779e-10))
+timestep        ${mystep}
+timestep        2.1193149239622597698e-08
+thermo		20
+
+run             100
+Peridynamic bonds:
+  total # of bonds = 3457032
+  bonds/atom = 108.032
+Memory usage per processor = 54.0347 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0 2.0134233e+27            0            0 1.3342785e+09 2.4509971e+14 3.6292128e-06 
+      20 1.7695805e+27 1.6163291e+08            0 1.3343188e+09 2.1541601e+14 3.6292128e-06 
+      40 1.3041477e+27 4.6848143e+08            0 1.332729e+09 1.5875756e+14 3.6292128e-06 
+      60 9.8975313e+26 5.7284448e+08            0 1.2287455e+09 1.2048543e+14 3.6292128e-06 
+      80 9.3888573e+26 4.0928092e+08            0 1.0314725e+09 1.1429321e+14 3.6292128e-06 
+     100 8.3930314e+26 3.8522361e+08            0 9.4142265e+08 1.0217075e+14 3.6292128e-06 
+Loop time of 6.30757 on 4 procs for 100 steps with 32000 atoms
+
+Pair  time (%) = 5.98077 (94.8189)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.299014 (4.74056)
+Outpt time (%) = 0.000436008 (0.00691246)
+Other time (%) = 0.0273517 (0.433634)
+
+Nlocal:    8000 ave 8000 max 8000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5125 ave 5125 max 5125 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    1.6861e+06 ave 1.77502e+06 max 1.60625e+06 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+FullNghs:  3.37221e+06 ave 3.41832e+06 max 3.3261e+06 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 13488836
+Ave neighs/atom = 421.526
+Neighbor list builds = 0
+Dangerous builds = 0

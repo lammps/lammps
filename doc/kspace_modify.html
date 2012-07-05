@@ -121,8 +121,9 @@ PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh. The ik approach is the default that 
 performs differentiation in kspace, but requires 3 FFTs to transfer
 the computed fields back to real space. The analytic differentiation,
-or ad approach requires only 1 FFT, but requires a somewhat bigger
-PPPM mesh to achieve the same accuracy as the ik approach.
+or ad approach requires only 1 FFT to transfer the computed fields 
+back to real space, but requires a somewhat bigger PPPM mesh to 
+achieve the same accuracy as the ik approach.
 </P>
 <P><B>Restrictions:</B> none
 </P>

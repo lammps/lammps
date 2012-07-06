@@ -91,11 +91,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
   nthreads = 1;
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
-  {
-#pragma omp master
-    { nthreads = omp_get_num_threads(); }
-  }
+  nthreads = omp_get_max_threads();
   if (me == 0) {
     if (screen)
       fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);

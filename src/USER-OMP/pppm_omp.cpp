@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "math_const.h"
@@ -140,6 +141,9 @@ void PPPMOMP::setup()
 {
   int i,j,k,n;
   double *prd;
+
+  if (differentiation_flag != 0)
+    error->all(FLERR,"no analytic differentiation with this kspace style yet.");
 
   // volume-dependent factors
   // adjust z dimension for 2d slab PPPM

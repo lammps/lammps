@@ -101,7 +101,8 @@ shlib:	$(OBJ)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+	{ $(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< || kill $$$$; } | \
+	  sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@
 
 %.o:%.cu
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<

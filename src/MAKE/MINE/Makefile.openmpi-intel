@@ -13,7 +13,7 @@ CCFLAGS =	-O3 -xHOST -finline-functions \
 			-no-prec-div -pc64 -fast-transcendentals -rcd -restrict \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
 SHFLAGS =       -fPIC
-DEPFLAGS =	-MM
+DEPFLAGS =	-MM -MG
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
 LINKFLAGS =	-O -xHOST -fno-exceptions -pc64 -static-intel
 LIB =           -lstdc++
@@ -73,6 +73,7 @@ JPG_LIB =	-ljpeg
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -114,4 +115,4 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

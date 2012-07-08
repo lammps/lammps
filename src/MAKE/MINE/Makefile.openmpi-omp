@@ -14,7 +14,7 @@ CCFLAGS =	-O3 -fomit-frame-pointer \
 			-Wall -Wextra -W -Wno-unused-parameter -Wno-maybe-uninitialized \
 			-Wno-sign-compare
 SHFLAGS =	-fPIC
-DEPFLAGS =	-MM
+DEPFLAGS =	-MM -MG
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -mpc64
 LIB =
@@ -77,6 +77,7 @@ JPG_LIB =	-ljpeg -lpng
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -118,4 +119,4 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

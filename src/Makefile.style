@@ -1,0 +1,21 @@
+define style
+../style_$(3).h : $(wildcard ../$(2)*.h)
+	for header in `grep -sl $(1) $$^ < /dev/null`; do echo "#include \"$$$${header#../}\""; done > $$@
+endef
+
+$(eval $(call style,ANGLE_CLASS,angle_,angle,force))
+$(eval $(call style,ATOM_CLASS,atom_vec_,atom,atom))
+$(eval $(call style,BODY_CLASS,body_,body,atom_vec_body))
+$(eval $(call style,BOND_CLASS,bond_,bond,force))
+$(eval $(call style,COMMAND_CLASS,,command,input))
+$(eval $(call style,COMPUTE_CLASS,compute_,compute,modify))
+$(eval $(call style,DIHEDRAL_CLASS,dihedral_,dihedral,force))
+$(eval $(call style,DUMP_CLASS,dump_,dump,output))
+$(eval $(call style,FIX_CLASS,fix_,fix,modify))
+$(eval $(call style,IMPROPER_CLASS,improper_,improper,force))
+$(eval $(call style,INTEGRATE_CLASS,,integrate,update))
+$(eval $(call style,KSPACE_CLASS,,kspace,force))
+$(eval $(call style,MINIMIZE_CLASS,min_,minimize,update))
+$(eval $(call style,PAIR_CLASS,pair_,pair,force))
+$(eval $(call style,READER_CLASS,reader_,reader,read_dump))
+$(eval $(call style,REGION_CLASS,region_,region,domain))

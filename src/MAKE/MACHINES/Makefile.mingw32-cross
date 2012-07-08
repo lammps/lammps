@@ -11,7 +11,7 @@ CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp	\
 		-ffast-math -fstrict-aliasing -Wall -W -Wno-uninitialized
 
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
-DEPFLAGS =	-M
+DEPFLAGS =	-M -MG
 
 LINK =		i686-w64-mingw32-g++ -static
 LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp
@@ -76,6 +76,7 @@ JPG_LIB =	-ljpeg -lpng -lz
 
 include	Makefile.package.settings
 include	Makefile.package
+include	Makefile.style
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
@@ -117,4 +118,4 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)
-sinclude $(DEPENDS)
+include $(DEPENDS)

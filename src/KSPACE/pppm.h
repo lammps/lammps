@@ -79,8 +79,7 @@ class PPPM : public KSpace {
   FFT_SCALAR *buf1,*buf2,*buf3,*buf4;
 
   double *gf_b;
-  FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  double sf_coeff[6];          // coefficients for calculating ad self-forces
+  FFT_SCALAR **rho1d,**rho_coeff;
 
   // group-group interactions
 
@@ -103,43 +102,26 @@ class PPPM : public KSpace {
   double alpha;                // geometric factor
 
   void set_grid();
-  void set_fft_parameters();
-  void adjust_gewald();
-  double newton_raphson_f();
-  double derivf();
-  double final_accuracy();
-
   virtual void allocate();
   virtual void allocate_peratom();
   virtual void deallocate();
   virtual void deallocate_peratom();
-
-  double compute_qopt();
-  double compute_qopt_ik();
-  double compute_qopt_ad();
-
   int factorable(int);
+  double rms(double, double, bigint, double, double **);
+  double diffpr(double, double, double, double, double **);
   void compute_gf_denom();
-  void compute_gf_en();
-  void compute_sf_coeff();
 
   virtual void particle_map();
   virtual void make_rho();
   virtual void brick2fft();
-  virtual void fillbrick_ad();
-  virtual void fillbrick_ik();
-  virtual void fillbrick_peratom_ad();
-  virtual void fillbrick_peratom_ik();
-  virtual void poisson_ad();
-  virtual void poisson_ik();
+  virtual void fillbrick();
+  virtual void fillbrick_peratom();
+  virtual void poisson();
   virtual void poisson_peratom();
-  virtual void fieldforce_ad();
-  virtual void fieldforce_ik();
+  virtual void fieldforce();
   virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
-  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr();

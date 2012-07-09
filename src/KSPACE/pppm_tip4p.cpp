@@ -22,10 +22,8 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define OFFSET 16384
 
@@ -163,7 +161,7 @@ void PPPMTIP4P::make_rho()
    interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
 
-void PPPMTIP4P::fieldforce_ik()
+void PPPMTIP4P::fieldforce()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -172,12 +170,14 @@ void PPPMTIP4P::fieldforce_ik()
   int iH1,iH2;
   double xM[3];
   double fx,fy,fz;
+  double ddotf, rOMx, rOMy, rOMz, f1x, f1y, f1z;
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
+
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
@@ -231,245 +231,27 @@ void PPPMTIP4P::fieldforce_ik()
       fz = qfactor * ekz;
       find_M(i,iH1,iH2,xM);
 
-      f[i][0] += fx*(1 - alpha);
-      f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
+      rOMx = xM[0] - x[i][0];
+      rOMy = xM[1] - x[i][1];
+      rOMz = xM[2] - x[i][2];
 
-      f[iH1][0] += 0.5*alpha*fx;
-      f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
+      ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
 
-      f[iH2][0] += 0.5*alpha*fx;
-      f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
-    }
-  }
-}
+      f1x = ddotf * rOMx;
+      f1y = ddotf * rOMy;
+      f1z = ddotf * rOMz;
 
-/* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
-------------------------------------------------------------------------- */
+      f[i][0] += fx - alpha * (fx - f1x);
+      f[i][1] += fy - alpha * (fy - f1y);
+      f[i][2] += fz - alpha * (fz - f1z);
 
-void PPPMTIP4P::fieldforce_ad()
-{
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0,dx0,dy0,dz0;
-  FFT_SCALAR ekx,eky,ekz;
-  double *xi;
-  int iH1,iH2;
-  double xM[3];
-  double s1,s2,s3;
-  double sf;
-  double *prd;
-  double fx,fy,fz;
+      f[iH1][0] += 0.5*alpha*(fx - f1x);
+      f[iH1][1] += 0.5*alpha*(fy - f1y);
+      f[iH1][2] += 0.5*alpha*(fz - f1z);
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-
-  double hx_inv = nx_pppm/xprd;
-  double hy_inv = ny_pppm/yprd;
-  double hz_inv = nz_pppm/zprd;
-  
-
-
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-  // ek = 3 components of E-field on particle
-
-  double *q = atom->q;
-  double **x = atom->x;
-  double **f = atom->f;
-
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  for (i = 0; i < nlocal; i++) {
-    if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
-      xi = xM;
-    } else xi = x[i];
-
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
-    
-    compute_rho1d(dx,dy,dz);
-    compute_drho1d(dx,dy,dz);
-
-    ekx = eky = ekz = ZEROF;
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;
-      for (m = nlower; m <= nupper; m++) {
-        my = m+ny;
-        for (l = nlower; l <= nupper; l++) {
-          mx = l+nx;
-          ekx += drho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
-          eky += rho1d[0][l]*drho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
-          ekz += rho1d[0][l]*rho1d[1][m]*drho1d[2][n]*u_brick[mz][my][mx];
-        }
-      }
-    }
-
-    ekx *= hx_inv;
-    eky *= hy_inv;
-    ekz *= hz_inv;
-    
-    // convert E-field to force and substract self forces
-    const double qfactor = force->qqrd2e * scale;
-
-    s1 = x[i][0]*hx_inv;
-    s2 = x[i][1]*hy_inv;
-    s3 = x[i][2]*hz_inv;
-    sf = sf_coeff[0]*sin(2*MY_PI*s1);
-    sf += sf_coeff[1]*sin(4*MY_PI*s1);
-    sf *= 2*q[i]*q[i];
-    fx += qfactor*(ekx*q[i] - sf);
-
-    sf = sf_coeff[2]*sin(2*MY_PI*s2);
-    sf += sf_coeff[3]*sin(4*MY_PI*s2);
-    sf *= 2*q[i]*q[i];
-    fy += qfactor*(eky*q[i] - sf);
-
-    sf = sf_coeff[4]*sin(2*MY_PI*s3);
-    sf += sf_coeff[5]*sin(4*MY_PI*s3);
-    sf *= 2*q[i]*q[i];
-    fz += qfactor*(ekz*q[i] - sf);
-
-    if (type[i] != typeO) {
-      f[i][0] += fx;
-      f[i][1] += fy;
-      f[i][2] += fz;
-
-    } else {
-      find_M(i,iH1,iH2,xM);
-
-      f[i][0] += fx*(1 - alpha);
-      f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
-
-      f[iH1][0] += 0.5*alpha*fx;
-      f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
-
-      f[iH2][0] += 0.5*alpha*fx;
-      f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
-    }
-  }
-}
-
-
-/* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles 
-------------------------------------------------------------------------- */
-
-void PPPMTIP4P::fieldforce_peratom()
-{
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0;
-  double *xi;
-  int iH1,iH2;
-  double xM[3];
-  FFT_SCALAR u_pa,v0,v1,v2,v3,v4,v5;
-
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-  // ek = 3 components of E-field on particle
-  double *q = atom->q;
-  double **x = atom->x;
-  double **f = atom->f;
-
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  for (i = 0; i < nlocal; i++) {
-    if (type[i] == typeO) {
-      find_M(i,iH1,iH2,xM);      
-      xi = xM;
-    } else xi = x[i];
-
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-    dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
-
-    compute_rho1d(dx,dy,dz);
-
-    u_pa = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;
-      z0 = rho1d[2][n];
-      for (m = nlower; m <= nupper; m++) {
-        my = m+ny;
-        y0 = z0*rho1d[1][m];
-        for (l = nlower; l <= nupper; l++) {
-          mx = l+nx;
-          x0 = y0*rho1d[0][l];
-          if (eflag_atom) u_pa += x0*u_brick[mz][my][mx];	
-          if (vflag_atom) {
-            v0 += x0*v0_brick[mz][my][mx];
-            v1 += x0*v1_brick[mz][my][mx];
-            v2 += x0*v2_brick[mz][my][mx];
-            v3 += x0*v3_brick[mz][my][mx];
-            v4 += x0*v4_brick[mz][my][mx];
-            v5 += x0*v5_brick[mz][my][mx];
-          }
-        }
-      }
-    }
-
-
-    if (eflag_atom) {
-      if (type[i] != typeO) {
-        eatom[i] += q[i]*u_pa;
-      } else {
-        eatom[i] += q[i]*u_pa*(1-alpha);
-        eatom[iH1] += q[i]*u_pa*alpha*0.5;
-        eatom[iH2] += q[i]*u_pa*alpha*0.5;
-      }
-    }
-    if (vflag_atom) {
-      if (type[i] != typeO) {
-        vatom[i][0] += v0*q[i];
-        vatom[i][1] += v1*q[i];
-        vatom[i][2] += v2*q[i];
-        vatom[i][3] += v3*q[i];
-        vatom[i][4] += v4*q[i];
-        vatom[i][5] += v5*q[i];
-      } else {
-        vatom[i][0] += v0*(1-alpha)*q[i];
-        vatom[i][1] += v1*(1-alpha)*q[i];
-        vatom[i][2] += v2*(1-alpha)*q[i];
-        vatom[i][3] += v3*(1-alpha)*q[i];
-        vatom[i][4] += v4*(1-alpha)*q[i];
-        vatom[i][5] += v5*(1-alpha)*q[i];
-        vatom[iH1][0] += v0*alpha*0.5*q[i];
-        vatom[iH1][1] += v1*alpha*0.5*q[i];
-        vatom[iH1][2] += v2*alpha*0.5*q[i];
-        vatom[iH1][3] += v3*alpha*0.5*q[i];
-        vatom[iH1][4] += v4*alpha*0.5*q[i];
-        vatom[iH1][5] += v5*alpha*0.5*q[i];
-        vatom[iH2][0] += v0*alpha*0.5*q[i];
-        vatom[iH2][1] += v1*alpha*0.5*q[i];
-        vatom[iH2][2] += v2*alpha*0.5*q[i];
-        vatom[iH2][3] += v3*alpha*0.5*q[i];
-        vatom[iH2][4] += v4*alpha*0.5*q[i];
-        vatom[iH2][5] += v5*alpha*0.5*q[i];
-      }
+      f[iH2][0] += 0.5*alpha*(fx - f1x);
+      f[iH2][1] += 0.5*alpha*(fy - f1y);
+      f[iH2][2] += 0.5*alpha*(fz - f1z);
     }
   }
 }

@@ -42,6 +42,7 @@ using namespace MathConst;
 #define SMALL 1.0e-4
 #define DELTA 1
 #define BONDSTRETCH 1.1
+#define DELTATILT 0.1
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
@@ -140,11 +141,11 @@ void Domain::set_initial_box()
   if (triclinic) {
     if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
       error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
-    if (fabs(xy/(boxhi[0]-boxlo[0])) > 0.5)
+    if (fabs(xy/(boxhi[0]-boxlo[0])) > 0.5+DELTATILT)
       error->all(FLERR,"Triclinic box skew is too large");
-    if (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5)
+    if (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5+DELTATILT)
       error->all(FLERR,"Triclinic box skew is too large");
-    if (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5)
+    if (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5+DELTATILT)
       error->all(FLERR,"Triclinic box skew is too large");
   }
 

@@ -119,15 +119,15 @@ changed from its initial 3d configuration; see the
 changes dramatically, the mapping of processors to the simulation box
 may not end up as optimal as the initial mapping attempted to be.
 
-IMPORTANT NOTE: Because the keywords used in this command are 
-applied sequentially to the simulation box and the atoms in it, 
-in the order specified, special care must be taken with triclinic
-cells to avoid exceeding the limits on skew after each transformation
-in the sequence. If skew is exceeded before the final transformation
-this can be avoided by changing the order of the sequence, or breaking
-the transformation up in to two or more smaller transformations. For more
-information on the allowed limits for box skew see the
-the doc page for "fix deform"_fix_deform.html.
+IMPORTANT NOTE: Because the keywords used in this command are applied
+one at a time to the simulation box and the atoms in it, care must be
+taken with triclinic cells to avoid exceeding the limits on skew after
+each transformation in the sequence.  If skew is exceeded before the
+final transformation this can be avoided by changing the order of the
+sequence, or breaking the transformation into two or more smaller
+transformations.  For more information on the allowed limits for box
+skew see the discussion on triclinic boxes on "this
+page"_Section_howto.html#howto_12.
 
 :line
 

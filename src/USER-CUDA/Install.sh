@@ -55,16 +55,15 @@ include ..\/..\/lib\/cuda\/Makefile.lammps
 
   if (test -e ../pair_lj_sdk.cpp) then
     cp pair_lj_sdk_cuda.cpp ..
-#    cp pair_lj_sdk_coul_cut_cuda.cpp ..
-#    cp pair_lj_sdk_coul_debye_cuda.cpp ..
+    #cp pair_lj_sdk_coul_cut_cuda.cpp ..
+    #cp pair_lj_sdk_coul_debye_cuda.cpp ..
     cp pair_lj_sdk_cuda.h ..
-#    cp pair_lj_sdk_coul_cut_cuda.h ..
-#    cp pair_lj_sdk_coul_debye_cuda.h ..
-  fi
-
-  if (test -e ../pair_lj_sdk_coul_long.cpp) then
-    cp pair_lj_sdk_coul_long_cuda.cpp ..
-    cp pair_lj_sdk_coul_long_cuda.h ..
+    #cp pair_lj_sdk_coul_cut_cuda.h ..
+    #cp pair_lj_sdk_coul_debye_cuda.h ..
+    if (test -e ../pair_lj_sdk_coul_long.cpp) then
+      cp pair_lj_sdk_coul_long_cuda.cpp ..
+      cp pair_lj_sdk_coul_long_cuda.h ..
+    fi
   fi
 
   if (test -e ../pppm.cpp) then
@@ -77,7 +76,6 @@ include ..\/..\/lib\/cuda\/Makefile.lammps
     cp pair_lj_cut_coul_long_cuda.cpp ..
     cp pair_lj_cut_coul_long_cuda.h ..
   fi
-  
 
   if (test -e ../pair_eam.cpp) then
     cp pair_eam_alloy_cuda.cpp ..
@@ -256,10 +254,10 @@ elif (test $1 = 0) then
   rm -f ../pair_buck_coul_cut_cuda.cpp
   rm -f ../pair_buck_coul_long_cuda.cpp
   rm -f ../pair_buck_cuda.cpp
-  rm -f ../pair_lj_sdk_coul_cut_cuda.cpp
-  rm -f ../pair_lj_sdk_coul_debye_cuda.cpp
-  rm -f ../pair_lj_sdk_coul_long_cuda.cpp
   rm -f ../pair_lj_sdk_cuda.cpp
+  #rm -f ../pair_lj_sdk_coul_cut_cuda.cpp
+  #rm -f ../pair_lj_sdk_coul_debye_cuda.cpp
+  rm -f ../pair_lj_sdk_coul_long_cuda.cpp
   rm -f ../pair_eam_alloy_cuda.cpp
   rm -f ../pair_eam_cuda.cpp
   rm -f ../pair_eam_fs_cuda.cpp
@@ -320,8 +318,9 @@ elif (test $1 = 0) then
   rm -f ../pair_buck_coul_cut_cuda.h
   rm -f ../pair_buck_coul_long_cuda.h
   rm -f ../pair_buck_cuda.h
-  rm -f ../pair_lj_sdk_coul_cut_cuda.h
-  rm -f ../pair_lj_sdk_coul_debye_cuda.h
+  rm -f ../pair_lj_sdk_cuda.h
+  #rm -f ../pair_lj_sdk_coul_cut_cuda.h
+  #rm -f ../pair_lj_sdk_coul_debye_cuda.h
   rm -f ../pair_lj_sdk_coul_long_cuda.h
   rm -f ../pair_lj_sdk_cuda.h
   rm -f ../pair_eam_alloy_cuda.h

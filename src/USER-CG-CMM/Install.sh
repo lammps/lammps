@@ -12,11 +12,10 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../pppm.cpp) then
-    cp pair_cg_cmm_coul_long.cpp ..
-    cp pair_cg_cmm_coul_long.h ..
-
     cp pair_lj_sdk_coul_long.cpp ..
+    cp pair_cg_cmm_coul_long.cpp ..
     cp pair_lj_sdk_coul_long.h ..
+    cp pair_cg_cmm_coul_long.h ..
   fi
 
   cp cg_cmm_parms.h ..

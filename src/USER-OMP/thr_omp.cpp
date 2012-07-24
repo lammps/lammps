@@ -295,14 +295,15 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_bond[i] = 0.0;
           }
         }
-
-        if (eflag & 2) {
-          data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
-        }
-        if (vflag & 4) {
-          data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
-        }
       }
+
+      if (eflag & 2) {
+        data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+        data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+
     }
     break;
 
@@ -325,14 +326,15 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_angle[i] = 0.0;
           }
         }
-
-        if (eflag & 2) {
-          data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
-        }
-        if (vflag & 4) {
-          data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
-        }
       }
+
+      if (eflag & 2) {
+        data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+        data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+
     }
     break;
 
@@ -355,14 +357,15 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_dihed[i] = 0.0;
           }
         }
-
-        if (eflag & 2) {
-          data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-        }
-        if (vflag & 4) {
-          data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-        }
       }
+
+      if (eflag & 2) {
+        data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+
     }
     break;
 
@@ -392,15 +395,15 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_pair[i] = 0.0;
           }
         }
+      }
 
-        if (eflag & 2) {
-          data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
-          data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
-        }
-        if (vflag & 4) {
-          data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
-          data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
-        }
+      if (eflag & 2) {
+        data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
+        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+        data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
     }
     break;
@@ -424,14 +427,15 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_imprp[i] = 0.0;
           }
         }
-
-        if (eflag & 2) {
-          data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
-        }
-        if (vflag & 4) {
-          data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
-        }
       }
+
+      if (eflag & 2) {
+        data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & 4) {
+        data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+
     }
     break;
 

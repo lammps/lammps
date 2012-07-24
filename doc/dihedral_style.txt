@@ -64,20 +64,15 @@ below (e.g. charmm, helix) in the sense that the energy formula
 depends on the sign of phi, which may be reflected in the value of the
 coefficients you specify.
 
-Here are other important points to take note of when defining the
-LAMMPS dihedral coefficients in the formulas for some styles, so that
-they are compatible with other force fields:
-
-The LAMMPS convention is that the trans position = 180 degrees, while
-in some force fields trans = 0 degrees. :ulb,l
-
-Some force fields divide/multiply the prefactor {K} by the number of
-multiple torsions that contain the j-k bond in an i-j-k-l torsion. :l
-
-Some force fields reverse the sign convention on {d}. :l
-
-Some force fields let {n} be positive or negative which corresponds to
-{d} = 1 or -1 for the harmonic style. :ule,l
+IMPORTANT NOTE: When comparing the formulas and coefficients for
+various LAMMPS dihedral styles with dihedral equations defined by
+other force fields, note that some force field implementations
+divide/multiply the energy prefactor {K} by the multiple number of
+torsions that contain the J-K bond in an I-J-K-L torsion.  LAMMPS does
+not do this, i.e. the listed dihedral equation applies to each
+individual dihedral.  Thus you need to define {K} appropriately via
+the "dihedral_coeff"_dihedral_coeff.html command to account for this
+difference if necessary.
 
 :line
 

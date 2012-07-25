@@ -440,4 +440,3 @@ void *PairLJCutCoulCut::extract(const char *str, int &dim)
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   return NULL;
 }
-

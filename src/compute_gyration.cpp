@@ -88,7 +88,7 @@ void ComputeGyration::compute_vector()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  
+
   double rg[6];
   rg[0] = rg[1] = rg[2] = rg[3] = rg[4] = rg[5] = 0.0;
 

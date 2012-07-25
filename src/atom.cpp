@@ -136,7 +136,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   map_style = 0;
   map_tag_max = 0;
   map_nhash = 0;
-  
+
   smax = 0;
   sametag = NULL;
   map_array = NULL;
@@ -599,11 +599,11 @@ void Atom::data_atoms(int n, char *buf)
     }
 
     if (imageflag)
-      imagedata = 
+      imagedata =
         (((tagint) atoi(values[iptr+2]) + IMGMAX & IMGMASK) << IMG2BITS) |
         (((tagint) atoi(values[iptr+1]) + IMGMAX & IMGMASK) << IMGBITS) |
         (atoi(values[iptr]) + IMGMAX & IMGMASK);
-    else imagedata = ((tagint) IMGMAX << IMG2BITS) | 
+    else imagedata = ((tagint) IMGMAX << IMG2BITS) |
            ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 
     xdata[0] = atof(values[xptr]);

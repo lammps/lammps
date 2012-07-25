@@ -729,7 +729,7 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((tagint) xbox << IMG2BITS) | 
+      image[m] = ((tagint) xbox << IMG2BITS) |
         ((tagint) ybox << IMGBITS) | zbox;
     }
   }
@@ -814,7 +814,7 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((tagint) xbox << IMG2BITS) | 
+      image[m] = ((tagint) xbox << IMG2BITS) |
         ((tagint) ybox << IMGBITS) | zbox;
     }
   }
@@ -881,4 +881,3 @@ double ReadDump::zfield(int i, int j)
   if (scaled == UNSCALED) return fields[i][j];
   return fields[i][j]*zprd + zlo;
 }
-

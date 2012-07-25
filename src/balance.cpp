@@ -707,7 +707,7 @@ int Balance::adjust(int n, double *split)
       hi[i] = hi[i+1];
       hisum[i] = hisum[i+1];
     }
-  
+
   int change = 0;
   for (int i = 1; i < n; i++)
     if (sum[i] != target[i]) {
@@ -888,11 +888,11 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
     fprintf(bfp,"%d\n",nprocs);
     if (dimension == 2) fprintf(bfp,"ITEM: SQUARES\n");
     else fprintf(bfp,"ITEM: CUBES\n");
-    
+
     int nx = comm->procgrid[0] + 1;
     int ny = comm->procgrid[1] + 1;
     int nz = comm->procgrid[2] + 1;
-  
+
     if (dimension == 2) {
       int m = 0;
       for (int j = 0; j < comm->procgrid[1]; j++)
@@ -904,7 +904,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
           fprintf(bfp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
           m++;
         }
-      
+
     } else {
       int m = 0;
       for (int k = 0; k < comm->procgrid[2]; k++)
@@ -1000,7 +1000,7 @@ void Balance::debug_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,target[i]);
   printf("\n");
   printf("  Actual cut:");
-  for (i = 0; i <= np; i++) 
+  for (i = 0; i <= np; i++)
     printf(" %g",boxlo[bdim[idim]] + split[i]*prd[bdim[idim]]);
   printf("\n");
   printf("  Split:");

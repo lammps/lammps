@@ -47,7 +47,7 @@ class Balance : protected Pointers {
   char bstr[4];
 
   int ndim;                  // length of balance string bstr
-  int *bdim;                 // XYZ for each character in bstr           
+  int *bdim;                 // XYZ for each character in bstr
   bigint *count;             // counts for slices in one dim
   bigint *onecount;          // work vector of counts in one dim
   bigint *sum;               // cummulative count for slices in one dim

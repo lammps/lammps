@@ -127,7 +127,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
 
   memory->create(fieldindex,nfield,"read_dump:fieldindex");
 
-  // for xyz we know nothing about the style of coordinates, 
+  // for xyz we know nothing about the style of coordinates,
   // so the caller has to set the proper flag.
 
   xflag = scaledflag;
@@ -148,7 +148,7 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
       fieldflag = 1;
     }
   }
-  
+
   return natoms;
 }
 

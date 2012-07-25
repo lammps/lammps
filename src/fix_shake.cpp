@@ -126,7 +126,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (mode == 'm') {
       double massone = atof(arg[next]);
       if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
-      if (nmass == atom->ntypes) 
+      if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for fix shake");
       mass_list[nmass++] = massone;
 

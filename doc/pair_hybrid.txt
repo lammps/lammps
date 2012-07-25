@@ -235,6 +235,21 @@ Either way, only neighbor lists with 1-1 or 2-2 interactions would be
 passed to the Tersoff potential, which means it would compute no
 3-body interactions containing both type 1 and 2 atoms.
 
+Here is another example, using hybrid/overlay, to use 2 many-body
+potentials together, in an overlapping manner.  Imagine you have CNT
+(C atoms) on a Si surface.  You want to use Tersoff for Si/Si and Si/C
+interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
+atoms are type 2.  Something like this will work:
+
+pair_style hybrid/overlay tersoff airebo 3.0
+pair_coeff * * tersoff SiC.tersoff.custom Si C
+pair_coeff * * airebo CH.airebo NULL C
+
+Note that to prevent the Tersoff potential from computing C/C
+interactions, you would need to modify the SiC.tersoff file to turn
+off C/C interaction, i.e. by setting the appropriate coefficients to
+0.0.
+
 :line
 
 Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally

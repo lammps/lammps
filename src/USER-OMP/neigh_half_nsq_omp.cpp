@@ -193,12 +193,12 @@ void Neighbor::half_nsq_no_newton_ghost_omp(NeighList *list)
         if (includegroup && !(mask[j] & bitmask)) continue;
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
+
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
-        
+
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
             which = find_special(special[i],nspecial[i],tag[j]);
@@ -215,16 +215,16 @@ void Neighbor::half_nsq_no_newton_ghost_omp(NeighList *list)
         if (includegroup && !(mask[j] & bitmask)) continue;
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
+
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
-        
+
         if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
       }
     }
-    
+
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

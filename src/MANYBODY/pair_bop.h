@@ -5,12 +5,12 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    The this work follows the formulation from (a) D.G. Pettifor, et al., Mat.
    Sci. and Eng. A365, 2-13, (2004) and (b) D.A. Murdick, et al., Phys.
-   Rev. B 73, 045206 (2006). (c) D.K. Ward, et al., Phys. Rev. B 85, 115206 
+   Rev. B 73, 045206 (2006). (c) D.K. Ward, et al., Phys. Rev. B 85, 115206
    (2012)
 
    See the README file in the top-level LAMMPS directory.
@@ -48,13 +48,13 @@ class PairBOP : public Pair {
   int maxbopn;                     // maximum size of bop neighbor list for allocation
   int maxnall;                     // maximum size of bop neighbor list for allocation
   int *map;                        // mapping from atom types to elements
-  int nelements;		   // # of unique elments
+  int nelements;                   // # of unique elments
   int nr;                     // increments for the BOP potential
   int nBOt;                   // second BO increments
   int bop_types;                   // number of elments in potential
   int npairs;                      // number of element pairs
-  char **elements;		   // names of unique elements 
-  int ***elem2param;		   
+  char **elements;                   // names of unique elements
+  int ***elem2param;
   int nparams;
   int bop_step;
   int allocate_pi;
@@ -69,7 +69,7 @@ class PairBOP : public Pair {
   int cos_total;                  // number of cosines stored if not using on the fly
   int neigh_ct;                  //  limit for large arrays
 
-/*Parameters variables*/ 
+/*Parameters variables*/
 
   int ncutoff,nfunc;
   int a_flag;
@@ -85,64 +85,64 @@ class PairBOP : public Pair {
   double which,alpha,alpha1,beta1,gamma1,alpha2,beta2,alpha3;
   double beta3,rsmall,rbig,rcore;
   char **words;
- 
-  double cutmax;		//max cutoff for all elements 
-  int otfly;			//Defines whether to do on the fly
+
+  double cutmax;                //max cutoff for all elements
+  int otfly;                        //Defines whether to do on the fly
                                 //calculations of angles and distances
                                 //on the fly will slow down calculations
                                 //but requires less memory on = 1, off=0
 
-  int table;			//determines the method for reading in 
+  int table;                        //determines the method for reading in
                                 //potential parameters a preset table
                                 //or generate the tables using a spline
 
 /* Neigh variables */
- 
+
   double *rcut,*dr,*rdr;
   double **disij,*rij;
 
 /*Triple variables */
- 
+
   double *cosAng,***dcosAng,***dcAng;
- 
+
 /*Double variables */
- 
+
   double *betaS,*dBetaS,*betaP;
   double *dBetaP,*repul,*dRepul;
-  
+
 /*Sigma variables */
- 
+
   int **itypeSigBk,*nSigBk;
   double *sigB;
   double *sigB1;
 
-  
+
 /*Pi variables */
- 
+
   int **itypePiBk,*nPiBk;
   double *piB;
-   
+
 /*Grids1 variables */
- 
+
   double **pBetaS,**pBetaS1,**pBetaS2,**pBetaS3;
   double **pBetaS4,**pBetaS5,**pBetaS6;
- 
+
 /*Grids2 variables */
- 
+
   double **pBetaP,**pBetaP1,**pBetaP2,**pBetaP3;
   double **pBetaP4,**pBetaP5,**pBetaP6;
- 
+
 /*Grids3 variables */
- 
+
   double **pRepul,**pRepul1,**pRepul2,**pRepul3;
   double **pRepul4,**pRepul5,**pRepul6;
- 
+
 /*Grids4 variables */
- 
+
   double **FsigBO,**FsigBO1,**FsigBO2,**FsigBO3;
   double **FsigBO4,**FsigBO5,**FsigBO6;
-  double dBO,rdBO; 
-  
+  double dBO,rdBO;
+
 /* End of BOP variables */
 
   double **rcmin,**rcmax,**rcmaxp;

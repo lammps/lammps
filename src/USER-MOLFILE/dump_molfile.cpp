@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -41,11 +41,11 @@ typedef MolfileInterface MFI;
 // path <path>
 // template <file> <type> (import name and topology information from file)
 // bonds <yes|no>         (write out bond information)
-// topology <yes|no>      (write out all topology information) 
+// topology <yes|no>      (write out all topology information)
 
 /* ---------------------------------------------------------------------- */
 
-DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg) 
+DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   : Dump(lmp, narg, arg)
 {
   if (narg < 6) error->all(FLERR,"Illegal dump molfile command");
@@ -81,9 +81,9 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/sizeof(float)) 
+  if (n > MAXSMALLINT/sizeof(float))
     error->all(FLERR,"Too many atoms for dump molfile");
-  if (n < 1) 
+  if (n < 1)
     error->all(FLERR,"Not enough atoms for dump molfile");
   natoms = static_cast<int>(n);
 
@@ -127,7 +127,7 @@ DumpMolfile::~DumpMolfile()
     memory->destroy(radiuses);
     delete mf;
   }
-  
+
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
       delete [] typenames[i];
@@ -146,7 +146,7 @@ void DumpMolfile::init_style()
 
   if (me == 0) {
 
-    /* initialize typenames array to numeric types by default */ 
+    /* initialize typenames array to numeric types by default */
     if (typenames == NULL) {
       typenames = new char*[ntypes+1];
       for (int itype = 1; itype <= ntypes; itype++) {
@@ -249,7 +249,7 @@ void DumpMolfile::write()
 
       write_data(nlines,buf);
     }
-      
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
@@ -282,7 +282,7 @@ void DumpMolfile::openfile()
       char *p2 = filecurrent;
       while (p1 != ptr)
         *p2++ = *p1++;
-      
+
       if (padflag == 0) {
         sprintf(p2,BIGINT_FORMAT "%s",update->ntimestep,ptr+1);
       } else {
@@ -393,7 +393,7 @@ void DumpMolfile::write_data(int n, double *mybuf)
 
         if (atom->rmass_flag) {
           mf->property(MFI::P_MASS,masses);
-        } else { 
+        } else {
           mf->property(MFI::P_MASS,types,atom->mass);
         }
 

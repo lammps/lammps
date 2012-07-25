@@ -108,7 +108,7 @@ void FixEvent::restore_event()
     // Since xevent is unwrapped coordinate, need to
     // adjust image flags when remapping
 
-    image[i] = ((tagint) IMGMAX << IMG2BITS) | 
+    image[i] = ((tagint) IMGMAX << IMG2BITS) |
       ((tagint) IMGMAX << IMGBITS) | IMGMASK;
     domain->remap(x[i],image[i]);
   }

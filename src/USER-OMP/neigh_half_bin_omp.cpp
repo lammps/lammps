@@ -222,7 +222,7 @@ void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
-          
+
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular) {
               which = find_special(special[i],nspecial[i],tag[j]);

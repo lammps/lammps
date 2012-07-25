@@ -247,10 +247,10 @@ potentials together, in an overlapping manner.  Imagine you have CNT
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:
 </P>
-<P>pair_style hybrid/overlay tersoff airebo 3.0
+<PRE>pair_style hybrid/overlay tersoff airebo 3.0
 pair_coeff * * tersoff SiC.tersoff.custom Si C
-pair_coeff * * airebo CH.airebo NULL C
-</P>
+pair_coeff * * airebo CH.airebo NULL C 
+</PRE>
 <P>Note that to prevent the Tersoff potential from computing C/C
 interactions, you would need to modify the SiC.tersoff file to turn
 off C/C interaction, i.e. by setting the appropriate coefficients to

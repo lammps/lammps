@@ -371,9 +371,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 
-  if (sizeof(tagint) == 8)
-    error->all(FLERR,"64-bit atom IDs are not yet supported");
-
   // create CUDA class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy CUDA class if USER-CUDA is not installed
 

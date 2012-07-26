@@ -36,7 +36,7 @@ enum{ID,TYPE,X,Y,Z,VX,VY,VZ};
 
 // true if the difference between two floats is "small".
 // cannot use fabsf() since it is not fully portable.
-static bool is_smalldiff(const float &val1, const float &val2) 
+static bool is_smalldiff(const float &val1, const float &val2)
 {
   return (fabs(static_cast<double>(val1-val2)) < SMALL);
 }
@@ -234,7 +234,7 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
       const double alpha = static_cast<double>(cell[3]);
       const double beta  = static_cast<double>(cell[4]);
       const double gamma = static_cast<double>(cell[5]);
-      
+
       const double lx = la;
       const double xy = lb * cos(gamma/90.0*MY_PI2);
       const double xz = lc * cos(beta/90.0*MY_PI2);
@@ -279,7 +279,7 @@ bigint ReaderMolfile::read_header(double box[3][3], int &triclinic,
 
   memory->create(fieldindex,nfield,"read_dump:fieldindex");
 
-  // we know nothing about the scaling style of coordinates, 
+  // we know nothing about the scaling style of coordinates,
   // so the caller has to set the proper flag.
   xflag = scaledflag;
   yflag = scaledflag;

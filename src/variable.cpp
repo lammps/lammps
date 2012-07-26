@@ -164,7 +164,7 @@ void Variable::set(int narg, char **arg)
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
       nfirst = atoi(arg[2]);
       nlast = atoi(arg[3]);
-      if (nfirst > nlast || nlast < 0) 
+      if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         char digits[12];
@@ -924,7 +924,7 @@ double Variable::evaluate(char *str, Tree **tree)
           newtree->type = ATOMARRAY;
           if (compute->array_atom)
             newtree->array = &compute->array_atom[0][index1-1];
-          else 
+          else
             newtree->array = NULL;
           newtree->nstride = compute->size_peratom_cols;
           newtree->left = newtree->middle = newtree->right = NULL;
@@ -1093,7 +1093,7 @@ double Variable::evaluate(char *str, Tree **tree)
           newtree->type = ATOMARRAY;
           if (fix->array_atom)
             newtree->array = &fix->array_atom[0][index1-1];
-          else 
+          else
             newtree->array = NULL;
           newtree->nstride = fix->size_peratom_cols;
           newtree->left = newtree->middle = newtree->right = NULL;

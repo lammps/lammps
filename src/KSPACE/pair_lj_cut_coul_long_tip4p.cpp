@@ -614,4 +614,3 @@ double PairLJCutCoulLongTIP4P::memory_usage()
   bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
-

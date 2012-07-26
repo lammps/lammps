@@ -438,7 +438,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // reneighboring only forced if flips will occur due to shape changes
 
   if (p_flag[3] || p_flag[4] || p_flag[5]) force_reneighbor = 1;
-  if (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0) 
+  if (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0)
     force_reneighbor = 1;
 
   // convert input periods to frequencies

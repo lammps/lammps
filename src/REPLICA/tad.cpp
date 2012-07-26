@@ -839,7 +839,7 @@ void TAD::revert()
     x[i][0] = array_atom[i][0];
     x[i][1] = array_atom[i][1];
     x[i][2] = array_atom[i][2];
-    image[i] = 
+    image[i] =
       ((int(array_atom[i][5]) + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
       ((int(array_atom[i][4]) + (tagint) IMGMAX & IMGMASK) << IMGBITS) |
       (int(array_atom[i][3]) + IMGMAX & IMGMASK);

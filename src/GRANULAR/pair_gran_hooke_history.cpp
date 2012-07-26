@@ -587,7 +587,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   double mi,mj,meff,damp,ccel,polyhertz;
   double vtr1,vtr2,vtr3,vrel,shrmag,rsht;
   double fs1,fs2,fs3,fs,fn;
-  
+
   double *radius = atom->radius;
   radi = radius[i];
   radj = radius[j];
@@ -658,7 +658,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
     if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
     if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
   }
-  
+
   meff = mi*mj / (mi+mj);
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;
@@ -734,7 +734,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairGranHookeHistory::pack_comm(int n, int *list, 
+int PairGranHookeHistory::pack_comm(int n, int *list,
                                     double *buf, int pbc_flag, int *pbc)
 {
   int i,j,m;

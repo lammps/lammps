@@ -867,7 +867,7 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
   mask[nlocal] = 1;
-  image[nlocal] = ((tagint) IMGMAX << IMG2BITS) | 
+  image[nlocal] = ((tagint) IMGMAX << IMG2BITS) |
     ((tagint) IMGMAX << IMGBITS) | IMGMAX;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
@@ -1001,7 +1001,7 @@ bigint AtomVecWavepacket::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) 
+  if (atom->memcheck("erforce"))
     bytes += memory->usage(erforce,nmax*comm->nthreads);
 
   if (atom->memcheck("ervelforce")) bytes += memory->usage(ervelforce,nmax);

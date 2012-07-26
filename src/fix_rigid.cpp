@@ -1651,7 +1651,7 @@ void FixRigid::setup_bodies()
   // then remap the xcm of each body back into simulation box if needed
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
+    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) |
       ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
@@ -2003,7 +2003,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-  
+
   if (me == 0) {
     fp = fopen(infile,"r");
     if (fp == NULL) {
@@ -2052,7 +2052,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
     if (nwords != ATTRIBUTE_PERBODY)
       error->all(FLERR,"Incorrect rigid body format in fix rigid file");
-    
+
     // loop over lines of rigid body attributes
     // tokenize the line into values
     // id = rigid body ID
@@ -2062,19 +2062,19 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-      
+
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-      
+
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {
-        if (id <= 0 || id > maxmol) 
+        if (id <= 0 || id > maxmol)
           error->all(FLERR,"Invalid rigid body ID in fix rigid file");
         id = mol2body[id];
       } else id--;
 
-      if (id < 0 || id >= nbody) 
+      if (id < 0 || id >= nbody)
         error->all(FLERR,"Invalid rigid body ID in fix rigid file");
       inbody[id] = 1;
 
@@ -2094,7 +2094,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
       buf = next + 1;
     }
-    
+
     nread += nchunk;
   }
 

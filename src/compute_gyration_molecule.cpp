@@ -179,7 +179,7 @@ void ComputeGyrationMolecule::compute_array()
   molcom();
 
   for (i = 0; i < nmolecules; i++)
-    for (j = 0; j < 6; j++) 
+    for (j = 0; j < 6; j++)
       rgt[i][j] = 0.0;
 
   double **x = atom->x;
@@ -220,8 +220,8 @@ void ComputeGyrationMolecule::compute_array()
     MPI_Allreduce(&rgt[0][0],&array[0][0],nmolecules*6,
                   MPI_DOUBLE,MPI_SUM,world);
 
-  for (i = 0; i < nmolecules; i++) 
-    for (j = 0; j < 6; j++) 
+  for (i = 0; i < nmolecules; i++)
+    for (j = 0; j < 6; j++)
       array[i][j] /= masstotal[i];
 }
 

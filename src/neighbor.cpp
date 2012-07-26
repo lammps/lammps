@@ -493,7 +493,7 @@ void Neighbor::init()
         lists[i]->listskip = lists[requests[i]->otherlist];
         lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
 
-      } else if (requests[i]->half_from_full) 
+      } else if (requests[i]->half_from_full)
         lists[i]->listfull = lists[i-1];
 
       else if (requests[i]->granhistory) {
@@ -852,7 +852,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else pb = &Neighbor::half_bin_no_newton_ghost;
           } else if (triclinic == 0) {
             pb = &Neighbor::half_bin_newton;
-          } else if (triclinic == 1) 
+          } else if (triclinic == 1)
             pb = &Neighbor::half_bin_newton_tri;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton;
@@ -966,7 +966,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else pb = &Neighbor::half_bin_no_newton_ghost_omp;
           } else if (triclinic == 0) {
             pb = &Neighbor::half_bin_newton_omp;
-          } else if (triclinic == 1) 
+          } else if (triclinic == 1)
             pb = &Neighbor::half_bin_newton_tri_omp;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;

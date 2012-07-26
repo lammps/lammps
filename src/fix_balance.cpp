@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -52,13 +52,13 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   nitermax = atoi(arg[5]);
   thresh = atof(arg[6]);
 
-  if (nevery < 0 || nitermax <= 0 || thresh < 1.0) 
+  if (nevery < 0 || nitermax <= 0 || thresh < 1.0)
     error->all(FLERR,"Illegal fix balance command");
 
   for (int i = 0; i < strlen(bstr); i++) {
-    if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z') 
+    if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
       error->all(FLERR,"Fix balance string is invalid");
-    if (bstr[i] == 'z' && dimension == 2) 
+    if (bstr[i] == 'z' && dimension == 2)
       error->all(FLERR,"Fix balance string is invalid for 2d simulation");
     for (int j = i+1; j < strlen(bstr); j++)
       if (bstr[i] == bstr[j])
@@ -220,7 +220,7 @@ void FixBalance::rebalance()
   itercount = balance->dynamic();
 
   // output of final result
-  
+
   if (fp) balance->dumpout(update->ntimestep,fp);
 
   // reset comm->uniform flag
@@ -236,7 +236,7 @@ void FixBalance::rebalance()
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far,
   // else allow caller's comm->exchange() to do it
-  
+
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);

@@ -535,7 +535,7 @@ void Domain::box_too_small_check()
   // NOTE: if box is tiny (less than 2 * bond-length),
   //       the check itself may compute bad bond lengths
   //       not sure how to account for that extreme case
-  
+
   int *num_bond = atom->num_bond;
   int **bond_atom = atom->bond_atom;
   double **x = atom->x;
@@ -724,7 +724,7 @@ int Domain::closest_image(int i, int j)
   double delz = xi[2] - x[j][2];
   double rsqmin = delx*delx + dely*dely + delz*delz;
   double rsq;
-  
+
   while (sametag[j] >= 0) {
     j = sametag[j];
     delx = xi[0] - x[j][0];
@@ -1138,7 +1138,7 @@ void Domain::image_flip(int m, int n, int p)
     xbox -= m*ybox + n*zbox;
 
     image[i] = ((zbox + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
-      ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) | 
+      ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) |
       (xbox + IMGMAX & IMGMASK);
   }
 }

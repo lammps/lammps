@@ -378,7 +378,7 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
     if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
     if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
   }
-  
+
   meff = mi*mj / (mi+mj);
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;

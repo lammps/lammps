@@ -109,7 +109,7 @@ void FixQEQCombOMP::post_force(int vflag)
 
   // more loops for first-time charge equilibrium
 
-  iloop = 0; 
+  iloop = 0;
   if (firstflag) loopmax = 500;
   else loopmax = 200;
 
@@ -144,7 +144,7 @@ void FixQEQCombOMP::post_force(int vflag)
       i = ilist[ii];
       if (mask[i] & groupbit) {
         q1[i] += qf[i]*dtq2 - heatpq*q1[i];
-        q[i]  += q1[i]; 
+        q[i]  += q1[i];
       }
     }
     comm->forward_comm_fix(this);
@@ -152,7 +152,7 @@ void FixQEQCombOMP::post_force(int vflag)
     if(comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
-    
+
     for (ii = 0; ii < inum ; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -173,15 +173,15 @@ void FixQEQCombOMP::post_force(int vflag)
     if (me == 0 && fp)
       fprintf(fp,"  iteration: %d, enegtot %.6g, "
               "enegmax %.6g, fq deviation: %.6g\n",
-              iloop,enegtot,enegmax,enegchk); 
-    
+              iloop,enegtot,enegmax,enegchk);
+
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit)
-        q1[i] += qf[i]*dtq2 - heatpq*q1[i]; 
+        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
     }
-  } 
-  
+  }
+
   if (me == 0 && fp) {
     if (iloop == loopmax)
       fprintf(fp,"Charges did not converge in %d iterations\n",iloop);

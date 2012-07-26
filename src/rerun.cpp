@@ -108,7 +108,7 @@ void Rerun::command(int narg, char **arg)
   int nremain = narg - iarg - 1;
   if (nremain <= 0) error->all(FLERR,"Illegal rerun command");
   if (first > last) error->all(FLERR,"Illegal rerun command");
-  if (startflag && stopflag && start > stop) 
+  if (startflag && stopflag && start > stop)
     error->all(FLERR,"Illegal rerun command");
 
   // pass list of filenames to ReadDump
@@ -117,7 +117,7 @@ void Rerun::command(int narg, char **arg)
   ReadDump *rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
-  if (nremain) 
+  if (nremain)
     nremain = rd->fields_and_keywords(nremain,&arg[narg-nremain]);
   else nremain = rd->fields_and_keywords(0,NULL);
   if (nremain) rd->setup_reader(nremain,&arg[narg-nremain]);

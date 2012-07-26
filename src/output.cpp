@@ -472,7 +472,7 @@ void Output::reset_timestep(bigint ntimestep)
     if (restart_every_single) {
       next_restart_single =
         (ntimestep/restart_every_single)*restart_every_single;
-      if (next_restart_single < ntimestep) 
+      if (next_restart_single < ntimestep)
         next_restart_single += restart_every_single;
     } else {
       modify->clearstep_compute();
@@ -491,7 +491,7 @@ void Output::reset_timestep(bigint ntimestep)
     if (restart_every_double) {
       next_restart_double =
         (ntimestep/restart_every_double)*restart_every_double;
-      if (next_restart_double < ntimestep) 
+      if (next_restart_double < ntimestep)
         next_restart_double += restart_every_double;
     } else {
       modify->clearstep_compute();
@@ -507,7 +507,7 @@ void Output::reset_timestep(bigint ntimestep)
   } else next_restart_double = update->laststep + 1;
 
   next_restart = MIN(next_restart_single,next_restart_double);
-  
+
   if (var_thermo) {
     modify->clearstep_compute();
     update->ntimestep--;
@@ -522,7 +522,7 @@ void Output::reset_timestep(bigint ntimestep)
     next_thermo = (ntimestep/thermo_every)*thermo_every;
     if (next_thermo < ntimestep) next_thermo += thermo_every;
     next_thermo = MIN(next_thermo,update->laststep);
-  } else next_thermo = update->laststep; 
+  } else next_thermo = update->laststep;
 
   next = MIN(next_dump_any,next_restart);
   next = MIN(next,next_thermo);

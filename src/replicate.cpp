@@ -278,7 +278,7 @@ void Replicate::command(int narg, char **arg)
 
           m = 0;
           while (m < n) {
-            image = ((tagint) IMGMAX << IMG2BITS) | 
+            image = ((tagint) IMGMAX << IMG2BITS) |
               ((tagint) IMGMAX << IMGBITS) | IMGMAX;
             if (triclinic == 0) {
               x[0] = buf[m+1] + ix*old_xprd;

@@ -327,12 +327,12 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       //fprintf(stderr, "r: %f, i: %d, base: %f, dif: %f\n", r, i, base, dif);
 
       e_vdW = ((t->vdW[r].d*dif + t->vdW[r].c)*dif + t->vdW[r].b)*dif +
-	t->vdW[r].a;
+        t->vdW[r].a;
 
       e_ele = ((t->ele[r].d*dif + t->ele[r].c)*dif + t->ele[r].b)*dif +
-	t->ele[r].a;
+        t->ele[r].a;
       e_ele *= system->my_atoms[i].q * system->my_atoms[j].q;
-      
+
       data->my_en.e_vdW += e_vdW;
       data->my_en.e_ele += e_ele;
 

@@ -109,7 +109,7 @@ void BondHarmonicShiftCutOMP::eval(int nfrom, int nto, ThrData * const thr)
     if (r > 0.0) fbond = -2.0*rk/r;
     else fbond = 0.0;
 
-    if (EFLAG) 
+    if (EFLAG)
       ebond = k[type]*(dr*dr -(r0[type]-r1[type])*(r0[type]-r1[type]) );
 
     // apply force to each of 2 atoms

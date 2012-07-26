@@ -63,6 +63,15 @@ this rule, in that an additional argument is used in the input script
 to allow specification of the cross-term coefficients.  See its doc
 page for details.
 </P>
+<P>IMPORTANT NOTE: When comparing the formulas and coefficients for
+various LAMMPS dihedral styles with dihedral equations defined by
+other force fields, note that some force field implementations
+divide/multiply the energy prefactor <I>K</I> by the multiple number of
+torsions that contain the J-K bond in an I-J-K-L torsion.  LAMMPS does
+not do this, i.e. the listed dihedral equation applies to each
+individual dihedral.  Thus you need to define <I>K</I> appropriately to
+account for this difference if necessary.
+</P>
 <HR>
 
 <P>Here is an alphabetic list of dihedral styles defined in LAMMPS.  Click on

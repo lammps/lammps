@@ -37,6 +37,19 @@ or <A HREF = "read_restart.html">read_restart</A> commands:
 <LI>d (+1 or -1)
 <LI>n (integer >= 0) 
 </UL>
+<P>IMPORTANT NOTE: Here are important points to take note of when
+defining LAMMPS dihedral coefficients for the harmonic style, so that
+they are compatible with how harmonic dihedrals are defined by other
+force fields:
+</P>
+<UL><LI>The LAMMPS convention is that the trans position = 180 degrees, while
+in some force fields trans = 0 degrees. 
+
+<LI>Some force fields reverse the sign convention on <I>d</I>. 
+
+<LI>Some force fields let <I>n</I> be positive or negative which corresponds to
+<I>d</I> = 1 or -1 for the harmonic style. 
+</UL>
 <HR>
 
 <P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally

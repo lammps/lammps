@@ -33,6 +33,19 @@ K (energy)
 d (+1 or -1)
 n (integer >= 0) :ul
 
+IMPORTANT NOTE: Here are important points to take note of when
+defining LAMMPS dihedral coefficients for the harmonic style, so that
+they are compatible with how harmonic dihedrals are defined by other
+force fields:
+
+The LAMMPS convention is that the trans position = 180 degrees, while
+in some force fields trans = 0 degrees. :ulb,l
+
+Some force fields reverse the sign convention on {d}. :l
+
+Some force fields let {n} be positive or negative which corresponds to
+{d} = 1 or -1 for the harmonic style. :ule,l
+
 :line
 
 Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally

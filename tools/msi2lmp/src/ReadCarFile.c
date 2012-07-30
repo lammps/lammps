@@ -125,11 +125,12 @@ void ReadCarFile(void)
        atoms[k].molecule = m;
        atoms[k].no = k;
 
-       fscanf(CarF,"%s %lf %lf %lf %*s %*s %s %s %f",
+       fscanf(CarF,"%s %lf %lf %lf %*s %d %s %s %f",
 	      atoms[k].name,
 	      &(atoms[k].x[0]),
 	      &(atoms[k].x[1]),
 	      &(atoms[k].x[2]),
+              &(atoms[k].molecule),
 	      atoms[k].potential,
 	      atoms[k].element,
 	      &(atoms[k].q));

@@ -270,6 +270,7 @@ void FixGCMC::attempt_move()
   double rx,ry,rz;
   double coord[3];
   double **x = atom->x;
+  tagint *image = atom->image;
 
   nmove_attempts += 1.0;
 
@@ -296,6 +297,7 @@ void FixGCMC::attempt_move()
       x[i][0] = coord[0];
       x[i][1] = coord[1];
       x[i][2] = coord[2];
+      domain->remap(x[i],image[i]);
       success = 1;
     }
   }

@@ -1,3 +1,5 @@
+
+
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -88,7 +90,7 @@
 #define MIN_NBRS       100
 #define MIN_HENTRIES   100
 #define MAX_BONDS      30
-#define MIN_BONDS      15
+#define MIN_BONDS      25
 #define MIN_HBONDS     25
 #define MIN_3BODIES    1000
 #define MIN_GCELL_POPL 50

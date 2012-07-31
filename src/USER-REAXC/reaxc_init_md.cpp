@@ -280,9 +280,14 @@ int Init_System( reax_system *system, control_params *control, char *msg )
   int i;
   reax_atom *atom;
 
-  /* determine the local and total capacity */
-  system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
-  system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+  double saferzone = system->saferzone;
+
+  // determine the local and total capacity
+
+  system->local_cap = MAX( (int)(system->n * safezone), mincap);
+  system->total_cap = MAX( (int)(system->N * safezone), mincap);
 
   /* estimate numH and Hcap */
   system->numH = 0;
@@ -293,7 +298,7 @@ int Init_System( reax_system *system, control_params *control, char *msg )
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
-  system->Hcap = (int)(MAX( system->numH * SAFER_ZONE, MIN_CAP ));
+  system->Hcap = (int)(MAX( system->numH * saferzone, mincap ));
 
 #if defined(DEBUG_FOCUS)
   fprintf( stderr, "p%d: n=%d local_cap=%d\n",
@@ -639,6 +644,10 @@ int  Init_Lists( reax_system *system, control_params *control,
   int nrecv[MAX_NBRS];
   MPI_Comm comm;
 
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+  double saferzone = system->saferzone;
+
   comm = mpi_data->world;
   bond_top = (int*) calloc( system->total_cap, sizeof(int) );
   hb_top = (int*) calloc( system->local_cap, sizeof(int) );
@@ -652,7 +661,7 @@ int  Init_Lists( reax_system *system, control_params *control,
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
-    total_hbonds = (int)(MAX( total_hbonds*SAFER_ZONE, MIN_CAP*MIN_HBONDS ));
+    total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
     if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS, comm ) ) {
@@ -674,7 +683,7 @@ int  Init_Lists( reax_system *system, control_params *control,
     system->my_atoms[i].num_bonds = bond_top[i];
     total_bonds += bond_top[i];
   }
-  bond_cap = (int)(MAX( total_bonds*SAFE_ZONE, MIN_CAP*MIN_BONDS ));
+  bond_cap = (int)(MAX( total_bonds*safezone, mincap*MIN_BONDS ));
 
   if( !Make_List( system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS, comm ) ) {
@@ -688,7 +697,7 @@ int  Init_Lists( reax_system *system, control_params *control,
 #endif
 
   /* 3bodies list */
-  cap_3body = (int)(MAX( num_3body*SAFE_ZONE, MIN_3BODIES ));
+  cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
   if( !Make_List( bond_cap, cap_3body, TYP_THREE_BODY,
                   *lists+THREE_BODIES, comm ) ){
     fprintf( stderr, "Problem in initializing angles list. Terminating!\n" );

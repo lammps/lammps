@@ -205,6 +205,9 @@ void PairReaxC::settings(int narg, char **arg)
 
   qeqflag = 1;
   control->lgflag = 0;
+  system->mincap = MIN_CAP;
+  system->safezone = SAFE_ZONE;
+  system->saferzone = SAFER_ZONE;
 
   // process optional keywords
 
@@ -222,6 +225,19 @@ void PairReaxC::settings(int narg, char **arg)
       if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"safezone") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      system->safezone = atof(arg[iarg+1]);
+      if (system->safezone < 0.0) 
+	error->all(FLERR,"Illegal pair_style reax/c safezone command");
+      system->saferzone = system->safezone + 0.2;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mincap") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      system->mincap = atoi(arg[iarg+1]);
+      if (system->mincap < 0) 
+	error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -339,6 +355,8 @@ void PairReaxC::init_style( )
 void PairReaxC::setup( )
 {
   int oldN;
+  int mincap = system->mincap;
+  double safezone = system->safezone;
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -356,8 +374,8 @@ void PairReaxC::setup( )
 
     // determine the local and total capacity
 
-    system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
-    system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
+    system->local_cap = MAX( (int)(system->n * safezone), mincap );
+    system->total_cap = MAX( (int)(system->N * safezone), mincap );
 
     // initialize my data structures
 
@@ -532,6 +550,9 @@ void PairReaxC::write_reax_atoms()
   int *num_bonds = fix_reax->num_bonds;
   int *num_hbonds = fix_reax->num_hbonds;
 
+  if (system->N > system->total_cap)
+    error->all(FLERR,"Too many ghost atoms");
+
   for( int i = 0; i < system->N; ++i ){
     system->my_atoms[i].orig_id = atom->tag[i];
     system->my_atoms[i].type = map[atom->type[i]];
@@ -578,6 +599,9 @@ int PairReaxC::estimate_reax_lists()
   reax_list *far_nbrs;
   far_neighbor_data *far_list;
 
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+
   x = atom->x;
   nlocal = atom->nlocal;
   nghost = atom->nghost;
@@ -616,7 +640,7 @@ int PairReaxC::estimate_reax_lists()
   free( marked );
   free( dist );
 
-  return static_cast<int> (MAX( num_nbrs*SAFE_ZONE, MIN_CAP*MIN_NBRS ));
+  return static_cast<int> (MAX( num_nbrs*safezone, mincap*MIN_NBRS ));
 }
 
 /* ---------------------------------------------------------------------- */

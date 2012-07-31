@@ -49,9 +49,14 @@ int PreAllocate_Space( reax_system *system, control_params *control,
 {
   int  i;
 
-  /* determine the local and total capacity */
-  system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
-  system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+
+  // determine the local and total capacity
+
+  system->local_cap = MAX( (int)(system->n * safezone), mincap );
+  system->total_cap = MAX( (int)(system->N * safezone), mincap );
+
 #if defined(DEBUG)
   fprintf( stderr, "p%d: local_cap=%d total_cap=%d\n",
            system->my_rank, system->local_cap, system->total_cap );
@@ -490,6 +495,9 @@ int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
 {
   int i, id, total_hbonds;
 
+  int mincap = system->mincap;
+  double saferzone = system->saferzone;
+
   total_hbonds = 0;
   for( i = 0; i < system->n; ++i )
     if( (id = system->my_atoms[i].Hindex) >= 0 ) {
@@ -498,7 +506,7 @@ int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
       //                                   MIN_HBONDS);
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
-  total_hbonds = (int)(MAX( total_hbonds*SAFER_ZONE, MIN_CAP*MIN_HBONDS ));
+  total_hbonds = (int)(MAX( total_hbonds*saferzone, mincap*MIN_HBONDS ));
 
   Delete_List( hbonds, comm );
   if( !Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds, comm ) ) {
@@ -515,6 +523,9 @@ int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 {
   int i;
 
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+
   *total_bonds = 0;
   *est_3body = 0;
   for( i = 0; i < system->N; ++i ){
@@ -523,7 +534,7 @@ int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
     // system->my_atoms[i].num_bonds = MAX( Num_Entries(i,bonds)*2, MIN_BONDS );
     *total_bonds += system->my_atoms[i].num_bonds;
   }
-  *total_bonds = (int)(MAX( *total_bonds * SAFE_ZONE, MIN_CAP*MIN_BONDS ));
+  *total_bonds = (int)(MAX( *total_bonds * safezone, mincap*MIN_BONDS ));
 
   Delete_List( bonds, comm );
   if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds, comm)) {
@@ -760,6 +771,10 @@ void ReAllocate( reax_system *system, control_params *control,
   MPI_Comm comm;
   char msg[200];
 
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+  double saferzone = system->saferzone;
+
   realloc = &(workspace->realloc);
   g = &(system->my_grid);
   comm = mpi_data->world;
@@ -787,14 +802,14 @@ void ReAllocate( reax_system *system, control_params *control,
   if( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
     nflag = 1;
-    system->local_cap = MAX( (int)(system->n * SAFE_ZONE), MIN_CAP );
+    system->local_cap = MAX( (int)(system->n * safezone), mincap );
   }
 
   Nflag = 0;
   if( system->N >= DANGER_ZONE * system->total_cap ||
       (0 && system->N <= LOOSE_ZONE * system->total_cap) ) {
     Nflag = 1;
-    system->total_cap = MAX( (int)(system->N * SAFE_ZONE), MIN_CAP );
+    system->total_cap = MAX( (int)(system->N * safezone), mincap );
   }
 
   if( Nflag ) {
@@ -839,7 +854,7 @@ void ReAllocate( reax_system *system, control_params *control,
       }
 
       newsize = static_cast<int>
-        (MAX( realloc->num_far*SAFE_ZONE, MIN_CAP*MIN_NBRS ));
+        (MAX( realloc->num_far*safezone, mincap*MIN_NBRS ));
 #if defined(DEBUG_FOCUS)
       fprintf( stderr, "p%d: reallocating far_nbrs: num_fars=%d, space=%dMB\n",
                system->my_rank, (int)(realloc->num_far*SAFE_ZONE),
@@ -869,7 +884,7 @@ void ReAllocate( reax_system *system, control_params *control,
 #endif
 
     newsize = static_cast<int>
-        (MAX( realloc->Htop*SAFE_ZONE, MIN_CAP*MIN_NBRS ));
+        (MAX( realloc->Htop*safezone, mincap*MIN_NBRS ));
     Reallocate_Matrix( &(workspace->H), system->local_cap,
                        newsize, "H", comm );
     //Deallocate_Matrix( workspace->L );
@@ -886,7 +901,7 @@ void ReAllocate( reax_system *system, control_params *control,
     if( system->numH >= DANGER_ZONE * system->Hcap ||
         (0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
       Hflag = 1;
-      system->Hcap = int(MAX( system->numH * SAFER_ZONE, MIN_CAP ));
+      system->Hcap = int(MAX( system->numH * saferzone, mincap ));
     }
 
     if( Hflag || realloc->hbonds ) {
@@ -926,7 +941,7 @@ void ReAllocate( reax_system *system, control_params *control,
     if( num_bonds == -1 )
       num_bonds = ((*lists)+BONDS)->num_intrs;
 
-    realloc->num_3body = (int)(MAX(realloc->num_3body*SAFE_ZONE, MIN_3BODIES));
+    realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));
 
     if( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
                     (*lists)+THREE_BODIES, comm ) ) {

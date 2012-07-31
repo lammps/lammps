@@ -194,6 +194,8 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
   reallocate_data *realloc;
   realloc = &(workspace->realloc);
 
+  double saferzone = system->saferzone;
+
   /* bond list */
   if( N > 0 ) {
     bonds = *lists + BONDS;
@@ -226,7 +228,7 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
       Hindex = system->my_atoms[i].Hindex;
       if( Hindex > -1 ) {
         system->my_atoms[i].num_hbonds =
-          (int)(MAX( Num_Entries(Hindex, hbonds)*SAFER_ZONE, MIN_HBONDS ));
+          (int)(MAX( Num_Entries(Hindex, hbonds)*saferzone, MIN_HBONDS ));
 
         //if( Num_Entries(i, hbonds) >=
         //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/){
@@ -721,6 +723,10 @@ void Estimate_Storages( reax_system *system, control_params *control,
   far_neighbor_data *nbr_pj;
   reax_atom *atom_i, *atom_j;
 
+  int mincap = system->mincap;
+  double safezone = system->safezone;
+  double saferzone = system->saferzone;
+
   far_nbrs = *lists + FAR_NBRS;
   *Htop = 0;
   memset( hb_top, 0, sizeof(int) * system->local_cap );
@@ -806,9 +812,9 @@ void Estimate_Storages( reax_system *system, control_params *control,
     }
   }
 
-  *Htop = (int)(MAX( *Htop * SAFE_ZONE, MIN_CAP * MIN_HENTRIES ));
+  *Htop = (int)(MAX( *Htop * safezone, mincap * MIN_HENTRIES ));
   for( i = 0; i < system->n; ++i )
-    hb_top[i] = (int)(MAX( hb_top[i] * SAFER_ZONE, MIN_HBONDS ));
+    hb_top[i] = (int)(MAX( hb_top[i] * saferzone, MIN_HBONDS ));
 
   for( i = 0; i < system->N; ++i ) {
     *num_3body += SQR(bond_top[i]);

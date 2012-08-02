@@ -245,6 +245,7 @@ double PairLJSmoothLinear::init_one(int i, int j)
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
+  cut[j][i] = cut[i][j];
   ljcut[j][i] = ljcut[i][j];
   dljcut[j][i] = dljcut[i][j];
 

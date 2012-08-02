@@ -337,8 +337,15 @@ void FixGCMC::attempt_deletion()
         ngas*exp(beta*deletion_energy)/(zz*volume)) {
       avec->copy(atom->nlocal-1,i,1);
       atom->nlocal--;
-      local_gas_list[iwhichlocal] = local_gas_list[ngas_local-1];
-      ngas_local--;
+      int *type = atom->type;
+      if ((type[i] == ntype) and (local_gas_list[ngas_local-1] == atom->nlocal)) {
+        ngas_local--;
+      } else {
+        ngas_local = 0;
+        for (int i = 0; i < atom->nlocal; i++)
+          if (type[i] == ntype)
+            local_gas_list[ngas_local++] = i;
+      }
       success = 1;
     }
   }

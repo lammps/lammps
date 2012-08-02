@@ -429,7 +429,7 @@ void Finish::end(int flag)
 
     int nsteps = update->nsteps;
 
-    int nsample = 5;
+    int nsample = 1000;
     double time3d,time1d;
     force->kspace->timing(nsample,time3d,time1d);
 

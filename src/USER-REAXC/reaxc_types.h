@@ -488,6 +488,8 @@ typedef struct
 
   class Pair *pair_ptr;
   int my_bonds;
+  int mincap;
+  real safezone, saferzone;
 
 } reax_system;
 

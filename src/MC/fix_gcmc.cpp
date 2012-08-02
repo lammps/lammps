@@ -421,7 +421,7 @@ void FixGCMC::attempt_insertion()
                            "GCMC:local_gas_list");
       }
 
-      local_gas_list[ngas_local] = atom->nlocal;
+      local_gas_list[ngas_local] = atom->nlocal-1;
       ngas_local++;
       success = 1;
     }

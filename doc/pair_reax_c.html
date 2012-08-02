@@ -19,9 +19,11 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<PRE>keyword = <I>checkqeq</I> or <I>lgvdw</I>
+<PRE>keyword = <I>checkqeq</I> or <I>lgvdw</I> or <I>safezone</I> or <I>mincap</I>
   <I>checkqeq</I> value = <I>yes</I> or <I>no</I> = whether or not to require qeq/reax fix 
-  <I>lgvdw</I> value = <I>yes</I> or <I>no</I> = whether or not to use a low gradient vdW correction 
+  <I>lgvdw</I> value = <I>yes</I> or <I>no</I> = whether or not to use a low gradient vdW correction
+  <I>safezone</I> = factor used for array allocation
+  <I>mincap</I> = minimum size for array allocation 
 </PRE>
 
 </UL>
@@ -30,6 +32,7 @@
 <PRE>pair_style reax/c NULL
 pair_style reax/c controlfile checkqeq no
 pair_style reax/c NULL lgvdw yes
+pair_style reax/c NULL safezone 1.6 mincap 100
 pair_coeff * * ffield.reax 1 2 2 3 
 </PRE>
 <P><B>Description:</B>
@@ -43,7 +46,7 @@ supplemental information of the following paper: <A HREF = "#Chenoweth_2008">(Ch
 2008)</A>.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
-the "(Aktulga)" paper.
+the <A HREF = "#Aktulga">(Aktulga)</A> paper.
 </P>
 <P>The <I>reax/c</I> style differs from the <A HREF = "pair_reax.html">pair_style reax</A>
 command in the lo-level implementation details.  The <I>reax</I> style is a
@@ -75,11 +78,19 @@ you what is currently available or what it would take to create a
 suitable ReaxFF parameterization.
 </P>
 <P>The <I>cfile</I> setting can be specified as NULL, in which case default
-settings are used.  Or a control file can be specified which contains
-cutoff values for the ReaxFF potential in addition to some performance
-and output controls.  Each line in the control specifies the value for
+settings are used. A control file can be specified which defines
+values of control variables. Some control variables are 
+global parameters for the ReaxFF potential. Others define certain
+performance and output settings. 
+Each line in the control file specifies the value for
 a control variable.  The format of the control file is described
-below.  
+below. 
+</P>
+<P>IMPORTANT NOTE: The LAMMPS default values for the ReaxFF global parameters 
+correspond to those used by
+Adri van Duin's stand-alone serial code. If these are changed by
+setting control variables in the control file, the results from
+LAMMPS and the serial code will not agree.
 </P>
 <P>Two examples using <I>pair_style reax/c</I> are provided in the examples/reax
 sub-directory, along with corresponding examples for 
@@ -105,14 +116,17 @@ See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
 </P>
 <P>Using the optional keyword <I>lgvdw</I> with the value <I>yes</I> turns on 
 the low-gradient correction of the ReaxFF/C for long-range 
-London Dispersion, as described in the <A HREF = "#Liu">(Liu)</A> paper. Force field 
+London Dispersion, as described in the <A HREF = "#Liu_2011">(Liu)</A> paper. Force field 
 file <I>ffield.reax.lg</I> is designed for this correction, and is trained
-for several energetic materials (see <A HREF = "#Liu">Liu</A> ). 
-When using lg-correction, 
-recommended value for parameter <I>thb</I> is 0.01, which can be set in 
-the control file.  Note: Force field files 
-are different for the original or lg corrected pair styles, using
-wrong ffield file generates an error message.
+for several energetic materials (see "Liu"). When using lg-correction, 
+recommended value for parameter <I>thb</I> is 0.01, which can be set in the 
+control file.  Note: Force field files are different for the original 
+or lg corrected pair styles, using wrong ffield file generates an error message.
+</P>
+<P>Optional keywords <I>safezone</I> and <I>mincap</I> are used for allocating 
+reax/c arrays.  Increase these values can avoid memory problems, such 
+as segmentation faults and bondchk failed errors, that could occur under 
+certain conditions.
 </P>
 <P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -288,7 +302,7 @@ appropriate units if your simulation doesn't use "real" units.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are checkqeq = yes, lgvdw = no.
+<P>The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50.
 </P>
 <HR>
 
@@ -302,7 +316,7 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 <P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
 appear (2011).
 </P>
-<A NAME = "Liu"></A>
+<A NAME = "Liu_2011"></A>
 
 <P><B>(Liu)</B> L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).

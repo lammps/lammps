@@ -1072,8 +1072,12 @@ void colvarbias_meta::read_replica_files()
         }
 
       } else {
-        cvm::fatal_error ("Error: cannot read from file \""+
-                          (replicas[ir])->replica_hills_file+"\".\n");
+        cvm::log ("Failed to read the file \""+(replicas[ir])->replica_hills_file+
+                  "\": will try again in "+
+                  cvm::to_str (replica_update_freq)+" steps.\n");
+        (replicas[ir])->update_status++;
+        // cvm::fatal_error ("Error: cannot read from file \""+
+        //                   (replicas[ir])->replica_hills_file+"\".\n");
       }
       is.close();
     }
@@ -1081,12 +1085,12 @@ void colvarbias_meta::read_replica_files()
     size_t const n_flush = (replica_update_freq/new_hill_freq + 1);
     if ((replicas[ir])->update_status > 3*n_flush) {
       // TODO: suspend the calculation?
-      cvm::log ("Warning: in metadynamics bias \""+this->name+"\""+
-                ": failet do read completely output files from replica \""+
+      cvm::log ("WARNING: in metadynamics bias \""+this->name+"\""+
+                " failed to read completely the output of replica \""+
                 (replicas[ir])->replica_id+
                 "\" after more than "+
-                cvm::to_str (n_flush*new_hill_freq)+
-                " steps.  Please check that that simulation is still running.\n");
+                cvm::to_str ((replicas[ir])->update_status * replica_update_freq)+
+                " steps.  Ensure that it is still running.\n");
     }
   }
 }

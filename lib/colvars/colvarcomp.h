@@ -111,11 +111,6 @@ public:
   /// report their differences
   bool b_debug_gradients;
 
-  /// \brief When b_debug_gradients is true, this function can be used
-  /// to calculate the estimated change in the value using the change
-  /// in the atomic coordinates times the atomic gradients
-  colvarvalue fdiff_change (cvm::atom_group &group);
-
   /// \brief If this flag is false (default), inverse gradients
   /// (derivatives of atom coordinates with respect to x) are
   /// unavailable; it should be set to true by the constructor of each

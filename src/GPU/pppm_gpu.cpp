@@ -85,7 +85,7 @@ void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
-PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPMOld(lmp, narg, arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
@@ -111,7 +111,7 @@ PPPMGPU::~PPPMGPU()
 
 void PPPMGPU::init()
 {
-  PPPM::init();
+  PPPMOld::init();
 
   if (strcmp(update->integrate_style,"verlet/split") == 0)
     kspace_split=true;
@@ -923,13 +923,14 @@ double PPPMGPU::memory_usage()
    perform and time the 4 FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-void PPPMGPU::timing(int n, double &time3d, double &time1d) {
+int PPPMGPU::timing(int n, double &time3d, double &time1d) {
   if (im_real_space) {
     time3d = 0.0;
     time1d = 0.0;
-    return;
+    return 4;
   }
-  PPPM::timing(n,time3d,time1d);
+  PPPMOld::timing(n,time3d,time1d);
+  return 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -939,5 +940,5 @@ void PPPMGPU::timing(int n, double &time3d, double &time1d) {
 void PPPMGPU::setup()
 {
   if (im_real_space) return;
-  PPPM::setup();
+  PPPMOld::setup();
 }

@@ -51,7 +51,7 @@ class PPPM : public KSpace {
   int me,nprocs;
   int nfactors;
   int *factors;
-  double qsum,qsqsum,q2;
+  double qsum,qsqsum;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;
@@ -79,9 +79,7 @@ class PPPM : public KSpace {
   FFT_SCALAR *buf1,*buf2,*buf3,*buf4;
 
   double *gf_b;
-  FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  double sf_coeff[6];          // coefficients for calculating ad self-forces
-  double **acons;
+  FFT_SCALAR **rho1d,**rho_coeff;
 
   // group-group interactions
 
@@ -102,55 +100,28 @@ class PPPM : public KSpace {
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric factor
-  
-  void set_fft_parameters();
-  void adjust_gewald();
-  double newton_raphson_f();
-  double derivf();
-  double final_accuracy();
 
+  void set_grid();
   virtual void allocate();
   virtual void allocate_peratom();
   virtual void deallocate();
   virtual void deallocate_peratom();
   int factorable(int);
-  double compute_df_kspace();
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
-  double compute_qopt();
   void compute_gf_denom();
-  void compute_gf_ik();
-  void compute_gf_ad();
-  void compute_sf_coeff();
-  
+
   virtual void particle_map();
   virtual void make_rho();
   virtual void brick2fft();
-  
-  void set_grid();
-  
   virtual void fillbrick();
-  void fillbrick_ik();
-  void fillbrick_ad();
-  
   virtual void fillbrick_peratom();
-  void fillbrick_peratom_ik();
-  void fillbrick_peratom_ad();
-  
   virtual void poisson();
-  void poisson_ik();
-  void poisson_ad();
-  
-  virtual void fieldforce();
-  void fieldforce_ik();
-  void fieldforce_ad();
-  
   virtual void poisson_peratom();
+  virtual void fieldforce();
   virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
-  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &);
   void compute_rho_coeff();
   void slabcorr();

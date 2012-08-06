@@ -1,0 +1,449 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style bop command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style bop keyword ... 
+</PRE>
+<UL><LI>zero or more keywords may be appended 
+
+<LI>keyword = <I>table</I> or <I>save</I> or <I>sigmaoff</I> 
+
+<PRE>  <I>table</I> = BOP potential file has tabulated form
+  <I>save</I> = pre-compute and save some values
+  <I>sigmaoff</I> = assume a_sigma = 0 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style bop
+pair_coeff * * ../potentials/CdTe_bop Cd Te
+pair_style bop table save
+pair_coeff * * ../potentials/CdTe.bop.table Cd Te Te
+communicate single cutoff 14.70 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>bop</I> pair style computes Bond-Order Potentials (BOP) based on
+quantum mechanical theory incorporating both sigma and pi bondings.
+By analytically deriving the BOP from quantum mechanical theory its
+transferability to different phases can approach that of quantum
+mechanical methods.  This particlular BOP is extremely effective at
+modeling III-V and II-VI compounds such as GaAs and CdTe.  This
+potential is similar to the original BOP developed by Pettifor
+(<A HREF = "#Pettifor_1">Pettifor_1</A>, <A HREF = "#Pettifor_2">Pettifor_2</A>,
+<A HREF = "#Pettifor_3">Pettifor_3</A>) and later updated by Murdick, Zhou, and Ward
+(<A HREF = "#Murdick">Murdick</A>, <A HREF = "#Ward">Ward</A>).
+</P>
+<P>The BOP potential consists of three terms:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_bop.jpg">
+</CENTER>
+<P>where phi_ij(r_ij) is a short-range two-body function representing the
+repulsion between a pair of ion cores, beta_(sigma,ij)(r_ij) and
+beta_(sigma,ij)(r_ij) are respectively sigma and pi bond ingtegrals,
+THETA_(sigma,ij) and THETA_(pi,ij) are sigma and pi bond-orders, and
+U_prom is the promotion energy for sp-valent systems.
+</P>
+<P>The detailed formulas for this potential are given in Ward
+(<A HREF = "#Ward">Ward</A>); here we provide only a brief description.
+</P>
+<P>The repulsive energy phi_ij(r_ij) and the bond integrals
+beta_(sigma,ij)(r_ij) and beta_(phi,ij)(r_ij) are functions of the
+interatomic distance r_ij between atom i and j.  Each of these
+potentials has a smooth cutoff at a radius of r_(cut,ij).  These
+smooth cutoffs ensure stable behavior at situations with high sampling
+near the cutoff such as melts and surfaces.
+</P>
+<P>The bond-orders can be viewed as environment-dependent local variables
+that are ij bond specific.  The maximum value of the sigma bond-order
+(THETA_sigma) is 1, while that of the pi bond-order (THETA_pi) is 2,
+attributing to a maximum value of the total bond-order
+(THETA_sigma+THETA_pi) of 3.  The sigma and pi bond-orders reflect the
+ubiquitous single-, double-, and triple- bond behavior of
+chemistry. Their analytical expressions can be derived from tight-
+binding theory by recursively expanding an inter-site Green's function
+as a continued fraction. To accurately represent the bonding with a
+computationally efficient potential formulation suitable for MD
+simulations, the derived BOP only takes (and retains) the first two
+levels of the recursive representations for both the sigma and the pi
+bond-orders. Bond-order terms can be understood in terms of molecular
+orbital hopping paths based upon the Cyrot-Lackmann theorem
+(<A HREF = "#Pettifor_1">Pettifor_1</A>).  The sigma bond-order with a half-full
+valence band filling.  This pi bond-order expression also contains
+also contains a three-member ring term that allows implementation of
+an asymmetric density of states, which helps to either stabilize or
+destabilize close-packed structures.  The pi bond-order includes
+hopping paths of length 4.  This enables the incorporation of dihedral
+angles effects.
+</P>
+<P>The cutoffs for the various interactions are defined in the BOP
+potential file.
+</P>
+<P>IMPORTANT NOTE: You must use the <A HREF = "communicate.html">communicate cutoff</A>
+command to insure ghost atoms are acquired at a distance 3x further
+than the largest BOP cutoff (for a particular pair of elements).
+E.g. if the BOP cutoff is 4.9 Angstroms, then the ghost atom
+communication needs to be 14.7 Angstroms or greater as in the example
+above.  This is because the BOP formulation uses neighbors of
+neighbors of neighbors to enumerate all the required many-body
+interactions.  LAMMPS will generate an error if you do not use an
+appropriate setting for the <A HREF = "communicate.html">communicate cutoff</A>
+command.
+</P>
+<P>Several options can be specified as keywords with the pair_style
+command.
+</P>
+<P>The <I>table</I> keyword tells LAMMPS what format the BOP potential file is
+in.  The default is a non-tabulated form.  If the <I>table</I> keyword is
+used, the file is in a tabulated form containing pre-tabulated pair
+functions for phi_ij(r_ij), beta_(sigma,ij)(r_ij), and
+beta_(pi,ij)(r_ij).  This allows you to use your own functional
+form for various interactions.
+</P>
+<P>The <I>save</I> keyword gives you the option to calculate and store in
+advance a set of distances, angles, and derivatives of angles.  The
+default is to not do this, but to calculate the various quantities
+on-the-fly each time they are needed.  The former may be faster, but
+takes more memory.  The latter requires less memory, but may be
+slower.  It is best to test this option to see if it makes a
+difference on your machine for the specific problem you are modeling.
+</P>
+<P>The <I>sigmaoff</I> keyword optimizes the BOP equations for the case of
+a_sigma = 0.  For some published BOP potentials, a_sigma = 0 and
+several terms in the BOP equationas drop out.  If this is the case,
+specifying <I>sigmaoff</I> will typically speed up the BOP pair style.
+</P>
+<HR>
+
+<P>Only a single pair_coeff command is used with the <I>bop</I> style which
+specifies a BOP potential file, with parameters for all needed
+elements.  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N element names = mapping of BOP elements to atom types 
+</UL>
+<P>As an example, imagine the CdTe.bop file has BOP values for Cd
+and Te.  If your LAMMPS simulation has 4 atoms types and you want the
+1st 3 to be Cd, and the 4th to be Te, you would use the following
+pair_coeff command:
+</P>
+<PRE>pair_coeff * * CdTe Cd Cd Cd Te 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The first three Cd arguments map LAMMPS atom types 1,2,3 to the Cd
+element in the BOP file.  The final Te argument maps LAMMPS atom type
+4 to the Te element in the BOP file.  If a mapping value is specified
+as NULL, the mapping is not performed.  This can be used when a
+<I>bop</I> potential is used as part of the <I>hybrid</I> pair style.  The
+NULL values are placeholders for atom types that will be used with
+other potentials.
+</P>
+<P>BOP files in the <I>potentials</I> directory of the LAMMPS distribution
+have a ".bop" or ".bop.table" suffix, depending on whether they are of
+the non-tabulated or tabulated form, as described above.
+</P>
+<P>The parameters/coefficients format for the both kinds of BOP files are
+given below with variables matching the formulation of Ward
+(<A HREF = "#Ward">Ward</A>). Each header line containing a ":" is preceded by a
+blank line.
+</P>
+<UL><LI>Line 1: elements: (header)
+<LI>Line 2: #elements <I>N</I> 
+</UL>
+<P>The first two lines are followed by N lines containing the atomic 
+number and mass of each element.
+</P>
+<HR>
+
+<P><B>Non-tabulated potential file format</B>:
+</P>
+<P>Following the definition of the elements is the block of global 
+variables for spline and quadratic fits of THETA_(S,ij) and its 
+components THETA_0, THETA_1, and S.
+</P>
+<UL><LI>Line 1: global: (header) 
+
+<LI>Line 2: delta_1-delta_7 (if all are not used in the particular 
+formulation, set unused values to 0.0) 
+
+<LI>Line 3: ncutoff, r_big, r_small (r_big and r_small are parameters for 
+pairwise paramters gamma typically set to 0.99 and 0.01, respectively) 
+
+<LI>Line 4: which, alpha, nfunc (these are options for the spline 
+which=1.0 (means using a smooth function); which=2.0 (spline), alpha is 
+a parameter in the spline, nfunc is the type of GSP function (f_ij) 
+(nfunc=1 is the published equation from Ward (<A HREF = "#Ward">Ward</A>); nfunc=2 
+f_ij(r_ij)=exp(n_ij*r_ij); nfunc=3 f_ij(r_ij)=1/(r_ij)^(n_ij)). 
+
+<LI>Line 5: alpha_1, beta_1, gamma_1 (alpha_1=first coefficient for 
+THETA_0; beta_1=first exponent for THETA_0; gamma_1=second exponent for
+THETA_0) 
+
+<LI>Line 6: alpha_2, beta_2 (alpha_2=second coefficient for S; beta_2=first 
+exponent for S) 
+
+<LI>Line 7: alpha_3, beta_3 (alpha_3=first coefficient for THETA_1; 
+beta_3=second coefficient for THETA_1) 
+</UL>
+<P>The next block contains constants for the environment depend
+promotional energy for sp-valent systems, each of which are species
+dependent.  Refer to Pettifor (<A HREF = "#Pettifor_3">Pettifor_3</A>) for constant
+definitions.  As well as one species dependent parameter p_pi.
+</P>
+<UL><LI>Line 1: ptrs: (header) 
+</UL>
+<P>Following the ptrs header there are N lines for e_1-e_N containing 
+(A_ij)^(mu*nu), delta^mu, p_pi
+</P>
+<UL><LI>Line 2: (A_ij)^(mu*nu), delta^mu, p_pi (for e_1)
+<LI>Line 3: (A_ij)^(mu*nu), delta^mu, p_pi (for e_2 and continues to e_N) 
+</UL>
+<P>The next block contains constants for the pair interactions.
+</P>
+<UL><LI>Line 1: pairs: (header) 
+</UL>
+<P>Following the header the block contains a series of constants for the 
+number of pair interaction types, the block will be broken up into 
+parameters for e_i-e_j with i=0->N, j=i->N.  Each single interaction 
+section for this block will contain (see <A HREF = "#Ward">Ward</A> for parameter 
+definitions):
+</P>
+<UL><LI>Line 2: r_0, r_c, r_1, r_cut (for e_1-e_2 interactions) 
+
+<LI>Line 3: m, n, n_c 
+
+<LI>Line 4: phi_0, beta_(sigma,0), beta_(pi,0) 
+
+<LI>Line 5: a_sigma, c_sigma, delta_sigma (From complete formulation of 1/2 
+full valance shell for this particular formulation delta_sigma=0) 
+
+<LI>Line 6: a_pi, c_pi, delta_pi 
+
+<LI>Line 7: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+the previous section but is interaction type dependent) 
+
+<LI>Line 8: r_0, r_c, r_1, r_cut (for e_1-e_2 interactions and repeats as 
+above) 
+</UL>
+<P>The next block contains tris.
+</P>
+<UL><LI>Line 1: tris: (header) 
+</UL>
+<P>Following the header there is a line for each three body interaction 
+types as e_j-e_i-e_k with i->N, j->N, k=j->N
+</P>
+<UL><LI>Line 2: g_sigma0, g_sigma1, g_sigma2 (these are coefficients for 
+g_(sigma,ijk)(theta_ijk) for e_1-e_1-e_1 interaction.  <A HREF = "#Ward">Ward</A> 
+contains the full expressions for the constants as functions of 
+b_(sigma,ijk), p_(sigma,ijk), u(sigma,ijk) 
+
+<LI>Line 3: g_sigma0, g_sigma1, g_sigma2 (for e_1-e_1-e_2) 
+</UL>
+<P>This would be the end of the potential parameter file without pre-
+tabulated data.
+</P>
+<HR>
+
+<P><B>Tabulated potential file format</B>:
+</P>
+<P>The parameters/coefficients format for the BOP potentials input file 
+containing pre-tabulated functions of is given below with variables 
+matching the formulation of Ward (<A HREF = "#Ward">Ward</A>).
+</P>
+<UL><LI>Line 1: # elements N 
+</UL>
+<P>The first two lines are followed by N lines containing the atomic 
+number and mass of each element THETA_0 and THETA_1 (see 
+<A HREF = "#Ward">Ward</A>).
+</P>
+<P>Following the definition of the elements several global variables for 
+the tabulated functions are given.
+</P>
+<UL><LI>Line 1: nr, nBOt (nr is the number of divisions the radius is broken 
+into for function tables and MUST be a factor of 5; nBOt is the number 
+of divisions for the tabulated values of THETA_(S,ij) 
+
+<LI>Line 2: delta_1-delta_7 (if all are not used in the particular  
+
+<LI>formulation, set unused values to 0.0) 
+</UL>
+<P>Following this N lines for e_1-e_N containing p_pi.
+</P>
+<UL><LI>Line 3: p_pi (for e_1)
+<LI>Line 4: p_pi (for e_2 and continues to e_N) 
+</UL>
+<P>The next section contains several pair constants for the number of 
+interaction types e_i-e_j, with i=1->N, j=i->N
+</P>
+<UL><LI>Line 1: r_cut (for e_1-e_1 interactions) 
+
+<LI>Line 2: c_sigma, a_sigma, c_pi, a_pi 
+
+<LI>Line 3: delta_sigma, delta_pi 
+
+<LI>Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+the previous section but is interaction type dependent) 
+</UL>
+<P>The next section contains a line for each three body interaction type 
+e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
+</P>
+<UL><LI>Line 1: g_(sigma0), g_(sigma1), g_(sigma2) (These are coefficients for 
+g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. <A HREF = "#Ward">Ward</A> 
+contains the full expressions for the constants as functions of 
+b_(sigma,ijk), p_(sigma,ijk), u_(sigma,ijk)) 
+
+<LI>Line 2: g_(sigma0), g_(sigma1), g_(sigma2) (for e_1-e_1-e_2) 
+</UL>
+<P>The next section contains a block for each interaction type for the 
+phi_ij(r_ij).  Each block has nr entries with 5 entries per line.
+</P>
+<UL><LI>Line 1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5) (for the e_1-e_1 
+interaction type) 
+
+<LI>Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues 
+until nr) 
+
+<LI>... 
+
+<LI>Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the 
+e_1-e_1 interaction type) 
+</UL>
+<P>The next section contains a block for each interaction type for the 
+beta_(sigma,ij)(r_ij).  Each block has nr entries with 5 entries per 
+line.
+</P>
+<UL><LI>Line 1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), beta_sigma(r4), 
+beta_sigma(r5) (for the e_1-e_1 interaction type) 
+
+<LI>Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9), 
+beta_sigma(r10) (this continues until nr) 
+
+<LI>... 
+
+<LI>Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), 
+beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type) 
+</UL>
+<P>The next section contains a block for each interaction type for 
+beta_(pi,ij)(r_ij).  Each block has nr entries with 5 entries per line.
+</P>
+<UL><LI>Line 1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), beta_pi(r5) 
+(for the e_1-e_1 interaction type) 
+
+<LI>Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9), 
+beta_pi(r10) (this continues until nr) 
+
+<LI>... 
+
+<LI>Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), 
+beta_pi(r5) (for the e_1-e_2 interaction type) 
+</UL>
+<P>The next section contains a block for each interaction type for the 
+THETA_(S,ij)((THETA_(sigma,ij))^(1/2), f_(sigma,ij)).  Each block has 
+nBOt entries with 5 entries per line.
+</P>
+<UL><LI>Line 1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
+THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) 
+
+<LI>Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8), 
+THETA_(S,ij)(r9), THETA_(S,ij)(r10) (this continues until nBOt) 
+
+<LI>... 
+
+<LI>Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
+THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) 
+</UL>
+<P>The next section contains a block of N lines for e_1-e_N
+</P>
+<UL><LI>Line 1: delta^mu (for e_1)
+<LI>Line 2: delta^mu (for e_2 and repeats to e_N) 
+</UL>
+<P>The last section contains more constants for e_i-e_j interactions with 
+i=0->N, j=i->N
+</P>
+<UL><LI>Line 1: (A_ij)^(mu*nu) (for e1-e1)
+<LI>Line 2: (A_ij)^(mu*nu) (for e1-e2 and repeats as above) 
+</UL>
+<HR>
+
+<P><B>Mixing, shift, table tail correction, restart</B>:
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+mix, shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These pair styles are part of the MANYBODY package.  They are only 
+enabled if LAMMPS was built with that package (which it is by default).  
+See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more 
+info.
+</P>
+<P>These pair potentials require the <A HREF = "newton.html">newtion</A> setting to be 
+"on" for pair interactions.
+</P>
+<P>The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the 
+potentials directory) are parameterized for metal <A HREF = "units.html">units</A>.  
+You can use the BOP potential with any LAMMPS units, but you would need 
+to create your own BOP potential file with coefficients listed in the 
+appropriate units if your simulation does not use "metal" units.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>non-tabulated potential file, a_0 is non-zero.
+</P>
+<HR>
+
+<A NAME = "Pettofor_1"></A>
+
+<P><B>(Pettifor_1)</B> D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 
+(1999).
+</P>
+<A NAME = "Pettofor_2"></A>
+
+<P><B>(Pettifor_2)</B> D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 
+4124 (2000).
+</P>
+<A NAME = "Pettofor_3"></A>
+
+<P><B>(Pettifor_3)</B> D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 
+(2002).
+</P>
+<A NAME = "Murdick"></A>
+
+<P><B>(Murdick)</B> D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R. 
+Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
+</P>
+<A NAME = "Ward"></A>
+
+<P><B>(Ward)</B> D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A. 
+Zimmerman, Phys. Rev. B, 85,115206 (2012).
+</P>
+</HTML>

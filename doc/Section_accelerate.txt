@@ -76,6 +76,8 @@ LAMMPS, to obtain synchronized timings.
 
 5.2 General strategies :h4,link(acc_2)
 
+NOTE: this sub-section is still a work in progress
+
 Here is a list of general ideas for improving simulation performance.
 Most of them are only applicable to certain models and certain
 bottlenecks in the current performance, so let the timing data you

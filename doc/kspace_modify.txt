@@ -114,10 +114,20 @@ The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The {ik} approach is the default.  It
 performs differentiation in Kspace, but uses 3 FFTs to transfer the
-computed fields back to real space. The analytic differentiation, or
-{ad} approach uses only 1 FFT to transfer the computed fields back to
-real space, but requires a somewhat larger PPPM mesh to achieve the
-same accuracy as the {ik} approach.
+computed fields back to real space (total of 4 FFTs per timestep). The
+analytic differentiation, or {ad} approach uses only 1 FFT to transfer
+the computed fields back to real space (total of 2 FFTs per timestep),
+but requires a somewhat larger PPPM mesh to achieve the same accuracy
+as the {ik} approach.
+
+IMPORTANT NOTE: Currently, only the {pppm} style supports the {ad}
+option.  Support from other {pppm} variants will be added later.
+
+IMPORTANT NOTE: If you run the {ad} option with a constant pressure
+simulation (e.g. with "fix npt"_fix_nh.html), you may see a net
+slow-down.  This is because the {ad} option requires more expensive
+pre-computation whenever the box size changes.  This happens every
+step for constant-pressure simulations.
 
 [Restrictions:] none
 

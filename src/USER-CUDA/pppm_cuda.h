@@ -30,20 +30,20 @@ KSpaceStyle(pppm/cuda,PPPMCuda)
 #ifndef LMP_PPPM_CUDA_H
 #define LMP_PPPM_CUDA_H
 
-#include "pppm.h"
+#include "pppm_old.h"
 #include "cuda_data.h"
 #include "cuda_precision.h"
 
 namespace LAMMPS_NS {
 
-class PPPMCuda : public PPPM {
+class PPPMCuda : public PPPMOld {
  public:
   PPPMCuda(class LAMMPS *, int, char **);
   ~PPPMCuda();
   void init();
   void setup();
   void compute(int, int);
-  void timing(int, double &, double &);
+  int timing(int, double &, double &);
 
   double poissontime;
 

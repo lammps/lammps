@@ -2488,7 +2488,7 @@ void PPPMOld::slabcorr()
    perform and time the 4 FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-void PPPMOld::timing(int n, double &time3d, double &time1d)
+int PPPMOld::timing(int n, double &time3d, double &time1d)
 {
   double time1,time2;
 
@@ -2521,6 +2521,8 @@ void PPPMOld::timing(int n, double &time3d, double &time1d)
   MPI_Barrier(world);
   time2 = MPI_Wtime();
   time1d = time2 - time1;
+
+  return 4;
 }
 
 /* ----------------------------------------------------------------------

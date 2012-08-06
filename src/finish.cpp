@@ -419,6 +419,7 @@ void Finish::end(int flag)
 
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs
+  // loop on timing() until nsample FFTs require at least 1.0 CPU sec
   // time_kspace may be 0.0 if another partition is doing Kspace
 
   if (fftflag) {
@@ -429,9 +430,13 @@ void Finish::end(int flag)
 
     int nsteps = update->nsteps;
 
-    int nsample = 5;
     double time3d,time1d;
-    force->kspace->timing(nsample,time3d,time1d);
+    int nsample = 1;
+    int nfft = force->kspace->timing(nsample,time3d,time1d);
+    while (time3d < 1.0 || time1d < 1.0) {
+      nsample *= 5;
+      nfft = force->kspace->timing(nsample,time3d,time1d);
+    }
 
     time3d = nsteps * time3d / nsample;
     MPI_Allreduce(&time3d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
@@ -453,8 +458,8 @@ void Finish::end(int flag)
     if (nsteps) {
       if (time_kspace) fraction = time3d/time_kspace*100.0;
       else fraction = 0.0;
-      flop3 = nflops/1.0e9/(time3d/4.0/nsteps);
-      flop1 = nflops/1.0e9/(time1d/4.0/nsteps);
+      flop3 = nfft*nflops/1.0e9/(time3d/nsteps);
+      flop1 = nfft*nflops/1.0e9/(time1d/nsteps);
     } else fraction = flop3 = flop1 = 0.0;
 
     if (me == 0) {

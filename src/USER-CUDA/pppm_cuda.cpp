@@ -97,7 +97,8 @@ void printArray(double*** data,int nx, int ny, int nz)
 }
 /* ---------------------------------------------------------------------- */
 
-PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, (narg==2?1:narg), arg)
+PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) : 
+  PPPMOld(lmp, (narg==2?1:narg), arg)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)
@@ -1387,7 +1388,7 @@ void PPPMCuda::fieldforce()
    perform and time the 4 FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-void PPPMCuda::timing(int n, double &time3d, double &time1d)
+int PPPMCuda::timing(int n, double &time3d, double &time1d)
 {
 
   double time1,time2;
@@ -1422,6 +1423,7 @@ void PPPMCuda::timing(int n, double &time3d, double &time1d)
   time2 = MPI_Wtime();
   time1d = time2 - time1;*/
 
+  return 4;
 }
 
 void PPPMCuda::slabcorr(int eflag)

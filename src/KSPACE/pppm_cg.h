@@ -20,11 +20,11 @@ KSpaceStyle(pppm/cg,PPPMCG)
 #ifndef LMP_PPPM_CG_H
 #define LMP_PPPM_CG_H
 
-#include "pppm.h"
+#include "pppm_old.h"
 
 namespace LAMMPS_NS {
 
-class PPPMCG : public PPPM {
+class PPPMCG : public PPPMOld {
  public:
   PPPMCG(class LAMMPS *, int, char **);
   virtual ~PPPMCG();

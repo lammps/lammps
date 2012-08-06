@@ -176,6 +176,7 @@ available in LAMMPS:
 "displace/atom"_compute_displace_atom.html - displacement of each atom
 "erotate/asphere"_compute_erotate_asphere.html - rotational energy of aspherical particles
 "erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
+"erotate/sphere/atom"_compute_erotate_sphere.html - rotational energy for each spherical particle
 "event/displace"_compute_event_displace.html - detect event on atom displacement
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "gyration"_compute_gyration.html - radius of gyration of group of atoms

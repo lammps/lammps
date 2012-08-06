@@ -44,7 +44,7 @@ CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
-GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_3, gpu, lib/gpu
+GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_6, gpu, lib/gpu
 GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour, -
 KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, lib/kim
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
@@ -52,7 +52,7 @@ MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
 MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
-OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_1, -, -
+OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
@@ -98,11 +98,11 @@ USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix at
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
-USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_4, USER/cuda, -, lib/cuda
+USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, lib/molfile
-USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_2, -, -, -
+USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
@@ -291,7 +291,7 @@ GPUs.
  
 See this section of the manual to get started:
 
-"Section_accelerate"_Section_accelerate.html#acc_4
+"Section_accelerate"_Section_accelerate.html#acc_7
 
 There are example scripts for using this package in
 examples/USER/cuda.
@@ -390,7 +390,7 @@ styles, and fix styles.
  
 See this section of the manual to get started:
 
-"Section_accelerate"_Section_accelerate.html#acc_2
+"Section_accelerate"_Section_accelerate.html#acc_5
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

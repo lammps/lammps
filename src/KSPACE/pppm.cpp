@@ -831,23 +831,23 @@ void PPPM::set_grid()
       ny_pppm = static_cast<int> (yprd/h_y) + 1;
       nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
 
-      err = rms(h_x,xprd,natoms,q2,acons);
+      err = estimate_ik_error(h_x,xprd,natoms);
       while (err > accuracy) {
-        err = rms(h_x,xprd,natoms,q2,acons);
+        err = estimate_ik_error(h_x,xprd,natoms);
         nx_pppm++;
         h_x = xprd/nx_pppm;
       }
 
-      err = rms(h_y,yprd,natoms,q2,acons);
+      err = estimate_ik_error(h_y,yprd,natoms);
       while (err > accuracy) {
-        err = rms(h_y,yprd,natoms,q2,acons);
+        err = estimate_ik_error(h_y,yprd,natoms);
         ny_pppm++;
         h_y = yprd/ny_pppm;
       }
 
-      err = rms(h_z,zprd_slab,natoms,q2,acons);
+      err = estimate_ik_error(h_z,zprd_slab,natoms);
       while (err > accuracy) {
-        err = rms(h_z,zprd_slab,natoms,q2,acons);
+        err = estimate_ik_error(h_z,zprd_slab,natoms);
         nz_pppm++;
         h_z = zprd_slab/nz_pppm;
       }
@@ -899,9 +899,9 @@ double PPPM::compute_df_kspace()
     double qopt = compute_qopt();
     df_kspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
   } else {
-    double lprx = rms(xprd/nx_pppm,xprd,natoms,q2,acons);
-    double lpry = rms(yprd/ny_pppm,yprd,natoms,q2,acons);
-    double lprz = rms(zprd_slab/nz_pppm,zprd_slab,natoms,q2,acons);
+    double lprx = estimate_ik_error(xprd/nx_pppm,xprd,natoms);
+    double lpry = estimate_ik_error(yprd/ny_pppm,yprd,natoms);
+    double lprz = estimate_ik_error(zprd_slab/nz_pppm,zprd_slab,natoms);
     df_kspace = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   }
   return df_kspace;
@@ -1005,38 +1005,14 @@ double PPPM::compute_qopt()
    estimate kspace force error for ik method
 ------------------------------------------------------------------------- */
 
-double PPPM::rms(double h, double prd, bigint natoms,
-                 double q2_local, double **acons_local)
+double PPPM::estimate_ik_error(double h, double prd, bigint natoms)
 {
   double sum = 0.0;
   for (int m = 0; m < order; m++)
-    sum += acons_local[order][m] * pow(h*g_ewald,2.0*m);
-  double value = q2_local * pow(h*g_ewald,(double)order) *
+    sum += acons[order][m] * pow(h*g_ewald,2.0*m);
+  double value = q2 * pow(h*g_ewald,(double)order) *
     sqrt(g_ewald*prd*sqrt(2.0*MY_PI)*sum/natoms) / (prd*prd);
 
-  return value;
-}
-
-/* ----------------------------------------------------------------------
-   compute difference in real-space and KSpace RMS accuracy
-------------------------------------------------------------------------- */
-
-double PPPM::diffpr(double h_x, double h_y, double h_z, double q2_local,
-                    double **acons_local)
-{
-  double lprx,lpry,lprz,kspace_prec,real_prec;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  bigint natoms = atom->natoms;
-
-  lprx = rms(h_x,xprd,natoms,q2_local,acons_local);
-  lpry = rms(h_y,yprd,natoms,q2_local,acons_local);
-  lprz = rms(h_z,zprd*slab_volfactor,natoms,q2_local,acons_local);
-  kspace_prec = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  real_prec = 2.0*q2_local * exp(-g_ewald*g_ewald*cutoff*cutoff) /
-   sqrt(static_cast<double>(natoms)*cutoff*xprd*yprd*zprd);
-  double value = kspace_prec - real_prec;
   return value;
 }
 

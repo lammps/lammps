@@ -115,8 +115,7 @@ class PPPM : public KSpace {
   virtual void deallocate_peratom();
   int factorable(int);
   double compute_df_kspace();
-  double rms(double, double, bigint, double, double **);
-  double diffpr(double, double, double, double, double **);
+  double estimate_ik_error(double, double, bigint);
   double compute_qopt();
   void compute_gf_denom();
   void compute_gf_ik();

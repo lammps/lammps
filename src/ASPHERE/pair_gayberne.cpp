@@ -404,7 +404,6 @@ double PairGayBerne::init_one(int i, int j)
 
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
-  cut[j][i] = cut[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];

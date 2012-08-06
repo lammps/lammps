@@ -260,7 +260,8 @@ void PairColloid::settings(int narg, char **arg)
 
 void PairColloid::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 7)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -338,7 +339,6 @@ double PairColloid::init_one(int i, int j)
   sigma3[j][i] = sigma3[i][j];
   sigma6[j][i] = sigma6[i][j];
   diameter[j][i] = diameter[i][j];
-  cut[j][i] = cut[i][j];
 
   double epsilon = a12[i][j]/144.0;
   lj1[j][i] = lj1[i][j] = 48.0 * epsilon * sigma6[i][j] * sigma6[i][j];

@@ -175,7 +175,8 @@ void PairPeriPMB::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = 0.5*rk*dr;
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair*vfrac[i],delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,
+                             fpair*vfrac[i],delx,dely,delz);
       }
     }
   }

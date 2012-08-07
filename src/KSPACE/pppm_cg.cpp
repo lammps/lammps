@@ -42,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPMOld(lmp, narg, arg)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style pppm/cg command");
@@ -521,7 +521,7 @@ void PPPMCG::slabcorr()
 
 double PPPMCG::memory_usage()
 {
-  double bytes = PPPM::memory_usage();
+  double bytes = PPPMOld::memory_usage();
   bytes += nmax * sizeof(int);
   return bytes;
 }

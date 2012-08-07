@@ -20,18 +20,18 @@ KSpaceStyle(pppm/gpu,PPPMGPU)
 #ifndef LMP_PPPM_GPU_H
 #define LMP_PPPM_GPU_H
 
-#include "pppm.h"
+#include "pppm_old.h"
 
 namespace LAMMPS_NS {
 
-class PPPMGPU : public PPPM {
+class PPPMGPU : public PPPMOld {
  public:
   PPPMGPU(class LAMMPS *, int, char **);
   virtual ~PPPMGPU();
   virtual void init();
   virtual void setup();
   virtual void compute(int, int);
-  virtual void timing(int, double &, double &);
+  virtual int timing(int, double &, double &);
   virtual double memory_usage();
 
  protected:

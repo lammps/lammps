@@ -239,7 +239,6 @@ double PairBeck::init_one(int i, int j)
   aa[j][i] = aa[i][j];
   alpha[j][i] = alpha[i][j];
   beta[j][i] = beta[i][j];
-  cut[j][i] = cut[i][j];
 
   return cut[i][j];
 }

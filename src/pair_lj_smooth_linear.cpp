@@ -177,9 +177,8 @@ void PairLJSmoothLinear::settings(int narg, char **arg)
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
-        if (setflag[i][j]) {
+        if (setflag[i][j])
           cut[i][j] = cut_global;
-        }
   }
 }
 
@@ -241,6 +240,7 @@ double PairLJSmoothLinear::init_one(int i, int j)
   ljcut[i][j]  = cut6inv*(lj3[i][j]*cut6inv-lj4[i][j]);
   dljcut[i][j] = cutinv*cut6inv*(lj1[i][j]*cut6inv-lj2[i][j]);
 
+  cut[j][i] = cut[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];

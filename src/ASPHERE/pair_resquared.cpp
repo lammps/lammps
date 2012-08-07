@@ -378,7 +378,8 @@ double PairRESquared::init_one(int i, int j)
         sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
         cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
       } else
-        error->all(FLERR,"Pair resquared epsilon and sigma coeffs are not all set");
+        error->all(FLERR,
+                   "Pair resquared epsilon and sigma coeffs are not all set");
     }
     epsilon[i][j] = epsilon[j][i];
     sigma[i][j] = sigma[j][i];
@@ -397,7 +398,6 @@ double PairRESquared::init_one(int i, int j)
 
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
-  cut[j][i] = cut[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];

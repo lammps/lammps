@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg) {}
+  PPPMOld(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,7 +49,7 @@ void PPPMTIP4P::init()
   if (force->newton == 0)
     error->all(FLERR,"Kspace style pppm/tip4p requires newton on");
 
-  PPPM::init();
+  PPPMOld::init();
 }
 
 /* ----------------------------------------------------------------------

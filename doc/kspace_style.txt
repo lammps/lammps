@@ -12,9 +12,13 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or {pppm/gpu} or {ewald/omp} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
+style = {none} or {ewald} or {ewald/omp} or {ewald/n} or {pppm} or {pppm/cg} or {pppm/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
   {none} value = none
   {ewald} value = accuracy
+    accuracy = desired relative error in forces
+  {ewald/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {ewald/n} value = accuracy
     accuracy = desired relative error in forces
   {pppm} value = accuracy
     accuracy = desired relative error in forces
@@ -23,18 +27,14 @@ style = {none} or {ewald} or {pppm} or {pppm/cg} or {pppm/tip4p} or {ewald/n} or
     smallq = cutoff for charges to be considered (optional) (charge units)
   {pppm/tip4p} value = accuracy
     accuracy = desired relative error in forces
-  {ewald/n} value = accuracy
-    accuracy = desired relative error in forces
   {pppm/gpu} value = accuracy
-    accuracy = desired relative error in forces
-  {ewald/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/proxy} value = accuracy
-    accuracy = desired relative error in forces :pre
+    accuracy = desired relative error in forces
   {pppm/tip4p/proxy} value = accuracy
     accuracy = desired relative error in forces :pre
 :ule
@@ -54,8 +54,23 @@ style, the cutoff for Coulombic or other 1/r^N interactions is
 effectively infinite; each charge in the system interacts with charges
 in an infinite array of periodic images of the simulation domain.
 
+:line
+
 The {ewald} style performs a standard Ewald summation as described in
 any solid-state physics text.
+
+The {ewald/n} style augments {ewald} by adding long-range dispersion
+sum capabilities for 1/r^N potentials and is useful for simulation of
+interfaces "(Veld)"_#Veld.  It also performs standard coulombic Ewald
+summations, but in a more efficient manner than the {ewald} style.
+The 1/r^N capability means that Lennard-Jones or Buckingham potentials
+can be used with {ewald/n} without a cutoff, i.e. they become full
+long-range potentials.
+
+Currently, only the {ewald/n} style can be used with non-orthogonal
+(triclinic symmetry) simulation boxes.
+
+:line
 
 The {pppm} style invokes a particle-particle particle-mesh solver
 "(Hockney)"_#Hockney which maps atom charge to a 3d mesh, uses 3d FFTs
@@ -77,17 +92,6 @@ The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {long/tip4p} in their style name.
-
-The {ewald/n} style augments {ewald} by adding long-range dispersion
-sum capabilities for 1/r^N potentials and is useful for simulation of
-interfaces "(Veld)"_#Veld.  It also performs standard coulombic Ewald
-summations, but in a more efficient manner than the {ewald} style.
-The 1/r^N capability means that Lennard-Jones or Buckingham potentials
-can be used with {ewald/n} without a cutoff, i.e. they become full
-long-range potentials.
-
-Currently, only the {ewald/n} style can be used with non-orthogonal
-(triclinic symmetry) simulation boxes.
 
 The {pppm/proxy} style is a special variant for calculations 
 in hybrid OpenMP/MPI parallel mode. It is functionally equivalent

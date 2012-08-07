@@ -49,7 +49,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >COLLOID</TD><TD > colloidal particles</TD><TD > -</TD><TD > <A HREF = "atom_style.html">atom_style colloid</A></TD><TD > colloid</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >DIPOLE</TD><TD > point dipole particles</TD><TD > -</TD><TD > <A HREF = "pair_dipole.html">pair_style dipole/cut</A></TD><TD > dipole</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >FLD</TD><TD > Fast Lubrication Dynamics</TD><TD > Kumar & Bybee & Higdon (1)</TD><TD > <A HREF = "pair_lubricateU.html">pair_style lubricateU</A></TD><TD > -</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled potentials</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "Section_accelerate.html#acc_3">Section accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
+<TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled potentials</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "Section_accelerate.html#acc_6">Section accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
 <TR ALIGN="center"><TD >GRANULAR</TD><TD > granular systems</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_6">Section_howto</A></TD><TD > pour</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >KIM</TD><TD > openKIM potentials</TD><TD > Smirichinski & Elliot & Tadmor (3)</TD><TD > <A HREF = "pair_kim.html">pair_style kim</A></TD><TD > kim</TD><TD > lib/kim</TD></TR>
 <TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > -</TD></TR>
@@ -57,7 +57,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
 <TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">Section_howto</A></TD><TD > peptide</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "Section_accelerate.html#acc_1">Section accelerate</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">Section accelerate</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >PERI</TD><TD > Peridynamics models</TD><TD > Mike Parks (Sandia)</TD><TD > <A HREF = "pair_peri.html">pair_style peri</A></TD><TD > peri</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >POEMS</TD><TD > coupled rigid body motion</TD><TD > Rudra Mukherjee (JPL)</TD><TD > <A HREF = "fix_poems.html">fix poems</A></TD><TD > rigid</TD><TD > lib/poems</TD></TR>
 <TR ALIGN="center"><TD >REAX</TD><TD > ReaxFF potential</TD><TD > Aidan Thompson (Sandia)</TD><TD > <A HREF = "pair_reax.html">pair_style reax</A></TD><TD > reax</TD><TD >  lib/reax</TD></TR>
@@ -106,11 +106,11 @@ E.g. "peptide" refers to the examples/peptide directory.
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
-<TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
+<TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_7">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > lib/molfile</TD></TR>
-<TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "Section_accelerate.html#acc_2">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "Section_accelerate.html#acc_5">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >
@@ -304,7 +304,7 @@ GPUs.
 </P>
 <P>See this section of the manual to get started:
 </P>
-<P><A HREF = "Section_accelerate.html#acc_4">Section_accelerate</A>
+<P><A HREF = "Section_accelerate.html#acc_7">Section_accelerate</A>
 </P>
 <P>There are example scripts for using this package in
 examples/USER/cuda.
@@ -403,7 +403,7 @@ styles, and fix styles.
 </P>
 <P>See this section of the manual to get started:
 </P>
-<P><A HREF = "Section_accelerate.html#acc_2">Section_accelerate</A>
+<P><A HREF = "Section_accelerate.html#acc_5">Section_accelerate</A>
 </P>
 <P>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

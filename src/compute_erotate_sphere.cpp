@@ -61,7 +61,7 @@ double ComputeERotateSphere::compute_scalar()
   int nlocal = atom->nlocal;
 
   // sum rotational energy for each particle
-  // point particles will not contribute due to radius = 0
+  // point particles will not contribute, due to radius = 0.0
 
   double erotate = 0.0;
   for (int i = 0; i < nlocal; i++)

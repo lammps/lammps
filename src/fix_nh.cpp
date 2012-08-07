@@ -248,9 +248,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+2]) + 1;
+        int n = strlen(arg[iarg+1]) + 1;
         id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+2]);
+        strcpy(id_dilate,arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
@@ -435,7 +435,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
-  // reneighboring only forced if flips will occur due to shape changes
+  // reneighboring only forced if flips can occur due to shape changes
 
   if (p_flag[3] || p_flag[4] || p_flag[5]) force_reneighbor = 1;
   if (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0)
@@ -2179,7 +2179,7 @@ void FixNH::nh_omega_dot()
 }
 
 /* ----------------------------------------------------------------------
-  if any tilt ratios exceed 0.5, set flip = 1 and compute new tilt values
+  if any tilt ratios exceed limits, set flip = 1 and compute new tilt values
   do not flip in x or y if non-periodic (can tilt but not flip)
     this is b/c the box length would be changed (dramatically) by flip
   if yz tilt exceeded, adjust C vector by one B vector

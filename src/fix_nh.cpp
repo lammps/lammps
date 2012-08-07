@@ -75,6 +75,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   eta_mass_flag = 1;
   omega_mass_flag = 0;
   etap_mass_flag = 0;
+  flipflag = 1;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -308,6 +309,12 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
       else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"flip") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
+      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       fixedpoint[0] = atof(arg[iarg+1]);
@@ -437,8 +444,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // reneighboring only forced if flips can occur due to shape changes
 
-  if (p_flag[3] || p_flag[4] || p_flag[5]) force_reneighbor = 1;
-  if (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0)
+  if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5])) force_reneighbor = 1;
+  if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0))
     force_reneighbor = 1;
 
   // convert input periods to frequencies
@@ -2199,7 +2206,7 @@ void FixNH::pre_exchange()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
 
-  // flip is triggered when tilt exceeds 0.5 by an amount DELTAFLIP
+  // flip is only triggered when tilt exceeds 0.5 by DELTAFLIP
   // this avoids immediate re-flipping due to tilt oscillations
 
   double xtiltmax = (0.5+DELTAFLIP)*xprd;

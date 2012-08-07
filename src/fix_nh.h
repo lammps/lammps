@@ -112,8 +112,9 @@ class FixNH : public Fix {
   int scaleyz;                     // 1 if yz scaled with lz
   int scalexz;                     // 1 if xz scaled with lz
   int scalexy;                     // 1 if xy scaled with ly
+  int flipflag;                    // 1 if box flips are invoked as needed
 
-  double fixedpoint[3];            // Location of dilation fixed-point
+  double fixedpoint[3];            // location of dilation fixed-point
 
   void couple();
   void remap();

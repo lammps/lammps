@@ -19,7 +19,7 @@ fix ID group-ID style_name keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 style_name = {nvt} or {npt} or {nph} :l
 one or more keyword value pairs may be appended
-keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scaleyz} or {scalexz} or {scalexy} or {fixedpoint}
+keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {tchain} or {pchain} or {mtk} or {tloop} or {ploop} or {nreset} or {drag} or {dilate} or {scalexy} or {scaleyz} or {scalexz} or {flip} or {fixedpoint}
   {temp} values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -44,9 +44,10 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
     Df = drag factor added to barostat/thermostat (0.0 = no drag)
   {dilate} value = dilate-group-ID
     dilate-group-ID = only dilate atoms in this group due to barostat volume changes
+  {scalexy} value = {yes} or {no} = scale xy with ly
   {scaleyz} value = {yes} or {no} = scale yz with lz
   {scalexz} value = {yes} or {no} = scale xz with lz
-  {scalexy} value = {yes} or {no} = scale xy with ly
+  {flip} value = {yes} or {no}
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units) :pre
     
@@ -297,6 +298,18 @@ situations. In older versions of LAMMPS, scaling of tilt factors was
 not performed. The old behavior can be recovered by setting all three
 scale keywords to {no}.
 
+The {flip} keyword allows the tilt factors for a triclinic box to
+exceed half the distance of the parallel box length, as discussed
+below.  If the {flip} value is set to {yes}, the bound is enforced by
+flipping the box when it is exceeded.  If the {flip} value is set to
+{no}, the tilt will continue to change without flipping.  Note that if
+applied stress induces large deformations (e.g. in a liquid), this
+means the box shape can tilt dramatically and LAMMPS will run less
+efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped sub-domain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
+
 The {fixedpoint} keyword specifies the fixed point for barostat volume
 changes. By default, it is the center of the box.  Whatever point is
 chosen will not move during the simulation.  For example, if the lower
@@ -312,11 +325,13 @@ positions.
 IMPORTANT NOTE: Using a barostat coupled to tilt dimensions {xy},
 {xz}, {yz} can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a little beyond the normal limit of
-half the box length (0.6 times the box length), and then performs a
-box "flip" to an equivalent periodic cell. The flip operation is
-described in more detail in the doc page for "fix
-deform"_fix_deform.html.  Both the barostat dynamics and the atom
+allows the tilt factors to grow a small amount beyond the normal limit
+of half the box length (0.6 times the box length), and then performs a
+box "flip" to an equivalent periodic cell.  See the discussion of the
+{flip} keyword above, to allow this bound to be exceeded, if desired.
+
+The flip operation is described in more detail in the doc page for
+"fix deform"_fix_deform.html.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
 a single timestep, LAMMPS can not accomodate this event and will
@@ -331,12 +346,12 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-The one exception to this rule is if the 1st dimension in the tilt
-factor (x for xy) is non-periodic.  In that case, the limits on the
-tilt factor are not enforced, since flipping the box in that dimension
-does not change the atom positions due to non-periodicity.  In this
-mode, if you tilt the system to extreme angles, the simulation will
-simply become inefficient due to the highly skewed simulation box.
+One exception to this rule is if the 1st dimension in the tilt factor
+(x for xy) is non-periodic.  In that case, the limits on the tilt
+factor are not enforced, since flipping the box in that dimension does
+not change the atom positions due to non-periodicity.  In this mode,
+if you tilt the system to extreme angles, the simulation will simply
+become inefficient due to the highly skewed simulation box.
 
 IMPORTANT NOTE: Unlike the "fix
 temp/berendsen"_fix_temp_berendsen.html command which performs

@@ -28,7 +28,7 @@
 <LI>style_name = <I>nvt</I> or <I>npt</I> or <I>nph</I> 
 
 <PRE>one or more keyword value pairs may be appended
-keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I> or <I>scaleyz</I> or <I>scalexz</I> or <I>scalexy</I> or <I>fixedpoint</I>
+keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>xy</I> or <I>yz</I> or <I>xz</I> or <I>couple</I> or <I>tchain</I> or <I>pchain</I> or <I>mtk</I> or <I>tloop</I> or <I>ploop</I> or <I>nreset</I> or <I>drag</I> or <I>dilate</I> or <I>scalexy</I> or <I>scaleyz</I> or <I>scalexz</I> or <I>flip</I> or <I>fixedpoint</I>
   <I>temp</I> values = Tstart Tstop Tdamp
     Tstart,Tstop = external temperature at start/end of run
     Tdamp = temperature damping parameter (time units)
@@ -53,9 +53,10 @@ keyword = <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>tri</I> or <I>x</I> or
     Df = drag factor added to barostat/thermostat (0.0 = no drag)
   <I>dilate</I> value = dilate-group-ID
     dilate-group-ID = only dilate atoms in this group due to barostat volume changes
+  <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly
   <I>scaleyz</I> value = <I>yes</I> or <I>no</I> = scale yz with lz
   <I>scalexz</I> value = <I>yes</I> or <I>no</I> = scale xz with lz
-  <I>scalexy</I> value = <I>yes</I> or <I>no</I> = scale xy with ly
+  <I>flip</I> value = <I>yes</I> or <I>no</I>
   <I>fixedpoint</I> values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units) 
 </PRE>
@@ -306,6 +307,18 @@ situations. In older versions of LAMMPS, scaling of tilt factors was
 not performed. The old behavior can be recovered by setting all three
 scale keywords to <I>no</I>.
 </P>
+<P>The <I>flip</I> keyword allows the tilt factors for a triclinic box to
+exceed half the distance of the parallel box length, as discussed
+below.  If the <I>flip</I> value is set to <I>yes</I>, the bound is enforced by
+flipping the box when it is exceeded.  If the <I>flip</I> value is set to
+<I>no</I>, the tilt will continue to change without flipping.  Note that if
+applied stress induces large deformations (e.g. in a liquid), this
+means the box shape can tilt dramatically and LAMMPS will run less
+efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped sub-domain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
+</P>
 <P>The <I>fixedpoint</I> keyword specifies the fixed point for barostat volume
 changes. By default, it is the center of the box.  Whatever point is
 chosen will not move during the simulation.  For example, if the lower
@@ -321,11 +334,13 @@ positions.
 <P>IMPORTANT NOTE: Using a barostat coupled to tilt dimensions <I>xy</I>,
 <I>xz</I>, <I>yz</I> can sometimes result in arbitrarily large values of the
 tilt dimensions, i.e. a dramatically deformed simulation box.  LAMMPS
-allows the tilt factors to grow a little beyond the normal limit of
-half the box length (0.6 times the box length), and then performs a
-box "flip" to an equivalent periodic cell. The flip operation is
-described in more detail in the doc page for <A HREF = "fix_deform.html">fix
-deform</A>.  Both the barostat dynamics and the atom
+allows the tilt factors to grow a small amount beyond the normal limit
+of half the box length (0.6 times the box length), and then performs a
+box "flip" to an equivalent periodic cell.  See the discussion of the
+<I>flip</I> keyword above, to allow this bound to be exceeded, if desired.
+</P>
+<P>The flip operation is described in more detail in the doc page for
+<A HREF = "fix_deform.html">fix deform</A>.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
 a single timestep, LAMMPS can not accomodate this event and will
@@ -340,12 +355,12 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 </P>
-<P>The one exception to this rule is if the 1st dimension in the tilt
-factor (x for xy) is non-periodic.  In that case, the limits on the
-tilt factor are not enforced, since flipping the box in that dimension
-does not change the atom positions due to non-periodicity.  In this
-mode, if you tilt the system to extreme angles, the simulation will
-simply become inefficient due to the highly skewed simulation box.
+<P>One exception to this rule is if the 1st dimension in the tilt factor
+(x for xy) is non-periodic.  In that case, the limits on the tilt
+factor are not enforced, since flipping the box in that dimension does
+not change the atom positions due to non-periodicity.  In this mode,
+if you tilt the system to extreme angles, the simulation will simply
+become inefficient due to the highly skewed simulation box.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_temp_berendsen.html">fix
 temp/berendsen</A> command which performs

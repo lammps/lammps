@@ -60,11 +60,13 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
 	v_name2 = variable with name2 for change rate as function of time :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {remap} or {units} :l
+keyword = {remap} or {flip} or {units} :l
   {remap} value = {x} or {v} or {none}
     x = remap coords of atoms in group into deforming box
     v = remap velocities of all atoms when they cross periodic boundaries
     none = no remapping of x or v
+  {flip} value = {yes} or {no}
+    allow or dis-allow box flips when the skew ratio exceeds +/- 0.5
   {units} value = {lattice} or {box}
     lattice = distances are defined in lattice units
     box = distances are defined in simulation box units :pre
@@ -410,7 +412,10 @@ fix 2 all deform 1 xy variable v_displace v_rate remap v :pre
 
 All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
-are always bounded by half the distance of the parallel box length.
+are normally bounded by half the distance of the parallel box length.
+See the discussion of the {flip} keyword below, to allow this bound to
+be exceeded, if desired.
+
 For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
 the xy tilt factor must be between -5 and 5.  Similarly, both xz and
 yz must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is
@@ -487,6 +492,17 @@ rigid particles, you can either thermostat them independently or
 include a background fluid and thermostat the fluid via "fix
 nvt/sllod"_fix_nvt_sllod.html.
 
+The {flip} keyword allows the tilt factors for a triclinic box to
+exceed half the distance of the parallel box length, as discussed
+above.  If the {flip} value is set to {yes}, the bound is enforced by
+flipping the box when it is exceeded.  If the {flip} value is set to
+{no}, the tilt will continue to change without flipping.  Note that if
+you apply large deformations, this means the box shape can tilt
+dramatically LAMMPS will run less efficiently, due to the large volume
+of communication needed to acquire ghost atoms around a processor's
+irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+also lose atoms and generate an error.
+
 The {units} keyword determines the meaning of the distance units used
 to define various arguments.  A {box} value selects standard distance
 units as defined by the "units"_units.html command, e.g. Angstroms for
@@ -527,4 +543,4 @@ xy) that is shrink-wrapped via the "boundary"_boundary.html comamnd.
 
 [Default:]
 
-The option defaults are remap = x and units = lattice.
+The option defaults are remap = x, flip = yes, and units = lattice.

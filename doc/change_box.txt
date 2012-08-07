@@ -37,7 +37,7 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz} or {boundary} or {ortho} o
     {s} is non-periodic and shrink-wrapped
     {m} is non-periodic and shrink-wrapped with a minimum value
   {ortho} args = none = change box to orthogonal
-  (triclinic} args = none = change box to triclinic
+  {triclinic} args = none = change box to triclinic
   {set} args = none = store state of current box
   {remap} args = none = remap atom coords from last saved state to current box :pre
 

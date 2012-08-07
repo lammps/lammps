@@ -780,24 +780,22 @@ origin given by [a] = (xhi-xlo,0,0); [b] = (xy,yhi-ylo,0); [c] =
 (xz,yz,zhi-zlo).  {xy,xz,yz} can be 0.0 or positive or negative values
 and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
-transform it into the parallelepiped.  In LAMMPS the
-triclinic simulation box edge vectors [a], [b], and [c] cannot be
-arbitrary vectors.  As indicated, [a] must lie on the positive x axis.
-[b] must lie in the xy plane, with strictly positive y component. [c] may 
-have any orientation with strictly positive z component.
-The requirement that [a], [b], and [c] have strictly positive x, y,
-and z components, respectively, ensures
-that [a], [b], and [c] form a complete right-handed basis.
-These restrictions impose
-no loss of generality, since it is possible to rotate/invert 
-any set of 3 crystal basis vectors so that they conform to the restrictions.
+transform it into the parallelepiped.  In LAMMPS the triclinic
+simulation box edge vectors [a], [b], and [c] cannot be arbitrary
+vectors.  As indicated, [a] must lie on the positive x axis.  [b] must
+lie in the xy plane, with strictly positive y component. [c] may have
+any orientation with strictly positive z component.  The requirement
+that [a], [b], and [c] have strictly positive x, y, and z components,
+respectively, ensures that [a], [b], and [c] form a complete
+right-handed basis.  These restrictions impose no loss of generality,
+since it is possible to rotate/invert any set of 3 crystal basis
+vectors so that they conform to the restrictions.
 
 For example, assume that the 3 vectors [A],[B],[C] are the edge
-vectors of a general parallelepiped, where there is no restriction
-on [A],[B],[C] other than they form a complete right-handed basis i.e.
-[A] x [B] . [C] > 0.
-The equivalent LAMMPS [a],[b],[c] are a linear rotation of [A], [B], and
-[C] and can be computed as follows:
+vectors of a general parallelepiped, where there is no restriction on
+[A],[B],[C] other than they form a complete right-handed basis i.e.
+[A] x [B] . [C] > 0.  The equivalent LAMMPS [a],[b],[c] are a linear
+rotation of [A], [B], and [C] and can be computed as follows:
 
 :c,image(Eqs/transform.jpg)
 
@@ -859,26 +857,47 @@ The 9 parameters, as well as lx,ly,lz, can be output via the
 "thermo_style custom"_thermo_style.html command.
 
 To avoid extremely tilted boxes (which would be computationally
-inefficient), no tilt factor can skew the box more than half the
-distance of the parallel box length, which is the 1st dimension in the
-tilt factor (x for xz).  For example, if xlo = 2 and xhi = 12, then
-the x box length is 10 and the xy tilt factor must be between -5 and
-5.  Similarly, both xz and yz must be between -(xhi-xlo)/2 and
-+(yhi-ylo)/2.  Note that this is not a limitation, since if the
-maximum tilt factor is 5 (as in this example), then configurations
-with tilt = ..., -15, -5, 5, 15, 25, ... are geometrically all
-equivalent.  If the box tilt exceeds this limit during a dynamics run
-(e.g. via the "fix deform"_fix_deform.html command), then the box is
-"flipped" to an equivalent shape with a tilt factor within the bounds,
-so the run can continue.  See the "fix deform"_fix_deform.html doc
-page for further details.
+inefficient), LAMMPS normally requires that no tilt factor can skew
+the box more than half the distance of the parallel box length, which
+is the 1st dimension in the tilt factor (x for xz).  This is required
+both when the simulation box is created, e.g. via the
+"create_box"_create_box.html or "read_data"_read_data.html commands,
+as well as when the box shape changes dynamically during a simulation,
+e.g. via the "fix deform"_fix_deform.html or "fix npt"_fix_nh.html
+commands.
 
-The one exception to this rule is if the 1st dimension in the tilt
+For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
+the xy tilt factor must be between -5 and 5.  Similarly, both xz and
+yz must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is
+not a limitation, since if the maximum tilt factor is 5 (as in this
+example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
+... are geometrically all equivalent.  If the box tilt exceeds this
+limit during a dynamics run (e.g. via the "fix deform"_fix_deform.html
+command), then the box is "flipped" to an equivalent shape with a tilt
+factor within the bounds, so the run can continue.  See the "fix
+deform"_fix_deform.html doc page for further details.
+
+One exception to this rule is if the 1st dimension in the tilt
 factor (x for xy) is non-periodic.  In that case, the limits on the
 tilt factor are not enforced, since flipping the box in that dimension
 does not change the atom positions due to non-periodicity.  In this
 mode, if you tilt the system to extreme angles, the simulation will
 simply become inefficient, due to the highly skewed simulation box.
+
+The limitation on not creating a simulation box with a tilt factor
+skewing the box more than half the distance of the parallel box length
+can be overridden via the "box"_box.html command.  Setting the {tilt}
+keyword to {large} allows any tilt factors to be specified.
+
+Box flips that may occur using the "fix deform"_fix_deform.html or
+"fix npt"_fix_nh.html commands can be turned off using the {flip no}
+option with either of the commands.
+
+Note that if a simulation box has a large tilt factor, LAMMPS will run
+less efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped sub-domain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
 
 Triclinic crystal structures are often defined using three lattice
 constants {a}, {b}, and {c}, and three angles {alpha}, {beta} and

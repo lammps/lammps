@@ -317,6 +317,7 @@ in the command's documentation.
 "bond_coeff"_bond_coeff.html,
 "bond_style"_bond_style.html,
 "boundary"_boundary.html,
+"box"_box.html,
 "change_box"_change_box.html,
 "clear"_clear.html,
 "communicate"_communicate.html,

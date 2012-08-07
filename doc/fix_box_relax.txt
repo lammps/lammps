@@ -106,16 +106,17 @@ displaced by the same amount, different on each iteration.
 
 IMPORTANT NOTE: Appling an external pressure to tilt dimensions {xy},
 {xz}, {yz} can sometimes result in arbitrarily large values of the
-tilt dimensions, i.e. a dramatically deformed simulation box.  This
+tilt factors, i.e. a dramatically deformed simulation box.  This
 typically indicates that there is something badly wrong with how the
 simulation was constructed.  The two most common sources of this error
 are applying a shear stress to a liquid system or specifying an
 external shear stress tensor that exceeds the yield stress of the
-solid.  In either case the minimization is either not going to
-converge at all, or converge to a bogus conformation.  Note that
-LAMMPS will not throw an error when the tilt value becomes extreme,
-but the final box may be unsuitable for running dynamics on, unless
-fix deform is used first to remap the box to a valid tilt value.
+solid.  In either case the minimization may converge to a bogus
+conformation or not converge at all.  Also note that if the box shape
+tilts to an extreme shape, LAMMPS will run less efficiently, due to
+the large volume of communication needed to acquire ghost atoms around
+a processor's irregular-shaped sub-domain.  For extreme values of
+tilt, LAMMPS may also lose atoms and generate an error.
 
 :line
 

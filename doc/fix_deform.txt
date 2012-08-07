@@ -66,7 +66,7 @@ keyword = {remap} or {flip} or {units} :l
     v = remap velocities of all atoms when they cross periodic boundaries
     none = no remapping of x or v
   {flip} value = {yes} or {no}
-    allow or dis-allow box flips when the skew ratio exceeds +/- 0.5
+    allow or disallow box flips when it becomes highly skewed
   {units} value = {lattice} or {box}
     lattice = distances are defined in lattice units
     box = distances are defined in simulation box units :pre

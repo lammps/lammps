@@ -47,7 +47,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {scalexy} value = {yes} or {no} = scale xy with ly
   {scaleyz} value = {yes} or {no} = scale yz with lz
   {scalexz} value = {yes} or {no} = scale xz with lz
-  {flip} value = {yes} or {no}
+  {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units) :pre
     

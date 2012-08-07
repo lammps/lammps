@@ -143,9 +143,9 @@ void Domain::set_initial_box()
   // error check or warning on triclinic tilt factors
 
   if (triclinic) {
-    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5) || 
-        (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5) ||
-        (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5)) {
+    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) || 
+        (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
+        (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic)) {
       if (tiltsmall)
         error->all(FLERR,"Triclinic box skew is too large");
       else if (comm->me == 0)

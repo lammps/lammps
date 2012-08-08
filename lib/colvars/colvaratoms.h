@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef COLVARATOMS_H
 #define COLVARATOMS_H
 
@@ -304,15 +306,8 @@ public:
   /// the colvar has not a scalar value) or the biases require to
   /// micromanage the forces.
   void apply_forces (std::vector<cvm::rvector> const &forces);
+
 };
 
 
-
-
 #endif
-
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

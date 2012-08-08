@@ -98,8 +98,8 @@ colvar::colvar (std::string const &conf)
                          "on an axis",       "distanceZ",      distance_z);
   initialize_components ("distance projection "
                          "on a plane",       "distanceXY",     distance_xy);
-  initialize_components ("average distance weighted by inverse sixth power",
-                         "distance6", distance6);
+  initialize_components ("average distance weighted by inverse power",
+                         "distanceInv", distance_inv);
 
   initialize_components ("coordination "
                          "number",           "coordNum",       coordnum);

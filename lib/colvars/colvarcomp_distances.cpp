@@ -454,25 +454,34 @@ void colvar::distance_dir::apply_force (colvarvalue const &force)
 
 
 
-colvar::distance6::distance6 (std::string const &conf)
+colvar::distance_inv::distance_inv (std::string const &conf)
   : distance (conf)
 {
-  function_type = "distance6";
+  function_type = "distance_inv";
+  get_keyval (conf, "exponent", exponent, 6);
+  if (exponent%2) {
+    cvm::fatal_error ("Error: odd exponent provided, can only use even ones.\n");
+  }
+  if (exponent <= 0) {
+    cvm::fatal_error ("Error: negative or zero exponent provided.\n");
+  }
+
   b_inverse_gradients = false;
   b_Jacobian_derivative = false;
   x.type (colvarvalue::type_scalar);
 }
 
-colvar::distance6::distance6()
+colvar::distance_inv::distance_inv()
 {
-  function_type = "distance6";
+  function_type = "distance_inv";
+  exponent = 6;
   b_inverse_gradients = false;
   b_Jacobian_derivative = false;
   b_1site_force = false;
   x.type (colvarvalue::type_scalar);
 }
 
-void colvar::distance6::calc_value()
+void colvar::distance_inv::calc_value()
 {
   group1.reset_atoms_data();
   group2.reset_atoms_data();
@@ -486,8 +495,11 @@ void colvar::distance6::calc_value()
       for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
         cvm::rvector const dv = ai2->pos - ai1->pos;
         cvm::real const d2 = dv.norm2();
-        x.real_value += 1.0/(d2*d2*d2);
-        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        cvm::real dinv = 1.0;
+        for (int ne = 0; ne < exponent/2; ne++)
+          dinv *= 1.0/d2;
+        x.real_value += dinv;
+        cvm::rvector const dsumddv = -(cvm::real (exponent)) * dinv/d2 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -497,8 +509,11 @@ void colvar::distance6::calc_value()
       for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
         cvm::rvector const dv = cvm::position_distance (ai1->pos, ai2->pos);
         cvm::real const d2 = dv.norm2();
-        x.real_value += 1.0/(d2*d2*d2);
-        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        cvm::real dinv = 1.0;
+        for (int ne = 0; ne < exponent/2; ne++)
+          dinv *= 1.0/d2;
+        x.real_value += dinv;
+        cvm::rvector const dsumddv = -(cvm::real (exponent)) * dinv/d2 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -506,12 +521,12 @@ void colvar::distance6::calc_value()
   }
 
   x.real_value *= 1.0 / cvm::real (group1.size() * group2.size());
-  x.real_value = std::pow (x.real_value, -1.0/6.0);
+  x.real_value = std::pow (x.real_value, -1.0/(cvm::real (exponent)));
 }
 
-void colvar::distance6::calc_gradients()
+void colvar::distance_inv::calc_gradients()
 {
-  cvm::real const dxdsum = (-1.0/6.0) * std::pow (x.real_value, 7.0) / cvm::real (group1.size() * group2.size());
+  cvm::real const dxdsum = (-1.0/(cvm::real (exponent))) * std::pow (x.real_value, exponent+1) / cvm::real (group1.size() * group2.size());
   for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
     ai1->grad *= dxdsum;
   }
@@ -520,7 +535,7 @@ void colvar::distance6::calc_gradients()
   }
 }
 
-void colvar::distance6::apply_force (colvarvalue const &force)
+void colvar::distance_inv::apply_force (colvarvalue const &force)
 {
   if (!group1.noforce)
     group1.apply_colvar_force (force.real_value);

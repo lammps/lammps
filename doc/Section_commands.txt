@@ -551,6 +551,7 @@ each style or click on the style itself for a full description:
 "cna/atom"_compute_cna_atom.html,
 "com"_compute_com.html,
 "com/molecule"_compute_com_molecule.html,
+"contact/atom"_compute_contact_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "damage/atom"_compute_damage_atom.html,
 "dihedral/local"_compute_dihedral_local.html,

@@ -13,7 +13,7 @@ pair_style kim command :h3
 pair_style kim virialmode model :pre
 
 virialmode = KIMvirial or LAMMPSvirial
-model = name of KIM model (potential)
+model = name of KIM model (potential) :ul
 
 [Examples:]
 
@@ -23,27 +23,27 @@ pair_coeff * * Ar Ar :pre
 [Description:]
 
 This pair style is a wrapper on the "Knowledge Base for Interatomic
-Models (KIM)"_http://openkim.org, repository of interatomic
-potentials, so that they can be used by LAMMPS scripts.
+Models (KIM)"_http://openkim.org repository of interatomic potentials,
+so that they can be used by LAMMPS scripts.
 
 In KIM lingo, a potential is a "model" and a model contains both the
 analytic formulas that define the potential as well as the parameters
 needed to run it for one or more materials, including coefficients and
 cutoffs.
 
-The argument {virialmode} determines how the global virial is calculated.  If
-{KIMvirial} is specified, the KIM model performs the global virial calculation.
-If {LAMMPSvirial} is specified, LAMMPS computes the global virial using its
-fdotr mechanism.
+The argument {virialmode} determines how the global virial is
+calculated.  If {KIMvirial} is specified, the KIM model performs the
+global virial calculation.  If {LAMMPSvirial} is specified, LAMMPS
+computes the global virial using its fdotr mechanism.
 
-The argument {model} is the name of the KIM model for a specific potential as
-KIM defines it.  In principle, LAMMPS can invoke any KIM model.  You should get
-an error or warning message from either LAMMPS or KIM if there is an
-incompatibility.
+The argument {model} is the name of the KIM model for a specific
+potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
+model.  You should get an error or warning message from either LAMMPS
+or KIM if there is an incompatibility.
 
 Only a single pair_coeff command is used with the {kim} style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is
-done by specifying N additional arguments after the "* *" in the
+done by specifying N additional arguments after the * * in the
 pair_coeff command, where N is the number of LAMMPS atom types:
 
 N element names = mapping of KIM elements to atom types :ul
@@ -58,9 +58,10 @@ The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
 defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
 as defined within KIM.  If a mapping value is specified as NULL, the
-mapping is not performed.  This can only be used when a {kim} potential is
-used as part of the {hybrid} pair style.  The NULL values are
-placeholders for atom types that will be used with other potentials.
+mapping is not performed.  This can only be used when a {kim}
+potential is used as part of the {hybrid} pair style.  The NULL values
+are placeholders for atom types that will be used with other
+potentials.
 
 :line
 
@@ -74,7 +75,7 @@ directory where LAMMPS is running.
 
 Here is information on how to build KIM for use with LAMMPS.  There is
 a directory src/KIM/ with an important file in it: Makefile.lammps.
-When you do 'make yes-kim' LAMMPS  will use the settings in
+When you do 'make yes-kim' LAMMPS will use the settings in
 src/KIM/Makefile.lammps to find KIM header files and the KIM library
 itself for linking purposes.  Thus, you should ensure Makefile.lammps
 has the correct settings for your system and your build of KIM.
@@ -212,11 +213,11 @@ This pair style is part of the KIM package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This version of pair_style kim is compatible with the openkim-api package
-version 1.1.0 and higher.
+This current version of pair_style kim is compatible with the
+openkim-api package version 1.1.0 and higher.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style eam"_pair_eam.html
+"pair_coeff"_pair_coeff.html
 
 [Default:] none

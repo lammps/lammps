@@ -15,9 +15,9 @@
 </P>
 <PRE>pair_style kim virialmode model 
 </PRE>
-<P>virialmode = KIMvirial or LAMMPSvirial
-model = name of KIM model (potential)
-</P>
+<UL><LI>virialmode = KIMvirial or LAMMPSvirial
+<LI>model = name of KIM model (potential) 
+</UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style kim KIMvirial model_Ar_P_Morse
@@ -26,27 +26,27 @@ pair_coeff * * Ar Ar
 <P><B>Description:</B>
 </P>
 <P>This pair style is a wrapper on the <A HREF = "http://openkim.org">Knowledge Base for Interatomic
-Models (KIM)</A>, repository of interatomic
-potentials, so that they can be used by LAMMPS scripts.
+Models (KIM)</A> repository of interatomic potentials,
+so that they can be used by LAMMPS scripts.
 </P>
 <P>In KIM lingo, a potential is a "model" and a model contains both the
 analytic formulas that define the potential as well as the parameters
 needed to run it for one or more materials, including coefficients and
 cutoffs.
 </P>
-<P>The argument <I>virialmode</I> determines how the global virial is calculated.  If
-<I>KIMvirial</I> is specified, the KIM model performs the global virial calculation.
-If <I>LAMMPSvirial</I> is specified, LAMMPS computes the global virial using its
-fdotr mechanism.
+<P>The argument <I>virialmode</I> determines how the global virial is
+calculated.  If <I>KIMvirial</I> is specified, the KIM model performs the
+global virial calculation.  If <I>LAMMPSvirial</I> is specified, LAMMPS
+computes the global virial using its fdotr mechanism.
 </P>
-<P>The argument <I>model</I> is the name of the KIM model for a specific potential as
-KIM defines it.  In principle, LAMMPS can invoke any KIM model.  You should get
-an error or warning message from either LAMMPS or KIM if there is an
-incompatibility.
+<P>The argument <I>model</I> is the name of the KIM model for a specific
+potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
+model.  You should get an error or warning message from either LAMMPS
+or KIM if there is an incompatibility.
 </P>
 <P>Only a single pair_coeff command is used with the <I>kim</I> style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is
-done by specifying N additional arguments after the "* *" in the
+done by specifying N additional arguments after the * * in the
 pair_coeff command, where N is the number of LAMMPS atom types:
 </P>
 <UL><LI>N element names = mapping of KIM elements to atom types 
@@ -61,9 +61,10 @@ and the 4th to be C, you would use the following pair_coeff command:
 The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
 defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
 as defined within KIM.  If a mapping value is specified as NULL, the
-mapping is not performed.  This can only be used when a <I>kim</I> potential is
-used as part of the <I>hybrid</I> pair style.  The NULL values are
-placeholders for atom types that will be used with other potentials.
+mapping is not performed.  This can only be used when a <I>kim</I>
+potential is used as part of the <I>hybrid</I> pair style.  The NULL values
+are placeholders for atom types that will be used with other
+potentials.
 </P>
 <HR>
 
@@ -77,7 +78,7 @@ directory where LAMMPS is running.
 
 <P>Here is information on how to build KIM for use with LAMMPS.  There is
 a directory src/KIM/ with an important file in it: Makefile.lammps.
-When you do 'make yes-kim' LAMMPS  will use the settings in
+When you do 'make yes-kim' LAMMPS will use the settings in
 src/KIM/Makefile.lammps to find KIM header files and the KIM library
 itself for linking purposes.  Thus, you should ensure Makefile.lammps
 has the correct settings for your system and your build of KIM.
@@ -215,12 +216,12 @@ an input script that reads a restart file.
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This version of pair_style kim is compatible with the openkim-api package
-version 1.1.0 and higher.
+<P>This current version of pair_style kim is compatible with the
+openkim-api package version 1.1.0 and higher.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_eam.html">pair_style eam</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
 </P>

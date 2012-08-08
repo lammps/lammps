@@ -10,13 +10,14 @@ pair_style kim command :h3
 
 [Syntax:]
 
-pair_style kim model :pre
+pair_style kim virialmode model :pre
 
+virialmode = KIMvirial or LAMMPSvirial
 model = name of KIM model (potential)
 
 [Examples:]
 
-pair_style kim model_Ar_P_Morse
+pair_style kim KIMvirial model_Ar_P_Morse
 pair_coeff * * Ar Ar :pre
 
 [Description:]
@@ -30,10 +31,15 @@ analytic formulas that define the potential as well as the parameters
 needed to run it for one or more materials, including coefficients and
 cutoffs.
 
-The argument {model} is the name of the model for a specific potential
-as KIM defines it.  In principle, LAMMPS can invoke any KIM model.
-You should get an error message from either LAMMPS or KIM if there is
-an incompatibility.
+The argument {virialmode} determines how the global virial is calculated.  If
+{KIMvirial} is specified, the KIM model performs the global virial calculation.
+If {LAMMPSvirial} is specified, LAMMPS computes the global virial using its
+fdotr mechanism.
+
+The argument {model} is the name of the KIM model for a specific potential as
+KIM defines it.  In principle, LAMMPS can invoke any KIM model.  You should get
+an error or warning message from either LAMMPS or KIM if there is an
+incompatibility.
 
 Only a single pair_coeff command is used with the {kim} style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is
@@ -43,7 +49,7 @@ pair_coeff command, where N is the number of LAMMPS atom types:
 N element names = mapping of KIM elements to atom types :ul
 
 As an example, imagine the KIM model supports Si and C atoms.  If your
-LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
+LAMMPS simulation has 4 atom types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair_coeff command:
 
 pair_coeff * * Si Si Si C :pre
@@ -52,7 +58,7 @@ The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
 defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
 as defined within KIM.  If a mapping value is specified as NULL, the
-mapping is not performed.  This can be used when a {kim} potential is
+mapping is not performed.  This can only be used when a {kim} potential is
 used as part of the {hybrid} pair style.  The NULL values are
 placeholders for atom types that will be used with other potentials.
 
@@ -67,11 +73,10 @@ directory where LAMMPS is running.
 :line
 
 Here is information on how to build KIM for use with LAMMPS.  There is
-a directory lib/kim with an important file in it: Makefile.lammps.
-When you build LAMMPS with its KIM package installed (which contains
-the pair_style kim command), then it will use the settings in
-lib/kim/Makefile.lammps to find KIM header files and the KIM library
-itself for linking purposes.  Thus you should insure Makefile.lammps
+a directory src/KIM/ with an important file in it: Makefile.lammps.
+When you do 'make yes-kim' LAMMPS  will use the settings in
+src/KIM/Makefile.lammps to find KIM header files and the KIM library
+itself for linking purposes.  Thus, you should ensure Makefile.lammps
 has the correct settings for your system and your build of KIM.
 
 Consult the KIM documentation for further details on KIM specifics.
@@ -97,13 +102,13 @@ which is located in your home directory (e.g. ~/.bashrc). :olb,l
        directory, you would do: :pre
 
        bash:
-       % export KIM_DIR=~/openkim-api-vX.X.X/ :pre
+       % export KIM_DIR=~/openkim-api-vX.X.X :pre
 
        tcsh:
-       % setenv KIM_DIR ~/openkim-api-vX.X.X/ :pre
+       % setenv KIM_DIR ~/openkim-api-vX.X.X :pre
 
-       Make sure to include the trailing slash. The `%' symbol represents the
-       bash sell prompt and should not be typed. :pre
+       The `%' symbol represents the bash sell prompt and should not be
+       typed. :pre
 
    (b) By default, all makefiles use the GNU compilers for 64 bit Linux.  
        In order to use the Intel compiler, define the environment variable
@@ -123,7 +128,7 @@ which is located in your home directory (e.g. ~/.bashrc). :olb,l
        tchs:
        % setenv KIM_SYSTEM32 "yes" :pre
 
-   (d) Define variable for dynamic linking (preferable option) :pre
+   (d) Define variable for dynamic linking (recommended) :pre
       
        bash:
        export KIM_DYNAMIC=yes :pre
@@ -131,12 +136,11 @@ which is located in your home directory (e.g. ~/.bashrc). :olb,l
        tcsh:
        setenv KIM_DYNAMIC=yes :pre
 
-       If this environment variable is not set the default will be
-       static linking.  In that case all KIM models will be linked,
-       producing potentially a very large file.  It is also possible
-       to build KIM with only a subset of models or a single
-       model you wish to use with LAMMPS.  Consult the KIM
-       documentation for details. :pre
+       If this environment variable is not set the default will be static
+       linking.  In that case all KIM models will be linked, producing
+       potentially a very large executable file.  It is also possible to build
+       KIM with only a subset of models or a single model you wish to use with
+       LAMMPS.  Consult the KIM documentation for details. :pre
 
 To compile the package, go to the $KIM_DIR directory and execute
 make. :l
@@ -148,11 +152,14 @@ make. :l
    This builds all Models, Tests, and the openKIM API service routine
    library. The targets defined by the Makefile in this directory include: :pre
 
-   make             -- compiles the API and all Models and Tests
-   make all         -- same as `make'
-   make examples    -- copy examples into the appropriate directories
-                         then do a `make all'
-   make openkim-api -- compiles only the API
+   make                -- compiles the API and all Models and Tests
+   make all            -- same as `make'
+   make examples       -- copy examples into the appropriate directories
+                          (no overwrite)
+   make examples-force -- copy examples into the appropriate directories
+                          (overwrite)
+   make openkim-api    -- compiles only the API
+   make clean          -- will remove .o, .mod, .a, .so and executable files
    make examples-clean -- remove all examples from the MODEL_DRIVERs,
                           MODELs, and TESTs directories. :pre
        
@@ -170,17 +177,16 @@ Verify that the compilation was successful by running a Test. :l
    the Tests do.) :pre
 
 Each Test (and Model) has its own make file for compiling and linking.
-If changes are made to the code, perform step (2) again (from the
-$KIM_DIR directory). :l
+If changes are made to the code, re-compile (from the $KIM_DIR directory). :l
 
-In case of using a non-standard location for any of the directories
-KIM_API, TESTs, or MODELs one or more of the following environment
+In case of using a non-standard location for any of the directories KIM_API,
+TESTs, MODEL_DRIVERS, or MODELs one or more of the following environment
 variables must be set: :l,ole
 
    KIM_API_DIR
    KIM_TESTS_DIR
-   KIM_MODELS_DIR
-   KIM_MODEL_DRIVERS_DIR :pre
+   KIM_MODEL_DRIVERS_DIR
+   KIM_MODELS_DIR :pre
 
 :line
 
@@ -190,7 +196,7 @@ This pair style does not support the "pair_modify"_pair_modify.html
 mix, shift, table, and tail options.
 
 This pair style does not write its information to "binary restart
-files"_restart.html, since KIM stores the the potential parameters.
+files"_restart.html, since KIM stores the potential parameters.
 Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
@@ -206,12 +212,8 @@ This pair style is part of the KIM package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This pair style requires the "newton"_newton.html setting to be "off"
-for pair interactions.
-
-Currently this pair style only works with LAMMPS metal
-"units"_units.html. In the future changes will be made so it can work
-with LAMMPS unit choices as well.
+This version of pair_style kim is compatible with the openkim-api package
+version 1.1.0 and higher.
 
 [Related commands:]
 

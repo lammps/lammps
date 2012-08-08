@@ -13,13 +13,14 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style kim model 
+<PRE>pair_style kim virialmode model 
 </PRE>
-<P>model = name of KIM model (potential)
+<P>virialmode = KIMvirial or LAMMPSvirial
+model = name of KIM model (potential)
 </P>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style kim model_Ar_P_Morse
+<PRE>pair_style kim KIMvirial model_Ar_P_Morse
 pair_coeff * * Ar Ar 
 </PRE>
 <P><B>Description:</B>
@@ -33,10 +34,15 @@ analytic formulas that define the potential as well as the parameters
 needed to run it for one or more materials, including coefficients and
 cutoffs.
 </P>
-<P>The argument <I>model</I> is the name of the model for a specific potential
-as KIM defines it.  In principle, LAMMPS can invoke any KIM model.
-You should get an error message from either LAMMPS or KIM if there is
-an incompatibility.
+<P>The argument <I>virialmode</I> determines how the global virial is calculated.  If
+<I>KIMvirial</I> is specified, the KIM model performs the global virial calculation.
+If <I>LAMMPSvirial</I> is specified, LAMMPS computes the global virial using its
+fdotr mechanism.
+</P>
+<P>The argument <I>model</I> is the name of the KIM model for a specific potential as
+KIM defines it.  In principle, LAMMPS can invoke any KIM model.  You should get
+an error or warning message from either LAMMPS or KIM if there is an
+incompatibility.
 </P>
 <P>Only a single pair_coeff command is used with the <I>kim</I> style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is
@@ -46,7 +52,7 @@ pair_coeff command, where N is the number of LAMMPS atom types:
 <UL><LI>N element names = mapping of KIM elements to atom types 
 </UL>
 <P>As an example, imagine the KIM model supports Si and C atoms.  If your
-LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
+LAMMPS simulation has 4 atom types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair_coeff command:
 </P>
 <PRE>pair_coeff * * Si Si Si C 
@@ -55,7 +61,7 @@ and the 4th to be C, you would use the following pair_coeff command:
 The first three Si arguments map LAMMPS atom types 1,2,3 to Si as
 defined within KIM.  The final C argument maps LAMMPS atom type 4 to C
 as defined within KIM.  If a mapping value is specified as NULL, the
-mapping is not performed.  This can be used when a <I>kim</I> potential is
+mapping is not performed.  This can only be used when a <I>kim</I> potential is
 used as part of the <I>hybrid</I> pair style.  The NULL values are
 placeholders for atom types that will be used with other potentials.
 </P>
@@ -70,11 +76,10 @@ directory where LAMMPS is running.
 <HR>
 
 <P>Here is information on how to build KIM for use with LAMMPS.  There is
-a directory lib/kim with an important file in it: Makefile.lammps.
-When you build LAMMPS with its KIM package installed (which contains
-the pair_style kim command), then it will use the settings in
-lib/kim/Makefile.lammps to find KIM header files and the KIM library
-itself for linking purposes.  Thus you should insure Makefile.lammps
+a directory src/KIM/ with an important file in it: Makefile.lammps.
+When you do 'make yes-kim' LAMMPS  will use the settings in
+src/KIM/Makefile.lammps to find KIM header files and the KIM library
+itself for linking purposes.  Thus, you should ensure Makefile.lammps
 has the correct settings for your system and your build of KIM.
 </P>
 <P>Consult the KIM documentation for further details on KIM specifics.
@@ -100,13 +105,13 @@ which is located in your home directory (e.g. ~/.bashrc).
        directory, you would do: 
 </PRE>
 <PRE>       bash:
-       % export KIM_DIR=~/openkim-api-vX.X.X/ 
+       % export KIM_DIR=~/openkim-api-vX.X.X 
 </PRE>
 <PRE>       tcsh:
-       % setenv KIM_DIR ~/openkim-api-vX.X.X/ 
+       % setenv KIM_DIR ~/openkim-api-vX.X.X 
 </PRE>
-<PRE>       Make sure to include the trailing slash. The `%' symbol represents the
-       bash sell prompt and should not be typed. 
+<PRE>       The `%' symbol represents the bash sell prompt and should not be
+       typed. 
 </PRE>
 <PRE>   (b) By default, all makefiles use the GNU compilers for 64 bit Linux.  
        In order to use the Intel compiler, define the environment variable
@@ -126,7 +131,7 @@ which is located in your home directory (e.g. ~/.bashrc).
 <PRE>       tchs:
        % setenv KIM_SYSTEM32 "yes" 
 </PRE>
-<PRE>   (d) Define variable for dynamic linking (preferable option) 
+<PRE>   (d) Define variable for dynamic linking (recommended) 
 </PRE>
 <PRE>       bash:
        export KIM_DYNAMIC=yes 
@@ -134,12 +139,11 @@ which is located in your home directory (e.g. ~/.bashrc).
 <PRE>       tcsh:
        setenv KIM_DYNAMIC=yes 
 </PRE>
-<PRE>       If this environment variable is not set the default will be
-       static linking.  In that case all KIM models will be linked,
-       producing potentially a very large file.  It is also possible
-       to build KIM with only a subset of models or a single
-       model you wish to use with LAMMPS.  Consult the KIM
-       documentation for details. 
+<PRE>       If this environment variable is not set the default will be static
+       linking.  In that case all KIM models will be linked, producing
+       potentially a very large executable file.  It is also possible to build
+       KIM with only a subset of models or a single model you wish to use with
+       LAMMPS.  Consult the KIM documentation for details. 
 </PRE>
 <LI>To compile the package, go to the $KIM_DIR directory and execute
 make. 
@@ -151,11 +155,14 @@ make.
 <PRE>   This builds all Models, Tests, and the openKIM API service routine
    library. The targets defined by the Makefile in this directory include: 
 </PRE>
-<PRE>   make             -- compiles the API and all Models and Tests
-   make all         -- same as `make'
-   make examples    -- copy examples into the appropriate directories
-                         then do a `make all'
-   make openkim-api -- compiles only the API
+<PRE>   make                -- compiles the API and all Models and Tests
+   make all            -- same as `make'
+   make examples       -- copy examples into the appropriate directories
+                          (no overwrite)
+   make examples-force -- copy examples into the appropriate directories
+                          (overwrite)
+   make openkim-api    -- compiles only the API
+   make clean          -- will remove .o, .mod, .a, .so and executable files
    make examples-clean -- remove all examples from the MODEL_DRIVERs,
                           MODELs, and TESTs directories. 
 </PRE>
@@ -173,17 +180,16 @@ make.
    the Tests do.) 
 </PRE>
 <LI>Each Test (and Model) has its own make file for compiling and linking.
-If changes are made to the code, perform step (2) again (from the
-$KIM_DIR directory). 
+If changes are made to the code, re-compile (from the $KIM_DIR directory). 
 
-<LI>In case of using a non-standard location for any of the directories
-KIM_API, TESTs, or MODELs one or more of the following environment
+<LI>In case of using a non-standard location for any of the directories KIM_API,
+TESTs, MODEL_DRIVERS, or MODELs one or more of the following environment
 variables must be set: 
 </OL>
 <PRE>   KIM_API_DIR
    KIM_TESTS_DIR
-   KIM_MODELS_DIR
-   KIM_MODEL_DRIVERS_DIR 
+   KIM_MODEL_DRIVERS_DIR
+   KIM_MODELS_DIR 
 </PRE>
 <HR>
 
@@ -193,7 +199,7 @@ variables must be set:
 mix, shift, table, and tail options.
 </P>
 <P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since KIM stores the the potential parameters.
+files</A>, since KIM stores the potential parameters.
 Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 </P>
@@ -209,12 +215,8 @@ an input script that reads a restart file.
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "off"
-for pair interactions.
-</P>
-<P>Currently this pair style only works with LAMMPS metal
-<A HREF = "units.html">units</A>. In the future changes will be made so it can work
-with LAMMPS unit choices as well.
+<P>This version of pair_style kim is compatible with the openkim-api package
+version 1.1.0 and higher.
 </P>
 <P><B>Related commands:</B>
 </P>

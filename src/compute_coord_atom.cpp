@@ -34,23 +34,48 @@ using namespace LAMMPS_NS;
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute coord/atom command");
+  if (narg < 4) error->all(FLERR,"Illegal compute coord/atom command");
 
   double cutoff = atof(arg[3]);
   cutsq = cutoff*cutoff;
 
+  ncol = narg-4 + 1;
+  int ntypes = atom->ntypes;
+  typelo = new int[ncol];
+  typehi = new int[ncol];
+
+  if (narg == 4) {
+    ncol = 1;
+    typelo[0] = 1;
+    typehi[0] = ntypes;
+  } else {
+    ncol = 0;
+    int iarg = 4;
+    while (iarg < narg) {
+      force->bounds(arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
+      if (typelo[ncol] > typehi[ncol])
+        error->all(FLERR,"Illegal compute coord/atom command");
+      ncol++;
+    }
+  }
+
   peratom_flag = 1;
-  size_peratom_cols = 0;
+  if (ncol == 1) size_peratom_cols = 0;
+  else size_peratom_cols = ncol;
 
   nmax = 0;
-  coordination = NULL;
+  cvec = NULL;
+  carray = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::~ComputeCoordAtom()
 {
-  memory->destroy(coordination);
+  delete [] typelo;
+  delete [] typehi;
+  memory->destroy(cvec);
+  memory->destroy(carray);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,19 +115,27 @@ void ComputeCoordAtom::init_list(int id, NeighList *ptr)
 
 void ComputeCoordAtom::compute_peratom()
 {
-  int i,j,ii,jj,inum,jnum,n;
+  int i,j,m,ii,jj,inum,jnum,jtype,n;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  double *count;
 
   invoked_peratom = update->ntimestep;
 
   // grow coordination array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy(coordination);
-    nmax = atom->nmax;
-    memory->create(coordination,nmax,"coord/atom:coordination");
-    vector_atom = coordination;
+    if (ncol == 1) {
+      memory->destroy(cvec);
+      nmax = atom->nmax;
+      memory->create(cvec,nmax,"coord/atom:cvec");
+      vector_atom = cvec;
+    } else {
+      memory->destroy(carray);
+      nmax = atom->nmax;
+      memory->create(carray,nmax,ncol,"coord/atom:carray");
+      array_atom = carray;
+    }
   }
 
   // invoke full neighbor list (will copy or build if necessary)
@@ -114,35 +147,71 @@ void ComputeCoordAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // compute coordination number for each atom in group
+  // compute coordination number(s) for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
   double **x = atom->x;
+  int *type = atom->type;
   int *mask = atom->mask;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    if (mask[i] & groupbit) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+  if (ncol == 1) {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      if (mask[i] & groupbit) {
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
 
-      n = 0;
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+        n = 0;
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          
+          jtype = type[j];
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0]) n++;
+        }
+        
+        cvec[i] = n;
+      } else cvec[i] = 0.0;
+    }
 
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq < cutsq) n++;
+  } else {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      count = carray[i];
+      for (m = 0; m < ncol; m++) count[m] = 0.0;
+
+      if (mask[i] & groupbit) {
+        xtmp = x[i][0];
+        ytmp = x[i][1];
+        ztmp = x[i][2];
+        jlist = firstneigh[i];
+        jnum = numneigh[i];
+
+
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          
+          jtype = type[j];
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq < cutsq) {
+            for (m = 0; m < ncol; m++)
+              if (jtype >= typelo[m] && jtype <= typehi[m])
+                count[m] += 1.0;
+          }
+        }
       }
-
-      coordination[i] = n;
-    } else coordination[i] = 0.0;
+    }
   }
 }
 
@@ -152,6 +221,6 @@ void ComputeCoordAtom::compute_peratom()
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = ncol*nmax * sizeof(double);
   return bytes;
 }

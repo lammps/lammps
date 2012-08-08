@@ -56,6 +56,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
       if (typelo[ncol] > typehi[ncol])
         error->all(FLERR,"Illegal compute coord/atom command");
       ncol++;
+      iarg++;
     }
   }
 

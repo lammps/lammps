@@ -95,6 +95,41 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   nmax = 0;
   part2grid = NULL;
+
+  // define acons coefficients for estimation of kspace errors
+  // see JCP 109, pg 7698 for derivation of coefficients
+  // higher order coefficients may be computed if needed
+
+  memory->destroy(acons);
+  memory->create(acons,8,7,"pppm:acons");
+  acons[1][0] = 2.0 / 3.0;
+  acons[2][0] = 1.0 / 50.0;
+  acons[2][1] = 5.0 / 294.0;
+  acons[3][0] = 1.0 / 588.0;
+  acons[3][1] = 7.0 / 1440.0;
+  acons[3][2] = 21.0 / 3872.0;
+  acons[4][0] = 1.0 / 4320.0;
+  acons[4][1] = 3.0 / 1936.0;
+  acons[4][2] = 7601.0 / 2271360.0;
+  acons[4][3] = 143.0 / 28800.0;
+  acons[5][0] = 1.0 / 23232.0;
+  acons[5][1] = 7601.0 / 13628160.0;
+  acons[5][2] = 143.0 / 69120.0;
+  acons[5][3] = 517231.0 / 106536960.0;
+  acons[5][4] = 106640677.0 / 11737571328.0;
+  acons[6][0] = 691.0 / 68140800.0;
+  acons[6][1] = 13.0 / 57600.0;
+  acons[6][2] = 47021.0 / 35512320.0;
+  acons[6][3] = 9694607.0 / 2095994880.0;
+  acons[6][4] = 733191589.0 / 59609088000.0;
+  acons[6][5] = 326190917.0 / 11700633600.0;
+  acons[7][0] = 1.0 / 345600.0;
+  acons[7][1] = 3617.0 / 35512320.0;
+  acons[7][2] = 745739.0 / 838397952.0;
+  acons[7][3] = 56399353.0 / 12773376000.0;
+  acons[7][4] = 25091609.0 / 1560084480.0;
+  acons[7][5] = 1755948832039.0 / 36229939200000.0;
+  acons[7][6] = 4887769399.0 / 37838389248.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -170,8 +205,8 @@ void PPPM::init()
 
   qdist = 0.0;
 
-  if ( (strcmp(force->kspace_style,"pppm/tip4p") == 0) ||
-       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0) ) {
+  if ((strcmp(force->kspace_style,"pppm/tip4p") == 0) ||
+       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0)) {
     if (force->pair == NULL)
       error->all(FLERR,"KSpace style is incompatible with Pair style");
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
@@ -238,41 +273,6 @@ void PPPM::init()
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
 
-  // define acons coefficients for estimation of kspace errors
-  // see JCP 109, pg 7698 for derivation of coefficients
-  // higher order coefficients may be computed if needed
-
-  memory->destroy(acons);
-  memory->create(acons,8,7,"pppm:acons");
-  acons[1][0] = 2.0 / 3.0;
-  acons[2][0] = 1.0 / 50.0;
-  acons[2][1] = 5.0 / 294.0;
-  acons[3][0] = 1.0 / 588.0;
-  acons[3][1] = 7.0 / 1440.0;
-  acons[3][2] = 21.0 / 3872.0;
-  acons[4][0] = 1.0 / 4320.0;
-  acons[4][1] = 3.0 / 1936.0;
-  acons[4][2] = 7601.0 / 2271360.0;
-  acons[4][3] = 143.0 / 28800.0;
-  acons[5][0] = 1.0 / 23232.0;
-  acons[5][1] = 7601.0 / 13628160.0;
-  acons[5][2] = 143.0 / 69120.0;
-  acons[5][3] = 517231.0 / 106536960.0;
-  acons[5][4] = 106640677.0 / 11737571328.0;
-  acons[6][0] = 691.0 / 68140800.0;
-  acons[6][1] = 13.0 / 57600.0;
-  acons[6][2] = 47021.0 / 35512320.0;
-  acons[6][3] = 9694607.0 / 2095994880.0;
-  acons[6][4] = 733191589.0 / 59609088000.0;
-  acons[6][5] = 326190917.0 / 11700633600.0;
-  acons[7][0] = 1.0 / 345600.0;
-  acons[7][1] = 3617.0 / 35512320.0;
-  acons[7][2] = 745739.0 / 838397952.0;
-  acons[7][3] = 56399353.0 / 12773376000.0;
-  acons[7][4] = 25091609.0 / 1560084480.0;
-  acons[7][5] = 1755948832039.0 / 36229939200000.0;
-  acons[7][6] = 4887769399.0 / 37838389248.0;
-  
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
   // if grid stencil extends beyond neighbor proc, reduce order and try again

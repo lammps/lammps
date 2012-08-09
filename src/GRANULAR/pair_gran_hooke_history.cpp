@@ -388,7 +388,7 @@ void PairGranHookeHistory::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
-  // need a half neigh list and optionally a granular history neigh list
+  // need a granular neigh list and optionally a granular history neigh list
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->half = 0;

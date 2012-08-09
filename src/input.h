@@ -71,6 +71,7 @@ class Input : protected Pointers {
   void bond_coeff();
   void bond_style();
   void boundary();
+  void box();
   void communicate();
   void compute();
   void compute_modify();

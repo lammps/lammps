@@ -528,6 +528,8 @@ void Neighbor::init()
               requests[j]->skip == 0 && requests[j]->half) break;
           if (requests[i]->full && requests[j]->pair &&
               requests[j]->skip == 0 && requests[j]->full) break;
+          if (requests[i]->gran && requests[j]->pair &&
+              requests[j]->skip == 0 && requests[j]->gran) break;
           if (requests[i]->half && requests[j]->pair &&
               requests[j]->skip == 0 && requests[j]->respaouter) break;
         }

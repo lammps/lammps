@@ -37,21 +37,25 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<PRE>keyword = <I>molecule</I>
-  <I>molecule</I> value = <I>no</I> or <I>yes</I> 
+<LI>keyword = <I>molecule</I> or <I>region</I> 
+
+<PRE>  <I>molecule</I> value = <I>no</I> or <I>yes</I>
+  <I>region</I> value = region-ID
+    region-ID = ID of region to use as an exchange/move volume 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 2 all gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
-fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes 
+fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes
+fix 4 all gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This fix performs grand canonical Monte Carlo (GCMC) exchanges of
 particles of the given type with an imaginary ideal gas reservoir at
-the specified T and chemical potential (mu) as discussed in
+the specified T and chemical potential (mu    ) as discussed in
 <A HREF = "#Frenkel">(Frenkel)</A>. If used with the <A HREF = "fix_nh.html">fix nvt</A> command,
 simulations in the grand canonical enemble (muVT, constant chemical
 potential, constant volume, and constant temperature) can be
@@ -70,6 +74,17 @@ translation per particle per MC cycle.
 than the exchanged type. All particles in the simulation domain can be
 moved using regular time integration displacements, e.g. via
 <A HREF = "fix_nvt.html">fix_nvt</A>, resulting in a hybrid GCMC+MD simulation.
+</P>
+<P>This command may optionally use the <I>region</I> keyword to define an
+exchange and move volume.  The specified region must have been
+previously defined with a <A HREF = "region.html">region</A> command.  It must be
+defined with side = <I>in</I>.  Insertion attempts occur only within the
+specified region. Move and deletion attempt candidates are selected
+from particles within the region. If no candidate can be found within
+the specified region after randomly selecting candidates 1000 times,
+the move or deletion attempt is considered a failure. Moves must start
+within the specified region, but may move the particle slightly
+outside of the region.
 </P>
 <P>If used with <A HREF = "fix_nvt.html">fix_nvt</A>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature

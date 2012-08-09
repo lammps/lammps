@@ -170,6 +170,7 @@ available in LAMMPS:
 "cna/atom"_compute_cna_atom.html - common neighbor analysis (CNA) for each atom
 "com"_compute_com.html - center-of-mass of group of atoms
 "com/molecule"_compute_com_molecule.html - center-of-mass for each molecule
+"contact/atom"_compute_contact_atom.html - contact count for each spherical particle
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "damage/atom"_compute_damage_atom.html - Peridynamic damage for each atom
 "dihedral/local"_compute_dihedral_local.html - angle of each dihedral

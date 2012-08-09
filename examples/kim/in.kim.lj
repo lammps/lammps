@@ -11,8 +11,6 @@ variable	zz equal 20*$z
 units		metal
 atom_style	atomic
 
-newton off
-
 lattice		fcc 4.4300
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box	1 box
@@ -22,7 +20,7 @@ create_atoms	1 box
 #pair_coeff	1 1 0.0031 2.7400
 #pair_modify     shift yes
 
-pair_style      kim ex_model_Ne_P_fastLJ
+pair_style      kim KIMvirial ex_model_Ne_P_fastLJ
 pair_coeff      * * Ne
 
 mass		1 20.18

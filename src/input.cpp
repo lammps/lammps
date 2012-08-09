@@ -780,7 +780,6 @@ void Input::partition()
   // ptr = start of 4th word
 
   strcpy(copy,line);
-  copy[strlen(copy)-1] = '\0';
   char *ptr = strtok(copy," \t\n\r\f");
   ptr = strtok(NULL," \t\n\r\f");
   ptr = strtok(NULL," \t\n\r\f");

@@ -1,4 +1,11 @@
-# Makefile for MPI stubs - edit this for your platform
+# Makefile for MPI stubs library
+
+# Syntax:
+#   make                 # build static lib as libmpi_stubs.a
+#   make shlib           # build shared lib as libmpi_stubs.so
+#   make clean           # remove *.o and lib files
+
+# edit System-specific settings as needed for your platform
 
 SHELL = /bin/sh
 .IGNORE:
@@ -10,30 +17,35 @@ INC =		mpi.h
 
 # Definitions
 
-EXE =		libmpi.a
+EXE =		libmpi_stubs.a
+SHLIB =		libmpi_stubs.so
 OBJ = 		$(SRC:.c=.o)
 
 # System-specific settings
 
-CC =		cc
-CCFLAGS =	-O # -fPIC
+CC =		g++
+CCFLAGS =	-O
+SHFLAGS =	-fPIC
+
 ARCHIVE =	ar
 ARCHFLAG =	rs
+SHLIBFLAGS =    -shared          
 
-# Target
+# Targets
 
-$(EXE):	$(OBJ)
+lib:	$(OBJ)
 	$(ARCHIVE) $(ARCHFLAG) $(EXE) $(OBJ)
 
-# Clean
+shlib:	$(OBJ)
+	$(CC) $(CFLAGS) $(SHFLAGS) $(SHLIBFLAGS) -o $(SHLIB) $(OBJ)
 
 clean:
-	rm *.o libmpi.a
+	rm -f *.o libmpi_stubs.a libmpi_stubs.so
 
 # Compilation rules
 
 .c.o:
-	$(CC) $(CCFLAGS) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) -c $<
 
 # Individual dependencies
 

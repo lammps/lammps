@@ -1,4 +1,4 @@
-# LAMMPS library multiple-machine Makefile
+# LAMMPS static library multiple-machine Makefile
 
 SHELL = /bin/sh
 
@@ -35,5 +35,6 @@ clean:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "EXE = ../$(EXE)" lib
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
+          "EXE = ../$(EXE)" lib
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi

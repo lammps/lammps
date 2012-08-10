@@ -39,7 +39,8 @@ help:
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
 	@echo 'make tar                 lmp_src.tar.gz of src dir and packages'
-	@echo 'make makelib             update Makefile.lib for library build'
+	@echo 'make makelib             update Makefile.lib for static library build'
+	@echo 'make makeshlib           update Makefile.shlib for shared library build'
 	@echo 'make makelist            update Makefile.list used by old makes'
 	@echo ''
 	@echo 'make package             list available packages'
@@ -78,7 +79,7 @@ help:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
 	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
@@ -115,6 +116,10 @@ stubs:
 makelib:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.lib
+
+makeshlib:
+	@$(SHELL) Make.sh style
+	@$(SHELL) Make.sh Makefile.shlib
 
 makelist:
 	@$(SHELL) Make.sh style

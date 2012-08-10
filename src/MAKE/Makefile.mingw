@@ -34,9 +34,9 @@ LMP_INC = -DLAMMPS_XDR # -DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =  -I../STUBS 
+MPI_INC =    -I../STUBS 
 MPI_PATH = 
-MPI_LIB = mpi.o	
+MPI_LIB =    mpi.o	
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)

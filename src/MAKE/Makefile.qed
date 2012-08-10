@@ -18,6 +18,7 @@ SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
+SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings

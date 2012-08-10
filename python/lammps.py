@@ -23,28 +23,26 @@ LMPDPTR = 3
 LMPDPTRPTR = 4
 
 class lammps:
-  def __init__(self,args=None):
+  def __init__(self,name="",cmdlineargs=None):
 
-    # attempt to load parallel library first, serial library next
-    # could provide caller a flag to choose which library to load
+    # load liblmp.so by default
+    # if name = "g++", load liblmp_g++.so
     
     try:
-      self.lib = CDLL("_lammps.so")
+      if not name: self.lib = CDLL("liblmp.so")
+      else: self.lib = CDLL("liblmp_%s.so" % name)
     except:
-      try:
-        self.lib = CDLL("_lammps_serial.so")
-      except:
-        raise OSError,"Could not load LAMMPS dynamic library"
+      raise OSError,"Could not load LAMMPS dynamic library"
 
     # create an instance of LAMMPS
     # don't know how to pass an MPI communicator from PyPar
     # no_mpi call lets LAMMPS use MPI_COMM_WORLD
     # cargs = array of C strings from args
     
-    if args:
-      args.insert(0,"lammps.py")
-      narg = len(args)
-      cargs = (c_char_p*narg)(*args)
+    if cmdlineargs:
+      cmdlineargs.insert(0,"lammps.py")
+      narg = len(cmdlineargs)
+      cargs = (c_char_p*narg)(*cmdlineargs)
       self.lmp = c_void_p()
       self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
     else:

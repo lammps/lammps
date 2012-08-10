@@ -966,13 +966,15 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"elapsed") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (strcmp(word,"elaplong") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
 
@@ -981,17 +983,20 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"cpu") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
     compute_cpu();
 
   } else if (strcmp(word,"tpcpu") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
     compute_tpcpu();
 
   } else if (strcmp(word,"spcpu") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
     compute_spcpu();
 
   } else if (strcmp(word,"atoms") == 0) {
@@ -1028,7 +1033,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"pe") == 0) {
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
@@ -1055,7 +1061,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"etotal") == 0) {
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
@@ -1079,7 +1086,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"enthalpy") == 0) {
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     if (update->whichflag == 0) {
       if (pe->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
@@ -1116,7 +1124,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_evdwl();
 
@@ -1124,7 +1133,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_ecoul();
 
@@ -1132,7 +1142,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_epair();
 
@@ -1140,7 +1151,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_ebond();
 
@@ -1148,7 +1160,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_eangle();
 
@@ -1156,7 +1169,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_edihed();
 
@@ -1164,7 +1178,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_eimp();
 
@@ -1172,7 +1187,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_emol();
 
@@ -1180,7 +1196,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_elong();
 
@@ -1188,7 +1205,8 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     if (!pe)
-      error->all(FLERR,"Thermo keyword in variable requires thermo to use/init pe");
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
     pe->invoked_flag |= INVOKED_SCALAR;
     compute_etail();
 

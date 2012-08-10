@@ -9,7 +9,9 @@ SHELL = /bin/sh
 
 CC =		/opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
 CCFLAGS =	-O3
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		/opt/ibmcmp/vacpp/7.0/bin/blrts_xlC
 LINKFLAGS =	-O \
                 -L/opt/ibmcmp/xlf/9.1/blrts_lib \
@@ -18,9 +20,10 @@ LINKFLAGS =	-O \
                 -L/bgl/local/bglfftwgel-2.1.5.pre5/lib
 LIB =           -lxlopt -lxlomp_ser -lxl -lxlfmath -lm \
                 -lmsglayer.rts -lrts.rts -ldevices.rts -lmassv
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -82,15 +85,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

@@ -8,15 +8,18 @@ SHELL = /bin/sh
 
 CC =		CC
 CCFLAGS =	-O3 --target=catamount \
-CCFLAGS =       -fomit-frame-pointer -finline-functions \
+                -fomit-frame-pointer -finline-functions \
 		-Wall -Wno-unused -funroll-all-loops
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		CC
 LINKFLAGS =	--target=catamount -O
 LIB =           -lgmalloc
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -78,15 +81,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

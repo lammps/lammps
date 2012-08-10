@@ -14,13 +14,16 @@ SHELL = /bin/sh
 
 CC =		mpiicc
 CCFLAGS =	-O3 -fno-alias -ip -unroll0
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		mpiicc
 LINKFLAGS =	-O -L/opt/intel/mkl/10.0.011/lib/em64t 
 LIB =           -lstdc++ -lpthread -lmkl_em64t -lguide 
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -82,15 +85,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

@@ -9,13 +9,16 @@ SHELL = /bin/sh
 CC =		i686-pc-mingw32-g++
 CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64  \
 	 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized 
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		i686-pc-mingw32-g++
 LINKFLAGS =	-O 
 LIB =         -lwsock32  # -lwsock32 is needed for USER-IMD which uses tcp/ip sockets.
+SIZE =		i686-pc-mingw32-size
+
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
-SIZE =		i686-pc-mingw32-size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings

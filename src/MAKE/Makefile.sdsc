@@ -10,16 +10,19 @@ SHELL = /bin/sh
 CC =		blrts_xlC
 CCFLAGS =	-I/bgl/BlueLight/ppcfloor/bglsys/include \
 		-O2 -qarch=440 -qtune=440
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M -qmakedep=gcc
+
 LINK =		blrts_xlC
 LINKFLAGS =	-O \
 		-L/bgl/BlueLight/ppcfloor/bglsys/lib \
 		-L/opt/ibmcmp/xlf/bg/10.1/blrts_lib \
 		-L/opt/ibmcmp/vacpp/bg/8.0/blrts_lib
 LIB =           -lm
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -81,15 +84,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

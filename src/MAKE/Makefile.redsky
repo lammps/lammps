@@ -36,13 +36,16 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O2 -xsse4.2 -funroll-loops -fstrict-aliasing
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		mpic++
 LINKFLAGS =	-O -xsse4.2 
 LIB =           -lstdc++
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
-SIZE =		size
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -104,15 +107,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

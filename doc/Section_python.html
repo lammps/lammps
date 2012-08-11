@@ -180,6 +180,8 @@ with a C++ (or Fortran) compiler, as well as an output target that
 ends in ".so", like libatc.o.  As we or others create and contribute
 these Makefiles, we will add them to the LAMMPS distribution.
 </P>
+<HR>
+
 <A NAME = "py_3"></A><H4>11.3 Extending Python with MPI to run in parallel 
 </H4>
 <P>If you wish to run LAMMPS in parallel from Python, you need to extend
@@ -346,21 +348,21 @@ correctly.
 <P>Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:
 </P>
-<P>% python foo.script
+<PRE>% python foo.script
 % python -i foo.script
-% foo.script
-</P>
+% foo.script 
+</PRE>
 <P>The last command requires that the first line of the script be
 something like this:
 </P>
-<P>#!/usr/local/bin/python 
-#!/usr/local/bin/python -i
-</P>
+<PRE>#!/usr/local/bin/python 
+#!/usr/local/bin/python -i 
+</PRE>
 <P>where the path points to where you have Python installed, and that you
 have made the script file executable:
 </P>
-<P>% chmod +x foo.script
-</P>
+<PRE>% chmod +x foo.script 
+</PRE>
 <P>Without the "-i" flag, Python will exit when the script finishes.
 With the "-i" flag, you will be left in the Python interpreter when
 the script finishes, so you can type subsequent commands.  As
@@ -434,7 +436,7 @@ lmp.put_coords(x)                         # set all atom coords via x
 </PRE>
 <HR>
 
-<P>IMPORTANT NOTE: Currenlty, the creation of a LAMMPS object does not
+<P>IMPORTANT NOTE: Currently, the creation of a LAMMPS object does not
 take an MPI communicator as an argument.  There should be a way to do
 this, so that the LAMMPS instance runs on a subset of processors if
 desired, but I don't know how to do it from Pypar.  So for now, it

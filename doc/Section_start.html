@@ -44,7 +44,6 @@ sub-directories:
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
-<TR><TD >couple</TD><TD > code coupling examples, using LAMMPS as a library</TD></TR>
 <TR><TD >doc</TD><TD > documentation</TD></TR>
 <TR><TD >examples</TD><TD > simple test problems</TD></TR>
 <TR><TD >potentials</TD><TD > embedded atom method (EAM) potential files</TD></TR>
@@ -800,13 +799,14 @@ within your application code, as needed.
 library has a simple function-style interface, provided in
 src/library.cpp and src/library.h.
 </P>
-<P>See the sample codes couple/simple/simple.cpp and simple.c as examples
-of C++ and C codes that invoke LAMMPS thru its library interface.
-There are other examples as well in the couple directory which are
-discussed in <A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the
-manual.  See <A HREF = "Section_python.html">Section_python</A> of the manual for a
-description of the Python wrapper provided with LAMMPS that operates
-through the LAMMPS library interface.
+<P>See the sample codes in the examples/COUPLE/simple directory as
+examples of C++ and C codes that invoke LAMMPS thru its library
+interface.  There are other examples as well in the examples/COUPLE
+directory which are discussed in <A HREF = "Section_howto.html#howto_10">Section_howto
+10</A> of the manual.  See
+<A HREF = "Section_python.html">Section_python</A> of the manual for a description
+of the Python wrapper provided with LAMMPS that operates through the
+LAMMPS library interface.
 </P>
 <P>The files src/library.cpp and library.h contain the C-style interface
 to LAMMPS.  See <A HREF = "Section_howto.html#howto_19">Section_howto 19</A> of the

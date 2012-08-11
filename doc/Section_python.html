@@ -14,19 +14,22 @@
 <P>This section describes how to build and use LAMMPS via a Python
 interface.
 </P>
-<UL><LI>11.1 <A HREF = "#py_1">Extending Python with a serial version of LAMMPS</A>
-<LI>11.2 <A HREF = "#py_2">Creating a shared MPI library</A>
-<LI>11.3 <A HREF = "#py_3">Extending Python with a parallel version of LAMMPS</A>
-<LI>11.4 <A HREF = "#py_4">Extending Python with MPI</A>
-<LI>11.5 <A HREF = "#py_5">Testing the Python-LAMMPS interface</A>
-<LI>11.6 <A HREF = "#py_6">Using LAMMPS from Python</A>
-<LI>11.7 <A HREF = "#py_7">Example Python scripts that use LAMMPS</A> 
+<UL><LI>11.1 <A HREF = "#py_1">Setting necessary environment variables</A>
+<LI>11.2 <A HREF = "#py_2">Building LAMMPS as a shared library</A>
+<LI>11.3 <A HREF = "#py_3">Extending Python with MPI</A>
+<LI>11.4 <A HREF = "#py_4">Testing the Python-LAMMPS interface</A>
+<LI>11.5 <A HREF = "#py_5">Using LAMMPS from Python</A>
+<LI>11.6 <A HREF = "#py_6">Example Python scripts that use LAMMPS</A> 
 </UL>
-<P>The LAMMPS distribution includes some Python code in its python
-directory which wraps the library interface to LAMMPS.  This makes it
-is possible to run LAMMPS, invoke LAMMPS commands or give it an input
-script, extract LAMMPS results, an modify internal LAMMPS variables,
-either from a Python script or interactively from a Python prompt.
+<P>The LAMMPS distribution includes the file python/lammps.py which wraps
+the library interface to LAMMPS.  This file makes it is possible to
+run LAMMPS, invoke LAMMPS commands or give it an input script, extract
+LAMMPS results, an modify internal LAMMPS variables, either from a
+Python script or interactively from a Python prompt.  You can do the
+former in serial or parallel.  Running Python interactively in
+parallel does not generally work, unless you have a package installed
+that extends your Python to enable multiple instances of Python to
+read what you type.
 </P>
 <P><A HREF = "http://www.python.org">Python</A> is a powerful scripting and programming
 language which can be used to wrap software like LAMMPS and other
@@ -40,74 +43,106 @@ section</A> for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
 is exposed to Python.  It is designed to be easy to add functions to.
-This has the effect of extending the Python inteface as well.  See
-details below.
+This can easily extend the Python inteface as well.  See details
+below.
 </P>
-<P>By using the Python interface LAMMPS can also be coupled with a GUI or
-visualization tools that display graphs or animations in real time as
-LAMMPS runs.  Examples of such scripts are inlcluded in the python
-directory.
+<P>By using the Python interface, LAMMPS can also be coupled with a GUI
+or other visualization tools that display graphs or animations in real
+time as LAMMPS runs.  Examples of such scripts are inlcluded in the
+python directory.
 </P>
-<P>Two advantages of using Python are how concise the language is and
+<P>Two advantages of using Python are how concise the language is, and
 that it can be run interactively, enabling rapid development and
 debugging of programs.  If you use it to mostly invoke costly
 operations within LAMMPS, such as running a simulation for a
 reasonable number of timesteps, then the overhead cost of invoking
 LAMMPS thru Python will be negligible.
 </P>
-<P>Before using LAMMPS from a Python script, the Python on your machine
-must be "extended" to include an interface to the LAMMPS library.  If
-your Python script will invoke MPI operations, you will also need to
-extend your Python with an interface to MPI itself.
+<P>Before using LAMMPS from a Python script, you have to do two things.
+You need to set two environment variables.  And you need to build
+LAMMPS as a dynamic shared library, so it can be loaded by Python.
+Both these steps are discussed below.
 </P>
-<P>Thus you should first decide how you intend to use LAMMPS from Python.
-There are 3 options:
+<P>The Python wrapper for LAMMPS uses the amazing and magical (to me)
+"ctypes" package in Python, which auto-generates the interface code
+needed between Python and a set of C interface routines for a library.
+Ctypes is part of standard Python for versions 2.5 and later.  You can
+check which version of Python you have installed, by simply typing
+"python" at a shell prompt.
 </P>
-<P>(1) Use LAMMPS on a single processor running Python.
+<HR>
+
+<HR>
+
+<A NAME = "py_1"></A><H4>11.1 Setting necessary environment variables 
+</H4>
+<P>For Python to use the LAMMPS interface, it needs to find two files.
+The paths to these files need to be added to two environment variables
+that Python checks.
 </P>
-<P>(2) Use LAMMPS in parallel, where each processor runs Python, but your
-Python program does not use MPI.
+<P>The first is the environment variable PYTHONPATH.  It needs
+to include the directory where the python/lammps.py file is.
 </P>
-<P>(3) Use LAMMPS in parallel, where each processor runs Python, and your
-Python script also makes MPI calls through a Python/MPI interface.
+<P>For the csh or tcsh shells, you could add something like this to your
+~/.cshrc file:
 </P>
-<P>Note that for (2) and (3) you will not be able to use Python
-interactively by typing commands and getting a response.  This is
-because you will have multiple instances of Python running (e.g. on a
-parallel machine) and they cannot all read what you type.
+<PRE>setenv PYTHONPATH $<I>PYTHONPATH</I>:/home/sjplimp/lammps/python 
+</PRE>
+<P>The second is the environment variable LD_LIBRARY_PATH, which is used
+by the operating system to find dynamic shared libraries when it loads
+them.  It needs to include the directory where the shared LAMMPS
+library will be.  Normally this is the LAMMPS src dir, as explained in
+the following section.
 </P>
-<P>Working in mode (1) does not require your machine to have MPI
-installed.  You should extend your Python with a serial version of
-LAMMPS and the dummy MPI library provided with LAMMPS.  See
-instructions below on how to do this.
+<P>For the csh or tcsh shells, you could add something like this to your
+~/.cshrc file:
 </P>
-<P>Working in mode (2) requires your machine to have an MPI library
-installed, but your Python does not need to be extended with MPI
-itself.  The MPI library must be a shared library (e.g. a *.so file on
-Linux) which is not typically created when MPI is built/installed.
-See instruction below on how to do this.  You should extend your
-Python with the a parallel versionn of LAMMPS which will use the
-shared MPI system library.  See instructions below on how to do this.
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+</PRE>
+<P>Note that a LAMMPS build may depend on several auxiliary libraries,
+which are specied in your low-level src/Makefile.foo file.  For
+example, an MPI library, the FFTW library, a JPEG library, etc.
+Depending on what LAMMPS packages you have installed, you may
+pre-build additional libraries in the lib directories, which are linked
+to in your LAMMPS build.
 </P>
-<P>Working in mode (3) requires your machine to have MPI installed (as a
-shared library as in (2)).  You must also extend your Python with a
-parallel version of LAMMPS (same as in (2)) and with MPI itself, via
-one of several available Python/MPI packages.  See instructions below
-on how to do the latter task.
+<P>As discussed below, in you are including those options in LAMMPS, all
+of the auxiliary libraries have to be available as shared libraries
+for Python to successfully load LAMMPS.  If they are not in default
+places where the operating system can find them, then you also have to
+add their paths to the LD_LIBRARY_PATH environment variable.
 </P>
-<P>Several of the following sub-sections cover the rest of the Python
-setup discussion.  The next to last sub-section describes the Python
-syntax used to invoke LAMMPS.  The last sub-section describes example
-Python scripts included in the python directory.
+<P>For example, if you are using the dummy MPI library provided in
+src/STUBS, you need to add something like this to your ~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src/STUBS 
+</PRE>
+<P>If you are using the LAMMPS USER-ATC package, you need to add
+something like this to your ~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/lib/atc 
+</PRE>
+<HR>
+
+<A NAME = "py_2"></A><H4>11.2 Building LAMMPS as a shared library 
+</H4>
+<P>A shared library is one that is dynamically loadable, which is what
+Python requires.  On Linux this is a library file that ends in ".so",
+not ".a".  Such a shared library is normally not built if you
+installed MPI yourself, but it is easy to do.  Here is how to do it
+for <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH</A>, a popular open-source version of MPI, distributed
+by Argonne National Labs.  From within the mpich directory, type
+</P>
+
+
+<PRE>./configure --enable-shared
+make
+make install 
+</PRE>
+<P>You may need to use "sudo make install" in place of the last line.
+The end result should be the file libmpich.so in /usr/local/lib.
 </P>
 <P>Before proceeding, there are 2 items to note.
-</P>
-<P>(1) The provided Python wrapper for LAMMPS uses the amazing and
-magical (to me) "ctypes" package in Python, which auto-generates the
-interface code needed between Python and a set of C interface routines
-for a library.  Ctypes is part of standard Python for versions 2.5 and
-later.  You can check which version of Python you have installed, by
-simply typing "python" at a shell prompt.
 </P>
 <P>(2) Any library wrapped by Python, including LAMMPS, must be built as
 a shared library (e.g. a *.so file on Linux and not a *.a file).  The
@@ -134,65 +169,6 @@ will also require you to edit the python/setup_serial.py or setup.py
 scripts to enable Python to access those libraries when it builds the
 LAMMPS wrapper.
 </P>
-<HR>
-
-<HR>
-
-<A NAME = "py_1"></A><H4>11.1 Extending Python with a serial version of LAMMPS 
-</H4>
-<P>From the python directory in the LAMMPS distribution, type
-</P>
-<PRE>python setup_serial.py build 
-</PRE>
-<P>and then one of these commands:
-</P>
-<PRE>sudo python setup_serial.py install
-python setup_serial.py install --home=~/foo 
-</PRE>
-<P>The "build" command should compile all the needed LAMMPS files,
-including its dummy MPI library.  The first "install" command will put
-the needed files in your Python's site-packages sub-directory, so that
-Python can load them.  For example, if you installed Python yourself
-on a Linux machine, it would typically be somewhere like
-/usr/local/lib/python2.5/site-packages.  Installing Python packages
-this way often requires you to be able to write to the Python
-directories, which may require root priveleges, hence the "sudo"
-prefix.  If this is not the case, you can drop the "sudo".  If you use
-the "sudo" prefix and you have installed Python yourself, you should
-make sure that root uses the same Python as the one you did the
-"install" in.  E.g. these 2 commands may do the install in different
-Python versions:
-</P>
-<PRE>python setup_serial.py install --home=~/foo
-python /usr/local/bin/python/setup_serial.py install --home=~/foo 
-</PRE>
-<P>Alternatively, you can install the LAMMPS files (or any other Python
-packages) in your own user space.  The second "install" command does
-this, where you should replace "foo" with your directory of choice.
-</P>
-<P>If these commands are successful, a <I>lammps.py</I> and
-<I>_lammps_serial.so</I> file will be put in the appropriate directory.
-</P>
-<HR>
-
-<A NAME = "py_2"></A><H4>11.2 Creating a shared MPI library 
-</H4>
-<P>A shared library is one that is dynamically loadable, which is what
-Python requires.  On Linux this is a library file that ends in ".so",
-not ".a".  Such a shared library is normally not built if you
-installed MPI yourself, but it is easy to do.  Here is how to do it
-for <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH</A>, a popular open-source version of MPI, distributed
-by Argonne National Labs.  From within the mpich directory, type
-</P>
-
-
-<PRE>./configure --enable-shared
-make
-make install 
-</PRE>
-<P>You may need to use "sudo make install" in place of the last line.
-The end result should be the file libmpich.so in /usr/local/lib.
-</P>
 <P>IMPORTANT NOTE: If the file libmpich.a already exists in your
 installation directory (e.g. /usr/local/lib), you will now have both a
 static and shared MPI library.  This will be fine for running LAMMPS
@@ -204,48 +180,13 @@ this happens, it means you will need to remove the file
 /usr/local/lib/libmich.so before building LAMMPS again as a
 stand-alone code.
 </P>
-<HR>
-
-<A NAME = "py_3"></A><H4>11.3 Extending Python with a parallel version of LAMMPS 
+<A NAME = "py_3"></A><H4>11.3 Extending Python with MPI 
 </H4>
-<P>From the python directory, type
+<P>If
+your Python script will run in parallel and you want to be able to
+invoke MPI calls directly from Python, you will also need to extend
+your Python with an interface to MPI.
 </P>
-<PRE>python setup.py build 
-</PRE>
-<P>and then one of these commands:
-</P>
-<PRE>sudo python setup.py install
-python setup.py install --home=~/foo 
-</PRE>
-<P>The "build" command should compile all the needed LAMMPS C++ files,
-which will require MPI to be installed on your system.  This means it
-must find both the header file mpi.h and a shared library file,
-e.g. libmpich.so if the MPICH version of MPI is installed.  See the
-preceding section for how to create a shared library version of MPI if
-it does not exist.  You may need to adjust the "include_dirs" and
-"library_dirs" and "libraries" fields in python/setup.py to
-insure the Python build finds all the files it needs.
-</P>
-<P>The first "install" command will put the needed files in your Python's
-site-packages sub-directory, so that Python can load them.  For
-example, if you installed Python yourself on a Linux machine, it would
-typically be somewhere like /usr/local/lib/python2.5/site-packages.
-Installing Python packages this way often requires you to be able to
-write to the Python directories, which may require root priveleges,
-hence the "sudo" prefix.  If this is not the case, you can drop the
-"sudo".
-</P>
-<P>Alternatively, you can install the LAMMPS files (or any other Python
-packages) in your own user space.  The second "install" command does
-this, where you should replace "foo" with your directory of choice.
-</P>
-<P>If these commands are successful, a <I>lammps.py</I> and <I>_lammps.so</I> file
-will be put in the appropriate directory.
-</P>
-<HR>
-
-<A NAME = "py_4"></A><H4>11.4 Extending Python with MPI 
-</H4>
 <P>There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
 </P>
@@ -319,37 +260,14 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size())
 </P>
 <HR>
 
-<A NAME = "py_5"></A><H4>11.5 Testing the Python-LAMMPS interface 
+<A NAME = "py_4"></A><H4>11.4 Testing the Python-LAMMPS interface 
 </H4>
-<P>Before using LAMMPS in a Python program, one more step is needed.  The
-interface to LAMMPS is via the Python ctypes package, which loads the
-shared LAMMPS library via a CDLL() call, which in turn is a wrapper on
-the C-library dlopen().  This command is different than a normal
-Python "import" and needs to be able to find the LAMMPS shared
-library, which is either in the Python site-packages directory or in a
-local directory you specified in the "python setup.py install"
-command, as described above.
-</P>
-<P>The simplest way to do this is add a line like this to your
-.cshrc or other shell start-up file.
-</P>
-<PRE>setenv LD_LIBRARY_PATH
-${LD_LIBRARY_PATH}:/usr/local/lib/python2.5/site-packages 
-</PRE>
-<P>and then execute the shell file to insure the path has been updated.
-This will extend the path that dlopen() uses to look for shared
-libraries.
-</P>
-<P>To test if the serial LAMMPS library has been successfully installed
-(mode 1 above), launch Python and type
+<P>To test if LAMMPS is now callable from Python, launch Python and type:
 </P>
 <PRE>>>> from lammps import lammps
 >>> lmp = lammps() 
 </PRE>
-<P>If you get no errors, you're ready to use serial LAMMPS from Python.
-</P>
-<P>If you built LAMMPS for parallel use (mode 2 or 3 above), launch
-Python in parallel:
+<P>If you get no errors, you're ready to use LAMMPS from Python.
 </P>
 <PRE>% mpirun -np 4 python test.script 
 </PRE>
@@ -371,15 +289,6 @@ sequence of commands like lmp.file("in.lj") to run an input script and
 see if the LAMMPS run says it ran on P processors or if you get output
 from P duplicated 1-processor runs written to the screen.  In the
 latter case, Pypar is not working correctly.
-</P>
-<P>Note that this line:
-</P>
-<PRE>from lammps import lammps 
-</PRE>
-<P>will import either the serial or parallel version of the LAMMPS
-library, as wrapped by lammps.py.  But if you installed both via
-setup_serial.py and setup.py, it will always import the parallel
-version, since it attempts that first.
 </P>
 <P>Note that if your Python script imports the Pypar package (as above),
 so that it can use MPI calls directly, then Pypar initializes MPI for
@@ -413,7 +322,7 @@ Python on a single processor, not in parallel.
 
 <HR>
 
-<A NAME = "py_6"></A><H4>11.6 Using LAMMPS from Python 
+<A NAME = "py_5"></A><H4>11.5 Using LAMMPS from Python 
 </H4>
 <P>The Python interface to LAMMPS consists of a Python "lammps" module,
 the source code for which is in python/lammps.py, which creates a
@@ -605,7 +514,7 @@ Python script.  Isn't ctypes amazing?
 
 <HR>
 
-<A NAME = "py_7"></A><H4>11.7 Example Python scripts that use LAMMPS 
+<A NAME = "py_6"></A><H4>11.6 Example Python scripts that use LAMMPS 
 </H4>
 <P>These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

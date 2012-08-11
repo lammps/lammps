@@ -16,7 +16,7 @@ interface.
 </P>
 <UL><LI>11.1 <A HREF = "#py_1">Setting necessary environment variables</A>
 <LI>11.2 <A HREF = "#py_2">Building LAMMPS as a shared library</A>
-<LI>11.3 <A HREF = "#py_3">Extending Python with MPI</A>
+<LI>11.3 <A HREF = "#py_3">Extending Python with MPI to run in parallel</A>
 <LI>11.4 <A HREF = "#py_4">Testing the Python-LAMMPS interface</A>
 <LI>11.5 <A HREF = "#py_5">Using LAMMPS from Python</A>
 <LI>11.6 <A HREF = "#py_6">Example Python scripts that use LAMMPS</A> 
@@ -34,12 +34,12 @@ read what you type.
 <P><A HREF = "http://www.python.org">Python</A> is a powerful scripting and programming
 language which can be used to wrap software like LAMMPS and other
 packages.  It can be used to glue multiple pieces of software
-together, e.g. to run a coupled or multiscale model.  See <A HREF = "Section_howto.html#howto_10">this
+together, e.g. to run a coupled or multiscale model.  See <A HREF = "Section_howto.html#howto_10">Section
 section</A> of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
 other codes.  See <A HREF = "Section_start.html#start_5">Section_start 4</A> about
-how to build LAMMPS as a library, and <A HREF = "Section_howto.html#howto_19">this
-section</A> for a description of the library
+how to build LAMMPS as a library, and <A HREF = "Section_howto.html#howto_19">Section_howto
+19</A> for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
 is exposed to Python.  It is designed to be easy to add functions to.
@@ -61,7 +61,9 @@ LAMMPS thru Python will be negligible.
 <P>Before using LAMMPS from a Python script, you have to do two things.
 You need to set two environment variables.  And you need to build
 LAMMPS as a dynamic shared library, so it can be loaded by Python.
-Both these steps are discussed below.
+Both these steps are discussed below.  If you wish to run LAMMPS in
+parallel from Python, you also need to extend your Python with MPI.
+This is also discussed below.
 </P>
 <P>The Python wrapper for LAMMPS uses the amazing and magical (to me)
 "ctypes" package in Python, which auto-generates the interface code
@@ -99,18 +101,11 @@ the following section.
 </P>
 <PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
 </PRE>
-<P>Note that a LAMMPS build may depend on several auxiliary libraries,
-which are specied in your low-level src/Makefile.foo file.  For
-example, an MPI library, the FFTW library, a JPEG library, etc.
-Depending on what LAMMPS packages you have installed, you may
-pre-build additional libraries in the lib directories, which are linked
-to in your LAMMPS build.
-</P>
-<P>As discussed below, in you are including those options in LAMMPS, all
-of the auxiliary libraries have to be available as shared libraries
-for Python to successfully load LAMMPS.  If they are not in default
-places where the operating system can find them, then you also have to
-add their paths to the LD_LIBRARY_PATH environment variable.
+<P>As discussed below, if your LAMMPS build includes auxiliary libraries,
+they must also be available as shared libraries for Python to
+successfully load LAMMPS.  If they are not in default places where the
+operating system can find them, then you also have to add their paths
+to the LD_LIBRARY_PATH environment variable.
 </P>
 <P>For example, if you are using the dummy MPI library provided in
 src/STUBS, you need to add something like this to your ~/.cshrc file:
@@ -126,12 +121,46 @@ something like this to your ~/.cshrc file:
 
 <A NAME = "py_2"></A><H4>11.2 Building LAMMPS as a shared library 
 </H4>
-<P>A shared library is one that is dynamically loadable, which is what
-Python requires.  On Linux this is a library file that ends in ".so",
-not ".a".  Such a shared library is normally not built if you
-installed MPI yourself, but it is easy to do.  Here is how to do it
-for <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH</A>, a popular open-source version of MPI, distributed
-by Argonne National Labs.  From within the mpich directory, type
+<P>Instructions on how to build LAMMPS as a shared library are given in
+<A HREF = "Section_start.html#start_5">Section_start 5</A>.  A shared library is one
+that is dynamically loadable, which is what Python requires.  On Linux
+this is a library file that ends in ".so", not ".a".
+</P>
+<P>>From the src directory, type
+</P>
+<P>make makeshlib
+make -f Makefile.shlib foo
+</P>
+<P>where foo is the machine target name, such as linux or g++ or serial.
+This should create the file liblmp_foo.so in the src directory, as
+well as a soft link liblmp.so which is what the Python wrapper will
+load by default.  If you are building multiple machine versions of the
+shared library, the soft link is always set to the most recently built
+version.
+</P>
+<P>Note that as discussed in below, a LAMMPS build may depend on several
+auxiliary libraries, which are specified in your low-level
+src/Makefile.foo file.  For example, an MPI library, the FFTW library,
+a JPEG library, etc.  Depending on what LAMMPS packages you have
+installed, the build may also require additional libraries from the
+lib directories, such as lib/atc/libatc.so or lib/reax/libreax.so.
+</P>
+<P>You must insure that each of these libraries exist in shared library
+form (*.so file for Linux systems), or either the LAMMPS shared
+library build or the Python load of the library will fail.  For the
+load to be successful all the shared libraries must also be in
+directories that the operating system checks.  See the discussion in
+the preceding section about the LD_LIBRARY_PATH environment variable
+for how to insure this.
+</P>
+<P>Note that some system libraries, such as MPI, if you installed it
+yourself, may not be built by default as shared libraries.  The build
+instructions for the library should tell you how to do this.
+</P>
+<P>For example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
+library</A>, a popular open-source version of MPI, distributed by
+Argonne National Labs, as a shared library in the default
+/usr/local/lib location:
 </P>
 
 
@@ -139,53 +168,23 @@ by Argonne National Labs.  From within the mpich directory, type
 make
 make install 
 </PRE>
-<P>You may need to use "sudo make install" in place of the last line.
-The end result should be the file libmpich.so in /usr/local/lib.
+<P>You may need to use "sudo make install" in place of the last line if
+you do not have write priveleges for /usr/local/lib.  The end result
+should be the file /usr/local/lib/libmpich.so.
 </P>
-<P>Before proceeding, there are 2 items to note.
+<P>Note that not all of the auxiliary libraries provided with LAMMPS have
+shared-library Makefiles in their lib directories.  Typically this
+simply requires a Makefile.foo that adds a -fPIC switch when files are
+compiled and a "-fPIC -shared" switches when the library is linked
+with a C++ (or Fortran) compiler, as well as an output target that
+ends in ".so", like libatc.o.  As we or others create and contribute
+these Makefiles, we will add them to the LAMMPS distribution.
 </P>
-<P>(2) Any library wrapped by Python, including LAMMPS, must be built as
-a shared library (e.g. a *.so file on Linux and not a *.a file).  The
-python/setup_serial.py and setup.py scripts do this build for LAMMPS
-itself (described below).  But if you have LAMMPS configured to use
-additional packages that have their own libraries, then those
-libraries must also be shared libraries.  E.g. MPI, FFTW, or any of
-the libraries in lammps/lib.  When you build LAMMPS as a stand-alone
-code, you are not building shared versions of these libraries.
-</P>
-<P>The discussion below describes how to create a shared MPI library.  I
-suggest you start by configuing LAMMPS without packages installed that
-require any libraries besides MPI.  See <A HREF = "Section_start.html#start_3">this
-section</A> of the manual for a discussion of
-LAMMPS packages.  E.g. do not use the KSPACE, GPU, MEAM, POEMS, or
-REAX packages.
-</P>
-<P>If you are successfully follow the steps belwo to build the Python
-wrappers and use this version of LAMMPS through Python, you can then
-take the next step of adding LAMMPS packages that use additional
-libraries.  This will require you to build a shared library for that
-package's library, similar to what is described below for MPI.  It
-will also require you to edit the python/setup_serial.py or setup.py
-scripts to enable Python to access those libraries when it builds the
-LAMMPS wrapper.
-</P>
-<P>IMPORTANT NOTE: If the file libmpich.a already exists in your
-installation directory (e.g. /usr/local/lib), you will now have both a
-static and shared MPI library.  This will be fine for running LAMMPS
-from Python since it only uses the shared library.  But if you now try
-to build LAMMPS by itself as a stand-alone program (cd lammps/src;
-make foo) or build other codes that expect to link against libmpich.a,
-then those builds may fail if the linker uses libmpich.so instead.  If
-this happens, it means you will need to remove the file
-/usr/local/lib/libmich.so before building LAMMPS again as a
-stand-alone code.
-</P>
-<A NAME = "py_3"></A><H4>11.3 Extending Python with MPI 
+<A NAME = "py_3"></A><H4>11.3 Extending Python with MPI to run in parallel 
 </H4>
-<P>If
-your Python script will run in parallel and you want to be able to
-invoke MPI calls directly from Python, you will also need to extend
-your Python with an interface to MPI.
+<P>If you wish to run LAMMPS in parallel from Python, you need to extend
+your Python with an interface to MPI.  This also allows you to
+make MPI calls directly from Python in your script, if you desire.
 </P>
 <P>There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
@@ -201,26 +200,26 @@ as a library and allow MPI functions to be called from Python.
 <P>All of these except pyMPI work by wrapping the MPI library (which must
 be available on your system as a shared library, as discussed above),
 and exposing (some portion of) its interface to your Python script.
-This means they cannot be used interactively in parallel, since they
+This means Python cannot be used interactively in parallel, since they
 do not address the issue of interactive input to multiple instances of
 Python running on different processors.  The one exception is pyMPI,
 which alters the Python interpreter to address this issue, and (I
-believe) creates a new alternate executable (in place of python
+believe) creates a new alternate executable (in place of "python"
 itself) as a result.
 </P>
 <P>In principle any of these Python/MPI packages should work to invoke
-both calls to LAMMPS and MPI itself from a Python script running in
-parallel.  However, when I downloaded and looked at a few of them,
-their docuemtation was incomplete and I had trouble with their
-installation.  It's not clear if some of the packages are still being
-actively developed and supported.
+LAMMPS in parallel and MPI calls themselves from a Python script which
+is itself running in parallel.  However, when I downloaded and looked
+at a few of them, their documentation was incomplete and I had trouble
+with their installation.  It's not clear if some of the packages are
+still being actively developed and supported.
 </P>
 <P>The one I recommend, since I have successfully used it with LAMMPS, is
 Pypar.  Pypar requires the ubiquitous <A HREF = "http://numpy.scipy.org">Numpy
 package</A> be installed in your Python.  After
 launching python, type
 </P>
-<PRE>>>> import numpy 
+<PRE>import numpy 
 </PRE>
 <P>to see if it is installed.  If not, here is how to install it (version
 1.3.0b1 as of April 2009).  Unpack the numpy tarball and from its
@@ -244,58 +243,108 @@ your Python distribution's site-packages directory.
 <P>If you have successully installed Pypar, you should be able to run
 python serially and type
 </P>
-<PRE>>>> import pypar 
+<PRE>import pypar 
 </PRE>
 <P>without error.  You should also be able to run python in parallel
 on a simple test script
 </P>
-<PRE>% mpirun -np 4 python test.script 
+<PRE>% mpirun -np 4 python test.py 
 </PRE>
-<P>where test.script contains the lines
+<P>where test.py contains the lines
 </P>
 <PRE>import pypar
 print "Proc %d out of %d procs" % (pypar.rank(),pypar.size()) 
 </PRE>
-<P>and see one line of output for each processor you ran on.
+<P>and see one line of output for each processor you run on.
 </P>
 <HR>
 
 <A NAME = "py_4"></A><H4>11.4 Testing the Python-LAMMPS interface 
 </H4>
-<P>To test if LAMMPS is now callable from Python, launch Python and type:
+<P>To test if LAMMPS is callable from Python, launch Python interactively
+and type:
 </P>
 <PRE>>>> from lammps import lammps
 >>> lmp = lammps() 
 </PRE>
 <P>If you get no errors, you're ready to use LAMMPS from Python.
+If the load fails, the most common error to see is
 </P>
-<PRE>% mpirun -np 4 python test.script 
+<P>"CDLL: asdfasdfasdf"
+</P>
+<P>which means Python was unable to load the LAMMPS shared library.  This
+can occur if it can't find the LAMMMPS library; see the environment
+variable discussion <A HREF = "#python_1">above</A>.  Or if it can't find one of the
+auxiliary libraries that was specified in the LAMMPS build, in a
+shared dynamic library format.  This includes all libraries needed by
+main LAMMPS (e.g. MPI or FFTW or JPEG), system libraries needed by
+main LAMMPS (e.g. extra libs needed by MPI), or packages you have
+installed that require libraries provided with LAMMPS (e.g. the
+USER-ATC package require lib/atc/libatc.so) or system libraries
+(e.g. BLAS or Fortran-to-C libraries) listed in the
+lib/package/Makefile.lammps file.  Again, all of these must be
+available as shared libraries, or the Python load will fail.
+</P>
+<P>Python (actually the operating system) isn't verbose about telling you
+why the load failed, so go through the steps above and in
+<A HREF = "Section_start.html#start_5">Section_start 5</A> carefully.
+</P>
+<H5><B>Test LAMMPS and Python in serial:</B> 
+</H5>
+<P>To run a LAMMPS test in serial, type these lines into Python
+interactively from the bench directory:
+</P>
+<PRE>>>> from lammps import lammps
+>>> lmp = lammps()
+>>> lmp.file("in.lj") 
 </PRE>
-<P>where test.script contains the lines
+<P>Or put the same lines in the file test.py and run it as
+</P>
+<PRE>% python test.py 
+</PRE>
+<P>Either way, you should see the results of running the in.lj benchmark
+on a single processor appear on the screen, the same as if you had
+typed something like:
+</P>
+<PRE>lmp_g++ < in.lj 
+</PRE>
+<H5><B>Test LAMMPS and Python in parallel:</B> 
+</H5>
+<P>To run LAMMPS in parallel, assuming you have installed the
+<A HREF = "http://datamining.anu.edu.au/~ole/pypar">Pypar</A> package as discussed
+above, create a test.py file containing these lines:
 </P>
 <PRE>import pypar
 from lammps import lammps
 lmp = lammps()
-print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()), lmp
+lmp.file("in.lj")
+print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
 pypar.finalize() 
 </PRE>
-<P>Again, if you get no errors, you're good to go.
+<P>You can then run it in parallel as:
 </P>
-<P>Note that if you left out the "import pypar" line from this script,
-you would instantiate and run LAMMPS independently on each of the P
-processors specified in the mpirun command.  You can test if Pypar is
-enabling true parallel Python and LAMMPS by adding a line to the above
-sequence of commands like lmp.file("in.lj") to run an input script and
-see if the LAMMPS run says it ran on P processors or if you get output
-from P duplicated 1-processor runs written to the screen.  In the
-latter case, Pypar is not working correctly.
+<PRE>% mpirun -np 4 python test.py 
+</PRE>
+<P>and you should see the same output as if you had typed
 </P>
-<P>Note that if your Python script imports the Pypar package (as above),
-so that it can use MPI calls directly, then Pypar initializes MPI for
-you.  Thus the last line of your Python script should be
-pypar.finalize(), to insure MPI is shut down correctly.
+<PRE>% mpirun -np 4 lmp_g++ < in.lj 
+</PRE>
+<P>Note that if you leave out the 3 lines from test.py that specify Pypar
+commands you will instantiate and run LAMMPS independently on each of
+the P processors specified in the mpirun command.  In this case you
+should get 4 sets of output, each showing that a run was made on a
+single processor, instead of one set of output showing that it ran on
+4 processors.  If the 1-processor outputs occur, it means that Pypar
+is not working correctly.
 </P>
-<P>Also note that a Python script can be invoked in one of several ways:
+<P>Also note that once you import the PyPar module, Pypar initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the Pypar documentation.  The last line of your Python
+script should be pypar.finalize(), to insure MPI is shut down
+correctly.
+</P>
+<P>Note that any Python script (not just for LAMMPS) can be invoked in
+one of several ways:
 </P>
 <P>% python foo.script
 % python -i foo.script
@@ -328,8 +377,9 @@ Python on a single processor, not in parallel.
 the source code for which is in python/lammps.py, which creates a
 "lammps" object, with a set of methods that can be invoked on that
 object.  The sample Python code below assumes you have first imported
-the "lammps" module in your Python script and its settings as
-follows:
+the "lammps" module in your Python script.  You can also include its
+settings as follows, which are useful in test return values from some
+of the methods described below:
 </P>
 <PRE>from lammps import lammps 
 from lammps import LMPINT as INT
@@ -343,8 +393,10 @@ at the file src/library.cpp you will see that they correspond
 one-to-one with calls you can make to the LAMMPS library from a C++ or
 C or Fortran program.
 </P>
-<PRE>lmp = lammps()           # create a LAMMPS object
-lmp = lammps(list)       # ditto, with command-line args, list = ["-echo","screen"] 
+<PRE>lmp = lammps()           # create a LAMMPS object using the default liblmp.so library
+lmp = lammps("g++")      # create a LAMMPS object using the liblmp_g++.so library
+lmp = lammps("",list)    # ditto, with command-line args, list = ["-echo","screen"]
+lmp = lammps("g++",list) 
 </PRE>
 <PRE>lmp.close()              # destroy a LAMMPS object 
 </PRE>
@@ -352,16 +404,16 @@ lmp = lammps(list)       # ditto, with command-line args, list = ["-echo","scree
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" 
 </PRE>
 <PRE>xlo = lmp.extract_global(name,type)  # extract a global quantity
-                                     # name = "boxxlo", "nlocal", etc
+                                    # name = "boxxlo", "nlocal", etc
 				     # type = INT or DOUBLE 
 </PRE>
 <PRE>coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
-                                          # name = "x", "type", etc
+                                         # name = "x", "type", etc
 				          # type = IPTR or DPTR or DPTRPTR 
 </PRE>
 <PRE>eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
 v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
-                                          # id = ID of compute or fix
+                                         # id = ID of compute or fix
 					  # style = 0 = global data
 					  #	    1 = per-atom data
 					  #         2 = local data
@@ -382,12 +434,23 @@ lmp.put_coords(x)                         # set all atom coords via x
 </PRE>
 <HR>
 
-<P>The creation of a LAMMPS object does not take an MPI communicator as
-an argument.  There should be a way to do this, so that the LAMMPS
-instance runs on a subset of processors, if desired, but I don't yet
-know how from Pypar.  So for now, it runs on MPI_COMM_WORLD, which is
-all the processors.
+<P>IMPORTANT NOTE: Currenlty, the creation of a LAMMPS object does not
+take an MPI communicator as an argument.  There should be a way to do
+this, so that the LAMMPS instance runs on a subset of processors if
+desired, but I don't know how to do it from Pypar.  So for now, it
+runs on MPI_COMM_WORLD, which is all the processors.  If someone
+figures out how to do this with one or more of the Python wrappers for
+MPI, like Pypar, please let us know and we will amend these doc pages.
 </P>
+<P>Note that you can create multiple LAMMPS objects in your Python
+script, and coordinate and run multiple simulations, e.g.
+</P>
+<PRE>from lammps import lammps
+lmp1 = lammps()
+lmp2 = lammps()
+lmp1.file("in.file1")
+lmp2.file("in.file2") 
+</PRE>
 <P>The file() and command() methods allow an input script or single
 commands to be invoked.
 </P>
@@ -497,15 +560,10 @@ following steps:
 <UL><LI>Add a new interface function to src/library.cpp and
 src/library.h. 
 
-<LI>Verify the new function is syntactically correct by building LAMMPS as
-a library - see <A HREF = "Section_start.html#start_5">Section_start 4</A> of the
-manual. 
+<LI>Rebuild LAMMPS as a shared library. 
 
-<LI>Add a wrapper method in the Python LAMMPS module to python/lammps.py
-for this interface function. 
-
-<LI>Rebuild the Python wrapper via python/setup_serial.py or
-python/setup.py. 
+<LI>Add a wrapper method to python/lammps.py for this interface
+function. 
 
 <LI>You should now be able to invoke the new interface function from a
 Python script.  Isn't ctypes amazing? 

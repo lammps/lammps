@@ -767,37 +767,77 @@ input scripts.
 
 2.5 Building LAMMPS as a library :h4,link(start_5)
 
-LAMMPS itself can be built as a library, which can then be called from
-another application or a scripting language.  See "this
-section"_Section_howto.html#howto_10 for more info on coupling LAMMPS
-to other codes.  Building LAMMPS as a library is done by typing
+LAMMPS can be built as either a static or shared library, which can
+then be called from another application or a scripting language.  See
+"this section"_Section_howto.html#howto_10 for more info on coupling
+LAMMPS to other codes.  See "this section"_Section_python.html for
+more info on wrapping and running LAMMPS from Python.
+
+To build LAMMPS as a static library (*.a file on Linux), type
 
 make makelib
 make -f Makefile.lib foo :pre
 
-where foo is the machine name.  Note that inclusion or exclusion of
-any desired optional packages should be done before typing "make
-makelib".  The first "make" command will create a current Makefile.lib
-with all the file names in your src dir.  The 2nd "make" command will
-use it to build LAMMPS as a library.  This requires that Makefile.foo
-have a library target (lib) and system-specific settings for ARCHIVE
-and ARFLAGS.  See Makefile.linux for an example.  The build will
-create the file liblmp_foo.a which another application can link to.
+where foo is the machine name.  This kind of library is typically used
+to statically link a driver application to all of LAMMPS, so that you
+can insure all dependencies are satisfied at compile time.  Note that
+inclusion or exclusion of any desired optional packages should be done
+before typing "make makelib".  The first "make" command will create a
+current Makefile.lib with all the file names in your src dir.  The 2nd
+"make" command will use it to build LAMMPS as a static library, using
+the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The build
+will create the file liblmp_foo.a which another application can link
+to.
 
-When used from a C++ program, the library allows one or more LAMMPS
-objects to be instantiated.  All of LAMMPS is wrapped in a LAMMPS_NS
+To build LAMMPS as a shared library (*.so file on Linux), which can be
+dynamically loaded, type
+
+make makeshlib
+make -f Makefile.shlib foo :pre
+
+where foo is the machine name.  This kind of library is required when
+wrapping LAMMPS with Python; see "Section_python"_Section_python.html
+for details.  Again, note that inclusion or exclusion of any desired
+optional packages should be done before typing "make makelib".  The
+first "make" command will create a current Makefile.shlib with all the
+file names in your src dir.  The 2nd "make" command will use it to
+build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
+settings in src/MAKE/Makefile.foo.  The build will create the file
+liblmp_foo.so which another application can link to dyamically, as
+well as a soft link liblmp.so, which the Python wrapper uses by
+default.
+
+Note that for a shared library to be usable by a calling program, all
+the auxiliary libraries it depends on must also exist as shared
+libraries, and be find-able by the operating system.  Else you will
+get a run-time error when the shared library is loaded.  For LAMMPS,
+this includes all libraries needed by main LAMMPS (e.g. MPI or FFTW or
+JPEG), system libraries needed by main LAMMPS (e.g. extra libs needed
+by MPI), or packages you have installed that require libraries
+provided with LAMMPS (e.g. the USER-ATC package require
+lib/atc/libatc.so) or system libraries (e.g. BLAS or Fortran-to-C
+libraries) listed in the lib/package/Makefile.lammps file.  See the
+discussion about the LAMMPS shared library in
+"Section_python"_Section_python.html for details about how to build
+shared versions of these libraries, and how to insure the operating
+system can find them, by setting the LD_LIBRARY_PATH environment
+variable correctly.
+
+Either flavor of library allows one or more LAMMPS objects to be
+instantiated from the calling program.
+
+When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from
-within your application code, as needed. 
+within the calling code, as needed.
 
-When used from a C or Fortran program or a scripting language, the
-library has a simple function-style interface, provided in
+When used from a C or Fortran program or a scripting language like
+Python, the library has a simple function-style interface, provided in
 src/library.cpp and src/library.h.
 
-See the sample codes in the examples/COUPLE/simple directory as
-examples of C++ and C codes that invoke LAMMPS thru its library
-interface.  There are other examples as well in the examples/COUPLE
-directory which are discussed in "Section_howto
-10"_Section_howto.html#howto_10 of the manual.  See
+See the sample codes in examples/COUPLE/simple for examples of C++ and
+C codes that invoke LAMMPS thru its library interface.  There are
+other examples as well in the COUPLE directory which are discussed in
+"Section_howto 10"_Section_howto.html#howto_10 of the manual.  See
 "Section_python"_Section_python.html of the manual for a description
 of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.

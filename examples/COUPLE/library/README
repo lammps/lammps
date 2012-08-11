@@ -1,0 +1,16 @@
+This directory has a small collection of routines, useful for
+exchanging data between 2 codes being run together as a coupled
+application.  It is used by the LAMMPS <-> Quest and LAMMPS <->
+SPPARKS applications in 2 sister directories.
+
+The library dir has a Makefile (which you may need to edit for your
+box).  If you type
+
+g++ -f Makefile.g++
+
+you should create libcouple.a, which the other coupled applications
+link to.
+
+Note that the library uses MPI, so the Makefile you use needs to
+include a path to the MPI include file, if it is not someplace
+the compiler will find it.

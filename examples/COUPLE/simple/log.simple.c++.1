@@ -1,0 +1,124 @@
+LAMMPS (20 Sep 2010)
+# 3d Lennard-Jones melt
+
+
+
+units		lj
+
+atom_style	atomic
+
+atom_modify	map array
+
+
+
+lattice		fcc 0.8442
+
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 4 0 4 0 4
+
+create_box	1 box
+
+Created orthogonal box = (0 0 0) to (6.71838 6.71838 6.71838)
+  1 by 1 by 1 processor grid
+create_atoms	1 box
+
+Created 256 atoms
+mass		1 1.0
+
+
+
+velocity	all create 1.44 87287 loop geom
+
+
+
+pair_style	lj/cut 2.5
+
+pair_coeff	1 1 1.0 1.0 2.5
+
+
+
+neighbor	0.3 bin
+
+neigh_modify	delay 0 every 20 check no
+
+
+
+fix		1 all nve
+
+
+
+run		10
+
+Memory usage per processor = 1.50139 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -6.7733681            0   -4.6218056   -5.0244179 
+      10    1.1298532   -6.3095502            0   -4.6213906   -2.6058175 
+Loop time of 0.00370193 on 1 procs for 10 steps with 256 atoms
+
+Pair  time (%) = 0.00340414 (91.9559)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000165701 (4.47607)
+Outpt time (%) = 2.31266e-05 (0.624718)
+Other time (%) = 0.000108957 (2.94326)
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1431 ave 1431 max 1431 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    9984 ave 9984 max 9984 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9984
+Ave neighs/atom = 39
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+run 10
+Memory usage per processor = 1.50139 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      10    1.1298532   -6.3095502            0   -4.6213906   -2.6058175 
+      20    0.6239063    -5.557644            0   -4.6254403   0.97451173 
+Loop time of 0.00365806 on 1 procs for 10 steps with 256 atoms
+
+Pair  time (%) = 0.0033741 (92.2375)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000161886 (4.42547)
+Outpt time (%) = 1.09673e-05 (0.299811)
+Other time (%) = 0.000111103 (3.03722)
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1431 ave 1431 max 1431 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    9952 ave 9952 max 9952 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9952
+Ave neighs/atom = 38.875
+Neighbor list builds = 0
+Dangerous builds = 0
+run 1
+Memory usage per processor = 1.50139 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      20    0.6239063   -5.5404291            0   -4.6082254    1.0394285 
+      21   0.63845863   -5.5628733            0   -4.6089263   0.99398278 
+Loop time of 0.000490904 on 1 procs for 1 steps with 256 atoms
+
+Pair  time (%) = 0.000452042 (92.0835)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 1.69277e-05 (3.44828)
+Outpt time (%) = 1.00136e-05 (2.03983)
+Other time (%) = 1.19209e-05 (2.42836)
+
+Nlocal:    256 ave 256 max 256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1431 ave 1431 max 1431 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    9705 ave 9705 max 9705 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9705
+Ave neighs/atom = 37.9102
+Neighbor list builds = 0
+Dangerous builds = 0

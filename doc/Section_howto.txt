@@ -654,8 +654,8 @@ invoked with minimal overhead (no setup or clean-up) if you wish to do
 multiple short runs, driven by another program.
 
 Examples of driver codes that call LAMMPS as a library are included in
-the "couple" directory of the LAMMPS distribution; see couple/README
-for more details:
+the examples/COUPLE directory of the LAMMPS distribution; see
+examples/COUPLE/README for more details:
 
 simple: simple driver programs in C++ and C which invoke LAMMPS as a
 library :ulb,l
@@ -1807,11 +1807,12 @@ details.
 The key idea of the library interface is that you can write any
 functions you wish to define how your code talks to LAMMPS and add
 them to src/library.cpp and src/library.h, as well as to the "Python
-interface"_Section_python.html.  The routines you add can access
-or change any LAMMPS data you wish.  The couple and python directories
-have example C++ and C and Python codes which show how a driver code
-can link to LAMMPS as a library, run LAMMPS on a subset of processors,
-grab data from LAMMPS, change it, and put it back into LAMMPS.
+interface"_Section_python.html.  The routines you add can access or
+change any LAMMPS data you wish.  The examples/COUPLE and python
+directories have example C++ and C and Python codes which show how a
+driver code can link to LAMMPS as a library, run LAMMPS on a subset of
+processors, grab data from LAMMPS, change it, and put it back into
+LAMMPS.
 
 :line
 

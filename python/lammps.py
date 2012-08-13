@@ -70,7 +70,7 @@ class lammps:
   def extract_atom(self,name,type):
     if type == 0:
       self.lib.lammps_extract_atom.restype = POINTER(c_int)
-    elif type == 0:
+    elif type == 1:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_int))
     elif type == 2:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)

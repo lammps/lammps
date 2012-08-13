@@ -18,6 +18,7 @@ if len(argv) != 2:
 infile = sys.argv[1]
 
 me = 0
+
 # uncomment if running in parallel via Pypar
 #import pypar
 #me = pypar.rank()
@@ -38,12 +39,11 @@ for line in lines: lmp.command(line)
 # run a single step with changed coords
 
 lmp.command("run 10")
-x = lmp.get_coords()
+x = lmp.gather_atoms("x",1,3)
 epsilon = 0.1
 x[0] += epsilon
-lmp.put_coords(x)
+lmp.scatter_atoms("x",1,3,x)
 lmp.command("run 1");
-lmp.command("run 1")
 
 # uncomment if running in parallel via Pypar
 #print "Proc %d out of %d procs has" % (me,nprocs), lmp

@@ -335,16 +335,9 @@ Python on a single processor, not in parallel.
 the source code for which is in python/lammps.py, which creates a
 "lammps" object, with a set of methods that can be invoked on that
 object.  The sample Python code below assumes you have first imported
-the "lammps" module in your Python script.  You can also include its
-settings as follows, which are useful in test return values from some
-of the methods described below:
+the "lammps" module in your Python script, as follows:
 </P>
 <PRE>from lammps import lammps 
-from lammps import LMPINT as INT
-from lammps import LMPDOUBLE as DOUBLE
-from lammps import LMPIPTR as IPTR
-from lammps import LMPDPTR as DPTR
-from lammps import LMPDPTRPTR as DPTRPTR 
 </PRE>
 <P>These are the methods defined by the lammps module.  If you look
 at the file src/library.cpp you will see that they correspond
@@ -362,16 +355,20 @@ lmp = lammps("g++",list)
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" 
 </PRE>
 <PRE>xlo = lmp.extract_global(name,type)  # extract a global quantity
-                                    # name = "boxxlo", "nlocal", etc
-				     # type = INT or DOUBLE 
+                                     # name = "boxxlo", "nlocal", etc
+				     # type = 0 = int
+				     #        1 = double 
 </PRE>
 <PRE>coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
-                                         # name = "x", "type", etc
-				          # type = IPTR or DPTR or DPTRPTR 
+                                          # name = "x", "type", etc
+				          # type = 0 = vector of ints
+				          #        1 = array of ints
+				          #        2 = vector of doubles
+				          #        3 = array of doubles 
 </PRE>
 <PRE>eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
 v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
-                                         # id = ID of compute or fix
+                                          # id = ID of compute or fix
 					  # style = 0 = global data
 					  #	    1 = per-atom data
 					  #         2 = local data
@@ -387,8 +384,12 @@ v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
 					     #        1 = atom-style variable 
 </PRE>
 <PRE>natoms = lmp.get_natoms()                 # total # of atoms as int
-x = lmp.get_coords()                      # return coords of all atoms in x
-lmp.put_coords(x)                         # set all atom coords via x 
+data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
+                                          # name = "x", "charge", "type", etc
+                                          # count = # of per-atom values, 1 or 3, etc
+lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms from data, ordered by atom ID
+                                          # name = "x", "charge", "type", etc
+                                          # count = # of per-atom values, 1 or 3, etc 
 </PRE>
 <HR>
 
@@ -427,8 +428,8 @@ returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
 Again, new names could easily be added.  A pointer to a vector of
 doubles or integers, or a pointer to an array of doubles (double **)
-is returned.  You need to specify the appropriate data type via the
-type argument.
+or integers (int **) is returned.  You need to specify the appropriate
+data type via the type argument.
 </P>
 <P>For extract_compute() and extract_fix(), the global, per-atom, or
 local data calulated by the compute or fix can be accessed.  What is
@@ -456,58 +457,57 @@ Python subscripting. The values will be zero for atoms not in the
 specified group.
 </P>
 <P>The get_natoms() method returns the total number of atoms in the
-simulation, as an int.  Note that extract_global("natoms") returns the
-same value, but as a double, which is the way LAMMPS stores it to
-allow for systems with more atoms than can be stored in an int (> 2
-billion).
+simulation, as an int.
 </P>
-<P>The get_coords() method returns an ctypes vector of doubles of length
-3*natoms, for the coordinates of all the atoms in the simulation,
-ordered by x,y,z and then by atom ID (see code for put_coords()
-below).  The array can be used via normal Python subscripting.  If
-atom IDs are not consecutively ordered within LAMMPS, a None is
-returned as indication of an error.
+<P>The gather_atoms() method returns a ctypes vector of ints or doubles
+as specified by type, of length count*natoms, for the property of all
+the atoms in the simulation specified by name, ordered by count and
+then by atom ID.  The vector can be used via normal Python
+subscripting.  If atom IDs are not consecutively ordered within
+LAMMPS, a None is returned as indication of an error.
 </P>
-<P>Note that the data structure get_coords() returns is different from
-the data structure returned by extract_atom("x") in four ways.  (1)
-Get_coords() returns a vector which you index as x[i];
+<P>Note that the data structure gather_atoms("x") returns is different
+from the data structure returned by extract_atom("x") in four ways.
+(1) Gather_atoms() returns a vector which you index as x[i];
 extract_atom() returns an array which you index as x[i][j].  (2)
-Get_coords() orders the atoms by atom ID while extract_atom() does
-not.  (3) Get_coords() returns a list of all atoms in the simulation;
-extract_atoms() returns just the atoms local to each processor.  (4)
-Finally, the get_coords() data structure is a copy of the atom coords
-stored internally in LAMMPS, whereas extract_atom returns an array
-that points directly to the internal data.  This means you can change
-values inside LAMMPS from Python by assigning a new values to the
-extract_atom() array.  To do this with the get_atoms() vector, you
-need to change values in the vector, then invoke the put_coords()
-method.
+Gather_atoms() orders the atoms by atom ID while extract_atom() does
+not.  (3) Gathert_atoms() returns a list of all atoms in the
+simulation; extract_atoms() returns just the atoms local to each
+processor.  (4) Finally, the gather_atoms() data structure is a copy
+of the atom coords stored internally in LAMMPS, whereas extract_atom()
+returns an array that effectively points directly to the internal
+data.  This means you can change values inside LAMMPS from Python by
+assigning a new values to the extract_atom() array.  To do this with
+the gather_atoms() vector, you need to change values in the vector,
+then invoke the scatter_atoms() method.
 </P>
-<P>The put_coords() method takes a vector of coordinates for all atoms in
-the simulation, assumed to be ordered by x,y,z and then by atom ID,
-and uses the values to overwrite the corresponding coordinates for
-each atom inside LAMMPS.  This requires LAMMPS to have its "map"
-option enabled; see the <A HREF = "atom_modify.html">atom_modify</A> command for
-details.  If it is not or if atom IDs are not consecutively ordered,
-no coordinates are reset,
+<P>The scatter_atoms() method takes a vector of ints or doubles as
+specified by type, of length count*natoms, for the property of all the
+atoms in the simulation specified by name, ordered by bount and then
+by atom ID.  It uses the vector of data to overwrite the corresponding
+properties for each atom inside LAMMPS.  This requires LAMMPS to have
+its "map" option enabled; see the <A HREF = "atom_modify.html">atom_modify</A>
+command for details.  If it is not, or if atom IDs are not
+consecutively ordered, no coordinates are reset.
 </P>
-<P>The array of coordinates passed to put_coords() must be a ctypes
-vector of doubles, allocated and initialized something like this:
+<P>The array of coordinates passed to scatter_atoms() must be a ctypes
+vector of ints or doubles, allocated and initialized something like
+this:
 </P>
 <PRE>from ctypes import *
-natoms = lmp.get_atoms()
+natoms = lmp.get_natoms()
 n3 = 3*natoms
-x = (c_double*n3)()
+x = (n3*c_double)()
 x<B>0</B> = x coord of atom with ID 1
 x<B>1</B> = y coord of atom with ID 1
 x<B>2</B> = z coord of atom with ID 1
 x<B>3</B> = x coord of atom with ID 2
 ...
 x<B>n3-1</B> = z coord of atom with ID natoms
-lmp.put_coords(x) 
+lmp.scatter_coords("x",1,3,x) 
 </PRE>
 <P>Alternatively, you can just change values in the vector returned by
-get_coords(), since it is a ctypes vector of doubles.
+gather_atoms("x",1,3), since it is a ctypes vector of doubles.
 </P>
 <HR>
 

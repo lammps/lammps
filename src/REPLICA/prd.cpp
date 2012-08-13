@@ -482,7 +482,7 @@ void PRD::dynamics()
   update->integrate->setup();
   // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
-  int ncalls = neighbor->ncalls;
+  bigint ncalls = neighbor->ncalls;
 
   timer->barrier_start(TIME_LOOP);
   update->integrate->run(t_event);

@@ -39,8 +39,8 @@ class PRD : protected Pointers {
 
   int equal_size_replicas,natoms;
   int neigh_every,neigh_delay,neigh_dist_check;
-  int nbuild,ndanger;
   int quench_reneighbor;
+  bigint nbuild,ndanger;
 
   double time_dephase,time_dynamics,time_quench,time_comm,time_output;
   double time_start;

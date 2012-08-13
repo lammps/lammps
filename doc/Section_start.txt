@@ -779,15 +779,15 @@ make makelib
 make -f Makefile.lib foo :pre
 
 where foo is the machine name.  This kind of library is typically used
-to statically link a driver application to all of LAMMPS, so that you
-can insure all dependencies are satisfied at compile time.  Note that
+to statically link a driver application to LAMMPS, so that you can
+insure all dependencies are satisfied at compile time.  Note that
 inclusion or exclusion of any desired optional packages should be done
 before typing "make makelib".  The first "make" command will create a
-current Makefile.lib with all the file names in your src dir.  The 2nd
-"make" command will use it to build LAMMPS as a static library, using
-the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The build
-will create the file liblmp_foo.a which another application can link
-to.
+current Makefile.lib with all the file names in your src dir.  The
+second "make" command will use it to build LAMMPS as a static library,
+using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
+build will create the file liblmp_foo.a which another application can
+link to.
 
 To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, type
@@ -800,7 +800,7 @@ wrapping LAMMPS with Python; see "Section_python"_Section_python.html
 for details.  Again, note that inclusion or exclusion of any desired
 optional packages should be done before typing "make makelib".  The
 first "make" command will create a current Makefile.shlib with all the
-file names in your src dir.  The 2nd "make" command will use it to
+file names in your src dir.  The second "make" command will use it to
 build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
 settings in src/MAKE/Makefile.foo.  The build will create the file
 liblmp_foo.so which another application can link to dyamically, as
@@ -809,19 +809,105 @@ default.
 
 Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
-libraries, and be find-able by the operating system.  Else you will
-get a run-time error when the shared library is loaded.  For LAMMPS,
-this includes all libraries needed by main LAMMPS (e.g. MPI or FFTW or
-JPEG), system libraries needed by main LAMMPS (e.g. extra libs needed
-by MPI), or packages you have installed that require libraries
+libraries, and the operating system must be able to find them.  For
+LAMMPS, this includes all libraries needed by main LAMMPS (e.g. MPI or
+FFTW or JPEG), system libraries needed by main LAMMPS (e.g. extra libs
+needed by MPI), or packages you have installed that require libraries
 provided with LAMMPS (e.g. the USER-ATC package require
 lib/atc/libatc.so) or system libraries (e.g. BLAS or Fortran-to-C
-libraries) listed in the lib/package/Makefile.lammps file.  See the
-discussion about the LAMMPS shared library in
+libraries) listed in the lib/package/Makefile.lammps file.
+
+If one of these auxiliary libraries does not exist as a shared
+library, the second make command should generate a build error.  The
+build will not generate an error, if a needed library is simply
+missing from the link list; this will generate a run-time error when
+the library is loaded, so be sure all needed libraries are listed,
+as they would be when building LAMMPS as a stand-alone code.
+
+Note that if you install them yourself, some libraries, such as MPI,
+may not build by default as shared libraries.  The build instructions
+for the library should tell you how to do this.
+
+For example, here is how to build and install the "MPICH
+library"_mpich, a popular open-source version of MPI, distributed by
+Argonne National Labs, as a shared library in the default
+/usr/local/lib location:
+
+:link(mpich,http://www-unix.mcs.anl.gov/mpi)
+
+./configure --enable-shared
+make
+make install :pre
+
+You may need to use "sudo make install" in place of the last line if
+you do not have write priveleges for /usr/local/lib.  The end result
+should be the file /usr/local/lib/libmpich.so.
+
+Also note that not all of the auxiliary libraries provided with LAMMPS
+include Makefiles in their lib directories for building them as shared
+libraries.  Typically this simply requires adding a -fPIC switch when
+files are compiled and "-fPIC -shared" switches when the library is
+linked with a C++ (or Fortran) compiler, and creating an output target
+that ends in ".so", like libatc.o.  As we or others create and
+contribute these Makefiles, we will add them to the LAMMPS
+distribution.
+
+
+You must insure that each of these libraries exist in shared library
+form (*.so file for Linux systems), or either the LAMMPS shared
+library build or the Python load of the library will fail.  For the
+load to be successful all the shared libraries must also be in
+directories that the operating system checks.  See the discussion in
+the preceding section about the LD_LIBRARY_PATH environment variable
+for how to insure this.
+
+
+
+The second is the environment variable LD_LIBRARY_PATH, which is used
+by the operating system to find dynamic shared libraries when it loads
+them.  
+
+It needs to include the directory where the shared LAMMPS
+library will be.  Normally this is the LAMMPS src dir, as explained in
+the following section.
+
+For the csh or tcsh shells, you could add something like this to your
+~/.cshrc file:
+
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
+
+As discussed below, if your LAMMPS build includes auxiliary libraries,
+they must also be available as shared libraries for Python to
+successfully load LAMMPS.  If they are not in default places where the
+operating system can find them, then you also have to add their paths
+to the LD_LIBRARY_PATH environment variable.
+
+For example, if you are using the dummy MPI library provided in
+src/STUBS, you need to add something like this to your ~/.cshrc file:
+
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src/STUBS :pre
+
+If you are using the LAMMPS USER-ATC package, you need to add
+something like this to your ~/.cshrc file:
+
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/lib/atc :pre
+
+
+
+
+
+
+
+
+
+
+See the discussion about the LAMMPS shared library in
 "Section_python"_Section_python.html for details about how to build
 shared versions of these libraries, and how to insure the operating
 system can find them, by setting the LD_LIBRARY_PATH environment
 variable correctly.
+
+
 
 Either flavor of library allows one or more LAMMPS objects to be
 instantiated from the calling program.

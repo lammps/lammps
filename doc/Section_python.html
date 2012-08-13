@@ -85,38 +85,18 @@ that Python checks.
 <P>The first is the environment variable PYTHONPATH.  It needs
 to include the directory where the python/lammps.py file is.
 </P>
-<P>For the csh or tcsh shells, you could add something like this to your
-~/.cshrc file:
+<P>For the csh or tcsh shells, add something like this to your ~/.cshrc
+file:
 </P>
 <PRE>setenv PYTHONPATH $<I>PYTHONPATH</I>:/home/sjplimp/lammps/python 
 </PRE>
 <P>The second is the environment variable LD_LIBRARY_PATH, which is used
 by the operating system to find dynamic shared libraries when it loads
-them.  It needs to include the directory where the shared LAMMPS
-library will be.  Normally this is the LAMMPS src dir, as explained in
-the following section.
+them.  See the discussion in <A HREF = "Section_start.html#start_5">Section_start
+5</A> of the manual about building LAMMPS as a
+shared library, for instructions on how to set the LD_LIBRARY_PATH
+variable appropriately.
 </P>
-<P>For the csh or tcsh shells, you could add something like this to your
-~/.cshrc file:
-</P>
-<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
-</PRE>
-<P>As discussed below, if your LAMMPS build includes auxiliary libraries,
-they must also be available as shared libraries for Python to
-successfully load LAMMPS.  If they are not in default places where the
-operating system can find them, then you also have to add their paths
-to the LD_LIBRARY_PATH environment variable.
-</P>
-<P>For example, if you are using the dummy MPI library provided in
-src/STUBS, you need to add something like this to your ~/.cshrc file:
-</P>
-<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src/STUBS 
-</PRE>
-<P>If you are using the LAMMPS USER-ATC package, you need to add
-something like this to your ~/.cshrc file:
-</P>
-<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/lib/atc 
-</PRE>
 <HR>
 
 <A NAME = "py_2"></A><H4>11.2 Building LAMMPS as a shared library 
@@ -126,11 +106,11 @@ something like this to your ~/.cshrc file:
 that is dynamically loadable, which is what Python requires.  On Linux
 this is a library file that ends in ".so", not ".a".
 </P>
-<P>>From the src directory, type
+<P>From the src directory, type
 </P>
-<P>make makeshlib
-make -f Makefile.shlib foo
-</P>
+<PRE>make makeshlib
+make -f Makefile.shlib foo 
+</PRE>
 <P>where foo is the machine target name, such as linux or g++ or serial.
 This should create the file liblmp_foo.so in the src directory, as
 well as a soft link liblmp.so which is what the Python wrapper will
@@ -138,47 +118,7 @@ load by default.  If you are building multiple machine versions of the
 shared library, the soft link is always set to the most recently built
 version.
 </P>
-<P>Note that as discussed in below, a LAMMPS build may depend on several
-auxiliary libraries, which are specified in your low-level
-src/Makefile.foo file.  For example, an MPI library, the FFTW library,
-a JPEG library, etc.  Depending on what LAMMPS packages you have
-installed, the build may also require additional libraries from the
-lib directories, such as lib/atc/libatc.so or lib/reax/libreax.so.
-</P>
-<P>You must insure that each of these libraries exist in shared library
-form (*.so file for Linux systems), or either the LAMMPS shared
-library build or the Python load of the library will fail.  For the
-load to be successful all the shared libraries must also be in
-directories that the operating system checks.  See the discussion in
-the preceding section about the LD_LIBRARY_PATH environment variable
-for how to insure this.
-</P>
-<P>Note that some system libraries, such as MPI, if you installed it
-yourself, may not be built by default as shared libraries.  The build
-instructions for the library should tell you how to do this.
-</P>
-<P>For example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
-library</A>, a popular open-source version of MPI, distributed by
-Argonne National Labs, as a shared library in the default
-/usr/local/lib location:
-</P>
-
-
-<PRE>./configure --enable-shared
-make
-make install 
-</PRE>
-<P>You may need to use "sudo make install" in place of the last line if
-you do not have write priveleges for /usr/local/lib.  The end result
-should be the file /usr/local/lib/libmpich.so.
-</P>
-<P>Note that not all of the auxiliary libraries provided with LAMMPS have
-shared-library Makefiles in their lib directories.  Typically this
-simply requires a Makefile.foo that adds a -fPIC switch when files are
-compiled and a "-fPIC -shared" switches when the library is linked
-with a C++ (or Fortran) compiler, as well as an output target that
-ends in ".so", like libatc.o.  As we or others create and contribute
-these Makefiles, we will add them to the LAMMPS distribution.
+<P>See <A HREF = "Section_start.html#start_5">Section_start 5</A> for more details.
 </P>
 <HR>
 
@@ -197,7 +137,7 @@ as a library and allow MPI functions to be called from Python.
 <LI><A HREF = "http://code.google.com/p/maroonmpi/">maroonmpi</A>
 <LI><A HREF = "http://code.google.com/p/mpi4py/">mpi4py</A>
 <LI><A HREF = "http://nbcr.sdsc.edu/forum/viewtopic.php?t=89&sid=c997fefc3933bd66204875b436940f16">myMPI</A>
-<LI><A HREF = "http://datamining.anu.edu.au/~ole/pypar">Pypar</A> 
+<LI><A HREF = "http://code.google.com/p/pypar">Pypar</A> 
 </UL>
 <P>All of these except pyMPI work by wrapping the MPI library (which must
 be available on your system as a shared library, as discussed above),
@@ -272,7 +212,7 @@ and type:
 <P>If you get no errors, you're ready to use LAMMPS from Python.
 If the load fails, the most common error to see is
 </P>
-<P>"CDLL: asdfasdfasdf"
+<P>OSError: Could not load LAMMPS dynamic library
 </P>
 <P>which means Python was unable to load the LAMMPS shared library.  This
 can occur if it can't find the LAMMMPS library; see the environment

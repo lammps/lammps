@@ -38,12 +38,13 @@ void *lammps_extract_fix(void *, char *, int, int, int, int);
 void *lammps_extract_variable(void *, char *, char *);
 
 int lammps_get_natoms(void *);
-void lammps_get_coords(void *, double *);
-void lammps_put_coords(void *, double *);
+void lammps_gather_atoms(void *, char *, int, int, void *);
+void lammps_scatter_atoms(void *, char *, int, int, void *);
 
 #ifdef __cplusplus
 }
 #endif
+
 /* ERROR/WARNING messages:
 
 */

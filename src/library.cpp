@@ -30,6 +30,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 
@@ -157,6 +158,14 @@ void *lammps_extract_atom(void *ptr, char *name)
    id = compute ID
    style = 0 for global data, 1 for per-atom data, 2 for local data
    type = 0 for scalar, 1 for vector, 2 for array
+   for global data, returns a pointer to the
+     compute's internal data structure for the entity
+     caller should cast it to (double *) for a scalar or vector
+     caller should cast it to (double **) for an array
+   for per-atom or local data, returns a pointer to the
+     compute's internal data structure for the entity
+     caller should cast it to (double *) for a vector
+     caller should cast it to (double **) for an array
    returns a void pointer to the compute's internal data structure
      for the entity which the caller can cast to the proper data type
    returns a NULL if id is not recognized or style/type not supported
@@ -236,7 +245,8 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
      which the caller can cast to a (double *) which points to the value
    for per-atom or local data, returns a pointer to the
      fix's internal data structure for the entity
-     which the caller can cast to the proper data type
+     caller should cast it to (double *) for a vector
+     caller should cast it to (double **) for an array
    returns a NULL if id is not recognized or style/type not supported
    IMPORTANT: for global data,
      this function allocates a double to store the value in,
@@ -300,7 +310,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
      which the caller can cast to a (double *) which points to the value
    for atom-style variable, returns a pointer to the
      vector of per-atom values on each processor,
-     which the caller can cast to the proper data type
+     which the caller can cast to a (double *) which points to the values
    returns a NULL if name is not recognized or not equal-style or atom-style
    IMPORTANT: for both equal-style and atom-style variables,
      this function allocates memory to store the variable data in
@@ -343,7 +353,10 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
   return NULL;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   return the total number of atoms in the system
+   useful before call to lammps_get_atoms() so can pre-allocate vector
+------------------------------------------------------------------------- */
 
 int lammps_get_natoms(void *ptr)
 {
@@ -353,9 +366,18 @@ int lammps_get_natoms(void *ptr)
   return natoms;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   gather the named atom-based entity across all processors
+   name = desired quantity, e.g. x or charge
+   type = 0 for integer values, 1 for double values
+   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   return atom-based values in data, ordered by count, then by atom ID
+     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+   data must be allocated by caller to correct length
+------------------------------------------------------------------------- */
 
-void lammps_get_coords(void *ptr, double *coords)
+void lammps_gather_atoms(void *ptr, char *name, 
+                         int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -365,47 +387,142 @@ void lammps_get_coords(void *ptr, double *coords)
   if (lmp->atom->natoms > MAXSMALLINT) return;
 
   int natoms = static_cast<int> (lmp->atom->natoms);
-  double *copy = new double[3*natoms];
-  for (int i = 0; i < 3*natoms; i++) copy[i] = 0.0;
 
-  double **x = lmp->atom->x;
-  int *tag = lmp->atom->tag;
-  int nlocal = lmp->atom->nlocal;
+  int i,j,offset;
 
-  int id,offset;
-  for (int i = 0; i < nlocal; i++) {
-    id = tag[i];
-    offset = 3*(id-1);
-    copy[offset+0] = x[i][0];
-    copy[offset+1] = x[i][1];
-    copy[offset+2] = x[i][2];
+  // copy = Natom length vector of per-atom values
+  // use atom ID to insert each atom's values into copy
+  // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+  if (type == 0) {
+    void *vptr = lmp->atom->extract(name);
+    int *vector;
+    int **array;
+    if (count == 1) vector = (int *) vptr;
+    else array = (int **) vptr;
+
+    int *copy;
+    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
+    int *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+
+    if (count == 1)
+      for (i = 0; i < nlocal; i++)
+        copy[tag[i]-1] = vector[i];
+    else
+      for (i = 0; i < nlocal; i++) {
+        offset = count*(tag[i]-1);
+        for (j = 0; j < count; j++)
+          copy[offset++] = array[i][0];
+      }
+
+    MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
+    lmp->memory->destroy(copy);
+
+  } else {
+    void *vptr = lmp->atom->extract(name);
+    double *vector;
+    double **array;
+    if (count == 1) vector = (double *) vptr;
+    else array = (double **) vptr;
+
+    double *copy;
+    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+
+    int *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+
+    if (count == 1) {
+      for (i = 0; i < nlocal; i++)
+        copy[tag[i]-1] = vector[i];
+    } else {
+      for (i = 0; i < nlocal; i++) {
+        offset = count*(tag[i]-1);
+        for (j = 0; j < count; j++)
+          copy[offset++] = array[i][j];
+      }
+    }
+
+    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
+    lmp->memory->destroy(copy);
   }
-
-  MPI_Allreduce(copy,coords,3*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
-  delete [] copy;
 }
 
-/* ---------------------------------------------------------------------- */
 
-void lammps_put_coords(void *ptr, double *coords)
+/* ----------------------------------------------------------------------
+   gather the named atom-based entity across all processors
+   name = desired quantity, e.g. x or charge
+   type = 0 for integer values, 1 for double values
+   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   return atom-based values in data, ordered by count, then by atom ID
+     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+   data must be allocated by caller to correct length
+------------------------------------------------------------------------- */
+
+void lammps_scatter_atoms(void *ptr, char *name,
+                          int type, int count, void *data)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // error if no map defined by LAMMPS
+  // error if tags are not defined or not consecutive
 
-  if (lmp->atom->map_style == 0) return;
+  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) return;
   if (lmp->atom->natoms > MAXSMALLINT) return;
 
   int natoms = static_cast<int> (lmp->atom->natoms);
-  double **x = lmp->atom->x;
 
-  int m,offset;
-  for (int i = 0; i < natoms; i++) {
-    if ((m = lmp->atom->map(i+1)) >= 0) {
-      offset = 3*i;
-      x[m][0] = coords[offset+0];
-      x[m][1] = coords[offset+1];
-      x[m][2] = coords[offset+2];
+  int i,j,m,offset;
+
+  // copy = Natom length vector of per-atom values
+  // use atom ID to insert each atom's values into copy
+  // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+  if (type == 0) {
+    void *vptr = lmp->atom->extract(name);
+    int *vector;
+    int **array;
+    if (count == 1) vector = (int *) vptr;
+    else array = (int **) vptr;
+    int *dptr = (int *) data;
+
+    if (count == 1)
+      for (i = 0; i < natoms; i++)
+        if ((m = lmp->atom->map(i+1)) >= 0)
+          vector[m] = dptr[i];
+    else
+      for (i = 0; i < natoms; i++)
+        if ((m = lmp->atom->map(i+1)) >= 0) {
+          offset = count*i;
+          for (j = 0; j < count; j++)
+            array[m][j] = dptr[offset++];
+        }
+
+  } else {
+    void *vptr = lmp->atom->extract(name);
+    double *vector;
+    double **array;
+    if (count == 1) vector = (double *) vptr;
+    else array = (double **) vptr;
+    double *dptr = (double *) data;
+
+    int *tag = lmp->atom->tag;
+    int nlocal = lmp->atom->nlocal;
+
+    if (count == 1) {
+      for (i = 0; i < natoms; i++)
+        if ((m = lmp->atom->map(i+1)) >= 0)
+          vector[m] = dptr[i];
+    } else {
+      for (i = 0; i < natoms; i++) {
+        if ((m = lmp->atom->map(i+1)) >= 0) {
+          offset = count*i;
+          for (j = 0; j < count; j++)
+            array[m][j] = dptr[offset++];
+        }
+      }
     }
   }
 }

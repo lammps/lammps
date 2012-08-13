@@ -281,10 +281,13 @@ dummy MPI library provided in src/STUBS, since you don't need a true
 MPI library installed on your system.  See the
 src/MAKE/Makefile.serial file for how to specify the 3 MPI variables
 in this case.  You will also need to build the STUBS library for your
-platform before making LAMMPS itself.  From the src directory, type
-"make stubs", or from the STUBS dir, type "make" and it should create
-a libmpi.a suitable for linking to LAMMPS.  If this build fails, you
-will need to edit the STUBS/Makefile for your platform.
+platform before making LAMMPS itself.  To build it as a static
+library, from the src directory, type "make stubs", or from the STUBS
+dir, type "make" and it should create a libmpi_stubs.a suitable for
+linking to LAMMPS.  To build it as a shared library, from the STUBS
+dir, type "make shlib" and it should create a libmpi_stubs.so suitable
+for dynamically loading when LAMMPS runs.  If either of these builds
+fail, you will need to edit the STUBS/Makefile for your platform.
 </P>
 <P>The file STUBS/mpi.cpp provides a CPU timer function called
 MPI_Wtime() that calls gettimeofday() .  If your system doesn't
@@ -779,6 +782,8 @@ then be called from another application or a scripting language.  See
 LAMMPS to other codes.  See <A HREF = "Section_python.html">this section</A> for
 more info on wrapping and running LAMMPS from Python.
 </P>
+<H5><B>Static library:</B> 
+</H5>
 <P>To build LAMMPS as a static library (*.a file on Linux), type
 </P>
 <PRE>make makelib
@@ -795,8 +800,10 @@ using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
 build will create the file liblmp_foo.a which another application can
 link to.
 </P>
+<H5><B>Shared library:</B> 
+</H5>
 <P>To build LAMMPS as a shared library (*.so file on Linux), which can be
-dynamically loaded, type
+dynamically loaded, e.g. from Python, type
 </P>
 <PRE>make makeshlib
 make -f Makefile.shlib foo 
@@ -813,28 +820,31 @@ liblmp_foo.so which another application can link to dyamically, as
 well as a soft link liblmp.so, which the Python wrapper uses by
 default.
 </P>
+<H5><B>Additional requirements for building a shared library:</B> 
+</H5>
 <P>Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
 libraries, and the operating system must be able to find them.  For
 LAMMPS, this includes all libraries needed by main LAMMPS (e.g. MPI or
 FFTW or JPEG), system libraries needed by main LAMMPS (e.g. extra libs
-needed by MPI), or packages you have installed that require libraries
+needed by MPI), any packages you have installed that require libraries
 provided with LAMMPS (e.g. the USER-ATC package require
-lib/atc/libatc.so) or system libraries (e.g. BLAS or Fortran-to-C
-libraries) listed in the lib/package/Makefile.lammps file.
+lib/atc/libatc.so), and any system libraries (e.g. BLAS or
+Fortran-to-C libraries) listed in the lib/package/Makefile.lammps
+file.
 </P>
 <P>If one of these auxiliary libraries does not exist as a shared
-library, the second make command should generate a build error.  The
-build will not generate an error, if a needed library is simply
-missing from the link list; this will generate a run-time error when
-the library is loaded, so be sure all needed libraries are listed,
-as they would be when building LAMMPS as a stand-alone code.
+library, the second make command should generate a build error.  If a
+needed library is simply missing from the link list, this will not
+generate an error at build time, but will generate a run-time error
+when the library is loaded, so be sure all needed libraries are
+listed, just as they are when building LAMMPS as a stand-alone code.
 </P>
 <P>Note that if you install them yourself, some libraries, such as MPI,
 may not build by default as shared libraries.  The build instructions
 for the library should tell you how to do this.
 </P>
-<P>For example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
+<P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
 library</A>, a popular open-source version of MPI, distributed by
 Argonne National Labs, as a shared library in the default
 /usr/local/lib location:
@@ -846,63 +856,50 @@ make
 make install 
 </PRE>
 <P>You may need to use "sudo make install" in place of the last line if
-you do not have write priveleges for /usr/local/lib.  The end result
+you do not have write privileges for /usr/local/lib.  The end result
 should be the file /usr/local/lib/libmpich.so.
 </P>
 <P>Also note that not all of the auxiliary libraries provided with LAMMPS
-include Makefiles in their lib directories for building them as shared
-libraries.  Typically this simply requires adding a -fPIC switch when
-files are compiled and "-fPIC -shared" switches when the library is
-linked with a C++ (or Fortran) compiler, and creating an output target
-that ends in ".so", like libatc.o.  As we or others create and
-contribute these Makefiles, we will add them to the LAMMPS
-distribution.
+include Makefiles in their lib directories suitable for building them
+as shared libraries.  Typically this simply requires 3 steps: (a)
+adding a -fPIC switch when files are compiled, (b) adding "-fPIC
+-shared" switches when the library is linked with a C++ (or Fortran)
+compiler, and (c) creating an output target that ends in ".so", like
+libatc.o.  As we or others create and contribute these Makefiles, we
+will add them to the LAMMPS distribution.
 </P>
-<P>You must insure that each of these libraries exist in shared library
-form (*.so file for Linux systems), or either the LAMMPS shared
-library build or the Python load of the library will fail.  For the
-load to be successful all the shared libraries must also be in
-directories that the operating system checks.  See the discussion in
-the preceding section about the LD_LIBRARY_PATH environment variable
-for how to insure this.
-</P>
-<P>The second is the environment variable LD_LIBRARY_PATH, which is used
-by the operating system to find dynamic shared libraries when it loads
-them.  
-</P>
-<P>It needs to include the directory where the shared LAMMPS
-library will be.  Normally this is the LAMMPS src dir, as explained in
-the following section.
+<H5><B>Additional requirements for using a shared library:</B> 
+</H5>
+<P>The operating system finds shared libraries to load at run-time using
+the environment variable LD_LIBRARY_PATH.  So at a minimum you
+must set it to include the lammps src directory where the LAMMPS
+shared library file is created.
 </P>
 <P>For the csh or tcsh shells, you could add something like this to your
 ~/.cshrc file:
 </P>
 <PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
 </PRE>
-<P>As discussed below, if your LAMMPS build includes auxiliary libraries,
-they must also be available as shared libraries for Python to
-successfully load LAMMPS.  If they are not in default places where the
-operating system can find them, then you also have to add their paths
-to the LD_LIBRARY_PATH environment variable.
+<P>If any auxiliary libraries, used by LAMMPS, are not in default places
+where the operating system can find them, then you also have to add
+their paths to the LD_LIBRARY_PATH environment variable.
 </P>
 <P>For example, if you are using the dummy MPI library provided in
-src/STUBS, you need to add something like this to your ~/.cshrc file:
+src/STUBS, and have built the file libmpi_stubs.so, you would add
+something like this to your ~/.cshrc file:
 </P>
 <PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src/STUBS 
 </PRE>
-<P>If you are using the LAMMPS USER-ATC package, you need to add
-something like this to your ~/.cshrc file:
+<P>If you are using the LAMMPS USER-ATC package, and have built the file
+lib/atc/libatc.so, you would add something like this to your ~/.cshrc
+file:
 </P>
 <PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/lib/atc 
 </PRE>
-<P>See the discussion about the LAMMPS shared library in
-<A HREF = "Section_python.html">Section_python</A> for details about how to build
-shared versions of these libraries, and how to insure the operating
-system can find them, by setting the LD_LIBRARY_PATH environment
-variable correctly.
-</P>
-<P>Either flavor of library allows one or more LAMMPS objects to be
-instantiated from the calling program.
+<H5><B>Calling the LAMMPS library:</B> 
+</H5>
+<P>Either flavor of library (static or shared0 allows one or more LAMMPS
+objects to be instantiated from the calling program.
 </P>
 <P>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from
@@ -913,17 +910,17 @@ Python, the library has a simple function-style interface, provided in
 src/library.cpp and src/library.h.
 </P>
 <P>See the sample codes in examples/COUPLE/simple for examples of C++ and
-C codes that invoke LAMMPS thru its library interface.  There are
-other examples as well in the COUPLE directory which are discussed in
-<A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the manual.  See
-<A HREF = "Section_python.html">Section_python</A> of the manual for a description
-of the Python wrapper provided with LAMMPS that operates through the
-LAMMPS library interface.
+C and Fortran codes that invoke LAMMPS thru its library interface.
+There are other examples as well in the COUPLE directory which are
+discussed in <A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the
+manual.  See <A HREF = "Section_python.html">Section_python</A> of the manual for a
+description of the Python wrapper provided with LAMMPS that operates
+through the LAMMPS library interface.
 </P>
-<P>The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See <A HREF = "Section_howto.html#howto_19">Section_howto 19</A> of the
-manual for a description of the interface and how to extend it for
-your needs.
+<P>The files src/library.cpp and library.h define the C-style API for
+using LAMMPS as a library.  See <A HREF = "Section_howto.html#howto_19">Section_howto
+19</A> of the manual for a description of the
+interface and how to extend it for your needs.
 </P>
 <HR>
 

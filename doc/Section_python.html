@@ -97,6 +97,12 @@ them.  See the discussion in <A HREF = "Section_start.html#start_5">Section_star
 shared library, for instructions on how to set the LD_LIBRARY_PATH
 variable appropriately.
 </P>
+<P>If your LAMMPS build is not using any auxiliary libraries which are in
+non-default directories where the system cannot find them, you
+typically just need to add something like this to your ~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+</PRE>
 <HR>
 
 <A NAME = "py_2"></A><H4>11.2 Building LAMMPS as a shared library 
@@ -114,11 +120,14 @@ make -f Makefile.shlib foo
 <P>where foo is the machine target name, such as linux or g++ or serial.
 This should create the file liblmp_foo.so in the src directory, as
 well as a soft link liblmp.so which is what the Python wrapper will
-load by default.  If you are building multiple machine versions of the
-shared library, the soft link is always set to the most recently built
-version.
+load by default.  Note that if you are building multiple machine
+versions of the shared library, the soft link is always set to the
+most recently built version.
 </P>
-<P>See <A HREF = "Section_start.html#start_5">Section_start 5</A> for more details.
+<P>If this fails, see <A HREF = "Section_start.html#start_5">Section_start 5</A> for
+more details, especially if your LAMMPS build uses auxiliary
+libraries, e.g. ones required by certain packages and found in the
+lib/package directories.
 </P>
 <HR>
 
@@ -139,11 +148,10 @@ as a library and allow MPI functions to be called from Python.
 <LI><A HREF = "http://nbcr.sdsc.edu/forum/viewtopic.php?t=89&sid=c997fefc3933bd66204875b436940f16">myMPI</A>
 <LI><A HREF = "http://code.google.com/p/pypar">Pypar</A> 
 </UL>
-<P>All of these except pyMPI work by wrapping the MPI library (which must
-be available on your system as a shared library, as discussed above),
-and exposing (some portion of) its interface to your Python script.
-This means Python cannot be used interactively in parallel, since they
-do not address the issue of interactive input to multiple instances of
+<P>All of these except pyMPI work by wrapping the MPI library and
+exposing (some portion of) its interface to your Python script.  This
+means Python cannot be used interactively in parallel, since they do
+not address the issue of interactive input to multiple instances of
 Python running on different processors.  The one exception is pyMPI,
 which alters the Python interpreter to address this issue, and (I
 believe) creates a new alternate executable (in place of "python"
@@ -173,17 +181,17 @@ sudo python setup.py install
 <P>The "sudo" is only needed if required to copy Numpy files into your
 Python distribution's site-packages directory.
 </P>
-<P>To install Pypar (version pypar-2.1.0_66 as of April 2009), unpack it
+<P>To install Pypar (version pypar-2.1.4_94 as of Aug 2012), unpack it
 and from its "source" directory, type
 </P>
 <PRE>python setup.py build
 sudo python setup.py install 
 </PRE>
-<P>Again, the "sudo" is only needed if required to copy PyPar files into
+<P>Again, the "sudo" is only needed if required to copy Pypar files into
 your Python distribution's site-packages directory.
 </P>
 <P>If you have successully installed Pypar, you should be able to run
-python serially and type
+Python and type
 </P>
 <PRE>import pypar 
 </PRE>
@@ -199,6 +207,19 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size())
 </PRE>
 <P>and see one line of output for each processor you run on.
 </P>
+<P>IMPORTANT NOTE: To use Pypar and LAMMPS in parallel from Python, you
+must insure both are using the same version of MPI.  If you only have
+one MPI installed on your system, this is not an issue, but it can be
+if you have multiple MPIs.  Your LAMMPS build is explicit about which
+MPI it is using, since you specify the details in your lo-level
+src/MAKE/Makefile.foo file.  Pypar uses the "mpicc" command to find
+information about the MPI it uses to build against.  And it tries to
+load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
+the MPI library that LAMMPS is using.  If you have problems running
+both Pypar and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that Pypar finds
+the right one.
+</P>
 <HR>
 
 <A NAME = "py_4"></A><H4>11.4 Testing the Python-LAMMPS interface 
@@ -212,24 +233,17 @@ and type:
 <P>If you get no errors, you're ready to use LAMMPS from Python.
 If the load fails, the most common error to see is
 </P>
-<P>OSError: Could not load LAMMPS dynamic library
-</P>
+<PRE>OSError: Could not load LAMMPS dynamic library 
+</PRE>
 <P>which means Python was unable to load the LAMMPS shared library.  This
-can occur if it can't find the LAMMMPS library; see the environment
-variable discussion <A HREF = "#python_1">above</A>.  Or if it can't find one of the
-auxiliary libraries that was specified in the LAMMPS build, in a
-shared dynamic library format.  This includes all libraries needed by
-main LAMMPS (e.g. MPI or FFTW or JPEG), system libraries needed by
-main LAMMPS (e.g. extra libs needed by MPI), or packages you have
-installed that require libraries provided with LAMMPS (e.g. the
-USER-ATC package require lib/atc/libatc.so) or system libraries
-(e.g. BLAS or Fortran-to-C libraries) listed in the
-lib/package/Makefile.lammps file.  Again, all of these must be
-available as shared libraries, or the Python load will fail.
+typically occurs if the system can't find the LAMMMPS shared library
+or one of the auxiliary shared libraries it depends on.
 </P>
 <P>Python (actually the operating system) isn't verbose about telling you
-why the load failed, so go through the steps above and in
-<A HREF = "Section_start.html#start_5">Section_start 5</A> carefully.
+why the load failed, so carefully go through the steps above regarding
+environment variables, and the instructions in <A HREF = "Section_start.html#start_5">Section_start
+5</A> about building a shared library and
+about setting the LD_LIBRARY_PATH envirornment variable.
 </P>
 <H5><B>Test LAMMPS and Python in serial:</B> 
 </H5>
@@ -274,10 +288,10 @@ pypar.finalize()
 <P>Note that if you leave out the 3 lines from test.py that specify Pypar
 commands you will instantiate and run LAMMPS independently on each of
 the P processors specified in the mpirun command.  In this case you
-should get 4 sets of output, each showing that a run was made on a
-single processor, instead of one set of output showing that it ran on
-4 processors.  If the 1-processor outputs occur, it means that Pypar
-is not working correctly.
+should get 4 sets of output, each showing that a LAMMPS run was made
+on a single processor, instead of one set of output showing that
+LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
+means that Pypar is not working correctly.
 </P>
 <P>Also note that once you import the PyPar module, Pypar initializes MPI
 for you, and you can use MPI calls directly in your Python script, as
@@ -285,6 +299,8 @@ described in the Pypar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.
 </P>
+<H5><B>Running Python scripts:</B> 
+</H5>
 <P>Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:
 </P>
@@ -337,7 +353,7 @@ C or Fortran program.
 </P>
 <PRE>lmp = lammps()           # create a LAMMPS object using the default liblmp.so library
 lmp = lammps("g++")      # create a LAMMPS object using the liblmp_g++.so library
-lmp = lammps("",list)    # ditto, with command-line args, list = ["-echo","screen"]
+lmp = lammps("",list)    # ditto, with command-line args, e.g. list = ["-echo","screen"]
 lmp = lammps("g++",list) 
 </PRE>
 <PRE>lmp.close()              # destroy a LAMMPS object 
@@ -376,13 +392,14 @@ lmp.put_coords(x)                         # set all atom coords via x
 </PRE>
 <HR>
 
-<P>IMPORTANT NOTE: Currently, the creation of a LAMMPS object does not
-take an MPI communicator as an argument.  There should be a way to do
-this, so that the LAMMPS instance runs on a subset of processors if
-desired, but I don't know how to do it from Pypar.  So for now, it
-runs on MPI_COMM_WORLD, which is all the processors.  If someone
-figures out how to do this with one or more of the Python wrappers for
-MPI, like Pypar, please let us know and we will amend these doc pages.
+<P>IMPORTANT NOTE: Currently, the creation of a LAMMPS object from within
+lammps.py does not take an MPI communicator as an argument.  There
+should be a way to do this, so that the LAMMPS instance runs on a
+subset of processors if desired, but I don't know how to do it from
+Pypar.  So for now, it runs with MPI_COMM_WORLD, which is all the
+processors.  If someone figures out how to do this with one or more of
+the Python wrappers for MPI, like Pypar, please let us know and we
+will amend these doc pages.
 </P>
 <P>Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.

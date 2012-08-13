@@ -23,7 +23,7 @@ LMPDPTR = 3
 LMPDPTRPTR = 4
 
 class lammps:
-  def __init__(self,name="",cmdlineargs=None):
+  def __init__(self,name="",cmdargs=None):
 
     # load liblmp.so by default
     # if name = "g++", load liblmp_g++.so
@@ -39,10 +39,10 @@ class lammps:
     # no_mpi call lets LAMMPS use MPI_COMM_WORLD
     # cargs = array of C strings from args
     
-    if cmdlineargs:
-      cmdlineargs.insert(0,"lammps.py")
-      narg = len(cmdlineargs)
-      cargs = (c_char_p*narg)(*cmdlineargs)
+    if cmdargs:
+      cmdargs.insert(0,"lammps.py")
+      narg = len(cmdargs)
+      cargs = (c_char_p*narg)(*cmdargs)
       self.lmp = c_void_p()
       self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
     else:

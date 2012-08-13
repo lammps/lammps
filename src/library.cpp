@@ -161,7 +161,7 @@ void *lammps_extract_atom(void *ptr, char *name)
      for the entity which the caller can cast to the proper data type
    returns a NULL if id is not recognized or style/type not supported
    IMPORTANT: if the compute is not current it will be invoked
-     LAMMPS cannot easily check if it is valid to invoke the compute,
+     LAMMPS cannot easily check here if it is valid to invoke the compute,
      so caller must insure that it is OK
 ------------------------------------------------------------------------- */
 
@@ -244,7 +244,7 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
        double *dptr = (double *) lammps_extract_fix();
        double value = *dptr;
        free(dptr);
-   IMPORTANT: LAMMPS cannot easily check when info extracted from
+   IMPORTANT: LAMMPS cannot easily check here when info extracted from
      the fix is valid, so caller must insure that it is OK
 ------------------------------------------------------------------------- */
 
@@ -313,7 +313,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
        double *vector = (double *) lammps_extract_variable();
        use the vector values
        free(vector);
-   IMPORTANT: LAMMPS cannot easily check when it is valid to evaluate
+   IMPORTANT: LAMMPS cannot easily check here when it is valid to evaluate
      the variable or any fixes or computes or thermodynamic info it references,
      so caller must insure that it is OK
 ------------------------------------------------------------------------- */

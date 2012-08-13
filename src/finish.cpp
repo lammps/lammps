@@ -618,8 +618,10 @@ void Finish::end(int flag)
         if (atom->molecular && atom->natoms > 0)
           fprintf(screen,"Ave special neighs/atom = %g\n",
                   nspec_all/atom->natoms);
-        fprintf(screen,"Neighbor list builds = %d\n",neighbor->ncalls);
-        fprintf(screen,"Dangerous builds = %d\n",neighbor->ndanger);
+        fprintf(screen,"Neighbor list builds = " BIGINT_FORMAT "\n",
+                neighbor->ncalls);
+        fprintf(screen,"Dangerous builds = " BIGINT_FORMAT "\n",
+                neighbor->ndanger);
       }
       if (logfile) {
         if (nall < 2.0e9)
@@ -631,8 +633,10 @@ void Finish::end(int flag)
         if (atom->molecular && atom->natoms > 0)
           fprintf(logfile,"Ave special neighs/atom = %g\n",
                   nspec_all/atom->natoms);
-        fprintf(logfile,"Neighbor list builds = %d\n",neighbor->ncalls);
-        fprintf(logfile,"Dangerous builds = %d\n",neighbor->ndanger);
+        fprintf(logfile,"Neighbor list builds = " BIGINT_FORMAT "\n",
+                neighbor->ncalls);
+        fprintf(logfile,"Dangerous builds = " BIGINT_FORMAT "\n",
+                neighbor->ndanger);
       }
     }
   }

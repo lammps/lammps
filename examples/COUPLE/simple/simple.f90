@@ -115,9 +115,9 @@ PROGRAM f_driver
      CALL lammps_get_natoms(ptr,natoms)
      ALLOCATE(x(3*natoms))
 
-     CALL lammps_get_coords(ptr,x)
+     CALL lammps_gather_atoms(ptr,'x',1,3,x);
      x(1) = x(1) + epsilon
-     CALL lammps_put_coords(ptr,x)
+     CALL lammps_scatter_atoms(ptr,'x',1,3,x);
 
      DEALLOCATE(x)
 

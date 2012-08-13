@@ -23,6 +23,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "mpi.h"
+
 #include "lammps.h"         // these are LAMMPS include files
 #include "input.h"
 #include "atom.h"
@@ -104,10 +105,10 @@ int main(int narg, char **arg)
 
     int natoms = static_cast<int> (lmp->atom->natoms);
     double *x = new double[3*natoms];
-    lammps_get_coords(lmp,x);          // no LAMMPS class function for this
+    lammps_gather_atoms(lmp,"x",1,3,x);
     double epsilon = 0.1;
     x[0] += epsilon;
-    lammps_put_coords(lmp,x);          // no LAMMPS class function for this
+    lammps_scatter_atoms(lmp,"x",1,3,x);
     delete [] x;
 
     lmp->input->one("run 1");

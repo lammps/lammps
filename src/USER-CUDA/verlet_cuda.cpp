@@ -52,6 +52,9 @@
 #include "cuda.h"
 #include <ctime>
 #include <cmath>
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -837,11 +840,6 @@ void VerletCuda::run(int n)
 
       cuda->shared_data.buffer_new = 2;
 
-      if(atom->molecular) {
-        cuda->cu_molecule->download();
-        cuda->cu_x->download();
-      }
-
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor build\n");)
       timer->stamp(TIME_COMM);
       clock_gettime(CLOCK_REALTIME, &endtime);
@@ -850,21 +848,19 @@ void VerletCuda::run(int n)
 
       //rebuild neighbor list
       test_atom(testatom, "Pre Neighbor");
-      neighbor->build();
+      neighbor->build(0);
       timer->stamp(TIME_NEIGHBOR);
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor done\n");)
-
       //if bonded interactions are used (in this case collect_forces_later is true), transfer data which only changes upon exchange/border routines from GPU to CPU
       if(cuda->shared_data.pair.collect_forces_later) {
-        if(cuda->cu_molecule) cuda->cu_molecule->download();
+        if(cuda->cu_molecule) cuda->cu_molecule->downloadAsync(2);
 
-        cuda->cu_tag->download();
-        cuda->cu_type->download();
-        cuda->cu_mask->download();
+        cuda->cu_tag->downloadAsync(2);
+        cuda->cu_type->downloadAsync(2);
+        cuda->cu_mask->downloadAsync(2);
 
-        if(cuda->cu_q) cuda->cu_q->download();
+        if(cuda->cu_q) cuda->cu_q->downloadAsync(2);
       }
-
       cuda->shared_data.comm.comm_phase = 3;
     }
 
@@ -951,6 +947,12 @@ void VerletCuda::run(int n)
       else  cuda->cu_f->downloadAsync(2);
 
       timer->stamp(TIME_PAIR);
+
+      if(neighbor->lastcall == update->ntimestep) {
+        neighbor->build_bonded();
+
+        timer->stamp(TIME_NEIGHBOR);
+      }
 
       test_atom(testatom, "pre bond force");
 

@@ -23,7 +23,7 @@ class NeighborCuda : public Neighbor {
   NeighborCuda(class LAMMPS *);
   void init();
   int check_distance();
-  void build();
+  void build(int do_build_bonded=1);
 
  private:
   class Cuda *cuda;

@@ -373,7 +373,7 @@ int lammps_get_natoms(void *ptr)
    count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
    return atom-based values in data, ordered by count, then by atom ID
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
-   data must be allocated by caller to correct length
+   data must be pre-allocated by caller to correct length
 ------------------------------------------------------------------------- */
 
 void lammps_gather_atoms(void *ptr, char *name, 
@@ -451,15 +451,13 @@ void lammps_gather_atoms(void *ptr, char *name,
   }
 }
 
-
 /* ----------------------------------------------------------------------
-   gather the named atom-based entity across all processors
+   scatter the named atom-based entity across all processors
    name = desired quantity, e.g. x or charge
    type = 0 for integer values, 1 for double values
    count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
-   return atom-based values in data, ordered by count, then by atom ID
+   data = atom-based values in data, ordered by count, then by atom ID
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
-   data must be allocated by caller to correct length
 ------------------------------------------------------------------------- */
 
 void lammps_scatter_atoms(void *ptr, char *name,

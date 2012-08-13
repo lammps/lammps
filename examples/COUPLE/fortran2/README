@@ -6,6 +6,14 @@ Fortran wrapper functions that use Fortran-style arrays, pointers, and
 strings; all C-style memory management is handled internally with no user
 intervention.
 
+This interface was created by Karl Hammond who you can contact with
+questions:
+
+Karl D. Hammond
+University of Tennessee, Knoxville
+karlh at ugcs.caltech.edu
+karlh atutk.edu
+
 -------------------------------------
 
 --COMPILATION--

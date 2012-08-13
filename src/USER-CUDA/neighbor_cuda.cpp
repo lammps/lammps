@@ -135,7 +135,7 @@ int NeighborCuda::check_distance()
 
 /* ---------------------------------------------------------------------- */
 
-void NeighborCuda::build(int do_build_bonded)
+void NeighborCuda::build(int topoflag)
 {
   int i;
 
@@ -231,13 +231,10 @@ void NeighborCuda::build(int do_build_bonded)
   for(i = 0; i < nblist; i++)
     (this->*pair_build[blist[i]])(lists[blist[i]]);
 
-  if(atom->molecular && do_build_bonded) {
-    if(force->bond)(this->*bond_build)();
-
+  if(atom->molecular && topoflag) {
+    if(force->bond)(this->*bond_bond)();
     if(force->angle)(this->*angle_build)();
-
     if(force->dihedral)(this->*dihedral_build)();
-
     if(force->improper)(this->*improper_build)();
   }
 }

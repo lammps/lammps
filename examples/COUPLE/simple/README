@@ -35,7 +35,8 @@ gcc -L/home/sjplimp/lammps/src simple.o \
     -llmp_g++ -lfftw -lmpich -lmpl -lpthread -lstdc++ -o simpleC
 
 This builds the Fortran wrapper and driver with the LAMMPS library
-using a Fortran and C compiler:
+using a Fortran and C compiler, using the wrapper in the fortran
+directory:
 
 cp ../fortran/libfwrapper.c .
 gcc -I/home/sjplimp/lammps/src -c libfwrapper.c

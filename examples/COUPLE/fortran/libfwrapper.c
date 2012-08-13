@@ -22,7 +22,7 @@
 #include "library.h"        /* this is a LAMMPS include file */
 
 /* wrapper for creating a lammps instance from fortran.
-   since fortran has no simple way to emit a c-compatible
+   since fortran has no simple way to emit a C-compatible
    argument array, we don't support it. for simplicity,
    the address of the pointer to the lammps object is
    stored in a 64-bit integer on all platforms. */
@@ -109,6 +109,8 @@ void lammps_get_natoms_(int64_t *ptr, MPI_Fint *natoms)
 
 /* wrapper to copy coordinates from lammps to fortran */
 
+/* NOTE: this is now out-of-date, needs to be updated to lammps_gather_atoms()
+
 void lammps_get_coords_(int64_t *ptr, double *coords)
 {
     void *obj;
@@ -117,7 +119,11 @@ void lammps_get_coords_(int64_t *ptr, double *coords)
     lammps_get_coords(obj,coords);
 }
 
+*/
+
 /* wrapper to copy coordinates from fortran to lammps */
+
+/* NOTE: this is now out-of-date, needs to be updated to lammps_scatter_atoms()
 
 void lammps_put_coords_(int64_t *ptr, double *coords)
 {
@@ -127,3 +133,4 @@ void lammps_put_coords_(int64_t *ptr, double *coords)
     lammps_put_coords(obj,coords);
 }
 
+*/

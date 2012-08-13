@@ -34,5 +34,7 @@ library		    collection of useful inter-code communication routines
 simple		    simple example of driver code calling LAMMPS as library
 fortran             a wrapper on the LAMMPS library API that
  		      can be called from Fortran
+fortran2            a more sophisticated wrapper on the LAMMPS library API that
+ 		      can be called from Fortran
 
 Each sub-directory has its own README.

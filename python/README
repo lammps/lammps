@@ -3,41 +3,25 @@ and allows the LAMMPS library interface to be invoked from Python,
 either from a script or interactively.
 
 Details on the Python interface to LAMMPS and how to build LAMMPS as a
-shared library for use with Python are given in
-doc/Section_python.html.
+shared library, for use with Python, are given in
+doc/Section_python.html and in doc/Section_start.html#start_5.
 
-Basically you need to follow these 3 steps:
+Basically you need to follow these steps in the src directory:
 
-a) Add paths to environment variables in your shell script
+% make makeshlib                # creates Makefile.shlib
+% make -f Makefile.shlib g++    # or whatever machine target you wish
+% make install-python           # may need to do this via sudo
 
-For example, for csh or tcsh, add something like this to ~/.cshrc:
-
-setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src/STUBS
-
-The latter is only necessary if you will use the MPI stubs library
-instead of an MPI installed on your machine.
-
-b) Build LAMMPS as a dynamic library, including dynamic versions of
-any libraries it includes for the packages you have installed,
-e.g. STUBS, MPI, FFTW, JPEG, package libs.
-
-From the src directory:
-
-% make makeshlib
-% make -f Makefile.shlib g++
-
-If successful, this results in the file src/liblmp_g++.so
-
-c) Launch Python and import the LAMMPS wrapper
+You can then launch Python and instantiate an instance of
+LAMMPS:
 
 % python
 >>> from lammps import lammps
 >>> lmp = lammps()
 
 If that gives no errors, you have succesfully wrapped LAMMPS with
-Python.
+Python.  See doc/Section_python.html#py_5 for tests you can then use
+to run LAMMPS both in serial or parallel thru Python.
 
 -------------------------------------------------------------------
 

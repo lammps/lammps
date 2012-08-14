@@ -12,8 +12,12 @@ Basically you need to follow these steps in the src directory:
 % make -f Makefile.shlib g++    # or whatever machine target you wish
 % make install-python           # may need to do this via sudo
 
-You can then launch Python and instantiate an instance of
-LAMMPS:
+You can replace the last step with running the python/install.py
+script directly to give you more control over where two relevant files
+are installed, or by setting environment variables in your shell
+script.  See doc/Section_python.html for details.
+
+You can then launch Python and instantiate an instance of LAMMPS:
 
 % python
 >>> from lammps import lammps

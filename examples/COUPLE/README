@@ -17,7 +17,7 @@ library.  Basically, you type something like
 make makelib
 make -f Makefile.lib g++
 
-in the LAMMPS src directory to create liblmp_g++.a
+in the LAMMPS src directory to create liblammps_g++.a
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the

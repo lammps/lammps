@@ -14,8 +14,8 @@
 <P>This section describes how to build and use LAMMPS via a Python
 interface.
 </P>
-<UL><LI>11.1 <A HREF = "#py_1">Setting necessary environment variables</A>
-<LI>11.2 <A HREF = "#py_2">Building LAMMPS as a shared library</A>
+<UL><LI>11.1 <A HREF = "#py_1">Building LAMMPS as a shared library</A>
+<LI>11.2 <A HREF = "#py_2">Installing the Python wrapper into Python</A>
 <LI>11.3 <A HREF = "#py_3">Extending Python with MPI to run in parallel</A>
 <LI>11.4 <A HREF = "#py_4">Testing the Python-LAMMPS interface</A>
 <LI>11.5 <A HREF = "#py_5">Using LAMMPS from Python</A>
@@ -76,36 +76,7 @@ check which version of Python you have installed, by simply typing
 
 <HR>
 
-<A NAME = "py_1"></A><H4>11.1 Setting necessary environment variables 
-</H4>
-<P>For Python to use the LAMMPS interface, it needs to find two files.
-The paths to these files need to be added to two environment variables
-that Python checks.
-</P>
-<P>The first is the environment variable PYTHONPATH.  It needs
-to include the directory where the python/lammps.py file is.
-</P>
-<P>For the csh or tcsh shells, add something like this to your ~/.cshrc
-file:
-</P>
-<PRE>setenv PYTHONPATH $<I>PYTHONPATH</I>:/home/sjplimp/lammps/python 
-</PRE>
-<P>The second is the environment variable LD_LIBRARY_PATH, which is used
-by the operating system to find dynamic shared libraries when it loads
-them.  See the discussion in <A HREF = "Section_start.html#start_5">Section_start
-5</A> of the manual about building LAMMPS as a
-shared library, for instructions on how to set the LD_LIBRARY_PATH
-variable appropriately.
-</P>
-<P>If your LAMMPS build is not using any auxiliary libraries which are in
-non-default directories where the system cannot find them, you
-typically just need to add something like this to your ~/.cshrc file:
-</P>
-<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
-</PRE>
-<HR>
-
-<A NAME = "py_2"></A><H4>11.2 Building LAMMPS as a shared library 
+<A NAME = "py_1"></A><H4>11.1 Building LAMMPS as a shared library 
 </H4>
 <P>Instructions on how to build LAMMPS as a shared library are given in
 <A HREF = "Section_start.html#start_5">Section_start 5</A>.  A shared library is one
@@ -119,15 +90,62 @@ make -f Makefile.shlib foo
 </PRE>
 <P>where foo is the machine target name, such as linux or g++ or serial.
 This should create the file liblmp_foo.so in the src directory, as
-well as a soft link liblmp.so which is what the Python wrapper will
+well as a soft link liblmp.so, which is what the Python wrapper will
 load by default.  Note that if you are building multiple machine
 versions of the shared library, the soft link is always set to the
 most recently built version.
 </P>
 <P>If this fails, see <A HREF = "Section_start.html#start_5">Section_start 5</A> for
-more details, especially if your LAMMPS build uses auxiliary
-libraries, e.g. ones required by certain packages and found in the
-lib/package directories.
+more details, especially if your LAMMPS build uses auxiliary libraries
+like MPI or FFTW which may not be built as shared libraries on your
+system.
+</P>
+<HR>
+
+<A NAME = "py_2"></A><H4>11.2 Installing the Python wrapper into Python 
+</H4>
+<P>For Python to invoke LAMMPS, there are 2 files it needs to have:
+</P>
+<UL><LI>python/lammps.py
+<LI>src/liblmp.so 
+</UL>
+<P>Lammps.py is the Python wrapper on the LAMMPS library interface.
+Liblmp.so is the shared LAMMPS library that Python loads, as described
+above.
+</P>
+<P>You can insure Python can find these files in one of two ways:
+</P>
+<UL><LI>set two environment variables
+<LI>run the python/install.py script 
+</UL>
+<P>If you set the paths to these files as environment variables, you only
+have to do it once.  For the csh or tcsh shells, add something like
+this to your ~/.cshrc file, one line for each of the two files:
+</P>
+<PRE>setenv PYTHONPATH $<I>PYTHONPATH</I>:/home/sjplimp/lammps/python
+setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+</PRE>
+<P>If you run the python/install.py script, you need to rerun it every
+time you rebuild LAMMPS (as a shared library) or make changes to the
+python/lammps.py file.
+</P>
+<P>You can invoke install.py from the python directory as
+</P>
+<PRE>% python install.py 
+</PRE>
+<P>Prefix this command with "sudo" if it does not allow you to copy files
+into the Python site-packages directory.  If you do this, make sure
+that the Python run by root is the same as the Python you run.
+E.g. you may need to do something like
+</P>
+<PRE>% sudo /usr/local/bin/python install.py 
+</PRE>
+<P>You can also invoke install.py from the src directory as
+</P>
+<PRE>% make install-python 
+</PRE>
+<P>Again, you may need to prefix this with "sudo".  In this mode you
+cannot control which Python root invokes.
 </P>
 <HR>
 

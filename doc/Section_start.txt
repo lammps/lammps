@@ -275,13 +275,11 @@ dummy MPI library provided in src/STUBS, since you don't need a true
 MPI library installed on your system.  See the
 src/MAKE/Makefile.serial file for how to specify the 3 MPI variables
 in this case.  You will also need to build the STUBS library for your
-platform before making LAMMPS itself.  To build it as a static
-library, from the src directory, type "make stubs", or from the STUBS
-dir, type "make" and it should create a libmpi_stubs.a suitable for
-linking to LAMMPS.  To build it as a shared library, from the STUBS
-dir, type "make shlib" and it should create a libmpi_stubs.so suitable
-for dynamically loading when LAMMPS runs.  If either of these builds
-fail, you will need to edit the STUBS/Makefile for your platform.
+platform before making LAMMPS itself.  To build from the src
+directory, type "make stubs", or from the STUBS dir, type "make".
+This should create a libmpi_stubs.a file suitable for linking to
+LAMMPS.  If the build fails, you will need to edit the STUBS/Makefile
+for your platform.
 
 The file STUBS/mpi.cpp provides a CPU timer function called
 MPI_Wtime() that calls gettimeofday() .  If your system doesn't
@@ -810,33 +808,20 @@ first "make" command will create a current Makefile.shlib with all the
 file names in your src dir.  The second "make" command will use it to
 build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
 settings in src/MAKE/Makefile.foo.  The build will create the file
-liblmp_foo.so which another application can link to dyamically, as
-well as a soft link liblmp.so, which the Python wrapper uses by
-default.
-
-[Additional requirements for building a shared library:] :h5
+liblmp_foo.so which another application can link to dyamically.  It
+will also create a soft link liblmp.so, which the Python wrapper uses
+by default.
 
 Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
-libraries, and the operating system must be able to find them.  For
-LAMMPS, this includes all libraries needed by main LAMMPS (e.g. MPI or
-FFTW or JPEG), system libraries needed by main LAMMPS (e.g. extra libs
-needed by MPI), any packages you have installed that require libraries
-provided with LAMMPS (e.g. the USER-ATC package require
-lib/atc/libatc.so), and any system libraries (e.g. BLAS or
-Fortran-to-C libraries) listed in the lib/package/Makefile.lammps
-file.
-
-If one of these auxiliary libraries does not exist as a shared
-library, the second make command should generate a build error.  If a
-needed library is simply missing from the link list, this will not
-generate an error at build time, but will generate a run-time error
-when the library is loaded, so be sure all needed libraries are
-listed, just as they are when building LAMMPS as a stand-alone code.
-
-Note that if you install them yourself, some libraries, such as MPI,
-may not build by default as shared libraries.  The build instructions
-for the library should tell you how to do this.
+libraries.  This will be the case for libraries included with LAMMPS,
+such as the dummy MPI library in src/STUBS or any package libraries in
+lib/packges, since they are always built as shared libraries with the
+-fPIC switch.  However, if a library like MPI or FFTW does not exist
+as a shared library, the second make command will generate an error.
+This means you will need to install a shared library version of the
+package.  The build instructions for the library should tell you how
+to do this.
 
 As an example, here is how to build and install the "MPICH
 library"_mpich, a popular open-source version of MPI, distributed by
@@ -853,42 +838,18 @@ You may need to use "sudo make install" in place of the last line if
 you do not have write privileges for /usr/local/lib.  The end result
 should be the file /usr/local/lib/libmpich.so.
 
-Also note that not all of the auxiliary libraries provided with LAMMPS
-include Makefiles in their lib directories suitable for building them
-as shared libraries.  Typically this simply requires 3 steps: (a)
-adding a -fPIC switch when files are compiled, (b) adding "-fPIC
--shared" switches when the library is linked with a C++ (or Fortran)
-compiler, and (c) creating an output target that ends in ".so", like
-libatc.o.  As we or others create and contribute these Makefiles, we
-will add them to the LAMMPS distribution.
-
-[Additional requirements for using a shared library:] :h5
+[Additional requirement for using a shared library:] :h5
 
 The operating system finds shared libraries to load at run-time using
-the environment variable LD_LIBRARY_PATH.  So at a minimum you
-must set it to include the lammps src directory where the LAMMPS
-shared library file is created.
+the environment variable LD_LIBRARY_PATH.  So you may wish
+to copy the file src/liblmp.so or src/liblmp_g++.so (for example)
+to a place the system can find it by default, such as /usr/local/lib,
+or you may wish to add the lammps src directory to LD_LIBRARY_PATH.
 
 For the csh or tcsh shells, you could add something like this to your
 ~/.cshrc file:
 
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
-
-If any auxiliary libraries, used by LAMMPS, are not in default places
-where the operating system can find them, then you also have to add
-their paths to the LD_LIBRARY_PATH environment variable.
-
-For example, if you are using the dummy MPI library provided in
-src/STUBS, and have built the file libmpi_stubs.so, you would add
-something like this to your ~/.cshrc file:
-
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src/STUBS :pre
-
-If you are using the LAMMPS USER-ATC package, and have built the file
-lib/atc/libatc.so, you would add something like this to your ~/.cshrc
-file:
-
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/lib/atc :pre
 
 [Calling the LAMMPS library:] :h5
 

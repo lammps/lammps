@@ -11,8 +11,8 @@
 This section describes how to build and use LAMMPS via a Python
 interface.
 
-11.1 "Setting necessary environment variables"_#py_1
-11.2 "Building LAMMPS as a shared library"_#py_2
+11.1 "Building LAMMPS as a shared library"_#py_1
+11.2 "Installing the Python wrapper into Python"_#py_2
 11.3 "Extending Python with MPI to run in parallel"_#py_3
 11.4 "Testing the Python-LAMMPS interface"_#py_4
 11.5 "Using LAMMPS from Python"_#py_5
@@ -72,36 +72,7 @@ check which version of Python you have installed, by simply typing
 :line
 :line
 
-11.1 Setting necessary environment variables :link(py_1),h4
-
-For Python to use the LAMMPS interface, it needs to find two files.
-The paths to these files need to be added to two environment variables
-that Python checks.
-
-The first is the environment variable PYTHONPATH.  It needs
-to include the directory where the python/lammps.py file is.
-
-For the csh or tcsh shells, add something like this to your ~/.cshrc
-file:
-
-setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python :pre
-
-The second is the environment variable LD_LIBRARY_PATH, which is used
-by the operating system to find dynamic shared libraries when it loads
-them.  See the discussion in "Section_start
-5"_Section_start.html#start_5 of the manual about building LAMMPS as a
-shared library, for instructions on how to set the LD_LIBRARY_PATH
-variable appropriately.
-
-If your LAMMPS build is not using any auxiliary libraries which are in
-non-default directories where the system cannot find them, you
-typically just need to add something like this to your ~/.cshrc file:
-
-setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
-
-:line
-
-11.2 Building LAMMPS as a shared library :link(py_2),h4
+11.1 Building LAMMPS as a shared library :link(py_1),h4
 
 Instructions on how to build LAMMPS as a shared library are given in
 "Section_start 5"_Section_start.html#start_5.  A shared library is one
@@ -115,15 +86,62 @@ make -f Makefile.shlib foo :pre
 
 where foo is the machine target name, such as linux or g++ or serial.
 This should create the file liblmp_foo.so in the src directory, as
-well as a soft link liblmp.so which is what the Python wrapper will
+well as a soft link liblmp.so, which is what the Python wrapper will
 load by default.  Note that if you are building multiple machine
 versions of the shared library, the soft link is always set to the
 most recently built version.
 
 If this fails, see "Section_start 5"_Section_start.html#start_5 for
-more details, especially if your LAMMPS build uses auxiliary
-libraries, e.g. ones required by certain packages and found in the
-lib/package directories.
+more details, especially if your LAMMPS build uses auxiliary libraries
+like MPI or FFTW which may not be built as shared libraries on your
+system.
+
+:line
+
+11.2 Installing the Python wrapper into Python :link(py_2),h4
+
+For Python to invoke LAMMPS, there are 2 files it needs to have:
+
+python/lammps.py
+src/liblmp.so :ul
+
+Lammps.py is the Python wrapper on the LAMMPS library interface.
+Liblmp.so is the shared LAMMPS library that Python loads, as described
+above.
+
+You can insure Python can find these files in one of two ways:
+
+set two environment variables
+run the python/install.py script :ul
+
+If you set the paths to these files as environment variables, you only
+have to do it once.  For the csh or tcsh shells, add something like
+this to your ~/.cshrc file, one line for each of the two files:
+
+setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
+
+If you run the python/install.py script, you need to rerun it every
+time you rebuild LAMMPS (as a shared library) or make changes to the
+python/lammps.py file.
+
+You can invoke install.py from the python directory as
+
+% python install.py :pre
+
+Prefix this command with "sudo" if it does not allow you to copy files
+into the Python site-packages directory.  If you do this, make sure
+that the Python run by root is the same as the Python you run.
+E.g. you may need to do something like
+
+% sudo /usr/local/bin/python install.py :pre
+
+You can also invoke install.py from the src directory as
+
+% make install-python :pre
+
+Again, you may need to prefix this with "sudo".  In this mode you
+cannot control which Python root invokes.
 
 :line
 

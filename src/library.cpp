@@ -389,15 +389,15 @@ void lammps_gather_atoms(void *ptr, char *name,
   int natoms = static_cast<int> (lmp->atom->natoms);
 
   int i,j,offset;
+  void *vptr = lmp->atom->extract(name);
 
   // copy = Natom length vector of per-atom values
   // use atom ID to insert each atom's values into copy
   // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
   if (type == 0) {
-    void *vptr = lmp->atom->extract(name);
-    int *vector;
-    int **array;
+    int *vector = NULL;
+    int **array = NULL;
     if (count == 1) vector = (int *) vptr;
     else array = (int **) vptr;
 
@@ -422,9 +422,8 @@ void lammps_gather_atoms(void *ptr, char *name,
     lmp->memory->destroy(copy);
 
   } else {
-    void *vptr = lmp->atom->extract(name);
-    double *vector;
-    double **array;
+    double *vector = NULL;
+    double **array = NULL;
     if (count == 1) vector = (double *) vptr;
     else array = (double **) vptr;
 
@@ -473,15 +472,15 @@ void lammps_scatter_atoms(void *ptr, char *name,
   int natoms = static_cast<int> (lmp->atom->natoms);
 
   int i,j,m,offset;
+  void *vptr = lmp->atom->extract(name);
 
   // copy = Natom length vector of per-atom values
   // use atom ID to insert each atom's values into copy
   // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
   if (type == 0) {
-    void *vptr = lmp->atom->extract(name);
-    int *vector;
-    int **array;
+    int *vector = NULL;
+    int **array = NULL;
     if (count == 1) vector = (int *) vptr;
     else array = (int **) vptr;
     int *dptr = (int *) data;
@@ -499,15 +498,11 @@ void lammps_scatter_atoms(void *ptr, char *name,
         }
 
   } else {
-    void *vptr = lmp->atom->extract(name);
-    double *vector;
-    double **array;
+    double *vector = NULL;
+    double **array = NULL;
     if (count == 1) vector = (double *) vptr;
     else array = (double **) vptr;
     double *dptr = (double *) data;
-
-    int *tag = lmp->atom->tag;
-    int nlocal = lmp->atom->nlocal;
 
     if (count == 1) {
       for (i = 0; i < natoms; i++)

@@ -85,6 +85,9 @@ $(EXE):	$(OBJ)
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+#shlib:	$(OBJ)
+#	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
 shlib:	$(OBJ)
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
         $(OBJ) $(EXTRA_LIB) $(LIB)

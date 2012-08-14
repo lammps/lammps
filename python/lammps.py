@@ -19,12 +19,12 @@ from ctypes import *
 class lammps:
   def __init__(self,name="",cmdargs=None):
 
-    # load liblmp.so by default
-    # if name = "g++", load liblmp_g++.so
+    # load liblammps.so by default
+    # if name = "g++", load liblammps_g++.so
     
     try:
-      if not name: self.lib = CDLL("liblmp.so")
-      else: self.lib = CDLL("liblmp_%s.so" % name)
+      if not name: self.lib = CDLL("liblammps.so")
+      else: self.lib = CDLL("liblammps_%s.so" % name)
     except:
       raise OSError,"Could not load LAMMPS dynamic library"
 

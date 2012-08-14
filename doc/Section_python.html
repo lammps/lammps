@@ -147,6 +147,12 @@ E.g. you may need to do something like
 <P>Again, you may need to prefix this with "sudo".  In this mode you
 cannot control which Python root invokes.
 </P>
+<P>Note that if you want Python to be able to load different versions of
+the LAMMPS shared library (see <A HREF = "#py_5">this section</A> below), you will
+need to manually copy files like lmplmp_g++.so into the site-packages
+directory as well.  This is not needed if you set the LD_LIBRARY_PATH
+environment variable as described above.
+</P>
 <HR>
 
 <A NAME = "py_3"></A><H4>11.3 Extending Python with MPI to run in parallel 

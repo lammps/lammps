@@ -143,6 +143,12 @@ You can also invoke install.py from the src directory as
 Again, you may need to prefix this with "sudo".  In this mode you
 cannot control which Python root invokes.
 
+Note that if you want Python to be able to load different versions of
+the LAMMPS shared library (see "this section"_#py_5 below), you will
+need to manually copy files like lmplmp_g++.so into the site-packages
+directory as well.  This is not needed if you set the LD_LIBRARY_PATH
+environment variable as described above.
+
 :line
 
 11.3 Extending Python with MPI to run in parallel :link(py_3),h4

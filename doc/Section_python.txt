@@ -103,11 +103,11 @@ system.
 For Python to invoke LAMMPS, there are 2 files it needs to have:
 
 python/lammps.py
-src/liblmp.so :ul
+src/liblammps.so :ul
 
 Lammps.py is the Python wrapper on the LAMMPS library interface.
-Liblmp.so is the shared LAMMPS library that Python loads, as described
-above.
+Liblammps.so is the shared LAMMPS library that Python loads, as
+described above.
 
 You can insure Python can find these files in one of two ways:
 
@@ -121,32 +121,38 @@ this to your ~/.cshrc file, one line for each of the two files:
 setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
 
-If you run the python/install.py script, you need to rerun it every
+If you use the python/install.py script, you need to invoke it every
 time you rebuild LAMMPS (as a shared library) or make changes to the
 python/lammps.py file.
 
 You can invoke install.py from the python directory as
 
-% python install.py :pre
+% python install.py [libdir] [pydir] :pre
 
-Prefix this command with "sudo" if it does not allow you to copy files
-into the Python site-packages directory.  If you do this, make sure
-that the Python run by root is the same as the Python you run.
-E.g. you may need to do something like
+The optional libdir is where to copy the LAMMPS shared library to;
+the default is /usr/local/lib.  The optional pydir is where to copy
+the lammps.py file to; the default is the site-packages directory
+of the Python running the install script.
 
-% sudo /usr/local/bin/python install.py :pre
+Prefix the python command with "sudo" if it does not allow you to copy
+files into system directories.  If you do this, make sure that the
+Python that root runs is the same as the Python you run.  E.g. you may
+need to do something like
+
+% sudo /usr/local/bin/python install.py [libdir] [pydir] :pre
 
 You can also invoke install.py from the src directory as
 
 % make install-python :pre
 
-Again, you may need to prefix this with "sudo".  In this mode you
-cannot control which Python root invokes.
+In this mode you cannot append optional arguments.  Again, you may
+need to prefix this with "sudo".  In this mode you cannot control
+which Python is invoked by root.
 
 Note that if you want Python to be able to load different versions of
 the LAMMPS shared library (see "this section"_#py_5 below), you will
-need to manually copy files like lmplmp_g++.so into the site-packages
-directory as well.  This is not needed if you set the LD_LIBRARY_PATH
+need to manually copy files like lmplammps_g++.so into the appropriate
+system directory.  This is not needed if you set the LD_LIBRARY_PATH
 environment variable as described above.
 
 :line
@@ -363,8 +369,8 @@ at the file src/library.cpp you will see that they correspond
 one-to-one with calls you can make to the LAMMPS library from a C++ or
 C or Fortran program.
 
-lmp = lammps()           # create a LAMMPS object using the default liblmp.so library
-lmp = lammps("g++")      # create a LAMMPS object using the liblmp_g++.so library
+lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
+lmp = lammps("g++")      # create a LAMMPS object using the liblammps_g++.so library
 lmp = lammps("",list)    # ditto, with command-line args, e.g. list = \["-echo","screen"\]
 lmp = lammps("g++",list) :pre
 

@@ -100,7 +100,7 @@ system.
 
 11.2 Installing the Python wrapper into Python :link(py_2),h4
 
-For Python to invoke LAMMPS, there are 2 files it needs to have:
+For Python to invoke LAMMPS, there are 2 files it needs to know about:
 
 python/lammps.py
 src/liblammps.so :ul
@@ -129,19 +129,28 @@ You can invoke install.py from the python directory as
 
 % python install.py [libdir] [pydir] :pre
 
-The optional libdir is where to copy the LAMMPS shared library to;
-the default is /usr/local/lib.  The optional pydir is where to copy
-the lammps.py file to; the default is the site-packages directory
-of the Python running the install script.
+The optional libdir is where to copy the LAMMPS shared library to; the
+default is /usr/local/lib.  The optional pydir is where to copy the
+lammps.py file to; the default is the site-packages directory of the
+version of Python that is running the install script.
 
-Prefix the python command with "sudo" if it does not allow you to copy
-files into system directories.  If you do this, make sure that the
-Python that root runs is the same as the Python you run.  E.g. you may
-need to do something like
+Note that libdir must be a location that is in your default
+LD_LIBRARY_PATH, like /usr/local/lib or /usr/lib.  And pydir must be a
+location that Python looks in by default for imported modules, like
+its site-packages dir.  If you want to copy these files to
+non-standard locations, such as within your own user space, you will
+need to set your PYTHONPATH and LD_LIBRARY_PATH environment variables
+accordingly, as above.
+
+If the instally.py script does not allow you to copy files into system
+directories, prefix the python command with "sudo".  If you do this,
+make sure that the Python that root runs is the same as the Python you
+run.  E.g. you may need to do something like
 
 % sudo /usr/local/bin/python install.py [libdir] [pydir] :pre
 
-You can also invoke install.py from the src directory as
+You can also invoke install.py from the make command in the src
+directory as
 
 % make install-python :pre
 

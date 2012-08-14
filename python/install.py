@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 
-# copy LAMMPS shared library src/liblmp.so and lammps.py to system dirs
+# copy LAMMPS shared library src/liblammps.so and lammps.py to system dirs
 # Syntax: python install.py [libdir] [pydir]
 #         libdir = target dir for src/liblammps.so, default = /usr/local/lib
 #         pydir = target dir for lammps.py, default = Python site-packages dir

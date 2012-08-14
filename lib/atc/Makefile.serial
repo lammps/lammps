@@ -98,7 +98,7 @@ OBJ =   $(SRC:.cpp=.o)
 # the same MPI library that LAMMPS is built with
 
 CC =	        g++
-CCFLAGS =       -O -g -I../../src -I../../src/STUBS
+CCFLAGS =       -O -g -fPIC -I../../src -I../../src/STUBS
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M

@@ -98,7 +98,7 @@ OBJ =   $(SRC:.cpp=.o)
 # the same MPI library that LAMMPS is built with
 
 CC =	        g++
-CCFLAGS =       -O -g -I../../src -DMPICH_IGNORE_CXX_SEEK
+CCFLAGS =       -O -g -fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M

@@ -1,12 +1,26 @@
 LAMMPS example problems
 
+There are 3 flavors of sub-directories in this file, each with sample
+problems you can run with LAMMPS.
+
+lower-case directories = simple test problems for LAMMPS and its packages
+upper-case directories = more complex problems
+USER directory with its own sub-directories = tests for USER packages
+
+Each is discussed below.
+
+------------------------------------------
+
+Lower-case directories
+
 Each of these sub-directories contains a sample problem you can run
 with LAMMPS.  Most are 2d models so that they run quickly, requiring a
 few seconds to a few minutes to run on a desktop machine.  Each
 problem has an input script (in.*) and produces a log file (log.*) and
 (optionally) a dump file (dump.*) or image files (image.*) when it
 runs.  Some use a data file (data.*) of initial coordinates as
-additional input.
+additional input.  Some require that you install one or more optional
+LAMMPS packages.
 
 A few sample log file outputs on different machines and different
 numbers of processors are included in the directories to compare your
@@ -77,12 +91,22 @@ create a GIF file suitable for viewing in a browser.
 
 ------------------------------------------
 
-There is also an ELASTIC directory with an example script for
-computing elastic constants, using a zero temperature Si example.  See
-the in.elastic file for more info.
+Upper-case directories
 
-There is also a USER directory which contains subdirectories of
-user-provided examples for user packages.  See the README files in
-those directories for more info.  See the doc/Section_start.html file
-for more info about user packages.
+The COUPLE directory has examples of how to use LAMMPS as a library,
+either by itself or in tandem with another code or library.  See the
+COUPLE/README file to get started.
+
+The ELASTIC directory has an example script for computing elastic
+constants, using a zero temperature Si example.  See the
+ELASTIC/in.elastic file for more info.
+
+------------------------------------------
+
+USER directory
+
+The USER directory contains subdirectories of user-provided example
+scripts for ser packages.  See the README files in those directories
+for more info.  See the doc/Section_start.html file for more info
+about installing and building user packages.
 

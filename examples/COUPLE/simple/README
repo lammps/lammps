@@ -26,13 +26,13 @@ This builds the C++ driver with the LAMMPS library using a C++ compiler:
 
 g++ -I/home/sjplimp/lammps/src -c simple.cpp
 g++ -L/home/sjplimp/lammps/src simple.o \
-    -llmp_g++ -lfftw -lmpich -lpthread -o simpleCC
+    -llmp_g++ -lfftw -lmpich -lmpl -lpthread -o simpleCC
 
 This builds the C driver with the LAMMPS library using a C compiler:
 
 gcc -I/home/sjplimp/lammps/src -c simple.c
 gcc -L/home/sjplimp/lammps/src simple.o \
-    -llmp_g++ -lfftw -lmpich -lpthread -lstdc++ -o simpleC
+    -llmp_g++ -lfftw -lmpich -lmpl -lpthread -lstdc++ -o simpleC
 
 This builds the Fortran wrapper and driver with the LAMMPS library
 using a Fortran and C compiler:

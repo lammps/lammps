@@ -57,6 +57,7 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 #include <ctime> //crmadd
 #include "cuda_wrapper_cu.h"
 #include "pppm_cuda_cu.h"
@@ -1390,6 +1391,10 @@ void PPPMCuda::fieldforce()
 
 int PPPMCuda::timing(int n, double &time3d, double &time1d)
 {
+
+  time3d = cuda->shared_data.cuda_timings.pppm_poisson/update->nsteps*n;
+  time1d = cuda->shared_data.cuda_timings.pppm_poisson/update->nsteps/4*n;
+  return 4;
 
   double time1,time2;
 

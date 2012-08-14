@@ -62,6 +62,18 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Compute property/local cannot use these inputs together");
       kindflag = NEIGH;
+    } else if (strcmp(arg[iarg],"ntype1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_ptype1;
+      if (kindflag != NONE && kindflag != NEIGH)
+        error->all(FLERR,
+                   "Compute property/local cannot use these inputs together");
+      kindflag = NEIGH;
+    } else if (strcmp(arg[iarg],"ntype2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_ptype2;
+      if (kindflag != NONE && kindflag != NEIGH)
+        error->all(FLERR,
+                   "Compute property/local cannot use these inputs together");
+      kindflag = NEIGH;
 
     } else if (strcmp(arg[iarg],"patom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom1;
@@ -71,6 +83,18 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
       kindflag = PAIR;
     } else if (strcmp(arg[iarg],"patom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom2;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR,
+                   "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg],"ptype1") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_ptype1;
+      if (kindflag != NONE && kindflag != PAIR)
+        error->all(FLERR,
+                   "Compute property/local cannot use these inputs together");
+      kindflag = PAIR;
+    } else if (strcmp(arg[iarg],"ptype2") == 0) {
+      pack_choice[i] = &ComputePropertyLocal::pack_ptype2;
       if (kindflag != NONE && kindflag != PAIR)
         error->all(FLERR,
                    "Compute property/local cannot use these inputs together");
@@ -359,8 +383,8 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       if (forceflag && rsq >= cutsq[itype][jtype]) continue;
 
       if (allflag) {
-        indices[m][0] = tag[i];
-        indices[m][1] = tag[j];
+        indices[m][0] = i;
+        indices[m][1] = j;
       }
       m++;
     }
@@ -582,8 +606,12 @@ double ComputePropertyLocal::memory_usage()
 
 void ComputePropertyLocal::pack_patom1(int n)
 {
+  int i;
+  int *tag = atom->tag;
+
   for (int m = 0; m < ncount; m++) {
-    buf[n] = indices[m][0];
+    i = indices[m][0];
+    buf[n] = tag[i];
     n += nvalues;
   }
 }
@@ -592,8 +620,40 @@ void ComputePropertyLocal::pack_patom1(int n)
 
 void ComputePropertyLocal::pack_patom2(int n)
 {
+  int i;
+  int *tag = atom->tag;
+
   for (int m = 0; m < ncount; m++) {
-    buf[n] = indices[m][1];
+    i = indices[m][1];
+    buf[n] = tag[i];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_ptype1(int n)
+{
+  int i;
+  int *type = atom->type;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][0];
+    buf[n] = type[i];
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyLocal::pack_ptype2(int n)
+{
+  int i;
+  int *type = atom->type;
+
+  for (int m = 0; m < ncount; m++) {
+    i = indices[m][0];
+    buf[n] = type[i];
     n += nvalues;
   }
 }

@@ -795,7 +795,7 @@ before typing "make makelib".  The first "make" command will create a
 current Makefile.lib with all the file names in your src dir.  The
 second "make" command will use it to build LAMMPS as a static library,
 using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
-build will create the file liblmp_foo.a which another application can
+build will create the file liblammps_foo.a which another application can
 link to.
 </P>
 <H5><B>Shared library:</B> 
@@ -814,8 +814,8 @@ first "make" command will create a current Makefile.shlib with all the
 file names in your src dir.  The second "make" command will use it to
 build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
 settings in src/MAKE/Makefile.foo.  The build will create the file
-liblmp_foo.so which another application can link to dyamically.  It
-will also create a soft link liblmp.so, which the Python wrapper uses
+liblammps_foo.so which another application can link to dyamically.  It
+will also create a soft link liblammps.so, which the Python wrapper uses
 by default.
 </P>
 <P>Note that for a shared library to be usable by a calling program, all
@@ -847,10 +847,10 @@ should be the file /usr/local/lib/libmpich.so.
 <H5><B>Additional requirement for using a shared library:</B> 
 </H5>
 <P>The operating system finds shared libraries to load at run-time using
-the environment variable LD_LIBRARY_PATH.  So you may wish
-to copy the file src/liblmp.so or src/liblmp_g++.so (for example)
-to a place the system can find it by default, such as /usr/local/lib,
-or you may wish to add the lammps src directory to LD_LIBRARY_PATH.
+the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
+file src/liblammps.so or src/liblammps_g++.so (for example) to a place
+the system can find it by default, such as /usr/local/lib, or you may
+wish to add the lammps src directory to LD_LIBRARY_PATH.
 </P>
 <P>For the csh or tcsh shells, you could add something like this to your
 ~/.cshrc file:

@@ -85,8 +85,8 @@ make makeshlib
 make -f Makefile.shlib foo :pre
 
 where foo is the machine target name, such as linux or g++ or serial.
-This should create the file liblmp_foo.so in the src directory, as
-well as a soft link liblmp.so, which is what the Python wrapper will
+This should create the file liblammps_foo.so in the src directory, as
+well as a soft link liblammps.so, which is what the Python wrapper will
 load by default.  Note that if you are building multiple machine
 versions of the shared library, the soft link is always set to the
 most recently built version.

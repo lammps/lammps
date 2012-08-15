@@ -58,12 +58,13 @@ operations within LAMMPS, such as running a simulation for a
 reasonable number of timesteps, then the overhead cost of invoking
 LAMMPS thru Python will be negligible.
 </P>
-<P>Before using LAMMPS from a Python script, you have to do two things.
-You need to set two environment variables.  And you need to build
-LAMMPS as a dynamic shared library, so it can be loaded by Python.
-Both these steps are discussed below.  If you wish to run LAMMPS in
-parallel from Python, you also need to extend your Python with MPI.
-This is also discussed below.
+<P>Before using LAMMPS from a Python script, you need to do two things.
+You need to build LAMMPS as a dynamic shared library, so it can be
+loaded by Python.  And you need to tell Python how to find the library
+and the Python wrapper file python/lammps.py.  Both these steps are
+discussed below.  If you wish to run LAMMPS in parallel from Python,
+you also need to extend your Python with MPI.  This is also discussed
+below.
 </P>
 <P>The Python wrapper for LAMMPS uses the amazing and magical (to me)
 "ctypes" package in Python, which auto-generates the interface code
@@ -131,7 +132,7 @@ python/lammps.py file.
 </P>
 <P>You can invoke install.py from the python directory as
 </P>
-<PRE>% python install.py <B>libdir</B> <B>pydir</B> 
+<PRE>% python install.py [libdir] [pydir] 
 </PRE>
 <P>The optional libdir is where to copy the LAMMPS shared library to; the
 default is /usr/local/lib.  The optional pydir is where to copy the
@@ -146,12 +147,12 @@ non-standard locations, such as within your own user space, you will
 need to set your PYTHONPATH and LD_LIBRARY_PATH environment variables
 accordingly, as above.
 </P>
-<P>If the instally.py script does not allow you to copy files into system
+<P>If the install.py script does not allow you to copy files into system
 directories, prefix the python command with "sudo".  If you do this,
 make sure that the Python that root runs is the same as the Python you
 run.  E.g. you may need to do something like
 </P>
-<PRE>% sudo /usr/local/bin/python install.py <B>libdir</B> <B>pydir</B> 
+<PRE>% sudo /usr/local/bin/python install.py [libdir] [pydir] 
 </PRE>
 <P>You can also invoke install.py from the make command in the src
 directory as
@@ -275,8 +276,8 @@ If the load fails, the most common error to see is
 <PRE>OSError: Could not load LAMMPS dynamic library 
 </PRE>
 <P>which means Python was unable to load the LAMMPS shared library.  This
-typically occurs if the system can't find the LAMMMPS shared library
-or one of the auxiliary shared libraries it depends on.
+typically occurs if the system can't find the LAMMPS shared library or
+one of the auxiliary shared libraries it depends on.
 </P>
 <P>Python (actually the operating system) isn't verbose about telling you
 why the load failed, so carefully go through the steps above regarding

@@ -844,7 +844,7 @@ The operating system finds shared libraries to load at run-time using
 the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
 file src/liblammps.so or src/liblammps_g++.so (for example) to a place
 the system can find it by default, such as /usr/local/lib, or you may
-wish to add the lammps src directory to LD_LIBRARY_PATH, so that the
+wish to add the LAMMPS src directory to LD_LIBRARY_PATH, so that the
 current version of the shared library is always available to programs
 that use it.
 

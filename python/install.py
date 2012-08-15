@@ -1,35 +1,52 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
-# copy LAMMPS shared library src/liblammps.so and lammps.py to system dirs
-# Syntax: python install.py [libdir] [pydir]
-#         libdir = target dir for src/liblammps.so, default = /usr/local/lib
-#         pydir = target dir for lammps.py, default = Python site-packages dir
+instructions = """copy LAMMPS shared library src/liblammps.so and lammps.py to system dirs
+Syntax: python install.py [libdir] [pydir]
+    libdir = target dir for src/liblammps.so, default = /usr/local/lib, or the first
+        item in LD_LIBRARY_PATH if it doesn't exist.
+    pydir = target dir for lammps.py, default = Python site-packages, via distutils."""
 
-import sys,commands
+import sys, shutil, os
 
 if len(sys.argv) > 3:
-  print "Syntax: python install.py [libdir] [pydir]"
+  print instructions
   sys.exit()
 
-if len(sys.argv) >= 2: libdir = sys.argv[1]
-else: libdir = "/usr/local/lib"
+# verify that our user-specified path is in LD_LIBRARY_PATH
+# since if not, the install won't work
+  
+libdir = "/usr/local/lib"
+libpaths = os.environ['LD_LIBRARY_PATH'].split(':')
+if not libdir in libpaths:
+    libdir = libpaths[0]
 
-if len(sys.argv) == 3: pydir = sys.argv[2]
-else:
-  paths = sys.path
-  for i,path in enumerate(paths):
-    index = path.rfind("site-packages")
-    if index < 0: continue
-    if index == len(path) - len("site-packages"): break
-  pydir = paths[i]
+pydir = False
+try:
+    libdir = sys.argv[1]
+    pydir = sys.argv[2]
+except IndexError:
+    pass
 
-str = "cp ../src/liblammps.so %s" % libdir
-print str
-outstr = commands.getoutput(str)
-if len(outstr.strip()): print outstr
+# copy the C library into place
 
-str = "cp ../python/lammps.py %s" % pydir
-print str
-outstr = commands.getoutput(str)
-if len(outstr.strip()): print outstr
+shutil.copy('../src/liblammps.so', libdir)
 
+# if user-specified, copy lammps.py into directory
+# else invoke setup from Distutils to add to site-packages
+
+if pydir:
+    shutil.copy('../python/lammps.py', pydir)
+    sys.exit()
+
+from distutils.core import setup
+
+os.chdir('../python')
+
+setup(name = "lammps",
+    version = "15Aug12",
+    author = "Steve Plimpton",
+    author_email = "sjplimp@sandia.gov",
+    url = "http://lammps.sandia.gov",
+    description = """LAMMPS molecular dynamics library""",
+    py_modules = ["lammps"]
+)

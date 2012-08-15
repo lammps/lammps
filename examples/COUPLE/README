@@ -17,7 +17,7 @@ library.  Basically, you type something like
 make makelib
 make -f Makefile.lib g++
 
-in the LAMMPS src directory to create liblmp_g++.a
+in the LAMMPS src directory to create liblammps_g++.a
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the
@@ -33,6 +33,8 @@ lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 library		    collection of useful inter-code communication routines
 simple		    simple example of driver code calling LAMMPS as library
 fortran             a wrapper on the LAMMPS library API that
+ 		      can be called from Fortran
+fortran2            a more sophisticated wrapper on the LAMMPS library API that
  		      can be called from Fortran
 
 Each sub-directory has its own README.

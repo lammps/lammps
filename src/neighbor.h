@@ -38,8 +38,9 @@ class Neighbor : protected Pointers {
   double cutneighmax;              // max neighbor cutoff for all type pairs
   double *cuttype;                 // for each type, max neigh cut w/ others
 
-  int ncalls;                      // # of times build has been called
-  int ndanger;                     // # of dangerous builds
+  bigint ncalls;                   // # of times build has been called
+  bigint ndanger;                  // # of dangerous builds
+  bigint lastcall;                 // timestep of last neighbor::build() call
 
   int nrequest;                    // requests for pairwise neighbor lists
   class NeighRequest **requests;   // from Pair, Fix, Compute, Command classes
@@ -70,7 +71,8 @@ class Neighbor : protected Pointers {
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff
-  virtual void build();             // create all neighbor lists (pair,bond)
+  virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
+  virtual void build_topology();    // create all topology neighbor lists
   void build_one(int);              // create a single neighbor list
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds

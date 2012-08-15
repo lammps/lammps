@@ -2,25 +2,17 @@
 
 SHELL = /bin/sh
 
-# this Makefile builds LAMMPS for RedSky with OpenMPI
-# to invoke this Makefile, you need these modules loaded:
-#   mpi/openmpi-1.4.1_oobpr_intel-11.1-f064-c064
-#   misc/env-openmpi-1.4-oobpr
-#   compilers/intel-11.1-f064-c064
-#   libraries/intel-mkl-11.1.064
-#   libraries/fftw-2.1.5_openmpi-1.4.1_oobpr_intel-11.1-f064-c064
-# you can determine which modules are loaded by typing:
+# This Makefile builds LAMMPS for RedSky with OpenMPI.
+# To use this Makefile, you need appropriate modules loaded.
+# You can determine which modules are loaded by typing:
 #   module list
-# these modules are not the default ones, but can be enabled by 
-#   lines like this in your .cshrc or other start-up shell file
-#   or by typing them before you build LAMMPS:
-#     module load mpi/openmpi-1.4.3_oobpr_intel-11.1-f064-c064
-#     module load misc/env-openmpi-1.4-oobpr
-#     module load compilers/intel-11.1-f064-c064
-#     module load libraries/intel-mkl-11.1.064
-#     module load libraries/fftw-2.1.5_openmpi-1.4.3_oobpr_intel-11.1-f064-c064
-# these same modules need to be loaded to submit a LAMMPS job,
-#   either interactively or via a batch script
+# These modules can be enabled by lines like this in your .cshrc or 
+# other start-up shell file or by typing them before you build LAMMPS:
+#   module load mpi/openmpi-1.4.2_oobpr_intel-11.1-f064-c064
+#   module load libraries/intel-mkl-11.1.064
+#   module load libraries/fftw-2.1.5_openmpi-1.4.2_oobpr_intel-11.1-f064-c064
+# These same modules need to be loaded to submit a LAMMPS job,
+#   either interactively or via a batch script.
 
 # IMPORTANT NOTE:
 # to run efficiently on RedSky, use the "numa_wrapper" mpiexec option,

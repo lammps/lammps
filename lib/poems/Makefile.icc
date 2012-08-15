@@ -67,7 +67,7 @@ OBJ =   $(SRC:.cpp=.o)
 # ------ SETTINGS ------
 
 CC =		icc
-CCFLAGS =       -O -Wall -Wcheck -wd869,981,1572
+CCFLAGS =       -O -fPIC -Wall -Wcheck -wd869,981,1572
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M

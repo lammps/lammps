@@ -33,7 +33,7 @@ OBJ =   $(SRC:.cpp=.o)
 # the same MPI library that LAMMPS is built with
 
 CC =	    mpic++ 
-CCFLAGS = -O -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include
+CCFLAGS = -O -fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =  -M

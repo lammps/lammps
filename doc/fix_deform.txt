@@ -317,17 +317,19 @@ direction for xy deformation) from the unstrained orientation.
 
 The tilt factor T as a function of time will change as
 
-T(t) = T0 + erate*dt :pre
+T(t) = T0 + L0*erate*dt :pre
 
-where T0 is the initial tilt factor and dt is the elapsed time (in
-time units).  Thus if {erate} R is specified as 0.1 and time units are
-picoseconds, this means the shear strain will increase by 0.1 every
-picosecond.  I.e. if the xy shear strain was initially 0.0, then
-strain after 1 psec = 0.1, strain after 2 psec = 0.2, etc.  Thus the
-tilt factor would be 0.0 at time 0, 0.1*ybox at 1 psec, 0.2*ybox at 2
-psec, etc, where ybox is the original y box length.  R = 1 or 2 means
-the tilt factor will increase by 1 or 2 every picosecond.  R = -0.01
-means a decrease in shear strain by 0.01 every picosecond.
+where T0 is the initial tilt factor, L0 is the original length of the
+box perpendicular to the shear direction (e.g. y box length for xy
+deformation), and dt is the elapsed time (in time units).  Thus if
+{erate} R is specified as 0.1 and time units are picoseconds, this
+means the shear strain will increase by 0.1 every picosecond.  I.e. if
+the xy shear strain was initially 0.0, then strain after 1 psec = 0.1,
+strain after 2 psec = 0.2, etc.  Thus the tilt factor would be 0.0 at
+time 0, 0.1*ybox at 1 psec, 0.2*ybox at 2 psec, etc, where ybox is the
+original y box length.  R = 1 or 2 means the tilt factor will increase
+by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
+strain by 0.01 every picosecond.
 
 The {trate} style changes a tilt factor at a "constant true shear
 strain rate".  Note that this is not an "engineering shear strain

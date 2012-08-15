@@ -1259,14 +1259,16 @@ int Neighbor::check_distance()
 /* ----------------------------------------------------------------------
    build all perpetual neighbor lists every few timesteps
    pairwise & topology lists are created as needed
+   topology lists only built if topoflag = 1
 ------------------------------------------------------------------------- */
 
-void Neighbor::build()
+void Neighbor::build(int topoflag)
 {
   int i;
 
   ago = 0;
   ncalls++;
+  lastcall = update->ntimestep;
 
   // store current atom positions and box size if needed
 
@@ -1336,12 +1338,20 @@ void Neighbor::build()
   for (i = 0; i < nblist; i++)
     (this->*pair_build[blist[i]])(lists[blist[i]]);
 
-  if (atom->molecular) {
-    if (force->bond) (this->*bond_build)();
-    if (force->angle) (this->*angle_build)();
-    if (force->dihedral) (this->*dihedral_build)();
-    if (force->improper) (this->*improper_build)();
-  }
+  if (atom->molecular && topoflag) build_topology();
+}
+
+/* ----------------------------------------------------------------------
+   build all topology neighbor lists every few timesteps
+   normally built with pair lists, but USER-CUDA separates them
+------------------------------------------------------------------------- */
+
+void Neighbor::build_topology()
+{
+  if (force->bond) (this->*bond_build)();
+  if (force->angle) (this->*angle_build)();
+  if (force->dihedral) (this->*dihedral_build)();
+  if (force->improper) (this->*improper_build)();
 }
 
 /* ----------------------------------------------------------------------

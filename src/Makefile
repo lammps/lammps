@@ -38,10 +38,15 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
-	@echo 'make tar                 lmp_src.tar.gz of src dir and packages'
-	@echo 'make makelib             update Makefile.lib for static library build'
-	@echo 'make makeshlib           update Makefile.shlib for shared library build'
-	@echo 'make makelist            update Makefile.list used by old makes'
+	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
+	@echo 'make makelib             create Makefile.lib for static library build'
+	@echo 'make makeshlib           create Makefile.shlib for shared library build'
+	@echo 'make makelist            create Makefile.list used by old makes'
+	@echo 'make -f Makefile.lib machine      build LAMMPS as static library for machine'
+	@echo 'make -f Makefile.shlib machine    build LAMMPS as shared library for machine'
+	@echo 'make -f Makefile.list machine     build LAMMPS from explicit list of files'
+	@echo 'make stubs               build dummy MPI library in STUBS'
+	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo ''
 	@echo 'make package             list available packages'
 	@echo 'make package-status      status of all packages'
@@ -106,12 +111,12 @@ tar:
 	@cd STUBS; make
 	@echo "Created $(ROOT)_src.tar.gz"
 
-# Make MPI STUBS lib
+# Make MPI STUBS library
 
 stubs:
 	@cd STUBS; make clean; make
 
-# Update Makefile.lib and Makefile.list
+# Create Makefile.lib, Makefile.shlib, and Makefile.list
 
 makelib:
 	@$(SHELL) Make.sh style
@@ -124,6 +129,11 @@ makeshlib:
 makelist:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.list
+
+# install LAMMPS shared lib and Python wrapper in Python
+
+install-python:
+	@python ../python/install.py
 
 # Package management
 

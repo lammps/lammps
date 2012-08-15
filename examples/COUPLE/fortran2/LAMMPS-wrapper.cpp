@@ -30,6 +30,7 @@
 #include <compute.h>
 #include <modify.h>
 #include <error.h>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

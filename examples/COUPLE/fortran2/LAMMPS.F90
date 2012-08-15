@@ -39,8 +39,8 @@
 !!    subroutine lammps_extract_compute (compute, ptr, id, style, type)
 !!    subroutine lammps_extract_variable (variable, ptr, name, group)
 !!    function lammps_get_natoms (ptr)
-!!    subroutine lammps_get_coords (ptr, coords)
-!!    subroutine lammps_put_coords (ptr, coords)
+!!    subroutine lammps_gather_atoms (ptr, name, count, data)
+!!    subroutine lammps_scatter_atoms (ptr, name, data)
 
 #define FLERR __FILE__,__LINE__
 ! The above line allows for similar error checking as is done with standard
@@ -55,8 +55,9 @@ module LAMMPS
    public :: lammps_open, lammps_open_no_mpi, lammps_close, lammps_file, &
       lammps_command, lammps_free, lammps_extract_global, &
       lammps_extract_atom, lammps_extract_compute, lammps_extract_fix, &
-      lammps_extract_variable, lammps_get_natoms, lammps_get_coords, &
-      lammps_put_coords, lammps_instance
+      lammps_extract_variable, lammps_get_natoms, lammps_gather_atoms, &
+      lammps_scatter_atoms
+   public :: lammps_instance
 
    !! Functions supplemental to the prototypes in library.h. {{{1
    !! The function definitions (in C++) are contained in LAMMPS-wrapper.cpp.
@@ -204,18 +205,21 @@ module LAMMPS
          integer (C_int) :: natoms
       end function lammps_get_natoms
 
-      subroutine lammps_actual_get_coords (ptr, coords) &
-      bind (C, name='lammps_get_coords')
-         import :: C_ptr
-         type (C_ptr), value :: ptr, coords
-      end subroutine lammps_actual_get_coords
+      subroutine lammps_actual_gather_atoms (ptr, name, type, count, data) &
+      bind (C, name='lammps_gather_atoms')
+         import :: C_ptr, C_int, C_char
+         type (C_ptr), value :: ptr, data
+         character (kind=C_char), dimension(*) :: name
+         integer (C_int), value :: type, count
+      end subroutine lammps_actual_gather_atoms
 
-      subroutine lammps_actual_put_coords (ptr, coords) &
-      bind (C, name='lammps_put_coords')
-         import :: C_ptr, C_double
-         type (C_ptr), value :: ptr
-         real (C_double), dimension(*) :: coords
-      end subroutine lammps_actual_put_coords
+      subroutine lammps_actual_scatter_atoms (ptr, name, type, count, data) &
+      bind (C, name='lammps_scatter_atoms')
+         import :: C_ptr, C_int, C_char
+         type (C_ptr), value :: ptr, data
+         character (kind=C_char), dimension(*) :: name
+         integer (C_int), value :: type, count
+      end subroutine lammps_actual_scatter_atoms
    end interface
 
    ! Generic functions for the wrappers below {{{1
@@ -257,6 +261,16 @@ module LAMMPS
          lammps_extract_variable_ia, &
          lammps_extract_variable_dpa
    end interface lammps_extract_variable
+
+   interface lammps_gather_atoms
+      module procedure lammps_gather_atoms_ia, lammps_gather_atoms_dpa, &
+         lammps_gather_atoms_ra
+   end interface lammps_gather_atoms
+
+   interface lammps_scatter_atoms
+      module procedure lammps_scatter_atoms_ia, lammps_scatter_atoms_dpa, &
+         lammps_scatter_atoms_ra
+   end interface lammps_scatter_atoms
 
 contains !! Wrapper functions local to this module {{{1
 
@@ -374,7 +388,6 @@ contains !! Wrapper functions local to this module {{{1
       integer (C_int), pointer :: Fptr
       integer :: natoms
       natoms = lammps_get_natoms (ptr)
-      if ( allocated (atom) ) deallocate (atom)
       allocate (atom(natoms))
       Cptr = lammps_extract_atom_Cptr (ptr, name)
       call C_F_pointer (Cptr, Fptr, (/natoms/))
@@ -399,7 +412,6 @@ contains !! Wrapper functions local to this module {{{1
          ! Everything else we can get is probably nlocal units long
          call lammps_extract_global_i (nelements, ptr, 'nlocal')
       end if
-      if ( allocated (atom) ) deallocate (atom)
       allocate (atom(nelements))
       Cptr = lammps_extract_atom_Cptr (ptr, name)
       if ( name == 'mass' ) then
@@ -417,7 +429,6 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       double precision, dimension(:), allocatable :: d_atom
       call lammps_extract_atom_dpa (d_atom, ptr, name)
-      if ( allocated (atom) ) deallocate (atom)
       allocate (atom(size(d_atom)))
       atom = real(d_atom)
       deallocate (d_atom)
@@ -428,7 +439,6 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
       integer :: nelements
-      if ( allocated (atom) ) deallocate (atom)
       if ( name /= 'x' .and. name /= 'v' .and. name /= 'f' ) then
          call lammps_error_all (ptr, FLERR, 'You cannot extract ' // name // &
             ' into a rank 2 array.')
@@ -445,7 +455,6 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       double precision, dimension(:,:), allocatable :: d_atom
       call lammps_extract_atom_dp2a (d_atom, ptr, name)
-      if ( allocated (atom) ) deallocate (atom)
       if ( allocated (d_atom) ) then
          allocate (atom(size(d_atom,1), size(d_atom,2)))
       else
@@ -515,7 +524,6 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cptr
       real (C_double), dimension(:), pointer :: Fptr
       integer :: nelements
-      if ( allocated (compute) ) deallocate (compute)
       ! Check for the correct dimensionality
       if ( type == 0 ) then
          call lammps_error_all (ptr, FLERR, 'You cannot extract a compute&
@@ -541,7 +549,6 @@ contains !! Wrapper functions local to this module {{{1
       integer, intent(in) :: style, type
       double precision, dimension(:), allocatable :: d_compute
       call lammps_extract_compute_dpa (d_compute, ptr, id, style, type)
-      if ( allocated (compute) ) deallocate (compute)
       allocate (compute(size(d_compute)))
       compute = real(d_compute)
       deallocate (d_compute)
@@ -554,7 +561,6 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cptr
       real (C_double), dimension(:,:), pointer :: Fptr
       integer :: nr, nc
-      if ( allocated (compute) ) deallocate (compute)
       ! Check for the correct dimensionality
       if ( type == 0 ) then
          call lammps_error_all (ptr, FLERR, 'You cannot extract a compute&
@@ -580,7 +586,6 @@ contains !! Wrapper functions local to this module {{{1
       integer, intent(in) :: style, type
       double precision, dimension(:,:), allocatable :: d_compute
       call lammps_extract_compute_dp2a (d_compute, ptr, id, style, type)
-      if ( allocated (compute) ) deallocate (compute)
       allocate (compute(size(d_compute,1), size(d_compute,2)))
       compute = real(d_compute)
       deallocate (d_compute)
@@ -658,7 +663,6 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cptr
       real (C_double), dimension(:), pointer :: Fptr
       integer :: fix_len
-      if ( allocated (fix) ) deallocate (fix)
       ! Check for the correct dimensionality
       if ( style == 0 ) then
          call lammps_error_all (ptr, FLERR, 'You can''t extract the&
@@ -692,7 +696,6 @@ contains !! Wrapper functions local to this module {{{1
       integer, intent(in) :: style, type, i, j
       double precision, dimension(:), allocatable :: d_fix
       call lammps_extract_fix_dpa (d_fix, ptr, id, style, type, i, j)
-      if ( allocated (fix) ) deallocate (fix)
       allocate (fix(size(d_fix)))
       fix = real(d_fix)
       deallocate (d_fix)
@@ -705,7 +708,6 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cptr
       real (C_double), dimension(:,:), pointer :: Fptr
       integer :: nr, nc
-      if ( allocated (fix) ) deallocate (fix)
       ! Check for the correct dimensionality
       if ( style == 0 ) then
          call lammps_error_all (ptr, FLERR, 'It is not possible to extract the&
@@ -735,7 +737,6 @@ contains !! Wrapper functions local to this module {{{1
       integer, intent(in) :: style, type, i, j
       double precision, dimension(:,:), allocatable :: d_fix
       call lammps_extract_fix_dp2a (d_fix, ptr, id, style, type, i, j)
-      if ( allocated (fix) ) deallocate (fix)
       allocate (fix(size(d_fix,1), size(d_fix,2)))
       fix = real(d_fix)
       deallocate (d_fix)
@@ -824,7 +825,6 @@ contains !! Wrapper functions local to this module {{{1
          Cptr = lammps_extract_variable_Cptr (ptr, name)
       end if
       natoms = lammps_get_natoms (ptr)
-      if ( allocated (variable) ) deallocate (variable)
       allocate (variable(natoms))
       call C_F_pointer (Cptr, Fptr, (/natoms/))
       variable = Fptr
@@ -845,7 +845,6 @@ contains !! Wrapper functions local to this module {{{1
          Cptr = lammps_extract_variable_Cptr (ptr, name)
       end if
       natoms = lammps_get_natoms (ptr)
-      if ( allocated (variable) ) deallocate (variable)
       allocate (variable(natoms))
       call C_F_pointer (Cptr, Fptr, (/natoms/))
       variable = Fptr
@@ -863,7 +862,6 @@ contains !! Wrapper functions local to this module {{{1
       else
          call lammps_extract_variable_dpa (d_var, ptr, name)
       end if
-      if ( allocated (variable) ) deallocate (variable)
       allocate (variable(size(d_var)))
       variable = real(d_var)
       deallocate (d_var)
@@ -871,31 +869,145 @@ contains !! Wrapper functions local to this module {{{1
 
 !-------------------------------------------------------------------------2}}}
 
-   subroutine lammps_get_coords (ptr, coords)
-      type (C_ptr) :: ptr
-      double precision, dimension(:), allocatable :: coords
-      real (C_double), dimension(:), allocatable, target :: C_coords
-      integer :: natoms
+   subroutine lammps_gather_atoms_ia (ptr, name, count, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      integer, intent(in) :: count
+      integer, dimension(:), allocatable, intent(out) :: data
+      type (C_ptr) :: Cdata
+      integer (C_int), dimension(:), pointer :: Fdata
+      integer (C_int) :: natoms
+      character (kind=C_char), dimension(len_trim(name)) :: Cname
+      integer (C_int), parameter :: Ctype = 0
+      integer (C_int) :: Ccount
       natoms = lammps_get_natoms (ptr)
-      if ( allocated(coords) ) deallocate (coords)
-      allocate (coords(3*natoms))
-      allocate (C_coords(3*natoms))
-      call lammps_actual_get_coords (ptr, C_loc(C_coords))
-      coords = C_coords
-      deallocate (C_coords)
-   end subroutine lammps_get_coords
+      Cname = string2Cstring (name)
+      if ( count /= 1 .and. count /= 3 ) then
+         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+            & count to be either 1 or 3')
+      else
+         Ccount = count
+      end if
+      allocate ( Fdata(count*natoms) )
+      allocate ( data(count*natoms) )
+      Cdata = C_loc (Fdata(1))
+      call lammps_actual_gather_atoms (ptr, Cname, Ctype, Ccount, Cdata)
+      data = Fdata
+      deallocate (Fdata)
+   end subroutine lammps_gather_atoms_ia
+   subroutine lammps_gather_atoms_dpa (ptr, name, count, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      integer, intent(in) :: count
+      double precision, dimension(:), allocatable, intent(out) :: data
+      type (C_ptr) :: Cdata
+      real (C_double), dimension(:), pointer :: Fdata
+      integer (C_int) :: natoms
+      character (kind=C_char), dimension(len_trim(name)) :: Cname
+      integer (C_int), parameter :: Ctype = 1
+      integer (C_int) :: Ccount
+      natoms = lammps_get_natoms (ptr)
+      Cname = string2Cstring (name)
+      if ( count /= 1 .and. count /= 3 ) then
+         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+            & count to be either 1 or 3')
+      else
+         Ccount = count
+      end if
+      allocate ( Fdata(count*natoms) )
+      allocate ( data(count*natoms) )
+      Cdata = C_loc (Fdata(1))
+      call lammps_actual_gather_atoms (ptr, Cname, Ctype, Ccount, Cdata)
+      data = Fdata(:)
+      deallocate (Fdata)
+   end subroutine lammps_gather_atoms_dpa
+   subroutine lammps_gather_atoms_ra (ptr, name, count, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      integer, intent(in) :: count
+      real, dimension(:), allocatable, intent(out) :: data
+      double precision, dimension(:), allocatable :: d_data
+      call lammps_gather_atoms_dpa (ptr, name, count, d_data)
+      allocate (data(size(d_data)))
+      data = d_data
+      deallocate (d_data)
+   end subroutine lammps_gather_atoms_ra
 
 !-----------------------------------------------------------------------------
 
-   subroutine lammps_put_coords (ptr, coords)
-      type (C_ptr) :: ptr
-      double precision, dimension(:) :: coords
-      real (C_double), dimension(size(coords)) :: C_coords
-      C_coords = coords
-      call lammps_actual_put_coords (ptr, C_coords)
-   end subroutine lammps_put_coords
+   subroutine lammps_scatter_atoms_ia (ptr, name, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      integer, dimension(:), intent(in) :: data
+      integer (kind=C_int) :: natoms, Ccount
+      integer (kind=C_int), parameter :: Ctype = 0
+      character (kind=C_char), dimension(len_trim(name)) :: Cname
+      integer, dimension(size(data)), target :: Fdata
+      type (C_ptr) :: Cdata
+      natoms = lammps_get_natoms (ptr)
+      Cname = string2Cstring (name)
+      Ccount = size(data) / natoms
+      if ( Ccount /= 1 .and. Ccount /= 3 ) &
+         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+            & count to be either 1 or 3')
+      Fdata = data
+      Cdata = C_loc (Fdata(1))
+      call lammps_actual_scatter_atoms (ptr, Cname, Ctype, Ccount, Cdata)
+   end subroutine lammps_scatter_atoms_ia
+   subroutine lammps_scatter_atoms_dpa (ptr, name, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      double precision, dimension(:), intent(in) :: data
+      integer (kind=C_int) :: natoms, Ccount
+      integer (kind=C_int), parameter :: Ctype = 0
+      character (kind=C_char), dimension(len_trim(name)) :: Cname
+      double precision, dimension(size(data)), target :: Fdata
+      type (C_ptr) :: Cdata
+      natoms = lammps_get_natoms (ptr)
+      Cname = string2Cstring (name)
+      Ccount = size(data) / natoms
+      if ( Ccount /= 1 .and. Ccount /= 3 ) &
+         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+            & count to be either 1 or 3')
+      Fdata = data
+      Cdata = C_loc (Fdata(1))
+      call lammps_actual_scatter_atoms (ptr, Cname, Ctype, Ccount, Cdata)
+   end subroutine lammps_scatter_atoms_dpa
+   subroutine lammps_scatter_atoms_ra (ptr, name, data)
+      type (C_ptr), intent(in) :: ptr
+      character (len=*), intent(in) :: name
+      real, dimension(:), intent(out) :: data
+      double precision, dimension(size(data)) :: d_data
+      d_data = real (data, kind(d_data))
+      call lammps_scatter_atoms_dpa (ptr, name, d_data)
+   end subroutine lammps_scatter_atoms_ra
 
 !-----------------------------------------------------------------------------
+
+!   subroutine lammps_get_coords (ptr, coords)
+!      type (C_ptr) :: ptr
+!      double precision, dimension(:), allocatable, intent(out) :: coords
+!      real (C_double), dimension(:), allocatable, target :: C_coords
+!      integer :: natoms
+!      natoms = lammps_get_natoms (ptr)
+!      allocate (coords(3*natoms))
+!      allocate (C_coords(3*natoms))
+!      call lammps_actual_get_coords (ptr, C_loc(C_coords))
+!      coords = C_coords
+!      deallocate (C_coords)
+!   end subroutine lammps_get_coords
+!
+!!-----------------------------------------------------------------------------
+!
+!   subroutine lammps_put_coords (ptr, coords)
+!      type (C_ptr) :: ptr
+!      double precision, dimension(:) :: coords
+!      real (C_double), dimension(size(coords)) :: C_coords
+!      C_coords = coords
+!      call lammps_actual_put_coords (ptr, C_coords)
+!   end subroutine lammps_put_coords
+!
+!!-----------------------------------------------------------------------------
 
    function lammps_extract_compute_vectorsize (ptr, id, style) &
    result (vectorsize)

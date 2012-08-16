@@ -22,7 +22,7 @@ help:
 	for file in $$files; do head -1 $$file; done
 
 clean:
-	rm -rf Obj_*
+	rm -rf Obj_shlib_*
 
 .DEFAULT:
 	@test -f MAKE/Makefile.$@

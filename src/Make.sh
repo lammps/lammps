@@ -1,6 +1,8 @@
-# Make.sh = update Makefile.lib or Makefile.list or style_*.h files
+# Make.sh = update Makefile.lib, Makefile.shlib, Makefile.list 
+#           or style_*.h files
 # Syntax: sh Make.sh style
 #         sh Make.sh Makefile.lib
+#         sh Make.sh Makefile.shlib
 #         sh Make.sh Makefile.list
 
 # function to create one style_*.h file

@@ -410,6 +410,8 @@ void Cuda::setDomainParams()
       cu_domain->boxlo_lamda[i] = domain->boxlo_lamda[i];
       cu_domain->boxhi_lamda[i] = domain->boxhi_lamda[i];
       cu_domain->prd_lamda[i] = domain->prd_lamda[i];
+      cu_domain->sublo[i] = domain->sublo_lamda[i];
+      cu_domain->subhi[i] = domain->subhi_lamda[i];
     }
 
     cu_domain->xy = domain->xy;

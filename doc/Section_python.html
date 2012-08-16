@@ -277,13 +277,17 @@ If the load fails, the most common error to see is
 </PRE>
 <P>which means Python was unable to load the LAMMPS shared library.  This
 typically occurs if the system can't find the LAMMPS shared library or
-one of the auxiliary shared libraries it depends on.
+one of the auxiliary shared libraries it depends on.  The error
+message should give you some indication of what went wrong.
 </P>
-<P>Python (actually the operating system) isn't verbose about telling you
-why the load failed, so carefully go through the steps above regarding
-environment variables, and the instructions in <A HREF = "Section_start.html#start_5">Section_start
-5</A> about building a shared library and
-about setting the LD_LIBRARY_PATH envirornment variable.
+<P>You can also test the load directly in Python as follows
+</P>
+<PRE>>>> from ctypes import CDLL
+>>> CDLL("liblammps.so") 
+</PRE>
+<P>If an error occurs, carefully go thru the steps above and in
+<A HREF = "Section_start.html#start_5">Section_start 5</A> about building a shared
+library and about insuring Python can find the necessary 2 files.
 </P>
 <H5><B>Test LAMMPS and Python in serial:</B> 
 </H5>

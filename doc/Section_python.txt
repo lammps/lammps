@@ -273,13 +273,17 @@ OSError: Could not load LAMMPS dynamic library :pre
 
 which means Python was unable to load the LAMMPS shared library.  This
 typically occurs if the system can't find the LAMMPS shared library or
-one of the auxiliary shared libraries it depends on.
+one of the auxiliary shared libraries it depends on.  The error
+message should give you some indication of what went wrong.
 
-Python (actually the operating system) isn't verbose about telling you
-why the load failed, so carefully go through the steps above regarding
-environment variables, and the instructions in "Section_start
-5"_Section_start.html#start_5 about building a shared library and
-about setting the LD_LIBRARY_PATH envirornment variable.
+You can also test the load directly in Python as follows
+
+>>> from ctypes import CDLL
+>>> CDLL("liblammps.so") :pre
+
+If an error occurs, carefully go thru the steps above and in
+"Section_start 5"_Section_start.html#start_5 about building a shared
+library and about insuring Python can find the necessary 2 files.
 
 [Test LAMMPS and Python in serial:] :h5
 

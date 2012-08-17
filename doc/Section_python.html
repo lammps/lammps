@@ -270,24 +270,27 @@ and type:
 <PRE>>>> from lammps import lammps
 >>> lmp = lammps() 
 </PRE>
-<P>If you get no errors, you're ready to use LAMMPS from Python.
-If the load fails, the most common error to see is
+<P>If you get no errors, you're ready to use LAMMPS from Python.  If the
+2nd command fails, the most common error to see is
 </P>
 <PRE>OSError: Could not load LAMMPS dynamic library 
 </PRE>
 <P>which means Python was unable to load the LAMMPS shared library.  This
 typically occurs if the system can't find the LAMMPS shared library or
-one of the auxiliary shared libraries it depends on.  The error
-message should give you some indication of what went wrong.
+one of the auxiliary shared libraries it depends on, or if something
+about the library is incompatible with your Python.  The error message
+should give you an indication of what went wrong.
 </P>
-<P>You can also test the load directly in Python as follows
+<P>You can also test the load directly in Python as follows, without
+first importing from the lammps.py file:
 </P>
 <PRE>>>> from ctypes import CDLL
 >>> CDLL("liblammps.so") 
 </PRE>
-<P>If an error occurs, carefully go thru the steps above and in
-<A HREF = "Section_start.html#start_5">Section_start 5</A> about building a shared
-library and about insuring Python can find the necessary 2 files.
+<P>If an error occurs, carefully go thru the steps in <A HREF = "Section_start.html#start_5">Section_start
+5</A> and above about building a shared
+library and about insuring Python can find the necessary two files
+it needs.
 </P>
 <H5><B>Test LAMMPS and Python in serial:</B> 
 </H5>

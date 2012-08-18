@@ -39,6 +39,8 @@ using namespace FixConst;
 using namespace MathConst;
 
 enum{SINGLE,MOLECULE,GROUP};
+enum{NONE,XYZ,XY,YZ,XZ};
+enum{ISO,ANISO,TRICLINIC};
 
 #define MAXLINE 256
 #define CHUNK 1024
@@ -241,14 +243,25 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   int seed;
   langflag = 0;
-  tempflag = 0;
-  pressflag = 0;
+  tstat_flag = 0;
+  pstat_flag = 0;
+  allremap = 1;
+  id_dilate = NULL;
   t_chain = 10;
   t_iter = 1;
   t_order = 3;
   p_chain = 10;
   infile = NULL;
 
+  pcouple = NONE;
+  pstyle = ANISO;
+  dimension = domain->dimension;
+  
+  for (int i = 0; i < 3; i++) {
+    p_start[i] = p_stop[i] = p_period[i] = 0.0;
+    p_flag[i] = 0;
+  }
+  
   while (iarg < narg) {
     if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
@@ -330,34 +343,104 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
       if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
         error->all(FLERR,"Illegal fix rigid command");
-      tempflag = 1;
+      tstat_flag = 1;
       t_start = atof(arg[iarg+1]);
       t_stop = atof(arg[iarg+2]);
       t_period = atof(arg[iarg+3]);
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"press") == 0) {
+    } else if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0)
-        error->all(FLERR,"Illegal fix rigid command");
-      pressflag = 1;
-      p_start = atof(arg[iarg+1]);
-      p_stop = atof(arg[iarg+2]);
-      p_period = atof(arg[iarg+3]);
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
+	      error->all(FLERR,"Illegal fix rigid command");
+      pcouple = XYZ;
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
+      	p_flag[2] = 0;
+      }
       iarg += 4;
+
+    } else if (strcmp(arg[iarg],"aniso") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
+	      error->all(FLERR,"Illegal fix rigid command");
+      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (dimension == 2) {
+      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	      p_flag[2] = 0;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      p_start[0] = atof(arg[iarg+1]);
+      p_stop[0] = atof(arg[iarg+2]);
+      p_period[0] = atof(arg[iarg+3]);
+      p_flag[0] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      p_start[1] = atof(arg[iarg+1]);
+      p_stop[1] = atof(arg[iarg+2]);
+      p_period[1] = atof(arg[iarg+3]);
+      p_flag[1] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      p_start[2] = atof(arg[iarg+1]);
+      p_stop[2] = atof(arg[iarg+2]);
+      p_period[2] = atof(arg[iarg+3]);
+      p_flag[2] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"couple") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
+      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
+      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
+      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
+      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
+      else error->all(FLERR,"Illegal fix rigid command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"dilate") == 0) {
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal fix rigid nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+      else {
+        allremap = 0;
+        delete [] id_dilate;
+        int n = strlen(arg[iarg+1]) + 1;
+        id_dilate = new char[n];
+        strcpy(id_dilate,arg[iarg+1]);
+        int idilate = group->find(id_dilate);
+        if (idilate == -1)
+          error->all(FLERR,
+                     "Fix rigid nvt/npt/nph dilate group ID does not exist");
+      }
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"tparam") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/nvt") != 0)
+      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       t_chain = atoi(arg[iarg+1]);
       t_iter = atoi(arg[iarg+2]);
       t_order = atoi(arg[iarg+3]);
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"pparam") == 0) {
+    } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0)
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       p_chain = atoi(arg[iarg+1]);
       iarg += 2;
@@ -372,8 +455,16 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all(FLERR,"Illegal fix rigid command");
   }
-  t_target = t_start;
+  
+  // set pstat_flag
 
+  pstat_flag = 0;
+  for (int i = 0; i < 3; i++) 
+    if (p_flag[i]) pstat_flag = 1;
+
+  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  else pstyle = ANISO;
+  
   // initialize Marsaglia RNG with processor-unique seed
 
   if (langflag) random = new RanMars(lmp,seed + me);
@@ -1651,7 +1742,7 @@ void FixRigid::setup_bodies()
   // then remap the xcm of each body back into simulation box if needed
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) |
+    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
       ((tagint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
@@ -2003,7 +2094,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-
+  
   if (me == 0) {
     fp = fopen(infile,"r");
     if (fp == NULL) {
@@ -2052,7 +2143,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
     if (nwords != ATTRIBUTE_PERBODY)
       error->all(FLERR,"Incorrect rigid body format in fix rigid file");
-
+    
     // loop over lines of rigid body attributes
     // tokenize the line into values
     // id = rigid body ID
@@ -2062,19 +2153,19 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-
+      
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-
+      
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {
-        if (id <= 0 || id > maxmol)
+        if (id <= 0 || id > maxmol) 
           error->all(FLERR,"Invalid rigid body ID in fix rigid file");
         id = mol2body[id];
       } else id--;
 
-      if (id < 0 || id >= nbody)
+      if (id < 0 || id >= nbody) 
         error->all(FLERR,"Invalid rigid body ID in fix rigid file");
       inbody[id] = 1;
 
@@ -2094,7 +2185,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
       buf = next + 1;
     }
-
+    
     nread += nchunk;
   }
 

@@ -13,22 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(rigid/nve,FixRigidNVE)
+FixStyle(rigid/npt,FixRigidNPT)
 
 #else
 
-#ifndef LMP_FIX_RIGID_NVE_H
-#define LMP_FIX_RIGID_NVE_H
+#ifndef LMP_FIX_RIGID_NPT_H
+#define LMP_FIX_RIGID_NPT_H
 
 #include "fix_rigid_nh.h"
 
 namespace LAMMPS_NS {
 
-class FixRigidNVE : public FixRigidNH {
+class FixRigidNPT : public FixRigidNH {
  public:
-  FixRigidNVE(class LAMMPS *, int, char **);
-  ~FixRigidNVE() {}
+  FixRigidNPT(class LAMMPS *, int, char **);
+  ~FixRigidNPT() {}
 };
+
 
 }
 

@@ -41,7 +41,8 @@ class FixRigid : public Fix {
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
   virtual double compute_scalar();
-
+  virtual int modify_param(int, char **) {return 0;}
+  
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int);
@@ -55,7 +56,7 @@ class FixRigid : public Fix {
   void reset_dt();
   virtual void *extract(const char*,int &);
   double compute_array(int, int);
-
+    
  protected:
   int me,nprocs;
   double dtv,dtf,dtq;
@@ -67,6 +68,7 @@ class FixRigid : public Fix {
   int firstflag;            // 1 for first-time setup of rigid bodies
   char *infile;             // file to read rigid body attributes from
 
+  int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
   int *mol2body;            // convert mol-ID to rigid body index
@@ -103,16 +105,22 @@ class FixRigid : public Fix {
   double tfactor;           // scale factor on temperature of rigid bodies
   int langflag;             // 0/1 = no/yes Langevin thermostat
 
-  int tempflag;             // NVT settings
+  int tstat_flag;           // NVT settings
   double t_start,t_stop,t_target;
   double t_period,t_freq;
   int t_chain,t_iter,t_order;
 
-  int pressflag;            // NPT settings
-  double p_start,p_stop;
-  double p_period,p_freq;
+  int pstat_flag;           // NPT settings
+  double p_start[3],p_stop[3];
+  double p_period[3],p_freq[3];
+  int p_flag[3];  
+  int pcouple,pstyle;
   int p_chain;
 
+  int allremap;              // remap all atoms
+  int dilate_group_bit;      // mask for dilation group
+  char *id_dilate;           // group name to dilate
+  
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

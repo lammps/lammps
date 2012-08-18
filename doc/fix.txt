@@ -219,6 +219,10 @@ nve/limit"_fix_nve_limit.html - NVE with limited step length
 "restrain"_fix_restrain.html - constrain a bond, angle, dihedral
 "rigid"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body with NVE integration
+"rigid/nph"_fix_rigid.html - constrain one or more clusters of atoms to \
+     move as a rigid body with NPH integration
+"rigid/npt"_fix_rigid.html - constrain one or more clusters of atoms to \
+     move as a rigid body with NPT integration
 "rigid/nve"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body with alternate NVE integration
 "rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to \

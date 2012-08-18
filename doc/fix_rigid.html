@@ -15,13 +15,17 @@
 </H3>
 <H3>fix rigid/nvt command 
 </H3>
+<H3>fix rigid/npt command 
+</H3>
+<H3>fix rigid/nph command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>fix ID group-ID style bodystyle args keyword values ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>style = <I>rigid</I> or <I>rigid/nve</I> or <I>rigid/nvt</I> 
+<LI>style = <I>rigid</I> or <I>rigid/nve</I> or <I>rigid/nvt</I> or <I>rigid/npt</I> or <I>rigid/nph</I> 
 
 <LI>bodystyle = <I>single</I> or <I>molecule</I> or <I>group</I> 
 
@@ -33,7 +37,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>tparam</I> or <I>force</I> or <I>torque</I> or <I>infile</I> 
+<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>tparam</I> or <I>pchain</I> or <I>dilate</I> or <I>force</I> or <I>torque</I> or <I>infile</I> 
 
 <PRE>  <I>langevin</I> values = Tstart Tstop Tperiod seed
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
@@ -42,10 +46,21 @@
   <I>temp</I> values = Tstart Tstop Tdamp
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
+  <I>iso</I> or <I>aniso</I> values = Pstart Pstop Pdamp
+    Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
+    Pdamp = pressure damping parameter (time units)
+  <I>x</I> or <I>y</I> or <I>z</I> values = Pstart Pstop Pdamp
+    Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
+    Pdamp = stress damping parameter (time units)
+  <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
   <I>tparam</I> values = Tchain Titer Torder
     Tchain = length of Nose/Hoover thermostat chain
     Titer = number of thermostat iterations performed
     Torder = 3 or 5 = Yoshida-Suzuki integration parameters
+  <I>pchain</I> values = Pchain
+    Pchain = length of the Nose/Hoover thermostat chain coupled with the barostat
+  <I>dilate</I> value = dilate-group-ID
+    dilate-group-ID = only dilate atoms in this group due to barostat volume changes
   <I>force</I> values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass force is active
@@ -64,6 +79,9 @@ fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
 fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
 fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
 fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off 
+fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
+fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
+fix 1 water rigid/nph molecule iso 0.5 0.5 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -89,23 +107,16 @@ molecules of 2, 3, or 4 atoms, e.g. water molecules.  That fix treats
 the constituent atoms as point masses.
 </P>
 <P>These fixes also update the positions and velocities of the atoms in
-each rigid body via time integration.  The <I>rigid</I> and <I>rigid/nve</I>
-styles do this via constant NVE integration.  The only difference is
-that the <I>rigid</I> style uses an integration technique based on
-Richardson iterations.  The <I>rigid/nve</I> style uses the methods
-described in the paper by <A HREF = "#Miller">Miller</A>, which are thought to
-provide better energy conservation than an iterative approach.
-</P>
-<P>The <I>rigid/nvt</I> style performs constant NVT integration using a
-Nose/Hoover thermostat with chains as described originally in
-<A HREF = "#Hoover">(Hoover)</A> and <A HREF = "#Martyna">(Martyna)</A>, which thermostats both
-the translational and rotational degrees of freedom of the rigid
-bodies.  The rigid-body algorithm used by <I>rigid/nvt</I> is described in
-the paper by <A HREF = "#Kamberaj">Kamberaj</A>.
+each rigid body via time integration, in the NVE, NVT, NPT, or NPH
+ensemble, as described below.  
 </P>
 <P>IMPORTANT NOTE: You should not update the atoms in rigid bodies via
-other time-integration fixes (e.g. nve, nvt, npt), or you will be
-integrating their motion more than once each timestep.
+other time-integration fixes (e.g. <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nvt.html">fix
+nvt</A>, <A HREF = "fix_npt.html">fix npt</A>), or you will be integrating
+their motion more than once each timestep.  When performing a hybrid
+simulation with some atoms in rigid bodies, and some not, a separate
+time integration fix like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix
+nvt</A> should be used for the non-rigid particles.
 </P>
 <P>IMPORTANT NOTE: These fixes are overkill if you simply want to hold a
 collection of atoms stationary or have them move with a constant
@@ -120,30 +131,9 @@ setforce</A> command), and integrating them as usual
 </P>
 <HR>
 
-<P>The constituent particles within a rigid body can be point particles
-(the default in LAMMPS) or finite-size particles, such as spheres or
-ellipsoids or line segments or triangles.  See the <A HREF = "atom_style.html">atom_style sphere
-and ellipsoid and line and tri</A> commands for more
-details on these kinds of particles.  Finite-size particles contribute
-differently to the moment of inertia of a rigid body than do point
-particles.  Finite-size particles can also experience torque (e.g. due
-to <A HREF = "pair_gran.html">frictional granular interactions</A>) and have an
-orientation.  These contributions are accounted for by these fixes.
-</P>
-<P>Forces between particles within a body do not contribute to the
-external force or torque on the body.  Thus for computational
-efficiency, you may wish to turn off pairwise and bond interactions
-between particles within each rigid body.  The <A HREF = "neigh_modify.html">neigh_modify
-exclude</A> and <A HREF = "delete_bonds.html">delete_bonds</A>
-commands are used to do this.  For finite-size particles this also
-means the particles can be highly overlapped when creating the rigid
-body.
-</P>
-<HR>
-
-<P>Each body must have two or more atoms.  An atom can belong to at most
-one rigid body.  Which atoms are in which bodies can be defined via
-several options.
+<P>Each rigid body must have two or more atoms.  An atom can belong to at
+most one rigid body.  Which atoms are in which bodies can be defined
+via several options.
 </P>
 <P>For bodystyle <I>single</I> the entire fix group of atoms is treated as one
 rigid body.
@@ -207,6 +197,127 @@ multiple rigid fixes to be defined, but it is more expensive.
 </P>
 <HR>
 
+<P>The constituent particles within a rigid body can be point particles
+(the default in LAMMPS) or finite-size particles, such as spheres or
+ellipsoids or line segments or triangles.  See the <A HREF = "atom_style.html">atom_style sphere
+and ellipsoid and line and tri</A> commands for more
+details on these kinds of particles.  Finite-size particles contribute
+differently to the moment of inertia of a rigid body than do point
+particles.  Finite-size particles can also experience torque (e.g. due
+to <A HREF = "pair_gran.html">frictional granular interactions</A>) and have an
+orientation.  These contributions are accounted for by these fixes.
+</P>
+<P>Forces between particles within a body do not contribute to the
+external force or torque on the body.  Thus for computational
+efficiency, you may wish to turn off pairwise and bond interactions
+between particles within each rigid body.  The <A HREF = "neigh_modify.html">neigh_modify
+exclude</A> and <A HREF = "delete_bonds.html">delete_bonds</A>
+commands are used to do this.  For finite-size particles this also
+means the particles can be highly overlapped when creating the rigid
+body.
+</P>
+<HR>
+
+<P>The <I>rigid</I> and <I>rigid/nve</I> styles perform constant NVE time
+integration.  The only difference is that the <I>rigid</I> style uses an
+integration technique based on Richardson iterations.  The <I>rigid/nve</I>
+style uses the methods described in the paper by <A HREF = "#Miller">Miller</A>,
+which are thought to provide better energy conservation than an
+iterative approach.
+</P>
+<P>The <I>rigid/nvt</I> style performs constant NVT integration using a
+Nose/Hoover thermostat with chains as described originally in
+<A HREF = "#Hoover">(Hoover)</A> and <A HREF = "#Martyna">(Martyna)</A>, which thermostats both
+the translational and rotational degrees of freedom of the rigid
+bodies.  The rigid-body algorithm used by <I>rigid/nvt</I> is described in
+the paper by <A HREF = "#Kamberaj">Kamberaj</A>.
+</P>
+<P>The <I>rigid/npt</I> and <I>rigid/nph</I> styles performs constant NPT or NPH
+integration using a Nose/Hoover barostat with chains.  For the NPT
+case, the same Nose/Hoover thermostat is also used as with <I>rigid/nvt</I>.
+</P>
+<P>The barostat parameters are specified using one or more of the <I>iso</I>,
+<I>aniso</I>, <I>x</I>, <I>y</I>, <I>z</I> and <I>couple</I> keywords.  These keywords give you
+the ability to specify 3 diagonal components of the external stress
+tensor, and to couple these components together so that the dimensions
+they represent are varied together during a constant-pressure
+simulation.  The effects of these keywords are similar to those defined in
+<A HREF = "fix_nh.html">fix npt/nph</A>
+</P>
+<P>NOTE: Currently the <I>rigid/npt</I> and <I>rigid/nph</I> styles do not support
+triclinic (non-orthongonal) boxes.
+</P>
+<P>The target pressures for each of the 6 components of the stress tensor
+can be specified independently via the <I>x</I>, <I>y</I>, <I>z</I> keywords, which
+correspond to the 3 simulation box dimensions.  For each component,
+the external pressure or tensor component at each timestep is a ramped
+value during the run from <I>Pstart</I> to <I>Pstop</I>. If a target pressure is
+specified for a component, then the corresponding box dimension will
+change during a simulation.  For example, if the <I>y</I> keyword is used,
+the y-box length will change.  A box dimension will not change if that
+component is not specified, although you have the option to change
+that dimension via the <A HREF = "fix_deform.html">fix deform</A> command.
+</P>
+<P>For all barostat keywords, the <I>Pdamp</I> parameter operates like the
+<I>Tdamp</I> parameter, determining the time scale on which pressure is
+relaxed.  For example, a value of 10.0 means to relax the pressure in
+a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
+the <A HREF = "units.html">units</A> command).
+</P>
+<P>Regardless of what atoms are in the fix group (the only atoms which
+are time integrated), a global pressure or stress tensor is computed
+for all atoms.  Similarly, when the size of the simulation box is
+changed, all atoms are re-scaled to new positions, unless the keyword
+<I>dilate</I> is specified with a <I>dilate-group-ID</I> for a group that
+represents a subset of the atoms.  This can be useful, for example, to
+leave the coordinates of atoms in a solid substrate unchanged and
+controlling the pressure of a surrounding fluid.  Another example is a
+system consisting of rigid bodies and point particles where the
+barostat is only coupled with the rigid bodies.  This option should be
+used with care, since it can be unphysical to dilate some atoms and
+not others, because it can introduce large, instantaneous
+displacements between a pair of atoms (one dilated, one not) that are
+far from the dilation origin.
+</P>
+<P>The <I>couple</I> keyword allows two or three of the diagonal components of
+the pressure tensor to be "coupled" together.  The value specified
+with the keyword determines which are coupled.  For example, <I>xz</I>
+means the <I>Pxx</I> and <I>Pzz</I> components of the stress tensor are coupled.
+<I>Xyz</I> means all 3 diagonal components are coupled.  Coupling means two
+things: the instantaneous stress will be computed as an average of the
+corresponding diagonal components, and the coupled box dimensions will
+be changed together in lockstep, meaning coupled dimensions will be
+dilated or contracted by the same percentage every timestep.  The
+<I>Pstart</I>, <I>Pstop</I>, <I>Pdamp</I> parameters for any coupled dimensions must
+be identical.  <I>Couple xyz</I> can be used for a 2d simulation; the <I>z</I>
+dimension is simply ignored.
+</P>
+<P>The <I>iso</I> and <I>aniso</I> keywords are simply shortcuts that are
+equivalent to specifying several other keywords together.
+</P>
+<P>The keyword <I>iso</I> means couple all 3 diagonal components together when
+pressure is computed (hydrostatic pressure), and dilate/contract the
+dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
+specifying these 4 keywords:
+</P>
+<PRE>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple xyz 
+</PRE>
+<P>The keyword <I>aniso</I> means <I>x</I>, <I>y</I>, and <I>z</I> dimensions are controlled
+independently using the <I>Pxx</I>, <I>Pyy</I>, and <I>Pzz</I> components of the
+stress tensor as the driving forces, and the specified scalar external
+pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
+these 4 keywords:
+</P>
+<PRE>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple none 
+</PRE>
+<HR>
+
 <P>The keyword/value option pairs are used in the following ways.
 </P>
 <P>The <I>langevin</I> and <I>temp</I> and <I>tparam</I> keywords perform thermostatting
@@ -243,7 +354,9 @@ used.  <I>Tchain</I> is the number of thermostats in the Nose Hoover chain.
 This value, along with <I>Tdamp</I> can be varied to dampen undesirable
 oscillations in temperature that can occur in a simulation.  As a rule
 of thumb, increasing the chain length should lead to smaller
-oscillations.
+oscillations. The keyword <I>pchain</I> specifies the number of
+thermostats in the chain thermostatting the barostat degrees of
+freedom. 
 </P>
 <P>IMPORTANT NOTE: There are alternate ways to thermostat a system of
 rigid bodies.  You can use <A HREF = "fix_langevin.html">fix langevin</A> to treat
@@ -367,7 +480,12 @@ rigid/nvt fix to add the energy change induced by the thermostatting
 to the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
 output</A>.
 </P>
-<P>The rigid and rigid/nve fixes computes a global scalar which can be
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are 
+supported by the rigid/npt and rigid/nph fixes to change the computes used
+to calculate the instantaneous pressure tensor. Note that the rigid/nvt fix
+does not use any external compute to compute instantaneous temperature.
+</P>
+<P>The rigid and rigid/nve fixes compute a global scalar which can be
 accessed by various <A HREF = "Section_howto.html#howto_15">output commands</A>.
 The scalar value calculated by these fixes is "intensive".  The scalar
 is the current temperature of the collection of rigid bodies.  This is
@@ -379,11 +497,11 @@ where I = the moment of inertia tensor of the body and w = its angular
 velocity.  Degrees of freedom constrained by the <I>force</I> and <I>torque</I>
 keywords are removed from this calculation.
 </P>
-<P>The rigid/nvt fix computes a global scalar which can be accessed by
-various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar
-value calculated by the rigid/nvt fix is "extensive".  The scalar is
-the cumulative energy change due to the thermostatting the fix
-performs.
+<P>The rigid/nvt, rigid/npt and rigid/nph fix compute a global scalar
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar value calculated by
+these fixes is "extensive".  The scalar is the cumulative energy
+change due to the thermostatting and barostatting the fix performs.
 </P>
 <P>All of these fixes compute a global array of values which can be
 accessed by various <A HREF = "Section_howto.html#howto_15">output commands</A>.
@@ -411,6 +529,8 @@ they are independent of the number of atoms in the simulation.
 of the <A HREF = "run.html">run</A> command.  These fixes are not invoked during
 <A HREF = "minimize.html">energy minimization</A>.
 </P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>These fixes performs an MPI_Allreduce each timestep that is
@@ -427,7 +547,7 @@ exclude
 </P>
 <P>The option defaults are force * on on on and torque * on on on,
 meaning all rigid bodies are acted on by center-of-mass force and
-torque.  Also Tchain = 10, Titer = 1, Torder = 3.
+torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3.
 </P>
 <HR>
 

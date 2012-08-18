@@ -23,20 +23,23 @@ T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
 displace = maximum Monte Carlo displacement distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {molecule}
-  {molecule} value = {no} or {yes} :pre
+keyword = {molecule} or {region} :l
+  {molecule} value = {no} or {yes}
+  {region} value = region-ID
+    region-ID = ID of region to use as an exchange/move volume :pre
 :ule
 
 [Examples:]
 
 fix 2 all gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
-fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes :pre
+fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes
+fix 4 all gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk :pre
 
 [Description:]
 
 This fix performs grand canonical Monte Carlo (GCMC) exchanges of
 particles of the given type with an imaginary ideal gas reservoir at
-the specified T and chemical potential (mu) as discussed in
+the specified T and chemical potential (mu    ) as discussed in
 "(Frenkel)"_#Frenkel. If used with the "fix nvt"_fix_nh.html command,
 simulations in the grand canonical enemble (muVT, constant chemical
 potential, constant volume, and constant temperature) can be
@@ -55,6 +58,17 @@ This fix cannot be used to perform MC displacements of particles other
 than the exchanged type. All particles in the simulation domain can be
 moved using regular time integration displacements, e.g. via
 "fix_nvt"_fix_nvt.html, resulting in a hybrid GCMC+MD simulation.
+
+This command may optionally use the {region} keyword to define an
+exchange and move volume.  The specified region must have been
+previously defined with a "region"_region.html command.  It must be
+defined with side = {in}.  Insertion attempts occur only within the
+specified region. Move and deletion attempt candidates are selected
+from particles within the region. If no candidate can be found within
+the specified region after randomly selecting candidates 1000 times,
+the move or deletion attempt is considered a failure. Moves must start
+within the specified region, but may move the particle slightly
+outside of the region.
 
 If used with "fix_nvt"_fix_nvt.html, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature

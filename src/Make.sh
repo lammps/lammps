@@ -1,6 +1,8 @@
-# Make.sh = update Makefile.lib or Makefile.list or style_*.h files
+# Make.sh = update Makefile.lib, Makefile.shlib, Makefile.list 
+#           or style_*.h files
 # Syntax: sh Make.sh style
 #         sh Make.sh Makefile.lib
+#         sh Make.sh Makefile.shlib
 #         sh Make.sh Makefile.list
 
 # function to create one style_*.h file
@@ -64,7 +66,7 @@ if (test $1 = "style") then
   style READER_CLASS    reader_     reader     read_dump
   style REGION_CLASS    region_     region     domain
 
-# edit Makefile.lib
+# edit Makefile.lib, for creating non-shared lib
 # called by "make makelib"
 # use current list of *.cpp and *.h files in src dir w/out main.cpp
 
@@ -74,6 +76,17 @@ elif (test $1 = "Makefile.lib") then
   sed -i -e "s/SRC =	.*/SRC =	$list/" Makefile.lib
   list=`ls -1 *.h | tr "[:cntrl:]" " "`
   sed -i -e "s/INC =	.*/INC =	$list/" Makefile.lib
+
+# edit Makefile.lib, for creating non-shared lib
+# called by "make makelib"
+# use current list of *.cpp and *.h files in src dir w/out main.cpp
+
+elif (test $1 = "Makefile.shlib") then
+
+  list=`ls -1 *.cpp | sed s/^main\.cpp// | tr "[:cntrl:]" " "`
+  sed -i -e "s/SRC =	.*/SRC =	$list/" Makefile.shlib
+  list=`ls -1 *.h | tr "[:cntrl:]" " "`
+  sed -i -e "s/INC =	.*/INC =	$list/" Makefile.shlib
 
 # edit Makefile.list
 # called by "make makelist"

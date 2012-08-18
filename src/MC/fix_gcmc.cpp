@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "group.h"
 #include "domain.h"
+#include "region.h"
 #include "random_park.h"
 #include "force.h"
 #include "pair.h"
@@ -85,10 +86,42 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // set defaults
 
   molflag = 0;
+  regionflag = 0;
+  iregion = -1;
+  max_region_attempts = 1000;
 
   // read options from end of input line
 
   options(narg-11,&arg[11]);
+  
+  // error checks on region and its extent being inside simulation box
+
+  region_xlo = region_xhi = region_ylo = region_yhi = region_zlo = region_zhi = 0.0;
+  if (regionflag) {
+    if (domain->regions[iregion]->bboxflag == 0)
+      error->all(FLERR,"Fix GCMC region does not support a bounding box");
+    if (domain->regions[iregion]->dynamic_check())
+      error->all(FLERR,"Fix GCMC region cannot be dynamic");
+    
+    region_xlo = domain->regions[iregion]->extent_xlo;
+    region_xhi = domain->regions[iregion]->extent_xhi;
+    region_ylo = domain->regions[iregion]->extent_ylo;
+    region_yhi = domain->regions[iregion]->extent_yhi;
+    region_zlo = domain->regions[iregion]->extent_zlo;
+    region_zhi = domain->regions[iregion]->extent_zhi;
+    
+    if (domain->triclinic == 0) {
+      if (region_xlo < domain->boxlo[0] || region_xhi > domain->boxhi[0] ||
+          region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
+          region_zlo < domain->boxlo[2] || region_zhi > domain->boxhi[2])
+        error->all(FLERR,"Fix GCMC region extends outside simulation box");
+    } else {
+      if (region_xlo < domain->boxlo_bound[0] || region_xhi > domain->boxhi_bound[0] ||
+          region_ylo < domain->boxlo_bound[1] || region_yhi > domain->boxhi_bound[1] ||
+          region_zlo < domain->boxlo_bound[2] || region_zhi > domain->boxhi_bound[2])
+        error->all(FLERR,"Fix GCMC region extends outside simulation box");
+    }
+  }
 
   // random number generator, same for all procs
 
@@ -274,11 +307,26 @@ void FixGCMC::attempt_move()
   nmove_attempts += 1.0;
 
   int success = 0;
-  iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-  if ((iwhichglobal >= ngas_before) &&
-      (iwhichglobal < ngas_before + ngas_local)) {
-    iwhichlocal = iwhichglobal - ngas_before;
-    i = local_gas_list[iwhichlocal];
+  int i_own_candidate = 0;
+  int i_own_candidate_all = 0;
+  int region_attempt = 0;
+  while (!i_own_candidate_all) {
+    iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+    if ((iwhichglobal >= ngas_before) &&
+        (iwhichglobal < ngas_before + ngas_local)) {
+      i_own_candidate = 1;
+      int iwhichlocal = iwhichglobal - ngas_before;
+      i = local_gas_list[iwhichlocal];
+      if ((regionflag) and 
+       (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 0))
+        i_own_candidate = 0;
+    }
+    MPI_Allreduce(&i_own_candidate,&i_own_candidate_all,1,MPI_INT,MPI_MAX,world);
+    region_attempt++;
+    if (region_attempt >= max_region_attempts) return;
+  }
+  
+  if (i_own_candidate) {
     double energy_before = energy(i,x[i]);
     double rsq = 1.1;
     while (rsq > 1.0) {
@@ -319,20 +367,36 @@ void FixGCMC::attempt_deletion()
 
   if (ngas == 0) return;
 
-  int i,iwhichglobal,iwhichlocal;
+  int i,iwhichglobal;
   AtomVec *avec = atom->avec;
+  double **x = atom->x;
 
   // choose particle randomly across all procs and delete it
   // keep ngas, ngas_local, ngas_before, and local_gas_list current
   // after each deletion
 
   int success = 0;
-  iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-  if ((iwhichglobal >= ngas_before) &&
-      (iwhichglobal < ngas_before + ngas_local)) {
-    iwhichlocal = iwhichglobal - ngas_before;
-    i = local_gas_list[iwhichlocal];
-    double deletion_energy = energy(i,atom->x[i]);
+  int i_own_candidate = 0;
+  int i_own_candidate_all = 0;
+  int region_attempt = 0;
+  while (!i_own_candidate_all) {
+    iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+    if ((iwhichglobal >= ngas_before) &&
+        (iwhichglobal < ngas_before + ngas_local)) {
+      i_own_candidate = 1;
+      int iwhichlocal = iwhichglobal - ngas_before;
+      i = local_gas_list[iwhichlocal];
+      if ((regionflag) and 
+       (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 0))
+        i_own_candidate = 0;
+    }
+    MPI_Allreduce(&i_own_candidate,&i_own_candidate_all,1,MPI_INT,MPI_MAX,world);
+    region_attempt++;
+    if (region_attempt >= max_region_attempts) return;
+  }
+  
+  if (i_own_candidate) {
+    double deletion_energy = energy(i,x[i]);
     if (random_unequal->uniform() <
         ngas*exp(beta*deletion_energy)/(zz*volume)) {
       avec->copy(atom->nlocal-1,i,1);
@@ -381,14 +445,28 @@ void FixGCMC::attempt_insertion()
 
   ninsert_attempts += 1.0;
 
-  // choose random position for new atom within box
-
-  coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
-  coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
-  coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
-
+  // choose random position for new atom within box and region (if set)
+  
+  int region_attempt = 0;
+  if (regionflag) {
+    coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
+    coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
+    coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
+    while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
+      coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
+      coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
+      region_attempt++;
+      if (region_attempt >= max_region_attempts) return;
+    }
+  } else {
+    coord[0] = xlo + random_equal->uniform() * (xhi-xlo);
+    coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
+    coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
+  }
+    
   // check if new atom is in my sub-box or above it if I'm highest proc
-  // if so, add to my list via create_atom()
+  // if so, test energy and possibly add to my list via create_atom()
   // initialize info about the atoms
   // set group mask to "all" plus fix group
 
@@ -501,11 +579,21 @@ void FixGCMC::options(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"molecule") == 0) {
+    if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix GCMC command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1)
+        error->all(FLERR,"Region ID for fix GCMC does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
+      regionflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"molecule") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix GCMC command");
       if (strcmp(arg[iarg+1],"no") == 0) molflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) molflag = 1;
-      else error->all(FLERR,"Illegal fix evaporate command");
+      else error->all(FLERR,"Illegal fix GCMC command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix GCMC command");
   }

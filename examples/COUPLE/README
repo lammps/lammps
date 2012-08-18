@@ -8,8 +8,8 @@ model a realistic problem.
 
 See these sections of the LAMMPS manaul for details:
 
-2.4 Building LAMMPS as a library (doc/Section_start.html#2_4)
-4.10 Coupling LAMMPS to other codes (doc/Section_howto.html#4_10)
+2.5 Building LAMMPS as a library (doc/Section_start.html#start_5)
+6.10 Coupling LAMMPS to other codes (doc/Section_howto.html#howto_10)
 
 In all of the examples included here, LAMMPS must first be built as a
 library.  Basically, you type something like
@@ -17,7 +17,7 @@ library.  Basically, you type something like
 make makelib
 make -f Makefile.lib g++
 
-in the LAMMPS src directory to create liblmp_g++.a
+in the LAMMPS src directory to create liblammps_g++.a
 
 The library interface to LAMMPS is in src/library.cpp.  Routines can
 be easily added to this file so an external program can perform the
@@ -33,6 +33,8 @@ lammps_spparks	    grain-growth Monte Carlo with strain via MD,
 library		    collection of useful inter-code communication routines
 simple		    simple example of driver code calling LAMMPS as library
 fortran             a wrapper on the LAMMPS library API that
+ 		      can be called from Fortran
+fortran2            a more sophisticated wrapper on the LAMMPS library API that
  		      can be called from Fortran
 
 Each sub-directory has its own README.

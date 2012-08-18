@@ -44,7 +44,7 @@ OBJ =   $(SRC:.F=.o)
 # ------ SETTINGS ------
 
 F90 =           mpif90
-F90FLAGS =      -O 
+F90FLAGS =      -O -fPIC
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 USRLIB =

@@ -36,6 +36,7 @@ class Domain : protected Pointers {
                                          // 3 = shrink-wrap non-per w/ min
 
   int triclinic;                         // 0 = orthog box, 1 = triclinic
+  int tiltsmall;                         // 1 if limit tilt, else 0
 
                                          // orthogonal box
   double xprd,yprd,zprd;                 // global box dimensions
@@ -111,6 +112,7 @@ class Domain : protected Pointers {
   void delete_region(int, char **);
   int find_region(char *);
   void set_boundary(int, char **, int);
+  void set_box(int, char **);
   void print_box(const char *);
   void boundary_string(char *);
 

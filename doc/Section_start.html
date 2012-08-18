@@ -44,7 +44,6 @@ sub-directories:
 <TR><TD >README</TD><TD > text file</TD></TR>
 <TR><TD >LICENSE</TD><TD > the GNU General Public License (GPL)</TD></TR>
 <TR><TD >bench</TD><TD > benchmark problems</TD></TR>
-<TR><TD >couple</TD><TD > code coupling examples, using LAMMPS as a library</TD></TR>
 <TR><TD >doc</TD><TD > documentation</TD></TR>
 <TR><TD >examples</TD><TD > simple test problems</TD></TR>
 <TR><TD >potentials</TD><TD > embedded atom method (EAM) potential files</TD></TR>
@@ -282,10 +281,11 @@ dummy MPI library provided in src/STUBS, since you don't need a true
 MPI library installed on your system.  See the
 src/MAKE/Makefile.serial file for how to specify the 3 MPI variables
 in this case.  You will also need to build the STUBS library for your
-platform before making LAMMPS itself.  From the src directory, type
-"make stubs", or from the STUBS dir, type "make" and it should create
-a libmpi.a suitable for linking to LAMMPS.  If this build fails, you
-will need to edit the STUBS/Makefile for your platform.
+platform before making LAMMPS itself.  To build from the src
+directory, type "make stubs", or from the STUBS dir, type "make".
+This should create a libmpi_stubs.a file suitable for linking to
+LAMMPS.  If the build fails, you will need to edit the STUBS/Makefile
+for your platform.
 </P>
 <P>The file STUBS/mpi.cpp provides a CPU timer function called
 MPI_Wtime() that calls gettimeofday() .  If your system doesn't
@@ -774,44 +774,116 @@ input scripts.
 
 <H4><A NAME = "start_5"></A>2.5 Building LAMMPS as a library 
 </H4>
-<P>LAMMPS itself can be built as a library, which can then be called from
-another application or a scripting language.  See <A HREF = "Section_howto.html#howto_10">this
-section</A> for more info on coupling LAMMPS
-to other codes.  Building LAMMPS as a library is done by typing
+<P>LAMMPS can be built as either a static or shared library, which can
+then be called from another application or a scripting language.  See
+<A HREF = "Section_howto.html#howto_10">this section</A> for more info on coupling
+LAMMPS to other codes.  See <A HREF = "Section_python.html">this section</A> for
+more info on wrapping and running LAMMPS from Python.
+</P>
+<H5><B>Static library:</B> 
+</H5>
+<P>To build LAMMPS as a static library (*.a file on Linux), type
 </P>
 <PRE>make makelib
 make -f Makefile.lib foo 
 </PRE>
-<P>where foo is the machine name.  Note that inclusion or exclusion of
-any desired optional packages should be done before typing "make
-makelib".  The first "make" command will create a current Makefile.lib
-with all the file names in your src dir.  The 2nd "make" command will
-use it to build LAMMPS as a library.  This requires that Makefile.foo
-have a library target (lib) and system-specific settings for ARCHIVE
-and ARFLAGS.  See Makefile.linux for an example.  The build will
-create the file liblmp_foo.a which another application can link to.
+<P>where foo is the machine name.  This kind of library is typically used
+to statically link a driver application to LAMMPS, so that you can
+insure all dependencies are satisfied at compile time.  Note that
+inclusion or exclusion of any desired optional packages should be done
+before typing "make makelib".  The first "make" command will create a
+current Makefile.lib with all the file names in your src dir.  The
+second "make" command will use it to build LAMMPS as a static library,
+using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
+build will create the file liblammps_foo.a which another application can
+link to.
 </P>
-<P>When used from a C++ program, the library allows one or more LAMMPS
-objects to be instantiated.  All of LAMMPS is wrapped in a LAMMPS_NS
+<H5><B>Shared library:</B> 
+</H5>
+<P>To build LAMMPS as a shared library (*.so file on Linux), which can be
+dynamically loaded, e.g. from Python, type
+</P>
+<PRE>make makeshlib
+make -f Makefile.shlib foo 
+</PRE>
+<P>where foo is the machine name.  This kind of library is required when
+wrapping LAMMPS with Python; see <A HREF = "Section_python.html">Section_python</A>
+for details.  Again, note that inclusion or exclusion of any desired
+optional packages should be done before typing "make makelib".  The
+first "make" command will create a current Makefile.shlib with all the
+file names in your src dir.  The second "make" command will use it to
+build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
+settings in src/MAKE/Makefile.foo.  The build will create the file
+liblammps_foo.so which another application can link to dyamically.  It
+will also create a soft link liblammps.so, which the Python wrapper uses
+by default.
+</P>
+<P>Note that for a shared library to be usable by a calling program, all
+the auxiliary libraries it depends on must also exist as shared
+libraries.  This will be the case for libraries included with LAMMPS,
+such as the dummy MPI library in src/STUBS or any package libraries in
+lib/packges, since they are always built as shared libraries with the
+-fPIC switch.  However, if a library like MPI or FFTW does not exist
+as a shared library, the second make command will generate an error.
+This means you will need to install a shared library version of the
+package.  The build instructions for the library should tell you how
+to do this.
+</P>
+<P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
+library</A>, a popular open-source version of MPI, distributed by
+Argonne National Labs, as a shared library in the default
+/usr/local/lib location:
+</P>
+
+
+<PRE>./configure --enable-shared
+make
+make install 
+</PRE>
+<P>You may need to use "sudo make install" in place of the last line if
+you do not have write privileges for /usr/local/lib.  The end result
+should be the file /usr/local/lib/libmpich.so.
+</P>
+<H5><B>Additional requirement for using a shared library:</B> 
+</H5>
+<P>The operating system finds shared libraries to load at run-time using
+the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
+file src/liblammps.so or src/liblammps_g++.so (for example) to a place
+the system can find it by default, such as /usr/local/lib, or you may
+wish to add the LAMMPS src directory to LD_LIBRARY_PATH, so that the
+current version of the shared library is always available to programs
+that use it.
+</P>
+<P>For the csh or tcsh shells, you would add something like this to your
+~/.cshrc file:
+</P>
+<PRE>setenv LD_LIBRARY_PATH $<I>LD_LIBRARY_PATH</I>:/home/sjplimp/lammps/src 
+</PRE>
+<H5><B>Calling the LAMMPS library:</B> 
+</H5>
+<P>Either flavor of library (static or shared0 allows one or more LAMMPS
+objects to be instantiated from the calling program.
+</P>
+<P>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
 namespace; you can safely use any of its classes and methods from
-within your application code, as needed. 
+within the calling code, as needed.
 </P>
-<P>When used from a C or Fortran program or a scripting language, the
-library has a simple function-style interface, provided in
+<P>When used from a C or Fortran program or a scripting language like
+Python, the library has a simple function-style interface, provided in
 src/library.cpp and src/library.h.
 </P>
-<P>See the sample codes couple/simple/simple.cpp and simple.c as examples
-of C++ and C codes that invoke LAMMPS thru its library interface.
-There are other examples as well in the couple directory which are
+<P>See the sample codes in examples/COUPLE/simple for examples of C++ and
+C and Fortran codes that invoke LAMMPS thru its library interface.
+There are other examples as well in the COUPLE directory which are
 discussed in <A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the
 manual.  See <A HREF = "Section_python.html">Section_python</A> of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.
 </P>
-<P>The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See <A HREF = "Section_howto.html#howto_19">Section_howto 19</A> of the
-manual for a description of the interface and how to extend it for
-your needs.
+<P>The files src/library.cpp and library.h define the C-style API for
+using LAMMPS as a library.  See <A HREF = "Section_howto.html#howto_19">Section_howto
+19</A> of the manual for a description of the
+interface and how to extend it for your needs.
 </P>
 <HR>
 

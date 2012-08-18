@@ -1,4 +1,4 @@
-LAMMPS (29 Jan 2012)
+LAMMPS (4 Jul 2012)
 # 3d Lennard-Jones melt
 
 variable	x index 1
@@ -14,8 +14,6 @@ variable	zz equal 20*1
 
 units		metal
 atom_style	atomic
-
-newton off
 
 lattice		fcc 4.4300
 Lattice spacing in x,y,z = 4.43 4.43 4.43
@@ -33,30 +31,30 @@ Created 32000 atoms
 #pair_coeff	1 1 0.0031 2.7400
 #pair_modify     shift yes
 
-pair_style      kim model_Ne_P_LJ
+pair_style      kim KIMvirial ex_model_Ne_P_fastLJ
 pair_coeff      * * Ne
 
 mass		1 20.18
 velocity	all create 200.0 232345 loop geom
 
 neighbor	0.3 bin
-neigh_modify	delay 5 every 1 check yes
+neigh_modify	delay 0 every 1 check yes
 
 fix		1 all nve
 #fix		1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
 
 run 		100
-Memory usage per processor = 6.09292 Mbytes
+Memory usage per processor = 5.52308 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200   -741.55469            0    85.684388   -34.939092 
      100    108.37517   -362.56658            0    85.694308    3963.7892 
-Loop time of 3.66435 on 4 procs for 100 steps with 32000 atoms
+Loop time of 6.68624 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 3.48289 (95.0479)
-Neigh time (%) = 0.145896 (3.9815)
-Comm  time (%) = 0.0160441 (0.437844)
-Outpt time (%) = 6.17504e-05 (0.00168517)
-Other time (%) = 0.0194601 (0.531065)
+Pair  time (%) = 4.42383 (66.1631)
+Neigh time (%) = 0.621215 (9.29094)
+Comm  time (%) = 1.46399 (21.8955)
+Outpt time (%) = 0.000444174 (0.0066431)
+Other time (%) = 0.176772 (2.64382)
 
 Nlocal:    8000 ave 8010 max 7989 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

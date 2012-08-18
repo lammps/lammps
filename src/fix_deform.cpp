@@ -354,7 +354,8 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // reneighboring only forced if flips can occur due to shape changes
 
-  if (set[3].style || set[4].style || set[5].style) force_reneighbor = 1;
+  if (flipflag && (set[3].style || set[4].style || set[5].style))
+    force_reneighbor = 1;
   next_reneighbor = -1;
 
   nrigid = 0;
@@ -565,23 +566,27 @@ void FixDeform::init()
   //   an integer combination of the edge vectors of the unflipped shape matrix
   // VARIABLE for yz is error, since no way to calculate if box flip occurs
   // WIGGLE lo/hi flip test is on min/max oscillation limit, not tilt_stop
+  // only trigger actual errors if flipflag is set
 
   if (set[3].style && set[5].style) {
     int flag = 0;
     double lo,hi;
-    if (set[3].style == VARIABLE)
+    if (flipflag && set[3].style == VARIABLE)
       error->all(FLERR,"Fix deform cannot use yz variable with xy");
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
     } else lo = hi = set[3].tilt_stop;
-    if (lo/(set[1].hi_start-set[1].lo_start) < -0.5 ||
-        hi/(set[1].hi_start-set[1].lo_start) > 0.5) flag = 1;
-    if (set[1].style) {
-      if (lo/(set[1].hi_stop-set[1].lo_stop) < -0.5 ||
-          hi/(set[1].hi_stop-set[1].lo_stop) > 0.5) flag = 1;
+    if (flipflag) {
+      if (lo/(set[1].hi_start-set[1].lo_start) < -0.5 ||
+          hi/(set[1].hi_start-set[1].lo_start) > 0.5) flag = 1;
+      if (set[1].style) {
+        if (lo/(set[1].hi_stop-set[1].lo_stop) < -0.5 ||
+            hi/(set[1].hi_stop-set[1].lo_stop) > 0.5) flag = 1;
+      }
+      if (flag)
+        error->all(FLERR,"Fix deform is changing yz too much with xy");
     }
-    if (flag) error->all(FLERR,"Fix deform is changing yz too much with xy");
   }
 
   // set domain->h_rate values for use by domain and other fixes/computes
@@ -838,7 +843,7 @@ void FixDeform::end_of_step()
   // check yz first since it may change xz, then xz check comes after
   // flip is performed on next timestep, before reneighboring in pre-exchange()
 
-  if (triclinic) {
+  if (triclinic && flipflag) {
     double xprd = set[0].hi_target - set[0].lo_target;
     double yprd = set[1].hi_target - set[1].lo_target;
     double xprdinv = 1.0 / xprd;
@@ -960,6 +965,7 @@ void FixDeform::options(int narg, char **arg)
 
   remapflag = X_REMAP;
   scaleflag = 1;
+  flipflag = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -974,6 +980,12 @@ void FixDeform::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
+      else error->all(FLERR,"Illegal fix deform command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"flip") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
       else error->all(FLERR,"Illegal fix deform command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix deform command");

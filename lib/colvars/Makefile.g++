@@ -3,7 +3,7 @@
 # ------ SETTINGS ------
 
 CXX =		g++
-CXXFLAGS =	-O2 -g -funroll-loops # -DCOLVARS_DEBUG
+CXXFLAGS =	-O2 -g -fPIC -funroll-loops # -DCOLVARS_DEBUG
 ARCHIVE =	ar
 ARCHFLAG =	-rscv
 SHELL =		/bin/sh

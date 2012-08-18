@@ -34,10 +34,13 @@ class ComputeCoordAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax;
+  int nmax,ncol;
   double cutsq;
   class NeighList *list;
-  double *coordination;
+
+  int *typelo,*typehi;
+  double *cvec;
+  double **carray;
 };
 
 }

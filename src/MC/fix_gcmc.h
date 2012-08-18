@@ -48,6 +48,9 @@ class FixGCMC : public Fix {
   int ngas_local;     // # of gas molecules (or atoms) on this proc
   int ngas_before;    // # of gas molecules (or atoms) on procs < this proc
   int molflag;        // 0 = atomic, 1 = molecular system
+  int regionflag;     // 0 = anywhere, 1 = specific region
+  int iregion;        // exchange/move region
+  char *idregion;     // exchange/move region id
 
   double nmove_attempts;
   double nmove_successes;
@@ -57,11 +60,13 @@ class FixGCMC : public Fix {
   double ninsert_successes;
 
   int nmax;
+  int max_region_attempts;
   double reservoir_temperature;
   double chemical_potential;
   double displace;
   double beta,zz,sigma,volume;
   double xlo,xhi,ylo,yhi,zlo,zhi;
+  double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
@@ -114,5 +119,22 @@ E: Fix GCMC incompatible with given pair_style
 
 Some pair_styles do not provide single-atom energies, which are needed
 by fix GCMC.
+
+E: Fix GCMC region does not support a bounding box
+
+Not all regions represent bounded volumes.  You cannot use
+such a region with the fix GCMC command.
+
+E: Fix GCMC region cannot be dynamic
+
+Only static regions can be used with fix GCMC.
+
+E: Deposition region extends outside simulation box
+
+Self-explanatory.
+
+E: Region ID for fix GCMC does not exist
+
+Self-explanatory.
 
 */

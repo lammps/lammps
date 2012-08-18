@@ -39,6 +39,8 @@ class FFT3d : protected Pointers {
 
 E: Could not create 3d FFT plan
 
-The FFT setup in pppm failed.
+The FFT setup for the PPPM solver failed, typically due
+to lack of memory.  This is an unusual error.  Check the
+size of the FFT grid you are requesting.
 
 */

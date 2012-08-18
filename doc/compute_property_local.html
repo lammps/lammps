@@ -21,15 +21,17 @@
 
 <LI>input = one or more attributes 
 
-<PRE>  possible attributes = natom1 natom2
-		        patom1 patom2
+<PRE>  possible attributes = natom1 natom2 ntype1 ntype2
+		        patom1 patom2 ptype1 ptype2
                         batom1 batom2 btype
                         aatom1 aatom2 aatom3 atype
                         datom1 datom2 datom3 dtype
                         iatom1 iatom2 iatom3 itype 
 </PRE>
 <PRE>     natom1, natom2 = IDs of 2 atoms in each pair (within neighbor cutoff)
+     ntype1, ntype2 = type of 2 atoms in each pair (within neighbor cutoff)
      patom1, patom2 = IDs of 2 atoms in each pair (within force cutoff)
+     ptype1, ptype2 = type of 2 atoms in each pair (within force cutoff)
      batom1, batom2 = IDs of 2 atoms in each bond
      btype = bond type of each bond
      aatom1, aatom2, aatom3 = IDs of 3 atoms in each angle
@@ -91,7 +93,9 @@ local</A> command in a consistent way.
 </P>
 <P>The <I>natom1</I> and <I>natom2</I>, or <I>patom1</I> and <I>patom2</I> attributes refer
 to the atom IDs of the 2 atoms in each pairwise interaction computed
-by the <A HREF = "pair_style.html">pair_style</A> command.
+by the <A HREF = "pair_style.html">pair_style</A> command.  The <I>ntype1</I> and
+<I>ntype2</I>, or <I>ptype1</I> and <I>ptype2</I> attributes refer to the atom types
+of the 2 atoms in each pairwise interaction.
 </P>
 <P>IMPORTANT NOTE: For pairs, if two atoms I,J are involved in 1-2, 1-3,
 1-4 interactions within the molecular topology, their pairwise
@@ -107,9 +111,11 @@ command.
 atoms in each <A HREF = "bond_style.html">bond</A>.  The <I>btype</I> attribute refers to
 the type of the bond, from 1 to Nbtypes = # of bond types.  The number
 of bond types is defined in the data file read by the
-<A HREF = "read_data.html">read_data</A> command.  The attributes that start with
-"a", "d", "i", refer to similar values for <A HREF = "angle_style.html">angles</A>,
-<A HREF = "dihedral_style.html">dihedrals</A>, and <A HREF = "improper_style.html">impropers</A>.
+<A HREF = "read_data.html">read_data</A> command.
+</P>
+<P>The attributes that start with "a", "d", "i", refer to similar values
+for <A HREF = "angle_style.html">angles</A>, <A HREF = "dihedral_style.html">dihedrals</A>, and
+<A HREF = "improper_style.html">impropers</A>.
 </P>
 <P><B>Output info:</B>
 </P>

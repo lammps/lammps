@@ -11,236 +11,167 @@
 This section describes how to build and use LAMMPS via a Python
 interface.
 
-11.1 "Extending Python with a serial version of LAMMPS"_#py_1
-11.2 "Creating a shared MPI library"_#py_2
-11.3 "Extending Python with a parallel version of LAMMPS"_#py_3
-11.4 "Extending Python with MPI"_#py_4
-11.5 "Testing the Python-LAMMPS interface"_#py_5
-11.6 "Using LAMMPS from Python"_#py_6
-11.7 "Example Python scripts that use LAMMPS"_#py_7 :ul
+11.1 "Building LAMMPS as a shared library"_#py_1
+11.2 "Installing the Python wrapper into Python"_#py_2
+11.3 "Extending Python with MPI to run in parallel"_#py_3
+11.4 "Testing the Python-LAMMPS interface"_#py_4
+11.5 "Using LAMMPS from Python"_#py_5
+11.6 "Example Python scripts that use LAMMPS"_#py_6 :ul
 
-The LAMMPS distribution includes some Python code in its python
-directory which wraps the library interface to LAMMPS.  This makes it
-is possible to run LAMMPS, invoke LAMMPS commands or give it an input
-script, extract LAMMPS results, an modify internal LAMMPS variables,
-either from a Python script or interactively from a Python prompt.
+The LAMMPS distribution includes the file python/lammps.py which wraps
+the library interface to LAMMPS.  This file makes it is possible to
+run LAMMPS, invoke LAMMPS commands or give it an input script, extract
+LAMMPS results, an modify internal LAMMPS variables, either from a
+Python script or interactively from a Python prompt.  You can do the
+former in serial or parallel.  Running Python interactively in
+parallel does not generally work, unless you have a package installed
+that extends your Python to enable multiple instances of Python to
+read what you type.
 
 "Python"_http://www.python.org is a powerful scripting and programming
 language which can be used to wrap software like LAMMPS and other
 packages.  It can be used to glue multiple pieces of software
-together, e.g. to run a coupled or multiscale model.  See "this
+together, e.g. to run a coupled or multiscale model.  See "Section
 section"_Section_howto.html#howto_10 of the manual and the couple
 directory of the distribution for more ideas about coupling LAMMPS to
 other codes.  See "Section_start 4"_Section_start.html#start_5 about
-how to build LAMMPS as a library, and "this
-section"_Section_howto.html#howto_19 for a description of the library
+how to build LAMMPS as a library, and "Section_howto
+19"_Section_howto.html#howto_19 for a description of the library
 interface provided in src/library.cpp and src/library.h and how to
 extend it for your needs.  As described below, that interface is what
 is exposed to Python.  It is designed to be easy to add functions to.
-This has the effect of extending the Python inteface as well.  See
-details below.
+This can easily extend the Python inteface as well.  See details
+below.
 
-By using the Python interface LAMMPS can also be coupled with a GUI or
-visualization tools that display graphs or animations in real time as
-LAMMPS runs.  Examples of such scripts are inlcluded in the python
-directory.
+By using the Python interface, LAMMPS can also be coupled with a GUI
+or other visualization tools that display graphs or animations in real
+time as LAMMPS runs.  Examples of such scripts are inlcluded in the
+python directory.
 
-Two advantages of using Python are how concise the language is and
+Two advantages of using Python are how concise the language is, and
 that it can be run interactively, enabling rapid development and
 debugging of programs.  If you use it to mostly invoke costly
 operations within LAMMPS, such as running a simulation for a
 reasonable number of timesteps, then the overhead cost of invoking
 LAMMPS thru Python will be negligible.
 
-Before using LAMMPS from a Python script, the Python on your machine
-must be "extended" to include an interface to the LAMMPS library.  If
-your Python script will invoke MPI operations, you will also need to
-extend your Python with an interface to MPI itself.
+Before using LAMMPS from a Python script, you need to do two things.
+You need to build LAMMPS as a dynamic shared library, so it can be
+loaded by Python.  And you need to tell Python how to find the library
+and the Python wrapper file python/lammps.py.  Both these steps are
+discussed below.  If you wish to run LAMMPS in parallel from Python,
+you also need to extend your Python with MPI.  This is also discussed
+below.
 
-Thus you should first decide how you intend to use LAMMPS from Python.
-There are 3 options:
-
-(1) Use LAMMPS on a single processor running Python.
-
-(2) Use LAMMPS in parallel, where each processor runs Python, but your
-Python program does not use MPI.
-
-(3) Use LAMMPS in parallel, where each processor runs Python, and your
-Python script also makes MPI calls through a Python/MPI interface.
-
-Note that for (2) and (3) you will not be able to use Python
-interactively by typing commands and getting a response.  This is
-because you will have multiple instances of Python running (e.g. on a
-parallel machine) and they cannot all read what you type.
-
-Working in mode (1) does not require your machine to have MPI
-installed.  You should extend your Python with a serial version of
-LAMMPS and the dummy MPI library provided with LAMMPS.  See
-instructions below on how to do this.
-
-Working in mode (2) requires your machine to have an MPI library
-installed, but your Python does not need to be extended with MPI
-itself.  The MPI library must be a shared library (e.g. a *.so file on
-Linux) which is not typically created when MPI is built/installed.
-See instruction below on how to do this.  You should extend your
-Python with the a parallel versionn of LAMMPS which will use the
-shared MPI system library.  See instructions below on how to do this.
-
-Working in mode (3) requires your machine to have MPI installed (as a
-shared library as in (2)).  You must also extend your Python with a
-parallel version of LAMMPS (same as in (2)) and with MPI itself, via
-one of several available Python/MPI packages.  See instructions below
-on how to do the latter task.
-
-Several of the following sub-sections cover the rest of the Python
-setup discussion.  The next to last sub-section describes the Python
-syntax used to invoke LAMMPS.  The last sub-section describes example
-Python scripts included in the python directory.
-
-Before proceeding, there are 2 items to note.
-
-(1) The provided Python wrapper for LAMMPS uses the amazing and
-magical (to me) "ctypes" package in Python, which auto-generates the
-interface code needed between Python and a set of C interface routines
-for a library.  Ctypes is part of standard Python for versions 2.5 and
-later.  You can check which version of Python you have installed, by
-simply typing "python" at a shell prompt.
-
-(2) Any library wrapped by Python, including LAMMPS, must be built as
-a shared library (e.g. a *.so file on Linux and not a *.a file).  The
-python/setup_serial.py and setup.py scripts do this build for LAMMPS
-itself (described below).  But if you have LAMMPS configured to use
-additional packages that have their own libraries, then those
-libraries must also be shared libraries.  E.g. MPI, FFTW, or any of
-the libraries in lammps/lib.  When you build LAMMPS as a stand-alone
-code, you are not building shared versions of these libraries.
-
-The discussion below describes how to create a shared MPI library.  I
-suggest you start by configuing LAMMPS without packages installed that
-require any libraries besides MPI.  See "this
-section"_Section_start.html#start_3 of the manual for a discussion of
-LAMMPS packages.  E.g. do not use the KSPACE, GPU, MEAM, POEMS, or
-REAX packages.
-
-If you are successfully follow the steps belwo to build the Python
-wrappers and use this version of LAMMPS through Python, you can then
-take the next step of adding LAMMPS packages that use additional
-libraries.  This will require you to build a shared library for that
-package's library, similar to what is described below for MPI.  It
-will also require you to edit the python/setup_serial.py or setup.py
-scripts to enable Python to access those libraries when it builds the
-LAMMPS wrapper.
+The Python wrapper for LAMMPS uses the amazing and magical (to me)
+"ctypes" package in Python, which auto-generates the interface code
+needed between Python and a set of C interface routines for a library.
+Ctypes is part of standard Python for versions 2.5 and later.  You can
+check which version of Python you have installed, by simply typing
+"python" at a shell prompt.
 
 :line
 :line
 
-11.1 Extending Python with a serial version of LAMMPS :link(py_1),h4
+11.1 Building LAMMPS as a shared library :link(py_1),h4
 
-From the python directory in the LAMMPS distribution, type
+Instructions on how to build LAMMPS as a shared library are given in
+"Section_start 5"_Section_start.html#start_5.  A shared library is one
+that is dynamically loadable, which is what Python requires.  On Linux
+this is a library file that ends in ".so", not ".a".
 
-python setup_serial.py build :pre
+From the src directory, type
 
-and then one of these commands:
+make makeshlib
+make -f Makefile.shlib foo :pre
 
-sudo python setup_serial.py install
-python setup_serial.py install --home=~/foo :pre
+where foo is the machine target name, such as linux or g++ or serial.
+This should create the file liblammps_foo.so in the src directory, as
+well as a soft link liblammps.so, which is what the Python wrapper will
+load by default.  Note that if you are building multiple machine
+versions of the shared library, the soft link is always set to the
+most recently built version.
 
-The "build" command should compile all the needed LAMMPS files,
-including its dummy MPI library.  The first "install" command will put
-the needed files in your Python's site-packages sub-directory, so that
-Python can load them.  For example, if you installed Python yourself
-on a Linux machine, it would typically be somewhere like
-/usr/local/lib/python2.5/site-packages.  Installing Python packages
-this way often requires you to be able to write to the Python
-directories, which may require root priveleges, hence the "sudo"
-prefix.  If this is not the case, you can drop the "sudo".  If you use
-the "sudo" prefix and you have installed Python yourself, you should
-make sure that root uses the same Python as the one you did the
-"install" in.  E.g. these 2 commands may do the install in different
-Python versions:
-
-python setup_serial.py install --home=~/foo
-python /usr/local/bin/python/setup_serial.py install --home=~/foo :pre
-
-Alternatively, you can install the LAMMPS files (or any other Python
-packages) in your own user space.  The second "install" command does
-this, where you should replace "foo" with your directory of choice.
-
-If these commands are successful, a {lammps.py} and
-{_lammps_serial.so} file will be put in the appropriate directory.
+If this fails, see "Section_start 5"_Section_start.html#start_5 for
+more details, especially if your LAMMPS build uses auxiliary libraries
+like MPI or FFTW which may not be built as shared libraries on your
+system.
 
 :line
 
-11.2 Creating a shared MPI library :link(py_2),h4
+11.2 Installing the Python wrapper into Python :link(py_2),h4
 
-A shared library is one that is dynamically loadable, which is what
-Python requires.  On Linux this is a library file that ends in ".so",
-not ".a".  Such a shared library is normally not built if you
-installed MPI yourself, but it is easy to do.  Here is how to do it
-for "MPICH"_mpich, a popular open-source version of MPI, distributed
-by Argonne National Labs.  From within the mpich directory, type
+For Python to invoke LAMMPS, there are 2 files it needs to know about:
 
-:link(mpich,http://www-unix.mcs.anl.gov/mpi)
+python/lammps.py
+src/liblammps.so :ul
 
-./configure --enable-shared
-make
-make install :pre
+Lammps.py is the Python wrapper on the LAMMPS library interface.
+Liblammps.so is the shared LAMMPS library that Python loads, as
+described above.
 
-You may need to use "sudo make install" in place of the last line.
-The end result should be the file libmpich.so in /usr/local/lib.
+You can insure Python can find these files in one of two ways:
 
-IMPORTANT NOTE: If the file libmpich.a already exists in your
-installation directory (e.g. /usr/local/lib), you will now have both a
-static and shared MPI library.  This will be fine for running LAMMPS
-from Python since it only uses the shared library.  But if you now try
-to build LAMMPS by itself as a stand-alone program (cd lammps/src;
-make foo) or build other codes that expect to link against libmpich.a,
-then those builds may fail if the linker uses libmpich.so instead.  If
-this happens, it means you will need to remove the file
-/usr/local/lib/libmich.so before building LAMMPS again as a
-stand-alone code.
+set two environment variables
+run the python/install.py script :ul
+
+If you set the paths to these files as environment variables, you only
+have to do it once.  For the csh or tcsh shells, add something like
+this to your ~/.cshrc file, one line for each of the two files:
+
+setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src :pre
+
+If you use the python/install.py script, you need to invoke it every
+time you rebuild LAMMPS (as a shared library) or make changes to the
+python/lammps.py file.
+
+You can invoke install.py from the python directory as
+
+% python install.py \[libdir\] \[pydir\] :pre
+
+The optional libdir is where to copy the LAMMPS shared library to; the
+default is /usr/local/lib.  The optional pydir is where to copy the
+lammps.py file to; the default is the site-packages directory of the
+version of Python that is running the install script.
+
+Note that libdir must be a location that is in your default
+LD_LIBRARY_PATH, like /usr/local/lib or /usr/lib.  And pydir must be a
+location that Python looks in by default for imported modules, like
+its site-packages dir.  If you want to copy these files to
+non-standard locations, such as within your own user space, you will
+need to set your PYTHONPATH and LD_LIBRARY_PATH environment variables
+accordingly, as above.
+
+If the install.py script does not allow you to copy files into system
+directories, prefix the python command with "sudo".  If you do this,
+make sure that the Python that root runs is the same as the Python you
+run.  E.g. you may need to do something like
+
+% sudo /usr/local/bin/python install.py \[libdir\] \[pydir\] :pre
+
+You can also invoke install.py from the make command in the src
+directory as
+
+% make install-python :pre
+
+In this mode you cannot append optional arguments.  Again, you may
+need to prefix this with "sudo".  In this mode you cannot control
+which Python is invoked by root.
+
+Note that if you want Python to be able to load different versions of
+the LAMMPS shared library (see "this section"_#py_5 below), you will
+need to manually copy files like lmplammps_g++.so into the appropriate
+system directory.  This is not needed if you set the LD_LIBRARY_PATH
+environment variable as described above.
 
 :line
 
-11.3 Extending Python with a parallel version of LAMMPS :link(py_3),h4
+11.3 Extending Python with MPI to run in parallel :link(py_3),h4
 
-From the python directory, type
-
-python setup.py build :pre
-
-and then one of these commands:
-
-sudo python setup.py install
-python setup.py install --home=~/foo :pre
-
-The "build" command should compile all the needed LAMMPS C++ files,
-which will require MPI to be installed on your system.  This means it
-must find both the header file mpi.h and a shared library file,
-e.g. libmpich.so if the MPICH version of MPI is installed.  See the
-preceding section for how to create a shared library version of MPI if
-it does not exist.  You may need to adjust the "include_dirs" and
-"library_dirs" and "libraries" fields in python/setup.py to
-insure the Python build finds all the files it needs.
-
-The first "install" command will put the needed files in your Python's
-site-packages sub-directory, so that Python can load them.  For
-example, if you installed Python yourself on a Linux machine, it would
-typically be somewhere like /usr/local/lib/python2.5/site-packages.
-Installing Python packages this way often requires you to be able to
-write to the Python directories, which may require root priveleges,
-hence the "sudo" prefix.  If this is not the case, you can drop the
-"sudo".
-
-Alternatively, you can install the LAMMPS files (or any other Python
-packages) in your own user space.  The second "install" command does
-this, where you should replace "foo" with your directory of choice.
-
-If these commands are successful, a {lammps.py} and {_lammps.so} file
-will be put in the appropriate directory.
-
-:line
-
-11.4 Extending Python with MPI :link(py_4),h4
+If you wish to run LAMMPS in parallel from Python, you need to extend
+your Python with an interface to MPI.  This also allows you to
+make MPI calls directly from Python in your script, if you desire.
 
 There are several Python packages available that purport to wrap MPI
 as a library and allow MPI functions to be called from Python.
@@ -251,31 +182,30 @@ These include
 "maroonmpi"_http://code.google.com/p/maroonmpi/
 "mpi4py"_http://code.google.com/p/mpi4py/
 "myMPI"_http://nbcr.sdsc.edu/forum/viewtopic.php?t=89&sid=c997fefc3933bd66204875b436940f16
-"Pypar"_http://datamining.anu.edu.au/~ole/pypar :ul
+"Pypar"_http://code.google.com/p/pypar :ul
 
-All of these except pyMPI work by wrapping the MPI library (which must
-be available on your system as a shared library, as discussed above),
-and exposing (some portion of) its interface to your Python script.
-This means they cannot be used interactively in parallel, since they
-do not address the issue of interactive input to multiple instances of
+All of these except pyMPI work by wrapping the MPI library and
+exposing (some portion of) its interface to your Python script.  This
+means Python cannot be used interactively in parallel, since they do
+not address the issue of interactive input to multiple instances of
 Python running on different processors.  The one exception is pyMPI,
 which alters the Python interpreter to address this issue, and (I
-believe) creates a new alternate executable (in place of python
+believe) creates a new alternate executable (in place of "python"
 itself) as a result.
 
 In principle any of these Python/MPI packages should work to invoke
-both calls to LAMMPS and MPI itself from a Python script running in
-parallel.  However, when I downloaded and looked at a few of them,
-their docuemtation was incomplete and I had trouble with their
-installation.  It's not clear if some of the packages are still being
-actively developed and supported.
+LAMMPS in parallel and MPI calls themselves from a Python script which
+is itself running in parallel.  However, when I downloaded and looked
+at a few of them, their documentation was incomplete and I had trouble
+with their installation.  It's not clear if some of the packages are
+still being actively developed and supported.
 
 The one I recommend, since I have successfully used it with LAMMPS, is
 Pypar.  Pypar requires the ubiquitous "Numpy
 package"_http://numpy.scipy.org be installed in your Python.  After
 launching python, type
 
->>> import numpy :pre
+import numpy :pre
 
 to see if it is installed.  If not, here is how to install it (version
 1.3.0b1 as of April 2009).  Unpack the numpy tarball and from its
@@ -287,117 +217,150 @@ sudo python setup.py install :pre
 The "sudo" is only needed if required to copy Numpy files into your
 Python distribution's site-packages directory.
 
-To install Pypar (version pypar-2.1.0_66 as of April 2009), unpack it
+To install Pypar (version pypar-2.1.4_94 as of Aug 2012), unpack it
 and from its "source" directory, type
 
 python setup.py build
 sudo python setup.py install :pre
 
-Again, the "sudo" is only needed if required to copy PyPar files into
+Again, the "sudo" is only needed if required to copy Pypar files into
 your Python distribution's site-packages directory.
 
 If you have successully installed Pypar, you should be able to run
-python serially and type
+Python and type
 
->>> import pypar :pre
+import pypar :pre
 
 without error.  You should also be able to run python in parallel
 on a simple test script
 
-% mpirun -np 4 python test.script :pre
+% mpirun -np 4 python test.py :pre
 
-where test.script contains the lines
+where test.py contains the lines
 
 import pypar
 print "Proc %d out of %d procs" % (pypar.rank(),pypar.size()) :pre
 
-and see one line of output for each processor you ran on.
+and see one line of output for each processor you run on.
+
+IMPORTANT NOTE: To use Pypar and LAMMPS in parallel from Python, you
+must insure both are using the same version of MPI.  If you only have
+one MPI installed on your system, this is not an issue, but it can be
+if you have multiple MPIs.  Your LAMMPS build is explicit about which
+MPI it is using, since you specify the details in your lo-level
+src/MAKE/Makefile.foo file.  Pypar uses the "mpicc" command to find
+information about the MPI it uses to build against.  And it tries to
+load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
+the MPI library that LAMMPS is using.  If you have problems running
+both Pypar and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that Pypar finds
+the right one.
 
 :line
 
-11.5 Testing the Python-LAMMPS interface :link(py_5),h4
+11.4 Testing the Python-LAMMPS interface :link(py_4),h4
 
-Before using LAMMPS in a Python program, one more step is needed.  The
-interface to LAMMPS is via the Python ctypes package, which loads the
-shared LAMMPS library via a CDLL() call, which in turn is a wrapper on
-the C-library dlopen().  This command is different than a normal
-Python "import" and needs to be able to find the LAMMPS shared
-library, which is either in the Python site-packages directory or in a
-local directory you specified in the "python setup.py install"
-command, as described above.
-
-The simplest way to do this is add a line like this to your
-.cshrc or other shell start-up file.
-
-setenv LD_LIBRARY_PATH
-$\{LD_LIBRARY_PATH\}:/usr/local/lib/python2.5/site-packages :pre
-
-and then execute the shell file to insure the path has been updated.
-This will extend the path that dlopen() uses to look for shared
-libraries.
-
-To test if the serial LAMMPS library has been successfully installed
-(mode 1 above), launch Python and type
+To test if LAMMPS is callable from Python, launch Python interactively
+and type:
 
 >>> from lammps import lammps
 >>> lmp = lammps() :pre
 
-If you get no errors, you're ready to use serial LAMMPS from Python.
+If you get no errors, you're ready to use LAMMPS from Python.  If the
+2nd command fails, the most common error to see is
 
-If you built LAMMPS for parallel use (mode 2 or 3 above), launch
-Python in parallel:
+OSError: Could not load LAMMPS dynamic library :pre
 
-% mpirun -np 4 python test.script :pre
+which means Python was unable to load the LAMMPS shared library.  This
+typically occurs if the system can't find the LAMMPS shared library or
+one of the auxiliary shared libraries it depends on, or if something
+about the library is incompatible with your Python.  The error message
+should give you an indication of what went wrong.
 
-where test.script contains the lines
+You can also test the load directly in Python as follows, without
+first importing from the lammps.py file:
+
+>>> from ctypes import CDLL
+>>> CDLL("liblammps.so") :pre
+
+If an error occurs, carefully go thru the steps in "Section_start
+5"_Section_start.html#start_5 and above about building a shared
+library and about insuring Python can find the necessary two files
+it needs.
+
+[Test LAMMPS and Python in serial:] :h5
+
+To run a LAMMPS test in serial, type these lines into Python
+interactively from the bench directory:
+
+>>> from lammps import lammps
+>>> lmp = lammps()
+>>> lmp.file("in.lj") :pre
+
+Or put the same lines in the file test.py and run it as
+
+% python test.py :pre
+
+Either way, you should see the results of running the in.lj benchmark
+on a single processor appear on the screen, the same as if you had
+typed something like:
+
+lmp_g++ < in.lj :pre
+
+[Test LAMMPS and Python in parallel:] :h5
+
+To run LAMMPS in parallel, assuming you have installed the
+"Pypar"_http://datamining.anu.edu.au/~ole/pypar package as discussed
+above, create a test.py file containing these lines:
 
 import pypar
 from lammps import lammps
 lmp = lammps()
-print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()), lmp
+lmp.file("in.lj")
+print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
 pypar.finalize() :pre
 
-Again, if you get no errors, you're good to go.
+You can then run it in parallel as:
 
-Note that if you left out the "import pypar" line from this script,
-you would instantiate and run LAMMPS independently on each of the P
-processors specified in the mpirun command.  You can test if Pypar is
-enabling true parallel Python and LAMMPS by adding a line to the above
-sequence of commands like lmp.file("in.lj") to run an input script and
-see if the LAMMPS run says it ran on P processors or if you get output
-from P duplicated 1-processor runs written to the screen.  In the
-latter case, Pypar is not working correctly.
+% mpirun -np 4 python test.py :pre
 
-Note that this line:
+and you should see the same output as if you had typed
 
-from lammps import lammps :pre
+% mpirun -np 4 lmp_g++ < in.lj :pre
 
-will import either the serial or parallel version of the LAMMPS
-library, as wrapped by lammps.py.  But if you installed both via
-setup_serial.py and setup.py, it will always import the parallel
-version, since it attempts that first.
+Note that if you leave out the 3 lines from test.py that specify Pypar
+commands you will instantiate and run LAMMPS independently on each of
+the P processors specified in the mpirun command.  In this case you
+should get 4 sets of output, each showing that a LAMMPS run was made
+on a single processor, instead of one set of output showing that
+LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
+means that Pypar is not working correctly.
 
-Note that if your Python script imports the Pypar package (as above),
-so that it can use MPI calls directly, then Pypar initializes MPI for
-you.  Thus the last line of your Python script should be
-pypar.finalize(), to insure MPI is shut down correctly.
+Also note that once you import the PyPar module, Pypar initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the Pypar documentation.  The last line of your Python
+script should be pypar.finalize(), to insure MPI is shut down
+correctly.
 
-Also note that a Python script can be invoked in one of several ways:
+[Running Python scripts:] :h5
+
+Note that any Python script (not just for LAMMPS) can be invoked in
+one of several ways:
 
 % python foo.script
 % python -i foo.script
-% foo.script
+% foo.script :pre
 
 The last command requires that the first line of the script be
 something like this:
 
 #!/usr/local/bin/python 
-#!/usr/local/bin/python -i
+#!/usr/local/bin/python -i :pre
 
 where the path points to where you have Python installed, and that you
 have made the script file executable:
 
-% chmod +x foo.script
+% chmod +x foo.script :pre
 
 Without the "-i" flag, Python will exit when the script finishes.
 With the "-i" flag, you will be left in the Python interpreter when
@@ -408,29 +371,25 @@ Python on a single processor, not in parallel.
 :line
 :line
 
-11.6 Using LAMMPS from Python :link(py_6),h4
+11.5 Using LAMMPS from Python :link(py_5),h4
 
 The Python interface to LAMMPS consists of a Python "lammps" module,
 the source code for which is in python/lammps.py, which creates a
 "lammps" object, with a set of methods that can be invoked on that
 object.  The sample Python code below assumes you have first imported
-the "lammps" module in your Python script and its settings as
-follows:
+the "lammps" module in your Python script, as follows:
 
-from lammps import lammps 
-from lammps import LMPINT as INT
-from lammps import LMPDOUBLE as DOUBLE
-from lammps import LMPIPTR as IPTR
-from lammps import LMPDPTR as DPTR
-from lammps import LMPDPTRPTR as DPTRPTR :pre
+from lammps import lammps :pre
 
 These are the methods defined by the lammps module.  If you look
 at the file src/library.cpp you will see that they correspond
 one-to-one with calls you can make to the LAMMPS library from a C++ or
 C or Fortran program.
 
-lmp = lammps()           # create a LAMMPS object
-lmp = lammps(list)       # ditto, with command-line args, list = \["-echo","screen"\] :pre
+lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
+lmp = lammps("g++")      # create a LAMMPS object using the liblammps_g++.so library
+lmp = lammps("",list)    # ditto, with command-line args, e.g. list = \["-echo","screen"\]
+lmp = lammps("g++",list) :pre
 
 lmp.close()              # destroy a LAMMPS object :pre
 
@@ -439,11 +398,15 @@ lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre
 
 xlo = lmp.extract_global(name,type)  # extract a global quantity
                                      # name = "boxxlo", "nlocal", etc
-				     # type = INT or DOUBLE :pre
+				     # type = 0 = int
+				     #        1 = double :pre
 
 coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
                                           # name = "x", "type", etc
-				          # type = IPTR or DPTR or DPTRPTR :pre
+				          # type = 0 = vector of ints
+				          #        1 = array of ints
+				          #        2 = vector of doubles
+				          #        3 = array of doubles :pre
 
 eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
 v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
@@ -463,16 +426,32 @@ var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
 					     #        1 = atom-style variable :pre
 
 natoms = lmp.get_natoms()                 # total # of atoms as int
-x = lmp.get_coords()                      # return coords of all atoms in x
-lmp.put_coords(x)                         # set all atom coords via x :pre
+data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
+                                          # name = "x", "charge", "type", etc
+                                          # count = # of per-atom values, 1 or 3, etc
+lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms from data, ordered by atom ID
+                                          # name = "x", "charge", "type", etc
+                                          # count = # of per-atom values, 1 or 3, etc :pre
 
 :line
 
-The creation of a LAMMPS object does not take an MPI communicator as
-an argument.  There should be a way to do this, so that the LAMMPS
-instance runs on a subset of processors, if desired, but I don't yet
-know how from Pypar.  So for now, it runs on MPI_COMM_WORLD, which is
-all the processors.
+IMPORTANT NOTE: Currently, the creation of a LAMMPS object from within
+lammps.py does not take an MPI communicator as an argument.  There
+should be a way to do this, so that the LAMMPS instance runs on a
+subset of processors if desired, but I don't know how to do it from
+Pypar.  So for now, it runs with MPI_COMM_WORLD, which is all the
+processors.  If someone figures out how to do this with one or more of
+the Python wrappers for MPI, like Pypar, please let us know and we
+will amend these doc pages.
+
+Note that you can create multiple LAMMPS objects in your Python
+script, and coordinate and run multiple simulations, e.g.
+
+from lammps import lammps
+lmp1 = lammps()
+lmp2 = lammps()
+lmp1.file("in.file1")
+lmp2.file("in.file2") :pre
 
 The file() and command() methods allow an input script or single
 commands to be invoked.
@@ -491,8 +470,8 @@ returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
 Again, new names could easily be added.  A pointer to a vector of
 doubles or integers, or a pointer to an array of doubles (double **)
-is returned.  You need to specify the appropriate data type via the
-type argument.
+or integers (int **) is returned.  You need to specify the appropriate
+data type via the type argument.
 
 For extract_compute() and extract_fix(), the global, per-atom, or
 local data calulated by the compute or fix can be accessed.  What is
@@ -520,58 +499,57 @@ Python subscripting. The values will be zero for atoms not in the
 specified group.
 
 The get_natoms() method returns the total number of atoms in the
-simulation, as an int.  Note that extract_global("natoms") returns the
-same value, but as a double, which is the way LAMMPS stores it to
-allow for systems with more atoms than can be stored in an int (> 2
-billion).
+simulation, as an int.
 
-The get_coords() method returns an ctypes vector of doubles of length
-3*natoms, for the coordinates of all the atoms in the simulation,
-ordered by x,y,z and then by atom ID (see code for put_coords()
-below).  The array can be used via normal Python subscripting.  If
-atom IDs are not consecutively ordered within LAMMPS, a None is
-returned as indication of an error.
+The gather_atoms() method returns a ctypes vector of ints or doubles
+as specified by type, of length count*natoms, for the property of all
+the atoms in the simulation specified by name, ordered by count and
+then by atom ID.  The vector can be used via normal Python
+subscripting.  If atom IDs are not consecutively ordered within
+LAMMPS, a None is returned as indication of an error.
 
-Note that the data structure get_coords() returns is different from
-the data structure returned by extract_atom("x") in four ways.  (1)
-Get_coords() returns a vector which you index as x\[i\];
+Note that the data structure gather_atoms("x") returns is different
+from the data structure returned by extract_atom("x") in four ways.
+(1) Gather_atoms() returns a vector which you index as x\[i\];
 extract_atom() returns an array which you index as x\[i\]\[j\].  (2)
-Get_coords() orders the atoms by atom ID while extract_atom() does
-not.  (3) Get_coords() returns a list of all atoms in the simulation;
-extract_atoms() returns just the atoms local to each processor.  (4)
-Finally, the get_coords() data structure is a copy of the atom coords
-stored internally in LAMMPS, whereas extract_atom returns an array
-that points directly to the internal data.  This means you can change
-values inside LAMMPS from Python by assigning a new values to the
-extract_atom() array.  To do this with the get_atoms() vector, you
-need to change values in the vector, then invoke the put_coords()
-method.
+Gather_atoms() orders the atoms by atom ID while extract_atom() does
+not.  (3) Gathert_atoms() returns a list of all atoms in the
+simulation; extract_atoms() returns just the atoms local to each
+processor.  (4) Finally, the gather_atoms() data structure is a copy
+of the atom coords stored internally in LAMMPS, whereas extract_atom()
+returns an array that effectively points directly to the internal
+data.  This means you can change values inside LAMMPS from Python by
+assigning a new values to the extract_atom() array.  To do this with
+the gather_atoms() vector, you need to change values in the vector,
+then invoke the scatter_atoms() method.
 
-The put_coords() method takes a vector of coordinates for all atoms in
-the simulation, assumed to be ordered by x,y,z and then by atom ID,
-and uses the values to overwrite the corresponding coordinates for
-each atom inside LAMMPS.  This requires LAMMPS to have its "map"
-option enabled; see the "atom_modify"_atom_modify.html command for
-details.  If it is not or if atom IDs are not consecutively ordered,
-no coordinates are reset,
+The scatter_atoms() method takes a vector of ints or doubles as
+specified by type, of length count*natoms, for the property of all the
+atoms in the simulation specified by name, ordered by bount and then
+by atom ID.  It uses the vector of data to overwrite the corresponding
+properties for each atom inside LAMMPS.  This requires LAMMPS to have
+its "map" option enabled; see the "atom_modify"_atom_modify.html
+command for details.  If it is not, or if atom IDs are not
+consecutively ordered, no coordinates are reset.
 
-The array of coordinates passed to put_coords() must be a ctypes
-vector of doubles, allocated and initialized something like this:
+The array of coordinates passed to scatter_atoms() must be a ctypes
+vector of ints or doubles, allocated and initialized something like
+this:
 
 from ctypes import *
-natoms = lmp.get_atoms()
+natoms = lmp.get_natoms()
 n3 = 3*natoms
-x = (c_double*n3)()
+x = (n3*c_double)()
 x[0] = x coord of atom with ID 1
 x[1] = y coord of atom with ID 1
 x[2] = z coord of atom with ID 1
 x[3] = x coord of atom with ID 2
 ...
 x[n3-1] = z coord of atom with ID natoms
-lmp.put_coords(x) :pre
+lmp.scatter_coords("x",1,3,x) :pre
 
 Alternatively, you can just change values in the vector returned by
-get_coords(), since it is a ctypes vector of doubles.
+gather_atoms("x",1,3), since it is a ctypes vector of doubles.
 
 :line 
 
@@ -583,15 +561,10 @@ following steps:
 Add a new interface function to src/library.cpp and
 src/library.h. :ulb,l
 
-Verify the new function is syntactically correct by building LAMMPS as
-a library - see "Section_start 4"_Section_start.html#start_5 of the
-manual. :l
+Rebuild LAMMPS as a shared library. :l
 
-Add a wrapper method in the Python LAMMPS module to python/lammps.py
-for this interface function. :l
-
-Rebuild the Python wrapper via python/setup_serial.py or
-python/setup.py. :l
+Add a wrapper method to python/lammps.py for this interface
+function. :l
 
 You should now be able to invoke the new interface function from a
 Python script.  Isn't ctypes amazing? :l,ule
@@ -599,7 +572,7 @@ Python script.  Isn't ctypes amazing? :l,ule
 :line
 :line
 
-11.7 Example Python scripts that use LAMMPS :link(py_7),h4
+11.6 Example Python scripts that use LAMMPS :link(py_6),h4
 
 These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

@@ -1,26 +1,36 @@
 This directory contains Python code which wraps LAMMPS as a library
-and allows the library interface to be invoked from a Python, either
-from a script or interactively.
+and allows the LAMMPS library interface to be invoked from Python,
+either from a script or interactively.
 
-Details on how to build and use this Python interface are given in
-doc/Section_python.html.
+Details on the Python interface to LAMMPS and how to build LAMMPS as a
+shared library, for use with Python, are given in
+doc/Section_python.html and in doc/Section_start.html#start_5.
 
-Basically you have to extend the Python on your box to include the
-LAMMPS wrappers:
+Basically you need to follow these steps in the src directory:
 
-python setup_serial.py build           # for serial LAMMPS and Python
-sudo python setup_serial.py install
+% make makeshlib                # creates Makefile.shlib
+% make -f Makefile.shlib g++    # or whatever machine target you wish
+% make install-python           # may need to do this via sudo
 
-python setup.py build                  # for parallel LAMMPS and Python
-sudo python setup.py install
+You can replace the last step with running the python/install.py
+script directly to give you more control over where two relevant files
+are installed, or by setting environment variables in your shell
+script.  See doc/Section_python.html for details.
 
-but there are several issues to be aware of, as discussed in the doc
-pages.
+You can then launch Python and instantiate an instance of LAMMPS:
+
+% python
+>>> from lammps import lammps
+>>> lmp = lammps()
+
+If that gives no errors, you have succesfully wrapped LAMMPS with
+Python.  See doc/Section_python.html#py_5 for tests you can then use
+to run LAMMPS both in serial or parallel thru Python.
 
 -------------------------------------------------------------------
 
-Once you have successfully built and tested the wrappers, you can run
-the Python scripts in the examples sub-directory:
+Once you have successfully wrapped LAMMPS, you can run the Python
+scripts in the examples sub-directory:
 
 trivial.py          read/run a LAMMPS input script thru Python
 demo.py	  	    invoke various LAMMPS library interface routines

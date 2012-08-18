@@ -21,9 +21,6 @@ help:
 	@files="`ls MAKE/Makefile.*`"; \
 	for file in $$files; do head -1 $$file; done
 
-clean:
-	rm -rf Obj_*
-
 .DEFAULT:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi

@@ -36,7 +36,9 @@
 #define MAX_GROUP 32
 #define PI (4.0*atan(1.0))
 
-// these should match settings in src/lmptype.h
+// these must match settings in src/lmptype.h
+// depending on whether you built LAMMPS with
+// -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
 
 #include "stdint.h"
 #define __STDC_FORMAT_MACROS
@@ -45,6 +47,16 @@
 typedef int tagint;
 typedef int64_t bigint;
 #define BIGINT_FORMAT "%" PRId64
+
+#define IMGMASK 1023
+#define IMGMAX 512
+#define IMGBITS 10
+#define IMG2BITS 20
+
+//#define IMGMASK 2097151
+//#define IMGMAX 1048576
+//#define IMGBITS 21
+//#define IMG2BITS 42
 
 // same as write_restart.cpp
 
@@ -887,7 +899,7 @@ int atom_angle(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -933,7 +945,7 @@ int atom_atomic(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -952,7 +964,7 @@ int atom_bond(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -983,7 +995,7 @@ int atom_charge(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1002,7 +1014,7 @@ int atom_dipole(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1024,7 +1036,7 @@ int atom_ellipsoid(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1063,7 +1075,7 @@ int atom_full(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1137,13 +1149,13 @@ int atom_full(double *buf, Data &data, int iatoms)
 
 int atom_line(double *buf, Data &data, int iatoms)
 {
-  fprintf(stderr,"support for atom style line is not fully implemented\n");
+  fprintf(stderr,"Support for atom style line is not fully implemented\n");
   exit(1);
 }
 
 int atom_meso(double *buf, Data &data, int iatoms)
 {
-  fprintf(stderr,"support for atom style meso is not fully implemented\n");
+  fprintf(stderr,"Support for atom style meso is not fully implemented\n");
   exit(1);
 }
 
@@ -1158,7 +1170,7 @@ int atom_molecular(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1238,7 +1250,7 @@ int atom_peri(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1262,7 +1274,7 @@ int atom_sphere(double *buf, Data &data, int iatoms)
   data.tag[iatoms] = static_cast<int> (buf[m++]);
   data.type[iatoms] = static_cast<int> (buf[m++]);
   data.mask[iatoms] = static_cast<int> (buf[m++]);
-  data.image[iatoms] = static_cast<int> (buf[m++]);
+  data.image[iatoms] = *((tagint *) &buf[m++]);
   data.vx[iatoms] = buf[m++];
   data.vy[iatoms] = buf[m++];
   data.vz[iatoms] = buf[m++];
@@ -1283,13 +1295,14 @@ int atom_sphere(double *buf, Data &data, int iatoms)
 
 int atom_tri(double *buf, Data &data, int iatoms)
 {
-  fprintf(stderr,"support for atom style tri is not fully implemented\n");
+  fprintf(stderr,"Support for atom style tri is not fully implemented\n");
   exit(1);
 }
 
 int atom_wavepacket(double *buf, Data &data, int iatoms)
 {
-  fprintf(stderr,"support for atom style wavepacket is not fully implemented\n");
+  fprintf(stderr,"Support for atom style wavepacket is not "
+          "fully implemented\n");
   exit(1);
 }
 
@@ -3700,10 +3713,10 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
     int ix,iy,iz;
     for (bigint i = 0; i < natoms; i++) {
 
-      ix = (image[i] & 1023) - 512;
-      iy = (image[i] >> 10 & 1023) - 512;
-      iz = (image[i] >> 20) - 512;
-
+      ix = (image[i] & IMGMASK) - IMGMAX;
+      iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      iz = (image[i] >> IMG2BITS) - IMGMAX;
+      
       if (style_hybrid == 0) {
 	if (style_angle) write_atom_angle(fp,i,ix,iy,iz);
 	if (style_atomic) write_atom_atomic(fp,i,ix,iy,iz);

@@ -10,13 +10,17 @@ CC =		mpic++
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
 			-march=native -ffast-math -mpc64 -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+SHFLAGS =	-fPIC
 DEPFLAGS =	-M
+
 LINK =		mpic++
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++
+SIZE =		size
+
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
-SIZE =		size
+SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -78,15 +82,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

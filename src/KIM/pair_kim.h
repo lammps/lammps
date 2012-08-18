@@ -11,6 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Ryan S. Elliott,
+                         Valeriu Smirichinski,
+                         Ellad Tadmor (U Minn)
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Designed for use with the openkim-api-v1.1.0 (and newer) package
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 
 PairStyle(kim,PairKIM)
@@ -20,92 +30,115 @@ PairStyle(kim,PairKIM)
 #ifndef LMP_PAIR_KIM_H
 #define LMP_PAIR_KIM_H
 
+// includes from KIM & LAMMPS
 class KIM_API_model;
 #include "pair.h"
 
+
 namespace LAMMPS_NS {
 
-class PairKIM : public Pair {
- public:
-  PairKIM(class LAMMPS *);
-  ~PairKIM();
+   class PairKIM : public Pair {
+   public:
+      PairKIM(class LAMMPS*);
+      ~PairKIM();
 
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+      // LAMMPS Pair class virtual function prototypes
+      virtual void compute(int, int);
+      virtual void settings(int, char**);
+      virtual void coeff(int, char**);
+      virtual void init_style();
+      virtual double init_one(int, int);
+      virtual int pack_reverse_comm(int, int, double*);
+      virtual void unpack_reverse_comm(int, int*, double*);
+      virtual double memory_usage();
 
- private:
-  double cut_global;            // returned from KIM model
+   private:
+      // (nearly) all bool flags are not initialized in constructor, but set
+      // explicitly in the indicated function.  All other data members are
+      // initialized in constructor
 
-  char **elements;              // names of unique elements
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
+      // values set in settings()
+      char* kim_modelname;
 
-  int maxall;
-  int *kimtype;                 // KIM atom types for each LAMMPS atom
-  double **fcopy;               // copy of f, when running with pair hybrid
-  int hybrid;                   // 1 if running with pair hybrid
+      // values set in coeff()
 
-  int *onebuf;                  // neighbors of one atom
-  int molecular;
+      // values set in allocate(), called by coeff()
+      void allocate();
+      int* lmps_map_types_to_unique;
 
-  void allocate();
+      // values set in coeff(), after calling allocate()
+      char** lmps_unique_elements;  // names of unique elements given in pair_coeff command
+      int lmps_num_unique_elements;
 
-  // KIM data
+      // values set in set_lmps_flags(), called from init_style()
+      bool lmps_using_newton;
+      bool lmps_using_molecular;
+      bool lmps_hybrid;             // true if running with pair hybrid
+      bool lmps_support_cluster;    // true if running in mode compat. with CLUSTER
+      enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
+      unit_sys lmps_units;
 
-  // static PairKIM *self;
-  KIM_API_model *pkim;
-  int coordinates_ind,numberOfParticles_ind,numberParticleTypes_ind;
-  int particleTypes_ind,compute_ind;
-  int get_neigh_ind,neighObject_ind;
-  int cutoff_ind,energy_ind;
-  int particleEnergy_ind,force_ind,forces_ind,virialGlobal_ind;
-  int particleVirial_ind,process_dEdr_ind;
-  int localnall;
-  int pointsto;    //get_neigh iterator index
-  double *Rij;//size of [3*KIM_API_MAX_NEIGHBORS]
-  struct process_fij_4_pair_KIM{
-    double *virialGlobal;
-    double *particleVirial;
-    int virialGlobal_flag;
-    int particleVirial_flag;
-    int *numberOfParticles;
-    bool halfNeighbors;
-  };
-  process_fij_4_pair_KIM process_dE;
+      // values set in set_kim_model_has_flags(), called by kim_init()
+      KIM_API_model* pkim;
+      bool kim_model_has_energy;
+      bool kim_model_has_forces;
+      bool kim_model_has_particleEnergy;
+      bool kim_model_has_particleVirial;
 
-  bool support_atypes;
-  bool support_Rij;
+      // values set in kim_init(), after call to string_init(_)
+      bool kim_init_ok;
+      bool kim_model_using_half;
+      bool kim_model_using_cluster;
+      bool kim_model_using_Rij;
+      int kim_ind_coordinates;
+      int kim_ind_numberOfParticles;
+      int kim_ind_numberContributingParticles;
+      int kim_ind_numberParticleTypes;
+      int kim_ind_particleTypes;
+      int kim_ind_get_neigh;
+      int kim_ind_neighObject;
+      int kim_ind_cutoff;
+      int kim_ind_energy;
+      int kim_ind_particleEnergy;
+      int kim_ind_forces;
+      int kim_ind_virial;
+      int kim_ind_particleVirial;
 
-  char *testname;
-  char *modelname;
-  char testfile[160];
-  char modelfile[160];
-  char *test_descriptor_string;
+      // values set in init_style(), after calling pkim->model_init()
+      bool kim_model_init_ok;
+      bool kim_particle_codes_ok;
+      int *kim_particle_codes;
 
-  int *atypeMapKIM;              // one pair of values per KIM element used
-                                 // 1st value = element index
-                                 // 2nd value = KIM atom type
+      // values set in set_statics(), called at end of kim_init(),
+      //   then again in set_volatiles(), called in compute()
+      int lmps_local_tot_num_atoms;
+      double kim_global_cutoff;     // KIM Model cutoff value
 
-  void kim_error(int, const char *, int);
-  void kim_init();
-  void kim_free();
-  void set_statics();
-  void set_volatiles();
-  void init2zero(KIM_API_model *, int *);
+      // values set in compute()
+      int lmps_maxalloc;            // max allocated memory value
+      int* kim_particleTypes;       // array of KIM particle types
+      double** lmps_force_tmp;      // temp storage for f, when running in hybrid mode
+                                    // needed to avoid reseting f to zero in each object
+      int* lmps_stripped_neigh_list;// neighbors of one atom, used when LAMMPS is in
+                                    // molecular mode
 
-  // static methods used as callbacks from KIM
+      // values used in get_neigh()
+      int kim_iterator_position;    //get_neigh iterator current position
+      double *Rij;
 
-  static int get_neigh(void **,int *, int *, int *, int *, int **, double **);
-  static void process_dEdr(KIM_API_model **, double *, double *,
-                            double **, int *, int *, int *);
-};
-
+      // KIM specific helper functions
+      void kim_error(int, const char *, int);
+      void kim_init();
+      void kim_free();
+      void set_statics();
+      void set_volatiles();
+      void set_lmps_flags();
+      void set_kim_model_has_flags();
+      void write_descriptor(char** test_descriptor_string);
+      // static methods used as callbacks from KIM
+      static int get_neigh(void** kimmdl, int* mode, int* request,
+                           int* atom, int* numnei, int** nei1atom, double** pRij);
+   };
 }
 
 #endif
@@ -119,18 +152,30 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Unrecognized virial argument in pair_style command
+
+Only two options are supported: LAMMPSvirial and KIMvirial
+
 E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style kim requires newton pair off
+E: Invalid args for non-hybrid pair coefficients
 
-This is a current restriction of the KIM library.
+"NULL" is only supported in pair_coeff calls when using pair hybrid
+
+E: PairKIM only works with 3D problems
+
+The KIM API does not explicitly support anything other than 3D problems
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
+
+E: Internal KIM error
+
+Self-explanatory. Check the output and kim.log file for more details.
 
 E: KIM neighbor iterator exceeded range
 
@@ -138,18 +183,32 @@ This should not happen.  It likely indicates a bug
 in the KIM implementation of the interatomic potential
 where it is requesting neighbors incorrectly.
 
-E: KIM_DIR environment variable is unset
+E: LAMMPS unit_style lj not supported by KIM models
 
-This environment variable must be set to use pair_style kim.
-See the doc page for pair_style kim.
+Self-explanatory. Check the input script or data file.
 
-E: PWD environment variable is unset
+E: Unknown unit_style
 
-This environment variable must be set to use pair_style kim.
-See the doc page for pair_style kim.
+Self-explanatory. Check the input script or data file.
 
-E: KIM initialization failed
+W: KIM Model does not provide `energy'; Potential energy will be zero
 
-This is an error generated by the KIM library.
+Self-explanatory.
+
+W: KIM Model does not provide `forces'; Forces will be zero
+
+Self-explanatory.
+
+W: KIM Model does not provide `particleEnergy'; energy per atom will be zero
+
+Self-explanatory.
+
+W: KIM Model does not provide `particleVirial'; virial per atom will be zero
+
+Self-explanatory.
+
+E: test_descriptor_string already allocated
+
+This should not happen. It likely indicates a bug in the pair_kim implementation.
 
 */

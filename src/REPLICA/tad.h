@@ -42,8 +42,8 @@ class TAD : protected Pointers {
   int event_first;
 
   int neigh_every,neigh_delay,neigh_dist_check;
-  int nbuild,ndanger;
   int quench_reneighbor;
+  bigint nbuild,ndanger;
 
   double time_dynamics,time_quench,time_neb,time_comm,time_output;
   double time_start;

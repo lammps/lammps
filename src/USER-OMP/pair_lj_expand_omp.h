@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/omp,PairLJExpandOMP)
+PairStyle(lj/expand/omp,PairLJExpandOMP)
 
 #else
 

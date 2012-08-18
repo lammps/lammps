@@ -30,7 +30,9 @@
 #include "modify.h"
 #include "compute.h"
 #include "fix.h"
+#include "comm.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -383,8 +385,13 @@ void lammps_gather_atoms(void *ptr, char *name,
 
   // error if tags are not defined or not consecutive
 
-  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) return;
-  if (lmp->atom->natoms > MAXSMALLINT) return;
+  int flag = 0;
+  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
+  if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+  if (flag && lmp->comm->me == 0) {
+    lmp->error->warning(FLERR,"Library error in lammps_gather_atoms");
+    return;
+  }
 
   int natoms = static_cast<int> (lmp->atom->natoms);
 
@@ -464,10 +471,16 @@ void lammps_scatter_atoms(void *ptr, char *name,
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // error if tags are not defined or not consecutive
+  // error if tags are not defined or not consecutive or no atom map
 
-  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) return;
-  if (lmp->atom->natoms > MAXSMALLINT) return;
+  int flag = 0;
+  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
+  if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+  if (lmp->atom->map_style == 0) flag = 1;
+  if (flag && lmp->comm->me == 0) {
+    lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
+    return;
+  }
 
   int natoms = static_cast<int> (lmp->atom->natoms);
 

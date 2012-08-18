@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 # Path to LAMMPS extraction directory
-LAMMPS_ROOT = ../svn-dist
+LAMMPS_ROOT = ../../..
 LAMMPS_SRC = $(LAMMPS_ROOT)/src
 
 # Remove the line below if using mpicxx/mpic++ as your C++ compiler

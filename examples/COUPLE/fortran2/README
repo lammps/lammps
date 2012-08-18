@@ -12,7 +12,7 @@ questions:
 Karl D. Hammond
 University of Tennessee, Knoxville
 karlh at ugcs.caltech.edu
-karlh atutk.edu
+karlh at utk.edu
 
 -------------------------------------
 
@@ -27,7 +27,7 @@ compile.
 The following steps will work to compile this module (replace ${LAMMPS_SRC}
 with the path to your LAMMPS source directory):
  (1) Compile LAMMPS as a static library.  Call the resulting file ${LAMMPS_LIB},
-     which will have an actual name lake liblammps_openmpi.a.  If compiling
+     which will have an actual name lake liblmp_openmpi.a.  If compiling
      using the MPI stubs in ${LAMMPS_SRC}/STUBS, you will need to know where
      libmpi.a is as well (I'll call it ${MPI_STUBS} hereafter)
  (2) Copy said library to your Fortran program's source directory or include
@@ -61,7 +61,7 @@ with the path to your LAMMPS source directory):
      need to have the .mod file from part (3).
 
      It is also possible to add LAMMPS.o and LAMMPS-wrapper.o into the
-     LAMMPS library (e.g., liblammps_openmpi.a) instead of creating a separate
+     LAMMPS library (e.g., liblmp_openmpi.a) instead of creating a separate
      library, like so:
         ar rs ${LAMMPS_LIB} LAMMPS.o LAMMPS-wrapper.o
      In this case, you can now use the Fortran wrapper functions as if they

@@ -13,7 +13,7 @@
 
 # Python wrapper on LAMMPS library via ctypes
 
-import types
+import sys,traceback,types
 from ctypes import *
 import os.path
 
@@ -27,6 +27,8 @@ class lammps:
       if not name: self.lib = CDLL("liblammps.so")
       else: self.lib = CDLL("liblammps_%s.so" % name)
     except:
+      type,value,tb = sys.exc_info()
+      traceback.print_exception(type,value,tb)
       raise OSError,"Could not load LAMMPS dynamic library"
 
     # create an instance of LAMMPS

@@ -100,7 +100,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   // see JCP 109, pg 7698 for derivation of coefficients
   // higher order coefficients may be computed if needed
 
-  memory->destroy(acons);
   memory->create(acons,8,7,"pppm:acons");
   acons[1][0] = 2.0 / 3.0;
   acons[2][0] = 1.0 / 50.0;

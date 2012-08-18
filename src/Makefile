@@ -130,7 +130,7 @@ makelist:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.list
 
-# install LAMMPS shared lib and Python wrapper in Python
+# install LAMMPS shared lib and Python wrapper for Python usage
 
 install-python:
 	@python ../python/install.py

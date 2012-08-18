@@ -21,12 +21,6 @@
    library.h.  All prototypes herein COULD be added to library.h instead of
    including this as a separate file. See the README for instructions. */
 
-/* These prototypes probably belong in mpi.h in the src/STUBS directory. */
-#ifndef OPEN_MPI
-#define MPI_Comm_f2c(a) a
-#define MPI_Fint int
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,7 +32,7 @@ int lammps_extract_compute_vectorsize (void*, char*, int);
 void lammps_extract_compute_arraysize (void*, char*, int, int*, int*);
 int lammps_extract_fix_vectorsize (void*, char*, int);
 void lammps_extract_fix_arraysize (void*, char*, int, int*, int*);
-void lammps_error_all (void *ptr, const char*, int, const char*);
+void lammps_error_all (void*, const char*, int, const char*);
 
 #ifdef __cplusplus
 }

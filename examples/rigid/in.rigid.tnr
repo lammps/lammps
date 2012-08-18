@@ -1,0 +1,89 @@
+# Tethered nanorods
+
+atom_style	molecular
+
+read_data	data.rigid.tnr
+
+# Specify bond parameters
+
+bond_style	fene
+bond_coeff	1 30.0 1.5 1.0 1.0
+
+special_bonds	fene
+
+# Specify initial velocities
+
+velocity	all create 1.4 109345
+
+# Specify rigid components
+
+group		rods type 2	
+group		tethers	subtract all rods
+
+neigh_modify 	exclude	molecule rods delay 0 every 1
+
+# Specify the pair potentials
+
+pair_style	lj/cut	2.5
+pair_modify	shift	yes
+pair_coeff	* * 1.0	1.0 1.122
+pair_coeff	2 2 1.0 1.0 2.5
+
+# Specify output
+
+thermo	100
+thermo_style custom step temp pe etotal press enthalpy lx ly lz pxx pyy pzz
+thermo_modify flush yes lost warn
+
+timestep	0.005
+
+log		log.tnr
+
+fix	1	rods	rigid molecule
+fix	2	tethers	nve
+fix	3	all	langevin 1.4 1.4 1.0 437624
+
+run	5000
+
+# Replace fix rigid and fix langevin with new ones
+unfix	1
+unfix	3
+
+fix	3	tethers langevin 1.4 1.4 1.0 198450
+
+# Test different integrators for rods
+fix	1 rods	rigid/nve molecule
+print 	"rigid/nve"
+run	1000
+unfix	1
+
+fix	1 rods	rigid/nvt molecule temp 1.4 1.4 1.0
+print 	"rigid/nvt"
+run	1000
+unfix	1
+
+compute	myTemp all temp
+
+fix	1 rods	rigid/npt molecule temp 1.4 1.4 1.0 iso 0.05 0.05 1.0 &
+        dilate all
+print 	"rigid/npt iso"
+fix_modify 1 temp myTemp
+
+run	1000
+unfix	1
+
+fix	1 rods	rigid/npt molecule temp 1.4 1.4 1.0 x 0.05 0.05 1.0 dilate all
+print 	"rigid/npt x"
+run	1000
+unfix	1
+
+fix	1 rods	rigid/nph molecule iso 0.05 0.05 1.0 dilate all
+print 	"rigid/nph iso"
+run	1000
+unfix	1
+
+fix	1 rods	rigid/nph molecule x 0.05 0.05 1.0 y 0.05 0.05 1.0 &
+        couple xy dilate all
+print 	"rigid/nph xy couple"
+run	1000
+

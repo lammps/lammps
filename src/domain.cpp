@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+</* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -531,10 +531,14 @@ void Domain::box_too_small_check()
 {
   int i,j,k;
 
-  // only need to check if system is molecluar and some dimension is periodic
+  // only need to check if system is molecular and some dimension is periodic
+  // if running verlet/split, don't check on KSpace partition since
+  //    it has no ghost atoms and thus bond partners won't exist
 
   if (!atom->molecular) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
+  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+      universe->iworld != 0) return;
 
   // maxbondall = longest current bond length
   // NOTE: if box is tiny (less than 2 * bond-length),

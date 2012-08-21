@@ -16,6 +16,10 @@
 #ifndef LAL_PRECISION_H
 #define LAL_PRECISION_H
 
+#if defined(USE_CUDART)
+#include <cuda_runtime.h>
+#endif
+
 struct _lgpu_int2 {
   int x; int y;
 };
@@ -108,3 +112,4 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 #endif
 
 #endif
+

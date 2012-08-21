@@ -158,6 +158,11 @@ class UCL_Device {
   /// Get device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
   inline int device_type(const int i);
   
+  /// Returns true if host memory is efficiently addressable from device
+  inline bool shared_memory() { return shared_memory(_device); }
+  /// Returns true if host memory is efficiently addressable from device
+  inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
+  
   /// Returns true if double precision is support for the current device
   bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device

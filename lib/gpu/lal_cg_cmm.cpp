@@ -13,10 +13,12 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "cg_cmm_cl.h"
+#elif defined(USE_CUDART)
+const char *cg_cmm=0;
 #else
-#include "cg_cmm_ptx.h"
+#include "cg_cmm_cubin.h"
 #endif
 
 #include "lal_cg_cmm.h"
@@ -51,7 +53,7 @@ int CGCMMT::init(const int ntypes, double **host_cutsq,
                           const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,cg_cmm);
+                            _screen,cg_cmm,"k_cg_cmm");
   if (success!=0)
     return success;
 
@@ -133,19 +135,17 @@ void CGCMMT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
-                          &lj3.begin(), &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->_threads_per_atom);
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &sp_lj,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->ans->force, &this->ans->engv, &eflag,
+                          &vflag, &ainum, &nbor_pitch,  
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
-                     &_cmm_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
+    this->k_pair.run(&this->atom->x, &lj1, &lj3,
+                     &_cmm_types, &sp_lj, &this->nbor->dev_nbor,
+                     &this->_nbor_data->begin(), &this->ans->force,
+                     &this->ans->engv, &eflag, &vflag, &ainum,
                      &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();

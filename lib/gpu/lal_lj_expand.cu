@@ -14,15 +14,19 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
+
 #include "lal_aux_fun1.h"
-texture<float4> pos_tex;
 #ifndef _DOUBLE_DOUBLE
-ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
-  { return tex1Dfetch(pos_tex, i); }
-#endif
+texture<float4> pos_tex;
+#else
+texture<int4,1> pos_tex;
 #endif
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
+#else
+#define pos_tex x_
+#endif
+
+__kernel void k_lj_expand(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp4* lj3, const int lj_types, 
                           __global numtyp *sp_lj_in, __global int *dev_nbor, 
                           __global int *dev_packed, __global acctyp4 *ans,
@@ -51,7 +55,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
   
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
@@ -61,7 +65,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
 
       // Compute r12
@@ -104,7 +108,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
+__kernel void k_lj_expand_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                __global numtyp4* lj3_in, 
                                __global numtyp* sp_lj_in, 
                                __global int *dev_nbor, __global int *dev_packed,
@@ -140,7 +144,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
   
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
@@ -151,7 +155,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype+jx.w;
 
       // Compute r12

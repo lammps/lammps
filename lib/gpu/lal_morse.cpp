@@ -13,10 +13,12 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "morse_cl.h"
+#elif defined(USE_CUDART)
+const char *morse=0;
 #else
-#include "morse_ptx.h"
+#include "morse_cubin.h"
 #endif
 
 #include "lal_morse.h"
@@ -51,7 +53,7 @@ int MorseT::init(const int ntypes,
                           const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,morse);
+                            _screen,morse,"k_morse");
   if (success!=0)
     return success;
 
@@ -132,20 +134,17 @@ void MorseT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &mor1.begin(),
-                          &mor2.begin(), &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->_threads_per_atom);
+    this->k_pair_fast.run(&this->atom->x, &mor1, &mor2, &sp_lj,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                          &this->ans->force, &this->ans->engv, &eflag,
+                          &vflag, &ainum, &nbor_pitch, 
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &mor1.begin(), &mor2.begin(),
-                     &_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->_threads_per_atom);
+    this->k_pair.run(&this->atom->x, &mor1, &mor2, &_types, &sp_lj, 
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                     &ainum, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

@@ -117,5 +117,61 @@ enum UCL_ERROR_FLAG {
 template <class numtyp>
 const char * ucl_template_name() { return _UCL_DATA_ID<numtyp>::name(); }
 
+template <class t1, class t2> struct ucl_same_type;
+
+template <> struct ucl_same_type<bool,bool> { enum { ans=1 }; };
+template <> struct ucl_same_type<char,char> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned char,unsigned char> { enum { ans=1 }; };
+template <> struct ucl_same_type<int,int> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned,unsigned> { enum { ans=1 }; };
+template <> struct ucl_same_type<short,short> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned short,unsigned short> { enum { ans=1 }; };
+template <> struct ucl_same_type<long,long> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned long,unsigned long> { enum { ans=1 }; };
+template <> struct ucl_same_type<float,float> { enum { ans=1 }; };
+template <> struct ucl_same_type<double,double> { enum { ans=1 }; };
+template <> struct ucl_same_type<long double,long double> { enum { ans=1 }; };
+
+template <> struct ucl_same_type<const bool,bool> { enum { ans=1 }; };
+template <> struct ucl_same_type<const char,char> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned char,unsigned char> { enum { ans=1 }; };
+template <> struct ucl_same_type<const int,int> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned,unsigned> { enum { ans=1 }; };
+template <> struct ucl_same_type<const short,short> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned short,unsigned short> { enum { ans=1 }; };
+template <> struct ucl_same_type<const long,long> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned long,unsigned long> { enum { ans=1 }; };
+template <> struct ucl_same_type<const float,float> { enum { ans=1 }; };
+template <> struct ucl_same_type<const double,double> { enum { ans=1 }; };
+template <> struct ucl_same_type<const long double,long double> { enum { ans=1 }; };
+
+template <> struct ucl_same_type<bool,const bool> { enum { ans=1 }; };
+template <> struct ucl_same_type<char,const char> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned char,const unsigned char> { enum { ans=1 }; };
+template <> struct ucl_same_type<int,const int> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned,const unsigned> { enum { ans=1 }; };
+template <> struct ucl_same_type<short,const short> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned short,const unsigned short> { enum { ans=1 }; };
+template <> struct ucl_same_type<long,const long> { enum { ans=1 }; };
+template <> struct ucl_same_type<unsigned long,const unsigned long> { enum { ans=1 }; };
+template <> struct ucl_same_type<float,const float> { enum { ans=1 }; };
+template <> struct ucl_same_type<double,const double> { enum { ans=1 }; };
+template <> struct ucl_same_type<long double,const long double> { enum { ans=1 }; };
+
+template <> struct ucl_same_type<const bool,const bool> { enum { ans=1 }; };
+template <> struct ucl_same_type<const char,const char> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned char,const unsigned char> { enum { ans=1 }; };
+template <> struct ucl_same_type<const int,const int> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned,const unsigned> { enum { ans=1 }; };
+template <> struct ucl_same_type<const short,const short> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned short,const unsigned short> { enum { ans=1 }; };
+template <> struct ucl_same_type<const long,const long> { enum { ans=1 }; };
+template <> struct ucl_same_type<const unsigned long,const unsigned long> { enum { ans=1 }; };
+template <> struct ucl_same_type<const float,const float> { enum { ans=1 }; };
+template <> struct ucl_same_type<const double,const double> { enum { ans=1 }; };
+template <> struct ucl_same_type<const long double,const long double> { enum { ans=1 }; };
+
+template <class t1, class t2> struct ucl_same_type { enum { ans=0 }; };
+
 #endif
 

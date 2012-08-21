@@ -13,12 +13,15 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "gayberne_cl.h"
 #include "gayberne_lj_cl.h"
+#elif defined(USE_CUDART)
+const char *gayberne=0;
+const char *gayberne_lj=0;
 #else
-#include "gayberne_ptx.h"
-#include "gayberne_lj_ptx.h"
+#include "gayberne_cubin.h"
+#include "gayberne_lj_cubin.h"
 #endif
 
 #include "lal_gayberne.h"
@@ -57,7 +60,8 @@ int GayBerneT::init(const int ntypes, const double gamma,
                          const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,gayberne,gayberne_lj);
+                          _screen,ntypes,h_form,gayberne,gayberne_lj,
+                          "k_gayberne");
   if (success!=0)
     return success;
 
@@ -210,13 +214,13 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
 
       this->time_ellipsoid.start();
       this->k_ellipsoid.set_size(GX,BX);
-      this->k_ellipsoid.run(&this->atom->dev_x.begin(),
-       &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(),
-       &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
-       &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
-       &stride, &this->ans->dev_ans.begin(),&ainum,&this->ans->dev_engv.begin(),
-       &this->dev_error.begin(), &eflag, &vflag, &this->_last_ellipse,
-       &this->_threads_per_atom);
+      this->k_ellipsoid.run(&this->atom->x, &this->atom->quat, 
+                            &this->shape, &this->well, &this->gamma_upsilon_mu,
+                            &this->sigma_epsilon, &this->_lj_types, 
+                            &this->lshape, &this->nbor->dev_nbor, &stride, 
+                            &this->ans->force, &ainum, &this->ans->engv,
+                            &this->dev_error, &eflag, &vflag, 
+                            &this->_last_ellipse, &this->_threads_per_atom);
       this->time_ellipsoid.stop();
 
       if (this->_last_ellipse==this->ans->inum()) {
@@ -243,17 +247,19 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
 
       this->time_ellipsoid2.start();
       this->k_sphere_ellipsoid.set_size(GX,BX);
-      this->k_sphere_ellipsoid.run(&this->atom->dev_x.begin(),
-        &this->atom->dev_quat.begin(), &this->shape.begin(), 
-        &this->well.begin(), &this->gamma_upsilon_mu.begin(), 
-        &this->sigma_epsilon.begin(), &this->_lj_types, &this->lshape.begin(), 
-        &this->nbor->dev_nbor.begin(), &stride, &this->ans->dev_ans.begin(),
-        &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-        &vflag, &this->_last_ellipse, &ainum, &this->_threads_per_atom);
+      this->k_sphere_ellipsoid.run(&this->atom->x, &this->atom->quat,
+                                   &this->shape,  &this->well, 
+                                   &this->gamma_upsilon_mu, 
+                                   &this->sigma_epsilon, &this->_lj_types, 
+                                   &this->lshape,  &this->nbor->dev_nbor, 
+                                   &stride, &this->ans->force, 
+                                   &this->ans->engv, &this->dev_error, 
+                                   &eflag, &vflag, &this->_last_ellipse,
+                                   &ainum, &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
    } else {
-      this->ans->dev_ans.zero();
-      this->ans->dev_engv.zero();
+      this->ans->force.zero();
+      this->ans->engv.zero();
       this->time_nbor1.stop();
       this->time_ellipsoid.start();                                 
       this->time_ellipsoid.stop();
@@ -268,19 +274,20 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
     if (this->_last_ellipse<this->ans->inum()) {
       if (this->_shared_types) {
         this->k_lj_fast.set_size(GX,BX);
-        this->k_lj_fast.run(&this->atom->dev_x.begin(), &this->lj1.begin(),
-          &this->lj3.begin(), &this->gamma_upsilon_mu.begin(), &stride,
-          &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
-          &this->ans->dev_engv.begin(), &this->dev_error.begin(),
-          &eflag, &vflag, &this->_last_ellipse, &ainum,
-          &this->_threads_per_atom);
+        this->k_lj_fast.run(&this->atom->x, &this->lj1, &this->lj3, 
+                            &this->gamma_upsilon_mu, &stride, 
+                            &this->nbor->dev_packed, &this->ans->force,
+                            &this->ans->engv, &this->dev_error, &eflag, 
+                            &vflag, &this->_last_ellipse, &ainum,
+                            &this->_threads_per_atom);
       } else {
         this->k_lj.set_size(GX,BX);
-        this->k_lj.run(&this->atom->dev_x.begin(), &this->lj1.begin(),
-          &this->lj3.begin(), &this->_lj_types, &this->gamma_upsilon_mu.begin(),
-          &stride, &this->nbor->dev_packed.begin(), &this->ans->dev_ans.begin(),
-          &this->ans->dev_engv.begin(), &this->dev_error.begin(), &eflag,
-          &vflag, &this->_last_ellipse, &ainum, &this->_threads_per_atom);
+        this->k_lj.run(&this->atom->x, &this->lj1, &this->lj3, 
+                       &this->_lj_types, &this->gamma_upsilon_mu, &stride,
+                       &this->nbor->dev_packed, &this->ans->force,
+                       &this->ans->engv, &this->dev_error, &eflag,
+                       &vflag, &this->_last_ellipse, &ainum,
+                       &this->_threads_per_atom);
       }
     }
     this->time_lj.stop();
@@ -294,13 +301,12 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
     this->time_nbor1.stop();
     this->time_ellipsoid.start(); 
     this->k_ellipsoid.set_size(GX,BX);
-    this->k_ellipsoid.run(&this->atom->dev_x.begin(), 
-      &this->atom->dev_quat.begin(), &this->shape.begin(), &this->well.begin(), 
-      &this->gamma_upsilon_mu.begin(), &this->sigma_epsilon.begin(), 
-      &this->_lj_types, &this->lshape.begin(), &this->nbor->dev_nbor.begin(),
-      &stride, &this->ans->dev_ans.begin(), &ainum, 
-      &this->ans->dev_engv.begin(), &this->dev_error.begin(),
-      &eflag, &vflag, &ainum, &this->_threads_per_atom);
+    this->k_ellipsoid.run(&this->atom->x,  &this->atom->quat, 
+                          &this->shape, &this->well, &this->gamma_upsilon_mu, 
+                          &this->sigma_epsilon, &this->_lj_types, &this->lshape,
+                          &this->nbor->dev_nbor, &stride, &this->ans->force,
+                          &ainum,  &this->ans->engv, &this->dev_error,
+                          &eflag, &vflag, &ainum, &this->_threads_per_atom);
     this->time_ellipsoid.stop();
   }
 }

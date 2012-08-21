@@ -318,6 +318,36 @@ class UCL_H_Mat : public UCL_BaseMat {
   inline void clear() 
     { if (_kind!=UCL_VIEW) {_rows=0; _kind=UCL_VIEW; _host_free(*this,_kind); }} 
 
+  /// Resize the allocation to rows x cols elements
+  /** \note Cannot be used on views **/
+  inline int resize(const int rows, const int cols) {
+    assert(_kind!=UCL_VIEW);
+
+    _row_bytes=cols*sizeof(numtyp);
+    int err=_host_resize(*this,_row_bytes*rows);
+    if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
+      std::cerr << "UCL Error: Could not allocate " << _row_bytes*_rows
+                << " bytes on host.\n";
+      _row_bytes=0;
+      UCL_GERYON_EXIT;
+      #endif 
+      _row_bytes=0;
+      return err;
+    }
+
+    _cols=cols;
+    _rows=rows;
+    _end=_array+rows*cols;
+    return err;
+  }
+
+  /// Resize (only if bigger) the allocation to contain rows x cols elements
+  /** \note Cannot be used on views **/
+  inline int resize_ib(const int rows, const int cols)
+    { if (cols>_cols || rows>_rows) return resize(rows,cols); 
+      else return UCL_SUCCESS; }
+
   /// Set each element to zero
   inline void zero() { _host_zero(_array,_rows*row_bytes()); }
   /// Set first n elements to zero

@@ -20,6 +20,14 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 #ifdef NV_KERNEL
 #include "lal_preprocessor.h"
+#ifndef _DOUBLE_DOUBLE
+texture<float4> pos_tex, quat_tex;
+#else
+texture<int4,1> pos_tex, quat_tex;
+#endif
+#else
+#define pos_tex x_
+#define quat_tex qif
 #endif
 
 #define atom_info(t_per_atom, ii, tid, offset)                               \
@@ -411,7 +419,7 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
 ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi, 
                                     numtyp mat[9])
 {
-  numtyp4 q=qif[qi];
+  numtyp4 q; fetch4(q,qi,quat_tex);
   
   numtyp w2 = q.x*q.x;
   numtyp i2 = q.y*q.y;

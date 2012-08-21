@@ -132,6 +132,37 @@ inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
   CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
 }
 
+template <class mat_type>
+inline int _host_resize(mat_type &mat, const size_t n) {
+  cl_int error_flag;
+  cl_context context;
+  CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_CONTEXT,sizeof(context),
+                                  &context,NULL));
+
+  CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+  if (mat.kind()==UCL_WRITE_OPTIMIZED) {
+    mat.cbegin()=clCreateBuffer(context,
+                                CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR,
+                                n,NULL,&error_flag);                        
+    if (error_flag != CL_SUCCESS) 
+      return UCL_MEMORY_ERROR;
+    *mat.host_ptr() = (typename mat_type::data_type*)
+                      clEnqueueMapBuffer(mat.cq(),mat.cbegin(),CL_TRUE,
+                                         CL_MAP_WRITE,0,n,0,NULL,NULL,NULL);
+  } else {
+    mat.cbegin()=clCreateBuffer(context,
+                                CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                n,NULL,&error_flag);
+    if (error_flag != CL_SUCCESS) 
+      return UCL_MEMORY_ERROR;
+    *mat.host_ptr() = (typename mat_type::data_type*)
+                      clEnqueueMapBuffer(mat.cq(),mat.cbegin(),CL_TRUE,
+                                         CL_MAP_READ | CL_MAP_WRITE,
+                                         0,n,0,NULL,NULL,NULL);
+  }
+  return UCL_SUCCESS;
+}
+
 // --------------------------------------------------------------------------
 // - DEVICE MEMORY ALLOCATION ROUTINES
 // --------------------------------------------------------------------------
@@ -210,6 +241,61 @@ inline void _device_free(mat_type &mat) {
   CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
   CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
 }
+
+template <class mat_type>
+inline int _device_resize(mat_type &mat, const size_t n) {
+  cl_int error_flag;
+
+  cl_context context;
+  CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_CONTEXT,sizeof(context),
+               &context,NULL));
+  CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+
+  cl_mem_flags flag;
+  if (mat.kind()==UCL_READ_WRITE)
+    flag=CL_MEM_READ_WRITE;
+  else if (mat.kind()==UCL_READ_ONLY)
+    flag=CL_MEM_READ_ONLY;
+  else if (mat.kind()==UCL_WRITE_ONLY)
+    flag=CL_MEM_WRITE_ONLY;
+  else
+    assert(0==1);
+  mat.cbegin()=clCreateBuffer(context,flag,n,NULL,&error_flag);
+  if (error_flag != CL_SUCCESS) 
+    return UCL_MEMORY_ERROR;
+  return UCL_SUCCESS;
+}
+
+template <class mat_type>
+inline int _device_resize(mat_type &mat, const size_t rows,
+                         const size_t cols, size_t &pitch) {
+  size_t padded_cols=cols;
+  if (cols%256!=0)
+    padded_cols+=256-cols%256;
+  pitch=padded_cols*sizeof(typename mat_type::data_type);
+
+  cl_int error_flag;
+
+  cl_context context;
+  CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_CONTEXT,sizeof(context),
+               &context,NULL));
+  CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+
+  cl_mem_flags flag;
+  if (mat.kind()==UCL_READ_WRITE)
+    flag=CL_MEM_READ_WRITE;
+  else if (mat.kind()==UCL_READ_ONLY)
+    flag=CL_MEM_READ_ONLY;
+  else if (mat.kind()==UCL_WRITE_ONLY)
+    flag=CL_MEM_WRITE_ONLY;
+  else
+    assert(0==1);
+  mat.cbegin()=clCreateBuffer(context,flag,pitch*rows,NULL,&error_flag);
+  if (error_flag != CL_SUCCESS) 
+    return UCL_MEMORY_ERROR;
+  return UCL_SUCCESS;
+}
+
 
 // --------------------------------------------------------------------------
 // - ZERO ROUTINES

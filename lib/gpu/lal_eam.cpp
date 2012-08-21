@@ -13,10 +13,12 @@
     email                : brownw@ornl.gov nguyentd@ornl.gov
  ***************************************************************************/
  
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "eam_cl.h"
+#elif defined(USE_CUDART)
+const char *eam=0;
 #else
-#include "eam_ptx.h"
+#include "eam_cubin.h"
 #endif
 
 #include "lal_eam.h"
@@ -51,32 +53,24 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
 {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,eam);
+                            gpu_split,_screen,eam,"k_eam");
   
   if (success!=0)
     return success;
   
   // allocate fp
   
-  bool cpuview=false;
-  if (this->ucl_device->device_type()==UCL_CPU)
-    cpuview=true;
-  
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
 
   _max_fp_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  host_fp.alloc(_max_fp_size,*(this->ucl_device));
-  if (cpuview)
-    dev_fp.view(host_fp);
-  else 
-    dev_fp.alloc(_max_fp_size,*(this->ucl_device),UCL_WRITE_ONLY);
+  _fp.alloc(_max_fp_size,*(this->ucl_device),UCL_RW_OPTIMIZED,UCL_WRITE_ONLY);
                                      
-  k_energy.set_function(*(this->pair_program),"kernel_energy");
-  k_energy_fast.set_function(*(this->pair_program),"kernel_energy_fast");
+  k_energy.set_function(*(this->pair_program),"k_energy");
+  k_energy_fast.set_function(*(this->pair_program),"k_energy_fast");
   fp_tex.get_texture(*(this->pair_program),"fp_tex");
-  fp_tex.bind_float(dev_fp,1);
+  fp_tex.bind_float(_fp,1);
   _compiled_energy = true;
   
   // Initialize timers for selected GPU
@@ -236,7 +230,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
         + frho_spline2.row_bytes()
         + z2r_spline1.row_bytes()
         + z2r_spline2.row_bytes()
-        + dev_fp.row_bytes();
+        + _fp.device.row_bytes();
   return 0;
 }
 
@@ -255,8 +249,7 @@ void EAMT::clear() {
   z2r_spline1.clear();
   z2r_spline2.clear();
   
-  host_fp.clear();
-  dev_fp.clear();
+  _fp.clear();
   
   time_pair2.clear();
   time_fp1.clear();
@@ -303,19 +296,11 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   // ------------------- Resize FP Array for EAM --------------------
   
   if (nall>_max_fp_size) {
-    dev_fp.clear();
-    host_fp.clear();
-    
     _max_fp_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    host_fp.alloc(_max_fp_size,*(this->ucl_device));
-    if (this->ucl_device->device_type()==UCL_CPU)
-      dev_fp.view(host_fp);
-    else 
-      dev_fp.alloc(_max_fp_size,*(this->ucl_device));
-    
-    fp_tex.bind_float(dev_fp,1);
+    _fp.resize(_max_fp_size);
+    fp_tex.bind_float(_fp,1);
   }
-  *fp_ptr=host_fp.begin();
+  *fp_ptr=_fp.host.begin();
 
   // ----------------------------------------------------------------
 
@@ -348,7 +333,7 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   // copy fp from device to host for comm
   _nlocal=nlocal;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,nlocal,true);
+  _fp.update_host(nlocal,true);
   time_fp1.stop();
   time_fp1.sync_stop();
 }
@@ -380,19 +365,11 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // ------------------- Resize FP Array for EAM --------------------
   
   if (nall>_max_fp_size) {
-    dev_fp.clear();
-    host_fp.clear();
-    
     _max_fp_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    host_fp.alloc(_max_fp_size,*(this->ucl_device));
-    if (this->ucl_device->device_type()==UCL_CPU)
-      dev_fp.view(host_fp);
-    else 
-      dev_fp.alloc(_max_fp_size,*(this->ucl_device));
-    
-    fp_tex.bind_float(dev_fp,1);
+    _fp.resize(_max_fp_size);
+    fp_tex.bind_float(_fp,1);
   }      
-  *fp_ptr=host_fp.begin();  
+  *fp_ptr=_fp.host.begin();  
 
   // -----------------------------------------------------------------
   
@@ -428,7 +405,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // copy fp from device to host for comm
   _nlocal=inum_full;
   time_fp1.start();
-  ucl_copy(host_fp,dev_fp,inum_full,true);
+  _fp.update_host(inum_full,true);
   time_fp1.stop();
   time_fp1.sync_stop();
   
@@ -486,22 +463,18 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   
   if (shared_types) {
     this->k_energy_fast.set_size(GX,BX);
-    this->k_energy_fast.run(&this->atom->dev_x.begin(), &type2rhor_z2r.begin(),
-                            &type2frho.begin(), &rhor_spline2.begin(),
-                            &frho_spline1.begin(),&frho_spline2.begin(), 
-                            &this->nbor->dev_nbor.begin(), 
-                            &this->_nbor_data->begin(), &dev_fp.begin(), 
-                            &this->ans->dev_engv.begin(), &eflag, &ainum,
+    this->k_energy_fast.run(&this->atom->x, &type2rhor_z2r, &type2frho,
+                            &rhor_spline2, &frho_spline1,&frho_spline2, 
+                            &this->nbor->dev_nbor,  &this->_nbor_data->begin(), 
+                            &_fp, &this->ans->engv, &eflag, &ainum,
                             &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_rdrho,
                             &_nrho, &_nr, &this->_threads_per_atom);
   } else {
     this->k_energy.set_size(GX,BX);
-    this->k_energy.run(&this->atom->dev_x.begin(), &type2rhor_z2r.begin(),
-                       &type2frho.begin(), &rhor_spline2.begin(),
-                       &frho_spline1.begin(),&frho_spline2.begin(), 
-                       &this->nbor->dev_nbor.begin(), 
-                       &this->_nbor_data->begin(), &dev_fp.begin(), 
-                       &this->ans->dev_engv.begin(),&eflag, &ainum, &nbor_pitch,
+    this->k_energy.run(&this->atom->x, &type2rhor_z2r, &type2frho,
+                       &rhor_spline2, &frho_spline1, &frho_spline2, 
+                       &this->nbor->dev_nbor, &this->_nbor_data->begin(), &_fp, 
+                       &this->ans->engv,&eflag, &ainum, &nbor_pitch,
                        &_ntypes, &_cutforcesq, &_rdr, &_rdrho, &_nrho, &_nr,
                        &this->_threads_per_atom);
   }
@@ -536,28 +509,20 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
-                   &type2rhor_z2r.begin(),
-                   &rhor_spline1.begin(), 
-                   &z2r_spline1.begin(),
-                   &z2r_spline2.begin(), 
-                   &this->nbor->dev_nbor.begin(),
-                   &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                   &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                   &nbor_pitch, &_cutforcesq, &_rdr, &_nr,
-                   &this->_threads_per_atom);
+    this->k_pair_fast.run(&this->atom->x, &_fp, &type2rhor_z2r,
+                          &rhor_spline1, &z2r_spline1, &z2r_spline2, 
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                          &this->ans->force, &this->ans->engv, &eflag,
+                          &vflag, &ainum, &nbor_pitch, &_cutforcesq, &_rdr,
+                          &_nr, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &dev_fp.begin(), 
-                   &type2rhor_z2r.begin(),
-                   &rhor_spline1.begin(), 
-                   &z2r_spline1.begin(),
-                   &z2r_spline2.begin(),
-                   &this->nbor->dev_nbor.begin(),
-                   &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                   &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                   &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_nr,
-                   &this->_threads_per_atom);
+    this->k_pair.run(&this->atom->x, &_fp, &type2rhor_z2r, &rhor_spline1, 
+                     &z2r_spline1, &z2r_spline2, &this->nbor->dev_nbor,
+                     &this->_nbor_data->begin(), &this->ans->force,
+                     &this->ans->engv, &eflag, &vflag, &ainum, &nbor_pitch,
+                     &_ntypes, &_cutforcesq, &_rdr, &_nr,
+                     &this->_threads_per_atom);
   }
 
   this->time_pair2.stop();

@@ -17,6 +17,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_neighbor_shared.o $(OBJ_DIR)/lal_neighbor.o \
        $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \
        $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_base_ellipsoid.o \
+       $(OBJ_DIR)/lal_base_dipole.o \
        $(OBJ_DIR)/lal_pppm.o $(OBJ_DIR)/lal_pppm_ext.o \
        $(OBJ_DIR)/lal_gayberne.o $(OBJ_DIR)/lal_gayberne_ext.o \
        $(OBJ_DIR)/lal_re_squared.o $(OBJ_DIR)/lal_re_squared_ext.o \
@@ -25,6 +26,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_lj_expand.o $(OBJ_DIR)/lal_lj_expand_ext.o \
        $(OBJ_DIR)/lal_lj_coul.o $(OBJ_DIR)/lal_lj_coul_ext.o \
        $(OBJ_DIR)/lal_lj_coul_long.o $(OBJ_DIR)/lal_lj_coul_long_ext.o \
+       $(OBJ_DIR)/lal_lj_dsf.o $(OBJ_DIR)/lal_lj_dsf_ext.o \
        $(OBJ_DIR)/lal_lj_class2_long.o $(OBJ_DIR)/lal_lj_class2_long_ext.o \
        $(OBJ_DIR)/lal_coul_long.o $(OBJ_DIR)/lal_coul_long_ext.o \
        $(OBJ_DIR)/lal_morse.o $(OBJ_DIR)/lal_morse_ext.o \
@@ -36,20 +38,43 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
        $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
        $(OBJ_DIR)/lal_table.o $(OBJ_DIR)/lal_table_ext.o \
-       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o
+       $(OBJ_DIR)/lal_yukawa.o $(OBJ_DIR)/lal_yukawa_ext.o \
+       $(OBJ_DIR)/lal_born.o $(OBJ_DIR)/lal_born_ext.o \
+       $(OBJ_DIR)/lal_born_coul_wolf.o $(OBJ_DIR)/lal_born_coul_wolf_ext.o \
+       $(OBJ_DIR)/lal_born_coul_long.o $(OBJ_DIR)/lal_born_coul_long_ext.o \
+       $(OBJ_DIR)/lal_dipole_lj.o $(OBJ_DIR)/lal_dipole_lj_ext.o \
+       $(OBJ_DIR)/lal_dipole_lj_sf.o $(OBJ_DIR)/lal_dipole_lj_sf_ext.o \
+       $(OBJ_DIR)/lal_colloid.o $(OBJ_DIR)/lal_colloid_ext.o \
+       $(OBJ_DIR)/lal_gauss.o $(OBJ_DIR)/lal_gauss_ext.o \
+       $(OBJ_DIR)/lal_yukawa_colloid.o $(OBJ_DIR)/lal_yukawa_colloid_ext.o \
+       $(OBJ_DIR)/lal_lj_coul_debye.o $(OBJ_DIR)/lal_lj_coul_debye_ext.o \
+       $(OBJ_DIR)/lal_coul_dsf.o $(OBJ_DIR)/lal_coul_dsf_ext.o
+
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
        $(OBJ_DIR)/ellipsoid_nbor_cl.h $(OBJ_DIR)/gayberne_cl.h \
        $(OBJ_DIR)/gayberne_lj_cl.h $(OBJ_DIR)/re_squared_cl.h \
        $(OBJ_DIR)/re_squared_lj_cl.h $(OBJ_DIR)/lj_cl.h $(OBJ_DIR)/lj96_cl.h \
        $(OBJ_DIR)/lj_expand_cl.h $(OBJ_DIR)/lj_coul_cl.h \
-       $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_class2_long_cl.h \
+       $(OBJ_DIR)/lj_coul_long_cl.h $(OBJ_DIR)/lj_dsf_cl.h \
+       $(OBJ_DIR)/lj_class2_long_cl.h \
        $(OBJ_DIR)/coul_long_cl.h $(OBJ_DIR)/morse_cl.h \
        $(OBJ_DIR)/charmm_long_cl.h $(OBJ_DIR)/cg_cmm_cl.h \
        $(OBJ_DIR)/cg_cmm_long_cl.h $(OBJ_DIR)/neighbor_gpu_cl.h \
        $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/buck_cl.h \
        $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/buck_coul_long_cl.h \
-       $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/yukawa_cl.h
+       $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/yukawa_cl.h \
+       $(OBJ_DIR)/born.cubin $(OBJ_DIR)/born_cubin.h \
+       $(OBJ_DIR)/born_coul_wolf.cubin $(OBJ_DIR)/born_coul_wolf_cubin.h \
+       $(OBJ_DIR)/born_coul_long.cubin $(OBJ_DIR)/born_coul_long_cubin.h \
+       $(OBJ_DIR)/dipole_lj.cubin $(OBJ_DIR)/dipole_lj_cubin.h \
+       $(OBJ_DIR)/dipole_lj_sf.cubin $(OBJ_DIR)/dipole_lj_sf_cubin.h \
+       $(OBJ_DIR)/colloid.cubin $(OBJ_DIR)/colloid_cubin.h \
+       $(OBJ_DIR)/gauss.cubin $(OBJ_DIR)/gauss_cubin.h \
+       $(OBJ_DIR)/yukawa_colloid.cubin $(OBJ_DIR)/yukawa_colloid_cubin.h \
+       $(OBJ_DIR)/lj_coul_debye.cubin $(OBJ_DIR)/lj_coul_debye_cubin.h \
+       $(OBJ_DIR)/coul_dsf.cubin $(OBJ_DIR)/coul_dsf_cubin.h
+
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
@@ -90,6 +115,9 @@ $(OBJ_DIR)/lal_base_charge.o: $(OCL_H) lal_base_charge.h lal_base_charge.cpp
 
 $(OBJ_DIR)/lal_base_ellipsoid.o: $(OCL_H) lal_base_ellipsoid.h lal_base_ellipsoid.cpp $(OBJ_DIR)/ellipsoid_nbor_cl.h
 	$(OCL) -o $@ -c lal_base_ellipsoid.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_base_dipole.o: $(OCL_H) lal_base_dipole.h lal_base_dipole.cpp
+	$(OCL) -o $@ -c lal_base_dipole.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/pppm_cl.h: lal_pppm.cu lal_preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh pppm lal_preprocessor.h lal_pppm.cu $(OBJ_DIR)/pppm_cl.h;
@@ -153,6 +181,15 @@ $(OBJ_DIR)/lal_lj_coul_long.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long.cpp 
 
 $(OBJ_DIR)/lal_lj_coul_long_ext.o: $(ALL_H) lal_lj_coul_long.h lal_lj_coul_long_ext.cpp lal_base_charge.h
 	$(OCL) -o $@ -c lal_lj_coul_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_dsf_cl.h: lal_lj_dsf.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_dsf $(PRE1_H) lal_lj_dsf.cu $(OBJ_DIR)/lj_dsf_cl.h;
+
+$(OBJ_DIR)/lal_lj_dsf.o: $(ALL_H) lal_lj_dsf.h lal_lj_dsf.cpp  $(OBJ_DIR)/lj_dsf_cl.h $(OBJ_DIR)/lj_dsf_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_lj_dsf.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_dsf_ext.o: $(ALL_H) lal_lj_dsf.h lal_lj_dsf_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_lj_dsf_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/lj_class2_long_cl.h: lal_lj_class2_long.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh lj_class2_long $(PRE1_H) lal_lj_class2_long.cu $(OBJ_DIR)/lj_class2_long_cl.h;
@@ -279,6 +316,96 @@ $(OBJ_DIR)/lal_yukawa.o: $(ALL_H) lal_yukawa.h lal_yukawa.cpp  $(OBJ_DIR)/yukawa
 
 $(OBJ_DIR)/lal_yukawa_ext.o: $(ALL_H) lal_yukawa.h lal_yukawa_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_yukawa_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/born_cl.h: lal_born.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh born $(PRE1_H) lal_born.cu $(OBJ_DIR)/born_cl.h;
+
+$(OBJ_DIR)/lal_born.o: $(ALL_H) lal_born.h lal_born.cpp  $(OBJ_DIR)/born_cl.h $(OBJ_DIR)/born_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_born.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_born_ext.o: $(ALL_H) lal_born.h lal_born_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_born_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/born_coul_wolf_cl.h: lal_born_coul_wolf.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh born_coul_wolf $(PRE1_H) lal_born_coul_wolf.cu $(OBJ_DIR)/born_coul_wolf_cl.h;
+
+$(OBJ_DIR)/lal_born_coul_wolf.o: $(ALL_H) lal_born_coul_wolf.h lal_born_coul_wolf.cpp  $(OBJ_DIR)/born_coul_wolf_cl.h $(OBJ_DIR)/born_coul_wolf_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_born_coul_wolf.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_born_coul_wolf_ext.o: $(ALL_H) lal_born_coul_wolf.h lal_born_coul_wolf_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_born_coul_wolf_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/born_coul_long_cl.h: lal_born_coul_long.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh born_coul_long $(PRE1_H) lal_born_coul_long.cu $(OBJ_DIR)/born_coul_long_cl.h;
+
+$(OBJ_DIR)/lal_born_coul_long.o: $(ALL_H) lal_born_coul_long.h lal_born_coul_long.cpp  $(OBJ_DIR)/born_coul_long_cl.h $(OBJ_DIR)/born_coul_long_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_born_coul_long.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_born_coul_long_ext.o: $(ALL_H) lal_born_coul_long.h lal_born_coul_long_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_born_coul_long_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/dipole_lj_cl.h: lal_dipole_lj.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh dipole_lj $(PRE1_H) lal_dipole_lj.cu $(OBJ_DIR)/dipole_lj_cl.h;
+
+$(OBJ_DIR)/lal_dipole_lj.o: $(ALL_H) lal_dipole_lj.h lal_dipole_lj.cpp  $(OBJ_DIR)/dipole_lj_cl.h $(OBJ_DIR)/dipole_lj_cl.h $(OBJ_DIR)/lal_base_dipole.o
+	$(OCL) -o $@ -c lal_dipole_lj.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dipole_lj_ext.o: $(ALL_H) lal_dipole_lj.h lal_dipole_lj_ext.cpp lal_base_dipole.h
+	$(OCL) -o $@ -c lal_dipole_lj_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/dipole_lj_sf_cl.h: lal_dipole_lj_sf.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh dipole_lj_sf $(PRE1_H) lal_dipole_lj_sf.cu $(OBJ_DIR)/dipole_lj_sf_cl.h;
+
+$(OBJ_DIR)/lal_dipole_lj_sf.o: $(ALL_H) lal_dipole_lj_sf.h lal_dipole_lj_sf.cpp  $(OBJ_DIR)/dipole_lj_sf_cl.h $(OBJ_DIR)/dipole_lj_sf_cl.h $(OBJ_DIR)/lal_base_dipole.o
+	$(OCL) -o $@ -c lal_dipole_lj_sf.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dipole_lj_sf_ext.o: $(ALL_H) lal_dipole_lj_sf.h lal_dipole_lj_sf_ext.cpp lal_base_dipole.h
+	$(OCL) -o $@ -c lal_dipole_lj_sf_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/colloid_cl.h: lal_colloid.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh colloid $(PRE1_H) lal_colloid.cu $(OBJ_DIR)/colloid_cl.h;
+
+$(OBJ_DIR)/lal_colloid.o: $(ALL_H) lal_colloid.h lal_colloid.cpp  $(OBJ_DIR)/colloid_cl.h $(OBJ_DIR)/colloid_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_colloid.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_colloid_ext.o: $(ALL_H) lal_colloid.h lal_colloid_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_colloid_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/gauss_cl.h: lal_gauss.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh gauss $(PRE1_H) lal_gauss.cu $(OBJ_DIR)/gauss_cl.h;
+
+$(OBJ_DIR)/lal_gauss.o: $(ALL_H) lal_gauss.h lal_gauss.cpp  $(OBJ_DIR)/gauss_cl.h $(OBJ_DIR)/gauss_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_gauss.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_gauss_ext.o: $(ALL_H) lal_gauss.h lal_gauss_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_gauss_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/yukawa_colloid_cl.h: lal_yukawa_colloid.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh yukawa_colloid $(PRE1_H) lal_yukawa_colloid.cu $(OBJ_DIR)/yukawa_colloid_cl.h;
+
+$(OBJ_DIR)/lal_yukawa_colloid.o: $(ALL_H) lal_yukawa_colloid.h lal_yukawa_colloid.cpp  $(OBJ_DIR)/yukawa_colloid_cl.h $(OBJ_DIR)/yukawa_colloid_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_yukawa_colloid.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_yukawa_colloid_ext.o: $(ALL_H) lal_yukawa_colloid.h lal_yukawa_colloid_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_yukawa_colloid_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_coul_debye_cl.h: lal_lj_coul_debye.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul_debye $(PRE1_H) lal_lj_coul_debye.cu $(OBJ_DIR)/lj_coul_debye_cl.h;
+
+$(OBJ_DIR)/lal_lj_coul_debye.o: $(ALL_H) lal_lj_coul_debye.h lal_lj_coul_debye.cpp  $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_lj_coul_debye.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_coul_debye_ext.o: $(ALL_H) lal_lj_coul_debye.h lal_lj_coul_debye_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_lj_coul_debye_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_dsf_cl.h: lal_coul_dsf.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh coul_dsf $(PRE1_H) lal_coul_dsf.cu $(OBJ_DIR)/coul_dsf_cl.h;
+
+$(OBJ_DIR)/lal_coul_dsf.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf.cpp  $(OBJ_DIR)/coul_dsf_cl.h $(OBJ_DIR)/coul_dsf_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_coul_dsf.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_coul_dsf_ext.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_coul_dsf_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

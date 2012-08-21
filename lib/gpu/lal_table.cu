@@ -15,11 +15,13 @@
 
 #ifdef NV_KERNEL
 #include "lal_aux_fun1.h"
-texture<float4> pos_tex;
 #ifndef _DOUBLE_DOUBLE
-ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
-  { return tex1Dfetch(pos_tex, i); }
+texture<float4> pos_tex;
+#else
+texture<int4,1> pos_tex;
 #endif
+#else
+#define pos_tex x_
 #endif
 
 #define LOOKUP 0
@@ -37,7 +39,7 @@ typedef union {
 
 /// ---------------- LOOKUP -------------------------------------------------
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -73,7 +75,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     
     numtyp factor_lj;
@@ -83,7 +85,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype*lj_types+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -128,7 +130,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -167,7 +169,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     
@@ -178,7 +180,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -225,7 +227,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global int *tabindex,
 
 /// ---------------- LINEAR -------------------------------------------------
 
-__kernel void kernel_pair_linear(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_linear(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -261,7 +263,7 @@ __kernel void kernel_pair_linear(__global numtyp4 *x_, __global int *tabindex,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     
     numtyp factor_lj;
@@ -271,7 +273,7 @@ __kernel void kernel_pair_linear(__global numtyp4 *x_, __global int *tabindex,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype*lj_types+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -320,7 +322,7 @@ __kernel void kernel_pair_linear(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void kernel_pair_linear_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_linear_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -359,7 +361,7 @@ __kernel void kernel_pair_linear_fast(__global numtyp4 *x_, __global int *tabind
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     
@@ -370,7 +372,7 @@ __kernel void kernel_pair_linear_fast(__global numtyp4 *x_, __global int *tabind
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -421,7 +423,7 @@ __kernel void kernel_pair_linear_fast(__global numtyp4 *x_, __global int *tabind
 
 /// ---------------- SPLINE -------------------------------------------------
 
-__kernel void kernel_pair_spline(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_spline(__global numtyp4 *x_, __global int *tabindex,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
                        __global numtyp4 *coeff4,
@@ -457,7 +459,7 @@ __kernel void kernel_pair_spline(__global numtyp4 *x_, __global int *tabindex,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     
     numtyp factor_lj;
@@ -467,7 +469,7 @@ __kernel void kernel_pair_spline(__global numtyp4 *x_, __global int *tabindex,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype*lj_types+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -523,7 +525,7 @@ __kernel void kernel_pair_spline(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void kernel_pair_spline_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_spline_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
                             __global numtyp4 *coeff4,
@@ -562,7 +564,7 @@ __kernel void kernel_pair_spline_fast(__global numtyp4 *x_, __global int *tabind
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     
@@ -573,7 +575,7 @@ __kernel void kernel_pair_spline_fast(__global numtyp4 *x_, __global int *tabind
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -631,7 +633,7 @@ __kernel void kernel_pair_spline_fast(__global numtyp4 *x_, __global int *tabind
 
 /// ---------------- BITMAP -------------------------------------------------
 
-__kernel void kernel_pair_bitmap(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_bitmap(__global numtyp4 *x_, __global int *tabindex,
                        __global int *nshiftbits, __global int *nmask,
                        __global numtyp4* coeff2, 
                        __global numtyp4 *coeff3,
@@ -668,7 +670,7 @@ __kernel void kernel_pair_bitmap(__global numtyp4 *x_, __global int *tabindex,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     
     numtyp factor_lj;
@@ -678,7 +680,7 @@ __kernel void kernel_pair_bitmap(__global numtyp4 *x_, __global int *tabindex,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype*lj_types+jx.w;
       int tbindex = tabindex[mtype];
       
@@ -730,7 +732,7 @@ __kernel void kernel_pair_bitmap(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void kernel_pair_bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
+__kernel void k_table_bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
                             __global int *nshiftbits, __global int *nmask,
                             __global numtyp4* coeff2, 
                             __global numtyp4 *coeff3,
@@ -770,7 +772,7 @@ __kernel void kernel_pair_bitmap_fast(__global numtyp4 *x_, __global int *tabind
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     
@@ -781,7 +783,7 @@ __kernel void kernel_pair_bitmap_fast(__global numtyp4 *x_, __global int *tabind
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int mtype=itype+jx.w;
       int tbindex = tabindex[mtype];
       

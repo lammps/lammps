@@ -14,14 +14,14 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
+
 #include "lal_preprocessor.h"
+#ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex;
 texture<float> q_tex;
-#ifndef _DOUBLE_DOUBLE
-ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
-  { return tex1Dfetch(pos_tex, i); }
-ucl_inline float fetch_q(const int& i, const float *q) 
-  { return tex1Dfetch(q_tex, i); }
+#else
+texture<int4,1> pos_tex;
+texture<int2> q_tex;
 #endif
 
 // Allow PPPM to compile without atomics for NVIDIA 1.0 cards, error
@@ -31,6 +31,8 @@ ucl_inline float fetch_q(const int& i, const float *q)
 #endif
 
 #else
+#define pos_tex x_
+#define q_tex q_
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
 #endif
 
@@ -59,9 +61,11 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
   int nx,ny,nz;
 
   if (ii<nlocal) {
-    numtyp4 p=fetch_pos(ii,x_);
+    numtyp4 p;
+    fetch4(p,ii,pos_tex);
     grdtyp4 delta;
-    delta.w=delvolinv*fetch_q(ii,q_);
+    fetch(delta.w,ii,q_tex);
+    delta.w*=delvolinv;
     
     if (delta.w!=(grdtyp)0.0) {
       delta.x=(p.x-b_lo_x)*delxinv;
@@ -212,8 +216,11 @@ __kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
   grdtyp tx,ty,tz;
 
   if (ii<nlocal) {
-    numtyp4 p=fetch_pos(ii,x_);
-    grdtyp qs=qqrd2e_scale*fetch_q(ii,q_);
+    numtyp4 p;
+    fetch4(p,ii,pos_tex);
+    grdtyp qs;
+    fetch(qs,ii,q_tex);
+    qs*=qqrd2e_scale;
 
     acctyp4 ek;
     ek.x=(acctyp)0.0;

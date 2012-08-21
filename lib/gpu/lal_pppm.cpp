@@ -13,11 +13,14 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "pppm_cl.h"
+#elif defined(USE_CUDART)
+const char *pppm_f=0;
+const char *pppm_d=0;
 #else
-#include "pppm_f_ptx.h"
-#include "pppm_d_ptx.h"
+#include "pppm_f_cubin.h"
+#include "pppm_d_cubin.h"
 #endif
 #include "lal_pppm.h"
 #include <cassert>
@@ -51,7 +54,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, grdtyp **rho_coeff,
-                              grdtyp **vd_brick, const double slab_volfactor, 
+                              grdtyp **vd_brick_p, const double slab_volfactor, 
                               const int nx_pppm, const int ny_pppm,
                               const int nz_pppm, const bool split, int &flag) {
   _max_bytes=10;
@@ -92,8 +95,8 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   time_interp.init(*ucl_device);
   time_interp.zero();
 
-  pos_tex.bind_float(atom->dev_x,4);
-  q_tex.bind_float(atom->dev_q,1);
+  pos_tex.bind_float(atom->x,4);
+  q_tex.bind_float(atom->q,1);
 
   _allocated=true;
   _max_bytes=0;
@@ -133,14 +136,12 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_y=nyhi_out-nylo_out+1;
   _npts_z=nzhi_out-nzlo_out+1;
   _npts_yx=_npts_x*_npts_y;
-  success=success && (d_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
+  success=success && (brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
                       UCL_SUCCESS);
-  success=success && (h_brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
+  success=success && (vd_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
                       UCL_SUCCESS);
-  success=success && (h_vd_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
-                      UCL_SUCCESS);
-  *vd_brick=h_vd_brick.begin();
-  _max_bytes+=d_brick.row_bytes();
+  *vd_brick_p=vd_brick.host.begin();
+  _max_bytes+=brick.device.row_bytes()+vd_brick.device.row_bytes();
 
   // Allocate vector with count of atoms assigned to each grid point
   _nlocal_x=_npts_x+_nlower-_nupper;
@@ -158,20 +159,19 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   _max_bytes+=d_brick_atoms.row_bytes();
 
   // Allocate error flags for checking out of bounds atoms
-  success=success && (h_error_flag.alloc(1,*ucl_device)==UCL_SUCCESS);
-  success=success && (d_error_flag.alloc(1,*ucl_device,UCL_WRITE_ONLY)==
-                                         UCL_SUCCESS);
+  success=success && (error_flag.alloc(1,*ucl_device,UCL_RW_OPTIMIZED,
+                                       UCL_WRITE_ONLY)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
     return 0;
   }
   
-  d_error_flag.zero();
+  error_flag.device.zero();
   _max_bytes+=1;
   
   _cpu_idle_time=0.0;
 
-  return h_brick.begin();
+  return brick.host.begin();
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
@@ -181,12 +181,10 @@ void PPPMT::clear(const double cpu_time) {
   _allocated=false;
   _precompute_done=false;
   
-  d_brick.clear();
-  h_brick.clear();
-  h_vd_brick.clear();
+  brick.clear();
+  vd_brick.clear();
   d_brick_counts.clear();
-  h_error_flag.clear();
-  d_error_flag.clear();
+  error_flag.clear();
   d_brick_atoms.clear();
   
   acc_timers();
@@ -269,11 +267,11 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
 
   device->zero(d_brick_counts,d_brick_counts.numel());
   k_particle_map.set_size(GX,BX);
-  k_particle_map.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &f_delvolinv,
-                     &ainum, &d_brick_counts.begin(), &d_brick_atoms.begin(),
-                     &_brick_x, &_brick_y, &_brick_z, &_delxinv, &_delyinv, 
-                     &_delzinv, &_nlocal_x, &_nlocal_y, &_nlocal_z, 
-                     &_atom_stride, &_max_brick_atoms, &d_error_flag.begin());
+  k_particle_map.run(&atom->x, &atom->q, &f_delvolinv, &ainum,
+                     &d_brick_counts, &d_brick_atoms, &_brick_x, &_brick_y, 
+                     &_brick_z, &_delxinv, &_delyinv, &_delzinv, &_nlocal_x,
+                     &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
+                     &error_flag);
   time_map.stop();
 
   time_rho.start();
@@ -282,15 +280,14 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   GX=static_cast<int>(ceil(static_cast<double>(_npts_y*_npts_z)/
                       _block_pencils));
   k_make_rho.set_size(GX,BX);
-  k_make_rho.run(&d_brick_counts.begin(), &d_brick_atoms.begin(),
-                 &d_brick.begin(), &d_rho_coeff.begin(), &_atom_stride, 
-                 &_npts_x, &_npts_y, &_npts_z, &_nlocal_x, &_nlocal_y,
-                 &_nlocal_z, &_order_m_1, &_order, &_order2);
+  k_make_rho.run(&d_brick_counts, &d_brick_atoms, &brick, &d_rho_coeff,
+                 &_atom_stride, &_npts_x, &_npts_y, &_npts_z, &_nlocal_x,
+                 &_nlocal_y, &_nlocal_z, &_order_m_1, &_order, &_order2);
   time_rho.stop();
 
   time_out.start();
-  ucl_copy(h_brick,d_brick,_npts_yx*_npts_z,true);
-  ucl_copy(h_error_flag,d_error_flag,true);
+  brick.update_host(_npts_yx*_npts_z,true);
+  error_flag.update_host(true);
   time_out.stop();
 
   _precompute_done=true;
@@ -322,18 +319,17 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
 
   _precompute_done=false;
 
-  if (h_error_flag[0]==2) {
+  if (error_flag[0]==2) {
     // Not enough storage for atoms on the brick
     _max_brick_atoms*=2;
-    d_error_flag.zero();
-    d_brick_atoms.clear();
-    d_brick_atoms.alloc(_atom_stride*_max_brick_atoms,*ucl_device);
+    error_flag.device.zero();
+    d_brick_atoms.resize(_atom_stride*_max_brick_atoms);
     _max_bytes+=d_brick_atoms.row_bytes();
     return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
                   delxinv,delyinv,delzinv);
   }
   
-  return h_error_flag[0];
+  return error_flag[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +338,7 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_in.start();
-  ucl_copy(d_brick,h_vd_brick,true);
+  vd_brick.update_device(true);
   time_in.stop();
   
   time_interp.start();
@@ -353,10 +349,10 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   int ainum=this->ans->inum();
   
   k_interp.set_size(GX,BX);
-  k_interp.run(&atom->dev_x.begin(), &atom->dev_q.begin(), &ainum, 
-               &d_brick.begin(), &d_rho_coeff.begin(), &_npts_x, &_npts_yx,
-               &_brick_x, &_brick_y, &_brick_z, &_delxinv, &_delyinv, &_delzinv,
-               &_order, &_order2, &qqrd2e_scale, &ans->dev_ans.begin());
+  k_interp.run(&atom->x, &atom->q, &ainum, &vd_brick, &d_rho_coeff,
+               &_npts_x, &_npts_yx, &_brick_x, &_brick_y, &_brick_z, &_delxinv,
+               &_delyinv, &_delzinv, &_order, &_order2, &qqrd2e_scale, 
+               &ans->force);
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false);
@@ -408,4 +404,3 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
 
 template class PPPM<PRECISION,ACC_PRECISION,float,_lgpu_float4>;
 template class PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4>;
-

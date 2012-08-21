@@ -14,18 +14,22 @@
 // ***************************************************************************/
 
 #ifdef NV_KERNEL
+
 #include "lal_aux_fun1.h"
+#ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex;
 texture<float> q_tex;
-#ifndef _DOUBLE_DOUBLE
-ucl_inline float4 fetch_pos(const int& i, const float4 *pos) 
-  { return tex1Dfetch(pos_tex, i); }
-ucl_inline float fetch_q(const int& i, const float *q) 
-  { return tex1Dfetch(q_tex, i); }
-#endif
+#else
+texture<int4,1> pos_tex;
+texture<int2> q_tex;
 #endif
 
-__kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
+#else
+#define pos_tex x_
+#define q_tex q_
+#endif
+
+__kernel void k_coul_long(__global numtyp4 *x_, __global numtyp4 *lj1,
                           __global numtyp4* lj3, const int lj_types,
                           __global numtyp *sp_cl_in, __global int *dev_nbor,
                           __global int *dev_packed, __global acctyp4 *ans,
@@ -56,8 +60,8 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp qtmp=fetch_q(i,q_);
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
 
     for ( ; nbor<list_end; nbor+=n_stride) {
       int j=*nbor;
@@ -66,7 +70,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -75,16 +79,17 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq < cut_coulsq) {
-	numtyp r2inv=ucl_recip(rsq);
-	numtyp force, prefactor, _erfc;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force, prefactor, _erfc;
 
-	numtyp r = ucl_rsqrt(r2inv);
-	numtyp grij = g_ewald * r;
-	numtyp expm2 = ucl_exp(-grij*grij);
-	numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
-	_erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
-	force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
+        numtyp r = ucl_rsqrt(r2inv);
+        numtyp grij = g_ewald * r;
+        numtyp expm2 = ucl_exp(-grij*grij);
+        numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+        _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        fetch(prefactor,j,q_tex);
+        prefactor *= qqrd2e * qtmp/r;
+        force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -162,7 +167,7 @@ __kernel void kernel_pair(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
+__kernel void k_coul_long_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
                                __global numtyp4* lj3_in,
                                __global numtyp* sp_cl_in,
                                __global int *dev_nbor, __global int *dev_packed,
@@ -193,8 +198,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
-    numtyp4 ix=fetch_pos(i,x_); //x_[i];
-    numtyp qtmp=fetch_q(i,q_);
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
 
     for ( ; nbor<list_end; nbor+=n_stride) {
       int j=*nbor;
@@ -203,7 +208,7 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=fetch_pos(j,x_); //x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -212,16 +217,17 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq < cut_coulsq) {
-	numtyp r2inv=ucl_recip(rsq);
-	numtyp force, prefactor, _erfc;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force, prefactor, _erfc;
 
-	numtyp r = ucl_rsqrt(r2inv);
-	numtyp grij = g_ewald * r;
-	numtyp expm2 = ucl_exp(-grij*grij);
-	numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
-	_erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-	prefactor = qqrd2e * qtmp*fetch_q(j,q_)/r;
-	force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
+        numtyp r = ucl_rsqrt(r2inv);
+        numtyp grij = g_ewald * r;
+        numtyp expm2 = ucl_exp(-grij*grij);
+        numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+        _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        fetch(prefactor,j,q_tex);
+        prefactor *= qqrd2e * qtmp/r;
+        force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;

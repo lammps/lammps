@@ -84,7 +84,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
     _max_atoms=1000;
     
   _max_host=static_cast<int>(static_cast<double>(host_inum)*1.10);
-  _max_nbors=max_nbors;
+  _max_nbors=(max_nbors/threads_per_atom+1)*threads_per_atom;
 
   _maxspecial=maxspecial;
   if (gpu_nbor==0)
@@ -124,17 +124,14 @@ void Neighbor::alloc(bool &success) {
     _c_bytes+=dev_packed.row_bytes();                                         
   } 
   if (_max_host>0) {
-    host_nbor.clear();
-    dev_host_nbor.clear();
-    dev_host_numj.clear();
+    nbor_host.clear();
+    dev_numj_host.clear();
     host_ilist.clear();
     host_jlist.clear();
     
-    success=success && (host_nbor.alloc(_max_nbors*_max_host,*dev,
-                                        UCL_RW_OPTIMIZED)==UCL_SUCCESS);
-    success=success && (dev_host_nbor.alloc(_max_nbors*_max_host,
-                                            *dev,UCL_WRITE_ONLY)==UCL_SUCCESS);
-    success=success && (dev_host_numj.alloc(_max_host,*dev,
+    success=(nbor_host.alloc(_max_nbors*_max_host,*dev,UCL_RW_OPTIMIZED,
+                             UCL_WRITE_ONLY)==UCL_SUCCESS) && success;
+    success=success && (dev_numj_host.alloc(_max_host,*dev,
                                             UCL_WRITE_ONLY)==UCL_SUCCESS);
     success=success && (host_ilist.alloc(nt,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
     if (!success)
@@ -145,16 +142,16 @@ void Neighbor::alloc(bool &success) {
                                          UCL_NOT_PINNED)==UCL_SUCCESS);
     if (!success)
       return;
-    int *ptr=host_nbor.begin();
+    int *ptr=nbor_host.host.begin();
     for (int i=0; i<_max_host; i++) {
       host_jlist[i]=ptr;
       ptr+=_max_nbors;
     }                                                 
-    _c_bytes+=dev_host_nbor.row_bytes()+dev_host_numj.row_bytes();
+    _c_bytes+=nbor_host.device.row_bytes()+dev_numj_host.row_bytes();
   } else {
     // Some OpenCL implementations return errors for NULL pointers as args
-    dev_host_nbor.view(dev_nbor);
-    dev_host_numj.view(dev_nbor);
+    nbor_host.device.view(dev_nbor);
+    dev_numj_host.view(dev_nbor);
   }
   if (_maxspecial>0) {
     dev_nspecial.clear();
@@ -194,10 +191,9 @@ void Neighbor::clear() {
     host_packed.clear();
     host_acc.clear();
     dev_nbor.clear();
-    dev_host_nbor.clear();
+    nbor_host.clear();
     dev_packed.clear();
-    host_nbor.clear();
-    dev_host_numj.clear();
+    dev_numj_host.clear();
     host_ilist.clear();
     host_jlist.clear();
     dev_nspecial.clear();
@@ -215,8 +211,8 @@ void Neighbor::clear() {
 double Neighbor::host_memory_usage() const {
   if (_gpu_nbor>0) {
     if (_gpu_host)
-      return host_nbor.row_bytes()*host_nbor.rows()+host_ilist.row_bytes()+
-             host_jlist.row_bytes();
+      return nbor_host.device.row_bytes()*nbor_host.rows()+
+             host_ilist.row_bytes()+host_jlist.row_bytes();
     else
       return 0;
   } else 
@@ -285,8 +281,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
     int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
                                  block_size));
     _shared->k_nbor.set_size(GX,block_size);
-    _shared->k_nbor.run(&dev_nbor.begin(), &dev_packed.begin(), &inum,
-                        &_threads_per_atom);
+    _shared->k_nbor.run(&dev_nbor, &dev_packed, &inum, &_threads_per_atom);
     time_kernel.stop();
   }
 }
@@ -295,31 +290,23 @@ template <class numtyp, class acctyp>
 void Neighbor::resize_max_neighbors(const int maxn, bool &success) {
   if (maxn>_max_nbors) {  
     int mn=static_cast<int>(static_cast<double>(maxn)*1.10);
-    dev_nbor.clear();
-    success=success && 
-            (dev_nbor.alloc((mn+1)*_max_atoms,*dev)==UCL_SUCCESS);
+    mn=(mn/_threads_per_atom+1)*_threads_per_atom;
+    success=success && (dev_nbor.resize((mn+1)*_max_atoms)==UCL_SUCCESS);
     _gpu_bytes=dev_nbor.row_bytes();
     if (_max_host>0) {
-      host_nbor.clear();
-      dev_host_nbor.clear();
-      success=success && (host_nbor.alloc(mn*_max_host,*dev,
-                                          UCL_RW_OPTIMIZED)==UCL_SUCCESS);
-      success=success && (dev_host_nbor.alloc(mn*_max_host,
-                                        *dev,UCL_WRITE_ONLY)==UCL_SUCCESS);
-      int *ptr=host_nbor.begin();
+      success=success && (nbor_host.resize(mn*_max_host)==UCL_SUCCESS);
+      int *ptr=nbor_host.host.begin();
       for (int i=0; i<_max_host; i++) {
         host_jlist[i]=ptr;
         ptr+=mn;
       }                                                 
-      _gpu_bytes+=dev_host_nbor.row_bytes();
+      _gpu_bytes+=nbor_host.row_bytes();
     } else {
-      dev_host_nbor.view(dev_nbor);
-      dev_host_numj.view(dev_nbor);
+      nbor_host.device.view(dev_nbor);
+      dev_numj_host.view(dev_nbor);
     }
     if (_alloc_packed) {
-      dev_packed.clear();
-      success=success && (dev_packed.alloc((mn+2)*_max_atoms,*dev,
-                                           UCL_READ_ONLY)==UCL_SUCCESS);
+      success=success && (dev_packed.resize((mn+2)*_max_atoms)==UCL_SUCCESS);
       _gpu_bytes+=dev_packed.row_bytes();
     }
     _max_nbors=mn;
@@ -337,16 +324,12 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 
   // Calculate number of cells and allocate storage for binning as necessary
   int ncellx, ncelly, ncellz, ncell_3d;
-  ncellx = static_cast<int>(ceil(((subhi[0] - sublo[0]) +
-                                  2.0*_cell_size)/_cell_size));
-  ncelly = static_cast<int>(ceil(((subhi[1] - sublo[1]) +
-                                  2.0*_cell_size)/_cell_size));
-  ncellz = static_cast<int>(ceil(((subhi[2] - sublo[2]) +
-                                  2.0*_cell_size)/_cell_size));
+  int ghost_cells=2*_cells_in_cutoff;
+  ncellx = static_cast<int>(ceil((subhi[0]-sublo[0])/_cell_size))+ghost_cells;
+  ncelly = static_cast<int>(ceil((subhi[1]-sublo[1])/_cell_size))+ghost_cells;
+  ncellz = static_cast<int>(ceil((subhi[2]-sublo[2])/_cell_size))+ghost_cells;
   ncell_3d = ncellx * ncelly * ncellz;
   if (ncell_3d+1>_ncells) {
-    dev_cell_counts.clear();
-    dev_cell_counts.alloc(ncell_3d+1,dev_nbor);
     if (_gpu_nbor==2) {
       if (_ncells>0) {
         host_cell_counts.clear();
@@ -355,11 +338,19 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       cell_iter = new int[ncell_3d+1];
       host_cell_counts.alloc(ncell_3d+1,dev_nbor);
     }
+
+    if (_gpu_nbor==2 && atom.host_view())
+      dev_cell_counts.view(host_cell_counts);
+    else {
+      dev_cell_counts.clear();
+      dev_cell_counts.alloc(ncell_3d+1,dev_nbor);
+    }
+    
     _ncells=ncell_3d+1;
     _cell_bytes=dev_cell_counts.row_bytes();
   }
 
-  const numtyp cell_size_cast=static_cast<numtyp>(_cell_size);
+  const numtyp cutoff_cast=static_cast<numtyp>(_cutoff);
 
   if (_maxspecial>0) {
     time_nbor.start();
@@ -379,8 +370,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     const int g2x=static_cast<int>(ceil(static_cast<double>(_maxspecial)/b2x));
     const int g2y=static_cast<int>(ceil(static_cast<double>(nt)/b2y));
     _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
-    _shared->k_transpose.run(&dev_special.begin(),&dev_special_t.begin(),
-                             &_maxspecial,&nt);        
+    _shared->k_transpose.run(&dev_special,&dev_special_t,&_maxspecial,&nt);        
     time_transpose.stop();
   }
   
@@ -392,28 +382,48 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     
     // Build cell list on CPU                               
     host_cell_counts.zero();
-    double m_cell_size=-_cell_size;
-    double dx=subhi[0]-sublo[0]+_cell_size;
-    double dy=subhi[1]-sublo[1]+_cell_size;
-    double dz=subhi[2]-sublo[2]+_cell_size;
+    double i_cell_size=1.0/_cell_size;
 
-    for (int i=0; i<nall; i++) {
+    int offset_hi=_cells_in_cutoff+1;
+    for (int i=0; i<nt; i++) {
       double px, py, pz;
       px=x[i][0]-sublo[0];
       py=x[i][1]-sublo[1];
       pz=x[i][2]-sublo[2];
-      if (px<m_cell_size) px=m_cell_size;
-      if (py<m_cell_size) py=m_cell_size;
-      if (pz<m_cell_size) pz=m_cell_size;
-      if (px>dx) px=dx;            
-      if (py>dy) py=dy;            
-      if (pz>dz) pz=dz;            
+
+      int ix = static_cast<int>(px*i_cell_size+1);
+      ix = std::max(ix,_cells_in_cutoff);
+      ix = std::min(ix,ncellx-offset_hi);
+      int iy = static_cast<int>(py*i_cell_size+1);
+      iy = std::max(iy,_cells_in_cutoff);
+      iy = std::min(iy,ncelly-offset_hi);
+      int iz = static_cast<int>(pz*i_cell_size+1);
+      iz = std::max(iz,_cells_in_cutoff);
+      iz = std::min(iz,ncellz-offset_hi);
     
-      int id=static_cast<int>(px/_cell_size + 1.0) + 
-             static_cast<int>(py/_cell_size + 1.0) * ncellx +
-             static_cast<int>(pz/_cell_size + 1.0) * ncellx * ncelly;
+      int id = ix+iy*ncellx+iz*ncellx*ncelly;
+      cell_id[i] = id;
+      host_cell_counts[id+1]++;
+    }
     
-      cell_id[i]=id;
+    for (int i=nt; i<nall; i++) {
+      double px, py, pz;
+      px=x[i][0]-sublo[0];
+      py=x[i][1]-sublo[1];
+      pz=x[i][2]-sublo[2];
+
+      int ix = static_cast<int>(px*i_cell_size+1);
+      ix = std::max(ix,0);
+      ix = std::min(ix,ncellx-1);
+      int iy = static_cast<int>(py*i_cell_size+1);
+      iy = std::max(iy,0);
+      iy = std::min(iy,ncelly-1);
+      int iz = static_cast<int>(pz*i_cell_size+1);
+      iz = std::max(iz,0);
+      iz = std::min(iz,ncellz-1);
+    
+      int id = ix+iy*ncellx+iz*ncellx*ncelly;
+      cell_id[i] = id;
       host_cell_counts[id+1]++;
     }
     
@@ -451,41 +461,39 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   time_kernel.start();
 
   _nbor_pitch=inum;
-  _shared->neigh_tex.bind_float(atom.dev_x,4);
+  _shared->neigh_tex.bind_float(atom.x,4);
 
   // If binning on GPU, do this now
   if (_gpu_nbor==1) {
+    const numtyp i_cell_size=static_cast<numtyp>(1.0/_cell_size);
     const int neigh_block=_block_cell_id;
     const int GX=(int)ceil((float)nall/neigh_block);
     const numtyp sublo0=static_cast<numtyp>(sublo[0]);
     const numtyp sublo1=static_cast<numtyp>(sublo[1]);
     const numtyp sublo2=static_cast<numtyp>(sublo[2]);
-    const numtyp subhi0=static_cast<numtyp>(subhi[0]);
-    const numtyp subhi1=static_cast<numtyp>(subhi[1]);
-    const numtyp subhi2=static_cast<numtyp>(subhi[2]);
     _shared->k_cell_id.set_size(GX,neigh_block);
-    _shared->k_cell_id.run(&atom.dev_x.begin(), &atom.dev_cell_id.begin(), 
-                           &atom.dev_particle_id.begin(),
-    				               &sublo0, &sublo1, &sublo2, &subhi0, &subhi1, 
-    				               &subhi2, &cell_size_cast, &ncellx, &ncelly, &nall);
+    _shared->k_cell_id.run(&atom.x, &atom.dev_cell_id, 
+                           &atom.dev_particle_id, &sublo0, &sublo1,
+                           &sublo2, &i_cell_size, &ncellx, &ncelly, &ncellz,
+                           &nt, &nall, &_cells_in_cutoff);
 
     atom.sort_neighbor(nall);
 
     /* calculate cell count */
     _shared->k_cell_counts.set_size(GX,neigh_block);
-    _shared->k_cell_counts.run(&atom.dev_cell_id.begin(), 
-                               &dev_cell_counts.begin(), &nall, &ncell_3d);
+    _shared->k_cell_counts.run(&atom.dev_cell_id, &dev_cell_counts, &nall, 
+                               &ncell_3d);
   } 
   
   /* build the neighbor list */
   const int cell_block=_block_nbor_build;
-  _shared->k_build_nbor.set_size(ncellx, ncelly*ncellz, cell_block, 1);
-  _shared->k_build_nbor.run(&atom.dev_x.begin(), &atom.dev_particle_id.begin(),
-                            &dev_cell_counts.begin(), &dev_nbor.begin(),
-                            &dev_host_nbor.begin(), &dev_host_numj.begin(),
-                            &_max_nbors,&cell_size_cast,
-                            &ncellx, &ncelly, &ncellz, &inum, &nt, &nall,
-                            &_threads_per_atom);
+  _shared->k_build_nbor.set_size(ncellx-ghost_cells,(ncelly-ghost_cells)*
+                                 (ncellz-ghost_cells),cell_block,1);
+  _shared->k_build_nbor.run(&atom.x, &atom.dev_particle_id,
+                            &dev_cell_counts, &dev_nbor, &nbor_host,
+                            &dev_numj_host, &_max_nbors, &cutoff_cast, &ncellx,
+                            &ncelly, &ncellz, &inum, &nt, &nall,
+                            &_threads_per_atom, &_cells_in_cutoff);
 
   /* Get the maximum number of nbors and realloc if necessary */
   UCL_D_Vec<int> numj;
@@ -494,7 +502,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   if (nt>inum) {
     UCL_H_Vec<int> host_offset;
     host_offset.view_offset(inum,host_acc,nt-inum);
-    ucl_copy(host_offset,dev_host_numj,nt-inum,true);
+    ucl_copy(host_offset,dev_numj_host,nt-inum,true);
   }
   
   if (_gpu_nbor!=2) {
@@ -521,17 +529,16 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     const int GX2=static_cast<int>(ceil(static_cast<double>
                                           (nt*_threads_per_atom)/cell_block));
     _shared->k_special.set_size(GX2,cell_block);
-    _shared->k_special.run(&dev_nbor.begin(), &dev_host_nbor.begin(), 
-                           &dev_host_numj.begin(), &atom.dev_tag.begin(), 
-                           &dev_nspecial.begin(), &dev_special.begin(), 
+    _shared->k_special.run(&dev_nbor, &nbor_host, &dev_numj_host,
+                           &atom.dev_tag, &dev_nspecial, &dev_special, 
                            &inum, &nt, &_max_nbors, &_threads_per_atom);
   }
   time_kernel.stop();
 
   time_nbor.start();
   if (inum<nt) {
-    ucl_copy(host_nbor,dev_host_nbor,true);
-    host_nbor.sync();
+    nbor_host.update_host(true);
+    nbor_host.sync();
   }
   time_nbor.stop();
 }

@@ -1,3 +1,7 @@
+NOTE: This Geryon distribution has been modified to remove files not
+      necessary for the LAMMPS implementation. The full distribution
+      is available at http://users.nccs.gov/~wb8/geryon/index.htm
+
 Geryon
 
    Copyright (2010) Sandia Corporation.  Under the terms of Contract

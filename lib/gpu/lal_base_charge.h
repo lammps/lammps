@@ -21,8 +21,10 @@
 #include "lal_balance.h"
 #include "mpi.h"
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "geryon/ocl_texture.h"
+#elif defined(USE_CUDART)
+#include "geryon/nvc_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -39,6 +41,7 @@ class BaseCharge {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
+    * \param k_name name for the kernel for force calculation
     * 
     * Returns:
     * -  0 if successfull
@@ -49,7 +52,7 @@ class BaseCharge {
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
                   const double gpu_split, FILE *screen,
-                  const char *pair_program);
+                  const void *pair_program, const char *k_name);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
@@ -58,8 +61,8 @@ class BaseCharge {
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
     if (atom->resize(nall, success)) {
-      pos_tex.bind_float(atom->dev_x,4);
-      q_tex.bind_float(atom->dev_q,1);
+      pos_tex.bind_float(atom->x,4);
+      q_tex.bind_float(atom->q,1);
     }
     ans->resize(inum,success);
   }
@@ -187,7 +190,7 @@ class BaseCharge {
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
-  void compile_kernels(UCL_Device &dev, const char *pair_string);
+  void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
 
   virtual void loop(const bool _eflag, const bool _vflag) = 0;
 };

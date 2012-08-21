@@ -35,7 +35,8 @@ enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
                            const int gpu_mode, const double particle_split,
-                           const int nthreads, const int t_per_atom);
+                           const int nthreads, const int t_per_atom,
+                           const double cell_size);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -76,15 +77,23 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   int nthreads = 1;
   int threads_per_atom = -1;
-  if (narg == 9) {
-    if (strcmp(arg[7],"threads_per_atom") == 0)
-      threads_per_atom = atoi(arg[8]);
-    else if (strcmp(arg[7],"nthreads") == 0)
-      nthreads = atoi(arg[8]);
+  double cell_size = -1;
+
+  int iarg = 7;
+  while (iarg < narg) {
+    if (iarg+2 > narg) error->all(FLERR,"Illegal fix GPU command");
+
+    if (strcmp(arg[iarg],"threads_per_atom") == 0)
+      threads_per_atom = atoi(arg[iarg+1]);
+    else if (strcmp(arg[iarg],"nthreads") == 0)
+      nthreads = atoi(arg[iarg+1]);
+    else if (strcmp(arg[iarg],"cellsize") == 0)
+      cell_size = atof(arg[iarg+1]);
     else
       error->all(FLERR,"Illegal fix GPU command");
-  } else if (narg != 7)
-    error->all(FLERR,"Illegal fix GPU command");
+
+    iarg += 2;
+  }
 
   if (nthreads < 1)
     error->all(FLERR,"Illegal fix GPU command");
@@ -96,7 +105,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom);
+                                 threads_per_atom, cell_size);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 

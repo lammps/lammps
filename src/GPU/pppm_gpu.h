@@ -20,31 +20,34 @@ KSpaceStyle(pppm/gpu,PPPMGPU)
 #ifndef LMP_PPPM_GPU_H
 #define LMP_PPPM_GPU_H
 
-#include "pppm_old.h"
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
-class PPPMGPU : public PPPMOld {
+class PPPMGPU : public PPPM {
  public:
   PPPMGPU(class LAMMPS *, int, char **);
   virtual ~PPPMGPU();
-  virtual void init();
-  virtual void setup();
-  virtual void compute(int, int);
-  virtual int timing(int, double &, double &);
-  virtual double memory_usage();
+  void init();
+  void setup();
+  void compute(int, int);
+  int timing(int, double &, double &);
+  double memory_usage();
 
  protected:
 
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
   bool kspace_split, im_real_space;
 
-  virtual void allocate();
-  virtual void deallocate();
-  virtual void brick2fft();
-  virtual void fillbrick();
-  virtual void poisson();
+  void allocate();
+  void deallocate();
+  void brick2fft();
+  void fillbrick();
+  void fillbrick_ik();
+  void poisson();
+  void poisson_ik();
 
+  int old_nlocal;
   double poisson_time;
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
@@ -64,6 +67,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Cannot (yet) do analytic differentiation with pppm/gpu.
+
+Self-explanatory.
 
 E: Cannot use order greater than 8 with pppm/gpu.
 

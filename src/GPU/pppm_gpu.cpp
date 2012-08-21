@@ -85,7 +85,7 @@ void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
-PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPMOld(lmp, narg, arg)
+PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style pppm/gpu command");
 
@@ -111,10 +111,15 @@ PPPMGPU::~PPPMGPU()
 
 void PPPMGPU::init()
 {
-  PPPMOld::init();
+  PPPM::init();
 
-  if (strcmp(update->integrate_style,"verlet/split") == 0)
+  if (differentiation_flag == 1)
+    error->all(FLERR,"Cannot (yet) do analytic differentiation with pppm/gpu.");
+
+  if (strcmp(update->integrate_style,"verlet/split") == 0) {
     kspace_split=true;
+    old_nlocal = 0;
+  }
 
   if (kspace_split && universe->iworld == 0) {
     im_real_space = true;
@@ -153,21 +158,31 @@ void PPPMGPU::init()
 
 void PPPMGPU::compute(int eflag, int vflag)
 {
-  if (im_real_space) return;
+  int nago;
+  if (kspace_split) {
+    if (im_real_space) return;
+    if (atom->nlocal > old_nlocal) {
+      nago=0;
+      old_nlocal = atom->nlocal;
+    } else
+      nago=1;
+  } else
+    nago=neighbor->ago;
 
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = eflag_global = vflag_global = eflag_atom = vflag_atom = 0;
+  else evflag = evflag_atom = eflag_global = vflag_global = 
+        eflag_atom = vflag_atom = 0;
 
-  if (!peratom_allocate_flag && (eflag_atom || vflag_atom)) {
+  if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
     peratom_allocate_flag = 1;
   }
 
   bool success = true;
-  int flag=PPPM_GPU_API(spread)(neighbor->ago, atom->nlocal, atom->nlocal +
+  int flag=PPPM_GPU_API(spread)(nago, atom->nlocal, atom->nlocal +
                              atom->nghost, atom->x, atom->type, success,
                              atom->q, domain->boxlo, delxinv, delyinv,
                              delzinv);
@@ -241,7 +256,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
     if (vflag_atom) {
       for (i = 0; i < nlocal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*q[i]*qscale;
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
     }
   }
 
@@ -300,7 +315,10 @@ void PPPMGPU::allocate()
 
   memory->create(gf_b,order,"pppm:gf_b");
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
+  memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm:drho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
+  memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,
+                          "pppm:drho_coeff");
 
   // create 2 FFTs and a Remap
   // 1st FFT keeps data in FFT decompostion
@@ -349,7 +367,9 @@ void PPPMGPU::deallocate()
 
   memory->destroy(gf_b);
   memory->destroy2d_offset(rho1d,-order/2);
+  memory->destroy2d_offset(drho1d,-order/2);
   memory->destroy2d_offset(rho_coeff,(1-order)/2);
+  memory->destroy2d_offset(drho_coeff,(1-order)/2);
 
   delete fft1;
   delete fft2;
@@ -527,10 +547,20 @@ void PPPMGPU::brick2fft()
 }
 
 /* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
+   Same as base class - needed to call GPU version of fillbrick_.
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::fillbrick()
+{
+  if (differentiation_flag == 1) fillbrick_ad();
+  else fillbrick_ik();
+}
+
+/* ----------------------------------------------------------------------
+   ghost-swap to fill ghost cells of my brick with field values
+------------------------------------------------------------------------- */
+
+void PPPMGPU::fillbrick_ik()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
@@ -727,10 +757,20 @@ void PPPMGPU::fillbrick()
 }
 
 /* ----------------------------------------------------------------------
-   FFT-based Poisson solver
+   Same code as base class - necessary to call GPU version of poisson_ik
 ------------------------------------------------------------------------- */
 
 void PPPMGPU::poisson()
+{
+  if (differentiation_flag == 1) poisson_ad();
+  else poisson_ik();
+}
+
+/* ----------------------------------------------------------------------
+   FFT-based Poisson solver
+------------------------------------------------------------------------- */
+
+void PPPMGPU::poisson_ik()
 {
   int i,j,k,n;
   double eng;
@@ -925,11 +965,11 @@ double PPPMGPU::memory_usage()
 
 int PPPMGPU::timing(int n, double &time3d, double &time1d) {
   if (im_real_space) {
-    time3d = 0.0;
-    time1d = 0.0;
+    time3d = 1.0;
+    time1d = 1.0;
     return 4;
   }
-  PPPMOld::timing(n,time3d,time1d);
+  PPPM::timing(n,time3d,time1d);
   return 4;
 }
 
@@ -940,5 +980,5 @@ int PPPMGPU::timing(int n, double &time3d, double &time1d) {
 void PPPMGPU::setup()
 {
   if (im_real_space) return;
-  PPPMOld::setup();
+  PPPM::setup();
 }

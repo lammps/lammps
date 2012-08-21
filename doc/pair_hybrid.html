@@ -76,6 +76,13 @@ other pairwise potential for several different atom type pairs in your
 model, then you should just list the sub-style once and use the
 pair_coeff command to assign parameters for the different type pairs.
 </P>
+<P>IMPORTANT NOTE: An exception to this option to list an individual pair
+style multiple times are the pair styles implemented as Fortran
+libraries: <A HREF = "pair_meam.html">pair_style meam</A> and <A HREF = "pair_reax.html">pair_style
+reax</A> (<A HREF = "pair_reax_c.html">pair_style reax/c</A> is OK).
+This is because unlike a C++ class, they can not be instantiated
+multiple times, due to the manner in which they were coded in Fortran.
+</P>
 <P>In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
 being those appropriate to that style.  If the pair style is used

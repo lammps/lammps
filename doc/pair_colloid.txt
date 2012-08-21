@@ -7,6 +7,7 @@
 :line
 
 pair_style colloid command :h3
+pair_style colloid/gpu command :h3
 pair_style colloid/omp command :h3
 
 [Syntax:]

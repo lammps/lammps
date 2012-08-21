@@ -7,6 +7,7 @@
 :line
 
 pair_style yukawa/colloid command :h3
+pair_style yukawa/colloid/gpu command :h3
 pair_style yukawa/colloid/omp command :h3
 
 [Syntax:]

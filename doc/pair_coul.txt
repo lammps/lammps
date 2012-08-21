@@ -22,7 +22,7 @@ pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/long cutoff
 pair_style coul/long/gpu cutoff 
-pair_sytle coul/wolf alpha cutoff :pre
+pair_style coul/wolf alpha cutoff :pre
 
 cutoff = global cutoff for Coulombic interactions
 kappa = Debye length (inverse distance units) 

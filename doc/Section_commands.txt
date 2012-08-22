@@ -466,6 +466,8 @@ of each style or click on the style itself for a full description:
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,
 "rigid"_fix_rigid.html,
+"rigid/nph"_fix_rigid.html,
+"rigid/npt"_fix_rigid.html,
 "rigid/nve"_fix_rigid.html,
 "rigid/nvt"_fix_rigid.html,
 "setforce"_fix_setforce.html,

@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,22 +13,23 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(rigid/nvt,FixRigidNVT)
+FixStyle(rigid/nph,FixRigidNPH)
 
 #else
 
-#ifndef LMP_FIX_RIGID_NVT_H
-#define LMP_FIX_RIGID_NVT_H
+#ifndef LMP_FIX_RIGID_NPH_H
+#define LMP_FIX_RIGID_NPH_H
 
 #include "fix_rigid_nh.h"
 
 namespace LAMMPS_NS {
 
-class FixRigidNVT : public FixRigidNH {
+class FixRigidNPH : public FixRigidNH {
  public:
-  FixRigidNVT(class LAMMPS *, int, char **);
-  ~FixRigidNVT() {}
+  FixRigidNPH(class LAMMPS *, int, char **);
+  ~FixRigidNPH() {}
 };
+
 
 }
 

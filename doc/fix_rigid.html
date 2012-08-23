@@ -465,6 +465,64 @@ described below.
 </P>
 <HR>
 
+<P>If your simlulation is a hybrid model with a mixture of rigid bodies
+and non-rigid particles (e.g. solvent) there are several ways these
+rigid fixes can be used in tandem with <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix
+nvt</A>, <A HREF = "fix_nh.html">fix npt</A>, and <A HREF = "fix_nh.html">fix nph</A>.
+</P>
+<P>If you wish to perform NVE dynamics (no thermostatting or
+barostatting), use fix rigid or fix rigid/nve to integrate the rigid
+bodies, and <A HREF = "fix_nve.html">fix nve</A> to integrate the non-rigid
+particles.
+</P>
+<P>If you wish to perform NVT dynamics (thermostatting, but no
+barostatting), you can use fix rigid/nvt for the rigid bodies, and any
+thermostatting fix for the non-rigid particles (<A HREF = "fix_nh.html">fix nvt</A>,
+<A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A>).  You can also use fix rigid
+or fix rigid/nve for the rigid bodies and thermostat them using <A HREF = "fix_langevin.html">fix
+langevin</A> on the group that contains all the
+particles in the rigid bodies.  The net force added by <A HREF = "fix_langevin.html">fix
+langevin</A> to each rigid body effectively thermostats
+its translational center-of-mass motion.  Not sure how well it does at
+thermostatting its rotational motion.
+</P>
+<P>If you with to perform NPT or NPH dynamics (barostatting), you cannot
+use both <A HREF = "fix_nh.html">fix npt</A> and fix rigid/npt (or the nph
+variants).  This is because there can only be one fix which monitors
+the global pressure and changes the simulation box dimensions.  So you
+have 3 choices:
+</P>
+<UL><LI>Use fix rigid/npt for the rigid bodies.  Use the <I>dilate</I> all option
+so that it will dilate the positions of the non-rigid particles as
+well.  Use <A HREF = "fix_nh.html">fix nvt</A> (or any other thermostat) for the
+non-rigid particles. 
+
+<LI>Use <A HREF = "fix_nh.html">fix npt</A> for the group of non-rigid particles.  Use
+the <I>dilate</I> all option so that it will dilate the center-of-mass
+positions of the rigid bodies as well.  Use fix rigid/nvt for the
+rigid bodies. 
+
+<LI>Use <A HREF = "fix_press_berendsen.html">fix press/berendsen</A> to compute the
+pressure and change the box dimensions.  Use fix rigid/nvt for the
+rigid bodies.  Use <A HREF = "fix_nh.thml">fix nvt</A> (or any other thermostat) for
+the non-rigid particles. 
+</UL>
+<P>In all case, the rigid bodies and non-rigid particles both contribute
+to the global pressure and the box is scaled the same by any of the
+barostatting fixes.
+</P>
+<P>You could even use the 2nd and 3rd options for a non-hybrid simulation
+consisting of only rigid bodies, assuming you give <A HREF = "fix_nh.html">fix
+npt</A> an empty group, though it's an odd thing to do.  The
+barostatting fixes (<A HREF = "fix_nh.html">fix npt</A> and <A HREF = "fix_press_berendsen.html">fix
+press/berensen</A>) will monitor the pressure
+and change the box dimensions, but not time integrate any particles.
+The integration of the rigid bodies will be performed by fix
+rigid/nvt.
+</P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about the <I>rigid</I> and <I>rigid/nve</I> fixes are written to

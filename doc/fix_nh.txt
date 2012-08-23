@@ -436,6 +436,15 @@ space measure of the underlying non-Hamiltonian equations of motion.
 
 :line
 
+The fix npt and fix nph commands can be used with rigid bodies or
+mixtures of rigid bodies and non-rigid particles (e.g. solvent).  But
+there are also "fix rigid/npt"_fix_rigid.html and "fix
+rigid/nph"_fix_rigid.html commands, which are typically a more natural
+choice.  See the doc page for those commands for more discussion of
+the various ways to do this.
+
+:line
+
 Styles with a {cuda} suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in

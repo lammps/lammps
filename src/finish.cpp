@@ -430,18 +430,26 @@ void Finish::end(int flag)
 
     int nsteps = update->nsteps;
 
-    double time3d,time1d;
+    double time3d;
     int nsample = 1;
-    int nfft = force->kspace->timing(nsample,time3d,time1d);
-    while (time3d < 1.0 || time1d < 1.0) {
+    int nfft = force->kspace->timing_3d(nsample,time3d);
+    while (time3d < 1.0) {
       nsample *= 5;
-      nfft = force->kspace->timing(nsample,time3d,time1d);
+      nfft = force->kspace->timing_3d(nsample,time3d);
     }
 
     time3d = nsteps * time3d / nsample;
     MPI_Allreduce(&time3d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time3d = tmp/nprocs;
 
+    double time1d;
+    nsample = 1;
+    nfft = force->kspace->timing_1d(nsample,time1d);
+    while (time1d < 1.0) {
+      nsample *= 5;
+      nfft = force->kspace->timing_1d(nsample,time1d);
+    }
+    
     time1d = nsteps * time1d / nsample;
     MPI_Allreduce(&time1d,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time1d = tmp/nprocs;

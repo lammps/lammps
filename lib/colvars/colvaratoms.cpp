@@ -116,8 +116,9 @@ void cvm::atom_group::parse (std::string const &conf,
     std::vector<std::string>::iterator psii = psf_segids.begin();
     while (key_lookup (group_conf, "atomNameResidueRange",
                        range_conf, pos)) {
+      range_count++;
 
-      if (psii > psf_segids.end()) {
+      if (range_count > psf_segids.size()) {
         cvm::fatal_error ("Error: more instances of \"atomNameResidueRange\" than "
                           "values of \"psfSegID\".\n");
       }
@@ -520,6 +521,7 @@ void cvm::atom_group::read_system_forces()
   }
 }
 
+/* This is deprecated.
 cvm::atom_pos cvm::atom_group::center_of_geometry (cvm::atom_pos const &ref_pos)
 {
   if (b_dummy) {
@@ -535,7 +537,7 @@ cvm::atom_pos cvm::atom_group::center_of_geometry (cvm::atom_pos const &ref_pos)
   }
   cog /= this->size();
   return cog;
-}
+} */
 
 cvm::atom_pos cvm::atom_group::center_of_geometry() const
 {
@@ -551,6 +553,7 @@ cvm::atom_pos cvm::atom_group::center_of_geometry() const
   return cog;
 }
 
+/* This is deprecated.
 cvm::atom_pos cvm::atom_group::center_of_mass (cvm::atom_pos const &ref_pos)
 {
   if (b_dummy) {
@@ -566,7 +569,7 @@ cvm::atom_pos cvm::atom_group::center_of_mass (cvm::atom_pos const &ref_pos)
   }
   com /= this->total_mass;
   return com;
-}
+}*/
 
 cvm::atom_pos cvm::atom_group::center_of_mass() const
 {

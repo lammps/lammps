@@ -179,7 +179,10 @@ colvar::distance_z::distance_z (std::string const &conf)
     if (get_keyval (conf, "axis", axis, cvm::rvector (0.0, 0.0, 1.0))) {
       if (axis.norm2() == 0.0)
         cvm::fatal_error ("Axis vector is zero!");
-      axis = axis.unit();
+      if (axis.norm2() != 1.0) {
+        axis = axis.unit();
+        cvm::log ("The normalized axis is: "+cvm::to_str (axis)+".\n");
+      }
     }
     fixed_axis = true;
   }
@@ -451,25 +454,34 @@ void colvar::distance_dir::apply_force (colvarvalue const &force)
 
 
 
-colvar::distance6::distance6 (std::string const &conf)
+colvar::distance_inv::distance_inv (std::string const &conf)
   : distance (conf)
 {
-  function_type = "distance6";
+  function_type = "distance_inv";
+  get_keyval (conf, "exponent", exponent, 6);
+  if (exponent%2) {
+    cvm::fatal_error ("Error: odd exponent provided, can only use even ones.\n");
+  }
+  if (exponent <= 0) {
+    cvm::fatal_error ("Error: negative or zero exponent provided.\n");
+  }
+
   b_inverse_gradients = false;
   b_Jacobian_derivative = false;
   x.type (colvarvalue::type_scalar);
 }
 
-colvar::distance6::distance6()
+colvar::distance_inv::distance_inv()
 {
-  function_type = "distance6";
+  function_type = "distance_inv";
+  exponent = 6;
   b_inverse_gradients = false;
   b_Jacobian_derivative = false;
   b_1site_force = false;
   x.type (colvarvalue::type_scalar);
 }
 
-void colvar::distance6::calc_value()
+void colvar::distance_inv::calc_value()
 {
   group1.reset_atoms_data();
   group2.reset_atoms_data();
@@ -483,8 +495,11 @@ void colvar::distance6::calc_value()
       for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
         cvm::rvector const dv = ai2->pos - ai1->pos;
         cvm::real const d2 = dv.norm2();
-        x.real_value += 1.0/(d2*d2*d2);
-        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        cvm::real dinv = 1.0;
+        for (int ne = 0; ne < exponent/2; ne++)
+          dinv *= 1.0/d2;
+        x.real_value += dinv;
+        cvm::rvector const dsumddv = -(cvm::real (exponent)) * dinv/d2 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
@@ -494,30 +509,39 @@ void colvar::distance6::calc_value()
       for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
         cvm::rvector const dv = cvm::position_distance (ai1->pos, ai2->pos);
         cvm::real const d2 = dv.norm2();
-        x.real_value += 1.0/(d2*d2*d2);
-        cvm::rvector const dsumddv = -6.0/(d2*d2*d2*d2) * dv;
+        cvm::real dinv = 1.0;
+        for (int ne = 0; ne < exponent/2; ne++)
+          dinv *= 1.0/d2;
+        x.real_value += dinv;
+        cvm::rvector const dsumddv = -(cvm::real (exponent)) * dinv/d2 * dv;
         ai1->grad += -1.0 * dsumddv;
         ai2->grad +=        dsumddv;
       }
     }
   }
 
-  x.real_value = std::pow (x.real_value, -1.0/6.0);
+  x.real_value *= 1.0 / cvm::real (group1.size() * group2.size());
+  x.real_value = std::pow (x.real_value, -1.0/(cvm::real (exponent)));
 }
 
-void colvar::distance6::calc_gradients()
+void colvar::distance_inv::calc_gradients()
 {
+  cvm::real const dxdsum = (-1.0/(cvm::real (exponent))) * std::pow (x.real_value, exponent+1) / cvm::real (group1.size() * group2.size());
+  for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
+    ai1->grad *= dxdsum;
+  }
+  for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+    ai2->grad *= dxdsum;
+  }
 }
 
-void colvar::distance6::apply_force (colvarvalue const &force)
+void colvar::distance_inv::apply_force (colvarvalue const &force)
 {
-  cvm::real const dxdsum = (-1.0/6.0) * std::pow (x.real_value, -7.0/6.0);
-
   if (!group1.noforce)
-    group1.apply_colvar_force (dxdsum * force.real_value);
+    group1.apply_colvar_force (force.real_value);
 
   if (!group2.noforce)
-    group2.apply_colvar_force (dxdsum * force.real_value);
+    group2.apply_colvar_force (force.real_value);
 }
 
 
@@ -614,21 +638,19 @@ void colvar::inertia::calc_value()
 {
   atoms.reset_atoms_data();
   atoms.read_positions();
-  atoms.apply_translation ((-1.0) * atoms.center_of_geometry());
+  atoms.apply_translation ((-1.0) * atoms.center_of_mass());
 
   x.real_value = 0.0;
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
     x.real_value += ai->mass * (ai->pos).norm2();
   }
-  x.real_value = std::sqrt (x.real_value / atoms.total_mass);
 }
 
 
 void colvar::inertia::calc_gradients()
 {
-  cvm::real const drdx = 1.0/(atoms.total_mass * x.real_value);
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    ai->grad = drdx * ai->mass * ai->pos;
+    ai->grad = 2.0 * ai->mass * ai->pos;
   }
 }
 
@@ -647,7 +669,10 @@ colvar::inertia_z::inertia_z (std::string const &conf)
   if (get_keyval (conf, "axis", axis, cvm::rvector (0.0, 0.0, 1.0))) {
     if (axis.norm2() == 0.0)
       cvm::fatal_error ("Axis vector is zero!");
-    axis = axis.unit();
+    if (axis.norm2() != 1.0) {
+      axis = axis.unit();
+      cvm::log ("The normalized axis is: "+cvm::to_str (axis)+".\n");
+    }
   }
   x.type (colvarvalue::type_scalar);
 }
@@ -664,22 +689,20 @@ void colvar::inertia_z::calc_value()
 {
   atoms.reset_atoms_data();
   atoms.read_positions();
-  atoms.apply_translation ((-1.0) * atoms.center_of_geometry());
+  atoms.apply_translation ((-1.0) * atoms.center_of_mass());
 
   x.real_value = 0.0;
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
     cvm::real const iprod = ai->pos * axis;
     x.real_value += ai->mass * iprod * iprod;
   }
-  x.real_value = std::sqrt (x.real_value / atoms.total_mass);
 }
 
 
 void colvar::inertia_z::calc_gradients()
 {
-  cvm::real const drdx = 1.0/(atoms.total_mass * x.real_value);
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    ai->grad = drdx * ai->mass * (ai->pos * axis) * axis;
+    ai->grad = 2.0 * ai->mass * (ai->pos * axis) * axis;
   }
 }
 

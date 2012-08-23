@@ -71,21 +71,3 @@ void colvar::cvc::calc_Jacobian_derivative()
   cvm::fatal_error ("Error: calculation of inverse gradients is not implemented "
                     "for colvar components of type \""+function_type+"\".\n");
 }
-
-
-colvarvalue colvar::cvc::fdiff_change (cvm::atom_group &group)
-{  
-  colvarvalue change (x.type());
-
-  if (group.old_pos.size()) {
-    for (size_t i = 0; i < group.size(); i++) {
-      cvm::rvector const &pold = group.old_pos[i];
-      cvm::rvector const &p = group[i].pos;
-      change += group[i].grad * (p - pold);
-    }
-  }
-
-  // save for next step
-  group.old_pos = group.positions();
-  return change;
-}

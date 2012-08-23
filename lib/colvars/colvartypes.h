@@ -810,21 +810,8 @@ public:
   /// associated to this quaternion and another
   inline cvm::real cosine (cvm::quaternion const &q) const
   {
-    if (q0*q0 >= (1.0-1.0E-10)) {
-      // null quaternion, return the square of the cosine of the other
-      // quaternion's rotation angle
-      return (2.0*q.q0*q.q0 - 1.0);
-    } else if (q.q0*q.q0 >= (1.0-1.0E-10)) {
-      return (2.0*q0*q0 - 1.0);
-    } else {
-      // get a vector orthogonal to both axes of rotation
-      cvm::rvector const op = (cvm::rvector::outer (this->get_vector(), q.get_vector()));
-      cvm::real const  opl2 = op.norm2();
-      // rotate it with both quaternions and get the normalized inner product
-      return ( (opl2 > 0.0) ?
-               ((this->rotate (op)) * (q.rotate (op))) / opl2 :
-               1.0 );
-    }
+    cvm::real const iprod = this->inner (q);
+    return 2.0*iprod*iprod - 1.0;
   }
 
   /// \brief Square distance from another quaternion on the

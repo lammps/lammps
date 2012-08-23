@@ -46,9 +46,8 @@ colvarmodule::colvarmodule (char const  *config_filename,
 
   parse->get_keyval (conf, "analysis", b_analysis, false);
 
-  if (cvm::debug())
-    parse->get_keyval (conf, "debugGradientsStepSize", debug_gradients_step_size, 1.0e-03,
-                       colvarparse::parse_silent);
+  parse->get_keyval (conf, "debugGradientsStepSize", debug_gradients_step_size, 1.0e-03,
+                     colvarparse::parse_silent);
 
   parse->get_keyval (conf, "eigenvalueCrossingThreshold",
                      colvarmodule::rotation::crossing_threshold, 1.0e-04,

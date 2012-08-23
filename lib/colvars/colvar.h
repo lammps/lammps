@@ -471,7 +471,7 @@ public:
   class distance;
   class distance_z;
   class distance_xy;
-  class distance6;
+  class distance_inv;
   class angle;
   class dihedral;
   class coordnum;

@@ -111,11 +111,6 @@ public:
   /// report their differences
   bool b_debug_gradients;
 
-  /// \brief When b_debug_gradients is true, this function can be used
-  /// to calculate the estimated change in the value using the change
-  /// in the atomic coordinates times the atomic gradients
-  colvarvalue fdiff_change (cvm::atom_group &group);
-
   /// \brief If this flag is false (default), inverse gradients
   /// (derivatives of atom coordinates with respect to x) are
   /// unavailable; it should be set to true by the constructor of each
@@ -475,16 +470,16 @@ public:
 
 /// \brief Colvar component: average distance between two groups of atoms, weighted as the sixth power,
 /// as in NMR refinements (colvarvalue::type_scalar type, range (0:*))
-class colvar::distance6
+class colvar::distance_inv
   : public colvar::distance
 {
 protected:
   /// Components of the distance vector orthogonal to the axis
-  cvm::real smoothing;
+  int exponent;
 public:
-  distance6 (std::string const &conf);
-  distance6();
-  virtual inline ~distance6() {}
+  distance_inv (std::string const &conf);
+  distance_inv();
+  virtual inline ~distance_inv() {}
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force (colvarvalue const &force);
@@ -1301,7 +1296,7 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   simple_scalar_dist_functions (distance)
   // NOTE: distance_z has explicit functions, see below 
   simple_scalar_dist_functions (distance_xy)
-  simple_scalar_dist_functions (distance6)
+  simple_scalar_dist_functions (distance_inv)
   simple_scalar_dist_functions (angle)
   simple_scalar_dist_functions (coordnum)
   simple_scalar_dist_functions (selfcoordnum)

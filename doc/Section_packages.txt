@@ -57,6 +57,7 @@ PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
 REPLICA, multi-replica methods, -, "Section_howto"_Section_howto.html#howto_5, tad, -
+RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
 SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
 XTC, dumps in XTC format, -, "dump"_dump.html, -, -

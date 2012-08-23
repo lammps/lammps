@@ -17,12 +17,13 @@
 #include "lal_ellipsoid_extra.h"
 #endif
 
-__kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
-                   __global numtyp4* shape, __global numtyp4* well, 
-                   __global numtyp *splj, __global numtyp2* sig_eps,
-                   const int ntypes, __global int *dev_nbor, const int stride, 
-                   __global acctyp4 *ans, const int astride, 
-                   __global acctyp *engv, __global int *err_flag, 
+__kernel void k_resquared_ellipsoid_sphere(__global numtyp4* x_,
+                  __global numtyp4 *q, __global numtyp4* shape, 
+                  __global numtyp4* well, __global numtyp *splj, 
+                  __global numtyp2* sig_eps, const int ntypes, 
+                  __global int *dev_nbor, const int stride, 
+                  __global acctyp4 *ans, const int astride, 
+                  __global acctyp *engv, __global int *err_flag, 
                    const int eflag, const int vflag, const int inum,
                    const int t_per_atom) {
   int tid, ii, offset;
@@ -59,7 +60,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
   
-    numtyp4 ix=x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
     numtyp a[9];       // Rotation matrix (lab->body)
@@ -84,7 +85,7 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex);
       int jtype=jx.w;
 
       // Compute r12
@@ -331,14 +332,14 @@ __kernel void kernel_ellipsoid_sphere(__global numtyp4* x_,__global numtyp4 *q,
   } // if ii
 }
 
-__kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
-                               __global numtyp4* shape,__global numtyp4* well, 
-                               __global numtyp *splj, __global numtyp2* sig_eps, 
-                               const int ntypes, __global int *dev_nbor,
-                               const int stride, __global acctyp4 *ans,
-                               __global acctyp *engv, __global int *err_flag,
-                               const int eflag, const int vflag,const int start,
-                               const int inum, const int t_per_atom) {
+__kernel void k_resquared_sphere_ellipsoid(__global numtyp4 *x_,
+                  __global numtyp4 *q, __global numtyp4* shape,
+                  __global numtyp4* well, __global numtyp *splj,
+                  __global numtyp2* sig_eps, const int ntypes, 
+                  __global int *dev_nbor, const int stride, 
+                  __global acctyp4 *ans, __global acctyp *engv, 
+                  __global int *err_flag, const int eflag, const int vflag,
+                  const int start, const int inum, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
@@ -370,7 +371,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,j,numj,
                 n_stride,nbor_end,nbor);
   
-    numtyp4 jx=x_[j];
+    numtyp4 jx; fetch4(jx,j,pos_tex);
     int jtype=jx.w;
 
     numtyp factor_lj;
@@ -379,7 +380,7 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
       factor_lj = sp_lj[sbmask(i)];
       i &= NEIGHMASK;
 
-      numtyp4 ix=x_[i];
+      numtyp4 ix; fetch4(ix,i,pos_tex);
       int itype=ix.w;
 
       numtyp a[9];       // Rotation matrix (lab->body)
@@ -524,14 +525,13 @@ __kernel void kernel_sphere_ellipsoid(__global numtyp4 *x_,__global numtyp4 *q,
   } // if ii
 }
 
-__kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1, 
-                        __global numtyp4* lj3, const int lj_types, 
-                        __global numtyp *gum, 
-                        const int stride, __global int *dev_ij, 
-                        __global acctyp4 *ans, __global acctyp *engv, 
-                        __global int *err_flag, const int eflag, 
-                        const int vflag, const int start, const int inum, 
-                        const int t_per_atom) {
+__kernel void k_resquared_lj(__global numtyp4 *x_, __global numtyp4 *lj1, 
+                             __global numtyp4* lj3, const int lj_types, 
+                             __global numtyp *gum, const int stride, 
+                             __global int *dev_ij, __global acctyp4 *ans,
+                             __global acctyp *engv, __global int *err_flag,
+                             const int eflag, const int vflag, const int start,
+                             const int inum, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
@@ -557,7 +557,7 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
   
-    numtyp4 ix=x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
     numtyp factor_lj;
@@ -567,7 +567,7 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex);
       int jtype=jx.w;
 
       // Compute r12
@@ -606,13 +606,12 @@ __kernel void kernel_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in, 
-                             __global numtyp4* lj3_in, __global numtyp *gum, 
-                             const int stride, __global int *dev_ij,
-                             __global acctyp4 *ans, __global acctyp *engv,
-                             __global int *err_flag, const int eflag,
-                             const int vflag, const int start, const int inum,
-                             const int t_per_atom) {
+__kernel void k_resquared_lj_fast(__global numtyp4 *x_, 
+                  __global numtyp4 *lj1_in, __global numtyp4* lj3_in, 
+                  __global numtyp *gum, const int stride, __global int *dev_ij,
+                  __global acctyp4 *ans, __global acctyp *engv, 
+                  __global int *err_flag, const int eflag, const int vflag,
+                  const int start, const int inum, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
@@ -645,7 +644,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
 
-    numtyp4 ix=x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
@@ -656,7 +655,7 @@ __kernel void kernel_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex);
       int mtype=itype+jx.w;
 
       // Compute r12

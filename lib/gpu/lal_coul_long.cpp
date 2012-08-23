@@ -13,10 +13,12 @@
     email                : a.kohlmeyer@temple.edu
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "coul_long_cl.h"
+#elif defined(USE_CUDART)
+const char *coul_long=0;
 #else
-#include "coul_long_ptx.h"
+#include "coul_long_cubin.h"
 #endif
 
 #include "lal_coul_long.h"
@@ -48,7 +50,7 @@ int CoulLongT::init(const int nlocal, const int nall, const int max_nbors,
 			 const double qqrd2e, const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-			    gpu_split,_screen,coul_long);
+			                      gpu_split,_screen,coul_long,"k_coul_long");
   if (success!=0)
     return success;
 
@@ -132,22 +134,18 @@ void CoulLongT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &lj1.begin(),
-                          &lj3.begin(), &sp_cl.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->atom->dev_q.begin(),
-                          &_cut_coulsq, &_qqrd2e, &_g_ewald,
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &sp_cl,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->ans->force, &this->ans->engv,
+                          &eflag, &vflag, &ainum, &nbor_pitch, 
+                          &this->atom->q, &_cut_coulsq, &_qqrd2e, &_g_ewald,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &lj1.begin(), &lj3.begin(),
-                     &_lj_types, &sp_cl.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->atom->dev_q.begin(), &_cut_coulsq,
+    this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_cl,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                     &ainum, &nbor_pitch, &this->atom->q, &_cut_coulsq,
                      &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
   }
   this->time_pair.stop();

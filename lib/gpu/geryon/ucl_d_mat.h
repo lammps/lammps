@@ -344,6 +344,39 @@ class UCL_D_Mat : public UCL_BaseMat {
   inline void clear() 
     { _rows=0; if (_kind!=UCL_VIEW) { _kind=UCL_VIEW; _device_free(*this); } }
 
+  /// Resize the allocation to contain cols elements
+  /** \note Cannot be used on views **/
+  inline int resize(const int rows, const int cols) {
+    assert(_kind!=UCL_VIEW);
+
+    int err=_device_resize(*this,rows,cols,_pitch);
+    if (err!=UCL_SUCCESS) {
+      #ifndef UCL_NO_EXIT
+      std::cerr << "UCL Error: Could not allocate " 
+                << rows*cols*sizeof(numtyp) << " bytes on device.\n";
+      UCL_GERYON_EXIT;
+      #endif
+      return err;
+    }
+
+    _rows=rows;
+    _cols=cols;
+    _row_size=_pitch/sizeof(numtyp);
+    #ifndef _UCL_DEVICE_PTR_MAT
+    _end=_array+_row_size*cols;
+    #endif
+    #ifdef _OCL_MAT
+    _offset=0;
+    #endif
+    return err; 
+  }
+    
+  /// Resize (only if bigger) the allocation to contain rows x cols elements
+  /** \note Cannot be used on views **/
+  inline int resize_ib(const int rows, const int cols)
+    { if (cols>_cols || rows>_rows) return resize(rows,cols); 
+      else return UCL_SUCCESS; }
+
   /// Set each element to zero
   inline void zero() { _device_zero(*this,row_bytes()*_rows); }
   
@@ -357,9 +390,9 @@ class UCL_D_Mat : public UCL_BaseMat {
   inline const device_ptr & begin() const { return _array; }
   #else
   /// For CUDA-RT, get device pointer to first element
-  inline numtyp * begin() { return _array; }
+  inline numtyp * & begin() { return _array; }
   /// For CUDA-RT, get device pointer to first element
-  inline const numtyp * begin() const { return _array; }
+  inline numtyp * const & begin() const { return _array; }
   /// For CUDA-RT, get device pointer to one past last element
   inline numtyp * end() { return _end; }
   /// For CUDA-RT, get device pointer to one past last element

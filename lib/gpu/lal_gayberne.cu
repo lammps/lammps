@@ -18,7 +18,7 @@
 #endif
 
 ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
-                                 numtyp ans[9])
+                                   numtyp ans[9])
 {
   numtyp den = m[3]*m[2]*m[7]-m[0]*m[5]*m[7]-
     m[2]*m[6]*m[4]+m[1]*m[6]*m[5]-
@@ -80,15 +80,15 @@ ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape
 		    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
-__kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
-                               __global numtyp4* shape, __global numtyp4* well, 
-                               __global numtyp *gum, __global numtyp2* sig_eps, 
-                               const int ntypes, __global numtyp *lshape, 
-                               __global int *dev_nbor, const int stride, 
-                               __global acctyp4 *ans, const int astride, 
-                               __global acctyp *engv, __global int *err_flag, 
-                               const int eflag, const int vflag, const int inum,
-                               const int t_per_atom) {
+__kernel void k_gayberne(__global numtyp4* x_,__global numtyp4 *q,
+                         __global numtyp4* shape, __global numtyp4* well, 
+                         __global numtyp *gum, __global numtyp2* sig_eps, 
+                         const int ntypes, __global numtyp *lshape, 
+                         __global int *dev_nbor, const int stride, 
+                         __global acctyp4 *ans, const int astride, 
+                         __global acctyp *engv, __global int *err_flag, 
+                         const int eflag, const int vflag, const int inum,
+                         const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -117,7 +117,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
   
-    numtyp4 ix=x_[i];
+    numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
     numtyp a1[9], b1[9], g1[9];
     numtyp4 ishape=shape[itype];
@@ -136,7 +136,7 @@ __kernel void kernel_ellipsoid(__global numtyp4* x_,__global numtyp4 *q,
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      numtyp4 jx=x_[j];
+      numtyp4 jx; fetch4(jx,j,pos_tex);
       int jtype=jx.w;
 
       // Compute r12

@@ -85,6 +85,21 @@ inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
     free(mat.begin());
 }
 
+template <class mat_type>
+inline int _host_resize(mat_type &mat, const size_t n) {
+  _host_free(mat,mat.kind());
+  CUresult err=CUDA_SUCCESS;
+  if (mat.kind()==UCL_RW_OPTIMIZED)  
+    err=cuMemAllocHost((void **)mat.host_ptr(),n);
+  else if (mat.kind()==UCL_WRITE_OPTIMIZED)
+    err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
+  else
+    *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+  if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
+    return UCL_MEMORY_ERROR;
+  return UCL_SUCCESS;
+}
+
 // --------------------------------------------------------------------------
 // - DEVICE MEMORY ALLOCATION ROUTINES
 // --------------------------------------------------------------------------
@@ -142,6 +157,29 @@ template <class mat_type>
 inline void _device_free(mat_type &mat) {
   CU_DESTRUCT_CALL(cuMemFree(mat.cbegin()));
 }
+
+template <class mat_type>
+inline int _device_resize(mat_type &mat, const size_t n) {
+  _device_free(mat);
+  CUresult err=cuMemAlloc(&mat.cbegin(),n);
+  if (err!=CUDA_SUCCESS)
+    return UCL_MEMORY_ERROR;
+  return UCL_SUCCESS;
+}
+
+template <class mat_type>
+inline int _device_resize(mat_type &mat, const size_t rows,
+                          const size_t cols, size_t &pitch) {
+  _device_free(mat);
+  CUresult err;
+  CUDA_INT_TYPE upitch;                        
+  err=cuMemAllocPitch(&mat.cbegin(),&upitch,
+                      cols*sizeof(typename mat_type::data_type),rows,16);
+  pitch=static_cast<size_t>(upitch);                               
+  if (err!=CUDA_SUCCESS)
+    return UCL_MEMORY_ERROR;
+  return UCL_SUCCESS;
+}    
 
 inline void _device_view(CUdeviceptr *ptr, CUdeviceptr &in) { 
   *ptr=in;

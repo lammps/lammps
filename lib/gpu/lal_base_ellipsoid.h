@@ -20,8 +20,10 @@
 #include "lal_balance.h"
 #include "mpi.h"
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "geryon/ocl_texture.h"
+#elif defined(USE_CUDART)
+#include "geryon/nvc_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -39,6 +41,7 @@ class BaseEllipsoid {
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
     * \param ellipsoid_sphere true if ellipsoid-sphere case handled separately
+    * \param k_name name for the kernel for force calculation
     * 
     * Returns:
     * -  0 if successfull
@@ -49,8 +52,9 @@ class BaseEllipsoid {
   int init_base(const int nlocal, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size,
                 const double gpu_split, FILE *screen, const int ntypes,
-                int **h_form, const char *ellipsoid_program,
-                const char *lj_program, const bool ellipsoid_sphere=false);
+                int **h_form, const void *ellipsoid_program,
+                const void *lj_program, const char *k_name,
+                const bool ellipsoid_sphere=false);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
@@ -58,7 +62,13 @@ class BaseEllipsoid {
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int nall, bool &success) {
-    atom->resize(nall, success);
+    if (atom->resize(nall, success)) {
+      neigh_tex.bind_float(atom->x,4);
+      pos_tex.bind_float(atom->x,4);
+      quat_tex.bind_float(atom->quat,4);
+      lj_pos_tex.bind_float(atom->x,4);
+      lj_quat_tex.bind_float(atom->quat,4);
+    }      
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
@@ -74,7 +84,7 @@ class BaseEllipsoid {
                            const int max_nbors, const int olist_size,
                            bool &success) {
     ans->resize(nlocal, success);
-    if (_multiple_forms) ans->dev_ans.zero();
+    if (_multiple_forms) ans->force.zero();
 
     if (olist_size>static_cast<int>(host_olist.numel())) {
       host_olist.clear();
@@ -221,8 +231,7 @@ class BaseEllipsoid {
   inline int block_size() { return _block_size; }
 
   // --------------------------- TEXTURES -----------------------------
-  UCL_Texture pos_tex;
-  UCL_Texture q_tex;
+  UCL_Texture pos_tex, quat_tex, lj_pos_tex, lj_quat_tex, neigh_tex;
 
  protected:
   bool _compiled, _ellipsoid_sphere;
@@ -236,8 +245,8 @@ class BaseEllipsoid {
   int **_host_form;
   int _last_ellipse, _max_last_ellipse;
 
-  void compile_kernels(UCL_Device &dev, const char *ellipsoid_string,
-                       const char *lj_string, const bool e_s);
+  void compile_kernels(UCL_Device &dev, const void *ellipsoid_string,
+                       const void *lj_string, const char *kname,const bool e_s);
 
   virtual void loop(const bool _eflag, const bool _vflag) = 0;
 };

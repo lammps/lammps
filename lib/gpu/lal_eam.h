@@ -52,8 +52,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
     if (nghost>0) {
       UCL_H_Vec<numtyp> host_view;
       UCL_D_Vec<numtyp> dev_view;
-      host_view.view_offset(_nlocal,host_fp);
-      dev_view.view_offset(_nlocal,dev_fp);
+      host_view.view_offset(_nlocal,_fp.host);
+      dev_view.view_offset(_nlocal,_fp.device);
       ucl_copy(dev_view,host_view,nghost,true);
     }
   }
@@ -128,8 +128,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   bool _compiled_energy;
   
   /// Per-atom arrays
-  UCL_H_Vec<numtyp> host_fp;
-  UCL_D_Vec<numtyp> dev_fp;
+  UCL_Vector<numtyp,numtyp> _fp;
   
 protected:
   bool _allocated;

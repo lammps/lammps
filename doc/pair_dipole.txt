@@ -7,8 +7,10 @@
 :line
 
 pair_style dipole/cut command :h3
+pair_style dipole/cut/gpu command :h3
 pair_style dipole/cut/omp command :h3
 pair_style dipole/sf command :h3
+pair_style dipole/sf/gpu command :h3
 pair_style dipole/sf/omp command :h3
 
 [Syntax:]

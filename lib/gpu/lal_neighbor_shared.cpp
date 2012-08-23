@@ -16,12 +16,15 @@
 #include "lal_precision.h"
 #include "lal_neighbor_shared.h"
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "neighbor_cpu_cl.h"
 #include "neighbor_gpu_cl.h"
+#elif defined(USE_CUDART)
+const char *neighbor_cpu=0;
+const char *neighbor_gpu=0;
 #else
-#include "neighbor_cpu_ptx.h"
-#include "neighbor_gpu_ptx.h"
+#include "neighbor_cpu_cubin.h"
+#include "neighbor_gpu_cubin.h"
 #endif
 
 using namespace LAMMPS_AL;
@@ -69,7 +72,7 @@ void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor) {
     k_build_nbor.set_function(*build_program,"calc_neigh_list_cell");
     k_transpose.set_function(*build_program,"transpose");
     k_special.set_function(*build_program,"kernel_special");
-    neigh_tex.get_texture(*build_program,"neigh_tex");
+    neigh_tex.get_texture(*build_program,"pos_tex");
   }
   _compiled=true;
 }

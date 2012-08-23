@@ -270,4 +270,13 @@ template <class numtyp>
 inline std::ostream & operator << (std::ostream &out, UCL_D_Mat<numtyp> &mat)
   { ucl_print(mat,out); return out; } 
 
+
+template <class t1, class t2>
+inline std::ostream & operator << (std::ostream &out, UCL_Vector<t1,t2> &mat)
+  { ucl_print(mat.host,out); return out; } 
+
+template <class t1, class t2>
+inline std::ostream & operator << (std::ostream &out, UCL_Matrix<t1,t2> &mat)
+  { ucl_print(mat.host,out); return out; } 
+
 #endif

@@ -19,18 +19,18 @@
 #include <math.h>
 #include "mpi.h"
 
-#ifdef USE_OPENCL
-
+#if defined(USE_OPENCL)
 #include "geryon/ocl_timer.h"
 #include "geryon/ocl_mat.h"
 using namespace ucl_opencl;
-
+#elif defined(USE_CUDART)
+#include "geryon/nvc_timer.h"
+#include "geryon/nvc_mat.h"
+using namespace ucl_cudart;
 #else
-
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 using namespace ucl_cudadr;
-
 #endif
 
 #include "lal_precision.h"
@@ -59,8 +59,10 @@ class Answer {
   inline void resize(const int inum, bool &success) {
     _inum=inum;
     if (inum>_max_local) {
-      clear_resize();
-      success = success && alloc(inum);
+      _max_local=static_cast<int>(static_cast<double>(inum)*1.10);
+      success=success && (force.resize(_max_local*_ans_fields)==UCL_SUCCESS);
+      success=success && (engv.resize(_max_local*_ev_fields)==UCL_SUCCESS);
+      _gpu_bytes=engv.device.row_bytes()+force.device.row_bytes();
     }
   }
   
@@ -68,9 +70,6 @@ class Answer {
   /** \param rot True if atom storage needs quaternions **/
   bool add_fields(const bool charge, const bool rot);
   
-  /// Free all memory on host and device needed to realloc for more atoms
-  void clear_resize();
-
   /// Free all memory on host and device
   void clear();
  
@@ -136,14 +135,9 @@ class Answer {
   // ------------------------------ DATA ----------------------------------
 
   /// Force and possibly torque
-  UCL_D_Vec<acctyp> dev_ans;
+  UCL_Vector<acctyp,acctyp> force;
   /// Energy and virial per-atom storage
-  UCL_D_Vec<acctyp> dev_engv;
-  
-  /// Force and possibly torque data on host
-  UCL_H_Vec<acctyp> host_ans;
-  /// Energy/virial data on host
-  UCL_H_Vec<acctyp> host_engv;
+  UCL_Vector<acctyp,acctyp> engv;
   
   /// Device timers
   UCL_Timer time_answer;
@@ -155,7 +149,7 @@ class Answer {
   bool alloc(const int inum);
   
   bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
-  int _max_local, _inum, _e_fields, _ev_fields;
+  int _max_local, _inum, _e_fields, _ev_fields, _ans_fields;
   int *_ilist;
   double _time_cast, _time_cpu_idle;
   

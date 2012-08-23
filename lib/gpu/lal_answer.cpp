@@ -39,30 +39,16 @@ bool AnswerT::alloc(const int inum) {
 
   bool success=true;
   
-  int ans_elements=4;
+  _ans_fields=4;
   if (_rot)
-    ans_elements+=4;
+    _ans_fields+=4;
   
-  // Ignore host/device transfers?
-  bool cpuview=false;
-  if (dev->device_type()==UCL_CPU)
-    cpuview=true;
-    
-  // --------------------------   Host allocations
-  success=success &&(host_ans.alloc(ans_elements*_max_local,*dev)==UCL_SUCCESS);
-  success=success &&(host_engv.alloc(_ev_fields*_max_local,*dev)==UCL_SUCCESS);
-    
   // ---------------------------  Device allocations
-  if (cpuview) {
-    dev_engv.view(host_engv);
-    dev_ans.view(host_ans);
-  } else {
-    success=success && (dev_engv.alloc(_ev_fields*_max_local,*dev,
-                                       UCL_WRITE_ONLY)==UCL_SUCCESS);
-    success=success && (dev_ans.alloc(ans_elements*_max_local,
-                                      *dev,UCL_WRITE_ONLY)==UCL_SUCCESS);
-  }
-  _gpu_bytes=dev_engv.row_bytes()+dev_ans.row_bytes();
+  success=success && (engv.alloc(_ev_fields*_max_local,*dev,UCL_RW_OPTIMIZED,
+                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
+  success=success && (force.alloc(_ans_fields*_max_local,*dev,UCL_RW_OPTIMIZED,
+                                UCL_WRITE_ONLY)==UCL_SUCCESS);
+  _gpu_bytes=engv.device.row_bytes()+force.device.row_bytes();
   
   _allocated=true;  
   return success;
@@ -114,22 +100,12 @@ bool AnswerT::add_fields(const bool charge, const bool rot) {
   if (realloc) {
     _other=_charge || _rot;
     int inum=_max_local;
-    clear_resize();
+    force.clear();
+    engv.clear();
+    _allocated=false;
     return alloc(inum);
   }
   return true;
-}
-
-template <class numtyp, class acctyp>
-void AnswerT::clear_resize() {
-  if (!_allocated)
-    return;
-  _allocated=false;
-
-  dev_ans.clear();
-  dev_engv.clear();
-  host_ans.clear();
-  host_engv.clear();
 }
 
 template <class numtyp, class acctyp>
@@ -137,9 +113,11 @@ void AnswerT::clear() {
   _gpu_bytes=0;
   if (!_allocated)
     return;
+  _allocated=false;
 
+  force.clear();
+  engv.clear();
   time_answer.clear();
-  clear_resize();
   _inum=0;
   _ilist=NULL;
   _eflag=false;
@@ -174,11 +152,11 @@ void AnswerT::copy_answers(const bool eflag, const bool vflag,
     csize-=6;
       
   if (csize>0)
-    ucl_copy(host_engv,dev_engv,_inum*csize,true);
+    engv.update_host(_inum*csize,true);
   if (_rot)
-    ucl_copy(host_ans,dev_ans,_inum*4*2,true);
+    force.update_host(_inum*4*2,true);
   else
-    ucl_copy(host_ans,dev_ans,_inum*4,true);
+    force.update_host(_inum*4,true);
   time_answer.stop();
 }
 
@@ -201,28 +179,28 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
   for (int i=0; i<6; i++) virial_acc[i]=0.0;
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
-      acctyp *ap=host_engv.begin()+i;
+      int al=i;
       if (_eflag) {
         if (_ef_atom) {
-          evdwl+=*ap;
-          eatom[i]+=*ap*0.5;
-          ap+=_inum;
+          evdwl+=engv[al];
+          eatom[i]+=engv[al]*0.5;
+          al+=_inum;
         } else {
-          evdwl+=*ap;
-          ap+=_inum;
+          evdwl+=engv[al];
+          al+=_inum;
         }
       }
       if (_vflag) {
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
-            vatom[i][j]+=*ap*0.5;
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            vatom[i][j]+=engv[al]*0.5;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         }
       }
@@ -231,29 +209,29 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       virial[j]+=virial_acc[j]*0.5;
   } else {
     for (int i=0; i<_inum; i++) {
-      acctyp *ap=host_engv.begin()+i;
+      int al=i;
       int ii=_ilist[i];
       if (_eflag) {
         if (_ef_atom) {
-          evdwl+=*ap;
-          eatom[ii]+=*ap*0.5;
-          ap+=_inum;
+          evdwl+=engv[al];
+          eatom[ii]+=engv[al]*0.5;
+          al+=_inum;
         } else {
-          evdwl+=*ap;
-          ap+=_inum;
+          evdwl+=engv[al];
+          al+=_inum;
         }
       }
       if (_vflag) {
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
-            vatom[ii][j]+=*ap*0.5;
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            vatom[ii][j]+=engv[al]*0.5;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         }
       }
@@ -281,33 +259,33 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
   for (int i=0; i<6; i++) virial_acc[i]=0.0;
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
-      acctyp *ap=host_engv.begin()+i;
+      int al=i;
       if (_eflag) {
         if (_ef_atom) {
-          evdwl+=*ap;
-          eatom[i]+=*ap*0.5;
-          ap+=_inum;
-          _ecoul+=*ap;
-          eatom[i]+=*ap*0.5;
-          ap+=_inum;
+          evdwl+=engv[al];
+          eatom[i]+=engv[al]*0.5;
+          al+=_inum;
+          _ecoul+=engv[al];
+          eatom[i]+=engv[al]*0.5;
+          al+=_inum;
         } else {
-          evdwl+=*ap;
-          ap+=_inum;
-          _ecoul+=*ap;
-          ap+=_inum;
+          evdwl+=engv[al];
+          al+=_inum;
+          _ecoul+=engv[al];
+          al+=_inum;
         }
       }
       if (_vflag) {
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
-            vatom[i][j]+=*ap*0.5;
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            vatom[i][j]+=engv[al]*0.5;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         }
       }
@@ -316,34 +294,34 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       virial[j]+=virial_acc[j]*0.5;
   } else {
     for (int i=0; i<_inum; i++) {
-      acctyp *ap=host_engv.begin()+i;
+      int al=i;
       int ii=_ilist[i];
       if (_eflag) {
         if (_ef_atom) {
-          evdwl+=*ap;
-          eatom[ii]+=*ap*0.5;
-          ap+=_inum;
-          _ecoul+=*ap;
-          eatom[ii]+=*ap*0.5;
-          ap+=_inum;
+          evdwl+=engv[al];
+          eatom[ii]+=engv[al]*0.5;
+          al+=_inum;
+          _ecoul+=engv[al];
+          eatom[ii]+=engv[al]*0.5;
+          al+=_inum;
         } else {
-          evdwl+=*ap;
-          ap+=_inum;
-          _ecoul+=*ap;
-          ap+=_inum;
+          evdwl+=engv[al];
+          al+=_inum;
+          _ecoul+=engv[al];
+          al+=_inum;
         }
       }
       if (_vflag) {
         if (_vf_atom) {
           for (int j=0; j<6; j++) {
-            vatom[ii][j]+=*ap*0.5;
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            vatom[ii][j]+=engv[al]*0.5;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         } else {
           for (int j=0; j<6; j++) {
-            virial_acc[j]+=*ap;
-            ap+=_inum;
+            virial_acc[j]+=engv[al];
+            al+=_inum;
           }
         }
       }
@@ -359,45 +337,37 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
 
 template <class numtyp, class acctyp>
 void AnswerT::get_answers(double **f, double **tor) {
-  acctyp *ap=host_ans.begin();
+  int fl=0;
   if (_ilist==NULL) {
     for (int i=0; i<_inum; i++) {
-      f[i][0]+=*ap;
-      ap++;
-      f[i][1]+=*ap;
-      ap++;
-      f[i][2]+=*ap;
-      ap+=2;
+      f[i][0]+=force[fl];
+      f[i][1]+=force[fl+1];
+      f[i][2]+=force[fl+2];
+      fl+=4;
     }
     if (_rot) {
       for (int i=0; i<_inum; i++) {
-        tor[i][0]+=*ap;
-        ap++;
-        tor[i][1]+=*ap;
-        ap++;
-        tor[i][2]+=*ap;
-        ap+=2;
+        tor[i][0]+=force[fl];
+        tor[i][1]+=force[fl+1];
+        tor[i][2]+=force[fl+2];
+        fl+=4;
       }
     }
   } else {
     for (int i=0; i<_inum; i++) {
       int ii=_ilist[i];
-      f[ii][0]+=*ap;
-      ap++;
-      f[ii][1]+=*ap;
-      ap++;
-      f[ii][2]+=*ap;
-      ap+=2;
+      f[ii][0]+=force[fl];
+      f[ii][1]+=force[fl+1];
+      f[ii][2]+=force[fl+2];
+      fl+=4;
     }
     if (_rot) {
       for (int i=0; i<_inum; i++) {
         int ii=_ilist[i];
-        tor[ii][0]+=*ap;
-        ap++;
-        tor[ii][1]+=*ap;
-        ap++;
-        tor[ii][2]+=*ap;
-        ap+=2;
+        tor[ii][0]+=force[fl];
+        tor[ii][1]+=force[fl+1];
+        tor[ii][2]+=force[fl+2];
+        fl+=4;
       }
     }
   }

@@ -19,8 +19,10 @@
 #include "mpi.h"
 #include "lal_device.h"
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "geryon/ocl_texture.h"
+#elif defined(USE_CUDART)
+#include "geryon/nvc_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -55,8 +57,8 @@ class PPPM {
   /** \param success set to false if insufficient memory **/
   inline void resize_atom(const int inum, const int nall, bool &success) {
     if (atom->resize(nall, success)) {
-      pos_tex.bind_float(atom->dev_x,4);
-      q_tex.bind_float(atom->dev_q,1);
+      pos_tex.bind_float(atom->x,4);
+      q_tex.bind_float(atom->q,1);
     }
     ans->resize(inum,success);
   }
@@ -138,8 +140,8 @@ class PPPM {
 
   // --------------------------- GRID DATA --------------------------
 
-  UCL_H_Vec<grdtyp> h_brick, h_vd_brick;
-  UCL_D_Vec<grdtyp> d_brick;
+  UCL_Vector<grdtyp,grdtyp> brick;
+  UCL_Vector<grdtyp,grdtyp> vd_brick;
   
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
@@ -147,8 +149,7 @@ class PPPM {
   UCL_D_Vec<grdtyp4> d_brick_atoms;
   
   // Error checking for out of bounds atoms
-  UCL_D_Vec<int> d_error_flag;
-  UCL_H_Vec<int> h_error_flag;
+  UCL_Vector<int,int> error_flag;
   
   // Number of grid points in brick (including ghost)
   int _npts_x, _npts_y, _npts_z, _npts_yx;

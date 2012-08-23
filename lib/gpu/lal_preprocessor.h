@@ -107,7 +107,7 @@
 #define BLOCK_NBOR_BUILD 128
 #define BLOCK_PAIR 128
 #define BLOCK_BIO_PAIR 128
-#define MAX_SHARED_TYPES 11
+#define MAX_SHARED_TYPES 8
 
 #else
 
@@ -129,8 +129,21 @@
 #define MAX_BIO_SHARED_TYPES 128
 
 #ifdef _DOUBLE_DOUBLE
-ucl_inline double4 fetch_pos(const int& i, const double4 *pos) { return pos[i]; };
-ucl_inline double fetch_q(const int& i, const double *q) { return q[i]; };
+#define fetch4(ans,i,pos_tex) {                        \
+  int4 xy = tex1Dfetch(pos_tex,i*2);                   \
+  int4 zt = tex1Dfetch(pos_tex,i*2+1);                 \
+  ans.x=__hiloint2double(xy.y, xy.x);                  \
+  ans.y=__hiloint2double(xy.w, xy.z);                  \
+  ans.z=__hiloint2double(zt.y, zt.x);                  \
+  ans.w=__hiloint2double(zt.w, zt.z);                  \
+}
+#define fetch(ans,i,q_tex) {                           \
+  int2 qt = tex1Dfetch(q_tex,i);                       \
+  ans=__hiloint2double(qt.y, qt.x);                    \
+}
+#else
+#define fetch4(ans,i,pos_tex) ans=tex1Dfetch(pos_tex, i);
+#define fetch(ans,i,q_tex) ans=tex1Dfetch(q_tex,i);
 #endif
 
 #if (__CUDA_ARCH__ < 200)
@@ -293,8 +306,8 @@ typedef struct _double4 double4;
 #define BLOCK_ID_Y get_group_id(1)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define ucl_inline inline
-#define fetch_pos(i,y) x_[i]
-#define fetch_q(i,y) q_[i]
+#define fetch4(ans,i,x) ans=x[i]
+#define fetch(ans,i,q) ans=q[i]
 
 #define ucl_atan atan
 #define ucl_cbrt cbrt

@@ -13,10 +13,12 @@
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "yukawa_cl.h"
+#elif defined(USE_CUDART)
+const char *yukawa=0;
 #else
-#include "yukawa_ptx.h"
+#include "yukawa_cubin.h"
 #endif
 
 #include "lal_yukawa.h"
@@ -50,7 +52,7 @@ int YukawaT::init(const int ntypes,
                   const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,yukawa);
+                            _screen,yukawa,"k_yukawa");
   if (success!=0)
     return success;
 
@@ -129,20 +131,17 @@ void YukawaT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &coeff.begin(), &_kappa, 
-                          &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->_threads_per_atom);
+    this->k_pair_fast.run(&this->atom->x, &coeff, &_kappa, &sp_lj,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->ans->force, &this->ans->engv, &eflag,
+                          &vflag, &ainum, &nbor_pitch, 
+                          &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &coeff.begin(), &_kappa,
-                     &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->_threads_per_atom);
+    this->k_pair.run(&this->atom->x, &coeff, &_kappa, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                     &ainum, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

@@ -13,10 +13,12 @@
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "buck_coul_cl.h"
+#elif defined(USE_CUDART)
+const char *buck_coul=0;
 #else
-#include "buck_coul_ptx.h"
+#include "buck_coul_cubin.h"
 #endif
 
 #include "lal_buck_coul.h"
@@ -52,7 +54,7 @@ int BuckCoulT::init(const int ntypes, double **host_cutsq,
                    const double qqrd2e) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,buck_coul);
+                            _screen,buck_coul,"k_buck_coul");
   if (success!=0)
     return success;
 
@@ -142,23 +144,18 @@ void BuckCoulT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->dev_x.begin(), &coeff1.begin(),
-                          &coeff2.begin(), &sp_lj.begin(),
-                          &this->nbor->dev_nbor.begin(),
-                          &this->_nbor_data->begin(),
-                          &this->ans->dev_ans.begin(),
-                          &this->ans->dev_engv.begin(), &eflag, &vflag,
-                          &ainum, &nbor_pitch,
-                          &this->atom->dev_q.begin(), &cutsq.begin(),
-                          &_qqrd2e, &this->_threads_per_atom);
+    this->k_pair_fast.run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->ans->force, &this->ans->engv, &eflag,
+                          &vflag, &ainum, &nbor_pitch, &this->atom->q, 
+                          &cutsq, &_qqrd2e, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->dev_x.begin(), &coeff1.begin(), &coeff2.begin(),
-                     &_lj_types, &sp_lj.begin(), &this->nbor->dev_nbor.begin(),
-                     &this->_nbor_data->begin(), &this->ans->dev_ans.begin(),
-                     &this->ans->dev_engv.begin(), &eflag, &vflag, &ainum,
-                     &nbor_pitch, &this->atom->dev_q.begin(),
-                     &cutsq.begin(), &_qqrd2e, &this->_threads_per_atom);
+    this->k_pair.run(&this->atom->x, &coeff1, &coeff2, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                     &ainum, &nbor_pitch, &this->atom->q,
+                     &cutsq, &_qqrd2e, &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }

@@ -19,20 +19,21 @@
 #include <math.h>
 #include "mpi.h"
 
-#ifdef USE_OPENCL
-
+#if defined(USE_OPENCL)
 #include "geryon/ocl_timer.h"
 #include "geryon/ocl_mat.h"
 #include "geryon/ocl_kernel.h"
 using namespace ucl_opencl;
-
+#elif defined(USE_CUDART)
+#include "geryon/nvc_timer.h"
+#include "geryon/nvc_mat.h"
+#include "geryon/nvc_kernel.h"
+using namespace ucl_cudart;
 #else
-
 #include "geryon/nvd_timer.h"
 #include "geryon/nvd_mat.h"
 #include "geryon/nvd_kernel.h"
 using namespace ucl_cudadr;
-
 #endif
 
 #ifdef USE_CUDPP
@@ -92,7 +93,7 @@ class Atom {
   bool charge() { return _charge; }
   
   /// Returns true if GPU is using quaternions
-  bool quat() { return _rot; }
+  bool quaternion() { return _rot; }
   
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
@@ -148,9 +149,9 @@ class Atom {
 
   /// Pack LAMMPS atom type constants into matrix and copy to device
   template <class dev_typ, class t1>
-  inline void type_pack1(const int n, const int m_size,
-			 UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
-			 t1 **one) {
+  inline void type_pack1(const int n, const int m_size, 
+                         UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
+                         t1 **one) {
     int ii=0;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
@@ -167,8 +168,8 @@ class Atom {
   /// Pack LAMMPS atom type constants into 2 vectors and copy to device
   template <class dev_typ, class t1, class t2>
   inline void type_pack2(const int n, const int m_size,
-			 UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
-			 t1 **one, t2 **two) {
+                         UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
+                         t1 **one, t2 **two) {
     int ii=0;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
@@ -186,8 +187,8 @@ class Atom {
   /// Pack LAMMPS atom type constants (3) into 4 vectors and copy to device
   template <class dev_typ, class t1, class t2, class t3>
   inline void type_pack4(const int n, const int m_size,
-			 UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
-			 t1 **one, t2 **two, t3 **three) {
+                         UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
+                         t1 **one, t2 **two, t3 **three) {
     int ii=0;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
@@ -206,8 +207,8 @@ class Atom {
   /// Pack LAMMPS atom type constants (4) into 4 vectors and copy to device
   template <class dev_typ, class t1, class t2, class t3, class t4>
   inline void type_pack4(const int n, const int m_size,
-			 UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
-			 t1 **one, t2 **two, t3 **three, t4 **four) {
+                         UCL_D_Vec<dev_typ> &dev_v, UCL_H_Vec<numtyp> &buffer,
+                         t1 **one, t2 **two, t3 **three, t4 **four) {
     int ii=0;
     for (int i=0; i<n; i++) {
       for (int j=0; j<n; j++) {
@@ -251,16 +252,13 @@ class Atom {
       memcpy(host_x_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
       memcpy(host_type_cast.begin(),host_type,_nall*sizeof(int));
       #else
-      numtyp *_write_loc=host_x.begin();
+      int wl=0;
       for (int i=0; i<_nall; i++) {
-        *_write_loc=host_ptr[i][0];
-        _write_loc++;
-        *_write_loc=host_ptr[i][1];
-        _write_loc++;
-        *_write_loc=host_ptr[i][2];
-        _write_loc++;
-        *_write_loc=host_type[i];
-        _write_loc++;
+        x[wl]=host_ptr[i][0];
+        x[wl+1]=host_ptr[i][1];
+        x[wl+2]=host_ptr[i][2];
+        x[wl+3]=host_type[i];
+        wl+=4;
       }
       #endif
       _time_cast+=MPI_Wtime()-t;
@@ -273,15 +271,14 @@ class Atom {
     time_pos.start();
     if (_x_avail==false) {
       #ifdef GPU_CAST
-      ucl_copy(dev_x_cast,host_x_cast,_nall*3,true);
-      ucl_copy(dev_type_cast,host_type_cast,_nall,true);
+      x_cast.update_device(_nall*3,true);
+      type_cast.update_device(_nall,true);
       int block_size=64;
       int GX=static_cast<int>(ceil(static_cast<double>(_nall)/block_size));
       k_cast_x.set_size(GX,block_size);
-      k_cast_x.run(&dev_x.begin(), &dev_x_cast.begin(), &dev_type_cast.begin(), 
-                   &_nall);
+      k_cast_x.run(&x, &x_cast, &type_cast, &_nall);
       #else
-      ucl_copy(dev_x,host_x,_nall*4,true);
+      x.update_device(_nall*4,true);
       #endif
       _x_avail=true;
     }
@@ -299,18 +296,14 @@ class Atom {
   inline void cast_q_data(cpytyp *host_ptr) {
     if (_q_avail==false) {
       double t=MPI_Wtime();
-      if (dev->device_type()==UCL_CPU) {
-        if (sizeof(numtyp)==sizeof(double)) {
-          host_q.view((numtyp*)host_ptr,_nall,*dev);
-          dev_q.view(host_q);
-        } else
-          for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
-      } else {
-        if (sizeof(numtyp)==sizeof(double))
-          memcpy(host_q.begin(),host_ptr,_nall*sizeof(numtyp));
-        else
-          for (int i=0; i<_nall; i++) host_q[i]=host_ptr[i];
-      }
+      // If double precision, still memcpy for async transfers
+      if (_host_view) {
+        q.host.view((numtyp*)host_ptr,_nall,*dev);
+        q.device.view(q.host);
+      } else if (sizeof(numtyp)==sizeof(double))
+        memcpy(q.host.begin(),host_ptr,_nall*sizeof(numtyp));
+      else
+        for (int i=0; i<_nall; i++) q[i]=host_ptr[i];
       _time_cast+=MPI_Wtime()-t;
     }
   }
@@ -318,7 +311,7 @@ class Atom {
   // Copy charges to device asynchronously
   inline void add_q_data() {
     if (_q_avail==false) {
-      ucl_copy(dev_q,host_q,_nall,true);
+      q.update_device(_nall,true);
       _q_avail=true;
     }
   }
@@ -328,18 +321,13 @@ class Atom {
   inline void cast_quat_data(cpytyp *host_ptr) {
     if (_quat_avail==false) {
       double t=MPI_Wtime();
-      if (dev->device_type()==UCL_CPU) {
-        if (sizeof(numtyp)==sizeof(double)) {
-          host_quat.view((numtyp*)host_ptr,_nall*4,*dev);
-          dev_quat.view(host_quat);
-        } else
-          for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
-      } else {
-        if (sizeof(numtyp)==sizeof(double))
-          memcpy(host_quat.begin(),host_ptr,_nall*4*sizeof(numtyp));
-        else
-          for (int i=0; i<_nall*4; i++) host_quat[i]=host_ptr[i];
-      }
+      if (_host_view) {
+        quat.host.view((numtyp*)host_ptr,_nall*4,*dev);
+        quat.device.view(quat.host);
+      } else if (sizeof(numtyp)==sizeof(double))
+        memcpy(quat.host.begin(),host_ptr,_nall*4*sizeof(numtyp));
+      else
+        for (int i=0; i<_nall*4; i++) quat[i]=host_ptr[i];
       _time_cast+=MPI_Wtime()-t;
     }
   }
@@ -348,7 +336,7 @@ class Atom {
   /** Copies nall()*4 elements **/
   inline void add_quat_data() {
     if (_quat_avail==false) {
-      ucl_copy(dev_quat,host_quat,_nall*4,true);
+      quat.update_device(_nall*4,true);
       _quat_avail=true;
     }
   }
@@ -363,29 +351,23 @@ class Atom {
   inline double max_gpu_bytes() 
     { double m=_max_gpu_bytes; _max_gpu_bytes=0.0; return m; } 
 
+  /// Returns true if the device is addressing memory on the host
+  inline bool host_view() { return _host_view; }
+
   // ------------------------------ DATA ----------------------------------
 
   /// Atom coordinates and types ([0] is x, [1] is y, [2] is z, [3] is type
-  UCL_D_Vec<numtyp> dev_x;
+  UCL_Vector<numtyp,numtyp> x;
   /// Charges
-  UCL_D_Vec<numtyp> dev_q;
+  UCL_Vector<numtyp,numtyp> q;
   /// Quaterions
-  UCL_D_Vec<numtyp> dev_quat;
+  UCL_Vector<numtyp,numtyp> quat;
   
   #ifdef GPU_CAST
-  UCL_D_Vec<double> dev_x_cast;
-  UCL_D_Vec<int> dev_type_cast;
-  UCL_H_Vec<double> host_x_cast;
-  UCL_H_Vec<int> host_type_cast;
+  UCL_Vector<double,double> x_cast;
+  UCL_Vector<int,int> type_cast;
   #endif
 
-  /// Buffer for moving positions to device
-  UCL_H_Vec<numtyp> host_x;
-  /// Buffer for moving charge data to GPU
-  UCL_H_Vec<numtyp> host_q;
-  /// Buffer for moving quat data to GPU
-  UCL_H_Vec<numtyp> host_quat;
-  
   /// Cell list identifiers for device nbor builds
   UCL_D_Vec<unsigned> dev_cell_id;
   /// Cell list identifiers for device nbor builds
@@ -418,9 +400,9 @@ class Atom {
 
   bool alloc(const int nall);
   
-  bool _allocated, _rot, _charge, _other;
+  bool _allocated, _rot, _charge, _bonds, _other;
   int _max_atoms, _nall, _gpu_nbor;
-  bool _bonds;
+  bool _host_view;
   double _time_cast, _time_transfer;
   
   double _max_gpu_bytes;
@@ -434,3 +416,4 @@ class Atom {
 }
 
 #endif
+

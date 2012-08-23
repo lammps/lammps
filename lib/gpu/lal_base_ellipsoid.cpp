@@ -17,10 +17,12 @@
 #include <cstdlib>
 using namespace LAMMPS_AL;
 
-#ifdef USE_OPENCL
+#if defined(USE_OPENCL)
 #include "ellipsoid_nbor_cl.h"
+#elif defined(USE_CUDART)
+const char *ellipsoid_nbor=0;
 #else
-#include "ellipsoid_nbor_ptx.h"
+#include "ellipsoid_nbor_cubin.h"
 #endif
 
 #define BaseEllipsoidT BaseEllipsoid<numtyp, acctyp>
@@ -50,8 +52,9 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               const int max_nbors, const int maxspecial,
                               const double cell_size, const double gpu_split,
                               FILE *_screen, const int ntypes, int **h_form,
-                              const char *ellipsoid_program,
-                              const char *lj_program, const bool ellip_sphere) {
+                              const void *ellipsoid_program,
+                              const void *lj_program, const char *k_name,
+                              const bool ellip_sphere) {
   screen=_screen;
   _ellipsoid_sphere=ellip_sphere;
 
@@ -78,7 +81,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
-  compile_kernels(*ucl_device,ellipsoid_program,lj_program,ellip_sphere);
+  compile_kernels(*ucl_device,ellipsoid_program,lj_program,k_name,ellip_sphere);
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -112,7 +115,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   }
   
   if (_multiple_forms)
-    ans->dev_ans.zero();
+    ans->force.zero();
 
   // Memory for ilist ordered by particle type
   if (host_olist.alloc(nbor->max_atoms(),*ucl_device)==UCL_SUCCESS)
@@ -120,6 +123,12 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   else return -3;
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
+
+  neigh_tex.bind_float(atom->x,4);
+  pos_tex.bind_float(atom->x,4);
+  quat_tex.bind_float(atom->quat,4);
+  lj_pos_tex.bind_float(atom->x,4);
+  lj_quat_tex.bind_float(atom->quat,4);
 
   return 0;
 }
@@ -241,14 +250,12 @@ void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start,
   int stride=nbor->nbor_pitch();
   if (shared_types) {
     k_nbor_fast.set_size(GX,BX);
-    k_nbor_fast.run(&atom->dev_x.begin(), &cut_form.begin(), 
-                    &nbor->dev_nbor.begin(), &stride, &start, &inum,
-                    &nbor->dev_packed.begin(), &form_low, &form_high);
+    k_nbor_fast.run(&atom->x, &cut_form, &nbor->dev_nbor, &stride, &start,
+                    &inum, &nbor->dev_packed, &form_low, &form_high);
   } else {
     k_nbor.set_size(GX,BX);
-    k_nbor.run(&atom->dev_x.begin(), &cut_form.begin(), &ntypes,
-               &nbor->dev_nbor.begin(), &stride, &start, &inum, 
-               &nbor->dev_packed.begin(), &form_low, &form_high);
+    k_nbor.run(&atom->x, &cut_form, &ntypes, &nbor->dev_nbor, &stride,
+               &start, &inum, &nbor->dev_packed, &form_low, &form_high);
   }
 }
 
@@ -437,10 +444,17 @@ double BaseEllipsoidT::host_memory_usage_base() const {
 
 template <class numtyp, class acctyp>
 void BaseEllipsoidT::compile_kernels(UCL_Device &dev, 
-                                     const char *ellipsoid_string,
-                                     const char *lj_string, const bool e_s) {
+                                     const void *ellipsoid_string,
+                                     const void *lj_string, 
+                                     const char *kname, const bool e_s) {
   if (_compiled)
     return;
+
+  std::string kns=kname;
+  std::string s_sphere_ellipsoid=kns+"_sphere_ellipsoid";
+  std::string s_ellipsoid_sphere=kns+"_ellipsoid_sphere";
+  std::string s_lj=kns+"_lj";
+  std::string s_lj_fast=kns+"_lj_fast";
 
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
                     std::string(OCL_PRECISION_COMPILE)+" -D"+
@@ -450,18 +464,23 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   nbor_program->load_string(ellipsoid_nbor,flags.c_str());
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
+  neigh_tex.get_texture(*nbor_program,"pos_tex");
 
   ellipsoid_program=new UCL_Program(dev);
   ellipsoid_program->load_string(ellipsoid_string,flags.c_str());
-  k_ellipsoid.set_function(*ellipsoid_program,"kernel_ellipsoid");
+  k_ellipsoid.set_function(*ellipsoid_program,kname);
+  pos_tex.get_texture(*ellipsoid_program,"pos_tex");
+  quat_tex.get_texture(*ellipsoid_program,"quat_tex");
 
   lj_program=new UCL_Program(dev);
   lj_program->load_string(lj_string,flags.c_str());
-  k_sphere_ellipsoid.set_function(*lj_program,"kernel_sphere_ellipsoid");
-  k_lj_fast.set_function(*lj_program,"kernel_lj_fast");
-  k_lj.set_function(*lj_program,"kernel_lj");
+  k_sphere_ellipsoid.set_function(*lj_program,s_sphere_ellipsoid.c_str());
+  k_lj_fast.set_function(*lj_program,s_lj_fast.c_str());
+  k_lj.set_function(*lj_program,s_lj.c_str());
   if (e_s)
-    k_ellipsoid_sphere.set_function(*lj_program,"kernel_ellipsoid_sphere");
+    k_ellipsoid_sphere.set_function(*lj_program,s_ellipsoid_sphere.c_str());
+  lj_pos_tex.get_texture(*lj_program,"pos_tex");
+  lj_quat_tex.get_texture(*lj_program,"quat_tex");
 
   _compiled=true;
 }

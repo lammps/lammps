@@ -40,10 +40,10 @@ int BaseAtomicT::bytes_per_atom_atomic(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int BaseAtomicT::init_atomic(const int nlocal, const int nall,
-                                  const int max_nbors, const int maxspecial,
-                                  const double cell_size,
-                                  const double gpu_split, FILE *_screen,
-                                  const char *pair_program) {
+                             const int max_nbors, const int maxspecial,
+                             const double cell_size, const double gpu_split,
+                             FILE *_screen, const void *pair_program,
+                             const char *k_name) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -74,7 +74,7 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
-  compile_kernels(*ucl_device,pair_program);
+  compile_kernels(*ucl_device,pair_program,k_name);
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -83,7 +83,7 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
   time_pair.init(*ucl_device);
   time_pair.zero();
 
-  pos_tex.bind_float(atom->dev_x,4);
+  pos_tex.bind_float(atom->x,4);
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
@@ -266,18 +266,20 @@ double BaseAtomicT::host_memory_usage_atomic() const {
 }
 
 template <class numtyp, class acctyp>
-void BaseAtomicT::compile_kernels(UCL_Device &dev, const char *pair_str) {
+void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
+                                  const char *kname) {
   if (_compiled)
     return;
 
+  std::string s_fast=std::string(kname)+"_fast";
   std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
                     std::string(OCL_PRECISION_COMPILE)+" -D"+
                     std::string(OCL_VENDOR);
 
   pair_program=new UCL_Program(dev);
   pair_program->load_string(pair_str,flags.c_str());
-  k_pair_fast.set_function(*pair_program,"kernel_pair_fast");
-  k_pair.set_function(*pair_program,"kernel_pair");
+  k_pair_fast.set_function(*pair_program,s_fast.c_str());
+  k_pair.set_function(*pair_program,kname);
   pos_tex.get_texture(*pair_program,"pos_tex");
 
   _compiled=true;

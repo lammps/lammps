@@ -1330,8 +1330,8 @@ void PPPM::set_fft_parameters()
 
   nbuf_peratom = 6*nbuf;
   if (differentiation_flag != 1) {
+    nbuf_peratom += nbuf;
     nbuf *= 3;
-    nbuf_peratom++;
   }
 }
 

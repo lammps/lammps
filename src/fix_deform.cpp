@@ -245,7 +245,7 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (set[4].style &&
       (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
     error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
-  if (set[4].style &&
+  if (set[5].style &&
       (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
     error->all(FLERR,"Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
 

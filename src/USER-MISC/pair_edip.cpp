@@ -340,13 +340,13 @@ void PairEDIP::compute(int eflag, int vflag)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j][0] -= f_ij[0];
-      f[j][1] -= f_ij[1];
-      f[j][2] -= f_ij[2];
+      f[j][0] += f_ij[0];
+      f[j][1] += f_ij[1];
+      f[j][2] += f_ij[2];
 
-      f[i][0] += f_ij[0];
-      f[i][1] += f_ij[1];
-      f[i][2] += f_ij[2];
+      f[i][0] -= f_ij[0];
+      f[i][1] -= f_ij[1];
+      f[i][2] -= f_ij[2];
 
       // potential energy
 

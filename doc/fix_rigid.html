@@ -591,6 +591,10 @@ of the <A HREF = "run.html">run</A> command.  These fixes are not invoked during
 
 <P><B>Restrictions:</B>
 </P>
+<P>These fixes are all part of the RIGID package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
 <P>These fixes performs an MPI_Allreduce each timestep that is
 proportional in length to the number of rigid bodies.  Hence they will
 not scale well in parallel if large numbers of rigid bodies are

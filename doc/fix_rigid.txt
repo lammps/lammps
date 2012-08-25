@@ -578,6 +578,10 @@ of the "run"_run.html command.  These fixes are not invoked during
 
 [Restrictions:]
 
+These fixes are all part of the RIGID package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
 These fixes performs an MPI_Allreduce each timestep that is
 proportional in length to the number of rigid bodies.  Hence they will
 not scale well in parallel if large numbers of rigid bodies are

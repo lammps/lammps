@@ -59,8 +59,9 @@ class PairGranHookeHistory : public Pair {
   double *maxrad_dynamic,*maxrad_frozen;
 
   class FixShearHistory *fix_history;
-  class FixRigid *fix_rigid;
+  class Fix *fix_rigid;
   int *body;
+  double *mass_rigid;
 
   void allocate();
 };

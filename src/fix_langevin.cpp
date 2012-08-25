@@ -805,7 +805,7 @@ double FixLangevin::compute_scalar()
 
 void *FixLangevin::extract(const char *str, int &dim)
 {
-  dim=0;
+  dim = 0;
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }

@@ -47,6 +47,8 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
   virtual int timing(int, double &, double &) {return 0;}
+  virtual int timing_1d(int, double &) {return 0;}
+  virtual int timing_3d(int, double &) {return 0;}
   virtual double memory_usage() {return 0.0;}
 
  protected:

@@ -15,7 +15,7 @@ OBJ = 	$(SRC:.cpp=.o)
 
 PACKAGE = asphere class2 colloid dipole fld gpu granular kim \
 	  kspace manybody mc meam molecule opt peri poems reax replica \
-	  shock srd xtc
+	  rigid shock srd xtc
 
 PACKUSER = user-misc user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-cuda user-eff user-ewaldn user-omp user-molfile \

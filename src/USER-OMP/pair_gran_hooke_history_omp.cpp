@@ -16,7 +16,7 @@
 #include "pair_gran_hooke_history_omp.h"
 #include "atom.h"
 #include "comm.h"
-#include "fix_rigid.h"
+#include "fix.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -53,7 +53,9 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
   // update body ptr and values for ghost atoms if using FixRigid masses
 
   if (fix_rigid && neighbor->ago == 0) {
-    body = fix_rigid->body;
+    int tmp;
+    body = (int *) fix_rigid->extract("body",tmp);
+    mass_rigid = (double *) fix_rigid->extract("masstotal",tmp);
     comm->forward_comm_pair(this);
   }
 
@@ -196,8 +198,8 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
           mj = mass[type[j]];
         }
         if (fix_rigid) {
-          if (body[i] >= 0) mi = fix_rigid->masstotal[body[i]];
-          if (body[j] >= 0) mj = fix_rigid->masstotal[body[j]];
+          if (body[i] >= 0) mi = mass_rigid[body[i]];
+          if (body[j] >= 0) mj = mass_rigid[body[j]];
         }
 
         meff = mi*mj / (mi+mj);

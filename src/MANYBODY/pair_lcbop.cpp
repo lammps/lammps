@@ -333,9 +333,9 @@ void PairLCBOP::SR_neigh()
 
       if (rsq < r_2_sq) {
         double f_c_ij = f_c(sqrt(rsq),r_1,r_2,&dS);
-        double Nij = N[i]-f_c_ij;
+        double Nji = N[j]-f_c_ij;
         // F(xij) = 1-f_c_LR(Nji, 2,3,&dummy)
-        M[i] += f_c_ij * ( 1-f_c_LR(Nij, 2,3,&dS) );
+        M[i] += f_c_ij * ( 1-f_c_LR(Nji, 2,3,&dS) );
       }
     }
   }
@@ -1142,7 +1142,7 @@ void PairLCBOP::spline_init() {
   }
 
   //some testing:
-  std::ofstream file( "test.txt" );
+//  std::ofstream file( "test.txt" );
 //    file << "gX:\n";
 //    file  << gX[0] << " "
 //          << gX[1] << " "
@@ -1213,17 +1213,17 @@ void PairLCBOP::spline_init() {
 //  }
 //  file << std::endl;
 //
-
-  file << "f_c:" << std::endl;
-  double x_1 = 4, x_0 = 0;
-  int n=1000;
-  double dx = (x_1-x_0)/n;
-  for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
-    double f, df;
-    f = f_c(x, r_1, r_2, &df);
-    file << x << " " << f << " " << df << std::endl;
-  }
-  file << std::endl;
+//
+//  file << "f_c:" << std::endl;
+//  double x_1 = 4, x_0 = 0;
+//  int n=1000;
+//  double dx = (x_1-x_0)/n;
+//  for( double x=x_0; x<=x_1+0.0001; x+=dx ) {
+//    double f, df;
+//    f = f_c(x, r_1, r_2, &df);
+//    file << x << " " << f << " " << df << std::endl;
+//  }
+//  file << std::endl;
 
 //  file << "F_conj_data\n";
 //  for (int k = 0; k < 2; k++) { // 2 values of N_ij_conj

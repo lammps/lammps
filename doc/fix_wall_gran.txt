@@ -10,7 +10,7 @@ fix wall/gran command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag style args ... keyword values ... :pre
+fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/gran = style name of this fix command :l
@@ -20,56 +20,42 @@ gamma_n = damping coefficient for collisions in normal direction (1/time units o
 gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) :l
 xmu = static yield criterion (unitless fraction between 0.0 and 1.0) :l
 dampflag = 0 or 1 if tangential damping force is excluded or included :l
-one or more style/arg pairs may be appended :l
-style = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} or {zcylinder} :l
+wallstyle = {xplane} or {yplane} or {zplane} or {zcylinder} :l
 args = list of arguments for a particular style :l
-  {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} args = coord vwall
-    coord = position of wall = constant or variable
-      constant = number like 0.0 or -30.0 (distance units)
-      variable = "equal-style variable"_variable.html like v_x or v_wiggle
-    vwall = velocity of wall in normal direction = constant or variable
-      constant = number like 0.0 or 2.0 (velocity units)
-      variable = "equal-style variable"_variable.html like v_vx or v_wiggle
-  {zcylinder} args = rad vrad
-    rad = radius of cylinder = constant or variable
-      constant = number like 0.0 or -30.0 (distance units)
-      variable = "equal-style variable"_variable.html like v_rad or v_wiggle
-    vwall = velocity of radius in normal direction = constant or variable
-      constant = number like 0.0 or 2.0 (velocity units)
-      variable = "equal-style variable"_variable.html like v_vrad or v_wiggle :pre
+  {xplane} or {yplane} or {zplane} args = lo hi
+    lo,hi = position of lower and upper plane (distance units), either can be NULL)
+  {zcylinder} args = radius
+    radius = cylinder radius (distance units) :pre
 zero or more keyword/value pairs may be appended to args :l
-keyword = {shear} or {piston} :l
+keyword = {wiggle} or {shear} :l
+  {wiggle} values = dim amplitude period
+    dim = {x} or {y} or {z}
+    amplitude = size of oscillation (distance units)
+    period = time of oscillation (time units)
   {shear} values = dim vshear
-    dim = {x} or {y} or {z} or {theta}
-    vshear = shear velocity = constant or variable
-      constant = number like 2.0 or -2.0 (velocity units or radians/time units)
-      variable = "equal-style variable"_variable.html like v_vshear or v_wiggle
-  {piston} values = pload pmass
-    pload = external load on piston = constant or variable
-      constant = number like 0.0 or 30.0 (force units)
-      variable = "equal-style variable"_variable.html like v_push or v_wiggle
-    pmass = piston mass (mass units) :pre
+    dim = {x} or {y} or {z}
+    vshear = magnitude of shear velocity (velocity units) :pre
 :ule
 
 [Examples:]
 
-fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xlo -10.0 0 xhi 10.0 0
-fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zhi v_squeeze shear x v_ramp
-fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 0.0 piston -5000.0 1000.0 :pre
+fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 
+fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL 
+fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0 :pre
 
 [Description:]
 
-Bound the simulation domain of a granular system with one or more
-frictional walls.  All particles in the group interact with the wall
-when they are close enough to touch it.
+Bound the simulation domain of a granular system with a frictional
+wall.  All particles in the group interact with the wall when they are
+close enough to touch it.
 
-The first set of parameters ({Kn}, {Kt}, {gamma_n}, {gamma_t}, {xmu},
-and {dampflag}) have the same meaning as those specified with the
+The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
+dampflag) have the same meaning as those specified with the
 "pair_style granular"_pair_gran.html force fields.  This means a NULL
-can be used for either {Kt} or {gamma_t} as described on that page.
-If a NULL is used for {Kt}, then a default value is used where {Kt} =
-2/7 {Kn}.  If a NULL is used for {gamma_t}, then a default value is
-used where {gamma_t} = 1/2 {gamma_n}.
+can be used for either Kt or gamma_t as described on that page.  If a
+NULL is used for Kt, then a default value is used where Kt = 2/7 Kn.
+If a NULL is used for gamma_t, then a default value is used where
+gamma_t = 1/2 gamma_n.
 
 The nature of the wall/particle interactions are determined by which
 pair_style is used in your input script: {hooke}, {hooke/history}, or
@@ -79,9 +65,9 @@ particles touching it is the same as the corresponding equation on the
 the two particles going to infinite radius and mass (flat wall).
 I.e. delta = radius - r = overlap of particle with wall, m_eff = mass
 of particle, and sqrt(RiRj/Ri+Rj) becomes sqrt(radius of particle).
-The units for {Kn}, {Kt}, {gamma_n}, and {gamma_t} are as described on
-that doc page.  The meaning of xmu and dampflag are also as described
-on that page.  Note that you can choose different values for these 6
+The units for Kn, Kt, gamma_n, and gamma_t are as described on that
+doc page.  The meaning of xmu and dampflag are also as described on
+that page.  Note that you can choose different values for these 6
 wall/particle coefficients than for particle/particle interactions, if
 you wish your wall to interact differently with the particles, e.g. if
 the wall is a different material.
@@ -100,211 +86,44 @@ common case of a monodisperse system with particles of diameter 1, Kn,
 Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
 previously.
 
-:line
+The {wallstyle} can be planar or cylindrical.  The 3 planar options
+specify a pair of walls in a dimension.  Wall positions are given by
+{lo} and {hi}.  Either of the values can be specified as NULL if a
+single wall is desired.  For a {zcylinder} wallstyle, the cylinder's
+axis is at x = y = 0.0, and the radius of the cylinder is specified.
 
-One or more wall {styles} can be specified.  The {xlo}, {xhi}, {ylo},
-{yhi}, {zlo}, {zhi} styles are planar faces that push particles back
-into the box from one of their sides.  E.g. the {xlo} wall should be
-positioned to the left of all particles in the x dimension, so that it
-pushes particles to the right, and conversely for the {xhi} wall.  The
-{zcylinder} style is a cylindrical shell with its axis along the
-z-axis, centered at x = y = 0.0.  The interior surface of the cylinder
-pushes particles towards the x = y = 0.0 center axis.  The {zcylinder}
-style cannot be specified with any of the {xlo}, {xhi}, {ylo}, {yhi}
-styles, but if can be with the {zlo} or {zhi} styles.
+Optionally, the wall can be moving, if the {wiggle} or {shear}
+keywords are appended.  Both keywords cannot be used together.
 
-:line
+For the {wiggle} keyword, the wall oscillates sinusoidally, similar to
+the oscillations of particles which can be specified by the
+"fix_move"_fix_move.html command.  This is useful in packing
+simulations of granular particles.  The arguments to the {wiggle}
+keyword specify a dimension for the motion, as well as it's
+{amplitude} and {period}.  Note that if the dimension is in the plane
+of the wall, this is effectively a shearing motion.  If the dimension
+is perpendicular to the wall, it is more of a shaking motion.  A
+{zcylinder} wall can only be wiggled in the z dimension.
 
-For the planer wall styles, {coord} and {vwall} arguments are
-specified.  These are the position and normal velocity of the wall.  A
-positive velocity means the wall is moving in the positive direction
-in the normal dimension, e.g. +x for a {xlo} or {xhi} wall.  Either or
-both of the {coord} and {vwall} arguments can be specified as a
-constant value or a variable.  Note that the force exerted by a wall
-on granular particles depends on the velocity of the wall, in both the
-normal and tangential directions, so it is important to set {vwall}
-consistent with the {coord} argument.
+Each timestep, the position of a wiggled wall in the appropriate {dim}
+is set according to this equation:
 
-If a numeric constant is specified for {coord} then the wall is placed
-at that position in the appropriate dimension (x, y, or z) and will
-never move.  Likewise if a constant is specified for {vwall}, then the
-normal velocity of the wall is set to that value and will never
-change.
+position = coord + A - A cos (omega * delta) :pre
 
-If {coord} or {vwall} is a variable, it should be specified as v_name,
-where name is an "equal-style variable"_variable.html name.  In this
-case the variable is evaluated each timestep and the result becomes
-the current position or normal velocity of the wall.  Equal-style
-variables can specify formulas with various mathematical functions,
-and include "thermo_style"_thermo_style.html command keywords for the
-simulation box parameters and timestep and elapsed time.  Thus it is
-easy to specify a time-dependent wall position and velocity.
+where {coord} is the specified initial position of the wall, {A} is
+the {amplitude}, {omega} is 2 PI / {period}, and {delta} is the time
+elapsed since the fix was specified.  The velocity of the wall is set
+to the derivative of this expression.
 
-If {coord} is specified as a constant, then {vwall} must be specified
-as 0.0.  If {coord} is specified as a variable, then {vwall} must be a
-non-zero constant or a variable.  If {vwall} is specified as a
-non-zero constant or variable and {coord} as a constant, then {coord}
-is treated as the initial position of the wall, and the wall position
-is updated each timestep by dt*v_current, where dt = the timestep, and
-v_current = the current normal velocity.
-
-:line
-
-For the {zcylinder} wall style, {rad} and {vrad} arguments are
-specified.  These are the radius and radial velocity of the cylinder.
-A positive velocity means the radius is growing.  Either or both of
-the {rad} and {vrad} arguments can be specified as a constant value or
-a variable.  Note that the force exerted by the wall of the cylinder
-on granular particles depends on the velocity of the wall, in both the
-normal (radial) and tangential directions, so it is important to set
-{vrad} consistent with the {rad} argument.
-
-If a numeric constant is specified for {rad} then the cylinder will
-have a fixed radius.  Likewise if a constant is specified for {vrad},
-then the radial velocity of the cylinder is set to that value and will
-never change.
-
-If {rad} or {vrad} is a variable, it should be specified as
-v_name, where name is an "equal-style variable"_variable.html name.
-In this case the variable is evaluated each timestep and the result
-becomes the current radius or radial velocity of the cylinder.
-Equal-style variables can specify formulas with various mathematical
-functions, and include "thermo_style"_thermo_style.html command
-keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent cylinder radius and
-velocity.
-
-If {rad} is specified as a constant, then {vrad} must be specified as
-0.0.  If {rad} is specified as a variable, then {vrad} must be a
-non-zero constant or a variable.  If {vrad} is specified as a non-zero
-constant or variable and {rad} as a constant, then {rad} is treated as
-the initial radius of the wall, and the radius is updated each
-timestep by dt*v_current, where dt = the timestep, and v_current = the
-current radial velocity.
-
-:line
-
-Here are examples of variable definitions that move the wall position
-in a time-dependent fashion using equal-style
-"variables"_variable.html. They also specify the correct normal
-velocity of the wall based on the time derivative of the position.
-
-variable ramp equal ramp(0,10)
-variable vnorm equal 10/(10000*dt)  # 10000 step run
-fix 1 all wall/gran ... xlo v_ramp v_vnorm :pre
-
-variable linear equal vdisplace(0,20)
-fix 1 all wall/gran ... xlo v_linear 20 :pre
-
-variable omega equal 2*PI/3.0
-variable wiggle equal swiggle(0.0,5.0,3.0)
-variable vwiggle equal "5.0 * v_omega * cos(v_omega*(timestep-startstep)*dt)"
-fix 1 all wall/gran ... xlo v_wiggle v_vwiggle :pre
-
-variable omega equal 2*PI/3.0
-variable wiggle equal cwiggle(0.0,5.0,3.0)
-variable vwiggle equal "5.0 * v_omega * sin(v_omega*(timestep-startstep)*dt)"
-fix 1 all wall/gran ... xlo v_wiggle v_vwiggle :pre
-
-The ramp(lo,hi) function adjusts the wall position linearly from lo to
-hi over the course of a run.  The vdisplace(c0,velocity) function does
-something similar using the equation position = c0 + velocity*delta,
-where delta is the elapsed time.
-
-The swiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, where omega = 2 PI
-/ period:
-
-position = c0 + A sin(omega*delta) :pre
-
-The cwiggle(c0,A,period) function causes the wall position to
-oscillate sinusoidally according to this equation, which will have an
-initial wall velocity of 0.0, and thus may impose a gentler
-perturbation on the particles:
-
-position = c0 + A (1 - cos(omega*delta)) :pre
-
-:line
-
-The optional keywords {shear} and {piston} are applied to all the
-specified wall styles.  If you need to apply different options to
-different wall styles, then you should use multiple fix wall/gran
-commands.
-
-:line
-
-The {shear} keyword allows specification of one or two tangential
-velocities for planar or {zcylinder} walls.  The {dim} value specifies
-the velocity direction.  {X}, {y}, and {z} can be used for planar
-walls, but not for the direction normal to the wall.  {Z} and {theta}
-can be used for a {zcylinder} wall.  {Theta} is the azimuthal angle in
-the xy plane, i.e. a rotation of the cylinder about its vertical z
-axis.  Note that a positive theta velocity means increasing theta,
-i.e. rotation in a counter-clockwise direction when looking down on
-the xy plane from above.
-
-{Vshear} is the magnitude of the shear velocity and can be specified
-as a numeric constant or variable.  The units of {vshear} are velocity
-units for dim = {x}, {y}, or {z}.  They are units of radians/time for
-{dim} = {theta}.
-
-If a numeric constant is used, then then the shear velocity will never
-change.  If {vshear} is a variable, it should be specified as v_name,
-where name is an "equal-style variable"_variable.html name.  In this
-case the variable is evaluated each timestep and the result becomes
-the current shear velocity.  Equal-style variables can specify
-formulas with various mathematical functions, and include
-"thermo_style"_thermo_style.html command keywords for the simulation
-box parameters and timestep and elapsed time.  Thus it is easy to
-specify a time-dependent shear velocity.
-
-:line
-
-The {piston} keyword allows specification of an external loading force
-on the wall, which is opposed by granular particles pushing back
-against the load.  The wall position and normal velocity adjust
-dynamically in response to these 2 opposing forces.
-
-{Pload} is the magnitude of the loading force and can be specified as
-a numeric constant or variable.  This force must have a value less
-than 0.0 which means that it is directed inward towards the particles.
-Thus for a {xlo} wall, a negative values is a force in the +x
-direction.  For a {xhi} wall a negative values is a force in the -x
-direction.  For a {zcylinder} wall, a negative value is a force
-towards the center z axis of the cylinder.
-
-If a numeric constant is used for {pload}, then then the load force
-will never change.  If {pload} is a variable, it should be specified
-as v_name, where name is an "equal-style variable"_variable.html name.
-In this case the variable is evaluated each timestep and the result
-becomes the current load force.  Equal-style variables can specify
-formulas with various mathematical functions, and include
-"thermo_style"_thermo_style.html command keywords for the simulation
-box parameters and timestep and elapsed time.  Thus it is easy to
-specify a time-dependent load force.
-
-When the {piston} keyword is used, the {coord} and {vwall} arguemnts
-for each wall style (or {rad} and {vrad} arguments for a {zcylinder}
-style) must be numeric constants and are treated as initial values of
-the position/radius and velocity/radial-velocity.  The initial values
-are updated every timestep by integrating these equations in a
-velocity-Verlet fashion:
-
-vwall_new = vwall + dt * (Fload + Fparticles) / pmass
-xwall_new = xwall + dt * vwall_new :pre
-
-
-Fload and Fparticles are the force on the wall due to the external
-load and interactions with particles respectively.  Fparticles is
-always a positive value, representing particles pushing outward on the
-wall (-x direction for a {xlo} wall, +x direction for a {xhi} wall,
-radially outward for a {zylinder} wall).  Thus Fload and Fparticles
-will always have opposite signs.  {Pmass} is the mass of the wall, as
-specified with the {piston} keyword.  Xwall and Vwall are the wall
-position (or radius) and normal velocity (or radial velocity) on the
-previous timestep.  Xwall_new and vwall_new are the updated values.
-
-:line
+For the {shear} keyword, the wall moves continuously in the specified
+dimension with velocity {vshear}.  The dimension must be tangential to
+walls with a planar {wallstyle}, e.g. in the {y} or {z} directions for
+an {xplane} wall.  For {zcylinder} walls, a dimension of {z} means the
+cylinder is moving in the z-direction along it's axis.  A dimension of
+{x} or {y} means the cylinder is spinning around the z-axis, either in
+the clockwise direction for {vshear} > 0 or counter-clockwise for
+{vshear} < 0.  In this case, {vshear} is the tangential velocity of
+the wall at whatever {radius} has been defined.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -316,31 +135,10 @@ info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The fix does not write any information about the walls (e,g, position
-or velocity) to the restart file.  It is up to you to insure that fix
-wall/gran commands you re-specify in a restart input script are
-consistent with the previous simulation.
-
 None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.
-
-This fix computes a global vector of values, which can be accessed by
-various "output commands"_Section_howto.html#howto_15.  The length of
-the vector is 4*Nstyle, where Nstyle is the number of styles
-specified.
-
-The 4 values (per style) are as follows:
-
-(1) position (or radius) of wall (distance units)
-(2) normal (or radial) velocity of wall (velocity or radians/time units)
-(3) positive force on wall due to particles (force units)
-(4) negative force on wall due to external load (force units) :pre
-
-The sign conventions for these values are as described above.  The 4th
-value will be 0.0 if the {piston} keyword is not used.  The vector
-values calculated by this fix are "extensive".
-
-No parameter of this fix can be used with the {start/stop} keywords of
+fix.  No global or per-atom quantities are stored by this fix for
+access by various "output commands"_Section_howto.html#howto_15.  No
+parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
@@ -356,6 +154,4 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 "fix_move"_fix_move.html, "pair_style granular"_pair_gran.html
 
-[Default:]
-
-The default shear velocities are 0.0.
+[Default:] none

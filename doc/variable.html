@@ -762,13 +762,14 @@ references to a compute or fix, and these values were calculated on
 the last timestep of a preceeding run, then they will be accessed and
 used by the variable and the result will be accurate.
 </P>
-<P>(2) LAMMPS may not be able to evaluate the variable and generate an
-error.  For example, if the variable requires a quantity from a
-<A HREF = "compute.html">compute</A> that is not current, LAMMPS will generate an
-error.  This means, for example, that such a variable cannot be
-evaluated before the first run has occurred.  Likewise, in between
-runs, such a variable cannot be accessed unless it was evaluated on
-the last timestep of the preceding run, e.g. by thermodynamic output.
+<P>(2) LAMMPS may not be able to evaluate the variable and will generate
+an error message stating so.  For example, if the variable requires a
+quantity from a <A HREF = "compute.html">compute</A> that is not current, LAMMPS
+will generate an error.  This means, for example, that such a variable
+cannot be evaluated before the first run has occurred.  Likewise, in
+between runs, such a variable cannot be accessed unless it was
+evaluated on the last timestep of the preceding run, e.g. by
+thermodynamic output.
 </P>
 <P>One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
@@ -811,9 +812,9 @@ until a run is performed.  Thus if a variable attempts to print this
 value before the first run, zeroes will be output.  Again, performing
 a 0-timestep run before printing the variable has the desired effect.
 </P>
-<P>(3) The variable may be evaluated incorrectly.  And LAMMPS may have
-no way to detect this has occurred.  Consider the following sequence
-of commands:
+<P>(3) The variable may be evaluated incorrectly and LAMMPS may have no
+way to detect this has occurred.  Consider the following sequence of
+commands:
 </P>
 <PRE>pair_coeff 1 1 1.0 1.0
 run 1000

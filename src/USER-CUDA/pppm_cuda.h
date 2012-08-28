@@ -43,7 +43,8 @@ class PPPMCuda : public PPPMOld {
   void init();
   void setup();
   void compute(int, int);
-  int timing(int, double &, double &);
+  int timing_1d(int, double &);
+  int timing_3d(int, double &);
 
   double poissontime;
 

@@ -32,6 +32,7 @@
 #include "domain.h"
 #include "group.h"
 #include "accelerator_cuda.h"
+#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
 
@@ -148,6 +149,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   atom_style = NULL;
   avec = NULL;
   create_avec("atomic",0,NULL,lmp->suffix);
+
+  datamask = ALL_MASK;
+  datamask_ext = ALL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

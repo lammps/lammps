@@ -39,6 +39,7 @@ namespace LAMMPS_NS {
 class FixAveForceCuda : public Fix {
  public:
   FixAveForceCuda(class LAMMPS *, int, char **);
+  ~FixAveForceCuda();
   int setmask();
   void init();
   void setup(int);
@@ -50,12 +51,16 @@ class FixAveForceCuda : public Fix {
 
  private:
   class Cuda *cuda;
-  int xflag,yflag,zflag,iregion;
+  char *xstr,*ystr,*zstr;
+  int iregion;
   double xvalue,yvalue,zvalue;
   double foriginal_all[4];
   double foriginal[4];
   cCudaData<double     , F_FLOAT                   , x>* cu_foriginal;
   int nlevels_respa;
+  int varflag;
+  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
+
 };
 
 }

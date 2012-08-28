@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "group.h"
+#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
 
@@ -84,6 +85,9 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // setup map for molecule IDs
 
   molmap = NULL;
+
+  datamask = ALL_MASK;
+  datamask_ext = ALL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

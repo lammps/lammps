@@ -30,6 +30,7 @@
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
+#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
 
@@ -78,6 +79,8 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   pad = NULL;
   data = NULL;
 
+  eval_in_progress = NULL;
+
   randomequal = NULL;
   randomatom = NULL;
 
@@ -109,6 +112,8 @@ Variable::~Variable()
   memory->destroy(pad);
   memory->sfree(data);
 
+  memory->destroy(eval_in_progress);
+
   delete randomequal;
   delete randomatom;
 }
@@ -135,7 +140,7 @@ void Variable::set(int narg, char **arg)
   } else if (strcmp(arg[1],"index") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal variable command");
     if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = INDEX;
     num[nvar] = narg - 2;
     which[nvar] = 0;
@@ -149,7 +154,7 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"loop") == 0) {
     if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = LOOP;
     int nfirst,nlast;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
@@ -184,7 +189,7 @@ void Variable::set(int narg, char **arg)
   } else if (strcmp(arg[1],"world") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal variable command");
     if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = WORLD;
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
@@ -205,7 +210,7 @@ void Variable::set(int narg, char **arg)
     if (strcmp(arg[1],"universe") == 0) {
       if (narg < 3) error->all(FLERR,"Illegal variable command");
       if (find(arg[0]) >= 0) return;
-      if (nvar == maxvar) extend();
+      if (nvar == maxvar) grow();
       style[nvar] = UNIVERSE;
       num[nvar] = narg - 2;
       pad[nvar] = 0;
@@ -215,7 +220,7 @@ void Variable::set(int narg, char **arg)
       if (narg < 3 || narg > 4 || (narg == 4 && strcmp(arg[3],"pad") != 0))
         error->all(FLERR,"Illegal variable command");
       if (find(arg[0]) >= 0) return;
-      if (nvar == maxvar) extend();
+      if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
       num[nvar] = atoi(arg[2]);
       data[nvar] = new char*[1];
@@ -254,7 +259,7 @@ void Variable::set(int narg, char **arg)
         error->all(FLERR,"Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = STRING;
     num[nvar] = 1;
     which[nvar] = 0;
@@ -274,7 +279,7 @@ void Variable::set(int narg, char **arg)
         error->all(FLERR,"Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = EQUAL;
     num[nvar] = 2;
     which[nvar] = 0;
@@ -295,7 +300,7 @@ void Variable::set(int narg, char **arg)
         error->all(FLERR,"Cannot redefine variable as a different style");
       remove(find(arg[0]));
     }
-    if (nvar == maxvar) extend();
+    if (nvar == maxvar) grow();
     style[nvar] = ATOM;
     num[nvar] = 1;
     which[nvar] = 0;
@@ -475,7 +480,13 @@ char *Variable::retrieve(char *name)
 
 double Variable::compute_equal(int ivar)
 {
-  return evaluate(data[ivar][0],NULL);
+  // eval_in_progress used to detect circle dependencies
+  // could extend this later to check v_a = c_b + v_a constructs?
+
+  eval_in_progress[ivar] = 1;
+  double value = evaluate(data[ivar][0],NULL);
+  eval_in_progress[ivar] = 0;
+  return value;
 }
 
 /* ----------------------------------------------------------------------
@@ -573,17 +584,18 @@ void Variable::remove(int n)
   make space in arrays for new variable
 ------------------------------------------------------------------------- */
 
-void Variable::extend()
+void Variable::grow()
 {
   maxvar += VARDELTA;
   names = (char **)
-    memory->srealloc(names,maxvar*sizeof(char *),"var:names");
+  memory->srealloc(names,maxvar*sizeof(char *),"var:names");
   memory->grow(style,maxvar,"var:style");
   memory->grow(num,maxvar,"var:num");
   memory->grow(which,maxvar,"var:which");
   memory->grow(pad,maxvar,"var:pad");
-  data = (char ***)
-    memory->srealloc(data,maxvar*sizeof(char **),"var:data");
+  data = (char ***) memory->srealloc(data,maxvar*sizeof(char **),"var:data");
+  memory->grow(eval_in_progress,maxvar,"var:eval_in_progress");
+  for (int i = 0; i < maxvar; i++) eval_in_progress[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1113,6 +1125,8 @@ double Variable::evaluate(char *str, Tree **tree)
         int ivar = find(id);
         if (ivar < 0)
           error->all(FLERR,"Invalid variable name in variable formula");
+        if (eval_in_progress[ivar])
+          error->all(FLERR,"Variable has circular dependency");
 
         // parse zero or one trailing brackets
         // point i beyond last bracket
@@ -3425,4 +3439,80 @@ double Variable::evaluate_boolean(char *str)
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
   return argstack[0];
+}
+
+/* ---------------------------------------------------------------------- */
+
+unsigned int Variable::data_mask(int ivar)
+{
+  if (eval_in_progress[ivar]) return EMPTY_MASK;
+  eval_in_progress[ivar] = 1;
+  unsigned int datamask = data_mask(data[ivar][0]);
+  eval_in_progress[ivar] = 0;
+  return datamask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+unsigned int Variable::data_mask(char *str)
+{
+  unsigned int datamask = EMPTY_MASK;
+
+  for (unsigned int i=0; i < strlen(str)-2; i++) {
+    int istart = i;
+    while (isalnum(str[i]) || str[i] == '_') i++;
+    int istop = i-1;
+
+    int n = istop - istart + 1;
+    char *word = new char[n+1];
+    strncpy(word,&str[istart],n);
+    word[n] = '\0';
+
+    // ----------------
+    // compute
+    // ----------------
+
+    if ((strncmp(word,"c_",2) == 0) && (i>0) && (not isalnum(str[i-1]))){
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Variable evaluation before simulation box is defined");
+
+      n = strlen(word) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&word[2]);
+
+      int icompute = modify->find_compute(id);
+      if (icompute < 0) 
+        error->all(FLERR,"Invalid compute ID in variable formula");
+
+      datamask &= modify->compute[icompute]->data_mask();
+
+      delete [] id;
+    }
+
+    if ((strncmp(word,"f_",2) == 0) && (i>0) && (not isalnum(str[i-1]))) {
+        if (domain->box_exist == 0)
+          error->all(FLERR,
+                     "Variable evaluation before simulation box is defined");
+
+        n = strlen(word) - 2 + 1;
+        char *id = new char[n];
+        strcpy(id,&word[2]);
+
+        int ifix = modify->find_fix(id);
+        if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
+
+        datamask &= modify->fix[ifix]->data_mask();
+        delete [] id;
+    }
+
+    if ((strncmp(word,"v_",2) == 0) && (i>0) && (not isalnum(str[i-1]))) {
+      int ivar = find(word);
+      datamask &= data_mask(ivar);
+    }
+
+    delete [] word;
+  }
+
+  return datamask;
 }

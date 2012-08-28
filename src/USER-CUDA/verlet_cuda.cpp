@@ -93,6 +93,7 @@ void VerletCuda::setup()
 
   cuda->oncpu = true;
   cuda->begin_setup = true;
+  cuda->finished_setup = false;
   cuda->finished_run = false;
 
   time_pair = 0;
@@ -121,7 +122,6 @@ void VerletCuda::setup()
     printf("# CUDA: Using precision: Global: %u X: %u V: %u F: %u PPPM: %u \n", CUDA_PRECISION == 1 ? 4 : 8, sizeof(X_FLOAT), sizeof(V_FLOAT), sizeof(F_FLOAT), sizeof(PPPM_FLOAT));
 
   cuda->allocate();
-
 
   if(comm->me == 0 && screen) fprintf(screen, "Setting up run ...\n");
 
@@ -395,7 +395,7 @@ void VerletCuda::setup()
 void VerletCuda::setup_minimal(int flag)
 {
 
-
+  printf("SetupMinimal\n");
   dotestatom = 0;
   int testatom = 104;
   cuda->oncpu = true;
@@ -828,7 +828,6 @@ void VerletCuda::run(int n)
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
       clock_gettime(CLOCK_REALTIME, &starttime);
-
       //atom index maps are generated on CPU, and need to be transfered to GPU if they are used
       if(cuda->cu_map_array)
         cuda->cu_map_array->upload();
@@ -949,7 +948,8 @@ void VerletCuda::run(int n)
       timer->stamp(TIME_PAIR);
 
       if(neighbor->lastcall == update->ntimestep) {
-        neighbor->build_topology();
+        neighbor->build_bonded();
+
         timer->stamp(TIME_NEIGHBOR);
       }
 

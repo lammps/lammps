@@ -32,6 +32,9 @@ class KSpace : protected Pointers {
   int nx_pppm,ny_pppm,nz_pppm;
   int group_group_enable;         // 1 if style supports group/group calculation
 
+  unsigned int datamask;
+  unsigned int datamask_ext;
+
   int compute_flag;               // 0 if skip compute()
 
   KSpace(class LAMMPS *, int, char **);

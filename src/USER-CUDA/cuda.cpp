@@ -717,6 +717,113 @@ void Cuda::downloadAll()
   MYDBG(printf("# CUDA: Cuda::downloadAll() ... end\n");)
 }
 
+void Cuda::upload(int datamask)
+{
+  MYDBG(printf("# CUDA: Cuda::upload() ... start\n");)
+  timespec starttime;
+  timespec endtime;
+
+  if(atom->nmax != shared_data.atom.nmax) checkResize();
+
+  clock_gettime(CLOCK_REALTIME, &starttime);
+  if(X_MASK & datamask) cu_x   ->upload();
+  if(V_MASK & datamask) cu_v   ->upload();
+  if(F_MASK & datamask) cu_f   ->upload();
+  if(TYPE_MASK & datamask) cu_type->upload();
+  if(TAG_MASK & datamask) cu_tag ->upload();
+  if(MASK_MASK & datamask) cu_mask->upload();
+  if(IMAGE_MASK & datamask) cu_image->upload();
+
+  //if(shared_data.atom.need_eatom) cu_eatom->upload();
+  //if(shared_data.atom.need_vatom) cu_vatom->upload();
+
+  if(shared_data.atom.q_flag)
+	  if(Q_MASK & datamask) cu_q    ->upload();
+
+  if(atom->rmass)
+	  if(RMASS_MASK & datamask) cu_rmass->upload();
+
+  if(atom->radius)
+	  if(RADIUS_MASK & datamask) cu_radius->upload();
+
+  if(atom->omega)
+	  if(OMEGA_MASK & datamask) cu_omega->upload();
+
+  if(atom->torque)
+	  if(TORQUE_MASK & datamask) cu_torque->upload();
+
+  if(atom->special)
+	  if(SPECIAL_MASK & datamask) cu_special->upload();
+
+  if(atom->nspecial)
+	  if(SPECIAL_MASK & datamask) cu_nspecial->upload();
+
+  if(atom->molecule)
+	  if(MOLECULE_MASK & datamask) cu_molecule->upload();
+
+  if(cu_eatom) cu_eatom->upload();
+
+  if(cu_vatom) cu_vatom->upload();
+
+  clock_gettime(CLOCK_REALTIME, &endtime);
+  uploadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
+  MYDBG(printf("# CUDA: Cuda::upload() ... end\n");)
+}
+
+void Cuda::download(int datamask)
+{
+  MYDBG(printf("# CUDA: Cuda::download() ... start\n");)
+  timespec starttime;
+  timespec endtime;
+
+  if(atom->nmax != shared_data.atom.nmax) checkResize();
+
+  CUDA_IF_BINNING(Cuda_ReverseBinning(& shared_data);)
+  clock_gettime(CLOCK_REALTIME, &starttime);
+  if(X_MASK & datamask) cu_x   ->download();
+  if(V_MASK & datamask) cu_v   ->download();
+  if(F_MASK & datamask) cu_f   ->download();
+  if(TYPE_MASK & datamask) cu_type->download();
+  if(TAG_MASK & datamask) cu_tag ->download();
+  if(MASK_MASK & datamask) cu_mask->download();
+  if(IMAGE_MASK & datamask) cu_image->download();
+
+  //if(shared_data.atom.need_eatom) cu_eatom->download();
+  //if(shared_data.atom.need_vatom) cu_vatom->download();
+
+  if(shared_data.atom.q_flag)
+	  if(Q_MASK & datamask) cu_q    ->download();
+
+  if(atom->rmass)
+	  if(RMASS_MASK & datamask) cu_rmass->download();
+
+  if(atom->radius)
+	  if(RADIUS_MASK & datamask) cu_radius->download();
+
+  if(atom->omega)
+	  if(OMEGA_MASK & datamask) cu_omega->download();
+
+  if(atom->torque)
+	  if(TORQUE_MASK & datamask) cu_torque->download();
+
+  if(atom->special)
+	  if(SPECIAL_MASK & datamask) cu_special->download();
+
+  if(atom->nspecial)
+	  if(SPECIAL_MASK & datamask) cu_nspecial->download();
+
+  if(atom->molecule)
+	  if(MOLECULE_MASK & datamask) cu_molecule->download();
+
+  if(cu_eatom) cu_eatom->download();
+
+  if(cu_vatom) cu_vatom->download();
+
+  clock_gettime(CLOCK_REALTIME, &endtime);
+  downloadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
+  MYDBG(printf("# CUDA: Cuda::download() ... end\n");)
+}
+
 void Cuda::downloadX()
 {
   Cuda_Pair_RevertXType(& this->shared_data);

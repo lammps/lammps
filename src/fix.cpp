@@ -16,6 +16,7 @@
 #include "fix.h"
 #include "atom.h"
 #include "group.h"
+#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
 
@@ -68,6 +69,9 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   maxvatom = 0;
   vatom = NULL;
+
+  datamask = ALL_MASK;
+  datamask_ext = ALL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

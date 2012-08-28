@@ -30,13 +30,14 @@
 #include "atom.h"
 #include "update.h"
 #include "respa.h"
-#include "error.h"
 #include "domain.h"
 #include "cuda.h"
 #include "cuda_modify_flags.h"
 #include "variable.h"
 #include "input.h"
 #include "modify.h"
+#include "atom_masks.h"
+#include "error.h"
 
 
 using namespace LAMMPS_NS;

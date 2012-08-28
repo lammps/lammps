@@ -34,7 +34,9 @@
 #include "neigh_list.h"
 #include "universe.h"
 #include "input.h"
+#include "atom_masks.h"
 #include "error.h"
+
 #include "cuda_neigh_list.h"
 //#include "pre_binning_cu.h"
 #include "binning_cu.h"

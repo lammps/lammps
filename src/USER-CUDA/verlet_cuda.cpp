@@ -948,8 +948,7 @@ void VerletCuda::run(int n)
       timer->stamp(TIME_PAIR);
 
       if(neighbor->lastcall == update->ntimestep) {
-        neighbor->build_bonded();
-
+        neighbor->build_topology();
         timer->stamp(TIME_NEIGHBOR);
       }
 

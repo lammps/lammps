@@ -663,14 +663,6 @@ produce only a global scalar or a per-atom vectors, never both.
 v_name: scalar, or per-atom vector
 v_name\[I\]: atom I's value in per-atom vector :tb(s=:)
 
-IMPORTANT NOTE: If you define variables in circular manner like this:
-
-variable a equal v_b
-variable b equal v_a
-print $a :pre
-
-then LAMMPS may run for a while when the print statement is invoked!
-
 :line
 
 [Immediate Evaluation of Variables:]

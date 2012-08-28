@@ -669,14 +669,6 @@ produce only a global scalar or a per-atom vectors, never both.
 <TR><TD >v_name[I]</TD><TD > atom I's value in per-atom vector 
 </TD></TR></TABLE></DIV>
 
-<P>IMPORTANT NOTE: If you define variables in circular manner like this:
-</P>
-<PRE>variable a equal v_b
-variable b equal v_a
-print $a 
-</PRE>
-<P>then LAMMPS may run for a while when the print statement is invoked!
-</P>
 <HR>
 
 <P><B>Immediate Evaluation of Variables:</B>

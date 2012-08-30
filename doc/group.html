@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>ID = user-defined name of the group 
 
-<LI>style = <I>delete</I> or <I>region</I> or <I>type</I> or <I>id</I> or <I>molecule</I> or <I>subtract</I> or         <I>union</I> or <I>intersect</I> 
+<LI>style = <I>delete</I> or <I>region</I> or <I>type</I> or <I>id</I> or <I>molecule</I> or <I>variable</I> or       <I>subtract</I> or <I>union</I> or <I>intersect</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>region</I> args = region-ID
@@ -30,6 +30,7 @@
       logical = "<>"
       value1,value2 = atom types or atom IDs or molecule IDs
       	(depending on <I>style</I>)
+  <I>variable</I> args  = variable-ID
   <I>subtract</I> args = two or more group IDs
   <I>union</I> args = one or more group IDs
   <I>intersect</I> args = two or more group IDs 
@@ -42,6 +43,7 @@
 group water type 3 4
 group sub id <= 150
 group polyA molecule <> 50 250
+group hienergy variable eng
 group boundary subtract all a2 a3
 group boundary union lower upper
 group boundary intersect upper flow
@@ -82,6 +84,49 @@ example above adds all atoms with IDs from 1 to 150 to the group named
 <I>sub</I>.  The logical <> means "between" and takes 2 arguments.  The 4th
 example above adds all atoms belonging to molecules with IDs from 50
 to 250 (inclusive) to the group named polyA.
+</P>
+<P>The <I>variable</I> style evaluates a variable to determine which atoms to
+add to the group.  It must be an <A HREF = "variable.html">atom-style variable</A>
+previously defined in the input script.  If the variable evaluates
+to a non-zero value for a particular atom, then that atom is added
+to the specified group.
+</P>
+<P>Atom-style variables can specify formulas that include thermodynamic
+quantities, per-atom values such as atom coordinates, or per-atom
+quantities calculated by computes, fixes, or other variables.  They
+can also include Boolean logic where 2 numeric values are compared to
+yield a 1 or 0 (effectively a true or false).  Thus using the
+<I>variable</I> style, is a general way to flag specific atoms to include
+or exclude from a group.
+</P>
+<P>For example, these lines define a variable "eatom" that calculates the
+potential energy of each atom and includes it in the group if its
+potential energy is above the threshhold value -3.0.
+</P>
+<PRE>compute         1 all pe/atom
+compute         2 all reduce sum c_1
+thermo_style    custom step temp pe c_2
+run             0 
+</PRE>
+<PRE>variable        eatom atom "c_1 > -3.0"
+group           hienergy variable eatom 
+</PRE>
+<P>Note that these lines
+</P>
+<PRE>compute         2 all reduce sum c_1
+thermo_style    custom step temp pe c_2
+run             0 
+</PRE>
+<P>are necessary to insure that the "eatom" variable is current when the
+group command invokes it.  Because the eatom variable computes the
+per-atom energy via the pe/atom compute, it will only be current if a
+run has been performed which evaluated pairwise energies, and the
+pe/atom compute was actually invoked during the run.  Printing the
+thermodyanmic info for compute 2 insures that this is the case, since
+it sums the pe/atom compute values (in the reduce compute) to output
+them to the screen.  See the "Variable Accuracy" section of the
+<A HREF = "variable.html">variable</A> doc page for more details on insuring that
+variables are current when they are evaluated between runs.
 </P>
 <P>The <I>subtract</I> style takes a list of two or more existing group names
 as arguments.  All atoms that belong to the 1st group, but not to any

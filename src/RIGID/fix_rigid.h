@@ -26,10 +26,6 @@ namespace LAMMPS_NS {
 
 class FixRigid : public Fix {
  public:
-  // public so that granular pair styles can access them
-  int *body;                // which body each atom is part of (-1 if none)
-  double *masstotal;        // total mass of each rigid body
-
   FixRigid(class LAMMPS *, int, char **);
   virtual ~FixRigid();
   virtual int setmask();
@@ -74,6 +70,10 @@ class FixRigid : public Fix {
   int *mol2body;            // convert mol-ID to rigid body index
   int maxmol;               // size of mol2body = max mol-ID
 
+  int *body;                // which body each atom is part of (-1 if none)
+  double **displace;        // displacement of each atom in body coords
+
+  double *masstotal;        // total mass of each rigid body
   double **xcm;             // coords of center-of-mass of each rigid body
   double **vcm;             // velocity of center-of-mass of each
   double **fcm;             // force on center-of-mass of each
@@ -88,8 +88,6 @@ class FixRigid : public Fix {
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
   double **langextra;       // Langevin thermostat forces and torques
-
-  double **displace;        // displacement of each atom in body coords
 
   double **sum,**all;       // work vectors for each rigid body
   int **remapflag;          // PBC remap flags for each rigid body

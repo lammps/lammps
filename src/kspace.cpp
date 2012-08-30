@@ -19,6 +19,7 @@
 #include "force.h"
 #include "pair.h"
 #include "memory.h"
+#include "atom_masks.h"
 #include "error.h"
 #include "suffix.h"
 
@@ -50,6 +51,9 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = NULL;
   vatom = NULL;
+
+  datamask = ALL_MASK;
+  datamask_ext = ALL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

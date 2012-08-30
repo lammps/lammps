@@ -31,9 +31,10 @@
 #include "force.h"
 #include "update.h"
 #include "accelerator_cuda.h"
+#include "suffix.h"
+#include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
-#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -77,6 +78,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = NULL;
   vatom = NULL;
+
+  datamask = ALL_MASK;
+  datamask_ext = ALL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

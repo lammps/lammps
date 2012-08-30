@@ -34,6 +34,9 @@ class Variable : protected Pointers {
   int int_between_brackets(char *&);
   double evaluate_boolean(char *);
 
+  unsigned int data_mask(int ivar);
+  unsigned int data_mask(char *str);
+
  private:
   int nvar;                // # of defined variables
   int maxvar;              // max # of variables arrays can hold
@@ -43,6 +46,7 @@ class Variable : protected Pointers {
   int *which;              // next available value for each variable
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   char ***data;            // str value of each variable's values
+  int *eval_in_progress;   // flag if evaluation of variable is in progress
 
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
@@ -62,7 +66,7 @@ class Variable : protected Pointers {
   };
 
   void remove(int);
-  void extend();
+  void grow();
   void copy(int, char **, char **);
   double evaluate(char *, Tree **);
   double collapse_tree(Tree *);

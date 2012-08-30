@@ -43,28 +43,28 @@ using namespace LAMMPS_NS;
 #define SMALL 1.0e-4
 #define DELTA 1
 
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
+enum {NO_REMAP, X_REMAP, V_REMAP};                // same as fix_deform.cpp
 
 /* ----------------------------------------------------------------------
    default is periodic
 ------------------------------------------------------------------------- */
 
-DomainCuda::DomainCuda(LAMMPS *lmp) : Domain(lmp)
+DomainCuda::DomainCuda(LAMMPS* lmp) : Domain(lmp)
 {
   cuda = lmp->cuda;
-   if(cuda == NULL)
-        error->all(FLERR,"You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
+
+  if(cuda == NULL)
+    error->all(FLERR, "You cannot use a /cuda class, without activating 'cuda' acceleration. Provide '-c on' as command-line argument to LAMMPS..");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DomainCuda::init()
 {
-  cuda->accelerator(0,NULL);
+  cuda->accelerator(0, NULL);
   Domain::init();
 
-  if(not cuda->finished_run)
-  {
+  if(not cuda->finished_run) {
     cuda->setDomainParams();
     Cuda_Domain_Init(&cuda->shared_data);
   }
@@ -79,8 +79,7 @@ void DomainCuda::set_global_box()
 {
   Domain::set_global_box();
 
-  if(not cuda->finished_run)
-  {
+  if(not cuda->finished_run) {
     cuda->setDomainParams();
   }
 }
@@ -95,8 +94,7 @@ void DomainCuda::set_lamda_box()
 {
   Domain::set_lamda_box();
 
-  if(not cuda->finished_run)
-  {
+  if(not cuda->finished_run) {
     cuda->setDomainParams();
   }
 }
@@ -111,9 +109,8 @@ void DomainCuda::set_local_box()
 {
   Domain::set_local_box();
 
-  if(not cuda->finished_run)
-  {
-   // cuda->setDomainParams();
+  if(not cuda->finished_run) {
+    // cuda->setDomainParams();
     //Cuda_Domain_Init(&cuda->shared_data);
   }
 }
@@ -126,39 +123,37 @@ void DomainCuda::set_local_box()
 
 void DomainCuda::reset_box()
 {
-  if (nonperiodic == 2) {
+  if(nonperiodic == 2) {
 
     // convert back to box coords for shrink-wrap operation
 
-    if (triclinic) lamda2x(atom->nlocal);
+    if(triclinic) lamda2x(atom->nlocal);
 
     // compute extent of atoms on this proc
 
-    double extent[3][2],all[3][2];
+    double extent[3][2], all[3][2];
 
     extent[2][0] = extent[1][0] = extent[0][0] = BIG;
     extent[2][1] = extent[1][1] = extent[0][1] = -BIG;
 
-    double **x = atom->x;
+    double** x = atom->x;
     int nlocal = atom->nlocal;
 
-    if (cuda->finished_setup&&(!cuda->oncpu))
-      {
-        extent[0][0]=cuda->extent[0];
-        extent[0][1]=cuda->extent[1];
-        extent[1][0]=cuda->extent[2];
-        extent[1][1]=cuda->extent[3];
-        extent[2][0]=cuda->extent[4];
-        extent[2][1]=cuda->extent[5];
-      }
-    else
-      for (int i = 0; i < nlocal; i++) {
-        extent[0][0] = MIN(extent[0][0],x[i][0]);
-        extent[0][1] = MAX(extent[0][1],x[i][0]);
-        extent[1][0] = MIN(extent[1][0],x[i][1]);
-        extent[1][1] = MAX(extent[1][1],x[i][1]);
-        extent[2][0] = MIN(extent[2][0],x[i][2]);
-        extent[2][1] = MAX(extent[2][1],x[i][2]);
+    if(cuda->finished_setup && (!cuda->oncpu)) {
+      extent[0][0] = cuda->extent[0];
+      extent[0][1] = cuda->extent[1];
+      extent[1][0] = cuda->extent[2];
+      extent[1][1] = cuda->extent[3];
+      extent[2][0] = cuda->extent[4];
+      extent[2][1] = cuda->extent[5];
+    } else
+      for(int i = 0; i < nlocal; i++) {
+        extent[0][0] = MIN(extent[0][0], x[i][0]);
+        extent[0][1] = MAX(extent[0][1], x[i][0]);
+        extent[1][0] = MIN(extent[1][0], x[i][1]);
+        extent[1][1] = MAX(extent[1][1], x[i][1]);
+        extent[2][0] = MIN(extent[2][0], x[i][2]);
+        extent[2][1] = MAX(extent[2][1], x[i][2]);
       }
 
     // compute extent across all procs
@@ -168,39 +163,116 @@ void DomainCuda::reset_box()
     extent[1][0] = -extent[1][0];
     extent[2][0] = -extent[2][0];
 
-    MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(extent, all, 6, MPI_DOUBLE, MPI_MAX, world);
 
     // in shrink-wrapped dims, set box by atom extent
     // if minimum set, enforce min box size settings
 
-    if (xperiodic == 0) {
-      if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - SMALL;
-      else if (boundary[0][0] == 3) boxlo[0] = MIN(-all[0][0]-SMALL,minxlo);
-      if (boundary[0][1] == 2) boxhi[0] = all[0][1] + SMALL;
-      else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+SMALL,minxhi);
-      if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
-    }
-    if (yperiodic == 0) {
-      if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - SMALL;
-      else if (boundary[1][0] == 3) boxlo[1] = MIN(-all[1][0]-SMALL,minylo);
-      if (boundary[1][1] == 2) boxhi[1] = all[1][1] + SMALL;
-      else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+SMALL,minyhi);
-      if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-    }
-    if (zperiodic == 0) {
-      if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - SMALL;
-      else if (boundary[2][0] == 3) boxlo[2] = MIN(-all[2][0]-SMALL,minzlo);
-      if (boundary[2][1] == 2) boxhi[2] = all[2][1] + SMALL;
-      else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+SMALL,minzhi);
-      if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
+    if(triclinic == 0) {
+      if(xperiodic == 0) {
+        if(boundary[0][0] == 2) boxlo[0] = -all[0][0] - small[0];
+        else if(boundary[0][0] == 3)
+          boxlo[0] = MIN(-all[0][0] - small[0], minxlo);
+
+        if(boundary[0][1] == 2) boxhi[0] = all[0][1] + small[0];
+        else if(boundary[0][1] == 3) boxhi[0] = MAX(all[0][1] + small[0], minxhi);
+
+        if(boxlo[0] > boxhi[0]) error->all(FLERR, "Illegal simulation box");
+      }
+
+      if(yperiodic == 0) {
+        if(boundary[1][0] == 2) boxlo[1] = -all[1][0] - small[1];
+        else if(boundary[1][0] == 3)
+          boxlo[1] = MIN(-all[1][0] - small[1], minylo);
+
+        if(boundary[1][1] == 2) boxhi[1] = all[1][1] + small[1];
+        else if(boundary[1][1] == 3) boxhi[1] = MAX(all[1][1] + small[1], minyhi);
+
+        if(boxlo[1] > boxhi[1]) error->all(FLERR, "Illegal simulation box");
+      }
+
+      if(zperiodic == 0) {
+        if(boundary[2][0] == 2) boxlo[2] = -all[2][0] - small[2];
+        else if(boundary[2][0] == 3)
+          boxlo[2] = MIN(-all[2][0] - small[2], minzlo);
+
+        if(boundary[2][1] == 2) boxhi[2] = all[2][1] + small[2];
+        else if(boundary[2][1] == 3) boxhi[2] = MAX(all[2][1] + small[2], minzhi);
+
+        if(boxlo[2] > boxhi[2]) error->all(FLERR, "Illegal simulation box");
+      }
+
+    } else {
+      double lo[3], hi[3];
+
+      if(xperiodic == 0) {
+        lo[0] = -all[0][0];
+        lo[1] = 0.0;
+        lo[2] = 0.0;
+        Domain::lamda2x(lo, lo);
+        hi[0] = all[0][1];
+        hi[1] = 0.0;
+        hi[2] = 0.0;
+        Domain::lamda2x(hi, hi);
+
+        if(boundary[0][0] == 2) boxlo[0] = lo[0] - small[0];
+        else if(boundary[0][0] == 3) boxlo[0] = MIN(lo[0] - small[0], minxlo);
+
+        if(boundary[0][1] == 2) boxhi[0] = hi[0] + small[0];
+        else if(boundary[0][1] == 3) boxhi[0] = MAX(hi[0] + small[0], minxhi);
+
+        if(boxlo[0] > boxhi[0]) error->all(FLERR, "Illegal simulation box");
+      }
+
+      if(yperiodic == 0) {
+        lo[0] = 0.0;
+        lo[1] = -all[1][0];
+        lo[2] = 0.0;
+        Domain::lamda2x(lo, lo);
+        hi[0] = 0.0;
+        hi[1] = all[1][1];
+        hi[2] = 0.0;
+        Domain::lamda2x(hi, hi);
+
+        if(boundary[1][0] == 2) boxlo[1] = lo[1] - small[1];
+        else if(boundary[1][0] == 3) boxlo[1] = MIN(lo[1] - small[1], minylo);
+
+        if(boundary[1][1] == 2) boxhi[1] = hi[1] + small[1];
+        else if(boundary[1][1] == 3) boxhi[1] = MAX(hi[1] + small[1], minyhi);
+
+        if(boxlo[1] > boxhi[1]) error->all(FLERR, "Illegal simulation box");
+
+        //xy *= (boxhi[1]-boxlo[1]) / yprd;
+      }
+
+      if(zperiodic == 0) {
+        lo[0] = 0.0;
+        lo[1] = 0.0;
+        lo[2] = -all[2][0];
+        Domain::lamda2x(lo, lo);
+        hi[0] = 0.0;
+        hi[1] = 0.0;
+        hi[2] = all[2][1];
+        Domain::lamda2x(hi, hi);
+
+        if(boundary[2][0] == 2) boxlo[2] = lo[2] - small[2];
+        else if(boundary[2][0] == 3) boxlo[2] = MIN(lo[2] - small[2], minzlo);
+
+        if(boundary[2][1] == 2) boxhi[2] = hi[2] + small[2];
+        else if(boundary[2][1] == 3) boxhi[2] = MAX(hi[2] + small[2], minzhi);
+
+        if(boxlo[2] > boxhi[2]) error->all(FLERR, "Illegal simulation box");
+
+        //xz *= (boxhi[2]-boxlo[2]) / xprd;
+        //yz *= (boxhi[2]-boxlo[2]) / yprd;
+      }
     }
   }
 
   set_global_box();
   set_local_box();
 
-  if(not cuda->finished_run)
-  {
+  if(not cuda->finished_run) {
     cuda->setDomainParams();
     Cuda_Domain_Init(&cuda->shared_data);
   }
@@ -208,7 +280,7 @@ void DomainCuda::reset_box()
   // if shrink-wrapped, convert to lamda coords for new box
   // must re-invoke pbc() b/c x2lamda result can be outside 0,1 due to roundoff
 
-  if (nonperiodic == 2 && triclinic) {
+  if(nonperiodic == 2 && triclinic) {
     x2lamda(atom->nlocal);
     pbc();
   }
@@ -227,10 +299,9 @@ void DomainCuda::reset_box()
 
 void DomainCuda::pbc()
 {
-  if(cuda->finished_setup&&(!cuda->oncpu))
-  {
-          cuda->setDomainParams();
-    Cuda_Domain_PBC(&cuda->shared_data, deform_vremap, deform_groupbit,cuda->extent);
+  if(cuda->finished_setup && (!cuda->oncpu)) {
+    cuda->setDomainParams();
+    Cuda_Domain_PBC(&cuda->shared_data, deform_vremap, deform_groupbit, cuda->extent);
     return;
   }
 
@@ -245,9 +316,8 @@ void DomainCuda::pbc()
 
 void DomainCuda::lamda2x(int n)
 {
-  if(cuda->finished_setup&&(!cuda->oncpu))
-  {
-    Cuda_Domain_lamda2x(&cuda->shared_data,n);
+  if(cuda->finished_setup && (!cuda->oncpu)) {
+    Cuda_Domain_lamda2x(&cuda->shared_data, n);
     return;
   }
 
@@ -261,9 +331,8 @@ void DomainCuda::lamda2x(int n)
 
 void DomainCuda::x2lamda(int n)
 {
-  if(cuda->finished_setup&&(!cuda->oncpu))
-  {
-    Cuda_Domain_x2lamda(&cuda->shared_data,n);
+  if(cuda->finished_setup && (!cuda->oncpu)) {
+    Cuda_Domain_x2lamda(&cuda->shared_data, n);
     return;
   }
 

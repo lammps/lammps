@@ -76,6 +76,9 @@ class Fix : protected Pointers {
   double virial[6];              // accumlated virial
   double **vatom;                // accumulated per-atom virial
 
+  unsigned int datamask;
+  unsigned int datamask_ext;
+
   Fix(class LAMMPS *, int, char **);
   virtual ~Fix();
   void modify_params(int, char **);
@@ -156,6 +159,9 @@ class Fix : protected Pointers {
   virtual void *extract(const char *, int &) {return NULL;}
 
   virtual double memory_usage() {return 0.0;}
+
+  virtual unsigned int data_mask() {return datamask;}
+  virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
   int evflag;

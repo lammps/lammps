@@ -2355,16 +2355,23 @@ double FixRigid::compute_scalar()
   return t;
 }
 
-/* ----------------------------------------------------------------------
-   extract thermostat properties
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void *FixRigid::extract(const char *str, int &dim)
 {
-  dim=0;
+  if (strcmp(str,"body") == 0) {
+    dim = 1;
+    return body;
+  }
+  if (strcmp(str,"masstotal") == 0) {
+    dim = 1;
+    return masstotal;
+  }
   if (strcmp(str,"t_target") == 0) {
+    dim = 0;
     return &t_target;
   }
+
   return NULL;
 }
 

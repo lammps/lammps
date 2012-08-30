@@ -118,8 +118,8 @@ class Domain : protected Pointers {
 
   virtual void lamda2x(int);
   virtual void x2lamda(int);
-  void lamda2x(double *, double *);
-  void x2lamda(double *, double *);
+  virtual void lamda2x(double *, double *);
+  virtual void x2lamda(double *, double *);
   void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();
@@ -135,7 +135,7 @@ class Domain : protected Pointers {
     return 0;
   }
 
- private:
+ protected:
   double small[3];                  // fractions of box lengths
 };
 

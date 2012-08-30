@@ -83,6 +83,9 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
+  unsigned int datamask;
+  unsigned int datamask_ext;
+
   // atom style and per-atom array existence flags
   // customize by adding new flag
 

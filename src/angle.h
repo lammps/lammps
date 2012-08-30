@@ -28,6 +28,8 @@ class Angle : protected Pointers {
   double energy;                  // accumulated energies
   double virial[6];               // accumlated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+  unsigned int datamask;
+  unsigned int datamask_ext;
 
   Angle(class LAMMPS *);
   virtual ~Angle();
@@ -41,6 +43,9 @@ class Angle : protected Pointers {
   virtual void read_restart(FILE *) = 0;
   virtual double single(int, int, int, int) = 0;
   virtual double memory_usage();
+
+  virtual unsigned int data_mask() {return datamask;}
+  virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
   int suffix_flag;             // suffix compatibility flag

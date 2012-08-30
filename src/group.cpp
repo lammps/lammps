@@ -25,7 +25,10 @@
 #include "fix.h"
 #include "compute.h"
 #include "output.h"
+#include "input.h"
+#include "variable.h"
 #include "dump.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -240,6 +243,29 @@ void Group::assign(int narg, char **arg)
         if (attribute[i] == list[ilist]) mask[i] |= bit;
 
     delete [] list;
+
+  // style = variable
+
+  } else if (strcmp(arg[1],"variable") == 0) {
+
+    int ivar = input->variable->find(arg[2]);
+    if (ivar < 0) error->all(FLERR,"Variable name for group does not exist");
+    if (!input->variable->atomstyle(ivar))
+      error->all(FLERR,"Variable for group is invalid style");
+
+    double *aflag;
+    
+    // aflag = evaluation of per-atom variable
+
+    memory->create(aflag,nlocal,"group:aflag");
+    input->variable->compute_atom(ivar,0,aflag,1,0);
+
+    // add to group if per-atom variable evaluated to non-zero
+
+    for (i = 0; i < nlocal; i++)
+      if (aflag[i] != 0.0) mask[i] |= bit;
+
+    memory->destroy(aflag);
 
   // style = subtract
 

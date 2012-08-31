@@ -652,7 +652,7 @@ void ComputePropertyLocal::pack_ptype2(int n)
   int *type = atom->type;
 
   for (int m = 0; m < ncount; m++) {
-    i = indices[m][0];
+    i = indices[m][1];
     buf[n] = type[i];
     n += nvalues;
   }

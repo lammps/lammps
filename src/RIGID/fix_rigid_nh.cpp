@@ -55,10 +55,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[1] == 1 && p_period[1] <= 0.0) || 
       (p_flag[2] == 1 && p_period[2] <= 0.0)) 
     error->all(FLERR,"Fix rigid npt/nph period must be > 0.0");
-  if (domain->nonperiodic)
-    error->all(FLERR,
-               "Cannot use fix rigid npt/nph with non-periodic dimension");
-
+  
   if (dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix rigid npt/nph command for a 2d simulation");
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
@@ -339,7 +336,7 @@ void FixRigidNH::setup(int vflag)
   else if (pstat_flag) {
     t0 = temperature->compute_scalar();
     if (t0 == 0.0) {
-    	if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
+      if (strcmp(update->unit_style,"lj") == 0) t0 = 1.0;
       else t0 = 300.0;
     }
     t_target = t0;
@@ -382,7 +379,7 @@ void FixRigidNH::setup(int vflag)
   if (pstat_flag) {
     for (int i = 0; i < 3; i++)
       if (p_flag[i]) {
-      	epsilon_mass[i] = (g_f + dimension) * kt / (p_freq[i]*p_freq[i]);
+        epsilon_mass[i] = (g_f + dimension) * kt / (p_freq[i]*p_freq[i]);
         epsilon[i] = log(vol0)/dimension;
       } 
     
@@ -453,9 +450,9 @@ void FixRigidNH::initial_integrate(int vflag)
 
   if (tstat_flag) {
     akin_t = akin_r = 0.0;
-    tmp = exp(-1.0 * dtq * eta_dot_t[0]);
+    tmp = exp(-dtq * eta_dot_t[0]);
     scale_t[0] = scale_t[1] = scale_t[2] = tmp;
-    tmp = exp(-1.0 * dtq * eta_dot_r[0]);
+    tmp = exp(-dtq * eta_dot_r[0]);
     scale_r = tmp;
   } 
 
@@ -514,7 +511,7 @@ void FixRigidNH::initial_integrate(int vflag)
     torque[ibody][2] *= tflag[ibody][2];
     
     MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-				                        torque[ibody],tbody);
+                                torque[ibody],tbody);
     MathExtra::quatvec(quat[ibody],tbody,fquat);
     
     conjqm[ibody][0] += dtf2 * fquat[0];
@@ -542,10 +539,10 @@ void FixRigidNH::initial_integrate(int vflag)
     // update angular velocity
     
     MathExtra::q_to_exyz(quat[ibody],ex_space[ibody],ey_space[ibody],
-			                   ez_space[ibody]);
+                         ez_space[ibody]);
     MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
-		                  mbody,angmom[ibody]);
+                      mbody,angmom[ibody]);
     
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
@@ -817,55 +814,55 @@ void FixRigidNH::nhc_temp_integrate()
       eta_dot_r[t_chain-1] += wdti2[j] * f_eta_r[t_chain-1];
       
       for (k = 1; k < t_chain; k++) {
-      	tmp = wdti4[j] * eta_dot_t[t_chain-k];
+        tmp = wdti4[j] * eta_dot_t[t_chain-k];
         ms = maclaurin_series(tmp);
-      	s = exp(-1.0 * tmp);
-      	s2 = s * s;
-      	eta_dot_t[t_chain-k-1] = eta_dot_t[t_chain-k-1] * s2 + 
+        s = exp(-1.0 * tmp);
+        s2 = s * s;
+        eta_dot_t[t_chain-k-1] = eta_dot_t[t_chain-k-1] * s2 + 
           wdti2[j] * f_eta_t[t_chain-k-1] * s * ms;
 	
-    	  tmp = wdti4[j] * eta_dot_r[t_chain-k];
-      	ms = maclaurin_series(tmp);
+        tmp = wdti4[j] * eta_dot_r[t_chain-k];
+        ms = maclaurin_series(tmp);
         s = exp(-1.0 * tmp);
-      	s2 = s * s;
-      	eta_dot_r[t_chain-k-1] = eta_dot_r[t_chain-k-1] * s2 + 
+        s2 = s * s;
+        eta_dot_r[t_chain-k-1] = eta_dot_r[t_chain-k-1] * s2 + 
           wdti2[j] * f_eta_r[t_chain-k-1] * s * ms;
       }
       
       // update thermostat positions a full step
       
       for (k = 0; k < t_chain; k++) {
-      	eta_t[k] += wdti1[j] * eta_dot_t[k];
-      	eta_r[k] += wdti1[j] * eta_dot_r[k];
+        eta_t[k] += wdti1[j] * eta_dot_t[k];
+        eta_r[k] += wdti1[j] * eta_dot_r[k];
       }
       
       // update thermostat forces 
       
       for (k = 1; k < t_chain; k++) {
-	      f_eta_t[k] = q_t[k-1] * eta_dot_t[k-1] * eta_dot_t[k-1] - kt;
-      	f_eta_t[k] /= q_t[k];
-      	f_eta_r[k] = q_r[k-1] * eta_dot_r[k-1] * eta_dot_r[k-1] - kt;
-      	f_eta_r[k] /= q_r[k];
+        f_eta_t[k] = q_t[k-1] * eta_dot_t[k-1] * eta_dot_t[k-1] - kt;
+        f_eta_t[k] /= q_t[k];
+        f_eta_r[k] = q_r[k-1] * eta_dot_r[k-1] * eta_dot_r[k-1] - kt;
+        f_eta_r[k] /= q_r[k];
       }
       
       // update thermostat velocities a full step
       
       for (k = 0; k < t_chain-1; k++) {
-	      tmp = wdti4[j] * eta_dot_t[k+1];
-      	ms = maclaurin_series(tmp);
-      	s = exp(-1.0 * tmp);
-      	s2 = s * s;
-      	eta_dot_t[k] = eta_dot_t[k] * s2 + wdti2[j] * f_eta_t[k] * s * ms;
-      	tmp = q_t[k] * eta_dot_t[k] * eta_dot_t[k] - kt;
-      	f_eta_t[k+1] = tmp / q_t[k+1];
+        tmp = wdti4[j] * eta_dot_t[k+1];
+        ms = maclaurin_series(tmp);
+        s = exp(-1.0 * tmp);
+        s2 = s * s;
+        eta_dot_t[k] = eta_dot_t[k] * s2 + wdti2[j] * f_eta_t[k] * s * ms;
+        tmp = q_t[k] * eta_dot_t[k] * eta_dot_t[k] - kt;
+        f_eta_t[k+1] = tmp / q_t[k+1];
 	
-	      tmp = wdti4[j] * eta_dot_r[k+1];
-      	ms = maclaurin_series(tmp);
-      	s = exp(-1.0 * tmp);
-      	s2 = s * s;
-      	eta_dot_r[k] = eta_dot_r[k] * s2 + wdti2[j] * f_eta_r[k] * s * ms;
-      	tmp = q_r[k] * eta_dot_r[k] * eta_dot_r[k] - kt;
-      	f_eta_r[k+1] = tmp / q_r[k+1];
+        tmp = wdti4[j] * eta_dot_r[k+1];
+        ms = maclaurin_series(tmp);
+        s = exp(-1.0 * tmp);
+        s2 = s * s;
+        eta_dot_r[k] = eta_dot_r[k] * s2 + wdti2[j] * f_eta_r[k] * s * ms;
+        tmp = q_r[k] * eta_dot_r[k] * eta_dot_r[k] - kt;
+          f_eta_r[k+1] = tmp / q_r[k+1];
       }
       
       eta_dot_t[t_chain-1] += wdti2[j] * f_eta_t[t_chain-1];
@@ -969,8 +966,8 @@ double FixRigidNH::compute_scalar()
   ke_t = 0.0;
   for (ibody = 0; ibody < nbody; ibody++)
     ke_t += 0.5 * masstotal[ibody] * (vcm[ibody][0]*vcm[ibody][0] +
-				      vcm[ibody][1]*vcm[ibody][1] +
-				      vcm[ibody][2]*vcm[ibody][2]);
+      vcm[ibody][1]*vcm[ibody][1] +
+      vcm[ibody][2]*vcm[ibody][2]);
   
   // rotational kinetic energy
 
@@ -1434,3 +1431,4 @@ void FixRigidNH::deallocate_order()
   delete [] wdti2;
   delete [] wdti4;
 }
+

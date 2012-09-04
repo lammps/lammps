@@ -32,6 +32,7 @@
 #include "kspace.h"
 #include "output.h"
 #include "update.h"
+#include "fix.h"
 #include "modify.h"
 #include "timer.h"
 #include "memory.h"
@@ -282,6 +283,14 @@ void VerletSplit::run(int n)
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
+  // get hold of OpenMP support fix, if defined
+  Fix *fix_omp;
+  int ifix = modify->find_fix("package_omp");
+  if (ifix < 0)
+   fix_omp = NULL;
+  else
+    fix_omp = modify->fix[ifix];
+
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
@@ -361,6 +370,10 @@ void VerletSplit::run(int n)
       }
 
     } else {
+
+      // run FixOMP as sole pre_force fix, if defined
+      if (fix_omp != NULL) fix_omp->pre_force(vflag);
+
       if (force->kspace) {
         timer->stamp();
         force->kspace->compute(eflag,vflag);

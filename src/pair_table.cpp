@@ -19,6 +19,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "string.h"
+#include "ctype.h"
 #include "pair_table.h"
 #include "atom.h"
 #include "force.h"
@@ -343,7 +344,11 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
-    if (strstr(line,keyword) == line) break;               // matching keyword
+    int i = 0;
+    while (isalnum(line[i]) || line[i] == '_') i++;
+    char *word = new char[i];
+    strncpy(word,&line[0],i);
+    if (strcmp(word,keyword) == 0) break;               // matching keyword
     fgets(line,MAXLINE,fp);                         // no match, skip section
     param_extract(tb,line);
     fgets(line,MAXLINE,fp);

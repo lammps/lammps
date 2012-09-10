@@ -357,7 +357,7 @@ void DiagonalMatrix<T>::write_restart(FILE *f)                            const
 template<typename T>
 DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const T v) 
 {
-  set_all_elements_to(v);
+  this->set_all_elements_to(v);
   return *this;
 }
 //-----------------------------------------------------------------------------

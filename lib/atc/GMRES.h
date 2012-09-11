@@ -45,6 +45,36 @@ abs(Real x)
   return (x > 0 ? x : -x);
 }
 
+#include <math.h>
+
+
+template<class Real> 
+void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
+{
+  if (dy == 0.0) {
+    cs = 1.0;
+    sn = 0.0;
+  } else if (abs(dy) > abs(dx)) {
+    Real temp = dx / dy;
+    sn = 1.0 / sqrt( 1.0 + temp*temp );
+    cs = temp * sn;
+  } else {
+    Real temp = dy / dx;
+    cs = 1.0 / sqrt( 1.0 + temp*temp );
+    sn = temp * cs;
+  }
+}
+
+
+template<class Real> 
+void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
+{
+  Real temp  =  cs * dx + sn * dy;
+  dy = -sn * dx + cs * dy;
+  dx = temp;
+}
+
+
 
 template < class Operator, class Vector, class Preconditioner,
            class Matrix, class Real >
@@ -116,35 +146,5 @@ GMRES(const Operator &A, Vector &x, const Vector &b,
   tol = resid;
   delete [] v;
   return 1;
-}
-
-
-#include <math.h> 
-
-
-template<class Real> 
-void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
-{
-  if (dy == 0.0) {
-    cs = 1.0;
-    sn = 0.0;
-  } else if (abs(dy) > abs(dx)) {
-    Real temp = dx / dy;
-    sn = 1.0 / sqrt( 1.0 + temp*temp );
-    cs = temp * sn;
-  } else {
-    Real temp = dy / dx;
-    cs = 1.0 / sqrt( 1.0 + temp*temp );
-    sn = temp * cs;
-  }
-}
-
-
-template<class Real> 
-void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
-{
-  Real temp  =  cs * dx + sn * dy;
-  dy = -sn * dx + cs * dy;
-  dx = temp;
 }
 

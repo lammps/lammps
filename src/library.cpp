@@ -509,7 +509,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
           for (j = 0; j < count; j++)
             array[m][j] = dptr[offset++];
         }
-
+    }
   } else {
     double *vector = NULL;
     double **array = NULL;

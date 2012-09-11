@@ -84,7 +84,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   fkx = fky = fkz = NULL;
   buf1 = buf2 = buf3 = buf4 = NULL;
 
-  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = 
+    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
 
   density_A_brick = density_B_brick = NULL;
   density_A_fft = density_B_fft = NULL;
@@ -403,9 +404,9 @@ void PPPM::setup()
 
   delvolinv = delxinv*delyinv*delzinv;
 
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
+  double unitkx = (MY_2PI/xprd);
+  double unitky = (MY_2PI/yprd);
+  double unitkz = (MY_2PI/zprd_slab);
 
   // fkx,fky,fkz for my FFT grid pts
 
@@ -942,9 +943,9 @@ double PPPM::compute_qopt()
   volume = xprd * yprd * zprd_slab;
   double delvolcell = nx_pppm*ny_pppm*nz_pppm/volume;
 
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
+  double unitkx = (MY_2PI/xprd);
+  double unitky = (MY_2PI/yprd);
+  double unitkz = (MY_2PI/zprd_slab);
 
   int nx,ny,nz,kper,lper,mper;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
@@ -1026,7 +1027,7 @@ double PPPM::estimate_ik_error(double h, double prd, bigint natoms)
   for (int m = 0; m < order; m++)
     sum += acons[order][m] * pow(h*g_ewald,2.0*m);
   double value = q2 * pow(h*g_ewald,(double)order) *
-    sqrt(g_ewald*prd*sqrt(2.0*MY_PI)*sum/natoms) / (prd*prd);
+    sqrt(g_ewald*prd*sqrt(MY_2PI)*sum/natoms) / (prd*prd);
 
   return value;
 }
@@ -1397,9 +1398,9 @@ void PPPM::compute_gf_ik()
   double yprd = prd[1];
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
+  double unitkx = (MY_2PI/xprd);
+  double unitky = (MY_2PI/yprd);
+  double unitkz = (MY_2PI/zprd_slab);
   
   int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) *
                               pow(-log(EPS_HOC),0.25));
@@ -1484,9 +1485,9 @@ void PPPM::compute_gf_ad()
   double zprd_slab = zprd*slab_volfactor;
   volume = xprd * yprd * zprd_slab;
 
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
+  double unitkx = (MY_2PI/xprd);
+  double unitky = (MY_2PI/yprd);
+  double unitkz = (MY_2PI/zprd_slab);
 
   int nx,ny,nz,kper,lper,mper;
   double snx,sny,snz,snx2,sny2,snz2;
@@ -1494,7 +1495,7 @@ void PPPM::compute_gf_ad()
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double numerator,denominator;
 
-  for (i == 0; i <= 5; i++) sf_coeff[i] = 0.0;
+  for (i = 0; i <= 5; i++) sf_coeff[i] = 0.0;
 
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
@@ -1541,8 +1542,8 @@ void PPPM::compute_gf_ad()
           sf_coeff[2] += sf_precoeff3[n]*greensfn[n];
           sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
           sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
-          sf_coeff[5] += sf_precoeff6[n]*greensfn[n++];
-
+          sf_coeff[5] += sf_precoeff6[n]*greensfn[n];
+          n++;
         } else {
           greensfn[n] = 0.0;
           sf_coeff[0] += sf_precoeff1[n]*greensfn[n];
@@ -1550,13 +1551,14 @@ void PPPM::compute_gf_ad()
           sf_coeff[2] += sf_precoeff3[n]*greensfn[n];
           sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
           sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
-          sf_coeff[5] += sf_precoeff6[n]*greensfn[n++];
+          sf_coeff[5] += sf_precoeff6[n]*greensfn[n];
+          n++
         }
       }
     }
   }
 
-  // Compute the coefficients for the self-force correction
+  // compute the coefficients for the self-force correction
 
   double prex, prey, prez;
   prex = prey = prez = MY_PI/volume;
@@ -1605,9 +1607,9 @@ void PPPM::compute_sf_precoeff()
         sum1 = sum2 = sum3 = sum4 = sum5 = sum6 = 0.0;
         for (i = -nb; i <= nb; i++) {
 
-          qx0 = 2.0*MY_PI*(kper+nx_pppm*i);
-          qx1 = 2.0*MY_PI*(kper+nx_pppm*(i+1));
-          qx2 = 2.0*MY_PI*(kper+nx_pppm*(i+2));
+          qx0 = MY_2PI*(kper+nx_pppm*i);
+          qx1 = MY_2PI*(kper+nx_pppm*(i+1));
+          qx2 = MY_2PI*(kper+nx_pppm*(i+2));
           wx0[i+2] = 1.0;
           wx1[i+2] = 1.0;
           wx2[i+2] = 1.0;
@@ -1618,9 +1620,9 @@ void PPPM::compute_sf_precoeff()
           argx = 0.5*qx2/nx_pppm;
           if (argx != 0.0) wx2[i+2] = pow(sin(argx)/argx,order);
 
-          qy0 = 2.0*MY_PI*(lper+ny_pppm*i);
-          qy1 = 2.0*MY_PI*(lper+ny_pppm*(i+1));
-          qy2 = 2.0*MY_PI*(lper+ny_pppm*(i+2));
+          qy0 = MY_2PI*(lper+ny_pppm*i);
+          qy1 = MY_2PI*(lper+ny_pppm*(i+1));
+          qy2 = MY_2PI*(lper+ny_pppm*(i+2));
           wy0[i+2] = 1.0;
           wy1[i+2] = 1.0;
           wy2[i+2] = 1.0;
@@ -1631,9 +1633,9 @@ void PPPM::compute_sf_precoeff()
           argy = 0.5*qy2/ny_pppm;
           if (argy != 0.0) wy2[i+2] = pow(sin(argy)/argy,order);
 
-          qz0 = 2.0*MY_PI*(mper+nz_pppm*i);
-          qz1 = 2.0*MY_PI*(mper+nz_pppm*(i+1));
-          qz2 = 2.0*MY_PI*(mper+nz_pppm*(i+2));
+          qz0 = MY_2PI*(mper+nz_pppm*i);
+          qz1 = MY_2PI*(mper+nz_pppm*(i+1));
+          qz2 = MY_2PI*(mper+nz_pppm*(i+2));
           wz0[i+2] = 1.0;
           wz1[i+2] = 1.0;
           wz2[i+2] = 1.0;
@@ -3561,7 +3563,7 @@ void PPPM::slabcorr()
 
   // compute corrections
 
-  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = MY_2PI*dipole_all*dipole_all/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -3569,7 +3571,7 @@ void PPPM::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = 2.0*MY_PI*dipole_all/volume;
+    double efact = MY_2PI*dipole_all/volume;
     for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
   }
 

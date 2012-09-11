@@ -498,11 +498,11 @@ void lammps_scatter_atoms(void *ptr, char *name,
     else array = (int **) vptr;
     int *dptr = (int *) data;
 
-    if (count == 1)
+    if (count == 1) {
       for (i = 0; i < natoms; i++)
         if ((m = lmp->atom->map(i+1)) >= 0)
           vector[m] = dptr[i];
-    else
+    } else {
       for (i = 0; i < natoms; i++)
         if ((m = lmp->atom->map(i+1)) >= 0) {
           offset = count*i;

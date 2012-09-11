@@ -213,7 +213,7 @@ void BondHybrid::settings(int narg, char **arg)
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i],keywords[m]) == 0)
-        error->all(FLERR,"Bond style hybrid cannot use same pair style twice");
+        error->all(FLERR,"Bond style hybrid cannot use same bond style twice");
     if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0)

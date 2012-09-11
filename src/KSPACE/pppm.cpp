@@ -1552,7 +1552,7 @@ void PPPM::compute_gf_ad()
           sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
           sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
           sf_coeff[5] += sf_precoeff6[n]*greensfn[n];
-          n++
+          n++;
         }
       }
     }

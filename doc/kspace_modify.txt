@@ -123,12 +123,6 @@ as the {ik} approach.
 IMPORTANT NOTE: Currently, only the {pppm} style supports the {ad}
 option.  Support from other {pppm} variants will be added later.
 
-IMPORTANT NOTE: If you run the {ad} option with a constant pressure
-simulation (e.g. with "fix npt"_fix_nh.html), you may see a net
-slow-down.  This is because the {ad} option requires more expensive
-pre-computation whenever the box size changes.  This happens every
-step for constant-pressure simulations.
-
 [Restrictions:] none
 
 [Related commands:]

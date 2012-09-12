@@ -767,17 +767,13 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       character (len=*), intent(in), optional :: group
       integer, intent(out) :: variable
-      type (C_ptr) :: Cptr
-      integer (C_int), pointer :: Fptr
-      if ( present(group) ) then
-         Cptr = lammps_extract_variable_Cptr (ptr, name, group)
+      double precision :: d_var
+      if ( present (group) ) then
+         call lammps_extract_variable_dp (d_var, ptr, name, group)
       else
-         Cptr = lammps_extract_variable_Cptr (ptr, name)
+         call lammps_extract_variable_dp (d_var, ptr, name)
       end if
-      call C_F_pointer (Cptr, Fptr)
-      variable = Fptr
-      nullify (Fptr)
-      call lammps_free (Cptr)
+      variable = nint(d_var)
    end subroutine lammps_extract_variable_i
    subroutine lammps_extract_variable_dp (variable, ptr, name, group)
       type (C_ptr), intent(in) :: ptr
@@ -811,25 +807,19 @@ contains !! Wrapper functions local to this module {{{1
    end subroutine lammps_extract_variable_r
 
    subroutine lammps_extract_variable_ia (variable, ptr, name, group)
-      integer, dimension(:), allocatable, intent(out) :: variable
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       character (len=*), intent(in), optional :: group
-      type (C_ptr) :: Cptr
-      integer (C_int), dimension(:), pointer :: Fptr
-      integer :: natoms
-      nullify (Fptr)
-      if ( present(group) ) then
-         Cptr = lammps_extract_variable_Cptr (ptr, name, group)
+      integer, dimension(:), allocatable, intent(out) :: variable
+      double precision, dimension(:), allocatable :: d_var
+      if ( present (group) ) then
+         call lammps_extract_variable_dpa (d_var, ptr, name, group)
       else
-         Cptr = lammps_extract_variable_Cptr (ptr, name)
+         call lammps_extract_variable_dpa (d_var, ptr, name)
       end if
-      natoms = lammps_get_natoms (ptr)
-      allocate (variable(natoms))
-      call C_F_pointer (Cptr, Fptr, (/natoms/))
-      variable = Fptr
-      nullify (Fptr)
-      call lammps_free (Cptr)
+      allocate (variable(size(d_var)))
+      variable = nint(d_var)
+      deallocate (d_var)
    end subroutine lammps_extract_variable_ia
    subroutine lammps_extract_variable_dpa (variable, ptr, name, group)
       double precision, dimension(:), allocatable, intent(out) :: variable
@@ -877,8 +867,8 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cdata
       integer (C_int), dimension(:), pointer :: Fdata
       integer (C_int) :: natoms
-      character (kind=C_char), dimension(len_trim(name)) :: Cname
-      integer (C_int), parameter :: Ctype = 0
+      character (kind=C_char), dimension(len_trim(name)+1) :: Cname
+      integer (C_int), parameter :: Ctype = 0_C_int
       integer (C_int) :: Ccount
       natoms = lammps_get_natoms (ptr)
       Cname = string2Cstring (name)
@@ -903,8 +893,8 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr) :: Cdata
       real (C_double), dimension(:), pointer :: Fdata
       integer (C_int) :: natoms
-      character (kind=C_char), dimension(len_trim(name)) :: Cname
-      integer (C_int), parameter :: Ctype = 1
+      character (kind=C_char), dimension(len_trim(name)+1) :: Cname
+      integer (C_int), parameter :: Ctype = 1_C_int
       integer (C_int) :: Ccount
       natoms = lammps_get_natoms (ptr)
       Cname = string2Cstring (name)
@@ -940,9 +930,9 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       integer, dimension(:), intent(in) :: data
       integer (kind=C_int) :: natoms, Ccount
-      integer (kind=C_int), parameter :: Ctype = 0
-      character (kind=C_char), dimension(len_trim(name)) :: Cname
-      integer, dimension(size(data)), target :: Fdata
+      integer (kind=C_int), parameter :: Ctype = 0_C_int
+      character (kind=C_char), dimension(len_trim(name)+1) :: Cname
+      integer (C_int), dimension(size(data)), target :: Fdata
       type (C_ptr) :: Cdata
       natoms = lammps_get_natoms (ptr)
       Cname = string2Cstring (name)
@@ -959,9 +949,9 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: name
       double precision, dimension(:), intent(in) :: data
       integer (kind=C_int) :: natoms, Ccount
-      integer (kind=C_int), parameter :: Ctype = 0
-      character (kind=C_char), dimension(len_trim(name)) :: Cname
-      double precision, dimension(size(data)), target :: Fdata
+      integer (kind=C_int), parameter :: Ctype = 1_C_int
+      character (kind=C_char), dimension(len_trim(name)+1) :: Cname
+      real (C_double), dimension(size(data)), target :: Fdata
       type (C_ptr) :: Cdata
       natoms = lammps_get_natoms (ptr)
       Cname = string2Cstring (name)
@@ -976,38 +966,13 @@ contains !! Wrapper functions local to this module {{{1
    subroutine lammps_scatter_atoms_ra (ptr, name, data)
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
-      real, dimension(:), intent(out) :: data
+      real, dimension(:), intent(in) :: data
       double precision, dimension(size(data)) :: d_data
       d_data = real (data, kind(d_data))
       call lammps_scatter_atoms_dpa (ptr, name, d_data)
    end subroutine lammps_scatter_atoms_ra
 
 !-----------------------------------------------------------------------------
-
-!   subroutine lammps_get_coords (ptr, coords)
-!      type (C_ptr) :: ptr
-!      double precision, dimension(:), allocatable, intent(out) :: coords
-!      real (C_double), dimension(:), allocatable, target :: C_coords
-!      integer :: natoms
-!      natoms = lammps_get_natoms (ptr)
-!      allocate (coords(3*natoms))
-!      allocate (C_coords(3*natoms))
-!      call lammps_actual_get_coords (ptr, C_loc(C_coords))
-!      coords = C_coords
-!      deallocate (C_coords)
-!   end subroutine lammps_get_coords
-!
-!!-----------------------------------------------------------------------------
-!
-!   subroutine lammps_put_coords (ptr, coords)
-!      type (C_ptr) :: ptr
-!      double precision, dimension(:) :: coords
-!      real (C_double), dimension(size(coords)) :: C_coords
-!      C_coords = coords
-!      call lammps_actual_put_coords (ptr, C_coords)
-!   end subroutine lammps_put_coords
-!
-!!-----------------------------------------------------------------------------
 
    function lammps_extract_compute_vectorsize (ptr, id, style) &
    result (vectorsize)

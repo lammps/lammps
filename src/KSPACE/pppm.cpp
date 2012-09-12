@@ -84,6 +84,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   fkx = fky = fkz = NULL;
   buf1 = buf2 = buf3 = buf4 = NULL;
 
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
+
   density_A_brick = density_B_brick = NULL;
   density_A_fft = density_B_fft = NULL;
 
@@ -369,6 +371,7 @@ void PPPM::init()
   // pre-compute 1d charge distribution coefficients
 
   compute_gf_denom();
+  if (differentiation_flag == 1) compute_sf_precoeff();
   compute_rho_coeff();
 }
 
@@ -455,7 +458,6 @@ void PPPM::setup()
   
   if (differentiation_flag == 1) {
     compute_gf_ad();
-    compute_sf_coeff();
   } else {
     compute_gf_ik();
   }
@@ -612,6 +614,14 @@ void PPPM::allocate()
   if (differentiation_flag == 1) {
     memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:u_brick");
+
+    memory->create(sf_precoeff1,nfft_both,"pppm:sf_precoeff1");
+    memory->create(sf_precoeff2,nfft_both,"pppm:sf_precoeff2");
+    memory->create(sf_precoeff3,nfft_both,"pppm:sf_precoeff3");
+    memory->create(sf_precoeff4,nfft_both,"pppm:sf_precoeff4");
+    memory->create(sf_precoeff5,nfft_both,"pppm:sf_precoeff5");
+    memory->create(sf_precoeff6,nfft_both,"pppm:sf_precoeff6");
+
   } else {
     memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                             nxlo_out,nxhi_out,"pppm:vdx_brick");
@@ -689,6 +699,12 @@ void PPPM::deallocate()
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
   if (differentiation_flag == 1) {
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
+    memory->destroy(sf_precoeff1);
+    memory->destroy(sf_precoeff2);
+    memory->destroy(sf_precoeff3);
+    memory->destroy(sf_precoeff4);
+    memory->destroy(sf_precoeff5);
+    memory->destroy(sf_precoeff6);
   } else {
     memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
@@ -1478,6 +1494,8 @@ void PPPM::compute_gf_ad()
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double numerator,denominator;
 
+  for (i == 0; i <= 5; i++) sf_coeff[i] = 0.0;
+
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
@@ -1517,40 +1535,55 @@ void PPPM::compute_gf_ad()
         if (sqk != 0.0) {
           numerator = 4.0*MY_PI/sqk;
           denominator = gf_denom(snx2,sny2,snz2);
-          greensfn[n++] = numerator*sx*sy*sz*wx*wy*wz/denominator;
-        } else greensfn[n++] = 0.0;
+          greensfn[n] = numerator*sx*sy*sz*wx*wy*wz/denominator;
+          sf_coeff[0] += sf_precoeff1[n]*greensfn[n];
+          sf_coeff[1] += sf_precoeff2[n]*greensfn[n];
+          sf_coeff[2] += sf_precoeff3[n]*greensfn[n];
+          sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
+          sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
+          sf_coeff[5] += sf_precoeff6[n]*greensfn[n++];
+
+        } else {
+          greensfn[n] = 0.0;
+          sf_coeff[0] += sf_precoeff1[n]*greensfn[n];
+          sf_coeff[1] += sf_precoeff2[n]*greensfn[n];
+          sf_coeff[2] += sf_precoeff3[n]*greensfn[n];
+          sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
+          sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
+          sf_coeff[5] += sf_precoeff6[n]*greensfn[n++];
+        }
       }
     }
   }
+
+  // Compute the coefficients for the self-force correction
+
+  double prex, prey, prez;
+  prex = prey = prez = MY_PI/volume;
+  prex *= nx_pppm/xprd;
+  prey *= ny_pppm/yprd;
+  prez *= nz_pppm/zprd_slab;
+  sf_coeff[0] *= prex;
+  sf_coeff[1] *= prex*2;
+  sf_coeff[2] *= prey;
+  sf_coeff[3] *= prey*2;
+  sf_coeff[4] *= prez;
+  sf_coeff[5] *= prez*2;
+
+  // communicate values with other procs
+
+  double tmp[6];
+  MPI_Allreduce(sf_coeff,tmp,6,MPI_DOUBLE,MPI_SUM,world);
+  for (n = 0; n < 6; n++) sf_coeff[n] = tmp[n];
 }
 
 /* ----------------------------------------------------------------------
    compute self force coefficients for ad-differentiation scheme
 ------------------------------------------------------------------------- */
 
-void PPPM::compute_sf_coeff()
+void PPPM::compute_sf_precoeff()
 {
-
-  int i,j,k,l,m,n;
-  double *prd;
-
-  // volume-dependent factors
-  // adjust z dimension for 2d slab PPPM
-  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
-
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-  volume = xprd * yprd * zprd_slab;
-
-  double unitkx = (2.0*MY_PI/xprd);
-  double unitky = (2.0*MY_PI/yprd);
-  double unitkz = (2.0*MY_PI/zprd_slab);
-
+  int i,k,l,m,n,nb;
   int nx,ny,nz,kper,lper,mper;
   double argx,argy,argz;
   double wx0[5],wy0[5],wz0[5],wx1[5],wy1[5],wz1[5],wx2[5],wy2[5],wz2[5];
@@ -1558,11 +1591,7 @@ void PPPM::compute_sf_coeff()
   double u0,u1,u2,u3,u4,u5,u6;
   double sum1,sum2,sum3,sum4,sum5,sum6;
 
-  int nb = 2;
-
-  double form = 1.0;
-  for (n = 0; n < 6; n++) sf_coeff[n] = 0.0;
-
+  nb = 2;
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
@@ -1576,43 +1605,43 @@ void PPPM::compute_sf_coeff()
         sum1 = sum2 = sum3 = sum4 = sum5 = sum6 = 0.0;
         for (i = -nb; i <= nb; i++) {
 
-          qx0 = unitkx*(kper+nx_pppm*i);
-          qx1 = unitkx*(kper+nx_pppm*(i+1));
-          qx2 = unitkx*(kper+nx_pppm*(i+2));
+          qx0 = 2.0*MY_PI*(kper+nx_pppm*i);
+          qx1 = 2.0*MY_PI*(kper+nx_pppm*(i+1));
+          qx2 = 2.0*MY_PI*(kper+nx_pppm*(i+2));
           wx0[i+2] = 1.0;
           wx1[i+2] = 1.0;
           wx2[i+2] = 1.0;
-          argx = 0.5*qx0*xprd/nx_pppm;
+          argx = 0.5*qx0/nx_pppm;
           if (argx != 0.0) wx0[i+2] = pow(sin(argx)/argx,order);
-          argx = 0.5*qx1*xprd/nx_pppm;
+          argx = 0.5*qx1/nx_pppm;
           if (argx != 0.0) wx1[i+2] = pow(sin(argx)/argx,order);
-          argx = 0.5*qx2*xprd/nx_pppm;
+          argx = 0.5*qx2/nx_pppm;
           if (argx != 0.0) wx2[i+2] = pow(sin(argx)/argx,order);
 
-          qy0 = unitky*(lper+ny_pppm*i);
-          qy1 = unitky*(lper+ny_pppm*(i+1));
-          qy2 = unitky*(lper+ny_pppm*(i+2));
+          qy0 = 2.0*MY_PI*(lper+ny_pppm*i);
+          qy1 = 2.0*MY_PI*(lper+ny_pppm*(i+1));
+          qy2 = 2.0*MY_PI*(lper+ny_pppm*(i+2));
           wy0[i+2] = 1.0;
           wy1[i+2] = 1.0;
           wy2[i+2] = 1.0;
-          argy = 0.5*qy0*yprd/ny_pppm;
+          argy = 0.5*qy0/ny_pppm;
           if (argy != 0.0) wy0[i+2] = pow(sin(argy)/argy,order);
-          argy = 0.5*qy1*yprd/ny_pppm;
+          argy = 0.5*qy1/ny_pppm;
           if (argy != 0.0) wy1[i+2] = pow(sin(argy)/argy,order);
-          argy = 0.5*qy2*yprd/ny_pppm;
+          argy = 0.5*qy2/ny_pppm;
           if (argy != 0.0) wy2[i+2] = pow(sin(argy)/argy,order);
 
-          qz0 = unitkz*(mper+nz_pppm*i);
-          qz1 = unitkz*(mper+nz_pppm*(i+1));
-          qz2 = unitkz*(mper+nz_pppm*(i+2));
+          qz0 = 2.0*MY_PI*(mper+nz_pppm*i);
+          qz1 = 2.0*MY_PI*(mper+nz_pppm*(i+1));
+          qz2 = 2.0*MY_PI*(mper+nz_pppm*(i+2));
           wz0[i+2] = 1.0;
           wz1[i+2] = 1.0;
           wz2[i+2] = 1.0;
-          argz = 0.5*qz0*zprd_slab/nz_pppm;
+          argz = 0.5*qz0/nz_pppm;
           if (argz != 0.0) wz0[i+2] = pow(sin(argz)/argz,order);
-          argz = 0.5*qz1*zprd_slab/nz_pppm;
+          argz = 0.5*qz1/nz_pppm;
           if (argz != 0.0) wz1[i+2] = pow(sin(argz)/argz,order);
-           argz = 0.5*qz2*zprd_slab/nz_pppm;
+           argz = 0.5*qz2/nz_pppm;
           if (argz != 0.0) wz2[i+2] = pow(sin(argz)/argz,order);
         }
 
@@ -1637,38 +1666,20 @@ void PPPM::compute_sf_coeff()
           }
         }
 
-        // multiplication with Green's function
+        // store values
 
-        sf_coeff[0] += sum1 * greensfn[n];
-        sf_coeff[1] += sum2 * greensfn[n];
-        sf_coeff[2] += sum3 * greensfn[n];
-        sf_coeff[3] += sum4 * greensfn[n];
-        sf_coeff[4] += sum5 * greensfn[n];
-        sf_coeff[5] += sum6 * greensfn[n++];
+        sf_precoeff1[n] = sum1;
+        sf_precoeff2[n] = sum2;
+        sf_precoeff3[n] = sum3;
+        sf_precoeff4[n] = sum4;
+        sf_precoeff5[n] = sum5;
+        sf_precoeff6[n++] = sum6;
       }
     }
   }
-
-  // perform multiplication with prefactors
-
-  double prex, prey, prez;
-  prex = prey = prez = MY_PI/volume;
-  prex *= nx_pppm/xprd;
-  prey *= ny_pppm/yprd;
-  prez *= nz_pppm/zprd_slab;
-  sf_coeff[0] *= prex;
-  sf_coeff[1] *= prex*2;
-  sf_coeff[2] *= prey;
-  sf_coeff[3] *= prey*2;
-  sf_coeff[4] *= prez;
-  sf_coeff[5] *= prez*2;
-
-  // communicate values with other procs
-
-  double tmp[6];
-  MPI_Allreduce(sf_coeff,tmp,6,MPI_DOUBLE,MPI_SUM,world);
-  for (n = 0; n < 6; n++) sf_coeff[n] = tmp[n];
 }
+
+
 
 /* ----------------------------------------------------------------------
    ghost-swap to accumulate full density in brick decomposition

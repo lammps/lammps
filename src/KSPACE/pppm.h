@@ -81,6 +81,7 @@ class PPPM : public KSpace {
 
   double *gf_b;
   FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
+  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
   double sf_coeff[6];          // coefficients for calculating ad self-forces
   double **acons;
 
@@ -121,7 +122,7 @@ class PPPM : public KSpace {
   void compute_gf_denom();
   void compute_gf_ik();
   void compute_gf_ad();
-  void compute_sf_coeff();
+  void compute_sf_precoeff();
   
   virtual void particle_map();
   virtual void make_rho();

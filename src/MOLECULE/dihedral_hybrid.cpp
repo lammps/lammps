@@ -13,6 +13,7 @@
 
 #include "math.h"
 #include "string.h"
+#include "ctype.h"
 #include "dihedral_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -161,25 +162,76 @@ void DihedralHybrid::allocate()
 
 void DihedralHybrid::settings(int narg, char **arg)
 {
-  nstyles = narg;
+  int i,m,istyle;
+
+  if (narg < 1) error->all(FLERR,"Illegal dihedral_style command");
+
+  // delete old lists, since cannot just change settings
+
+  if (nstyles) {
+    for (int i = 0; i < nstyles; i++) delete styles[i];
+    delete [] styles;
+    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    delete [] keywords;
+  }
+
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(map);
+    delete [] ndihedrallist;
+    delete [] maxdihedral;
+    for (int i = 0; i < nstyles; i++)
+      memory->destroy(dihedrallist[i]);
+    delete [] dihedrallist;
+  }
+  allocated = 0;
+
+  // count sub-styles by skipping numeric args
+  // one exception is 1st arg of style "table", which is non-numeric word
+  // need a better way to skip these exceptions
+
+  nstyles = 0;
+  i = 0;
+  while (i < narg) {
+    if (strcmp(arg[i],"table") == 0) i++;
+    i++;
+    while (i < narg && !isalpha(arg[i][0])) i++;
+    nstyles++;
+  }
+
+  // allocate list of sub-styles
+
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
 
-  int dummy;
+  // allocate each sub-style and call its settings() with subset of args
+  // define subset of args for a sub-style by skipping numeric args
+  // one exception is 1st arg of style "table", which is non-numeric
+  // need a better way to skip these exceptions
 
-  for (int m = 0; m < nstyles; m++) {
-    for (int i = 0; i < m; i++)
-      if (strcmp(arg[m],arg[i]) == 0)
+  int dummy;
+  nstyles = 0;
+  i = 0;
+
+  while (i < narg) {
+    for (m = 0; m < nstyles; m++)
+      if (strcmp(arg[i],keywords[m]) == 0)
         error->all(FLERR,"Dihedral style hybrid cannot use "
                    "same dihedral style twice");
-    if (strcmp(arg[m],"hybrid") == 0)
+    if (strcmp(arg[i],"hybrid") == 0)
       error->all(FLERR,
                  "Dihedral style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[m],"none") == 0)
+    if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Dihedral style hybrid cannot have none as an argument");
-    styles[m] = force->new_dihedral(arg[m],lmp->suffix,dummy);
-    keywords[m] = new char[strlen(arg[m])+1];
-    strcpy(keywords[m],arg[m]);
+    styles[nstyles] = force->new_dihedral(arg[i],lmp->suffix,dummy);
+    keywords[nstyles] = new char[strlen(arg[i])+1];
+    strcpy(keywords[nstyles],arg[i]);
+    istyle = i;
+    if (strcmp(arg[i],"table") == 0) i++;
+    i++;
+    while (i < narg && !isalpha(arg[i][0])) i++;
+    styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
+    nstyles++;
   }
 }
 

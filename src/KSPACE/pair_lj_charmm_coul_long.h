@@ -39,12 +39,12 @@ class PairLJCharmmCoulLong : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double single(int, int, int, int, double, double, double, double &);
 
   void compute_inner();
   void compute_middle();
-  void compute_outer(int, int);
-  void *extract(const char *, int &);
+  virtual void compute_outer(int, int);
+  virtual void *extract(const char *, int &);
 
  protected:
   int implicit;
@@ -65,7 +65,7 @@ class PairLJCharmmCoulLong : public Pair {
   int ncoulshiftbits,ncoulmask;
 
   void allocate();
-  void init_tables();
+  virtual void init_tables();
   void free_tables();
 };
 

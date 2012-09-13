@@ -25,6 +25,7 @@ PairStyle(lj/cut/coul/long,PairLJCutCoulLong)
 namespace LAMMPS_NS {
 
 class PairLJCutCoulLong : public Pair {
+
  public:
   PairLJCutCoulLong(class LAMMPS *);
   virtual ~PairLJCutCoulLong();
@@ -42,8 +43,8 @@ class PairLJCutCoulLong : public Pair {
 
   void compute_inner();
   void compute_middle();
-  void compute_outer(int, int);
-  void *extract(const char *, int &);
+  virtual void compute_outer(int, int);
+  virtual void *extract(const char *, int &);
 
  protected:
   double cut_lj_global;
@@ -61,7 +62,7 @@ class PairLJCutCoulLong : public Pair {
   int ncoulshiftbits,ncoulmask;
 
   void allocate();
-  void init_tables();
+  virtual void init_tables();
   void free_tables();
 };
 

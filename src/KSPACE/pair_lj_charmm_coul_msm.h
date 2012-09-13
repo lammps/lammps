@@ -13,42 +13,28 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(buck/coul/long,PairBuckCoulLong)
+PairStyle(lj/charmm/coul/msm,PairLJCharmmCoulMSM)
 
 #else
 
-#ifndef LMP_PAIR_BUCK_COUL_LONG_H
-#define LMP_PAIR_BUCK_COUL_LONG_H
+#ifndef LMP_PAIR_LJ_CHARMM_COUL_MSM_H
+#define LMP_PAIR_LJ_CHARMM_COUL_MSM_H
 
-#include "pair.h"
+#include "pair_lj_charmm_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairBuckCoulLong : public Pair {
+class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
  public:
-  PairBuckCoulLong(class LAMMPS *);
-  virtual ~PairBuckCoulLong();
+  PairLJCharmmCoulMSM(class LAMMPS *);
+  virtual ~PairLJCharmmCoulMSM(){};
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
+  virtual void compute_outer(int, int);
   virtual void *extract(const char *, int &);
 
  protected:
-  double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
-  double g_ewald;
-
-  void allocate();
+  virtual void init_tables();
 };
 
 }
@@ -68,14 +54,23 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Pair style buck/coul/long requires atom attribute q
+E: Pair style lj/charmm/coul/long requires atom attribute q
 
 The atom style defined does not have these attributes.
+
+E: Pair inner cutoff >= Pair outer cutoff
+
+The specified cutoffs for the pair style are inconsistent.
+
+E: Pair cutoff < Respa interior cutoff
+
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
+
+E: Pair inner cutoff < Respa interior cutoff
+
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 E: Pair style is incompatible with KSpace style
 

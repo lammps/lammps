@@ -38,7 +38,7 @@ class PairCoulLong : public Pair {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double cut_coul,cut_coulsq;
@@ -52,7 +52,7 @@ class PairCoulLong : public Pair {
   int ncoulshiftbits,ncoulmask;
 
   void allocate();
-  void init_tables();
+  virtual void init_tables();
   void free_tables();
 };
 

@@ -13,42 +13,25 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(buck/coul/long,PairBuckCoulLong)
+PairStyle(born/coul/msm,PairBornCoulMSM)
 
 #else
 
-#ifndef LMP_PAIR_BUCK_COUL_LONG_H
-#define LMP_PAIR_BUCK_COUL_LONG_H
+#ifndef LMP_PAIR_BORN_COUL_MSM_H
+#define LMP_PAIR_BORN_COUL_MSM_H
 
-#include "pair.h"
+#include "pair_born_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairBuckCoulLong : public Pair {
+class PairBornCoulMSM : public PairBornCoulLong {
  public:
-  PairBuckCoulLong(class LAMMPS *);
-  virtual ~PairBuckCoulLong();
+  PairBornCoulMSM(class LAMMPS *);
+  virtual ~PairBornCoulMSM(){};
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 
- protected:
-  double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
-  double g_ewald;
-
-  void allocate();
 };
 
 }
@@ -73,9 +56,9 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Pair style buck/coul/long requires atom attribute q
+E: Pair style born/coul/long requires atom attribute q
 
-The atom style defined does not have these attributes.
+An atom style that defines this attribute must be used.
 
 E: Pair style is incompatible with KSpace style
 

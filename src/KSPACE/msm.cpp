@@ -104,7 +104,8 @@ void MSM::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot (yet) use MSM with triclinic box");
 
-  if (domain->dimension == 2) error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
+  if (domain->dimension == 2) 
+    error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 

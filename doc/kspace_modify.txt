@@ -40,25 +40,28 @@ Set parameters used by the kspace solvers defined by the
 "kspace_style"_kspace_style.html command.  Not all parameters are
 relevant to all kspace styles.
 
-The {mesh} keyword sets the 3d FFT grid size for kspace style pppm.
-Each dimension must be factorizable into powers of 2, 3, and 5.  When
-this option is not set, the PPPM solver chooses its own grid size,
-consistent with the user-specified accuracy and pairwise cutoff.
-Values for x,y,z of 0,0,0 unset the option.
+The {mesh} keyword sets the grid size for kspace style {pppm} or {msm}.
+In the case of PPPM, each dimension must be factorizable into powers
+of 2, 3, and 5.  In the case of MSM, each dimension must be 
+factorizable into powers of 2. When this option is not set, the PPPM
+or MSM solver chooses its own grid size, consistent with the 
+user-specified accuracy and pairwise cutoff. Values for x,y,z of 
+0,0,0 unset the option.
 
 The {order} keyword determines how many grid spacings an atom's charge
-extends when it is mapped to the FFT grid in kspace style pppm.  The
-default for this parameter is 5, which means each charge spans 5 grid
-cells in each dimension.  The minimum allowed setting is 2 and the
-maximum allowed setting is 7.  The larger the value of this parameter,
-the smaller the FFT grid will need to be to achieve the requested
-precision.  Conversely, the smaller the order value, the larger the
-grid will be.  Note that there is an inherent trade-off involved: a
-small grid will lower the cost of FFTs, but a large order parameter
-will increase the cost of intepolating charge/fields to/from the grid.
-And vice versa.
+extends when it is mapped to the grid in kspace style {pppm} or {msm}.  
+The default for this parameter is 5 for PPPM and 4 for MSM, which means 
+each charge spans 5 or 4 grid cells in each dimension, respectively.  
+For the LAMMPS implementation of MSM, 4 is the only allowable value. 
+For PPPM, the minimum allowed setting is 2 and the maximum allowed 
+setting is 7.  The larger the value of this parameter, the smaller the 
+grid will need to be to achieve the requested precision.  Conversely, 
+the smaller the order value, the larger the grid will be.  Note that 
+there is an inherent trade-off involved: a small grid will lower the 
+cost of FFTs, but a large order parameter will increase the cost of 
+interpolating charge/fields to/from the grid. And vice versa.
 
-The order parameter may be reset by LAMMPS when it sets up the PPPM
+The PPPM order parameter may be reset by LAMMPS when it sets up the 
 FFT grid if the implied grid stencil extends beyond the grid cells
 owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
@@ -72,8 +75,8 @@ calculated by the long-range solver and is thus specified in force
 units.  A negative value for the accuracy setting means to use the
 relative accuracy parameter.  The accuracy setting is used in
 conjunction with the pairwise cutoff to determine the number of
-K-space vectors for style {ewald} or the FFT grid size for style
-{pppm}.
+K-space vectors for style {ewald}, the FFT grid size for style
+{pppm}, or the real space grid size for style {msm}.
 
 The {gewald} keyword sets the value of the Ewald or PPPM G-ewald
 parameter as {rinv} in reciprocal distance units.  Without this
@@ -83,7 +86,8 @@ simulation to the next which may not be desirable for matching a
 KSpace solver to a pre-tabulated pairwise potential.  This setting can
 also be useful if Ewald or PPPM fails to choose a good grid spacing
 and G-ewald parameter automatically.  If the value is set to 0.0,
-LAMMPS will choose the G-ewald parameter automatically.
+LAMMPS will choose the G-ewald parameter automatically.  MSM does not 
+use the {gewald} parameter. 
 
 The {slab} keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
@@ -99,7 +103,8 @@ must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the {slab}
 option is explained in the paper by "(Yeh)"_#Yeh.  An alternative
 slab option can be invoked with the {nozforce} keyword in lieu of the 
-volfactor. This turns off all kspace forces in the z direction.
+volfactor. This turns off all kspace forces in the z direction. The
+{slab} and {nozforce} options are not allowed for MSM.
 
 The {compute} keyword allows Kspace computations to be turned off,
 even though a "kspace_style"_kspace_style.html is defined.  This is

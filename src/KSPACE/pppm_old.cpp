@@ -2484,11 +2484,39 @@ void PPPMOld::slabcorr()
   for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
 }
 
+
 /* ----------------------------------------------------------------------
-   perform and time the 4 FFTs required for N timesteps
+   perform and time the 1d FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-int PPPMOld::timing(int n, double &time3d, double &time1d)
+int PPPMOld::timing_1d(int n, double &time1d)
+{
+  double time1,time2;
+
+  for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
+
+  MPI_Barrier(world);
+  time1 = MPI_Wtime();
+
+  for (int i = 0; i < n; i++) {
+    fft1->timing1d(work1,nfft_both,1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+    fft2->timing1d(work1,nfft_both,-1);
+  }
+
+  MPI_Barrier(world);
+  time2 = MPI_Wtime();
+  time1d = time2 - time1;
+
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   perform and time the 3d FFTs required for N timesteps
+------------------------------------------------------------------------- */
+
+int PPPMOld::timing_3d(int n, double &time3d)
 {
   double time1,time2;
 
@@ -2507,20 +2535,6 @@ int PPPMOld::timing(int n, double &time3d, double &time1d)
   MPI_Barrier(world);
   time2 = MPI_Wtime();
   time3d = time2 - time1;
-
-  MPI_Barrier(world);
-  time1 = MPI_Wtime();
-
-  for (int i = 0; i < n; i++) {
-    fft1->timing1d(work1,nfft_both,1);
-    fft2->timing1d(work1,nfft_both,-1);
-    fft2->timing1d(work1,nfft_both,-1);
-    fft2->timing1d(work1,nfft_both,-1);
-  }
-
-  MPI_Barrier(world);
-  time2 = MPI_Wtime();
-  time1d = time2 - time1;
 
   return 4;
 }

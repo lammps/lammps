@@ -162,6 +162,34 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 }
 
 /* ----------------------------------------------------------------------
+   compute gamma for MSM and pair styles
+   see Eq 4 from Parallel Computing 35 (2009) 164–177
+------------------------------------------------------------------------- */
+
+double KSpace::gamma(const double &rho) 
+{
+  if (rho <= 1){
+    double rho2 = rho*rho;
+    return (15.0/8.0 - 5.0*rho2/4.0 + 3.0*rho2*rho2/8.0);
+  }
+  else
+    return (1.0/rho);
+}
+
+/* ---------------------------------------------------------------------- 
+   compute the derivative of gamma for MSM and pair styles
+   see Eq 4 from Parallel Computing 35 (2009) 164-177 
+------------------------------------------------------------------------- */ 
+ 
+double KSpace::dgamma(const double &rho) 
+{ 
+  if (rho <= 1) 
+    return (-5.0*rho/2.0 + 3.0*rho*rho*rho/2.0); 
+  else 
+    return (-1.0/rho/rho); 
+}
+
+/* ----------------------------------------------------------------------
    modify parameters of the KSpace style
 ------------------------------------------------------------------------- */
 
@@ -171,9 +199,9 @@ void KSpace::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mesh") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      nx_pppm = atoi(arg[iarg+1]);
-      ny_pppm = atoi(arg[iarg+2]);
-      nz_pppm = atoi(arg[iarg+3]);
+      nx_pppm = nx_msm_max = atoi(arg[iarg+1]);
+      ny_pppm = ny_msm_max = atoi(arg[iarg+2]);
+      nz_pppm = nz_msm_max = atoi(arg[iarg+3]);
       if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0) gridflag = 0;
       else gridflag = 1;
       iarg += 4;

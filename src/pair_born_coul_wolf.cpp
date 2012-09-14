@@ -303,7 +303,7 @@ double PairBornCoulWolf::init_one(int i, int j)
   born3[i][j] = 8.0*d[i][j];
 
   if (offset_flag) {
-    double rexp = exp(-cut_lj[i][j]/rho[i][j]);
+    double rexp = exp((sigma[i][j]-cut[i][j])*rhoinv[i][j]);
     offset[i][j] = a[i][j]*rexp - c[i][j]/pow(cut_lj[i][j],6.0)
       + d[i][j]/pow(cut_lj[i][j],8.0);
   } else offset[i][j] = 0.0;

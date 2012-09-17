@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,42 +13,27 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(born/coul/long,PairBornCoulLong)
+PairStyle(coul/msm,PairCoulMSM)
 
 #else
 
-#ifndef LMP_PAIR_BORN_COUL_LONG_H
-#define LMP_PAIR_BORN_COUL_LONG_H
+#ifndef LMP_PAIR_COUL_MSM_H
+#define LMP_PAIR_COUL_MSM_H
 
-#include "pair.h"
+#include "pair_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairBornCoulLong : public Pair {
+class PairCoulMSM : public PairCoulLong {
  public:
-  PairBornCoulLong(class LAMMPS *);
-  virtual ~PairBornCoulLong();
+  PairCoulMSM(class LAMMPS *);
+  virtual ~PairCoulMSM(){};
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 
  protected:
-  double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**sigma,**c,**d;
-  double **rhoinv,**born1,**born2,**born3,**offset;
-  double g_ewald;
-
-  void allocate();
+  virtual void init_tables();
 };
 
 }
@@ -68,14 +53,14 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: All pair coeffs are not set
+E: Pair style lj/cut/coul/msm requires atom attribute q
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+The atom style defined does not have this attribute.
 
-E: Pair style born/coul/long requires atom attribute q
+E: Pair cutoff < Respa interior cutoff
 
-An atom style that defines this attribute must be used.
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 E: Pair style is incompatible with KSpace style
 

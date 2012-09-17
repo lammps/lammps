@@ -36,6 +36,8 @@ style = {none} or {ewald} or {ewald/omp} or {ewald/n} or {pppm} or {pppm/cg} or 
   {pppm/proxy} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/proxy} value = accuracy
+    accuracy = desired relative error in forces
+  {msm} value = accuracy
     accuracy = desired relative error in forces :pre
 :ule
 
@@ -43,6 +45,7 @@ style = {none} or {ewald} or {ewald/omp} or {ewald/n} or {pppm} or {pppm/cg} or 
 
 kspace_style pppm 1.0e-4
 kspace_style pppm/cg 1.0e-5 1.0e-6
+kspace style msm 1.0e-4
 kspace_style none :pre
 
 [Description:]
@@ -114,6 +117,26 @@ section"_Section_start.html#start_2_4 of the manual.
 
 :line
 
+The {msm} style invokes a multi-level summation method MSM solver
+"(Hardy)"_#Hardy which maps atom charge to a 3d mesh, and uses a 
+multi-level hierarchy of coarser and coarser meshes on which direct
+coulomb solves are done.  This method does not use FFTs and scales
+as N. It may therefore be faster than the other K-space solvers for 
+relatively large problems when running on large core counts.
+
+MSM is most competitive versus Ewald and PPPM when only relatively 
+low accuracy forces, about 1% relative error or higher, are needed.
+Note that MSM speed will be poor for large MSM meshes 
+(i.e. 64 x 64 x 64 or larger).  Also note that use of a larger 
+coulomb cutoff (i.e. 15 angstroms instead of 10 angstroms) provides 
+better MSM accuracy for both the real space and grid computed forces. 
+Beware that the error estimation method for MSM is not very accurate,
+so you should probably set your own mesh size and ensure that you are
+getting adequate force accuracy by doing an energy conservation test 
+or comparison versus the Ewald method.
+
+:line
+
 When a kspace style is used, a pair style that includes the
 short-range correction to the pairwise Coulombic or other 1/r^N forces
 must also be selected.  For Coulombic interactions, these styles are
@@ -133,7 +156,7 @@ smaller than the reference force.
 
 The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
-FFT grid size for style {pppm}.
+FFT grid size for style {pppm} or {msm}.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
@@ -141,7 +164,9 @@ equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
 {ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
 which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
 errors in K-space for {pppm} are estimated using equation 38 of
-"(Deserno)"_#Deserno.
+"(Deserno)"_#Deserno. RMS force errors for {msm} are estimated 
+following the procedure outlined in chapter 3 of "(Hardy)"_#Hardy,
+with equation 3.197 of particular note.
 
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
@@ -193,6 +218,14 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.
 
+The {msm} style is fairly new, and still lacks some important features
+and optimizations. In particular, the {msm} style does not include
+long-range virial contributions to the pressure. It should not be used
+for NPT simulations, and the reported total pressures should not be 
+trusted. Also the upper MSM levels (above the first level) are not 
+parallelized, so this MSM implementation may not yet scale very well 
+on large core counts.
+
 [Related commands:]
 
 "kspace_modify"_kspace_modify.html, "pair_style
@@ -228,4 +261,7 @@ Adam Hilger, NY (1989).
 :link(Veld)
 [(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
 
-
+:link(Hardy)
+[(Hardy)] David, Multilevel Summation for the Fast Evaluation of 
+Forces for the Simulation of Biomolecules, University of Illinois 
+at Urbana-Champaign, (2006).

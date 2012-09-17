@@ -28,7 +28,7 @@ class PairBuckCoulLong : public Pair {
  public:
   PairBuckCoulLong(class LAMMPS *);
   virtual ~PairBuckCoulLong();
-  void compute(int, int);
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void init_style();
@@ -37,8 +37,8 @@ class PairBuckCoulLong : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual double single(int, int, int, int, double, double, double, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double cut_lj_global;

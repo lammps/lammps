@@ -42,7 +42,8 @@ class PPPMOld : public KSpace {
   virtual void init();
   virtual void setup();
   virtual void compute(int, int);
-  virtual int timing(int, double &, double &);
+  virtual int timing_1d(int, double &);
+  virtual int timing_3d(int, double &);
   virtual double memory_usage();
 
   virtual void compute_group_group(int, int, int);

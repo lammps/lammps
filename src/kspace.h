@@ -30,6 +30,9 @@ class KSpace : protected Pointers {
 
   double g_ewald;
   int nx_pppm,ny_pppm,nz_pppm;
+
+  int nx_msm_max,ny_msm_max,nz_msm_max;
+
   int group_group_enable;         // 1 if style supports group/group calculation
 
   unsigned int datamask;
@@ -53,6 +56,9 @@ class KSpace : protected Pointers {
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
   virtual double memory_usage() {return 0.0;}
+
+  double gamma(const double &);
+  double dgamma(const double &);
 
  protected:
   int gridflag,gewaldflag,differentiation_flag;

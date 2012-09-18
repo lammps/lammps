@@ -703,7 +703,8 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
     }
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
-    if (strstr(line,keyword) == line) break;               // matching keyword
+    char *word = strtok(line," \t\n\r");
+    if (strcmp(word,keyword) == 0) break;           // matching keyword
     fgets(line,MAXLINE,fp);                         // no match, skip section
     param_extract(tb,line);
     fgets(line,MAXLINE,fp);

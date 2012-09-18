@@ -206,6 +206,8 @@ void PairEAM::compute(int eflag, int vflag)
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
+  // if rho > rhomax (e.g. due to close approach of two atoms),
+  //   will exceed table, so add linear term to conserve energy
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -218,6 +220,7 @@ void PairEAM::compute(int eflag, int vflag)
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -491,7 +494,7 @@ void PairEAM::file2array()
   // active means some element is pointing at it via map
 
   int active;
-  double rmax,rhomax;
+  double rmax;
   dr = drho = rmax = rhomax = 0.0;
 
   for (int i = 0; i < nfuncfl; i++) {

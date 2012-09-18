@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
+   simpler force assignment added by Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -75,7 +76,7 @@ PairLJCutCoulLongTIP4P::~PairLJCutCoulLongTIP4P()
 
 void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
@@ -277,6 +278,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
           n = 0;
+          key = 0;
 
           if (itype != typeO) {
             f[i][0] += delx * cforce;
@@ -290,33 +292,23 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[3] = x[i][0] * dely * cforce;
               v[4] = x[i][0] * delz * cforce;
               v[5] = x[i][1] * delz * cforce;
-              vlist[n++] = i;
             }
+            vlist[n++] = i;
 
           } else {
+            key++;
 
             fd[0] = delx*cforce;
             fd[1] = dely*cforce;
             fd[2] = delz*cforce;
 
-            delxOM = x[i][0] - x1[0];
-            delyOM = x[i][1] - x1[1];
-            delzOM = x[i][2] - x1[2];
+            fO[0] = fd[0]*(1 - alpha);
+            fO[1] = fd[1]*(1 - alpha);
+            fO[2] = fd[2]*(1 - alpha);
 
-            ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
-              (qdist*qdist);
-
-            f1[0] = ddotf * delxOM;
-            f1[1] = ddotf * delyOM;
-            f1[2] = ddotf * delzOM;
-
-            fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
-            fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
-            fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
-
-            fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
-            fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
-            fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
+            fH[0] = 0.5 * alpha * fd[0];
+            fH[1] = 0.5 * alpha * fd[1];
+            fH[2] = 0.5 * alpha * fd[2];
 
             f[i][0] += fO[0];
             f[i][1] += fO[1];
@@ -340,11 +332,10 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
               v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-
-              vlist[n++] = i;
-              vlist[n++] = iH1;
-              vlist[n++] = iH2;
             }
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
           }
 
           if (jtype != typeO) {
@@ -359,33 +350,23 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[3] -= x[j][0] * dely * cforce;
               v[4] -= x[j][0] * delz * cforce;
               v[5] -= x[j][1] * delz * cforce;
-              vlist[n++] = j;
             }
+            vlist[n++] = j;
 
           } else {
+            key += 2;
 
             fd[0] = -delx*cforce;
             fd[1] = -dely*cforce;
             fd[2] = -delz*cforce;
 
-            delxOM = x[j][0] - x2[0];
-            delyOM = x[j][1] - x2[1];
-            delzOM = x[j][2] - x2[2];
+            fO[0] = fd[0]*(1 - alpha);
+            fO[1] = fd[1]*(1 - alpha);
+            fO[2] = fd[2]*(1 - alpha);
 
-            ddotf = (delxOM * fd[0] + delyOM * fd[1] + delzOM * fd[2]) /
-              (qdist*qdist);
-
-            f1[0] = ddotf * delxOM;
-            f1[1] = ddotf * delyOM;
-            f1[2] = ddotf * delzOM;
-
-            fO[0] = fd[0] - alpha * (fd[0] - f1[0]);
-            fO[1] = fd[1] - alpha * (fd[1] - f1[1]);
-            fO[2] = fd[2] - alpha * (fd[2] - f1[2]);
-
-            fH[0] = 0.5 * alpha * (fd[0] - f1[0]);
-            fH[1] = 0.5 * alpha * (fd[1] - f1[1]);
-            fH[2] = 0.5 * alpha * (fd[2] - f1[2]);
+            fH[0] = 0.5 * alpha * fd[0];
+            fH[1] = 0.5 * alpha * fd[1];
+            fH[2] = 0.5 * alpha * fd[2];
 
             f[j][0] += fO[0];
             f[j][1] += fO[1];
@@ -409,11 +390,10 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
               v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
               v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
               v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
-
-              vlist[n++] = j;
-              vlist[n++] = jH1;
-              vlist[n++] = jH2;
             }
+            vlist[n++] = j;
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
           }
 
           if (eflag) {
@@ -426,7 +406,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
 
-          if (evflag) ev_tally_list(n,vlist,ecoul,v);
+          if (evflag) ev_tally_list(ecoul,vlist,v,alpha,key);
         }
       }
     }
@@ -614,3 +594,4 @@ double PairLJCutCoulLongTIP4P::memory_usage()
   bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
+

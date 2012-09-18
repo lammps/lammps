@@ -20,11 +20,11 @@ KSpaceStyle(pppm/tip4p,PPPMTIP4P)
 #ifndef LMP_PPPM_TIP4P_H
 #define LMP_PPPM_TIP4P_H
 
-#include "pppm_old.h"
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
-class PPPMTIP4P : public PPPMOld {
+class PPPMTIP4P : public PPPM {
  public:
   PPPMTIP4P(class LAMMPS *, int, char **);
   virtual ~PPPMTIP4P () {};
@@ -34,6 +34,9 @@ class PPPMTIP4P : public PPPMOld {
   virtual void particle_map();
   virtual void make_rho();
   virtual void fieldforce();
+  void fieldforce_ik();
+  void fieldforce_ad();
+  virtual void fieldforce_peratom();
 
  private:
   void find_M(int, int &, int &, double *);

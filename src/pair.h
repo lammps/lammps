@@ -173,6 +173,7 @@ class Pair : protected Pointers {
   void ev_tally4(int, int, int, int, double,
                  double *, double *, double *, double *, double *, double *);
   void ev_tally_list(int, int *, double, double *);
+  void ev_tally_list(double, int *, double *, double, int);
   void v_tally2(int, int, double, double *);
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);

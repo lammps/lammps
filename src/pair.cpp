@@ -755,6 +755,8 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
 }
 
 /* ----------------------------------------------------------------------
+   NOTE: this is older version of ev tally for TIP4P
+   NOTE: delete this when all pair TIP4P derivatives have been updated
    tally ecoul and virial into each of n atoms in list
    called by TIP4P potential, newton_pair is always on
    changes v values by dividing by n
@@ -797,6 +799,87 @@ void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
         vatom[j][3] += v[3];
         vatom[j][4] += v[4];
         vatom[j][5] += v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally ecoul and virial into each of atoms in list, list length set by key
+   called by TIP4P potential, newton_pair is always on
+ ------------------------------------------------------------------------- */
+
+void Pair::ev_tally_list(double ecoul, int *list, double *v,
+                         double alpha, int key)
+{
+  int i,j;
+
+  if (eflag_either) {
+    if (eflag_global) eng_coul += ecoul;
+    if (eflag_atom) {
+      if (key == 0) {
+        eatom[list[0]] += 0.5*ecoul;
+        eatom[list[1]] += 0.5*ecoul;
+      } else if (key == 1) {
+        eatom[list[0]] += 0.5*ecoul*(1-alpha);
+        eatom[list[1]] += 0.25*ecoul*alpha;
+        eatom[list[2]] += 0.25*ecoul*alpha;
+        eatom[list[3]] += 0.5*ecoul;
+      } else if (key == 2) {
+        eatom[list[0]] += 0.5*ecoul;
+        eatom[list[1]] += 0.5*ecoul*(1-alpha);
+        eatom[list[2]] += 0.25*ecoul*alpha;
+        eatom[list[3]] += 0.25*ecoul*alpha;
+      } else {
+        eatom[list[0]] += 0.5*ecoul*(1-alpha);
+        eatom[list[1]] += 0.25*ecoul*alpha;
+        eatom[list[2]] += 0.25*ecoul*alpha;
+        eatom[list[3]] += 0.5*ecoul*(1-alpha);
+        eatom[list[4]] += 0.25*ecoul*alpha;
+        eatom[list[5]] += 0.25*ecoul*alpha;
+      }
+    }
+  }
+
+  if (vflag_either) {
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+
+    if (vflag_atom) {
+      if (key == 0) {
+        for (i = 0; i <= 5; i++) {
+          vatom[list[0]][i] += 0.5*v[i];
+          vatom[list[1]][i] += 0.5*v[i];
+        }
+      } else if (key == 1) {
+        for (i = 0; i <= 5; i++) {
+          vatom[list[0]][i] += 0.5*v[i]*(1-alpha);
+          vatom[list[1]][i] += 0.25*v[i]*alpha;
+          vatom[list[2]][i] += 0.25*v[i]*alpha;
+          vatom[list[3]][i] += 0.5*v[i];
+        }
+      } else if (key == 2) {
+        for (i = 0; i <= 5; i++) {
+          vatom[list[0]][i] += 0.5*v[i];
+          vatom[list[1]][i] += 0.5*v[i]*(1-alpha);
+          vatom[list[2]][i] += 0.25*v[i]*alpha;
+          vatom[list[3]][i] += 0.25*v[i]*alpha;
+        }
+      } else {
+        for (i = 0; i <= 5; i++) {
+          vatom[list[0]][i] += 0.5*v[i]*(1-alpha);
+          vatom[list[1]][i] += 0.25*v[i]*alpha;
+          vatom[list[2]][i] += 0.25*v[i]*alpha;
+          vatom[list[3]][i] += 0.5*v[i]*(1-alpha);
+          vatom[list[4]][i] += 0.25*v[i]*alpha;
+          vatom[list[5]][i] += 0.25*v[i]*alpha;
+        }
       }
     }
   }

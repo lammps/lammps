@@ -755,11 +755,9 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
 }
 
 /* ----------------------------------------------------------------------
-   NOTE: this is older version of ev tally for TIP4P
-   NOTE: delete this when all pair TIP4P derivatives have been updated
    tally ecoul and virial into each of n atoms in list
-   called by TIP4P potential, newton_pair is always on
-   changes v values by dividing by n
+   used to be called by TIP4P potential, newton_pair is always on
+   per-atom case changes v values by dividing them by n
  ------------------------------------------------------------------------- */
 
 void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
@@ -805,12 +803,17 @@ void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
 }
 
 /* ----------------------------------------------------------------------
-   tally ecoul and virial into each of atoms in list, list length set by key
+   tally ecoul and virial into each of atoms in list
    called by TIP4P potential, newton_pair is always on
+   weight assignments by alpha, so contribution is all to O atom as alpha -> 0.0
+   key = 0 if neither atom = water O
+   key = 1 if first atom = water O
+   key = 2 if second atom = water O
+   key = 3 if both atoms = water O
  ------------------------------------------------------------------------- */
 
-void Pair::ev_tally_list(double ecoul, int *list, double *v,
-                         double alpha, int key)
+void Pair::ev_tally_tip4p(int key, int *list, double *v,
+                          double ecoul, double alpha)
 {
   int i,j;
 

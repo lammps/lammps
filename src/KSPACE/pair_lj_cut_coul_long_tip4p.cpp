@@ -406,7 +406,7 @@ void PairLJCutCoulLongTIP4P::compute(int eflag, int vflag)
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
 
-          if (evflag) ev_tally_list(ecoul,vlist,v,alpha,key);
+          if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
         }
       }
     }

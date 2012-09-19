@@ -233,6 +233,8 @@ void PairEAMOpt::eval()
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
+  // if rho > rhomax (e.g. due to close approach of two atoms),
+  //   will exceed table, so add linear term to conserve energy
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -244,6 +246,7 @@ void PairEAMOpt::eval()
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       double phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }

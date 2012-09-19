@@ -69,7 +69,8 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
         error->all(FLERR,"Illegal fix thermal/conductivity command");
       nswap = atoi(arg[iarg+1]);
       if (nswap <= 0)
-        error->all(FLERR,"Fix thermal/conductivity swap value must be positive");
+        error->all(FLERR,
+                   "Fix thermal/conductivity swap value must be positive");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix thermal/conductivity command");
   }
@@ -114,7 +115,8 @@ void FixThermalConductivity::init()
   for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i] == this) foundme = 1;
     if (foundme && strcmp(modify->fix[i]->style,"ave/spatial") == 0 && me == 0)
-      error->warning(FLERR,"Fix thermal/conductivity comes before fix ave/spatial");
+      error->warning(FLERR,
+                     "Fix thermal/conductivity comes before fix ave/spatial");
   }
 
   // set bounds of 2 slabs in edim

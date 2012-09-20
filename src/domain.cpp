@@ -1147,9 +1147,9 @@ void Domain::image_flip(int m, int n, int p)
     ybox -= p*zbox;
     xbox -= m*ybox + n*zbox;
 
-    image[i] = ((zbox + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
-      ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) |
-      (xbox + IMGMAX & IMGMASK);
+    image[i] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
+      (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
   }
 }
 

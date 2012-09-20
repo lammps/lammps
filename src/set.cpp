@@ -496,9 +496,9 @@ void Set::set(int keyword)
       if (ximageflag) xbox = ximage;
       if (yimageflag) ybox = yimage;
       if (zimageflag) zbox = zimage;
-      atom->image[i] = ((zbox + (tagint) IMGMAX & IMGMASK) << IMG2BITS) |
-        ((ybox + (tagint) IMGMAX & IMGMASK) << IMGBITS) |
-        (xbox + IMGMAX & IMGMASK);
+      atom->image[i] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
+        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
 
     // set dipole moment
 

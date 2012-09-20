@@ -106,7 +106,7 @@ template < const int CTABLE, const int EVFLAG,
            const int EFLAG, const int VFLAG>
 void PairLJCutCoulLongTIP4POpt::eval()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
@@ -290,7 +290,10 @@ void PairLJCutCoulLongTIP4POpt::eval()
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          n = 0;
+          if (EVFLAG) {
+            n = 0;
+            key = 0;
+          }
 
           if (itype != typeO) {
             fxtmp += delx * cforce;
@@ -304,33 +307,23 @@ void PairLJCutCoulLongTIP4POpt::eval()
               v[3] = x[i][0] * dely * cforce;
               v[4] = x[i][0] * delz * cforce;
               v[5] = x[i][1] * delz * cforce;
-              vlist[n++] = i;
             }
+            if (EVFLAG) vlist[n++] = i;
 
           } else {
+            if (EVFLAG) key += 1;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
             fdz = delz*cforce;
 
-            delxOM = x[i][0] - x1[0];
-            delyOM = x[i][1] - x1[1];
-            delzOM = x[i][2] - x1[2];
+            fOx = fdx*(1-alpha);
+            fOy = fdy*(1-alpha);
+            fOz = fdz*(1-alpha);
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-              (qdist*qdist);
-
-            f1x = alpha * (fdx - ddotf * delxOM);
-            f1y = alpha * (fdy - ddotf * delyOM);
-            f1z = alpha * (fdz - ddotf * delzOM);
-
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
-
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+            fHx = 0.5 * alpha * fdx;
+            fHy = 0.5 * alpha * fdy;
+            fHz = 0.5 * alpha * fdz;
 
             fxtmp += fOx;
             fytmp += fOy;
@@ -354,7 +347,8 @@ void PairLJCutCoulLongTIP4POpt::eval()
               v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
               v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
-
+            }
+            if (EVFLAG) {
               vlist[n++] = i;
               vlist[n++] = iH1;
               vlist[n++] = iH2;
@@ -373,33 +367,23 @@ void PairLJCutCoulLongTIP4POpt::eval()
               v[3] -= x[j][0] * dely * cforce;
               v[4] -= x[j][0] * delz * cforce;
               v[5] -= x[j][1] * delz * cforce;
-              vlist[n++] = j;
             }
+            if (EVFLAG) vlist[n++] = j;
 
           } else {
+            if (EVFLAG) key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
             fdz = -delz*cforce;
 
-            delxOM = x[j][0] - x2[0];
-            delyOM = x[j][1] - x2[1];
-            delzOM = x[j][2] - x2[2];
+            fOx = fdx*(1-alpha);
+            fOy = fdy*(1-alpha);
+            fOz = fdz*(1-alpha);
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-              (qdist*qdist);
-
-            f1x = alpha * (fdx - ddotf * delxOM);
-            f1y = alpha * (fdy - ddotf * delyOM);
-            f1z = alpha * (fdz - ddotf * delzOM);
-
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
-
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+            fHx = 0.5 * alpha * fdx;
+            fHy = 0.5 * alpha * fdy;
+            fHz = 0.5 * alpha * fdz;
 
             f[j][0] += fOx;
             f[j][1] += fOy;
@@ -423,7 +407,8 @@ void PairLJCutCoulLongTIP4POpt::eval()
               v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
               v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
-
+            }
+            if (EVFLAG) {
               vlist[n++] = j;
               vlist[n++] = jH1;
               vlist[n++] = jH2;
@@ -439,8 +424,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
-
-          if (EVFLAG) ev_tally_list(n,vlist,ecoul,v);
+          if (EVFLAG) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
         }
       }
     }

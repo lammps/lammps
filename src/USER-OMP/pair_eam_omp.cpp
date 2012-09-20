@@ -184,6 +184,8 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
+  // if rho > rhomax (e.g. due to close approach of two atoms),
+  //   will exceed table, so add linear term to conserve energy
 
   for (ii = iifrom; ii < iito; ii++) {
     i = ilist[ii];
@@ -196,6 +198,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
       e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, phi, 0.0, thr);
     }
   }

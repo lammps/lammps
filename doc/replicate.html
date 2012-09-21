@@ -47,6 +47,26 @@ that differ by 1.  This will allow them to be unwrapped appropriately.
 when replicating it in that dimension, as it may put atoms nearly on
 top of each other.
 </P>
+<P>IMPORTANT NOTE: You cannot use the replicate command to replicate a
+molecule that is bonded to itself across a periodic boundary, so the
+molecule is efffectively a loop.  A simple example would be a linear
+polymer chain that spans the simulation box and bonds back to itself
+across the periodic boundary.  More realistic examples would be a CNT
+(meant to be an infinitely long CNT) or graphene sheet.  (Note that
+this only applies to such molecules that have permanent bonds as
+specified in the data file.  A CNT that is just atoms modeled with the
+<A HREF = "pair_airebo.html">AIREBO potential</A> has no such permanent bonds, so it
+is not a problem to replicate it.)  The reason replicate does not work
+with those systems is that the image flag settings described above
+cannot be made consistent.  I.e. it is not possible to have every pair
+of bonded atoms have the same image flags, when they are unwrapped so
+as to be close to each other.  The only way the replicate command
+could work in this scenario is for it to break a bond, insert more
+atoms, and re-connect the loop for the larger simulation box.  It is
+not clever enough to do this.  So you will have to construct a larger
+version of your molecule as a pre-processing step and input a new data
+file to LAMMPS.
+</P>
 <P>If the current simulation was read in from a restart file (before a
 run is performed), there can have been no fix information stored in
 the file for individual atoms.  Similarly, no fixes can be defined at

@@ -20,6 +20,8 @@ pair_style lj/cut/coul/debye command :h3
 pair_style lj/cut/coul/debye/cuda command :h3
 pair_style lj/cut/coul/debye/gpu command :h3
 pair_style lj/cut/coul/debye/omp command :h3
+pair_style lj/cut/coul/dsf command :h3
+pair_style lj/cut/coul/dsf/gpu command :h3
 pair_style lj/cut/coul/long command :h3
 pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
@@ -33,7 +35,7 @@ pair_style lj/cut/coul/long/tip4p/opt command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
+style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/dsf} or {lj/cut/coul/long} or {lj/cut/coul/long/tip4p}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -44,6 +46,10 @@ args = list of arguments for a particular style :ul
     kappa = inverse of the Debye length (inverse distance units)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/cut/coul/dsf} args = alpha cutoff (cutoff2)
+    alpha = damping parameter (inverse distance units)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (distance units)
   {lj/cut/coul/long} args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -71,6 +77,10 @@ pair_style lj/cut/coul/debye 1.5 2.5 5.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5
 pair_coeff 1 1 1.0 1.5 2.5 5.0 :pre
+
+pair_style lj/cut/coul/dsf 0.05 2.5 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.0 2.5 :pre
 
 pair_style lj/cut/coul/long 10.0
 pair_style lj/cut/coul/long 10.0 8.0
@@ -109,6 +119,23 @@ to the Coulombic term, given by
 
 where kappa is the inverse of the Debye length.  This potential is
 another way to mimic the screening effect of a polar solvent.
+
+Style {lj/cut/coul/dsf} computes the Coulombic term via the damped 
+shifted force model described in "Fennell"_#Fennell, given by:
+
+:c,image(Eqs/pair_coul_dsf.jpg)
+
+where {alpha} is the damping parameter and erfc() is the complementary
+error-function. This potential is essentially a short-range,
+spherically-truncated, charge-neutralized, shifted, pairwise {1/r}
+summation.  The potential is based on Wolf summation, proposed as an
+alternative to Ewald summation for condensed phase systems where
+charge screening causes electrostatic interactions to become
+effectively short-ranged. In order for the electrostatic sum to be
+absolutely convergent, charge neutralization within the cutoff radius
+is enforced by shifting the potential through placement of image
+charges on the cutoff sphere. Convergence can often be improved by
+setting {alpha} to a small non-zero value.
 
 Style {lj/cut/coul/long} computes the same Coulombic interactions as
 style {lj/cut/coul/cut} except that an additional damping factor is
@@ -256,3 +283,7 @@ default.
 :link(Jorgensen)
 [(Jorgensen)] Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
+
+:link(Fennell)
+[(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
+234104 (2006).

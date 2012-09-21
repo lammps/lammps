@@ -41,6 +41,8 @@
     nbor+=offset;                                                            \
   }
 
+#if (ARCH < 300)
+
 #define store_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
                       eflag, vflag, ans, engv)                              \
   if (t_per_atom>1) {                                                       \
@@ -136,4 +138,73 @@
     }                                                                       \
     ans[ii]=f;                                                              \
   }
+
+#else
+
+#define store_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
+                      eflag, vflag, ans, engv)                              \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+        f.x += shfl_xor(f.x, s, t_per_atom);                                \
+        f.y += shfl_xor(f.y, s, t_per_atom);                                \
+        f.z += shfl_xor(f.z, s, t_per_atom);                                \
+        energy += shfl_xor(energy, s, t_per_atom);                          \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv=energy;                                                         \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+  }
+
+#define store_answers_q(f, energy, e_coul, virial, ii, inum, tid,           \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      f.x += shfl_xor(f.x, s, t_per_atom);                                  \
+      f.y += shfl_xor(f.y, s, t_per_atom);                                  \
+      f.z += shfl_xor(f.z, s, t_per_atom);                                  \
+      energy += shfl_xor(energy, s, t_per_atom);                            \
+      e_coul += shfl_xor(e_coul, s, t_per_atom);                            \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv=energy;                                                         \
+      engv+=inum;                                                           \
+      *engv=e_coul;                                                         \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+  }
+
+#endif
 

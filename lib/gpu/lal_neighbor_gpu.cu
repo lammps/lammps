@@ -22,7 +22,9 @@ texture<float4> pos_tex;
 texture<int4,1> pos_tex;
 #endif
 
-__kernel void calc_cell_id(numtyp4 *pos, unsigned *cell_id, int *particle_id,
+__kernel void calc_cell_id(const numtyp4 *restrict pos, 
+                           unsigned *restrict cell_id, 
+                           int *restrict particle_id,
                            numtyp boxlo0, numtyp boxlo1, numtyp boxlo2, 
                            numtyp i_cell_size, int ncellx, int ncelly, 
                            int ncellz, int inum, int nall, 
@@ -62,8 +64,9 @@ __kernel void calc_cell_id(numtyp4 *pos, unsigned *cell_id, int *particle_id,
   }
 }
 
-__kernel void kernel_calc_cell_counts(unsigned *cell_id,
-                                      int *cell_counts, int nall, int ncell) {
+__kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
+                                      int *restrict cell_counts, 
+                                      int nall, int ncell) {
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx < nall) {
     int id = cell_id[idx];
@@ -94,8 +97,9 @@ __kernel void kernel_calc_cell_counts(unsigned *cell_id,
 
 
 
-__kernel void transpose(__global int *out, __global int *in, int columns_in, 
-                        int rows_in)
+__kernel void transpose(__global int *restrict out, 
+                        const __global int *restrict in, 
+                        int columns_in, int rows_in)
 {
 	__local int block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 	
@@ -117,9 +121,9 @@ __kernel void transpose(__global int *out, __global int *in, int columns_in,
 		out[j*rows_in+i] = block[ti][tj];
 }
 
-__kernel void calc_neigh_list_cell(__global numtyp4 *x_, 
-                                   __global int *cell_particle_id, 
-                                   __global int *cell_counts, 
+__kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_, 
+                                   const __global int *restrict cell_particle_id, 
+                                   const __global int *restrict cell_counts, 
                                    __global int *nbor_list,
                                    __global int *host_nbor_list, 
                                    __global int *host_numj, 
@@ -234,8 +238,10 @@ __kernel void calc_neigh_list_cell(__global numtyp4 *x_,
 
 __kernel void kernel_special(__global int *dev_nbor, 
                              __global int *host_nbor_list, 
-                             __global int *host_numj, __global int *tag,
-                             __global int *nspecial, __global int *special,
+                             const __global int *host_numj, 
+                             const __global int *restrict tag,
+                             const __global int *restrict nspecial, 
+                             const __global int *restrict special,
                              int inum, int nt, int max_nbors, int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);

@@ -30,7 +30,7 @@ extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
 YukawaColloidT::YukawaColloid() : BaseAtomic<numtyp,acctyp>(), 
-_allocated(false), _max_rad_size(0) {
+_max_rad_size(0), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>

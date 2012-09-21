@@ -80,13 +80,20 @@ ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape
 		    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
-__kernel void k_gayberne(__global numtyp4* x_,__global numtyp4 *q,
-                         __global numtyp4* shape, __global numtyp4* well, 
-                         __global numtyp *gum, __global numtyp2* sig_eps, 
-                         const int ntypes, __global numtyp *lshape, 
-                         __global int *dev_nbor, const int stride, 
-                         __global acctyp4 *ans, const int astride, 
-                         __global acctyp *engv, __global int *err_flag, 
+__kernel void k_gayberne(const __global numtyp4 *restrict x_,
+                         const __global numtyp4 *restrict q,
+                         const __global numtyp4 *restrict shape, 
+                         const __global numtyp4 *restrict well, 
+                         const __global numtyp *restrict gum, 
+                         const __global numtyp2 *restrict sig_eps, 
+                         const int ntypes, 
+                         const __global numtyp *restrict lshape, 
+                         const __global int *dev_nbor, 
+                         const int stride, 
+                         __global acctyp4 *restrict ans, 
+                         const int astride, 
+                         __global acctyp *restrict engv, 
+                         __global int *restrict err_flag, 
                          const int eflag, const int vflag, const int inum,
                          const int t_per_atom) {
   int tid, ii, offset;
@@ -112,7 +119,7 @@ __kernel void k_gayberne(__global numtyp4* x_,__global numtyp4 *q,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    __global int *nbor, *nbor_end;
+    const __global int *nbor, *nbor_end;
     int i, numj, n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);

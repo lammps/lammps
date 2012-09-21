@@ -580,14 +580,14 @@ int DeviceT::compile_kernels() {
   k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;
 
-  UCL_Vector<int,int> gpu_lib_data(14,*gpu,UCL_NOT_PINNED);
+  UCL_Vector<int,int> gpu_lib_data(15,*gpu,UCL_NOT_PINNED);
   k_info.set_size(1,1);
   k_info.run(&gpu_lib_data);
   gpu_lib_data.update_host(false);
   
   _ptx_arch=static_cast<double>(gpu_lib_data[0])/100.0;
   #ifndef USE_OPENCL
-  if (_ptx_arch>gpu->arch())
+  if (_ptx_arch>gpu->arch() || floor(_ptx_arch)<floor(gpu->arch()))
     return -4;
   #endif
 
@@ -606,6 +606,7 @@ int DeviceT::compile_kernels() {
   _block_nbor_build=gpu_lib_data[10];
   _block_bio_pair=gpu_lib_data[11];
   _max_bio_shared_types=gpu_lib_data[12];
+  _block_ellipse=gpu_lib_data[14];
 
   if (static_cast<size_t>(_block_pair)>gpu->group_size())
     _block_pair=gpu->group_size();

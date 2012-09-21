@@ -64,16 +64,11 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/buck_cl.h \
        $(OBJ_DIR)/buck_coul_cl.h $(OBJ_DIR)/buck_coul_long_cl.h \
        $(OBJ_DIR)/table_cl.h $(OBJ_DIR)/yukawa_cl.h \
-       $(OBJ_DIR)/born.cubin $(OBJ_DIR)/born_cubin.h \
-       $(OBJ_DIR)/born_coul_wolf.cubin $(OBJ_DIR)/born_coul_wolf_cubin.h \
-       $(OBJ_DIR)/born_coul_long.cubin $(OBJ_DIR)/born_coul_long_cubin.h \
-       $(OBJ_DIR)/dipole_lj.cubin $(OBJ_DIR)/dipole_lj_cubin.h \
-       $(OBJ_DIR)/dipole_lj_sf.cubin $(OBJ_DIR)/dipole_lj_sf_cubin.h \
-       $(OBJ_DIR)/colloid.cubin $(OBJ_DIR)/colloid_cubin.h \
-       $(OBJ_DIR)/gauss.cubin $(OBJ_DIR)/gauss_cubin.h \
-       $(OBJ_DIR)/yukawa_colloid.cubin $(OBJ_DIR)/yukawa_colloid_cubin.h \
-       $(OBJ_DIR)/lj_coul_debye.cubin $(OBJ_DIR)/lj_coul_debye_cubin.h \
-       $(OBJ_DIR)/coul_dsf.cubin $(OBJ_DIR)/coul_dsf_cubin.h
+       $(OBJ_DIR)/born_cl.h $(OBJ_DIR)/born_coul_wolf_cl.h \
+       $(OBJ_DIR)/born_coul_long_cl.h $(OBJ_DIR)/dipole_lj_cl.h \
+       $(OBJ_DIR)/dipole_lj_sf_cl.h $(OBJ_DIR)/colloid_cl.h \
+       $(OBJ_DIR)/gauss_cl.h $(OBJ_DIR)/yukawa_colloid_cl.h \
+       $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/coul_dsf_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -131,11 +126,11 @@ $(OBJ_DIR)/lal_pppm_ext.o: $(ALL_H) lal_pppm.h lal_pppm_ext.cpp
 $(OBJ_DIR)/ellipsoid_nbor_cl.h: lal_ellipsoid_nbor.cu lal_preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh ellipsoid_nbor lal_preprocessor.h lal_ellipsoid_nbor.cu $(OBJ_DIR)/ellipsoid_nbor_cl.h
 
-$(OBJ_DIR)/gayberne_cl.h: lal_gayberne.cu lal_ellipsoid_extra.h lal_preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh gayberne lal_preprocessor.h lal_ellipsoid_extra.h lal_gayberne.cu $(OBJ_DIR)/gayberne_cl.h;
+$(OBJ_DIR)/gayberne_cl.h: lal_gayberne.cu lal_ellipsoid_extra.h lal_aux_fun1.h lal_preprocessor.h
+	$(BSH) ./geryon/file_to_cstr.sh gayberne lal_preprocessor.h lal_aux_fun1.h lal_ellipsoid_extra.h lal_gayberne.cu $(OBJ_DIR)/gayberne_cl.h;
 
-$(OBJ_DIR)/gayberne_lj_cl.h: lal_gayberne_lj.cu lal_ellipsoid_extra.h lal_preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh gayberne_lj lal_preprocessor.h lal_ellipsoid_extra.h lal_gayberne_lj.cu $(OBJ_DIR)/gayberne_lj_cl.h;
+$(OBJ_DIR)/gayberne_lj_cl.h: lal_gayberne_lj.cu lal_ellipsoid_extra.h lal_aux_fun1.h lal_preprocessor.h
+	$(BSH) ./geryon/file_to_cstr.sh gayberne_lj lal_preprocessor.h lal_aux_fun1.h lal_ellipsoid_extra.h lal_gayberne_lj.cu $(OBJ_DIR)/gayberne_lj_cl.h;
 
 $(OBJ_DIR)/lal_gayberne.o: $(ALL_H) lal_gayberne.h lal_gayberne.cpp $(OBJ_DIR)/gayberne_cl.h $(OBJ_DIR)/gayberne_lj_cl.h $(OBJ_DIR)/lal_base_ellipsoid.o
 	$(OCL) -o $@ -c lal_gayberne.cpp -I$(OBJ_DIR)
@@ -143,11 +138,11 @@ $(OBJ_DIR)/lal_gayberne.o: $(ALL_H) lal_gayberne.h lal_gayberne.cpp $(OBJ_DIR)/g
 $(OBJ_DIR)/lal_gayberne_ext.o: $(ALL_H) $(OBJ_DIR)/lal_gayberne.o lal_gayberne_ext.cpp
 	$(OCL) -o $@ -c lal_gayberne_ext.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/re_squared_cl.h: lal_re_squared.cu lal_ellipsoid_extra.h lal_preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh re_squared lal_preprocessor.h lal_ellipsoid_extra.h lal_re_squared.cu $(OBJ_DIR)/re_squared_cl.h;
+$(OBJ_DIR)/re_squared_cl.h: lal_re_squared.cu lal_ellipsoid_extra.h lal_aux_fun1.h lal_preprocessor.h
+	$(BSH) ./geryon/file_to_cstr.sh re_squared lal_preprocessor.h lal_aux_fun1.h lal_ellipsoid_extra.h lal_re_squared.cu $(OBJ_DIR)/re_squared_cl.h;
 
-$(OBJ_DIR)/re_squared_lj_cl.h: lal_re_squared_lj.cu lal_ellipsoid_extra.h lal_preprocessor.h
-	$(BSH) ./geryon/file_to_cstr.sh re_squared_lj lal_preprocessor.h lal_ellipsoid_extra.h lal_re_squared_lj.cu $(OBJ_DIR)/re_squared_lj_cl.h;
+$(OBJ_DIR)/re_squared_lj_cl.h: lal_re_squared_lj.cu lal_ellipsoid_extra.h lal_aux_fun1.h lal_preprocessor.h
+	$(BSH) ./geryon/file_to_cstr.sh re_squared_lj lal_preprocessor.h lal_aux_fun1.h lal_ellipsoid_extra.h lal_re_squared_lj.cu $(OBJ_DIR)/re_squared_lj_cl.h;
 
 $(OBJ_DIR)/lal_re_squared.o: $(ALL_H) lal_re_squared.h lal_re_squared.cpp $(OBJ_DIR)/re_squared_cl.h $(OBJ_DIR)/re_squared_lj_cl.h $(OBJ_DIR)/lal_base_ellipsoid.o
 	$(OCL) -o $@ -c lal_re_squared.cpp -I$(OBJ_DIR)

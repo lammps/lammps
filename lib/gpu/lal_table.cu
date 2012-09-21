@@ -39,18 +39,21 @@ typedef union {
 
 /// ---------------- LOOKUP -------------------------------------------------
 
-__kernel void k_table(__global numtyp4 *x_, __global int *tabindex,
-                       __global numtyp4* coeff2, 
-                       __global numtyp4 *coeff3,
-                       __global numtyp4 *coeff4,
-                       const int lj_types,
-                       __global numtyp *cutsq,
-                       __global numtyp* sp_lj_in, 
-                       __global int *dev_nbor, __global int *dev_packed, 
-                       __global acctyp4 *ans, __global acctyp *engv, 
-                       const int eflag, const int vflag, const int inum, 
-                       const int nbor_pitch, const int t_per_atom, 
-                       int tablength) {
+__kernel void k_table(const __global numtyp4 *restrict x_, 
+                      const __global int *restrict tabindex,
+                      const __global numtyp4 *restrict coeff2, 
+                      const __global numtyp4 *restrict coeff3,
+                      const __global numtyp4 *restrict coeff4,
+                      const int lj_types,
+                      const __global numtyp *restrict cutsq,
+                      const __global numtyp *restrict sp_lj_in, 
+                      const __global int *dev_nbor, 
+                      const __global int *dev_packed, 
+                      __global acctyp4 *restrict ans, 
+                      __global acctyp *restrict engv, 
+                      const int eflag, const int vflag, const int inum, 
+                      const int nbor_pitch, const int t_per_atom, 
+                      int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -70,7 +73,7 @@ __kernel void k_table(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -130,17 +133,20 @@ __kernel void k_table(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void k_table_fast(__global numtyp4 *x_, __global int *tabindex,
-                            __global numtyp4* coeff2, 
-                            __global numtyp4 *coeff3,
-                            __global numtyp4 *coeff4,
-                            __global numtyp *cutsq_in,
-                            __global numtyp* sp_lj_in, 
-                            __global int *dev_nbor, __global int *dev_packed, 
-                            __global acctyp4 *ans, __global acctyp *engv, 
-                            const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, const int t_per_atom, 
-                            int tablength) {
+__kernel void k_table_fast(const __global numtyp4 *restrict x_,
+                           const __global int *restrict tabindex,
+                           const __global numtyp4 *restrict coeff2, 
+                           const __global numtyp4 *restrict coeff3,
+                           const __global numtyp4 *restrict coeff4,
+                           const __global numtyp *restrict cutsq_in,
+                           const __global numtyp *restrict sp_lj_in, 
+                           const __global int *dev_nbor, 
+                           const __global int *dev_packed, 
+                           __global acctyp4 *restrict ans, 
+                           __global acctyp *restrict engv, 
+                           const int eflag, const int vflag, const int inum, 
+                           const int nbor_pitch, const int t_per_atom, 
+                           int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -164,7 +170,7 @@ __kernel void k_table_fast(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -227,18 +233,21 @@ __kernel void k_table_fast(__global numtyp4 *x_, __global int *tabindex,
 
 /// ---------------- LINEAR -------------------------------------------------
 
-__kernel void k_table_linear(__global numtyp4 *x_, __global int *tabindex,
-                       __global numtyp4* coeff2, 
-                       __global numtyp4 *coeff3,
-                       __global numtyp4 *coeff4,
-                       const int lj_types,
-                       __global numtyp *cutsq,
-                       __global numtyp* sp_lj_in, 
-                       __global int *dev_nbor, __global int *dev_packed, 
-                       __global acctyp4 *ans, __global acctyp *engv, 
-                       const int eflag, const int vflag, const int inum, 
-                       const int nbor_pitch, const int t_per_atom, 
-                       int tablength) {
+__kernel void k_table_linear(const __global numtyp4 *restrict x_, 
+                             const __global int *restrict tabindex,
+                             const __global numtyp4 *restrict coeff2, 
+                             const __global numtyp4 *restrict coeff3,
+                             const __global numtyp4 *restrict coeff4,
+                             const int lj_types,
+                             const __global numtyp *restrict cutsq,
+                             const __global numtyp *restrict sp_lj_in, 
+                             const __global int *dev_nbor, 
+                             const __global int *dev_packed, 
+                             __global acctyp4 *restrict ans, 
+                             __global acctyp *restrict engv, 
+                             const int eflag, const int vflag, const int inum, 
+                             const int nbor_pitch, const int t_per_atom, 
+                             int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -258,7 +267,7 @@ __kernel void k_table_linear(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -322,17 +331,20 @@ __kernel void k_table_linear(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void k_table_linear_fast(__global numtyp4 *x_, __global int *tabindex,
-                            __global numtyp4* coeff2, 
-                            __global numtyp4 *coeff3,
-                            __global numtyp4 *coeff4,
-                            __global numtyp *cutsq_in,
-                            __global numtyp* sp_lj_in, 
-                            __global int *dev_nbor, __global int *dev_packed, 
-                            __global acctyp4 *ans, __global acctyp *engv, 
-                            const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, const int t_per_atom, 
-                            int tablength) {
+__kernel void k_table_linear_fast(const __global numtyp4 *restrict x_, 
+                                  const __global int *restrict tabindex,
+                                  const __global numtyp4 *restrict coeff2, 
+                                  const __global numtyp4 *restrict coeff3,
+                                  const __global numtyp4 *restrict coeff4,
+                                  const __global numtyp *restrict cutsq_in,
+                                  const __global numtyp *restrict sp_lj_in, 
+                                  const __global int *dev_nbor, 
+                                  const __global int *dev_packed, 
+                                  __global acctyp4 *restrict ans, 
+                                  __global acctyp *restrict engv, 
+                                  const int eflag, const int vflag, 
+                                  const int inum, const int nbor_pitch, 
+                                  const int t_per_atom, int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -356,7 +368,7 @@ __kernel void k_table_linear_fast(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -423,18 +435,21 @@ __kernel void k_table_linear_fast(__global numtyp4 *x_, __global int *tabindex,
 
 /// ---------------- SPLINE -------------------------------------------------
 
-__kernel void k_table_spline(__global numtyp4 *x_, __global int *tabindex,
-                       __global numtyp4* coeff2, 
-                       __global numtyp4 *coeff3,
-                       __global numtyp4 *coeff4,
-                       const int lj_types,
-                       __global numtyp *cutsq,
-                       __global numtyp* sp_lj_in, 
-                       __global int *dev_nbor, __global int *dev_packed, 
-                       __global acctyp4 *ans, __global acctyp *engv, 
-                       const int eflag, const int vflag, const int inum, 
-                       const int nbor_pitch, const int t_per_atom, 
-                       int tablength) {
+__kernel void k_table_spline(const __global numtyp4 *restrict x_, 
+                             const __global int *restrict tabindex,
+                             const __global numtyp4 *restrict coeff2, 
+                             const __global numtyp4 *restrict coeff3,
+                             const __global numtyp4 *restrict coeff4,
+                             const int lj_types,
+                             const __global numtyp *restrict cutsq,
+                             const __global numtyp *restrict sp_lj_in, 
+                             const __global int *dev_nbor, 
+                             const __global int *dev_packed, 
+                             __global acctyp4 *restrict ans, 
+                             __global acctyp *restrict engv, 
+                             const int eflag, const int vflag, const int inum, 
+                             const int nbor_pitch, const int t_per_atom, 
+                             int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -454,7 +469,7 @@ __kernel void k_table_spline(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -525,17 +540,20 @@ __kernel void k_table_spline(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void k_table_spline_fast(__global numtyp4 *x_, __global int *tabindex,
-                            __global numtyp4* coeff2, 
-                            __global numtyp4 *coeff3,
-                            __global numtyp4 *coeff4,
-                            __global numtyp *cutsq_in,
-                            __global numtyp* sp_lj_in, 
-                            __global int *dev_nbor, __global int *dev_packed, 
-                            __global acctyp4 *ans, __global acctyp *engv, 
-                            const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, const int t_per_atom, 
-                            int tablength) {
+__kernel void k_table_spline_fast(const __global numtyp4 *x_, 
+                                  const __global int *tabindex,
+                                  const __global numtyp4* coeff2, 
+                                  const __global numtyp4 *coeff3,
+                                  const __global numtyp4 *coeff4,
+                                  const __global numtyp *cutsq_in,
+                                  const __global numtyp* sp_lj_in, 
+                                  const __global int *dev_nbor, 
+                                  const __global int *dev_packed, 
+                                  __global acctyp4 *ans, 
+                                  __global acctyp *engv, 
+                                  const int eflag, const int vflag, 
+                                  const int inum, const int nbor_pitch, 
+                                  const int t_per_atom, int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -559,7 +577,7 @@ __kernel void k_table_spline_fast(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -633,19 +651,23 @@ __kernel void k_table_spline_fast(__global numtyp4 *x_, __global int *tabindex,
 
 /// ---------------- BITMAP -------------------------------------------------
 
-__kernel void k_table_bitmap(__global numtyp4 *x_, __global int *tabindex,
-                       __global int *nshiftbits, __global int *nmask,
-                       __global numtyp4* coeff2, 
-                       __global numtyp4 *coeff3,
-                       __global numtyp4 *coeff4,
-                       const int lj_types,
-                       __global numtyp *cutsq,
-                       __global numtyp* sp_lj_in, 
-                       __global int *dev_nbor, __global int *dev_packed, 
-                       __global acctyp4 *ans, __global acctyp *engv, 
-                       const int eflag, const int vflag, const int inum, 
-                       const int nbor_pitch, const int t_per_atom, 
-                       int tablength) {
+__kernel void k_table_bitmap(const __global numtyp4 *x_, 
+                             const __global int *tabindex,
+                             const __global int *nshiftbits, 
+                             const __global int *nmask,
+                             const __global numtyp4* coeff2, 
+                             const __global numtyp4 *coeff3,
+                             const __global numtyp4 *coeff4,
+                             const int lj_types,
+                             const __global numtyp *cutsq,
+                             const __global numtyp* sp_lj_in, 
+                             const __global int *dev_nbor, 
+                             const __global int *dev_packed, 
+                             __global acctyp4 *ans, 
+                             __global acctyp *engv, 
+                             const int eflag, const int vflag, const int inum, 
+                             const int nbor_pitch, const int t_per_atom, 
+                             int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -665,7 +687,7 @@ __kernel void k_table_bitmap(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -732,18 +754,22 @@ __kernel void k_table_bitmap(__global numtyp4 *x_, __global int *tabindex,
   } // if ii
 }
 
-__kernel void k_table_bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
-                            __global int *nshiftbits, __global int *nmask,
-                            __global numtyp4* coeff2, 
-                            __global numtyp4 *coeff3,
-                            __global numtyp4 *coeff4,
-                            __global numtyp *cutsq_in,
-                            __global numtyp* sp_lj_in, 
-                            __global int *dev_nbor, __global int *dev_packed, 
-                            __global acctyp4 *ans, __global acctyp *engv, 
-                            const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, const int t_per_atom, 
-                            int tablength) {
+__kernel void k_table_bitmap_fast(const __global numtyp4 *x_, 
+                                  const __global int *tabindex,
+                                  const __global int *nshiftbits, 
+                                  const __global int *nmask,
+                                  const __global numtyp4* coeff2, 
+                                  const __global numtyp4 *coeff3,
+                                  const __global numtyp4 *coeff4,
+                                  const __global numtyp *cutsq_in,
+                                  const __global numtyp* sp_lj_in, 
+                                  const __global int *dev_nbor, 
+                                  const __global int *dev_packed, 
+                                  __global acctyp4 *ans, 
+                                  __global acctyp *engv, 
+                                  const int eflag, const int vflag, 
+                                  const int inum, const int nbor_pitch, 
+                                  const int t_per_atom, int tablength) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -767,7 +793,7 @@ __kernel void k_table_bitmap_fast(__global numtyp4 *x_, __global int *tabindex,
   int tlm1 = tablength - 1;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

@@ -228,6 +228,8 @@ class Device {
   inline int block_nbor_build() const { return _block_nbor_build; }
   /// Return the block size for "bio" pair styles
   inline int block_bio_pair() const { return _block_bio_pair; }
+  /// Return the block size for "ellipse" pair styles
+  inline int block_ellipse() const { return _block_ellipse; }
   /// Return the maximum number of atom types for shared mem with "bio" styles
   inline int max_bio_shared_types() const { return _max_bio_shared_types; }
   /// Architecture gpu code compiled for (returns 0 for OpenCL)
@@ -292,7 +294,7 @@ class Device {
 
   int _num_mem_threads, _warp_size, _threads_per_atom, _threads_per_charge;
   int _pppm_max_spline, _pppm_block;
-  int _block_pair, _max_shared_types;
+  int _block_pair, _block_ellipse, _max_shared_types;
   int _block_cell_2d, _block_cell_id, _block_nbor_build;
   int _block_bio_pair, _max_bio_shared_types;
 

@@ -17,7 +17,8 @@
 #include "lal_preprocessor.h"
 #endif
 
-__kernel void kernel_zero(__global int *mem, int numel) {
+__kernel void kernel_zero(__global int *restrict mem, 
+                          int numel) {
   int ii=GLOBAL_ID_X;
   
   if (ii<numel)
@@ -39,4 +40,5 @@ __kernel void kernel_info(__global int *info) {
   info[11]=BLOCK_BIO_PAIR;
   info[12]=MAX_BIO_SHARED_TYPES;
   info[13]=THREADS_PER_CHARGE;
+  info[14]=BLOCK_ELLIPSE;
 }

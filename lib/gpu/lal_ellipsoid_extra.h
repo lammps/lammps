@@ -19,7 +19,7 @@
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 #ifdef NV_KERNEL
-#include "lal_preprocessor.h"
+#include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex, quat_tex;
 #else
@@ -30,11 +30,6 @@ texture<int4,1> pos_tex, quat_tex;
 #define quat_tex qif
 #endif
 
-#define atom_info(t_per_atom, ii, tid, offset)                               \
-  tid=THREAD_ID_X;                                                           \
-  offset=tid & (t_per_atom-1);                                               \
-  ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
-
 #define nbor_info_e(nbor_mem, nbor_stride, t_per_atom, ii, offset,           \
                     i, numj, stride, list_end, nbor)                         \
     nbor=nbor_mem+ii;                                                        \
@@ -42,55 +37,11 @@ texture<int4,1> pos_tex, quat_tex;
     nbor+=nbor_stride;                                                       \
     numj=*nbor;                                                              \
     nbor+=nbor_stride;                                                       \
-    list_end=nbor+fast_mul(nbor_stride,numj);                                   \
-    nbor+=fast_mul(offset,nbor_stride);                                         \
+    list_end=nbor+fast_mul(nbor_stride,numj);                                \
+    nbor+=fast_mul(offset,nbor_stride);                                      \
     stride=fast_mul(t_per_atom,nbor_stride);
 
-#define store_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
-  if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
-    red_acc[0][tid]=f.x;                                                    \
-    red_acc[1][tid]=f.y;                                                    \
-    red_acc[2][tid]=f.z;                                                    \
-    red_acc[3][tid]=energy;                                                 \
-    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-      if (offset < s) {                                                     \
-        for (int r=0; r<4; r++)                                             \
-          red_acc[r][tid] += red_acc[r][tid+s];                             \
-      }                                                                     \
-    }                                                                       \
-    f.x=red_acc[0][tid];                                                    \
-    f.y=red_acc[1][tid];                                                    \
-    f.z=red_acc[2][tid];                                                    \
-    energy=red_acc[3][tid];                                                 \
-    if (vflag>0) {                                                          \
-      for (int r=0; r<6; r++)                                               \
-        red_acc[r][tid]=virial[r];                                          \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-        if (offset < s) {                                                   \
-          for (int r=0; r<6; r++)                                           \
-            red_acc[r][tid] += red_acc[r][tid+s];                           \
-        }                                                                   \
-      }                                                                     \
-      for (int r=0; r<6; r++)                                               \
-        virial[r]=red_acc[r][tid];                                          \
-    }                                                                       \
-  }                                                                         \
-  if (offset==0) {                                                          \
-    engv+=ii;                                                               \
-    if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
-      engv+=inum;                                                           \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
-        engv+=inum;                                                         \
-      }                                                                     \
-    }                                                                       \
-    ans[ii]=f;                                                              \
-  }
+#if (ARCH < 300)
 
 #define store_answers_t(f, tor, energy, virial, ii, astride, tid,           \
                         t_per_atom, offset, eflag, vflag, ans, engv)        \
@@ -194,6 +145,80 @@ texture<int4,1> pos_tex, quat_tex;
     old.z+=f.z;                                                             \
     ans[ii]=old;                                                            \
   }
+
+#else
+
+#define store_answers_t(f, tor, energy, virial, ii, astride, tid,           \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+        f.x += shfl_xor(f.x, s, t_per_atom);                                \
+        f.y += shfl_xor(f.y, s, t_per_atom);                                \
+        f.z += shfl_xor(f.z, s, t_per_atom);                                \
+        tor.x += shfl_xor(tor.x, s, t_per_atom);                            \
+        tor.y += shfl_xor(tor.y, s, t_per_atom);                            \
+        tor.z += shfl_xor(tor.z, s, t_per_atom);                            \
+        energy += shfl_xor(energy, s, t_per_atom);                          \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    __global acctyp *ap1=engv+ii;                                           \
+    if (eflag>0) {                                                          \
+      *ap1=energy;                                                          \
+      ap1+=astride;                                                         \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *ap1=virial[i];                                                     \
+        ap1+=astride;                                                       \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+    ans[ii+astride]=tor;                                                    \
+  }
+
+#define acc_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset,   \
+                    eflag, vflag, ans, engv)                                \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+        f.x += shfl_xor(f.x, s, t_per_atom);                                \
+        f.y += shfl_xor(f.y, s, t_per_atom);                                \
+        f.z += shfl_xor(f.z, s, t_per_atom);                                \
+        energy += shfl_xor(energy, s, t_per_atom);                          \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv+=energy;                                                        \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv+=virial[i];                                                   \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    acctyp4 old=ans[ii];                                                    \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+  }
+
+#endif
 
 /* ----------------------------------------------------------------------
    dot product of 2 vectors

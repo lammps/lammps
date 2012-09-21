@@ -31,13 +31,18 @@ texture<int2> q_tex;
 
 #define MY_PIS (acctyp)1.77245385090551602729
 
-__kernel void k_lj_dsf(__global numtyp4 *x_, __global numtyp4 *lj1,
-                       __global numtyp4* lj3, const int lj_types, 
-                       __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                       __global int *dev_packed, __global acctyp4 *ans,
-                       __global acctyp *engv, const int eflag,
-                       const int vflag, const int inum,
-                       const int nbor_pitch, __global numtyp *q_ ,
+__kernel void k_lj_dsf(const __global numtyp4 *restrict x_, 
+                       const __global numtyp4 *restrict lj1,
+                       const __global numtyp4 *restrict lj3, 
+                       const int lj_types, 
+                       const __global numtyp *restrict sp_lj_in, 
+                       const __global int *dev_nbor, 
+                       const __global int *dev_packed, 
+                       __global acctyp4 *restrict ans,
+                       __global acctyp *restrict engv, 
+                       const int eflag, const int vflag, const int inum,
+                       const int nbor_pitch, 
+                       const __global numtyp *restrict q_ ,
                        const numtyp cut_coulsq, const numtyp qqrd2e,
                        const numtyp e_shift, const numtyp f_shift, 
                        const numtyp alpha, const int t_per_atom) {
@@ -63,7 +68,7 @@ __kernel void k_lj_dsf(__global numtyp4 *x_, __global numtyp4 *lj1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -71,6 +76,12 @@ __kernel void k_lj_dsf(__global numtyp4 *x_, __global numtyp4 *lj1,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
+
+    if (eflag>0) {
+      acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) * 
+        qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
+      e_coul += (acctyp)2.0*e_self;
+    }
 
     for ( ; nbor<list_end; nbor+=n_stride) {
       int j=*nbor;
@@ -107,8 +118,8 @@ __kernel void k_lj_dsf(__global numtyp4 *x_, __global numtyp4 *lj1,
           numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-          forcecoul = prefactor * (erfcc + 2.0*alpha/MY_PIS*r*erfcd + 
-                                   rsq*f_shift);
+          forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
+            rsq*f_shift);
         } else
           forcecoul = (numtyp)0.0;
 
@@ -144,12 +155,17 @@ __kernel void k_lj_dsf(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void k_lj_dsf_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
-                            __global numtyp4* lj3_in, __global numtyp* sp_lj_in,
-                            __global int *dev_nbor, __global int *dev_packed,
-                            __global acctyp4 *ans, __global acctyp *engv, 
+__kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_, 
+                            const __global numtyp4 *restrict lj1_in,
+                            const __global numtyp4 *restrict lj3_in,
+                            const __global numtyp *restrict sp_lj_in,
+                            const __global int *dev_nbor,
+                            const __global int *dev_packed,
+                            __global acctyp4 *restrict ans,
+                            __global acctyp *restrict engv, 
                             const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, __global numtyp *q_,
+                            const int nbor_pitch,
+                            const __global numtyp *restrict q_,
                             const numtyp cut_coulsq, const numtyp qqrd2e,
                             const numtyp e_shift, const numtyp f_shift, 
                             const numtyp alpha, const int t_per_atom) {
@@ -178,7 +194,7 @@ __kernel void k_lj_dsf_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -187,6 +203,12 @@ __kernel void k_lj_dsf_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+
+    if (eflag>0) {
+      acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) * 
+        qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
+      e_coul += (acctyp)2.0*e_self;
+    }
 
     for ( ; nbor<list_end; nbor+=n_stride) {
       int j=*nbor;
@@ -222,8 +244,8 @@ __kernel void k_lj_dsf_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
           numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-          forcecoul = prefactor * (erfcc + 2.0*alpha/MY_PIS*r*erfcd + 
-                                   rsq*f_shift);
+          forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
+            rsq*f_shift);
         } else
           forcecoul = (numtyp)0.0;
 

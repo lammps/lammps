@@ -24,16 +24,19 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
-                        __global numtyp4* lj3, const int lj_types, 
-                        __global numtyp *sp_lj_in, 
-                        __global numtyp4* colloid1, 
-                        __global numtyp4* colloid2,
-                        __global int *form, 
-                        __global int *dev_nbor, 
-                        __global int *dev_packed, __global acctyp4 *ans,
-                        __global acctyp *engv, const int eflag, 
-                        const int vflag, const int inum,
+__kernel void k_colloid(const __global numtyp4 *restrict x_, 
+                        const __global numtyp4 *restrict lj1,
+                        const __global numtyp4 *restrict lj3, 
+                        const int lj_types, 
+                        const __global numtyp *restrict sp_lj_in, 
+                        const __global numtyp4 *restrict colloid1, 
+                        const __global numtyp4 *restrict colloid2,
+                        const __global int *form, 
+                        const __global int *dev_nbor, 
+                        const __global int *dev_packed, 
+                        __global acctyp4 *restrict ans,
+                        __global acctyp *restrict engv, 
+                        const int eflag, const int vflag, const int inum,
                         const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -52,7 +55,7 @@ __kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -98,9 +101,10 @@ __kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
           K[3] *= K[3]*K[3];
           K[6] = K[3]*K[3];
           fR = colloid2[mtype].z*colloid1[mtype].x*c2*K[1]/K[3];
-          force = 4.0/15.0*fR * 
-            (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) * 
-          colloid2[mtype].w/K[6]-5.0) / K[0];
+          force = (numtyp)4.0/(numtyp)15.0*fR * 
+             ((numtyp)2.0*(K[1]+K[2]) * 
+             (K[1]*((numtyp)5.0*K[1]+(numtyp)22.0*K[2])+(numtyp)5.0*K[4]) * 
+             colloid2[mtype].w/K[6]-(numtyp)5.0) / K[0];
           force*=factor_lj;
         } else if (form[mtype]==2) { // LARGE_LARGE
           r = ucl_sqrt(rsq);
@@ -131,8 +135,9 @@ __kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
           fR = colloid1[mtype].x*colloid2[mtype].w/r/(numtyp)37800.0;
           evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
           numtyp dUR = evdwl/r + (numtyp)5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-          numtyp dUA = -colloid1[mtype].x/3.0*r*(((numtyp)2.0*K[0]*K[7]+(numtyp)1.0)*K[7] + 
-            ((numtyp)2.0*K[0]*K[8]-(numtyp)1.0)*K[8]);
+          numtyp dUA = -colloid1[mtype].x/(numtyp)3.0*r*
+                       (((numtyp)2.0*K[0]*K[7]+(numtyp)1.0)*K[7] + 
+                       ((numtyp)2.0*K[0]*K[8]-(numtyp)1.0)*K[8]);
           force = factor_lj * (dUR+dUA)/r;
         }
   
@@ -149,7 +154,8 @@ __kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
               ((numtyp)1.0-(K[1]*(K[1]*(K[1]/(numtyp)3.0+(numtyp)3.0*K[2]) +  
               (numtyp)4.2*K[4])+K[2]*K[4]) * colloid2[mtype].w/K[6]);
           } else if (form[mtype]==2) {
-            e=evdwl+colloid1[mtype].x/(numtyp)6.0 * ((numtyp)2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7]));
+            e=evdwl+colloid1[mtype].x/(numtyp)6.0 * 
+              ((numtyp)2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7]));
           } 
           energy+=factor_lj*(e-lj3[mtype].z); 
         }
@@ -169,15 +175,17 @@ __kernel void k_colloid(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void k_colloid_fast(__global numtyp4 *x_, 
-                             __global numtyp4 *lj1_in,
-                             __global numtyp4 *lj3_in, 
-                             __global numtyp *sp_lj_in,
-                             __global numtyp4 *colloid1_in, 
-                             __global numtyp4 *colloid2_in,
-                             __global int *form_in, 
-                             __global int *dev_nbor, __global int *dev_packed, 
-                             __global acctyp4 *ans, __global acctyp *engv, 
+__kernel void k_colloid_fast(const __global numtyp4 *restrict x_, 
+                             const __global numtyp4 *restrict lj1_in,
+                             const __global numtyp4 *restrict lj3_in, 
+                             const __global numtyp *restrict sp_lj_in,
+                             const __global numtyp4 *restrict colloid1_in, 
+                             const __global numtyp4 *restrict colloid2_in,
+                             const __global int *form_in, 
+                             const __global int *dev_nbor, 
+                             const __global int *dev_packed, 
+                             __global acctyp4 *restrict ans, 
+                             __global acctyp *restrict engv, 
                              const int eflag, const int vflag, const int inum, 
                              const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
@@ -210,7 +218,7 @@ __kernel void k_colloid_fast(__global numtyp4 *x_,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -257,7 +265,8 @@ __kernel void k_colloid_fast(__global numtyp4 *x_,
           K[6] = K[3]*K[3];
           fR = colloid2[mtype].z*colloid1[mtype].x*c2*K[1]/K[3];
           force = (numtyp)4.0/(numtyp)15.0*fR * 
-            ((numtyp)2.0*(K[1]+K[2]) * (K[1]*((numtyp)5.0*K[1]+(numtyp)22.0*K[2])+(numtyp)5.0*K[4]) * 
+            ((numtyp)2.0*(K[1]+K[2]) * 
+            (K[1]*((numtyp)5.0*K[1]+(numtyp)22.0*K[2])+(numtyp)5.0*K[4]) * 
             colloid2[mtype].w/K[6]-(numtyp)5.0) / K[0];
           force*=factor_lj;
         } else if (form[mtype]==2) { // LARGE_LARGE
@@ -289,7 +298,8 @@ __kernel void k_colloid_fast(__global numtyp4 *x_,
           fR = colloid1[mtype].x*colloid2[mtype].w/r/(numtyp)37800.0;
           evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
           numtyp dUR = evdwl/r + (numtyp)5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-          numtyp dUA = -colloid1[mtype].x/(numtyp)3.0*r*(((numtyp)2.0*K[0]*K[7]+(numtyp)1.0)*K[7] + 
+          numtyp dUA = -colloid1[mtype].x/(numtyp)3.0*r*
+            (((numtyp)2.0*K[0]*K[7]+(numtyp)1.0)*K[7] + 
             ((numtyp)2.0*K[0]*K[8]-(numtyp)1.0)*K[8]);
           force = factor_lj * (dUR+dUA)/r;
         } else force = (numtyp)0.0;
@@ -304,10 +314,12 @@ __kernel void k_colloid_fast(__global numtyp4 *x_,
             e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           } else if (form[mtype]==1) {
             e=(numtyp)2.0/(numtyp)9.0*fR * 
-              ((numtyp)1.0-(K[1]*(K[1]*(K[1]/(numtyp)3.0+(numtyp)3.0*K[2])+(numtyp)4.2*K[4])+K[2]*K[4])*
-             colloid2[mtype].w/K[6]);
+              ((numtyp)1.0-(K[1]*(K[1]*(K[1]/(numtyp)3.0+
+              (numtyp)3.0*K[2])+(numtyp)4.2*K[4])+K[2]*K[4])*
+              colloid2[mtype].w/K[6]);
           } else if (form[mtype]==2) {
-            e=evdwl+colloid1[mtype].x/(numtyp)6.0 * ((numtyp)2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7]));
+            e=evdwl+colloid1[mtype].x/(numtyp)6.0 * 
+              ((numtyp)2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7]));
           } 
           energy+=factor_lj*(e-lj3[mtype].z); 
         }

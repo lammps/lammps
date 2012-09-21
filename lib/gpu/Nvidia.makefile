@@ -87,7 +87,7 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/eam.cubin $(OBJ_DIR)/eam_cubin.h \
        $(OBJ_DIR)/buck.cubin $(OBJ_DIR)/buck_cubin.h \
        $(OBJ_DIR)/buck_coul_long.cubin $(OBJ_DIR)/buck_coul_long_cubin.h \
-       $(OBJ_DIR)/buck_coul_wolf.cubin $(OBJ_DIR)/buck_coul_wolf_cubin.h \
+       $(OBJ_DIR)/buck_coul.cubin $(OBJ_DIR)/buck_coul_cubin.h \
        $(OBJ_DIR)/table.cubin $(OBJ_DIR)/table_cubin.h \
        $(OBJ_DIR)/yukawa.cubin $(OBJ_DIR)/yukawa_cubin.h \
        $(OBJ_DIR)/born.cubin $(OBJ_DIR)/born_cubin.h \

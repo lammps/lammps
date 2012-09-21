@@ -132,7 +132,7 @@ int * BaseAtomicT::reset_nbors(const int nall, const int inum, int *ilist,
   resize_atom(inum,nall,success);
   resize_local(inum,mn,success);
   if (!success)
-    return false;
+    return NULL;
 
   nbor->get_host(inum,ilist,numj,firstneigh,block_size());
 

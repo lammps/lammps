@@ -41,11 +41,11 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
                  int *host_type2frho, double ***host_rhor_spline,
                  double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, int nrhor, int nrho, int nz2r,
-                 int nfrho, int nr, const int nlocal, const int nall,
-                 const int max_nbors, const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen,
-                 int &fp_size);
+                 double rdr, double rdrho, double rhomax, 
+                 int nrhor, int nrho, int nz2r, int nfrho, int nr, 
+                 const int nlocal, const int nall, const int max_nbors, 
+                 const int maxspecial, const double cell_size, int &gpu_mode, 
+                 FILE *screen, int &fp_size);
 void eam_gpu_clear();
 int** eam_gpu_compute_n(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, double *sublo,
@@ -180,7 +180,7 @@ void PairEAMGPU::init_style()
   int fp_size;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, nrhor, nrho, nz2r, nfrho, nr,
+                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
                              atom->nlocal, atom->nlocal+atom->nghost, 300,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);

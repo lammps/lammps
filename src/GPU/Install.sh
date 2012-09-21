@@ -127,10 +127,8 @@ include ..\/..\/lib\/gpu\/Makefile.lammps
   cp pair_lj96_cut_gpu.cpp ..
   cp pair_lj_expand_gpu.cpp ..
   cp pair_lj_cut_coul_cut_gpu.cpp ..
-#  cp pair_lj_cut_coul_dsf.cpp ..
-#  cp pair_lj_cut_coul_dsf_gpu.cpp ..
-#  cp pair_coul_dsf.cpp ..
-#  cp pair_coul_dsf_gpu.cpp ..
+  cp pair_lj_cut_coul_dsf_gpu.cpp ..
+  cp pair_coul_dsf_gpu.cpp ..
   cp pair_lj_cut_coul_debye_gpu.cpp ..
   cp pair_born_gpu.cpp ..
   cp pair_born_coul_wolf_gpu.cpp ..
@@ -144,10 +142,8 @@ include ..\/..\/lib\/gpu\/Makefile.lammps
   cp pair_lj96_cut_gpu.h ..
   cp pair_lj_expand_gpu.h ..
   cp pair_lj_cut_coul_cut_gpu.h ..
-#  cp pair_lj_cut_coul_dsf.h ..
-#  cp pair_lj_cut_coul_dsf_gpu.h ..
-#  cp pair_coul_dsf.h ..
-#  cp pair_coul_dsf_gpu.h ..
+  cp pair_lj_cut_coul_dsf_gpu.h ..
+  cp pair_coul_dsf_gpu.h ..
   cp pair_lj_cut_coul_debye_gpu.h ..
   cp pair_born_gpu.h ..
   cp pair_born_coul_wolf_gpu.h ..
@@ -197,9 +193,7 @@ elif (test $1 = 0) then
   rm -f ../pair_yukawa_colloid_gpu.cpp
   rm -f ../pair_dipole_cut_gpu.cpp
   rm -f ../pair_dipole_sf_gpu.cpp
-  rm -f ../pair_lj_cut_coul_dsf.cpp
   rm -f ../pair_lj_cut_coul_dsf_gpu.cpp
-  rm -f ../pair_coul_dsf.cpp
   rm -f ../pair_coul_dsf_gpu.cpp
   rm -f ../pair_lj_cut_coul_debye_gpu.cpp
   rm -f ../pppm_gpu.cpp
@@ -236,9 +230,7 @@ elif (test $1 = 0) then
   rm -f ../pair_yukawa_colloid_gpu.h
   rm -f ../pair_dipole_cut_gpu.h
   rm -f ../pair_dipole_sf_gpu.h
-  rm -f ../pair_lj_cut_coul_dsf.h
   rm -f ../pair_lj_cut_coul_dsf_gpu.h
-  rm -f ../pair_coul_dsf.h
   rm -f ../pair_coul_dsf_gpu.h
   rm -f ../pair_lj_cut_coul_debye_gpu.h
   rm -f ../pppm_gpu.h

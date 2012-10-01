@@ -63,7 +63,7 @@ void PairGauss::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double r,rsq,r2inv,forcelj;
+  double r,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -109,11 +109,8 @@ void PairGauss::compute(int eflag, int vflag)
       if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
-        r = sqrt(rsq);
-        forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq *
+        fpair = - 2.0*a[itype][jtype]*b[itype][jtype] *
           exp(-b[itype][jtype]*rsq);
-        fpair = forcelj*r2inv;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -186,7 +183,8 @@ void PairGauss::settings(int narg, char **arg)
 
 void PairGauss::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -313,15 +311,9 @@ double PairGauss::single(int i, int j, int itype, int jtype, double rsq,
                          double factor_coul, double factor_lj,
                          double &fforce)
 {
-  double r2inv,forcelj,philj,r;
-
-  r = sqrt(rsq);
-
-  r2inv = 1.0/rsq;
-  philj = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
-
-  forcelj = -2.0*a[itype][jtype]*b[itype][jtype]*rsq*exp(-b[itype][jtype]*rsq);
-  fforce = forcelj*r2inv;
+  double philj = 
+    -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
+  fforce = -2.0*a[itype][jtype]*b[itype][jtype] * exp(-b[itype][jtype]*rsq);
   return philj;
 }
 

@@ -219,10 +219,7 @@ When using a long-range pairwise TIP4P potential, you must use kspace
 style {pppm/tip4p} and vice versa.
 
 The {msm} style is fairly new, and still lacks some important features
-and optimizations. In particular, the {msm} style does not include
-long-range virial contributions to the pressure. It should not be used
-for NPT simulations, and the reported total pressures should not be 
-trusted. Also the upper MSM levels (above the first level) are not 
+and optimizations. The upper MSM levels (above the first level) are not 
 parallelized, so this MSM implementation may not yet scale very well 
 on large core counts.
 

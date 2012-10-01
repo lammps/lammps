@@ -16,8 +16,10 @@ one or more keyword/value pairs may be listed :ulb,l
 keyword = {mesh} or {order} or {gewald} or {slab} or (nozforce} or {compute} or {diff} :l
   {mesh} value = x y z
     x,y,z = PPPM FFT grid size in each dimension
+  {splitorder} value = N
+    N = order of Taylor series used to split the potential between different MSM levels
   {order} value = N
-    N = grid extent of Gaussian for PPPM mapping of each charge
+    N = grid extent of Gaussian for PPPM or MSM mapping of each charge
   {force} value = accuracy (force units)
   {gewald} value = rinv (1/distance units)
     rinv = PPPM G-ewald parameter
@@ -31,7 +33,7 @@ keyword = {mesh} or {order} or {gewald} or {slab} or (nozforce} or {compute} or 
 
 [Examples:]
 
-kspace_modify mesh 24 24 30 order 6
+kspace_modify mesh 24 24 30 order 6 splitorder 3
 kspace_modify slab 3.0 :pre
 
 [Description:]
@@ -52,21 +54,30 @@ The {order} keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the grid in kspace style {pppm} or {msm}.  
 The default for this parameter is 5 for PPPM and 4 for MSM, which means 
 each charge spans 5 or 4 grid cells in each dimension, respectively.  
-For the LAMMPS implementation of MSM, 4 is the only allowable value. 
-For PPPM, the minimum allowed setting is 2 and the maximum allowed 
-setting is 7.  The larger the value of this parameter, the smaller the 
-grid will need to be to achieve the requested precision.  Conversely, 
-the smaller the order value, the larger the grid will be.  Note that 
-there is an inherent trade-off involved: a small grid will lower the 
-cost of FFTs, but a large order parameter will increase the cost of 
-interpolating charge/fields to/from the grid. And vice versa.
+For the LAMMPS implementation of MSM, the order can range from 4 to 10
+and must be even. For PPPM, the minimum allowed setting is 2 and the 
+maximum allowed setting is 7.  The larger the value of this parameter, 
+the smaller the grid will need to be to achieve the requested accuracy.  
+Conversely, the smaller the order value, the larger the grid will be.  
+Note that there is an inherent trade-off involved: a small grid will 
+lower the cost of FFTs or MSM direct sum, but a larger order parameter
+will increase the cost of interpolating charge/fields to/from the grid.
+
+The {splitorder} keyword determines the order of the Taylor series used 
+to split the potential between different MSM grid levels, and can range
+from 2 and 6. "(Hardy)"_#Hardy recommends that the {splitorder} be roughly 
+half of the order parameter. For example, the default MSM order is 4 
+and the default {splitorder} is 2. For higher accuracy in MSM, one can use
+order 10 and {splitorder} 5 or 6, though this will increase the interpolation
+cost as described above.
 
 The PPPM order parameter may be reset by LAMMPS when it sets up the 
 FFT grid if the implied grid stencil extends beyond the grid cells
 owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
-LAMMPS to run the problem.
+LAMMPS to run the problem. Automatic reduction of order is not currently
+implemented in MSM, so an error (instead of a warning) will be generated.
 
 The {force} keyword overrides the relative accuracy parameter set by
 the "kspace_style"_kspace_style.html command with an absolute
@@ -117,16 +128,18 @@ This keyword gives you that option.
 
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
-potentials on the PPPM mesh.  The {ik} approach is the default.  It
-performs differentiation in Kspace, but uses 3 FFTs to transfer the
+potentials on the PPPM mesh.  The {ik} approach is the default for PPPM.  
+It performs differentiation in Kspace, but uses 3 FFTs to transfer the
 computed fields back to real space (total of 4 FFTs per timestep). The
 analytic differentiation, or {ad} approach uses only 1 FFT to transfer
 the computed fields back to real space (total of 2 FFTs per timestep),
 but requires a somewhat larger PPPM mesh to achieve the same accuracy
-as the {ik} approach.
+as the {ik} approach. Analogous approaches have been implemented in MSM
+and can be specified using the same keywords. The {ad} approach is the 
+default for MSM.
 
-IMPORTANT NOTE: Currently, only the {pppm} style supports the {ad}
-option.  Support from other {pppm} variants will be added later.
+IMPORTANT NOTE: Currently, not all {pppm} styles support the 
+{ad} option.  Support for those {pppm} variants will be added later.
 
 [Restrictions:] none
 
@@ -136,10 +149,16 @@ option.  Support from other {pppm} variants will be added later.
 
 [Default:]
 
-The option defaults are mesh = 0 0 0, order = 5, force = -1.0, gewald
-= 0.0, slab = 1.0, compute = yes, and diff = ik.
+The option defaults are mesh = 0 0 0, order = 5 (PPPM), order = 4 (MSM),
+splitorder = 2 (MSM), force = -1.0, gewald = 0.0, slab = 1.0, compute = yes,
+and diff = ik (PPPM), diff = ad (MSM).
 
 :line
 
 :link(Yeh)
 [(Yeh)] Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
+
+:link(Hardy)
+[(Hardy)] David, Multilevel Summation for the Fast Evaluation of 
+Forces for the Simulation of Biomolecules, University of Illinois 
+at Urbana-Champaign, (2006).

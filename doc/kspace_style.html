@@ -224,10 +224,7 @@ LAMMPS</A> section for more info.
 style <I>pppm/tip4p</I> and vice versa.
 </P>
 <P>The <I>msm</I> style is fairly new, and still lacks some important features
-and optimizations. In particular, the <I>msm</I> style does not include
-long-range virial contributions to the pressure. It should not be used
-for NPT simulations, and the reported total pressures should not be 
-trusted. Also the upper MSM levels (above the first level) are not 
+and optimizations. The upper MSM levels (above the first level) are not 
 parallelized, so this MSM implementation may not yet scale very well 
 on large core counts.
 </P>

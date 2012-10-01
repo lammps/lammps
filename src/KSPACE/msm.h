@@ -55,17 +55,27 @@ class MSM : public KSpace {
   int *nxhi_out,*nyhi_out,*nzhi_out;
   int *nxlo_ghost,*nxhi_ghost,*nylo_ghost;
   int *nyhi_ghost,*nzlo_ghost,*nzhi_ghost;
+  int *ngrid;
   int nxlo_direct,nxhi_direct,nylo_direct;
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
   int nlower,nupper;
-  int ngrid,nbuf;
+  int nbuf,nbuf_peratom;
+  int peratom_allocate_flag;
   int levels;
+
+
   double ****qgrid;
   double ****egrid;
+  double ****fxgrid,****fygrid,****fzgrid;
+  double ****v0grid,****v1grid,****v2grid;
+  double ****v3grid,****v4grid,****v5grid;
   double **g_direct;
+  double **dgx_direct,**dgy_direct,**dgz_direct;
+  double **v0_direct,**v1_direct,**v2_direct;
+  double **v3_direct,**v4_direct,**v5_direct;
 
-  double *buf1,*buf2;
+  double *buf1,*buf2,*buf3,*buf4;
 
   double **phi1d,**dphi1d;
 
@@ -80,7 +90,9 @@ class MSM : public KSpace {
   double estimate_3d_error();
   double estimate_total_error();
   void allocate();
+  void allocate_peratom();
   void deallocate();
+  void deallocate_peratom();
   void allocate_levels();
   void deallocate_levels();
   int factorable(int,int&,int&);
@@ -89,18 +101,24 @@ class MSM : public KSpace {
   void particle_map();
   void make_rho();
   void ghost_swap(int);
-  void charge_swap(int);
-  void potential_swap(int);
-  void direct(int, int, int);
-  void restrict(int,int,int);
-  void prolongate(int,int,int);
+  void grid_swap(int,double*** &);
+  void direct_ad(int);
+  void direct(int);
+  void direct_peratom(int);
+  void restriction(int);
+  void prolongation(int);
+  void fillbrick_ad_peratom(int);
   void fillbrick(int);
+  void fieldforce_ad();
   void fieldforce();
+  void fieldforce_peratom();
   void procs2grid2d(int,int,int,int*,int*);
   void compute_phis_and_dphis(const double &, const double &, const double &);
   double compute_phi(const double &);
   double compute_dphi(const double &);
   void get_g_direct();
+  void get_dg_direct();
+  void get_virial_direct();
 };
 
 }
@@ -136,10 +154,15 @@ E: Cannot use slab correction with MSM
 
 Slab correction can only be used with Ewald and PPPM, not MSM
 
-E: MSM order cannot be < 2 or > than %d
+E: MSM order cannot be < 4 or > than 10
 
 This is a limitation of the MSM implementation in LAMMPS.
-Currently the only available order is 4.
+
+Currently the order may only range from 4 to 10
+
+E: MSM order must be even
+
+Currently the MSM order must be an even number
 
 E: KSpace style is incompatible with Pair style
 

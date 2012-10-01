@@ -221,12 +221,8 @@ void PairGaussCut::coeff(int narg, char **arg)
 
 double PairGaussCut::init_one(int i, int j)
 {
-
-  if (setflag[i][j] == 0) {
-    error->all(FLERR,"for gauss/cut pair style, parameters need to be set explicitly for all pairs.");
-  }
-  pgauss[i][j] = hgauss[i][j] / sqrt(MY_2PI)/ sigmah[i][j];
-
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  pgauss[i][j] = hgauss[i][j] / sqrt(MY_2PI) / sigmah[i][j];
 
   if (offset_flag) {
     double rexp = (cut[i][j]-rmh[i][j])/sigmah[i][j];

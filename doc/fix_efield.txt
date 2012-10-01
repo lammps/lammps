@@ -65,8 +65,9 @@ energy discussed above.  The vector is the total force added to the
 group of atoms.  The scalar and vector values calculated by this fix
 are "extensive".
 
-No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
+
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.  You should not
 specify force components with a variable that has time-dependence for

@@ -68,9 +68,10 @@ energy discussed above.  The vector is the total force added to the
 group of atoms.  The scalar and vector values calculated by this fix
 are "extensive".
 </P>
-<P>No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-The forces due to this fix are imposed during an energy minimization,
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
 invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
 specify force components with a variable that has time-dependence for
 use with a minimizer, since the minimizer increments the timestep as

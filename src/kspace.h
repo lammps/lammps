@@ -62,11 +62,12 @@ class KSpace : protected Pointers {
 
  protected:
   int gridflag,gewaldflag,differentiation_flag;
-  int order;
+  int order,split_order;
   int slabflag;
   int suffix_flag;                  // suffix compatibility flag
   double scale;
   double slab_volfactor;
+  double **gcons,**dgcons;          // accumulated per-atom energy/virial
 
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specifed accuracy in force units

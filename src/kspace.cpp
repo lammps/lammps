@@ -54,6 +54,57 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
+
+  split_order = 2;
+
+  memory->create(gcons,7,7,"kspace:gcons");
+  gcons[2][0] = 15.0 / 8.0;
+  gcons[2][1] = -5.0 / 4.0;
+  gcons[2][2] = 3.0 / 8.0;
+  gcons[3][0] = 35.0 / 16.0;
+  gcons[3][1] = -35.0 / 16.0;
+  gcons[3][2] = 21.0 / 16.0;
+  gcons[3][3] = -5.0 / 16.0;
+  gcons[4][0] = 315.0 / 128.0;
+  gcons[4][1] = -105.0 / 32.0;
+  gcons[4][2] = 189.0 / 64.0;
+  gcons[4][3] = -45.0 / 32.0;
+  gcons[4][4] = 35.0 / 128.0;
+  gcons[5][0] = 693.0 / 256.0;
+  gcons[5][1] = -1155.0 / 256.0;
+  gcons[5][2] = 693.0 / 128.0;
+  gcons[5][3] = -495.0 / 128.0;
+  gcons[5][4] = 385.0 / 256.0;
+  gcons[5][5] = -63.0 / 256.0;
+  gcons[6][0] = 3003.0 / 1024.0;
+  gcons[6][1] = -3003.0 / 512.0;
+  gcons[6][2] = 9009.0 / 1024.0;
+  gcons[6][3] = -2145.0 / 256.0;
+  gcons[6][4] = 5005.0 / 1024.0;
+  gcons[6][5] = -819.0 / 512.0;
+  gcons[6][6] = 231.0 / 1024.0;
+
+  memory->create(dgcons,7,6,"kspace:dgcons");
+  dgcons[2][0] = -5.0 / 2.0;
+  dgcons[2][1] = 3.0 / 2.0;
+  dgcons[3][0] = -35.0 / 8.0;
+  dgcons[3][1] = 21.0 / 4.0;
+  dgcons[3][2] = -15.0 / 8.0;
+  dgcons[4][0] = -105.0 / 16.0;
+  dgcons[4][1] = 189.0 / 16.0;
+  dgcons[4][2] = -135.0 / 16.0;
+  dgcons[4][3] = 35.0 / 16.0;
+  dgcons[5][0] = -1155.0 / 128.0;
+  dgcons[5][1] = 693.0 / 32.0;
+  dgcons[5][2] = -1485.0 / 64.0;
+  dgcons[5][3] = 385.0 / 32.0;
+  dgcons[5][4] = -315.0 / 128.0;
+  dgcons[6][0] = -3003.0 / 256.0;
+  dgcons[6][1] = 9009.0 / 256.0;
+  dgcons[6][2] = -6435.0 / 128.0;
+  dgcons[6][3] = 5005.0 / 128.0;
+  dgcons[6][4] = -4095.0 / 256.0;
+  dgcons[6][5] = 693.0 / 256.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,6 +113,8 @@ KSpace::~KSpace()
 {
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(gcons);
+  memory->destroy(dgcons);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,7 +207,7 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
     else if (nctb <= 16) table_accuracy = empirical_precision[nctb];
     else table_accuracy = empirical_precision[16];
     table_accuracy *= q2_over_sqrt;
-    if (table_accuracy > spr)
+    if ((table_accuracy > spr) && (comm->me == 0))
       error->warning(FLERR,"For better accuracy use 'pair_modify table 0'");
   }
 
@@ -166,27 +219,41 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
    see Eq 4 from Parallel Computing 35 (2009) 164–177
 ------------------------------------------------------------------------- */
 
-double KSpace::gamma(const double &rho) 
+double KSpace::gamma(const double &rho)
 {
-  if (rho <= 1){
+  if (rho <= 1) {
+    double g = gcons[split_order][0];
     double rho2 = rho*rho;
-    return (15.0/8.0 - 5.0*rho2/4.0 + 3.0*rho2*rho2/8.0);
+    double rho_n = rho2;
+    for (int n=1; n<=split_order; n++) {
+      g += gcons[split_order][n]*rho_n;
+      rho_n *= rho2;
+    }
+    return g;
   }
   else
     return (1.0/rho);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    compute the derivative of gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164-177 
-------------------------------------------------------------------------- */ 
- 
-double KSpace::dgamma(const double &rho) 
-{ 
-  if (rho <= 1) 
-    return (-5.0*rho/2.0 + 3.0*rho*rho*rho/2.0); 
-  else 
-    return (-1.0/rho/rho); 
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
+------------------------------------------------------------------------- */
+
+double KSpace::dgamma(const double &rho)
+{
+  if (rho <= 1) {
+    double dg = dgcons[split_order][0]*rho;
+    double rho2 = rho*rho;
+    double rho_n = rho*rho2;
+    for (int n=1; n<split_order; n++) {
+      dg += dgcons[split_order][n]*rho_n;
+      rho_n *= rho2;
+    }
+    return dg;
+  }
+  else
+    return (-1.0/rho/rho);
 }
 
 /* ----------------------------------------------------------------------
@@ -209,6 +276,12 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"splitorder") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+        split_order = atoi(arg[iarg+1]);
+        if (split_order < 2 || split_order > 6)
+          error->all(FLERR,"Illegal kspace_modify command");
+        iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       accuracy_absolute = atof(arg[iarg+1]);

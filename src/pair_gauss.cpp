@@ -109,7 +109,7 @@ void PairGauss::compute(int eflag, int vflag)
       if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        fpair = - 2.0*a[itype][jtype]*b[itype][jtype] *
+        fpair = -2.0*a[itype][jtype]*b[itype][jtype] *
           exp(-b[itype][jtype]*rsq);
 
         f[i][0] += delx*fpair;

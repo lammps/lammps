@@ -50,12 +50,36 @@ with optional time-dependence as well.
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
+files</A>.  
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the potential "energy" inferred by the added force to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  This is a fictitious quantity but is
+needed so that the <A HREF = "minimize.html">minimize</A> command can include the
+forces added by this fix in a consistent manner.  I.e. there is a
+decrease in potential energy when atoms move in the direction of the
+added force.
+</P>
+<P>This fix computes a global scalar and a global 3-vector of forces,
+which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar is the potential
+energy discussed above.  The vector is the total force added to the
+group of atoms.  The scalar and vector values calculated by this fix
+are "extensive".
+</P>
+<P>No parameter of this fix can
 be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+specify force components with a variable that has time-dependence for
+use with a minimizer, since the minimizer increments the timestep as
+the iteration count during the minimization.
+</P>
+<P>IMPORTANT NOTE: If you want the fictitious potential energy associated
+with the added forces to be included in the total potential energy of
+the system (the quantity being minimized), you MUST enable the
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
 </P>
 <P><B>Restrictions:</B> none
 </P>

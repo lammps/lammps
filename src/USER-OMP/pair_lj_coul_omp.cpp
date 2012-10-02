@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_coul_omp.h"
+#include "pair_lj_disp_coul_long_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "math_vector.h"
@@ -34,8 +34,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCoulOMP::PairLJCoulOMP(LAMMPS *lmp) :
-  PairLJCoul(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJDispCoulLongOMP::PairLJDispCoulLongOMP(LAMMPS *lmp) :
+  PairLJDispCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -44,7 +44,7 @@ PairLJCoulOMP::PairLJCoulOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCoulOMP::compute(int eflag, int vflag)
+void PairLJDispCoulLongOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -84,7 +84,7 @@ void PairLJCoulOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCoulOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairLJDispCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
@@ -224,10 +224,10 @@ void PairLJCoulOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCoulOMP::memory_usage()
+double PairLJDispCoulLongOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJCoul::memory_usage();
+  bytes += PairLJDispCoulLong::memory_usage();
 
   return bytes;
 }

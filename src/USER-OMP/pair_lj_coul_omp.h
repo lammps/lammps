@@ -17,22 +17,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/coul/omp,PairLJCoulOMP)
+PairStyle(lj/disp/coul/long/omp,PairLJDispCoulLongOMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_COUL_OMP_H
-#define LMP_PAIR_LJ_COUL_OMP_H
+#ifndef LMP_PAIR_LJ_DISP_COUL_LONG_OMP_H
+#define LMP_PAIR_LJ_DISP_COUL_LONG_OMP_H
 
-#include "pair_lj_coul.h"
+#include "pair_lj_disp_coul_long.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCoulOMP : public PairLJCoul, public ThrOMP {
+class PairLJDispCoulLongOMP : public PairLJDispCoulLong, public ThrOMP {
 
  public:
-  PairLJCoulOMP(class LAMMPS *);
+  PairLJDispCoulLongOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();

@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_buck_coul_omp.h"
+#include "pair_buck_disp_coul_long_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "math_vector.h"
@@ -34,8 +34,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckCoulOMP::PairBuckCoulOMP(LAMMPS *lmp) :
-  PairBuckCoul(lmp), ThrOMP(lmp, THR_PAIR)
+PairBuckDispCoulLongOMP::PairBuckDispCoulLongOMP(LAMMPS *lmp) :
+  PairBuckDispCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -44,7 +44,7 @@ PairBuckCoulOMP::PairBuckCoulOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckCoulOMP::compute(int eflag, int vflag)
+void PairBuckDispCoulLongOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -84,7 +84,7 @@ void PairBuckCoulOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairBuckCoulOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairBuckDispCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   double evdwl,ecoul,fpair;
   evdwl = ecoul = 0.0;
@@ -220,10 +220,10 @@ void PairBuckCoulOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairBuckCoulOMP::memory_usage()
+double PairBuckDispCoulLongOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairBuckCoul::memory_usage();
+  bytes += PairBuckDispCoulLong::memory_usage();
 
   return bytes;
 }

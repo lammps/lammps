@@ -38,6 +38,11 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   order = 5;
   gridflag = 0;
   gewaldflag = 0;
+
+  order_6 = 5;
+  gridflag_6 = 0;
+  gewaldflag_6 = 0;
+    
   slabflag = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
@@ -272,12 +277,23 @@ void KSpace::modify_params(int narg, char **arg)
       if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0) gridflag = 0;
       else gridflag = 1;
       iarg += 4;
+    } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      nx_pppm_6 = atoi(arg[iarg+1]);
+      ny_pppm_6 = atoi(arg[iarg+2]);
+      nz_pppm_6 = atoi(arg[iarg+3]);
+      if (nx_pppm_6 == 0 || ny_pppm_6 == 0 || nz_pppm_6 == 0) gridflag_6 = 0;
+      else gridflag_6 = 1;
+      iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"splitorder") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+    } else if (strcmp(arg[iarg],"order/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      order_6 = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg],"order/split") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
         split_order = atoi(arg[iarg+1]);
         if (split_order < 2 || split_order > 6)
           error->all(FLERR,"Illegal kspace_modify command");
@@ -291,6 +307,12 @@ void KSpace::modify_params(int narg, char **arg)
       g_ewald = atof(arg[iarg+1]);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"gewald/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      g_ewald_6 = atof(arg[iarg+1]);
+      if (g_ewald_6 == 0.0) gewaldflag_6 = 0;
+      else gewaldflag_6 = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

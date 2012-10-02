@@ -23,14 +23,15 @@ class KSpace : protected Pointers {
   friend class FixOMP;
  public:
   double energy;                  // accumulated energy
+  double energy_1,energy_6;
   double virial[6];               // accumlated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
   double e2group;                 // accumulated group-group energy
   double f2group[3];              // accumulated group-group force
 
-  double g_ewald;
+  double g_ewald,g_ewald_6;
   int nx_pppm,ny_pppm,nz_pppm;
-
+  int nx_pppm_6,ny_pppm_6,nz_pppm_6;
   int nx_msm_max,ny_msm_max,nz_msm_max;
 
   int group_group_enable;         // 1 if style supports group/group calculation
@@ -61,8 +62,10 @@ class KSpace : protected Pointers {
   double dgamma(const double &);
 
  protected:
-  int gridflag,gewaldflag,differentiation_flag;
-  int order,split_order;
+  int gridflag,gridflag_6;
+  int gewaldflag,gewaldflag_6;
+  int order,order_6,split_order;
+  int differentiation_flag;
   int slabflag;
   int suffix_flag;                  // suffix compatibility flag
   double scale;

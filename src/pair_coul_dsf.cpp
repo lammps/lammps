@@ -327,7 +327,7 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairCoulDSF::extract(char *str, int &dim)
+void *PairCoulDSF::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut_coul") == 0) {
     dim = 0;

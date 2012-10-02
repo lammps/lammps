@@ -2526,7 +2526,9 @@ void MSM::fieldforce_peratom()
 /* ----------------------------------------------------------------------
    charge assignment into phi1d
 ------------------------------------------------------------------------- */
-void MSM::compute_phis_and_dphis(const double &dx, const double &dy, const double &dz)
+
+void MSM::compute_phis_and_dphis(const double &dx, const double &dy, 
+                                 const double &dz)
 {
   double delx,dely,delz;
 
@@ -2549,6 +2551,7 @@ void MSM::compute_phis_and_dphis(const double &dx, const double &dy, const doubl
    see Eq 7 from Parallel Computing 35 (2009) 164–177
    and Hardy's thesis
 ------------------------------------------------------------------------- */
+
 double MSM::compute_phi(const double &xi)
 {
   double phi;
@@ -2563,7 +2566,7 @@ double MSM::compute_phi(const double &xi)
     } else {
       phi = 0.0;
     }
-    return phi;
+
   } else if (order == 6) {
     if (abs_xi <= 1) {
       phi = (1.0 - xi2)*(2.0 - abs_xi)*(6.0 + 3.0*abs_xi -
@@ -2577,7 +2580,7 @@ double MSM::compute_phi(const double &xi)
     } else {
       phi = 0.0;
     }
-    return phi;
+
   } else if (order == 8) {
     if (abs_xi <= 1) {
       phi = (1.0 - xi2)*(4.0 - xi2)*(3.0 - abs_xi)*
@@ -2594,7 +2597,7 @@ double MSM::compute_phi(const double &xi)
     } else {
       phi = 0.0;
     }
-    return phi;
+
   } else if (order == 10) {
     if (abs_xi <= 1) {
       phi = (1.0 - xi2)*(4.0 - xi2)*(9.0 - xi2)*
@@ -2616,9 +2619,9 @@ double MSM::compute_phi(const double &xi)
     } else {
       phi = 0.0;
     }
-    return phi;
   }
 
+  return phi;
 }
 
 /* ----------------------------------------------------------------------
@@ -2632,6 +2635,7 @@ double MSM::compute_dphi(const double &xi)
 {
   double dphi;
   double abs_xi = fabs(xi);
+
   if (order == 4) {
     double xi2 = xi*xi;
     double abs_xi2 = abs_xi*abs_xi;
@@ -2644,7 +2648,7 @@ double MSM::compute_dphi(const double &xi)
     } else {
       dphi = 0.0;
     }
-    return dphi;
+
   } else if (order == 6) {
     double xi2 = xi*xi;
     double xi4 = xi2*xi2;
@@ -2666,7 +2670,7 @@ double MSM::compute_dphi(const double &xi)
     } else {
       dphi = 0.0;
     }
-    return dphi;
+
   } else if (order == 8) {
     double xi2 = xi*xi;
     double xi4 = xi2*xi2;
@@ -2698,7 +2702,7 @@ double MSM::compute_dphi(const double &xi)
     } else {
       dphi = 0.0;
     }
-    return dphi;
+
   } else if (order == 10) {
     double xi2 = xi*xi;
     double xi4 = xi2*xi2;
@@ -2745,9 +2749,9 @@ double MSM::compute_dphi(const double &xi)
     } else {
       dphi = 0.0;
     }
-    return dphi;
   }
 
+  return dphi;
 }
 
 /* ----------------------------------------------------------------------

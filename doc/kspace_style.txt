@@ -12,24 +12,32 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/omp} or {ewald/n} or {pppm} or {pppm/cg} or {pppm/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {msm} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
+  {ewald/disp} value = accuracy
+    accuracy = desired relative error in forces
   {ewald/omp} value = accuracy
     accuracy = desired relative error in forces
-  {ewald/n} value = accuracy
+  {msm} value = accuracy
     accuracy = desired relative error in forces
   {pppm} value = accuracy
     accuracy = desired relative error in forces
   {pppm/cg} value = accuracy (smallq)
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
+  {pppm/disp} value = accuracy
+    accuracy = desired relative error in forces
   {pppm/tip4p} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/disp/tip4p} value = accuracy
     accuracy = desired relative error in forces
   {pppm/gpu} value = accuracy
     accuracy = desired relative error in forces
   {pppm/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/cg/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/omp} value = accuracy
     accuracy = desired relative error in forces
@@ -37,8 +45,6 @@ style = {none} or {ewald} or {ewald/omp} or {ewald/n} or {pppm} or {pppm/cg} or 
     accuracy = desired relative error in forces
   {pppm/tip4p/proxy} value = accuracy
     accuracy = desired relative error in forces
-  {msm} value = accuracy
-    accuracy = desired relative error in forces :pre
 :ule
 
 [Examples:]
@@ -50,62 +56,44 @@ kspace_style none :pre
 
 [Description:]
 
-Define a K-space solver for LAMMPS to use each timestep to compute
-long-range Coulombic interactions or long-range 1/r^N interactions.
+Define a long-range solver for LAMMPS to use each timestep to compute
+long-range Coulombic interactions or long-range 1/r^6 interactions.
+Most of the long-range solvers perform their computation in K-space,
+hence the name of this command.
+
 When such a solver is used in conjunction with an appropriate pair
-style, the cutoff for Coulombic or other 1/r^N interactions is
-effectively infinite; each charge in the system interacts with charges
-in an infinite array of periodic images of the simulation domain.
+style, the cutoff for Coulombic or 1/r^N interactions is effectively
+infinite.  If the Coulombic case, this means each charge in the system
+interacts with charges in an infinite array of periodic images of the
+simulation domain.
+
+Note that using a long-range solver requires use of a matching "pair
+style"_pair.html to perform consistent short-range pairwise
+calculations.  This means that the name of the pair style contains a
+matching keyword to the name of the space style, as in this table:
+
+Pair style : KSpace style 
+long : ewald or pppm
+msm : msm
+disp : disp (for dispersion)
+tip4p : tip4p
+proxy : proxy :tb(s=:,ea=c)
 
 :line
 
 The {ewald} style performs a standard Ewald summation as described in
 any solid-state physics text.
 
-The {ewald/n} style augments {ewald} by adding long-range dispersion
-sum capabilities for 1/r^N potentials and is useful for simulation of
-interfaces "(Veld)"_#Veld.  It also performs standard coulombic Ewald
-summations, but in a more efficient manner than the {ewald} style.
-The 1/r^N capability means that Lennard-Jones or Buckingham potentials
-can be used with {ewald/n} without a cutoff, i.e. they become full
-long-range potentials.
+The {ewald/disp} style adds a long-range dispersion sum option for
+1/r^6 potentials and is useful for simulation of interfaces
+"(Veld)"_#Veld.  It also performs standard Coulombic Ewald summations,
+but in a more efficient manner than the {ewald} style.  The 1/r^6
+capability means that Lennard-Jones or Buckingham potentials can be
+used without a cutoff, i.e. they become full long-range potentials.
 
-Currently, only the {ewald/n} style can be used with non-orthogonal
-(triclinic symmetry) simulation boxes.
-
-
-
-
-This package implements 3 commands which can be used in a LAMMPS input
-script: pair_style lj/coul, pair_style buck/coul, and kspace_style
-ewald/n.
-
-The "kspace_style ewald/n" command is similar to standard Ewald for
-charges, but also enables the Lennard-Jones interaction, or any 1/r^N
-interaction to be of infinite extent, instead of being cutoff.  LAMMPS
-pair potentials for long-range Coulombic interactions, such as
-lj/cut/coul/long can be used with ewald/n.  The two new pair_style
-commands provide the modifications for the short-range LJ and
-Buckingham interactions that can also be used with ewald/n.
-
-Two other advantages of kspace_style ewald/n are that 
-
-a) it can be used with non-orthogonal (triclinic symmetry) simulation
-boxes
-
-b) it can include long-range summations not just for Coulombic
-interactions (1/r), but also for dispersion interactions (1/r^6) and
-dipole interactions (1/r^3).
-
-Neither of these options is currently possible for other kspace styles
-such as PPPM and ewald.
-
-See the doc pages for these commands for details.
-
-The person who created these files is Pieter in' t Veld while at
-Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
-directly if you have questions.
-
+The {ewald/disp} style can also be used with non-orthogonal (triclinic
+symmetry) simulation boxes.  It is currently the only long-range
+solver that has this capability.
 
 :line
 
@@ -130,24 +118,31 @@ adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {long/tip4p} in their style name.
 
-The {pppm/proxy} style is a special variant for calculations 
-in hybrid OpenMP/MPI parallel mode. It is functionally equivalent
-with {pppm}, but it its force computation is being executed 
-as a single thread concurrently with a multi-threaded non-bonded
-calculation for a pair style with {pppm/omp} suffix. For calcuations
-across many multi-core nodes, this can have a performance benefit
-over performing the real and reciprocal space part separately,
-specifically when otherwise the time spent on the pair style
-would slightly less than in {pppm} without threading.
+The {pppm/disp} and {pppm/disp/tip4p} styles add a long-range
+dispersion sum option for 1/r^6 potentials, similar to the
+{ewald/disp} style.  The 1/r^6 capability means that Lennard-Jones or
+Buckingham potentials can be used without a cutoff, i.e. they become
+full long-range potentials.
 
-Note that the PPPM styles can be used with single-precision FFTs by
-using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
-lo-level Makefile.  This setting also changes some of the PPPM
-operations (e.g. mapping charge to mesh and interpolating electric
-fields to particles) to be performed in single precision.  This option
-can speed-up long-range calulations, particularly in parallel or on
-GPUs.  The use of the -DFFT_SINGLE flag is discussed in "this
-section"_Section_start.html#start_2_4 of the manual.
+The {pppm/proxy} and {pppm/tip4p/proxy} styles are special variants
+for calculations in hybrid OpenMP/MPI parallel mode.  They are
+functionally equivalent to {pppm} and {pppm/tip4p}, but the force
+computation is executed as a single thread concurrently with a
+multi-threaded non-bonded calculation for a pair style with {pppm/omp}
+suffix.  For calcuations across many multi-core nodes, this can have a
+performance benefit over performing the real and reciprocal space part
+separately, specifically when otherwise the time spent on the pair
+style would slightly less than in {pppm} without threading.
+
+IMPORTANT NOTE: All of the PPPM styles can be used with
+single-precision FFTs by using the compiler switch -DFFT_SINGLE for
+the FFT_INC setting in your lo-level Makefile.  This setting also
+changes some of the PPPM operations (e.g. mapping charge to mesh and
+interpolating electric fields to particles) to be performed in single
+precision.  This option can speed-up long-range calulations,
+particularly in parallel or on GPUs.  The use of the -DFFT_SINGLE flag
+is discussed in "this section"_Section_start.html#start_2_4 of the
+manual.
 
 :line
 
@@ -170,14 +165,6 @@ getting adequate force accuracy by doing an energy conservation test
 or comparison versus the Ewald method.
 
 :line
-
-When a kspace style is used, a pair style that includes the
-short-range correction to the pairwise Coulombic or other 1/r^N forces
-must also be selected.  For Coulombic interactions, these styles are
-ones that have a {coul/long} in their style name.  For 1/r^6
-dispersion forces in a Lennard-Jones or Buckingham potential, see the
-"pair_style lj/coul"_pair_lj_coul.html or "pair_style
-buck/coul"_pair_buck_coul.html commands.
 
 The specified {accuracy} determines the relative RMS error in per-atom
 forces calculated by the long-range solver.  It is set as a
@@ -236,21 +223,15 @@ more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
 
+All of the kspace styles are part of the KSPACE package.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.  Note that
+the KSPACE package is installed by default.
+
 A simulation must be 3d and periodic in all dimensions to use an Ewald
 or PPPM solver.  The only exception is if the slab option is set with
 "kspace_modify"_kspace_modify.html, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
-
-Kspace styles are part of the KSPACE package.  They are only enabled
-if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
-The {ewald/n} style is part of the USER-EWALDN package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
-When using a long-range pairwise TIP4P potential, you must use kspace
-style {pppm/tip4p} and vice versa.
 
 The {msm} style is fairly new, and still lacks some important features
 and optimizations. The upper MSM levels (above the first level) are not 

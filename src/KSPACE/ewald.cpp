@@ -43,6 +43,7 @@ Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
+  ewaldflag = 1;
   group_group_enable = 1;
   group_allocate_flag = 0;
 
@@ -104,8 +105,8 @@ void Ewald::init()
 
   scale = 1.0;
 
-  if (force->pair == NULL)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  pair_check();
+
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)

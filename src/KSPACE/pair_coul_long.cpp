@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 
 PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
+  ewaldflag = pppmflag = 1;
   ftable = NULL;
 }
 
@@ -251,7 +252,7 @@ void PairCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables

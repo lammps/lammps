@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 
 PairBuckDispCoulLong::PairBuckDispCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
+  dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   ftable = NULL;
 }
@@ -64,21 +65,24 @@ PairBuckDispCoulLong::PairBuckDispCoulLong(LAMMPS *lmp) : Pair(lmp)
 #define PAIR_LARGEST        "Using largest cut-off for buck/coul long long"
 #define PAIR_MIX        "Geometric mixing assumed for 1/r^6 coefficients"
 
+
+
 void PairBuckDispCoulLong::options(char **arg, int order)
 {
-  char *option[] = {"long", "cut", "off", NULL};
+  const char *option[] = {"long", "cut", "off", NULL};
   int i;
 
   if (!*arg) error->all(FLERR,PAIR_ILLEGAL);
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
     default: error->all(FLERR,PAIR_ILLEGAL);
-    case 0: ewald_order |= 1<<order; break;                // set kspace r^-order
-    case 2: ewald_off |= 1<<order;                        // turn r^-order off
+    case 0: ewald_order |= 1<<order; break;
+    case 2: ewald_off |= 1<<order;
     case 1: break;
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void PairBuckDispCoulLong::settings(int narg, char **arg)
 {
@@ -86,10 +90,13 @@ void PairBuckDispCoulLong::settings(int narg, char **arg)
 
   ewald_order = 0;
   ewald_off = 0;
+
   options(arg, 6);
   options(++arg, 1);
+
   if (!comm->me && ewald_order&(1<<6)) error->warning(FLERR,PAIR_MIX);
-  if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(FLERR,PAIR_LARGEST);
+  if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
+    error->warning(FLERR,PAIR_LARGEST);
   if (!*(++arg)) error->all(FLERR,PAIR_MISSING);
   if (ewald_off&(1<<6)) error->all(FLERR,PAIR_LJ_OFF);
   if (!((ewald_order^ewald_off)&(1<<1))) error->all(FLERR,PAIR_COUL_CUT);
@@ -98,7 +105,7 @@ void PairBuckDispCoulLong::settings(int narg, char **arg)
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 
-  if (allocated) {                                        // reset explicit cuts
+  if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
@@ -189,7 +196,8 @@ void *PairBuckDispCoulLong::extract(const char *id, int &dim)
 
 void PairBuckDispCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -224,7 +232,6 @@ void PairBuckDispCoulLong::coeff(int narg, char **arg)
 
 void PairBuckDispCoulLong::init_style()
 {
-
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
@@ -276,18 +283,12 @@ void PairBuckDispCoulLong::init_style()
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = NULL;
 
-  // ensure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set two g_ewalds
 
-  if (ewald_order&(1<<1)) {                                // r^-1 kspace
-    if (force->kspace == NULL)
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
-    g_ewald = force->kspace->g_ewald;
-  }
-  if (ewald_order&(1<<6)) {                                // r^-6 kspace
-    if (strcmp(force->kspace_style,"ewald/n") && strcmp(force->kspace_style, "pppm_disp"))
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
-    g_ewald_6 = force->kspace->g_ewald_6;
-  }
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
+  if (ewald_order&(1<<1)) g_ewald = force->kspace->g_ewald;
+  if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
 
   // setup force tables
 

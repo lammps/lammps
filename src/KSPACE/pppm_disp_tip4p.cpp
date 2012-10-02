@@ -42,7 +42,10 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PPPMDISPTIP4P::PPPMDISPTIP4P(LAMMPS *lmp, int narg, char **arg) :
-  PPPM_disp(lmp, narg, arg) {}
+  PPPM_disp(lmp, narg, arg)
+{
+  tip4pflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,7 +54,7 @@ void PPPMDISPTIP4P::init()
   // TIP4P PPPM requires newton on, b/c it computes forces on ghost atoms
 
   if (force->newton == 0)
-    error->all(FLERR,"Kspace style pppm_disp/tip4p requires newton on");
+    error->all(FLERR,"Kspace style pppm/disp/tip4p requires newton on");
 
   PPPM_disp::init();
 }

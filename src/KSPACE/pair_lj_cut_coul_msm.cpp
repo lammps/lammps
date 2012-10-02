@@ -41,7 +41,8 @@ using namespace MathConst;
 
 PairLJCutCoulMSM::PairLJCutCoulMSM(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
 {
-
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

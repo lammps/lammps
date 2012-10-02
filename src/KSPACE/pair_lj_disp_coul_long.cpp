@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 
 PairLJDispCoulLong::PairLJDispCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
+  dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   ftable = NULL;
   qdist = 0.0;
@@ -278,18 +279,8 @@ void PairLJDispCoulLong::init_style()
 
   // ensure use of KSpace long-range solver, set g_ewald
 
-  if (ewald_order&(1<<1)) {                                // r^-1 kspace
-    if (force->kspace == NULL)
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
-    for (i=0; style1[i]&&strcmp(force->kspace_style, style1[i]); ++i);
-    if (!style1[i]) error->all(FLERR,"Pair style is incompatible with KSpace style");
-  }
-  if (ewald_order&(1<<6)) {                                // r^-6 kspace
-    if (force->kspace == NULL)
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
-    for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
-    if (!style6[i]) error->all(FLERR,"Pair style is incompatible with KSpace style");
-  }
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requires a KSpace style");
   if (force->kspace) g_ewald = force->kspace->g_ewald;
   if (force->kspace) g_ewald_6 = force->kspace->g_ewald_6;
 

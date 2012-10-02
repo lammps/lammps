@@ -40,7 +40,10 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg) {}
+  PPPM(lmp, narg, arg)
+{
+  tip4pflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

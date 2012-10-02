@@ -65,6 +65,8 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   b2 = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 EwaldDisp::~EwaldDisp()
 {
   deallocate();
@@ -72,7 +74,6 @@ EwaldDisp::~EwaldDisp()
   delete [] ekr_local;
   delete [] B;
 }
-
 
 /* --------------------------------------------------------------------- */
 
@@ -88,6 +89,8 @@ void EwaldDisp::init()
     if (logfile) fprintf(logfile,"EwaldDisp initialization ...\n");
   }
 
+  if (force->pair == NULL || force->pair->ewaldflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (domain->dimension == 2)                                // check for errors
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
@@ -102,6 +105,8 @@ void EwaldDisp::init()
   //mumurd2e = force->mumurd2e;
   //dielectric = force->dielectric;
   mumurd2e = dielectric = 1.0;
+
+  pair_check();
 
   int tmp;
   Pair *pair = force->pair;
@@ -134,7 +139,6 @@ void EwaldDisp::init()
       nsums += n[k];
     }
 
-
   g_ewald = 0;
   pair->init();  // so B is defined
   init_coeffs();
@@ -146,16 +150,12 @@ void EwaldDisp::init()
     qsum = sum[0].x;
     qsqsum = sum[0].x2;
   }
-  if (function[1]) {
-    bsbsum = sum[1].x2;
-  }
-  if (function[2]) {
-    bsbsum = sum[2].x2;
-  }
-
+  if (function[1]) bsbsum = sum[1].x2;
+  if (function[2]) bsbsum = sum[2].x2;
 
   if (qsqsum == 0.0 && bsbsum == 0.0)
-      error->all(FLERR,"Cannot use Ewald/n solver on system with no charge or LJ particles");
+      error->all(FLERR,"Cannot use Ewald/disp solver "
+                 "on system with no charge or LJ particles");
   if (fabs(qsum) > SMALL && comm->me == 0) {
       char str[128];
       sprintf(str,"System is not charge neutral, net charge = %g",qsum);
@@ -173,31 +173,28 @@ void EwaldDisp::init()
   b2 = bsbsum; //Are these units right?
   bigint natoms = atom->natoms;
 
-  if (function[0]) {       //Coulombic
+  if (function[0]) {
     g_ewald = accuracy*sqrt(natoms*(*cutoff)*shape_det(domain->h)) / (2.0*q2);
     if (g_ewald >= 1.0)
         error->all(FLERR,"KSpace accuracy too large to estimate G vector");
     g_ewald = sqrt(-log(g_ewald)) / *cutoff;
   }
-  else if (function[1] || function[2]) {    //Only LJ
-
+  else if (function[1] || function[2]) {
     double *cutoffLJ = pair ? (double *) pair->extract("cut_LJ",tmp) : NULL;
-
     //Try Newton Solver
-
     //Use old method to get guess
     g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoffLJ;
 
-    double g_ewald_new = NewtonSolve(g_ewald,(*cutoffLJ),natoms,shape_det(domain->h),b2);
-
+    double g_ewald_new = 
+      NewtonSolve(g_ewald,(*cutoffLJ),natoms,shape_det(domain->h),b2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
-    else error->warning(FLERR,"Ewald/n Newton solver failed, using old method to estimate g_ewald");
-
+    else error->warning(FLERR,"Ewald/disp Newton solver failed, "
+                        "using old method to estimate g_ewald");
     if (g_ewald >= 1.0)
         error->all(FLERR,"KSpace accuracy too large to estimate G vector");
   }
 
-  if (!comm->me) {                                        // output results
+  if (!comm->me) {
       if (screen) fprintf(screen, "  G vector = %g\n", g_ewald);
       if (logfile) fprintf(logfile, "  G vector = %g\n", g_ewald);
   }
@@ -214,12 +211,13 @@ void EwaldDisp::init()
 
 void EwaldDisp::setup()
 {
-  volume = shape_det(domain->h)*slab_volfactor;                // cell volume
-  memcpy(unit, domain->h_inv, sizeof(shape));                // wave vector units
+  volume = shape_det(domain->h)*slab_volfactor;
+  memcpy(unit, domain->h_inv, sizeof(shape));
   shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
 
   //int nbox_old = nbox, nkvec_old = nkvec;
+
   if (accuracy>=1) {
     nbox = 0;
     error->all(FLERR,"KSpace accuracy too low");
@@ -255,12 +253,12 @@ void EwaldDisp::setup()
   gsqmx *= 1.00001;
 
   reallocate();
-  coefficients();                                        // compute coeffs
+  coefficients();
   init_coeffs();
   init_coeff_sums();
   init_self();
 
-  if (!(first_output||comm->me)) {                        // output on first
+  if (!(first_output||comm->me)) {
     first_output = 1;
     if (screen) fprintf(screen,
                "  vectors: nbox = %d, nkvec = %d\n", nbox, nkvec);
@@ -277,7 +275,7 @@ double EwaldDisp::rms(int km, double prd, bigint natoms, double q2, double b2)
 {
   double value = 0.0;
 
-  //Coulombic
+  // Coulombic
 
   double g2 = g_ewald*g_ewald;
 
@@ -285,7 +283,7 @@ double EwaldDisp::rms(int km, double prd, bigint natoms, double q2, double b2)
     sqrt(1.0/(MY_PI*km*natoms)) *
     exp(-MY_PI*MY_PI*km*km/(g2*prd*prd));
 
-  //Lennard-Jones
+  // Lennard-Jones
 
   double g7 = g2*g2*g2*g_ewald;
 
@@ -297,13 +295,13 @@ double EwaldDisp::rms(int km, double prd, bigint natoms, double q2, double b2)
   return value;
 }
 
-void EwaldDisp::reallocate()                                // allocate memory
+void EwaldDisp::reallocate()
 {
   int ix, iy, iz;
   int nkvec_max = nkvec;
   vector h;
 
-  nkvec = 0;                                                // determine size(kvec)
+  nkvec = 0;
   int *kflag = new int[(nbox+1)*(2*nbox+1)*(2*nbox+1)];
   int *flag = kflag;
 
@@ -337,8 +335,8 @@ void EwaldDisp::reallocate()                                // allocate memory
     nkvec_max = nkvec;
   }
 
-  flag = kflag;                                                // create index and
-  kvector *k = kvec;                                        // wave vectors
+  flag = kflag;                                           // create index and
+  kvector *k = kvec;                                      // wave vectors
   hvector *hi = hvec;
   for (ix=0; ix<=nbox; ++ix)
     for (iy=-nbox; iy<=nbox; ++iy)
@@ -397,7 +395,7 @@ void EwaldDisp::deallocate()                                // free memory
 }
 
 
-void EwaldDisp::coefficients()                                // set up pre-factors
+void EwaldDisp::coefficients()
 {
   vector h;
   hvector *hi = hvec, *nh;
@@ -442,8 +440,7 @@ void EwaldDisp::coefficients()                                // set up pre-fact
   }
 }
 
-
-void EwaldDisp::init_coeffs()                                // local pair coeffs
+void EwaldDisp::init_coeffs()
 {
   int tmp;
   int n = atom->ntypes;
@@ -476,10 +473,9 @@ void EwaldDisp::init_coeffs()                                // local pair coeff
   }
 }
 
-
-void EwaldDisp::init_coeff_sums()                                // sums based on atoms
+void EwaldDisp::init_coeff_sums()
 {
-  if (sums) return;                                        // calculated only once
+  if (sums) return;                            // calculated only once
   sums = 1;
 
   Sum sum_local[EWALD_MAX_NSUMS];
@@ -679,7 +675,7 @@ void EwaldDisp::compute_ek()
       C_ANGLE(z1.y, *(x++)*unit[1]);
       C_ANGLE(z1.z, *(x++)*unit[2]);
     }
-    for (; zz<zn; --zx, ++zy, ++zz) {                        // set up z[k]=e^(ik.r)
+    for (; zz<zn; --zx, ++zy, ++zz) {                  // set up z[k]=e^(ik.r)
       C_RMULT(zy->x, zz->x, z1.x);                        // 3D k-vector
       C_RMULT(zy->y, zz->y, z1.y); C_CONJ(zx->y, zy->y);
       C_RMULT(zy->z, zz->z, z1.z); C_CONJ(zx->z, zy->z);
@@ -696,7 +692,7 @@ void EwaldDisp::compute_ek()
       h = hvec;
     }
     for (k=kvec; k<nk; ++k) {                                // compute rho(k)
-      if (ky!=k->y) {                                        // based on order in
+      if (ky!=k->y) {                                   // based on order in
         if (kx!=k->x) cx = z[kx = k->x].x;                // reallocate
         C_RMULT(zxy, z[ky = k->y].y, cx);
       }
@@ -744,8 +740,8 @@ void EwaldDisp::compute_force()
   if (atom->torque) t = atom->torque[0];
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
   memset(sum, 0, EWALD_MAX_NSUMS*sizeof(vector));        // fj = -dE/dr =
-  for (; f<fn; f+=3) {                                        //      -i*qj*fac*
-    k = kvec;                                                //       Sum[conj(d)-d]
+  for (; f<fn; f+=3) {                                    //      -i*qj*fac*
+    k = kvec;                                         //       Sum[conj(d)-d]
     kx = ky = -1;                                        // d = k*conj(ekj)*ek
     ke = kenergy;
     cek = cek_global;
@@ -756,7 +752,7 @@ void EwaldDisp::compute_force()
       mu++;
     }
     for (nh = (h = hvec)+nkvec; h<nh; ++h, ++k) {
-      if (ky!=k->y) {                                        // based on order in
+      if (ky!=k->y) {                                   // based on order in
         if (kx!=k->x) zx = z[kx = k->x].x;                 // reallocate
         C_RMULT(zxy, z[ky = k->y].y, zx);
       }
@@ -861,7 +857,7 @@ void EwaldDisp::compute_energy()
 
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
   memset(sum, 0, EWALD_NFUNCS*sizeof(double));                // reset sums
-  for (int k=0; k<nkvec; ++k) {                                // sum over k vectors
+  for (int k=0; k<nkvec; ++k) {                       // sum over k vectors
     if (func[0]) {                                        // 1/r
       sum[0] += *(ke++)*(cek->re*cek->re+cek->im*cek->im); ++cek; }
     if (func[1]) {                                        // geometric 1/r^6
@@ -916,7 +912,7 @@ void EwaldDisp::compute_energy_peratom()
       mu++;
     }
     for (nh = (h = hvec)+nkvec; h<nh; ++h, ++k) {
-      if (ky!=k->y) {                                        // based on order in
+      if (ky!=k->y) {                              // based on order in
         if (kx!=k->x) zx = z[kx = k->x].x;                 // reallocate
         C_RMULT(zxy, z[ky = k->y].y, zx);
       }
@@ -981,7 +977,7 @@ void EwaldDisp::compute_virial()
 
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
   memset(sum, 0, EWALD_NFUNCS*sizeof(shape));
-  for (int k=0; k<nkvec; ++k) {                                // sum over k vectors
+  for (int k=0; k<nkvec; ++k) {                      // sum over k vectors
     if (func[0]) {                                         // 1/r
       register double r = cek->re*cek->re+cek->im*cek->im; ++cek;
       sum[0][0] += *(kv++)*r; sum[0][1] += *(kv++)*r; sum[0][2] += *(kv++)*r;
@@ -1050,7 +1046,7 @@ void EwaldDisp::compute_virial_peratom()
       mu++;
     }
     for (nh = (h = hvec)+nkvec; h<nh; ++h, ++k) {
-      if (ky!=k->y) {                                        // based on order in
+      if (ky!=k->y) {                                // based on order in
           if (kx!=k->x) zx = z[kx = k->x].x;                 // reallocate
           C_RMULT(zxy, z[ky = k->y].y, zx);
       }
@@ -1180,7 +1176,8 @@ void EwaldDisp::compute_slabcorr()
   Newton solver used to find g_ewald for LJ systems
  ------------------------------------------------------------------------- */
 
-double EwaldDisp::NewtonSolve(double x, double Rc, bigint natoms, double vol, double b2)
+double EwaldDisp::NewtonSolve(double x, double Rc, 
+                              bigint natoms, double vol, double b2)
 {
   double dx,tol;
   int maxit;
@@ -1214,7 +1211,8 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
  Calculate numerical derivative f'(x)
  ------------------------------------------------------------------------- */
 
-double EwaldDisp::derivf(double x, double Rc, bigint natoms, double vol, double b2)
+double EwaldDisp::derivf(double x, double Rc, 
+                         bigint natoms, double vol, double b2)
 {
   double h = 0.000001;  //Derivative step-size
   return (f(x + h,Rc,natoms,vol,b2) - f(x,Rc,natoms,vol,b2)) / h;

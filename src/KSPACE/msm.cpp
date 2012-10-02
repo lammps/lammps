@@ -52,6 +52,8 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
 
+  msmflag = 1;
+
   accuracy_relative = atof(arg[0]);
 
   nfactors = 1;
@@ -80,7 +82,6 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   levels = 0;
 
   differentiation_flag = 1;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -154,18 +155,13 @@ void MSM::init()
   qqrd2e = force->qqrd2e;
   scale = 1.0;
 
-  if (force->pair == NULL)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  pair_check();
+
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_msm",itmp);
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
-
-  if ((strcmp(force->kspace_style,"pppm/tip4p") == 0) ||
-       (strcmp(force->kspace_style,"pppm/tip4p/proxy") == 0)) {
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  }
 
   // compute qsum & qsqsum and give error if not charge-neutral
 
@@ -184,10 +180,13 @@ void MSM::init()
 
   if (qsqsum == 0.0)
     error->all(FLERR,"Cannot use kspace solver on system with no charge");
+
+  // not yet sure of the correction needed for non-neutral systems
+
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->all(FLERR,str);  // Not yet sure of the correction needed for non-neutral systems
+    error->all(FLERR,str);  
   }
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute

@@ -35,7 +35,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulMSM::PairBornCoulMSM(LAMMPS *lmp) : PairBornCoulLong(lmp) {}
+PairBornCoulMSM::PairBornCoulMSM(LAMMPS *lmp) : PairBornCoulLong(lmp)
+{
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

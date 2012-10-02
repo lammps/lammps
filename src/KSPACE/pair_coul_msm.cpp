@@ -38,7 +38,8 @@ using namespace LAMMPS_NS;
 
 PairCoulMSM::PairCoulMSM(LAMMPS *lmp) : PairCoulLong(lmp)
 {
-
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

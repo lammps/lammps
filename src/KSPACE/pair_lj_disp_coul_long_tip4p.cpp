@@ -489,9 +489,6 @@ void PairLJDispCoulLongTIP4P::init_style()
     error->all(FLERR,"Pair style lj/coul/tip4p requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/coul/tip4p requires atom attribute q");
-  if ( (strcmp(force->kspace_style,"pppm_disp/tip4p") != 0) &&
-       (strcmp(force->kspace_style,"pppm_disp/tip4p/proxy") != 0) )
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
   if (force->bond == NULL)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)

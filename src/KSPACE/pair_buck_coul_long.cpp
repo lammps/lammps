@@ -39,7 +39,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp) {}
+PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
+{
+  ewaldflag = pppmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -222,7 +225,8 @@ void PairBuckCoulLong::settings(int narg, char **arg)
 
 void PairBuckCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -326,7 +330,7 @@ void PairBuckCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requres a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);

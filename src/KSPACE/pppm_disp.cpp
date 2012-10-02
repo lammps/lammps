@@ -63,8 +63,8 @@ PPPM_disp::PPPM_disp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm_disp command");
 
+  pppmflag = dispersionflag = 1;
   accuracy_relative = atof(arg[0]);
-
   
   nfactors = 3;
   factors = new int[nfactors];
@@ -80,7 +80,6 @@ PPPM_disp::PPPM_disp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   cii = NULL;
   csumi = NULL;
   peratom_allocate_flag = 0;
-
 
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
@@ -118,7 +117,6 @@ PPPM_disp::PPPM_disp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   density_fft_a6 = NULL;
   u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = NULL;
 
-
   greensfn = NULL;
   greensfn_6 = NULL;
   work1 = work2 = NULL;
@@ -136,7 +134,6 @@ PPPM_disp::PPPM_disp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
   sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 = sf_precoeff4_6 = sf_precoeff5_6 = sf_precoeff6_6 = NULL;
-
 
   gf_b = NULL;
   gf_b_6 = NULL;
@@ -161,7 +158,6 @@ PPPM_disp::PPPM_disp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   com_order = NULL;
   split_1 = NULL;
   split_2 = NULL;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -184,7 +180,6 @@ PPPM_disp::~PPPM_disp()
   memory->destroy(dict_rec);
   memory->destroy(splitbuf1);
   memory->destroy(splitbuf2);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -230,6 +225,8 @@ void PPPM_disp::init()
 
   // Check out whether cutoff and pair style are set
 
+  pair_check();
+
   int tmp;
   Pair *pair = force->pair;
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : NULL;
@@ -242,7 +239,6 @@ void PPPM_disp::init()
 
   double tmp2;
   MPI_Allreduce(&cutoff, &tmp2,1,MPI_DOUBLE,MPI_SUM,world); 
-  
 
   // check out which types of potentials will have to be calculated
 
@@ -303,17 +299,12 @@ void PPPM_disp::init()
     }
   }
 
-
-
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so insure equilibrium request is valid
 
   qdist = 0.0;
  
-  if ( (strcmp(force->kspace_style,"pppm_disp/tip4p") == 0) ||
-       (strcmp(force->kspace_style,"pppm_tip4p/proxy") == 0) ) {
-    if (force->pair == NULL)
-      error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (tip4pflag) {
     int itmp;
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
@@ -343,14 +334,15 @@ void PPPM_disp::init()
 
 
   // initialize the pair style to get the coefficients
+
   pair->init();
   init_coeffs();
 
   //if g_ewald and g_ewald_6 have not been specified, set some initial value
   //  to avoid problems when calculating the energies!
+
   if (!gewaldflag) g_ewald = 1;
   if (!gewaldflag_6) g_ewald_6 = 1;
-
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
   

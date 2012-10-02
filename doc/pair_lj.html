@@ -51,9 +51,13 @@
 </H3>
 <H3>pair_style lj/cut/coul/long/omp command 
 </H3>
+<H3>pair_style lj/cut/coul/long/proxy/omp command 
+</H3>
 <H3>pair_style lj/cut/coul/long/tip4p command 
 </H3>
 <H3>pair_style lj/cut/coul/long/tip4p/omp command 
+</H3>
+<H3>pair_style lj/cut/coul/long/proxy/tip4p/omp command 
 </H3>
 <H3>pair_style lj/cut/coul/long/tip4p/opt command 
 </H3>
@@ -223,15 +227,16 @@ can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 </P>
-<P>Styles <I>lj/cut/coul/pppm/omp</I> and <I>lj/cut/coul/pppm/tip4p/omp</I>
-are variants of  <I>lj/cut/coul/long/omp</I> and <I>lj/cut/coul/long/tip4p/omp</I>
-for use with k-space styles <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and
+<P>Styles <I>lj/cut/coul/long/proxy/omp</I> and
+<I>lj/cut/coul/long/proxy/tip4p/omp</I> are variants of
+<I>lj/cut/coul/long/omp</I> and <I>lj/cut/coul/long/tip4p/omp</I> for use with
+k-space styles <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and
 <A HREF = "kspace_style.html"><I>pppm/tip4p/proxy</I></A>, respectively and OpenMP
-multi-threading and will perform the corresponding reciprocal
-space calculation concurrently with the pair calculation
-in a separate thread. For certain parallel setups, this may have
-a performance benefit over performing k-space style and pair style
-separately and one after the other.
+multi-threading and will perform the corresponding reciprocal space
+calculation concurrently with the pair calculation in a separate
+thread.  For certain parallel setups, this may have a performance
+benefit over performing k-space style and pair style separately and
+one after the other.
 </P>
 <HR>
 

@@ -31,7 +31,7 @@
 </H3>
 <H3>pair_style lj/class2/coul/long/omp command 
 </H3>
-<H3>pair_style lj/class2/coul/pppm/omp command 
+<H3>pair_style lj/class2/coul/long/proxy/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
@@ -75,8 +75,7 @@ pair_coeff 1 1 100.0 3.5 9.0
 <P>Rc is the cutoff.
 </P>
 <P>The <I>lj/class2/coul/cut</I> and <I>lj/class2/coul/long</I> styles add a
-Coulombic term as described for the <A HREF = "pair_lj.html">lj/cut</A> pair
-styles.
+Coulombic term as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.
 </P>
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
@@ -103,6 +102,14 @@ Coulombic terms.
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.
+</P>
+<P>Style <I>lj/class2/coul/long/proxy/omp</I> is a variant for use with
+K-space style <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and OpenMP
+multi-threading and will perform the corresponding reciprocal space
+calculation concurrently with the pair calculation in a separate
+thread.  For certain parallel setups, this may have a performance
+benefit over performing k-space style and pair style separately and
+one after the other.
 </P>
 <HR>
 

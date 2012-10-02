@@ -73,6 +73,40 @@ long-range potentials.
 Currently, only the {ewald/n} style can be used with non-orthogonal
 (triclinic symmetry) simulation boxes.
 
+
+
+
+This package implements 3 commands which can be used in a LAMMPS input
+script: pair_style lj/coul, pair_style buck/coul, and kspace_style
+ewald/n.
+
+The "kspace_style ewald/n" command is similar to standard Ewald for
+charges, but also enables the Lennard-Jones interaction, or any 1/r^N
+interaction to be of infinite extent, instead of being cutoff.  LAMMPS
+pair potentials for long-range Coulombic interactions, such as
+lj/cut/coul/long can be used with ewald/n.  The two new pair_style
+commands provide the modifications for the short-range LJ and
+Buckingham interactions that can also be used with ewald/n.
+
+Two other advantages of kspace_style ewald/n are that 
+
+a) it can be used with non-orthogonal (triclinic symmetry) simulation
+boxes
+
+b) it can include long-range summations not just for Coulombic
+interactions (1/r), but also for dispersion interactions (1/r^6) and
+dipole interactions (1/r^3).
+
+Neither of these options is currently possible for other kspace styles
+such as PPPM and ewald.
+
+See the doc pages for these commands for details.
+
+The person who created these files is Pieter in' t Veld while at
+Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
+directly if you have questions.
+
+
 :line
 
 The {pppm} style invokes a particle-particle particle-mesh solver

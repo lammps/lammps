@@ -94,7 +94,8 @@ verlet/split
 processor mapping via processors numa command
 load-balancing: balance and fix balance
 processor command for layout
-OMP when lots of cores :ul
+OMP when lots of cores
+proxy/OMP for PPPM :ul
 
 :line
 

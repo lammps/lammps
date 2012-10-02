@@ -27,8 +27,10 @@ pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
 pair_style lj/cut/coul/long/opt command :h3
 pair_style lj/cut/coul/long/omp command :h3
+pair_style lj/cut/coul/long/proxy/omp command :h3
 pair_style lj/cut/coul/long/tip4p command :h3
 pair_style lj/cut/coul/long/tip4p/omp command :h3
+pair_style lj/cut/coul/long/proxy/tip4p/omp command :h3
 pair_style lj/cut/coul/long/tip4p/opt command :h3
 
 [Syntax:]
@@ -196,15 +198,16 @@ can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 
-Styles {lj/cut/coul/pppm/omp} and {lj/cut/coul/pppm/tip4p/omp}
-are variants of  {lj/cut/coul/long/omp} and {lj/cut/coul/long/tip4p/omp}
-for use with k-space styles "{pppm/proxy}"_kspace_style.html and
+Styles {lj/cut/coul/long/proxy/omp} and
+{lj/cut/coul/long/proxy/tip4p/omp} are variants of
+{lj/cut/coul/long/omp} and {lj/cut/coul/long/tip4p/omp} for use with
+k-space styles "{pppm/proxy}"_kspace_style.html and
 "{pppm/tip4p/proxy}"_kspace_style.html, respectively and OpenMP
-multi-threading and will perform the corresponding reciprocal
-space calculation concurrently with the pair calculation
-in a separate thread. For certain parallel setups, this may have
-a performance benefit over performing k-space style and pair style
-separately and one after the other.
+multi-threading and will perform the corresponding reciprocal space
+calculation concurrently with the pair calculation in a separate
+thread.  For certain parallel setups, this may have a performance
+benefit over performing k-space style and pair style separately and
+one after the other.
 
 :line
 

@@ -97,6 +97,15 @@ inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
 property/atom</A> command and then specifying
 an input value from that compute.
 </P>
+<P>IMPORTANT NOTE: The x,y,z attributes are values that are re-wrapped
+inside the periodic box whenever an atom crosses a periodic boundary.
+Thus if you time average an atom that spends half its time on either
+side of the periodic box, you will get a value in the middle of the
+box.  If this is not what you want, consider averaging unwrapped
+coordinates, which can be provided by the <A HREF = "compute_property_atom.html">compute
+property/atom</A> command via its xu,yu,zu
+attributes.
+</P>
 <P>If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a

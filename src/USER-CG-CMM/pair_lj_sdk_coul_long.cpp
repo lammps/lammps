@@ -364,7 +364,7 @@ void PairLJSDKCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -390,14 +390,17 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   double cut = MAX(cut_lj[i][j],cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
 
-  lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
-  lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
+  lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] * 
+    pow(sigma[i][j],lj_pow1[ljt]);
+  lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] * 
+    pow(sigma[i][j],lj_pow2[ljt]);
   lj3[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
   lj4[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
 
   if (offset_flag) {
     double ratio = sigma[i][j] / cut_lj[i][j];
-    offset[i][j] = lj_prefact[ljt] * epsilon[i][j] * (pow(ratio,lj_pow1[ljt]) - pow(ratio,lj_pow2[ljt]));
+    offset[i][j] = lj_prefact[ljt] * epsilon[i][j] * 
+      (pow(ratio,lj_pow1[ljt]) - pow(ratio,lj_pow2[ljt]));
   } else offset[i][j] = 0.0;
 
   cut_ljsq[j][i] = cut_ljsq[i][j];

@@ -39,7 +39,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp) {}
+PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
+{
+  ewaldflag = pppmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -223,7 +226,8 @@ void PairLJClass2CoulLong::settings(int narg, char **arg)
 
 void PairLJClass2CoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -257,7 +261,8 @@ void PairLJClass2CoulLong::coeff(int narg, char **arg)
 void PairLJClass2CoulLong::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style lj/class2/coul/long requires atom attribute q");
+    error->all(FLERR,
+               "Pair style lj/class2/coul/long requires atom attribute q");
 
   neighbor->request(this);
 
@@ -266,7 +271,7 @@ void PairLJClass2CoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 }
 

@@ -29,6 +29,13 @@ class KSpace : protected Pointers {
   double e2group;                 // accumulated group-group energy
   double f2group[3];              // accumulated group-group force
 
+  int ewaldflag;                 // 1 if a Ewald solver
+  int pppmflag;                  // 1 if a PPPM solver
+  int msmflag;                   // 1 if a MSM solver
+  int dispersionflag;            // 1 if a LJ/dispersion solver
+  int tip4pflag;                 // 1 if a TIP4P solver
+  int proxyflag;                 // 1 if a proxy solver
+
   double g_ewald,g_ewald_6;
   int nx_pppm,ny_pppm,nz_pppm;
   int nx_pppm_6,ny_pppm_6,nz_pppm_6;
@@ -84,6 +91,7 @@ class KSpace : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
   int maxeatom,maxvatom;
 
+  void pair_check();
   void ev_setup(int, int);
   double estimate_table_accuracy(double, double);
 };

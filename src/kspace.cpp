@@ -32,6 +32,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = proxyflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
 
@@ -129,6 +130,28 @@ void KSpace::compute_dummy(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
+}
+
+/* ----------------------------------------------------------------------
+   check that pair style is compatible with long-range solver
+------------------------------------------------------------------------- */
+
+void KSpace::pair_check()
+{
+  if (force->pair == NULL)
+    error->all(FLERR,"KSpace solver requires a pair style");
+  if (ewaldflag && force->pair->ewaldflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (pppmflag && force->pair->pppmflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (msmflag && force->pair->msmflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (dispersionflag && force->pair->dispersionflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (tip4pflag && force->pair->tip4pflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (proxyflag && force->pair->proxyflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
 }
 
 /* ----------------------------------------------------------------------

@@ -50,6 +50,13 @@ class Pair : protected Pointers {
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
   double **cutghost;             // cutoff for each ghost pair
 
+  int ewaldflag;                 // 1 if compatible with Ewald solver
+  int pppmflag;                  // 1 if compatible with PPPM solver
+  int msmflag;                   // 1 if compatible with MSM solver
+  int dispersionflag;            // 1 if compatible with LJ/dispersion solver
+  int tip4pflag;                 // 1 if compatible with TIP4P solver
+  int proxyflag;                 // 1 if compatible with proxy solver
+
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
   double etail_ij,ptail_ij;

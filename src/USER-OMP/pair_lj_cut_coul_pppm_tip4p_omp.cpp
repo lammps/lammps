@@ -43,6 +43,7 @@ using namespace LAMMPS_NS;
 PairLJCutCoulPPPMTIP4POMP::PairLJCutCoulPPPMTIP4POMP(LAMMPS *lmp) :
   PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
 {
+  proxyflag = 1;
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
   nproxy=1;
@@ -61,9 +62,6 @@ void PairLJCutCoulPPPMTIP4POMP::init_style()
 {
   if (comm->nthreads < 2)
     error->all(FLERR,"need at least two threads per MPI task for this pair style");
-
-  if (strcmp(force->kspace_style,"pppm/tip4p/proxy") != 0)
-    error->all(FLERR,"kspace style pppm/tip4p/proxy is required with this pair style");
 
   kspace = static_cast<PPPMTIP4PProxy *>(force->kspace);
 

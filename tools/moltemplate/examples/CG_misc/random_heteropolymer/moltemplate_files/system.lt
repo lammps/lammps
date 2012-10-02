@@ -1,0 +1,33 @@
+# LAMMPS supports a large number of force-field styles. We must select
+# which ones we need. This information belongs in the "In Init" section (and
+# (you can specify it anywhere in your LT files, multiple times if you like).
+# If different molecules use different force-field styles, you can use hybrid
+# styles.  (In this example the molecules share the same pair_style.)
+
+write_once("In Init") {
+  units           real
+  atom_style      full
+  bond_style      harmonic
+  angle_style     harmonic
+  dihedral_style  opls
+  pair_style      lj/cut 9.0
+  # If you have charged molecules immersed in a salty implicit
+  # solvent, you might try something like this this instead:
+  #    pair_style      lj/cut/coul/debye 0.1 9.0
+  pair_modify     mix arithmetic
+  dielectric      80.0
+  special_bonds   lj 0.0 0.0 0.0
+}
+
+
+write_once("Data Boundary") {
+  0.0 150.0  xlo xhi
+  0.0 150.0  ylo yhi
+  0.0 150.0  zlo zhi
+}
+
+
+import "polymer.lt"
+
+polymer = new RandomHeteropolymer
+                          

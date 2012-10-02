@@ -1,0 +1,123 @@
+# This file contains force field parameters for the "TraPPE" potential used 
+# to model conformational change and interactions between coarse-grained 
+# alkane chains.  This is a united-atom model. (Hydrogens are not represented 
+# explicitly.)  This model is described in more detail here:
+#
+# Martin, M.G. and Siepmann. J.I.  
+# "Transferable potentials for phase equilibria. 1. united-atom description 
+# of n-alkanes." J. Phys. Chem. B, 102(14):2569–2577, 1998.
+#
+# ---- Force-Field File Format explanation ----
+#
+# Lammps-template files (LT files) contain object defintions like this:
+#
+# OBJECT_NAME {
+#   write commands { text and @ and $ variables...}
+# }
+#
+#    Often these objects are definitions of molecules 
+# which can be copied or pasted together to build larger molecules. 
+#
+#    However this file defines the static "TraPPE" object.
+# "TraPPE" is not a molecule, but a collection of atom types, 
+# and a description of the interactions between them.
+# These atoms can then be used inside other molecules.
+# So you can think of the "TraPPE" object as an environment (namespace)
+# describing the interactions between a limited set of atoms.
+# Later on whenever you build a new molecule using TraPPE atoms, 
+#     (for example using this syntax "@atom:.../TraPPE/CH2"), 
+# then the forces between them will be generated automatically.
+#
+# The dihedral (torsion) angle forces are given by
+# U_dihedral(x) =
+#  = 0.5*(1.411036*(1+cos(x)) - 0.271016*(1-cos(2*x)) + 3.145034*(1+cos(3*x)))
+# Note: The TraPPE authors suggest using bond-constraints like "SHAKE".
+#       Unfortunatley, in LAMMPS, SHAKE does not work for large molecules.
+# Units:
+# Energies in this file are in kCal/mole. (Where k_B = 0.001987207 in units of
+# kCal mole^(-1) Kelvin^(-1), and 1 "thermochemical" calorie = 4.184000 Joule)
+
+TraPPE {
+
+  write_once("Data Masses") {
+    @atom:CH2 14.1707
+    @atom:CH3 15.2507
+    @atom:CH4 16.3307
+  }
+  # The "atoms" named "CH2", "CH3", "CH4" denote carbon atoms
+  # bonded to 2, 3, and 4 hydrogen atoms, respectively.
+
+  # The following two "write_once()" statements instruct moltemplate.sh
+  # to automatically generate a 3-body "angle" or 4-body "dihedral" 
+  # ineractions between any time 3 or 4 carbon atoms which are connected 
+  # by consecutive "saturated".  All three types of carbon atoms above
+  # have a name which matches "CH?".  ('?' and '*' are wildcard characters.)
+  # Parameters for these "backbone" interactions are defined below.
+
+  write_once("Data Angles By Type") {
+    @angle:backbone @atom:CH? @atom:CH? @atom:CH? @bond:saturated @bond:saturated
+  }
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:backbone @atom:CH? @atom:CH? @atom:CH? @atom:CH? @bond:saturated @bond:saturated @bond:saturated
+  }
+
+  # Force-field parameters:
+
+  write_once("In Settings") {
+
+    # -- Default settings/parameters for "TraPPE" --
+    #   (Hybrid styles were used for portability.)
+
+    pair_coeff @atom:CH2 @atom:CH2 lj/charmm/coul/charmm 0.091411522 3.95
+    pair_coeff @atom:CH3 @atom:CH3 lj/charmm/coul/charmm 0.194746286 3.75
+    pair_coeff @atom:CH4 @atom:CH4 lj/charmm/coul/charmm 0.294106636 3.73
+    # (Interactions between different atom types in this list use mixing rules.)
+
+    bond_coeff     @bond:saturated    harmonic   120.0   1.54
+    angle_coeff    @angle:backbone    harmonic   62.0022 114
+    dihedral_coeff @dihedral:backbone opls 1.411036 -0.271016 3.145034 0.0
+
+  }
+
+
+  #  ------------------------------------------------------------------
+  #  ---------------  OPTIONAL DEFAULT SETTINGS BELOW -----------------
+  #  ------------------------------------------------------------------
+  #  -- All settings below are optional and can be overridden later. --
+  #  -- They are only suggestions how to run LAMMPS with this model. --
+  #  ------------------------------------------------------------------
+
+
+  # ------ lammps input script suggestions: ------
+  # Style suggestions:
+
+  write_once("In Init") {
+
+    # -- Default styles for "TraPPE" --
+    units           real
+    atom_style      full
+    # (Hybrid force field styles were used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid opls
+    improper_style  none
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 11.0 9.0 11.0 
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
+  }
+
+  # Here's an example of how define a LAMMPS group for all TraPPE atoms
+  # Note we have to list them all explicitly (CH2, CH3, CH4, not CH*).
+  # (Wildcards like '*' and '?' only work for "By Type" interactions, not here.)
+
+  write_once("In Settings") {
+    # -- Optional "TraPPE" groups --
+    group TraPPE type @atom:CH2 @atom:CH3 @atom:CH4
+    # (Atoms types between @{atom:CH2}-@{atom:CH4} belong to the "TraPPE" group.
+    #  Note: All included atom types should explicitly appear in above list.)
+  }
+
+}  # class TraPPE
+
+

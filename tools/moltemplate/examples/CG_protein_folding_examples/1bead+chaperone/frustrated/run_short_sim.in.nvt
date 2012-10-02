@@ -1,0 +1,50 @@
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+# I you want to be careful, you can minimize the system first.  (Try using 
+# "run.in.min" and uncomment the read_restart command in this file below.)
+# read_restart system_after_min.rst
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+
+timestep        0.025
+dump            1 all custom 50 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+# To use Langevin dynamics in LAMMPS you need both "fix langevin" and "fix nve".
+# (See http://lammps.sandia.gov/doc/fix_langevin.html for details.)
+
+# Keep the chaperonin fixed.  Only let the protein move.
+
+fix fxlan proteins langevin 0.25 0.25 1.0 48279
+fix fxnve proteins nve
+
+# Notes:
+# The temperature is in reduced units and is set to 0.25
+# which is the folding temperature for the frustrated protein
+# The inverse-damping-rate "damp" (which has units of time) is set to 1.0,
+# as it was in the paper.  (Hopefully folding times should be similar.)
+# (See http://lammps.sandia.gov/doc/fix_langevin.html)
+
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo_modify   norm no  #(report total energy not energy / num_atoms)
+thermo          50      #(time interval for printing out "thermo" data)
+
+#restart         100000000  restart_nvt
+
+# Just run it long enough for it to collapse (not fold)
+# (If you need to run it longer, then dump trajectory data less frequently.)
+run		50000
+
+write_restart  system_after_nvt.rst
+

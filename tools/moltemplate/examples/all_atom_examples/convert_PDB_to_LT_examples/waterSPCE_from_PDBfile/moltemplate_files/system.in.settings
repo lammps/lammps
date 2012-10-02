@@ -1,0 +1,7 @@
+    bond_coeff   1     harmonic                 200.0   1.0 
+    angle_coeff  1   harmonic                 200.0   109.47
+    pair_coeff   1 1  lj/charmm/coul/long  0.1553  3.166 
+    pair_coeff   2 2  lj/charmm/coul/long  0.0     2.058
+    group spce type  1  2
+    fix fSHAKE all shake 0.0001 10 100 b 1 a 1
+    # (Remember to "unfix" fSHAKE during minimization.)

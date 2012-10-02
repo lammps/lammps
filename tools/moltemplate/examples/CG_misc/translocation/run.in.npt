@@ -1,0 +1,61 @@
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+
+timestep        1.0
+dump            1 all custom 500 traj_npt.lammpstrj id mol type x y z ix iy iz
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          500  # time interval for printing out "thermo" data
+
+
+velocity groupB zero angular
+velocity groupB zero linear
+# (I'm not sure if the two lines above are necessary, but they don't hurt.)
+
+# This next line is somewhat controversial.  Feel free to delete this next line
+
+fix Ffreezestuff groupB rigid single force * off off off torque * off off off
+
+#(Neither Trung or Steve Plimpton use fix rigid for immobilizing objects, but 
+# I noticed that at NPT, it does a better job of maintaining the correct volume)
+
+# IMPORTANT for NPT: You must use "neigh_modify" to turn off calculation of the
+#                    forces between immobilized atoms.
+neigh_modify exclude group groupB groupB
+
+
+# ------------------- NPT -----------------------
+
+# Only the groupB atoms are immobile.
+
+group mobile subtract all groupB
+
+# The next two lines recalculate the temperature 
+# using only the mobile degrees of freedom:
+
+compute tempMobile mobile temp
+compute pressMobile all pressure tempMobile
+
+thermo_style custom step c_tempMobile c_pressMobile temp press vol
+
+# Set temp=300K, pressure=500bar, and equilibrate volume only in the z direction
+
+fix Fmovestuff mobile npt temp 300 300 100 z 500 500 1000.0 dilate mobile
+
+fix_modify Fmovestuff temp tempMobile
+
+run             60000
+
+write_restart  system_after_npt.rst

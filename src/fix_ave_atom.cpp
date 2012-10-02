@@ -128,7 +128,8 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/atom does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-        error->all(FLERR,"Fix ave/atom compute does not calculate per-atom values");
+        error->all(FLERR,
+                   "Fix ave/atom compute does not calculate per-atom values");
       if (argindex[i] == 0 &&
           modify->compute[icompute]->size_peratom_cols != 0)
         error->all(FLERR,"Fix ave/atom compute does not "
@@ -147,13 +148,16 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       if (modify->fix[ifix]->peratom_flag == 0)
         error->all(FLERR,"Fix ave/atom fix does not calculate per-atom values");
       if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-        error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom vector");
+        error->all(FLERR,
+                   "Fix ave/atom fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-        error->all(FLERR,"Fix ave/atom fix does not calculate a per-atom array");
+        error->all(FLERR,
+                   "Fix ave/atom fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
         error->all(FLERR,"Fix ave/atom fix array is accessed out-of-range");
       if (nevery % modify->fix[ifix]->peratom_freq)
-        error->all(FLERR,"Fix for fix ave/atom not computed at compatible time");
+        error->all(FLERR,
+                   "Fix for fix ave/atom not computed at compatible time");
 
     } else if (which[i] == VARIABLE) {
       int ivariable = input->variable->find(ids[i]);

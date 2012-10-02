@@ -24,15 +24,17 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PPPMTIP4PProxy::PPPMTIP4PProxy(LAMMPS *lmp, int narg, char **arg) :
-  PPPMTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE|THR_PROXY) { need_setup=1; }
+  PPPMTIP4P(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE|THR_PROXY)
+{
+  proxyflag = 1;
+  need_setup=1;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void PPPMTIP4PProxy::setup_proxy()
 {
-  if (need_setup)
-    PPPMTIP4P::setup();
-
+  if (need_setup) PPPMTIP4P::setup();
   need_setup=0;
 }
 

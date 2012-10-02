@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm_disp,PPPM_disp)
+KSpaceStyle(pppm/disp,PPPMDisp)
 
 #else
 
@@ -39,10 +39,10 @@ namespace LAMMPS_NS {
 #define EWALD_MAXORDER	6
 #define EWALD_FUNCS	3
 
-class PPPM_disp : public KSpace {
+class PPPMDisp : public KSpace {
  public:
-  PPPM_disp(class LAMMPS *, int, char **);
-  virtual ~PPPM_disp();
+  PPPMDisp(class LAMMPS *, int, char **);
+  virtual ~PPPMDisp();
   virtual void init();
   virtual void setup();
   virtual void compute(int, int);
@@ -55,7 +55,6 @@ class PPPM_disp : public KSpace {
 /* ----------------------------------------------------------------------
 Variables needed for calculating the 1/r and 1/r^6 potential
 ------------------------------------------------------------------------- */
-  
 
   int function[EWALD_FUNCS];
 

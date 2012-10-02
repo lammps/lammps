@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 
-KSpaceStyle(pppm_disp/tip4p,PPPMDISPTIP4P)
+KSpaceStyle(pppm/disp/tip4p,PPPMDispTIP4P)
 
 #else
 
@@ -24,10 +24,10 @@ KSpaceStyle(pppm_disp/tip4p,PPPMDISPTIP4P)
 
 namespace LAMMPS_NS {
 
-class PPPMDISPTIP4P : public PPPM_disp {
+class PPPMDispTIP4P : public PPPMDisp {
  public:
-  PPPMDISPTIP4P(class LAMMPS *, int, char **);
-  virtual ~PPPMDISPTIP4P () {};
+  PPPMDispTIP4P(class LAMMPS *, int, char **);
+  virtual ~PPPMDispTIP4P () {};
   void init();
 
  protected:

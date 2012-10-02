@@ -84,14 +84,12 @@ void EwaldDisp::init()
   nbox = -1;
   bytes = 0.0;
 
-  if (!comm->me) {                                        // output message
+  if (!comm->me) {
     if (screen) fprintf(screen,"EwaldDisp initialization ...\n");
     if (logfile) fprintf(logfile,"EwaldDisp initialization ...\n");
   }
 
-  if (force->pair == NULL || force->pair->ewaldflag == 0)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (domain->dimension == 2)                                // check for errors
+  if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDisp");

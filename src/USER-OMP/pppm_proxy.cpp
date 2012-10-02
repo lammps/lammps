@@ -24,15 +24,17 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PPPMProxy::PPPMProxy(LAMMPS *lmp, int narg, char **arg) :
-  PPPM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE|THR_PROXY) { need_setup=1; }
+  PPPM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE|THR_PROXY)
+{
+  proxyflag = 1;
+  need_setup=1;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void PPPMProxy::setup_proxy()
 {
-  if (need_setup)
-    PPPM::setup();
-
+  if (need_setup) PPPM::setup();
   need_setup = 0;
 }
 

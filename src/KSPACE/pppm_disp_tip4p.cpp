@@ -41,22 +41,22 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDISPTIP4P::PPPMDISPTIP4P(LAMMPS *lmp, int narg, char **arg) :
-  PPPM_disp(lmp, narg, arg)
+PPPMDispTIP4P::PPPMDispTIP4P(LAMMPS *lmp, int narg, char **arg) :
+  PPPMDisp(lmp, narg, arg)
 {
   tip4pflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::init()
+void PPPMDispTIP4P::init()
 {
   // TIP4P PPPM requires newton on, b/c it computes forces on ghost atoms
 
   if (force->newton == 0)
     error->all(FLERR,"Kspace style pppm/disp/tip4p requires newton on");
 
-  PPPM_disp::init();
+  PPPMDisp::init();
 }
 
 /* ----------------------------------------------------------------------
@@ -65,7 +65,7 @@ void PPPMDISPTIP4P::init()
    store central grid pt indices in part2grid array 
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::particle_map_c(double delx, double dely, double delz,
+void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
                                    double sft, int** p2g, int nup, int nlow,
                                    int nxlo, int nylo, int nzlo,
                                    int nxhi, int nyhi, int nzhi)
@@ -115,7 +115,7 @@ void PPPMDISPTIP4P::particle_map_c(double delx, double dely, double delz,
    in global grid 
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::make_rho_c()
+void PPPMDispTIP4P::make_rho_c()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz,iH1,iH2;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -172,7 +172,7 @@ void PPPMDISPTIP4P::make_rho_c()
    for ik differentiation
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::fieldforce_c_ik()
+void PPPMDispTIP4P::fieldforce_c_ik()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -260,7 +260,7 @@ void PPPMDISPTIP4P::fieldforce_c_ik()
    for ad scheme 
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::fieldforce_c_ad()
+void PPPMDispTIP4P::fieldforce_c_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0,dx0,dy0,dz0;
@@ -383,7 +383,7 @@ void PPPMDISPTIP4P::fieldforce_c_ad()
    interpolate from grid to get electric field & force on my particles 
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::fieldforce_c_peratom()
+void PPPMDispTIP4P::fieldforce_c_peratom()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -490,7 +490,7 @@ void PPPMDISPTIP4P::fieldforce_c_peratom()
   also return local indices iH1,iH2 of H atoms
 ------------------------------------------------------------------------- */
 
-void PPPMDISPTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
+void PPPMDispTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
 {
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);

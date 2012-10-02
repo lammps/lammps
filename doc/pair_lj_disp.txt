@@ -6,12 +6,12 @@
 
 :line
 
-pair_style lj/coul command :h3
-pair_style lj/coul/omp command :h3
+pair_style lj/disp/coul/long command :h3
+pair_style lj/disp/coul/long/omp command :h3
 
 [Syntax:]
 
-pair_style lj/coul flag_lj flag_coul cutoff (cutoff2) :pre
+pair_style lj/disp/coul/long flag_lj flag_coul cutoff (cutoff2) :pre
 
 flag_lj = {long} or {cut} :ulb,l
   {long} = use Kspace long-range summation for the dispersion term 1/r^6
@@ -24,15 +24,15 @@ cutoff2 = global cutoff for Coulombic (optional) (distance units) :l,ule
 
 [Examples:]
 
-pair_style lj/coul cut off 2.5
-pair_style lj/coul cut long 2.5 4.0
-pair_style lj/coul long long 2.5 4.0
+pair_style lj/disp/coul/long cut off 2.5
+pair_style lj/disp/coul/long cut long 2.5 4.0
+pair_style lj/disp/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 :pre
 
 [Description:]
 
-The {lj/coul} style computes the standard 12/6 Lennard-Jones and
+The {lj/disp/coul/long} style computes the standard 12/6 Lennard-Jones and
 Coulombic potentials, given by
 
 :c,image(Eqs/pair_lj.jpg)
@@ -153,9 +153,10 @@ details.
 
 [Restrictions:]
 
-This style is part of the USER-EWALDN package.  It is only enabled if
+This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.  Note that
+the KSPACE package is installed by default.
 
 [Related commands:]
 

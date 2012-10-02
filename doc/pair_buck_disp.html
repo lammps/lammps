@@ -9,13 +9,13 @@
 
 <HR>
 
-<H3>pair_style buck/coul command 
+<H3>pair_style buck/disp/coul/long command 
 </H3>
-<H3>pair_style buck/coul/omp command 
+<H3>pair_style buck/disp/coul/long/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style buck/coul flag_buck flag_coul cutoff (cutoff2) 
+<PRE>pair_style buck/disp/coul/long flag_buck flag_coul cutoff (cutoff2) 
 </PRE>
 <UL><LI>flag_buck = <I>long</I> or <I>cut</I> 
 
@@ -33,16 +33,16 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style buck/coul cut off 2.5
-pair_style buck/coul cut long 2.5 4.0
-pair_style buck/coul long long 2.5 4.0
+<PRE>pair_style buck/disp/coul/long cut off 2.5
+pair_style buck/disp/coul/long cut long 2.5 4.0
+pair_style buck/disp/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>buck/coul</I> style computes a Buckingham potential (exp/6 instead of
-Lennard-Jones 12/6) and Coulombic potential, given by
+<P>The <I>buck/disp/coul/long</I> style computes a Buckingham potential (exp/6
+instead of Lennard-Jones 12/6) and Coulombic potential, given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_buck.jpg">
 </CENTER>
@@ -158,9 +158,10 @@ details.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the USER-EWALDN package.  It is only enabled if
+<P>This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
+LAMMPS</A> section for more info.  Note that
+the KSPACE package is installed by default.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -9,13 +9,13 @@
 
 <HR>
 
-<H3>pair_style lj/coul command 
+<H3>pair_style lj/disp/coul/long command 
 </H3>
-<H3>pair_style lj/coul/omp command 
+<H3>pair_style lj/disp/coul/long/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style lj/coul flag_lj flag_coul cutoff (cutoff2) 
+<PRE>pair_style lj/disp/coul/long flag_lj flag_coul cutoff (cutoff2) 
 </PRE>
 <UL><LI>flag_lj = <I>long</I> or <I>cut</I> 
 
@@ -33,15 +33,15 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style lj/coul cut off 2.5
-pair_style lj/coul cut long 2.5 4.0
-pair_style lj/coul long long 2.5 4.0
+<PRE>pair_style lj/disp/coul/long cut off 2.5
+pair_style lj/disp/coul/long cut long 2.5 4.0
+pair_style lj/disp/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>lj/coul</I> style computes the standard 12/6 Lennard-Jones and
+<P>The <I>lj/disp/coul/long</I> style computes the standard 12/6 Lennard-Jones and
 Coulombic potentials, given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
@@ -162,9 +162,10 @@ details.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the USER-EWALDN package.  It is only enabled if
+<P>This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
+LAMMPS</A> section for more info.  Note that
+the KSPACE package is installed by default.
 </P>
 <P><B>Related commands:</B>
 </P>

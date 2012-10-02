@@ -6,12 +6,12 @@
 
 :line
 
-pair_style buck/coul command :h3
-pair_style buck/coul/omp command :h3
+pair_style buck/disp/coul/long command :h3
+pair_style buck/disp/coul/long/omp command :h3
 
 [Syntax:]
 
-pair_style buck/coul flag_buck flag_coul cutoff (cutoff2) :pre
+pair_style buck/disp/coul/long flag_buck flag_coul cutoff (cutoff2) :pre
 
 flag_buck = {long} or {cut} :ulb,l
   {long} = use Kspace long-range summation for the dispersion term 1/r^6
@@ -24,16 +24,16 @@ cutoff2 = global cutoff for Coulombic (optional) (distance units) :l,ule
 
 [Examples:]
 
-pair_style buck/coul cut off 2.5
-pair_style buck/coul cut long 2.5 4.0
-pair_style buck/coul long long 2.5 4.0
+pair_style buck/disp/coul/long cut off 2.5
+pair_style buck/disp/coul/long cut long 2.5 4.0
+pair_style buck/disp/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 :pre
 
 [Description:]
 
-The {buck/coul} style computes a Buckingham potential (exp/6 instead of
-Lennard-Jones 12/6) and Coulombic potential, given by
+The {buck/disp/coul/long} style computes a Buckingham potential (exp/6
+instead of Lennard-Jones 12/6) and Coulombic potential, given by
 
 :c,image(Eqs/pair_buck.jpg)
 
@@ -149,9 +149,10 @@ details.
 
 [Restrictions:]
 
-This style is part of the USER-EWALDN package.  It is only enabled if
+This style is part of the KSPACE package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.  Note that
+the KSPACE package is installed by default.
 
 [Related commands:]
 

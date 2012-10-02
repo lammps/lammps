@@ -2061,7 +2061,7 @@ void MSM::fillbrick_ad_peratom(int n)
   k = 0;
   for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
     for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nzlo_out[n]; ix < nxlo_in[n]; ix++) {
+      for (ix = nxlo_out[n]; ix < nxlo_in[n]; ix++) {
         if (differentiation_flag || eflag_atom)
           egridn[iz][iy][ix] = buf4[k++];
         if (vflag_atom) {
@@ -2277,7 +2277,7 @@ void MSM::fillbrick(int n)
   k = 0;
   for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
     for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nzlo_out[n]; ix < nxlo_in[n]; ix++) {
+      for (ix = nxlo_out[n]; ix < nxlo_in[n]; ix++) {
         fxgridn[iz][iy][ix] = buf2[k++];
         fygridn[iz][iy][ix] = buf2[k++];
         fzgridn[iz][iy][ix] = buf2[k++];

@@ -17,22 +17,25 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/long/omp,PairLJCutCoulLongOMP)
+PairStyle(lj/cut/coul/pppm/omp,PairLJCutCoulPPPMOMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_OMP_H
-#define LMP_PAIR_LJ_CUT_COUL_LONG_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_PPPM_OMP_H
 
 #include "pair_lj_cut_coul_long.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulLongOMP : public PairLJCutCoulLong, public ThrOMP {
+class PairLJCutCoulPPPMOMP : public PairLJCutCoulLong, public ThrOMP {
 
  public:
-  PairLJCutCoulLongOMP(class LAMMPS *);
+  PairLJCutCoulPPPMOMP(class LAMMPS *);
+  virtual ~PairLJCutCoulPPPMOMP() {};
+
+  virtual void init_style();
 
   virtual void compute(int, int);
   virtual double memory_usage();
@@ -40,6 +43,9 @@ class PairLJCutCoulLongOMP : public PairLJCutCoulLong, public ThrOMP {
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
   void eval(int ifrom, int ito, ThrData * const thr);
+
+  class PPPMProxy *kspace;
+  int nproxy;
 };
 
 }

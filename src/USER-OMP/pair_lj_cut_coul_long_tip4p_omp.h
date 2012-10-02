@@ -17,32 +17,37 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/long/tip4p/omp,PairLJCutCoulLongTIP4POMP)
+PairStyle(lj/cut/coul/pppm/tip4p/omp,PairLJCutCoulPPPMTIP4POMP)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OMP_H
-#define LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_PPPM_TIP4P_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_PPPM_TIP4P_OMP_H
 
 #include "pair_lj_cut_coul_long_tip4p.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulLongTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
+class PairLJCutCoulPPPMTIP4POMP : public PairLJCutCoulLongTIP4P, public ThrOMP {
 
  public:
-  PairLJCutCoulLongTIP4POMP(class LAMMPS *);
-  virtual ~PairLJCutCoulLongTIP4POMP() {};
+  PairLJCutCoulPPPMTIP4POMP(class LAMMPS *);
+  virtual ~PairLJCutCoulPPPMTIP4POMP() {};
+
+  virtual void init_style();
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
  private:
-  template <int CFLAG, int EVFLAG, int EFLAG, int VFLAG>
+  template <int, int, int, int>
   void eval(int ifrom, int ito, ThrData * const thr);
   void compute_newsite_thr(const double *, const double *,
                            const double *, double *) const;
+
+  class PPPMTIP4PProxy *kspace;
+  int nproxy;
 };
 
 }

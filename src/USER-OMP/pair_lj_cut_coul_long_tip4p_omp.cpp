@@ -13,15 +13,19 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_coul_long_tip4p_omp.h"
+#include "pair_lj_cut_coul_pppm_tip4p_omp.h"
+#include "pppm_tip4p_proxy.h"
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "update.h"
+
+#include <string.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -36,11 +40,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
-  PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulPPPMTIP4POMP::PairLJCutCoulPPPMTIP4POMP(LAMMPS *lmp) :
+  PairLJCutCoulLongTIP4P(lmp), ThrOMP(lmp, THR_PAIR|THR_PROXY)
 {
+  proxyflag = 1;
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
+  nproxy=1;
+
+  kspace = NULL;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -50,7 +58,19 @@ PairLJCutCoulLongTIP4POMP::PairLJCutCoulLongTIP4POMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
+void PairLJCutCoulPPPMTIP4POMP::init_style()
+{
+  if (comm->nthreads < 2)
+    error->all(FLERR,"need at least two threads per MPI task for this pair style");
+
+  kspace = static_cast<PPPMTIP4PProxy *>(force->kspace);
+
+  PairLJCutCoulLongTIP4P::init_style();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulPPPMTIP4POMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -85,40 +105,46 @@ void PairLJCutCoulLongTIP4POMP::compute(int eflag, int vflag)
   {
     int ifrom, ito, tid;
 
-    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads, nproxy);
     ThrData *thr = fix->get_thr(tid);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
-  if (!ncoultablebits) {
-    if (evflag) {
-      if (eflag) {
-        if (vflag) eval<1,1,1,1>(ifrom, ito, thr);
-        else eval<1,1,1,0>(ifrom, ito, thr);
+    // thread id 0 runs pppm, the rest the pair style
+    if (tid < nproxy) {
+      kspace->compute_proxy(eflag,vflag);
+    } else {
+      if (!ncoultablebits) {
+        if (evflag) {
+          if (eflag) {
+            if (vflag) eval<1,1,1,1>(ifrom, ito, thr);
+            else eval<1,1,1,0>(ifrom, ito, thr);
+          } else {
+            if (vflag) eval<1,1,0,1>(ifrom, ito, thr);
+            else eval<1,1,0,0>(ifrom, ito, thr);
+          }
+        } else eval<1,0,0,0>(ifrom, ito, thr);
       } else {
-        if (vflag) eval<1,1,0,1>(ifrom, ito, thr);
-        else eval<1,1,0,0>(ifrom, ito, thr);
+        if (evflag) {
+          if (eflag) {
+            if (vflag) eval<0,1,1,1>(ifrom, ito, thr);
+            else eval<0,1,1,0>(ifrom, ito, thr);
+          } else {
+            if (vflag) eval<0,1,0,1>(ifrom, ito, thr);
+            else eval<0,1,0,0>(ifrom, ito, thr);
+          }
+        } else eval<0,0,0,0>(ifrom, ito, thr);
       }
-    } else eval<1,0,0,0>(ifrom, ito, thr);
-  } else {
-    if (evflag) {
-      if (eflag) {
-        if (vflag) eval<0,1,1,1>(ifrom, ito, thr);
-        else eval<0,1,1,0>(ifrom, ito, thr);
-      } else {
-        if (vflag) eval<0,1,0,1>(ifrom, ito, thr);
-        else eval<0,1,0,0>(ifrom, ito, thr);
-      }
-    } else eval<0,0,0,0>(ifrom, ito, thr);
-  }
+    }
 
-    reduce_thr(this, eflag, vflag, thr);
+    sync_threads();
+    reduce_thr(this, eflag, vflag, thr, nproxy);
   } // end of omp parallel region
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
-void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairLJCutCoulPPPMTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype,itable;
   int n,vlist[6];
@@ -156,6 +182,7 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
+
     i = ilist[ii];
     qtmp = q[i];
     xtmp = x[i][0];
@@ -482,7 +509,7 @@ void PairLJCutCoulLongTIP4POMP::eval(int iifrom, int iito, ThrData * const thr)
   return it as xM
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4POMP::compute_newsite_thr(const double * xO,
+void PairLJCutCoulPPPMTIP4POMP::compute_newsite_thr(const double * xO,
                                                     const double * xH1,
                                                     const double * xH2,
                                                     double * xM) const
@@ -505,7 +532,7 @@ void PairLJCutCoulLongTIP4POMP::compute_newsite_thr(const double * xO,
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulLongTIP4POMP::memory_usage()
+double PairLJCutCoulPPPMTIP4POMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairLJCutCoulLongTIP4P::memory_usage();

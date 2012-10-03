@@ -70,13 +70,13 @@ simulation domain.
 Note that using a long-range solver requires use of a matching "pair
 style"_pair.html to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
-matching keyword to the name of the space style, as in this table:
+matching keyword to the name of the KSpace style, as in this table:
 
 Pair style : KSpace style 
-long : ewald or pppm
-msm : msm
-disp : disp (for dispersion)
-tip4p : tip4p
+coul/long : ewald or pppm
+coul/msm : msm
+lj/long or buck/long : disp (for dispersion)
+tip4p/long : tip4p
 proxy : proxy :tb(s=:,ea=c)
 
 :line

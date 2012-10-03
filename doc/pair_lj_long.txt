@@ -6,17 +6,17 @@
 
 :line
 
-pair_style lj/disp/coul/long command :h3
-pair_style lj/disp/coul/long/omp command :h3
-pair_style lj/disp/coul/long/tip4p command :h3
+pair_style lj/long/coul/long command :h3
+pair_style lj/long/coul/long/omp command :h3
+pair_style lj/long/coul/long/tip4p command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {lj/disp/coul/long} or {lj/disp/coul/long/tip4p}
+style = {lj/long/coul/long} or {lj/long/coul/long/tip4p}
 args = list of arguments for a particular style :ul
-  {lj/disp/coul/long} args = flag_lj flag_coul cutoff (cutoff2)
+  {lj/long/coul/long} args = flag_lj flag_coul cutoff (cutoff2)
     flag_lj = {long} or {cut}
       {long} = use Kspace long-range summation for dispersion 1/r^6 term
       {cut} = use a cutoff
@@ -40,20 +40,20 @@ args = list of arguments for a particular style :ul
 
 [Examples:]
 
-pair_style lj/disp/coul/long cut off 2.5
-pair_style lj/disp/coul/long cut long 2.5 4.0
-pair_style lj/disp/coul/long long long 2.5 4.0
+pair_style lj/long/coul/long cut off 2.5
+pair_style lj/long/coul/long cut long 2.5 4.0
+pair_style lj/long/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 :pre
 
-pair_style lj/disp/coul/long/tip4p long long 1 2 7 8 0.15 12.0
-pair_style lj/disp/coul/long/tip4p long long 1 2 7 8 0.15 12.0 10.0
+pair_style lj/long/coul/long/tip4p long long 1 2 7 8 0.15 12.0
+pair_style lj/long/coul/long/tip4p long long 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 :pre
 
 [Description:]
 
-Style {lj/disp/coul/long} computes the standard 12/6 Lennard-Jones and
+Style {lj/long/coul/long} computes the standard 12/6 Lennard-Jones and
 Coulombic potentials, given by
 
 :c,image(Eqs/pair_lj.jpg)
@@ -142,7 +142,7 @@ global LJ cutoff is allowed.  Similarly, if you are using {flag_coul}
 set to {long}, you cannot specify a Coulombic cutoff for an atom type
 pair, since only one global Coulombic cutoff is allowed.
 
-For {lj/disp/coul/long/tip4p} only the LJ cutoff can be specified
+For {lj/long/coul/long/tip4p} only the LJ cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.

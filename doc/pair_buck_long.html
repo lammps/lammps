@@ -9,13 +9,13 @@
 
 <HR>
 
-<H3>pair_style buck/disp/coul/long command 
+<H3>pair_style buck/long/coul/long command 
 </H3>
-<H3>pair_style buck/disp/coul/long/omp command 
+<H3>pair_style buck/long/coul/long/omp command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style buck/disp/coul/long flag_buck flag_coul cutoff (cutoff2) 
+<PRE>pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2) 
 </PRE>
 <UL><LI>flag_buck = <I>long</I> or <I>cut</I> 
 
@@ -33,15 +33,15 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style buck/disp/coul/long cut off 2.5
-pair_style buck/disp/coul/long cut long 2.5 4.0
-pair_style buck/disp/coul/long long long 2.5 4.0
+<PRE>pair_style buck/long/coul/long cut off 2.5
+pair_style buck/long/coul/long cut long 2.5 4.0
+pair_style buck/long/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>buck/disp/coul/long</I> style computes a Buckingham potential (exp/6
+<P>The <I>buck/long/coul/long</I> style computes a Buckingham potential (exp/6
 instead of Lennard-Jones 12/6) and Coulombic potential, given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_buck.jpg">

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_lj_cut_coul_long_tip4p_opt.h"
+#include "pair_lj_cut_tip4p_long_opt.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongTIP4POpt::PairLJCutCoulLongTIP4POpt(LAMMPS *lmp) :
-  PairLJCutCoulLongTIP4P(lmp)
+PairLJCutTIP4PLongOpt::PairLJCutTIP4PLongOpt(LAMMPS *lmp) :
+  PairLJCutTIP4PLong(lmp)
 {
   single_enable = 0;
   respa_enable = 0;
@@ -51,7 +51,7 @@ PairLJCutCoulLongTIP4POpt::PairLJCutCoulLongTIP4POpt(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4POpt::compute(int eflag, int vflag)
+void PairLJCutTIP4PLongOpt::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -104,7 +104,7 @@ void PairLJCutCoulLongTIP4POpt::compute(int eflag, int vflag)
 
 template < const int CTABLE, const int EVFLAG,
            const int EFLAG, const int VFLAG>
-void PairLJCutCoulLongTIP4POpt::eval()
+void PairLJCutTIP4PLongOpt::eval()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
   int n,vlist[6];
@@ -440,7 +440,7 @@ void PairLJCutCoulLongTIP4POpt::eval()
   return it as xM
 ------------------------------------------------------------------------- */
 
-void PairLJCutCoulLongTIP4POpt::compute_newsite_opt(const double * xO,
+void PairLJCutTIP4PLongOpt::compute_newsite_opt(const double * xO,
                                                     const double * xH1,
                                                     const double * xH2,
                                                     double * xM) const
@@ -463,9 +463,9 @@ void PairLJCutCoulLongTIP4POpt::compute_newsite_opt(const double * xO,
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulLongTIP4POpt::memory_usage()
+double PairLJCutTIP4PLongOpt::memory_usage()
 {
-  double bytes = PairLJCutCoulLongTIP4P::memory_usage();
+  double bytes = PairLJCutTIP4PLong::memory_usage();
 
   return bytes;
 }

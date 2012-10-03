@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/long/tip4p/opt,PairLJCutCoulLongTIP4POpt)
+PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OPT_H
-#define LMP_PAIR_LJ_CUT_COUL_LONG_TIP4P_OPT_H
+#ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
+#define LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
 
 #include "pair_lj_cut_coul_long_tip4p.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulLongTIP4POpt : public PairLJCutCoulLongTIP4P {
+  class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
  public:
-  PairLJCutCoulLongTIP4POpt(class LAMMPS *);
-  virtual ~PairLJCutCoulLongTIP4POpt() {};
+    PairLJCutTIP4PLongOpt(class LAMMPS *);
+    virtual ~PairLJCutTIP4PLongOpt() {};
 
   virtual void compute(int, int);
   virtual double memory_usage();

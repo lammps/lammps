@@ -20,7 +20,7 @@ PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
 #ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
 #define LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
 
-#include "pair_lj_cut_coul_long_tip4p.h"
+#include "pair_lj_cut_tip4p_long.h"
 
 namespace LAMMPS_NS {
 

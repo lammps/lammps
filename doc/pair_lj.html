@@ -53,19 +53,19 @@
 </H3>
 <H3>pair_style lj/cut/coul/long/proxy/omp command 
 </H3>
-<H3>pair_style lj/cut/coul/long/tip4p command 
+<H3>pair_style lj/cut/tip4p/long command 
 </H3>
-<H3>pair_style lj/cut/coul/long/tip4p/omp command 
+<H3>pair_style lj/cut/tip4p/long/omp command 
 </H3>
-<H3>pair_style lj/cut/coul/long/proxy/tip4p/omp command 
+<H3>pair_style lj/cut/tip4p/long/proxy/omp command 
 </H3>
-<H3>pair_style lj/cut/coul/long/tip4p/opt command 
+<H3>pair_style lj/cut/tip4p/long/opt command 
 </H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/dsf</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/cut</I> or <I>lj/cut/coul/cut</I> or <I>lj/cut/coul/debye</I> or <I>lj/cut/coul/dsf</I> or <I>lj/cut/coul/long</I> or <I>lj/cut/tip4p/long</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/cut</I> args = cutoff
@@ -84,7 +84,7 @@
   <I>lj/cut/coul/long</I> args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/cut/coul/long/tip4p</I> args = otype htype btype atype qdist cutoff (cutoff2)
+  <I>lj/cut/tip4p/long</I> args = otype htype btype atype qdist cutoff (cutoff2)
     otype,htype = atom types for TIP4P O and H
     btype,atype = bond and angle types for TIP4P waters
     qdist = distance from O atom to massless charge (distance units)
@@ -118,8 +118,8 @@ pair_style lj/cut/coul/long 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
-<PRE>pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.15 12.0
-pair_style lj/cut/coul/long/tip4p 1 2 7 8 0.15 12.0 10.0
+<PRE>pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0
+pair_style lj/cut/tip4p/long 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
@@ -176,7 +176,7 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
-<P>Style <I>lj/cut/coul/long/tip4p</I> implements the TIP4P water model of
+<P>Style <I>lj/cut/tip4p/long</I> implements the TIP4P water model of
 <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
@@ -222,15 +222,14 @@ are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.  You cannot specify 2 cutoffs for style <I>lj/cut</I>, since it
 has no Coulombic terms.
 </P>
-<P>For <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> only the LJ cutoff
+<P>For <I>lj/cut/coul/long</I> and <I>lj/cut/tip4p/long</I> only the LJ cutoff
 can be specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 </P>
-<P>Styles <I>lj/cut/coul/long/proxy/omp</I> and
-<I>lj/cut/coul/long/proxy/tip4p/omp</I> are variants of
-<I>lj/cut/coul/long/omp</I> and <I>lj/cut/coul/long/tip4p/omp</I> for use with
-k-space styles <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and
+<P>Styles <I>lj/cut/coul/long/proxy/omp</I> and <I>lj/cut/tip4p/long/proxy/omp</I>
+are variants of <I>lj/cut/coul/long/omp</I> and <I>lj/cut/tip4p/long/omp</I> for
+use with k-space styles <A HREF = "kspace_style.html"><I>pppm/proxy</I></A> and
 <A HREF = "kspace_style.html"><I>pppm/tip4p/proxy</I></A>, respectively and OpenMP
 multi-threading and will perform the corresponding reciprocal space
 calculation concurrently with the pair calculation in a separate
@@ -273,10 +272,9 @@ for details.
 <A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 </P>
-<P>The <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> pair styles
-support the <A HREF = "pair_modify.html">pair_modify</A> table option since they can
-tabulate the short-range portion of the long-range Coulombic
-interaction.
+<P>The <I>lj/cut/coul/long</I> and <I>lj/cut/tip4p/long</I> pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since they can tabulate
+the short-range portion of the long-range Coulombic interaction.
 </P>
 <P>All of the lj/cut pair styles support the
 <A HREF = "pair_modify.html">pair_modify</A> tail option for adding a long-range
@@ -298,11 +296,10 @@ See the <A HREF = "run_style.html">run_style</A> command for details.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>lj/cut/coul/long</I> and <I>lj/cut/coul/long/tip4p</I> styles are part of
-the KSPACE package.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.  Note that the KSPACE package is installed by
-default.
+<P>The <I>lj/cut/coul/long</I> and <I>lj/cut/tip4p/long</I> styles are part of the
+KSPACE package.  They are only enabled if LAMMPS was built with those
+packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info.  Note that the KSPACE package is installed by default.
 </P>
 <P><B>Related commands:</B>
 </P>

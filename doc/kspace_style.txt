@@ -12,15 +12,13 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {msm} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} or {msm} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
   {ewald/disp} value = accuracy
     accuracy = desired relative error in forces
   {ewald/omp} value = accuracy
-    accuracy = desired relative error in forces
-  {msm} value = accuracy
     accuracy = desired relative error in forces
   {pppm} value = accuracy
     accuracy = desired relative error in forces
@@ -45,6 +43,8 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {msm} or {pppm} or {
     accuracy = desired relative error in forces
   {pppm/tip4p/proxy} value = accuracy
     accuracy = desired relative error in forces
+  {msm} value = accuracy
+    accuracy = desired relative error in forces :pre
 :ule
 
 [Examples:]
@@ -274,6 +274,6 @@ Adam Hilger, NY (1989).
 [(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
 
 :link(Hardy)
-[(Hardy)] David, Multilevel Summation for the Fast Evaluation of 
-Forces for the Simulation of Biomolecules, University of Illinois 
+[(Hardy)] David, Thesis: Multilevel Summation for the Fast Evaluation
+of Forces for the Simulation of Biomolecules, University of Illinois
 at Urbana-Champaign, (2006).

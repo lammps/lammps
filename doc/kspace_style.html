@@ -15,16 +15,14 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>msm</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>pppm/proxy</I> or <I>pppm/tip4p/proxy</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>pppm/proxy</I> or <I>pppm/tip4p/proxy</I> or <I>msm</I> 
 
-  <I>none</I> value = none
+<PRE>  <I>none</I> value = none
   <I>ewald</I> value = accuracy
     accuracy = desired relative error in forces
   <I>ewald/disp</I> value = accuracy
     accuracy = desired relative error in forces
   <I>ewald/omp</I> value = accuracy
-    accuracy = desired relative error in forces
-  <I>msm</I> value = accuracy
     accuracy = desired relative error in forces
   <I>pppm</I> value = accuracy
     accuracy = desired relative error in forces
@@ -49,6 +47,9 @@
     accuracy = desired relative error in forces
   <I>pppm/tip4p/proxy</I> value = accuracy
     accuracy = desired relative error in forces
+  <I>msm</I> value = accuracy
+    accuracy = desired relative error in forces 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -288,8 +289,8 @@ Adam Hilger, NY (1989).
 </P>
 <A NAME = "Hardy"></A>
 
-<P><B>(Hardy)</B> David, Multilevel Summation for the Fast Evaluation of 
-Forces for the Simulation of Biomolecules, University of Illinois 
+<P><B>(Hardy)</B> David, Thesis: Multilevel Summation for the Fast Evaluation
+of Forces for the Simulation of Biomolecules, University of Illinois
 at Urbana-Champaign, (2006).
 </P>
 </HTML>

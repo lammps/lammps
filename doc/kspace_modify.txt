@@ -15,14 +15,20 @@ kspace_modify keyword value ... :pre
 one or more keyword/value pairs may be listed :ulb,l
 keyword = {mesh} or {order} or {gewald} or {slab} or (nozforce} or {compute} or {diff} :l
   {mesh} value = x y z
-    x,y,z = PPPM FFT grid size in each dimension
-  {splitorder} value = N
-    N = order of Taylor series used to split the potential between different MSM levels
+    x,y,z = grid size in each dimension for long-range Coulombics
+  {mesh/disp} value = x y z
+    x,y,z = grid size in each dimension for 1/r^6 dispersion
   {order} value = N
-    N = grid extent of Gaussian for PPPM or MSM mapping of each charge
+    N = gridextent of Gaussian for PPPM or MSM mapping of charge to grid
+  {order/disp} value = N
+    N = extent of Gaussian for PPPM mapping of dispersion term to grid
+  {order/split} value = N
+    N = order of Taylor series used to split the potential between different MSM levels
   {force} value = accuracy (force units)
   {gewald} value = rinv (1/distance units)
-    rinv = PPPM G-ewald parameter
+    rinv = G-ewald parameter for Coulombics
+  {gewald/disp} value = rinv (1/distance units)
+    rinv = G-ewald parameter for dispersion
   {slab} value = volfactor or {nozforce}
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
@@ -42,13 +48,21 @@ Set parameters used by the kspace solvers defined by the
 "kspace_style"_kspace_style.html command.  Not all parameters are
 relevant to all kspace styles.
 
-The {mesh} keyword sets the grid size for kspace style {pppm} or {msm}.
-In the case of PPPM, each dimension must be factorizable into powers
-of 2, 3, and 5.  In the case of MSM, each dimension must be 
-factorizable into powers of 2. When this option is not set, the PPPM
-or MSM solver chooses its own grid size, consistent with the 
-user-specified accuracy and pairwise cutoff. Values for x,y,z of 
+The {mesh} keyword sets the grid size for kspace style {pppm} or
+{msm}.  In the case of PPPM, this is the FFT mesh, and each dimension
+must be factorizable into powers of 2, 3, and 5.  In the case of MSM,
+this is the finest scale real-space mesh, and each dimension must be
+factorizable into powers of 2.  When this option is not set, the PPPM
+or MSM solver chooses its own grid size, consistent with the
+user-specified accuracy and pairwise cutoff.  Values for x,y,z of
 0,0,0 unset the option.
+
+The {mesh/disp} keyword sets the grid size for kspace style
+{pppm/disp}.  This is the FFT mesh for long-range dispersion and ach
+dimension must be factorizable into powers of 2, 3, and 5.  When this
+option is not set, the PPPM solver chooses its own grid size,
+consistent with the user-specified accuracy and pairwise cutoff.
+Values for x,y,z of 0,0,0 unset the option.
 
 The {order} keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the grid in kspace style {pppm} or {msm}.  
@@ -63,13 +77,18 @@ Note that there is an inherent trade-off involved: a small grid will
 lower the cost of FFTs or MSM direct sum, but a larger order parameter
 will increase the cost of interpolating charge/fields to/from the grid.
 
-The {splitorder} keyword determines the order of the Taylor series used 
-to split the potential between different MSM grid levels, and can range
-from 2 and 6. "(Hardy)"_#Hardy recommends that the {splitorder} be roughly 
-half of the order parameter. For example, the default MSM order is 4 
-and the default {splitorder} is 2. For higher accuracy in MSM, one can use
-order 10 and {splitorder} 5 or 6, though this will increase the interpolation
-cost as described above.
+The {order/disp} keyword determines how many grid spacings an atom's
+dispersion term extends when it is mapped to the grid in kspace style
+{pppm/disp}.  It has the same meaning as the {order} setting for
+Coulombics.
+
+The {order/split} keyword determines the order of the Taylor series
+used to split the potential between different MSM grid levels, and can
+range from 2 and 6. "(Hardy)"_#Hardy recommends that the {order/split}
+be roughly half of the order parameter.  For example, the default MSM
+order is 4 and the default {splitorder} is 2.  For higher accuracy in
+MSM, one can use order 10 and {order/split} 5 or 6, though this will
+increase the interpolation cost as described above.
 
 The PPPM order parameter may be reset by LAMMPS when it sets up the 
 FFT grid if the implied grid stencil extends beyond the grid cells
@@ -90,15 +109,19 @@ K-space vectors for style {ewald}, the FFT grid size for style
 {pppm}, or the real space grid size for style {msm}.
 
 The {gewald} keyword sets the value of the Ewald or PPPM G-ewald
-parameter as {rinv} in reciprocal distance units.  Without this
-setting, LAMMPS chooses the parameter automatically as a function of
-cutoff, precision, grid spacing, etc.  This means it can vary from one
-simulation to the next which may not be desirable for matching a
+parameter for charge as {rinv} in reciprocal distance units.  Without
+this setting, LAMMPS chooses the parameter automatically as a function
+of cutoff, precision, grid spacing, etc.  This means it can vary from
+one simulation to the next which may not be desirable for matching a
 KSpace solver to a pre-tabulated pairwise potential.  This setting can
 also be useful if Ewald or PPPM fails to choose a good grid spacing
 and G-ewald parameter automatically.  If the value is set to 0.0,
-LAMMPS will choose the G-ewald parameter automatically.  MSM does not 
-use the {gewald} parameter. 
+LAMMPS will choose the G-ewald parameter automatically.  MSM does not
+use the {gewald} parameter.
+
+The {gewald/disp} keyword sets the value of the Ewald or PPPM G-ewald
+parameter for dispersion as {rinv} in reciprocal distance units.  It
+has the same meaning as the {gewald} setting for Coulombics.
 
 The {slab} keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
@@ -112,8 +135,8 @@ value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the {slab}
-option is explained in the paper by "(Yeh)"_#Yeh.  An alternative
-slab option can be invoked with the {nozforce} keyword in lieu of the 
+option is explained in the paper by "(Yeh)"_#Yeh.  An alternative slab
+option can be invoked with the {nozforce} keyword in lieu of the
 volfactor. This turns off all kspace forces in the z direction. The
 {slab} and {nozforce} options are not allowed for MSM.
 
@@ -123,23 +146,23 @@ not useful for running a real simulation, but can be useful for
 debugging purposes or for computing only partial forces that do not
 include the Kspace contribution.  You can also do this by simply not
 defining a "kspace_style"_kspace_style.html, but a Kspace-compatible
-"pair_style"_pair_style.html requires a kspace_style to be defined.
+"pair_style"_pair_style.html requires a kspace style to be defined.
 This keyword gives you that option.
 
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
-potentials on the PPPM mesh.  The {ik} approach is the default for PPPM.  
-It performs differentiation in Kspace, but uses 3 FFTs to transfer the
-computed fields back to real space (total of 4 FFTs per timestep). The
-analytic differentiation, or {ad} approach uses only 1 FFT to transfer
-the computed fields back to real space (total of 2 FFTs per timestep),
-but requires a somewhat larger PPPM mesh to achieve the same accuracy
-as the {ik} approach. Analogous approaches have been implemented in MSM
-and can be specified using the same keywords. The {ad} approach is the 
-default for MSM.
+potentials on the PPPM mesh.  The {ik} approach is the default for
+PPPM.  It performs differentiation in Kspace, but uses 3 FFTs to
+transfer the computed fields back to real space (total of 4 FFTs per
+timestep). The analytic differentiation, or {ad} approach uses only 1
+FFT to transfer the computed fields back to real space (total of 2
+FFTs per timestep), but requires a somewhat larger PPPM mesh to
+achieve the same accuracy as the {ik} approach. Analogous approaches
+have been implemented in MSM and can be specified using the same
+keywords. The {ad} approach is the default for MSM.
 
-IMPORTANT NOTE: Currently, not all {pppm} styles support the 
-{ad} option.  Support for those {pppm} variants will be added later.
+IMPORTANT NOTE: Currently, not all {pppm} styles support the {ad}
+option.  Support for those {pppm} variants will be added later.
 
 [Restrictions:] none
 
@@ -149,9 +172,10 @@ IMPORTANT NOTE: Currently, not all {pppm} styles support the
 
 [Default:]
 
-The option defaults are mesh = 0 0 0, order = 5 (PPPM), order = 4 (MSM),
-splitorder = 2 (MSM), force = -1.0, gewald = 0.0, slab = 1.0, compute = yes,
-and diff = ik (PPPM), diff = ad (MSM).
+The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
+5 (PPPM), order = 4 (MSM), order/split = 2 (MSM), force = -1.0, gewald
+= gewald/disp = 0.0, slab = 1.0, compute = yes, and diff = ik (PPPM),
+diff = ad (MSM).
 
 :line
 

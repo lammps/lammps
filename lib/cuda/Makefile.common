@@ -14,7 +14,8 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CUDA_INSTALL_PATH = /usr/local/cuda
+#CUDA_INSTALL_PATH = /usr/local/cuda
+CUDA_INSTALL_PATH = /home/crtrott/lib/cuda
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 
@@ -97,8 +98,22 @@ else
 	   NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
 	   SMVERSIONFLAGS	:= -arch sm_21
      else
-       CUDA_FLAGS += -DCUDA_ARCH=99  
-       SMVERSIONFLAGS	:= -arch sm_13
+       ifeq ($(strip $(arch)), 30)
+           CUDA_FLAGS += -DCUDA_ARCH=20
+           #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
+           NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
+           SMVERSIONFLAGS       := -arch sm_30
+       else
+         ifeq ($(strip $(arch)), 35)
+           CUDA_FLAGS += -DCUDA_ARCH=20
+           #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
+           NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
+           SMVERSIONFLAGS       := -arch sm_35
+         else         
+           CUDA_FLAGS += -DCUDA_ARCH=99  
+           SMVERSIONFLAGS	:= -arch sm_13
+         endif
+       endif
      endif
   endif
 endif

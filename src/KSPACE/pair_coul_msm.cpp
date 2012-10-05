@@ -150,7 +150,6 @@ void PairCoulMSM::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-
    setup force tables used in compute routines
 ------------------------------------------------------------------------- */
 

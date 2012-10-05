@@ -2646,24 +2646,27 @@ void PPPMDisp::set_grid_6()
    Calculate the sum of the squared dispersion coefficients and other 
    related quantities required for the calculations
 ------------------------------------------------------------------------- */
+
 void PPPMDisp::calc_csum()
 {
-
   csumij = 0.0;
   csum = 0.0;
+
   int ntypes = atom->ntypes;   
-  int neach[ntypes+1];
   int i,j,k;
+
   delete [] cii;
   cii = new double[ntypes +1];
   for (i = 0; i<=ntypes; i++) cii[i] = 0.0;
   delete [] csumi; 
   csumi = new double[ntypes +1];
   for (i = 0; i<=ntypes; i++) csumi[i] = 0.0; 
+  int *neach = new int[ntypes+1];
   for (i = 0; i<=ntypes; i++) neach[i] = 0; 
-  int tmp;
+
   //the following variables are needed to distinguish between arithmetic
   //  and geometric mixing
+
   double mix1;    // scales 20/16 to 4
   int mix2;       // shifts the value to the sigma^3 value
   int mix3;       // shifts the value to the right atom type
@@ -2680,18 +2683,24 @@ void PPPMDisp::calc_csum()
   for (i = 1; i <= ntypes; i++) {
     cii[i] = mix1*B[mix3*i+mix2]*B[mix3*i+mix2];
   }
+
+  int tmp;
   for (i = 0; i < atom->nlocal; i++) {
     tmp = atom->type[i];
     neach[tmp]++;
     csum += mix1*B[mix3*tmp+mix2]*B[mix3*tmp+mix2];    
   }
+
   double tmp2;
   MPI_Allreduce(&csum,&tmp2,1,MPI_DOUBLE,MPI_SUM,world);
   csum = tmp2;
   csumflag = 1;
-  int neach_all[ntypes+1];
+
+  int *neach_all = new int[ntypes+1];
   MPI_Allreduce(neach,neach_all,ntypes+1,MPI_INT,MPI_SUM,world);
+
   // copmute csumij and csumi
+
   if (function[1]){
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
@@ -2709,6 +2718,9 @@ void PPPMDisp::calc_csum()
       }
     }
   }    
+
+  delete [] neach;
+  delete [] neach_all;
 }
 
 /* ----------------------------------------------------------------------

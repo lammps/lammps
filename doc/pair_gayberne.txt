@@ -96,19 +96,19 @@ Specifically, if any of epsilon_i_a, epsilon_i_b, epsilon_i_c are
 non-zero, the three values are assigned to atom type I.  If all the
 epsilon_i values are zero, they are ignored.  If any of epsilon_j_a,
 epsilon_j_b, epsilon_j_c are non-zero, the three values are assigned
-to atom type J.  If all three epsilon_i values are zero, they are
+to atom type J.  If all three epsilon_j values are zero, they are
 ignored.  Thus the typical way to define the epsilon_i and epsilon_j
 coefficients is to list their values in "pair_coeff I J" commands when
 I = J, but set them to 0.0 when I != J.  If you do list them when I !=
 J, you should insure they are consistent with their values in other
-pair_coeff commands.
+pair_coeff commands, since only the last setting will be in effect.
 
 Note that if this potential is being used as a sub-style of
 "pair_style hybrid"_pair_hybrid.html, and there is no "pair_coeff I I"
 setting made for Gay-Berne for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
 still need to insure the epsilon a,b,c coefficients are assigned to
-that type in a "pair_coeff I J" command.
+that type. e.g. in a "pair_coeff I J" command.
 
 IMPORTANT NOTE: If the epsilon a = b = c for an atom type, and if the
 shape of the particle itself is spherical, meaning its 3 shape

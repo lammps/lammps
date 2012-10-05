@@ -109,6 +109,11 @@ restart files.  The doc pages for individual pair styles note if this
 is the case.  This is also true of bond_style hybrid (and angle_style,
 dihedral_style, improper_style hybrid).
 </P>
+<P>All settings made by the <A HREF = "doc/pair_modify.html">pair_modify</A> command,
+such as the shift and tail settings, are stored in the restart file
+with the pair style.  The one exception is the <A HREF = "pair_modify.html">pair_modify
+compute</A> setting is not stored.
+</P>
 <P>Information about <A HREF = "kspace_style.html">kspace_style</A> settings are not
 stored in the restart file.  Hence if you wish to use an Ewald or PPPM
 solver, these commands must be re-issued after the restart file is

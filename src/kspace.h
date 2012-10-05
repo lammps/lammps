@@ -16,6 +16,14 @@
 
 #include "pointers.h"
 
+#ifdef FFT_SINGLE
+typedef float FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_FLOAT
+#else
+typedef double FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_DOUBLE
+#endif
+
 namespace LAMMPS_NS {
 
 class KSpace : protected Pointers {
@@ -60,6 +68,16 @@ class KSpace : protected Pointers {
   virtual void setup() = 0;
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
+
+  virtual int pack_forward(int, FFT_SCALAR *,
+                           int, int, int, int, int, int) {return 0;};
+  virtual void unpack_forward(int, FFT_SCALAR *,
+                              int, int, int, int, int, int) {};
+  virtual int pack_reverse(int, FFT_SCALAR *,
+                           int, int, int, int, int, int) {return 0;};
+  virtual void unpack_reverse(int, FFT_SCALAR *,
+                              int, int, int, int, int, int) {};
+
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}

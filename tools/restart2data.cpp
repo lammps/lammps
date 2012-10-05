@@ -118,7 +118,8 @@ class Data {
   double special_lj[4],special_coul[4];
 
   double cut_lj_global,cut_coul_global,kappa;
-  int offset_flag,mix_flag,tail_flag;
+  int offset_flag,mix_flag,tail_flag,ncoultablebits;
+  double tabinner;
 
   // force fields
 
@@ -2516,6 +2517,12 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     }
     data.offset_flag = read_int(fp);
     data.mix_flag = read_int(fp);
+    data.tail_flag = read_int(fp);
+    if ((strcmp(style,"cg/cmm/coul/long") == 0) ||
+	(strcmp(style,"lj/sdk/coul/long") == 0)) {
+      data.ncoultablebits = read_int(fp);
+      data.tabinner = read_double(fp);
+    }
 
     if (!flag) return;
 

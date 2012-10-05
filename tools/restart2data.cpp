@@ -118,7 +118,7 @@ class Data {
   double special_lj[4],special_coul[4];
 
   double cut_lj_global,cut_coul_global,kappa;
-  int offset_flag,mix_flag;
+  int offset_flag,mix_flag,tail_flag;
 
   // force fields
 
@@ -1476,6 +1476,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     double cut_coul = read_double(fp);
     int offset_flag = read_int(fp);
     int mix_flag = read_int(fp);
+    int tail_flag = read_int(fp);
 
     if (!flag) return;
 
@@ -1544,31 +1545,36 @@ void pair(FILE *fp, Data &data, char *style, int flag)
   } else if ((strcmp(style,"buck") == 0)  ||
 	     (strcmp(style,"buck/coul/cut") == 0) ||
 	     (strcmp(style,"buck/coul/long") == 0) ||
-	     (strcmp(style,"buck/coul") == 0)) {
+	     (strcmp(style,"buck/long/coul/long") == 0)) {
 
     if (strcmp(style,"buck") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"buck/coul/cut") == 0) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"buck/coul/long") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"buck/coul") == 0) {
+      int tail_flag = read_int(fp);
+    } else if (strcmp(style,"buck/long/coul/long") == 0) {
       m = 0;
       double cut_buck_global = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
       int ewald_order = read_int(fp);
     }
 
@@ -1706,6 +1712,8 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     double cut_coul = read_double(fp);
     int offset_flag = read_int(fp);
     int mix_flag = read_int(fp);
+    int ncoultablebits = read_int(fp);
+    double tabinner = read_double(fp);
 
     if (!flag) return;
 
@@ -2008,7 +2016,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/charmm/coul/charmm") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/charmm/implicit") == 0) ||
-	     (strcmp(style,"lj/charmm/coul/pppm") == 0) ||
+	     (strcmp(style,"lj/charmm/coul/long/proxy") == 0) ||
 	     (strcmp(style,"lj/charmm/coul/long") == 0)) {
       
     if (strcmp(style,"lj/charmm/coul/charmm") == 0) {
@@ -2025,18 +2033,22 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/charmm/coul/pppm") == 0) {
+    } else if (strcmp(style,"lj/charmm/coul/long/proxy") == 0) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
     } else if (strcmp(style,"lj/charmm/coul/long") == 0) {
       double cut_lj_inner = read_double(fp);
       double cut_lj = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
     }
 
     if (!flag) return;
@@ -2070,7 +2082,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if ((strcmp(style,"lj/class2") == 0) ||
 	   (strcmp(style,"lj/class2/coul/cut") == 0) ||
-	   (strcmp(style,"lj/class2/coul/pppm") == 0) ||
+	   (strcmp(style,"lj/class2/coul/long/proxy") == 0) ||
 	     (strcmp(style,"lj/class2/coul/long") == 0)) {
 
     if (strcmp(style,"lj/class2") == 0) {
@@ -2078,24 +2090,28 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/class2/coul/cut") == 0) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/class2/coul/pppm") == 0) {
+      int tail_flag = read_int(fp);
+    } else if (strcmp(style,"lj/class2/coul/long/proxy") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/class2/coul/long") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     }
 
     if (!flag) return;
@@ -2130,26 +2146,29 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/cut/coul/cut") == 0) ||
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
-	     (strcmp(style,"lj/cut/coul/pppm") == 0) ||
-	     (strcmp(style,"lj/cut/coul/long/tip4p") == 0) ||
-	     (strcmp(style,"lj/coul") == 0)) {
+	     (strcmp(style,"lj/cut/coul/long/proxy") == 0) ||
+	     (strcmp(style,"lj/cut/tip4p/long") == 0) ||
+	     (strcmp(style,"lj/long/coullong") == 0)) {
 
     if (strcmp(style,"lj/cut") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj96/cut") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/cut") == 0) {
       m = 1;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/debye") == 0) {
       m = 1;
       double cut_lj_global = read_double(fp);
@@ -2157,19 +2176,26 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double kappa = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/coul/long") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/pppm") == 0) {
+      int tail_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
+    } else if (strcmp(style,"lj/cut/coul/long/proxy") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/cut/coul/long/tip4p") == 0) {
+      int tail_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
+    } else if (strcmp(style,"lj/cut/tip4p/long") == 0) {
       m = 0;
       int typeO = read_int(fp);
       int typeH = read_int(fp);
@@ -2180,12 +2206,17 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       double cut_lj_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
-    } else if (strcmp(style,"lj/coul") == 0) {
+      int tail_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
+    } else if (strcmp(style,"lj/long/coul/long") == 0) {
       m = 0;
       double cut_lj_global = read_double(fp);
       double cut_coul = read_double(fp);
       int offset_flag = read_int(fp);
       int mix_flag = read_int(fp);
+      int ncoultablebits = read_int(fp);
+      double tabinner = read_double(fp);
       int ewald_order = read_int(fp);
     }
 
@@ -2221,6 +2252,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
     int mix_flag = read_int(fp);
+    int tail_flag = read_int(fp);
 
     if (!flag) return;
 
@@ -3289,7 +3321,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/charmm/coul/charmm") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/charmm/implicit") == 0) ||
-	       (strcmp(pair_style,"lj/charmm/coul/pppm") == 0) ||
+	       (strcmp(pair_style,"lj/charmm/coul/long/proxy") == 0) ||
 	       (strcmp(pair_style,"lj/charmm/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g %g %g\n",i,
@@ -3298,7 +3330,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 
     } else if ((strcmp(pair_style,"lj/class2") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/cut") == 0) ||
-	       (strcmp(pair_style,"lj/class2/coul/pppm") == 0) ||
+	       (strcmp(pair_style,"lj/class2/coul/long/proxy") == 0) ||
 	       (strcmp(pair_style,"lj/class2/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
@@ -3309,9 +3341,9 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	       (strcmp(pair_style,"lj/cut/coul/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/pppm") == 0) ||
-	       (strcmp(pair_style,"lj/cut/coul/long/tip4p") == 0) ||
-	       (strcmp(pair_style,"lj/coul") == 0)) {
+	       (strcmp(pair_style,"lj/cut/coul/long/proxy") == 0) ||
+	       (strcmp(pair_style,"lj/cut/tip4p/long") == 0) ||
+	       (strcmp(pair_style,"lj/long/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)
 	fprintf(fp,"%d %g %g\n",i,
 		pair_lj_epsilon[i],pair_lj_sigma[i]);

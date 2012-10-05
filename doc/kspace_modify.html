@@ -45,7 +45,7 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>kspace_modify mesh 24 24 30 order 6 splitorder 3
+<PRE>kspace_modify mesh 24 24 30 order 6 order/split 3
 kspace_modify slab 3.0 
 </PRE>
 <P><B>Description:</B>
@@ -92,7 +92,7 @@ Coulombics.
 used to split the potential between different MSM grid levels, and can
 range from 2 and 6. <A HREF = "#Hardy">(Hardy)</A> recommends that the <I>order/split</I>
 be roughly half of the order parameter.  For example, the default MSM
-order is 4 and the default <I>splitorder</I> is 2.  For higher accuracy in
+order is 4 and the default split order is 2.  For higher accuracy in
 MSM, one can use order 10 and <I>order/split</I> 5 or 6, though this will
 increase the interpolation cost as described above.
 </P>

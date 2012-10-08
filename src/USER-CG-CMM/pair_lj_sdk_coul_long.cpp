@@ -52,6 +52,7 @@ using namespace LJSDKParms;
 
 PairLJSDKCoulLong::PairLJSDKCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
+  ewaldflag = pppmflag = 1;
   respa_enable = 0;
   ftable = NULL;
 }

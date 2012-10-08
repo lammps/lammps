@@ -33,6 +33,7 @@ PairCGCMMCoulLong::PairCGCMMCoulLong(LAMMPS *lmp) : PairCMMCommon(lmp)
 {
   respa_enable = 0;
   single_enable = 0;
+  ewaldflag = pppmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

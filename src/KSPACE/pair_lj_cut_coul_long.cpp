@@ -49,8 +49,8 @@ using namespace MathConst;
 
 PairLJCutCoulLong::PairLJCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
-  respa_enable = 1;
   ewaldflag = pppmflag = 1;
+  respa_enable = 1;
   ftable = NULL;
   qdist = 0.0;
 }

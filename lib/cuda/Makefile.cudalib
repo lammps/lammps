@@ -1,0 +1,87 @@
+#Makefile for liblammpscuda.a 
+#No need to modify anything here! The CUDA path is inserted into Makefile.common
+
+.DEFAULT: lib
+
+COMPILELIB := 1
+
+SHELL = /bin/sh
+
+CUDA_SRC_DIR = ../cuda
+CUDA_TEMP = $(CUDA_SRC_DIR)/.lastmake
+CUDA_TEMP_DUMMY := $(shell touch $(CUDA_TEMP) )
+include $(CUDA_TEMP)
+CUDA_CU = $(wildcard $(CUDA_SRC_DIR)/*_kernel.cu)
+CUDA_CUO = $(CUDA_CU:_kernel.cu=_cu.o)
+CUDA_OBJ = $(subst $(CUDA_SRC_DIR)/,,$(CUDA_CUO)) 
+CUDA_DEP = $(CUDA_OBJ:.o=.d)
+
+NVCC_FLAGS := 
+
+VPATH = $(CUDA_SRC_DIR)
+
+#rewriting default settings if new ones are specified
+
+
+ifdef precision
+tmp := $(shell sed -i 's|precision ?= [0-9]|precision ?= '${precision}'|g' Makefile.defaults)
+endif
+
+ifdef arch
+tmp := $(shell sed -i 's|arch ?= [0-9][0-9]|arch ?= '${arch}'|g' Makefile.defaults)
+endif
+
+ifdef cufft
+tmp := $(shell sed -i 's|cufft ?= [0-9]|cufft ?= '${cufft}'|g' Makefile.defaults)
+endif
+
+ifdef dbg
+tmp := $(shell sed -i 's|dbg ?= [0-9]|dbg ?= '${dbg}'|g' Makefile.defaults)
+endif
+
+ifdef prec_timer
+tmp := $(shell sed -i 's|prec_timer ?= [0-9]|prec_timer ?= '${prec_timer}'|g' Makefile.defaults)
+endif
+
+include Makefile.common
+
+tmp := $(shell sed -i '2 d' Makefile.lammps)
+tmp := $(shell sed -i '2 d' Makefile.lammps)
+tmp := $(shell sed -i '1a CUDA_FLAGS := ${CUDA_FLAGS}' Makefile.lammps)
+tmp := $(shell sed -i '2a CUDA_USRLIB_CONDITIONAL := ${CUDA_USRLIB_CONDITIONAL}' Makefile.lammps)
+
+# verbose nvcc output during compilation
+ifeq ($(verbose), 1)
+	VERBOSE :=
+	NVCC_FLAGS += --ptxas-options=-v
+else
+	VERBOSE := @
+endif
+
+# keep temporary compilation files of nvcc
+ifeq ($(keep), 1)
+	NVCC_FLAGS += -keep -Xptxas="--verbose"
+endif
+
+
+NVCC := $(CUDA_INSTALL_PATH)/bin/nvcc
+CUDA_INCLUDES =  -I./ -I$(CUDA_INSTALL_PATH)/include -I../../src/USER-CUDA
+CUDA_USRLIB = 
+
+# Link target
+
+lib: $(CUDA_OBJ)
+	$(NVCC) -lib $(CUDA_OBJ) $(CUDA_FLAGS) $(CUDA_USRLIB_CONDITIONAL) -o liblammpscuda.a
+
+clean:
+	rm $(CUDA_SRC_DIR)/*.o
+	rm liblammpscuda.a
+	
+# Library target
+
+
+# Cuda compilation rules
+
+%_cu.o: %.cu %_kernel.cu %_cu.h cuda_shared.h
+	$(VERBOSE)$(NVCC) $(NVCC_FLAGS) $(CUDA_FLAGS) $(CUDA_INCLUDES) $(CUDA_USRLIB) $(SMVERSIONFLAGS) -o $@ -c $<
+

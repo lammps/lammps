@@ -47,7 +47,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   nwall = 0;
   int scaleflag = 1;
   fldflag = 0;
-  int pbcflag = 1;
+  int pbcflag = 0;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -125,7 +125,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
       error->all(FLERR,"Cannot use fix wall zlo/zhi for a 2d simulation");
 
-  if (pbcflag) {
+  if (!pbcflag) {
     for (int m = 0; m < nwall; m++) {
       if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
         error->all(FLERR,"Cannot use fix wall in periodic dimension");

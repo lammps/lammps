@@ -47,6 +47,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   nwall = 0;
   int scaleflag = 1;
   fldflag = 0;
+  int pbcflag = 1;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -102,30 +103,38 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"yes") == 0) fldflag = 1;
       else error->all(FLERR,"Illegal fix wall command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"pbc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
+      if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
+      else error->all(FLERR,"Illegal fix wall command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix wall command");
   }
 
   size_vector = nwall;
 
-  // error check
+  // error checks
 
   if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
   for (int m = 0; m < nwall; m++)
     if (cutoff[m] <= 0.0)
       error->all(FLERR,"Fix wall cutoff <= 0.0");
 
-  for (int m = 0; m < nwall; m++) {
-    if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall in periodic dimension");
-    if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall in periodic dimension");
-    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall in periodic dimension");
-  }
-
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
       error->all(FLERR,"Cannot use fix wall zlo/zhi for a 2d simulation");
+
+  if (pbcflag) {
+    for (int m = 0; m < nwall; m++) {
+      if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
+        error->all(FLERR,"Cannot use fix wall in periodic dimension");
+      if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
+        error->all(FLERR,"Cannot use fix wall in periodic dimension");
+      if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
+        error->all(FLERR,"Cannot use fix wall in periodic dimension");
+    }
+  }
 
   // scale factors for CONSTANT and VARIABLE walls
 

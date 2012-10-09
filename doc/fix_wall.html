@@ -47,7 +47,11 @@
     <I>box</I> = the wall position is defined in simulation box units
   <I>fld</I> value = <I>yes</I> or <I>no</I>
     <I>yes</I> = invoke the wall constraint to be compatible with implicit FLD
-    <I>yes</I> = invoke the wall constraint in the normal way 
+    <I>no</I> = invoke the wall constraint in the normal way 
+</PRE>
+<PRE>  <I>pbc</I> value = <I>yes</I> or <I>no</I>
+    <I>yes</I> = allow periodic boundary in a wall dimension
+    <I>no</I> = require non-perioidic boundaries in any wall dimension 
 </PRE>
 
 </UL>
@@ -173,6 +177,19 @@ to include the wall force in its calculations.  If the setting is
 <I>no</I>, wall forces are imposed after pairwise interactions, in the
 usual manner.
 </P>
+<P>The <I>pbc</I> keyword can be used with a <I>yes</I> setting to allow walls to
+be specified in a periodic dimension.  See the
+<A HREF = "boundary.html">boundary</A> command for options on simulation box
+boundaries.  The default for <I>pbc</I> is <I>no</I>, which means the system
+must be non-periodic when using a wall.  But you may wish to use a
+periodic box.  E.g. to allow some particles to interact with the wall
+via the fix group-ID, and others to pass through it and wrap around a
+periodic box.  In this case you should insure that the wall if
+sufficiently far enough away from the box boundary.  If you do not,
+then particles may interact with both the wall and with periodic
+images on the other side of the box, which is probably not what you
+want.
+</P>
 <HR>
 
 <P>Here are examples of variable definitions that move the wall position
@@ -243,9 +260,7 @@ included in the total potential energy of the system (the quantity
 being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
 <I>energy</I> option for this fix.
 </P>
-<P><B>Restrictions:</B>
-</P>
-<P>Any dimension (xyz) that has a wall must be non-periodic.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -255,6 +270,6 @@ being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are no velocity, no wiggle, and units = lattice.
+<P>The option defaults units = lattice, fld = no, and pbc = no.
 </P>
 </HTML>

@@ -13,13 +13,13 @@
 </H3>
 <H3>pair_style lj/long/coul/long/omp command 
 </H3>
-<H3>pair_style lj/long/coul/long/tip4p command 
+<H3>pair_style lj/long/tip4p/long command 
 </H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/long/coul/long</I> or <I>lj/long/coul/long/tip4p</I>
+<UL><LI>style = <I>lj/long/coul/long</I> or <I>lj/long/tip4p/long</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/long/coul/long</I> args = flag_lj flag_coul cutoff (cutoff2)
@@ -31,7 +31,7 @@
       <I>off</I> = omit Coulombic term
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/cut/coul/long/tip4p</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
+  <I>lj/cut/tip4p/long</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
     flag_lj = <I>long</I> or <I>cut</I>
       <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
       <I>cut</I> = use a cutoff
@@ -52,8 +52,8 @@ pair_style lj/long/coul/long long long 2.5 4.0
 pair_coeff * * 1 1
 pair_coeff 1 1 1 3 4 
 </PRE>
-<PRE>pair_style lj/long/coul/long/tip4p long long 1 2 7 8 0.15 12.0
-pair_style lj/long/coul/long/tip4p long long 1 2 7 8 0.15 12.0 10.0
+<PRE>pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
+pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 
 </PRE>
@@ -80,7 +80,7 @@ settings.  The <A HREF = "#Veld">In 't Veld</A> paper has more details on when i
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 </P>
-<P>Style <I>lj/cut/coul/long/tip4p</I> implements the TIP4P water model of
+<P>Style <I>lj/cut/tip4p/long</I> implements the TIP4P water model of
 <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
@@ -148,7 +148,7 @@ global LJ cutoff is allowed.  Similarly, if you are using <I>flag_coul</I>
 set to <I>long</I>, you cannot specify a Coulombic cutoff for an atom type
 pair, since only one global Coulombic cutoff is allowed.
 </P>
-<P>For <I>lj/long/coul/long/tip4p</I> only the LJ cutoff can be specified
+<P>For <I>lj/long/tip4p/long</I> only the LJ cutoff can be specified
 since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff
 specified in the pair_style command.

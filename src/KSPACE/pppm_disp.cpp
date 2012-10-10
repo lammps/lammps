@@ -81,39 +81,48 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
   density_fft = NULL;
-  u_brick = v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
+  u_brick = v0_brick = v1_brick = v2_brick = v3_brick = 
+    v4_brick = v5_brick = NULL;
 
   density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = NULL;
   density_fft_g = NULL;
-  u_brick_g = v0_brick_g = v1_brick_g = v2_brick_g = v3_brick_g = v4_brick_g = v5_brick_g = NULL;
+  u_brick_g = v0_brick_g = v1_brick_g = v2_brick_g = v3_brick_g = 
+    v4_brick_g = v5_brick_g = NULL;
 
   density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = NULL;
   density_fft_a0 = NULL;
-  u_brick_a0 = v0_brick_a0 = v1_brick_a0 = v2_brick_a0 = v3_brick_a0 = v4_brick_a0 = v5_brick_a0 = NULL;
+  u_brick_a0 = v0_brick_a0 = v1_brick_a0 = v2_brick_a0 = v3_brick_a0 = 
+    v4_brick_a0 = v5_brick_a0 = NULL;
 
   density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = NULL;
   density_fft_a1 = NULL;
-  u_brick_a1 = v0_brick_a1 = v1_brick_a1 = v2_brick_a1 = v3_brick_a1 = v4_brick_a1 = v5_brick_a1 = NULL;
+  u_brick_a1 = v0_brick_a1 = v1_brick_a1 = v2_brick_a1 = v3_brick_a1 = 
+    v4_brick_a1 = v5_brick_a1 = NULL;
 
   density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = NULL;
   density_fft_a2 = NULL;
-  u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 = v4_brick_a2 = v5_brick_a2 = NULL;
+  u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 = 
+    v4_brick_a2 = v5_brick_a2 = NULL;
 
   density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = NULL;
   density_fft_a3 = NULL;
-  u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 = v4_brick_a3 = v5_brick_a3 = NULL;
+  u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 = 
+    v4_brick_a3 = v5_brick_a3 = NULL;
 
   density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = NULL;
   density_fft_a4 = NULL;
-  u_brick_a4 = v0_brick_a4 = v1_brick_a4 = v2_brick_a4 = v3_brick_a4 = v4_brick_a4 = v5_brick_a4 = NULL;
+  u_brick_a4 = v0_brick_a4 = v1_brick_a4 = v2_brick_a4 = v3_brick_a4 = 
+    v4_brick_a4 = v5_brick_a4 = NULL;
 
   density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = NULL;
   density_fft_a5 = NULL;
-  u_brick_a5 = v0_brick_a5 = v1_brick_a5 = v2_brick_a5 = v3_brick_a5 = v4_brick_a5 = v5_brick_a5 = NULL;
+  u_brick_a5 = v0_brick_a5 = v1_brick_a5 = v2_brick_a5 = v3_brick_a5 = 
+    v4_brick_a5 = v5_brick_a5 = NULL;
 
   density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = NULL;
   density_fft_a6 = NULL;
-  u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = NULL;
+  u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = 
+    v4_brick_a6 = v5_brick_a6 = NULL;
 
   greensfn = NULL;
   greensfn_6 = NULL;
@@ -130,8 +139,10 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   buf1 = buf2 = buf3 = buf4 = NULL;
   buf1_6 = buf2_6 = buf3_6 = buf4_6= NULL;
 
-  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
-  sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 = sf_precoeff4_6 = sf_precoeff5_6 = sf_precoeff6_6 = NULL;
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = 
+    sf_precoeff5 = sf_precoeff6 = NULL;
+  sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 = sf_precoeff4_6 = 
+    sf_precoeff5_6 = sf_precoeff6_6 = NULL;
 
   gf_b = NULL;
   gf_b_6 = NULL;
@@ -8851,7 +8862,8 @@ void PPPMDisp::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 ------------------------------------------------------------------------- */
 
 void PPPMDisp::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
-			      const FFT_SCALAR &dz, int ord, double** rho_c, double** r1d)
+			      const FFT_SCALAR &dz, int ord, 
+                             FFT_SCALAR **rho_c, FFT_SCALAR **r1d)
 {
   int k,l;
   FFT_SCALAR r1,r2,r3;
@@ -8876,7 +8888,8 @@ void PPPMDisp::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
 ------------------------------------------------------------------------- */
 
 void PPPMDisp::compute_drho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
-                          const FFT_SCALAR &dz, int ord, double** drho_c, double** dr1d)
+                          const FFT_SCALAR &dz, int ord, 
+                              FFT_SCALAR **drho_c, FFT_SCALAR **dr1d)
 {
   int k,l;
   FFT_SCALAR r1,r2,r3;
@@ -8914,7 +8927,8 @@ void PPPMDisp::compute_drho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
   rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k) 
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::compute_rho_coeff(double** coeff , double** dcoeff, int ord)
+void PPPMDisp::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff, 
+                                 int ord)
 {
   int j,k,l,m;
   FFT_SCALAR s;

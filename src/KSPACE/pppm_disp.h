@@ -175,8 +175,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double *gf_b;
   double *gf_b_6;
 
-  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
-  double *sf_precoeff1_6, *sf_precoeff2_6, *sf_precoeff3_6, *sf_precoeff4_6, *sf_precoeff5_6, *sf_precoeff6_6;
+  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4, 
+    *sf_precoeff5, *sf_precoeff6;
+  double *sf_precoeff1_6, *sf_precoeff2_6, *sf_precoeff3_6, 
+    *sf_precoeff4_6, *sf_precoeff5_6, *sf_precoeff6_6;
   FFT_SCALAR **rho1d,**rho_coeff;
   FFT_SCALAR **drho1d, **drho_coeff;
   FFT_SCALAR **rho1d_6, **rho_coeff_6;
@@ -361,10 +363,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void fieldforce_a_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
-		     const FFT_SCALAR &, int, double **, double **);
+		     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
-		      const FFT_SCALAR &, int, double **, double **);
-  void compute_rho_coeff(double **,double **, int);
+		      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+  void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
   void slabcorr(int);
   void split_fourier();
   void split_order(int **);

@@ -89,7 +89,7 @@ class KSpace : protected Pointers {
  protected:
   int gridflag,gridflag_6;
   int gewaldflag,gewaldflag_6;
-  int order,order_6,split_order;
+  int order,order_6;
   int differentiation_flag;
   int slabflag;
   int suffix_flag;                  // suffix compatibility flag

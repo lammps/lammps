@@ -61,8 +61,6 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
 
-  split_order = 2;
-
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
   gcons[2][1] = -5.0 / 4.0;
@@ -250,6 +248,7 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 double KSpace::gamma(const double &rho)
 {
   if (rho <= 1) {
+    int split_order = order/2;
     double g = gcons[split_order][0];
     double rho2 = rho*rho;
     double rho_n = rho2;
@@ -271,6 +270,7 @@ double KSpace::gamma(const double &rho)
 double KSpace::dgamma(const double &rho)
 {
   if (rho <= 1) {
+    int split_order = order/2;
     double dg = dgcons[split_order][0]*rho;
     double rho2 = rho*rho;
     double rho_n = rho*rho2;
@@ -315,12 +315,6 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order_6 = atoi(arg[iarg+1]);
-    } else if (strcmp(arg[iarg],"order/split") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-        split_order = atoi(arg[iarg+1]);
-        if (split_order < 2 || split_order > 6)
-          error->all(FLERR,"Illegal kspace_modify command");
-        iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       accuracy_absolute = atof(arg[iarg+1]);

@@ -14,11 +14,10 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-#CUDA_INSTALL_PATH = /usr/local/cuda
-CUDA_INSTALL_PATH = /home/crtrott/lib/cuda
+CUDA_INSTALL_PATH = /usr/local/cuda
+#CUDA_INSTALL_PATH = /home/crtrott/lib/cuda
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
-
 
 #//////////////////////////////////////////////////////////////////////////////////////////////
 # no need to change anything below this line

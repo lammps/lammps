@@ -77,7 +77,7 @@ style</A> to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
 matching keyword to the name of the KSpace style, as in this table:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR ALIGN="center"><TD >Pair style </TD><TD > KSpace style </TD></TR>
 <TR ALIGN="center"><TD >coul/long </TD><TD > ewald or pppm</TD></TR>
 <TR ALIGN="center"><TD >coul/msm </TD><TD > msm</TD></TR>
@@ -161,15 +161,10 @@ as N. It may therefore be faster than the other K-space solvers for
 relatively large problems when running on large core counts.
 </P>
 <P>MSM is most competitive versus Ewald and PPPM when only relatively 
-low accuracy forces, about 1% relative error or higher, are needed.
-Note that MSM speed will be poor for large MSM meshes 
-(i.e. 64 x 64 x 64 or larger).  Also note that use of a larger 
-coulomb cutoff (i.e. 15 angstroms instead of 10 angstroms) provides 
-better MSM accuracy for both the real space and grid computed forces. 
-Beware that the error estimation method for MSM is not very accurate,
-so you should probably set your own mesh size and ensure that you are
-getting adequate force accuracy by doing an energy conservation test 
-or comparison versus the Ewald method.
+low accuracy forces, about 1e-4 relative error or less accurate, 
+are needed. Note that use of a larger coulomb cutoff (i.e. 15 
+angstroms instead of 10 angstroms) provides better MSM accuracy for 
+both the real space and grid computed forces.
 </P>
 <HR>
 
@@ -184,7 +179,7 @@ smaller than the reference force.
 </P>
 <P>The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style <I>ewald</I> or the
-FFT grid size for style <I>pppm</I> or <I>msm</I>.
+grid size for style <I>pppm</I> or <I>msm</I>.
 </P>
 <P>RMS force errors in real space for <I>ewald</I> and <I>pppm</I> are estimated
 using equation 18 of <A HREF = "#Kolafa">(Kolafa)</A>, which is also referenced as

@@ -24,11 +24,9 @@
   <I>mesh/disp</I> value = x y z
     x,y,z = grid size in each dimension for 1/r^6 dispersion
   <I>order</I> value = N
-    N = gridextent of Gaussian for PPPM or MSM mapping of charge to grid
+    N = extent of Gaussian for PPPM or MSM mapping of charge to grid
   <I>order/disp</I> value = N
     N = extent of Gaussian for PPPM mapping of dispersion term to grid
-  <I>order/split</I> value = N
-    N = order of Taylor series used to split the potential between different MSM levels
   <I>force</I> value = accuracy (force units)
   <I>gewald</I> value = rinv (1/distance units)
     rinv = G-ewald parameter for Coulombics
@@ -45,7 +43,7 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>kspace_modify mesh 24 24 30 order 6 order/split 3
+<PRE>kspace_modify mesh 24 24 30 order 6
 kspace_modify slab 3.0 
 </PRE>
 <P><B>Description:</B>
@@ -87,14 +85,6 @@ will increase the cost of interpolating charge/fields to/from the grid.
 dispersion term extends when it is mapped to the grid in kspace style
 <I>pppm/disp</I>.  It has the same meaning as the <I>order</I> setting for
 Coulombics.
-</P>
-<P>The <I>order/split</I> keyword determines the order of the Taylor series
-used to split the potential between different MSM grid levels, and can
-range from 2 and 6. <A HREF = "#Hardy">(Hardy)</A> recommends that the <I>order/split</I>
-be roughly half of the order parameter.  For example, the default MSM
-order is 4 and the default split order is 2.  For higher accuracy in
-MSM, one can use order 10 and <I>order/split</I> 5 or 6, though this will
-increase the interpolation cost as described above.
 </P>
 <P>The PPPM order parameter may be reset by LAMMPS when it sets up the 
 FFT grid if the implied grid stencil extends beyond the grid cells
@@ -179,20 +169,13 @@ option.  Support for those <I>pppm</I> variants will be added later.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
-5 (PPPM), order = 4 (MSM), order/split = 2 (MSM), force = -1.0, gewald
-= gewald/disp = 0.0, slab = 1.0, compute = yes, and diff = ik (PPPM),
-diff = ad (MSM).
+5 (PPPM), order = 4 (MSM), force = -1.0, gewald = gewald/disp = 0.0, 
+slab = 1.0, compute = yes, and diff = ik (PPPM), diff = ad (MSM).
 </P>
 <HR>
 
 <A NAME = "Yeh"></A>
 
 <P><B>(Yeh)</B> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
-</P>
-<A NAME = "Hardy"></A>
-
-<P><B>(Hardy)</B> David, Multilevel Summation for the Fast Evaluation of 
-Forces for the Simulation of Biomolecules, University of Illinois 
-at Urbana-Champaign, (2006).
 </P>
 </HTML>

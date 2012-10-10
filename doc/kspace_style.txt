@@ -154,15 +154,10 @@ as N. It may therefore be faster than the other K-space solvers for
 relatively large problems when running on large core counts.
 
 MSM is most competitive versus Ewald and PPPM when only relatively 
-low accuracy forces, about 1% relative error or higher, are needed.
-Note that MSM speed will be poor for large MSM meshes 
-(i.e. 64 x 64 x 64 or larger).  Also note that use of a larger 
-coulomb cutoff (i.e. 15 angstroms instead of 10 angstroms) provides 
-better MSM accuracy for both the real space and grid computed forces. 
-Beware that the error estimation method for MSM is not very accurate,
-so you should probably set your own mesh size and ensure that you are
-getting adequate force accuracy by doing an energy conservation test 
-or comparison versus the Ewald method.
+low accuracy forces, about 1e-4 relative error or less accurate, 
+are needed. Note that use of a larger coulomb cutoff (i.e. 15 
+angstroms instead of 10 angstroms) provides better MSM accuracy for 
+both the real space and grid computed forces.
 
 :line
 
@@ -177,7 +172,7 @@ smaller than the reference force.
 
 The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
-FFT grid size for style {pppm} or {msm}.
+grid size for style {pppm} or {msm}.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as

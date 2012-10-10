@@ -39,7 +39,6 @@
 
 #include "cuda_neigh_list.h"
 //#include "pre_binning_cu.h"
-#include "binning_cu.h"
 //#include "reverse_binning_cu.h"
 #include <ctime>
 #include <cmath>

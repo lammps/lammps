@@ -780,14 +780,13 @@ void PPPM::set_grid()
   // reduce it until accuracy target is met
 
   if (!gridflag) {
-
     if (differentiation_flag == 1) {
-
       h = h_x = h_y = h_z = 4.0/g_ewald;
       int count = 0;
       while (1) {
 
         // set grid dimension
+
         nx_pppm = static_cast<int> (xprd/h_x);
         ny_pppm = static_cast<int> (yprd/h_y);
         nz_pppm = static_cast<int> (zprd_slab/h_z);
@@ -796,7 +795,8 @@ void PPPM::set_grid()
         if (ny_pppm <= 1) ny_pppm = 2;
         if (nz_pppm <= 1) nz_pppm = 2;
 
-        //set local grid dimension
+        // set local grid dimension
+
         int npey_fft,npez_fft;
         if (nz_pppm >= nprocs) {
           npey_fft = 1;
@@ -814,20 +814,18 @@ void PPPM::set_grid()
         nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
         double df_kspace = compute_df_kspace();
-
         count++;
 
         // break loop if the accuracy has been reached or
-        // too many loops have been performed
+        // if too many loops have been performed
 
         if (df_kspace <= accuracy) break;
-        if (count > 500) error->all(FLERR, "Could not compute grid size!");
+        if (count > 500) error->all(FLERR,"Could not compute PPPM grid size");
         h *= 0.95;
         h_x = h_y = h_z = h;
       }
 
     } else {
-
       double err;
       h_x = h_y = h_z = 1.0/g_ewald;
 
@@ -1000,6 +998,7 @@ double PPPM::compute_qopt()
       }
     }
   }
+
   double qopt_all;
   MPI_Allreduce(&qopt,&qopt_all,1,MPI_DOUBLE,MPI_SUM,world);
   return qopt_all;
@@ -1053,9 +1052,7 @@ double PPPM::newton_raphson_f()
 
   double df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
        sqrt(natoms*cutoff*xprd*yprd*zprd);
-
   double df_kspace = compute_df_kspace();
-
   return df_rspace - df_kspace;
 }
 

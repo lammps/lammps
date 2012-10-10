@@ -45,8 +45,8 @@ class KSpace : protected Pointers {
   int proxyflag;                 // 1 if a proxy solver
 
   double g_ewald,g_ewald_6;
-  int nx_pppm,ny_pppm,nz_pppm;
-  int nx_pppm_6,ny_pppm_6,nz_pppm_6;
+  int nx_pppm,ny_pppm,nz_pppm;           // global FFT grid for Coulombics
+  int nx_pppm_6,ny_pppm_6,nz_pppm_6;     // global FFT grid for dispersion
   int nx_msm_max,ny_msm_max,nz_msm_max;
 
   int group_group_enable;         // 1 if style supports group/group calculation
@@ -69,14 +69,10 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
-  virtual int pack_forward(int, FFT_SCALAR *,
-                           int, int, int, int, int, int) {return 0;};
-  virtual void unpack_forward(int, FFT_SCALAR *,
-                              int, int, int, int, int, int) {};
-  virtual int pack_reverse(int, FFT_SCALAR *,
-                           int, int, int, int, int, int) {return 0;};
-  virtual void unpack_reverse(int, FFT_SCALAR *,
-                              int, int, int, int, int, int) {};
+  virtual int pack_forward(int, FFT_SCALAR *, int, int *) {return 0;};
+  virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
+  virtual int pack_reverse(int, FFT_SCALAR *, int, int *) {return 0;};
+  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}

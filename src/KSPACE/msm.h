@@ -154,15 +154,10 @@ E: Cannot use slab correction with MSM
 
 Slab correction can only be used with Ewald and PPPM, not MSM
 
-E: MSM order cannot be < 4 or > than 10
+E: MSM order must be 4, 6, 8, or 10
 
-This is a limitation of the MSM implementation in LAMMPS.
-
-Currently the order may only range from 4 to 10
-
-E: MSM order must be even
-
-Currently the MSM order must be an even number
+This is a limitation of the MSM implementation in LAMMPS: 
+the MSM order can only be 4, 6, 8, or 10.
 
 E: KSpace style is incompatible with Pair style
 

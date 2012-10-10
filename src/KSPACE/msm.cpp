@@ -40,7 +40,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER 10
 #define MAX_LEVELS 10
 #define OFFSET 16384
 #define SMALL 0.00001
@@ -80,6 +79,8 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   v3_direct = v4_direct = v5_direct = NULL;
 
   levels = 0;
+  
+  order = 4;
 
   differentiation_flag = 1;
 }
@@ -134,15 +135,13 @@ void MSM::init()
   if (domain->nonperiodic > 0)
     error->all(FLERR,"Cannot (yet) use nonperiodic boundaries with MSM");
 
-  if (order == 5) order = 4; // Change the default order value
-
-  if (order < 4 || order > MAXORDER) {
+  if (order < 4 || order > 10) {
     char str[128];
-    sprintf(str,"MSM order cannot be < 2 or > than %d",MAXORDER);
+    sprintf(str,"MSM order must be 4, 6, 8, or 10");
     error->all(FLERR,str);
   }
 
-  if (order%2 != 0) error->all(FLERR,"MSM order must be even");
+  if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
 
   // free all arrays previously allocated
 
@@ -459,15 +458,55 @@ void MSM::init()
 }
 
 /* ----------------------------------------------------------------------
-   estimate 1d grid RMS force error for MSM from Sec 3.1 of Hardy's thesis
+   estimate 1d grid RMS force error for MSM 
 ------------------------------------------------------------------------- */
 
 double MSM::estimate_1d_error(double h, double prd)
 {
   double a = cutoff;
   int p = order - 1;
-  double error_1d = pow(h,(p-1))/pow(a,(p+1));
-  error_1d *= 24.0*q2/sqrt(atom->natoms*a*prd*prd);
+  
+  double Mp,cprime,error_scaling; 
+  Mp = cprime = error_scaling = 1;
+  // Mp values from Table 5.1 of Hardy's thesis
+  // cprime values from equation 4.17 of Hardy's thesis
+  // error scaling from empirical fitting to convert to rms force errors
+  if (p == 3) {
+    Mp = 9;
+    cprime = 1.0/6.0;
+    if (differentiation_flag) error_scaling = 0.39189561;
+    else error_scaling = 0.215328372;
+  } else if (p == 5) {
+    Mp = 825;
+    cprime = 1.0/30.0;
+    if (differentiation_flag) error_scaling = 0.150829428;
+    else error_scaling = 0.10751471;
+  } else if (p == 7) {
+    Mp = 130095;
+    cprime = 1.0/140.0;
+    if (differentiation_flag) error_scaling = 0.049632967;
+    else error_scaling = 0.047579461;
+  } else if (p == 9) {
+    Mp = 34096545;
+    cprime = 1.0/630.0;
+    if (differentiation_flag) error_scaling = 0.013520855;
+    else error_scaling = 0.010403771;
+  } else {
+    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
+  }
+  
+  // equation 4.1 from Hardy's thesis
+  double C_p = 4.0*cprime*Mp/3.0;
+  
+  // use empirical parameters to convert to rms force errors
+  C_p *= error_scaling;
+  
+  // equation 3.197 from Hardy's thesis
+  double error_1d = C_p*pow(h,(p-1))/pow(a,(p+1));
+  
+  // include dependency of error on other terms
+  error_1d *= q2*a/(prd*sqrt(atom->natoms));
+  
   return error_1d;
 }
 
@@ -1097,12 +1136,10 @@ void MSM::set_grid()
     if (screen) {
       fprintf(screen,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
       fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  splitting order = %d\n",split_order);
     }
     if (logfile) {
       fprintf(logfile,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
       fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  splitting order = %d\n",split_order);
     }
   }
 
@@ -1812,19 +1849,19 @@ void MSM::prolongation(int n)
                 egrid1[kk][jj][ii] += egrid2[kp][jp][ip] * phi3d;
               }
 
-              if (!differentiation_flag) {			
-                fxgrid1[kk][jj][ii] += fxgrid2[kp][jp][ip] * phi3d;	
-                fygrid1[kk][jj][ii] += fygrid2[kp][jp][ip] * phi3d;				
-                fzgrid1[kk][jj][ii] += fzgrid2[kp][jp][ip] * phi3d;		
-              }				
+              if (!differentiation_flag) {
+                fxgrid1[kk][jj][ii] += fxgrid2[kp][jp][ip] * phi3d;
+                fygrid1[kk][jj][ii] += fygrid2[kp][jp][ip] * phi3d;
+                fzgrid1[kk][jj][ii] += fzgrid2[kp][jp][ip] * phi3d;
+              }
 
               if (vflag_atom) {
-                v0grid1[kk][jj][ii] += v0grid2[kp][jp][ip] * phi3d;				
-                v1grid1[kk][jj][ii] += v1grid2[kp][jp][ip] * phi3d;				
-                v2grid1[kk][jj][ii] += v2grid2[kp][jp][ip] * phi3d;		
-                v3grid1[kk][jj][ii] += v3grid2[kp][jp][ip] * phi3d;		
-                v4grid1[kk][jj][ii] += v4grid2[kp][jp][ip] * phi3d;		
-                v5grid1[kk][jj][ii] += v5grid2[kp][jp][ip] * phi3d;						
+                v0grid1[kk][jj][ii] += v0grid2[kp][jp][ip] * phi3d;
+                v1grid1[kk][jj][ii] += v1grid2[kp][jp][ip] * phi3d;
+                v2grid1[kk][jj][ii] += v2grid2[kp][jp][ip] * phi3d;
+                v3grid1[kk][jj][ii] += v3grid2[kp][jp][ip] * phi3d;
+                v4grid1[kk][jj][ii] += v4grid2[kp][jp][ip] * phi3d;
+                v5grid1[kk][jj][ii] += v5grid2[kp][jp][ip] * phi3d;
               }
 
             }

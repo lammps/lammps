@@ -382,10 +382,10 @@ void PairLJCutCoulMSM::init_tables()
   if (cut_respa == NULL) {
     vtable = ptable = dvtable = dptable = NULL;
   } else {
-    memory->create(vtable,ntable*sizeof(double),"pair:vtable");
-    memory->create(ptable,ntable*sizeof(double),"pair:ptable");
-    memory->create(dvtable,ntable*sizeof(double),"pair:dvtable");
-    memory->create(dptable,ntable*sizeof(double),"pair:dptable");
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
   }
 
   union_int_float_t rsq_lookup;

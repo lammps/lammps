@@ -69,9 +69,9 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
-  virtual int pack_forward(int, FFT_SCALAR *, int, int *) {return 0;};
+  virtual void pack_forward(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
-  virtual int pack_reverse(int, FFT_SCALAR *, int, int *) {return 0;};
+  virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
   virtual int timing(int, double &, double &) {return 0;}

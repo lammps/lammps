@@ -72,8 +72,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Cannot use fix ave/spatial z for 2 dimensional model");
 
     if (strcmp(arg[iarg+1],"lower") == 0) originflag[ndim] = LOWER;
-    if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
-    if (strcmp(arg[iarg+1],"upper") == 0) originflag[ndim] = UPPER;
+    else if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
+    else if (strcmp(arg[iarg+1],"upper") == 0) originflag[ndim] = UPPER;
     else originflag[ndim] = COORD;
     if (originflag[ndim] == COORD) origin[ndim] = atof(arg[iarg+1]);
 

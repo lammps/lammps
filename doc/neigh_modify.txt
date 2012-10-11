@@ -117,6 +117,17 @@ Note that the exclude options only affect pairwise interactions; see
 the "delete_bonds"_delete_bonds.html command for information on
 turning off bond interactions.
 
+IMPORTANT NOTE: Excluding pairwise interactions will not work
+correctly when also using a long-range solver via the
+"kspace_style"_kspace_style.html command.  LAMMPS will give a warning
+to this effect.  This is because the short-range pairwise interaction
+needs to subtract off a term from the total energy for pairs whose
+short-range interaction is excluded, to compensate for how the
+long-range solver treats the interaction.  This is done correctly for
+pairwise interactions that are excluded (or weighted) via the
+"special_bonds"_special_bonds.html command.  But it is not done for
+interactions that are excluded via these neigh_modify exclude options.
+
 The {page} and {one} options affect how memory is allocated for the
 neighbor lists.  For most simulations the default settings for these
 options are fine, but if a very large problem is being run or a very

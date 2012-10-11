@@ -122,6 +122,17 @@ times; they require one check for each time they have been specified.
 the <A HREF = "delete_bonds.html">delete_bonds</A> command for information on
 turning off bond interactions.
 </P>
+<P>IMPORTANT NOTE: Excluding pairwise interactions will not work
+correctly when also using a long-range solver via the
+<A HREF = "kspace_style.html">kspace_style</A> command.  LAMMPS will give a warning
+to this effect.  This is because the short-range pairwise interaction
+needs to subtract off a term from the total energy for pairs whose
+short-range interaction is excluded, to compensate for how the
+long-range solver treats the interaction.  This is done correctly for
+pairwise interactions that are excluded (or weighted) via the
+<A HREF = "special_bonds.html">special_bonds</A> command.  But it is not done for
+interactions that are excluded via these neigh_modify exclude options.
+</P>
 <P>The <I>page</I> and <I>one</I> options affect how memory is allocated for the
 neighbor lists.  For most simulations the default settings for these
 options are fine, but if a very large problem is being run or a very

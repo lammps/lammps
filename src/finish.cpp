@@ -434,7 +434,7 @@ void Finish::end(int flag)
     int nsample = 1;
     int nfft = force->kspace->timing_3d(nsample,time3d);
     while (time3d < 1.0) {
-      nsample *= 5;
+      nsample *= 2;
       nfft = force->kspace->timing_3d(nsample,time3d);
     }
 
@@ -446,7 +446,7 @@ void Finish::end(int flag)
     nsample = 1;
     nfft = force->kspace->timing_1d(nsample,time1d);
     while (time1d < 1.0) {
-      nsample *= 5;
+      nsample *= 2;
       nfft = force->kspace->timing_1d(nsample,time1d);
     }
     

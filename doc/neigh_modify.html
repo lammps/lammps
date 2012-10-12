@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>once</I> or <I>include</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
+<PRE>keyword = <I>delay</I> or <I>every</I> or <I>check</I> or <I>once</I> or <I>cluster</I> or <I>include</I> or <I>exclude</I> or <I>page</I> or <I>one</I> or <I>binsize</I>
   <I>delay</I> value = N
     N = delay building until this many steps since last build
   <I>every</I> value = M
@@ -28,6 +28,9 @@
   <I>once</I>
     <I>yes</I> = only build neighbor list once at start of run and never rebuild
     <I>no</I> = rebuild neighbor list according to other settings
+  <I>cluster</I>
+    <I>yes</I> = check bond,angle,etc neighbor list for nearby clusters
+    <I>no</I> = do not check bond,angle,etc neighbor list for nearby clusters
   <I>include</I> value = group-ID
     group-ID = only build pair neighbor lists for atoms in this group
   <I>exclude</I> values:
@@ -80,6 +83,21 @@ lists should be rebuilt.
 <P>When the rRESPA integrator is used (see the <A HREF = "run_style.html">run_style</A>
 command), the <I>every</I> and <I>delay</I> parameters refer to the longest
 (outermost) timestep.
+</P>
+<P>The <I>cluster</I> option does a sanity test every time neighbor lists are
+built for bond, angle, dihedral, and improper interactions, to check
+that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
+does this by computing the distance between pairs of atoms in the
+interaction and insuring they are not further apart than half the
+periodic box length.  If they are, an error is generated, since the
+interaction would be computed between far-away atoms instead of their
+nearby periodic images.  The only way this should happen is if the
+pairwise cutoff is so short that atoms that are part of the same
+interaction are not communicated as ghost atoms.  This is an unusual
+model (e.g. no pair interactions at all) and the problem can be fixed
+by use of the <A HREF = "communicate.html">communicate cutoff</A> command.  Note
+that to save time, the default <I>cluster</I> setting is <I>no</I>, so that this
+check is not performed.
 </P>
 <P>The <I>include</I> option limits the building of pairwise neighbor lists to
 atoms in the specified group.  This can be useful for models where a
@@ -187,6 +205,7 @@ space.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are delay = 10, every = 1, check = yes, once = no,
-include = all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
+cluster = no, include = all, exclude = none, page = 100000, one =
+2000, and binsize = 0.0.
 </P>
 </HTML>

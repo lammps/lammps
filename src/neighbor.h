@@ -97,6 +97,7 @@ class Neighbor : protected Pointers {
   double *cuttypesq;               // cuttype squared
 
   double triggersq;                // trigger = build when atom moves this dist
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
   double **xhold;                      // atom coords at last neighbor build
   int maxhold;                         // size of xhold array
@@ -255,14 +256,17 @@ class Neighbor : protected Pointers {
   BondPtr bond_build;                 // ptr to bond list functions
   void bond_all();                    // bond list with all bonds
   void bond_partial();                // exclude certain bonds
+  void bond_check();
 
   BondPtr angle_build;                // ptr to angle list functions
   void angle_all();                   // angle list with all angles
   void angle_partial();               // exclude certain angles
+  void angle_check();
 
   BondPtr dihedral_build;             // ptr to dihedral list functions
   void dihedral_all();                // dihedral list with all dihedrals
   void dihedral_partial();            // exclude certain dihedrals
+  void dihedral_check(int **);
 
   BondPtr improper_build;             // ptr to improper list functions
   void improper_all();                // improper list with all impropers

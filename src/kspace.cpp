@@ -39,6 +39,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   order = 5;
   gridflag = 0;
   gewaldflag = 0;
+  minorder = 2;
+  overlap_allowed = 1;
 
   order_6 = 5;
   gridflag_6 = 0;
@@ -315,6 +317,17 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order_6 = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg],"minorder") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      minorder = atoi(arg[iarg+1]);
+      if (minorder < 2) error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"overlap") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) overlap_allowed = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) overlap_allowed = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       accuracy_absolute = atof(arg[iarg+1]);

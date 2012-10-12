@@ -300,7 +300,7 @@ void PPPM::init()
     order--;
   }
 
-  if (order == 0) error->all(FLERR,"PPPM order has been reduced to 0");
+  if (order == 1) error->all(FLERR,"PPPM order has been reduced to 1");
 
   // adjust g_ewald
 

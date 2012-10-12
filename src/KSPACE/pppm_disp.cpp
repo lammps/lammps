@@ -371,7 +371,6 @@ void PPPMDisp::init()
  
       set_grid();
 
-
       if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
       error->all(FLERR,"PPPMDisp Coulomb grid is too large");
 
@@ -396,7 +395,6 @@ void PPPMDisp::init()
       if (nzlo_ghost > nzhi_in-nzlo_in+1) flag = 1;
       if (nzhi_ghost > nzhi_in-nzlo_in+1) flag = 1;
 
-
       int flag_all;
       MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
 
@@ -404,7 +402,8 @@ void PPPMDisp::init()
       order--;
     }
 
-    if (order == 0) error->all(FLERR,"Coulomb PPPMDisp order has been reduced to 0");
+    if (order == 1)
+      error->all(FLERR,"Coulomb PPPMDisp order has been reduced to 1");
 
     // adjust g_ewald
   

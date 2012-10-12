@@ -66,6 +66,7 @@ class KSpace : protected Pointers {
 
   virtual void init() = 0;
   virtual void setup() = 0;
+  virtual void setup_grid() {};
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
@@ -86,6 +87,7 @@ class KSpace : protected Pointers {
   int gridflag,gridflag_6;
   int gewaldflag,gewaldflag_6;
   int order,order_6;
+  int minorder,overlap_allowed;
   int differentiation_flag;
   int slabflag;
   int suffix_flag;                  // suffix compatibility flag

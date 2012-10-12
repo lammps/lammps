@@ -153,12 +153,13 @@ manual.
 </P>
 <HR>
 
-<P>The <I>msm</I> style invokes a multi-level summation method MSM solver
-<A HREF = "#Hardy">(Hardy)</A> which maps atom charge to a 3d mesh, and uses a 
-multi-level hierarchy of coarser and coarser meshes on which direct
-coulomb solves are done.  This method does not use FFTs and scales
-as N. It may therefore be faster than the other K-space solvers for 
-relatively large problems when running on large core counts.
+<P>The <I>msm</I> style invokes a multi-level summation method MSM solver,
+<A HREF = "#Hardy">(Hardy)</A> or <A HREF = "#Hardy2">(Hardy2)</A>, which maps atom charge to a 3d
+mesh, and uses a multi-level hierarchy of coarser and coarser meshes
+on which direct coulomb solves are done.  This method does not use
+FFTs and scales as N. It may therefore be faster than the other
+K-space solvers for relatively large problems when running on large
+core counts.
 </P>
 <P>MSM is most competitive versus Ewald and PPPM when only relatively 
 low accuracy forces, about 1e-4 relative error or less accurate, 
@@ -284,8 +285,13 @@ Adam Hilger, NY (1989).
 </P>
 <A NAME = "Hardy"></A>
 
-<P><B>(Hardy)</B> David, Thesis: Multilevel Summation for the Fast Evaluation
-of Forces for the Simulation of Biomolecules, University of Illinois
-at Urbana-Champaign, (2006).
+<P><B>(Hardy)</B> David Hardy thesis: Multilevel Summation for the Fast
+Evaluation of Forces for the Simulation of Biomolecules, University of
+Illinois at Urbana-Champaign, (2006).
+</P>
+<A NAME = "Hardy2"></A>
+
+<P><B>(Hardy)</B> Hardy, Stone, Schulten, Parallel Computing 35 (2009)
+164-177.
 </P>
 </HTML>

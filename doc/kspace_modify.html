@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>gewald</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>diff</I> 
+<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>diff</I> 
 
 <PRE>  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
@@ -27,6 +27,9 @@
     N = extent of Gaussian for PPPM or MSM mapping of charge to grid
   <I>order/disp</I> value = N
     N = extent of Gaussian for PPPM mapping of dispersion term to grid
+  <I>overlap</I> = <I>yes</I> or <I>no</I> = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
+  <I>minorder</I> value = M
+    M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
   <I>force</I> value = accuracy (force units)
   <I>gewald</I> value = rinv (1/distance units)
     rinv = G-ewald parameter for Coulombics
@@ -37,7 +40,7 @@
       2d approximation compared with the volume of the simulation domain
   <I>nozforce</I> turns off kspace forces in the z direction
   <I>compute</I> value = <I>yes</I> or <I>no</I> 
-  <I>diff</I> value = <I>ik</I> or <I>ad</I> 
+  <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
 </PRE>
 
 </UL>
@@ -69,30 +72,60 @@ consistent with the user-specified accuracy and pairwise cutoff.
 Values for x,y,z of 0,0,0 unset the option.
 </P>
 <P>The <I>order</I> keyword determines how many grid spacings an atom's charge
-extends when it is mapped to the grid in kspace style <I>pppm</I> or <I>msm</I>.  
-The default for this parameter is 5 for PPPM and 4 for MSM, which means 
-each charge spans 5 or 4 grid cells in each dimension, respectively.  
-For the LAMMPS implementation of MSM, the order can range from 4 to 10
-and must be even. For PPPM, the minimum allowed setting is 2 and the 
-maximum allowed setting is 7.  The larger the value of this parameter, 
-the smaller the grid will need to be to achieve the requested accuracy.  
-Conversely, the smaller the order value, the larger the grid will be.  
-Note that there is an inherent trade-off involved: a small grid will 
-lower the cost of FFTs or MSM direct sum, but a larger order parameter
-will increase the cost of interpolating charge/fields to/from the grid.
+extends when it is mapped to the grid in kspace style <I>pppm</I> or <I>msm</I>.
+The default for this parameter is 5 for PPPM and 4 for MSM, which
+means each charge spans 5 or 4 grid cells in each dimension,
+respectively.  For the LAMMPS implementation of MSM, the order can
+range from 4 to 10 and must be even. For PPPM, the minimum allowed
+setting is 2 and the maximum allowed setting is 7.  The larger the
+value of this parameter, the smaller that LAMMPS will set the grid
+size, to achieve the requested accuracy.  Conversely, the smaller the
+order value, the larger the grid size will be.  Note that there is an
+inherent trade-off involved: a small grid will lower the cost of FFTs
+or MSM direct sum, but a larger order parameter will increase the cost
+of interpolating charge/fields to/from the grid.
 </P>
 <P>The <I>order/disp</I> keyword determines how many grid spacings an atom's
 dispersion term extends when it is mapped to the grid in kspace style
 <I>pppm/disp</I>.  It has the same meaning as the <I>order</I> setting for
 Coulombics.
 </P>
-<P>The PPPM order parameter may be reset by LAMMPS when it sets up the 
+<P>The <I>overlap</I> keyword can be used in conjunction with the <I>minorder</I>
+keyword with the PPPM styles to adjust the amount of communication
+that occurs when values on the FFT grid are exchangeed between
+processors.  This communication is distinct from the communication
+inherent in the parallel FFTs themselves, and is required because
+processors interpolate charge and field values using grid point values
+owned by neighboring processors (i.e. ghost point communication).  If
+the <I>overlap</I> keyword is set to <I>yes</I> then this communication is
+allowed to extend beyond nearest-neighbor processors, e.g. when using
+lots of processors on a small problem.  If it is set to <I>no</I> then the
+communication will be limited to nearest-neighbor processors and the
+<I>order</I> setting will be reduced if necessary, as explained by the
+<I>minorder</I> keyword discussion.
+</P>
+<P>The <I>minorder</I> keyword allows LAMMPS to reduce the <I>order</I> setting if
+necessary to keep the communication of ghost grid point limited to
+exchanges between nearest-neighbor processors.  See the discussion of
+the <I>overlap</I> keyword for details.  If the <I>overlap</I> keyword is set to
+<I>yes</I>, which is the default, this is never needed.  If it set to <I>no</I>
+and overlap occurs, then LAMMPS will reduce the order setting, one
+step at a time, until the ghost grid overlap only extends to nearest
+neighbor processors.  The <I>minorder</I> keyword limits how small the
+<I>order</I> setting can become.  The minimum allowed value for PPPM is 2,
+which is the default.  If <I>minorder</I> is set to the same value as
+<I>order</I> then no reduction is allowed, and LAMMPS will generate an
+error if the grid communcation is non-nearest-neighbor and <I>overlap</I>
+is set to <I>no</I>.
+</P>
+<P>The PPPM order parameter may be reset by LAMMPS when it sets up the
 FFT grid if the implied grid stencil extends beyond the grid cells
 owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
-LAMMPS to run the problem. Automatic reduction of order is not currently
-implemented in MSM, so an error (instead of a warning) will be generated.
+LAMMPS to run the problem. Automatic reduction of order is not
+currently implemented in MSM, so an error (instead of a warning) will
+be generated.
 </P>
 <P>The <I>force</I> keyword overrides the relative accuracy parameter set by
 the <A HREF = "kspace_style.html">kspace_style</A> command with an absolute
@@ -148,17 +181,23 @@ This keyword gives you that option.
 <P>The <I>diff</I> keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The <I>ik</I> approach is the default for
-PPPM.  It performs differentiation in Kspace, but uses 3 FFTs to
-transfer the computed fields back to real space (total of 4 FFTs per
-timestep). The analytic differentiation, or <I>ad</I> approach uses only 1
-FFT to transfer the computed fields back to real space (total of 2
-FFTs per timestep), but requires a somewhat larger PPPM mesh to
-achieve the same accuracy as the <I>ik</I> approach. Analogous approaches
-have been implemented in MSM and can be specified using the same
-keywords. The <I>ad</I> approach is the default for MSM.
+PPPM and is the original formulation used in <A HREF = "#Hockney">(Hockney)</A>.  It
+performs differentiation in Kspace, and uses 3 FFTs to transfer each
+component of the computed fields back to real space for total of 4
+FFTs per timestep.
 </P>
-<P>IMPORTANT NOTE: Currently, not all <I>pppm</I> styles support the <I>ad</I>
-option.  Support for those <I>pppm</I> variants will be added later.
+<P>The analytic differentiation <I>ad</I> approach uses only 1 FFT to transfer
+information back to real space for a total of 2 FFTs per timestep.  It
+then performs analytic differentiation on the single quantity to
+generate the 3 components of the electric field at each grid point.
+This is sometimes referred to as "smoothed" PPPM.  This approach
+requires a somewhat larger PPPM mesh to achieve the same accuracy as
+the <I>ik</I> method.  Analogous approaches have been implemented in MSM
+and can be specified using the same keywords.  The <I>ad</I> approach is
+the default for MSM.
+</P>
+<P>IMPORTANT NOTE: Currently, not all PPPM styles support the <I>ad</I>
+option.  Support for those PPPM variants will be added later.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -169,11 +208,17 @@ option.  Support for those <I>pppm</I> variants will be added later.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
-5 (PPPM), order = 4 (MSM), force = -1.0, gewald = gewald/disp = 0.0, 
-slab = 1.0, compute = yes, and diff = ik (PPPM), diff = ad (MSM).
+5 (PPPM), order = 4 (MSM), minorder = 2, overlap = yes, force = -1.0,
+gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, and diff = ik
+(PPPM), diff = ad (MSM).
 </P>
 <HR>
 
+<A NAME = "Hockney"></A>
+
+<P><B>(Hockney)</B> Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).
+</P>
 <A NAME = "Yeh"></A>
 
 <P><B>(Yeh)</B> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).

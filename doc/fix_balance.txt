@@ -250,10 +250,7 @@ minimization"_minimize.html.
 
 :line
 
-[Restrictions:]
-
-The fix balance command cannot yet be used with the long-range
-Coulombic PPPM solver invoked by "kspace_style pppm"_kspace_style,html.
+[Restrictions:] none
 
 [Related commands:]
 
